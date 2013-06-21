@@ -6,9 +6,8 @@ import libtcodpy as libtcod
 
 Position = namedtuple('Position', ['x', 'y', 'floor'])
 
-def update(game, dt_ms, key):
+def update(game, dt_ms, w, h, key):
     pos = game['player']['position']
-    w, h = game['screen']['width'], game['screen']['height']
     newpos = pos
     if key:
         if key.vk == libtcod.KEY_UP:
@@ -30,7 +29,6 @@ def initial_state(w, h):
         'player': {
             'position': Position(w / 2, h / 2, 1)
         },
-        'screen': {'width': w, 'height': h}
     }
 
 
@@ -52,5 +50,5 @@ if __name__ == '__main__':
             key = None
         dt_ms = 10
         libtcod.console_clear(None)
-        game_state = update(game_state, dt_ms, key)
+        game_state = update(game_state, dt_ms, SCREEN_WIDTH, SCREEN_HEIGHT, key)
         libtcod.console_flush()

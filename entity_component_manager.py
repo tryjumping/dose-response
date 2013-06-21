@@ -20,6 +20,15 @@ class Entity(object):
     def __hash__(self):
         return hash(self._ecm) + hash(self._id)
 
+    def set(self, component):
+        return self._ecm.set_component(self, component)
+
+    def get(self, ctype):
+        return self._ecm.get_component(self, ctype)
+
+    def components(self):
+        return self._ecm.components(self)
+
 class EntityComponentManager(object):
 
     def __init__(self):
@@ -40,7 +49,7 @@ class EntityComponentManager(object):
             return
         self._components[ctype] = [None] * self._last_entity_id
 
-    def add_component(self, entity, component):
+    def set_component(self, entity, component):
         if not isinstance(component, Component):
             raise TypeError('The component must be a Component instance')
         ctype = component.__class__
@@ -65,6 +74,13 @@ class EntityComponentManager(object):
         if ctype not in self._components:
             raise ValueError('Unknown component type. Register it before use.')
         self._components[ctype][entity._id] = None
+
+    def components(self, entity):
+        id = entity._id
+        return (self._components[ctype][id] for ctype
+                in self._components.keys()
+                if ((len(self._components[ctype]) > id) and
+                    self._components[ctype][id]))
 
     def entities(self, ctype=None):
         if not ctype:

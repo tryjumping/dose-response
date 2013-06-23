@@ -31,9 +31,13 @@ def input_system(e, dt_ms, key):
         dest.x += 1
     e.set(dest)
 
-def movement_system(e, dt_ms):
+def movement_system(e, dt_ms, w, h):
     dest = e.get(MoveDestination)
-    # TODO: test collision
+    pos = e.get(Position)
+    if dest.x < 0 or dest.x >= w:
+        dest.x = pos.x
+    if dest.y < 0 or dest.y >= h:
+        dest.y = pos.y
     e.set(Position(dest.x, dest.y, dest.floor))
     e.remove(MoveDestination)
 
@@ -44,7 +48,7 @@ def update(game, dt_ms, w, h, key):
     for controllable in [e for e in ecm.entities(UserInput)]:
         input_system(controllable, dt_ms, key)
     for moving in [e for e in ecm.entities(MoveDestination)]:
-        movement_system(e, dt_ms)
+        movement_system(e, dt_ms, w, h)
     for renderable in [e for e in ecm.entities(Tile)]:
         tile_system(renderable, dt_ms)
     return game

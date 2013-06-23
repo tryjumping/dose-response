@@ -1,10 +1,21 @@
 from collections import namedtuple
 import os
+from random import random
 
 import libtcodpy as libtcod
 
 from entity_component_manager import EntityComponentManager
 from components import *
+
+draw_commands = None
+
+def clear_leveled_graphics():
+    global draw_commands
+    draw_commands = [[] for _ in range(10)]
+
+def put_char_with_level(level, x, y, glyph, color):
+    global draw_commands
+    draw_commands[level].append((libtcod.console_put_char, 0, x, y, glyph, color))
 
 
 def tile_system(e, dt_ms):
@@ -12,7 +23,7 @@ def tile_system(e, dt_ms):
     if not pos:
         return
     tile = e.get(Tile)
-    libtcod.console_put_char(0, pos.x, pos.y, tile.glyph, libtcod.BKGND_NONE)
+    put_char_with_level(tile.level, pos.x, pos.y, tile.glyph, libtcod.BKGND_NONE)
 
 def input_system(e, dt_ms, key):
     if not key:
@@ -53,16 +64,36 @@ def update(game, dt_ms, w, h, key):
         tile_system(renderable, dt_ms)
     return game
 
+def generate_map(w, h):
+    floor = []
+    for x in xrange(w):
+        for y in xrange(h):
+            tile_kind = 'empty'
+            if random() > 0.7:
+                tile_kind = 'wall'
+            floor.append([x, y, tile_kind])
+    return [floor]
+
 def initial_state(w, h):
     ecm = EntityComponentManager()
     ecm.register_component_type(Position)
     ecm.register_component_type(MoveDestination)
     ecm.register_component_type(Tile)
     ecm.register_component_type(UserInput)
+    ecm.register_component_type(Solid)
     player = ecm.new_entity()
     player.set(Position(w / 2, h / 2, 1))
-    player.set(Tile('player', None, '@'))
+    player.set(Tile(9, None, '@'))
     player.set(UserInput())
+    for floor, map in enumerate(generate_map(w, h)):
+        for x, y, type in map:
+            block = ecm.new_entity()
+            block.set(Position(x, y, floor+1))
+            if type == 'empty':
+                block.set(Tile(0, None, ' '))
+            else:
+                block.set(Tile(0, None, '#'))
+                block.set(Solid())
     return {'ecm': ecm}
 
 
@@ -84,5 +115,10 @@ if __name__ == '__main__':
             key = None
         dt_ms = 10
         libtcod.console_clear(None)
+        clear_leveled_graphics()
         game_state = update(game_state, dt_ms, SCREEN_WIDTH, SCREEN_HEIGHT, key)
+        for level, commands in enumerate(draw_commands):
+            for command in commands:
+                fun, args = command[0], command[1:]
+                fun(*args)
         libtcod.console_flush()

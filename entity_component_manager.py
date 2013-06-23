@@ -86,7 +86,7 @@ class EntityComponentManager(object):
         id = entity._id
         return (self._components[ctype][id] for ctype
                 in self._components.keys()
-                if self._components[ctype][id] is not None)
+                if self._components[ctype][id])
 
     def entities(self, ctype=None):
         if not ctype:

@@ -13,10 +13,13 @@ class MoveDestination(Component):
         self.floor = floor
 
 class Tile(Component):
-    def __init__(self, type, color, glyph):
-        self.type = type
+    def __init__(self, level, color, glyph):
+        self.level = level
         self.color = color
         self.glyph = glyph
 
 class UserInput(Component):
+    pass
+
+class Solid(Component):
     pass

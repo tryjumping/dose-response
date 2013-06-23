@@ -3,33 +3,63 @@ import os
 
 import libtcodpy as libtcod
 
+from entity_component_manager import EntityComponentManager
+from components import *
 
-Position = namedtuple('Position', ['x', 'y', 'floor'])
+
+def tile_system(e, dt_ms):
+    pos = e.get(Position)
+    if not pos:
+        return
+    tile = e.get(Tile)
+    libtcod.console_put_char(0, pos.x, pos.y, tile.glyph, libtcod.BKGND_NONE)
+
+def input_system(e, dt_ms, key):
+    if not key:
+        return
+    pos = e.get(Position)
+    if not pos:
+        return
+    dest = MoveDestination(pos.x, pos.y, pos.floor)
+    if key.vk == libtcod.KEY_UP:
+        dest.y -= 1
+    elif key.vk == libtcod.KEY_DOWN:
+        dest.y += 1
+    elif key.vk == libtcod.KEY_LEFT:
+        dest.x -= 1
+    elif key.vk == libtcod.KEY_RIGHT:
+        dest.x += 1
+    e.set(dest)
+
+def movement_system(e, dt_ms):
+    dest = e.get(MoveDestination)
+    # TODO: test collision
+    e.set(Position(dest.x, dest.y, dest.floor))
+    e.remove(MoveDestination)
 
 def update(game, dt_ms, w, h, key):
-    pos = game['player']['position']
-    newpos = pos
-    if key:
-        if key.vk == libtcod.KEY_UP:
-            newpos = pos._replace(y=max(pos.y - 1, 0))
-        elif key.vk == libtcod.KEY_DOWN:
-            newpos = pos._replace(y=min(pos.y + 1, h - 1))
-        elif key.vk == libtcod.KEY_LEFT:
-            newpos = pos._replace(x=max(pos.x - 1, 0))
-        elif key.vk == libtcod.KEY_RIGHT:
-            newpos = pos._replace(x=min(pos.x + 1, w - 1))
-        elif key.vk == libtcod.KEY_ESCAPE:
-            return None
-    game['player']['position'] = newpos
-    libtcod.console_put_char(0, newpos.x, newpos.y, '@', libtcod.BKGND_NONE)
+    ecm = game['ecm']
+    if key and key.vk == libtcod.KEY_ESCAPE:
+        return None  # Quit the game
+    for controllable in [e for e in ecm.entities(UserInput)]:
+        input_system(controllable, dt_ms, key)
+    for moving in [e for e in ecm.entities(MoveDestination)]:
+        movement_system(e, dt_ms)
+    for renderable in [e for e in ecm.entities(Tile)]:
+        tile_system(renderable, dt_ms)
     return game
 
 def initial_state(w, h):
-    return {
-        'player': {
-            'position': Position(w / 2, h / 2, 1)
-        },
-    }
+    ecm = EntityComponentManager()
+    ecm.register_component_type(Position)
+    ecm.register_component_type(MoveDestination)
+    ecm.register_component_type(Tile)
+    ecm.register_component_type(UserInput)
+    player = ecm.new_entity()
+    player.set(Position(w / 2, h / 2, 1))
+    player.set(Tile('player', None, '@'))
+    player.set(UserInput())
+    return {'ecm': ecm}
 
 
 if __name__ == '__main__':

@@ -20,6 +20,9 @@ class Entity(object):
     def __hash__(self):
         return hash(self._ecm) + hash(self._id)
 
+    def has(self, ctype):
+        return self._ecm.get_component(self, ctype) is not None
+
     def set(self, component):
         return self._ecm.set_component(self, component)
 
@@ -28,6 +31,9 @@ class Entity(object):
 
     def components(self):
         return self._ecm.components(self)
+
+    def remove(self, ctype):
+        return self._ecm.remove_component(self, ctype)
 
 class EntityComponentManager(object):
 

@@ -112,6 +112,12 @@ class EntityHelpers(unittest.TestCase):
         self.ecm.register_component_type(Velocity)
         self.ecm.register_component_type(EmptyComponent)
 
+    def test_has_component(self):
+        e = self.ecm.new_entity()
+        e.set(Position(10, 20))
+        self.assertTrue(e.has(Position))
+        self.assertFalse(e.has(Velocity))
+
     def test_set_component(self):
         e = self.ecm.new_entity()
         e.set(Position(10, 20))
@@ -157,6 +163,17 @@ class EntityHelpers(unittest.TestCase):
         self.assertIsInstance(vel, Velocity)
         self.assertEqual(vel.dx, 5)
         self.assertEqual(vel.dy, 5)
+
+    def test_remove_component(self):
+        e = self.ecm.new_entity()
+        e.set(Position(10, 20))
+        e.set(Velocity(5, 5))
+        self.assertTrue(e.has(Position))
+        self.assertTrue(e.has(Velocity))
+        e.remove(Position)
+        self.assertFalse(e.has(Position))
+        self.assertTrue(e.has(Velocity))
+
 
 if __name__ == '__main__':
     unittest.main()

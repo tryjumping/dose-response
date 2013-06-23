@@ -39,13 +39,16 @@ class EntityComponentManager(object):
 
     def __init__(self):
         self._entities = set()
-        self._last_entity_id = 0
+        self._last_entity_id = -1
         self._components = {}
 
     def new_entity(self):
         id = self._last_entity_id + 1
         self._entities.add(id)
         self._last_entity_id = id
+        for ctype in self._components:
+            self._components[ctype].append(None)
+            assert self._last_entity_id == len(self._components[ctype])-1
         return Entity(self, id)
 
     def register_component_type(self, ctype):
@@ -53,7 +56,7 @@ class EntityComponentManager(object):
             raise TypeError('The type must be a Component instance')
         if ctype in self._components:
             return
-        self._components[ctype] = [None] * self._last_entity_id
+        self._components[ctype] = [None] * (self._last_entity_id + 1)
 
     def set_component(self, entity, component):
         if not isinstance(component, Component):
@@ -63,8 +66,6 @@ class EntityComponentManager(object):
             raise ValueError('Unknown component type. Register it before use.')
         components = self._components[ctype]
         id = entity._id
-        if len(components) <= id:
-            components.extend([None] * (id - len(components) + 1))
         components[id] = component
 
     def get_component(self, entity, ctype):
@@ -85,8 +86,7 @@ class EntityComponentManager(object):
         id = entity._id
         return (self._components[ctype][id] for ctype
                 in self._components.keys()
-                if ((len(self._components[ctype]) > id) and
-                    self._components[ctype][id]))
+                if self._components[ctype][id] is not None)
 
     def entities(self, ctype=None):
         if not ctype:

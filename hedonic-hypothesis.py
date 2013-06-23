@@ -43,13 +43,16 @@ def input_system(e, dt_ms, key):
     e.set(dest)
 
 def movement_system(e, dt_ms, w, h):
+    def equal_pos(p1, p2):
+        return p1.x == p2.x and p1.y == p2.y and p1.floor == p2.floor
     dest = e.get(MoveDestination)
     pos = e.get(Position)
-    if dest.x < 0 or dest.x >= w:
-        dest.x = pos.x
-    if dest.y < 0 or dest.y >= h:
-        dest.y = pos.y
-    e.set(Position(dest.x, dest.y, dest.floor))
+    colliding = [entity for entity in e._ecm.entities(Position)
+                 if equal_pos(entity.get(Position), dest) and e != entity]
+    empty = len(colliding) == 0  # Assume that void (no tile) blocks player
+    blocked = empty or any((entity.has(Solid) for entity in colliding))
+    if not blocked:
+        e.set(Position(dest.x, dest.y, dest.floor))
     e.remove(MoveDestination)
 
 def update(game, dt_ms, w, h, key):

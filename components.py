@@ -23,3 +23,11 @@ class UserInput(Component):
 
 class Solid(Component):
     pass
+
+class Attributes(Component):
+    def __init__(self, state_of_mind, tolerance, confidence, nerve, will):
+        self.state_of_mind = state_of_mind
+        self.tolerance = tolerance
+        self.confidence = confidence
+        self.nerve = nerve
+        self.will = will

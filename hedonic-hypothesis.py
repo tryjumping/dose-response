@@ -7,23 +7,23 @@ import libtcodpy as libtcod
 from entity_component_manager import EntityComponentManager
 from components import *
 
-draw_commands = None
+def initialise_consoles(console_count, w, h, transparent_color):
+    """
+    Initialise the given number of new off-screen consoles and return their list.
+    """
+    consoles = [libtcod.console_new(w, h) for _ in xrange(console_count)]
+    for con in consoles:
+        libtcod.console_set_key_color(con, transparent_color)
+    return consoles
 
-def clear_leveled_graphics():
-    global draw_commands
-    draw_commands = [[] for _ in range(10)]
-
-def put_char_with_level(level, x, y, glyph, color):
-    global draw_commands
-    draw_commands[level].append((libtcod.console_put_char, 0, x, y, glyph, color))
-
-
-def tile_system(e, dt_ms):
+def tile_system(e, dt_ms, layers):
     pos = e.get(Position)
     if not pos:
         return
     tile = e.get(Tile)
-    put_char_with_level(tile.level, pos.x, pos.y, tile.glyph, libtcod.BKGND_NONE)
+    con = layers[tile.level]
+    libtcod.console_set_char_background(con, pos.x, pos.y, libtcod.black)
+    libtcod.console_put_char(con, pos.x, pos.y, tile.glyph, libtcod.BKGND_NONE)
 
 def input_system(e, dt_ms, key):
     if not key:
@@ -55,7 +55,10 @@ def movement_system(e, dt_ms, w, h):
         e.set(Position(dest.x, dest.y, dest.floor))
     e.remove(MoveDestination)
 
-def update(game, dt_ms, w, h, key):
+def gui_system(ecm):
+    pass
+
+def update(game, dt_ms, consoles, w, h, key):
     ecm = game['ecm']
     if key and key.vk == libtcod.KEY_ESCAPE:
         return None  # Quit the game
@@ -64,7 +67,7 @@ def update(game, dt_ms, w, h, key):
     for moving in [e for e in ecm.entities(MoveDestination)]:
         movement_system(e, dt_ms, w, h)
     for renderable in [e for e in ecm.entities(Tile)]:
-        tile_system(renderable, dt_ms)
+        tile_system(renderable, dt_ms, consoles)
     return game
 
 def generate_map(w, h):
@@ -84,10 +87,13 @@ def initial_state(w, h):
     ecm.register_component_type(Tile)
     ecm.register_component_type(UserInput)
     ecm.register_component_type(Solid)
+    ecm.register_component_type(Attributes)
     player = ecm.new_entity()
     player.set(Position(w / 2, h / 2, 1))
     player.set(Tile(9, None, '@'))
     player.set(UserInput())
+    player.set(Attributes(state_of_mind=20, tolerance=0, confidence=5,
+                          nerve=5, will=5))
     for floor, map in enumerate(generate_map(w, h)):
         for x, y, type in map:
             block = ecm.new_entity()
@@ -104,12 +110,14 @@ if __name__ == '__main__':
     SCREEN_WIDTH = 80
     SCREEN_HEIGHT = 50
     LIMIT_FPS = 60
+    TRANSPARENT_BG_COLOR = libtcod.red
     font_path = os.path.join('fonts', 'arial12x12.png')
     font_settings = libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD
     game_title = 'Hedonic Hypothesis'
     libtcod.console_set_custom_font(font_path, font_settings)
     libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, game_title, False)
     libtcod.sys_set_fps(LIMIT_FPS)
+    consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, TRANSPARENT_BG_COLOR)
     game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT)
     while game_state and not libtcod.console_is_window_closed():
         libtcod.console_set_default_foreground(0, libtcod.white)
@@ -118,10 +126,11 @@ if __name__ == '__main__':
             key = None
         dt_ms = 10
         libtcod.console_clear(None)
-        clear_leveled_graphics()
-        game_state = update(game_state, dt_ms, SCREEN_WIDTH, SCREEN_HEIGHT, key)
-        for level, commands in enumerate(draw_commands):
-            for command in commands:
-                fun, args = command[0], command[1:]
-                fun(*args)
+        for con in consoles:
+            libtcod.console_set_default_background(con, TRANSPARENT_BG_COLOR)
+            libtcod.console_set_default_foreground(con, libtcod.white)
+            libtcod.console_clear(con)
+        game_state = update(game_state, dt_ms, consoles, SCREEN_WIDTH, SCREEN_HEIGHT, key)
+        for con in consoles:
+            libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
         libtcod.console_flush()

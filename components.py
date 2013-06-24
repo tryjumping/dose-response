@@ -31,3 +31,12 @@ class Attributes(Component):
         self.confidence = confidence
         self.nerve = nerve
         self.will = will
+
+class Statistics(Component):
+    def __init__(self, turns, kills, doses):
+        self.turns = turns
+        self.kills = kills
+        self.doses = doses
+
+class Dead(Component):
+    pass

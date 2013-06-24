@@ -53,6 +53,8 @@ def movement_system(e, dt_ms, w, h):
     blocked = empty or any((entity.has(Solid) for entity in colliding))
     if not blocked:
         e.set(Position(dest.x, dest.y, dest.floor))
+        if e.has(Statistics):
+            e.get(Statistics).turns += 1
     e.remove(MoveDestination)
 
 def gui_system(ecm, dt_ms, player, layers, w, h):
@@ -60,21 +62,43 @@ def gui_system(ecm, dt_ms, player, layers, w, h):
     panel_height = 4
     panel = libtcod.console_new(w, panel_height)
     stats_template = "State of mind: %s  Confidence: %s  Will: %s  Nerve: %s"
-    libtcod.console_print_ex(panel, 0, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+    libtcod.console_print_ex(panel, 0, 3, libtcod.BKGND_NONE, libtcod.LEFT,
         stats_template % (attrs.state_of_mind, attrs.confidence, attrs.will, attrs.nerve))
+    if player.has(Dead):
+        libtcod.console_print_ex(panel, 0, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 "DEAD")
     libtcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
+
+# TODO: change to a generic component that indicates attribute change over time
+def state_of_mind_system(ecm, dt_ms, e):
+    attrs = e.get(Attributes)
+    attrs.state_of_mind -= 1
+
+def death_system(ecm, dt_ms, e):
+    attrs = e.get(Attributes)
+    if attrs and attrs.state_of_mind <= 0:
+        e.remove(UserInput)
+        e.set(Dead())
 
 def update(game, dt_ms, consoles, w, h, key):
     ecm = game['ecm']
+    player = game['player']
+    last_turn_count = player.get(Statistics).turns
     if key and key.vk == libtcod.KEY_ESCAPE:
         return None  # Quit the game
     for controllable in [e for e in ecm.entities(UserInput)]:
         input_system(controllable, dt_ms, key)
     for moving in [e for e in ecm.entities(MoveDestination)]:
         movement_system(e, dt_ms, w, h)
+
+    new_turn = last_turn_count < player.get(Statistics).turns
+    if new_turn:
+        for entity_with_attributes in [e for e in ecm.entities(Attributes)]:
+            state_of_mind_system(ecm, dt_ms, entity_with_attributes)
+    for vulnerable in [e for e in ecm.entities(Attributes)]:
+        death_system(ecm, dt_ms, e)
     for renderable in [e for e in ecm.entities(Tile)]:
         tile_system(renderable, dt_ms, consoles)
-    player = [e for e in ecm.entities(Attributes)][0]
     gui_system(ecm, dt_ms, player, consoles, w, h)
     return game
 
@@ -96,12 +120,15 @@ def initial_state(w, h):
     ecm.register_component_type(UserInput)
     ecm.register_component_type(Solid)
     ecm.register_component_type(Attributes)
+    ecm.register_component_type(Statistics)
+    ecm.register_component_type(Dead)
     player = ecm.new_entity()
     player.set(Position(w / 2, h / 2, 1))
     player.set(Tile(9, None, '@'))
     player.set(UserInput())
     player.set(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
+    player.set(Statistics(turns=0, kills=0, doses=0))
     for floor, map in enumerate(generate_map(w, h)):
         for x, y, type in map:
             block = ecm.new_entity()
@@ -111,7 +138,10 @@ def initial_state(w, h):
             else:
                 block.set(Tile(0, None, '#'))
                 block.set(Solid())
-    return {'ecm': ecm}
+    return {
+        'ecm': ecm,
+        'player': player,
+    }
 
 
 if __name__ == '__main__':

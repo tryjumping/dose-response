@@ -55,8 +55,14 @@ def movement_system(e, dt_ms, w, h):
         e.set(Position(dest.x, dest.y, dest.floor))
     e.remove(MoveDestination)
 
-def gui_system(ecm):
-    pass
+def gui_system(ecm, dt_ms, player, layers, w, h):
+    attrs = player.get(Attributes)
+    panel_height = 4
+    panel = libtcod.console_new(w, panel_height)
+    stats_template = "State of mind: %s  Confidence: %s  Will: %s  Nerve: %s"
+    libtcod.console_print_ex(panel, 0, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+        stats_template % (attrs.state_of_mind, attrs.confidence, attrs.will, attrs.nerve))
+    libtcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
 def update(game, dt_ms, consoles, w, h, key):
     ecm = game['ecm']
@@ -68,6 +74,8 @@ def update(game, dt_ms, consoles, w, h, key):
         movement_system(e, dt_ms, w, h)
     for renderable in [e for e in ecm.entities(Tile)]:
         tile_system(renderable, dt_ms, consoles)
+    player = [e for e in ecm.entities(Attributes)][0]
+    gui_system(ecm, dt_ms, player, consoles, w, h)
     return game
 
 def generate_map(w, h):

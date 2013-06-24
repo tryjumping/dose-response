@@ -2,7 +2,7 @@ from collections import namedtuple
 import os
 from random import random
 
-import libtcodpy as libtcod
+import libtcodpy as tcod
 
 from entity_component_manager import EntityComponentManager
 from components import *
@@ -11,9 +11,9 @@ def initialise_consoles(console_count, w, h, transparent_color):
     """
     Initialise the given number of new off-screen consoles and return their list.
     """
-    consoles = [libtcod.console_new(w, h) for _ in xrange(console_count)]
+    consoles = [tcod.console_new(w, h) for _ in xrange(console_count)]
     for con in consoles:
-        libtcod.console_set_key_color(con, transparent_color)
+        tcod.console_set_key_color(con, transparent_color)
     return consoles
 
 def tile_system(e, dt_ms, layers):
@@ -22,8 +22,8 @@ def tile_system(e, dt_ms, layers):
         return
     tile = e.get(Tile)
     con = layers[tile.level]
-    libtcod.console_set_char_background(con, pos.x, pos.y, libtcod.black)
-    libtcod.console_put_char(con, pos.x, pos.y, tile.glyph, libtcod.BKGND_NONE)
+    tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
+    tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
 
 def input_system(e, dt_ms, key):
     if not key:
@@ -32,13 +32,13 @@ def input_system(e, dt_ms, key):
     if not pos:
         return
     dest = MoveDestination(pos.x, pos.y, pos.floor)
-    if key.vk == libtcod.KEY_UP:
+    if key.vk == tcod.KEY_UP:
         dest.y -= 1
-    elif key.vk == libtcod.KEY_DOWN:
+    elif key.vk == tcod.KEY_DOWN:
         dest.y += 1
-    elif key.vk == libtcod.KEY_LEFT:
+    elif key.vk == tcod.KEY_LEFT:
         dest.x -= 1
-    elif key.vk == libtcod.KEY_RIGHT:
+    elif key.vk == tcod.KEY_RIGHT:
         dest.x += 1
     e.set(dest)
 
@@ -59,14 +59,14 @@ def movement_system(e, dt_ms, w, h):
 
 def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
     attrs = player.get(Attributes)
-    panel = libtcod.console_new(w, panel_height)
+    panel = tcod.console_new(w, panel_height)
     stats_template = "State of mind: %s  Confidence: %s  Will: %s  Nerve: %s"
-    libtcod.console_print_ex(panel, 0, 3, libtcod.BKGND_NONE, libtcod.LEFT,
+    tcod.console_print_ex(panel, 0, 3, tcod.BKGND_NONE, tcod.LEFT,
         stats_template % (attrs.state_of_mind, attrs.confidence, attrs.will, attrs.nerve))
     if player.has(Dead):
-        libtcod.console_print_ex(panel, 0, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
                                  "DEAD")
-    libtcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
+    tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
 # TODO: change to a generic component that indicates attribute change over time
 def state_of_mind_system(ecm, dt_ms, e):
@@ -83,7 +83,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']
     player = game['player']
     last_turn_count = player.get(Statistics).turns
-    if pressed_key and pressed_key.vk == libtcod.KEY_ESCAPE:
+    if pressed_key and pressed_key.vk == tcod.KEY_ESCAPE:
         return None  # Quit the game
     for controllable in [e for e in ecm.entities(UserInput)]:
         input_system(controllable, dt_ms, key)
@@ -148,28 +148,28 @@ if __name__ == '__main__':
     SCREEN_HEIGHT = 50
     PANEL_HEIGHT = 4
     LIMIT_FPS = 60
-    TRANSPARENT_BG_COLOR = libtcod.red
+    TRANSPARENT_BG_COLOR = tcod.red
     font_path = os.path.join('fonts', 'arial12x12.png')
-    font_settings = libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD
+    font_settings = tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
     game_title = 'Hedonic Hypothesis'
-    libtcod.console_set_custom_font(font_path, font_settings)
-    libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, game_title, False)
-    libtcod.sys_set_fps(LIMIT_FPS)
+    tcod.console_set_custom_font(font_path, font_settings)
+    tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, game_title, False)
+    tcod.sys_set_fps(LIMIT_FPS)
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, TRANSPARENT_BG_COLOR)
     game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
-    while game_state and not libtcod.console_is_window_closed():
-        libtcod.console_set_default_foreground(0, libtcod.white)
-        key = libtcod.console_check_for_keypress(libtcod.KEY_PRESSED)
-        if key.vk == libtcod.KEY_NONE:
+    while game_state and not tcod.console_is_window_closed():
+        tcod.console_set_default_foreground(0, tcod.white)
+        key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)
+        if key.vk == tcod.KEY_NONE:
             key = None
         dt_ms = 10
-        libtcod.console_clear(None)
+        tcod.console_clear(None)
         for con in consoles:
-            libtcod.console_set_default_background(con, TRANSPARENT_BG_COLOR)
-            libtcod.console_set_default_foreground(con, libtcod.white)
-            libtcod.console_clear(con)
+            tcod.console_set_default_background(con, TRANSPARENT_BG_COLOR)
+            tcod.console_set_default_foreground(con, tcod.white)
+            tcod.console_clear(con)
         game_state = update(game_state, dt_ms, consoles,
                             SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT, key)
         for con in consoles:
-            libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
-        libtcod.console_flush()
+            tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
+        tcod.console_flush()

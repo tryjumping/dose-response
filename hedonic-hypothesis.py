@@ -57,9 +57,8 @@ def movement_system(e, dt_ms, w, h):
             e.get(Statistics).turns += 1
     e.remove(MoveDestination)
 
-def gui_system(ecm, dt_ms, player, layers, w, h):
+def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
     attrs = player.get(Attributes)
-    panel_height = 4
     panel = libtcod.console_new(w, panel_height)
     stats_template = "State of mind: %s  Confidence: %s  Will: %s  Nerve: %s"
     libtcod.console_print_ex(panel, 0, 3, libtcod.BKGND_NONE, libtcod.LEFT,
@@ -80,11 +79,11 @@ def death_system(ecm, dt_ms, e):
         e.remove(UserInput)
         e.set(Dead())
 
-def update(game, dt_ms, consoles, w, h, key):
+def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']
     player = game['player']
     last_turn_count = player.get(Statistics).turns
-    if key and key.vk == libtcod.KEY_ESCAPE:
+    if pressed_key and pressed_key.vk == libtcod.KEY_ESCAPE:
         return None  # Quit the game
     for controllable in [e for e in ecm.entities(UserInput)]:
         input_system(controllable, dt_ms, key)
@@ -99,7 +98,7 @@ def update(game, dt_ms, consoles, w, h, key):
         death_system(ecm, dt_ms, e)
     for renderable in [e for e in ecm.entities(Tile)]:
         tile_system(renderable, dt_ms, consoles)
-    gui_system(ecm, dt_ms, player, consoles, w, h)
+    gui_system(ecm, dt_ms, player, consoles, w, h, panel_height)
     return game
 
 def generate_map(w, h):
@@ -147,6 +146,7 @@ def initial_state(w, h):
 if __name__ == '__main__':
     SCREEN_WIDTH = 80
     SCREEN_HEIGHT = 50
+    PANEL_HEIGHT = 4
     LIMIT_FPS = 60
     TRANSPARENT_BG_COLOR = libtcod.red
     font_path = os.path.join('fonts', 'arial12x12.png')
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, game_title, False)
     libtcod.sys_set_fps(LIMIT_FPS)
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, TRANSPARENT_BG_COLOR)
-    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT)
+    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
     while game_state and not libtcod.console_is_window_closed():
         libtcod.console_set_default_foreground(0, libtcod.white)
         key = libtcod.console_check_for_keypress(libtcod.KEY_PRESSED)
@@ -168,7 +168,8 @@ if __name__ == '__main__':
             libtcod.console_set_default_background(con, TRANSPARENT_BG_COLOR)
             libtcod.console_set_default_foreground(con, libtcod.white)
             libtcod.console_clear(con)
-        game_state = update(game_state, dt_ms, consoles, SCREEN_WIDTH, SCREEN_HEIGHT, key)
+        game_state = update(game_state, dt_ms, consoles,
+                            SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT, key)
         for con in consoles:
             libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
         libtcod.console_flush()

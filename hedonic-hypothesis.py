@@ -105,9 +105,13 @@ def generate_map(w, h):
     floor = []
     for x in xrange(w):
         for y in xrange(h):
-            tile_kind = 'empty'
-            if random() > 0.7:
+            rand = random()
+            if rand < 0.7:
+                tile_kind = 'empty'
+            elif rand < 0.99:
                 tile_kind = 'wall'
+            else:
+                tile_kind = 'dose'
             floor.append([x, y, tile_kind])
     return [floor]
 
@@ -127,9 +131,13 @@ def initial_state(w, h):
             block.set(Position(x, y, floor+1))
             if type == 'empty':
                 block.set(Tile(0, None, ' '))
-            else:
+            elif type == 'wall':
                 block.set(Tile(0, None, '#'))
                 block.set(Solid())
+            elif type == 'dose':
+                block.set(Tile(0, None, 'i'))
+            else:
+                raise Exception('Unexpected tile type: "%s"' % type)
     return {
         'ecm': ecm,
         'player': player,

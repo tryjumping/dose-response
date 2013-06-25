@@ -40,3 +40,6 @@ class Statistics(Component):
 
 class Dead(Component):
     pass
+
+class Interactive(Component):
+    pass

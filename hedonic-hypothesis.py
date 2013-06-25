@@ -7,6 +7,9 @@ import libtcodpy as tcod
 from entity_component_manager import EntityComponentManager
 from components import *
 
+def equal_pos(p1, p2):
+    return p1.x == p2.x and p1.y == p2.y and p1.floor == p2.floor
+
 def initialise_consoles(console_count, w, h, transparent_color):
     """
     Initialise the given number of new off-screen consoles and return their list.
@@ -42,19 +45,28 @@ def input_system(e, dt_ms, key):
         dest.x += 1
     e.set(dest)
 
-def movement_system(e, dt_ms, w, h):
-    def equal_pos(p1, p2):
-        return p1.x == p2.x and p1.y == p2.y and p1.floor == p2.floor
+def collision_system(e, ecm, dt_ms):
     dest = e.get(MoveDestination)
-    pos = e.get(Position)
-    colliding = [entity for entity in e._ecm.entities(Position)
+    colliding = [entity for entity in ecm.entities(Position)
                  if equal_pos(entity.get(Position), dest) and e != entity]
     empty = len(colliding) == 0  # Assume that void (no tile) blocks player
     blocked = empty or any((entity.has(Solid) for entity in colliding))
-    if not blocked:
-        e.set(Position(dest.x, dest.y, dest.floor))
-        if e.has(Statistics):
-            e.get(Statistics).turns += 1
+    interactions = [entity for entity in colliding if entity.has(Interactive)]
+    if blocked:
+        e.remove(MoveDestination)
+    if interactions:
+        for i in interactions:
+            attrs = e.get(Attributes)
+            if attrs:  # base this off of the actual interaction type present
+                attrs.state_of_mind += 20
+            ecm.remove_entity(i)
+
+def movement_system(e, dt_ms, w, h):
+    dest = e.get(MoveDestination)
+    pos = e.get(Position)
+    e.set(Position(dest.x, dest.y, dest.floor))
+    if e.has(Statistics):
+        e.get(Statistics).turns += 1
     e.remove(MoveDestination)
 
 def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
@@ -87,6 +99,8 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         return None  # Quit the game
     for controllable in [e for e in ecm.entities(UserInput)]:
         input_system(controllable, dt_ms, key)
+    for collidable in [e for e in ecm.entities(MoveDestination)]:
+        collision_system(e, ecm, dt_ms)
     for moving in [e for e in ecm.entities(MoveDestination)]:
         movement_system(e, dt_ms, w, h)
 
@@ -138,6 +152,7 @@ def initial_state(w, h):
                 block.set(Solid())
             elif type == 'dose':
                 block.set(Tile(0, None, 'i'))
+                block.set(Interactive())
             else:
                 raise Exception('Unexpected tile type: "%s"' % type)
     return {

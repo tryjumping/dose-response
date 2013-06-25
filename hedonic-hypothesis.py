@@ -1,6 +1,6 @@
 from collections import namedtuple
 import os
-from random import random
+from random import random, choice
 
 import libtcodpy as tcod
 
@@ -27,6 +27,7 @@ def tile_system(e, dt_ms, layers):
     con = layers[tile.level]
     tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
     tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
+    tcod.console_set_char_foreground(con, pos.x, pos.y, tile.color)
 
 def input_system(e, dt_ms, key):
     if not key:
@@ -150,7 +151,7 @@ def initial_state(w, h):
     player_x, player_y = w / 2, h / 2
     player = ecm.new_entity()
     player.set(Position(player_x, player_y, 1))
-    player.set(Tile(9, None, '@'))
+    player.set(Tile(9, tcod.white, '@'))
     player.set(UserInput())
     player.set(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
@@ -160,16 +161,18 @@ def initial_state(w, h):
         for x, y, type in map:
             block = ecm.new_entity()
             block.set(Position(x, y, floor+1))
+            empty_tile = Tile(0, tcod.lightest_gray, '.')
             if type == 'empty' or (x, y) == (player_x, player_y):
-                block.set(Tile(0, None, '.'))
+                block.set(empty_tile)
             elif type == 'wall':
-                block.set(Tile(0, None, '#'))
+                color = choice((tcod.dark_green, tcod.green, tcod.light_green))
+                block.set(Tile(0, color, '#'))
                 block.set(Solid())
             elif type == 'dose':
-                block.set(Tile(0, None, '.'))
+                block.set(empty_tile)
                 dose = ecm.new_entity()
                 dose.set(block.get(Position))
-                dose.set(Tile(0, None, 'i'))
+                dose.set(Tile(0, tcod.light_azure, 'i'))
                 dose.set(Interactive())
             else:
                 raise Exception('Unexpected tile type: "%s"' % type)

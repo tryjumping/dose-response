@@ -73,10 +73,15 @@ The game has the following major screens:
 Shows the game name and the (de-)motivational quota from Marla Daniels, followed
 by the menu:
 
+* Resume last game (PC's name + stats)
 * New game
 * Load game
 * Character stats
 * Quit
+
+### Resume last game ###
+
+Directly loads the saved game.
 
 ### New game screen ###
 

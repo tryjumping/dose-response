@@ -77,7 +77,7 @@ def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
         stats_template % (attrs.state_of_mind, attrs.confidence, attrs.will, attrs.nerve))
     if player.has(Dead):
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
-                                 "DEAD")
+                                 "DEAD: %s" % player.get(Dead).reason)
     tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
 # TODO: change to a generic component that indicates attribute change over time
@@ -87,9 +87,13 @@ def state_of_mind_system(ecm, dt_ms, e):
 
 def death_system(ecm, dt_ms, e):
     attrs = e.get(Attributes)
-    if attrs and attrs.state_of_mind <= 0:
-        e.remove(UserInput)
-        e.set(Dead())
+    if attrs:
+        if attrs.state_of_mind <= 0:
+            e.remove(UserInput)
+            e.set(Dead("Exhausted"))
+        elif attrs.state_of_mind > 100:
+            e.remove(UserInput)
+            e.set(Dead("Overdosed"))
 
 def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']

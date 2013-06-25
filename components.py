@@ -39,7 +39,8 @@ class Statistics(Component):
         self.doses = doses
 
 class Dead(Component):
-    pass
+    def __init__(self, reason):
+        self.reason = reason
 
 class Interactive(Component):
     pass

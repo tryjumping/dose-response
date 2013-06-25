@@ -96,7 +96,15 @@ def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
         bar = ' ' * (bar_length + 1)
         tcod.console_set_default_background(panel, tcod.dark_gray)
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_SET, tcod.LEFT, full_bar)
-        tcod.console_set_default_background(panel, tcod.dark_red)
+        if attrs.state_of_mind <  25:
+            bar_color = tcod.dark_red
+        elif attrs.state_of_mind < 60:
+            bar_color = tcod.orange
+        elif attrs.state_of_mind < 80:
+            bar_color = tcod.chartreuse
+        else:
+            bar_color = tcod.turquoise
+        tcod.console_set_default_background(panel, bar_color)
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_SET, tcod.LEFT, bar)
     tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 

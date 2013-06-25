@@ -103,6 +103,7 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertIn(g, velocity_entities)
 
     def test_automatic_component_registration(self):
+        self.ecm = EntityComponentManager(autoregister_components=True)
         e = self.ecm.new_entity()
         self.ecm.set_component(e, Position(10, 20))
         self.ecm.set_component(e, Velocity(5, 5))

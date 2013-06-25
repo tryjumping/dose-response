@@ -112,15 +112,8 @@ def generate_map(w, h):
     return [floor]
 
 def initial_state(w, h):
-    ecm = EntityComponentManager()
-    ecm.register_component_type(Position)
-    ecm.register_component_type(MoveDestination)
-    ecm.register_component_type(Tile)
-    ecm.register_component_type(UserInput)
-    ecm.register_component_type(Solid)
-    ecm.register_component_type(Attributes)
-    ecm.register_component_type(Statistics)
-    ecm.register_component_type(Dead)
+    ecm = EntityComponentManager(autoregister_components=True)
+    # TODO: register the component types here once things settled a bit
     player = ecm.new_entity()
     player.set(Position(w / 2, h / 2, 1))
     player.set(Tile(9, None, '@'))

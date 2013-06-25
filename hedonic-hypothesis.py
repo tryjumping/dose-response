@@ -99,8 +99,11 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']
     player = game['player']
     last_turn_count = player.get(Statistics).turns
-    if pressed_key and pressed_key.vk == tcod.KEY_ESCAPE:
-        return None  # Quit the game
+    if pressed_key:
+        if pressed_key.vk == tcod.KEY_ESCAPE:
+            return None  # Quit the game
+        elif pressed_key.vk == tcod.KEY_F5:
+            return initial_state(w, h)
     for controllable in [e for e in ecm.entities(UserInput)]:
         input_system(controllable, dt_ms, key)
     for collidable in [e for e in ecm.entities(MoveDestination)]:

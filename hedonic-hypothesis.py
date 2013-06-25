@@ -151,8 +151,11 @@ def initial_state(w, h):
                 block.set(Tile(0, None, '#'))
                 block.set(Solid())
             elif type == 'dose':
-                block.set(Tile(0, None, 'i'))
-                block.set(Interactive())
+                block.set(Tile(0, None, '.'))
+                dose = ecm.new_entity()
+                dose.set(block.get(Position))
+                dose.set(Tile(0, None, 'i'))
+                dose.set(Interactive())
             else:
                 raise Exception('Unexpected tile type: "%s"' % type)
     return {

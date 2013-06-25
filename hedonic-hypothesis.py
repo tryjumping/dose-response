@@ -82,7 +82,7 @@ def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
     stats_template = "State of mind: %s  Confidence: %s  Will: %s  Nerve: %s"
-    tcod.console_print_ex(panel, 0, 3, tcod.BKGND_NONE, tcod.LEFT,
+    tcod.console_print_ex(panel, 0, 0, tcod.BKGND_NONE, tcod.LEFT,
         stats_template % (attrs.state_of_mind, attrs.confidence, attrs.will, attrs.nerve))
     if player.has(Dead):
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
@@ -185,7 +185,7 @@ def initial_state(w, h):
 if __name__ == '__main__':
     SCREEN_WIDTH = 80
     SCREEN_HEIGHT = 50
-    PANEL_HEIGHT = 4
+    PANEL_HEIGHT = 2
     LIMIT_FPS = 60
     TRANSPARENT_BG_COLOR = tcod.red
     font_path = os.path.join('fonts', 'dejavu16x16_gs_tc.png')

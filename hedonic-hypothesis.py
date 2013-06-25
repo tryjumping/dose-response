@@ -146,7 +146,7 @@ def initial_state(w, h):
             block = ecm.new_entity()
             block.set(Position(x, y, floor+1))
             if type == 'empty' or (x, y) == (player_x, player_y):
-                block.set(Tile(0, None, ' '))
+                block.set(Tile(0, None, '.'))
             elif type == 'wall':
                 block.set(Tile(0, None, '#'))
                 block.set(Solid())

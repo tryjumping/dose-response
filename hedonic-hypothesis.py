@@ -109,7 +109,6 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     player = game['player']
     last_turn_count = player.get(Statistics).turns
     if pressed_key:
-        print pressed_key.c
         if pressed_key.vk == tcod.KEY_ESCAPE:
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:

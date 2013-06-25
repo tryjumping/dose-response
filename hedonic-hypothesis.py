@@ -152,7 +152,7 @@ def generate_map(w, h, empty_ratio):
             floor.append([x, y, tile_kind])
     return [floor]
 
-def initial_state(w, h, empty_ratio=0.7):
+def initial_state(w, h, empty_ratio=0.6):
     ecm = EntityComponentManager(autoregister_components=True)
     # TODO: register the component types here once things settled a bit
     player_x, player_y = w / 2, h / 2

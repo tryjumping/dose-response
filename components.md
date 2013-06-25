@@ -66,6 +66,8 @@ Data in the game
 20. Monster name
    * info.name
    * info.description
+21. Player name
+   * info.name
 21. PC Desperation status
    * adverse-effects.desperation (bool)
 22. PC Panic status

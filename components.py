@@ -44,3 +44,8 @@ class Dead(Component):
 
 class Interactive(Component):
     pass
+
+class Info(Component):
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description

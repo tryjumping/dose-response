@@ -81,9 +81,10 @@ def movement_system(e, dt_ms, w, h):
 def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
-    stats_template = "State of mind: %s  Confidence: %s  Will: %s  Nerve: %s"
+    stats_template = "%s  Confidence: %s  Will: %s  Nerve: %s"
     tcod.console_print_ex(panel, 0, 0, tcod.BKGND_NONE, tcod.LEFT,
-        stats_template % (attrs.state_of_mind, attrs.confidence, attrs.will, attrs.nerve))
+        stats_template % (player.get(Info).name, attrs.confidence, attrs.will,
+                          attrs.nerve))
     if player.has(Dead):
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
                                  "DEAD: %s" % player.get(Dead).reason)
@@ -159,6 +160,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player.set(Position(player_x, player_y, 1))
     player.set(Tile(9, tcod.white, '@'))
     player.set(UserInput())
+    player.set(Info(name="The Nameless One", description=""))
     player.set(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
     player.set(Statistics(turns=0, kills=0, doses=0))

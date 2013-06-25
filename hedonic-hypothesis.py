@@ -88,6 +88,16 @@ def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
     if player.has(Dead):
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
                                  "DEAD: %s" % player.get(Dead).reason)
+    else:
+        max_bar_length = 20
+        max_sate_of_mind = 100
+        bar_length = attrs.state_of_mind * (max_bar_length - 1) / max_sate_of_mind
+        full_bar = ' ' * (max_bar_length)
+        bar = ' ' * (bar_length + 1)
+        tcod.console_set_default_background(panel, tcod.dark_gray)
+        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_SET, tcod.LEFT, full_bar)
+        tcod.console_set_default_background(panel, tcod.dark_red)
+        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_SET, tcod.LEFT, bar)
     tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
 # TODO: change to a generic component that indicates attribute change over time

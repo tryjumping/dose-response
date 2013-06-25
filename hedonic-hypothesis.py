@@ -67,7 +67,8 @@ def collision_system(e, ecm, dt_ms):
         for i in interactions:
             attrs = e.get(Attributes)
             if attrs:  # base this off of the actual interaction type present
-                attrs.state_of_mind += 20
+                attrs.state_of_mind += max(20 - attrs.tolerance, 5)
+                attrs.tolerance += 1
             ecm.remove_entity(i)
 
 def movement_system(e, dt_ms, w, h):

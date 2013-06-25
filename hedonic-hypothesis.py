@@ -118,18 +118,20 @@ def generate_map(w, h):
 def initial_state(w, h):
     ecm = EntityComponentManager(autoregister_components=True)
     # TODO: register the component types here once things settled a bit
+    player_x, player_y = w / 2, h / 2
     player = ecm.new_entity()
-    player.set(Position(w / 2, h / 2, 1))
+    player.set(Position(player_x, player_y, 1))
     player.set(Tile(9, None, '@'))
     player.set(UserInput())
     player.set(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
     player.set(Statistics(turns=0, kills=0, doses=0))
+    player_pos = player.get(Position)
     for floor, map in enumerate(generate_map(w, h)):
         for x, y, type in map:
             block = ecm.new_entity()
             block.set(Position(x, y, floor+1))
-            if type == 'empty':
+            if type == 'empty' or (x, y) == (player_x, player_y):
                 block.set(Tile(0, None, ' '))
             elif type == 'wall':
                 block.set(Tile(0, None, '#'))

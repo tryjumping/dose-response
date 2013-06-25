@@ -137,6 +137,7 @@ Must show:
 Game rules and behaviours
 -------------------------
 
+0. The map is initially blank, the PC uncovers the dark areas by going there
 1. The player character is represented by the `@` sign
 2. The player moves the character in cardinal directions using the keyboard
 arrows and the diagonal directions using numpad or <ctrl> and <alt> modifiers

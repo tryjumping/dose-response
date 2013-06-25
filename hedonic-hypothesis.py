@@ -188,7 +188,7 @@ if __name__ == '__main__':
     PANEL_HEIGHT = 4
     LIMIT_FPS = 60
     TRANSPARENT_BG_COLOR = tcod.red
-    font_path = os.path.join('fonts', 'arial12x12.png')
+    font_path = os.path.join('fonts', 'dejavu16x16_gs_tc.png')
     font_settings = tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
     game_title = 'Hedonic Hypothesis'
     tcod.console_set_custom_font(font_path, font_settings)

@@ -343,3 +343,21 @@ The complications: we would want at some point the PC to automatically consume
 the Doses they find. What if they have some in the inventory? And should it be
 possible to hoard them at all? Kind of feels strange -- especially when that
 would be teh only pickable item in the game.
+
+
+Exploration: we should make the surroundings interesting enough to explore. The
+the intresting things could appeare more when High and disappear on Low (and the
+monsters doing the opposite). The idea is, there should be something the player
+*wants* to do. And exploration would fit nicely if we could figure how to make
+it interesting.
+
+
+TODO
+----
+
+* Full screen
+* Proper colours
+* Numpad controls
+* Various resolutions (should work on a 800x600 screen, too)
+* Make accessible for the colour-blind people
+*

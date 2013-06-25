@@ -77,7 +77,7 @@ class EntityComponentManager(object):
             raise TypeError('The component must be a Component instance')
         if ctype not in self._components:
             if self._autoregister:
-                self.register_component_type(ctype)
+                return None
             else:
                 raise ValueError('Unknown component type. Register it before use.')
         return self._components[ctype][entity._id]
@@ -87,7 +87,7 @@ class EntityComponentManager(object):
             raise TypeError('The component must be a Component instance')
         if ctype not in self._components:
             if self._autoregister:
-                self.register_component_type(ctype)
+                return None
             else:
                 raise ValueError('Unknown component type. Register it before use.')
         self._components[ctype][entity._id] = None
@@ -105,7 +105,7 @@ class EntityComponentManager(object):
             raise TypeError('The component must be a Component instance')
         if ctype not in self._components:
             if self._autoregister:
-                self.register_component_type(ctype)
+                return ()
             else:
                 raise ValueError('Unknown component type. Register it before use.')
         return (Entity(self, id) for id, c in enumerate(self._components[ctype])

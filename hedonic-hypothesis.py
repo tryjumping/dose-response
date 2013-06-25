@@ -109,10 +109,15 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     player = game['player']
     last_turn_count = player.get(Statistics).turns
     if pressed_key:
+        print pressed_key.c
         if pressed_key.vk == tcod.KEY_ESCAPE:
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
-            return initial_state(w, h)
+            return initial_state(w, h, game['empty_ratio'])
+        elif pressed_key.c == ord('['):
+            return initial_state(w, h, game['empty_ratio'] - 0.05)
+        elif pressed_key.c == ord(']'):
+            return initial_state(w, h, game['empty_ratio'] + 0.05)
     for controllable in [e for e in ecm.entities(UserInput)]:
         input_system(controllable, dt_ms, key)
     for collidable in [e for e in ecm.entities(MoveDestination)]:
@@ -129,14 +134,16 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     for renderable in [e for e in ecm.entities(Tile)]:
         tile_system(renderable, dt_ms, consoles)
     gui_system(ecm, dt_ms, player, consoles, w, h, panel_height)
+    tcod.console_print_ex(consoles[9], w-1, h-1, tcod.BKGND_NONE, tcod.RIGHT,
+                          str(game['empty_ratio']))
     return game
 
-def generate_map(w, h):
+def generate_map(w, h, empty_ratio):
     floor = []
     for x in xrange(w):
         for y in xrange(h):
             rand = random()
-            if rand < 0.7:
+            if rand < empty_ratio:
                 tile_kind = 'empty'
             elif rand < 0.99:
                 tile_kind = 'wall'
@@ -145,7 +152,7 @@ def generate_map(w, h):
             floor.append([x, y, tile_kind])
     return [floor]
 
-def initial_state(w, h):
+def initial_state(w, h, empty_ratio=0.7):
     ecm = EntityComponentManager(autoregister_components=True)
     # TODO: register the component types here once things settled a bit
     player_x, player_y = w / 2, h / 2
@@ -157,7 +164,7 @@ def initial_state(w, h):
                           nerve=5, will=5))
     player.set(Statistics(turns=0, kills=0, doses=0))
     player_pos = player.get(Position)
-    for floor, map in enumerate(generate_map(w, h)):
+    for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
             block = ecm.new_entity()
             block.set(Position(x, y, floor+1))
@@ -179,6 +186,7 @@ def initial_state(w, h):
     return {
         'ecm': ecm,
         'player': player,
+        'empty_ratio': empty_ratio,
     }
 
 

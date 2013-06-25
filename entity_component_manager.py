@@ -52,6 +52,12 @@ class EntityComponentManager(object):
             assert self._last_entity_id == len(self._components[ctype])-1
         return Entity(self, id)
 
+    def remove_entity(self, entity):
+        id = entity._id
+        for c in entity.components():
+            entity.remove(c.__class__)
+        self._entities.remove(id)
+
     def register_component_type(self, ctype):
         if not issubclass(ctype, Component):
             raise TypeError('The type must be a Component instance')

@@ -112,6 +112,23 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertIn(e, position_entities)
         self.assertIn(e, velocity_entities)
 
+    def test_remove_entity(self):
+        self.ecm.register_component_type(Position)
+        self.ecm.register_component_type(Velocity)
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        self.ecm.set_component(e, Velocity(5, 5))
+        f = self.ecm.new_entity()
+        self.assertEqual(len(set(self.ecm.entities())), 2)
+        self.ecm.remove_entity(e)
+        entities = set(self.ecm.entities())
+        self.assertEqual(len(entities), 1)
+        self.assertIn(f, entities)
+        self.assertNotIn(e, entities)
+        self.ecm.remove_entity(f)
+        empty = set(self.ecm.entities())
+        self.assertEqual(len(empty), 0)
+
 
 class EntityHelpers(unittest.TestCase):
     def setUp(self):

@@ -41,8 +41,16 @@ def input_system(e, dt_ms, key):
         dest.y += 1
     elif key.vk == tcod.KEY_LEFT:
         dest.x -= 1
+        if key.shift:
+            dest.y -= 1
+        elif key.lctrl or key.rctrl or key.lalt or key.ralt:
+            dest.y += 1
     elif key.vk == tcod.KEY_RIGHT:
         dest.x += 1
+        if key.shift:
+            dest.y -= 1
+        elif key.lctrl or key.rctrl or key.lalt or key.ralt:
+            dest.y += 1
     e.set(dest)
 
 def collision_system(e, ecm, dt_ms):

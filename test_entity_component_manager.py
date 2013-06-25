@@ -64,8 +64,6 @@ class TestEntityComponentManager(unittest.TestCase):
         self.ecm.set_component(e, Position(10, 20))
         with self.assertRaises(TypeError):
             self.ecm.set_component(e, {'x': 1, 'y': 2})
-        with self.assertRaises(ValueError):
-            self.ecm.set_component(e, Velocity(10, 20))
 
     def test_get_component(self):
         self.ecm.register_component_type(Position)
@@ -103,6 +101,15 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertNotIn(e, velocity_entities)
         self.assertIn(f, velocity_entities)
         self.assertIn(g, velocity_entities)
+
+    def test_automatic_component_registration(self):
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        self.ecm.set_component(e, Velocity(5, 5))
+        position_entities = set(self.ecm.entities(Position))
+        velocity_entities = set(self.ecm.entities(Velocity))
+        self.assertIn(e, position_entities)
+        self.assertIn(e, velocity_entities)
 
 
 class EntityHelpers(unittest.TestCase):

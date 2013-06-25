@@ -63,7 +63,7 @@ class EntityComponentManager(object):
             raise TypeError('The component must be a Component instance')
         ctype = component.__class__
         if ctype not in self._components:
-            raise ValueError('Unknown component type. Register it before use.')
+            self.register_component_type(ctype)
         components = self._components[ctype]
         id = entity._id
         components[id] = component

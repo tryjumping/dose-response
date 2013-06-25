@@ -74,7 +74,7 @@ def movement_system(e, dt_ms, w, h):
     dest = e.get(MoveDestination)
     pos = e.get(Position)
     e.set(Position(dest.x, dest.y, dest.floor))
-    if e.has(Statistics):
+    if not equal_pos(pos, dest) and e.has(Statistics):
         e.get(Statistics).turns += 1
     e.remove(MoveDestination)
 

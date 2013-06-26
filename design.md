@@ -223,6 +223,10 @@ Starts at 0, increases by one with every Dose used
 
 ### Using a Dose
 
+Note: we should probably increase the initial dose strengths -- to around 60 or
+so -- so that the player overdoses immediately if they take two in a quick
+succession.
+
 Adds the Dose's bonuses of Strength, Confidence, Nerve and Will. The Strength
 bonus is reduced by Tolerance. The other attribute bonuses are not affected
 by Tolerance.

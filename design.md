@@ -140,17 +140,8 @@ Game rules and behaviours
 0. The map is initially blank, the PC uncovers the dark areas by going there
 1. The player character is represented by the `@` sign
 2. The player moves the character in cardinal directions using the keyboard
-arrows and the diagonal directions using numpad or <ctrl> and <alt> modifiers
+arrows and the diagonal directions using numpad or <shift> and <ctrl> modifiers
 3. The PC cannot move into or past the Walls
-4. The PC cannot move or see past Closed Doors
-5. The PC can move into ("bump") the Closed Door to open it
-6. The PC can move and see past Open Doors
-7. The PC can descend into the level below by bumping into the Down Stairs
-8. The PC can ascend into the level up by bumping into the Up Stairs
-9. There are no Up Stairs on the first level
-10. There are single Down Stairs on every level
-11. There are Up Stairs on every level at the same position as the Down Stairs
-on the level above
 12. The PC has three main Attributes that can change over time: Confidence,
 Nerve and Will
 13. Each level has several Doses (displayed as `I`) randomly scattered across
@@ -166,8 +157,8 @@ Attributes and the Strength to PC's State of Mind
 22. The PC has a Tolerance attribute
 23. Every time the PC uses a Dose, their Tolerance attribute increases. It never
 decreases.
-24. The Tolerance value decreases the gains from a used Dose -- higher
-tolerance, less gain
+24. The Tolerance value decreases the gains from a used Dose -- the higher the
+tolerance, the lower the gain
 25. PC's State of Mind permanently deteriorates.
 26. Once the State of Mind reaches zero, the PC dies of exhaustion.
 27. When the State of Mind exceeds 100, the PC dies of overdose.
@@ -192,6 +183,16 @@ whenever a monster is in sight. The PC will run in an opposite direction.
 36. The threshold for Desperation depends on the Will
 37. The threshold for Panic depends on the Nerve
 38.
+
+4. The PC cannot move or see past Closed Doors
+5. The PC can move into ("bump") the Closed Door to open it
+6. The PC can move and see past Open Doors
+7. The PC can descend into the level below by bumping into the Down Stairs
+8. The PC can ascend into the level up by bumping into the Up Stairs
+9. There are no Up Stairs on the first level
+10. There are single Down Stairs on every level
+11. There are Up Stairs on every level at the same position as the Down Stairs
+on the level above
 
 
 The Formulae

@@ -10,6 +10,9 @@ from components import *
 def equal_pos(p1, p2):
     return p1.x == p2.x and p1.y == p2.y and p1.floor == p2.floor
 
+def neighbor_pos(p1, p2):
+    return abs(p1.x - p2.x) * abs(p1.y - p2.y) <= 1
+
 def initialise_consoles(console_count, w, h, transparent_color):
     """
     Initialise the given number of new off-screen consoles and return their list.
@@ -60,16 +63,31 @@ def collision_system(e, ecm, dt_ms):
                  if equal_pos(entity.get(Position), dest) and e != entity]
     empty = len(colliding) == 0  # Assume that void (no tile) blocks player
     blocked = empty or any((entity.has(Solid) for entity in colliding))
-    interactions = [entity for entity in colliding if entity.has(Interactive)]
+    interactions = [entity for entity in colliding
+                    if entity.has(Interactive) or entity.has(Monster)]
     if blocked:
         e.remove(MoveDestination)
     if interactions:
-        for i in interactions:
+        assert len(interactions) == 1, ('More than 1 interaction on a block %s'
+                                        % interactions)
+        i = interactions[0]
+        if i.has(Interactive):
             attrs = e.get(Attributes)
             if attrs:  # base this off of the actual interaction type present
                 attrs.state_of_mind += max(20 - attrs.tolerance, 5)
                 attrs.tolerance += 1
             ecm.remove_entity(i)
+        elif i.has(Monster):
+            e.set(Attacking(i))
+
+def combat_system(e, ecm, dt_ms):
+    target = e.get(Attacking).target
+    if not neighbor_pos(e.get(Position), target.get(Position)):
+        return
+    ecm.remove_entity(target)
+    e.remove(Attacking)
+    if e.has(Statistics):
+        e.get(Statistics).kills += 1
 
 def movement_system(e, dt_ms, w, h):
     dest = e.get(MoveDestination)
@@ -143,6 +161,8 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         collision_system(e, ecm, dt_ms)
     for moving in [e for e in ecm.entities(MoveDestination)]:
         movement_system(e, dt_ms, w, h)
+    for attacker in [e for e in ecm.entities(Attacking)]:
+        combat_system(e, ecm, dt_ms)
 
     new_turn = last_turn_count < player.get(Statistics).turns
     if new_turn:
@@ -168,6 +188,8 @@ def generate_map(w, h, empty_ratio):
                 tile_kind = 'wall'
             else:
                 tile_kind = 'dose'
+            if tile_kind == 'empty' and random() < 0.1:
+                tile_kind = 'monster'
             floor.append([x, y, tile_kind])
     return [floor]
 
@@ -176,7 +198,7 @@ def initial_state(w, h, empty_ratio=0.6):
     # TODO: register the component types here once things settled a bit
     player_x, player_y = w / 2, h / 2
     player = ecm.new_entity()
-    player.set(Position(player_x, player_y, 1))
+    player.set(Position(player_x, player_y, 0))
     player.set(Tile(9, tcod.white, '@'))
     player.set(UserInput())
     player.set(Info(name="The Nameless One", description=""))
@@ -187,7 +209,7 @@ def initial_state(w, h, empty_ratio=0.6):
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
             block = ecm.new_entity()
-            block.set(Position(x, y, floor+1))
+            block.set(Position(x, y, floor))
             empty_tile = Tile(0, tcod.lightest_gray, '.')
             if type == 'empty' or (x, y) == (player_x, player_y):
                 block.set(empty_tile)
@@ -198,9 +220,16 @@ def initial_state(w, h, empty_ratio=0.6):
             elif type == 'dose':
                 block.set(empty_tile)
                 dose = ecm.new_entity()
-                dose.set(block.get(Position))
-                dose.set(Tile(0, tcod.light_azure, 'i'))
+                dose.set(Position(x, y, floor))
+                dose.set(Tile(1, tcod.light_azure, 'i'))
                 dose.set(Interactive())
+            elif type == 'monster':
+                block.set(empty_tile)
+                monster = ecm.new_entity()
+                monster.set(Position(x, y, floor))
+                monster.set(Tile(1, tcod.dark_red, 'a'))
+                monster.set(Solid())
+                monster.set(Monster('a', strength=10))
             else:
                 raise Exception('Unexpected tile type: "%s"' % type)
     return {

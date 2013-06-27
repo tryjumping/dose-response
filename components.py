@@ -49,3 +49,12 @@ class Info(Component):
     def __init__(self, name, description):
         self.name = name
         self.description = description
+
+class Monster(Component):
+    def __init__(self, kind, strength):
+        self.kind = kind
+        self.strength = strength
+
+class Attacking(Component):
+    def __init__(self, target):
+        self.target = target

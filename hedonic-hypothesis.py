@@ -57,15 +57,38 @@ def input_system(e, dt_ms, key):
             dest.y += 1
     e.set(dest)
 
+def ai_system(e, ecm, dt_ms):
+    pos = e.get(Position)
+    neighbor_vectors = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
+                        (0, 1), (1, 1)]
+    available_destinations = [Position(pos.x + dx, pos.y + dy, pos.floor)
+                              for dx, dy in neighbor_vectors
+                              if not blocked_tile(Position(pos.x + dx,
+                                      pos.y + dy, pos.floor), ecm)]
+    if available_destinations:
+        dest = choice(available_destinations)
+        e.set(MoveDestination(dest.x, dest.y, dest.floor))
+
+def entities_on_position(pos, ecm):
+    """
+    Return all other entities with the same position.
+    """
+    return [entity for entity in ecm.entities(Position)
+            if equal_pos(entity.get(Position), pos)]
+
+def blocked_tile(pos, ecm):
+    """
+    True if the tile is non-empty or there's a bloking entity on it.
+    """
+    colliding = entities_on_position(pos, ecm)
+    is_void = len(colliding) == 0  # you can't step into the void (i.e. no tile)
+    return is_void or any((entity.has(Solid) for entity in colliding))
+
 def collision_system(e, ecm, dt_ms):
     dest = e.get(MoveDestination)
-    colliding = [entity for entity in ecm.entities(Position)
-                 if equal_pos(entity.get(Position), dest) and e != entity]
-    empty = len(colliding) == 0  # Assume that void (no tile) blocks player
-    blocked = empty or any((entity.has(Solid) for entity in colliding))
-    interactions = [entity for entity in colliding
+    interactions = [entity for entity in entities_on_position(dest, ecm)
                     if entity.has(Interactive) or entity.has(Monster)]
-    if blocked:
+    if blocked_tile(dest, ecm):
         e.remove(MoveDestination)
     if interactions:
         assert len(interactions) == 1, ('More than 1 interaction on a block %s'
@@ -158,18 +181,20 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     for controllable in [e for e in ecm.entities(UserInput)]:
         input_system(controllable, dt_ms, key)
     for collidable in [e for e in ecm.entities(MoveDestination)]:
-        collision_system(e, ecm, dt_ms)
+        collision_system(collidable, ecm, dt_ms)
     for moving in [e for e in ecm.entities(MoveDestination)]:
-        movement_system(e, dt_ms, w, h)
+        movement_system(moving, dt_ms, w, h)
     for attacker in [e for e in ecm.entities(Attacking)]:
-        combat_system(e, ecm, dt_ms)
+        combat_system(attacker, ecm, dt_ms)
 
     new_turn = last_turn_count < player.get(Statistics).turns
     if new_turn:
+        for ai in [e for e in ecm.entities(AI)]:
+            ai_system(ai, ecm, dt_ms)
         for entity_with_attributes in [e for e in ecm.entities(Attributes)]:
             state_of_mind_system(ecm, dt_ms, entity_with_attributes)
     for vulnerable in [e for e in ecm.entities(Attributes)]:
-        death_system(ecm, dt_ms, e)
+        death_system(ecm, dt_ms, vulnerable)
     for renderable in [e for e in ecm.entities(Tile)]:
         tile_system(renderable, dt_ms, consoles)
     gui_system(ecm, dt_ms, player, consoles, w, h, panel_height)
@@ -178,6 +203,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     return game
 
 def generate_map(w, h, empty_ratio):
+    MONSTER_LIMIT = 5
     floor = []
     for x in xrange(w):
         for y in xrange(h):
@@ -188,8 +214,9 @@ def generate_map(w, h, empty_ratio):
                 tile_kind = 'wall'
             else:
                 tile_kind = 'dose'
-            if tile_kind == 'empty' and random() < 0.1:
+            if tile_kind == 'empty' and random() < 0.1 and MONSTER_LIMIT > 0:
                 tile_kind = 'monster'
+                MONSTER_LIMIT -= 1
             floor.append([x, y, tile_kind])
     return [floor]
 
@@ -230,6 +257,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.set(Tile(1, tcod.dark_red, 'a'))
                 monster.set(Solid())
                 monster.set(Monster('a', strength=10))
+                monster.set(AI('aggressive'))
             else:
                 raise Exception('Unexpected tile type: "%s"' % type)
     return {

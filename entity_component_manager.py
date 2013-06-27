@@ -20,6 +20,9 @@ class Entity(object):
     def __hash__(self):
         return hash(self._ecm) + hash(self._id)
 
+    def __repr__(self):
+        return "<Entity id=%d>" % self._id
+
     def has(self, ctype):
         return self._ecm.get_component(self, ctype) is not None
 

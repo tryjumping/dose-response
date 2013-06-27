@@ -58,3 +58,8 @@ class Monster(Component):
 class Attacking(Component):
     def __init__(self, target):
         self.target = target
+
+class AI(Component):
+    def __init__(self, kind):
+        self.kind = kind
+

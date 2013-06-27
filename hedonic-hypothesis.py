@@ -247,7 +247,7 @@ if __name__ == '__main__':
     TRANSPARENT_BG_COLOR = tcod.red
     font_path = os.path.join('fonts', 'dejavu16x16_gs_tc.png')
     font_settings = tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
-    game_title = 'Hedonic Hypothesis'
+    game_title = 'Dose Response'
     tcod.console_set_custom_font(font_path, font_settings)
     tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, game_title, False)
     tcod.sys_set_fps(LIMIT_FPS)

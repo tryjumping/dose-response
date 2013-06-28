@@ -227,6 +227,24 @@ class EntityComponentManager(object):
             result.append(ctype._make(vals))
         return tuple(result)
 
+    def entities_by_component_value(self, ctype, **kwargs):
+        if not is_component_type(ctype):
+            raise TypeError('The component must be a Component instance')
+        if ctype not in self._components:
+            if self._autoregister:
+                return ()
+            else:
+                raise ValueError('Unknown component type. Register it before use.')
+        table = table_from_ctype(ctype)
+        wheres = ('%s.%s = %s' % (table, field, value)
+                  for field, value in kwargs.items())
+        sql = 'select id from entities, %s where entities.id = %s.entity_id and %s' % (
+            table,
+            table,
+            ' and '.join(wheres),
+        )
+        return (Entity(self, id) for (id,) in self._con.execute(sql).fetchall())
+
     def entities(self, *args, **kwargs):
         include_components = kwargs.get('include_components')
         if not args:

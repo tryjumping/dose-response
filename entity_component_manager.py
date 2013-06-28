@@ -122,6 +122,8 @@ class EntityComponentManager(object):
         with self._con:
             values = [id]
             values.extend(component._asdict().values())
+            values = [val._id if isinstance(val, Entity) else val
+                      for val in values]
             sql = 'insert into %s values(%s)'
             self._con.execute(sql % (table_from_ctype(ctype),
                                      ', '.join(['?']*len(values))),

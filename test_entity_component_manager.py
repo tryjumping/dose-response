@@ -131,7 +131,7 @@ class TestEntityComponentManager(unittest.TestCase):
         f = self.ecm.new_entity()
         self.ecm.set_component(f, Attacking(e))
         self.assertEqual(len(set(self.ecm.entities())), 2)
-        target = self.ecm.get_component(f, Attacking)
+        target = self.ecm.get_component(f, Attacking).target
         self.assertEqual(e, target)
 
 

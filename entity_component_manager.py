@@ -22,6 +22,12 @@ class Entity(object):
     def has(self, ctype):
         return self._ecm.get_component(self, ctype) is not None
 
+    def add(self, component):
+        return self._ecm.add_component(self, component)
+
+    def update(self, component):
+        return self._ecm.update_component(self, component)
+
     def set(self, component):
         return self._ecm.set_component(self, component)
 
@@ -111,6 +117,43 @@ class EntityComponentManager(object):
         sql = 'insert into %s values({entity} %s)' % (table, placeholders)
         self._insert_sql_statement[ctype] = sql
 
+    def add_component(self, entity, component):
+        if not is_component(component):
+            raise TypeError('The component must be a Component instance')
+        ctype = component.__class__
+        if ctype not in self._components:
+            if self._autoregister:
+                self.register_component_type(ctype, component_types(component))
+            else:
+                raise ValueError('Unknown component type. Register it before use.')
+        id = entity._id
+        sql = self._insert_sql_statement[ctype]
+        values = [val._id if isinstance(val, Entity) else val
+                  for val in component]
+        with self._con:
+            sql = sql.format(table=table_from_ctype(ctype), entity=id)
+            self._con.execute(sql, values)
+
+    def update_component(self, entity, component):
+        if not is_component(component):
+            raise TypeError('The component must be a Component instance')
+        ctype = component.__class__
+        if ctype not in self._components:
+            if self._autoregister:
+                self.register_component_type(ctype, component_types(component))
+            else:
+                raise ValueError('Unknown component type. Register it before use.')
+        id = entity._id
+        placeholders = ', '.join(['%s = ?' % key for key
+                                  in component._asdict().keys()])
+        sql = 'update {table} set %s where entity_id = {entity}' % placeholders
+        values = [val._id if isinstance(val, Entity) else val
+                  for val in component]
+        with self._con:
+            sql = sql.format(table=table_from_ctype(ctype), entity=id)
+            self._con.execute(sql, values)
+
+
     def set_component(self, entity, component):
         if not is_component(component):
             raise TypeError('The component must be a Component instance')
@@ -122,17 +165,10 @@ class EntityComponentManager(object):
                 raise ValueError('Unknown component type. Register it before use.')
         id = entity._id
         existing_component = self.get_component(entity, ctype)
-        if existing_component:
-            placeholders = ', '.join(['%s = ?' % key for key
-                                      in component._asdict().keys()])
-            sql = 'update {table} set %s where entity_id = {entity}' % placeholders
+        if entity.has(ctype):
+            self.update_component(entity, component)
         else:
-            sql = self._insert_sql_statement[ctype]
-        values = [val._id if isinstance(val, Entity) else val
-                  for val in component]
-        with self._con:
-            sql = sql.format(table=table_from_ctype(ctype), entity=id)
-            self._con.execute(sql, values)
+            self.add_component(entity, component)
 
     def get_component(self, entity, ctype):
         if not is_component_type(ctype):

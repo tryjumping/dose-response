@@ -70,6 +70,17 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertEqual(c.x, 10)
         self.assertEqual(c.y, 20)
 
+    def test_update_component(self):
+        self.ecm.register_component_type(Position, (int, int))
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        self.assertEqual(self.ecm.get_component(e, Position), Position(10, 20))
+        self.ecm.set_component(e, Position(1, 1))
+        self.assertEqual(self.ecm.get_component(e, Position), Position(1, 1))
+        self.ecm.set_component(e, Position(2, 3))
+        self.assertEqual(self.ecm.get_component(e, Position), Position(2, 3))
+
+
     def test_remove_component(self):
         self.ecm.register_component_type(Position, (int, int))
         e = self.ecm.new_entity()

@@ -204,7 +204,7 @@ class EntityComponentManager(object):
 
     def components(self, entity):
         cur = self._con.cursor()
-        sql = 'select * from %s where entity_id=?'
+        sql = 'select * from %s where entity_id=? limit 1'
         result = []
         for ctype in self._components:
             cur.execute(sql % table_from_ctype(ctype), (entity._id,))

@@ -33,11 +33,7 @@ def initialise_consoles(console_count, w, h, transparent_color):
         tcod.console_set_key_color(con, transparent_color)
     return consoles
 
-def tile_system(e, dt_ms, layers):
-    pos = e.get(Position)
-    if not pos:
-        return
-    tile = e.get(Tile)
+def tile_system(e, pos, tile, dt_ms, layers):
     con = layers[tile.level]
     tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
     tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
@@ -211,8 +207,8 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             state_of_mind_system(ecm, dt_ms, entity_with_attributes)
     for vulnerable in [e for e in ecm.entities(Attributes)]:
         death_system(ecm, dt_ms, vulnerable)
-    for renderable in [e for e in ecm.entities(Tile)]:
-        tile_system(renderable, dt_ms, consoles)
+    for renderable, pos, tile in [e for e in ecm.entities(Position, Tile, include_components=True)]:
+        tile_system(renderable, pos, tile, dt_ms, consoles)
     gui_system(ecm, dt_ms, player, consoles, w, h, panel_height)
     tcod.console_print_ex(consoles[9], w-1, h-1, tcod.BKGND_NONE, tcod.RIGHT,
                           str(game['empty_ratio']))

@@ -4,11 +4,6 @@ Implementation of an Entity/Component system.
 import sqlite3
 
 
-class Component(object):
-    def __init__(self):
-        pass
-
-
 class Entity(object):
     def __init__(self, ecm, id):
         self._ecm = ecm
@@ -39,8 +34,64 @@ class Entity(object):
     def remove(self, ctype):
         return self._ecm.remove_component(self, ctype)
 
+
+text = unicode
+entity = Entity
+
+
+class Component(object):
+    """
+    Defines a new ECM component. Inherit from it and specify the fields and
+    their types:
+
+        class Position(Component):
+            x = int
+            y = int
+            floor = int
+
+        class Monster(Component):
+            kind = unicode
+            strength = int
+
+        class Attacking(Component):
+            target = entity
+
+    Allowed types: bool, int, float, text, entity
+
+    `text` and `entity` values are provided here.
+
+    The component is immutable, you'll have to set the entity to a new version
+    when updating it.
+    """
+    def __init__(self, *args):
+        attrs = self.attrs()
+        if len(args) != len(attrs):
+            raise ValueError("The number of arguments and attributes doesn't match")
+        for attr, arg in zip(attrs, args):
+            setattr(self, attr, arg)
+
+    @classmethod
+    def attrs(cls):
+        return [k for k in cls.__dict__.keys()
+                if k[:2] != '__']
+
+    def values(self):
+        return (getattr(self, attr) for attr in self.__class__.attrs())
+
+
+
 def table_from_ctype(ctype):
     return ctype.__name__.lower() + '_components'
+
+def sql_from_type(t):
+    map = {
+        bool: 'INTEGER',
+        int: 'INTEGER',
+        float: 'REAL',
+        text: 'TEXT',
+        entity: 'INTEGER',
+    }
+    return map[t]
 
 class EntityComponentManager(object):
 
@@ -70,12 +121,17 @@ class EntityComponentManager(object):
         sql = '''
         create table %s(
             entity_id INTEGER,
+            %s
             FOREIGN KEY(entity_id) REFERENCES entities(id));
         '''
         if ctype in self._components:
             return
+        attr_statements = ['%s %s,' % (attr, sql_from_type(getattr(ctype, attr)))
+                           for attr
+                           in ctype.attrs()]
         with self._con:
-            self._con.execute(sql % table_from_ctype(ctype))
+            self._con.execute(sql % (table_from_ctype(ctype),
+                                     ''.join(attr_statements)))
         self._components.add(ctype)
 
     def set_component(self, entity, component):
@@ -89,8 +145,12 @@ class EntityComponentManager(object):
                 raise ValueError('Unknown component type. Register it before use.')
         id = entity._id
         with self._con:
-            sql = 'insert into %s values(?)'
-            self._con.execute(sql % table_from_ctype(ctype), (id,))
+            values = [id]
+            values.extend(component.values())
+            sql = 'insert into %s values(%s)'
+            self._con.execute(sql % (table_from_ctype(ctype),
+                                     ', '.join(['?']*len(values))),
+                                     values)
 
     def get_component(self, entity, ctype):
         if not issubclass(ctype, Component):
@@ -103,7 +163,9 @@ class EntityComponentManager(object):
         cur = self._con.cursor()
         sql = 'select * from %s where entity_id=?'
         cur.execute(sql % table_from_ctype(ctype), (entity._id,))
-        return cur.fetchone()
+        values = cur.fetchone()
+        if values:
+            return ctype(*values[1:])
 
     def remove_component(self, entity, ctype):
         if not issubclass(ctype, Component):
@@ -125,7 +187,7 @@ class EntityComponentManager(object):
             cur.execute(sql % table_from_ctype(ctype), (entity._id,))
             c = cur.fetchone()
             if c:
-                result.append(c)
+                result.append(ctype(*c[1:]))
         return result
 
     def entities(self, ctype=None):

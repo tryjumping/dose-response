@@ -1,21 +1,21 @@
 import unittest
 
-from entity_component_manager import EntityComponentManager, Entity, Component
+from entity_component_manager import EntityComponentManager, Entity, Component, text, entity
 
 
 class Position(Component):
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    x = int
+    y = int
 
 class Velocity(Component):
-    def __init__(self, dx, dy):
-        self.dx = dx
-        self.dy = dy
+    dx = int
+    dy = int
 
 class EmptyComponent(Component):
     pass
 
+class Attacking(Component):
+    target = entity
 
 class TestEntity(unittest.TestCase):
     def test_equality(self):
@@ -128,6 +128,15 @@ class TestEntityComponentManager(unittest.TestCase):
         self.ecm.remove_entity(f)
         empty = set(self.ecm.entities())
         self.assertEqual(len(empty), 0)
+
+    def test_component_with_entity_reference(self):
+        self.ecm.register_component_type(Attacking)
+        e = self.ecm.new_entity()
+        f = self.ecm.new_entity()
+        self.ecm.set_component(f, Attacking(e))
+        self.assertEqual(len(set(self.ecm.entities())), 2)
+        target = self.ecm.get_component(f, Attacking)
+        self.assertEqual(e, target)
 
 
 class EntityHelpers(unittest.TestCase):

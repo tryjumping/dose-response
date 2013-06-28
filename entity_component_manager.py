@@ -117,15 +117,19 @@ class EntityComponentManager(object):
             else:
                 raise ValueError('Unknown component type. Register it before use.')
         id = entity._id
+        existing_component = self.get_component(entity, ctype)
+        if existing_component:
+            placeholders = ', '.join(['%s = ?' % key for key
+                                      in component._asdict().keys()])
+            sql = 'update {table} set %s where entity_id = {entity}' % placeholders
+        else:
+            placeholders = ' '.join([', ?'] * len(component._asdict()))
+            sql = 'insert into {table} values({entity} %s)' % placeholders
+        values = [val._id if isinstance(val, Entity) else val
+                  for val in component._asdict().values()]
         with self._con:
-            values = [id]
-            values.extend(component._asdict().values())
-            values = [val._id if isinstance(val, Entity) else val
-                      for val in values]
-            sql = 'insert into %s values(%s)'
-            self._con.execute(sql % (table_from_ctype(ctype),
-                                     ', '.join(['?']*len(values))),
-                                     values)
+            sql = sql.format(table=table_from_ctype(ctype), entity=id)
+            self._con.execute(sql, values)
 
     def get_component(self, entity, ctype):
         if not is_component_type(ctype):

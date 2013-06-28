@@ -19,7 +19,7 @@ Component('Attributes', 'state_of_mind, tolerance, confidence, nerve, will')
 
 Component('Statistics', 'turns, kills, doses')
 
-Component('Dead')
+Component('Dead', 'reason')
 
 Component('Interactive')
 

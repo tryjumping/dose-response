@@ -92,7 +92,7 @@ class EntityComponentManager(object):
         with self._con:
             self._con.execute('delete from entities where id=?', (entity._id,))
 
-    def register_component_type(self, ctype, types):
+    def register_component_type(self, ctype, types, index=False):
         if not is_component_type(ctype):
             raise TypeError('The type must be a valid component type')
         sql = '''
@@ -112,6 +112,9 @@ class EntityComponentManager(object):
         table = table_from_ctype(ctype)
         with self._con:
             self._con.execute(sql % (table, '\n'.join(attr_statements)))
+            if index:
+                self._con.execute('create index pos_index on position_components (%s)' %
+                                  ', '.join(field for field in ctype._fields))
         self._components[ctype] = types
         placeholders = ''.join((' , ?' for _ in ctype._fields))
         sql = 'insert into %s values({entity} %s)' % (table, placeholders)
@@ -235,14 +238,15 @@ class EntityComponentManager(object):
             else:
                 raise ValueError('Unknown component type. Register it before use.')
         table = table_from_ctype(ctype)
-        wheres = ('%s.%s = %s' % (table, field, value)
-                  for field, value in kwargs.items())
+        wheres = ('%s.%s = ?' % (table, field)
+                  for field in kwargs.iterkeys())
         sql = 'select id from entities, %s where entities.id = %s.entity_id and %s' % (
             table,
             table,
             ' and '.join(wheres),
         )
-        return (Entity(self, id) for (id,) in self._con.execute(sql).fetchall())
+        result = self._con.execute(sql, kwargs.values()).fetchall()
+        return (Entity(self, id) for (id,) in result)
 
     def entities(self, *args, **kwargs):
         include_components = kwargs.get('include_components')

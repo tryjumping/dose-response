@@ -65,11 +65,9 @@ def input_system(e, dt_ms, key):
             dy = 1
     e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
-def ai_system(e, ecm, dt_ms):
-    return
-    pos = e.get(Position)
-    neighbor_vectors = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
-                        (0, 1), (1, 1)]
+def ai_system(e, ai, pos, ecm, dt_ms):
+    neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
+                        (0, 1), (1, 1))
     available_destinations = [Position(pos.x + dx, pos.y + dy, pos.floor)
                               for dx, dy in neighbor_vectors
                               if not blocked_tile(Position(pos.x + dx,
@@ -82,18 +80,17 @@ def entities_on_position(pos, ecm):
     """
     Return all other entities with the same position.
     """
-    return [entity for entity
+    return (entity for entity
             in ecm.entities_by_component_value(Position,
-                                               x=pos.x, y=pos.y, floor=pos.floor)]
+                                               x=pos.x, y=pos.y, floor=pos.floor))
 
 
 def blocked_tile(pos, ecm):
     """
     True if the tile is non-empty or there's a bloking entity on it.
     """
-    colliding = entities_on_position(pos, ecm)
-    is_void = len(colliding) == 0  # you can't step into the void (i.e. no tile)
-    return is_void or any((entity.has(Solid) for entity in colliding))
+    return any((entity.has(Solid) for entity
+                in entities_on_position(pos, ecm)))
 
 def collision_system(e, ecm, dt_ms):
     dest = e.get(MoveDestination)
@@ -202,9 +199,9 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         combat_system(attacker, ecm, dt_ms)
 
     new_turn = last_turn_count < player.get(Statistics).turns
+    for npc, ai, pos  in [e for e in ecm.entities(AI, Position, include_components=True)]:
+        ai_system(npc, ai, pos, ecm, dt_ms)
     if new_turn:
-        for ai in [e for e in ecm.entities(AI)]:
-            ai_system(ai, ecm, dt_ms)
         for entity_with_attributes in [e for e in ecm.entities(Attributes)]:
             state_of_mind_system(ecm, dt_ms, entity_with_attributes)
     for vulnerable in [e for e in ecm.entities(Attributes)]:
@@ -247,34 +244,24 @@ def initial_state(w, h, empty_ratio=0.6):
     player_pos = player.get(Position)
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
-            block = ecm.new_entity()
-            block.add(Position(x, y, floor))
-            empty_tile = Tile(0, int_from_color(tcod.lightest_gray), '.')
-            if type == 'empty' or (x, y) == (player_x, player_y):
-                block.add(empty_tile)
-            elif type == 'wall':
-                assert color_from_int(int_from_color(tcod.light_green)) == tcod.light_green
+            if type == 'wall':
+                block = ecm.new_entity()
+                block.add(Position(x, y, floor))
                 color = choice((tcod.dark_green, tcod.green, tcod.light_green))
                 block.add(Tile(0, int_from_color(color), '#'))
                 block.add(Solid())
             elif type == 'dose':
-                block.add(empty_tile)
                 dose = ecm.new_entity()
                 dose.add(Position(x, y, floor))
-                assert color_from_int(int_from_color(tcod.light_azure)) == tcod.light_azure
                 dose.add(Tile(1, int_from_color(tcod.light_azure), 'i'))
                 dose.add(Interactive())
             elif type == 'monster':
-                block.add(empty_tile)
                 monster = ecm.new_entity()
                 monster.add(Position(x, y, floor))
-                assert color_from_int(int_from_color(tcod.dark_red)) == tcod.dark_red
                 monster.add(Tile(1, int_from_color(tcod.dark_red), 'a'))
                 monster.add(Solid())
                 monster.add(Monster('a', strength=10))
                 monster.add(AI('aggressive'))
-            else:
-                raise Exception('Unexpected tile type: "%s"' % type)
     return {
         'ecm': ecm,
         'player': player,

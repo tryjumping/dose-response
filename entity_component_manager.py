@@ -1,6 +1,7 @@
 """
 Implementation of an Entity/Component system.
 """
+import sqlite3
 
 
 class Component(object):
@@ -38,35 +39,44 @@ class Entity(object):
     def remove(self, ctype):
         return self._ecm.remove_component(self, ctype)
 
+def table_from_ctype(ctype):
+    return ctype.__name__.lower() + '_components'
+
 class EntityComponentManager(object):
 
     def __init__(self, autoregister_components=False):
-        self._entities = set()
-        self._last_entity_id = -1
-        self._components = {}
         self._autoregister = autoregister_components
+        self._con = sqlite3.connect(':memory:')
+        with self._con:
+            self._con.executescript(
+                'create table entities(id INTEGER PRIMARY KEY);')
+        self._components = set()
+
 
     def new_entity(self):
-        id = self._last_entity_id + 1
-        self._entities.add(id)
-        self._last_entity_id = id
-        for ctype in self._components:
-            self._components[ctype].append(None)
-            assert self._last_entity_id == len(self._components[ctype])-1
+        cur = self._con.cursor()
+        cur.execute("insert into entities values (null)")
+        id = cur.lastrowid
+        self._con.commit()
         return Entity(self, id)
 
     def remove_entity(self, entity):
-        id = entity._id
-        for c in entity.components():
-            entity.remove(c.__class__)
-        self._entities.remove(id)
+        with self._con:
+            self._con.execute('delete from entities where id=?', (entity._id,))
 
     def register_component_type(self, ctype):
         if not issubclass(ctype, Component):
             raise TypeError('The type must be a Component instance')
+        sql = '''
+        create table %s(
+            entity_id INTEGER,
+            FOREIGN KEY(entity_id) REFERENCES entities(id));
+        '''
         if ctype in self._components:
             return
-        self._components[ctype] = [None] * (self._last_entity_id + 1)
+        with self._con:
+            self._con.execute(sql % table_from_ctype(ctype))
+        self._components.add(ctype)
 
     def set_component(self, entity, component):
         if not isinstance(component, Component):
@@ -77,9 +87,10 @@ class EntityComponentManager(object):
                 self.register_component_type(ctype)
             else:
                 raise ValueError('Unknown component type. Register it before use.')
-        components = self._components[ctype]
         id = entity._id
-        components[id] = component
+        with self._con:
+            sql = 'insert into %s values(?)'
+            self._con.execute(sql % table_from_ctype(ctype), (id,))
 
     def get_component(self, entity, ctype):
         if not issubclass(ctype, Component):
@@ -89,7 +100,10 @@ class EntityComponentManager(object):
                 return None
             else:
                 raise ValueError('Unknown component type. Register it before use.')
-        return self._components[ctype][entity._id]
+        cur = self._con.cursor()
+        sql = 'select * from %s where entity_id=?'
+        cur.execute(sql % table_from_ctype(ctype), (entity._id,))
+        return cur.fetchone()
 
     def remove_component(self, entity, ctype):
         if not issubclass(ctype, Component):
@@ -99,17 +113,24 @@ class EntityComponentManager(object):
                 return None
             else:
                 raise ValueError('Unknown component type. Register it before use.')
-        self._components[ctype][entity._id] = None
+        with self._con:
+            sql = 'delete from %s where entity_id=?'
+            self._con.execute(sql % table_from_ctype(ctype), (entity._id,))
 
     def components(self, entity):
-        id = entity._id
-        return (self._components[ctype][id] for ctype
-                in self._components.keys()
-                if self._components[ctype][id])
+        cur = self._con.cursor()
+        sql = 'select * from %s where entity_id=?'
+        result = []
+        for ctype in self._components:
+            cur.execute(sql % table_from_ctype(ctype), (entity._id,))
+            c = cur.fetchone()
+            if c:
+                result.append(c)
+        return result
 
     def entities(self, ctype=None):
         if not ctype:
-            return (Entity(self, id) for id in self._entities)
+            return (Entity(self, id) for (id,) in self._con.execute("select id from entities"))
         if not issubclass(ctype, Component):
             raise TypeError('The component must be a Component instance')
         if ctype not in self._components:
@@ -117,5 +138,7 @@ class EntityComponentManager(object):
                 return ()
             else:
                 raise ValueError('Unknown component type. Register it before use.')
-        return (Entity(self, id) for id, c in enumerate(self._components[ctype])
-                if c)
+        cur = self._con.cursor()
+        sql = 'select entity_id from %s'
+        cur.execute(sql % table_from_ctype(ctype))
+        return (Entity(self, id) for (id,) in cur.fetchall())

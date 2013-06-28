@@ -1,65 +1,32 @@
-from entity_component_manager import Component
+from collections import namedtuple
+import sys
 
-class Position(Component):
-    def __init__(self, x=None, y=None, floor=None):
-        self.x = x
-        self.y = y
-        self.floor = floor
+def Component(name, attrs=''):
+    current_module = sys.modules[__name__]
+    setattr(current_module, name, namedtuple(name, attrs))
 
-class MoveDestination(Component):
-    def __init__(self, x=None, y=None, floor=None):
-        self.x = x
-        self.y = y
-        self.floor = floor
+Component('Position', 'x y floor')
 
-class Tile(Component):
-    def __init__(self, level, color, glyph):
-        self.level = level
-        self.color = color
-        self.glyph = glyph
+Component('MoveDestination', 'x y floor')
 
-class UserInput(Component):
-    pass
+Component('Tile', 'level color glyph')
 
-class Solid(Component):
-    pass
+Component('UserInput')
 
-class Attributes(Component):
-    def __init__(self, state_of_mind, tolerance, confidence, nerve, will):
-        self.state_of_mind = state_of_mind
-        self.tolerance = tolerance
-        self.confidence = confidence
-        self.nerve = nerve
-        self.will = will
+Component('Solid')
 
-class Statistics(Component):
-    def __init__(self, turns, kills, doses):
-        self.turns = turns
-        self.kills = kills
-        self.doses = doses
+Component('Attributes', 'state_of_mind, tolerance, confidence, nerve, will')
 
-class Dead(Component):
-    def __init__(self, reason):
-        self.reason = reason
+Component('Statistics', 'turns, kills, doses')
 
-class Interactive(Component):
-    pass
+Component('Dead')
 
-class Info(Component):
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
+Component('Interactive')
 
-class Monster(Component):
-    def __init__(self, kind, strength):
-        self.kind = kind
-        self.strength = strength
+Component('Info', 'name, description')
 
-class Attacking(Component):
-    def __init__(self, target):
-        self.target = target
+Component('Monster', 'kind, strength')
 
-class AI(Component):
-    def __init__(self, kind):
-        self.kind = kind
+Component('Attacking', 'target')
 
+Component('AI', 'kind')

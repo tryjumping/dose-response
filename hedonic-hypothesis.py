@@ -1,4 +1,3 @@
-from collections import namedtuple
 import os
 from random import random, choice
 

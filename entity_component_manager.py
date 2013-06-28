@@ -42,15 +42,13 @@ entity = Entity
 def table_from_ctype(ctype):
     return ctype.__name__.lower() + '_components'
 
-def sql_from_type(t):
-    map = {
+sqltype = {
         bool: 'INTEGER',
         int: 'INTEGER',
         float: 'REAL',
         text: 'TEXT',
         entity: 'INTEGER',
     }
-    return map[t]
 
 def is_component_type(ctype):
     return (hasattr(ctype, '_fields') and hasattr(ctype, '_make') and
@@ -60,7 +58,7 @@ def is_component(c):
     return is_component_type(c.__class__)
 
 def valid_type(t):
-    return t in set([int, bool, float, text, Entity])
+    return t in sqltype
 
 def component_types(component):
     return [getattr(component, field).__class__ for field in component._fields]
@@ -75,7 +73,6 @@ class EntityComponentManager(object):
             self._con.executescript(
                 'create table entities(id INTEGER PRIMARY KEY);')
         self._components = {}
-
 
     def new_entity(self):
         cur = self._con.cursor()
@@ -100,8 +97,8 @@ class EntityComponentManager(object):
         if ctype in self._components:
             return
         if not all((valid_type(t) for t in types)):
-            return 'The component types must be a bool, int, float, unicode or instance'
-        attr_statements = ['%s %s,' % (field, sql_from_type(type))
+            return 'The component types must be bool, int, float, text or entity'
+        attr_statements = ['%s %s,' % (field, sqltype[type])
                            for field, type
                            in zip(ctype._fields, types)]
         with self._con:
@@ -174,7 +171,8 @@ class EntityComponentManager(object):
 
     def entities(self, ctype=None):
         if not ctype:
-            return (Entity(self, id) for (id,) in self._con.execute("select id from entities"))
+            return (Entity(self, id) for (id,)
+                    in self._con.execute("select id from entities"))
         if not is_component_type(ctype):
             raise TypeError('The component must be a Component instance')
         if ctype not in self._components:

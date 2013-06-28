@@ -109,6 +109,44 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertIn(f, velocity_entities)
         self.assertIn(g, velocity_entities)
 
+    def test_query_entities_with_multiple_components(self):
+        self.ecm.register_component_type(Position, (int, int))
+        self.ecm.register_component_type(Velocity, (int, int))
+        self.ecm.register_component_type(Empty, ())
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        self.ecm.set_component(e, Velocity(2, 2))
+        f = self.ecm.new_entity()
+        self.ecm.set_component(f, Velocity(5, 5))
+        g = self.ecm.new_entity()
+        self.ecm.set_component(g, Position(1, 1))
+        self.ecm.set_component(g, Velocity(1, 1))
+        moving_entities = set(self.ecm.entities(Position, Velocity))
+        self.assertEqual(len(moving_entities), 2)
+        self.assertIn(e, moving_entities)
+        self.assertIn(g, moving_entities)
+        self.assertNotIn(f, moving_entities)
+
+    def test_component_inclusion_when_querying_entities(self):
+        self.ecm.register_component_type(Position, (int, int))
+        self.ecm.register_component_type(Velocity, (int, int))
+        self.ecm.register_component_type(Empty, ())
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        self.ecm.set_component(e, Velocity(2, 2))
+        f = self.ecm.new_entity()
+        self.ecm.set_component(f, Velocity(5, 5))
+        g = self.ecm.new_entity()
+        self.ecm.set_component(g, Velocity(1, 1))
+        moving_entities = self.ecm.entities(Position, Velocity,
+                                            include_components=True)
+        self.assertEqual(len(list(moving_entities)), 1)
+        for entity, pos, vel in moving_entities:
+            self.assertEqual(entity, e)
+            self.assertEqual(pos, Position(10, 20))
+            self.assertEqual(vel, Velocity(2, 2))
+
+
     def test_automatic_component_registration(self):
         self.ecm = EntityComponentManager(autoregister_components=True)
         e = self.ecm.new_entity()

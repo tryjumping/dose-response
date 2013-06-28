@@ -213,18 +213,48 @@ class EntityComponentManager(object):
                 result.append(ctype._make(c[1:]))
         return result
 
-    def entities(self, ctype=None):
-        if not ctype:
+    def build_entity_and_components(self, row, ctypes):
+        """
+        Takes a tuple of all pertinent entity and component values and returns
+        the instantiated objects.
+        """
+        assert len(row) == sum((len(ctype._fields) for ctype in ctypes)) + 1
+        result = [Entity(self, row[0])]
+        row = row[1:]
+        for ctype in ctypes:
+            valcount = len(ctype._fields)
+            vals, row = row[:valcount], row[valcount:]
+            result.append(ctype._make(vals))
+        return tuple(result)
+
+    def entities(self, *args, **kwargs):
+        include_components = kwargs.get('include_components')
+        if not args:
             return (Entity(self, id) for (id,)
                     in self._con.execute("select id from entities"))
-        if not is_component_type(ctype):
-            raise TypeError('The component must be a Component instance')
-        if ctype not in self._components:
-            if self._autoregister:
-                return ()
-            else:
-                raise ValueError('Unknown component type. Register it before use.')
-        cur = self._con.cursor()
-        sql = 'select entity_id from %s'
-        cur.execute(sql % table_from_ctype(ctype))
-        return (Entity(self, id) for (id,) in cur.fetchall())
+        for ctype in args:
+            if not is_component_type(ctype):
+                raise TypeError('The component must be a Component instance')
+            if ctype not in self._components:
+                if self._autoregister:
+                    return ()
+                else:
+                    raise ValueError('Unknown component type. Register it before use.')
+        fields = []
+        if include_components:
+            for ctype in args:
+                for field in ctype._fields:
+                    fields.append(', %s.%s' % (table_from_ctype(ctype), field))
+        tables = [table_from_ctype(ctype) for ctype in args]
+        wheres = ('entities.id = %s.entity_id' % table for table in tables)
+        sql = 'select id %s from entities, %s where %s' % (
+            ' '.join(fields),
+            ', '.join(tables),
+            ' and '.join(wheres),
+        )
+        result = self._con.execute(sql).fetchall()
+        if include_components:
+            return (self.build_entity_and_components(row, args)
+                    for row in result)
+        else:
+            return (Entity(self, id) for (id,) in result)

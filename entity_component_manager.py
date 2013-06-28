@@ -97,7 +97,7 @@ class EntityComponentManager(object):
             raise TypeError('The type must be a valid component type')
         sql = '''
         create table %s(
-            entity_id INTEGER,
+            entity_id INTEGER unique,
             %s
             FOREIGN KEY(entity_id) REFERENCES entities(id));
         '''
@@ -179,7 +179,7 @@ class EntityComponentManager(object):
             else:
                 raise ValueError('Unknown component type. Register it before use.')
         cur = self._con.cursor()
-        sql = 'select * from %s where entity_id=?'
+        sql = 'select * from %s where entity_id=? limit 1'
         cur.execute(sql % table_from_ctype(ctype), (entity._id,))
         values = cur.fetchone()
         if values:

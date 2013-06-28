@@ -199,9 +199,9 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         combat_system(attacker, ecm, dt_ms)
 
     new_turn = last_turn_count < player.get(Statistics).turns
-    for npc, ai, pos  in [e for e in ecm.entities(AI, Position, include_components=True)]:
-        ai_system(npc, ai, pos, ecm, dt_ms)
     if new_turn:
+        for npc, ai, pos  in [e for e in ecm.entities(AI, Position, include_components=True)]:
+            ai_system(npc, ai, pos, ecm, dt_ms)
         for entity_with_attributes in [e for e in ecm.entities(Attributes)]:
             state_of_mind_system(ecm, dt_ms, entity_with_attributes)
     for vulnerable in [e for e in ecm.entities(Attributes)]:

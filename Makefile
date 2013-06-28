@@ -3,3 +3,6 @@ run:
 
 test:
 	python -m unittest discover
+
+bench:
+	python -m cProfile -s cumulative ./hedonic-hypothesis.py

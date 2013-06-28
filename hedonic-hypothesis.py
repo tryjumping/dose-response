@@ -82,8 +82,10 @@ def entities_on_position(pos, ecm):
     """
     Return all other entities with the same position.
     """
-    return [entity for entity in ecm.entities(Position)
-            if equal_pos(entity.get(Position), pos)]
+    return [entity for entity
+            in ecm.entities_by_component_value(Position,
+                                               x=pos.x, y=pos.y, floor=pos.floor)]
+
 
 def blocked_tile(pos, ecm):
     """

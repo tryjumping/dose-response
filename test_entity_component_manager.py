@@ -1,21 +1,17 @@
 import unittest
+from collections import namedtuple
 
-from entity_component_manager import EntityComponentManager, Entity, Component, text, entity
+from entity_component_manager import EntityComponentManager, Entity, text, entity
 
 
-class Position(Component):
-    x = int
-    y = int
+Position = namedtuple('Position', 'x y')
 
-class Velocity(Component):
-    dx = int
-    dy = int
+Velocity = namedtuple('Velocity', 'dx dy')
 
-class EmptyComponent(Component):
-    pass
+Empty = namedtuple('Empty', [])
 
-class Attacking(Component):
-    target = entity
+Attacking = namedtuple('Attacking', 'target')
+
 
 class TestEntity(unittest.TestCase):
     def test_equality(self):
@@ -53,20 +49,20 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertIn(e3, entities)
 
     def test_register_component_type(self):
-        self.ecm.register_component_type(Position)
-        self.ecm.register_component_type(Position)
-        self.ecm.register_component_type(Velocity)
-        self.ecm.register_component_type(EmptyComponent)
+        self.ecm.register_component_type(Position, (int, int))
+        self.ecm.register_component_type(Position, (int, int))
+        self.ecm.register_component_type(Velocity, (int, int))
+        self.ecm.register_component_type(Empty, ())
 
     def test_set_component(self):
-        self.ecm.register_component_type(Position)
+        self.ecm.register_component_type(Position, (int, int))
         e = self.ecm.new_entity()
         self.ecm.set_component(e, Position(10, 20))
         with self.assertRaises(TypeError):
             self.ecm.set_component(e, {'x': 1, 'y': 2})
 
     def test_get_component(self):
-        self.ecm.register_component_type(Position)
+        self.ecm.register_component_type(Position, (int, int))
         e = self.ecm.new_entity()
         self.ecm.set_component(e, Position(10, 20))
         c = self.ecm.get_component(e, Position)
@@ -75,7 +71,7 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertEqual(c.y, 20)
 
     def test_remove_component(self):
-        self.ecm.register_component_type(Position)
+        self.ecm.register_component_type(Position, (int, int))
         e = self.ecm.new_entity()
         self.ecm.set_component(e, Position(10, 20))
         self.ecm.remove_component(e, Position)
@@ -83,9 +79,9 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertIsNone(c)
 
     def test_entities_with_specified_component(self):
-        self.ecm.register_component_type(Position)
-        self.ecm.register_component_type(Velocity)
-        self.ecm.register_component_type(EmptyComponent)
+        self.ecm.register_component_type(Position, (int, int))
+        self.ecm.register_component_type(Velocity, (int, int))
+        self.ecm.register_component_type(Empty, ())
         e = self.ecm.new_entity()
         self.ecm.set_component(e, Position(10, 20))
         f = self.ecm.new_entity()
@@ -113,8 +109,8 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertIn(e, velocity_entities)
 
     def test_remove_entity(self):
-        self.ecm.register_component_type(Position)
-        self.ecm.register_component_type(Velocity)
+        self.ecm.register_component_type(Position, (int, int))
+        self.ecm.register_component_type(Velocity, (int, int))
         e = self.ecm.new_entity()
         self.ecm.set_component(e, Position(10, 20))
         self.ecm.set_component(e, Velocity(5, 5))
@@ -130,7 +126,7 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertEqual(len(empty), 0)
 
     def test_component_with_entity_reference(self):
-        self.ecm.register_component_type(Attacking)
+        self.ecm.register_component_type(Attacking, (entity,))
         e = self.ecm.new_entity()
         f = self.ecm.new_entity()
         self.ecm.set_component(f, Attacking(e))
@@ -142,9 +138,9 @@ class TestEntityComponentManager(unittest.TestCase):
 class EntityHelpers(unittest.TestCase):
     def setUp(self):
         self.ecm = EntityComponentManager()
-        self.ecm.register_component_type(Position)
-        self.ecm.register_component_type(Velocity)
-        self.ecm.register_component_type(EmptyComponent)
+        self.ecm.register_component_type(Position, (int, int))
+        self.ecm.register_component_type(Velocity, (int, int))
+        self.ecm.register_component_type(Empty, ())
 
     def test_has_component(self):
         e = self.ecm.new_entity()

@@ -39,47 +39,6 @@ text = unicode
 entity = Entity
 
 
-class Component(object):
-    """
-    Defines a new ECM component. Inherit from it and specify the fields and
-    their types:
-
-        class Position(Component):
-            x = int
-            y = int
-            floor = int
-
-        class Monster(Component):
-            kind = unicode
-            strength = int
-
-        class Attacking(Component):
-            target = entity
-
-    Allowed types: bool, int, float, text, entity
-
-    `text` and `entity` values are provided here.
-
-    The component is immutable, you'll have to set the entity to a new version
-    when updating it.
-    """
-    def __init__(self, *args):
-        attrs = self.attrs()
-        if len(args) != len(attrs):
-            raise ValueError("The number of arguments and attributes doesn't match")
-        for attr, arg in zip(attrs, args):
-            setattr(self, attr, arg)
-
-    @classmethod
-    def attrs(cls):
-        return [k for k in cls.__dict__.keys()
-                if k[:2] != '__']
-
-    def values(self):
-        return (getattr(self, attr) for attr in self.__class__.attrs())
-
-
-
 def table_from_ctype(ctype):
     return ctype.__name__.lower() + '_components'
 
@@ -92,6 +51,20 @@ def sql_from_type(t):
         entity: 'INTEGER',
     }
     return map[t]
+
+def is_component_type(ctype):
+    return (hasattr(ctype, '_fields') and hasattr(ctype, '_make') and
+            hasattr(ctype, '_asdict'))
+
+def is_component(c):
+    return is_component_type(c.__class__)
+
+def valid_type(t):
+    return t in set([int, bool, float, unicode, str, Entity])
+
+def component_types(component):
+    return [getattr(component, field).__class__ for field in component._fields]
+
 
 class EntityComponentManager(object):
 
@@ -115,9 +88,9 @@ class EntityComponentManager(object):
         with self._con:
             self._con.execute('delete from entities where id=?', (entity._id,))
 
-    def register_component_type(self, ctype):
-        if not issubclass(ctype, Component):
-            raise TypeError('The type must be a Component instance')
+    def register_component_type(self, ctype, types):
+        if not is_component_type(ctype):
+            raise TypeError('The type must be a valid component type')
         sql = '''
         create table %s(
             entity_id INTEGER,
@@ -126,34 +99,36 @@ class EntityComponentManager(object):
         '''
         if ctype in self._components:
             return
-        attr_statements = ['%s %s,' % (attr, sql_from_type(getattr(ctype, attr)))
-                           for attr
-                           in ctype.attrs()]
+        if not all((valid_type(t) for t in types)):
+            return 'The component types must be a bool, int, float, unicode or instance'
+        attr_statements = ['%s %s,' % (field, sql_from_type(type))
+                           for field, type
+                           in zip(ctype._fields, types)]
         with self._con:
             self._con.execute(sql % (table_from_ctype(ctype),
-                                     ''.join(attr_statements)))
+                                     '\n'.join(attr_statements)))
         self._components.add(ctype)
 
     def set_component(self, entity, component):
-        if not isinstance(component, Component):
+        if not is_component(component):
             raise TypeError('The component must be a Component instance')
         ctype = component.__class__
         if ctype not in self._components:
             if self._autoregister:
-                self.register_component_type(ctype)
+                self.register_component_type(ctype, component_types(component))
             else:
                 raise ValueError('Unknown component type. Register it before use.')
         id = entity._id
         with self._con:
             values = [id]
-            values.extend(component.values())
+            values.extend(component._asdict().values())
             sql = 'insert into %s values(%s)'
             self._con.execute(sql % (table_from_ctype(ctype),
                                      ', '.join(['?']*len(values))),
                                      values)
 
     def get_component(self, entity, ctype):
-        if not issubclass(ctype, Component):
+        if not is_component_type(ctype):
             raise TypeError('The component must be a Component instance')
         if ctype not in self._components:
             if self._autoregister:
@@ -165,10 +140,10 @@ class EntityComponentManager(object):
         cur.execute(sql % table_from_ctype(ctype), (entity._id,))
         values = cur.fetchone()
         if values:
-            return ctype(*values[1:])
+            return ctype._make(values[1:])
 
     def remove_component(self, entity, ctype):
-        if not issubclass(ctype, Component):
+        if not is_component_type(ctype):
             raise TypeError('The component must be a Component instance')
         if ctype not in self._components:
             if self._autoregister:
@@ -187,13 +162,13 @@ class EntityComponentManager(object):
             cur.execute(sql % table_from_ctype(ctype), (entity._id,))
             c = cur.fetchone()
             if c:
-                result.append(ctype(*c[1:]))
+                result.append(ctype._make(c[1:]))
         return result
 
     def entities(self, ctype=None):
         if not ctype:
             return (Entity(self, id) for (id,) in self._con.execute("select id from entities"))
-        if not issubclass(ctype, Component):
+        if not is_component_type(ctype):
             raise TypeError('The component must be a Component instance')
         if ctype not in self._components:
             if self._autoregister:

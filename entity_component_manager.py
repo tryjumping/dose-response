@@ -218,14 +218,13 @@ class EntityComponentManager(object):
         Takes a tuple of all pertinent entity and component values and returns
         the instantiated objects.
         """
-        assert len(row) == sum((len(ctype._fields) for ctype in ctypes)) + 1
         result = [Entity(self, row[0])]
         row = row[1:]
         for ctype in ctypes:
             valcount = len(ctype._fields)
             vals, row = row[:valcount], row[valcount:]
             result.append(ctype._make(vals))
-        return tuple(result)
+        return result
 
     def entities_by_component_value(self, ctype, **kwargs):
         if not is_component_type(ctype):

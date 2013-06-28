@@ -239,42 +239,42 @@ def initial_state(w, h, empty_ratio=0.6):
     # TODO: register the component types here once things settled a bit
     player_x, player_y = w / 2, h / 2
     player = ecm.new_entity()
-    player.set(Position(player_x, player_y, 0))
-    player.set(Tile(9, int_from_color(tcod.white), '@'))
-    player.set(UserInput())
-    player.set(Info(name="The Nameless One", description=""))
-    player.set(Attributes(state_of_mind=20, tolerance=0, confidence=5,
+    player.add(Position(player_x, player_y, 0))
+    player.add(Tile(9, int_from_color(tcod.white), '@'))
+    player.add(UserInput())
+    player.add(Info(name="The Nameless One", description=""))
+    player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
-    player.set(Statistics(turns=0, kills=0, doses=0))
+    player.add(Statistics(turns=0, kills=0, doses=0))
     player_pos = player.get(Position)
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
             block = ecm.new_entity()
-            block.set(Position(x, y, floor))
+            block.add(Position(x, y, floor))
             empty_tile = Tile(0, int_from_color(tcod.lightest_gray), '.')
             if type == 'empty' or (x, y) == (player_x, player_y):
-                block.set(empty_tile)
+                block.add(empty_tile)
             elif type == 'wall':
                 assert color_from_int(int_from_color(tcod.light_green)) == tcod.light_green
                 color = choice((tcod.dark_green, tcod.green, tcod.light_green))
-                block.set(Tile(0, int_from_color(color), '#'))
-                block.set(Solid())
+                block.add(Tile(0, int_from_color(color), '#'))
+                block.add(Solid())
             elif type == 'dose':
-                block.set(empty_tile)
+                block.add(empty_tile)
                 dose = ecm.new_entity()
-                dose.set(Position(x, y, floor))
+                dose.add(Position(x, y, floor))
                 assert color_from_int(int_from_color(tcod.light_azure)) == tcod.light_azure
-                dose.set(Tile(1, int_from_color(tcod.light_azure), 'i'))
-                dose.set(Interactive())
+                dose.add(Tile(1, int_from_color(tcod.light_azure), 'i'))
+                dose.add(Interactive())
             elif type == 'monster':
-                block.set(empty_tile)
+                block.add(empty_tile)
                 monster = ecm.new_entity()
-                monster.set(Position(x, y, floor))
+                monster.add(Position(x, y, floor))
                 assert color_from_int(int_from_color(tcod.dark_red)) == tcod.dark_red
-                monster.set(Tile(1, int_from_color(tcod.dark_red), 'a'))
-                monster.set(Solid())
-                monster.set(Monster('a', strength=10))
-                monster.set(AI('aggressive'))
+                monster.add(Tile(1, int_from_color(tcod.dark_red), 'a'))
+                monster.add(Solid())
+                monster.add(Monster('a', strength=10))
+                monster.add(AI('aggressive'))
             else:
                 raise Exception('Unexpected tile type: "%s"' % type)
     return {

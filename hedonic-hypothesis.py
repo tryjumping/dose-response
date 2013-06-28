@@ -50,23 +50,24 @@ def input_system(e, dt_ms, key):
     if not pos:
         return
     dest = MoveDestination(pos.x, pos.y, pos.floor)
+    dx, dy = 0, 0
     if key.vk == tcod.KEY_UP:
-        dest.y -= 1
+        dy = -1
     elif key.vk == tcod.KEY_DOWN:
-        dest.y += 1
+        dy = 1
     elif key.vk == tcod.KEY_LEFT:
-        dest.x -= 1
+        dx = -1
         if key.shift:
-            dest.y -= 1
+            dy = -1
         elif key.lctrl or key.rctrl or key.lalt or key.ralt:
-            dest.y += 1
+            dy = 1
     elif key.vk == tcod.KEY_RIGHT:
-        dest.x += 1
+        dx = 1
         if key.shift:
-            dest.y -= 1
+            dy = -1
         elif key.lctrl or key.rctrl or key.lalt or key.ralt:
-            dest.y += 1
-    e.set(dest)
+            dy = 1
+    e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
 def ai_system(e, ecm, dt_ms):
     return
@@ -109,8 +110,9 @@ def collision_system(e, ecm, dt_ms):
         if i.has(Interactive):
             attrs = e.get(Attributes)
             if attrs:  # base this off of the actual interaction type present
-                attrs.state_of_mind += max(20 - attrs.tolerance, 5)
-                attrs.tolerance += 1
+                som = attrs.state_of_mind + max(20 - attrs.tolerance, 5)
+                e.set(attrs._replace(state_of_mind=som,
+                                     tolerance=attrs.tolerance + 1))
             ecm.remove_entity(i)
         elif i.has(Monster):
             e.set(Attacking(i))
@@ -121,15 +123,17 @@ def combat_system(e, ecm, dt_ms):
         return
     ecm.remove_entity(target)
     e.remove(Attacking)
-    if e.has(Statistics):
-        e.get(Statistics).kills += 1
+    stats = e.get(Statistics)
+    if stats:
+        e.set(stats._replace(kills=stats.kills+1))
 
 def movement_system(e, dt_ms, w, h):
     dest = e.get(MoveDestination)
     pos = e.get(Position)
     e.set(Position(dest.x, dest.y, dest.floor))
     if not equal_pos(pos, dest) and e.has(Statistics):
-        e.get(Statistics).turns += 1
+        stats = e.get(Statistics)
+        e.set(stats._replace(turns=stats.turns+1))
     e.remove(MoveDestination)
 
 def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
@@ -165,7 +169,7 @@ def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
 # TODO: change to a generic component that indicates attribute change over time
 def state_of_mind_system(ecm, dt_ms, e):
     attrs = e.get(Attributes)
-    attrs.state_of_mind -= 1
+    e.set(attrs._replace(state_of_mind=attrs.state_of_mind - 1))
 
 def death_system(ecm, dt_ms, e):
     attrs = e.get(Attributes)

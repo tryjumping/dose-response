@@ -35,7 +35,7 @@ class Entity(object):
         return self._ecm.remove_component(self, ctype)
 
 
-text = unicode
+text = str
 entity = Entity
 
 
@@ -63,12 +63,12 @@ def valid_type(t):
 def component_types(component):
     return [getattr(component, field).__class__ for field in component._fields]
 
-
 class EntityComponentManager(object):
 
     def __init__(self, autoregister_components=False):
         self._autoregister = autoregister_components
         self._con = sqlite3.connect(':memory:')
+        self._con.text_factory = text
         with self._con:
             self._con.executescript(
                 'create table entities(id INTEGER PRIMARY KEY);')
@@ -97,7 +97,8 @@ class EntityComponentManager(object):
         if ctype in self._components:
             return
         if not all((valid_type(t) for t in types)):
-            return 'The component types must be bool, int, float, text or entity'
+            raise TypeError(
+                'The component types must be bool, int, float, text or entity')
         attr_statements = ['%s %s,' % (field, sqltype[type])
                            for field, type
                            in zip(ctype._fields, types)]

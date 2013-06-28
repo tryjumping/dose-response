@@ -6,6 +6,18 @@ import libtcodpy as tcod
 from entity_component_manager import EntityComponentManager
 from components import *
 
+def int_from_color(c):
+    return c.r * 256 * 256 + c.g * 256 + c.b
+
+def color_from_int(n):
+    b = n % 256
+    n = n / 256
+    g = n % 256
+    n = n / 256
+    r = n
+    return tcod.Color(r,g,b)
+
+
 def equal_pos(p1, p2):
     return p1.x == p2.x and p1.y == p2.y and p1.floor == p2.floor
 
@@ -29,7 +41,7 @@ def tile_system(e, dt_ms, layers):
     con = layers[tile.level]
     tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
     tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
-    tcod.console_set_char_foreground(con, pos.x, pos.y, tile.color)
+    tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
 
 def input_system(e, dt_ms, key):
     if not key:
@@ -57,6 +69,7 @@ def input_system(e, dt_ms, key):
     e.set(dest)
 
 def ai_system(e, ecm, dt_ms):
+    return
     pos = e.get(Position)
     neighbor_vectors = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
                         (0, 1), (1, 1)]
@@ -202,7 +215,6 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     return game
 
 def generate_map(w, h, empty_ratio):
-    MONSTER_LIMIT = 5
     floor = []
     for x in xrange(w):
         for y in xrange(h):
@@ -213,9 +225,8 @@ def generate_map(w, h, empty_ratio):
                 tile_kind = 'wall'
             else:
                 tile_kind = 'dose'
-            if tile_kind == 'empty' and random() < 0.1 and MONSTER_LIMIT > 0:
+            if tile_kind == 'empty' and random() < 0.1:
                 tile_kind = 'monster'
-                MONSTER_LIMIT -= 1
             floor.append([x, y, tile_kind])
     return [floor]
 
@@ -225,7 +236,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player_x, player_y = w / 2, h / 2
     player = ecm.new_entity()
     player.set(Position(player_x, player_y, 0))
-    player.set(Tile(9, tcod.white, '@'))
+    player.set(Tile(9, int_from_color(tcod.white), '@'))
     player.set(UserInput())
     player.set(Info(name="The Nameless One", description=""))
     player.set(Attributes(state_of_mind=20, tolerance=0, confidence=5,
@@ -236,24 +247,27 @@ def initial_state(w, h, empty_ratio=0.6):
         for x, y, type in map:
             block = ecm.new_entity()
             block.set(Position(x, y, floor))
-            empty_tile = Tile(0, tcod.lightest_gray, '.')
+            empty_tile = Tile(0, int_from_color(tcod.lightest_gray), '.')
             if type == 'empty' or (x, y) == (player_x, player_y):
                 block.set(empty_tile)
             elif type == 'wall':
+                assert color_from_int(int_from_color(tcod.light_green)) == tcod.light_green
                 color = choice((tcod.dark_green, tcod.green, tcod.light_green))
-                block.set(Tile(0, color, '#'))
+                block.set(Tile(0, int_from_color(color), '#'))
                 block.set(Solid())
             elif type == 'dose':
                 block.set(empty_tile)
                 dose = ecm.new_entity()
                 dose.set(Position(x, y, floor))
-                dose.set(Tile(1, tcod.light_azure, 'i'))
+                assert color_from_int(int_from_color(tcod.light_azure)) == tcod.light_azure
+                dose.set(Tile(1, int_from_color(tcod.light_azure), 'i'))
                 dose.set(Interactive())
             elif type == 'monster':
                 block.set(empty_tile)
                 monster = ecm.new_entity()
                 monster.set(Position(x, y, floor))
-                monster.set(Tile(1, tcod.dark_red, 'a'))
+                assert color_from_int(int_from_color(tcod.dark_red)) == tcod.dark_red
+                monster.set(Tile(1, int_from_color(tcod.dark_red), 'a'))
                 monster.set(Solid())
                 monster.set(Monster('a', strength=10))
                 monster.set(AI('aggressive'))

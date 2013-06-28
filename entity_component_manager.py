@@ -60,7 +60,7 @@ def is_component(c):
     return is_component_type(c.__class__)
 
 def valid_type(t):
-    return t in set([int, bool, float, unicode, str, Entity])
+    return t in set([int, bool, float, text, Entity])
 
 def component_types(component):
     return [getattr(component, field).__class__ for field in component._fields]
@@ -74,7 +74,7 @@ class EntityComponentManager(object):
         with self._con:
             self._con.executescript(
                 'create table entities(id INTEGER PRIMARY KEY);')
-        self._components = set()
+        self._components = {}
 
 
     def new_entity(self):
@@ -107,7 +107,7 @@ class EntityComponentManager(object):
         with self._con:
             self._con.execute(sql % (table_from_ctype(ctype),
                                      '\n'.join(attr_statements)))
-        self._components.add(ctype)
+        self._components[ctype] = types
 
     def set_component(self, entity, component):
         if not is_component(component):
@@ -142,7 +142,12 @@ class EntityComponentManager(object):
         cur.execute(sql % table_from_ctype(ctype), (entity._id,))
         values = cur.fetchone()
         if values:
-            return ctype._make(values[1:])
+            types = self._components[ctype]
+            values = values[1:]  # The first item is the entity_id foreign key
+            # If any of the component attributes are entities, wrap them in Entity
+            values = [Entity(self, val) if type == Entity else val
+                      for val, type in zip(values, types)]
+            return ctype._make(values)
 
     def remove_component(self, entity, ctype):
         if not is_component_type(ctype):

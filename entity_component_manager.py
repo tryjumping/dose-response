@@ -73,6 +73,7 @@ class EntityComponentManager(object):
             self._con.executescript(
                 'create table entities(id INTEGER PRIMARY KEY);')
         self._components = {}
+        self._insert_sql_statement = {}
 
     def new_entity(self):
         cur = self._con.cursor()
@@ -102,10 +103,13 @@ class EntityComponentManager(object):
         attr_statements = ['%s %s,' % (field, sqltype[type])
                            for field, type
                            in zip(ctype._fields, types)]
+        table = table_from_ctype(ctype)
         with self._con:
-            self._con.execute(sql % (table_from_ctype(ctype),
-                                     '\n'.join(attr_statements)))
+            self._con.execute(sql % (table, '\n'.join(attr_statements)))
         self._components[ctype] = types
+        placeholders = ''.join((' , ?' for _ in ctype._fields))
+        sql = 'insert into %s values({entity} %s)' % (table, placeholders)
+        self._insert_sql_statement[ctype] = sql
 
     def set_component(self, entity, component):
         if not is_component(component):
@@ -123,10 +127,9 @@ class EntityComponentManager(object):
                                       in component._asdict().keys()])
             sql = 'update {table} set %s where entity_id = {entity}' % placeholders
         else:
-            placeholders = ' '.join([', ?'] * len(component._asdict()))
-            sql = 'insert into {table} values({entity} %s)' % placeholders
+            sql = self._insert_sql_statement[ctype]
         values = [val._id if isinstance(val, Entity) else val
-                  for val in component._asdict().values()]
+                  for val in component]
         with self._con:
             sql = sql.format(table=table_from_ctype(ctype), entity=id)
             self._con.execute(sql, values)

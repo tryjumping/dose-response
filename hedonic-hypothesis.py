@@ -106,7 +106,7 @@ def collision_system(e, ecm, dt_ms):
         if i.has(Interactive):
             attrs = e.get(Attributes)
             if attrs:  # base this off of the actual interaction type present
-                som = attrs.state_of_mind + max(20 - attrs.tolerance, 5)
+                som = attrs.state_of_mind + max(50 - attrs.tolerance, 5)
                 e.set(attrs._replace(state_of_mind=som,
                                      tolerance=attrs.tolerance + 1))
             ecm.remove_entity(i)
@@ -210,6 +210,9 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             death_system(ecm, dt_ms, vulnerable)
     for renderable, pos, tile in ecm.entities(Position, Tile, include_components=True):
         tile_system(renderable, pos, tile, dt_ms, consoles)
+
+    # empirically, the fading should be between 0.6 (darkest) and 1 (brightest)
+    game['fade'] = (player.get(Attributes).state_of_mind * 0.4 / 100) + 0.6
     gui_system(ecm, dt_ms, player, consoles, w, h, panel_height)
     return game
 
@@ -224,7 +227,7 @@ def generate_map(w, h, empty_ratio):
                 tile_kind = 'wall'
             else:
                 tile_kind = 'dose'
-            if tile_kind == 'empty' and random() < 0.1:
+            if tile_kind == 'empty' and random() < 0.05:
                 tile_kind = 'monster'
             floor.append([x, y, tile_kind])
     return [floor]
@@ -246,7 +249,9 @@ def initial_state(w, h, empty_ratio=0.6):
     player_pos = player.get(Position)
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
-            if type == 'wall':
+            if equal_pos(player_pos, Position(x, y, floor)):
+                pass
+            elif type == 'wall':
                 block = ecm.new_entity()
                 block.add(Position(x, y, floor))
                 color = choice((tcod.dark_green, tcod.green, tcod.light_green))
@@ -255,12 +260,12 @@ def initial_state(w, h, empty_ratio=0.6):
             elif type == 'dose':
                 dose = ecm.new_entity()
                 dose.add(Position(x, y, floor))
-                dose.add(Tile(1, int_from_color(tcod.light_azure), 'i'))
+                dose.add(Tile(8, int_from_color(tcod.light_azure), 'i'))
                 dose.add(Interactive())
             elif type == 'monster':
                 monster = ecm.new_entity()
                 monster.add(Position(x, y, floor))
-                monster.add(Tile(1, int_from_color(tcod.dark_red), 'a'))
+                monster.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
                 monster.add(Solid())
                 monster.add(Monster('a', strength=10))
                 monster.add(AI('aggressive'))
@@ -289,7 +294,7 @@ if __name__ == '__main__':
         for y in xrange(SCREEN_HEIGHT):
             tcod.console_put_char(background_conlole, x, y, '.', tcod.BKGND_NONE)
     game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
-    while game_state and not tcod.console_is_window_closed():
+    while not tcod.console_is_window_closed():
         tcod.console_set_default_foreground(0, tcod.white)
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)
         if key.vk == tcod.KEY_NONE:
@@ -302,7 +307,12 @@ if __name__ == '__main__':
             tcod.console_clear(con)
         game_state = update(game_state, dt_ms, consoles,
                             SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT, key)
-        tcod.console_blit(background_conlole, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
-        for con in consoles:
-            tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
+        if not game_state:
+            break
+        fade = game_state.get('fade', 1)
+        tcod.console_blit(background_conlole, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, fade)
+        for con in consoles[:-2]:
+            tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, fade)
+        for con in consoles[-2:]:
+            tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, 1)
         tcod.console_flush()

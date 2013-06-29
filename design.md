@@ -366,4 +366,6 @@ TODO
 * Numpad controls
 * Various resolutions (should work on a 800x600 screen, too)
 * Make accessible for the colour-blind people
-*
+* Death animation (for PC and NPCs)
+* The colours when High should not just be bright, they should be psychedelic,
+  flashing continuously, etc.

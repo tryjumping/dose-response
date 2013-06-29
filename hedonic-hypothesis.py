@@ -66,15 +66,23 @@ def input_system(e, dt_ms, key):
     if dx != 0 or dy != 0:
         e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
-def ai_system(e, ai, pos, ecm, dt_ms):
+def ai_system(e, ai, pos, player, ecm, dt_ms):
     neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
                         (0, 1), (1, 1))
-    destinations = (Position(pos.x + dx, pos.y + dy, pos.floor) for dx, dy
-                    in neighbor_vectors)
-    destinations = [dest for dest in destinations
-                    if not blocked_tile(dest, ecm)]
-    if destinations:
-        dest = choice(destinations)
+    destinations = [Position(pos.x + dx, pos.y + dy, pos.floor) for dx, dy
+                    in neighbor_vectors]
+    player_pos = player.get(Position)
+    if player_pos in destinations:
+        dest = player_pos
+        e.set(Attacking(player))
+    else:
+        destinations = [dest for dest in destinations
+                        if not blocked_tile(dest, ecm)]
+        if destinations:
+            dest = choice(destinations)
+        else:
+            dest = None
+    if dest:
         e.set(MoveDestination(dest.x, dest.y, dest.floor))
 
 def entities_on_position(pos, ecm):
@@ -110,12 +118,26 @@ def collision_system(e, ecm, dt_ms):
         elif i.has(Monster) and not e.has(Monster):
             e.set(Attacking(i))
 
+def kill_entity(e, reason=''):
+    whitelist = set((Attributes, Statistics, Info, Monster))
+    for ctype in (c.__class__ for c in e.components()):
+        if not ctype in whitelist:
+            e.remove(ctype)
+    e.set(Dead(reason))
+
 def combat_system(e, ecm, dt_ms):
     target = e.get(Attacking).target
+    if target.has(Dead):
+        return
+    print "%s attacks %s" % (e, target)
     e.remove(Attacking)
     if not neighbor_pos(e.get(Position), target.get(Position)):
         return
-    ecm.remove_entity(target)
+    if e.has(Info):
+        death_reason = 'Killed by %s' % e.get(Info).name
+    else:
+        death_reason = ''
+    kill_entity(target, death_reason)
     stats = e.get(Statistics)
     if stats:
         e.set(stats._replace(kills=stats.kills+1))
@@ -197,7 +219,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     assert (player.get(Statistics).turns - last_turn_count) in (0, 1)
     if player.get(Statistics).turns > last_turn_count:
         for npc, ai, pos in ecm.entities(AI, Position, include_components=True):
-            ai_system(npc, ai, pos, ecm, dt_ms)
+            ai_system(npc, ai, pos, player, ecm, dt_ms)
         for collidable in ecm.entities(MoveDestination):
             collision_system(collidable, ecm, dt_ms)
             if collidable.has(MoveDestination):
@@ -213,6 +235,8 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
 
     # empirically, the fading should be between 0.6 (darkest) and 1 (brightest)
     game['fade'] = (player.get(Attributes).state_of_mind * 0.4 / 100) + 0.6
+    if player.has(Dead):
+        game['fade'] = 1.6
     gui_system(ecm, dt_ms, player, consoles, w, h, panel_height)
     return game
 
@@ -227,7 +251,7 @@ def generate_map(w, h, empty_ratio):
                 tile_kind = 'wall'
             else:
                 tile_kind = 'dose'
-            if tile_kind == 'empty' and random() < 0.2:
+            if tile_kind == 'empty' and random() < 0.05:
                 tile_kind = 'monster'
             floor.append([x, y, tile_kind])
     return [floor]
@@ -269,6 +293,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
                 monster.add(Solid())
                 monster.add(Monster('a', strength=10))
+                monster.add(Info('Anxiety', "Won't give you a second of rest."))
                 monster.add(AI('aggressive'))
     return {
         'ecm': ecm,

@@ -69,9 +69,12 @@ def input_system(e, dt_ms, key):
 def ai_system(e, ai, pos, ecm, dt_ms):
     neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
                         (0, 1), (1, 1))
-    dx, dy = choice(neighbor_vectors)
-    dest = Position(pos.x + dx, pos.y + dy, pos.floor)
-    if not blocked_tile(dest, ecm):
+    destinations = (Position(pos.x + dx, pos.y + dy, pos.floor) for dx, dy
+                    in neighbor_vectors)
+    destinations = [dest for dest in destinations
+                    if not blocked_tile(dest, ecm)]
+    if destinations:
+        dest = choice(destinations)
         e.set(MoveDestination(dest.x, dest.y, dest.floor))
 
 def entities_on_position(pos, ecm):

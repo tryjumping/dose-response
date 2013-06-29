@@ -63,7 +63,8 @@ def input_system(e, dt_ms, key):
             dy = -1
         elif key.lctrl or key.rctrl or key.lalt or key.ralt:
             dy = 1
-    e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
+    if dx != 0 or dy != 0:
+        e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
 def ai_system(e, ai, pos, ecm, dt_ms):
     neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
@@ -111,10 +112,10 @@ def collision_system(e, ecm, dt_ms):
 
 def combat_system(e, ecm, dt_ms):
     target = e.get(Attacking).target
+    e.remove(Attacking)
     if not neighbor_pos(e.get(Position), target.get(Position)):
         return
     ecm.remove_entity(target)
-    e.remove(Attacking)
     stats = e.get(Statistics)
     if stats:
         e.set(stats._replace(kills=stats.kills+1))
@@ -123,9 +124,6 @@ def movement_system(e, dt_ms, w, h):
     dest = e.get(MoveDestination)
     pos = e.get(Position)
     e.set(Position(dest.x, dest.y, dest.floor))
-    if not equal_pos(pos, dest) and e.has(Statistics):
-        stats = e.get(Statistics)
-        e.set(stats._replace(turns=stats.turns+1))
     e.remove(MoveDestination)
 
 def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
@@ -173,6 +171,12 @@ def death_system(ecm, dt_ms, e):
             e.remove(UserInput)
             e.set(Dead("Overdosed"))
 
+def turn_system(player):
+    if player.has(MoveDestination) or player.has(Attacking):
+        print "new turn"
+        stats = player.get(Statistics)
+        player.set(stats._replace(turns=stats.turns+1))
+
 def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']
     player = game['player']
@@ -182,32 +186,28 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
             return initial_state(w, h, game['empty_ratio'])
-        elif pressed_key.c == ord('['):
-            return initial_state(w, h, game['empty_ratio'] - 0.05)
-        elif pressed_key.c == ord(']'):
-            return initial_state(w, h, game['empty_ratio'] + 0.05)
-    for controllable in [e for e in ecm.entities(UserInput)]:
-        input_system(controllable, dt_ms, key)
-    for collidable in [e for e in ecm.entities(MoveDestination)]:
-        collision_system(collidable, ecm, dt_ms)
-    for moving in [e for e in ecm.entities(MoveDestination)]:
-        movement_system(moving, dt_ms, w, h)
-    for attacker in [e for e in ecm.entities(Attacking)]:
-        combat_system(attacker, ecm, dt_ms)
-
-    new_turn = last_turn_count < player.get(Statistics).turns
-    if new_turn:
-        for npc, ai, pos  in [e for e in ecm.entities(AI, Position, include_components=True)]:
+        for controllable in ecm.entities(UserInput):
+            input_system(controllable, dt_ms, key)
+            if controllable.has(MoveDestination):
+                collision_system(controllable, ecm, dt_ms)
+    turn_system(player)
+    assert (player.get(Statistics).turns - last_turn_count) in (0, 1)
+    if player.get(Statistics).turns > last_turn_count:
+        for npc, ai, pos in ecm.entities(AI, Position, include_components=True):
             ai_system(npc, ai, pos, ecm, dt_ms)
-        for entity_with_attributes in [e for e in ecm.entities(Attributes)]:
+        for collidable in ecm.entities(MoveDestination):
+            collision_system(collidable, ecm, dt_ms)
+            if collidable.has(MoveDestination):
+                movement_system(collidable, dt_ms, w, h)
+        for attacker in ecm.entities(Attacking):
+            combat_system(attacker, ecm, dt_ms)
+        for entity_with_attributes in ecm.entities(Attributes):
             state_of_mind_system(ecm, dt_ms, entity_with_attributes)
-    for vulnerable in [e for e in ecm.entities(Attributes)]:
-        death_system(ecm, dt_ms, vulnerable)
-    for renderable, pos, tile in [e for e in ecm.entities(Position, Tile, include_components=True)]:
+        for vulnerable in ecm.entities(Attributes):
+            death_system(ecm, dt_ms, vulnerable)
+    for renderable, pos, tile in ecm.entities(Position, Tile, include_components=True):
         tile_system(renderable, pos, tile, dt_ms, consoles)
     gui_system(ecm, dt_ms, player, consoles, w, h, panel_height)
-    tcod.console_print_ex(consoles[9], w-1, h-1, tcod.BKGND_NONE, tcod.RIGHT,
-                          str(game['empty_ratio']))
     return game
 
 def generate_map(w, h, empty_ratio):
@@ -239,6 +239,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
     player.add(Statistics(turns=0, kills=0, doses=0))
+    player.add(Solid())
     player_pos = player.get(Position)
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:

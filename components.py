@@ -30,3 +30,5 @@ Component('Monster', 'kind, strength')
 Component('Attacking', 'target')
 
 Component('AI', 'kind')
+
+Component('Addicted')

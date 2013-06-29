@@ -99,18 +99,15 @@ def collision_system(e, ecm, dt_ms):
                     if entity.has(Interactive) or entity.has(Monster)]
     if blocked_tile(dest, ecm):
         e.remove(MoveDestination)
-    if interactions:
-        assert len(interactions) == 1, ('More than 1 interaction on a block %s'
-                                        % interactions)
-        i = interactions[0]
-        if i.has(Interactive):
+    for i in interactions:
+        if i.has(Interactive) and e.has(Addicted):
             attrs = e.get(Attributes)
             if attrs:  # base this off of the actual interaction type present
                 som = attrs.state_of_mind + max(50 - attrs.tolerance, 5)
                 e.set(attrs._replace(state_of_mind=som,
                                      tolerance=attrs.tolerance + 1))
             ecm.remove_entity(i)
-        elif i.has(Monster):
+        elif i.has(Monster) and not e.has(Monster):
             e.set(Attacking(i))
 
 def combat_system(e, ecm, dt_ms):
@@ -157,6 +154,10 @@ def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
             bar_color = tcod.turquoise
         tcod.console_set_default_background(panel, bar_color)
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_SET, tcod.LEFT, bar)
+    doses = len([e for e in ecm.entities(Interactive)])
+    monsters = len([e for e in ecm.entities(Monster)])
+    tcod.console_print_ex(panel, w-1, 1, tcod.BKGND_NONE, tcod.RIGHT,
+                          "Doses: %s,  Monsters: %s" % (doses, monsters))
     tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
 # TODO: change to a generic component that indicates attribute change over time
@@ -226,7 +227,7 @@ def generate_map(w, h, empty_ratio):
                 tile_kind = 'wall'
             else:
                 tile_kind = 'dose'
-            if tile_kind == 'empty' and random() < 0.05:
+            if tile_kind == 'empty' and random() < 0.2:
                 tile_kind = 'monster'
             floor.append([x, y, tile_kind])
     return [floor]
@@ -245,6 +246,7 @@ def initial_state(w, h, empty_ratio=0.6):
                           nerve=5, will=5))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())
+    player.add(Addicted())
     player_pos = player.get(Position)
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
@@ -259,7 +261,7 @@ def initial_state(w, h, empty_ratio=0.6):
             elif type == 'dose':
                 dose = ecm.new_entity()
                 dose.add(Position(x, y, floor))
-                dose.add(Tile(8, int_from_color(tcod.light_azure), 'i'))
+                dose.add(Tile(5, int_from_color(tcod.light_azure), 'i'))
                 dose.add(Interactive())
             elif type == 'monster':
                 monster = ecm.new_entity()
@@ -310,8 +312,8 @@ if __name__ == '__main__':
             break
         fade = game_state.get('fade', 1)
         tcod.console_blit(background_conlole, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, fade)
-        for con in consoles[:-2]:
+        for con in consoles[:-5]:
             tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, fade)
-        for con in consoles[-2:]:
+        for con in consoles[-5:]:
             tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, 1)
         tcod.console_flush()

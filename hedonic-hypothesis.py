@@ -284,6 +284,10 @@ if __name__ == '__main__':
     tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, game_title, False)
     tcod.sys_set_fps(LIMIT_FPS)
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, TRANSPARENT_BG_COLOR)
+    background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
+    for x in xrange(SCREEN_WIDTH):
+        for y in xrange(SCREEN_HEIGHT):
+            tcod.console_put_char(background_conlole, x, y, '.', tcod.BKGND_NONE)
     game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
     while game_state and not tcod.console_is_window_closed():
         tcod.console_set_default_foreground(0, tcod.white)
@@ -298,6 +302,7 @@ if __name__ == '__main__':
             tcod.console_clear(con)
         game_state = update(game_state, dt_ms, consoles,
                             SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT, key)
+        tcod.console_blit(background_conlole, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
         for con in consoles:
             tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
         tcod.console_flush()

@@ -176,7 +176,6 @@ def death_system(ecm, dt_ms, e):
 
 def turn_system(player):
     if player.has(MoveDestination) or player.has(Attacking):
-        print "new turn"
         stats = player.get(Statistics)
         player.set(stats._replace(turns=stats.turns+1))
 

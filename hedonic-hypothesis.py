@@ -118,26 +118,19 @@ def collision_system(e, ecm, dt_ms):
         elif i.has(Monster) and not e.has(Monster):
             e.set(Attacking(i))
 
-def kill_entity(e, reason=''):
-    whitelist = set((Attributes, Statistics, Info, Monster))
-    for ctype in (c.__class__ for c in e.components()):
-        if not ctype in whitelist:
-            e.remove(ctype)
-    e.set(Dead(reason))
-
 def combat_system(e, ecm, dt_ms):
     target = e.get(Attacking).target
-    if target.has(Dead):
+    e.remove(Attacking)
+    if e.has(Dead) or target.has(Dead):
         return
     print "%s attacks %s" % (e, target)
-    e.remove(Attacking)
     if not neighbor_pos(e.get(Position), target.get(Position)):
         return
     if e.has(Info):
         death_reason = 'Killed by %s' % e.get(Info).name
     else:
         death_reason = ''
-    kill_entity(target, death_reason)
+    target.set(Dead(death_reason))
     stats = e.get(Statistics)
     if stats:
         e.set(stats._replace(kills=stats.kills+1))
@@ -185,17 +178,20 @@ def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
 # TODO: change to a generic component that indicates attribute change over time
 def state_of_mind_system(ecm, dt_ms, e):
     attrs = e.get(Attributes)
-    e.set(attrs._replace(state_of_mind=attrs.state_of_mind - 1))
+    state_of_mind = attrs.state_of_mind - 1
+    e.set(attrs._replace(state_of_mind=state_of_mind))
+    if state_of_mind <= 0:
+        e.remove(UserInput)
+        e.set(Dead("Exhausted"))
+    elif state_of_mind > 100:
+        e.remove(UserInput)
+        e.set(Dead("Overdosed"))
 
 def death_system(ecm, dt_ms, e):
-    attrs = e.get(Attributes)
-    if attrs:
-        if attrs.state_of_mind <= 0:
-            e.remove(UserInput)
-            e.set(Dead("Exhausted"))
-        elif attrs.state_of_mind > 100:
-            e.remove(UserInput)
-            e.set(Dead("Overdosed"))
+    whitelist = (Dead, Info, Statistics, Attributes)
+    for ctype in [c.__class__ for c in e.components()]:
+        if not ctype in whitelist:
+            e.remove(ctype)
 
 def turn_system(player):
     if player.has(MoveDestination) or player.has(Attacking):
@@ -228,7 +224,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             combat_system(attacker, ecm, dt_ms)
         for entity_with_attributes in ecm.entities(Attributes):
             state_of_mind_system(ecm, dt_ms, entity_with_attributes)
-        for vulnerable in ecm.entities(Attributes):
+        for vulnerable in ecm.entities(Dead):
             death_system(ecm, dt_ms, vulnerable)
     for renderable, pos, tile in ecm.entities(Position, Tile, include_components=True):
         tile_system(renderable, pos, tile, dt_ms, consoles)

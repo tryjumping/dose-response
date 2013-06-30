@@ -101,16 +101,9 @@ def blocked_tile(pos, ecm):
     return any((entity.has(Solid) for entity
                 in entities_on_position(pos, ecm)))
 
-def collision_system(e, ecm):
-    dest = e.get(MoveDestination)
-    interactions = [entity for entity in entities_on_position(dest, ecm)
+def interaction_system(e, target, ecm):
+    interactions = [entity for entity in entities_on_position(target, ecm)
                     if entity.has(Interactive) or entity.has(Monster)]
-    if blocked_tile(dest, ecm):
-        e.remove(MoveDestination)
-    if e.has(UserInput) and (interactions or e.has(MoveDestination)):
-        stats = e.get(Statistics)
-        if stats:
-            e.set(stats._replace(turns = stats.turns+1))
     for i in interactions:
         if i.has(Interactive) and e.has(Addicted):
             attrs = e.get(Attributes)
@@ -121,6 +114,8 @@ def collision_system(e, ecm):
             ecm.remove_entity(i)
         elif i.has(Monster) and not e.has(Monster):
             e.set(Attacking(i))
+    if interactions:
+        return True
 
 def combat_system(e, ecm):
     target = e.get(Attacking).target
@@ -139,11 +134,11 @@ def combat_system(e, ecm):
     if stats:
         e.set(stats._replace(kills=stats.kills+1))
 
-def movement_system(e, ecm, w, h):
-    dest = e.get(MoveDestination)
-    pos = e.get(Position)
-    e.set(Position(dest.x, dest.y, dest.floor))
+def movement_system(e, pos, dest, ecm, w, h):
     e.remove(MoveDestination)
+    if not blocked_tile(dest, ecm):
+        e.set(Position(dest.x, dest.y, dest.floor))
+        return True
 
 def gui_system(ecm, player, layers, w, h, panel_height):
     attrs = player.get(Attributes)
@@ -198,17 +193,22 @@ def death_system(e, ecm):
             e.remove(ctype)
 
 def resolve_a_turn(player, ecm, w, h, key):
+    moved, interacted = False, False
+
     # TODO: deduplicate this by creating a system pipeline. Annotate system
     # definitions with components they're interested in. Run the queries
     # automatically and verify the consistency before calling the systems.
-    last_turn_count = player.get(Statistics).turns
-
     if player.has(UserInput):
         input_system(player, ecm, key)
     if player.has(MoveDestination):
-        collision_system(player, ecm)
-        if player.has(MoveDestination):
-            movement_system(player, ecm, w, h)
+        dest = player.get(MoveDestination)
+        interacted = interaction_system(player, dest, ecm)
+        moved = movement_system(player, player.get(Position), dest, ecm, w, h)
+
+    player_took_a_turn = moved or interacted
+    if not player_took_a_turn:
+        return
+
     if player.has(Attacking):
         combat_system(player, ecm)
     if player.has(Attributes):
@@ -216,17 +216,12 @@ def resolve_a_turn(player, ecm, w, h, key):
     if player.has(Dead):
         death_system(player, ecm)
 
-    assert (player.get(Statistics).turns - last_turn_count) in (0, 1)
-    player_took_a_turn = player.get(Statistics).turns > last_turn_count
-    if not player_took_a_turn:
-        return
-
     for npc, ai, pos in ecm.entities(AI, Position, include_components=True):
         ai_system(npc, ai, pos, ecm, player)
-    for npc in ecm.entities(MoveDestination):
-        collision_system(npc, ecm)
-        if npc.has(MoveDestination):
-            movement_system(npc, ecm, w, h)
+    for npc, pos, dest in ecm.entities(Position, MoveDestination,
+                                       include_components=True):
+        interaction_system(npc, dest, ecm)
+        movement_system(npc, pos, dest, ecm, w, h)
     for npc in ecm.entities(Attacking):
         combat_system(npc, ecm)
     for npc in ecm.entities(Attributes):

@@ -107,6 +107,10 @@ def collision_system(e, ecm, dt_ms):
                     if entity.has(Interactive) or entity.has(Monster)]
     if blocked_tile(dest, ecm):
         e.remove(MoveDestination)
+    if e.has(UserInput) and (interactions or e.has(MoveDestination)):
+        stats = e.get(Statistics)
+        if stats:
+            e.set(stats._replace(turns = stats.turns+1))
     for i in interactions:
         if i.has(Interactive) and e.has(Addicted):
             attrs = e.get(Attributes)
@@ -193,42 +197,52 @@ def death_system(ecm, dt_ms, e):
         if not ctype in whitelist:
             e.remove(ctype)
 
-def turn_system(player):
-    if player.has(MoveDestination) or player.has(Attacking):
-        stats = player.get(Statistics)
-        player.set(stats._replace(turns=stats.turns+1))
+def resolve_a_turn(player, ecm, w, h, key, dt_ms):
+    last_turn_count = player.get(Statistics).turns
+
+    if player.has(UserInput):
+        input_system(player, dt_ms, key)
+    if player.has(MoveDestination):
+        collision_system(player, ecm, dt_ms)
+        if player.has(MoveDestination):
+            movement_system(player, dt_ms, w, h)
+    if player.has(Attacking):
+        combat_system(player, ecm, dt_ms)
+    if player.has(Attributes):
+        state_of_mind_system(ecm, dt_ms, player)
+    if player.has(Dead):
+        death_system(ecm, dt_ms, player)
+
+    assert (player.get(Statistics).turns - last_turn_count) in (0, 1)
+    player_took_a_turn = player.get(Statistics).turns > last_turn_count
+    if not player_took_a_turn:
+        return
+
+    for npc, ai, pos in ecm.entities(AI, Position, include_components=True):
+        ai_system(npc, ai, pos, player, ecm, dt_ms)
+    for npc in ecm.entities(MoveDestination):
+        collision_system(npc, ecm, dt_ms)
+        if npc.has(MoveDestination):
+            movement_system(npc, dt_ms, w, h)
+    for npc in ecm.entities(Attacking):
+        combat_system(npc, ecm, dt_ms)
+    for npc in ecm.entities(Attributes):
+        state_of_mind_system(ecm, dt_ms, npc)
+    for npc in ecm.entities(Dead):
+        death_system(ecm, dt_ms, npc)
 
 def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']
     player = game['player']
-    last_turn_count = player.get(Statistics).turns
     if pressed_key:
         if pressed_key.vk == tcod.KEY_ESCAPE:
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
             return initial_state(w, h, game['empty_ratio'])
-        for controllable in ecm.entities(UserInput):
-            input_system(controllable, dt_ms, key)
-            if controllable.has(MoveDestination):
-                collision_system(controllable, ecm, dt_ms)
-    turn_system(player)
-    assert (player.get(Statistics).turns - last_turn_count) in (0, 1)
-    if player.get(Statistics).turns > last_turn_count:
-        for npc, ai, pos in ecm.entities(AI, Position, include_components=True):
-            ai_system(npc, ai, pos, player, ecm, dt_ms)
-        for collidable in ecm.entities(MoveDestination):
-            collision_system(collidable, ecm, dt_ms)
-            if collidable.has(MoveDestination):
-                movement_system(collidable, dt_ms, w, h)
-        for attacker in ecm.entities(Attacking):
-            combat_system(attacker, ecm, dt_ms)
-        for entity_with_attributes in ecm.entities(Attributes):
-            state_of_mind_system(ecm, dt_ms, entity_with_attributes)
-        for vulnerable in ecm.entities(Dead):
-            death_system(ecm, dt_ms, vulnerable)
+        resolve_a_turn(player, ecm, w, h, pressed_key, dt_ms)
+
     for renderable, pos, tile in ecm.entities(Position, Tile, include_components=True):
         tile_system(renderable, pos, tile, dt_ms, consoles)
-
     # empirically, the fading should be between 0.6 (darkest) and 1 (brightest)
     game['fade'] = (player.get(Attributes).state_of_mind * 0.4 / 100) + 0.6
     if player.has(Dead):

@@ -32,3 +32,5 @@ Component('Attacking', 'target')
 Component('AI', 'kind')
 
 Component('Addicted')
+
+Component('Turn', 'actions, max_actions')

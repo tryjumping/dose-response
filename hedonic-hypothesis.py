@@ -109,26 +109,34 @@ def blocked_tile(pos, ecm):
     return any((entity.has(Solid) for entity
                 in entities_on_position(pos, ecm)))
 
+def entity_spend_ap(e, spent=1):
+    turns = e.get(Turn)
+    e.set(turns._replace(actions = turns.actions - spent))
+
 def interaction_system(e, target, ecm):
     interactions = [entity for entity in entities_on_position(target, ecm)
-                    if entity.has(Interactive) or entity.has(Monster)]
+                    if entity.has(Interactive)]
+    monsters = [entity for entity in entities_on_position(target, ecm)
+                if entity.has(Monster)]
+    for m in monsters:
+        if e.get(Turn).actions > 0 and not e.has(Monster):
+            e.set(Attacking(m))
+            entity_spend_ap(e)
     for i in interactions:
-        if i.has(Interactive) and e.has(Addicted):
+        if e.get(Turn).actions > 0 and i.has(Interactive) and e.has(Addicted):
             attrs = e.get(Attributes)
             if attrs:  # base this off of the actual interaction type present
                 som = attrs.state_of_mind + max(50 - attrs.tolerance, 5)
                 e.set(attrs._replace(state_of_mind=som,
                                      tolerance=attrs.tolerance + 1))
             ecm.remove_entity(i)
-        elif i.has(Monster) and not e.has(Monster):
-            e.set(Attacking(i))
-    if interactions:
+    if monsters or interactions:
         return True
 
 def combat_system(e, ecm):
     target = e.get(Attacking).target
     e.remove(Attacking)
-    if e.has(Dead) or target.has(Dead):
+    if e.get(Turn).actions <= 0 or e.has(Dead) or target.has(Dead):
         return
     print "%s attacks %s" % (e, target)
     if not neighbor_pos(e.get(Position), target.get(Position)):
@@ -138,14 +146,16 @@ def combat_system(e, ecm):
     else:
         death_reason = ''
     target.set(Dead(death_reason))
+    entity_spend_ap(e)
     stats = e.get(Statistics)
     if stats:
         e.set(stats._replace(kills=stats.kills+1))
 
 def movement_system(e, pos, dest, ecm, w, h):
     e.remove(MoveDestination)
-    if not blocked_tile(dest, ecm):
+    if e.get(Turn).actions > 0 and not blocked_tile(dest, ecm):
         e.set(Position(dest.x, dest.y, dest.floor))
+        entity_spend_ap(e)
         return True
 
 def gui_system(ecm, player, layers, w, h, panel_height):
@@ -200,8 +210,15 @@ def death_system(e, ecm):
         if not ctype in whitelist:
             e.remove(ctype)
 
+def turn_system(e, ecm):
+    turn = e.get(Turn)
+    e.set(turn._replace(actions=turn.max_actions))
+
 def resolve_a_turn(player, ecm, w, h, key):
     moved, interacted = False, False
+
+    for e in ecm.entities(Turn):
+        turn_system(e, ecm)
 
     # TODO: deduplicate this by creating a system pipeline. Annotate system
     # definitions with components they're interested in. Run the queries
@@ -284,6 +301,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(Info(name="The Nameless One", description=""))
     player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
+    player.add(Turn(actions=0, max_actions=1))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())
     player.add(Addicted())
@@ -311,6 +329,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.add(Monster('a', strength=10))
                 monster.add(Info('Anxiety', "Won't give you a second of rest."))
                 monster.add(AI('idle'))
+                monster.add(Turn(actions=0, max_actions=1))
     return {
         'ecm': ecm,
         'player': player,

@@ -22,7 +22,7 @@ def equal_pos(p1, p2):
     return p1.x == p2.x and p1.y == p2.y and p1.floor == p2.floor
 
 def neighbor_pos(p1, p2):
-    return abs(p1.x - p2.x) * abs(p1.y - p2.y) <= 1
+    return abs(p1.x - p2.x) <= 1 and abs(p1.y - p2.y) <= 1
 
 def initialise_consoles(console_count, w, h, transparent_color):
     """
@@ -67,6 +67,9 @@ def input_system(e, ecm, key):
         e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
 def ai_system(e, ai, pos, ecm, player):
+    # TODO: use an action point system. It should make things simpler: if we
+    # moved, we don't have any attack actions. If we didn't move, we can attack.
+    # Will help us deal with the interactions, too.
     neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
                         (0, 1), (1, 1))
     destinations = [Position(pos.x + dx, pos.y + dy, pos.floor) for dx, dy
@@ -74,8 +77,8 @@ def ai_system(e, ai, pos, ecm, player):
     player_pos = player.get(Position)
     if player_pos in destinations:
         dest = player_pos
-        e.set(Attacking(player))
     else:
+        e.set(ai._replace(kind='idle'))
         destinations = [dest for dest in destinations
                         if not blocked_tile(dest, ecm)]
         if destinations:
@@ -84,6 +87,11 @@ def ai_system(e, ai, pos, ecm, player):
             dest = None
     if dest:
         e.set(MoveDestination(dest.x, dest.y, dest.floor))
+        if equal_pos(player_pos, dest) or neighbor_pos(player_pos, dest):
+            if ai.kind == 'idle':
+                e.set(ai._replace(kind='aggressive'))
+            elif ai.kind == 'aggressive':
+                e.set(Attacking(player))
 
 def entities_on_position(pos, ecm):
     """
@@ -302,7 +310,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.add(Solid())
                 monster.add(Monster('a', strength=10))
                 monster.add(Info('Anxiety', "Won't give you a second of rest."))
-                monster.add(AI('aggressive'))
+                monster.add(AI('idle'))
     return {
         'ecm': ecm,
         'player': player,

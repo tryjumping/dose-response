@@ -33,13 +33,13 @@ def initialise_consoles(console_count, w, h, transparent_color):
         tcod.console_set_key_color(con, transparent_color)
     return consoles
 
-def tile_system(e, pos, tile, dt_ms, layers):
+def tile_system(e, pos, tile, layers):
     con = layers[tile.level]
     tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
     tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
     tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
 
-def input_system(e, dt_ms, key):
+def input_system(e, ecm, key):
     if not key:
         return
     pos = e.get(Position)
@@ -66,7 +66,7 @@ def input_system(e, dt_ms, key):
     if dx != 0 or dy != 0:
         e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
-def ai_system(e, ai, pos, player, ecm, dt_ms):
+def ai_system(e, ai, pos, ecm, player):
     neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
                         (0, 1), (1, 1))
     destinations = [Position(pos.x + dx, pos.y + dy, pos.floor) for dx, dy
@@ -101,7 +101,7 @@ def blocked_tile(pos, ecm):
     return any((entity.has(Solid) for entity
                 in entities_on_position(pos, ecm)))
 
-def collision_system(e, ecm, dt_ms):
+def collision_system(e, ecm):
     dest = e.get(MoveDestination)
     interactions = [entity for entity in entities_on_position(dest, ecm)
                     if entity.has(Interactive) or entity.has(Monster)]
@@ -122,7 +122,7 @@ def collision_system(e, ecm, dt_ms):
         elif i.has(Monster) and not e.has(Monster):
             e.set(Attacking(i))
 
-def combat_system(e, ecm, dt_ms):
+def combat_system(e, ecm):
     target = e.get(Attacking).target
     e.remove(Attacking)
     if e.has(Dead) or target.has(Dead):
@@ -139,13 +139,13 @@ def combat_system(e, ecm, dt_ms):
     if stats:
         e.set(stats._replace(kills=stats.kills+1))
 
-def movement_system(e, dt_ms, w, h):
+def movement_system(e, ecm, w, h):
     dest = e.get(MoveDestination)
     pos = e.get(Position)
     e.set(Position(dest.x, dest.y, dest.floor))
     e.remove(MoveDestination)
 
-def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
+def gui_system(ecm, player, layers, w, h, panel_height):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
     stats_template = "%s  Confidence: %s  Will: %s  Nerve: %s"
@@ -180,7 +180,7 @@ def gui_system(ecm, dt_ms, player, layers, w, h, panel_height):
     tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
 # TODO: change to a generic component that indicates attribute change over time
-def state_of_mind_system(ecm, dt_ms, e):
+def state_of_mind_system(e, ecm):
     attrs = e.get(Attributes)
     state_of_mind = attrs.state_of_mind - 1
     e.set(attrs._replace(state_of_mind=state_of_mind))
@@ -191,27 +191,30 @@ def state_of_mind_system(ecm, dt_ms, e):
         e.remove(UserInput)
         e.set(Dead("Overdosed"))
 
-def death_system(ecm, dt_ms, e):
+def death_system(e, ecm):
     whitelist = (Dead, Info, Statistics, Attributes)
     for ctype in [c.__class__ for c in e.components()]:
         if not ctype in whitelist:
             e.remove(ctype)
 
-def resolve_a_turn(player, ecm, w, h, key, dt_ms):
+def resolve_a_turn(player, ecm, w, h, key):
+    # TODO: deduplicate this by creating a system pipeline. Annotate system
+    # definitions with components they're interested in. Run the queries
+    # automatically and verify the consistency before calling the systems.
     last_turn_count = player.get(Statistics).turns
 
     if player.has(UserInput):
-        input_system(player, dt_ms, key)
+        input_system(player, ecm, key)
     if player.has(MoveDestination):
-        collision_system(player, ecm, dt_ms)
+        collision_system(player, ecm)
         if player.has(MoveDestination):
-            movement_system(player, dt_ms, w, h)
+            movement_system(player, ecm, w, h)
     if player.has(Attacking):
-        combat_system(player, ecm, dt_ms)
+        combat_system(player, ecm)
     if player.has(Attributes):
-        state_of_mind_system(ecm, dt_ms, player)
+        state_of_mind_system(player, ecm)
     if player.has(Dead):
-        death_system(ecm, dt_ms, player)
+        death_system(player, ecm)
 
     assert (player.get(Statistics).turns - last_turn_count) in (0, 1)
     player_took_a_turn = player.get(Statistics).turns > last_turn_count
@@ -219,17 +222,17 @@ def resolve_a_turn(player, ecm, w, h, key, dt_ms):
         return
 
     for npc, ai, pos in ecm.entities(AI, Position, include_components=True):
-        ai_system(npc, ai, pos, player, ecm, dt_ms)
+        ai_system(npc, ai, pos, ecm, player)
     for npc in ecm.entities(MoveDestination):
-        collision_system(npc, ecm, dt_ms)
+        collision_system(npc, ecm)
         if npc.has(MoveDestination):
-            movement_system(npc, dt_ms, w, h)
+            movement_system(npc, ecm, w, h)
     for npc in ecm.entities(Attacking):
-        combat_system(npc, ecm, dt_ms)
+        combat_system(npc, ecm)
     for npc in ecm.entities(Attributes):
-        state_of_mind_system(ecm, dt_ms, npc)
+        state_of_mind_system(npc, ecm)
     for npc in ecm.entities(Dead):
-        death_system(ecm, dt_ms, npc)
+        death_system(npc, ecm)
 
 def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']
@@ -239,15 +242,15 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
             return initial_state(w, h, game['empty_ratio'])
-        resolve_a_turn(player, ecm, w, h, pressed_key, dt_ms)
+        resolve_a_turn(player, ecm, w, h, pressed_key)
 
-    for renderable, pos, tile in ecm.entities(Position, Tile, include_components=True):
-        tile_system(renderable, pos, tile, dt_ms, consoles)
+    for e, pos, tile in ecm.entities(Position, Tile, include_components=True):
+        tile_system(e, pos, tile, consoles)
     # empirically, the fading should be between 0.6 (darkest) and 1 (brightest)
     game['fade'] = (player.get(Attributes).state_of_mind * 0.4 / 100) + 0.6
     if player.has(Dead):
         game['fade'] = 1.6
-    gui_system(ecm, dt_ms, player, consoles, w, h, panel_height)
+    gui_system(ecm, player, consoles, w, h, panel_height)
     return game
 
 def generate_map(w, h, empty_ratio):

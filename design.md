@@ -369,3 +369,26 @@ TODO
 * Death animation (for PC and NPCs)
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
+
+* Consider this: Keep track of the elapsed turns in the top-level `game`
+  variable, update it by the `end_of_turn system` and pass `dt` (number of
+  elapsed turns, typically 0 or 1) to the systems that want it.
+
+  It doesn't make much sense to keep the turn count in each `Turn` component
+  since the value should be uniform.
+
+  There is an argument to be made for not storing persistent game state (what we
+  want to save) outside of the entity system, so maybe store this with the
+  Player or possibly a new Global State entity?
+
+* Improve the system code by doing automatic entity queries and component checks
+
+    @system(Position, MoveDestination, Turn)
+    def movement_system(e, pos, dest, turn, ecm):
+        pass  # `e` is guaranteed to have Position, MoveDestination and Turn
+
+    ...
+
+    ecm.run_system(movement_system)
+
+

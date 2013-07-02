@@ -33,4 +33,4 @@ Component('AI', 'kind')
 
 Component('Addicted')
 
-Component('Turn', 'actions, max_actions')
+Component('Turn', 'action_points, max_aps, active')

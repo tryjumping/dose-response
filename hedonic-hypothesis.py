@@ -19,10 +19,18 @@ def color_from_int(n):
 
 
 def equal_pos(p1, p2):
+    if not (p1 and p2):
+        return False
     return p1.x == p2.x and p1.y == p2.y and p1.floor == p2.floor
 
 def neighbor_pos(p1, p2):
+    if not (p1 and p2):
+        return False
     return abs(p1.x - p2.x) <= 1 and abs(p1.y - p2.y) <= 1
+
+def has_free_aps(e):
+    turn = e.get(Turn)
+    return turn and turn.action_points > 0
 
 def initialise_consoles(console_count, w, h, transparent_color):
     """
@@ -34,6 +42,8 @@ def initialise_consoles(console_count, w, h, transparent_color):
     return consoles
 
 def tile_system(e, pos, tile, layers):
+    if not all((e.has(c) for c in (Tile, Position))):
+        return
     con = layers[tile.level]
     tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
     tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
@@ -67,6 +77,8 @@ def input_system(e, ecm, key):
         e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
 def ai_system(e, ai, pos, ecm, player):
+    if not all((e.has(c) for c in (AI, Position))):
+        return
     # TODO: use an action point system. It should make things simpler: if we
     # moved, we don't have any attack actions. If we didn't move, we can attack.
     # Will help us deal with the interactions, too.
@@ -111,19 +123,20 @@ def blocked_tile(pos, ecm):
 
 def entity_spend_ap(e, spent=1):
     turns = e.get(Turn)
-    e.set(turns._replace(actions = turns.actions - spent))
+    e.set(turns._replace(action_points = turns.action_points - spent))
 
 def interaction_system(e, target, ecm):
+    if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
+        return
     interactions = [entity for entity in entities_on_position(target, ecm)
                     if entity.has(Interactive)]
     monsters = [entity for entity in entities_on_position(target, ecm)
                 if entity.has(Monster)]
     for m in monsters:
-        if e.get(Turn).actions > 0 and not e.has(Monster):
+        if has_free_aps(e) and not e.has(Monster):
             e.set(Attacking(m))
-            entity_spend_ap(e)
     for i in interactions:
-        if e.get(Turn).actions > 0 and i.has(Interactive) and e.has(Addicted):
+        if has_free_aps(e) > 0 and i.has(Interactive) and e.has(Addicted):
             attrs = e.get(Attributes)
             if attrs:  # base this off of the actual interaction type present
                 som = attrs.state_of_mind + max(50 - attrs.tolerance, 5)
@@ -134,26 +147,29 @@ def interaction_system(e, target, ecm):
         return True
 
 def combat_system(e, ecm):
+    if not all((e.has(c) for c in (Attacking, Turn))):
+        return
     target = e.get(Attacking).target
     e.remove(Attacking)
-    if e.get(Turn).actions <= 0 or e.has(Dead) or target.has(Dead):
+    if not has_free_aps(e) or not neighbor_pos(e.get(Position),
+                                               target.get(Position)):
         return
     print "%s attacks %s" % (e, target)
-    if not neighbor_pos(e.get(Position), target.get(Position)):
-        return
+    entity_spend_ap(e)
     if e.has(Info):
         death_reason = 'Killed by %s' % e.get(Info).name
     else:
         death_reason = ''
-    target.set(Dead(death_reason))
-    entity_spend_ap(e)
+    kill_entity(target, death_reason)
     stats = e.get(Statistics)
     if stats:
         e.set(stats._replace(kills=stats.kills+1))
 
 def movement_system(e, pos, dest, ecm, w, h):
+    if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
+        return
     e.remove(MoveDestination)
-    if e.get(Turn).actions > 0 and not blocked_tile(dest, ecm):
+    if has_free_aps(e) and not blocked_tile(dest, ecm):
         e.set(Position(dest.x, dest.y, dest.floor))
         entity_spend_ap(e)
         return True
@@ -192,67 +208,58 @@ def gui_system(ecm, player, layers, w, h, panel_height):
                           "Doses: %s,  Monsters: %s" % (doses, monsters))
     tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
-# TODO: change to a generic component that indicates attribute change over time
-def state_of_mind_system(e, ecm):
+def kill_entity(e, death_reason=''):
+    for ctype in (UserInput, AI, Position, Tile, Turn):
+        e.remove(ctype)
+    e.set(Dead(death_reason))
+
+def entity_start_a_new_turn(e):
+    t = e.get(Turn)
+    e.set(t._replace(active=True, action_points=t.max_aps))
+
+def end_of_turn_system(e, ecm):
+    # TODO: trigger the end of turn effects here
+    return False
+    turn = e.get(Turn)
+    e.set(turn._replace(action_points=turn.max_aps))
     attrs = e.get(Attributes)
     state_of_mind = attrs.state_of_mind - 1
     e.set(attrs._replace(state_of_mind=state_of_mind))
     if state_of_mind <= 0:
-        e.remove(UserInput)
-        e.set(Dead("Exhausted"))
+        kill_entity(e, "Exhausted")
     elif state_of_mind > 100:
-        e.remove(UserInput)
-        e.set(Dead("Overdosed"))
+        kill_entity(e, "Overdosed")
 
-def death_system(e, ecm):
-    whitelist = (Dead, Info, Statistics, Attributes)
-    for ctype in [c.__class__ for c in e.components()]:
-        if not ctype in whitelist:
-            e.remove(ctype)
-
-def turn_system(e, ecm):
-    turn = e.get(Turn)
-    e.set(turn._replace(actions=turn.max_actions))
-
-def resolve_a_turn(player, ecm, w, h, key):
-    moved, interacted = False, False
-
-    for e in ecm.entities(Turn):
-        turn_system(e, ecm)
-
-    # TODO: deduplicate this by creating a system pipeline. Annotate system
-    # definitions with components they're interested in. Run the queries
-    # automatically and verify the consistency before calling the systems.
-    if player.has(UserInput):
-        input_system(player, ecm, key)
-    if player.has(MoveDestination):
-        dest = player.get(MoveDestination)
-        interacted = interaction_system(player, dest, ecm)
-        moved = movement_system(player, player.get(Position), dest, ecm, w, h)
-
-    player_took_a_turn = moved or interacted
-    if not player_took_a_turn:
+def process_entities(player, ecm, w, h, key):
+    if player.has(Dead):
         return
 
-    if player.has(Attacking):
-        combat_system(player, ecm)
-    if player.has(Attributes):
-        state_of_mind_system(player, ecm)
-    if player.has(Dead):
-        death_system(player, ecm)
+    player_turn = player.get(Turn)
+    if player_turn.active and not has_free_aps(player):
+        player.set(player_turn._replace(active=False))
+        for npc in ecm.entities(AI):
+            entity_start_a_new_turn(npc)
+    if not player_turn.active:
+        npcs = list(ecm.entities(AI))
+        if not any((has_free_aps(npc) for npc in npcs)):
+            entity_start_a_new_turn(player)
+            for npc in npcs:
+                npc.set(npc.get(Turn)._replace(active=False))
 
-    for npc, ai, pos in ecm.entities(AI, Position, include_components=True):
-        ai_system(npc, ai, pos, ecm, player)
-    for npc, pos, dest in ecm.entities(Position, MoveDestination,
+    for e in ecm.entities(UserInput):
+        if has_free_aps(e) and key:
+            input_system(e, ecm, key)
+    for e, ai, pos in ecm.entities(AI, Position, include_components=True):
+        if has_free_aps(e):
+            ai_system(e, ai, pos, ecm, player)
+    for e, pos, dest in ecm.entities(Position, MoveDestination,
                                        include_components=True):
-        interaction_system(npc, dest, ecm)
-        movement_system(npc, pos, dest, ecm, w, h)
-    for npc in ecm.entities(Attacking):
-        combat_system(npc, ecm)
-    for npc in ecm.entities(Attributes):
-        state_of_mind_system(npc, ecm)
-    for npc in ecm.entities(Dead):
-        death_system(npc, ecm)
+        interaction_system(e, dest, ecm)
+        movement_system(e, pos, dest, ecm, w, h)
+    for e in ecm.entities(Attacking):
+        combat_system(e, ecm)
+    for e in ecm.entities(Attributes):
+        end_of_turn_system(e, ecm)
 
 def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']
@@ -262,11 +269,12 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
             return initial_state(w, h, game['empty_ratio'])
-        resolve_a_turn(player, ecm, w, h, pressed_key)
+
+    process_entities(player, ecm, w, h, pressed_key)
 
     for e, pos, tile in ecm.entities(Position, Tile, include_components=True):
         tile_system(e, pos, tile, consoles)
-    # empirically, the fading should be between 0.6 (darkest) and 1 (brightest)
+    # empirically, the fading works best between 0.6 (darkest) and 1 (brightest)
     game['fade'] = (player.get(Attributes).state_of_mind * 0.4 / 100) + 0.6
     if player.has(Dead):
         game['fade'] = 1.6
@@ -301,7 +309,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(Info(name="The Nameless One", description=""))
     player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
-    player.add(Turn(actions=0, max_actions=1))
+    player.add(Turn(action_points=3, max_aps=3, active=True))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())
     player.add(Addicted())
@@ -329,7 +337,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.add(Monster('a', strength=10))
                 monster.add(Info('Anxiety', "Won't give you a second of rest."))
                 monster.add(AI('idle'))
-                monster.add(Turn(actions=0, max_actions=1))
+                monster.add(Turn(action_points=0, max_aps=2, active=False))
     return {
         'ecm': ecm,
         'player': player,

@@ -218,17 +218,26 @@ def entity_start_a_new_turn(e):
     e.set(t._replace(active=True, action_points=t.max_aps))
 
 def end_of_turn_system(e, ecm):
-    # TODO: trigger the end of turn effects here
-    return False
+    if not all((e.has(c) for c in (Turn,))):
+        return
     turn = e.get(Turn)
-    e.set(turn._replace(action_points=turn.max_aps))
+    e.set(turn._replace(count=turn.count+1))
+
+def addiction_system(e, ecm):
+    if not all((e.has(c) for c in (Addicted, Attributes, Turn))):
+        return
+    addiction = e.get(Addicted)
     attrs = e.get(Attributes)
-    state_of_mind = attrs.state_of_mind - 1
-    e.set(attrs._replace(state_of_mind=state_of_mind))
-    if state_of_mind <= 0:
-        kill_entity(e, "Exhausted")
-    elif state_of_mind > 100:
-        kill_entity(e, "Overdosed")
+    turn = e.get(Turn)
+    dt = turn.count - addiction.turn_last_activated
+    if dt > 0:
+        state_of_mind = attrs.state_of_mind - (addiction.rate_per_turn * dt)
+        e.set(attrs._replace(state_of_mind=state_of_mind))
+        e.set(addiction._replace(turn_last_activated=turn.count))
+        if state_of_mind <= 0:
+            kill_entity(e, "Exhausted")
+        elif state_of_mind > 100:
+            kill_entity(e, "Overdosed")
 
 def process_entities(player, ecm, w, h, key):
     if player.has(Dead):
@@ -242,10 +251,15 @@ def process_entities(player, ecm, w, h, key):
     if not player_turn.active:
         npcs = list(ecm.entities(AI))
         if not any((has_free_aps(npc) for npc in npcs)):
+            end_of_turn_system(player, ecm)
+            for e in npcs:
+                end_of_turn_system(e, ecm)
             entity_start_a_new_turn(player)
             for npc in npcs:
                 npc.set(npc.get(Turn)._replace(active=False))
 
+    for e in ecm.entities(Addicted, Attributes, Turn):
+        addiction_system(e, ecm)
     for e in ecm.entities(UserInput):
         if has_free_aps(e) and key:
             input_system(e, ecm, key)
@@ -258,8 +272,6 @@ def process_entities(player, ecm, w, h, key):
         movement_system(e, pos, dest, ecm, w, h)
     for e in ecm.entities(Attacking):
         combat_system(e, ecm)
-    for e in ecm.entities(Attributes):
-        end_of_turn_system(e, ecm)
 
 def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']
@@ -309,10 +321,10 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(Info(name="The Nameless One", description=""))
     player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
-    player.add(Turn(action_points=3, max_aps=3, active=True))
+    player.add(Turn(action_points=3, max_aps=3, active=True, count=0))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())
-    player.add(Addicted())
+    player.add(Addicted(1, 0))
     player_pos = player.get(Position)
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
@@ -337,7 +349,8 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.add(Monster('a', strength=10))
                 monster.add(Info('Anxiety', "Won't give you a second of rest."))
                 monster.add(AI('idle'))
-                monster.add(Turn(action_points=0, max_aps=2, active=False))
+                monster.add(Turn(action_points=0, max_aps=2, active=False,
+                                 count=0))
     return {
         'ecm': ecm,
         'player': player,

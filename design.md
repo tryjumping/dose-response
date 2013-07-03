@@ -392,3 +392,9 @@ TODO
     ecm.run_system(movement_system)
 
 
+* Add an `update_component` function to ECM that takes a component type and a
+  dict of keys and update functions:
+
+    e.set(Position(1, 1))
+	e.update(Position, x=lambda x: x+1, y=lambda x: x+1)
+	# equivalent to: pos = e.get(Position); e.set(Position._replace(x=pos.x+1, y=pos.y+1))

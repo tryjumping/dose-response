@@ -104,6 +104,9 @@ def ai_system(e, ai, pos, ecm, player):
                 e.set(ai._replace(kind='aggressive'))
             elif ai.kind == 'aggressive':
                 e.set(Attacking(player))
+    else:
+        e.set(MoveDestination(pos.x, pos.y, pos.floor))
+
 
 def entities_on_position(pos, ecm):
     """
@@ -169,10 +172,14 @@ def movement_system(e, pos, dest, ecm, w, h):
     if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
         return
     e.remove(MoveDestination)
-    if has_free_aps(e) and not blocked_tile(dest, ecm):
+    if not has_free_aps(e):
+        return
+    if equal_pos(pos, dest):
+        # The entity waits a turn
+        entity_spend_ap(e)
+    elif not blocked_tile(dest, ecm):
         e.set(Position(dest.x, dest.y, dest.floor))
         entity_spend_ap(e)
-        return True
 
 def gui_system(ecm, player, layers, w, h, panel_height):
     attrs = player.get(Attributes)
@@ -281,6 +288,8 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
             return initial_state(w, h, game['empty_ratio'])
+        elif pressed_key.c == ord('d'):
+            import pdb; pdb.set_trace()
 
     process_entities(player, ecm, w, h, pressed_key)
 
@@ -321,7 +330,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(Info(name="The Nameless One", description=""))
     player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
                           nerve=5, will=5))
-    player.add(Turn(action_points=3, max_aps=3, active=True, count=0))
+    player.add(Turn(action_points=1, max_aps=1, active=True, count=0))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())
     player.add(Addicted(1, 0))
@@ -349,7 +358,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.add(Monster('a', strength=10))
                 monster.add(Info('Anxiety', "Won't give you a second of rest."))
                 monster.add(AI('idle'))
-                monster.add(Turn(action_points=0, max_aps=2, active=False,
+                monster.add(Turn(action_points=0, max_aps=1, active=False,
                                  count=0))
     return {
         'ecm': ecm,

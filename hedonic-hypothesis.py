@@ -1,3 +1,4 @@
+import collections
 import os
 from random import random, choice
 
@@ -49,12 +50,13 @@ def tile_system(e, pos, tile, layers):
     tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
     tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
 
-def input_system(e, ecm, key):
-    if not key:
+def input_system(e, ecm, keys):
+    if not keys:
         return
     pos = e.get(Position)
     if not pos:
         return
+    key = keys.popleft()
     dest = MoveDestination(pos.x, pos.y, pos.floor)
     dx, dy = 0, 0
     if key.vk == tcod.KEY_UP:
@@ -76,7 +78,7 @@ def input_system(e, ecm, key):
     if dx != 0 or dy != 0:
         e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
-def ai_system(e, ai, pos, ecm, player):
+def ai_system(e, ai, pos, ecm, player, w, h):
     if not all((e.has(c) for c in (AI, Position))):
         return
     # TODO: use an action point system. It should make things simpler: if we
@@ -92,7 +94,8 @@ def ai_system(e, ai, pos, ecm, player):
     else:
         e.set(ai._replace(kind='idle'))
         destinations = [dest for dest in destinations
-                        if not blocked_tile(dest, ecm)]
+                        if not blocked_tile(dest, ecm)
+                           and within_rect(dest, 0, 0, w, h)]
         if destinations:
             dest = choice(destinations)
         else:
@@ -182,6 +185,7 @@ def movement_system(e, pos, dest, ecm, w, h):
         return
     e.remove(MoveDestination)
     if not has_free_aps(e):
+        print "%s tried to move but has no action points" % e
         return
     if equal_pos(pos, dest):
         # The entity waits a turn
@@ -256,7 +260,7 @@ def addiction_system(e, ecm):
         elif state_of_mind > 100:
             kill_entity(e, "Overdosed")
 
-def process_entities(player, ecm, w, h, key):
+def process_entities(player, ecm, w, h, keys):
     if player.has(Dead):
         return
 
@@ -274,15 +278,17 @@ def process_entities(player, ecm, w, h, key):
             entity_start_a_new_turn(player)
             for npc in npcs:
                 npc.set(npc.get(Turn)._replace(active=False))
+    assert any((e.get(Turn).active and e.get(Turn).action_points > 0
+                for e in ecm.entities(Turn)))
 
     for e in ecm.entities(Addicted, Attributes, Turn):
         addiction_system(e, ecm)
     for e in ecm.entities(UserInput):
-        if has_free_aps(e) and key:
-            input_system(e, ecm, key)
+        if has_free_aps(e) and keys:
+            input_system(e, ecm, keys)
     for e, ai, pos in ecm.entities(AI, Position, include_components=True):
         if has_free_aps(e):
-            ai_system(e, ai, pos, ecm, player)
+            ai_system(e, ai, pos, ecm, player, w, h)
     for e, pos, dest in ecm.entities(Position, MoveDestination,
                                        include_components=True):
         interaction_system(e, dest, ecm)
@@ -300,8 +306,10 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             return initial_state(w, h, game['empty_ratio'])
         elif pressed_key.c == ord('d'):
             import pdb; pdb.set_trace()
+        else:
+            game['keys'].append(pressed_key)
 
-    process_entities(player, ecm, w, h, pressed_key)
+    process_entities(player, ecm, w, h, game['keys'])
 
     for e, pos, tile in ecm.entities(Position, Tile, include_components=True):
         tile_system(e, pos, tile, consoles)
@@ -374,6 +382,7 @@ def initial_state(w, h, empty_ratio=0.6):
         'ecm': ecm,
         'player': player,
         'empty_ratio': empty_ratio,
+        'keys': collections.deque(),
     }
 
 

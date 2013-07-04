@@ -124,6 +124,15 @@ def blocked_tile(pos, ecm):
     return any((entity.has(Solid) for entity
                 in entities_on_position(pos, ecm)))
 
+def within_rect(pos, x, y, w, h):
+    """
+    True if the tile is within the rectangle of the specified coordinates and
+    dimension.
+    """
+    assert hasattr(pos, 'x') and hasattr(pos, 'y')
+    assert x <= w and y <= h
+    return x <= pos.x < x + w and y <= pos.y < y + h
+
 def entity_spend_ap(e, spent=1):
     turns = e.get(Turn)
     e.set(turns._replace(action_points = turns.action_points - spent))
@@ -176,8 +185,9 @@ def movement_system(e, pos, dest, ecm, w, h):
         return
     if equal_pos(pos, dest):
         # The entity waits a turn
+        print "%s waits" % e
         entity_spend_ap(e)
-    elif not blocked_tile(dest, ecm):
+    elif not blocked_tile(dest, ecm) and within_rect(dest, 0, 0, w, h):
         e.set(Position(dest.x, dest.y, dest.floor))
         entity_spend_ap(e)
 

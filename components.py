@@ -34,3 +34,5 @@ Component('AI', 'kind')
 Component('Addicted', 'rate_per_turn, turn_last_activated')
 
 Component('Turn', 'action_points, max_aps, active, count')
+
+Component('Explorable', 'explored')

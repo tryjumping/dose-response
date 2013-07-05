@@ -42,13 +42,17 @@ def initialise_consoles(console_count, w, h, transparent_color):
         tcod.console_set_key_color(con, transparent_color)
     return consoles
 
-def tile_system(e, pos, tile, layers):
+def tile_system(e, pos, tile, layers, fov_map):
     if not all((e.has(c) for c in (Tile, Position))):
         return
-    con = layers[tile.level]
-    tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
-    tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
-    tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
+    explored = e.has(Explorable) and e.get(Explorable).explored
+    if tcod.map_is_in_fov(fov_map, pos.x, pos.y) or explored:
+        if e.has(Explorable):
+            e.set(Explorable(explored=True))
+        con = layers[tile.level]
+        tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
+        tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
+        tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
 
 def input_system(e, ecm, keys):
     if not keys:
@@ -311,12 +315,14 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
 
     process_entities(player, ecm, w, h, game['keys'])
 
+    player_pos = player.get(Position)
+    if player_pos:
+        game['recompute_fov'](game['fov_map'], player_pos.x, player_pos.y)
     for e, pos, tile in ecm.entities(Position, Tile, include_components=True):
-        tile_system(e, pos, tile, consoles)
-    # empirically, the fading works best between 0.6 (darkest) and 1 (brightest)
-    game['fade'] = (player.get(Attributes).state_of_mind * 0.4 / 100) + 0.6
+        tile_system(e, pos, tile, consoles, game['fov_map'])
+    game['fade'] = max(player.get(Attributes).state_of_mind / 100.0, 0.14)
     if player.has(Dead):
-        game['fade'] = 1.6
+        game['fade'] = 2
     gui_system(ecm, player, consoles, w, h, panel_height)
     return game
 
@@ -337,6 +343,8 @@ def generate_map(w, h, empty_ratio):
     return [floor]
 
 def initial_state(w, h, empty_ratio=0.6):
+    fov_map = tcod.map_new(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
+
     ecm = EntityComponentManager(autoregister_components=True)
     ecm.register_component_type(Position, (int, int, int), index=True)
     # TODO: register the component types here once things settled a bit
@@ -355,6 +363,13 @@ def initial_state(w, h, empty_ratio=0.6):
     player_pos = player.get(Position)
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
+            transparent = True
+            walkable = True
+            if not type == 'wall':
+                background = ecm.new_entity()
+                background.add(Position(x, y, floor))
+                background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
+                background.add(Explorable(explored=False))
             if equal_pos(player_pos, Position(x, y, floor)):
                 pass
             elif type == 'wall':
@@ -363,6 +378,9 @@ def initial_state(w, h, empty_ratio=0.6):
                 color = choice((tcod.dark_green, tcod.green, tcod.light_green))
                 block.add(Tile(0, int_from_color(color), '#'))
                 block.add(Solid())
+                block.add(Explorable(explored=False))
+                #transparent = False
+                walkable = False
             elif type == 'dose':
                 dose = ecm.new_entity()
                 dose.add(Position(x, y, floor))
@@ -378,11 +396,17 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.add(AI('idle'))
                 monster.add(Turn(action_points=0, max_aps=1, active=False,
                                  count=0))
+            tcod.map_set_properties(fov_map, x, y, transparent, walkable)
+    def recompute_fov(fov_map, x, y):
+        tcod.map_compute_fov(fov_map, x, y, 3, True)
+    recompute_fov(fov_map, player_x, player_y)
     return {
         'ecm': ecm,
         'player': player,
         'empty_ratio': empty_ratio,
         'keys': collections.deque(),
+        'fov_map': fov_map,
+        'recompute_fov': recompute_fov,
     }
 
 
@@ -400,9 +424,6 @@ if __name__ == '__main__':
     tcod.sys_set_fps(LIMIT_FPS)
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, TRANSPARENT_BG_COLOR)
     background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
-    for x in xrange(SCREEN_WIDTH):
-        for y in xrange(SCREEN_HEIGHT):
-            tcod.console_put_char(background_conlole, x, y, '.', tcod.BKGND_NONE)
     game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
     while not tcod.console_is_window_closed():
         tcod.console_set_default_foreground(0, tcod.white)
@@ -420,7 +441,6 @@ if __name__ == '__main__':
         if not game_state:
             break
         fade = game_state.get('fade', 1)
-        tcod.console_blit(background_conlole, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, fade)
         for con in consoles[:-5]:
             tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, fade)
         for con in consoles[-5:]:

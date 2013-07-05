@@ -352,6 +352,27 @@ def generate_map(w, h, empty_ratio):
             floor.append([x, y, tile_kind])
     return [floor]
 
+def make_anxiety_monster(e):
+    e.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
+    e.add(Monster('anxiety', strength=10))
+    e.add(Info('Anxiety', "Won't give you a second of rest."))
+    e.add(AI('idle'))
+    e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
+
+def make_doubt_monster(e):
+    e.add(Tile(8, int_from_color(tcod.light_han), 'd'))
+    e.add(Monster('doubt', strength=15))
+    e.add(Info('Doubt', ""))
+    e.add(AI('idle'))
+    e.add(Turn(action_points=0, max_aps=2, active=False, count=0))
+
+def make_hunger_monster(e):
+    e.add(Tile(8, int_from_color(tcod.light_sepia), 'h'))
+    e.add(Monster('hunger', strength=5))
+    e.add(Info('Hunger', ""))
+    e.add(AI('idle'))
+    e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
+
 def initial_state(w, h, empty_ratio=0.6):
     fov_map = tcod.map_new(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
 
@@ -407,13 +428,13 @@ def initial_state(w, h, empty_ratio=0.6):
             elif type == 'monster' and not near_player(x, y):
                 monster = ecm.new_entity()
                 monster.add(pos)
-                monster.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
                 monster.add(Solid())
-                monster.add(Monster('a', strength=10))
-                monster.add(Info('Anxiety', "Won't give you a second of rest."))
-                monster.add(AI('idle'))
-                monster.add(Turn(action_points=0, max_aps=1, active=False,
-                                 count=0))
+                factories = [
+                    make_anxiety_monster,
+                    make_doubt_monster,
+                    make_hunger_monster,
+                ]
+                choice(factories)(monster)
             tcod.map_set_properties(fov_map, x, y, transparent, walkable)
     def recompute_fov(fov_map, x, y):
         tcod.map_compute_fov(fov_map, x, y, 3, True)
@@ -433,7 +454,7 @@ if __name__ == '__main__':
     SCREEN_HEIGHT = 50
     PANEL_HEIGHT = 2
     LIMIT_FPS = 60
-    TRANSPARENT_BG_COLOR = tcod.red
+    TRANSPARENT_BG_COLOR = tcod.peach
     font_path = os.path.join('fonts', 'dejavu16x16_gs_tc.png')
     font_settings = tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
     game_title = 'Dose Response'

@@ -19,15 +19,25 @@ def color_from_int(n):
     return tcod.Color(r,g,b)
 
 
+def distance(p1, p2):
+    """
+    Return distance between two points on the tile grid.
+    """
+    assert p1.floor == p2.floor, "Positions must be on the same floor"
+    assert p1 and p2, "Must be valid positions"
+    return max(abs(p1.x - p2.x), abs(p1.y - p2.y))
+
 def equal_pos(p1, p2):
-    if not (p1 and p2):
-        return False
-    return p1.x == p2.x and p1.y == p2.y and p1.floor == p2.floor
+    """
+    Return True when the two positions are equal.
+    """
+    return p1.floor == p2.floor and distance(p1, p2) == 0
 
 def neighbor_pos(p1, p2):
-    if not (p1 and p2):
-        return False
-    return abs(p1.x - p2.x) <= 1 and abs(p1.y - p2.y) <= 1
+    """
+    Return True when the two position are touching.
+    """
+    return distance(p1, p2) <= 1
 
 def has_free_aps(e):
     turn = e.get(Turn)
@@ -361,34 +371,42 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(Solid())
     player.add(Addicted(1, 0))
     player_pos = player.get(Position)
+    initial_dose_pos = Position(
+        player_x + choice([n for n in range(-3, 3) if n != 0]),
+        player_y + choice([n for n in range(-3, 3) if n != 0]),
+        player_pos.floor
+    )
+    def near_player(x, y):
+        return distance(player_pos, Position(x, y, player_pos.floor)) < 6
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
         for x, y, type in map:
             transparent = True
             walkable = True
+            pos = Position(x, y, floor)
             if not type == 'wall':
                 background = ecm.new_entity()
-                background.add(Position(x, y, floor))
+                background.add(pos)
                 background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
                 background.add(Explorable(explored=False))
-            if equal_pos(player_pos, Position(x, y, floor)):
+            if equal_pos(player_pos, pos):
                 pass
+            elif ((type == 'dose' and not near_player(x, y))
+                  or equal_pos(initial_dose_pos, pos)):
+                dose = ecm.new_entity()
+                dose.add(pos)
+                dose.add(Tile(5, int_from_color(tcod.light_azure), 'i'))
+                dose.add(Interactive())
             elif type == 'wall':
                 block = ecm.new_entity()
-                block.add(Position(x, y, floor))
+                block.add(pos)
                 color = choice((tcod.dark_green, tcod.green, tcod.light_green))
                 block.add(Tile(0, int_from_color(color), '#'))
                 block.add(Solid())
                 block.add(Explorable(explored=False))
-                #transparent = False
                 walkable = False
-            elif type == 'dose':
-                dose = ecm.new_entity()
-                dose.add(Position(x, y, floor))
-                dose.add(Tile(5, int_from_color(tcod.light_azure), 'i'))
-                dose.add(Interactive())
-            elif type == 'monster':
+            elif type == 'monster' and not near_player(x, y):
                 monster = ecm.new_entity()
-                monster.add(Position(x, y, floor))
+                monster.add(pos)
                 monster.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
                 monster.add(Solid())
                 monster.add(Monster('a', strength=10))

@@ -361,7 +361,6 @@ it interesting.
 TODO
 ----
 
-* Generate the initial conditions correctly (dose in sight, no monsters)
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
 

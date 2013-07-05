@@ -370,6 +370,8 @@ TODO
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
 
+* Dynamically change the exploration/fov radius based on the dose
+
 * Consider this: Keep track of the elapsed turns in the top-level `game`
   variable, update it by the `end_of_turn system` and pass `dt` (number of
   elapsed turns, typically 0 or 1) to the systems that want it.

@@ -148,7 +148,7 @@ Nerve and Will
 the level
 14. The PC can Use the Doses by bumping into them
 18. The PC has a State of Mind property ranging from 0 to 100
-19. State of Mind (need to find a better name for this) below 40 is considered
+19. State of Mind (need to find a better name for this) below 50 is considered
 Withdrawal, above 60 is High, below 15 is Mindless (or Desperate).
 20. Each Dose has four attributes: Strength, Confidence Boost, Nerve Boost and
 Will Boost.
@@ -361,12 +361,7 @@ it interesting.
 TODO
 ----
 
-* Full screen
-* Proper colours
-* Numpad controls
-* Various resolutions (should work on a 800x600 screen, too)
-* Make accessible for the colour-blind people
-* Death animation (for PC and NPCs)
+* Generate the initial conditions correctly (dose in sight, no monsters)
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
 
@@ -400,3 +395,10 @@ TODO
     e.set(Position(1, 1))
 	e.update(Position, x=lambda x: x+1, y=lambda x: x+1)
 	# equivalent to: pos = e.get(Position); e.set(Position._replace(x=pos.x+1, y=pos.y+1))
+
+* Full screen
+* Proper colours
+* Numpad controls
+* Various resolutions (should work on a 800x600 screen, too)
+* Make accessible for the colour-blind people
+* Death animation (for PC and NPCs)

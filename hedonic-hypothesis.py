@@ -75,12 +75,10 @@ def tile_system(e, pos, tile, layers, fov_map):
             e.set(Explorable(explored=True))
         con = layers[tile.level]
         tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
-        # Make the hidden areas distinct
-        if tcod.map_is_in_fov(fov_map, pos.x, pos.y):
-            background = tcod.BKGND_NONE
-        else:
-            background = tcod.BKGND_SET
-        tcod.console_put_char(con, pos.x, pos.y, tile.glyph, background)
+        # Make the explored but not directly visible areas distinct
+        if not tcod.map_is_in_fov(fov_map, pos.x, pos.y):
+            tcod.console_set_char_background(con, pos.x, pos.y, tcod.Color(15, 15, 15))
+        tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
         tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
 
 def input_system(e, ecm, keys):
@@ -449,6 +447,7 @@ def initial_state(w, h, empty_ratio=0.6):
                     nerve = choice(range(0, 2)),
                     will = choice(range(0, 2)),
                 ))
+                dose.add(Explorable(False))
                 dose.add(Interactive())
             elif type == 'wall':
                 block = ecm.new_entity()
@@ -508,7 +507,6 @@ if __name__ == '__main__':
             tcod.console_set_default_background(con, TRANSPARENT_BG_COLOR)
             tcod.console_set_default_foreground(con, tcod.white)
             tcod.console_clear(con)
-        tcod.console_set_default_background(consoles[0], tcod.Color(15, 15, 15))
         game_state = update(game_state, dt_ms, consoles,
                             SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT, key)
         if not game_state:

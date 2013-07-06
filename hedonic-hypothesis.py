@@ -356,13 +356,17 @@ def make_anxiety_monster(e):
     e.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
     e.add(Monster('anxiety', strength=10))
     e.add(Info('Anxiety', "Won't give you a second of rest."))
+    e.add(AttributeModifier(state_of_mind=15, tolerance=0, confidence=0, nerve=0,
+                            will=-1))
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
-def make_doubt_monster(e):
-    e.add(Tile(8, int_from_color(tcod.light_han), 'd'))
-    e.add(Monster('doubt', strength=15))
-    e.add(Info('Doubt', ""))
+def make_depression_monster(e):
+    e.add(Tile(8, int_from_color(tcod.light_han), 'D'))
+    e.add(Monster('depression', strength=15))
+    e.add(Info('Depression', "Fast and deadly. Don't let it get close."))
+    e.add(AttributeModifier(state_of_mind=-10000, tolerance=0, confidence=0,
+                            nerve=0, will=0))
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=2, active=False, count=0))
 
@@ -370,6 +374,8 @@ def make_hunger_monster(e):
     e.add(Tile(8, int_from_color(tcod.light_sepia), 'h'))
     e.add(Monster('hunger', strength=5))
     e.add(Info('Hunger', ""))
+    e.add(AttributeModifier(state_of_mind=5, tolerance=0, confidence=0, nerve=0,
+                            will=0))
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
@@ -431,7 +437,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 monster.add(Solid())
                 factories = [
                     make_anxiety_monster,
-                    make_doubt_monster,
+                    make_depression_monster,
                     make_hunger_monster,
                 ]
                 choice(factories)(monster)

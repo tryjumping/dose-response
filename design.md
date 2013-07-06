@@ -298,28 +298,25 @@ Ideas for names:
 * Voices
 
 
-### Doubt
+### Depression
 
-Glyph: `d`
-Strength: 20
+Kills instantly, 2 action points.
 
-50% chance to drain 1 point of Will.
-
+Glyph: `D`
 
 ### Hunger
 
+Low damage, fast, folows/swarms player.
+
 Glyph: `h`
 Strength: 25
-
-Does twice as much damage.
-
 
 ### Anxiety
 
 Glyph: `a`
 Strength: 15
 
-Drains 1 Nerve point.
+Drains 1 Will point.
 
 
 
@@ -361,6 +358,8 @@ it interesting.
 TODO
 ----
 
+* Add monster types
+* Fix the performance god damn it!
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
 

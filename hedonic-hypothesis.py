@@ -1,4 +1,5 @@
 import collections
+import math
 import os
 from random import random, choice
 
@@ -66,17 +67,31 @@ def initialise_consoles(console_count, w, h, transparent_color):
         tcod.console_set_key_color(con, transparent_color)
     return consoles
 
-def tile_system(e, pos, tile, layers, fov_map):
+def in_fov(x, y, fov_map, cx, cy, radius):
+    """
+    Return true if the position is within the field of view given by the map and
+    a radius.
+    """
+    if not tcod.map_is_in_fov(fov_map, x, y) or radius < 1:
+        return False
+    distance = math.floor(math.sqrt((abs(cx - x) ** 2) + (abs(cy - y) ** 2)))
+    return distance <= radius
+
+def tile_system(e, pos, tile, layers, fov_map, player_pos, radius):
     if not all((e.has(c) for c in (Tile, Position))):
         return
     explored = e.has(Explorable) and e.get(Explorable).explored
-    if tcod.map_is_in_fov(fov_map, pos.x, pos.y) or explored:
+    if player_pos:
+        px, py = player_pos.x, player_pos.y
+    else:
+        px, py, radius = 0, 0, 0
+    if in_fov(pos.x, pos.y, fov_map, px, py, radius) or explored:
         if e.has(Explorable):
             e.set(Explorable(explored=True))
         con = layers[tile.level]
         tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
         # Make the explored but not directly visible areas distinct
-        if not tcod.map_is_in_fov(fov_map, pos.x, pos.y):
+        if not in_fov(pos.x, pos.y, fov_map, px, py, radius):
             tcod.console_set_char_background(con, pos.x, pos.y, tcod.Color(15, 15, 15))
         tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
         tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
@@ -347,7 +362,8 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     if player_pos:
         game['recompute_fov'](game['fov_map'], player_pos.x, player_pos.y)
     for e, pos, tile in ecm.entities(Position, Tile, include_components=True):
-        tile_system(e, pos, tile, consoles, game['fov_map'])
+        tile_system(e, pos, tile, consoles, game['fov_map'], player_pos,
+                    game['fov_radius'])
     game['fade'] = max(player.get(Attributes).state_of_mind / 100.0, 0.14)
     if player.has(Dead):
         game['fade'] = 2
@@ -468,8 +484,9 @@ def initial_state(w, h, empty_ratio=0.6):
                 ]
                 choice(factories)(monster)
             tcod.map_set_properties(fov_map, x, y, transparent, walkable)
+    fov_radius = 3
     def recompute_fov(fov_map, x, y):
-        tcod.map_compute_fov(fov_map, x, y, 3, True)
+        tcod.map_compute_fov(fov_map, x, y, fov_radius, True)
     recompute_fov(fov_map, player_x, player_y)
     return {
         'ecm': ecm,
@@ -477,6 +494,7 @@ def initial_state(w, h, empty_ratio=0.6):
         'empty_ratio': empty_ratio,
         'keys': collections.deque(),
         'fov_map': fov_map,
+        'fov_radius': fov_radius,
         'recompute_fov': recompute_fov,
     }
 

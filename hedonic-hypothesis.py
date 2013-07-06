@@ -43,6 +43,20 @@ def has_free_aps(e):
     turn = e.get(Turn)
     return turn and turn.action_points > 0
 
+def modify_entity_attributes(e, modif):
+    """
+    Updates entity's attributes based on the passed modifier.
+    """
+    attrs = e.get(Attributes)
+    assert attrs and modif
+    e.set(attrs._replace(
+        state_of_mind = attrs.state_of_mind + modif.state_of_mind,
+        tolerance = attrs.tolerance + modif.tolerance,
+        confidence = attrs.confidence + modif.confidence,
+        nerve = attrs.nerve + modif.nerve,
+        will = attrs.will + modif.will))
+
+
 def initialise_consoles(console_count, w, h, transparent_color):
     """
     Initialise the given number of new off-screen consoles and return their list.
@@ -166,11 +180,7 @@ def interaction_system(e, target, ecm):
             e.set(Attacking(m))
     for i in interactions:
         if has_free_aps(e) > 0 and i.has(Interactive) and e.has(Addicted):
-            attrs = e.get(Attributes)
-            if attrs:  # base this off of the actual interaction type present
-                som = attrs.state_of_mind + max(50 - attrs.tolerance, 5)
-                e.set(attrs._replace(state_of_mind=som,
-                                     tolerance=attrs.tolerance + 1))
+            modify_entity_attributes(e, i.get(AttributeModifier))
             ecm.remove_entity(i)
     if monsters or interactions:
         return True
@@ -204,14 +214,7 @@ def combat_system(e, ecm):
         kill_entity(target, death_reason)
     elif attack_str > defense_str:
         if target.has(Attributes) and e.has(AttributeModifier):
-            attrs = target.get(Attributes)
-            modif = e.get(AttributeModifier)
-            target.set(attrs._replace(
-                state_of_mind = attrs.state_of_mind + modif.state_of_mind,
-                tolerance = attrs.tolerance + modif.tolerance,
-                confidence = attrs.confidence + modif.confidence,
-                nerve = attrs.nerve + modif.nerve,
-                will = attrs.will + modif.will))
+            modify_entity_attributes(target, e.get(AttributeModifier))
             if target.get(Attributes).state_of_mind <= 0:
                 kill_entity(target, death_reason)
         else:
@@ -434,6 +437,13 @@ def initial_state(w, h, empty_ratio=0.6):
                 dose = ecm.new_entity()
                 dose.add(pos)
                 dose.add(Tile(5, int_from_color(tcod.light_azure), 'i'))
+                dose.add(AttributeModifier(
+                    state_of_mind = 50 + choice(range(-10, 11)),
+                    tolerance = 1,
+                    confidence = choice(range(0, 2)),
+                    nerve = choice(range(0, 2)),
+                    will = choice(range(0, 2)),
+                ))
                 dose.add(Interactive())
             elif type == 'wall':
                 block = ecm.new_entity()

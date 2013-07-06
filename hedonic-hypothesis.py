@@ -75,7 +75,12 @@ def tile_system(e, pos, tile, layers, fov_map):
             e.set(Explorable(explored=True))
         con = layers[tile.level]
         tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
-        tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
+        # Make the hidden areas distinct
+        if tcod.map_is_in_fov(fov_map, pos.x, pos.y):
+            background = tcod.BKGND_NONE
+        else:
+            background = tcod.BKGND_SET
+        tcod.console_put_char(con, pos.x, pos.y, tile.glyph, background)
         tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
 
 def input_system(e, ecm, keys):
@@ -503,6 +508,7 @@ if __name__ == '__main__':
             tcod.console_set_default_background(con, TRANSPARENT_BG_COLOR)
             tcod.console_set_default_foreground(con, tcod.white)
             tcod.console_clear(con)
+        tcod.console_set_default_background(consoles[0], tcod.Color(15, 15, 15))
         game_state = update(game_state, dt_ms, consoles,
                             SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT, key)
         if not game_state:

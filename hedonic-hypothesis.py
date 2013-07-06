@@ -175,8 +175,20 @@ def interaction_system(e, target, ecm):
     if monsters or interactions:
         return True
 
+def entity_strength(e):
+    """
+    Returns the combat strength of the given entity.
+    """
+    if e.has(Monster):
+        return e.get(Monster).strength
+    elif e.has(Attributes):
+        attrs = e.get(Attributes)
+        return attrs.confidence + attrs.nerve + attrs.will
+    else:
+        raise AssertionError('Attacker must be either the player or a monster')
+
 def combat_system(e, ecm):
-    if not all((e.has(c) for c in (Attacking, Turn))):
+    if not all((e.has(c) for c in (Attacking, Turn, Info))):
         return
     target = e.get(Attacking).target
     e.remove(Attacking)
@@ -185,14 +197,31 @@ def combat_system(e, ecm):
         return
     print "%s attacks %s" % (e, target)
     entity_spend_ap(e)
-    if e.has(Info):
-        death_reason = 'Killed by %s' % e.get(Info).name
+    attack_str = entity_strength(e)
+    defense_str = entity_strength(target)
+    death_reason = "Killed by %s" % e.get(Info).name
+    if target.has(Monster):  # The player always kills the monster
+        kill_entity(target, death_reason)
+    elif attack_str > defense_str:
+        if target.has(Attributes) and e.has(AttributeModifier):
+            attrs = target.get(Attributes)
+            modif = e.get(AttributeModifier)
+            target.set(attrs._replace(
+                state_of_mind = attrs.state_of_mind + modif.state_of_mind,
+                tolerance = attrs.tolerance + modif.tolerance,
+                confidence = attrs.confidence + modif.confidence,
+                nerve = attrs.nerve + modif.nerve,
+                will = attrs.will + modif.will))
+            if target.get(Attributes).state_of_mind <= 0:
+                kill_entity(target, death_reason)
+        else:
+            raise AssertionError('Target must be either a monster or a player')
+        if target.has(Dead):
+            stats = e.get(Statistics)
+            if stats:
+                e.set(stats._replace(kills=stats.kills+1))
     else:
-        death_reason = ''
-    kill_entity(target, death_reason)
-    stats = e.get(Statistics)
-    if stats:
-        e.set(stats._replace(kills=stats.kills+1))
+        print '%s defends itself against the attack' % target
 
 def movement_system(e, pos, dest, ecm, w, h):
     if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
@@ -212,31 +241,14 @@ def movement_system(e, pos, dest, ecm, w, h):
 def gui_system(ecm, player, layers, w, h, panel_height):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
-    stats_template = "%s  Confidence: %s  Will: %s  Nerve: %s"
+    stats_template = "%s  SoM: %s, Tolerance: %s, Confidence: %s  Will: %s  Nerve: %s"
     tcod.console_print_ex(panel, 0, 0, tcod.BKGND_NONE, tcod.LEFT,
-        stats_template % (player.get(Info).name, attrs.confidence, attrs.will,
+        stats_template % (player.get(Info).name, attrs.state_of_mind,
+                          attrs.tolerance, attrs.confidence, attrs.will,
                           attrs.nerve))
     if player.has(Dead):
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
                                  "DEAD: %s" % player.get(Dead).reason)
-    else:
-        max_bar_length = 20
-        max_sate_of_mind = 100
-        bar_length = attrs.state_of_mind * (max_bar_length - 1) / max_sate_of_mind
-        full_bar = ' ' * (max_bar_length)
-        bar = ' ' * (bar_length + 1)
-        tcod.console_set_default_background(panel, tcod.dark_gray)
-        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_SET, tcod.LEFT, full_bar)
-        if attrs.state_of_mind <  25:
-            bar_color = tcod.dark_red
-        elif attrs.state_of_mind < 60:
-            bar_color = tcod.orange
-        elif attrs.state_of_mind < 80:
-            bar_color = tcod.chartreuse
-        else:
-            bar_color = tcod.turquoise
-        tcod.console_set_default_background(panel, bar_color)
-        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_SET, tcod.LEFT, bar)
     doses = len([e for e in ecm.entities(Interactive)])
     monsters = len([e for e in ecm.entities(Monster)])
     tcod.console_print_ex(panel, w-1, 1, tcod.BKGND_NONE, tcod.RIGHT,
@@ -354,16 +366,16 @@ def generate_map(w, h, empty_ratio):
 
 def make_anxiety_monster(e):
     e.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
-    e.add(Monster('anxiety', strength=10))
+    e.add(Monster('anxiety', strength=20))
     e.add(Info('Anxiety', "Won't give you a second of rest."))
-    e.add(AttributeModifier(state_of_mind=15, tolerance=0, confidence=0, nerve=0,
+    e.add(AttributeModifier(state_of_mind=-25, tolerance=0, confidence=0, nerve=0,
                             will=-1))
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def make_depression_monster(e):
     e.add(Tile(8, int_from_color(tcod.light_han), 'D'))
-    e.add(Monster('depression', strength=15))
+    e.add(Monster('depression', strength=10000))
     e.add(Info('Depression', "Fast and deadly. Don't let it get close."))
     e.add(AttributeModifier(state_of_mind=-10000, tolerance=0, confidence=0,
                             nerve=0, will=0))
@@ -372,9 +384,9 @@ def make_depression_monster(e):
 
 def make_hunger_monster(e):
     e.add(Tile(8, int_from_color(tcod.light_sepia), 'h'))
-    e.add(Monster('hunger', strength=5))
+    e.add(Monster('hunger', strength=10))
     e.add(Info('Hunger', ""))
-    e.add(AttributeModifier(state_of_mind=5, tolerance=0, confidence=0, nerve=0,
+    e.add(AttributeModifier(state_of_mind=-5, tolerance=0, confidence=0, nerve=0,
                             will=0))
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))

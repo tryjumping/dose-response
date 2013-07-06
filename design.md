@@ -357,7 +357,9 @@ it interesting.
 
 TODO
 ----
-
+* Add a more circle-based field of view
+* Add a field_of_view system which will recompute the blocked areas
+* Make sure we don't have holes in the map
 * Add monster types
 * Fix the performance god damn it!
 * The colours when High should not just be bright, they should be psychedelic,

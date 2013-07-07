@@ -94,12 +94,16 @@ class EntityComponentManager(object):
                 raise ValueError('Unknown component type. Register it before use.')
         components = self._components[ctype]
         id = entity._id
+        prev_component = self._components[ctype][id]
         components[id] = component
         self._indexes[ctype].add(id)
         if ctype in self._component_value_indexes:
-            # TODO: remove the previously indexed values
+            index = self._component_value_indexes[ctype]
             for key in component.__dict__.iteritems():
-                index = self._component_value_indexes[ctype]
+                if prev_component:
+                    prev_key = (key[0], getattr(prev_component, key[0]))
+                    if prev_key in index:
+                        index[prev_key].remove(id)
                 if key in index:
                     index[key].add(id)
                 else:
@@ -145,16 +149,11 @@ class EntityComponentManager(object):
                 return ()
             else:
                 raise ValueError('Unknown component type. Register it before use.')
-        def component_matches(c, queries):
-            for k, v in queries.iteritems():
-                if getattr(c, k) != v:
-                    return False
-            return True
         if ctype in self._component_value_indexes:
             partial_results = []
+            index = self._component_value_indexes[ctype]
             for key in kwargs.iteritems():
-                index = self._component_value_indexes[ctype]
-                if key in index:
+                if key in index and len(index[key]) > 0:
                     partial_results.append(index[key])
                 else:
                     return ()
@@ -169,6 +168,11 @@ class EntityComponentManager(object):
                     result.intersection_update(p)
             return (Entity(self, id) for id in result)
         else:
+            def component_matches(c, queries):
+                for k, v in queries.iteritems():
+                    if getattr(c, k) != v:
+                        return False
+                return True
             return (Entity(self, id) for id in self._indexes[ctype]
                     if component_matches(self._components[ctype][id], kwargs))
 

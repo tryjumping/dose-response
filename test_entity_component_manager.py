@@ -193,6 +193,18 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertIn(f, colliding_entities)
         self.assertNotIn(g, colliding_entities)
 
+    def test_indexed_components_are_updated(self):
+        self.ecm.register_component_type(Position, (int, int), index=True)
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(1, 2))
+        entities = list(self.ecm.entities_by_component_value(Position, x=1))
+        self.assertEqual(len(entities), 1)
+        self.ecm.set_component(e, Position(2, 10))
+        entities = list(self.ecm.entities_by_component_value(Position, x=1))
+        self.assertEqual(len(entities), 0)
+        entities = list(self.ecm.entities_by_component_value(Position, x=2))
+        self.assertEqual(len(entities), 1)
+
     def test_automatic_component_registration(self):
         self.ecm = EntityComponentManager(autoregister_components=True)
         e = self.ecm.new_entity()

@@ -453,7 +453,10 @@ def initial_state(w, h, empty_ratio=0.6):
                 background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
                 background.add(Explorable(explored=False))
             if equal_pos(player_pos, pos):
-                pass
+                background = ecm.new_entity()
+                background.add(pos)
+                background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
+                background.add(Explorable(explored=False))
             elif ((type == 'dose' and not near_player(x, y))
                   or equal_pos(initial_dose_pos, pos)):
                 dose = ecm.new_entity()

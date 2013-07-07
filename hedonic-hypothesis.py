@@ -5,7 +5,7 @@ from random import random, choice
 
 import libtcodpy as tcod
 
-from entity_component_manager import EntityComponentManager
+from ecm_artemis import EntityComponentManager
 from components import *
 
 def int_from_color(c):

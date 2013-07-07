@@ -129,7 +129,13 @@ class EntityComponentManager(object):
                 return ()
             else:
                 raise ValueError('Unknown component type. Register it before use.')
-        raise NotImplementedError()
+        def component_matches(c, queries):
+            for k, v in queries.iteritems():
+                if getattr(c, k) != v:
+                    return False
+            return True
+        return (Entity(self, id) for id in self._indexes[ctype]
+                if component_matches(self._components[ctype][id], kwargs))
 
     def build_entity_and_components(self, entity, ctypes):
         yield entity

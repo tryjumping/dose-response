@@ -471,7 +471,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 dose.add(pos)
                 dose.add(Tile(5, int_from_color(tcod.light_azure), 'i'))
                 dose.add(AttributeModifier(
-                    state_of_mind = 50 + choice(range(-10, 11)),
+                    state_of_mind = 70 + choice(range(-10, 11)),
                     tolerance = 1,
                     confidence = choice(range(0, 2)),
                     nerve = choice(range(0, 2)),

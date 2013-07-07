@@ -28,6 +28,15 @@ def distance(p1, p2):
     assert p1 and p2, "Must be valid positions"
     return max(abs(p1.x - p2.x), abs(p1.y - p2.y))
 
+def precise_distance(p1, p2):
+    """
+    Return a distance between two points.
+
+    The distance is based on a pythagorean calculation rather than a rough
+    heuristic.
+    """
+    return math.sqrt((abs(p1.x - p2.x) ** 2) + (abs(p1.y - p2.y) ** 2))
+
 def equal_pos(p1, p2):
     """
     Return True when the two positions are equal.
@@ -74,8 +83,8 @@ def in_fov(x, y, fov_map, cx, cy, radius):
     """
     if not tcod.map_is_in_fov(fov_map, x, y) or radius < 1:
         return False
-    distance = math.floor(math.sqrt((abs(cx - x) ** 2) + (abs(cy - y) ** 2)))
-    return distance <= radius
+    distance = precise_distance(Position(x, y, 0), Position(cx, cy, 0))
+    return math.floor(distance) <= radius
 
 def tile_system(e, pos, tile, layers, fov_map, player_pos, radius):
     if not all((e.has(c) for c in (Tile, Position))):
@@ -462,7 +471,8 @@ def initial_state(w, h, empty_ratio=0.6):
             background = ecm.new_entity()
             background.add(pos)
             background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
-            background.add(Explorable(explored=False))
+            explored = precise_distance(pos, player_pos) < 6
+            background.add(Explorable(explored=explored))
             if equal_pos(player_pos, pos):
                 pass
             elif ((type == 'dose' and not near_player(x, y))
@@ -477,7 +487,7 @@ def initial_state(w, h, empty_ratio=0.6):
                     nerve = choice(range(0, 2)),
                     will = choice(range(0, 2)),
                 ))
-                dose.add(Explorable(False))
+                dose.add(Explorable(explored))
                 dose.add(Interactive())
             elif type == 'wall':
                 color = choice((tcod.dark_green, tcod.green, tcod.light_green))

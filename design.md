@@ -357,13 +357,24 @@ it interesting.
 
 TODO
 ----
-* Add a more circle-based field of view
-* Add a field_of_view system which will recompute the blocked areas
+* Increase Field of View radius
 * Make sure we don't have holes in the map
-* Add monster types
-* Fix the performance god damn it!
+* Killing a monster standing on a dose shouldn't consume the dose
+* Monsters should follow the player if nearby
+* Add a hound/pack AI to hunger
+* Add a field_of_view system which will recompute the blocked areas
+* Add damage animation (when a character is damaged but survives)
+* Add death animation (maybe just a fadeout)
+* Add game log
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
+* Remove the tolerance and state of mind values from the toolbar
+* Display the State of Mind status (Withdrawal/High)
+* Ability: see undiscovered doses/monsters
+* Ability: increased speed
+* Some special effect when you're very close to overdose (like 97-99 points of
+  SoM)
+* Items/abilities you can see and pick up only when you're high
 
 * Dynamically change the exploration/fov radius based on the dose
 

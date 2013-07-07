@@ -357,8 +357,8 @@ it interesting.
 
 TODO
 ----
-* The first dose placed in a corner is initially invisible
-  -- to fix this, set an initial explored field larger than the FoV
+* Apart from FoV, have a second slightly larger circle that marks areas as
+  explored but not immediately visible.
 * Add a hound/pack AI to hunger
 * Add a field_of_view system which will recompute the blocked areas
 * Add damage animation (when a character is damaged but survives)

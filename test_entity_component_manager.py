@@ -170,6 +170,29 @@ class TestEntityComponentManager(unittest.TestCase):
         self.assertIn(f, colliding_entities)
         self.assertNotIn(g, colliding_entities)
 
+    def test_query_entities_with_indexed_component_value(self):
+        self.ecm.register_component_type(Position, (int, int), index=True)
+        self.ecm.register_component_type(Velocity, (int, int), index=True)
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        f = self.ecm.new_entity()
+        self.ecm.set_component(f, Position(10, 20))
+        self.ecm.set_component(f, Velocity(5, 5))
+        g = self.ecm.new_entity()
+        self.ecm.set_component(g, Position(1, 1))
+        self.ecm.set_component(g, Velocity(1, 1))
+        colliding_entities = set(
+            self.ecm.entities_by_component_value(Position, x=10, y=20))
+        self.assertEqual(len(colliding_entities), 2)
+        for entity in colliding_entities:
+            self.assertEqual(self.ecm.get_component(entity, Position),
+                             Position(10, 20))
+        position_entities = set(self.ecm.entities(Position))
+        velocity_entities = set(self.ecm.entities(Velocity))
+        self.assertIn(e, colliding_entities)
+        self.assertIn(f, colliding_entities)
+        self.assertNotIn(g, colliding_entities)
+
     def test_automatic_component_registration(self):
         self.ecm = EntityComponentManager(autoregister_components=True)
         e = self.ecm.new_entity()

@@ -357,7 +357,8 @@ it interesting.
 
 TODO
 ----
-* Monsters should follow the player if nearby
+* The first dose placed in a corner is initially invisible
+  -- to fix this, set an initial explored field larger than the FoV
 * Add a hound/pack AI to hunger
 * Add a field_of_view system which will recompute the blocked areas
 * Add damage animation (when a character is damaged but survives)

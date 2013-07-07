@@ -135,24 +135,32 @@ def ai_system(e, ai, pos, ecm, player, w, h):
     destinations = [Position(pos.x + dx, pos.y + dy, pos.floor) for dx, dy
                     in neighbor_vectors]
     player_pos = player.get(Position)
-    if player_pos in destinations:
-        dest = player_pos
+    player_distance = distance(pos, player_pos)
+    if player_distance < 3:
+        e.set(ai._replace(kind='aggressive'))
     else:
         e.set(ai._replace(kind='idle'))
-        destinations = [dest for dest in destinations
-                        if not blocked_tile(dest, ecm)
-                           and within_rect(dest, 0, 0, w, h)]
-        if destinations:
-            dest = choice(destinations)
+
+    ai = e.get(AI)
+    destinations = [dest for dest in destinations
+                    if not blocked_tile(dest, ecm)
+                    and within_rect(dest, 0, 0, w, h)]
+    if not destinations:
+        dest = None
+    elif ai.kind == 'aggressive':
+        if player_pos in destinations:
+            dest = player_pos
         else:
-            dest = None
+            destinations.sort(lambda x, y: distance(x, player_pos) - distance(y, player_pos))
+            dest = destinations[0]
+        e.set(Attacking(player))
+    elif ai.kind == 'idle':
+        dest = choice(destinations)
+    else:
+        raise AssertionError('Unknown AI kind: "%s"' % ai.kind)
+
     if dest:
         e.set(MoveDestination(dest.x, dest.y, dest.floor))
-        if equal_pos(player_pos, dest) or neighbor_pos(player_pos, dest):
-            if ai.kind == 'idle':
-                e.set(ai._replace(kind='aggressive'))
-            elif ai.kind == 'aggressive':
-                e.set(Attacking(player))
     else:
         e.set(MoveDestination(pos.x, pos.y, pos.floor))
 

@@ -170,6 +170,8 @@ def blocked_tile(pos, ecm):
     """
     True if the tile is non-empty or there's a bloking entity on it.
     """
+    # TODO: add a fov_system that updates the FOV blocked status and use that
+    # for a faster lookup
     return any((entity.has(Solid) for entity
                 in entities_on_position(pos, ecm)))
 
@@ -259,7 +261,7 @@ def movement_system(e, pos, dest, ecm, w, h):
         e.set(Position(dest.x, dest.y, dest.floor))
         entity_spend_ap(e)
 
-def gui_system(ecm, player, layers, w, h, panel_height):
+def gui_system(ecm, player, layers, w, h, panel_height, dt):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
     stats_template = "%s  SoM: %s, Tolerance: %s, Confidence: %s  Will: %s  Nerve: %s"
@@ -273,7 +275,8 @@ def gui_system(ecm, player, layers, w, h, panel_height):
     doses = len([e for e in ecm.entities(Interactive)])
     monsters = len([e for e in ecm.entities(Monster)])
     tcod.console_print_ex(panel, w-1, 1, tcod.BKGND_NONE, tcod.RIGHT,
-                          "Doses: %s,  Monsters: %s" % (doses, monsters))
+                          "Doses: %s,  Monsters: %s, dt: %s, FPS: %s" %
+                          (doses, monsters, dt, tcod.sys_get_fps()))
     tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
 def kill_entity(e, death_reason=''):
@@ -367,7 +370,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     game['fade'] = max(player.get(Attributes).state_of_mind / 100.0, 0.14)
     if player.has(Dead):
         game['fade'] = 2
-    gui_system(ecm, player, consoles, w, h, panel_height)
+    gui_system(ecm, player, consoles, w, h, panel_height, dt_ms)
     return game
 
 def generate_map(w, h, empty_ratio):
@@ -519,7 +522,7 @@ if __name__ == '__main__':
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)
         if key.vk == tcod.KEY_NONE:
             key = None
-        dt_ms = 10
+        dt_ms = math.trunc(tcod.sys_get_last_frame_length() * 1000)
         tcod.console_clear(None)
         for con in consoles:
             tcod.console_set_default_background(con, TRANSPARENT_BG_COLOR)

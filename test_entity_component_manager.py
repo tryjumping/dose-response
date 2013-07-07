@@ -90,6 +90,25 @@ class TestEntityComponentManager(unittest.TestCase):
         c = self.ecm.get_component(e, Position)
         self.assertIsNone(c)
 
+    def test_remove_indexed_component(self):
+        self.ecm.register_component_type(Position, (int, int), index=True)
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        self.ecm.remove_component(e, Position)
+        c = self.ecm.get_component(e, Position)
+        self.assertIsNone(c)
+
+    def test_remove_component_entity_doesnt_have(self):
+        self.ecm.register_component_type(Position, (int, int), index=True)
+        self.ecm.register_component_type(Velocity, (int, int), index=True)
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        self.ecm.remove_component(e, Velocity)
+        c = self.ecm.get_component(e, Velocity)
+        self.assertIsNone(c)
+        c = self.ecm.get_component(e, Position)
+        self.assertIsNotNone(c)
+
     def test_entities_with_specified_component(self):
         self.ecm.register_component_type(Position, (int, int))
         self.ecm.register_component_type(Velocity, (int, int))
@@ -116,11 +135,14 @@ class TestEntityComponentManager(unittest.TestCase):
         self.ecm.register_component_type(Empty, ())
         e = self.ecm.new_entity()
         self.ecm.set_component(e, Position(10, 20))
-        self.ecm.set_component(e, Velocity(2, 2))
         f = self.ecm.new_entity()
-        self.ecm.set_component(f, Velocity(5, 5))
         g = self.ecm.new_entity()
         self.ecm.set_component(g, Position(1, 1))
+        moving_entities = set(self.ecm.entities(Position, Velocity))
+        self.assertEqual(len(moving_entities), 0)
+        # Now add some velocities
+        self.ecm.set_component(e, Velocity(2, 2))
+        self.ecm.set_component(f, Velocity(5, 5))
         self.ecm.set_component(g, Velocity(1, 1))
         moving_entities = set(self.ecm.entities(Position, Velocity))
         self.assertEqual(len(moving_entities), 2)
@@ -217,6 +239,23 @@ class TestEntityComponentManager(unittest.TestCase):
 
     def test_remove_entity(self):
         self.ecm.register_component_type(Position, (int, int))
+        self.ecm.register_component_type(Velocity, (int, int))
+        e = self.ecm.new_entity()
+        self.ecm.set_component(e, Position(10, 20))
+        self.ecm.set_component(e, Velocity(5, 5))
+        f = self.ecm.new_entity()
+        self.assertEqual(len(set(self.ecm.entities())), 2)
+        self.ecm.remove_entity(e)
+        entities = set(self.ecm.entities())
+        self.assertEqual(len(entities), 1)
+        self.assertIn(f, entities)
+        self.assertNotIn(e, entities)
+        self.ecm.remove_entity(f)
+        empty = set(self.ecm.entities())
+        self.assertEqual(len(empty), 0)
+
+    def test_remove_entity_with_indexed_component(self):
+        self.ecm.register_component_type(Position, (int, int), index=True)
         self.ecm.register_component_type(Velocity, (int, int))
         e = self.ecm.new_entity()
         self.ecm.set_component(e, Position(10, 20))

@@ -103,7 +103,7 @@ class EntityComponentManager(object):
                 if prev_component:
                     prev_key = (key[0], getattr(prev_component, key[0]))
                     if prev_key in index:
-                        index[prev_key].remove(id)
+                        index[prev_key].discard(id)
                 if key in index:
                     index[key].add(id)
                 else:
@@ -127,13 +127,14 @@ class EntityComponentManager(object):
                 return None
             else:
                 raise ValueError('Unknown component type. Register it before use.')
+        component = self._components[ctype][entity._id]
         self._components[ctype][entity._id] = None
-        self._indexes[ctype].remove(entity._id)
-        if ctype in self._component_value_indexes:
+        self._indexes[ctype].discard(entity._id)
+        if ctype in self._component_value_indexes and component:
             for key in component.__dict__.iteritems():
                 index = self._component_value_indexes[ctype]
                 if key in index:
-                    index[key].remove(entity._id)
+                    index[key].discard(entity._id)
 
     def components(self, entity):
         id = entity._id
@@ -194,7 +195,8 @@ class EntityComponentManager(object):
                 else:
                     raise ValueError('Unknown component type. Register it before use.')
         sets = (self._indexes[ctype] for ctype in args)
-        result = next(sets)
+        result = set()
+        result.update(next(sets))
         for s in sets:
             result.intersection_update(s)
         entities = (Entity(self, id) for id in result)

@@ -357,9 +357,6 @@ it interesting.
 
 TODO
 ----
-* Increase Field of View radius
-* Make sure we don't have holes in the map
-* Killing a monster standing on a dose shouldn't consume the dose
 * Monsters should follow the player if nearby
 * Add a hound/pack AI to hunger
 * Add a field_of_view system which will recompute the blocked areas

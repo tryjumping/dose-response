@@ -40,9 +40,9 @@ def neighbor_pos(p1, p2):
     """
     return distance(p1, p2) <= 1
 
-def has_free_aps(e):
+def has_free_aps(e, required=1):
     turn = e.get(Turn)
-    return turn and turn.action_points > 0
+    return turn and turn.action_points >= required
 
 def modify_entity_attributes(e, modif):
     """
@@ -199,7 +199,8 @@ def interaction_system(e, target, ecm):
         if has_free_aps(e) and not e.has(Monster):
             e.set(Attacking(m))
     for i in interactions:
-        if has_free_aps(e) > 0 and i.has(Interactive) and e.has(Addicted):
+        if (has_free_aps(e) and not e.has(Attacking) and i.has(Interactive)
+            and e.has(Addicted)):
             modify_entity_attributes(e, i.get(AttributeModifier))
             ecm.remove_entity(i)
     if monsters or interactions:

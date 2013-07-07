@@ -363,7 +363,10 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
 
     player_pos = player.get(Position)
     if player_pos:
-        game['recompute_fov'](game['fov_map'], player_pos.x, player_pos.y)
+        assert player.has(Attributes)
+        som = player.get(Attributes).state_of_mind
+        game['fov_radius'] = (4 * som + 293) / 99  # range(3, 8)
+        game['recompute_fov'](game['fov_map'], player_pos.x, player_pos.y, game['fov_radius'])
     for e, pos, tile in ecm.entities(Position, Tile, include_components=True):
         tile_system(e, pos, tile, consoles, game['fov_map'], player_pos,
                     game['fov_radius'])
@@ -490,10 +493,12 @@ def initial_state(w, h, empty_ratio=0.6):
                 ]
                 choice(factories)(monster)
             tcod.map_set_properties(fov_map, x, y, transparent, walkable)
+
+    assert len(set(ecm.entities_by_component_value(Position, x=player_x, y=player_y))) > 1
     fov_radius = 3
-    def recompute_fov(fov_map, x, y):
-        tcod.map_compute_fov(fov_map, x, y, fov_radius, True)
-    recompute_fov(fov_map, player_x, player_y)
+    def recompute_fov(fov_map, x, y, radius):
+        tcod.map_compute_fov(fov_map, x, y, radius, True)
+    recompute_fov(fov_map, player_x, player_y, fov_radius)
     return {
         'ecm': ecm,
         'player': player,

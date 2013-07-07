@@ -56,6 +56,7 @@ class EntityComponentManager(object):
         self._components = {}
         self._autoregister = autoregister_components
         self._indexes = {}
+        self._component_value_indexes = {}
 
     def new_entity(self):
         id = self._last_entity_id + 1
@@ -79,6 +80,8 @@ class EntityComponentManager(object):
             return
         self._components[ctype] = [None] * (self._last_entity_id + 1)
         self._indexes[ctype] = set()
+        if index:
+            self._component_value_indexes[ctype] = {}
 
     def set_component(self, entity, component):
         if not is_component(component):
@@ -93,6 +96,14 @@ class EntityComponentManager(object):
         id = entity._id
         components[id] = component
         self._indexes[ctype].add(id)
+        if ctype in self._component_value_indexes:
+            # TODO: remove the previously indexed values
+            for key in component.__dict__.iteritems():
+                index = self._component_value_indexes[ctype]
+                if key in index:
+                    index[key].add(id)
+                else:
+                    index[key] = set((id,))
 
     def get_component(self, entity, ctype):
         if not is_component_type(ctype):
@@ -114,6 +125,11 @@ class EntityComponentManager(object):
                 raise ValueError('Unknown component type. Register it before use.')
         self._components[ctype][entity._id] = None
         self._indexes[ctype].remove(entity._id)
+        if ctype in self._component_value_indexes:
+            for key in component.__dict__.iteritems():
+                index = self._component_value_indexes[ctype]
+                if key in index:
+                    index[key].remove(entity._id)
 
     def components(self, entity):
         id = entity._id
@@ -134,8 +150,27 @@ class EntityComponentManager(object):
                 if getattr(c, k) != v:
                     return False
             return True
-        return (Entity(self, id) for id in self._indexes[ctype]
-                if component_matches(self._components[ctype][id], kwargs))
+        if ctype in self._component_value_indexes:
+            partial_results = []
+            for key in kwargs.iteritems():
+                index = self._component_value_indexes[ctype]
+                if key in index:
+                    partial_results.append(index[key])
+                else:
+                    return ()
+            if len(partial_results) == 0:
+                return ()
+            elif len(partial_results) == 1:
+                result = partial_results
+            else:
+                result = set()
+                result.update(partial_results[0])
+                for p in partial_results[1:]:
+                    result.intersection_update(p)
+            return (Entity(self, id) for id in result)
+        else:
+            return (Entity(self, id) for id in self._indexes[ctype]
+                    if component_matches(self._components[ctype][id], kwargs))
 
     def build_entity_and_components(self, entity, ctypes):
         yield entity

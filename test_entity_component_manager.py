@@ -1,8 +1,9 @@
-import unittest
 from collections import namedtuple
+import unittest
+import sys
 
-from entity_component_manager import EntityComponentManager, Entity, text, entity
-
+import entity_component_manager as ecm_sqlite
+import ecm_artemis
 
 Position = namedtuple('Position', 'x y')
 
@@ -138,9 +139,9 @@ class TestEntityComponentManager(unittest.TestCase):
         self.ecm.set_component(f, Velocity(5, 5))
         g = self.ecm.new_entity()
         self.ecm.set_component(g, Velocity(1, 1))
-        moving_entities = self.ecm.entities(Position, Velocity,
-                                            include_components=True)
-        self.assertEqual(len(list(moving_entities)), 1)
+        moving_entities = list(self.ecm.entities(Position, Velocity,
+                                                 include_components=True))
+        self.assertEqual(len(moving_entities), 1)
         for entity, pos, vel in moving_entities:
             self.assertEqual(entity, e)
             self.assertEqual(pos, Position(10, 20))
@@ -277,4 +278,25 @@ class EntityHelpers(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    global Entity
+    global EntityComponentManager
+    global text
+    global entity
+
+    print '\n\nTesting the SQLite implementation:\n'
+    Entity = ecm_sqlite.Entity
+    EntityComponentManager = ecm_sqlite.EntityComponentManager
+    text = ecm_sqlite.text
+    entity = ecm_sqlite.entity
+
+    suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
+    unittest.TextTestRunner().run(suite)
+
+    print '\n\nTesting the Artemis-like implementation:\n'
+    Entity = ecm_artemis.Entity
+    EntityComponentManager = ecm_artemis.EntityComponentManager
+    text = ecm_artemis.text
+    entity = ecm_artemis.entity
+
+    suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
+    unittest.TextTestRunner().run(suite)

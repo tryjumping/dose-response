@@ -2,7 +2,7 @@ run:
 	python hedonic-hypothesis.py
 
 test:
-	python -m unittest discover
+	python test_entity_component_manager.py
 
 bench:
 	python ./benchmark.py

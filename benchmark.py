@@ -4,7 +4,8 @@ import itertools
 from random import seed, random, choice
 import sys
 
-from entity_component_manager import EntityComponentManager
+import entity_component_manager as sqlite_ecm
+import ecm_artemis
 
 
 Position = namedtuple('Position', 'x, y, floor')
@@ -123,6 +124,11 @@ def query_by_indexed_component_value_benchmark(ecm, positions, count):
                 pass
 
 if __name__ == '__main__':
+    implementations = {
+        'sqlite': sqlite_ecm.EntityComponentManager,
+        'artemis': ecm_artemis.EntityComponentManager,
+    }
+    impl = 'sqlite'
     available_benchmarks = ('primitives', 'compound', 'all')
     benchmarks = 'primitives'
     if len(sys.argv) > 1:
@@ -131,8 +137,15 @@ if __name__ == '__main__':
         else:
             print "Enter one of the available benchmarks: %s" % available_benchmarks.__repr__()
             exit(1)
+    if len(sys.argv) > 2:
+        if sys.argv[2] in implementations.keys():
+            impl = sys.argv[2]
+        else:
+            print "Enter one of the available implementations: %s" % list(implementations.keys())
+            exit(1)
     # Setup
     seed(3141)  # Make sure repeated runs use the same random seed
+    EntityComponentManager = implementations[impl]
     game = EntityComponentManager(autoregister_components=True)
     game.register_component_type(Position, (int, int, int), index=True)
     initialise_map(game, 80, 50)
@@ -141,14 +154,6 @@ if __name__ == '__main__':
                                        in entities if e.has(Position)), 0, 10))
 
     if not benchmarks == 'compound':
-        print '\n\nEntities by components (excluded) Benchmark:\n'
-        cProfile.run('entities_by_components_excluded_benchmark(game, 100)',
-                     sort='cumulative')
-
-        print '\n\nEntities by components (included) Benchmark:\n'
-        cProfile.run('entities_by_components_included_benchmark(game, 100)',
-                     sort='cumulative')
-
         print '\n\nHas component benchmark:\n'
         cProfile.run('has_component_benchmark(entities, 100)', sort='cumulative')
 
@@ -157,6 +162,14 @@ if __name__ == '__main__':
 
         print '\n\nUpdate component benchmark:\n'
         cProfile.run('modify_component_benchmark(entities, 50)', sort='cumulative')
+
+        print '\n\nEntities by components (excluded) Benchmark:\n'
+        cProfile.run('entities_by_components_excluded_benchmark(game, 100)',
+                     sort='cumulative')
+
+        print '\n\nEntities by components (included) Benchmark:\n'
+        cProfile.run('entities_by_components_included_benchmark(game, 100)',
+                     sort='cumulative')
 
         print '\n\nQuery by indexed component value benchmark:\n'
         cProfile.run('query_by_indexed_component_value_benchmark(game, positions, 10000)',

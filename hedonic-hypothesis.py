@@ -450,16 +450,12 @@ def initial_state(w, h, empty_ratio=0.6):
             transparent = True
             walkable = True
             pos = Position(x, y, floor)
-            if not type == 'wall':
-                background = ecm.new_entity()
-                background.add(pos)
-                background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
-                background.add(Explorable(explored=False))
+            background = ecm.new_entity()
+            background.add(pos)
+            background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
+            background.add(Explorable(explored=False))
             if equal_pos(player_pos, pos):
-                background = ecm.new_entity()
-                background.add(pos)
-                background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
-                background.add(Explorable(explored=False))
+                pass
             elif ((type == 'dose' and not near_player(x, y))
                   or equal_pos(initial_dose_pos, pos)):
                 dose = ecm.new_entity()
@@ -475,12 +471,9 @@ def initial_state(w, h, empty_ratio=0.6):
                 dose.add(Explorable(False))
                 dose.add(Interactive())
             elif type == 'wall':
-                block = ecm.new_entity()
-                block.add(pos)
                 color = choice((tcod.dark_green, tcod.green, tcod.light_green))
-                block.add(Tile(0, int_from_color(color), '#'))
-                block.add(Solid())
-                block.add(Explorable(explored=False))
+                background.add(Tile(0, int_from_color(color), '#'))
+                background.add(Solid())
                 walkable = False
             elif type == 'monster' and not near_player(x, y):
                 monster = ecm.new_entity()

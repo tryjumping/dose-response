@@ -350,6 +350,15 @@ class EntityHelpers(unittest.TestCase):
         self.assertFalse(e.has(Position))
         self.assertTrue(e.has(Velocity))
 
+    def test_update_component(self):
+        e = self.ecm.new_entity()
+        e.set(Position(10, 20))
+        e.set(Velocity(5, 5))
+        e.update(Position, x=lambda n: n+5, y=lambda n: n+5)
+        e.update(Velocity, dx=lambda n: n/5)
+        self.assertEqual(e.get(Position), Position(15, 25))
+        self.assertEqual(e.get(Velocity), Velocity(1, 5))
+
 
 if __name__ == '__main__':
     global Entity

@@ -51,6 +51,13 @@ class Entity(object):
     def remove(self, ctype):
         return self.ecm.remove_component(self, ctype)
 
+    def update(self, ctype, **kwargs):
+        c = self.get(ctype)
+        if c:
+            new_attrs = {k : fun(getattr(c, k))
+                         for k, fun in kwargs.iteritems()}
+            self.set(c._replace(**new_attrs))
+
 
 text = str
 entity = Entity

@@ -1,9 +1,13 @@
 from collections import namedtuple
 import sys
 
+__all__ = []  # Will be filled with all the defined components
+
 def Component(name, attrs=''):
+    global __all__
     current_module = sys.modules[__name__]
     setattr(current_module, name, namedtuple(name, attrs))
+    __all__.append(name)
 
 Component('Position', 'x y floor')
 

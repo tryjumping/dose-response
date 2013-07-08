@@ -360,10 +360,11 @@ TODO
 * Apart from FoV, have a second slightly larger circle that marks areas as
   explored but not immediately visible.
 * Add a hound/pack AI to hunger
+* Tweak the rules so that monsters can always hurt the player
 * Add a field_of_view system which will recompute the blocked areas
 * Add damage animation (when a character is damaged but survives)
 * Add death animation (maybe just a fadeout)
-* Add game log
+* Add game log (maybe)
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
 * Remove the tolerance and state of mind values from the toolbar

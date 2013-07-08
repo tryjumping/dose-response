@@ -118,14 +118,8 @@ class EntityComponentManager(object):
                     index[key] = set((id,))
 
     def get_component(self, entity, ctype):
-        if not is_component_type(ctype):
-            raise TypeError('The component must be a Component instance')
-        if ctype not in self._components:
-            if self._autoregister:
-                return None
-            else:
-                raise ValueError('Unknown component type. Register it before use.')
-        return self._components[ctype][entity._id]
+        if ctype in self._components:
+            return self._components[ctype][entity._id]
 
     def remove_component(self, entity, ctype):
         if not is_component_type(ctype):

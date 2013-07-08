@@ -263,18 +263,25 @@ Player's Nerve is at or below 15% of the maximum minus 1% per a Nerve point.
 The Combat
 ----------
 
-Each Monster has the Strength attribute.
+Single hitpoint system: everything that gets hit for damage dies.
 
-When fighting the PC, the Strength is compared to the sum of PC's Courage, Nerve
-and Will. The higher value wins the round.
+Every hit counts. You can't avoid the effect once you're hit.
 
-Either way, the Monster disappears.
+Not all monsters deal damage, though. Some may "merely" reduce your State of
+Mind. Or drain your attributes. Or stun you for a few turns. Or frighten you for
+a few turns (you lose control and run around randomly).
 
-If the PC wins, there are no adverse effects.
+This means we'll have to rework the PC's attributes, too: Nerve and Will and
+Confidence now need to have different meanings and effects in the game.
 
-If the Monster wins, PC's Courage is decreased by 1. The Monsters may cause
-additional adverse effects.
 
+### Adverse effects ###
+
+* Death
+* Attribute drain (state of mind, will, courage)
+* Stun (the player can't move for a few turns. The monster must disappear,
+  obviously -- otherwise we have an infinite loop)
+* Panic  -- the player moves around randomly
 
 The Bestiary
 ------------
@@ -300,24 +307,29 @@ Ideas for names:
 
 ### Depression
 
-Kills instantly, 2 action points.
-
 Glyph: `D`
+Hit effect: Death
+Has two action points.
 
 ### Hunger
 
-Low damage, fast, folows/swarms player.
-
 Glyph: `h`
-Strength: 25
+Hit effect: State of Mind drain
+Move in packs like wild wolfs. One can summon the others in the vicinity and
+they surround the player.
 
 ### Anxiety
 
 Glyph: `a`
-Strength: 15
+Hit effect: Drains 1 Will point.
 
-Drains 1 Will point.
+### Voices
+Glyph: `v`
+Hit effect: Stun and disappear
 
+### Shadows
+Glyph: `S`
+Hit effect: Panic and disappear
 
 
 
@@ -357,10 +369,11 @@ it interesting.
 
 TODO
 ----
-* Apart from FoV, have a second slightly larger circle that marks areas as
-  explored but not immediately visible.
 * Add a hound/pack AI to hunger
 * Tweak the rules so that monsters can always hurt the player
+  -- maybe consider a single hit point gameplay after all
+* Apart from FoV, have a second slightly larger circle that marks areas as
+  explored but not immediately visible.
 * Add a field_of_view system which will recompute the blocked areas
 * Add damage animation (when a character is damaged but survives)
 * Add death animation (maybe just a fadeout)

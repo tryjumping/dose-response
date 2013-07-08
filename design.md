@@ -210,13 +210,15 @@ Starts at: 20
 Minimum: 1
 Maximum: 100
 
-### Attributes
-
-This holds for all the main attributes: Confidence, Nerve and Will.
+### Will
 
 Starts at: 5
 Minimum: 1
 Maximum: 10
+
+At Will 1, the PC cannot resist a dose 2 blocks away.
+At Will 2, the PC cannot resist a dose 1 block away.
+At Will 10, the PC has 2 action points.
 
 ### Tolerance
 
@@ -256,6 +258,8 @@ point.
 ### Panic
 
 Player's Nerve is at or below 15% of the maximum minus 1% per a Nerve point.
+(this is probably no longer necessary when we have enemies that stun and give
+panic with a single hit)
 
 
 
@@ -369,9 +373,10 @@ it interesting.
 
 TODO
 ----
+* Switch to the 1 hit point combat
+* Implement the other monster types
+* Add the weak will mechanics
 * Add a hound/pack AI to hunger
-* Tweak the rules so that monsters can always hurt the player
-  -- maybe consider a single hit point gameplay after all
 * Apart from FoV, have a second slightly larger circle that marks areas as
   explored but not immediately visible.
 * Add a field_of_view system which will recompute the blocked areas
@@ -383,7 +388,7 @@ TODO
 * Remove the tolerance and state of mind values from the toolbar
 * Display the State of Mind status (Withdrawal/High)
 * Ability: see undiscovered doses/monsters
-* Ability: increased speed
+* Balance the doses' effecs
 * Some special effect when you're very close to overdose (like 97-99 points of
   SoM)
 * Items/abilities you can see and pick up only when you're high

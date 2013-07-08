@@ -15,33 +15,41 @@ class Entity(object):
         self._ecm = ecm
         self._id = id
 
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def ecm(self):
+        return self._ecm
+
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
-                (self._ecm == other._ecm) and (self._id == other._id))
+                (self.ecm == other.ecm) and (self.id == other.id))
 
     def __hash__(self):
-        return hash(self._ecm) + hash(self._id)
+        return hash(self.ecm) + hash(self.id)
 
     def __repr__(self):
-        return "<Entity id=%d>" % self._id
+        return "<Entity id=%d>" % self.id
 
     def has(self, ctype):
-        return self._ecm.get_component(self, ctype) is not None
+        return self.ecm.get_component(self, ctype) is not None
 
     def set(self, component):
-        return self._ecm.set_component(self, component)
+        return self.ecm.set_component(self, component)
 
     def get(self, ctype):
-        return self._ecm.get_component(self, ctype)
+        return self.ecm.get_component(self, ctype)
 
     def add(self, component):
         return self.set(component)
 
     def components(self):
-        return self._ecm.components(self)
+        return self.ecm.components(self)
 
     def remove(self, ctype):
-        return self._ecm.remove_component(self, ctype)
+        return self.ecm.remove_component(self, ctype)
 
 
 text = str

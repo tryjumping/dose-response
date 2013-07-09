@@ -370,6 +370,15 @@ monsters doing the opposite). The idea is, there should be something the player
 *wants* to do. And exploration would fit nicely if we could figure how to make
 it interesting.
 
+Here's an idea: each screen will feature a different area/climate with different
+structures and colour schemes:
+
+* Desert
+* Watery thing
+* Interconnected islands
+* Tundra
+
+
 
 TODO
 ----

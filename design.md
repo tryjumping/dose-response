@@ -286,6 +286,8 @@ Confidence now need to have different meanings and effects in the game.
 * Stun (the player can't move for a few turns. The monster must disappear,
   obviously -- otherwise we have an infinite loop)
 * Panic  -- the player moves around randomly
+* Confusion -- inverts controls (left/right, up/down), usually lasts longer
+  (because the player can adapt)
 
 The Bestiary
 ------------
@@ -382,7 +384,11 @@ structures and colour schemes:
 
 TODO
 ----
-* Implement the other monster types
+* Fix the interaction system such that a panicked player will take a dose if
+  they step on it
+* Make the stun and panic effect durations cumulative
+* The player should be able to get both stunned and panicked. Stun takes
+  priority.
 * Add the weak will mechanics
 * Add a hound/pack AI to hunger
 * Apart from FoV, have a second slightly larger circle that marks areas as

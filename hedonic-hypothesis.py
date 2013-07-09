@@ -258,7 +258,7 @@ def combat_system(e, ecm):
             if target.get(Attributes).state_of_mind <= 0:
                 kill_entity(target, death_reason)
         else:
-            AssertionError('Unknown hit_effect')
+            raise AssertionError('Unknown hit_effect')
     else:
         kill_entity(target, death_reason)
     if target.has(Dead) and e.has(Statistics):
@@ -437,6 +437,20 @@ def make_hunger_monster(e):
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
+def make_voices_monster(e):
+    e.add(Tile(8, int_from_color(tcod.fuchsia), 'v'))
+    e.add(Monster('voices', hit_effect='stun'))
+    e.add(Info('Voices in your head', "I'm not crazy. Can't be, can I?"))
+    e.add(AI('idle'))
+    e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
+
+def make_shadows_monster(e):
+    e.add(Tile(8, int_from_color(tcod.dark_grey), 'S'))
+    e.add(Monster('shadows', hit_effect='panic'))
+    e.add(Info('Shadows', "Hey! What was that?"))
+    e.add(AI('idle'))
+    e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
+
 def initial_state(w, h, empty_ratio=0.6):
     fov_map = tcod.map_new(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
 
@@ -502,6 +516,8 @@ def initial_state(w, h, empty_ratio=0.6):
                     make_anxiety_monster,
                     make_depression_monster,
                     make_hunger_monster,
+                    make_voices_monster,
+                    make_shadows_monster,
                 ]
                 choice(factories)(monster)
             tcod.map_set_properties(fov_map, x, y, transparent, walkable)

@@ -259,10 +259,18 @@ def combat_system(e, ecm):
             if target.get(Attributes).state_of_mind <= 0:
                 kill_entity(target, death_reason)
         elif hit_effect == 'stun':
-            target.set(MovementEffect('stun', 3))
+            duration = 3
+            if target.has(MovementEffect):
+                target.update(MovementEffect, duration=add(duration))
+            else:
+                target.set(MovementEffect('stun', duration))
             kill_entity(e, "Disappeared after the attack.")
         elif hit_effect == 'panic':
-            target.set(MovementEffect('panic', 3))
+            duration = 3
+            if target.has(MovementEffect):
+                target.update(MovementEffect, duration=add(duration))
+            else:
+                target.set(MovementEffect('panic', duration))
             kill_entity(e, "Disappeared after the attack.")
         else:
             raise AssertionError('Unknown hit_effect')

@@ -149,27 +149,28 @@ def input_system(e, ecm, keys):
     if dx != 0 or dy != 0:
         e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
+def available_destinations(pos, ecm, w, h):
+    """
+    Return blocks neigbouring the given position that can be walked into.
+    """
+    neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
+                        (0, 1), (1, 1))
+    destinations = [Position(pos.x + dx, pos.y + dy, pos.floor)
+                    for dx, dy in neighbor_vectors]
+    return [dest for dest in destinations
+            if not blocked_tile(dest, ecm) and within_rect(dest, 0, 0, w, h)]
+
 def ai_system(e, ai, pos, ecm, player, w, h):
     if not all((e.has(c) for c in (AI, Position))):
         return
-    # TODO: use an action point system. It should make things simpler: if we
-    # moved, we don't have any attack actions. If we didn't move, we can attack.
-    # Will help us deal with the interactions, too.
-    neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
-                        (0, 1), (1, 1))
-    destinations = [Position(pos.x + dx, pos.y + dy, pos.floor) for dx, dy
-                    in neighbor_vectors]
     player_pos = player.get(Position)
     player_distance = distance(pos, player_pos)
     if player_distance < 3:
         e.set(ai._replace(kind='aggressive'))
     else:
         e.set(ai._replace(kind='idle'))
-
     ai = e.get(AI)
-    destinations = [dest for dest in destinations
-                    if not blocked_tile(dest, ecm)
-                    and within_rect(dest, 0, 0, w, h)]
+    destinations = available_destinations(pos, ecm, w, h)
     if not destinations:
         dest = None
     elif ai.kind == 'aggressive':
@@ -283,18 +284,21 @@ def movement_system(e, pos, dest, ecm, w, h):
             e.remove(MovementEffect)
         elif movement_effect.type == 'stun':
             print "%s is stunned" % e
-            entity_spend_ap(e)
+            dest = pos
             e.update(MovementEffect, duration=dec)
-            return
         elif movement_effect.type == 'panic':
             print "%s panics" % e
-            entity_spend_ap(e)
-            # TODO: pick a random location
+            destinations = available_destinations(pos, ecm, w, h)
+            if destinations:
+                dest = choice(destinations)
+            else:
+                dest = pos
             e.update(MovementEffect, duration=dec)
-            return
+        else:
+            raise AssertionError("Unknown MovementEffect type")
+
     if equal_pos(pos, dest):
         # The entity waits a turn
-        print "%s waits" % e
         entity_spend_ap(e)
     elif not blocked_tile(dest, ecm) and within_rect(dest, 0, 0, w, h):
         e.set(Position(dest.x, dest.y, dest.floor))

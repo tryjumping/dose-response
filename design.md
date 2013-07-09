@@ -382,7 +382,8 @@ structures and colour schemes:
 
 TODO
 ----
-* Switch to the 1 hit point combat
+* Bug in AI, standing next to Hunger and moving within the reach causes the
+  monster to move, not attack
 * Implement the other monster types
 * Add the weak will mechanics
 * Add a hound/pack AI to hunger

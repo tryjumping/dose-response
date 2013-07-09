@@ -8,6 +8,23 @@ import libtcodpy as tcod
 from ecm_artemis import EntityComponentManager
 from components import *
 
+def inc(n):
+    return n + 1
+
+def dec(n):
+    return n - 1
+
+def add(n):
+    return lambda increment: n + increment
+
+def bounded_add(lower_bound, n, upper_bound=None):
+    if upper_bound is None:
+        return lambda increment: max(n + increment, lower_bound)
+    else:
+        return lambda increment: min(max(n + increment, lower_bound),
+                                     upper_bound)
+
+
 def int_from_color(c):
     return c.r * 256 * 256 + c.g * 256 + c.b
 
@@ -223,18 +240,6 @@ def interaction_system(e, target, ecm):
     if monsters or interactions:
         return True
 
-def entity_strength(e):
-    """
-    Returns the combat strength of the given entity.
-    """
-    if e.has(Monster):
-        return e.get(Monster).strength
-    elif e.has(Attributes):
-        attrs = e.get(Attributes)
-        return attrs.confidence + attrs.nerve + attrs.will
-    else:
-        raise AssertionError('Attacker must be either the player or a monster')
-
 def combat_system(e, ecm):
     if not all((e.has(c) for c in (Attacking, Turn, Info))):
         return
@@ -245,24 +250,20 @@ def combat_system(e, ecm):
         return
     print "%s attacks %s" % (e, target)
     entity_spend_ap(e)
-    attack_str = entity_strength(e)
-    defense_str = entity_strength(target)
     death_reason = "Killed by %s" % e.get(Info).name
-    if target.has(Monster):  # The player always kills the monster
-        kill_entity(target, death_reason)
-    elif attack_str > defense_str:
-        if target.has(Attributes) and e.has(AttributeModifier):
+    if e.has(Monster):
+        hit_effect = e.get(Monster).hit_effect
+        if hit_effect == 'modify_attributes':
+            assert target.has(Attributes) and e.has(AttributeModifier)
             modify_entity_attributes(target, e.get(AttributeModifier))
             if target.get(Attributes).state_of_mind <= 0:
                 kill_entity(target, death_reason)
         else:
-            raise AssertionError('Target must be either a monster or a player')
-        if target.has(Dead):
-            stats = e.get(Statistics)
-            if stats:
-                e.set(stats._replace(kills=stats.kills+1))
+            AssertionError('Unknown hit_effect')
     else:
-        print '%s defends itself against the attack' % target
+        kill_entity(target, death_reason)
+    if target.has(Dead) and e.has(Statistics):
+        e.update(Statistics, kills=inc)
 
 def movement_system(e, pos, dest, ecm, w, h):
     if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
@@ -412,16 +413,16 @@ def generate_map(w, h, empty_ratio):
 
 def make_anxiety_monster(e):
     e.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
-    e.add(Monster('anxiety', strength=20))
+    e.add(Monster('anxiety', hit_effect='modify_attributes'))
     e.add(Info('Anxiety', "Won't give you a second of rest."))
-    e.add(AttributeModifier(state_of_mind=-25, tolerance=0, confidence=0, nerve=0,
+    e.add(AttributeModifier(state_of_mind=0, tolerance=0, confidence=0, nerve=0,
                             will=-1))
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def make_depression_monster(e):
     e.add(Tile(8, int_from_color(tcod.light_han), 'D'))
-    e.add(Monster('depression', strength=10000))
+    e.add(Monster('depression', hit_effect='modify_attributes'))
     e.add(Info('Depression', "Fast and deadly. Don't let it get close."))
     e.add(AttributeModifier(state_of_mind=-10000, tolerance=0, confidence=0,
                             nerve=0, will=0))
@@ -430,9 +431,9 @@ def make_depression_monster(e):
 
 def make_hunger_monster(e):
     e.add(Tile(8, int_from_color(tcod.light_sepia), 'h'))
-    e.add(Monster('hunger', strength=10))
+    e.add(Monster('hunger', hit_effect='modify_attributes'))
     e.add(Info('Hunger', ""))
-    e.add(AttributeModifier(state_of_mind=-5, tolerance=0, confidence=0, nerve=0,
+    e.add(AttributeModifier(state_of_mind=-10, tolerance=0, confidence=0, nerve=0,
                             will=0))
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))

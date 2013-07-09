@@ -29,7 +29,7 @@ Component('Interactive')
 
 Component('Info', 'name, description')
 
-Component('Monster', 'kind, strength')
+Component('Monster', 'kind, hit_effect')
 
 Component('Attacking', 'target')
 

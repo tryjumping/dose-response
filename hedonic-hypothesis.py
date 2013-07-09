@@ -257,6 +257,12 @@ def combat_system(e, ecm):
             modify_entity_attributes(target, e.get(AttributeModifier))
             if target.get(Attributes).state_of_mind <= 0:
                 kill_entity(target, death_reason)
+        elif hit_effect == 'stun':
+            target.set(MovementEffect('stun', 3))
+            kill_entity(e, "Disappeared after the attack.")
+        elif hit_effect == 'panic':
+            target.set(MovementEffect('panic', 3))
+            kill_entity(e, "Disappeared after the attack.")
         else:
             raise AssertionError('Unknown hit_effect')
     else:
@@ -271,6 +277,21 @@ def movement_system(e, pos, dest, ecm, w, h):
     if not has_free_aps(e):
         print "%s tried to move but has no action points" % e
         return
+    movement_effect = e.get(MovementEffect)
+    if movement_effect:
+        if movement_effect.duration <= 0:
+            e.remove(MovementEffect)
+        elif movement_effect.type == 'stun':
+            print "%s is stunned" % e
+            entity_spend_ap(e)
+            e.update(MovementEffect, duration=dec)
+            return
+        elif movement_effect.type == 'panic':
+            print "%s panics" % e
+            entity_spend_ap(e)
+            # TODO: pick a random location
+            e.update(MovementEffect, duration=dec)
+            return
     if equal_pos(pos, dest):
         # The entity waits a turn
         print "%s waits" % e

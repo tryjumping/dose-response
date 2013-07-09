@@ -74,14 +74,13 @@ def modify_entity_attributes(e, modif):
     """
     Updates entity's attributes based on the passed modifier.
     """
-    attrs = e.get(Attributes)
-    assert attrs and modif
-    e.set(attrs._replace(
-        state_of_mind = attrs.state_of_mind + modif.state_of_mind,
-        tolerance = attrs.tolerance + modif.tolerance,
-        confidence = attrs.confidence + modif.confidence,
-        nerve = attrs.nerve + modif.nerve,
-        will = attrs.will + modif.will))
+    assert e.has(Attributes) and modif
+    e.update(Attributes,
+             state_of_mind=bounded_add(0, modif.state_of_mind),
+             tolerance=bounded_add(0, modif.tolerance),
+             confidence=bounded_add(0, modif.confidence),
+             nerve=bounded_add(0, modif.nerve),
+             will=bounded_add(0, modif.will))
 
 
 def initialise_consoles(console_count, w, h, transparent_color):
@@ -174,7 +173,7 @@ def ai_system(e, ai, pos, ecm, player, w, h):
     if not destinations:
         dest = None
     elif ai.kind == 'aggressive':
-        if player_pos in destinations:
+        if neighbor_pos(player_pos, pos):
             dest = player_pos
         else:
             destinations.sort(lambda x, y: distance(x, player_pos) - distance(y, player_pos))
@@ -299,7 +298,7 @@ def gui_system(ecm, player, layers, w, h, panel_height, dt):
     tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
 
 def kill_entity(e, death_reason=''):
-    for ctype in (UserInput, AI, Position, Tile, Turn):
+    for ctype in (UserInput, AI, Solid, Tile, Turn):
         e.remove(ctype)
     e.set(Dead(death_reason))
 

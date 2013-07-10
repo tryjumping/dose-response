@@ -357,7 +357,7 @@ def addiction_system(e, ecm):
         e.set(attrs._replace(state_of_mind=state_of_mind))
         e.set(addiction._replace(turn_last_activated=turn.count))
         if state_of_mind <= 0:
-            kill_entity(e, "Exhausted")
+            kill_entity(e, "Withdrawal shock")
         elif state_of_mind > 100:
             kill_entity(e, "Overdosed")
 

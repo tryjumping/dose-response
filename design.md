@@ -261,6 +261,20 @@ Player's Nerve is at or below 15% of the maximum minus 1% per a Nerve point.
 (this is probably no longer necessary when we have enemies that stun and give
 panic with a single hit)
 
+### Score
+
+Keep count of used doses.
+
+Keep count of doses that took it close (within 5 points of the limit).
+
+Keep count of killed enemies.
+
+Keep count of the percentage of explored area before leaving.
+
+Whenever we move to a new location, we sum the compound score from the previous
+location and multiply it with the percentage of the explored area (10% explored
+means getting 10% of the score.). The rationale being that it's harder to stay
+on one map and explore it all.
 
 
 
@@ -381,6 +395,10 @@ structures and colour schemes:
 * Tundra
 
 
+Some bonus/effect/score/achievement for maintaining the High for a long run
+without a withdrawal.
+
+
 
 TODO
 ----
@@ -391,23 +409,26 @@ TODO
   priority.
 * Add the weak will mechanics
 * Add a hound/pack AI to hunger
+* Show score on death
 * Apart from FoV, have a second slightly larger circle that marks areas as
   explored but not immediately visible.
 * Add a field_of_view system which will recompute the blocked areas
 * Add damage animation (when a character is damaged but survives)
 * Add death animation (maybe just a fadeout)
-* Add game log (maybe)
+* For multi-turn movenents, display the character's path (in faded-out colours)
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
+* Add game log (maybe)
 * Remove the tolerance and state of mind values from the toolbar
-* Display the State of Mind status (Withdrawal/High)
+* Display the State of Mind status (Severe Withdrawal/Withdrawal/High/High as a
+  kite)
 * Ability: see undiscovered doses/monsters
 * Balance the doses' effecs
 * Some special effect when you're very close to overdose (like 97-99 points of
   SoM)
 * Items/abilities you can see and pick up only when you're high
-
-* Dynamically change the exploration/fov radius based on the dose
+* Add save/load game mechanics
+*
 
 * Consider this: Keep track of the elapsed turns in the top-level `game`
   variable, update it by the `end_of_turn system` and pass `dt` (number of

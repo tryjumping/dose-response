@@ -2,6 +2,48 @@
 Implementation of an Entity/Component system.
 """
 
+def system(ecm, *ctypes):
+    """
+    A decorator for defining systems.
+
+    ecm: an instance of EntityComponentManager
+    ctypes: component types that the system cares about
+
+    Calling the wrapped function will automatically fetch all the entities with
+    the given components and pass them to the system along with any other
+    arguments.
+
+    Define a system:
+
+    @system(ecm, Position, Tile)
+    def rendering_system(e, pos, tile, ecm, screen_width, screen_height):
+        pass
+
+    (e, pos, tile, and ecm are passed automatically, screen_width and
+    screen_height are additional arguments the system requires)
+
+    Then call it:
+
+        rendering_system(800, 600)
+
+    (this will pass screen_width=800 and screen_height=600)
+    """
+    if len(ctypes) <= 0:
+        raise AttributeErroc('You must specify at least one component type.')
+    def system_caller(fn):
+        def wrapped_system(*args):
+            for e in ecm.entities(*ctypes):
+                components = [e.get(c) for c in ctypes]
+                def prepargs(components, ecm, args):
+                    for c in components:
+                        yield c
+                    yield ecm
+                    for a in args:
+                        yield a
+                if all(components):
+                    fn(e, *prepargs(components, ecm, args))
+            return wrapped_system
+        return system_caller
 
 def is_component_type(ctype):
     return (hasattr(ctype, '_fields') and hasattr(ctype, '_make') and

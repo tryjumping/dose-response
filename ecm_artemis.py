@@ -214,10 +214,8 @@ class EntityComponentManager(object):
             elif len(partial_results) == 1:
                 result = partial_results
             else:
-                result = set()
-                result.update(partial_results[0])
-                for p in partial_results[1:]:
-                    result.intersection_update(p)
+                result = partial_results[0].copy()
+                result.intersection_update(*partial_results[1:])
             return (Entity(self, id) for id in result)
         else:
             def component_matches(c, queries):
@@ -246,10 +244,8 @@ class EntityComponentManager(object):
                 else:
                     raise ValueError('Unknown component type. Register it before use.')
         sets = (self._indexes[ctype] for ctype in args)
-        result = set()
-        result.update(next(sets))
-        for s in sets:
-            result.intersection_update(s)
+        result = next(sets).copy()
+        result.intersection_update(*sets)
         entities = (Entity(self, id) for id in result)
         if include_components:
             return (self.build_entity_and_components(e, args) for e in entities)

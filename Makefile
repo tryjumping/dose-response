@@ -9,3 +9,11 @@ bench:
 
 gamebench:
 	python -m cProfile -s cumulative ./hedonic-hypothesis.py
+
+exe: hedonic-hypothesis.py libtcod.so libtcodgui.so libtcodpy.py
+	cxfreeze -OO hedonic-hypothesis.py
+	cp libtcod.so libtcodgui.so libtcodpy.py dist
+	cp -r fonts dist
+
+clean:
+	rm -rf dist *.pyc

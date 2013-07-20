@@ -402,11 +402,12 @@ without a withdrawal.
 
 TODO
 ----
-* Fix the interaction system such that a panicked player will take a dose if
-  they step on it
-* Make the stun and panic effect durations cumulative
+* Display the State of Mind status (Severe Withdrawal/Withdrawal/High/High as a
+  kite)
+* Display the current effects (Stunned, Confused)
 * The player should be able to get both stunned and panicked. Stun takes
   priority.
+* Make the stun and panic effect durations cumulative
 * Add the weak will mechanics
 * Add a hound/pack AI to hunger
 * Show score on death
@@ -414,14 +415,14 @@ TODO
   explored but not immediately visible.
 * Add a field_of_view system which will recompute the blocked areas
 * Add damage animation (when a character is damaged but survives)
+  - particle effects seem like a good way to do this
+  - not sure if tcod can do this. Worst case we can "shell out" to SDL
 * Add death animation (maybe just a fadeout)
 * For multi-turn movenents, display the character's path (in faded-out colours)
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
 * Add game log (maybe)
 * Remove the tolerance and state of mind values from the toolbar
-* Display the State of Mind status (Severe Withdrawal/Withdrawal/High/High as a
-  kite)
 * Ability: see undiscovered doses/monsters
 * Balance the doses' effecs
 * Some special effect when you're very close to overdose (like 97-99 points of

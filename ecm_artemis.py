@@ -69,6 +69,9 @@ class Entity(object):
         return (isinstance(other, self.__class__) and
                 (self.ecm == other.ecm) and (self.id == other.id))
 
+    def __ne__(self, other):
+        return not (self == other)
+
     def __hash__(self):
         return hash(self.ecm) + hash(self.id)
 

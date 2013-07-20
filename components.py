@@ -45,3 +45,5 @@ Component('AttributeModifier',
           'state_of_mind, tolerance, confidence, nerve, will')
 
 Component('MovementEffect', 'type, duration')
+
+Component('Bump', 'target')

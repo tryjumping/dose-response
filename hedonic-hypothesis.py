@@ -222,33 +222,28 @@ def entity_spend_ap(e, spent=1):
     turns = e.get(Turn)
     e.set(turns._replace(action_points = turns.action_points - spent))
 
-def interaction_system(e, target, ecm):
-    if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
+def interaction_system(e, ecm):
+    if not all((e.has(c) for c in (Position, Turn))):
         return
-    interactions = [entity for entity in entities_on_position(target, ecm)
+    pos = e.get(Position)
+    interactions = [entity for entity in entities_on_position(pos, ecm)
                     if entity.has(Interactive)]
-    monsters = [entity for entity in entities_on_position(target, ecm)
-                if entity.has(Monster)]
-    for m in monsters:
-        if has_free_aps(e) and not e.has(Monster):
-            e.set(Attacking(m))
     for i in interactions:
-        if (has_free_aps(e) and not e.has(Attacking) and i.has(Interactive)
-            and e.has(Addicted)):
+        if (i.has(Interactive) and e.has(Addicted)):
             modify_entity_attributes(e, i.get(AttributeModifier))
             ecm.remove_entity(i)
-    if monsters or interactions:
-        return True
 
 def combat_system(e, ecm):
     if not all((e.has(c) for c in (Attacking, Turn, Info))):
         return
     target = e.get(Attacking).target
+    assert e != target, "%s tried to attack itself" % e
     e.remove(Attacking)
     if not has_free_aps(e) or not neighbor_pos(e.get(Position),
                                                target.get(Position)):
         return
     print "%s attacks %s" % (e, target)
+
     entity_spend_ap(e)
     death_reason = "Killed by %s" % e.get(Info).name
     if e.has(Monster):
@@ -286,6 +281,7 @@ def movement_system(e, pos, dest, ecm, w, h):
     if not has_free_aps(e):
         print "%s tried to move but has no action points" % e
         return
+    # TODO: move movement effect out of here and into its own system that replaces input with AI
     movement_effect = e.get(MovementEffect)
     if movement_effect:
         if movement_effect.duration <= 0:
@@ -308,9 +304,30 @@ def movement_system(e, pos, dest, ecm, w, h):
     if equal_pos(pos, dest):
         # The entity waits a turn
         entity_spend_ap(e)
-    elif not blocked_tile(dest, ecm) and within_rect(dest, 0, 0, w, h):
+    elif blocked_tile(dest, ecm):
+        bumped_entities = [entity for entity in entities_on_position(dest, ecm)
+                           if entity.has(Solid)]
+        assert len(bumped_entities) < 2, "There should be at most 1 solid entity on a given position"
+        if bumped_entities:
+            e.set(Bump(bumped_entities[0]))
+    elif not within_rect(dest, 0, 0, w, h):
+        pass  # TODO: move to the next screen
+    else:
         e.set(Position(dest.x, dest.y, dest.floor))
         entity_spend_ap(e)
+
+def bump_system(e, ecm):
+    if not all((e.has(c) for c in (Bump,))):
+        return
+    target = e.get(Bump).target
+    e.remove(Bump)
+    assert e != target, "%s tried to bump itself" % e
+    valid_target = ((not e.has(Monster) and target.has(Monster)) or
+                    (e.has(Monster) and not target.has(Monster)))
+    if valid_target:
+        e.set(Attacking(target))
+    else:
+        pass  # bumped into a wall or something else that's not interactive
 
 def gui_system(ecm, player, layers, w, h, panel_height, dt):
     attrs = player.get(Attributes)
@@ -392,8 +409,9 @@ def process_entities(player, ecm, w, h, keys):
             ai_system(e, ai, pos, ecm, player, w, h)
     for e, pos, dest in ecm.entities(Position, MoveDestination,
                                        include_components=True):
-        interaction_system(e, dest, ecm)
         movement_system(e, pos, dest, ecm, w, h)
+        bump_system(e, ecm)
+        interaction_system(e, ecm)
     for e in ecm.entities(Attacking):
         combat_system(e, ecm)
 

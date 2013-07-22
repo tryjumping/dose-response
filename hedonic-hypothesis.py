@@ -4,6 +4,7 @@ import os
 from random import random, choice
 
 import libtcodpy as tcod
+from lib.enum import Enum
 
 from ecm_artemis import EntityComponentManager
 from components import *
@@ -24,17 +25,53 @@ def bounded_add(lower_bound, n, upper_bound=None):
         return lambda increment: min(max(n + increment, lower_bound),
                                      upper_bound)
 
+Color = Enum('Color', [
+    'transparent',
+    'black',
+    'dim_background',
+    'foreground',
+    'anxiety',
+    'depression',
+    'hunger',
+    'voices',
+    'shadows',
+    'player',
+    'empty_tile',
+    'dose',
+    'wall_1',
+    'wall_2',
+    'wall_3',
+])
 
-def int_from_color(c):
-    return c.r * 256 * 256 + c.g * 256 + c.b
 
-def color_from_int(n):
-    b = n % 256
-    n = n / 256
-    g = n % 256
-    n = n / 256
-    r = n
-    return tcod.Color(r,g,b)
+COLORS = {
+    Color.transparent: tcod.peach,
+    Color.black: tcod.black,
+    Color.dim_background: tcod.Color(15, 15, 15),
+    Color.foreground: tcod.white,
+    Color.anxiety: tcod.dark_red,
+    Color.depression: tcod.light_han,
+    Color.hunger: tcod.light_sepia,
+    Color.voices: tcod.dark_grey,
+    Color.shadows: tcod.dark_grey,
+    Color.player: tcod.white,
+    Color.empty_tile: tcod.lightest_grey,
+    Color.dose: tcod.light_azure,
+    Color.wall_1: tcod.dark_green,
+    Color.wall_2: tcod.green,
+    Color.wall_3: tcod.light_green,
+}
+
+StateOfMind = Enum('StateOfMind', [
+    'dead',
+    'delirium_tremens',
+    'severe_withdrawal',
+    'withdrawal',
+    'sober',
+    'high',
+    'very_high',
+    'overdosed'
+])
 
 
 def distance(p1, p2):
@@ -114,12 +151,12 @@ def tile_system(e, pos, tile, layers, fov_map, player_pos, radius):
         if e.has(Explorable):
             e.set(Explorable(explored=True))
         con = layers[tile.level]
-        tcod.console_set_char_background(con, pos.x, pos.y, tcod.black)
+        tcod.console_set_char_background(con, pos.x, pos.y, COLORS[Color.black])
         # Make the explored but not directly visible areas distinct
         if not in_fov(pos.x, pos.y, fov_map, px, py, radius):
-            tcod.console_set_char_background(con, pos.x, pos.y, tcod.Color(15, 15, 15))
+            tcod.console_set_char_background(con, pos.x, pos.y, COLORS[Color.dim_background])
         tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
-        tcod.console_set_char_foreground(con, pos.x, pos.y, color_from_int(tile.color))
+        tcod.console_set_char_foreground(con, pos.x, pos.y, COLORS[tile.color])
 
 def input_system(e, ecm, keys):
     if not keys:
@@ -329,6 +366,26 @@ def bump_system(e, ecm):
     else:
         pass  # bumped into a wall or something else that's not interactive
 
+def describe_state_of_mind(som):
+    """Return a textual representation of state of mind.
+    """
+    if som <= 0:
+        return StateOfMind.dead
+    elif som <= 5:
+        return StateOfMind.delirium_tremens
+    elif som <= 25:
+        return StateOfMind.severe_withdrawal
+    elif som <= 50:
+        return StateOfMind.withdrawal
+    elif som <= 55:
+        return StateOfMind.sober
+    elif som <= 94:
+        return StateOfMind.high
+    elif som <= 99:
+        return StateOfMind.very_high
+    else:
+        return StateOfMind.overdosed
+
 def gui_system(ecm, player, layers, w, h, panel_height, dt):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
@@ -462,7 +519,7 @@ def generate_map(w, h, empty_ratio):
     return [floor]
 
 def make_anxiety_monster(e):
-    e.add(Tile(8, int_from_color(tcod.dark_red), 'a'))
+    e.add(Tile(8, Color.anxiety, 'a'))
     e.add(Monster('anxiety', hit_effect='modify_attributes'))
     e.add(Info('Anxiety', "Won't give you a second of rest."))
     e.add(AttributeModifier(state_of_mind=0, tolerance=0, confidence=0, nerve=0,
@@ -471,7 +528,7 @@ def make_anxiety_monster(e):
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def make_depression_monster(e):
-    e.add(Tile(8, int_from_color(tcod.light_han), 'D'))
+    e.add(Tile(8, Color.depression, 'D'))
     e.add(Monster('depression', hit_effect='modify_attributes'))
     e.add(Info('Depression', "Fast and deadly. Don't let it get close."))
     e.add(AttributeModifier(state_of_mind=-10000, tolerance=0, confidence=0,
@@ -480,7 +537,7 @@ def make_depression_monster(e):
     e.add(Turn(action_points=0, max_aps=2, active=False, count=0))
 
 def make_hunger_monster(e):
-    e.add(Tile(8, int_from_color(tcod.light_sepia), 'h'))
+    e.add(Tile(8, Color.hunger, 'h'))
     e.add(Monster('hunger', hit_effect='modify_attributes'))
     e.add(Info('Hunger', ""))
     e.add(AttributeModifier(state_of_mind=-10, tolerance=0, confidence=0, nerve=0,
@@ -489,14 +546,14 @@ def make_hunger_monster(e):
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def make_voices_monster(e):
-    e.add(Tile(8, int_from_color(tcod.fuchsia), 'v'))
+    e.add(Tile(8, Color.voices, 'v'))
     e.add(Monster('voices', hit_effect='stun'))
     e.add(Info('Voices in your head', "I'm not crazy. Can't be, can I?"))
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def make_shadows_monster(e):
-    e.add(Tile(8, int_from_color(tcod.dark_grey), 'S'))
+    e.add(Tile(8, Color.shadows, 'S'))
     e.add(Monster('shadows', hit_effect='panic'))
     e.add(Info('Shadows', "Hey! What was that?"))
     e.add(AI('idle'))
@@ -511,7 +568,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player_x, player_y = w / 2, h / 2
     player = ecm.new_entity()
     player.add(Position(player_x, player_y, 0))
-    player.add(Tile(9, int_from_color(tcod.white), '@'))
+    player.add(Tile(9, Color.player, '@'))
     player.add(UserInput())
     player.add(Info(name="The Nameless One", description=""))
     player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
@@ -535,7 +592,7 @@ def initial_state(w, h, empty_ratio=0.6):
             pos = Position(x, y, floor)
             background = ecm.new_entity()
             background.add(pos)
-            background.add(Tile(0, int_from_color(tcod.lightest_grey), '.'))
+            background.add(Tile(0, Color.empty_tile, '.'))
             explored = precise_distance(pos, player_pos) < 6
             background.add(Explorable(explored=explored))
             if equal_pos(player_pos, pos):
@@ -544,7 +601,7 @@ def initial_state(w, h, empty_ratio=0.6):
                   or equal_pos(initial_dose_pos, pos)):
                 dose = ecm.new_entity()
                 dose.add(pos)
-                dose.add(Tile(5, int_from_color(tcod.light_azure), 'i'))
+                dose.add(Tile(5, Color.dose, 'i'))
                 dose.add(AttributeModifier(
                     state_of_mind = 70 + choice(range(-10, 11)),
                     tolerance = 1,
@@ -555,8 +612,8 @@ def initial_state(w, h, empty_ratio=0.6):
                 dose.add(Explorable(explored))
                 dose.add(Interactive())
             elif type == 'wall':
-                color = choice((tcod.dark_green, tcod.green, tcod.light_green))
-                background.add(Tile(0, int_from_color(color), '#'))
+                color = choice((Color.wall_1, Color.wall_2, Color.wall_3))
+                background.add(Tile(0, color, '#'))
                 background.add(Solid())
                 walkable = False
             elif type == 'monster' and not near_player(x, y):
@@ -594,26 +651,25 @@ if __name__ == '__main__':
     SCREEN_HEIGHT = 50
     PANEL_HEIGHT = 2
     LIMIT_FPS = 60
-    TRANSPARENT_BG_COLOR = tcod.peach
     font_path = os.path.join('fonts', 'dejavu16x16_gs_tc.png')
     font_settings = tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
     game_title = 'Dose Response'
     tcod.console_set_custom_font(font_path, font_settings)
     tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, game_title, False)
     tcod.sys_set_fps(LIMIT_FPS)
-    consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, TRANSPARENT_BG_COLOR)
+    consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, COLORS[Color.transparent])
     background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
     game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
     while not tcod.console_is_window_closed():
-        tcod.console_set_default_foreground(0, tcod.white)
+        tcod.console_set_default_foreground(0, COLORS[Color.foreground])
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)
         if key.vk == tcod.KEY_NONE:
             key = None
         dt_ms = math.trunc(tcod.sys_get_last_frame_length() * 1000)
         tcod.console_clear(None)
         for con in consoles:
-            tcod.console_set_default_background(con, TRANSPARENT_BG_COLOR)
-            tcod.console_set_default_foreground(con, tcod.white)
+            tcod.console_set_default_background(con, COLORS[Color.transparent])
+            tcod.console_set_default_foreground(con, COLORS[Color.foreground])
             tcod.console_clear(con)
         game_state = update(game_state, dt_ms, consoles,
                             SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT, key)

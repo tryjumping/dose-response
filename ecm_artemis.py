@@ -29,7 +29,7 @@ def system(ecm, *ctypes):
     (this will pass screen_width=800 and screen_height=600)
     """
     if len(ctypes) <= 0:
-        raise AttributeErroc('You must specify at least one component type.')
+        raise AttributeError('You must specify at least one component type.')
     def system_caller(fn):
         def wrapped_system(*args):
             for e in ecm.entities(*ctypes):

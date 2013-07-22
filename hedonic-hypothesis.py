@@ -366,8 +366,8 @@ def bump_system(e, ecm):
     else:
         pass  # bumped into a wall or something else that's not interactive
 
-def describe_state_of_mind(som):
-    """Return a textual representation of state of mind.
+def enumerate_state_of_mind(som):
+    """Return an enum representing the given state of mind.
     """
     if som <= 0:
         return StateOfMind.dead
@@ -386,6 +386,20 @@ def describe_state_of_mind(som):
     else:
         return StateOfMind.overdosed
 
+def describe_state_of_mind(som):
+    """Return a textual repsesentation of the given state of mind value."""
+    som_map = {
+        StateOfMind.dead: 'Exhausted',
+        StateOfMind.delirium_tremens: 'Delirium tremens',
+        StateOfMind.severe_withdrawal: 'Severe withdrawal',
+        StateOfMind.withdrawal: 'Withdrawal',
+        StateOfMind.sober: 'Sober',
+        StateOfMind.high: 'High',
+        StateOfMind.very_high: 'High as a kite',
+        StateOfMind.overdosed: 'Overdosed',
+    }
+    return som_map[enumerate_state_of_mind(som)]
+
 def gui_system(ecm, player, layers, w, h, panel_height, dt):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
@@ -397,6 +411,9 @@ def gui_system(ecm, player, layers, w, h, panel_height, dt):
     if player.has(Dead):
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
                                  "DEAD: %s" % player.get(Dead).reason)
+    else:
+        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
+                              describe_state_of_mind(attrs.state_of_mind))
     doses = len([e for e in ecm.entities(Interactive)])
     monsters = len([e for e in ecm.entities(Monster)])
     tcod.console_print_ex(panel, w-1, 1, tcod.BKGND_NONE, tcod.RIGHT,

@@ -402,8 +402,6 @@ without a withdrawal.
 
 TODO
 ----
-* Display the State of Mind status (Severe Withdrawal/Withdrawal/High/High as a
-  kite)
 * Display the current effects (Stunned, Confused)
 * The player should be able to get both stunned and panicked. Stun takes
   priority.

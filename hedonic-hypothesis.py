@@ -3,7 +3,7 @@ import math
 import os
 from random import random, choice
 
-import libtcodpy as tcod
+import lib.libtcodpy as tcod
 from lib.enum import Enum
 
 from ecm_artemis import EntityComponentManager

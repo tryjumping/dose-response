@@ -4,7 +4,6 @@ import itertools
 from random import seed, random, choice
 import sys
 
-import entity_component_manager as sqlite_ecm
 import ecm_artemis
 
 
@@ -125,10 +124,9 @@ def query_by_indexed_component_value_benchmark(ecm, positions, count):
 
 if __name__ == '__main__':
     implementations = {
-        'sqlite': sqlite_ecm.EntityComponentManager,
         'artemis': ecm_artemis.EntityComponentManager,
     }
-    impl = 'sqlite'
+    impl = 'artemis'
     available_benchmarks = ('primitives', 'compound', 'all')
     benchmarks = 'primitives'
     if len(sys.argv) > 1:

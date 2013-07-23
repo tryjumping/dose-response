@@ -2,7 +2,6 @@ from collections import namedtuple
 import unittest
 import sys
 
-import entity_component_manager as ecm_sqlite
 import ecm_artemis
 
 Position = namedtuple('Position', 'x y')
@@ -365,15 +364,6 @@ if __name__ == '__main__':
     global EntityComponentManager
     global text
     global entity
-
-    print '\n\nTesting the SQLite implementation:\n'
-    Entity = ecm_sqlite.Entity
-    EntityComponentManager = ecm_sqlite.EntityComponentManager
-    text = ecm_sqlite.text
-    entity = ecm_sqlite.entity
-
-    suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
-    unittest.TextTestRunner().run(suite)
 
     print '\n\nTesting the Artemis-like implementation:\n'
     Entity = ecm_artemis.Entity

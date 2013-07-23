@@ -412,8 +412,15 @@ def gui_system(ecm, player, layers, w, h, panel_height, dt):
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
                                  "DEAD: %s" % player.get(Dead).reason)
     else:
+        states = [describe_state_of_mind(attrs.state_of_mind)]
+        movement_effect = player.get(MovementEffect)
+        if movement_effect and movement_effect.duration > 0:
+            if movement_effect.type == 'stun':
+                states.append('Stunned (%s)' % movement_effect.duration)
+            elif movement_effect.type == 'panic':
+                states.append('Panic (%s)' % movement_effect.duration)
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
-                              describe_state_of_mind(attrs.state_of_mind))
+                              ' | '.join(states))
     doses = len([e for e in ecm.entities(Interactive)])
     monsters = len([e for e in ecm.entities(Monster)])
     tcod.console_print_ex(panel, w-1, 1, tcod.BKGND_NONE, tcod.RIGHT,

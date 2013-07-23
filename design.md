@@ -402,11 +402,14 @@ without a withdrawal.
 
 TODO
 ----
-* Display the current effects (Stunned, Confused)
 * The player should be able to get both stunned and panicked. Stun takes
   priority.
 * Make the stun and panic effect durations cumulative
 * Add the weak will mechanics
+* Visually distinguish the area where the dose is irresistible
+  - could be a bluish blinking (or slowly fading in and out) background
+  - for non-low Will values this will be just the tile the dose is on
+  - for Will 1 and 2 this will be an area of radius 1 or 2
 * Add a hound/pack AI to hunger
 * Show score on death
 * Apart from FoV, have a second slightly larger circle that marks areas as

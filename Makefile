@@ -1,5 +1,5 @@
 run:
-	python hedonic-hypothesis.py
+	python -c 'import game; game.run()'
 
 test:
 	python test_entity_component_manager.py

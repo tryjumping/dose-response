@@ -25,6 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import os.path
 import sys
 import ctypes
 import struct
@@ -43,21 +44,22 @@ LINUX=False
 MAC=False
 MINGW=False
 MSVC=False
+LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 if sys.platform.find('linux') != -1:
-    _lib = ctypes.cdll['./libtcod.so']
+    _lib = ctypes.cdll[os.path.join(LIB_DIR, 'libtcod.so')]
     LINUX=True
 elif sys.platform.find('darwin') != -1:
-    _lib = ctypes.cdll['./libtcod.dylib']
+    _lib = ctypes.cdll[os.path.join(LIB_DIR, 'libtcod.dylib')]
     MAC = True
 elif sys.platform.find('haiku') != -1:
-    _lib = ctypes.cdll['./libtcod.so']
+    _lib = ctypes.cdll[os.path.join(LIB_DIR, 'libtcod.so')]
     HAIKU = True
 else:
     try:
-        _lib = ctypes.cdll['./libtcod-mingw.dll']
+        _lib = ctypes.cdll[os.path.join(LIB_DIR, 'libtcod-mingw.dll')]
         MINGW=True
     except WindowsError:
-        _lib = ctypes.cdll['./libtcod-VS.dll']
+        _lib = ctypes.cdll[os.path.join(LIB_DIR, 'libtcod-VS.dll')]
         MSVC=True
     # On Windows, ctypes doesn't work well with function returning structs,
     # so we have to user the _wrapper functions instead

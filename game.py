@@ -577,7 +577,7 @@ def make_shadows_monster(e):
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def initial_state(w, h, empty_ratio=0.6):
-    fov_map = tcod.map_new(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
+    fov_map = tcod.map_new(w, h)
 
     ecm = EntityComponentManager(autoregister_components=True)
     ecm.register_component_type(Position, (int, int, int), index=True)
@@ -663,7 +663,11 @@ def initial_state(w, h, empty_ratio=0.6):
     }
 
 
-if __name__ == '__main__':
+def run():
+    """Start the game.
+
+    This is a blocking function that runs the main game loop.
+    """
     SCREEN_WIDTH = 80
     SCREEN_HEIGHT = 50
     PANEL_HEIGHT = 2

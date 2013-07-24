@@ -423,6 +423,10 @@ TODO
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
 * Add game log (maybe)
+* Catch all exceptions, log them to a file on crash, show a message to the user
+  with the absolute location of the file, asking them to send the stacktrace.
+  - alternatively, we can HTTP POST it to a notification service we own in the
+    background
 * Remove the tolerance and state of mind values from the toolbar
 * Ability: see undiscovered doses/monsters
 * Balance the doses' effecs

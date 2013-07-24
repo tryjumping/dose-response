@@ -9,6 +9,10 @@ from lib.enum import Enum
 from ecm_artemis import EntityComponentManager
 from components import *
 
+
+CHEATING = False
+
+
 def inc(n):
     return n + 1
 
@@ -396,11 +400,15 @@ def describe_state_of_mind(som):
 def gui_system(ecm, player, layers, w, h, panel_height, dt):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
-    stats_template = "%s  SoM: %s, Tolerance: %s, Confidence: %s  Will: %s  Nerve: %s"
+    if CHEATING:
+        stats_bar = ("%s       SoM: %s, Tolerance: %s, Confidence: %s  Will: %s  Nerve: %s" %
+                     (player.get(Info).name, attrs.state_of_mind,
+                              attrs.tolerance, attrs.confidence, attrs.will,
+                              attrs.nerve))
+    else:
+        stats_bar = "%s       Will: %s" % (player.get(Info).name, attrs.will)
     tcod.console_print_ex(panel, 0, 0, tcod.BKGND_NONE, tcod.LEFT,
-        stats_template % (player.get(Info).name, attrs.state_of_mind,
-                          attrs.tolerance, attrs.confidence, attrs.will,
-                          attrs.nerve))
+        stats_bar)
     if player.has(Dead):
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
                                  "DEAD: %s" % player.get(Dead).reason)

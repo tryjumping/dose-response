@@ -274,17 +274,17 @@ def combat_system(e, ecm):
                 kill_entity(target, death_reason)
         elif hit_effect == 'stun':
             duration = 3
-            if target.has(MovementEffect):
-                target.update(MovementEffect, duration=add(duration))
+            if target.has(StunEffect):
+                target.update(StunEffect, duration=add(duration))
             else:
-                target.set(MovementEffect('stun', duration))
+                target.set(StunEffect(duration))
             kill_entity(e, "Disappeared after the attack.")
         elif hit_effect == 'panic':
             duration = 3
-            if target.has(MovementEffect):
-                target.update(MovementEffect, duration=add(duration))
+            if target.has(PanicEffect):
+                target.update(PanicEffect, duration=add(duration))
             else:
-                target.set(MovementEffect('panic', duration))
+                target.set(PanicEffect(duration))
             kill_entity(e, "Disappeared after the attack.")
         else:
             raise AssertionError('Unknown hit_effect')
@@ -293,33 +293,44 @@ def combat_system(e, ecm):
     if target.has(Dead) and e.has(Statistics):
         e.update(Statistics, kills=inc)
 
-def movement_system(e, pos, dest, ecm, w, h):
+def panic_system(e, ecm, w, h):
+    if not all(e.has(c) for c in (PanicEffect, Position, MoveDestination)):
+        return
+    panic = e.get(PanicEffect)
+    if panic.duration <= 0:
+        e.remove(PanicEffect)
+    else:
+        print "%s panics" % e
+        pos = e.get(Position)
+        destinations = available_destinations(pos, ecm, w, h)
+        if destinations:
+            dest = choice(destinations)
+        else:
+            dest = pos
+        e.set(MoveDestination(dest.x, dest.y, dest.floor))
+        e.update(PanicEffect, duration=dec)
+
+def stun_system(e, ecm):
+    if not all(e.has(c) for c in (StunEffect, Position, MoveDestination)):
+        return
+    stun = e.get(StunEffect)
+    if stun.duration <= 0:
+        e.remove(StunEffect)
+    else:
+        print "%s is stunned" % e
+        pos = e.get(Position)
+        e.set(MoveDestination(pos.x, pos.y, pos.floor))
+        e.update(StunEffect, duration=dec)
+
+def movement_system(e, ecm, w, h):
     if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
         return
+    pos = e.get(Position)
+    dest = e.get(MoveDestination)
     e.remove(MoveDestination)
     if not has_free_aps(e):
         print "%s tried to move but has no action points" % e
         return
-    # TODO: move movement effect out of here and into its own system that replaces input with AI
-    movement_effect = e.get(MovementEffect)
-    if movement_effect:
-        if movement_effect.duration <= 0:
-            e.remove(MovementEffect)
-        elif movement_effect.type == 'stun':
-            print "%s is stunned" % e
-            dest = pos
-            e.update(MovementEffect, duration=dec)
-        elif movement_effect.type == 'panic':
-            print "%s panics" % e
-            destinations = available_destinations(pos, ecm, w, h)
-            if destinations:
-                dest = choice(destinations)
-            else:
-                dest = pos
-            e.update(MovementEffect, duration=dec)
-        else:
-            raise AssertionError("Unknown MovementEffect type")
-
     if equal_pos(pos, dest):
         # The entity waits a turn
         entity_spend_ap(e)
@@ -395,12 +406,12 @@ def gui_system(ecm, player, layers, w, h, panel_height, dt):
                                  "DEAD: %s" % player.get(Dead).reason)
     else:
         states = [describe_state_of_mind(attrs.state_of_mind)]
-        movement_effect = player.get(MovementEffect)
-        if movement_effect and movement_effect.duration > 0:
-            if movement_effect.type == 'stun':
-                states.append('Stunned (%s)' % movement_effect.duration)
-            elif movement_effect.type == 'panic':
-                states.append('Panic (%s)' % movement_effect.duration)
+        stun_effect = player.get(StunEffect)
+        if stun_effect and stun_effect.duration > 0:
+            states.append('Stunned (%s)' % stun_effect.duration)
+        panic_effect = player.get(PanicEffect)
+        if panic_effect and panic_effect.duration > 0:
+                states.append('Panic (%s)' % panic_effect.duration)
         tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
                               ' | '.join(states))
     doses = len([e for e in ecm.entities(Interactive)])
@@ -470,9 +481,10 @@ def process_entities(player, ecm, w, h, keys):
     for e, ai, pos in ecm.entities(AI, Position, include_components=True):
         if has_free_aps(e):
             ai_system(e, ai, pos, ecm, player, w, h)
-    for e, pos, dest in ecm.entities(Position, MoveDestination,
-                                       include_components=True):
-        movement_system(e, pos, dest, ecm, w, h)
+    for e in ecm.entities(Position, MoveDestination):
+        panic_system(e, ecm, w, h)
+        stun_system(e, ecm)
+        movement_system(e, ecm, w, h)
         bump_system(e, ecm)
         interaction_system(e, ecm)
     for e in ecm.entities(Attacking):

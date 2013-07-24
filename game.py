@@ -25,42 +25,24 @@ def bounded_add(lower_bound, n, upper_bound=None):
         return lambda increment: min(max(n + increment, lower_bound),
                                      upper_bound)
 
-Color = Enum('Color', [
-    'transparent',
-    'black',
-    'dim_background',
-    'foreground',
-    'anxiety',
-    'depression',
-    'hunger',
-    'voices',
-    'shadows',
-    'player',
-    'empty_tile',
-    'dose',
-    'wall_1',
-    'wall_2',
-    'wall_3',
-])
 
+class Color(Enum):
+    transparent = tcod.peach
+    black = tcod.black
+    dim_background = tcod.Color(15, 15, 15)
+    foreground = tcod.white
+    anxiety = tcod.dark_red
+    depression = tcod.light_han
+    hunger = tcod.light_sepia
+    voices = tcod.dark_grey
+    shadows = tcod.dark_grey
+    player = tcod.white
+    empty_tile = tcod.lightest_grey
+    dose = tcod.light_azure
+    wall_1 = tcod.dark_green
+    wall_2 = tcod.green
+    wall_3 = tcod.light_green
 
-COLORS = {
-    Color.transparent: tcod.peach,
-    Color.black: tcod.black,
-    Color.dim_background: tcod.Color(15, 15, 15),
-    Color.foreground: tcod.white,
-    Color.anxiety: tcod.dark_red,
-    Color.depression: tcod.light_han,
-    Color.hunger: tcod.light_sepia,
-    Color.voices: tcod.dark_grey,
-    Color.shadows: tcod.dark_grey,
-    Color.player: tcod.white,
-    Color.empty_tile: tcod.lightest_grey,
-    Color.dose: tcod.light_azure,
-    Color.wall_1: tcod.dark_green,
-    Color.wall_2: tcod.green,
-    Color.wall_3: tcod.light_green,
-}
 
 StateOfMind = Enum('StateOfMind', [
     'dead',
@@ -151,12 +133,12 @@ def tile_system(e, pos, tile, layers, fov_map, player_pos, radius):
         if e.has(Explorable):
             e.set(Explorable(explored=True))
         con = layers[tile.level]
-        tcod.console_set_char_background(con, pos.x, pos.y, COLORS[Color.black])
+        tcod.console_set_char_background(con, pos.x, pos.y, Color.black.value)
         # Make the explored but not directly visible areas distinct
         if not in_fov(pos.x, pos.y, fov_map, px, py, radius):
-            tcod.console_set_char_background(con, pos.x, pos.y, COLORS[Color.dim_background])
+            tcod.console_set_char_background(con, pos.x, pos.y, Color.dim_background.value)
         tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
-        tcod.console_set_char_foreground(con, pos.x, pos.y, COLORS[tile.color])
+        tcod.console_set_char_foreground(con, pos.x, pos.y, tile.color.value)
 
 def input_system(e, ecm, keys):
     if not keys:
@@ -685,19 +667,19 @@ def run():
     tcod.console_set_custom_font(font_path, font_settings)
     tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, game_title, False)
     tcod.sys_set_fps(LIMIT_FPS)
-    consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, COLORS[Color.transparent])
+    consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, Color.transparent.value)
     background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
     game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
     while not tcod.console_is_window_closed():
-        tcod.console_set_default_foreground(0, COLORS[Color.foreground])
+        tcod.console_set_default_foreground(0, Color.foreground.value)
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)
         if key.vk == tcod.KEY_NONE:
             key = None
         dt_ms = math.trunc(tcod.sys_get_last_frame_length() * 1000)
         tcod.console_clear(None)
         for con in consoles:
-            tcod.console_set_default_background(con, COLORS[Color.transparent])
-            tcod.console_set_default_foreground(con, COLORS[Color.foreground])
+            tcod.console_set_default_background(con, Color.transparent.value)
+            tcod.console_set_default_foreground(con, Color.foreground.value)
             tcod.console_clear(con)
         game_state = update(game_state, dt_ms, consoles,
                             SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT, key)

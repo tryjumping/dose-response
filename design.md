@@ -402,15 +402,13 @@ without a withdrawal.
 
 TODO
 ----
-* The player should be able to get both stunned and panicked. Stun takes
-  priority.
-* Make the stun and panic effect durations cumulative
 * Add the weak will mechanics
 * Visually distinguish the area where the dose is irresistible
   - could be a bluish blinking (or slowly fading in and out) background
   - for non-low Will values this will be just the tile the dose is on
   - for Will 1 and 2 this will be an area of radius 1 or 2
 * Add a hound/pack AI to hunger
+* Calculate the score
 * Show score on death
 * Apart from FoV, have a second slightly larger circle that marks areas as
   explored but not immediately visible.
@@ -423,6 +421,10 @@ TODO
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.
 * Add game log (maybe)
+* Have a debug and a release mode
+  - debug would automatically open a debugger on exception
+  - release would log the exception and alert the player
+  - could be implemented in: `game.run(debug=False)`
 * Catch all exceptions, log them to a file on crash, show a message to the user
   with the absolute location of the file, asking them to send the stacktrace.
   - alternatively, we can HTTP POST it to a notification service we own in the

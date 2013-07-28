@@ -403,6 +403,9 @@ without a withdrawal.
 TODO
 ----
 * Add the weak will mechanics
+* Show the doses' and monsters' locations when hitting the Perfect High (99 or
+  98 points SoM)
+* Generate a new location when the player leaves the current map
 * Visually distinguish the area where the dose is irresistible
   - could be a bluish blinking (or slowly fading in and out) background
   - for non-low Will values this will be just the tile the dose is on
@@ -432,8 +435,6 @@ TODO
 * Remove the tolerance and state of mind values from the toolbar
 * Ability: see undiscovered doses/monsters
 * Balance the doses' effecs
-* Some special effect when you're very close to overdose (like 97-99 points of
-  SoM)
 * Items/abilities you can see and pick up only when you're high
 * Add save/load game mechanics
 *

@@ -29,6 +29,9 @@ def bounded_add(lower_bound, n, upper_bound=None):
         return lambda increment: min(max(n + increment, lower_bound),
                                      upper_bound)
 
+def const(n):
+    return lambda n: n
+
 
 class Color(Enum):
     transparent = tcod.peach
@@ -195,6 +198,8 @@ def ai_system(e, ai, pos, ecm, player, w, h):
     ai = e.get(AI)
     destinations = available_destinations(pos, ecm, w, h)
     if not destinations:
+
+
         dest = None
     elif ai.kind == 'aggressive':
         if neighbor_pos(player_pos, pos):
@@ -325,6 +330,28 @@ def stun_system(e, ecm):
         pos = e.get(Position)
         e.set(MoveDestination(pos.x, pos.y, pos.floor))
         e.update(StunEffect, duration=dec)
+
+def irresistible_dose_system(e, ecm):
+    if not all((e.has(c) for c in (Position, MoveDestination, Addicted))):
+        return
+    pos = e.get(Position)
+    def dose_on_pos(x, y):
+        for entity in entities_on_position(Position(x, y, pos.floor)):
+            if entity.has(Dose):
+                return True
+        return False
+    resistance_radius = e.get(Addicted).resistance
+    coords_within_radius = [(x, y)
+                            for x in range(-resistance_radius, resistance_radius + 1)
+                            for y in range(-resistance_radius, resistance_radius + 1)
+                            if (x != 0 or y != 0) and dose_on_pos(pos - x, pos - y)]
+    if not coords_within_radius:
+        return
+    target_dose_pos = min(coords_within_radius,
+                          lambda (x, y): distance(pos, Position(x, y, pos.floor)))
+    # Find the A* path from pos to the dose position
+    # Set the movement destination to that path
+
 
 def movement_system(e, ecm, w, h):
     if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
@@ -460,6 +487,18 @@ def addiction_system(e, ecm):
         elif state_of_mind > 100:
             kill_entity(e, "Overdosed")
 
+def will_system(e, ecm):
+    if not all((e.has(c) for c in (Addicted, Attributes))):
+        return
+    attrs = e.get(Attributes)
+    addicted = e.get(Addicted)
+    if attrs.will == 0:
+        e.set(addicted._replace(resistance=3))
+    elif attrs.will == 1:
+        e.set(addicted._replace(resistance=2))
+    else:
+        e.set(addicted._replace(resistance=1))
+
 def process_entities(player, ecm, w, h, keys):
     if player.has(Dead):
         return
@@ -483,6 +522,7 @@ def process_entities(player, ecm, w, h, keys):
 
     for e in ecm.entities(Addicted, Attributes, Turn):
         addiction_system(e, ecm)
+        will_system(e, ecm)
     for e in ecm.entities(UserInput):
         if has_free_aps(e) and keys:
             input_system(e, ecm, keys)
@@ -492,6 +532,7 @@ def process_entities(player, ecm, w, h, keys):
     for e in ecm.entities(Position, MoveDestination):
         panic_system(e, ecm, w, h)
         stun_system(e, ecm)
+        irresistible_dose_system(e, ecm)
         movement_system(e, ecm, w, h)
         bump_system(e, ecm)
         interaction_system(e, ecm)
@@ -602,7 +643,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(Turn(action_points=1, max_aps=1, active=True, count=0))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())
-    player.add(Addicted(1, 0))
+    player.add(Addicted(resistance=1, rate_per_turn=1, turn_last_activated=0))
     player_pos = player.get(Position)
     initial_dose_pos = Position(
         player_x + choice([n for n in range(-3, 3) if n != 0]),
@@ -637,6 +678,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 ))
                 dose.add(Explorable(explored))
                 dose.add(Interactive())
+                dose.add(Dose())
             elif type == 'wall':
                 color = choice((Color.wall_1, Color.wall_2, Color.wall_3))
                 background.add(Tile(0, color, '#'))

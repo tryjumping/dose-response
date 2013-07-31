@@ -35,7 +35,7 @@ Component('Attacking', 'target')
 
 Component('AI', 'kind')
 
-Component('Addicted', 'rate_per_turn, turn_last_activated')
+Component('Addicted', 'resistance, rate_per_turn, turn_last_activated')
 
 Component('Turn', 'action_points, max_aps, active, count')
 
@@ -45,6 +45,8 @@ Component('AttributeModifier',
           'state_of_mind, tolerance, confidence, nerve, will')
 
 Component('StunEffect', 'duration')
+
+Component('Dose', '')
 
 Component('PanicEffect', 'duration')
 

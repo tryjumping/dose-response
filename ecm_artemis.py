@@ -194,7 +194,8 @@ class EntityComponentManager(object):
         id = entity._id
         return (self._components[ctype][id] for ctype
                 in self._components.keys()
-                if self._components[ctype][id])
+                # check for None explicitly because empty namedtuples are False
+                if self._components[ctype][id] is not None)
 
     def entities_by_component_value(self, ctype, **kwargs):
         if not is_component_type(ctype):

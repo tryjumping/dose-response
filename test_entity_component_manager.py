@@ -12,6 +12,8 @@ Empty = namedtuple('Empty', [])
 
 Attacking = namedtuple('Attacking', 'target')
 
+Evil = namedtuple('Evil', 'value')
+
 
 class TestEntity(unittest.TestCase):
     def test_equality(self):
@@ -243,12 +245,15 @@ class TestEntityComponentManager(unittest.TestCase):
         self.ecm.set_component(e, Position(10, 20))
         self.ecm.set_component(e, Velocity(5, 5))
         f = self.ecm.new_entity()
+        self.ecm.set_component(f, Position(1, 1))
         self.assertEqual(len(set(self.ecm.entities())), 2)
         self.ecm.remove_entity(e)
         entities = set(self.ecm.entities())
         self.assertEqual(len(entities), 1)
         self.assertIn(f, entities)
         self.assertNotIn(e, entities)
+        self.assertEqual(len(set(self.ecm.entities(Position))), 1)
+        self.assertEqual(len(set(self.ecm.entities(Velocity))), 0)
         self.ecm.remove_entity(f)
         empty = set(self.ecm.entities())
         self.assertEqual(len(empty), 0)
@@ -269,6 +274,13 @@ class TestEntityComponentManager(unittest.TestCase):
         self.ecm.remove_entity(f)
         empty = set(self.ecm.entities())
         self.assertEqual(len(empty), 0)
+
+    def test_components_with_falsey_values(self):
+        self.ecm.register_component_type(Empty, ())
+        e = self.ecm.new_entity()
+        # empty namedtuples are evaluated to False
+        self.ecm.set_component(e, Empty())
+        self.assertEqual(len(set(self.ecm.components(e))), 1)
 
     def test_component_with_entity_reference(self):
         self.ecm.register_component_type(Attacking, (entity,))

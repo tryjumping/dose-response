@@ -131,7 +131,7 @@ def in_fov(x, y, fov_map, cx, cy, radius):
 def tile_system(e, pos, tile, layers, fov_map, player_pos, radius):
     if not all((e.has(c) for c in (Tile, Position))):
         return
-    explored = e.has(Explorable) and e.get(Explorable).explored
+    explored = e.has(Explorable) and e.get(Explorable).explored or CHEATING
     if player_pos:
         px, py = player_pos.x, player_pos.y
     else:
@@ -445,12 +445,12 @@ def gui_system(ecm, player, layers, w, h, panel_height, dt):
     attrs = player.get(Attributes)
     panel = tcod.console_new(w, panel_height)
     if CHEATING:
-        stats_bar = ("%s       SoM: %s, Tolerance: %s, Confidence: %s  Will: %s  Nerve: %s" %
+        stats_bar = ("%s   SoM: %s, Tolerance: %s, Confidence: %s  Will: %s  Nerve: %s" %
                      (player.get(Info).name, attrs.state_of_mind,
                               attrs.tolerance, attrs.confidence, attrs.will,
                               attrs.nerve))
     else:
-        stats_bar = "%s       Will: %s" % (player.get(Info).name, attrs.will)
+        stats_bar = "%s    Will: %s" % (player.get(Info).name, attrs.will)
     tcod.console_print_ex(panel, 0, 0, tcod.BKGND_NONE, tcod.LEFT,
         stats_bar)
     if player.has(Dead):

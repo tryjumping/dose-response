@@ -51,3 +51,5 @@ Component('Dose', '')
 Component('PanicEffect', 'duration')
 
 Component('Bump', 'target')
+
+Component('Marker', '')

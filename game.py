@@ -331,12 +331,14 @@ def stun_system(e, ecm):
         e.set(MoveDestination(pos.x, pos.y, pos.floor))
         e.update(StunEffect, duration=dec)
 
-def irresistible_dose_system(e, ecm):
+def irresistible_dose_system(e, ecm, fov_map):
     if not all((e.has(c) for c in (Position, MoveDestination, Addicted))):
         return
     pos = e.get(Position)
+    for marker in ecm.entities(Marker):
+        ecm.remove_entity(marker)
     def dose_on_pos(x, y):
-        for entity in entities_on_position(Position(x, y, pos.floor)):
+        for entity in entities_on_position(Position(x, y, pos.floor), ecm):
             if entity.has(Dose):
                 return True
         return False
@@ -344,12 +346,27 @@ def irresistible_dose_system(e, ecm):
     coords_within_radius = [(x, y)
                             for x in range(-resistance_radius, resistance_radius + 1)
                             for y in range(-resistance_radius, resistance_radius + 1)
-                            if (x != 0 or y != 0) and dose_on_pos(pos - x, pos - y)]
+                            if (x != 0 or y != 0) and dose_on_pos(pos.x - x, pos.y - y)]
     if not coords_within_radius:
         return
     target_dose_pos = min(coords_within_radius,
-                          lambda (x, y): distance(pos, Position(x, y, pos.floor)))
+                          key=lambda (x, y): distance(pos, Position(x, y, pos.floor)))
     # Find the A* path from pos to the dose position
+    path = tcod.path_new_using_map(fov_map, dcost=1.0)
+    rx, ry = target_dose_pos
+    tcod.path_compute(path, pos.x, pos.y, pos.x - rx, pos.y - ry)
+    if tcod.path_is_empty(path):
+        steps_to_dose = []
+    else:
+        steps_to_dose = [tcod.path_get(path, step) for step
+                         in range(tcod.path_size(path))]
+    if steps_to_dose:
+        print steps_to_dose
+        for sx, sy in steps_to_dose:
+            entity = ecm.new_entity()
+            entity.set(Position(sx, sy, pos.floor))
+            entity.set(Tile(1, Color.dose, '*'))
+            entity.set(Marker())
     # Set the movement destination to that path
 
 
@@ -499,7 +516,7 @@ def will_system(e, ecm):
     else:
         e.set(addicted._replace(resistance=1))
 
-def process_entities(player, ecm, w, h, keys):
+def process_entities(player, ecm, w, h, fov_map, keys):
     if player.has(Dead):
         return
 
@@ -532,7 +549,7 @@ def process_entities(player, ecm, w, h, keys):
     for e in ecm.entities(Position, MoveDestination):
         panic_system(e, ecm, w, h)
         stun_system(e, ecm)
-        irresistible_dose_system(e, ecm)
+        irresistible_dose_system(e, ecm, fov_map)
         movement_system(e, ecm, w, h)
         bump_system(e, ecm)
         interaction_system(e, ecm)
@@ -552,7 +569,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         else:
             game['keys'].append(pressed_key)
 
-    process_entities(player, ecm, w, h, game['keys'])
+    process_entities(player, ecm, w, h, game['fov_map'], game['keys'])
 
     player_pos = player.get(Position)
     if player_pos:

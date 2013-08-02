@@ -131,13 +131,14 @@ def in_fov(x, y, fov_map, cx, cy, radius):
 def tile_system(e, pos, tile, layers, fov_map, player_pos, radius):
     if not all((e.has(c) for c in (Tile, Position))):
         return
-    explored = e.has(Explorable) and e.get(Explorable).explored or CHEATING
+    explored = e.has(Explorable) and e.get(Explorable).explored
     if player_pos:
         px, py = player_pos.x, player_pos.y
     else:
         px, py, radius = 0, 0, 0
-    if in_fov(pos.x, pos.y, fov_map, px, py, radius) or explored:
-        if e.has(Explorable):
+    visible = in_fov(pos.x, pos.y, fov_map, px, py, radius)
+    if visible or explored or CHEATING:
+        if e.has(Explorable) and visible:
             e.set(Explorable(explored=True))
         con = layers[tile.level]
         tcod.console_set_char_background(con, pos.x, pos.y, Color.black.value)
@@ -564,6 +565,9 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
             return initial_state(w, h, game['empty_ratio'])
+        elif pressed_key.vk == tcod.KEY_F6:
+            global CHEATING
+            CHEATING = not CHEATING
         elif pressed_key.c == ord('d'):
             import pdb; pdb.set_trace()
         else:

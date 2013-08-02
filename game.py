@@ -365,7 +365,7 @@ def irresistible_dose_system(e, ecm, fov_map):
         for sx, sy in steps_to_dose:
             entity = ecm.new_entity()
             entity.set(Position(sx, sy, pos.floor))
-            entity.set(Tile(1, Color.dose, '*'))
+            entity.set(Tile(5, Color.dose, '*'))
             entity.set(Marker())
     # Set the movement destination to that path
 
@@ -685,7 +685,7 @@ def initial_state(w, h, empty_ratio=0.6):
                   or equal_pos(initial_dose_pos, pos)):
                 dose = ecm.new_entity()
                 dose.add(pos)
-                dose.add(Tile(5, Color.dose, 'i'))
+                dose.add(Tile(6, Color.dose, 'i'))
                 dose.add(AttributeModifier(
                     state_of_mind = 70 + choice(range(-10, 11)),
                     tolerance = 1,

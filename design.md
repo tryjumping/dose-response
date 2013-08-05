@@ -412,6 +412,7 @@ TODO
   - could be a bluish blinking (or slowly fading in and out) background
   - for non-low Will values this will be just the tile the dose is on
   - for Will 1 and 2 this will be an area of radius 1 or 2
+* Proper pathfinding to the AI
 * Add a hound/pack AI to hunger
 * Calculate the score
 * Show score on death

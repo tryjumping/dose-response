@@ -12,6 +12,8 @@ from components import *
 
 CHEATING = False
 
+BACKGROUND = [None for bkoffset in range(80*50)]
+
 
 def inc(n):
     return n + 1
@@ -46,6 +48,7 @@ class Color(Enum):
     player = tcod.white
     empty_tile = tcod.lightest_grey
     dose = tcod.light_azure
+    dose_glow = tcod.darkest_turquoise
     wall_1 = tcod.dark_green
     wall_2 = tcod.green
     wall_3 = tcod.light_green
@@ -128,10 +131,11 @@ def in_fov(x, y, fov_map, cx, cy, radius):
     distance = precise_distance(Position(x, y, 0), Position(cx, cy, 0))
     return math.floor(distance) <= radius
 
-def tile_system(e, pos, tile, layers, fov_map, player_pos, radius):
+def tile_system(e, pos, tile, layers, fov_map, player, radius):
     if not all((e.has(c) for c in (Tile, Position))):
         return
     explored = e.has(Explorable) and e.get(Explorable).explored
+    player_pos = player.get(Position)
     if player_pos:
         px, py = player_pos.x, player_pos.y
     else:
@@ -141,11 +145,8 @@ def tile_system(e, pos, tile, layers, fov_map, player_pos, radius):
         if e.has(Explorable) and visible:
             e.set(Explorable(explored=True))
         con = layers[tile.level]
-        tcod.console_set_char_background(con, pos.x, pos.y, Color.black.value)
-        # Make the explored but not directly visible areas distinct
-        if not in_fov(pos.x, pos.y, fov_map, px, py, radius):
-            tcod.console_set_char_background(con, pos.x, pos.y, Color.dim_background.value)
-        tcod.console_put_char(con, pos.x, pos.y, tile.glyph, tcod.BKGND_NONE)
+        tcod.console_set_char_background(con, pos.x, pos.y, BACKGROUND[pos.x+(pos.y*80)])
+        tcod.console_put_char(con, pos.x, pos.y, tile.glyph)
         tcod.console_set_char_foreground(con, pos.x, pos.y, tile.color.value)
 
 def input_system(e, ecm, keys):
@@ -361,9 +362,10 @@ def irresistible_dose_system(e, ecm, fov_map):
     else:
         steps_to_dose = [tcod.path_get(path, step) for step
                          in range(tcod.path_size(path))]
-    if steps_to_dose:
+    if steps_to_dose and len(steps_to_dose) <= 3:
         print steps_to_dose
         for sx, sy in steps_to_dose:
+            break
             entity = ecm.new_entity()
             entity.set(Position(sx, sy, pos.floor))
             entity.set(Tile(5, Color.dose, '*'))
@@ -581,8 +583,53 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         som = player.get(Attributes).state_of_mind
         game['fov_radius'] = (4 * som + 293) / 99  # range(3, 8)
         game['recompute_fov'](game['fov_map'], player_pos.x, player_pos.y, game['fov_radius'])
+
+
+    # right. so. the tcod's transparent background blit colour makes the whole
+    # cell transparent even if it has a character set. which is not *quite* what
+    # we want. We want to be able to set the background and then have a
+    # multitude of layers where we render characters or just an empty box with
+    # the underlying background if there is no char specified. But setting a
+    # background sholud never hide the rendered character, nor sholud a
+    # character be hidden because we did not specify its background explicitly.
+
+    # I think we may want to take the idea with the background field further:
+    # write our own set-background and put-char functions that will produce the correct behaviour.
+    # Not sure if it makes more sense to build our own background/foreground layer arrays
+    # or if we can still shoehorn the desired functionnility within tocd's multiple consoles
+    # when we won't be using the tcod graphic calls directly.
+
+    # I think we can: have a separate background layer and then consoles for fg.
+    # And whenever we call set_char(x, y, glyph, fg-colour), it will read the
+    # bg-colour at that point and set it, too.
+
+    # Oh and we probably want to extract the graphics code into multiple systems
+    # (bacgkround, fog of war, dose glow, tiles, animations)
+    global BACKGROUND
+    for bkoffset in range(w * h):
+        BACKGROUND[bkoffset] = Color.dim_background.value
+    import itertools
+    for x, y in itertools.product(range(w), range(h)):
+        px, py = player_pos.x, player_pos.y
+        visible = in_fov(x, y, game['fov_map'], px, py, game['fov_radius'])
+        if visible:
+            BACKGROUND[x + (y * w)] = Color.black.value
+    for dose in ecm.entities(Dose):
+        explored = dose.has(Explorable) and dose.get(Explorable).explored
+        pos = dose.get(Position)
+        con = consoles[0]
+        px, py = player_pos.x, player_pos.y
+        resistance_radius = player.get(Addicted).resistance
+        visible = in_fov(pos.x, pos.y, game['fov_map'], px, py, game['fov_radius'])
+        if not visible and not CHEATING and not explored:
+            continue
+        for rdx in range(-resistance_radius, resistance_radius + 1):
+            for rdy in range(-resistance_radius, resistance_radius + 1):
+                glow_x, glow_y = pos.x + rdx, pos.y + rdy
+                if visible or CHEATING:
+                    BACKGROUND[glow_x + (glow_y * w)] = Color.dose_glow.value
     for e, pos, tile in ecm.entities(Position, Tile, include_components=True):
-        tile_system(e, pos, tile, consoles, game['fov_map'], player_pos,
+        tile_system(e, pos, tile, consoles, game['fov_map'], player,
                     game['fov_radius'])
     game['fade'] = max(player.get(Attributes).state_of_mind / 100.0, 0.14)
     if player.has(Dead):

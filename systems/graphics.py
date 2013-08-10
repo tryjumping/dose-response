@@ -5,6 +5,7 @@ import lib.libtcodpy as tcod
 from lib.enum import Enum
 
 from components import *
+from systems.state_of_mind import enumerate_state_of_mind, StateOfMind
 
 
 class Color(Enum):
@@ -112,3 +113,50 @@ def tile_system(e, pos, tile, ctx, fov_map, player, radius, cheating):
         draw_char(ctx, tile.level, pos.x, pos.y, tile.glyph, tile.color.value)
         if not visible:
             set_background(ctx, pos.x, pos.y, Color.dim_background.value)
+
+
+def describe_state_of_mind(som):
+    """Return a textual repsesentation of the given state of mind value."""
+    som_map = {
+        StateOfMind.dead: 'Exhausted',
+        StateOfMind.delirium_tremens: 'Delirium tremens',
+        StateOfMind.severe_withdrawal: 'Severe withdrawal',
+        StateOfMind.withdrawal: 'Withdrawal',
+        StateOfMind.sober: 'Sober',
+        StateOfMind.high: 'High',
+        StateOfMind.very_high: 'High as a kite',
+        StateOfMind.overdosed: 'Overdosed',
+    }
+    return som_map[enumerate_state_of_mind(som)]
+
+def gui_system(ecm, player, layers, w, h, panel_height, cheating, dt):
+    attrs = player.get(Attributes)
+    panel = tcod.console_new(w, panel_height)
+    if cheating:
+        stats_bar = ("%s   SoM: %s, Tolerance: %s, Confidence: %s  Will: %s  Nerve: %s" %
+                     (player.get(Info).name, attrs.state_of_mind,
+                              attrs.tolerance, attrs.confidence, attrs.will,
+                              attrs.nerve))
+    else:
+        stats_bar = "%s    Will: %s" % (player.get(Info).name, attrs.will)
+    tcod.console_print_ex(panel, 0, 0, tcod.BKGND_NONE, tcod.LEFT,
+        stats_bar)
+    if player.has(Dead):
+        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
+                                 "DEAD: %s" % player.get(Dead).reason)
+    else:
+        states = [describe_state_of_mind(attrs.state_of_mind)]
+        stun_effect = player.get(StunEffect)
+        if stun_effect and stun_effect.duration > 0:
+            states.append('Stunned (%s)' % stun_effect.duration)
+        panic_effect = player.get(PanicEffect)
+        if panic_effect and panic_effect.duration > 0:
+                states.append('Panic (%s)' % panic_effect.duration)
+        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
+                              ' | '.join(states))
+    doses = len([e for e in ecm.entities(Interactive)])
+    monsters = len([e for e in ecm.entities(Monster)])
+    tcod.console_print_ex(panel, w-1, 1, tcod.BKGND_NONE, tcod.RIGHT,
+                          "Doses: %s,  Monsters: %s, dt: %s, FPS: %s" %
+                          (doses, monsters, dt, tcod.sys_get_fps()))
+    tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)

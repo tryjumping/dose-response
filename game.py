@@ -8,7 +8,8 @@ from lib.enum import Enum
 
 from ecm_artemis import EntityComponentManager
 from components import *
-from systems.graphics import tile_system, background_system, precise_distance, Color
+from systems.graphics import (tile_system, background_system, gui_system,
+                              precise_distance, Color)
 
 
 CHEATING = False
@@ -31,19 +32,6 @@ def bounded_add(lower_bound, n, upper_bound=None):
 
 def const(n):
     return lambda n: n
-
-
-
-StateOfMind = Enum('StateOfMind', [
-    'dead',
-    'delirium_tremens',
-    'severe_withdrawal',
-    'withdrawal',
-    'sober',
-    'high',
-    'very_high',
-    'overdosed'
-])
 
 
 def distance(p1, p2):
@@ -353,72 +341,6 @@ def bump_system(e, ecm):
     else:
         pass  # bumped into a wall or something else that's not interactive
 
-def enumerate_state_of_mind(som):
-    """Return an enum representing the given state of mind.
-    """
-    if som <= 0:
-        return StateOfMind.dead
-    elif som <= 5:
-        return StateOfMind.delirium_tremens
-    elif som <= 25:
-        return StateOfMind.severe_withdrawal
-    elif som <= 50:
-        return StateOfMind.withdrawal
-    elif som <= 55:
-        return StateOfMind.sober
-    elif som <= 94:
-        return StateOfMind.high
-    elif som <= 99:
-        return StateOfMind.very_high
-    else:
-        return StateOfMind.overdosed
-
-def describe_state_of_mind(som):
-    """Return a textual repsesentation of the given state of mind value."""
-    som_map = {
-        StateOfMind.dead: 'Exhausted',
-        StateOfMind.delirium_tremens: 'Delirium tremens',
-        StateOfMind.severe_withdrawal: 'Severe withdrawal',
-        StateOfMind.withdrawal: 'Withdrawal',
-        StateOfMind.sober: 'Sober',
-        StateOfMind.high: 'High',
-        StateOfMind.very_high: 'High as a kite',
-        StateOfMind.overdosed: 'Overdosed',
-    }
-    return som_map[enumerate_state_of_mind(som)]
-
-def gui_system(ecm, player, layers, w, h, panel_height, dt):
-    attrs = player.get(Attributes)
-    panel = tcod.console_new(w, panel_height)
-    if CHEATING:
-        stats_bar = ("%s   SoM: %s, Tolerance: %s, Confidence: %s  Will: %s  Nerve: %s" %
-                     (player.get(Info).name, attrs.state_of_mind,
-                              attrs.tolerance, attrs.confidence, attrs.will,
-                              attrs.nerve))
-    else:
-        stats_bar = "%s    Will: %s" % (player.get(Info).name, attrs.will)
-    tcod.console_print_ex(panel, 0, 0, tcod.BKGND_NONE, tcod.LEFT,
-        stats_bar)
-    if player.has(Dead):
-        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
-                                 "DEAD: %s" % player.get(Dead).reason)
-    else:
-        states = [describe_state_of_mind(attrs.state_of_mind)]
-        stun_effect = player.get(StunEffect)
-        if stun_effect and stun_effect.duration > 0:
-            states.append('Stunned (%s)' % stun_effect.duration)
-        panic_effect = player.get(PanicEffect)
-        if panic_effect and panic_effect.duration > 0:
-                states.append('Panic (%s)' % panic_effect.duration)
-        tcod.console_print_ex(panel, 0, 1, tcod.BKGND_NONE, tcod.LEFT,
-                              ' | '.join(states))
-    doses = len([e for e in ecm.entities(Interactive)])
-    monsters = len([e for e in ecm.entities(Monster)])
-    tcod.console_print_ex(panel, w-1, 1, tcod.BKGND_NONE, tcod.RIGHT,
-                          "Doses: %s,  Monsters: %s, dt: %s, FPS: %s" %
-                          (doses, monsters, dt, tcod.sys_get_fps()))
-    tcod.console_blit(panel, 0, 0, 0, 0, layers[9], 0, h - panel_height)
-
 def kill_entity(e, death_reason=''):
     for ctype in (UserInput, AI, Solid, Tile, Turn):
         e.remove(ctype)
@@ -533,7 +455,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     game['fade'] = max(player.get(Attributes).state_of_mind / 100.0, 0.14)
     if player.has(Dead):
         game['fade'] = 2
-    gui_system(ecm, player, consoles, w, h, panel_height, dt_ms)
+    gui_system(ecm, player, consoles, w, h, panel_height, CHEATING, dt_ms)
     return game
 
 def generate_map(w, h, empty_ratio):

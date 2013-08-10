@@ -378,11 +378,11 @@ def will_system(e, ecm):
     attrs = e.get(Attributes)
     addicted = e.get(Addicted)
     if attrs.will == 0:
-        e.set(addicted._replace(resistance=3))
-    elif attrs.will == 1:
         e.set(addicted._replace(resistance=2))
-    else:
+    elif attrs.will == 1:
         e.set(addicted._replace(resistance=1))
+    else:
+        e.set(addicted._replace(resistance=0))
 
 def process_entities(player, ecm, w, h, fov_map, keys):
     if player.has(Dead):
@@ -532,7 +532,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(Turn(action_points=1, max_aps=1, active=True, count=0))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())
-    player.add(Addicted(resistance=1, rate_per_turn=1, turn_last_activated=0))
+    player.add(Addicted(resistance=0, rate_per_turn=1, turn_last_activated=0))
     player_pos = player.get(Position)
     initial_dose_pos = Position(
         player_x + choice([n for n in range(-3, 3) if n != 0]),

@@ -10,6 +10,7 @@ from ecm_artemis import EntityComponentManager
 from components import *
 from systems.graphics import (tile_system, background_system, gui_system,
                               precise_distance, Color)
+from systems import path as path_utils
 
 
 CHEATING = False
@@ -265,11 +266,12 @@ def stun_system(e, ecm):
         e.update(StunEffect, duration=dec)
 
 def irresistible_dose_system(e, ecm, fov_map):
-    if not all((e.has(c) for c in (Position, MoveDestination, Addicted))):
+    if not all((e.has(c) for c in (Position, Addicted))):
         return
     pos = e.get(Position)
-    for marker in ecm.entities(Marker):
-        ecm.remove_entity(marker)
+    if e.has(MovePath):
+        print "entity already has a path"
+        return  # The entity's already following a path, don't interfere
     def dose_on_pos(x, y):
         for entity in entities_on_position(Position(x, y, pos.floor), ecm):
             if entity.has(Dose):
@@ -279,36 +281,35 @@ def irresistible_dose_system(e, ecm, fov_map):
     coords_within_radius = [(x, y)
                             for x in range(-resistance_radius, resistance_radius + 1)
                             for y in range(-resistance_radius, resistance_radius + 1)
-                            if (x != 0 or y != 0) and dose_on_pos(pos.x - x, pos.y - y)]
+                            if (x != 0 or y != 0) and dose_on_pos(pos.x + x, pos.y + y)]
     if not coords_within_radius:
         return
     target_dose_pos = min(coords_within_radius,
                           key=lambda (x, y): distance(pos, Position(x, y, pos.floor)))
-    # Find the A* path from pos to the dose position
-    path = tcod.path_new_using_map(fov_map, dcost=1.0)
-    rx, ry = target_dose_pos
-    tcod.path_compute(path, pos.x, pos.y, pos.x - rx, pos.y - ry)
-    if tcod.path_is_empty(path):
-        steps_to_dose = []
-    else:
-        steps_to_dose = [tcod.path_get(path, step) for step
-                         in range(tcod.path_size(path))]
-    if steps_to_dose and len(steps_to_dose) <= 3:
-        print steps_to_dose
-        for sx, sy in steps_to_dose:
-            break
-            entity = ecm.new_entity()
-            entity.set(Position(sx, sy, pos.floor))
-            entity.set(Tile(5, Color.dose, '*'))
-            entity.set(Marker())
-    # Set the movement destination to that path
+    dest = MoveDestination(pos.x + target_dose_pos[0],
+                           pos.y + target_dose_pos[1],
+                           0)
+    path_id = path_utils.path_find(fov_map, pos, dest)
+    if path_id is not None and path_utils.path_length(path_id) <= resistance_radius:
+        print "Setting path with destination: %s" % (dest,)
+        e.set(MovePath(path_id))
 
 
 def movement_system(e, ecm, w, h):
     if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
         return
     pos = e.get(Position)
-    dest = e.get(MoveDestination)
+    if e.has(MovePath):
+        path_id = e.get(MovePath).id
+        x, y = tcod.path_walk(path_id, False)
+        if (x is not None) and (y is not None):
+            dest = MoveDestination(x, y, 0)
+        else:
+            path_utils.path_destroy(path_id)
+            e.remove(MovePath)
+            dest = e.get(MoveDestination)
+    else:
+        dest = e.get(MoveDestination)
     e.remove(MoveDestination)
     if not has_free_aps(e):
         print "%s tried to move but has no action points" % e
@@ -417,8 +418,8 @@ def process_entities(player, ecm, w, h, fov_map, keys):
     for e in ecm.entities(Position, MoveDestination):
         panic_system(e, ecm, w, h)
         stun_system(e, ecm)
-        irresistible_dose_system(e, ecm, fov_map)
         movement_system(e, ecm, w, h)
+        irresistible_dose_system(e, ecm, fov_map)
         bump_system(e, ecm)
         interaction_system(e, ecm)
     for e in ecm.entities(Attacking):
@@ -528,7 +529,7 @@ def initial_state(w, h, empty_ratio=0.6):
     player.add(UserInput())
     player.add(Info(name="The Nameless One", description=""))
     player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
-                          nerve=5, will=5))
+                          nerve=5, will=3))
     player.add(Turn(action_points=1, max_aps=1, active=True, count=0))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())

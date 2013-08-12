@@ -13,6 +13,8 @@ Component('Position', 'x y floor')
 
 Component('MoveDestination', 'x y floor')
 
+Component('MovePath', 'id')
+
 Component('Tile', 'level color glyph')
 
 Component('UserInput')

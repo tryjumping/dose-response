@@ -404,6 +404,10 @@ TODO
 ----
 * Fix the pathfinding bug where a monster is blocked by another monster but the
   pathfinding algo doesn't realise that (because we're not updating the fov_map)
+* Balance the dose and State of Mind effecs
+  - Make sure the appropriate dose (small on low tolerance) never causes an
+    overdose while the PC is not High. I.e. when you take the appropriate dose
+    even while sober, you ought not to die.
 * Show the doses' and monsters' locations when hitting the Perfect High (99 or
   98 points SoM)
 * Generate a new location when the player leaves the current map
@@ -413,7 +417,6 @@ TODO
 * Show score on death
 * Apart from FoV, have a second slightly larger circle that marks areas as
   explored but not immediately visible.
-* Add a field_of_view system which will recompute the blocked areas
 * Add damage animation (when a character is damaged but survives)
   - particle effects seem like a good way to do this
   - not sure if tcod can do this. Worst case we can "shell out" to SDL
@@ -430,12 +433,9 @@ TODO
   with the absolute location of the file, asking them to send the stacktrace.
   - alternatively, we can HTTP POST it to a notification service we own in the
     background
-* Remove the tolerance and state of mind values from the toolbar
-* Ability: see undiscovered doses/monsters
-* Balance the doses' effecs
 * Items/abilities you can see and pick up only when you're high
 * Add save/load game mechanics
-*
+
 
 * Consider this: Keep track of the elapsed turns in the top-level `game`
   variable, update it by the `end_of_turn system` and pass `dt` (number of

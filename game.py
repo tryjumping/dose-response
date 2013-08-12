@@ -10,7 +10,7 @@ from ecm_artemis import EntityComponentManager
 from components import *
 from systems.graphics import (tile_system, background_system, gui_system,
                               precise_distance, Color)
-from systems import path as path_utils
+from systems import path
 
 
 CHEATING = False
@@ -289,8 +289,8 @@ def irresistible_dose_system(e, ecm, fov_map):
     dest = MoveDestination(pos.x + target_dose_pos[0],
                            pos.y + target_dose_pos[1],
                            0)
-    path_id = path_utils.path_find(fov_map, pos, dest)
-    if path_id is not None and path_utils.path_length(path_id) <= resistance_radius:
+    path_id = path.find(fov_map, pos, dest)
+    if path_id is not None and path.length(path_id) <= resistance_radius:
         print "Setting path with destination: %s" % (dest,)
         e.set(MovePath(path_id))
 
@@ -305,7 +305,7 @@ def movement_system(e, ecm, w, h):
         if (x is not None) and (y is not None):
             dest = MoveDestination(x, y, 0)
         else:
-            path_utils.path_destroy(path_id)
+            path.destroy(path_id)
             e.remove(MovePath)
             dest = e.get(MoveDestination)
     else:

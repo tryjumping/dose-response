@@ -301,13 +301,16 @@ def movement_system(e, ecm, w, h):
     pos = e.get(Position)
     if e.has(MovePath):
         path_id = e.get(MovePath).id
-        x, y = tcod.path_walk(path_id, False)
-        if (x is not None) and (y is not None):
-            dest = MoveDestination(x, y, 0)
-        else:
+        if path.length(path_id) == 0:
             path.destroy(path_id)
             e.remove(MovePath)
             dest = e.get(MoveDestination)
+        else:
+            x, y = tcod.path_walk(path_id, True)
+            if (x, y) != (None, None):
+                dest = MoveDestination(x, y, 0)
+            else:
+                assert False, "path was blocked"
     else:
         dest = e.get(MoveDestination)
     e.remove(MoveDestination)

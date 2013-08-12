@@ -402,7 +402,8 @@ without a withdrawal.
 
 TODO
 ----
-* Proper pathfinding to the AI
+* Fix the pathfinding bug where a monster is blocked by another monster but the
+  pathfinding algo doesn't realise that (because we're not updating the fov_map)
 * Show the doses' and monsters' locations when hitting the Perfect High (99 or
   98 points SoM)
 * Generate a new location when the player leaves the current map

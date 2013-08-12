@@ -120,27 +120,34 @@ def available_destinations(pos, ecm, w, h):
     return [dest for dest in destinations
             if not blocked_tile(dest, ecm) and within_rect(dest, 0, 0, w, h)]
 
-def ai_system(e, ai, pos, ecm, player, w, h):
+def ai_system(e, ai, pos, ecm, player, fov_map, w, h):
     if not all((e.has(c) for c in (AI, Position))):
         return
     player_pos = player.get(Position)
     player_distance = distance(pos, player_pos)
-    if player_distance < 3:
+    if player_distance < 5:
         e.set(ai._replace(kind='aggressive'))
-    else:
+    if player_distance > 8:
         e.set(ai._replace(kind='idle'))
     ai = e.get(AI)
     destinations = available_destinations(pos, ecm, w, h)
     if not destinations:
-
-
         dest = None
     elif ai.kind == 'aggressive':
         if neighbor_pos(player_pos, pos):
             dest = player_pos
+            e.remove(MovePath)
         else:
-            destinations.sort(lambda x, y: distance(x, player_pos) - distance(y, player_pos))
-            dest = destinations[0]
+            if e.has(MovePath):
+                # We need to generate a new path because the player has most
+                # likely moved away
+                path.destroy(e.get(MovePath).id)
+            # TODO: make sure other monsters are marked as blocking in fov_map,
+            # otherwise this entity won't ever make its turn.
+            path_id = path.find(fov_map, pos, player_pos)
+            if path_id is not None:
+                e.set(MovePath(path_id))
+            dest = None
         e.set(Attacking(player))
     elif ai.kind == 'idle':
         dest = choice(destinations)
@@ -422,7 +429,7 @@ def process_entities(player, ecm, w, h, fov_map, keys):
             input_system(e, ecm, keys)
     for e, ai, pos in ecm.entities(AI, Position, include_components=True):
         if has_free_aps(e):
-            ai_system(e, ai, pos, ecm, player, w, h)
+            ai_system(e, ai, pos, ecm, player, fov_map, w, h)
     for e in ecm.entities(Position, MoveDestination):
         panic_system(e, ecm, w, h)
         stun_system(e, ecm)
@@ -432,6 +439,7 @@ def process_entities(player, ecm, w, h, fov_map, keys):
         interaction_system(e, ecm)
     for e in ecm.entities(Attacking):
         combat_system(e, ecm)
+    # TODO: Assert every entity with free turns spent at least one of them
 
 def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     ecm = game['ecm']

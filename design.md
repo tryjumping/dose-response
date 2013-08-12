@@ -402,17 +402,12 @@ without a withdrawal.
 
 TODO
 ----
-* Add the weak will mechanics
+* Proper pathfinding to the AI
 * Show the doses' and monsters' locations when hitting the Perfect High (99 or
   98 points SoM)
 * Generate a new location when the player leaves the current map
 * Remove the random Will bonus on consuming doses
 * Give the player a point of Will when they slay 5 Anxieties
-* Visually distinguish the area where the dose is irresistible
-  - could be a bluish blinking (or slowly fading in and out) background
-  - for non-low Will values this will be just the tile the dose is on
-  - for Will 1 and 2 this will be an area of radius 1 or 2
-* Proper pathfinding to the AI
 * Add a hound/pack AI to hunger
 * Calculate the score
 * Show score on death

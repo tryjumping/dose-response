@@ -290,6 +290,11 @@ def irresistible_dose_system(e, ecm, fov_map):
                            pos.y + target_dose_pos[1],
                            0)
     path_id = path.find(fov_map, pos, dest)
+    # TODO: Check that all the path steps are within the radius instead. The
+    # path may be longer if there is an obstacle but we want that to be
+    # irresistible, too so long as the player wouldn't have to the sphere of
+    # radius.
+    # TODO: Also, can we make the monsters invisible for this pathfinding?
     if path_id is not None and path.length(path_id) <= resistance_radius:
         print "Setting path with destination: %s" % (dest,)
         e.set(MovePath(path_id))

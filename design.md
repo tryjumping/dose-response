@@ -407,7 +407,6 @@ TODO
 * Show the doses' and monsters' locations when hitting the Perfect High (99 or
   98 points SoM)
 * Generate a new location when the player leaves the current map
-* Remove the random Will bonus on consuming doses
 * Give the player a point of Will when they slay 5 Anxieties
 * Add a hound/pack AI to hunger
 * Calculate the score

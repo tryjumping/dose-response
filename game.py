@@ -578,9 +578,9 @@ def initial_state(w, h, empty_ratio=0.6):
                 dose.add(AttributeModifier(
                     state_of_mind = 70 + choice(range(-10, 11)),
                     tolerance = 1,
-                    confidence = choice(range(0, 2)),
-                    nerve = choice(range(0, 2)),
-                    will = choice(range(0, 2)),
+                    confidence = 0,
+                    nerve = 0,
+                    will = 0,
                 ))
                 dose.add(Explorable(explored))
                 dose.add(Interactive())

@@ -1,8 +1,11 @@
 import lib.libtcodpy as tcod
 
 
-def find(fov_map, position, destination):
-    path = tcod.path_new_using_map(fov_map, dcost=1.0)
+def find(fov_map, position, destination, path_cb=None):
+    if path_cb:
+        path = tcod.path_new_using_function(80, 50, path_cb, userdata=None, dcost=1.0)
+    else:
+        path = tcod.path_new_using_map(fov_map, dcost=1.0)
     tcod.path_compute(path, position.x, position.y, destination.x, destination.y)
     if tcod.path_is_empty(path):
         destroy(path)

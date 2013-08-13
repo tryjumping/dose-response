@@ -402,14 +402,11 @@ without a withdrawal.
 
 TODO
 ----
-* Balance the dose and State of Mind effecs
-  - Make sure the appropriate dose (small on low tolerance) never causes an
-    overdose while the PC is not High. I.e. when you take the appropriate dose
-    even while sober, you ought not to die.
 * Show the doses' and monsters' locations when hitting the Perfect High (99 or
   98 points SoM)
 * Generate a new location when the player leaves the current map
 * Give the player a point of Will when they slay 5 Anxieties
+* Add the stronger doses (glyph: `I`)
 * Add a hound/pack AI to hunger
 * Calculate the score
 * Show score on death

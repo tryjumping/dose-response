@@ -20,9 +20,9 @@ def enumerate_state_of_mind(som):
         return StateOfMind.delirium_tremens
     elif som <= 25:
         return StateOfMind.severe_withdrawal
-    elif som <= 50:
+    elif som <= 40:
         return StateOfMind.withdrawal
-    elif som <= 55:
+    elif som <= 50:
         return StateOfMind.sober
     elif som <= 94:
         return StateOfMind.high

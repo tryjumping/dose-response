@@ -583,7 +583,7 @@ def initial_state(w, h, empty_ratio=0.6):
                 dose.add(pos)
                 dose.add(Tile(6, Color.dose, 'i'))
                 dose.add(AttributeModifier(
-                    state_of_mind = 70 + choice(range(-10, 11)),
+                    state_of_mind = 40 + choice(range(-10, 11)),
                     tolerance = 1,
                     confidence = 0,
                     nerve = 0,

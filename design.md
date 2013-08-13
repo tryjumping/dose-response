@@ -402,8 +402,6 @@ without a withdrawal.
 
 TODO
 ----
-* Fix the pathfinding bug where a monster is blocked by another monster but the
-  pathfinding algo doesn't realise that (because we're not updating the fov_map)
 * Balance the dose and State of Mind effecs
   - Make sure the appropriate dose (small on low tolerance) never causes an
     overdose while the PC is not High. I.e. when you take the appropriate dose

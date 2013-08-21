@@ -1,7 +1,8 @@
 import collections
+from datetime import datetime
 import math
 import os
-from random import random, choice
+from random import random, choice, seed, randint
 
 import lib.libtcodpy as tcod
 from lib.enum import Enum
@@ -433,6 +434,12 @@ def process_entities(player, ecm, w, h, fov_map, keys):
         will_system(e, ecm)
     for e in ecm.entities(UserInput):
         if has_free_aps(e) and keys:
+            # TODO: Convert keys from the queue to text-based steps ("up",
+            # "down", "diagonal"), then move those to the steps queue and have
+            # the interaction system use that.
+
+            # That way, we'll be able to provide replay functionality simply by
+            # populating the steps from the replay file
             input_system(e, ecm, keys)
     for e, ai, pos in ecm.entities(AI, Position, include_components=True):
         if has_free_aps(e):
@@ -539,7 +546,7 @@ def make_shadows_monster(e):
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
-def initial_state(w, h, empty_ratio=0.6):
+def initial_state(w, h, empty_ratio=0.6, steps=None):
     fov_map = tcod.map_new(w, h)
 
     ecm = EntityComponentManager(autoregister_components=True)
@@ -616,10 +623,13 @@ def initial_state(w, h, empty_ratio=0.6):
     def recompute_fov(fov_map, x, y, radius):
         tcod.map_compute_fov(fov_map, x, y, radius, True)
     recompute_fov(fov_map, player_x, player_y, fov_radius)
+    if not steps:
+        steps = collections.deque()
     return {
         'ecm': ecm,
         'player': player,
         'empty_ratio': empty_ratio,
+        'steps': steps,
         'keys': collections.deque(),
         'fov_map': fov_map,
         'fov_radius': fov_radius,
@@ -627,11 +637,38 @@ def initial_state(w, h, empty_ratio=0.6):
     }
 
 
-def run():
+def run(replay_file_name=None):
     """Start the game.
 
     This is a blocking function that runs the main game loop.
     """
+    if replay_file_name:
+        with open(replay_file_name, 'r') as replay_file:
+            lines = [l.strip() for l in replay_file.readlines()]
+        if not lines:
+            print "Empty replay file"
+            exit(1)
+        seed_str, steps = lines[0], lines[1:]
+        try:
+            random_seed = int(seed_str)
+        except ValueError:
+            print "The first line of the replay file must be a number (seed)"
+            exit(1)
+        assert 1 <= random_seed <= 999999, "The replay seed must be within the limit"
+        key_queue = collections.deque(steps)
+        def save_for_replay(step):
+            pass
+    else:
+        random_seed = randint(1, 999999)
+        key_queue = collections.deque()
+        replay_file_name = "replay-%s" % datetime.datetime.now().isoformat()
+        with open(replay_file_name, 'w') as replay_file:
+            replay_file.write(str(seed) + '\n')
+        def save_for_replay(step):
+            replay_file.write(step + '\n')
+            replay_file.flush()
+    print "Using random seed: %s" % random_seed
+    seed(random_seed)
     SCREEN_WIDTH = 80
     SCREEN_HEIGHT = 50
     PANEL_HEIGHT = 2
@@ -644,7 +681,7 @@ def run():
     tcod.sys_set_fps(LIMIT_FPS)
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, Color.transparent.value)
     background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
-    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT)
+    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT, key_queue)
     while not tcod.console_is_window_closed():
         tcod.console_set_default_foreground(0, Color.foreground.value)
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)

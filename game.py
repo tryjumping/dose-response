@@ -82,31 +82,50 @@ def initialise_consoles(console_count, w, h, transparent_color):
         tcod.console_set_key_color(con, transparent_color)
     return consoles
 
-def input_system(e, ecm, keys):
-    if not keys:
+Commands = Enum('Commands', 'N E W S NE NW SE SW')
+
+def command_from_key(key):
+    ctrl_or_alt = key.lctrl or key.rctrl or key.lalt or key.ralt
+    if key.vk == tcod.KEY_UP:
+        return Commands.N
+    elif key.vk == tcod.KEY_DOWN:
+        return Commands.S
+    elif key.vk == tcod.KEY_LEFT and key.shift:
+        return Commands.NW
+    elif key.vk == tcod.KEY_LEFT and ctrl_or_alt:
+        return Commands.SW
+    elif key.vk == tcod.KEY_LEFT:
+        return Commands.W
+    elif key.vk == tcod.KEY_RIGHT and key.shift:
+        return Commands.NE
+    elif key.vk == tcod.KEY_RIGHT and ctrl_or_alt:
+        return Commands.SE
+    elif key.vk == tcod.KEY_RIGHT:
+        return Commands.E
+    else:
+        print "Unexpected key pressed: %s" % key.c
+
+def input_system(e, ecm, commands, save_for_replay):
+    if not commands:
         return
     pos = e.get(Position)
     if not pos:
         return
-    key = keys.popleft()
+    cmd = commands.popleft()
+    assert cmd is not None
+    save_for_replay(cmd.name)
     dest = MoveDestination(pos.x, pos.y, pos.floor)
     dx, dy = 0, 0
-    if key.vk == tcod.KEY_UP:
+    if cmd in (Commands.N, Commands.NE, Commands.NW):
         dy = -1
-    elif key.vk == tcod.KEY_DOWN:
+    elif cmd in (Commands.S, Commands.SE, Commands.SW):
         dy = 1
-    elif key.vk == tcod.KEY_LEFT:
-        dx = -1
-        if key.shift:
-            dy = -1
-        elif key.lctrl or key.rctrl or key.lalt or key.ralt:
-            dy = 1
-    elif key.vk == tcod.KEY_RIGHT:
+
+    if cmd in (Commands.E, Commands.NE, Commands.SE):
         dx = 1
-        if key.shift:
-            dy = -1
-        elif key.lctrl or key.rctrl or key.lalt or key.ralt:
-            dy = 1
+    elif cmd in (Commands.W, Commands.NW, Commands.SW):
+        dx = -1
+
     if dx != 0 or dy != 0:
         e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
 
@@ -408,7 +427,7 @@ def will_system(e, ecm):
     else:
         e.set(addicted._replace(resistance=0))
 
-def process_entities(player, ecm, w, h, fov_map, keys):
+def process_entities(player, ecm, w, h, fov_map, commands, save_for_replay):
     if player.has(Dead):
         return
 
@@ -433,14 +452,8 @@ def process_entities(player, ecm, w, h, fov_map, keys):
         addiction_system(e, ecm)
         will_system(e, ecm)
     for e in ecm.entities(UserInput):
-        if has_free_aps(e) and keys:
-            # TODO: Convert keys from the queue to text-based steps ("up",
-            # "down", "diagonal"), then move those to the steps queue and have
-            # the interaction system use that.
-
-            # That way, we'll be able to provide replay functionality simply by
-            # populating the steps from the replay file
-            input_system(e, ecm, keys)
+        if has_free_aps(e) and commands:
+            input_system(e, ecm, commands, save_for_replay)
     for e, ai, pos in ecm.entities(AI, Position, include_components=True):
         if has_free_aps(e):
             ai_system(e, ai, pos, ecm, player, fov_map, w, h)
@@ -471,7 +484,16 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         else:
             game['keys'].append(pressed_key)
 
-    process_entities(player, ecm, w, h, game['fov_map'], game['keys'])
+    while game['keys']:
+        key = game['keys'].popleft()
+        cmd = command_from_key(key)
+        if cmd:
+            game['commands'].append(cmd)
+
+    process_entities(player, ecm, w, h,
+                     game['fov_map'],
+                     game['commands'],
+                     game['save_for_replay'])
 
     player_pos = player.get(Position)
     if player_pos:
@@ -546,7 +568,7 @@ def make_shadows_monster(e):
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
-def initial_state(w, h, empty_ratio=0.6, steps=None):
+def initial_state(w, h, empty_ratio, command_queue, save_for_replay):
     fov_map = tcod.map_new(w, h)
 
     ecm = EntityComponentManager(autoregister_components=True)
@@ -623,13 +645,12 @@ def initial_state(w, h, empty_ratio=0.6, steps=None):
     def recompute_fov(fov_map, x, y, radius):
         tcod.map_compute_fov(fov_map, x, y, radius, True)
     recompute_fov(fov_map, player_x, player_y, fov_radius)
-    if not steps:
-        steps = collections.deque()
     return {
         'ecm': ecm,
         'player': player,
         'empty_ratio': empty_ratio,
-        'steps': steps,
+        'commands': command_queue,
+        'save_for_replay': save_for_replay,
         'keys': collections.deque(),
         'fov_map': fov_map,
         'fov_radius': fov_radius,
@@ -648,22 +669,23 @@ def run(replay_file_name=None):
         if not lines:
             print "Empty replay file"
             exit(1)
-        seed_str, steps = lines[0], lines[1:]
+        seed_str, cmd_names = lines[0], lines[1:]
         try:
             random_seed = int(seed_str)
         except ValueError:
             print "The first line of the replay file must be a number (seed)"
             exit(1)
         assert 1 <= random_seed <= 999999, "The replay seed must be within the limit"
-        key_queue = collections.deque(steps)
+        commands = (Commands[name] for name in cmd_names)
+        command_queue = collections.deque(commands)
         def save_for_replay(step):
             pass
     else:
         random_seed = randint(1, 999999)
-        key_queue = collections.deque()
-        replay_file_name = "replay-%s" % datetime.datetime.now().isoformat()
-        with open(replay_file_name, 'w') as replay_file:
-            replay_file.write(str(seed) + '\n')
+        command_queue = collections.deque()
+        replay_file_name = "replay-%s" % datetime.now().isoformat()
+        replay_file = open(replay_file_name, 'w')
+        replay_file.write(str(random_seed) + '\n')
         def save_for_replay(step):
             replay_file.write(step + '\n')
             replay_file.flush()
@@ -681,7 +703,8 @@ def run(replay_file_name=None):
     tcod.sys_set_fps(LIMIT_FPS)
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, Color.transparent.value)
     background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
-    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT, key_queue)
+    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT, 0.6,
+                               command_queue, save_for_replay)
     while not tcod.console_is_window_closed():
         tcod.console_set_default_foreground(0, Color.foreground.value)
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)

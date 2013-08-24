@@ -402,9 +402,6 @@ without a withdrawal.
 
 TODO
 ----
-* Add a reliable replay system and turn it on
-  This will be great when I trigger a bug during the gameplay but don't know how
-  to repeat it yet.
 * Show the doses' and monsters' locations when hitting the Perfect High (99 or
   98 points SoM)
 * Kill all the visible monsters when taking a dose

@@ -1,5 +1,8 @@
 run:
-	python -c 'import game; game.run()'
+	./dose-response
+
+replay:
+	./dose-response `find . -type f -name 'replay-*' | sort | tail -n 1`
 
 test:
 	python test_entity_component_manager.py

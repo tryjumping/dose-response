@@ -475,7 +475,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         if pressed_key.vk == tcod.KEY_ESCAPE:
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
-            return initial_state(w, h, game['empty_ratio'])
+            return initial_state(w, h - panel_height, new_game())
         elif pressed_key.vk == tcod.KEY_F6:
             global CHEATING
             CHEATING = not CHEATING
@@ -568,7 +568,46 @@ def make_shadows_monster(e):
     e.add(AI('idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
-def initial_state(w, h, empty_ratio, command_queue, save_for_replay):
+def new_game():
+    seed(datetime.now())
+    random_seed = randint(1, 999999)
+    command_queue = collections.deque()
+    replay_file_name = "replay-%s" % datetime.now().isoformat()
+    replay_file = open(replay_file_name, 'w')
+    replay_file.write(str(random_seed) + '\n')
+    def save_for_replay(step):
+        replay_file.write(step + '\n')
+        replay_file.flush()
+    return {
+        'seed': random_seed,
+        'save_for_replay': save_for_replay,
+        'commands': command_queue,
+    }
+
+def load_replay(replay_file_name):
+    with open(replay_file_name, 'r') as replay_file:
+        lines = [l.strip() for l in replay_file.readlines()]
+    if not lines:
+        print "Empty replay file"
+        exit(1)
+    seed_str, cmd_names = lines[0], lines[1:]
+    try:
+        random_seed = int(seed_str)
+    except ValueError:
+        print "The first line of the replay file must be a number (seed)"
+        exit(1)
+    assert 1 <= random_seed <= 999999, "The replay seed must be within the limit"
+    commands = (Commands[name] for name in cmd_names)
+    command_queue = collections.deque(commands)
+    return {
+        'seed': random_seed,
+        'save_for_replay': lambda x: None,  # This is a replay, no need for save
+        'commands': command_queue,
+    }
+
+def initial_state(w, h, seed_state):
+    seed(seed_state['seed'])
+    print "Using random seed: %s" % seed_state['seed']
     fov_map = tcod.map_new(w, h)
 
     ecm = EntityComponentManager(autoregister_components=True)
@@ -592,6 +631,7 @@ def initial_state(w, h, empty_ratio, command_queue, save_for_replay):
         player_y + choice([n for n in range(-3, 3) if n != 0]),
         player_pos.floor
     )
+    empty_ratio = 0.6
     def near_player(x, y):
         return distance(player_pos, Position(x, y, player_pos.floor)) < 6
     for floor, map in enumerate(generate_map(w, h, empty_ratio)):
@@ -648,9 +688,8 @@ def initial_state(w, h, empty_ratio, command_queue, save_for_replay):
     return {
         'ecm': ecm,
         'player': player,
-        'empty_ratio': empty_ratio,
-        'commands': command_queue,
-        'save_for_replay': save_for_replay,
+        'commands': seed_state['commands'],
+        'save_for_replay': seed_state['save_for_replay'],
         'keys': collections.deque(),
         'fov_map': fov_map,
         'fov_radius': fov_radius,
@@ -664,33 +703,9 @@ def run(replay_file_name=None):
     This is a blocking function that runs the main game loop.
     """
     if replay_file_name:
-        with open(replay_file_name, 'r') as replay_file:
-            lines = [l.strip() for l in replay_file.readlines()]
-        if not lines:
-            print "Empty replay file"
-            exit(1)
-        seed_str, cmd_names = lines[0], lines[1:]
-        try:
-            random_seed = int(seed_str)
-        except ValueError:
-            print "The first line of the replay file must be a number (seed)"
-            exit(1)
-        assert 1 <= random_seed <= 999999, "The replay seed must be within the limit"
-        commands = (Commands[name] for name in cmd_names)
-        command_queue = collections.deque(commands)
-        def save_for_replay(step):
-            pass
+        initial_game_state = load_replay(replay_file_name)
     else:
-        random_seed = randint(1, 999999)
-        command_queue = collections.deque()
-        replay_file_name = "replay-%s" % datetime.now().isoformat()
-        replay_file = open(replay_file_name, 'w')
-        replay_file.write(str(random_seed) + '\n')
-        def save_for_replay(step):
-            replay_file.write(step + '\n')
-            replay_file.flush()
-    print "Using random seed: %s" % random_seed
-    seed(random_seed)
+        initial_game_state = new_game()
     SCREEN_WIDTH = 80
     SCREEN_HEIGHT = 50
     PANEL_HEIGHT = 2
@@ -703,8 +718,8 @@ def run(replay_file_name=None):
     tcod.sys_set_fps(LIMIT_FPS)
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, Color.transparent.value)
     background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
-    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT, 0.6,
-                               command_queue, save_for_replay)
+    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT,
+                               initial_game_state)
     while not tcod.console_is_window_closed():
         tcod.console_set_default_foreground(0, Color.foreground.value)
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)

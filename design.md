@@ -405,6 +405,10 @@ TODO
 * Refactor position handling
   - remove the z-coordinate
   - namedtuples can be deconstructed. Use that!
+* BUG: Being stunned and within an irresistible dose causes the PC to teleport
+  after the stun effect wears off:
+  replay: bugs/jump-on-stun-and-irresistible-dose
+  commit: 3ab868d5788613e7a3b08049546481c680ecda53
 * Generate a new location when the player leaves the current map
 * Add the stronger doses (glyph: `I`)
 * Add a hound/pack AI to hunger

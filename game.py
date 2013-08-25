@@ -373,6 +373,7 @@ def movement_system(e, ecm, w, h):
     if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
         return
     pos = e.get(Position)
+    walk_path = lambda: None
     if e.has(MovePath):
         path_id = e.get(MovePath).id
         if path.length(path_id) == 0:
@@ -380,7 +381,8 @@ def movement_system(e, ecm, w, h):
             e.remove(MovePath)
             dest = e.get(MoveDestination)
         else:
-            x, y = tcod.path_walk(path_id, True)
+            x, y = tcod.path_get(path_id, 0)  # get the next path cell
+            walk_path = lambda: tcod.path_walk(path_id, True)
             if (x, y) != (None, None):
                 dest = MoveDestination(x, y)
             else:
@@ -405,6 +407,7 @@ def movement_system(e, ecm, w, h):
     else:
         e.set(Position._make(dest))
         entity_spend_ap(e)
+        walk_path()  # Only walk the path when we're actually able to move
 
 def bump_system(e, ecm):
     if not all((e.has(c) for c in (Bump,))):

@@ -402,10 +402,6 @@ without a withdrawal.
 
 TODO
 ----
-* BUG: Being stunned and within an irresistible dose causes the PC to teleport
-  after the stun effect wears off:
-  replay: bugs/jump-on-stun-and-irresistible-dose
-  commit: 3ab868d5788613e7a3b08049546481c680ecda53
 * Add a "resistance_radius_modifier" to doses to make the strong doses harder to
   resist
 * Generate a new location when the player leaves the current map

@@ -669,7 +669,7 @@ def initial_state(w, h, seed_state):
     player.add(UserInput())
     player.add(Info(name="The Nameless One", description=""))
     player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
-                          nerve=5, will=3))
+                          nerve=5, will=2))
     player.add(Turn(action_points=1, max_aps=1, active=True, count=0))
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())

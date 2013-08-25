@@ -57,3 +57,5 @@ Component('Bump', 'target')
 Component('Marker', '')
 
 Component('KillSurroundingMonsters', 'radius')
+
+Component('KillCounter', 'anxieties, anxiety_threshold')

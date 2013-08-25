@@ -402,10 +402,12 @@ without a withdrawal.
 
 TODO
 ----
+* Refactor position handling
+  - remove the z-coordinate
+  - namedtuples can be deconstructed. Use that!
 * Show the doses' and monsters' locations when hitting the Perfect High (99 or
   98 points SoM)
 * Generate a new location when the player leaves the current map
-* Give the player a point of Will when they slay 5 Anxieties
 * Add the stronger doses (glyph: `I`)
 * Add a hound/pack AI to hunger
 * Calculate the score
@@ -416,6 +418,8 @@ TODO
   - particle effects seem like a good way to do this
   - not sure if tcod can do this. Worst case we can "shell out" to SDL
 * Add death animation (maybe just a fadeout)
+* Change the player's colour when Stunned (gray out)
+* Change the player's colour when Confused
 * For multi-turn movenents, display the character's path (in faded-out colours)
 * The colours when High should not just be bright, they should be psychedelic,
   flashing continuously, etc.

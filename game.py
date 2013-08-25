@@ -25,6 +25,9 @@ def dec(n):
 def add(n):
     return lambda increment: n + increment
 
+def sub(n):
+    return add(-n)
+
 def bounded_add(lower_bound, n, upper_bound=None):
     if upper_bound is None:
         return lambda increment: max(n + increment, lower_bound)
@@ -32,6 +35,7 @@ def bounded_add(lower_bound, n, upper_bound=None):
         return lambda increment: min(max(n + increment, lower_bound),
                                      upper_bound)
 
+# TODO: rename this to `replace`?
 def const(n):
     return lambda n: n
 
@@ -252,6 +256,15 @@ def interaction_system(e, ecm):
                 kill_entity(monster)
         ecm.remove_entity(i)
 
+def update_kill_counter(killer, target):
+    if not killer.has(KillCounter):
+        return
+    if not target.has(Monster):
+        return
+    if target.get(Monster).kind == 'anxiety':
+        killer.update(KillCounter, anxieties=inc)
+
+
 def combat_system(e, ecm):
     if not all((e.has(c) for c in (Attacking, Turn, Info))):
         return
@@ -292,6 +305,9 @@ def combat_system(e, ecm):
         kill_entity(target, death_reason)
     if target.has(Dead) and e.has(Statistics):
         e.update(Statistics, kills=inc)
+    if target.has(Dead):
+        update_kill_counter(e, target)
+
 
 def panic_system(e, ecm, w, h):
     if not all(e.has(c) for c in (PanicEffect, Position, MoveDestination)):
@@ -441,6 +457,15 @@ def addiction_system(e, ecm):
 def will_system(e, ecm):
     if not all((e.has(c) for c in (Addicted, Attributes))):
         return
+    kill_counter = e.get(KillCounter)
+    if kill_counter:
+        assert kill_counter.anxieties >= 0
+        assert kill_counter.anxiety_threshold >= 0
+        if kill_counter.anxieties >= kill_counter.anxiety_threshold:
+            increment = kill_counter.anxieties // kill_counter.anxiety_threshold
+            e.update(Attributes, will=add(increment))
+            e.update(KillCounter,
+                     anxieties=sub(increment * kill_counter.anxiety_threshold))
     attrs = e.get(Attributes)
     addicted = e.get(Addicted)
     if attrs.will == 0:
@@ -449,6 +474,7 @@ def will_system(e, ecm):
         e.set(addicted._replace(resistance=1))
     else:
         e.set(addicted._replace(resistance=0))
+
 
 def process_entities(player, ecm, w, h, fov_map, commands, save_for_replay):
     if player.has(Dead):
@@ -648,6 +674,7 @@ def initial_state(w, h, seed_state):
     player.add(Statistics(turns=0, kills=0, doses=0))
     player.add(Solid())
     player.add(Addicted(resistance=0, rate_per_turn=1, turn_last_activated=0))
+    player.add(KillCounter(anxieties=0, anxiety_threshold=10))
     player_pos = player.get(Position)
     initial_dose_pos = Position(
         player_x + choice([n for n in range(-3, 3) if n != 0]),

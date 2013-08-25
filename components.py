@@ -9,9 +9,9 @@ def Component(name, attrs=''):
     setattr(current_module, name, namedtuple(name, attrs))
     __all__.append(name)
 
-Component('Position', 'x y floor')
+Component('Position', 'x y')
 
-Component('MoveDestination', 'x y floor')
+Component('MoveDestination', 'x y')
 
 Component('MovePath', 'id')
 

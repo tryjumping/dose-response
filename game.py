@@ -35,8 +35,7 @@ def bounded_add(lower_bound, n, upper_bound=None):
         return lambda increment: min(max(n + increment, lower_bound),
                                      upper_bound)
 
-# TODO: rename this to `replace`?
-def const(n):
+def replace(n):
     return lambda _: n
 
 
@@ -44,15 +43,16 @@ def distance(p1, p2):
     """
     Return distance between two points on the tile grid.
     """
-    assert p1.floor == p2.floor, "Positions must be on the same floor"
     assert p1 and p2, "Must be valid positions"
-    return max(abs(p1.x - p2.x), abs(p1.y - p2.y))
+    x1, y1 = p1
+    x2, y2 = p2
+    return max(abs(x1 - x2), abs(y1 - y2))
 
 def equal_pos(p1, p2):
     """
     Return True when the two positions are equal.
     """
-    return p1.floor == p2.floor and distance(p1, p2) == 0
+    return distance(p1, p2) == 0
 
 def neighbor_pos(p1, p2):
     """
@@ -118,7 +118,6 @@ def input_system(e, ecm, commands, save_for_replay):
     cmd = commands.popleft()
     assert cmd is not None
     save_for_replay(cmd.name)
-    dest = MoveDestination(pos.x, pos.y, pos.floor)
     dx, dy = 0, 0
     if cmd in (Commands.N, Commands.NE, Commands.NW):
         dy = -1
@@ -131,7 +130,7 @@ def input_system(e, ecm, commands, save_for_replay):
         dx = -1
 
     if dx != 0 or dy != 0:
-        e.set(dest._replace(x=pos.x+dx, y=pos.y+dy))
+        e.set(MoveDestination(pos.x + dx, pos.y + dy))
 
 def available_destinations(pos, ecm, w, h):
     """
@@ -139,7 +138,7 @@ def available_destinations(pos, ecm, w, h):
     """
     neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
                         (0, 1), (1, 1))
-    destinations = [Position(pos.x + dx, pos.y + dy, pos.floor)
+    destinations = [(pos.x + dx, pos.y + dy)
                     for dx, dy in neighbor_vectors]
     return [dest for dest in destinations
             if not blocked_tile(dest, ecm) and within_rect(dest, 0, 0, w, h)]
@@ -171,7 +170,7 @@ def ai_system(e, ai, pos, ecm, player, fov_map, w, h):
                     # The player must be reachable for the monster, otherwise
                     # the path will be never found.
                     return 1.0
-                elif blocked_tile(MoveDestination(x_to, y_to, 0), ecm):
+                elif blocked_tile(MoveDestination(x_to, y_to), ecm):
                     return 0.0
                 else:
                     return 1.0
@@ -186,18 +185,18 @@ def ai_system(e, ai, pos, ecm, player, fov_map, w, h):
         raise AssertionError('Unknown AI kind: "%s"' % ai.kind)
 
     if dest:
-        e.set(MoveDestination(dest.x, dest.y, dest.floor))
+        e.set(MoveDestination._make(dest))
     else:
-        e.set(MoveDestination(pos.x, pos.y, pos.floor))
+        e.set(MoveDestination._make(pos))
 
 
 def entities_on_position(pos, ecm):
     """
     Return all other entities with the same position.
     """
+    x, y = pos
     return (entity for entity
-            in ecm.entities_by_component_value(Position,
-                                               x=pos.x, y=pos.y, floor=pos.floor))
+            in ecm.entities_by_component_value(Position, x=x, y=y))
 
 
 def entities_nearby(pos, radius, ecm, pred=None):
@@ -206,8 +205,8 @@ def entities_nearby(pos, radius, ecm, pred=None):
     """
     if pred is None:
         pred = lambda x: True
-    ox, oy, ofloor = pos
-    coords_within_radius = [Position(x, y, ofloor)
+    ox, oy = pos
+    coords_within_radius = [(x, y)
                             for x in range(ox - radius, ox + radius + 1)
                             for y in range(oy - radius, oy + radius + 1)]
     for p in coords_within_radius:
@@ -224,14 +223,14 @@ def blocked_tile(pos, ecm):
     return any((entity.has(Solid) for entity
                 in entities_on_position(pos, ecm)))
 
-def within_rect(pos, x, y, w, h):
+def within_rect(pos, origin_x, origin_y, w, h):
     """
     True if the tile is within the rectangle of the specified coordinates and
     dimension.
     """
-    assert hasattr(pos, 'x') and hasattr(pos, 'y')
-    assert x <= w and y <= h
-    return x <= pos.x < x + w and y <= pos.y < y + h
+    x, y = pos
+    assert origin_x <= w and origin_y <= h
+    return (origin_x <= x < origin_x + w) and (origin_y <= y < origin_y + h)
 
 def entity_spend_ap(e, spent=1):
     turns = e.get(Turn)
@@ -323,7 +322,7 @@ def panic_system(e, ecm, w, h):
             dest = choice(destinations)
         else:
             dest = pos
-        e.set(MoveDestination(dest.x, dest.y, dest.floor))
+        e.set(MoveDestination._make(dest))
         e.update(PanicEffect, duration=dec)
 
 def stun_system(e, ecm):
@@ -334,8 +333,7 @@ def stun_system(e, ecm):
         e.remove(StunEffect)
     else:
         print "%s is stunned" % e
-        pos = e.get(Position)
-        e.set(MoveDestination(pos.x, pos.y, pos.floor))
+        e.set(MoveDestination._make(e.get(Position)))
         e.update(StunEffect, duration=dec)
 
 def irresistible_dose_system(e, ecm, fov_map):
@@ -346,7 +344,7 @@ def irresistible_dose_system(e, ecm, fov_map):
         print "entity already has a path"
         return  # The entity's already following a path, don't interfere
     def dose_on_pos(x, y):
-        for entity in entities_on_position(Position(x, y, pos.floor), ecm):
+        for entity in entities_on_position((x, y), ecm):
             if entity.has(Dose):
                 return True
         return False
@@ -357,11 +355,9 @@ def irresistible_dose_system(e, ecm, fov_map):
                             if (x != 0 or y != 0) and dose_on_pos(pos.x + x, pos.y + y)]
     if not coords_within_radius:
         return
-    target_dose_pos = min(coords_within_radius,
-                          key=lambda (x, y): distance(pos, Position(x, y, pos.floor)))
-    dest = MoveDestination(pos.x + target_dose_pos[0],
-                           pos.y + target_dose_pos[1],
-                           0)
+    target_x, target_y = min(coords_within_radius,
+                             key=lambda (x, y): distance(pos, (x, y)))
+    dest = MoveDestination(pos.x + target_x, pos.y + target_y)
     path_id = path.find(fov_map, pos, dest)
     # TODO: Check that all the path steps are within the radius instead. The
     # path may be longer if there is an obstacle but we want that to be
@@ -386,7 +382,7 @@ def movement_system(e, ecm, w, h):
         else:
             x, y = tcod.path_walk(path_id, True)
             if (x, y) != (None, None):
-                dest = MoveDestination(x, y, 0)
+                dest = MoveDestination(x, y)
             else:
                 assert False, "path was blocked"
     else:
@@ -407,7 +403,7 @@ def movement_system(e, ecm, w, h):
     elif not within_rect(dest, 0, 0, w, h):
         pass  # TODO: move to the next screen
     else:
-        e.set(Position(dest.x, dest.y, dest.floor))
+        e.set(Position._make(dest))
         entity_spend_ap(e)
 
 def bump_system(e, ecm):
@@ -446,7 +442,7 @@ def addiction_system(e, ecm):
     turn = e.get(Turn)
     dt = turn.count - addiction.turn_last_activated
     if attrs.state_of_mind == 98:
-        e.update(Abilities, see_entities=const(True))
+        e.update(Abilities, see_entities=replace(True))
     elif attrs.state_of_mind in (98, 99):
         e.set(Abilities(see_entities=True, see_world=True))
     if dt > 0:
@@ -565,7 +561,7 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     return game
 
 def generate_map(w, h, empty_ratio):
-    floor = []
+    result = []
     for x in xrange(w):
         for y in xrange(h):
             rand = random()
@@ -579,8 +575,8 @@ def generate_map(w, h, empty_ratio):
                     tile_kind = 'stronger_dose'
             if tile_kind == 'empty' and random() < 0.05:
                 tile_kind = 'monster'
-            floor.append([x, y, tile_kind])
-    return [floor]
+            result.append((x, y, tile_kind))
+    return result
 
 def make_anxiety_monster(e):
     e.add(Tile(8, Color.anxiety, 'a'))
@@ -670,7 +666,7 @@ def initial_state(w, h, seed_state):
     # TODO: register the component types here once things settled a bit
     player_x, player_y = w / 2, h / 2
     player = ecm.new_entity()
-    player.add(Position(player_x, player_y, 0))
+    player.add(Position(player_x, player_y))
     player.add(Tile(9, Color.player, '@'))
     player.add(UserInput())
     player.add(Info(name="The Nameless One", description=""))
@@ -686,68 +682,68 @@ def initial_state(w, h, seed_state):
     initial_dose_pos = Position(
         player_x + choice([n for n in range(-3, 3) if n != 0]),
         player_y + choice([n for n in range(-3, 3) if n != 0]),
-        player_pos.floor
     )
     empty_ratio = 0.6
     def near_player(x, y):
-        return distance(player_pos, Position(x, y, player_pos.floor)) < 6
-    for floor, map in enumerate(generate_map(w, h, empty_ratio)):
-        for x, y, type in map:
-            transparent = True
-            walkable = True
-            pos = Position(x, y, floor)
-            background = ecm.new_entity()
-            background.add(pos)
-            background.add(Tile(0, Color.empty_tile, '.'))
-            explored = precise_distance(pos, player_pos) < 6
-            background.add(Explorable(explored=explored))
-            if equal_pos(player_pos, pos):
-                pass
-            elif (((type == 'dose' or type == 'stronger_dose')
-                   and not near_player(x, y))
-                   or equal_pos(initial_dose_pos, pos)):
-                dose = ecm.new_entity()
-                dose.add(pos)
-                if type == 'dose' or type == 'empty':  # the initial dose is 'empty'
-                    glyph = 'i'
-                    som = 40
-                    kill_radius = 4
-                elif type == 'stronger_dose':
-                    glyph = 'I'
-                    som = 90
-                    kill_radius = 6
-                else:
-                    raise ValueError('Unknown dose type: %s' % type)
-                dose.add(Tile(6, Color.dose, glyph))
-                dose.add(AttributeModifier(
-                    state_of_mind = som + choice(range(-10, 11)),
-                    tolerance = 1,
-                    confidence = 0,
-                    nerve = 0,
-                    will = 0,
-                ))
-                dose.add(Explorable(explored))
-                dose.add(Interactive())
-                dose.add(Dose())
-                dose.add(KillSurroundingMonsters(radius=kill_radius))
-            elif type == 'wall':
-                color = choice((Color.wall_1, Color.wall_2, Color.wall_3))
-                background.add(Tile(0, color, '#'))
-                background.add(Solid())
-                walkable = False
-            elif type == 'monster' and not near_player(x, y):
-                monster = ecm.new_entity()
-                monster.add(pos)
-                monster.add(Solid())
-                factories = [
-                    make_anxiety_monster,
-                    make_depression_monster,
-                    make_hunger_monster,
-                    make_voices_monster,
-                    make_shadows_monster,
-                ]
-                choice(factories)(monster)
-            tcod.map_set_properties(fov_map, x, y, transparent, walkable)
+        return distance(player_pos, (x, y)) < 6
+    for x, y, type in generate_map(w, h, empty_ratio):
+        transparent = True
+        walkable = True
+        pos = Position(x, y)
+        background = ecm.new_entity()
+        background.add(pos)
+        background.add(Tile(0, Color.empty_tile, '.'))
+        explored = precise_distance(pos, player_pos) < 6
+        background.add(Explorable(explored=explored))
+        if equal_pos(player_pos, pos):
+            pass
+        elif (((type == 'dose' or type == 'stronger_dose')
+               and not near_player(x, y))
+               or equal_pos(initial_dose_pos, pos)):
+            if equal_pos(initial_dose_pos, pos):
+                type = 'dose'
+            dose = ecm.new_entity()
+            dose.add(pos)
+            if type == 'dose':
+                glyph = 'i'
+                som = 40
+                kill_radius = 4
+            elif type == 'stronger_dose':
+                glyph = 'I'
+                som = 90
+                kill_radius = 6
+            else:
+                raise ValueError('Unknown dose type: %s' % type)
+            dose.add(Tile(6, Color.dose, glyph))
+            dose.add(AttributeModifier(
+                state_of_mind = som + choice(range(-10, 11)),
+                tolerance = 1,
+                confidence = 0,
+                nerve = 0,
+                will = 0,
+            ))
+            dose.add(Explorable(explored))
+            dose.add(Interactive())
+            dose.add(Dose())
+            dose.add(KillSurroundingMonsters(radius=kill_radius))
+        elif type == 'wall':
+            color = choice((Color.wall_1, Color.wall_2, Color.wall_3))
+            background.add(Tile(0, color, '#'))
+            background.add(Solid())
+            walkable = False
+        elif type == 'monster' and not near_player(x, y):
+            monster = ecm.new_entity()
+            monster.add(pos)
+            monster.add(Solid())
+            factories = [
+                make_anxiety_monster,
+                make_depression_monster,
+                make_hunger_monster,
+                make_voices_monster,
+                make_shadows_monster,
+            ]
+            choice(factories)(monster)
+        tcod.map_set_properties(fov_map, x, y, transparent, walkable)
 
     assert len(set(ecm.entities_by_component_value(Position, x=player_x, y=player_y))) > 1
     fov_radius = 3

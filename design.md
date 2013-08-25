@@ -402,9 +402,6 @@ without a withdrawal.
 
 TODO
 ----
-* Refactor position handling
-  - remove the z-coordinate
-  - namedtuples can be deconstructed. Use that!
 * BUG: Being stunned and within an irresistible dose causes the PC to teleport
   after the stun effect wears off:
   replay: bugs/jump-on-stun-and-irresistible-dose

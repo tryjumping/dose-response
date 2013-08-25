@@ -33,7 +33,7 @@ def in_fov(x, y, fov_map, cx, cy, radius):
     """
     if not tcod.map_is_in_fov(fov_map, x, y) or radius < 1:
         return False
-    distance = precise_distance(Position(x, y, 0), Position(cx, cy, 0))
+    distance = precise_distance((x, y), (cx, cy))
     return math.floor(distance) <= radius
 
 def precise_distance(p1, p2):
@@ -43,7 +43,9 @@ def precise_distance(p1, p2):
     The distance is based on a pythagorean calculation rather than a rough
     heuristic.
     """
-    return math.sqrt((abs(p1.x - p2.x) ** 2) + (abs(p1.y - p2.y) ** 2))
+    x1, y1 = p1
+    x2, y2 = p2
+    return math.sqrt((abs(x1 - x2) ** 2) + (abs(y1 - y2) ** 2))
 
 
 def set_background(ctx, x, y, color):

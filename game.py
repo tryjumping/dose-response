@@ -196,6 +196,21 @@ def entities_on_position(pos, ecm):
                                                x=pos.x, y=pos.y, floor=pos.floor))
 
 
+def entities_nearby(pos, radius, ecm, pred=None):
+    """Return all entities within the specified radius matching the given
+    predicate.
+    """
+    if pred is None:
+        pred = lambda x: True
+    ox, oy, ofloor = pos
+    coords_within_radius = [Position(x, y, ofloor)
+                            for x in range(ox - radius, ox + radius + 1)
+                            for y in range(oy - radius, oy + radius + 1)]
+    for p in coords_within_radius:
+        for e in entities_on_position(p, ecm):
+            if pred(e):
+                yield e
+
 def blocked_tile(pos, ecm):
     """
     True if the tile is non-empty or there's a bloking entity on it.
@@ -222,12 +237,20 @@ def interaction_system(e, ecm):
     if not all((e.has(c) for c in (Position, Turn))):
         return
     pos = e.get(Position)
-    interactions = [entity for entity in entities_on_position(pos, ecm)
-                    if entity.has(Interactive)]
-    for i in interactions:
-        if (i.has(Interactive) and e.has(Addicted)):
-            modify_entity_attributes(e, i.get(AttributeModifier))
-            ecm.remove_entity(i)
+    if not e.has(Addicted):
+        return  # Only addicted characters can interact with items for now
+    for i in entities_on_position(pos, ecm):
+        if not i.has(Interactive):
+            continue
+        attribute_modifier = i.get(AttributeModifier)
+        if attribute_modifier:
+            modify_entity_attributes(e, attribute_modifier)
+        area_kill_effect = i.get(KillSurroundingMonsters)
+        if area_kill_effect:
+            for monster in entities_nearby(pos, area_kill_effect.radius,
+                                           ecm, lambda e: e.has(Monster)):
+                kill_entity(monster)
+        ecm.remove_entity(i)
 
 def combat_system(e, ecm):
     if not all((e.has(c) for c in (Attacking, Turn, Info))):
@@ -661,6 +684,7 @@ def initial_state(w, h, seed_state):
                 dose.add(Explorable(explored))
                 dose.add(Interactive())
                 dose.add(Dose())
+                dose.add(KillSurroundingMonsters(radius=6))
             elif type == 'wall':
                 color = choice((Color.wall_1, Color.wall_2, Color.wall_3))
                 background.add(Tile(0, color, '#'))

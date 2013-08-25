@@ -404,9 +404,6 @@ TODO
 ----
 * Show the doses' and monsters' locations when hitting the Perfect High (99 or
   98 points SoM)
-* Kill all the visible monsters when taking a dose
-  - this will encourage players to taking a hit even when they're not sober/withdrawn.
-    Risky but can be the desperate action that can save them.
 * Generate a new location when the player leaves the current map
 * Give the player a point of Will when they slay 5 Anxieties
 * Add the stronger doses (glyph: `I`)

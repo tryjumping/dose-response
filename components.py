@@ -55,3 +55,5 @@ Component('PanicEffect', 'duration')
 Component('Bump', 'target')
 
 Component('Marker', '')
+
+Component('KillSurroundingMonsters', 'radius')

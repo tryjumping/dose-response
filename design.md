@@ -405,8 +405,6 @@ TODO
 * Refactor position handling
   - remove the z-coordinate
   - namedtuples can be deconstructed. Use that!
-* Show the doses' and monsters' locations when hitting the Perfect High (99 or
-  98 points SoM)
 * Generate a new location when the player leaves the current map
 * Add the stronger doses (glyph: `I`)
 * Add a hound/pack AI to hunger

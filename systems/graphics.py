@@ -107,7 +107,9 @@ def tile_system(e, pos, tile, ctx, fov_map, player, radius, cheating):
     else:
         px, py, radius = 0, 0, 0
     visible = in_fov(pos.x, pos.y, fov_map, px, py, radius)
-    if visible or explored or cheating:
+    if player.get(Abilities).see_entities and (e.has(Monster) or e.has(Dose)):
+        visible = True
+    if visible or explored or cheating or player.get(Abilities).see_world:
         if e.has(Explorable) and visible:
             e.set(Explorable(explored=True))
         draw_char(ctx, tile.level, pos.x, pos.y, tile.glyph, tile.color.value)

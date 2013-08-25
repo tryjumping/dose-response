@@ -37,7 +37,7 @@ def bounded_add(lower_bound, n, upper_bound=None):
 
 # TODO: rename this to `replace`?
 def const(n):
-    return lambda n: n
+    return lambda _: n
 
 
 def distance(p1, p2):
@@ -445,6 +445,10 @@ def addiction_system(e, ecm):
     attrs = e.get(Attributes)
     turn = e.get(Turn)
     dt = turn.count - addiction.turn_last_activated
+    if attrs.state_of_mind == 98:
+        e.update(Abilities, see_entities=const(True))
+    elif attrs.state_of_mind in (98, 99):
+        e.set(Abilities(see_entities=True, see_world=True))
     if dt > 0:
         state_of_mind = attrs.state_of_mind - (addiction.rate_per_turn * dt)
         e.set(attrs._replace(state_of_mind=state_of_mind))
@@ -675,6 +679,7 @@ def initial_state(w, h, seed_state):
     player.add(Solid())
     player.add(Addicted(resistance=0, rate_per_turn=1, turn_last_activated=0))
     player.add(KillCounter(anxieties=0, anxiety_threshold=10))
+    player.add(Abilities(see_entities=False, see_world=False))
     player_pos = player.get(Position)
     initial_dose_pos = Position(
         player_x + choice([n for n in range(-3, 3) if n != 0]),

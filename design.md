@@ -409,8 +409,9 @@ TODO
   after the stun effect wears off:
   replay: bugs/jump-on-stun-and-irresistible-dose
   commit: 3ab868d5788613e7a3b08049546481c680ecda53
+* Add a "resistance_radius_modifier" to doses to make the strong doses harder to
+  resist
 * Generate a new location when the player leaves the current map
-* Add the stronger doses (glyph: `I`)
 * Add a hound/pack AI to hunger
 * Calculate the score
 * Show score on death

@@ -575,6 +575,8 @@ def generate_map(w, h, empty_ratio):
                 tile_kind = 'wall'
             else:
                 tile_kind = 'dose'
+                if random() < 0.23:
+                    tile_kind = 'stronger_dose'
             if tile_kind == 'empty' and random() < 0.05:
                 tile_kind = 'monster'
             floor.append([x, y, tile_kind])
@@ -701,13 +703,24 @@ def initial_state(w, h, seed_state):
             background.add(Explorable(explored=explored))
             if equal_pos(player_pos, pos):
                 pass
-            elif ((type == 'dose' and not near_player(x, y))
-                  or equal_pos(initial_dose_pos, pos)):
+            elif (((type == 'dose' or type == 'stronger_dose')
+                   and not near_player(x, y))
+                   or equal_pos(initial_dose_pos, pos)):
                 dose = ecm.new_entity()
                 dose.add(pos)
-                dose.add(Tile(6, Color.dose, 'i'))
+                if type == 'dose' or type == 'empty':  # the initial dose is 'empty'
+                    glyph = 'i'
+                    som = 40
+                    kill_radius = 4
+                elif type == 'stronger_dose':
+                    glyph = 'I'
+                    som = 90
+                    kill_radius = 6
+                else:
+                    raise ValueError('Unknown dose type: %s' % type)
+                dose.add(Tile(6, Color.dose, glyph))
                 dose.add(AttributeModifier(
-                    state_of_mind = 40 + choice(range(-10, 11)),
+                    state_of_mind = som + choice(range(-10, 11)),
                     tolerance = 1,
                     confidence = 0,
                     nerve = 0,
@@ -716,7 +729,7 @@ def initial_state(w, h, seed_state):
                 dose.add(Explorable(explored))
                 dose.add(Interactive())
                 dose.add(Dose())
-                dose.add(KillSurroundingMonsters(radius=6))
+                dose.add(KillSurroundingMonsters(radius=kill_radius))
             elif type == 'wall':
                 color = choice((Color.wall_1, Color.wall_2, Color.wall_3))
                 background.add(Tile(0, color, '#'))

@@ -85,18 +85,18 @@ def background_system(ecm, w, h, player_pos, game, ctx, player, cheating):
         visible = in_fov(x, y, game['fov_map'], px, py, game['fov_radius'])
         if visible:
             set_background(ctx, x, y, Color.black.value)
-    for dose in ecm.entities(Dose):
-        explored = dose.has(Explorable) and dose.get(Explorable).explored
-        pos = dose.get(Position)
-        resistance_radius = player.get(Addicted).resistance
+    for glowee in ecm.entities(Glow):
+        pos = glowee.get(Position)
+        explored = glowee.has(Explorable) and glowee.get(Explorable).explored
         visible = in_fov(pos.x, pos.y, game['fov_map'], px, py, game['fov_radius'])
         if not visible and not cheating and not explored:
             continue
-        for rdx in range(-resistance_radius, resistance_radius + 1):
-            for rdy in range(-resistance_radius, resistance_radius + 1):
+        radius = glowee.get(Glow).radius
+        for rdx in range(-radius, radius + 1):
+            for rdy in range(-radius, radius + 1):
                 glow_x, glow_y = pos.x + rdx, pos.y + rdy
                 if visible or cheating:
-                    set_background(ctx, glow_x, glow_y, Color.dose_glow.value)
+                    set_background(ctx, glow_x, glow_y, glowee.get(Glow).color.value)
 
 
 def tile_system(e, pos, tile, ctx, fov_map, player, radius, cheating):

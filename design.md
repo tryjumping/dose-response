@@ -402,8 +402,6 @@ without a withdrawal.
 
 TODO
 ----
-* Add a "resistance_radius_modifier" to doses to make the strong doses harder to
-  resist
 * Generate a new location when the player leaves the current map
 * Add a hound/pack AI to hunger
 * Calculate the score

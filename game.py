@@ -336,6 +336,14 @@ def stun_system(e, ecm):
         e.set(MoveDestination._make(e.get(Position)))
         e.update(StunEffect, duration=dec)
 
+def dose_event_horizon(dose, addict):
+    """Return the radius within which the addict loses control and must get the
+    dose.
+    """
+    assert dose.has(Dose)
+    assert addict.has(Addicted)
+    return dose.get(Dose).irresistibility - addict.get(Addicted).resistance
+
 def irresistible_dose_system(e, ecm, fov_map):
     if not all((e.has(c) for c in (Position, Addicted))):
         return
@@ -343,31 +351,33 @@ def irresistible_dose_system(e, ecm, fov_map):
     if e.has(MovePath):
         print "entity already has a path"
         return  # The entity's already following a path, don't interfere
-    def dose_on_pos(x, y):
-        for entity in entities_on_position((x, y), ecm):
-            if entity.has(Dose):
-                return True
-        return False
-    resistance_radius = e.get(Addicted).resistance
-    coords_within_radius = [(x, y)
-                            for x in range(-resistance_radius, resistance_radius + 1)
-                            for y in range(-resistance_radius, resistance_radius + 1)
-                            if (x != 0 or y != 0) and dose_on_pos(pos.x + x, pos.y + y)]
-    if not coords_within_radius:
+    addict = e  # make us a closure for the function below
+    def irresistible_dose(e):
+        if not all(e.has(c) for c in (Position, Dose)):
+            return
+        dose_pos = e.get(Position)
+        if addict.get(Position) == dose_pos:
+            return
+        return distance(dose_pos, addict.get(Position)) <= dose_event_horizon(e, addict)
+    search_radius = 3  # max irresistibility for a dose is currently 3
+    doses = list(entities_nearby(pos, search_radius, ecm, pred=irresistible_dose))
+    if not doses:
         return
-    target_x, target_y = min(coords_within_radius,
-                             key=lambda (x, y): distance(pos, (x, y)))
-    dest = MoveDestination(pos.x + target_x, pos.y + target_y)
+    target_dose = min(doses, key=lambda e: distance(pos, e.get(Position)))
+    dest = MoveDestination._make(target_dose.get(Position))
     path_id = path.find(fov_map, pos, dest)
     # TODO: Check that all the path steps are within the radius instead. The
     # path may be longer if there is an obstacle but we want that to be
     # irresistible, too so long as the player wouldn't have to the sphere of
     # radius.
-    # TODO: Also, can we make the monsters invisible for this pathfinding?
-    if path_id is not None and path.length(path_id) <= resistance_radius:
+    if path_id is not None and path.length(path_id) <= dose_event_horizon(target_dose, addict):
         print "Setting path with destination: %s" % (dest,)
         e.set(MovePath(path_id))
 
+def dose_glow_system(e, ecm, player):
+    if not all(e.has(c) for c in (Dose, Glow)):
+        return
+    e.update(Glow, radius=replace(dose_event_horizon(e, player)))
 
 def movement_system(e, ecm, w, h):
     if not all((e.has(c) for c in (Position, MoveDestination, Turn))):
@@ -470,13 +480,7 @@ def will_system(e, ecm):
             e.update(KillCounter,
                      anxieties=sub(increment * kill_counter.anxiety_threshold))
     attrs = e.get(Attributes)
-    addicted = e.get(Addicted)
-    if attrs.will == 0:
-        e.set(addicted._replace(resistance=2))
-    elif attrs.will == 1:
-        e.set(addicted._replace(resistance=1))
-    else:
-        e.set(addicted._replace(resistance=0))
+    e.update(Addicted, resistance=replace(min(attrs.will, 2)))
 
 
 def process_entities(player, ecm, w, h, fov_map, commands, save_for_replay):
@@ -518,6 +522,8 @@ def process_entities(player, ecm, w, h, fov_map, commands, save_for_replay):
         interaction_system(e, ecm)
     for e in ecm.entities(Attacking):
         combat_system(e, ecm)
+    for e in ecm.entities(Dose):
+        dose_glow_system(e, ecm, player)
     # TODO: Assert every entity with free turns spent at least one of them
 
 def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
@@ -711,10 +717,12 @@ def initial_state(w, h, seed_state):
                 glyph = 'i'
                 som = 40
                 kill_radius = 4
+                irresistibility = 2
             elif type == 'stronger_dose':
                 glyph = 'I'
                 som = 90
                 kill_radius = 6
+                irresistibility = 3
             else:
                 raise ValueError('Unknown dose type: %s' % type)
             dose.add(Tile(6, Color.dose, glyph))
@@ -727,7 +735,8 @@ def initial_state(w, h, seed_state):
             ))
             dose.add(Explorable(explored))
             dose.add(Interactive())
-            dose.add(Dose())
+            dose.add(Dose(irresistibility))
+            dose.add(Glow(radius=0, color=Color.dose_glow))
             dose.add(KillSurroundingMonsters(radius=kill_radius))
         elif type == 'wall':
             color = choice((Color.wall_1, Color.wall_2, Color.wall_3))

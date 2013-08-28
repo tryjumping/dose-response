@@ -17,6 +17,8 @@ Component('MovePath', 'id')
 
 Component('Tile', 'level color glyph')
 
+Component('Glow', 'radius color')
+
 Component('UserInput')
 
 Component('Solid')
@@ -48,7 +50,7 @@ Component('AttributeModifier',
 
 Component('StunEffect', 'duration')
 
-Component('Dose', '')
+Component('Dose', 'irresistibility')
 
 Component('PanicEffect', 'duration')
 

@@ -37,7 +37,7 @@ Component('Monster', 'kind, hit_effect')
 
 Component('Attacking', 'target')
 
-Component('AI', 'kind')
+Component('AI', 'kind, state')
 
 Component('Addicted', 'resistance, rate_per_turn, turn_last_activated')
 

@@ -474,7 +474,7 @@ def make_anxiety_monster(e):
     e.add(Info('Anxiety', "Won't give you a second of rest."))
     e.add(AttributeModifier(state_of_mind=0, tolerance=0, confidence=0, nerve=0,
                             will=-1))
-    e.add(AI('idle'))
+    e.add(AI('individual', 'idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def make_depression_monster(e):
@@ -483,7 +483,7 @@ def make_depression_monster(e):
     e.add(Info('Depression', "Fast and deadly. Don't let it get close."))
     e.add(AttributeModifier(state_of_mind=-10000, tolerance=0, confidence=0,
                             nerve=0, will=0))
-    e.add(AI('idle'))
+    e.add(AI('individual', 'idle'))
     e.add(Turn(action_points=0, max_aps=2, active=False, count=0))
 
 def make_hunger_monster(e):
@@ -492,21 +492,21 @@ def make_hunger_monster(e):
     e.add(Info('Hunger', ""))
     e.add(AttributeModifier(state_of_mind=-10, tolerance=0, confidence=0, nerve=0,
                             will=0))
-    e.add(AI('idle'))
+    e.add(AI('pack', 'idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def make_voices_monster(e):
     e.add(Tile(8, Color.voices, 'v'))
     e.add(Monster('voices', hit_effect='stun'))
     e.add(Info('Voices in your head', "I'm not crazy. Can't be, can I?"))
-    e.add(AI('idle'))
+    e.add(AI('individual', 'idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def make_shadows_monster(e):
     e.add(Tile(8, Color.shadows, 'S'))
     e.add(Monster('shadows', hit_effect='panic'))
     e.add(Info('Shadows', "Hey! What was that?"))
-    e.add(AI('idle'))
+    e.add(AI('individual', 'idle'))
     e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
 
 def new_game():

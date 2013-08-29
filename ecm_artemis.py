@@ -159,7 +159,7 @@ class EntityComponentManager(object):
         self._indexes[ctype].add(id)
         if ctype in self._component_value_indexes:
             index = self._component_value_indexes[ctype]
-            for key in component.__dict__.iteritems():
+            for key in component._asdict().iteritems():
                 if prev_component:
                     prev_key = (key[0], getattr(prev_component, key[0]))
                     if prev_key in index:
@@ -185,7 +185,7 @@ class EntityComponentManager(object):
         self._components[ctype][entity._id] = None
         self._indexes[ctype].discard(entity._id)
         if ctype in self._component_value_indexes and component:
-            for key in component.__dict__.iteritems():
+            for key in component._asdict().iteritems():
                 index = self._component_value_indexes[ctype]
                 if key in index:
                     index[key].discard(entity._id)

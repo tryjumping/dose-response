@@ -7,6 +7,7 @@ def find(fov_map, position, destination, path_cb=None):
     else:
         path = tcod.path_new_using_map(fov_map, dcost=1.0)
     tcod.path_compute(path, position.x, position.y, destination.x, destination.y)
+    assert tcod.path_size(path) < 1000, "Found path is too long"
     if tcod.path_is_empty(path):
         destroy(path)
         return None

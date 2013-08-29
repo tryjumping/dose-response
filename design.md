@@ -402,15 +402,10 @@ without a withdrawal.
 
 TODO
 ----
-* BUG:
-  - we get a core dump in certain occasions
-  replay: bugs/core-dump
-  commit: bc4cab5d20b377f1f8d723361d6a126f6bb22015
 * Generate a new location when the player leaves the current map
   - the player will always materialise in the middle of the screen
 	- no need to bother with the path between the two worlds being connected
 	- no need to worry about the PC going back -- it'll just be a new world
-* Add a hound/pack AI to hunger
 * Calculate the score
 * Show score on death
 * Apart from FoV, have a second slightly larger circle that marks areas as

@@ -29,10 +29,13 @@ def follow_player(e, player, ecm, fov_map):
             # We need to generate a new path because the player has most
             # likely moved away
             path.destroy(e.get(MovePath).id)
+            e.remove(MovePath)
         path_id = path.find(fov_map, pos, player_pos,
                             path_cb=find_player_callback(player_pos, ecm))
         if path_id is not None:
             e.set(MovePath(path_id))
+        else:
+            print 'could not find path'
         dest = None
     e.set(Attacking(player))
     return dest
@@ -50,6 +53,9 @@ def individual_behaviour(e, ai, pos, ecm, player, fov_map, w, h):
     elif e.get(AI).state == 'aggressive':
         dest = follow_player(e, player, ecm, fov_map)
     elif e.get(AI).state == 'idle':
+        if e.has(MovePath):
+            path.destroy(e.get(MovePath).id)
+        e.remove(MovePath)
         dest = choice(destinations)
     else:
         raise AssertionError('Unknown AI state: "%s"' % e.get(AI).state)

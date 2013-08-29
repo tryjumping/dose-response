@@ -7,11 +7,13 @@ from random import random, choice, seed, randint
 import lib.libtcodpy as tcod
 from lib.enum import Enum
 
-from ecm_artemis import EntityComponentManager
 from components import *
+from ecm_artemis import EntityComponentManager
+import location_utils as loc
 from systems.graphics import (tile_system, background_system, gui_system,
                               precise_distance, Color)
 from systems import path
+from systems.ai import ai_system
 
 
 CHEATING = False
@@ -38,27 +40,6 @@ def bounded_add(lower_bound, n, upper_bound=None):
 def replace(n):
     return lambda _: n
 
-
-def distance(p1, p2):
-    """
-    Return distance between two points on the tile grid.
-    """
-    assert p1 and p2, "Must be valid positions"
-    x1, y1 = p1
-    x2, y2 = p2
-    return max(abs(x1 - x2), abs(y1 - y2))
-
-def equal_pos(p1, p2):
-    """
-    Return True when the two positions are equal.
-    """
-    return distance(p1, p2) == 0
-
-def neighbor_pos(p1, p2):
-    """
-    Return True when the two position are touching.
-    """
-    return distance(p1, p2) <= 1
 
 def has_free_aps(e, required=1):
     turn = e.get(Turn)
@@ -132,106 +113,6 @@ def input_system(e, ecm, commands, save_for_replay):
     if dx != 0 or dy != 0:
         e.set(MoveDestination(pos.x + dx, pos.y + dy))
 
-def available_destinations(pos, ecm, w, h):
-    """
-    Return blocks neigbouring the given position that can be walked into.
-    """
-    neighbor_vectors = ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1),
-                        (0, 1), (1, 1))
-    destinations = [(pos.x + dx, pos.y + dy)
-                    for dx, dy in neighbor_vectors]
-    return [dest for dest in destinations
-            if not blocked_tile(dest, ecm) and within_rect(dest, 0, 0, w, h)]
-
-def ai_system(e, ai, pos, ecm, player, fov_map, w, h):
-    if not all((e.has(c) for c in (AI, Position))):
-        return
-    player_pos = player.get(Position)
-    player_distance = distance(pos, player_pos)
-    if player_distance < 5:
-        e.set(ai._replace(kind='aggressive'))
-    if player_distance > 8:
-        e.set(ai._replace(kind='idle'))
-    ai = e.get(AI)
-    destinations = available_destinations(pos, ecm, w, h)
-    if not destinations:
-        dest = None
-    elif ai.kind == 'aggressive':
-        if neighbor_pos(player_pos, pos):
-            dest = player_pos
-            e.remove(MovePath)
-        else:
-            if e.has(MovePath):
-                # We need to generate a new path because the player has most
-                # likely moved away
-                path.destroy(e.get(MovePath).id)
-            def path_func(x_from, y_from, x_to, y_to, user_data):
-                if (x_to, y_to) == (player_pos.x, player_pos.y):
-                    # The player must be reachable for the monster, otherwise
-                    # the path will be never found.
-                    return 1.0
-                elif blocked_tile(MoveDestination(x_to, y_to), ecm):
-                    return 0.0
-                else:
-                    return 1.0
-            path_id = path.find(fov_map, pos, player_pos, path_cb=path_func)
-            if path_id is not None:
-                e.set(MovePath(path_id))
-            dest = None
-        e.set(Attacking(player))
-    elif ai.kind == 'idle':
-        dest = choice(destinations)
-    else:
-        raise AssertionError('Unknown AI kind: "%s"' % ai.kind)
-
-    if dest:
-        e.set(MoveDestination._make(dest))
-    else:
-        e.set(MoveDestination._make(pos))
-
-
-def entities_on_position(pos, ecm):
-    """
-    Return all other entities with the same position.
-    """
-    x, y = pos
-    return (entity for entity
-            in ecm.entities_by_component_value(Position, x=x, y=y))
-
-
-def entities_nearby(pos, radius, ecm, pred=None):
-    """Return all entities within the specified radius matching the given
-    predicate.
-    """
-    if pred is None:
-        pred = lambda x: True
-    ox, oy = pos
-    coords_within_radius = [(x, y)
-                            for x in range(ox - radius, ox + radius + 1)
-                            for y in range(oy - radius, oy + radius + 1)]
-    for p in coords_within_radius:
-        for e in entities_on_position(p, ecm):
-            if pred(e):
-                yield e
-
-def blocked_tile(pos, ecm):
-    """
-    True if the tile is non-empty or there's a bloking entity on it.
-    """
-    # TODO: add a fov_system that updates the FOV blocked status and use that
-    # for a faster lookup
-    return any((entity.has(Solid) for entity
-                in entities_on_position(pos, ecm)))
-
-def within_rect(pos, origin_x, origin_y, w, h):
-    """
-    True if the tile is within the rectangle of the specified coordinates and
-    dimension.
-    """
-    x, y = pos
-    assert origin_x <= w and origin_y <= h
-    return (origin_x <= x < origin_x + w) and (origin_y <= y < origin_y + h)
-
 def entity_spend_ap(e, spent=1):
     turns = e.get(Turn)
     e.set(turns._replace(action_points = turns.action_points - spent))
@@ -242,7 +123,7 @@ def interaction_system(e, ecm):
     pos = e.get(Position)
     if not e.has(Addicted):
         return  # Only addicted characters can interact with items for now
-    for i in entities_on_position(pos, ecm):
+    for i in loc.entities_on_position(pos, ecm):
         if not i.has(Interactive):
             continue
         attribute_modifier = i.get(AttributeModifier)
@@ -250,8 +131,8 @@ def interaction_system(e, ecm):
             modify_entity_attributes(e, attribute_modifier)
         area_kill_effect = i.get(KillSurroundingMonsters)
         if area_kill_effect:
-            for monster in entities_nearby(pos, area_kill_effect.radius,
-                                           ecm, lambda e: e.has(Monster)):
+            for monster in loc.entities_nearby(pos, area_kill_effect.radius,
+                                               ecm, lambda e: e.has(Monster)):
                 kill_entity(monster)
         ecm.remove_entity(i)
 
@@ -270,8 +151,8 @@ def combat_system(e, ecm):
     target = e.get(Attacking).target
     assert e != target, "%s tried to attack itself" % e
     e.remove(Attacking)
-    if not has_free_aps(e) or not neighbor_pos(e.get(Position),
-                                               target.get(Position)):
+    if not has_free_aps(e) or not loc.neighbor_pos(e.get(Position),
+                                                   target.get(Position)):
         return
     print "%s attacks %s" % (e, target)
 
@@ -317,7 +198,7 @@ def panic_system(e, ecm, w, h):
     else:
         print "%s panics" % e
         pos = e.get(Position)
-        destinations = available_destinations(pos, ecm, w, h)
+        destinations = loc.available_destinations(pos, ecm, w, h)
         if destinations:
             dest = choice(destinations)
         else:
@@ -358,12 +239,12 @@ def irresistible_dose_system(e, ecm, fov_map):
         dose_pos = e.get(Position)
         if addict.get(Position) == dose_pos:
             return
-        return distance(dose_pos, addict.get(Position)) <= dose_event_horizon(e, addict)
+        return loc.distance(dose_pos, addict.get(Position)) <= dose_event_horizon(e, addict)
     search_radius = 3  # max irresistibility for a dose is currently 3
-    doses = list(entities_nearby(pos, search_radius, ecm, pred=irresistible_dose))
+    doses = list(loc.entities_nearby(pos, search_radius, ecm, pred=irresistible_dose))
     if not doses:
         return
-    target_dose = min(doses, key=lambda e: distance(pos, e.get(Position)))
+    target_dose = min(doses, key=lambda e: loc.distance(pos, e.get(Position)))
     dest = MoveDestination._make(target_dose.get(Position))
     path_id = path.find(fov_map, pos, dest)
     # TODO: Check that all the path steps are within the radius instead. The
@@ -403,16 +284,16 @@ def movement_system(e, ecm, w, h):
     if not has_free_aps(e):
         print "%s tried to move but has no action points" % e
         return
-    if equal_pos(pos, dest):
+    if loc.equal_pos(pos, dest):
         # The entity waits a turn
         entity_spend_ap(e)
-    elif blocked_tile(dest, ecm):
-        bumped_entities = [entity for entity in entities_on_position(dest, ecm)
+    elif loc.blocked_tile(dest, ecm):
+        bumped_entities = [entity for entity in loc.entities_on_position(dest, ecm)
                            if entity.has(Solid)]
         assert len(bumped_entities) < 2, "There should be at most 1 solid entity on a given position"
         if bumped_entities:
             e.set(Bump(bumped_entities[0]))
-    elif not within_rect(dest, 0, 0, w, h):
+    elif not loc.within_rect(dest, 0, 0, w, h):
         pass  # TODO: move to the next screen
     else:
         e.set(Position._make(dest))
@@ -694,7 +575,7 @@ def initial_state(w, h, seed_state):
     )
     empty_ratio = 0.6
     def near_player(x, y):
-        return distance(player_pos, (x, y)) < 6
+        return loc.distance(player_pos, (x, y)) < 6
     for x, y, type in generate_map(w, h, empty_ratio):
         transparent = True
         walkable = True
@@ -704,12 +585,12 @@ def initial_state(w, h, seed_state):
         background.add(Tile(0, Color.empty_tile, '.'))
         explored = precise_distance(pos, player_pos) < 6
         background.add(Explorable(explored=explored))
-        if equal_pos(player_pos, pos):
+        if loc.equal_pos(player_pos, pos):
             pass
         elif (((type == 'dose' or type == 'stronger_dose')
                and not near_player(x, y))
-               or equal_pos(initial_dose_pos, pos)):
-            if equal_pos(initial_dose_pos, pos):
+               or loc.equal_pos(initial_dose_pos, pos)):
+            if loc.equal_pos(initial_dose_pos, pos):
                 type = 'dose'
             dose = ecm.new_entity()
             dose.add(pos)

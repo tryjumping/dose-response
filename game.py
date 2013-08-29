@@ -10,6 +10,7 @@ from lib.enum import Enum
 from components import *
 from ecm_artemis import EntityComponentManager
 import location_utils as loc
+from partial_helpers import *
 from systems.graphics import (tile_system, background_system, gui_system,
                               precise_distance, Color)
 from systems import path
@@ -17,29 +18,6 @@ from systems.ai import ai_system
 
 
 CHEATING = False
-
-def inc(n):
-    return n + 1
-
-def dec(n):
-    return n - 1
-
-def add(n):
-    return lambda increment: n + increment
-
-def sub(n):
-    return add(-n)
-
-def bounded_add(lower_bound, n, upper_bound=None):
-    if upper_bound is None:
-        return lambda increment: max(n + increment, lower_bound)
-    else:
-        return lambda increment: min(max(n + increment, lower_bound),
-                                     upper_bound)
-
-def replace(n):
-    return lambda _: n
-
 
 def has_free_aps(e, required=1):
     turn = e.get(Turn)

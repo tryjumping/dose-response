@@ -6,6 +6,18 @@ from partial_helpers import *
 from systems import path
 
 
+def find_player_callback(player_pos, ecm):
+    def cb(x_from, y_from, x_to, y_to, user_data):
+        if (x_to, y_to) == (player_pos.x, player_pos.y):
+            # The player must be reachable for the monster, otherwise
+            # the path will be never found.
+            return 1.0
+        elif loc.blocked_tile(MoveDestination(x_to, y_to), ecm):
+            return 0.0
+        else:
+            return 1.0
+    return cb
+
 def individual_behaviour(e, ai, pos, ecm, player, fov_map, w, h):
     player_pos = player.get(Position)
     player_distance = loc.distance(pos, player_pos)
@@ -25,21 +37,13 @@ def individual_behaviour(e, ai, pos, ecm, player, fov_map, w, h):
                 # We need to generate a new path because the player has most
                 # likely moved away
                 path.destroy(e.get(MovePath).id)
-            def path_func(x_from, y_from, x_to, y_to, user_data):
-                if (x_to, y_to) == (player_pos.x, player_pos.y):
-                    # The player must be reachable for the monster, otherwise
-                    # the path will be never found.
-                    return 1.0
-                elif loc.blocked_tile(MoveDestination(x_to, y_to), ecm):
-                    return 0.0
-                else:
-                    return 1.0
-            path_id = path.find(fov_map, pos, player_pos, path_cb=path_func)
+            path_id = path.find(fov_map, pos, player_pos,
+                                path_cb=find_player_callback(player_pos, ecm))
             if path_id is not None:
                 e.set(MovePath(path_id))
             dest = None
         e.set(Attacking(player))
-    elif ai.state == 'idle':
+    elif e.get(AI).state == 'idle':
         dest = choice(destinations)
     else:
         raise AssertionError('Unknown AI state: "%s"' % e.get(AI).state)

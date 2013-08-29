@@ -18,6 +18,25 @@ def find_player_callback(player_pos, ecm):
             return 1.0
     return cb
 
+def follow_player(e, player, ecm, fov_map):
+    pos = e.get(Position)
+    player_pos = player.get(Position)
+    if loc.neighbor_pos(player_pos, pos):
+        dest = player_pos
+        e.remove(MovePath)
+    else:
+        if e.has(MovePath):
+            # We need to generate a new path because the player has most
+            # likely moved away
+            path.destroy(e.get(MovePath).id)
+        path_id = path.find(fov_map, pos, player_pos,
+                            path_cb=find_player_callback(player_pos, ecm))
+        if path_id is not None:
+            e.set(MovePath(path_id))
+        dest = None
+    e.set(Attacking(player))
+    return dest
+
 def individual_behaviour(e, ai, pos, ecm, player, fov_map, w, h):
     player_pos = player.get(Position)
     player_distance = loc.distance(pos, player_pos)
@@ -29,20 +48,7 @@ def individual_behaviour(e, ai, pos, ecm, player, fov_map, w, h):
     if not destinations:
         dest = None
     elif e.get(AI).state == 'aggressive':
-        if loc.neighbor_pos(player_pos, pos):
-            dest = player_pos
-            e.remove(MovePath)
-        else:
-            if e.has(MovePath):
-                # We need to generate a new path because the player has most
-                # likely moved away
-                path.destroy(e.get(MovePath).id)
-            path_id = path.find(fov_map, pos, player_pos,
-                                path_cb=find_player_callback(player_pos, ecm))
-            if path_id is not None:
-                e.set(MovePath(path_id))
-            dest = None
-        e.set(Attacking(player))
+        dest = follow_player(e, player, ecm, fov_map)
     elif e.get(AI).state == 'idle':
         dest = choice(destinations)
     else:
@@ -51,7 +57,28 @@ def individual_behaviour(e, ai, pos, ecm, player, fov_map, w, h):
 
 
 def hunting_pack_behaviour(e, ai, pos, ecm, player, fov_map, w, h):
-    pass
+    player_pos = player.get(Position)
+    player_distance = loc.distance(pos, player_pos)
+    if player_distance < 4:
+        e.update(AI, state=replace('aggressive'))
+    destinations = loc.available_destinations(pos, ecm, w, h)
+    if not destinations:
+        return
+    if e.get(AI).state == 'idle':
+        return choice(destinations)
+    elif e.get(AI).state == 'aggressive':
+        dest = follow_player(e, player, ecm, fov_map)
+        monster_kind = e.get(Monster).kind
+        def kindred_monster(e):
+            return (e.has(AI) and e.has(Monster) and
+                    e.get(Monster).kind == monster_kind)
+        for nearby_hunter in loc.entities_nearby(pos, 8, ecm,
+                                                 pred=kindred_monster):
+            nearby_hunter.update(AI, state=replace('aggressive'))
+    else:
+        raise AssertionError('Unknown AI state: "%s"' % e.get(AI).state)
+    return dest
+
 
 def ai_system(e, ai, pos, ecm, player, fov_map, w, h):
     if not all((e.has(c) for c in (AI, Position))):

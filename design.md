@@ -406,6 +406,12 @@ TODO
   - the player will always materialise in the middle of the screen
 	- no need to bother with the path between the two worlds being connected
 	- no need to worry about the PC going back -- it'll just be a new world
+* Replace strings with enums where applicable
+  - examples:
+    * Monster.kind
+    * AI.kind
+    * AI.state
+    * Dead.reason (maybe -- unless we treet it as a textual representation only)
 * Calculate the score
 * Show score on death
 * Apart from FoV, have a second slightly larger circle that marks areas as

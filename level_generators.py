@@ -1,6 +1,7 @@
 from random import random
 
-def forrest_level(w, h, empty_ratio):
+def forrest_level(w, h):
+    empty_ratio = 0.6
     result = []
     for x in xrange(w):
         for y in xrange(h):

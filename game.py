@@ -395,7 +395,14 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         if pressed_key.vk == tcod.KEY_ESCAPE:
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
-            return initial_state(w, h - panel_height, new_game())
+            initial_game_state = new_game()
+            seed(initial_game_state['seed'])
+            ecm = EntityComponentManager(autoregister_components=True)
+            ecm.register_component_type(Position, (int, int, int), index=True)
+            game_state = build_level(w, h - panel_height, ecm, player=None,
+                                     level_generator=gen.forrest_level)
+            game_state.update(initial_game_state)
+            return game_state
         elif pressed_key.vk == tcod.KEY_F6:
             global CHEATING
             CHEATING = not CHEATING
@@ -415,10 +422,15 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
                      game['commands'],
                      game['save_for_replay'])
     if player.get(LeaveLevel).leaving:
-        # TODO: generate a new level
-        # switch to it
-        print "TODO: generate a new level and move the player to it."
-        exit()
+        player.update(LeaveLevel, leaving=replace(False))
+        new_ecm = EntityComponentManager(autoregister_components=True)
+        new_ecm.register_component_type(Position, (int, int, int), index=True)
+
+        new_game_state = build_level(w, h - panel_height, new_ecm, player, gen.forrest_level)
+        new_game_state['seed'] = game['seed']
+        new_game_state['save_for_replay'] = game['save_for_replay']
+        new_game_state['commands'] = game['commands']
+        return new_game_state
 
     player_pos = player.get(Position)
     if player_pos:
@@ -473,26 +485,25 @@ def load_replay(replay_file_name):
         'commands': command_queue,
     }
 
-def initial_state(w, h, seed_state):
-    seed(seed_state['seed'])
-    print "Using random seed: %s" % seed_state['seed']
-    fov_map = tcod.map_new(w, h)
-
-    ecm = EntityComponentManager(autoregister_components=True)
-    ecm.register_component_type(Position, (int, int, int), index=True)
-    # TODO: register the component types here once things settled a bit
-    player_x, player_y = w / 2, h / 2
-    player = ecm.new_entity()
-    templates.player(player, (player_x, player_y))
-    player_pos = player.get(Position)
+def build_level(w, h, ecm, player, level_generator):
+    player_pos = Position(w / 2, h / 2)
+    if player:  # We're moving an existing PC to a new world
+        copied_player = ecm.new_entity()
+        for component in player.components():
+            copied_player.set(component)
+        copied_player.set(player_pos)
+        player = copied_player
+    else:
+        player = ecm.new_entity()
+        templates.player(player, player_pos)
     initial_dose_pos = Position(
-        player_x + choice([n for n in range(-3, 3) if n != 0]),
-        player_y + choice([n for n in range(-3, 3) if n != 0]),
+        player_pos.x + choice([n for n in range(-3, 3) if n != 0]),
+        player_pos.y + choice([n for n in range(-3, 3) if n != 0]),
     )
-    empty_ratio = 0.6
     def near_player(x, y):
         return loc.distance(player_pos, (x, y)) < 6
-    for x, y, type in gen.forrest_level(w, h, empty_ratio):
+    fov_map = tcod.map_new(w, h)
+    for x, y, type in level_generator(w, h):
         transparent = True
         walkable = True
         pos = Position(x, y)
@@ -528,17 +539,14 @@ def initial_state(w, h, seed_state):
             ]
             choice(factories)(monster)
         tcod.map_set_properties(fov_map, x, y, transparent, walkable)
-
-    assert len(set(ecm.entities_by_component_value(Position, x=player_x, y=player_y))) > 1
+    assert len(set(ecm.entities_by_component_value(Position, x=player_pos.x, y=player_pos.y))) > 1
     fov_radius = 3
     def recompute_fov(fov_map, x, y, radius):
         tcod.map_compute_fov(fov_map, x, y, radius, True)
-    recompute_fov(fov_map, player_x, player_y, fov_radius)
+    recompute_fov(fov_map, player_pos.x, player_pos.y, fov_radius)
     return {
         'ecm': ecm,
         'player': player,
-        'commands': seed_state['commands'],
-        'save_for_replay': seed_state['save_for_replay'],
         'keys': collections.deque(),
         'fov_map': fov_map,
         'fov_radius': fov_radius,
@@ -555,6 +563,9 @@ def run(replay_file_name=None):
         initial_game_state = load_replay(replay_file_name)
     else:
         initial_game_state = new_game()
+    print "Using random seed: %s" % initial_game_state['seed']
+    seed(initial_game_state['seed'])
+
     SCREEN_WIDTH = 80
     SCREEN_HEIGHT = 50
     PANEL_HEIGHT = 2
@@ -567,8 +578,12 @@ def run(replay_file_name=None):
     tcod.sys_set_fps(LIMIT_FPS)
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, Color.transparent.value)
     background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
-    game_state = initial_state(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT,
-                               initial_game_state)
+
+    ecm = EntityComponentManager(autoregister_components=True)
+    ecm.register_component_type(Position, (int, int, int), index=True)
+    game_state = build_level(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT,
+                             ecm, player=None, level_generator=gen.forrest_level)
+    game_state.update(initial_game_state)
     while not tcod.console_is_window_closed():
         tcod.console_set_default_foreground(0, Color.foreground.value)
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)

@@ -395,14 +395,10 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
         if pressed_key.vk == tcod.KEY_ESCAPE:
             return None  # Quit the game
         elif pressed_key.vk == tcod.KEY_F5:
-            initial_game_state = new_game()
-            seed(initial_game_state['seed'])
-            ecm = EntityComponentManager(autoregister_components=True)
-            ecm.register_component_type(Position, (int, int, int), index=True)
-            game_state = build_level(w, h - panel_height, ecm, player=None,
-                                     level_generator=gen.forrest_level)
-            game_state.update(initial_game_state)
-            return game_state
+            return build_game_state(w, h, panel_height,
+                                    new_game(),
+                                    player_components=None,
+                                    level_generator=gen.forrest_level)
         elif pressed_key.vk == tcod.KEY_F6:
             global CHEATING
             CHEATING = not CHEATING
@@ -422,15 +418,10 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
                      game['commands'],
                      game['save_for_replay'])
     if player.get(LeaveLevel).leaving:
-        player.update(LeaveLevel, leaving=replace(False))
-        new_ecm = EntityComponentManager(autoregister_components=True)
-        new_ecm.register_component_type(Position, (int, int, int), index=True)
-
-        new_game_state = build_level(w, h - panel_height, new_ecm, player, gen.forrest_level)
-        new_game_state['seed'] = game['seed']
-        new_game_state['save_for_replay'] = game['save_for_replay']
-        new_game_state['commands'] = game['commands']
-        return new_game_state
+        return build_game_state(w, h, panel_height,
+                                game,
+                                player.components(),
+                                gen.forrest_level)
 
     player_pos = player.get(Position)
     if player_pos:
@@ -451,6 +442,8 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
 def new_game():
     seed(datetime.now())
     random_seed = randint(1, 999999)
+    print "New game with a random seed: %s" % random_seed
+    seed(random_seed)
     command_queue = collections.deque()
     replay_file_name = "replay-%s" % datetime.now().isoformat()
     replay_file = open(replay_file_name, 'w')
@@ -459,7 +452,6 @@ def new_game():
         replay_file.write(step + '\n')
         replay_file.flush()
     return {
-        'seed': random_seed,
         'save_for_replay': save_for_replay,
         'commands': command_queue,
     }
@@ -477,25 +469,34 @@ def load_replay(replay_file_name):
         print "The first line of the replay file must be a number (seed)"
         exit(1)
     assert 1 <= random_seed <= 999999, "The replay seed must be within the limit"
+    print "Replaying game with a random seed: %s" % random_seed
+    seed(random_seed)
     commands = (Commands[name] for name in cmd_names)
     command_queue = collections.deque(commands)
     return {
-        'seed': random_seed,
         'save_for_replay': lambda x: None,  # This is a replay, no need for save
         'commands': command_queue,
     }
 
+def build_game_state(w, h, panel_height, replay_state, player_components, level_generator):
+    ecm = EntityComponentManager(autoregister_components=True)
+    ecm.register_component_type(Position, (int, int, int), index=True)
+    player = ecm.new_entity()
+    if player_components is None:
+        templates.player(player)
+    else:
+        for component in player_components:
+            player.set(component)
+    player.set(LeaveLevel(leaving=False))
+
+    game = build_level(w, h - panel_height, ecm, player, level_generator)
+    game['save_for_replay'] = replay_state['save_for_replay']
+    game['commands'] = replay_state['commands']
+    return game
+
 def build_level(w, h, ecm, player, level_generator):
     player_pos = Position(w / 2, h / 2)
-    if player:  # We're moving an existing PC to a new world
-        copied_player = ecm.new_entity()
-        for component in player.components():
-            copied_player.set(component)
-        copied_player.set(player_pos)
-        player = copied_player
-    else:
-        player = ecm.new_entity()
-        templates.player(player, player_pos)
+    player.set(player_pos)
     initial_dose_pos = Position(
         player_pos.x + choice([n for n in range(-3, 3) if n != 0]),
         player_pos.y + choice([n for n in range(-3, 3) if n != 0]),
@@ -563,8 +564,6 @@ def run(replay_file_name=None):
         initial_game_state = load_replay(replay_file_name)
     else:
         initial_game_state = new_game()
-    print "Using random seed: %s" % initial_game_state['seed']
-    seed(initial_game_state['seed'])
 
     SCREEN_WIDTH = 80
     SCREEN_HEIGHT = 50
@@ -579,11 +578,10 @@ def run(replay_file_name=None):
     consoles = initialise_consoles(10, SCREEN_WIDTH, SCREEN_HEIGHT, Color.transparent.value)
     background_conlole = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-    ecm = EntityComponentManager(autoregister_components=True)
-    ecm.register_component_type(Position, (int, int, int), index=True)
-    game_state = build_level(SCREEN_WIDTH, SCREEN_HEIGHT - PANEL_HEIGHT,
-                             ecm, player=None, level_generator=gen.forrest_level)
-    game_state.update(initial_game_state)
+    game_state = build_game_state(SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_HEIGHT,
+                                  initial_game_state,
+                                  player_components=None,
+                                  level_generator=gen.forrest_level)
     while not tcod.console_is_window_closed():
         tcod.console_set_default_foreground(0, Color.foreground.value)
         key = tcod.console_check_for_keypress(tcod.KEY_PRESSED)

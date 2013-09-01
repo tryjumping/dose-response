@@ -4,8 +4,7 @@ from components import *
 from systems.graphics import Color
 
 
-def player(e, pos):
-    e.add(Position._make(pos))
+def player(e):
     e.add(Tile(9, Color.player, '@'))
     e.add(UserInput())
     e.add(Info(name="The Nameless One", description=""))

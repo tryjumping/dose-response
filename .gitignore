@@ -1,3 +1,4 @@
 *.pyc
 dist
 /replay-20*
+/tcod-fps-bench-rust

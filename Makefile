@@ -20,3 +20,7 @@ exe: hedonic-hypothesis.py libtcod.so libtcodgui.so libtcodpy.py
 
 clean:
 	rm -rf dist *.pyc
+
+rust:
+	rust build -L./lib -O tcod_fps_bench.rs -o tcod-fps-bench-rust
+	LD_LIBRARY_PATH="./lib" ./tcod-fps-bench-rust

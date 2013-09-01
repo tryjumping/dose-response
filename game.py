@@ -9,6 +9,8 @@ from lib.enum import Enum
 
 from components import *
 from ecm_artemis import EntityComponentManager
+import entity_templates as templates
+import level_generators as gen
 import location_utils as loc
 from partial_helpers import *
 from systems.graphics import (tile_system, background_system, gui_system,
@@ -434,65 +436,6 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
     gui_system(ecm, player, consoles, w, h, panel_height, CHEATING, dt_ms)
     return game
 
-def generate_map(w, h, empty_ratio):
-    result = []
-    for x in xrange(w):
-        for y in xrange(h):
-            rand = random()
-            if rand < empty_ratio:
-                tile_kind = 'empty'
-            elif rand < 0.99:
-                tile_kind = 'wall'
-            else:
-                tile_kind = 'dose'
-                if random() < 0.23:
-                    tile_kind = 'stronger_dose'
-            if tile_kind == 'empty' and random() < 0.05:
-                tile_kind = 'monster'
-            result.append((x, y, tile_kind))
-    return result
-
-def make_anxiety_monster(e):
-    e.add(Tile(8, Color.anxiety, 'a'))
-    e.add(Monster('anxiety', hit_effect='modify_attributes'))
-    e.add(Info('Anxiety', "Won't give you a second of rest."))
-    e.add(AttributeModifier(state_of_mind=0, tolerance=0, confidence=0, nerve=0,
-                            will=-1))
-    e.add(AI('individual', 'idle'))
-    e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
-
-def make_depression_monster(e):
-    e.add(Tile(8, Color.depression, 'D'))
-    e.add(Monster('depression', hit_effect='modify_attributes'))
-    e.add(Info('Depression', "Fast and deadly. Don't let it get close."))
-    e.add(AttributeModifier(state_of_mind=-10000, tolerance=0, confidence=0,
-                            nerve=0, will=0))
-    e.add(AI('individual', 'idle'))
-    e.add(Turn(action_points=0, max_aps=2, active=False, count=0))
-
-def make_hunger_monster(e):
-    e.add(Tile(8, Color.hunger, 'h'))
-    e.add(Monster('hunger', hit_effect='modify_attributes'))
-    e.add(Info('Hunger', ""))
-    e.add(AttributeModifier(state_of_mind=-10, tolerance=0, confidence=0, nerve=0,
-                            will=0))
-    e.add(AI('pack', 'idle'))
-    e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
-
-def make_voices_monster(e):
-    e.add(Tile(8, Color.voices, 'v'))
-    e.add(Monster('voices', hit_effect='stun'))
-    e.add(Info('Voices in your head', "I'm not crazy. Can't be, can I?"))
-    e.add(AI('individual', 'idle'))
-    e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
-
-def make_shadows_monster(e):
-    e.add(Tile(8, Color.shadows, 'S'))
-    e.add(Monster('shadows', hit_effect='panic'))
-    e.add(Info('Shadows', "Hey! What was that?"))
-    e.add(AI('individual', 'idle'))
-    e.add(Turn(action_points=0, max_aps=1, active=False, count=0))
-
 def new_game():
     seed(datetime.now())
     random_seed = randint(1, 999999)
@@ -540,19 +483,7 @@ def initial_state(w, h, seed_state):
     # TODO: register the component types here once things settled a bit
     player_x, player_y = w / 2, h / 2
     player = ecm.new_entity()
-    player.add(Position(player_x, player_y))
-    player.add(Tile(9, Color.player, '@'))
-    player.add(UserInput())
-    player.add(Info(name="The Nameless One", description=""))
-    player.add(Attributes(state_of_mind=20, tolerance=0, confidence=5,
-                          nerve=5, will=2))
-    player.add(Turn(action_points=1, max_aps=1, active=True, count=0))
-    player.add(Statistics(turns=0, kills=0, doses=0))
-    player.add(Solid())
-    player.add(Addicted(resistance=0, rate_per_turn=1, turn_last_activated=0))
-    player.add(KillCounter(anxieties=0, anxiety_threshold=10))
-    player.add(Abilities(see_entities=False, see_world=False))
-    player.add(LeaveLevel(leaving=False))
+    templates.player(player, (player_x, player_y))
     player_pos = player.get(Position)
     initial_dose_pos = Position(
         player_x + choice([n for n in range(-3, 3) if n != 0]),
@@ -561,7 +492,7 @@ def initial_state(w, h, seed_state):
     empty_ratio = 0.6
     def near_player(x, y):
         return loc.distance(player_pos, (x, y)) < 6
-    for x, y, type in generate_map(w, h, empty_ratio):
+    for x, y, type in gen.forrest_level(w, h, empty_ratio):
         transparent = True
         walkable = True
         pos = Position(x, y)
@@ -578,47 +509,22 @@ def initial_state(w, h, seed_state):
             if loc.equal_pos(initial_dose_pos, pos):
                 type = 'dose'
             dose = ecm.new_entity()
-            dose.add(pos)
-            if type == 'dose':
-                glyph = 'i'
-                som = 40
-                kill_radius = 4
-                irresistibility = 2
-            elif type == 'stronger_dose':
-                glyph = 'I'
-                som = 90
-                kill_radius = 6
-                irresistibility = 3
-            else:
-                raise ValueError('Unknown dose type: %s' % type)
-            dose.add(Tile(6, Color.dose, glyph))
-            dose.add(AttributeModifier(
-                state_of_mind = som + choice(range(-10, 11)),
-                tolerance = 1,
-                confidence = 0,
-                nerve = 0,
-                will = 0,
-            ))
-            dose.add(Explorable(explored))
-            dose.add(Interactive())
-            dose.add(Dose(irresistibility))
-            dose.add(Glow(radius=0, color=Color.dose_glow))
-            dose.add(KillSurroundingMonsters(radius=kill_radius))
+            dose_type = 'weak' if type == 'dose' else 'strong'
+            templates.dose(dose, pos)
+            dose.update(Explorable, explored=replace(explored))
         elif type == 'wall':
-            color = choice((Color.wall_1, Color.wall_2, Color.wall_3))
-            background.add(Tile(0, color, '#'))
-            background.add(Solid())
+            templates.wall(background, kind='wall')
             walkable = False
         elif type == 'monster' and not near_player(x, y):
             monster = ecm.new_entity()
             monster.add(pos)
             monster.add(Solid())
             factories = [
-                make_anxiety_monster,
-                make_depression_monster,
-                make_hunger_monster,
-                make_voices_monster,
-                make_shadows_monster,
+                templates.anxiety_monster,
+                templates.depression_monster,
+                templates.hunger_monster,
+                templates.voices_monster,
+                templates.shadows_monster,
             ]
             choice(factories)(monster)
         tcod.map_set_properties(fov_map, x, y, transparent, walkable)

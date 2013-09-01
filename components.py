@@ -63,3 +63,5 @@ Component('KillSurroundingMonsters', 'radius')
 Component('KillCounter', 'anxieties, anxiety_threshold')
 
 Component('Abilities', 'see_entities, see_world')
+
+Component('LeaveLevel', 'leaving')

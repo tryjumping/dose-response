@@ -272,7 +272,8 @@ def movement_system(e, ecm, w, h):
         if bumped_entities:
             e.set(Bump(bumped_entities[0]))
     elif not loc.within_rect(dest, 0, 0, w, h):
-        pass  # TODO: move to the next screen
+        if e.has(LeaveLevel):
+            e.update(LeaveLevel, leaving=replace(True))
     else:
         e.set(Position._make(dest))
         entity_spend_ap(e)
@@ -411,6 +412,11 @@ def update(game, dt_ms, consoles, w, h, panel_height, pressed_key):
                      game['fov_map'],
                      game['commands'],
                      game['save_for_replay'])
+    if player.get(LeaveLevel).leaving:
+        # TODO: generate a new level
+        # switch to it
+        print "TODO: generate a new level and move the player to it."
+        exit()
 
     player_pos = player.get(Position)
     if player_pos:
@@ -546,6 +552,7 @@ def initial_state(w, h, seed_state):
     player.add(Addicted(resistance=0, rate_per_turn=1, turn_last_activated=0))
     player.add(KillCounter(anxieties=0, anxiety_threshold=10))
     player.add(Abilities(see_entities=False, see_world=False))
+    player.add(LeaveLevel(leaving=False))
     player_pos = player.get(Position)
     initial_dose_pos = Position(
         player_x + choice([n for n in range(-3, 3) if n != 0]),

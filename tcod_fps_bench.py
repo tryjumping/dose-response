@@ -26,7 +26,7 @@ if __name__ == '__main__':
     world = generate_world(WIDTH, HEIGHT)
 
     TRANSPARENT_BG = tcod.red
-    CONSOLE_COUNT = 10
+    CONSOLE_COUNT = 3
     font_path = os.path.join('fonts', 'dejavu16x16_gs_tc.png')
     font_settings = tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
     tcod.console_set_custom_font(font_path, font_settings)

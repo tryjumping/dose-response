@@ -132,7 +132,7 @@ fn main() {
     let root_console = 0 as *c_void;
     let mut consoles: ~[*c_void] = ~[];
     unsafe {
-        for 10.times {
+        for 3.times {
             let con = TCOD_console_new(width as c_int, height as c_int);
             TCOD_console_set_key_color(con, transparent_bg);
             consoles.push(con);

@@ -7,6 +7,19 @@ enum TCOD_renderer_t {
         TCOD_NB_RENDERERS,
 }
 
+enum TCOD_key_status_t {
+        TCOD_KEY_PRESSED=1,
+        TCOD_KEY_RELEASED=2,
+}
+
+enum TCOD_font_flags_t {
+        TCOD_FONT_LAYOUT_ASCII_INCOL=1,
+        TCOD_FONT_LAYOUT_ASCII_INROW=2,
+        TCOD_FONT_TYPE_GREYSCALE=4,
+        TCOD_FONT_LAYOUT_TCOD=8,
+}
+
+
 struct TCOD_key_t {
     vk: c_int,
     c: c_char,
@@ -116,10 +129,6 @@ fn main() {
     let white = TCOD_color_t{r: 255, g: 255, b: 255};
 
     let world = generate_world(width, height);
-    let TCOD_FONT_TYPE_GREYSCALE = 4;
-    let TCOD_FONT_LAYOUT_TCOD = 8;
-    let TCOD_KEY_PRESSED = 1;
-    let TCOD_KEY_RELEASED = 2;
     let root_console = 0 as *c_void;
     let mut consoles: ~[*c_void] = ~[];
     unsafe {
@@ -129,10 +138,10 @@ fn main() {
             consoles.push(con);
         }
         "./fonts/dejavu16x16_gs_tc.png".as_c_str(
-            |font_path| TCOD_console_set_custom_font(font_path, TCOD_FONT_TYPE_GREYSCALE | TCOD_FONT_LAYOUT_TCOD, 32, 8));
+            |font_path| TCOD_console_set_custom_font(font_path, TCOD_FONT_TYPE_GREYSCALE as c_int | TCOD_FONT_LAYOUT_TCOD as c_int, 32, 8));
         "tcod bench".as_c_str(|title| TCOD_console_init_root(width as c_int, height as c_int, title, 0, TCOD_RENDERER_SDL));
         while TCOD_console_is_window_closed() == 0 {
-            let key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED | TCOD_KEY_RELEASED);
+            let key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED as c_int | TCOD_KEY_RELEASED as c_int);
             if key.c == 27 { break; }
             TCOD_console_set_default_foreground(root_console, white);
             TCOD_console_clear(root_console);

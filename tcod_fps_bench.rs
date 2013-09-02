@@ -1,5 +1,12 @@
 use std::libc::{c_int, c_char, uint8_t, c_void, c_float};
 
+enum TCOD_renderer_t {
+        TCOD_RENDERER_GLSL,
+        TCOD_RENDERER_OPENGL,
+        TCOD_RENDERER_SDL,
+        TCOD_NB_RENDERERS,
+}
+
 struct TCOD_key_t {
     vk: c_int,
     c: c_char,
@@ -47,7 +54,7 @@ extern {
     fn TCOD_sys_set_fps(val: c_int) -> ();
     fn TCOD_sys_get_fps() -> c_int;
     fn TCOD_console_init_root(w: c_int, h: c_int, title: *c_char,
-                              fullscreen: uint8_t, renderer: c_int);
+                              fullscreen: uint8_t, renderer: TCOD_renderer_t);
     fn TCOD_console_set_custom_font(fontFile: *c_char, flags: c_int,
                                     nb_char_horiz: c_int, nb_char_vertic: c_int) -> ();
     fn TCOD_console_is_window_closed() -> uint8_t;
@@ -123,7 +130,7 @@ fn main() {
         }
         "./fonts/dejavu16x16_gs_tc.png".as_c_str(
             |font_path| TCOD_console_set_custom_font(font_path, TCOD_FONT_TYPE_GREYSCALE | TCOD_FONT_LAYOUT_TCOD, 32, 8));
-        "tcod bench".as_c_str(|title| TCOD_console_init_root(width as c_int, height as c_int, title, 0, 2));
+        "tcod bench".as_c_str(|title| TCOD_console_init_root(width as c_int, height as c_int, title, 0, TCOD_RENDERER_SDL));
         while TCOD_console_is_window_closed() == 0 {
             let key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED | TCOD_KEY_RELEASED);
             if key.c == 27 { break; }

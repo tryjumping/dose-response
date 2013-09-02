@@ -1,5 +1,8 @@
-run:
-	./dose-response
+run: build
+	LD_LIBRARY_PATH="./lib" ./dose-response-rust
+
+build:
+	rust build -L./lib -O main.rs -o dose-response-rust
 
 replay:
 	./dose-response `find . -type f -name 'replay-*' | sort | tail -n 1`
@@ -19,8 +22,8 @@ exe: hedonic-hypothesis.py libtcod.so libtcodgui.so libtcodpy.py
 	cp -r fonts dist
 
 clean:
-	rm -rf dist *.pyc
+	rm -rf dist *.pyc dose-response-rust
 
-rust:
+rust-bench:
 	rust build -L./lib -O tcod_fps_bench.rs -o tcod-fps-bench-rust
 	LD_LIBRARY_PATH="./lib" ./tcod-fps-bench-rust

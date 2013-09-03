@@ -1,0 +1,259 @@
+#[link(name = "rtcod", vers = "0.0.1")];
+use std::libc::{c_int, c_char, uint8_t, c_void, c_float};
+
+
+pub type TCOD_console_t = *c_void;
+
+enum TCOD_renderer_t {
+        TCOD_RENDERER_GLSL,
+        TCOD_RENDERER_OPENGL,
+        TCOD_RENDERER_SDL,
+        TCOD_NB_RENDERERS,
+}
+
+enum TCOD_key_status_t {
+        TCOD_KEY_PRESSED=1,
+        TCOD_KEY_RELEASED=2,
+}
+
+enum TCOD_font_flags_t {
+        TCOD_FONT_LAYOUT_ASCII_INCOL=1,
+        TCOD_FONT_LAYOUT_ASCII_INROW=2,
+        TCOD_FONT_TYPE_GREYSCALE=4,
+        TCOD_FONT_LAYOUT_TCOD=8,
+}
+
+pub struct TCOD_key_t {
+    vk: c_int,
+    c: c_char,
+    pressed: uint8_t,
+    lalt: uint8_t,
+    lctrl: uint8_t,
+    ralt: uint8_t,
+    rctrl: uint8_t,
+    shift: uint8_t,
+}
+
+pub struct TCOD_color_t {
+    r: uint8_t,
+    g: uint8_t,
+    b: uint8_t,
+}
+
+pub enum TCOD_alignment_t {
+        TCOD_LEFT,
+        TCOD_RIGHT,
+        TCOD_CENTER
+}
+
+pub enum TCOD_bkgnd_flag_t {
+        TCOD_BKGND_NONE,
+        TCOD_BKGND_SET,
+        TCOD_BKGND_MULTIPLY,
+        TCOD_BKGND_LIGHTEN,
+        TCOD_BKGND_DARKEN,
+        TCOD_BKGND_SCREEN,
+        TCOD_BKGND_COLOR_DODGE,
+        TCOD_BKGND_COLOR_BURN,
+        TCOD_BKGND_ADD,
+        TCOD_BKGND_ADDA,
+        TCOD_BKGND_BURN,
+        TCOD_BKGND_OVERLAY,
+        TCOD_BKGND_ALPH,
+        TCOD_BKGND_DEFAULT
+}
+
+
+#[link_args = "-ltcod"]
+extern {
+    fn TCOD_sys_set_fps(val: c_int) -> ();
+    fn TCOD_sys_get_fps() -> c_int;
+    fn TCOD_console_init_root(w: c_int, h: c_int, title: *c_char,
+                              fullscreen: uint8_t, renderer: TCOD_renderer_t);
+    fn TCOD_console_set_custom_font(fontFile: *c_char, flags: c_int,
+                                    nb_char_horiz: c_int, nb_char_vertic: c_int) -> ();
+    fn TCOD_console_is_window_closed() -> uint8_t;
+    fn TCOD_console_wait_for_keypress(flush: uint8_t) -> TCOD_key_t;
+    fn TCOD_console_check_for_keypress(pressed: c_int) -> TCOD_key_t;
+    fn TCOD_console_set_char_background(con: TCOD_console_t, x: c_int, y: c_int,
+                                        col: TCOD_color_t,
+                                        flag: TCOD_bkgnd_flag_t) -> ();
+    fn TCOD_console_set_char_foreground(con: TCOD_console_t, x: c_int, y: c_int, col: TCOD_color_t) -> ();
+    fn TCOD_console_put_char(con: TCOD_console_t, x: c_int, y: c_int, c: c_int,
+                             flag: TCOD_bkgnd_flag_t) -> ();
+    fn TCOD_console_put_char_ex(con: TCOD_console_t, x: c_int, y: c_int, c: c_int,
+                                fore: TCOD_color_t, back: TCOD_color_t) -> ();
+    fn TCOD_console_clear(con: TCOD_console_t) -> ();
+    fn TCOD_console_flush() -> ();
+    fn TCOD_console_print_ex(con: TCOD_console_t, x: c_int, y: c_int,
+                             flag: TCOD_bkgnd_flag_t,
+                             alignment: TCOD_alignment_t,
+                             fmt: *c_char) -> ();
+    fn TCOD_console_new(w: c_int, h: c_int) -> TCOD_console_t;
+    fn TCOD_console_set_default_background(con: TCOD_console_t, col: TCOD_color_t) -> ();
+    fn TCOD_console_set_default_foreground(con: TCOD_console_t, col: TCOD_color_t) -> ();
+    fn TCOD_console_set_key_color(con: TCOD_console_t, col: TCOD_color_t) -> ();
+    fn TCOD_console_blit(src: TCOD_console_t, xSrc: c_int, ySrc: c_int, wSrc: c_int, hSrc: c_int,
+                         dst: TCOD_console_t, xDst: c_int, yDst: c_int,
+                         foreground_alpha: c_float, background_alpha: c_float) -> ();
+}
+
+// Let's make sure casting to c_int doesn't overflow
+fn uint_within_bounds(num: uint) {
+    assert!(num < 10000)
+}
+
+pub static ROOT_CONSOLE: TCOD_console_t = 0 as TCOD_console_t;
+
+pub fn sys_set_fps(fps: uint) {
+    uint_within_bounds(fps);
+    unsafe {
+        TCOD_sys_set_fps(fps as c_int)
+    }
+}
+
+pub fn sys_get_fps() -> uint {
+    let mut result;
+    unsafe {
+        result = TCOD_sys_get_fps();
+    }
+    assert!(result >= 0);
+    return result as uint
+}
+
+pub fn console_init_root(width: uint, height: uint, title: &str,
+                         fullscreen: bool) {
+    uint_within_bounds(width); uint_within_bounds(height);
+    unsafe {
+        title.as_c_str(
+            |c_title| TCOD_console_init_root(width as c_int, height as c_int,
+                                             c_title, fullscreen as uint8_t,
+                                             TCOD_RENDERER_SDL));
+    }
+}
+
+pub fn console_set_custom_font(font_path: &str) {
+    unsafe {
+        font_path.as_c_str(
+            |path| TCOD_console_set_custom_font(path, TCOD_FONT_TYPE_GREYSCALE as c_int | TCOD_FONT_LAYOUT_TCOD as c_int, 32, 8));
+    }
+}
+
+pub fn console_is_window_closed() -> bool {
+    unsafe {
+        TCOD_console_is_window_closed() != 0
+    }
+}
+
+pub enum KeyStatus {
+    KeyPressed = 1,
+    KeyReleased = 2,
+    KeyPressedOrReleased = 1 | 2,
+}
+
+pub fn console_wait_for_keypress(flush: bool) -> TCOD_key_t {
+    unsafe {
+        TCOD_console_wait_for_keypress(flush as uint8_t)
+    }
+}
+
+pub fn console_check_for_keypress(status: KeyStatus) -> TCOD_key_t {
+    unsafe {
+        TCOD_console_check_for_keypress(status as c_int)
+    }
+}
+
+pub fn console_set_char_background(con: TCOD_console_t, x: uint, y: uint,
+                                   color: TCOD_color_t,
+                                   background_flag: TCOD_bkgnd_flag_t) {
+    uint_within_bounds(x); uint_within_bounds(y);
+    unsafe {
+        TCOD_console_set_char_background(con, x as c_int, y as c_int,
+                                         color, background_flag)
+    }
+}
+
+pub fn console_put_char(con: TCOD_console_t, x: uint, y: uint, glyph: char,
+                        background_flag: TCOD_bkgnd_flag_t) {
+    uint_within_bounds(x); uint_within_bounds(y);
+    unsafe {
+        TCOD_console_put_char(con, x as c_int, y as c_int, glyph as c_int,
+                              background_flag);
+    }
+}
+
+pub fn console_put_char_ex(con: TCOD_console_t, x: uint, y: uint, glyph: char,
+                           foreground: TCOD_color_t, background: TCOD_color_t) {
+    uint_within_bounds(x); uint_within_bounds(y);
+    unsafe {
+        TCOD_console_put_char_ex(con, x as c_int, y as c_int, glyph as c_int,
+                                 foreground, background);
+    }
+}
+
+pub fn console_clear(con: TCOD_console_t) {
+    unsafe {
+        TCOD_console_clear(con);
+    }
+}
+
+pub fn console_flush() {
+    unsafe {
+        TCOD_console_flush();
+    }
+}
+
+pub fn console_print_ex(con: TCOD_console_t, x: uint, y: uint,
+                        background_flag: TCOD_bkgnd_flag_t,
+                        alignment: TCOD_alignment_t,
+                        text: &str) {
+    uint_within_bounds(x); uint_within_bounds(y);
+    unsafe {
+        text.as_c_str(
+            |c_text|
+            TCOD_console_print_ex(con, x as c_int, y as c_int, background_flag, alignment, c_text));
+    }
+}
+
+pub fn console_new(width: uint, height: uint) -> TCOD_console_t {
+    uint_within_bounds(width); uint_within_bounds(height);
+    unsafe {
+        TCOD_console_new(width as c_int, height as c_int)
+    }
+}
+
+pub fn console_set_default_background(con: TCOD_console_t, color: TCOD_color_t) {
+    unsafe {
+        TCOD_console_set_default_background(con, color);
+    }
+}
+
+pub fn console_set_default_foreground(con: TCOD_console_t, color: TCOD_color_t) {
+    unsafe {
+        TCOD_console_set_default_foreground(con, color);
+    }
+}
+
+pub fn console_set_key_color(con: TCOD_console_t, color: TCOD_color_t) {
+    unsafe {
+        TCOD_console_set_key_color(con, color);
+    }
+}
+
+pub fn console_blit(source_console: TCOD_console_t,
+                    source_x: uint, source_y: uint,
+                    source_width: uint, source_height: uint,
+                    destination_console: TCOD_console_t,
+                    destination_x: uint, destination_y: uint,
+                    foreground_alpha: float, background_alpha: float) {
+    uint_within_bounds(source_x); uint_within_bounds(source_y);
+    uint_within_bounds(source_width); uint_within_bounds(source_height);
+    uint_within_bounds(destination_x); uint_within_bounds(destination_y);
+    unsafe {
+        TCOD_console_blit(source_console, source_x as c_int, source_y as c_int,
+                          source_width as c_int, source_height as c_int,
+                          destination_console,
+                          destination_x as c_int, destination_y as c_int,
+                          foreground_alpha as c_float, background_alpha as c_float);
+    }
+}

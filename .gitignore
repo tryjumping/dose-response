@@ -3,3 +3,4 @@ dist
 /replay-20*
 /tcod-fps-bench-rust
 /dose-response-rust
+/lib/librtcod-*.so

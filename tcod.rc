@@ -99,14 +99,12 @@ extern {
 }
 
 // Let's make sure casting to c_int doesn't overflow
-fn uint_within_bounds(num: uint) {
-    assert!(num < 10000)
-}
+static max_uint: uint = 10000;
 
 pub static ROOT_CONSOLE: TCOD_console_t = 0 as TCOD_console_t;
 
 pub fn sys_set_fps(fps: uint) {
-    uint_within_bounds(fps);
+    assert!(fps < max_uint);
     unsafe {
         TCOD_sys_set_fps(fps as c_int)
     }
@@ -123,7 +121,7 @@ pub fn sys_get_fps() -> uint {
 
 pub fn console_init_root(width: uint, height: uint, title: &str,
                          fullscreen: bool) {
-    uint_within_bounds(width); uint_within_bounds(height);
+    assert!(width < max_uint); assert!(height < max_uint);
     unsafe {
         title.as_c_str(
             |c_title| TCOD_console_init_root(width as c_int, height as c_int,
@@ -166,7 +164,7 @@ pub fn console_check_for_keypress(status: KeyStatus) -> TCOD_key_t {
 pub fn console_set_char_background(con: TCOD_console_t, x: uint, y: uint,
                                    color: TCOD_color_t,
                                    background_flag: TCOD_bkgnd_flag_t) {
-    uint_within_bounds(x); uint_within_bounds(y);
+    assert!(x < max_uint); assert!(y < max_uint);
     unsafe {
         TCOD_console_set_char_background(con, x as c_int, y as c_int,
                                          color, background_flag)
@@ -175,7 +173,7 @@ pub fn console_set_char_background(con: TCOD_console_t, x: uint, y: uint,
 
 pub fn console_put_char(con: TCOD_console_t, x: uint, y: uint, glyph: char,
                         background_flag: TCOD_bkgnd_flag_t) {
-    uint_within_bounds(x); uint_within_bounds(y);
+    assert!(x < max_uint); assert!(y < max_uint);
     unsafe {
         TCOD_console_put_char(con, x as c_int, y as c_int, glyph as c_int,
                               background_flag);
@@ -184,7 +182,7 @@ pub fn console_put_char(con: TCOD_console_t, x: uint, y: uint, glyph: char,
 
 pub fn console_put_char_ex(con: TCOD_console_t, x: uint, y: uint, glyph: char,
                            foreground: TCOD_color_t, background: TCOD_color_t) {
-    uint_within_bounds(x); uint_within_bounds(y);
+    assert!(x < max_uint); assert!(y < max_uint);
     unsafe {
         TCOD_console_put_char_ex(con, x as c_int, y as c_int, glyph as c_int,
                                  foreground, background);
@@ -207,7 +205,7 @@ pub fn console_print_ex(con: TCOD_console_t, x: uint, y: uint,
                         background_flag: TCOD_bkgnd_flag_t,
                         alignment: TCOD_alignment_t,
                         text: &str) {
-    uint_within_bounds(x); uint_within_bounds(y);
+    assert!(x < max_uint); assert!(y < max_uint);
     unsafe {
         text.as_c_str(
             |c_text|
@@ -216,7 +214,7 @@ pub fn console_print_ex(con: TCOD_console_t, x: uint, y: uint,
 }
 
 pub fn console_new(width: uint, height: uint) -> TCOD_console_t {
-    uint_within_bounds(width); uint_within_bounds(height);
+    assert!(width < max_uint); assert!(height < max_uint);
     unsafe {
         TCOD_console_new(width as c_int, height as c_int)
     }
@@ -246,9 +244,9 @@ pub fn console_blit(source_console: TCOD_console_t,
                     destination_console: TCOD_console_t,
                     destination_x: uint, destination_y: uint,
                     foreground_alpha: float, background_alpha: float) {
-    uint_within_bounds(source_x); uint_within_bounds(source_y);
-    uint_within_bounds(source_width); uint_within_bounds(source_height);
-    uint_within_bounds(destination_x); uint_within_bounds(destination_y);
+    assert!(source_x < max_uint); assert!(source_y < max_uint);
+    assert!(source_width < max_uint); assert!(source_height < max_uint);
+    assert!(destination_x < max_uint); assert!(destination_y < max_uint);
     unsafe {
         TCOD_console_blit(source_console, source_x as c_int, source_y as c_int,
                           source_width as c_int, source_height as c_int,

@@ -1,3 +1,4 @@
+mod ecm;
 mod tcod;
 
 fn generate_world(w: uint, h: uint) -> ~[(uint, uint, char)] {
@@ -26,6 +27,10 @@ fn draw(layers: &[tcod::TCOD_console_t], world: &~[(uint, uint, char)], width: u
 
 
 fn main() {
+    let mut entity_manager = ecm::EntityManager::new();
+    let e = entity_manager.new_entity();
+    let f = entity_manager.new_entity();
+    println(fmt!("e: %?, f: %?", e, f));
     let width = 80;
     let height = 50;
     let console_count = 10;

@@ -65,7 +65,7 @@ pub enum TCOD_bkgnd_flag_t {
 
 
 #[link_args = "-ltcod"]
-extern {
+extern "C" {
     fn TCOD_sys_set_fps(val: c_int) -> ();
     fn TCOD_sys_get_fps() -> c_int;
     fn TCOD_console_init_root(w: c_int, h: c_int, title: *c_char,
@@ -244,9 +244,9 @@ pub fn console_blit(source_console: TCOD_console_t,
                     destination_console: TCOD_console_t,
                     destination_x: uint, destination_y: uint,
                     foreground_alpha: float, background_alpha: float) {
-    assert!(source_x < max_uint); assert!(source_y < max_uint);
-    assert!(source_width < max_uint); assert!(source_height < max_uint);
-    assert!(destination_x < max_uint); assert!(destination_y < max_uint);
+    assert!(source_x < max_uint && source_y < max_uint &&
+            source_width < max_uint && source_height < max_uint &&
+            destination_x < max_uint && destination_y < max_uint);
     unsafe {
         TCOD_console_blit(source_console, source_x as c_int, source_y as c_int,
                           source_width as c_int, source_height as c_int,

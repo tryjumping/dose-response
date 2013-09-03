@@ -1,4 +1,3 @@
-#[link(name = "rtcod", vers = "0.0.1")];
 use std::libc::{c_int, c_char, uint8_t, c_void, c_float};
 
 

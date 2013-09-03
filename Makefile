@@ -2,7 +2,6 @@ run: build
 	LD_LIBRARY_PATH="./lib" ./dose-response-rust
 
 build:
-	rust build -W ctypes -L./lib -O tcod.rc --lib --out-dir lib
 	rust build -W ctypes -L./lib -O main.rs -o dose-response-rust
 
 replay:

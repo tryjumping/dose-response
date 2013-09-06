@@ -41,6 +41,34 @@ impl ecm::ComponentType for ComponentType {
     }
 }
 
+struct P {x: int, y: int}
+struct H(int);
+
+struct GameObject {
+    position: Option<P>,
+    health: Option<H>,
+}
+
+
+struct ECM {
+    game_objects: ~[GameObject],
+}
+
+impl ECM {
+    fn add(&mut self, o: GameObject) {
+        self.game_objects.push(o);
+    }
+
+    fn get(&self, index: uint) -> GameObject {
+        self.game_objects[index]
+    }
+
+    fn get_ref<'r>(&'r self, index: uint) -> &'r GameObject {
+        &self.game_objects[index]
+    }
+}
+
+
 fn main() {
     let mut ecm: ecm::EntityManager<Component> = ecm::EntityManager::new();
     let e = ecm.new_entity();
@@ -50,4 +78,22 @@ fn main() {
     println(fmt!("e: %?, f: %?", e, f));
     let p = ecm.get(e, Position);
     println(fmt!("e's position: %?", p));
+
+    let mut entities: ~[GameObject] = ~[];
+    let player = GameObject{
+        position: Some(P{x: 10, y: 20}),
+        health: Some(H(100))};
+    entities.push(player);
+    entities.push(GameObject{position: Some(P{x: 1, y: 1}), health: None});
+
+    let &tile = &entities[1];
+    println(fmt!("player: %?", player));
+    println(fmt!("tile: %?", tile));
+
+    let mut em = ECM{game_objects: ~[]};
+    em.add(player);
+    em.add(tile);
+    println(fmt!("ecm player: %?", em.get(0)));
+    let tile: &GameObject = em.get_ref(0);
+    println(fmt!("ecm tile ref: %?", tile));
 }

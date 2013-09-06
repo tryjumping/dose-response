@@ -1,3 +1,6 @@
+use components::*;
+
+mod components;
 mod ecm;
 mod tcod;
 
@@ -25,75 +28,42 @@ fn draw(layers: &[tcod::TCOD_console_t], world: &~[(uint, uint, char)], width: u
                            fmt!("FPS: %?", tcod::sys_get_fps()));
 }
 
-enum Component {
-    PositionC{x: int, y: int},
-    HealthC(int),
+
+fn debug_system(entity: &GameObject) {
+    println(fmt!("DEBUG processing entity: %?", entity));
 }
 
-enum ComponentType {
-    Position,
-    Health,
+fn tile_system(entity: &GameObject) {
+    if entity.position.is_none() { return }
+    let pos = entity.position.get();
+    println(fmt!("Tile system renders tile on pos: %?", pos));
 }
 
-impl ecm::ComponentType for ComponentType {
-    fn to_index(&self) -> uint {
-        *self as uint
-    }
-}
-
-struct P {x: int, y: int}
-struct H(int);
-
-struct GameObject {
-    position: Option<P>,
-    health: Option<H>,
+fn health_system(entity: &mut GameObject) {
+    if entity.health.is_none() { return }
+    let health = *entity.health.get();
+    entity.health = Some(Health(health - 1));
 }
 
 
-struct ECM {
-    game_objects: ~[GameObject],
-}
-
-impl ECM {
-    fn add(&mut self, o: GameObject) {
-        self.game_objects.push(o);
-    }
-
-    fn get(&self, index: uint) -> GameObject {
-        self.game_objects[index]
-    }
-
-    fn get_ref<'r>(&'r self, index: uint) -> &'r GameObject {
-        &self.game_objects[index]
+fn update(entities: &mut[GameObject]) {
+    for entities.mut_iter().advance |e| {
+        debug_system(e);
+        tile_system(e);
+        health_system(e);
     }
 }
 
 
 fn main() {
-    let mut ecm: ecm::EntityManager<Component> = ecm::EntityManager::new();
-    let e = ecm.new_entity();
-    let f = ecm.new_entity();
-    ecm.set(e, Position, PositionC{x: 10, y: 20});
-    ecm.set(e, Health, HealthC(100));
-    println(fmt!("e: %?, f: %?", e, f));
-    let p = ecm.get(e, Position);
-    println(fmt!("e's position: %?", p));
-
     let mut entities: ~[GameObject] = ~[];
     let player = GameObject{
-        position: Some(P{x: 10, y: 20}),
-        health: Some(H(100))};
+        position: Some(Position{x: 10, y: 20}),
+        health: Some(Health(100))};
     entities.push(player);
-    entities.push(GameObject{position: Some(P{x: 1, y: 1}), health: None});
+    entities.push(GameObject{position: Some(Position{x: 1, y: 1}), health: None});
 
-    let &tile = &entities[1];
-    println(fmt!("player: %?", player));
-    println(fmt!("tile: %?", tile));
-
-    let mut em = ECM{game_objects: ~[]};
-    em.add(player);
-    em.add(tile);
-    println(fmt!("ecm player: %?", em.get(0)));
-    let tile: &GameObject = em.get_ref(0);
-    println(fmt!("ecm tile ref: %?", tile));
+    for 3.times {
+        update(entities);
+    }
 }

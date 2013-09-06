@@ -25,49 +25,23 @@ fn draw(layers: &[tcod::TCOD_console_t], world: &~[(uint, uint, char)], width: u
                            fmt!("FPS: %?", tcod::sys_get_fps()));
 }
 
+enum Component {
+    PositionC{x: int, y: int},
+    HealthC(int),
+}
+
+enum ComponentType {
+    Position,
+    Health,
+}
 
 fn main() {
-    let mut entity_manager = ecm::EntityManager::new();
-    let e = entity_manager.new_entity();
-    let f = entity_manager.new_entity();
+    let mut ecm: ecm::EntityManager<Component> = ecm::EntityManager::new();
+    let e = ecm.new_entity();
+    let f = ecm.new_entity();
+    ecm.set(e, Position as uint, PositionC{x: 10, y: 20});
+    ecm.set(e, Health as uint, HealthC(100));
     println(fmt!("e: %?, f: %?", e, f));
-    let width = 80;
-    let height = 50;
-    let console_count = 10;
-    let transparent_bg = tcod::TCOD_color_t{r: 255, g: 0, b: 0};
-    let white = tcod::TCOD_color_t{r: 255, g: 255, b: 255};
-
-    let world = generate_world(width, height);
-    let mut consoles: ~[tcod::TCOD_console_t] = ~[];
-    for 3.times {
-        let con = tcod::console_new(width, height);
-        tcod::console_set_key_color(con, transparent_bg);
-        consoles.push(con);
-    }
-    tcod::console_set_custom_font("./fonts/dejavu16x16_gs_tc.png");
-
-    tcod::console_init_root(width, height, "Dose Response", false);
-    while !tcod::console_is_window_closed() {
-        let key = tcod::console_check_for_keypress(tcod::KeyPressedOrReleased);
-        if key.c == 27 { break; }
-        tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, white);
-        tcod::console_clear(tcod::ROOT_CONSOLE);
-        for consoles.iter().advance |&con| {
-            tcod::console_set_default_background(con, transparent_bg);
-            tcod::console_set_default_foreground(con, white);
-            tcod::console_clear(con);
-        }
-
-        draw(consoles, &world, width, height);
-
-        for consoles.iter().advance |&con| {
-            tcod::console_blit(con, 0, 0, width, height,
-                               tcod::ROOT_CONSOLE, 0, 0,
-                               1f, 1f);
-        }
-        tcod::console_flush();
-    }
-
-
-    println(fmt!("width: %?, height: %?, consoles: %?", width, height, console_count));
+    let p = ecm.get(e, Position as uint);
+    println(fmt!("e's position: %?", p));
 }

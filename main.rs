@@ -35,13 +35,19 @@ enum ComponentType {
     Health,
 }
 
+impl ecm::ComponentType for ComponentType {
+    fn to_index(&self) -> uint {
+        *self as uint
+    }
+}
+
 fn main() {
     let mut ecm: ecm::EntityManager<Component> = ecm::EntityManager::new();
     let e = ecm.new_entity();
     let f = ecm.new_entity();
-    ecm.set(e, Position as uint, PositionC{x: 10, y: 20});
-    ecm.set(e, Health as uint, HealthC(100));
+    ecm.set(e, Position, PositionC{x: 10, y: 20});
+    ecm.set(e, Health, HealthC(100));
     println(fmt!("e: %?, f: %?", e, f));
-    let p = ecm.get(e, Position as uint);
+    let p = ecm.get(e, Position);
     println(fmt!("e's position: %?", p));
 }

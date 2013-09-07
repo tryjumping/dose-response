@@ -2,6 +2,7 @@ use components::*;
 
 mod components;
 mod ecm;
+mod engine;
 mod tcod;
 
 fn generate_world(w: uint, h: uint) -> ~[(uint, uint, char)] {
@@ -45,25 +46,31 @@ fn health_system(entity: &mut GameObject) {
     entity.health = Some(Health(health - 1));
 }
 
+struct GameState {
+    entities: ~[GameObject],
+}
 
-fn update(entities: &mut[GameObject]) {
-    for entities.mut_iter().advance |e| {
+fn initial_state() -> ~GameState {
+    let mut state = ~GameState{entities: ~[]};
+    state.entities.push(GameObject{
+        position: Some(Position{x: 10, y: 20}),
+        health: Some(Health(100))});
+    state.entities.push(GameObject{
+        position: Some(Position{x: 1, y: 1}),
+        health: None});
+    state
+}
+
+fn update(state: &mut GameState) -> engine::MainLoopState {
+    for state.entities.mut_iter().advance |e| {
         debug_system(e);
         tile_system(e);
         health_system(e);
     }
+    engine::Running
 }
 
 
 fn main() {
-    let mut entities: ~[GameObject] = ~[];
-    let player = GameObject{
-        position: Some(Position{x: 10, y: 20}),
-        health: Some(Health(100))};
-    entities.push(player);
-    entities.push(GameObject{position: Some(Position{x: 1, y: 1}), health: None});
-
-    for 3.times {
-        update(entities);
-    }
+    engine::main_loop(initial_state, update);
 }

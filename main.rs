@@ -8,10 +8,11 @@ mod world_gen;
 
 struct GameState {
     entities: ~[GameObject],
+    turns: uint,
 }
 
 fn initial_state(width: uint, height: uint) -> ~GameState {
-    let mut state = ~GameState{entities: ~[]};
+    let mut state = ~GameState{entities: ~[], turns: 3};
     state.entities.push(GameObject{
         position: Some(Position{x: 10, y: 20}),
         health: Some(Health(100))});
@@ -34,7 +35,12 @@ fn update(state: &mut GameState) -> engine::MainLoopState {
         systems::tile_system(e);
         systems::health_system(e);
     }
-    engine::Running
+    if state.turns > 0 {
+        state.turns -= 1;
+        engine::Running
+    } else {
+        engine::Exit
+    }
 }
 
 

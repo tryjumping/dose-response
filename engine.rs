@@ -3,9 +3,10 @@ pub enum MainLoopState {
     Exit,
 }
 
-pub fn main_loop<T>(initial_state: &fn() -> ~T,
+pub fn main_loop<T>(width: uint, height: uint,
+                    initial_state: &fn(uint, uint) -> ~T,
                     update: &fn(&mut T) -> MainLoopState) {
-    let mut game_state = initial_state();
+    let mut game_state = initial_state(width, height);
     for 3.times {
         match update(game_state) {
             Running => (),

@@ -10,9 +10,7 @@ struct GameState {
     entities: ~[GameObject],
 }
 
-fn initial_state() -> ~GameState {
-    let width = 3;
-    let height = 3;
+fn initial_state(width: uint, height: uint) -> ~GameState {
     let mut state = ~GameState{entities: ~[]};
     state.entities.push(GameObject{
         position: Some(Position{x: 10, y: 20}),
@@ -41,5 +39,6 @@ fn update(state: &mut GameState) -> engine::MainLoopState {
 
 
 fn main() {
-    engine::main_loop(initial_state, update);
+    let (width, height) = (3, 3);
+    engine::main_loop(width, height, initial_state, update);
 }

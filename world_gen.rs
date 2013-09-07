@@ -1,10 +1,22 @@
-pub fn default(w: uint, h: uint) -> ~[(uint, uint, char)] {
-    let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let mut result: ~[(uint, uint, char)] = ~[];
-    for std::uint::range(0, w) |x| {
-        for std::uint::range(0, h) |y| {
-            result.push((x, y, chars[(x * y) % chars.char_len()] as char));
+extern mod std;
+
+use std::uint::range;
+use std::rand::{random};
+
+#[deriving(Rand)]
+pub enum WorldItem {
+    Empty,
+    Tree,
+    Dose,
+    Monster,
+}
+
+pub fn forrest(w: uint, h: uint) -> ~[(int, int, WorldItem)] {
+    let mut result: ~[(int, int, WorldItem)] = ~[];
+    for range(0, w) |x| {
+        for range(0, h) |y| {
+            result.push((x as int, y as int, random()));
         }
     }
-    return result;
+    result
 }

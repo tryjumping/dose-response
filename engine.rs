@@ -1,3 +1,5 @@
+extern mod extra;
+
 mod tcod;
 
 
@@ -56,17 +58,26 @@ impl Display {
 pub fn main_loop<S>(width: uint, height: uint, title: &str,
                     font_path: &str,
                     initial_state: &fn(uint, uint) -> ~S,
-                    update: &fn(&mut S, &mut Display) -> MainLoopState) {
+                    update: &fn(&mut S, &mut Display, &mut extra::deque::Deque<char>) -> MainLoopState) {
     let fullscreen = false;
     let default_fg = Color(255, 255, 255);
     let console_count = 3;
     tcod::console_set_custom_font(font_path);
     tcod::console_init_root(width, height, title, fullscreen);
-
-    let mut tcod_display = Display::new(width, height, console_count);
     let mut game_state = initial_state(width, height);
+    let mut tcod_display = Display::new(width, height, console_count);
+    let mut keys = extra::deque::Deque::new::<char>();
     while !tcod::console_is_window_closed() {
-        let key = tcod::console_check_for_keypress(tcod::KeyPressedOrReleased);
+        let mut key: tcod::TCOD_key_t;
+        loop {
+            key = tcod::console_check_for_keypress(tcod::KeyPressed);
+            match key.vk {
+                0 => break,
+                _ => {
+                    keys.add_back(key.c as char);
+                }
+            }
+        }
 
         tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg.tcod());
         tcod::console_clear(tcod::ROOT_CONSOLE);
@@ -75,7 +86,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
             tcod::console_clear(con);
         }
 
-        match update(game_state, &mut tcod_display) {
+        match update(game_state, &mut tcod_display, &mut keys) {
             Running => (),
             Exit => break,
         }

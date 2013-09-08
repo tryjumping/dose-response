@@ -28,7 +28,7 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
     state
 }
 
-fn update(state: &mut GameState) -> engine::MainLoopState {
+fn update(state: &mut GameState, display: &mut engine::Display) -> engine::MainLoopState {
     for state.entities.mut_iter().advance |e| {
         systems::debug_system(e);
         systems::tile_system(e);

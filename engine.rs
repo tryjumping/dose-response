@@ -6,41 +6,84 @@ pub enum MainLoopState {
     Exit,
 }
 
-pub fn main_loop<T>(width: uint, height: uint, title: &str,
-                    font_path: &str,
-                    initial_state: &fn(uint, uint) -> ~T,
-                    update: &fn(&mut T) -> MainLoopState) {
-    let fullscreen = false;
-    let transparent_bg = tcod::TCOD_color_t{r: 255, g: 0, b: 0};
-    let default_fg = tcod::TCOD_color_t{r: 255, g: 255, b: 255};
-    let console_count = 3;
-    let mut consoles: ~[tcod::TCOD_console_t] = ~[];
-    for console_count.times {
-        let con = tcod::console_new(width, height);
-        tcod::console_set_key_color(con, transparent_bg);
-        consoles.push(con);
+pub struct Color(u8, u8, u8);
+
+pub static transparent_background: Color = Color(253, 1, 254);
+
+impl Color {
+    fn tcod(&self) -> tcod::TCOD_color_t {
+        match *self { Color(r, g, b) => tcod::TCOD_color_t{r: r, g: g, b: b} }
     }
+}
+
+pub struct Display {
+    priv background_console: tcod::TCOD_console_t,
+    priv consoles: ~[tcod::TCOD_console_t],
+}
+
+impl Display {
+    fn new(width: uint, height: uint, console_count: uint) -> Display {
+        let mut result = Display {
+            background_console: tcod::console_new(width, height),
+            consoles: ~[],
+        };
+        for console_count.times {
+            let con = tcod::console_new(width, height);
+            tcod::console_set_key_color(con, transparent_background.tcod());
+            tcod::console_set_default_background(con, transparent_background.tcod());
+            result.consoles.push(con);
+        }
+        tcod::console_set_key_color(result.background_console, transparent_background.tcod());
+        tcod::console_set_default_background(result.background_console, transparent_background.tcod());
+        result
+    }
+
+    pub fn draw_char(&mut self, level: uint, x: uint, y: uint, c: char,
+                     foreground: Color, background: Color) {
+        assert!(level < self.consoles.len());
+        self.set_background(x, y, background);
+        tcod::console_put_char_ex(self.consoles[level], x, y, c,
+                                  foreground.tcod(), background.tcod());
+    }
+
+    pub fn set_background(&mut self, x: uint, y: uint, color: Color) {
+        tcod::console_set_char_background(self.background_console, x, y,
+                                          color.tcod(), tcod::TCOD_BKGND_NONE);
+
+    }
+}
+
+pub fn main_loop<S>(width: uint, height: uint, title: &str,
+                    font_path: &str,
+                    initial_state: &fn(uint, uint) -> ~S,
+                    update: &fn(&mut S, &mut Display) -> MainLoopState) {
+    let fullscreen = false;
+    let default_fg = Color(255, 255, 255);
+    let console_count = 3;
     tcod::console_set_custom_font(font_path);
     tcod::console_init_root(width, height, title, fullscreen);
 
+    let mut tcod_display = Display::new(width, height, console_count);
     let mut game_state = initial_state(width, height);
     while !tcod::console_is_window_closed() {
         let key = tcod::console_check_for_keypress(tcod::KeyPressedOrReleased);
 
-        tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg);
+        tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg.tcod());
         tcod::console_clear(tcod::ROOT_CONSOLE);
-        for consoles.iter().advance |&con| {
-            tcod::console_set_default_background(con, transparent_bg);
-            tcod::console_set_default_foreground(con, default_fg);
+        tcod::console_clear(tcod_display.background_console);
+        for tcod_display.consoles.iter().advance |&con| {
             tcod::console_clear(con);
         }
 
-        match update(game_state) {
+        match update(game_state, &mut tcod_display) {
             Running => (),
             Exit => break,
         }
 
-        for consoles.iter().advance |&con| {
+        tcod::console_blit(tcod_display.background_console, 0, 0, width, height,
+                           tcod::ROOT_CONSOLE, 0, 0,
+                           1f, 1f);
+        for tcod_display.consoles.iter().advance |&con| {
             tcod::console_blit(con, 0, 0, width, height,
                                tcod::ROOT_CONSOLE, 0, 0,
                                1f, 1f);

@@ -3,6 +3,8 @@ use std::libc::{c_int, c_char, uint8_t, c_void, c_float};
 
 pub type TCOD_console_t = *c_void;
 
+pub type TCOD_map_t = *c_void;
+
 enum TCOD_renderer_t {
         TCOD_RENDERER_GLSL,
         TCOD_RENDERER_OPENGL,
@@ -95,6 +97,13 @@ extern "C" {
     fn TCOD_console_blit(src: TCOD_console_t, xSrc: c_int, ySrc: c_int, wSrc: c_int, hSrc: c_int,
                          dst: TCOD_console_t, xDst: c_int, yDst: c_int,
                          foreground_alpha: c_float, background_alpha: c_float) -> ();
+    fn TCOD_map_new(width: c_int, height: c_int) -> TCOD_map_t;
+    fn TCOD_map_set_properties(map: TCOD_map_t, x: c_int, y: c_int,
+                               is_transparent: uint8_t, is_walkable: uint8_t);
+    fn TCOD_map_is_walkable(map: TCOD_map_t, x: c_int, y: c_int) -> uint8_t;
+    fn TCOD_map_get_width(map: TCOD_map_t) -> c_int;
+    fn TCOD_map_get_height(map: TCOD_map_t) -> c_int;
+    fn TCOD_map_clear(map: TCOD_map_t, transparent: uint8_t, walkable: uint8_t);
 }
 
 // Let's make sure casting to c_int doesn't overflow
@@ -252,5 +261,42 @@ pub fn console_blit(source_console: TCOD_console_t,
                           destination_console,
                           destination_x as c_int, destination_y as c_int,
                           foreground_alpha as c_float, background_alpha as c_float);
+    }
+}
+
+pub fn map_new(width: uint, height: uint) -> TCOD_map_t {
+    assert!(width < max_uint && height < max_uint);
+    unsafe {
+        TCOD_map_new(width as c_int, height as c_int)
+    }
+}
+
+pub fn map_set_properties(map: TCOD_map_t, x: uint, y: uint,
+                          transparent: bool, walkable: bool) {
+    assert!(x < max_uint && y < max_uint);
+    unsafe {
+        TCOD_map_set_properties(map, x as c_int, y as c_int,
+                                transparent as uint8_t, walkable as uint8_t);
+    }
+}
+
+pub fn map_is_walkable(map: TCOD_map_t, x: uint, y: uint) -> bool {
+    assert!(x < max_uint && y < max_uint);
+    unsafe {
+        TCOD_map_is_walkable(map, x as c_int, y as c_int) != 0
+    }
+}
+
+pub fn map_size(map: TCOD_map_t) -> (uint, uint) {
+    unsafe {
+        let (w, h) = (TCOD_map_get_width(map), TCOD_map_get_height(map));
+        assert!(w >= 0 && h >= 0);
+        (w as uint, h as uint)
+    }
+}
+
+pub fn map_clear(map: TCOD_map_t, transparent: bool, walkable: bool) {
+    unsafe {
+        TCOD_map_clear(map, transparent as uint8_t, walkable as uint8_t);
     }
 }

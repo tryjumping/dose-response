@@ -1,5 +1,7 @@
 extern mod extra;
 
+use std::rand;
+
 use components::*;
 use engine::{Display, Color, MainLoopState, Key};
 use extra::deque::Deque;
@@ -16,6 +18,7 @@ mod world_gen;
 struct GameState {
     entities: ~[GameObject],
     commands: ~Deque<Command>,
+    rng: rand::IsaacRng,
 }
 
 impl world_gen::WorldItem {
@@ -24,21 +27,26 @@ impl world_gen::WorldItem {
             world_gen::Empty => '.',
             world_gen::Tree => '#',
             world_gen::Dose => 'i',
+            world_gen::StrongDose => 'I',
             world_gen::Monster => 'a',
         }
     }
 }
 
 fn initial_state(width: uint, height: uint) -> ~GameState {
-    let mut state = ~GameState{entities: ~[], commands: ~Deque::new::<Command>()};
+    let mut state = ~GameState{
+        entities: ~[],
+        commands: ~Deque::new::<Command>(),
+        rng: rand::rng(),
+    };
     let mut player = GameObject::new();
     player.accepts_user_input = Some(AcceptsUserInput);
     player.position = Some(Position{x: 10, y: 20});
     player.health = Some(Health(100));
     player.tile = Some(Tile{level: 2, glyph: '@', color: Color(255, 0, 255)});
-
     state.entities.push(player);
-    let world = world_gen::forrest(width, height);
+
+    let world = world_gen::forrest(&mut state.rng, width, height);
     for world.iter().advance |&(x, y, item)| {
         let mut e = GameObject::new();
         e.position = Some(Position{x: x, y: y});

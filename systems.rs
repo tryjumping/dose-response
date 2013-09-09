@@ -1,14 +1,14 @@
 use components::*;
+use engine::{Display, Color};
 
-mod components;
 
-
-pub fn debug_system(entity: &GameObject) {
-}
-
-pub fn tile_system(entity: &GameObject) {
+pub fn tile_system(entity: &GameObject, display: &mut Display) {
     if entity.position.is_none() { return }
-    let pos = entity.position.get();
+    if entity.tile.is_none() { return }
+
+    let Position{x, y} = entity.position.get();
+    let Tile{level, glyph, color} = entity.tile.get();
+    display.draw_char(level, x as uint, y as uint, glyph, color, Color(20, 20, 20));
 }
 
 pub fn health_system(entity: &mut GameObject) {

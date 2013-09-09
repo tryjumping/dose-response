@@ -55,10 +55,27 @@ impl Display {
     }
 }
 
+pub struct Key {
+    code: int,
+    char: char,
+    left_alt: bool,
+    right_alt: bool,
+    left_ctrl: bool,
+    right_ctrl: bool,
+    shift: bool,
+}
+
+impl Key {
+    pub fn alt(&self) -> bool { self.left_alt || self.right_alt }
+    pub fn ctrl(&self) -> bool { self.left_ctrl || self.right_ctrl }
+    pub fn shift(&self) -> bool { self.shift }
+}
+
+
 pub fn main_loop<S>(width: uint, height: uint, title: &str,
                     font_path: &str,
                     initial_state: &fn(uint, uint) -> ~S,
-                    update: &fn(&mut S, &mut Display, &mut extra::deque::Deque<char>) -> MainLoopState) {
+                    update: &fn(&mut S, &mut Display, &mut extra::deque::Deque<Key>) -> MainLoopState) {
     let fullscreen = false;
     let default_fg = Color(255, 255, 255);
     let console_count = 3;
@@ -66,7 +83,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
     tcod::console_init_root(width, height, title, fullscreen);
     let mut game_state = initial_state(width, height);
     let mut tcod_display = Display::new(width, height, console_count);
-    let mut keys = extra::deque::Deque::new::<char>();
+    let mut keys = extra::deque::Deque::new::<Key>();
     while !tcod::console_is_window_closed() {
         let mut key: tcod::TCOD_key_t;
         loop {
@@ -74,7 +91,15 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
             match key.vk {
                 0 => break,
                 _ => {
-                    keys.add_back(key.c as char);
+                    keys.add_back(Key{
+                        code: key.vk as int,
+                        char: key.c as char,
+                        left_alt: key.lalt != 0,
+                        right_alt: key.ralt != 0,
+                        left_ctrl: key.lctrl != 0,
+                        right_ctrl: key.rctrl != 0,
+                        shift: key.shift != 0,
+                    });
                 }
             }
         }

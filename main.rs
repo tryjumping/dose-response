@@ -1,7 +1,7 @@
 extern mod extra;
 
 use components::*;
-use engine::{Display, Color, MainLoopState};
+use engine::{Display, Color, MainLoopState, Key};
 use extra::deque::Deque;
 
 mod components;
@@ -10,8 +10,13 @@ mod engine;
 mod systems;
 mod world_gen;
 
+enum Command {
+    N, E, S, W, NE, NW, SE, SW,
+}
+
 struct GameState {
     entities: ~[GameObject],
+    commands: ~Deque<Command>,
 }
 
 impl world_gen::WorldItem {
@@ -26,7 +31,7 @@ impl world_gen::WorldItem {
 }
 
 fn initial_state(width: uint, height: uint) -> ~GameState {
-    let mut state = ~GameState{entities: ~[]};
+    let mut state = ~GameState{entities: ~[], commands: ~Deque::new::<Command>()};
     state.entities.push(GameObject{
         position: Some(Position{x: 10, y: 20}),
         health: Some(Health(100)),
@@ -48,23 +53,46 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
     state
 }
 
-fn escape_pressed(keys: &Deque<char>) -> bool {
+fn escape_pressed(keys: &Deque<Key>) -> bool {
     for keys.iter().advance |&key| {
-        if key as int == 27 { return true; }
+        if key.char as int == 27 { return true; }
     }
     false
 }
 
-fn process_input(keys: &mut Deque<char>) {
-    keys.clear();
+fn process_input(keys: &mut Deque<Key>, commands: &mut Deque<Command>) {
+    while !keys.is_empty() {
+        let key = keys.pop_front();
+        match key.code {
+            // Up
+            14 => commands.add_back(N),
+            // Down
+            17 => commands.add_back(S),
+            // Left
+            15 => match (key.ctrl(), key.shift()) {
+                (true, false) => commands.add_back(NW),
+                (false, true) => commands.add_back(SW),
+                _ => commands.add_back(W),
+            },
+            // Right
+            16 => match (key.ctrl(), key.shift()) {
+                (true, false) => commands.add_back(NE),
+                (false, true) => commands.add_back(SE),
+                _ => commands.add_back(E),
+            },
+            _ => (),
+        }
+    }
 }
+
+
 
 fn update(state: &mut GameState,
           display: &mut Display,
-          keys: &mut Deque<char>) -> MainLoopState {
+          keys: &mut Deque<Key>) -> MainLoopState {
     if escape_pressed(keys) { return engine::Exit }
 
-    process_input(keys);
+    process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
         systems::tile_system(e, display);
         systems::health_system(e);

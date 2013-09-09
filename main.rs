@@ -19,6 +19,7 @@ struct GameState {
     entities: ~[GameObject],
     commands: ~Deque<Command>,
     rng: rand::IsaacRng,
+    map: tcod::TCOD_map_t,
 }
 
 impl world_gen::WorldItem {
@@ -50,6 +51,13 @@ impl world_gen::WorldItem {
             world_gen::Shadows => col::shadows,
         }
     }
+
+    fn is_solid(self) -> bool {
+        match self {
+            world_gen::Empty | world_gen::Dose | world_gen::StrongDose => false,
+            _ => true,
+        }
+    }
 }
 
 mod col {
@@ -77,6 +85,7 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
         entities: ~[],
         commands: ~Deque::new::<Command>(),
         rng: rand::rng(),
+        map: tcod::map_new(width, height),
     };
     let mut player = GameObject::new();
     player.accepts_user_input = Some(AcceptsUserInput);
@@ -90,6 +99,9 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
         let mut e = GameObject::new();
         e.position = Some(Position{x: x, y: y});
         e.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
+        if item.is_solid() {
+            e.solid = Some(Solid);
+        }
         state.entities.push(e);
     }
     state
@@ -134,10 +146,20 @@ fn update(state: &mut GameState,
           keys: &mut Deque<Key>) -> MainLoopState {
     if escape_pressed(keys) { return engine::Exit }
 
+    // TODO: this won't work once more than one entity starts moving because we
+    // don't update the state after the move. We should get rid of this and
+    // write a careful code that will track solidity and be coordinated from the
+    // Movement system. Which is the only system that will be able to set the
+    // position.
+    tcod::map_clear(state.map, true, true);
+    for state.entities.iter().advance |e| {
+        systems::field_of_view_system(e, state.map);
+    }
+
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
         systems::input_system(e, state.commands);
-        systems::movement_system(e);
+        systems::movement_system(e, state.map);
         systems::tile_system(e, display);
         systems::health_system(e);
     }

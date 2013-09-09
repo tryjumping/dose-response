@@ -4,6 +4,7 @@ pub struct AcceptsUserInput;
 pub struct Position {x: int, y: int}
 pub struct Destination {x: int, y: int}
 pub struct Health(int);
+pub struct Solid;
 pub struct Tile{level: uint, glyph: char, color: Color}
 
 pub struct GameObject {
@@ -11,6 +12,7 @@ pub struct GameObject {
     position: Option<Position>,
     destination: Option<Destination>,
     health: Option<Health>,
+    solid: Option<Solid>,
     tile: Option<Tile>,
 }
 
@@ -21,6 +23,7 @@ impl GameObject {
             position: None,
             destination: None,
             health: None,
+            solid: None,
             tile: None,
         }
     }

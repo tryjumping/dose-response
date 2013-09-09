@@ -28,7 +28,11 @@ impl world_gen::WorldItem {
             world_gen::Tree => '#',
             world_gen::Dose => 'i',
             world_gen::StrongDose => 'I',
-            world_gen::Monster => 'a',
+            world_gen::Anxiety => 'a',
+            world_gen::Depression => 'D',
+            world_gen::Hunger => 'h',
+            world_gen::Voices => 'v',
+            world_gen::Shadows => 's',
         }
     }
 
@@ -38,7 +42,12 @@ impl world_gen::WorldItem {
             world_gen::Tree => col::tree_1,
             world_gen::Dose => col::dose,
             world_gen::StrongDose => col::dose,
-            world_gen::Monster => col::anxiety,
+
+            world_gen::Anxiety => col::anxiety,
+            world_gen::Depression => col::depression,
+            world_gen::Hunger => col::hunger,
+            world_gen::Voices => col::voices,
+            world_gen::Shadows => col::shadows,
         }
     }
 }

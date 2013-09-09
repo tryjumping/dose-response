@@ -5,17 +5,30 @@ use std::rand::{RngUtil, Weighted};
 pub enum WorldItem {
     Empty,
     Tree,
+
     Dose,
     StrongDose,
-    Monster,
+
+    Anxiety,
+    Depression,
+    Hunger,
+    Voices,
+    Shadows,
 }
 
 pub fn forrest<T: RngUtil>(rng: &mut T, w: uint, h: uint) -> ~[(int, int, WorldItem)] {
+    let monster_count = 5;
+    let monster_weight = 30 / monster_count;
     let opts = [
         Weighted{weight: 600, item: Empty},
         Weighted{weight: 390, item: Tree},
         Weighted{weight: 7,  item: Dose},
         Weighted{weight: 3,  item: StrongDose},
+        Weighted{weight: monster_weight,  item: Anxiety},
+        Weighted{weight: monster_weight,  item: Depression},
+        Weighted{weight: monster_weight,  item: Hunger},
+        Weighted{weight: monster_weight,  item: Voices},
+        Weighted{weight: monster_weight,  item: Shadows},
     ];
     let mut result: ~[(int, int, WorldItem)] = ~[];
     for range(0, w) |x| {

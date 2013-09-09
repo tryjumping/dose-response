@@ -13,6 +13,17 @@ struct GameState {
     entities: ~[GameObject],
 }
 
+impl world_gen::WorldItem {
+    fn to_glyph(self) -> char {
+        match self {
+            world_gen::Empty => '.',
+            world_gen::Tree => '#',
+            world_gen::Dose => 'i',
+            world_gen::Monster => 'a',
+        }
+    }
+}
+
 fn initial_state(width: uint, height: uint) -> ~GameState {
     let mut state = ~GameState{entities: ~[]};
     state.entities.push(GameObject{
@@ -25,7 +36,7 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
         state.entities.push(GameObject{
             position: Some(Position{x: x, y: y}),
             health: None,
-            tile: Some(Tile{level: 0, glyph: '.', color: Color(0, 255, 255)}),
+            tile: Some(Tile{level: 0, glyph: item.to_glyph(), color: Color(0, 255, 255)}),
         })
     }
     state.entities.push(GameObject{

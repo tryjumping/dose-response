@@ -2,6 +2,7 @@ extern mod extra;
 
 use components::*;
 use engine::{Display, Color, MainLoopState};
+use extra::deque::Deque;
 
 mod components;
 mod ecm;
@@ -47,12 +48,23 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
     state
 }
 
+fn escape_pressed(keys: &Deque<char>) -> bool {
+    for keys.iter().advance |&key| {
+        if key as int == 27 { return true; }
+    }
+    false
+}
+
+fn process_input(keys: &mut Deque<char>) {
+    keys.clear();
+}
+
 fn update(state: &mut GameState,
           display: &mut Display,
-          keys: &mut extra::deque::Deque<char>) -> MainLoopState {
-    if keys.len() > 0 {
-        keys.clear();
-    }
+          keys: &mut Deque<char>) -> MainLoopState {
+    if escape_pressed(keys) { return engine::Exit }
+
+    process_input(keys);
     for state.entities.mut_iter().advance |e| {
         systems::tile_system(e, display);
         systems::health_system(e);

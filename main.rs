@@ -31,6 +31,36 @@ impl world_gen::WorldItem {
             world_gen::Monster => 'a',
         }
     }
+
+    fn to_color(self) -> Color {
+        match self {
+            world_gen::Empty => col::empty_tile,
+            world_gen::Tree => col::tree_1,
+            world_gen::Dose => col::dose,
+            world_gen::StrongDose => col::dose,
+            world_gen::Monster => col::anxiety,
+        }
+    }
+}
+
+mod col {
+    use engine::Color;
+
+    pub static background: Color = Color(0, 0, 0);
+    pub static dim_background: Color = Color(15, 15, 15);
+    pub static foreground: Color = Color(255, 255, 255);
+    pub static anxiety: Color = Color(191,0,0);
+    pub static depression: Color = Color(111,63,255);
+    pub static hunger: Color = Color(127,101,63);
+    pub static voices: Color = Color(95,95,95);
+    pub static shadows: Color = Color(95,95,95);
+    pub static player: Color = Color(255,255,255);
+    pub static empty_tile: Color = Color(223,223,223);
+    pub static dose: Color = Color(114,184,255);
+    pub static dose_glow: Color = Color(0,63,47);
+    pub static tree_1: Color = Color(0,191,0);
+    pub static tree_2: Color = Color(0,255,0);
+    pub static tree_3: Color = Color(63,255,63);
 }
 
 fn initial_state(width: uint, height: uint) -> ~GameState {
@@ -43,14 +73,14 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
     player.accepts_user_input = Some(AcceptsUserInput);
     player.position = Some(Position{x: 10, y: 20});
     player.health = Some(Health(100));
-    player.tile = Some(Tile{level: 2, glyph: '@', color: Color(255, 0, 255)});
+    player.tile = Some(Tile{level: 2, glyph: '@', color: col::player});
     state.entities.push(player);
 
     let world = world_gen::forrest(&mut state.rng, width, height);
     for world.iter().advance |&(x, y, item)| {
         let mut e = GameObject::new();
         e.position = Some(Position{x: x, y: y});
-        e.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: Color(0, 255, 255)});
+        e.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
         state.entities.push(e);
     }
     state

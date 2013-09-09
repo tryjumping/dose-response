@@ -99,6 +99,9 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
                                tcod::ROOT_CONSOLE, 0, 0,
                                1f, 1f);
         }
+        tcod::console_print_ex(tcod::ROOT_CONSOLE, width-1, height-1,
+                               tcod::TCOD_BKGND_NONE, tcod::TCOD_RIGHT,
+                               fmt!("FPS: %?", tcod::sys_get_fps()));
         tcod::console_flush();
     }
 }

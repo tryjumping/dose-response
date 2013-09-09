@@ -3,16 +3,13 @@ extern mod extra;
 use components::*;
 use engine::{Display, Color, MainLoopState, Key};
 use extra::deque::Deque;
+use systems::{Command};
 
 mod components;
 mod ecm;
 mod engine;
 mod systems;
 mod world_gen;
-
-enum Command {
-    N, E, S, W, NE, NW, SE, SW,
-}
 
 struct GameState {
     entities: ~[GameObject],
@@ -65,20 +62,20 @@ fn process_input(keys: &mut Deque<Key>, commands: &mut Deque<Command>) {
         let key = keys.pop_front();
         match key.code {
             // Up
-            14 => commands.add_back(N),
+            14 => commands.add_back(systems::N),
             // Down
-            17 => commands.add_back(S),
+            17 => commands.add_back(systems::S),
             // Left
             15 => match (key.ctrl(), key.shift()) {
-                (true, false) => commands.add_back(NW),
-                (false, true) => commands.add_back(SW),
-                _ => commands.add_back(W),
+                (false, true) => commands.add_back(systems::NW),
+                (true, false) => commands.add_back(systems::SW),
+                _ => commands.add_back(systems::W),
             },
             // Right
             16 => match (key.ctrl(), key.shift()) {
-                (true, false) => commands.add_back(NE),
-                (false, true) => commands.add_back(SE),
-                _ => commands.add_back(E),
+                (false, true) => commands.add_back(systems::NE),
+                (true, false) => commands.add_back(systems::SE),
+                _ => commands.add_back(systems::E),
             },
             _ => (),
         }
@@ -94,6 +91,7 @@ fn update(state: &mut GameState,
 
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
+        systems::input_system(e, state.commands);
         systems::tile_system(e, display);
         systems::health_system(e);
     }

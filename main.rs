@@ -137,6 +137,7 @@ fn update(state: &mut GameState,
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
         systems::input_system(e, state.commands);
+        systems::movement_system(e);
         systems::tile_system(e, display);
         systems::health_system(e);
     }

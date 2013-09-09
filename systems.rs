@@ -13,18 +13,27 @@ pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>) {
     if commands.is_empty() { return }
 
     let pos = entity.position.get();
-    let newpos = match commands.pop_front() {
-        N => Position{y: pos.y-1, .. pos},
-        S => Position{y: pos.y+1, .. pos},
-        W => Position{x: pos.x-1, .. pos},
-        E => Position{x: pos.x+1, .. pos},
+    let dest = match commands.pop_front() {
+        N => Destination{x: pos.x, y: pos.y-1},
+        S => Destination{x: pos.x, y: pos.y+1},
+        W => Destination{x: pos.x-1, y: pos.y},
+        E => Destination{x: pos.x+1, y: pos.y},
 
-        NW => Position{x: pos.x-1, y: pos.y-1},
-        NE => Position{x: pos.x+1, y: pos.y-1},
-        SW => Position{x: pos.x-1, y: pos.y+1},
-        SE => Position{x: pos.x+1, y: pos.y+1},
+        NW => Destination{x: pos.x-1, y: pos.y-1},
+        NE => Destination{x: pos.x+1, y: pos.y-1},
+        SW => Destination{x: pos.x-1, y: pos.y+1},
+        SE => Destination{x: pos.x+1, y: pos.y+1},
     };
-    entity.position = Some(newpos);
+    entity.destination = Some(dest);
+}
+
+pub fn movement_system(entity: &mut GameObject) {
+    if entity.position.is_none() { return }
+    if entity.destination.is_none() { return }
+
+    let Destination{x, y} = entity.destination.get();
+    entity.position = Some(Position{x: x, y: y});
+    entity.destination = None;
 }
 
 pub fn tile_system(entity: &GameObject, display: &mut Display) {

@@ -9,7 +9,9 @@ mod components;
 mod ecm;
 mod engine;
 mod systems;
+pub mod tcod;
 mod world_gen;
+
 
 struct GameState {
     entities: ~[GameObject],

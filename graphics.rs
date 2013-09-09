@@ -1,4 +1,5 @@
-mod tcod;
+use tcod;
+
 
 pub fn draw(layers: &[tcod::TCOD_console_t], world: &~[(uint, uint, char)], width: uint, height: uint) {
     let con = layers[layers.len() - 1];

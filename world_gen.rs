@@ -1,5 +1,3 @@
-extern mod std;
-
 use std::uint::range;
 use std::rand::{random};
 

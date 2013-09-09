@@ -1,7 +1,5 @@
-extern mod extra;
-
-mod tcod;
-
+use extra::deque::Deque;
+use tcod;
 
 pub enum MainLoopState {
     Running,
@@ -75,7 +73,7 @@ impl Key {
 pub fn main_loop<S>(width: uint, height: uint, title: &str,
                     font_path: &str,
                     initial_state: &fn(uint, uint) -> ~S,
-                    update: &fn(&mut S, &mut Display, &mut extra::deque::Deque<Key>) -> MainLoopState) {
+                    update: &fn(&mut S, &mut Display, &mut Deque<Key>) -> MainLoopState) {
     let fullscreen = false;
     let default_fg = Color(255, 255, 255);
     let console_count = 3;
@@ -83,7 +81,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
     tcod::console_init_root(width, height, title, fullscreen);
     let mut game_state = initial_state(width, height);
     let mut tcod_display = Display::new(width, height, console_count);
-    let mut keys = extra::deque::Deque::new::<Key>();
+    let mut keys = Deque::new::<Key>();
     while !tcod::console_is_window_closed() {
         let mut key: tcod::TCOD_key_t;
         loop {

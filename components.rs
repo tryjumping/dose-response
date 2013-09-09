@@ -9,3 +9,13 @@ pub struct GameObject {
     health: Option<Health>,
     tile: Option<Tile>,
 }
+
+impl GameObject {
+    pub fn new() -> GameObject {
+        GameObject {
+            position: None,
+            health: None,
+            tile: None,
+        }
+    }
+}

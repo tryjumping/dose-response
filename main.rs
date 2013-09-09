@@ -38,17 +38,11 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
     });
     let world = world_gen::forrest(width, height);
     for world.iter().advance |&(x, y, item)| {
-        state.entities.push(GameObject{
-            position: Some(Position{x: x, y: y}),
-            health: None,
-            tile: Some(Tile{level: 0, glyph: item.to_glyph(), color: Color(0, 255, 255)}),
-        })
+        let mut e = GameObject::new();
+        e.position = Some(Position{x: x, y: y});
+        e.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: Color(0, 255, 255)});
+        state.entities.push(e);
     }
-    state.entities.push(GameObject{
-        position: Some(Position{x: 1, y: 1}),
-        health: None,
-        tile: None,
-    });
     state
 }
 

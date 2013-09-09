@@ -8,8 +8,7 @@ pub enum Command {
 }
 
 pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>) {
-    // TODO: replace this with a check for InputComponent
-    if entity.health.is_none() { return }
+    if entity.accepts_user_input.is_none() { return }
     if entity.position.is_none() { return }
     if commands.is_empty() { return }
 

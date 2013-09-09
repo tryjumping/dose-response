@@ -31,11 +31,13 @@ impl world_gen::WorldItem {
 
 fn initial_state(width: uint, height: uint) -> ~GameState {
     let mut state = ~GameState{entities: ~[], commands: ~Deque::new::<Command>()};
-    state.entities.push(GameObject{
-        position: Some(Position{x: 10, y: 20}),
-        health: Some(Health(100)),
-        tile: Some(Tile{level: 2, glyph: '@', color: Color(255, 0, 255)}),
-    });
+    let mut player = GameObject::new();
+    player.accepts_user_input = Some(AcceptsUserInput);
+    player.position = Some(Position{x: 10, y: 20});
+    player.health = Some(Health(100));
+    player.tile = Some(Tile{level: 2, glyph: '@', color: Color(255, 0, 255)});
+
+    state.entities.push(player);
     let world = world_gen::forrest(width, height);
     for world.iter().advance |&(x, y, item)| {
         let mut e = GameObject::new();

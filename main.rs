@@ -58,6 +58,17 @@ impl world_gen::WorldItem {
             _ => true,
         }
     }
+
+    fn is_monster(self) -> bool {
+        match self {
+            world_gen::Anxiety |
+            world_gen::Depression |
+            world_gen::Hunger |
+            world_gen::Voices |
+            world_gen::Shadows => true,
+            _ => false,
+        }
+    }
 }
 
 mod col {
@@ -101,6 +112,9 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
         e.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
         if item.is_solid() {
             e.solid = Some(Solid);
+        }
+        if item.is_monster() {
+            e.ai = Some(AI);
         }
         state.entities.push(e);
     }
@@ -163,6 +177,7 @@ fn update(state: &mut GameState,
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
         systems::input_system(e, state.commands);
+        systems::ai_system(e, state.map);
         systems::movement_system(e, state.map);
         systems::tile_system(e, display);
         systems::health_system(e);

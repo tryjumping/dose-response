@@ -1,5 +1,10 @@
 use engine::{Color};
 
+pub enum Side {
+    Player,
+    Computer,
+}
+
 pub struct AcceptsUserInput;
 pub struct AI;
 pub struct Position {x: int, y: int}
@@ -7,6 +12,7 @@ pub struct Destination {x: int, y: int}
 pub struct Health(int);
 pub struct Solid;
 pub struct Tile{level: uint, glyph: char, color: Color}
+pub struct Turn{side: Side, count: uint}
 
 pub struct GameObject {
     ai: Option<AI>,

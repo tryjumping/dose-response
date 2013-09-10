@@ -9,19 +9,6 @@ pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
 }
 
-pub fn field_of_view_system(entity: &GameObject, map: TCOD_map_t) {
-    if entity.position.is_none() { return }
-
-    let Position{x, y} = entity.position.get();
-    let solid = entity.solid.is_some();
-    if solid {
-        /* Set the field as solid but don't clear it if the entity is walkable.
-        There may be more than one entity on the same position and solid must
-        prevail. */
-        tcod::map_set_properties(map, x as uint, y as uint, true, false);
-    }
-}
-
 pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>) {
     if entity.accepts_user_input.is_none() { return }
     if entity.position.is_none() { return }
@@ -46,6 +33,7 @@ pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
     if entity.position.is_none() { return }
     if entity.destination.is_none() { return }
 
+    let old_pos = entity.position.get();
     let Destination{x, y} = entity.destination.get();
     let (width, height) = tcod::map_size(map);
     if x < 0 || y < 0 || x >= width as int || y >= height as int {
@@ -53,6 +41,11 @@ pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
     }
     else if tcod::map_is_walkable(map, x as uint, y as uint) {
         entity.position = Some(Position{x: x, y: y});
+        // The original position is walkable again
+        tcod::map_set_properties(map, old_pos.x as uint, old_pos.y as uint, true, true);
+        // Set new position walkability
+        let solid = entity.solid.is_some();
+        tcod::map_set_properties(map, x as uint, y as uint, true, !solid);
     } else {
         println(fmt!("Destination [%?, %?] isn't walkable.", x, y));
     }

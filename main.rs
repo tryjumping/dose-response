@@ -104,6 +104,20 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
         }
         state.entities.push(e);
     }
+
+    // Initialise the map's walkability data
+    tcod::map_clear(state.map, true, true);
+    for state.entities.iter().advance |e| {
+        match e.position {
+            Some(Position{x, y}) => {
+                let solid = e.solid.is_some();
+                tcod::map_set_properties(state.map, x as uint, y as uint,
+                                         true, !solid);
+            },
+            None => (),
+        }
+    }
+
     state
 }
 
@@ -145,16 +159,6 @@ fn update(state: &mut GameState,
           display: &mut Display,
           keys: &mut Deque<Key>) -> MainLoopState {
     if escape_pressed(keys) { return engine::Exit }
-
-    // TODO: this won't work once more than one entity starts moving because we
-    // don't update the state after the move. We should get rid of this and
-    // write a careful code that will track solidity and be coordinated from the
-    // Movement system. Which is the only system that will be able to set the
-    // position.
-    tcod::map_clear(state.map, true, true);
-    for state.entities.iter().advance |e| {
-        systems::field_of_view_system(e, state.map);
-    }
 
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {

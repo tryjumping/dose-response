@@ -11,10 +11,15 @@ pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
 }
 
-pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>) {
+pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>,
+                    current_side: Side) {
     if entity.accepts_user_input.is_none() { return }
     if entity.position.is_none() { return }
     if commands.is_empty() { return }
+    match current_side {
+        Player => (),
+        _ => return,
+    }
 
     let pos = entity.position.get();
     let dest = match commands.pop_front() {
@@ -31,9 +36,13 @@ pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>) {
     entity.destination = Some(dest);
 }
 
-pub fn ai_system(entity: &mut GameObject, map: TCOD_map_t) {
-    if entity.ai.is_none() { return };
-    if entity.position.is_none() { return };
+pub fn ai_system(entity: &mut GameObject, map: TCOD_map_t, current_side: Side) {
+    if entity.ai.is_none() { return }
+    if entity.position.is_none() { return }
+    match current_side {
+        Computer => (),
+        _ => return,
+    }
 
     let pos = entity.position.get();
     let dest = match random::<Command>() {

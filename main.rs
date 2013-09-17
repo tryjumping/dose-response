@@ -20,6 +20,7 @@ struct GameState {
     commands: ~Deque<Command>,
     rng: rand::IsaacRng,
     map: tcod::TCOD_map_t,
+    side: Side,
 }
 
 impl world_gen::WorldItem {
@@ -97,6 +98,7 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
         commands: ~Deque::new::<Command>(),
         rng: rand::rng(),
         map: tcod::map_new(width, height),
+        side: Player,
     };
     let mut player = GameObject::new();
     player.accepts_user_input = Some(AcceptsUserInput);
@@ -176,8 +178,8 @@ fn update(state: &mut GameState,
 
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
-        systems::input_system(e, state.commands);
-        systems::ai_system(e, state.map);
+        systems::input_system(e, state.commands, state.side);
+        systems::ai_system(e, state.map, state.side);
         systems::movement_system(e, state.map);
         systems::tile_system(e, display);
         systems::health_system(e);

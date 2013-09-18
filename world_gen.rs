@@ -1,7 +1,7 @@
 use std::uint::range;
 use std::rand::{RngUtil, Weighted};
 
-#[deriving(Rand)]
+#[deriving(Rand, Eq)]
 pub enum WorldItem {
     Empty,
     Tree,

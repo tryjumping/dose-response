@@ -106,21 +106,33 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
     player.health = Some(Health(100));
     player.tile = Some(Tile{level: 2, glyph: '@', color: col::player});
     player.turn = Some(Turn{side: Player, action_points: 1});
+    player.solid = Some(Solid);
     state.entities.push(player);
 
     let world = world_gen::forrest(&mut state.rng, width, height);
     for world.iter().advance |&(x, y, item)| {
-        let mut e = GameObject::new();
-        e.position = Some(Position{x: x, y: y});
-        e.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
-        if item.is_solid() {
-            e.solid = Some(Solid);
+        let mut bg = GameObject::new();
+        bg.position = Some(Position{x: x, y: y});
+        if item == world_gen::Tree {
+            bg.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
+            bg.solid = Some(Solid);
+        } else { // put an empty item as the background
+            bg.tile = Some(Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
-        if item.is_monster() {
-            e.ai = Some(AI);
-            e.turn = Some(Turn{side: Computer, action_points: 0});
+        state.entities.push(bg);
+        if item != world_gen::Tree && item != world_gen::Empty {
+            let mut e = GameObject::new();
+            e.position = Some(Position{x: x, y: y});
+            let mut level = 1;
+            if item.is_monster() {
+                e.ai = Some(AI);
+                e.turn = Some(Turn{side: Computer, action_points: 0});
+                e.solid = Some(Solid);
+                level = 2;
+            }
+            e.tile = Some(Tile{level: level, glyph: item.to_glyph(), color: item.to_color()});
+            state.entities.push(e);
         }
-        state.entities.push(e);
     }
 
     // Initialise the map's walkability data

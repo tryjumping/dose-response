@@ -63,6 +63,10 @@ pub fn ai_system(entity: &mut GameObject, map: TCOD_map_t, current_side: Side) {
 pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
     if entity.position.is_none() { return }
     if entity.destination.is_none() { return }
+    if entity.turn.is_none() { return }
+
+    let turn = entity.turn.get();
+    if turn.action_points <= 0 { return }
 
     let old_pos = entity.position.get();
     let Destination{x, y} = entity.destination.get();
@@ -70,6 +74,7 @@ pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
     if x < 0 || y < 0 || x >= width as int || y >= height as int {
         // reached the edge of the screen
     } else if tcod::map_is_walkable(map, x as uint, y as uint) {
+        entity.turn = Some(Turn{action_points: turn.action_points-1, .. turn});
         entity.position = Some(Position{x: x, y: y});
         // The original position is walkable again
         tcod::map_set_properties(map, old_pos.x as uint, old_pos.y as uint, true, true);
@@ -93,4 +98,28 @@ pub fn health_system(entity: &mut GameObject) {
     if entity.health.is_none() { return }
     let health = *entity.health.get();
     entity.health = Some(Health(health - 1));
+}
+
+
+pub fn end_of_turn_system(entities: &mut [GameObject], current_side: &mut Side) {
+    let is_end_of_turn = entities.iter().all(|e| {
+        match e.turn {
+            Some(turn) => {
+                *current_side != turn.side || turn.action_points == 0
+            },
+            None => true,
+        }
+    });
+    if is_end_of_turn {
+        *current_side = match *current_side {
+            Player => Computer,
+            Computer => Player,
+        };
+        for entities.mut_iter().filter(|&e| e.turn.is_some() ).advance |e| {
+            let t = e.turn.get();
+            if t.side == *current_side {
+                e.turn = Some(Turn{side: t.side, action_points: 1});
+            }
+        }
+    }
 }

@@ -1,5 +1,6 @@
 use engine::{Color};
 
+#[deriving(Eq)]
 pub enum Side {
     Player,
     Computer,
@@ -12,7 +13,7 @@ pub struct Destination {x: int, y: int}
 pub struct Health(int);
 pub struct Solid;
 pub struct Tile{level: uint, glyph: char, color: Color}
-pub struct Turn{side: Side, count: uint}
+pub struct Turn{side: Side, action_points: uint}
 
 pub struct GameObject {
     ai: Option<AI>,
@@ -22,6 +23,7 @@ pub struct GameObject {
     health: Option<Health>,
     solid: Option<Solid>,
     tile: Option<Tile>,
+    turn: Option<Turn>,
 }
 
 impl GameObject {
@@ -34,6 +36,7 @@ impl GameObject {
             health: None,
             solid: None,
             tile: None,
+            turn: None,
         }
     }
 }

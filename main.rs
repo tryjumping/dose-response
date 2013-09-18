@@ -105,6 +105,7 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
     player.position = Some(Position{x: 10, y: 20});
     player.health = Some(Health(100));
     player.tile = Some(Tile{level: 2, glyph: '@', color: col::player});
+    player.turn = Some(Turn{side: Player, action_points: 1});
     state.entities.push(player);
 
     let world = world_gen::forrest(&mut state.rng, width, height);
@@ -117,6 +118,7 @@ fn initial_state(width: uint, height: uint) -> ~GameState {
         }
         if item.is_monster() {
             e.ai = Some(AI);
+            e.turn = Some(Turn{side: Computer, action_points: 0});
         }
         state.entities.push(e);
     }
@@ -184,6 +186,7 @@ fn update(state: &mut GameState,
         systems::tile_system(e, display);
         systems::health_system(e);
     }
+    systems::end_of_turn_system(state.entities, &mut state.side);
     engine::Running
 }
 

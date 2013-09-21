@@ -138,9 +138,9 @@ pub fn console_init_root(width: uint, height: uint, title: &str,
     }
 }
 
-pub fn console_set_custom_font(font_path: &str) {
+pub fn console_set_custom_font(font_path: Path) {
     unsafe {
-        font_path.as_c_str(
+        font_path.to_str().as_c_str(
             |path| TCOD_console_set_custom_font(path, TCOD_FONT_TYPE_GREYSCALE as c_int | TCOD_FONT_LAYOUT_TCOD as c_int, 32, 8));
     }
 }

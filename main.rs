@@ -205,6 +205,7 @@ fn update(state: &mut GameState,
 
 fn main() {
     let (width, height) = (80, 50);
-    engine::main_loop(width, height, "Dose Response",
-                      "./fonts/dejavu16x16_gs_tc.png", initial_state, update);
+    let title = "Dose Response";
+    let font_path = Path("./fonts/dejavu16x16_gs_tc.png");
+    engine::main_loop(width, height, title, font_path, initial_state, update);
 }

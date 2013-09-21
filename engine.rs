@@ -71,7 +71,7 @@ impl Key {
 
 
 pub fn main_loop<S>(width: uint, height: uint, title: &str,
-                    font_path: &str,
+                    font_path: Path,
                     initial_state: &fn(uint, uint) -> ~S,
                     update: &fn(&mut S, &mut Display, &mut Deque<Key>) -> MainLoopState) {
     let fullscreen = false;

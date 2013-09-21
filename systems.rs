@@ -3,7 +3,7 @@ use engine::{Display, Color};
 use extra::deque::Deque;
 use tcod::TCOD_map_t;
 use tcod;
-use std::rand::{random};
+use std::rand::RngUtil;
 
 
 #[deriving(Rand)]
@@ -36,7 +36,7 @@ pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>,
     entity.destination = Some(dest);
 }
 
-pub fn ai_system(entity: &mut GameObject, map: TCOD_map_t, current_side: Side) {
+pub fn ai_system<T: RngUtil>(entity: &mut GameObject, rng: &mut T, map: TCOD_map_t, current_side: Side) {
     if entity.ai.is_none() { return }
     if entity.position.is_none() { return }
     match current_side {
@@ -45,7 +45,7 @@ pub fn ai_system(entity: &mut GameObject, map: TCOD_map_t, current_side: Side) {
     }
 
     let pos = entity.position.get();
-    let dest = match random::<Command>() {
+    let dest = match rng.gen::<Command>() {
         N => Destination{x: pos.x, y: pos.y-1},
         S => Destination{x: pos.x, y: pos.y+1},
         W => Destination{x: pos.x-1, y: pos.y},

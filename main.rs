@@ -1,5 +1,6 @@
 extern mod extra;
 
+use std::io;
 use std::rand;
 
 use components::*;
@@ -92,11 +93,11 @@ mod col {
     pub static tree_3: Color = Color(63,255,63);
 }
 
-fn initial_state(width: uint, height: uint) -> ~GameState {
+fn initial_state(width: uint, height: uint, rng: rand::IsaacRng) -> ~GameState {
     let mut state = ~GameState{
         entities: ~[],
         commands: ~Deque::new::<Command>(),
-        rng: rand::rng(),
+        rng: rng,
         map: tcod::map_new(width, height),
         side: Player,
     };
@@ -193,7 +194,7 @@ fn update(state: &mut GameState,
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
         systems::input_system(e, state.commands, state.side);
-        systems::ai_system(e, state.map, state.side);
+        systems::ai_system(e, &mut state.rng, state.map, state.side);
         systems::movement_system(e, state.map);
         systems::tile_system(e, display);
         systems::health_system(e);
@@ -202,10 +203,34 @@ fn update(state: &mut GameState,
     engine::Running
 }
 
+fn seed_from_str(source: &str) -> ~[u8] {
+    match std::int::from_str(source) {
+        Some(n) => {
+            do io::with_bytes_writer |wr| {
+                do n.iter_bytes(true) |bytes| {
+                    wr.write(bytes);
+                    true
+                };
+            }
+        },
+        None => fail!("The seed must be a number"),
+    }
+}
+
 
 fn main() {
+    use std::os;
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path("./fonts/dejavu16x16_gs_tc.png");
-    engine::main_loop(width, height, title, font_path, initial_state, update);
+    let mut rng = rand::IsaacRng::new();
+    match os::args().len() {
+        1 => {},
+        2 => {
+            let seed = seed_from_str(os::args()[1]);
+            rng = rand::IsaacRng::new_seeded(seed);
+        },
+        _ => fail!("You pass zero or one arguments."),
+    }
+    engine::main_loop(width, height, title, font_path, |w, h| initial_state(w, h, rng), update);
 }

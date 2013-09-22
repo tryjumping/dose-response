@@ -256,7 +256,7 @@ fn main() {
     let writer: @io::Writer;
 
     match os::args().len() {
-        1 => {
+        1 => {  // Run the game with a new seed, create the replay log
             let seed_int = rng.gen_int_range(0, 10000);
             seed = int_to_bytes(seed_int);
             let cur_time = time::now();
@@ -271,7 +271,7 @@ fn main() {
                 Err(e) => fail!(fmt!("Faild to open the replay file: %s", e)),
             };
         },
-        2 => {
+        2 => {  // Replay the game from the entered log
             seed = seed_from_str(os::args()[1]);
             writer = @NullWriter as @Writer;
         },
@@ -281,6 +281,6 @@ fn main() {
 
     let logger = CommandLogger{writer: writer};
     engine::main_loop(width, height, title, font_path,
-                      |w, h| initial_state(w, h, rng, logger),
+                      initial_state(width, height, rng, logger),
                       update);
 }

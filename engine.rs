@@ -72,14 +72,14 @@ impl Key {
 
 pub fn main_loop<S>(width: uint, height: uint, title: &str,
                     font_path: Path,
-                    initial_state: &fn(uint, uint) -> ~S,
+                    initial_state: ~S,
                     update: &fn(&mut S, &mut Display, &mut Deque<Key>) -> MainLoopState) {
     let fullscreen = false;
     let default_fg = Color(255, 255, 255);
     let console_count = 3;
     tcod::console_set_custom_font(font_path);
     tcod::console_init_root(width, height, title, fullscreen);
-    let mut game_state = initial_state(width, height);
+    let mut game_state = initial_state;
     let mut tcod_display = Display::new(width, height, console_count);
     let mut keys = Deque::new::<Key>();
     while !tcod::console_is_window_closed() {

@@ -7,6 +7,7 @@ use std::rand::RngUtil;
 use components::*;
 use engine::{Display, Color, MainLoopState, Key};
 use extra::deque::Deque;
+use extra::time;
 use systems::{Command};
 
 mod components;
@@ -258,7 +259,10 @@ fn main() {
         1 => {
             let seed_int = rng.gen_int_range(0, 10000);
             seed = int_to_bytes(seed_int);
-            let replay_path = Path("./replay.txt");
+            let cur_time = time::now();
+            let timestamp = time::strftime("%FT%T.", &cur_time) +
+                (cur_time.tm_nsec / 1000000).to_str();
+            let replay_path = Path("./replay-" + timestamp);
             match io::file_writer(&replay_path, [io::Create, io::Append]) {
                 Ok(w) => {
                     writer = w;

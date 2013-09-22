@@ -3,6 +3,7 @@ extern mod extra;
 use std::io;
 use std::rand;
 use std::rand::RngUtil;
+use std::os;
 
 use components::*;
 use engine::{Display, Color, MainLoopState, Key};
@@ -246,7 +247,6 @@ impl CommandLogger {
 
 
 fn main() {
-    use std::os;
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path("./fonts/dejavu16x16_gs_tc.png");

@@ -11,6 +11,22 @@ pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
 }
 
+impl Command {
+    pub fn from_str(name: &str) -> Option<Command> {
+        match name {
+            "N" => Some(N),
+            "E" => Some(E),
+            "S" => Some(S),
+            "W" => Some(W),
+            "NE" => Some(NE),
+            "NW" => Some(NW),
+            "SE" => Some(SE),
+            "SW" => Some(SW),
+            _ => None,
+        }
+    }
+}
+
 pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>,
                     logger: CommandLogger, current_side: Side) {
     if entity.accepts_user_input.is_none() { return }

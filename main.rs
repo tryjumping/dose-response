@@ -97,10 +97,11 @@ mod col {
     pub static tree_3: Color = Color(63,255,63);
 }
 
-fn initial_state(width: uint, height: uint, rng: rand::IsaacRng, logger: CommandLogger) -> ~GameState {
+fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
+                 rng: rand::IsaacRng, logger: CommandLogger) -> ~GameState {
     let mut state = ~GameState{
         entities: ~[],
-        commands: ~Deque::new::<Command>(),
+        commands: commands,
         rng: rng,
         logger: logger,
         map: tcod::map_new(width, height),
@@ -254,6 +255,7 @@ fn main() {
     let mut rng = rand::IsaacRng::new();
     let seed: ~[u8];
     let writer: @io::Writer;
+    let mut commands = ~Deque::new::<Command>();
 
     match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
@@ -268,12 +270,28 @@ fn main() {
                     writer = w;
                     writer.write_line(seed_int.to_str());
                 },
-                Err(e) => fail!(fmt!("Faild to open the replay file: %s", e)),
+                Err(e) => fail!(fmt!("Failed to open the replay file: %s", e)),
             };
         },
         2 => {  // Replay the game from the entered log
-            seed = seed_from_str(os::args()[1]);
-            writer = @NullWriter as @Writer;
+            let replay_path = &Path(os::args()[1]);
+            match io::read_whole_file_str(replay_path) {
+                Ok(contents) => {
+                    let mut lines_it = contents.any_line_iter();
+                    match lines_it.next() {
+                        Some(seed_str) => seed = seed_from_str(seed_str),
+                        None => fail!(fmt!("The replay file is empty")),
+                    }
+                    for lines_it.advance |line| {
+                        match Command::from_str(line) {
+                            Some(command) => commands.add_back(command),
+                            None => fail!(fmt!("Unknown command: %?", line)),
+                        }
+                    }
+                    writer = @NullWriter as @Writer;
+                },
+                Err(e) => fail!(fmt!("Failed to read the replay file: %s", e))
+            }
         },
         _ => fail!("You must pass either pass zero or one arguments."),
     };
@@ -281,6 +299,6 @@ fn main() {
 
     let logger = CommandLogger{writer: writer};
     engine::main_loop(width, height, title, font_path,
-                      initial_state(width, height, rng, logger),
+                      initial_state(width, height, commands, rng, logger),
                       update);
 }

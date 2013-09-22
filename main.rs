@@ -20,6 +20,7 @@ struct GameState {
     entities: ~[GameObject],
     commands: ~Deque<Command>,
     rng: rand::IsaacRng,
+    logger: CommandLogger,
     map: tcod::TCOD_map_t,
     side: Side,
 }
@@ -93,11 +94,12 @@ mod col {
     pub static tree_3: Color = Color(63,255,63);
 }
 
-fn initial_state(width: uint, height: uint, rng: rand::IsaacRng) -> ~GameState {
+fn initial_state(width: uint, height: uint, rng: rand::IsaacRng, logger: CommandLogger) -> ~GameState {
     let mut state = ~GameState{
         entities: ~[],
         commands: ~Deque::new::<Command>(),
         rng: rng,
+        logger: logger,
         map: tcod::map_new(width, height),
         side: Player,
     };
@@ -193,7 +195,7 @@ fn update(state: &mut GameState,
 
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
-        systems::input_system(e, state.commands, state.side);
+        systems::input_system(e, state.commands, state.logger, state.side);
         systems::ai_system(e, &mut state.rng, state.map, state.side);
         systems::movement_system(e, state.map);
         systems::tile_system(e, display);
@@ -217,20 +219,57 @@ fn seed_from_str(source: &str) -> ~[u8] {
     }
 }
 
+struct NullWriter;
+
+impl io::Writer for NullWriter {
+    fn write(&self, _v: &[u8]) {}
+    fn seek(&self, _a: int, _s: io::SeekStyle) {}
+    fn tell(&self) -> uint { 0 }
+    fn flush(&self) -> int { 0 }
+    fn get_type(&self) -> io::WriterType { io::File }
+}
+
+struct CommandLogger {
+    priv writer: @io::Writer,
+}
+
+impl CommandLogger {
+    fn log(&self, command: Command) {
+        self.writer.write_line(command.to_str());
+        self.writer.flush();
+    }
+}
+
 
 fn main() {
     use std::os;
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path("./fonts/dejavu16x16_gs_tc.png");
+
     let mut rng = rand::IsaacRng::new();
+    let writer: @io::Writer;
+
     match os::args().len() {
-        1 => {},
+        1 => {
+            let replay_path = Path("./replay.txt");
+            match io::file_writer(&replay_path, [io::Create, io::Append]) {
+                Ok(w) => {
+                    writer = w;
+                },
+                Err(e) => fail!(fmt!("Faild to open the replay file: %s", e)),
+            };
+        },
         2 => {
             let seed = seed_from_str(os::args()[1]);
             rng = rand::IsaacRng::new_seeded(seed);
+            writer = @NullWriter as @Writer;
         },
-        _ => fail!("You pass zero or one arguments."),
-    }
-    engine::main_loop(width, height, title, font_path, |w, h| initial_state(w, h, rng), update);
+        _ => fail!("You must pass either pass zero or one arguments."),
+    };
+
+    let logger = CommandLogger{writer: writer};
+    engine::main_loop(width, height, title, font_path,
+                      |w, h| initial_state(w, h, rng, logger),
+                      update);
 }

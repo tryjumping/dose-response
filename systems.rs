@@ -4,15 +4,15 @@ use extra::deque::Deque;
 use tcod::TCOD_map_t;
 use tcod;
 use std::rand::RngUtil;
+use super::CommandLogger;
 
-
-#[deriving(Rand)]
+#[deriving(Rand, ToStr)]
 pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
 }
 
 pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>,
-                    current_side: Side) {
+                    logger: CommandLogger, current_side: Side) {
     if entity.accepts_user_input.is_none() { return }
     if entity.position.is_none() { return }
     if commands.is_empty() { return }
@@ -22,7 +22,9 @@ pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>,
     }
 
     let pos = entity.position.get();
-    let dest = match commands.pop_front() {
+    let command = commands.pop_front();
+    logger.log(command);
+    let dest = match command {
         N => Destination{x: pos.x, y: pos.y-1},
         S => Destination{x: pos.x, y: pos.y+1},
         W => Destination{x: pos.x-1, y: pos.y},

@@ -1,3 +1,1 @@
-* Add replay system
-* Fix bug where blocked entities hang the game
 * Customise the starting area (no solid ground, no monsters near, a drug nearby)

@@ -27,6 +27,14 @@ impl Command {
     }
 }
 
+pub fn turn_system(entity: &mut GameObject, current_side: Side) {
+    entity.turn.mutate(|t| if t.side == current_side {
+            Turn{spent_this_turn: 0, .. t}
+        } else {
+            t
+        });
+}
+
 pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>,
                     logger: CommandLogger, current_side: Side) {
     if entity.accepts_user_input.is_none() { return }
@@ -84,7 +92,7 @@ pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
     if entity.turn.is_none() { return }
 
     let turn = entity.turn.get();
-    if turn.action_points <= 0 { return }
+    if turn.ap <= 0 { return }
 
     let old_pos = entity.position.get();
     let Destination{x, y} = entity.destination.get();
@@ -92,7 +100,7 @@ pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
     if x < 0 || y < 0 || x >= width as int || y >= height as int {
         // reached the edge of the screen
     } else if tcod::map_is_walkable(map, x as uint, y as uint) {
-        entity.turn = Some(Turn{action_points: turn.action_points-1, .. turn});
+        entity.spend_ap(1);
         entity.position = Some(Position{x: x, y: y});
         // The original position is walkable again
         tcod::map_set_properties(map, old_pos.x as uint, old_pos.y as uint, true, true);
@@ -112,10 +120,14 @@ pub fn tile_system(entity: &GameObject, display: &mut Display) {
     display.draw_char(level, x as uint, y as uint, glyph, color, Color(20, 20, 20));
 }
 
-pub fn health_system(entity: &mut GameObject) {
-    if entity.health.is_none() { return }
-    let health = *entity.health.get();
-    entity.health = Some(Health(health - 1));
+pub fn idle_ai_system(entity: &mut GameObject, current_side: Side) {
+    if entity.turn.is_none() { return }
+    if entity.ai.is_none() { return }
+    if current_side != Computer { return }
+
+    let turn = entity.turn.get();
+    let is_idle = (turn.side == current_side) && turn.spent_this_turn == 0;
+    if is_idle && turn.ap > 0 { entity.spend_ap(1) };
 }
 
 
@@ -123,7 +135,7 @@ pub fn end_of_turn_system(entities: &mut [GameObject], current_side: &mut Side) 
     let is_end_of_turn = entities.iter().all(|e| {
         match e.turn {
             Some(turn) => {
-                *current_side != turn.side || turn.action_points == 0
+                *current_side != turn.side || turn.ap == 0
             },
             None => true,
         }
@@ -136,7 +148,8 @@ pub fn end_of_turn_system(entities: &mut [GameObject], current_side: &mut Side) 
         for entities.mut_iter().filter(|&e| e.turn.is_some() ).advance |e| {
             let t = e.turn.get();
             if t.side == *current_side {
-                e.turn = Some(Turn{side: t.side, action_points: 1});
+                e.turn = Some(Turn{side: t.side, ap: t.max_ap,
+                                   spent_this_turn: 0, .. t});
             }
         }
     }

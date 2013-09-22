@@ -112,7 +112,7 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
     player.position = Some(Position{x: 10, y: 20});
     player.health = Some(Health(100));
     player.tile = Some(Tile{level: 2, glyph: '@', color: col::player});
-    player.turn = Some(Turn{side: Player, action_points: 1});
+    player.turn = Some(Turn{side: Player, ap: 1, max_ap: 1, spent_this_turn: 0});
     player.solid = Some(Solid);
     state.entities.push(player);
 
@@ -133,7 +133,7 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
             let mut level = 1;
             if item.is_monster() {
                 e.ai = Some(AI);
-                e.turn = Some(Turn{side: Computer, action_points: 0});
+                e.turn = Some(Turn{side: Computer, ap: 0, max_ap: 1, spent_this_turn: 0});
                 e.solid = Some(Solid);
                 level = 2;
             }
@@ -199,11 +199,12 @@ fn update(state: &mut GameState,
 
     process_input(keys, state.commands);
     for state.entities.mut_iter().advance |e| {
+        systems::turn_system(e, state.side);
         systems::input_system(e, state.commands, state.logger, state.side);
         systems::ai_system(e, &mut state.rng, state.map, state.side);
         systems::movement_system(e, state.map);
         systems::tile_system(e, display);
-        systems::health_system(e);
+        systems::idle_ai_system(e, state.side);
     }
     systems::end_of_turn_system(state.entities, &mut state.side);
     engine::Running

@@ -13,7 +13,7 @@ pub struct Destination {x: int, y: int}
 pub struct Health(int);
 pub struct Solid;
 pub struct Tile{level: uint, glyph: char, color: Color}
-pub struct Turn{side: Side, action_points: uint}
+pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_turn: int}
 
 pub struct GameObject {
     ai: Option<AI>,
@@ -38,5 +38,16 @@ impl GameObject {
             tile: None,
             turn: None,
         }
+    }
+
+    pub fn spend_ap(&mut self, spend: int) {
+        assert!(self.turn.is_some());
+        let turn = self.turn.get();
+        assert!(spend <= turn.ap);
+
+        self.turn = Some(Turn{
+                ap: turn.ap - spend,
+                spent_this_turn: turn.spent_this_turn + spend,
+                .. turn});
     }
 }

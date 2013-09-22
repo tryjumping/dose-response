@@ -2,6 +2,7 @@ extern mod extra;
 
 use std::io;
 use std::rand;
+use std::rand::RngUtil;
 
 use components::*;
 use engine::{Display, Color, MainLoopState, Key};
@@ -207,15 +208,17 @@ fn update(state: &mut GameState,
 
 fn seed_from_str(source: &str) -> ~[u8] {
     match std::int::from_str(source) {
-        Some(n) => {
-            do io::with_bytes_writer |wr| {
-                do n.iter_bytes(true) |bytes| {
-                    wr.write(bytes);
-                    true
-                };
-            }
-        },
+        Some(n) => int_to_bytes(n),
         None => fail!("The seed must be a number"),
+    }
+}
+
+fn int_to_bytes(n: int) -> ~[u8] {
+    do io::with_bytes_writer |wr| {
+        do n.iter_bytes(true) |bytes| {
+            wr.write(bytes);
+            true
+        };
     }
 }
 
@@ -248,25 +251,29 @@ fn main() {
     let font_path = Path("./fonts/dejavu16x16_gs_tc.png");
 
     let mut rng = rand::IsaacRng::new();
+    let seed: ~[u8];
     let writer: @io::Writer;
 
     match os::args().len() {
         1 => {
+            let seed_int = rng.gen_int_range(0, 10000);
+            seed = int_to_bytes(seed_int);
             let replay_path = Path("./replay.txt");
             match io::file_writer(&replay_path, [io::Create, io::Append]) {
                 Ok(w) => {
                     writer = w;
+                    writer.write_line(seed_int.to_str());
                 },
                 Err(e) => fail!(fmt!("Faild to open the replay file: %s", e)),
             };
         },
         2 => {
-            let seed = seed_from_str(os::args()[1]);
-            rng = rand::IsaacRng::new_seeded(seed);
+            seed = seed_from_str(os::args()[1]);
             writer = @NullWriter as @Writer;
         },
         _ => fail!("You must pass either pass zero or one arguments."),
     };
+    rng = rand::IsaacRng::new_seeded(seed);
 
     let logger = CommandLogger{writer: writer};
     engine::main_loop(width, height, title, font_path,

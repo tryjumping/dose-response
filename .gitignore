@@ -1,6 +1,8 @@
 *.pyc
 dist
-/replay-20*
+/replays/*
 /tcod-fps-bench-rust
 /dose-response-rust
 /lib/librtcod-*.so
+/bench/tcod-fps-bench-rust
+/dose-response

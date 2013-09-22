@@ -265,7 +265,7 @@ fn main() {
             let cur_time = time::now();
             let timestamp = time::strftime("%FT%T.", &cur_time) +
                 (cur_time.tm_nsec / 1000000).to_str();
-            let replay_path = Path("./replay-" + timestamp);
+            let replay_path = Path("./replays/replay-" + timestamp);
             match io::file_writer(&replay_path, [io::Create, io::Append]) {
                 Ok(w) => {
                     writer = w;

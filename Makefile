@@ -12,7 +12,7 @@ replay:
 	LD_LIBRARY_PATH="./lib" ./dose-response `find replays -type f -name 'replay-*' | sort | tail -n 1`
 
 clean:
-	rm -rf dist *.pyc dose-response-rust lib/librtcod-*.so
+	rm -rf dist *.pyc dose-response lib/librtcod-*.so
 
 test-py:
 	python test_entity_component_manager.py

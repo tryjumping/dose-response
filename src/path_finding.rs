@@ -1,0 +1,5 @@
+use tcod;
+
+struct PathFinder {
+
+}

@@ -5,7 +5,7 @@ run: build
 
 build: dose-response
 
-dose-response:
+dose-response: $(wildcard *.rs **/*.rs)
 	rust build -W ctypes -L./lib -O main.rs -o dose-response
 
 replay:

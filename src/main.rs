@@ -1,6 +1,7 @@
 extern mod extra;
 
 use std::io;
+
 use std::rand;
 use std::rand::RngUtil;
 use std::os;

@@ -5,8 +5,8 @@ run: build
 
 build: dose-response
 
-dose-response: $(wildcard *.rs **/*.rs)
-	rust build -W ctypes -L./lib -O main.rs -o dose-response
+dose-response: $(wildcard src/**/*.rs src/*.rs)
+	rust build -W ctypes -L./lib -O src/main.rs -o dose-response
 
 replay:
 	LD_LIBRARY_PATH="./lib" ./dose-response `find replays -type f -name 'replay-*' | sort | tail -n 1`

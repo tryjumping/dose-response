@@ -1,3 +1,6 @@
+* Add a path-finding helper (wrapper for the TCOD path stuff)
+* add a Path component (will have an instance of the path-finding object)
+* add a path_system (will convert distinations to paths, remove empty ones, etc.)
 * don't use uint for non-size variables
 * remove `TCOD_` from all the tcod.rs types
 * Customise the starting area (no solid ground, no monsters near, a drug nearby)

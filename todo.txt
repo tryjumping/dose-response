@@ -1,1 +1,3 @@
+* don't use uint for non-size variables
+* remove `TCOD_` from all the tcod.rs types
 * Customise the starting area (no solid ground, no monsters near, a drug nearby)

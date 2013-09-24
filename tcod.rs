@@ -5,6 +5,11 @@ pub type TCOD_console_t = *c_void;
 
 pub type TCOD_map_t = *c_void;
 
+pub type TCOD_path_t = *c_void;
+
+type TCOD_path_func_t = ~fn(xFrom: c_int, yFrom: c_int, xTo: c_int, yTo: c_int,
+                           user_data: *c_void) -> c_float;
+
 enum TCOD_renderer_t {
         TCOD_RENDERER_GLSL,
         TCOD_RENDERER_OPENGL,
@@ -104,9 +109,21 @@ extern "C" {
     fn TCOD_map_get_width(map: TCOD_map_t) -> c_int;
     fn TCOD_map_get_height(map: TCOD_map_t) -> c_int;
     fn TCOD_map_clear(map: TCOD_map_t, transparent: uint8_t, walkable: uint8_t);
+
+    fn TCOD_path_new_using_map(map: TCOD_map_t, diagonalCost: c_float) -> TCOD_path_t;
+    fn TCOD_path_new_using_function(map_width: c_int, map_height: c_int,
+                                    func: TCOD_path_func_t, user_data: *c_void,
+                                    diagonalCost: c_float) -> TCOD_path_t;
+    fn TCOD_path_compute(path: TCOD_path_t, ox: c_int, oy: c_int,
+                         dx: c_int, dy: c_int) -> uint8_t;
+    fn TCOD_path_walk(path: TCOD_path_t, x: *mut c_int, y: *mut c_int,
+                      recalculate_when_needed: uint8_t) -> uint8_t;
+    fn TCOD_path_is_empty(path: TCOD_path_t) -> uint8_t;
+    fn TCOD_path_size(path: TCOD_path_t) -> c_int;
+    fn TCOD_path_delete(path: TCOD_path_t);
 }
 
-// Let's make sure casting to c_int doesn't overflow
+// let's make sure casting to c_int doesn't overflow
 static max_uint: uint = 10000;
 
 pub static ROOT_CONSOLE: TCOD_console_t = 0 as TCOD_console_t;
@@ -298,5 +315,65 @@ pub fn map_size(map: TCOD_map_t) -> (uint, uint) {
 pub fn map_clear(map: TCOD_map_t, transparent: bool, walkable: bool) {
     unsafe {
         TCOD_map_clear(map, transparent as uint8_t, walkable as uint8_t);
+    }
+}
+
+fn path_new_using_map(map: TCOD_map_t, diagonal_cost: float) -> TCOD_path_t {
+    unsafe {
+        TCOD_path_new_using_map(map, diagonal_cost as c_float)
+    }
+}
+
+fn path_new_using_function(map_width: int, map_height: int,
+                           func: ~fn(x_from: int, y_from: int, x_to: int, y_to: int) -> float,
+                           //TODO: user_data: *c_void,
+                           diagonal_cost: float) -> TCOD_path_t {
+    assert!(map_width >= 0 && map_height >= 0);
+    let c_fun: TCOD_path_func_t = |xf, yf, xt, yt, _| {
+        func(xf as int, yf as int, xt as int, yt as int) as c_float
+    };
+    unsafe {
+        TCOD_path_new_using_function(map_width as c_int, map_height as c_int,
+                                     c_fun, 0 as *c_void,
+                                     diagonal_cost as c_float)
+    }
+}
+
+fn path_compute(path: TCOD_path_t, ox: int, oy: int,
+                     dx: int, dy: int) -> bool {
+    assert!(ox >= 0 && oy >= 0 && dx >= 0 && dy >= 0);
+    unsafe {
+        TCOD_path_compute(path, ox as c_int, oy as c_int,
+                          dx as c_int, dy as c_int) != 0
+    }
+}
+
+fn path_walk(path: TCOD_path_t, recalculate_when_needed: bool) -> Option<(int, int)> {
+    unsafe {
+        let mut x: c_int = 0;
+        let mut y: c_int = 0;
+        match TCOD_path_walk(path, &mut x, &mut y,
+                             recalculate_when_needed as uint8_t) != 0 {
+            true => Some((x as int, y as int)),
+            false => None,
+        }
+    }
+}
+
+fn path_is_empty(path: TCOD_path_t) -> bool {
+    unsafe {
+        TCOD_path_is_empty(path) != 0
+    }
+}
+
+fn path_size(path: TCOD_path_t) -> int {
+    unsafe {
+        TCOD_path_size(path) as int
+    }
+}
+
+fn path_delete(path: TCOD_path_t) {
+    unsafe {
+        TCOD_path_delete(path);
     }
 }

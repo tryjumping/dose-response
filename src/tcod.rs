@@ -8,25 +8,25 @@ pub type TCOD_map_t = *c_void;
 pub type TCOD_path_t = *c_void;
 
 type TCOD_path_func_t = ~fn(xFrom: c_int, yFrom: c_int, xTo: c_int, yTo: c_int,
-                           user_data: *c_void) -> c_float;
+                            user_data: *c_void) -> c_float;
 
 enum TCOD_renderer_t {
-        TCOD_RENDERER_GLSL,
-        TCOD_RENDERER_OPENGL,
-        TCOD_RENDERER_SDL,
-        TCOD_NB_RENDERERS,
+    TCOD_RENDERER_GLSL,
+    TCOD_RENDERER_OPENGL,
+    TCOD_RENDERER_SDL,
+    TCOD_NB_RENDERERS,
 }
 
 enum TCOD_key_status_t {
-        TCOD_KEY_PRESSED=1,
-        TCOD_KEY_RELEASED=2,
+    TCOD_KEY_PRESSED=1,
+    TCOD_KEY_RELEASED=2,
 }
 
 enum TCOD_font_flags_t {
-        TCOD_FONT_LAYOUT_ASCII_INCOL=1,
-        TCOD_FONT_LAYOUT_ASCII_INROW=2,
-        TCOD_FONT_TYPE_GREYSCALE=4,
-        TCOD_FONT_LAYOUT_TCOD=8,
+    TCOD_FONT_LAYOUT_ASCII_INCOL=1,
+    TCOD_FONT_LAYOUT_ASCII_INROW=2,
+    TCOD_FONT_TYPE_GREYSCALE=4,
+    TCOD_FONT_LAYOUT_TCOD=8,
 }
 
 pub struct TCOD_key_t {
@@ -47,26 +47,26 @@ pub struct TCOD_color_t {
 }
 
 pub enum TCOD_alignment_t {
-        TCOD_LEFT,
-        TCOD_RIGHT,
-        TCOD_CENTER
+    TCOD_LEFT,
+    TCOD_RIGHT,
+    TCOD_CENTER
 }
 
 pub enum TCOD_bkgnd_flag_t {
-        TCOD_BKGND_NONE,
-        TCOD_BKGND_SET,
-        TCOD_BKGND_MULTIPLY,
-        TCOD_BKGND_LIGHTEN,
-        TCOD_BKGND_DARKEN,
-        TCOD_BKGND_SCREEN,
-        TCOD_BKGND_COLOR_DODGE,
-        TCOD_BKGND_COLOR_BURN,
-        TCOD_BKGND_ADD,
-        TCOD_BKGND_ADDA,
-        TCOD_BKGND_BURN,
-        TCOD_BKGND_OVERLAY,
-        TCOD_BKGND_ALPH,
-        TCOD_BKGND_DEFAULT
+    TCOD_BKGND_NONE,
+    TCOD_BKGND_SET,
+    TCOD_BKGND_MULTIPLY,
+    TCOD_BKGND_LIGHTEN,
+    TCOD_BKGND_DARKEN,
+    TCOD_BKGND_SCREEN,
+    TCOD_BKGND_COLOR_DODGE,
+    TCOD_BKGND_COLOR_BURN,
+    TCOD_BKGND_ADD,
+    TCOD_BKGND_ADDA,
+    TCOD_BKGND_BURN,
+    TCOD_BKGND_OVERLAY,
+    TCOD_BKGND_ALPH,
+    TCOD_BKGND_DEFAULT
 }
 
 
@@ -234,7 +234,7 @@ pub fn console_print_ex(con: TCOD_console_t, x: uint, y: uint,
     unsafe {
         text.as_c_str(
             |c_text|
-            TCOD_console_print_ex(con, x as c_int, y as c_int, background_flag, alignment, c_text));
+                TCOD_console_print_ex(con, x as c_int, y as c_int, background_flag, alignment, c_text));
     }
 }
 
@@ -318,16 +318,16 @@ pub fn map_clear(map: TCOD_map_t, transparent: bool, walkable: bool) {
     }
 }
 
-fn path_new_using_map(map: TCOD_map_t, diagonal_cost: float) -> TCOD_path_t {
+pub fn path_new_using_map(map: TCOD_map_t, diagonal_cost: float) -> TCOD_path_t {
     unsafe {
         TCOD_path_new_using_map(map, diagonal_cost as c_float)
     }
 }
 
-fn path_new_using_function(map_width: int, map_height: int,
-                           func: ~fn(x_from: int, y_from: int, x_to: int, y_to: int) -> float,
-                           //TODO: user_data: *c_void,
-                           diagonal_cost: float) -> TCOD_path_t {
+pub fn path_new_using_function(map_width: int, map_height: int,
+                               func: ~fn(x_from: int, y_from: int, x_to: int, y_to: int) -> float,
+                               //TODO: user_data: *c_void,
+                               diagonal_cost: float) -> TCOD_path_t {
     assert!(map_width >= 0 && map_height >= 0);
     let c_fun: TCOD_path_func_t = |xf, yf, xt, yt, _| {
         func(xf as int, yf as int, xt as int, yt as int) as c_float
@@ -339,8 +339,8 @@ fn path_new_using_function(map_width: int, map_height: int,
     }
 }
 
-fn path_compute(path: TCOD_path_t, ox: int, oy: int,
-                     dx: int, dy: int) -> bool {
+pub fn path_compute(path: TCOD_path_t, ox: int, oy: int,
+                    dx: int, dy: int) -> bool {
     assert!(ox >= 0 && oy >= 0 && dx >= 0 && dy >= 0);
     unsafe {
         TCOD_path_compute(path, ox as c_int, oy as c_int,
@@ -348,7 +348,7 @@ fn path_compute(path: TCOD_path_t, ox: int, oy: int,
     }
 }
 
-fn path_walk(path: TCOD_path_t, recalculate_when_needed: bool) -> Option<(int, int)> {
+pub fn path_walk(path: TCOD_path_t, recalculate_when_needed: bool) -> Option<(int, int)> {
     unsafe {
         let mut x: c_int = 0;
         let mut y: c_int = 0;
@@ -360,19 +360,19 @@ fn path_walk(path: TCOD_path_t, recalculate_when_needed: bool) -> Option<(int, i
     }
 }
 
-fn path_is_empty(path: TCOD_path_t) -> bool {
+pub fn path_is_empty(path: TCOD_path_t) -> bool {
     unsafe {
         TCOD_path_is_empty(path) != 0
     }
 }
 
-fn path_size(path: TCOD_path_t) -> int {
+pub fn path_size(path: TCOD_path_t) -> int {
     unsafe {
         TCOD_path_size(path) as int
     }
 }
 
-fn path_delete(path: TCOD_path_t) {
+pub fn path_delete(path: TCOD_path_t) {
     unsafe {
         TCOD_path_delete(path);
     }

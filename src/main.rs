@@ -6,13 +6,13 @@ use std::rand;
 use std::rand::RngUtil;
 use std::os;
 
-use components::*;
+use c = components;
 use engine::{Display, Color, MainLoopState, Key};
 use extra::deque::Deque;
 use extra::time;
 use systems::{Command};
 
-mod components;
+pub mod components;
 mod ecm;
 mod engine;
 mod systems;
@@ -21,12 +21,12 @@ mod world_gen;
 
 
 struct GameState {
-    entities: ~[GameObject],
+    entities: ~[c::GameObject],
     commands: ~Deque<Command>,
     rng: rand::IsaacRng,
     logger: CommandLogger,
     map: tcod::TCOD_map_t,
-    side: Side,
+    side: components::Side,
 }
 
 impl world_gen::WorldItem {
@@ -106,39 +106,38 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
         rng: rng,
         logger: logger,
         map: tcod::map_new(width, height),
-        side: Player,
+        side: c::Player,
     };
-    let mut player = GameObject::new();
-    player.accepts_user_input = Some(AcceptsUserInput);
-    player.position = Some(Position{x: 10, y: 20});
-    player.health = Some(Health(100));
-    player.tile = Some(Tile{level: 2, glyph: '@', color: col::player});
-    player.turn = Some(Turn{side: Player, ap: 1, max_ap: 1, spent_this_turn: 0});
-    player.solid = Some(Solid);
+    let mut player = c::GameObject::new();
+    player.accepts_user_input = Some(c::AcceptsUserInput);
+    player.position = Some(c::Position{x: 10, y: 20});
+    player.tile = Some(c::Tile{level: 2, glyph: '@', color: col::player});
+    player.turn = Some(c::Turn{side: c::Player, ap: 1, max_ap: 1, spent_this_turn: 0});
+    player.solid = Some(c::Solid);
     state.entities.push(player);
 
     let world = world_gen::forrest(&mut state.rng, width, height);
     for world.iter().advance |&(x, y, item)| {
-        let mut bg = GameObject::new();
-        bg.position = Some(Position{x: x, y: y});
+        let mut bg = c::GameObject::new();
+        bg.position = Some(c::Position{x: x, y: y});
         if item == world_gen::Tree {
-            bg.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
-            bg.solid = Some(Solid);
+            bg.tile = Some(c::Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
+            bg.solid = Some(c::Solid);
         } else { // put an empty item as the background
-            bg.tile = Some(Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
+            bg.tile = Some(c::Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
         state.entities.push(bg);
         if item != world_gen::Tree && item != world_gen::Empty {
-            let mut e = GameObject::new();
-            e.position = Some(Position{x: x, y: y});
+            let mut e = c::GameObject::new();
+            e.position = Some(c::Position{x: x, y: y});
             let mut level = 1;
             if item.is_monster() {
-                e.ai = Some(AI);
-                e.turn = Some(Turn{side: Computer, ap: 0, max_ap: 1, spent_this_turn: 0});
-                e.solid = Some(Solid);
+                e.ai = Some(c::AI);
+                e.turn = Some(c::Turn{side: c::Computer, ap: 0, max_ap: 1, spent_this_turn: 0});
+                e.solid = Some(c::Solid);
                 level = 2;
             }
-            e.tile = Some(Tile{level: level, glyph: item.to_glyph(), color: item.to_color()});
+            e.tile = Some(c::Tile{level: level, glyph: item.to_glyph(), color: item.to_color()});
             state.entities.push(e);
         }
     }
@@ -147,7 +146,7 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
     tcod::map_clear(state.map, true, true);
     for state.entities.iter().advance |e| {
         match e.position {
-            Some(Position{x, y}) => {
+            Some(c::Position{x, y}) => {
                 let solid = e.solid.is_some();
                 tcod::map_set_properties(state.map, x as uint, y as uint,
                                          true, !solid);

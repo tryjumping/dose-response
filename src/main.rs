@@ -15,6 +15,7 @@ use systems::{Command};
 pub mod components;
 mod ecm;
 mod engine;
+pub mod path_finding;
 mod systems;
 pub mod tcod;
 mod world_gen;
@@ -202,6 +203,7 @@ fn update(state: &mut GameState,
         systems::turn_system(e, state.side);
         systems::input_system(e, state.commands, state.logger, state.side);
         systems::ai_system(e, &mut state.rng, state.map, state.side);
+        systems::path_system(e, state.map);
         systems::movement_system(e, state.map);
         systems::tile_system(e, display);
         systems::idle_ai_system(e, state.side);

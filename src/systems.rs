@@ -5,6 +5,8 @@ use tcod::TCOD_map_t;
 use tcod;
 use std::rand::RngUtil;
 use super::CommandLogger;
+use path_finding::{PathFinder};
+
 
 #[deriving(Rand, ToStr)]
 pub enum Command {
@@ -84,6 +86,20 @@ pub fn ai_system<T: RngUtil>(entity: &mut GameObject, rng: &mut T, map: TCOD_map
     };
     entity.destination = Some(dest);
 
+}
+
+pub fn path_system(entity: &mut GameObject, map: TCOD_map_t) {
+    if entity.position.is_none() { return }
+
+    match entity.destination {
+        Some(dest) => {
+            let pos = entity.position.get();
+            entity.path = PathFinder::new(map, pos.x, pos.y, dest.x, dest.y)
+                .map_consume(|p| Path(p));
+        },
+        None => (),
+    }
+    entity.destination = None;
 }
 
 pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {

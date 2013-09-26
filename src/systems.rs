@@ -104,27 +104,30 @@ pub fn path_system(entity: &mut GameObject, map: TCOD_map_t) {
 
 pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
     if entity.position.is_none() { return }
-    if entity.destination.is_none() { return }
+    if entity.path.is_none() { return }
     if entity.turn.is_none() { return }
 
     let turn = entity.turn.get();
     if turn.ap <= 0 { return }
 
     let old_pos = entity.position.get();
-    let Destination{x, y} = entity.destination.get();
-    let (width, height) = tcod::map_size(map);
-    if x < 0 || y < 0 || x >= width as int || y >= height as int {
-        // reached the edge of the screen
-    } else if tcod::map_is_walkable(map, x as uint, y as uint) {
-        entity.spend_ap(1);
-        entity.position = Some(Position{x: x, y: y});
-        // The original position is walkable again
-        tcod::map_set_properties(map, old_pos.x as uint, old_pos.y as uint, true, true);
-        // Set new position walkability
-        let solid = entity.solid.is_some();
-        tcod::map_set_properties(map, x as uint, y as uint, true, !solid);
-    } else { /* path is blocked */ }
-    entity.destination = None;
+    match (*entity.path.get_mut_ref()).walk() {
+        Some((x, y)) => {
+            if tcod::map_is_walkable(map, x, y) {  // Bump into the blocked entity
+                entity.spend_ap(1);
+                entity.position = Some(Position{x: x, y: y});
+                // The original position is walkable again
+                tcod::map_set_properties(map, old_pos.x as uint, old_pos.y as uint, true, true);
+                // Set new position walkability
+                let solid = entity.solid.is_some();
+                tcod::map_set_properties(map, x as uint, y as uint, true, !solid);
+            } else {  // Move to the cell
+                // TODO
+                // entity.bump = Some(Bump(x, y));
+            }
+        },
+        None => return,
+    }
 }
 
 pub fn tile_system(entity: &GameObject, display: &mut Display) {

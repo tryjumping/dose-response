@@ -120,6 +120,7 @@ extern "C" {
                       recalculate_when_needed: uint8_t) -> uint8_t;
     fn TCOD_path_is_empty(path: TCOD_path_t) -> uint8_t;
     fn TCOD_path_size(path: TCOD_path_t) -> c_int;
+    fn TCOD_path_get_destination(path: TCOD_path_t, x: *mut c_int, y: *mut c_int);
     fn TCOD_path_delete(path: TCOD_path_t);
 }
 
@@ -297,8 +298,8 @@ pub fn map_set_properties(map: TCOD_map_t, x: uint, y: uint,
     }
 }
 
-pub fn map_is_walkable(map: TCOD_map_t, x: uint, y: uint) -> bool {
-    assert!(x < max_uint && y < max_uint);
+pub fn map_is_walkable(map: TCOD_map_t, x: int, y: int) -> bool {
+    assert!(x >= 0 && y >= 0);
     unsafe {
         TCOD_map_is_walkable(map, x as c_int, y as c_int) != 0
     }
@@ -369,6 +370,15 @@ pub fn path_is_empty(path: TCOD_path_t) -> bool {
 pub fn path_size(path: TCOD_path_t) -> int {
     unsafe {
         TCOD_path_size(path) as int
+    }
+}
+
+pub fn path_get_destination(path: TCOD_path_t) -> (int, int) {
+    unsafe {
+        let mut x: c_int = 0;
+        let mut y: c_int = 0;
+        TCOD_path_get_destination(path, &mut x, &mut y);
+        (x as int, y as int)
     }
 }
 

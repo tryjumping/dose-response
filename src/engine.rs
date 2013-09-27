@@ -82,7 +82,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
     tcod::console_init_root(width, height, title, fullscreen);
     let mut game_state = initial_state;
     let mut tcod_display = Display::new(width, height, console_count);
-    let mut keys: RingBuf<Key> = RingBuf::new();
+    let mut keys = RingBuf::new();
     while !tcod::console_is_window_closed() {
         let mut key: tcod::TCOD_key_t;
         loop {

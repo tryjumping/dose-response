@@ -263,7 +263,7 @@ fn main() {
     let mut rng = rand::IsaacRng::new();
     let seed: ~[u8];
     let writer: @io::Writer;
-    let mut commands: ~RingBuf<Command> = ~RingBuf::new();
+    let mut commands = ~RingBuf::new();
 
     match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log

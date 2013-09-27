@@ -164,7 +164,7 @@ pub fn end_of_turn_system(entities: &mut [GameObject], current_side: &mut Side) 
             Player => Computer,
             Computer => Player,
         };
-        for entities.mut_iter().filter(|&e| e.turn.is_some() ).advance |e| {
+        for e in entities.mut_iter().filter(|&e| e.turn.is_some() ) {
             let t = e.turn.get();
             if t.side == *current_side {
                 e.turn = Some(Turn{side: t.side, ap: t.max_ap,

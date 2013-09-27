@@ -118,7 +118,7 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
     state.entities.push(player);
 
     let world = world_gen::forrest(&mut state.rng, width, height);
-    for world.iter().advance |&(x, y, item)| {
+    for (x, y, item) in world.iter() {
         let mut bg = c::GameObject::new();
         bg.position = Some(c::Position{x: x, y: y});
         if item == world_gen::Tree {
@@ -145,7 +145,7 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
 
     // Initialise the map's walkability data
     tcod::map_clear(state.map, true, true);
-    for state.entities.iter().advance |e| {
+    for e in state.entities.iter() {
         match e.position {
             Some(c::Position{x, y}) => {
                 let solid = e.solid.is_some();
@@ -160,7 +160,7 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
 }
 
 fn escape_pressed(keys: &Deque<Key>) -> bool {
-    for keys.iter().advance |&key| {
+    for key in keys.iter() {
         if key.char as int == 27 { return true; }
     }
     false
@@ -199,7 +199,7 @@ fn update(state: &mut GameState,
     if escape_pressed(keys) { return engine::Exit }
 
     process_input(keys, state.commands);
-    for state.entities.mut_iter().advance |e| {
+    for e in state.entities.mut_iter() {
         systems::turn_system(e, state.side);
         systems::input_system(e, state.commands, state.logger, state.side);
         systems::ai_system(e, &mut state.rng, state.map, state.side);
@@ -285,7 +285,7 @@ fn main() {
                         Some(seed_str) => seed = seed_from_str(seed_str),
                         None => fail!(fmt!("The replay file is empty")),
                     }
-                    for lines_it.advance |line| {
+                    for line in lines_it {
                         match Command::from_str(line) {
                             Some(command) => commands.add_back(command),
                             None => fail!(fmt!("Unknown command: %?", line)),

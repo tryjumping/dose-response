@@ -27,7 +27,7 @@ impl Display {
             background_console: tcod::console_new(width, height),
             consoles: ~[],
         };
-        for console_count.times {
+        do console_count.times {
             let con = tcod::console_new(width, height);
             tcod::console_set_key_color(con, transparent_background.tcod());
             tcod::console_set_default_background(con, transparent_background.tcod());
@@ -105,7 +105,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
         tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg.tcod());
         tcod::console_clear(tcod::ROOT_CONSOLE);
         tcod::console_clear(tcod_display.background_console);
-        for tcod_display.consoles.iter().advance |&con| {
+        for con in tcod_display.consoles.iter() {
             tcod::console_clear(con);
         }
 
@@ -117,7 +117,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
         tcod::console_blit(tcod_display.background_console, 0, 0, width, height,
                            tcod::ROOT_CONSOLE, 0, 0,
                            1f, 1f);
-        for tcod_display.consoles.iter().advance |&con| {
+        for con in tcod_display.consoles.iter() {
             tcod::console_blit(con, 0, 0, width, height,
                                tcod::ROOT_CONSOLE, 0, 0,
                                1f, 1f);

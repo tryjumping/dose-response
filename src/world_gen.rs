@@ -31,8 +31,8 @@ pub fn forrest<T: RngUtil>(rng: &mut T, w: uint, h: uint) -> ~[(int, int, WorldI
         Weighted{weight: monster_weight,  item: Shadows},
     ];
     let mut result: ~[(int, int, WorldItem)] = ~[];
-    for range(0, w) |x| {
-        for range(0, h) |y| {
+    for x in range(0, w) {
+        for y in range(0, h) {
             result.push((x as int, y as int,
                        rng.choose_weighted(opts)));
         }

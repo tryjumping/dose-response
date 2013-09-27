@@ -1,3 +1,26 @@
+* combat system
+* addiction system (deplete state of mind, death of exhaustion)
+* doses (can use them, increase tolerance, overdose)
+* AI system
+  - follow when player gets near
+  - pack AI for Hunger
+* special monster attacks
+  - stun
+  - panic
+  - attribute drain
+* the bottom info bar
+* graphical effect of high/withdrawn
+* irresistible doses
+  - the irresistible area glows
+* map exploration (dark arena, uncovers slowly)
+* gain will while killing Anxieties
+* kill nearby monsters on dose use
+* bonuses on superhigh
+  - see entities on som >= 98
+  - uncover the entire map on som == 99
+* generate a new area when stepping over the edge of the screen
+
+
 * read-up on the format!, println! and writeln! macros
 * don't use uint for non-size variables
 * remove `TCOD_` from all the tcod.rs types

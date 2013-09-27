@@ -14,8 +14,8 @@ pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
 }
 
-impl Command {
-    pub fn from_str(name: &str) -> Option<Command> {
+impl FromStr for Command {
+    fn from_str(name: &str) -> Option<Command> {
         match name {
             "N" => Some(N),
             "E" => Some(E),

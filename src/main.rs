@@ -283,7 +283,7 @@ fn main() {
                         None => fail!(fmt!("The replay file is empty")),
                     }
                     for line in lines_it {
-                        match Command::from_str(line) {
+                        match from_str(line) {
                             Some(command) => commands.push_back(command),
                             None => fail!(fmt!("Unknown command: %?", line)),
                         }

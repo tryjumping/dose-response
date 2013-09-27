@@ -264,8 +264,12 @@ fn main() {
             let cur_time = time::now();
             let timestamp = time::strftime("%FT%T.", &cur_time) +
                 (cur_time.tm_nsec / 1000000).to_str();
-            let replay_path = Path("./replays/replay-" + timestamp);
-            match io::file_writer(&replay_path, [io::Create, io::Append]) {
+            let replay_dir = &Path("./replays/");
+            let replay_path = &replay_dir.push("replay-" + timestamp);
+            if !os::path_exists(replay_dir) {
+                os::mkdir_recursive(replay_dir, 0b111101101);
+            }
+            match io::file_writer(replay_path, [io::Create, io::Append]) {
                 Ok(w) => {
                     writer = w;
                     writer.write_line(seed_int.to_str());

@@ -129,6 +129,7 @@ static max_uint: uint = 10000;
 
 pub static ROOT_CONSOLE: TCOD_console_t = 0 as TCOD_console_t;
 
+#[fixed_stack_segment]
 pub fn sys_set_fps(fps: uint) {
     assert!(fps < max_uint);
     unsafe {
@@ -136,6 +137,7 @@ pub fn sys_set_fps(fps: uint) {
     }
 }
 
+#[fixed_stack_segment]
 pub fn sys_get_fps() -> uint {
     let mut result;
     unsafe {
@@ -145,6 +147,7 @@ pub fn sys_get_fps() -> uint {
     return result as uint
 }
 
+#[fixed_stack_segment]
 pub fn console_init_root(width: uint, height: uint, title: &str,
                          fullscreen: bool) {
     assert!(width < max_uint); assert!(height < max_uint);
@@ -156,6 +159,7 @@ pub fn console_init_root(width: uint, height: uint, title: &str,
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_set_custom_font(font_path: Path) {
     unsafe {
         font_path.to_str().with_c_str(
@@ -163,6 +167,7 @@ pub fn console_set_custom_font(font_path: Path) {
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_is_window_closed() -> bool {
     unsafe {
         TCOD_console_is_window_closed() != 0
@@ -175,18 +180,21 @@ pub enum KeyStatus {
     KeyPressedOrReleased = 1 | 2,
 }
 
+#[fixed_stack_segment]
 pub fn console_wait_for_keypress(flush: bool) -> TCOD_key_t {
     unsafe {
         TCOD_console_wait_for_keypress(flush as uint8_t)
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_check_for_keypress(status: KeyStatus) -> TCOD_key_t {
     unsafe {
         TCOD_console_check_for_keypress(status as c_int)
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_set_char_background(con: TCOD_console_t, x: uint, y: uint,
                                    color: TCOD_color_t,
                                    background_flag: TCOD_bkgnd_flag_t) {
@@ -197,6 +205,7 @@ pub fn console_set_char_background(con: TCOD_console_t, x: uint, y: uint,
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_put_char(con: TCOD_console_t, x: uint, y: uint, glyph: char,
                         background_flag: TCOD_bkgnd_flag_t) {
     assert!(x < max_uint); assert!(y < max_uint);
@@ -206,6 +215,7 @@ pub fn console_put_char(con: TCOD_console_t, x: uint, y: uint, glyph: char,
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_put_char_ex(con: TCOD_console_t, x: uint, y: uint, glyph: char,
                            foreground: TCOD_color_t, background: TCOD_color_t) {
     assert!(x < max_uint); assert!(y < max_uint);
@@ -215,18 +225,21 @@ pub fn console_put_char_ex(con: TCOD_console_t, x: uint, y: uint, glyph: char,
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_clear(con: TCOD_console_t) {
     unsafe {
         TCOD_console_clear(con);
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_flush() {
     unsafe {
         TCOD_console_flush();
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_print_ex(con: TCOD_console_t, x: uint, y: uint,
                         background_flag: TCOD_bkgnd_flag_t,
                         alignment: TCOD_alignment_t,
@@ -239,6 +252,7 @@ pub fn console_print_ex(con: TCOD_console_t, x: uint, y: uint,
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_new(width: uint, height: uint) -> TCOD_console_t {
     assert!(width < max_uint); assert!(height < max_uint);
     unsafe {
@@ -246,24 +260,28 @@ pub fn console_new(width: uint, height: uint) -> TCOD_console_t {
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_set_default_background(con: TCOD_console_t, color: TCOD_color_t) {
     unsafe {
         TCOD_console_set_default_background(con, color);
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_set_default_foreground(con: TCOD_console_t, color: TCOD_color_t) {
     unsafe {
         TCOD_console_set_default_foreground(con, color);
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_set_key_color(con: TCOD_console_t, color: TCOD_color_t) {
     unsafe {
         TCOD_console_set_key_color(con, color);
     }
 }
 
+#[fixed_stack_segment]
 pub fn console_blit(source_console: TCOD_console_t,
                     source_x: uint, source_y: uint,
                     source_width: uint, source_height: uint,
@@ -282,6 +300,7 @@ pub fn console_blit(source_console: TCOD_console_t,
     }
 }
 
+#[fixed_stack_segment]
 pub fn map_new(width: uint, height: uint) -> TCOD_map_t {
     assert!(width < max_uint && height < max_uint);
     unsafe {
@@ -289,6 +308,7 @@ pub fn map_new(width: uint, height: uint) -> TCOD_map_t {
     }
 }
 
+#[fixed_stack_segment]
 pub fn map_set_properties(map: TCOD_map_t, x: uint, y: uint,
                           transparent: bool, walkable: bool) {
     assert!(x < max_uint && y < max_uint);
@@ -298,6 +318,7 @@ pub fn map_set_properties(map: TCOD_map_t, x: uint, y: uint,
     }
 }
 
+#[fixed_stack_segment]
 pub fn map_is_walkable(map: TCOD_map_t, x: int, y: int) -> bool {
     assert!(x >= 0 && y >= 0);
     unsafe {
@@ -305,6 +326,7 @@ pub fn map_is_walkable(map: TCOD_map_t, x: int, y: int) -> bool {
     }
 }
 
+#[fixed_stack_segment]
 pub fn map_size(map: TCOD_map_t) -> (uint, uint) {
     unsafe {
         let (w, h) = (TCOD_map_get_width(map), TCOD_map_get_height(map));
@@ -313,18 +335,21 @@ pub fn map_size(map: TCOD_map_t) -> (uint, uint) {
     }
 }
 
+#[fixed_stack_segment]
 pub fn map_clear(map: TCOD_map_t, transparent: bool, walkable: bool) {
     unsafe {
         TCOD_map_clear(map, transparent as uint8_t, walkable as uint8_t);
     }
 }
 
+#[fixed_stack_segment]
 pub fn path_new_using_map(map: TCOD_map_t, diagonal_cost: float) -> TCOD_path_t {
     unsafe {
         TCOD_path_new_using_map(map, diagonal_cost as c_float)
     }
 }
 
+#[fixed_stack_segment]
 pub fn path_new_using_function(map_width: int, map_height: int,
                                func: ~fn(x_from: int, y_from: int, x_to: int, y_to: int) -> float,
                                //TODO: user_data: *c_void,
@@ -340,6 +365,7 @@ pub fn path_new_using_function(map_width: int, map_height: int,
     }
 }
 
+#[fixed_stack_segment]
 pub fn path_compute(path: TCOD_path_t, ox: int, oy: int,
                     dx: int, dy: int) -> bool {
     assert!(ox >= 0 && oy >= 0 && dx >= 0 && dy >= 0);
@@ -349,6 +375,7 @@ pub fn path_compute(path: TCOD_path_t, ox: int, oy: int,
     }
 }
 
+#[fixed_stack_segment]
 pub fn path_walk(path: TCOD_path_t, recalculate_when_needed: bool) -> Option<(int, int)> {
     unsafe {
         let mut x: c_int = 0;
@@ -361,18 +388,21 @@ pub fn path_walk(path: TCOD_path_t, recalculate_when_needed: bool) -> Option<(in
     }
 }
 
+#[fixed_stack_segment]
 pub fn path_is_empty(path: TCOD_path_t) -> bool {
     unsafe {
         TCOD_path_is_empty(path) != 0
     }
 }
 
+#[fixed_stack_segment]
 pub fn path_size(path: TCOD_path_t) -> int {
     unsafe {
         TCOD_path_size(path) as int
     }
 }
 
+#[fixed_stack_segment]
 pub fn path_get_destination(path: TCOD_path_t) -> (int, int) {
     unsafe {
         let mut x: c_int = 0;
@@ -382,6 +412,7 @@ pub fn path_get_destination(path: TCOD_path_t) -> (int, int) {
     }
 }
 
+#[fixed_stack_segment]
 pub fn path_delete(path: TCOD_path_t) {
     unsafe {
         TCOD_path_delete(path);

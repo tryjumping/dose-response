@@ -3,17 +3,17 @@ extern mod extra;
 use std::io;
 
 use std::rand;
-use std::rand::RngUtil;
+use std::rand::Rng;
 use std::os;
 
 use c = components;
 use engine::{Display, Color, MainLoopState, Key};
-use extra::deque::Deque;
+use extra::ringbuf::RingBuf;
+use extra::container::Deque;
 use extra::time;
 use systems::{Command};
 
 pub mod components;
-mod ecm;
 mod engine;
 pub mod path_finding;
 mod systems;
@@ -23,7 +23,7 @@ mod world_gen;
 
 struct GameState {
     entities: ~[c::GameObject],
-    commands: ~Deque<Command>,
+    commands: ~RingBuf<Command>,
     rng: rand::IsaacRng,
     logger: CommandLogger,
     map: tcod::TCOD_map_t,
@@ -99,7 +99,7 @@ mod col {
     pub static tree_3: Color = Color(63,255,63);
 }
 
-fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
+fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                  rng: rand::IsaacRng, logger: CommandLogger) -> ~GameState {
     let mut state = ~GameState{
         entities: ~[],
@@ -118,7 +118,7 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
     state.entities.push(player);
 
     let world = world_gen::forrest(&mut state.rng, width, height);
-    for (x, y, item) in world.iter() {
+    for &(x, y, item) in world.iter() {
         let mut bg = c::GameObject::new();
         bg.position = Some(c::Position{x: x, y: y});
         if item == world_gen::Tree {
@@ -159,34 +159,39 @@ fn initial_state(width: uint, height: uint, commands: ~Deque<Command>,
     state
 }
 
-fn escape_pressed(keys: &Deque<Key>) -> bool {
-    for key in keys.iter() {
+fn escape_pressed(keys: &RingBuf<Key>) -> bool {
+    for &key in keys.iter() {
         if key.char as int == 27 { return true; }
     }
     false
 }
 
-fn process_input(keys: &mut Deque<Key>, commands: &mut Deque<Command>) {
-    while !keys.is_empty() {
-        let key = keys.pop_front();
-        match key.code {
-            // Up
-            14 => commands.add_back(systems::N),
-            // Down
-            17 => commands.add_back(systems::S),
-            // Left
-            15 => match (key.ctrl(), key.shift()) {
-                (false, true) => commands.add_back(systems::NW),
-                (true, false) => commands.add_back(systems::SW),
-                _ => commands.add_back(systems::W),
+fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
+    // TODO: switch to DList and consume it with `mut_iter`.
+    loop {
+        match keys.pop_front() {
+            Some(key) => {
+                match key.code {
+                    // Up
+                    14 => commands.push_back(systems::N),
+                    // Down
+                    17 => commands.push_back(systems::S),
+                    // Left
+                    15 => match (key.ctrl(), key.shift()) {
+                        (false, true) => commands.push_back(systems::NW),
+                        (true, false) => commands.push_back(systems::SW),
+                        _ => commands.push_back(systems::W),
+                    },
+                    // Right
+                    16 => match (key.ctrl(), key.shift()) {
+                        (false, true) => commands.push_back(systems::NE),
+                        (true, false) => commands.push_back(systems::SE),
+                        _ => commands.push_back(systems::E),
+                    },
+                    _ => (),
+                }
             },
-            // Right
-            16 => match (key.ctrl(), key.shift()) {
-                (false, true) => commands.add_back(systems::NE),
-                (true, false) => commands.add_back(systems::SE),
-                _ => commands.add_back(systems::E),
-            },
-            _ => (),
+            None => break,
         }
     }
 }
@@ -195,7 +200,7 @@ fn process_input(keys: &mut Deque<Key>, commands: &mut Deque<Command>) {
 
 fn update(state: &mut GameState,
           display: &mut Display,
-          keys: &mut Deque<Key>) -> MainLoopState {
+          keys: &mut RingBuf<Key>) -> MainLoopState {
     if escape_pressed(keys) { return engine::Exit }
 
     process_input(keys, state.commands);
@@ -213,7 +218,7 @@ fn update(state: &mut GameState,
 }
 
 fn seed_from_str(source: &str) -> ~[u8] {
-    match std::int::from_str(source) {
+    match from_str(source) {
         Some(n) => int_to_bytes(n),
         None => fail!("The seed must be a number"),
     }
@@ -258,11 +263,11 @@ fn main() {
     let mut rng = rand::IsaacRng::new();
     let seed: ~[u8];
     let writer: @io::Writer;
-    let mut commands = ~Deque::new::<Command>();
+    let mut commands: ~RingBuf<Command> = ~RingBuf::new();
 
     match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
-            let seed_int = rng.gen_int_range(0, 10000);
+            let seed_int = rng.gen_integer_range(0, 10000);
             seed = int_to_bytes(seed_int);
             let cur_time = time::now();
             let timestamp = time::strftime("%FT%T.", &cur_time) +
@@ -287,7 +292,7 @@ fn main() {
                     }
                     for line in lines_it {
                         match Command::from_str(line) {
-                            Some(command) => commands.add_back(command),
+                            Some(command) => commands.push_back(command),
                             None => fail!(fmt!("Unknown command: %?", line)),
                         }
                     }

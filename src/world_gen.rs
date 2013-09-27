@@ -1,7 +1,6 @@
-use std::uint::range;
-use std::rand::{RngUtil, Weighted};
+use std::rand::{Rng, Weighted};
 
-#[deriving(Rand, Eq)]
+#[deriving(Clone, Rand, Eq)]
 pub enum WorldItem {
     Empty,
     Tree,
@@ -16,7 +15,7 @@ pub enum WorldItem {
     Shadows,
 }
 
-pub fn forrest<T: RngUtil>(rng: &mut T, w: uint, h: uint) -> ~[(int, int, WorldItem)] {
+pub fn forrest<T: Rng>(rng: &mut T, w: uint, h: uint) -> ~[(int, int, WorldItem)] {
     let monster_count = 5;
     let monster_weight = 30 / monster_count;
     let opts = [

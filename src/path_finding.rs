@@ -36,7 +36,7 @@ impl PathFinder {
 }
 
 impl Drop for PathFinder {
-    fn drop(&self) {
+    fn drop(&mut self) {
         tcod::path_delete(self.tcod_path);
     }
 }

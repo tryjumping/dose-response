@@ -1,4 +1,5 @@
-use extra::deque::Deque;
+use extra::container::Deque;
+use extra::ringbuf::RingBuf;
 use tcod;
 
 pub enum MainLoopState {
@@ -73,7 +74,7 @@ impl Key {
 pub fn main_loop<S>(width: uint, height: uint, title: &str,
                     font_path: Path,
                     initial_state: ~S,
-                    update: &fn(&mut S, &mut Display, &mut Deque<Key>) -> MainLoopState) {
+                    update: &fn(&mut S, &mut Display, &mut RingBuf<Key>) -> MainLoopState) {
     let fullscreen = false;
     let default_fg = Color(255, 255, 255);
     let console_count = 3;
@@ -81,7 +82,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
     tcod::console_init_root(width, height, title, fullscreen);
     let mut game_state = initial_state;
     let mut tcod_display = Display::new(width, height, console_count);
-    let mut keys = Deque::new::<Key>();
+    let mut keys: RingBuf<Key> = RingBuf::new();
     while !tcod::console_is_window_closed() {
         let mut key: tcod::TCOD_key_t;
         loop {
@@ -89,9 +90,9 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
             match key.vk {
                 0 => break,
                 _ => {
-                    keys.add_back(Key{
+                    keys.push_back(Key{
                         code: key.vk as int,
-                        char: key.c as char,
+                        char: key.c as u8 as char,
                         left_alt: key.lalt != 0,
                         right_alt: key.ralt != 0,
                         left_ctrl: key.lctrl != 0,
@@ -105,7 +106,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
         tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg.tcod());
         tcod::console_clear(tcod::ROOT_CONSOLE);
         tcod::console_clear(tcod_display.background_console);
-        for con in tcod_display.consoles.iter() {
+        for &con in tcod_display.consoles.iter() {
             tcod::console_clear(con);
         }
 
@@ -117,7 +118,7 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
         tcod::console_blit(tcod_display.background_console, 0, 0, width, height,
                            tcod::ROOT_CONSOLE, 0, 0,
                            1f, 1f);
-        for con in tcod_display.consoles.iter() {
+        for &con in tcod_display.consoles.iter() {
             tcod::console_blit(con, 0, 0, width, height,
                                tcod::ROOT_CONSOLE, 0, 0,
                                1f, 1f);

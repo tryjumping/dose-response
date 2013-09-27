@@ -42,13 +42,16 @@ impl GameObject {
     }
 
     pub fn spend_ap(&mut self, spend: int) {
-        assert!(self.turn.is_some());
-        let turn = self.turn.get();
-        assert!(spend <= turn.ap);
+        match self.turn {
+            Some(turn) => {
+                assert!(spend <= turn.ap);
 
-        self.turn = Some(Turn{
-                ap: turn.ap - spend,
-                spent_this_turn: turn.spent_this_turn + spend,
-                .. turn});
+                self.turn = Some(Turn{
+                        ap: turn.ap - spend,
+                        spent_this_turn: turn.spent_this_turn + spend,
+                        .. turn});
+            },
+            None => fail!(),
+        }
     }
 }

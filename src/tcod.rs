@@ -149,7 +149,7 @@ pub fn console_init_root(width: uint, height: uint, title: &str,
                          fullscreen: bool) {
     assert!(width < max_uint); assert!(height < max_uint);
     unsafe {
-        title.as_c_str(
+        title.with_c_str(
             |c_title| TCOD_console_init_root(width as c_int, height as c_int,
                                              c_title, fullscreen as uint8_t,
                                              TCOD_RENDERER_SDL));
@@ -158,7 +158,7 @@ pub fn console_init_root(width: uint, height: uint, title: &str,
 
 pub fn console_set_custom_font(font_path: Path) {
     unsafe {
-        font_path.to_str().as_c_str(
+        font_path.to_str().with_c_str(
             |path| TCOD_console_set_custom_font(path, TCOD_FONT_TYPE_GREYSCALE as c_int | TCOD_FONT_LAYOUT_TCOD as c_int, 32, 8));
     }
 }
@@ -233,7 +233,7 @@ pub fn console_print_ex(con: TCOD_console_t, x: uint, y: uint,
                         text: &str) {
     assert!(x < max_uint); assert!(y < max_uint);
     unsafe {
-        text.as_c_str(
+        text.with_c_str(
             |c_text|
                 TCOD_console_print_ex(con, x as c_int, y as c_int, background_flag, alignment, c_text));
     }

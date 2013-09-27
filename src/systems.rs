@@ -1,9 +1,10 @@
 use components::*;
 use engine::{Display, Color};
-use extra::deque::Deque;
+use extra::container::Deque;
+use extra::ringbuf::RingBuf;
 use tcod::TCOD_map_t;
 use tcod;
-use std::rand::RngUtil;
+use std::rand::Rng;
 use super::CommandLogger;
 use path_finding::{PathFinder};
 
@@ -37,34 +38,37 @@ pub fn turn_system(entity: &mut GameObject, current_side: Side) {
         });
 }
 
-pub fn input_system(entity: &mut GameObject, commands: &mut Deque<Command>,
+pub fn input_system(entity: &mut GameObject, commands: &mut RingBuf<Command>,
                     logger: CommandLogger, current_side: Side) {
     if entity.accepts_user_input.is_none() { return }
     if entity.position.is_none() { return }
-    if commands.is_empty() { return }
     match current_side {
         Player => (),
         _ => return,
     }
 
-    let pos = entity.position.get();
-    let command = commands.pop_front();
-    logger.log(command);
-    let dest = match command {
-        N => Destination{x: pos.x, y: pos.y-1},
-        S => Destination{x: pos.x, y: pos.y+1},
-        W => Destination{x: pos.x-1, y: pos.y},
-        E => Destination{x: pos.x+1, y: pos.y},
+    let pos = entity.position.get_ref();
+    match commands.pop_front() {
+        Some(command) => {
+            logger.log(command);
+            let dest = match command {
+                N => Destination{x: pos.x, y: pos.y-1},
+                S => Destination{x: pos.x, y: pos.y+1},
+                W => Destination{x: pos.x-1, y: pos.y},
+                E => Destination{x: pos.x+1, y: pos.y},
 
-        NW => Destination{x: pos.x-1, y: pos.y-1},
-        NE => Destination{x: pos.x+1, y: pos.y-1},
-        SW => Destination{x: pos.x-1, y: pos.y+1},
-        SE => Destination{x: pos.x+1, y: pos.y+1},
-    };
-    entity.destination = Some(dest);
+                NW => Destination{x: pos.x-1, y: pos.y-1},
+                NE => Destination{x: pos.x+1, y: pos.y-1},
+                SW => Destination{x: pos.x-1, y: pos.y+1},
+                SE => Destination{x: pos.x+1, y: pos.y+1},
+            };
+            entity.destination = Some(dest);
+        },
+        None => (),
+    }
 }
 
-pub fn ai_system<T: RngUtil>(entity: &mut GameObject, rng: &mut T, map: TCOD_map_t, current_side: Side) {
+pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, map: TCOD_map_t, current_side: Side) {
     if entity.ai.is_none() { return }
     if entity.position.is_none() { return }
     match current_side {
@@ -72,7 +76,7 @@ pub fn ai_system<T: RngUtil>(entity: &mut GameObject, rng: &mut T, map: TCOD_map
         _ => return,
     }
 
-    let pos = entity.position.get();
+    let pos = entity.position.get_ref();
     let dest = match rng.gen::<Command>() {
         N => Destination{x: pos.x, y: pos.y-1},
         S => Destination{x: pos.x, y: pos.y+1},
@@ -93,9 +97,9 @@ pub fn path_system(entity: &mut GameObject, map: TCOD_map_t) {
 
     match entity.destination {
         Some(dest) => {
-            let pos = entity.position.get();
+            let pos = entity.position.get_ref();
             entity.path = PathFinder::new(map, pos.x, pos.y, dest.x, dest.y)
-                .map_consume(|p| Path(p));
+                .map_move(|p| Path(p));
         },
         None => (),
     }
@@ -107,14 +111,13 @@ pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
     if entity.path.is_none() { return }
     if entity.turn.is_none() { return }
 
-    let turn = entity.turn.get();
-    if turn.ap <= 0 { return }
+    if entity.turn.get_ref().ap <= 0 { return }
 
-    let old_pos = entity.position.get();
     match (*entity.path.get_mut_ref()).walk() {
         Some((x, y)) => {
             if tcod::map_is_walkable(map, x, y) {  // Bump into the blocked entity
                 entity.spend_ap(1);
+                let old_pos = *entity.position.get_ref();
                 entity.position = Some(Position{x: x, y: y});
                 // The original position is walkable again
                 tcod::map_set_properties(map, old_pos.x as uint, old_pos.y as uint, true, true);
@@ -134,8 +137,8 @@ pub fn tile_system(entity: &GameObject, display: &mut Display) {
     if entity.position.is_none() { return }
     if entity.tile.is_none() { return }
 
-    let Position{x, y} = entity.position.get();
-    let Tile{level, glyph, color} = entity.tile.get();
+    let &Position{x, y} = entity.position.get_ref();
+    let &Tile{level, glyph, color} = entity.tile.get_ref();
     display.draw_char(level, x as uint, y as uint, glyph, color, Color(20, 20, 20));
 }
 
@@ -144,7 +147,7 @@ pub fn idle_ai_system(entity: &mut GameObject, current_side: Side) {
     if entity.ai.is_none() { return }
     if current_side != Computer { return }
 
-    let turn = entity.turn.get();
+    let turn = *entity.turn.get_ref();
     let is_idle = (turn.side == current_side) && turn.spent_this_turn == 0;
     if is_idle && turn.ap > 0 { entity.spend_ap(1) };
 }
@@ -164,11 +167,15 @@ pub fn end_of_turn_system(entities: &mut [GameObject], current_side: &mut Side) 
             Player => Computer,
             Computer => Player,
         };
-        for e in entities.mut_iter().filter(|&e| e.turn.is_some() ) {
-            let t = e.turn.get();
-            if t.side == *current_side {
-                e.turn = Some(Turn{side: t.side, ap: t.max_ap,
-                                   spent_this_turn: 0, .. t});
+        for e in entities.mut_iter() {
+            match e.turn {
+                Some(turn) => {
+                    if turn.side == *current_side {
+                        e.turn = Some(Turn{side: turn.side, ap: turn.max_ap,
+                                        spent_this_turn: 0, .. turn});
+                    }
+                },
+                None => (),
             }
         }
     }

@@ -5,6 +5,7 @@ use std::io;
 use std::rand;
 use std::rand::Rng;
 use std::os;
+use std::to_bytes::{ToBytes};
 
 use c = components;
 use engine::{Display, Color, MainLoopState, Key};
@@ -218,18 +219,9 @@ fn update(state: &mut GameState,
 }
 
 fn seed_from_str(source: &str) -> ~[u8] {
-    match from_str(source) {
-        Some(n) => int_to_bytes(n),
+    match from_str::<int>(source) {
+        Some(n) => n.to_bytes(true),
         None => fail!("The seed must be a number"),
-    }
-}
-
-fn int_to_bytes(n: int) -> ~[u8] {
-    do io::with_bytes_writer |wr| {
-        do n.iter_bytes(true) |bytes| {
-            wr.write(bytes);
-            true
-        };
     }
 }
 
@@ -268,7 +260,7 @@ fn main() {
     match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
             let seed_int = rng.gen_integer_range(0, 10000);
-            seed = int_to_bytes(seed_int);
+            seed = seed_int.to_bytes(true);
             let cur_time = time::now();
             let timestamp = time::strftime("%FT%T.", &cur_time) +
                 (cur_time.tm_nsec / 1000000).to_str();

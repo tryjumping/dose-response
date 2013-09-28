@@ -6,6 +6,7 @@ use std::rand;
 use std::rand::Rng;
 use std::os;
 use std::to_bytes::{ToBytes};
+use entity_manager::EntityManager;
 
 use c = components;
 use engine::{Display, Color, MainLoopState, Key};
@@ -16,6 +17,7 @@ use systems::{Command};
 
 pub mod components;
 mod engine;
+mod entity_manager;
 pub mod path_finding;
 mod systems;
 pub mod tcod;
@@ -23,7 +25,7 @@ mod world_gen;
 
 
 struct GameState {
-    entities: ~[c::GameObject],
+    entities: EntityManager<c::GameObject>,
     commands: ~RingBuf<Command>,
     rng: rand::IsaacRng,
     logger: CommandLogger,
@@ -102,8 +104,8 @@ mod col {
 
 fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                  rng: rand::IsaacRng, logger: CommandLogger) -> ~GameState {
-    let mut state = ~GameState{
-        entities: ~[],
+    let mut state = ~GameState {
+        entities: EntityManager::new(),
         commands: commands,
         rng: rng,
         logger: logger,
@@ -116,7 +118,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     player.tile = Some(c::Tile{level: 2, glyph: '@', color: col::player});
     player.turn = Some(c::Turn{side: c::Player, ap: 1, max_ap: 1, spent_this_turn: 0});
     player.solid = Some(c::Solid);
-    state.entities.push(player);
+    state.entities.add(player);
 
     let world = world_gen::forrest(&mut state.rng, width, height);
     for &(x, y, item) in world.iter() {
@@ -128,7 +130,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
         } else { // put an empty item as the background
             bg.tile = Some(c::Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
-        state.entities.push(bg);
+        state.entities.add(bg);
         if item != world_gen::Tree && item != world_gen::Empty {
             let mut e = c::GameObject::new();
             e.position = Some(c::Position{x: x, y: y});
@@ -140,13 +142,13 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                 level = 2;
             }
             e.tile = Some(c::Tile{level: level, glyph: item.to_glyph(), color: item.to_color()});
-            state.entities.push(e);
+            state.entities.add(e);
         }
     }
 
     // Initialise the map's walkability data
     tcod::map_clear(state.map, true, true);
-    for e in state.entities.iter() {
+    for (_id, e) in state.entities.iter() {
         match e.position {
             Some(c::Position{x, y}) => {
                 let solid = e.solid.is_some();
@@ -205,7 +207,7 @@ fn update(state: &mut GameState,
     if escape_pressed(keys) { return engine::Exit }
 
     process_input(keys, state.commands);
-    for e in state.entities.mut_iter() {
+    for (_id, e) in state.entities.mut_iter() {
         systems::turn_system(e, state.side);
         systems::input_system(e, state.commands, state.logger, state.side);
         systems::ai_system(e, &mut state.rng, state.map, state.side);
@@ -214,7 +216,7 @@ fn update(state: &mut GameState,
         systems::tile_system(e, display);
         systems::idle_ai_system(e, state.side);
     }
-    systems::end_of_turn_system(state.entities, &mut state.side);
+    systems::end_of_turn_system(&mut state.entities, &mut state.side);
     engine::Running
 }
 

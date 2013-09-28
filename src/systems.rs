@@ -7,6 +7,7 @@ use tcod;
 use std::rand::Rng;
 use super::CommandLogger;
 use path_finding::{PathFinder};
+use entity_manager::EntityManager;
 
 
 #[deriving(Rand, ToStr)]
@@ -68,7 +69,7 @@ pub fn input_system(entity: &mut GameObject, commands: &mut RingBuf<Command>,
     }
 }
 
-pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, map: TCOD_map_t, current_side: Side) {
+pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, _map: TCOD_map_t, current_side: Side) {
     if entity.ai.is_none() { return }
     if entity.position.is_none() { return }
     match current_side {
@@ -153,21 +154,21 @@ pub fn idle_ai_system(entity: &mut GameObject, current_side: Side) {
 }
 
 
-pub fn end_of_turn_system(entities: &mut [GameObject], current_side: &mut Side) {
-    let is_end_of_turn = entities.iter().all(|e| {
-        match e.turn {
-            Some(turn) => {
-                *current_side != turn.side || turn.ap == 0
-            },
-            None => true,
-        }
-    });
+pub fn end_of_turn_system(entities: &mut EntityManager<GameObject>, current_side: &mut Side) {
+    let is_end_of_turn = entities.iter().all(|(_id, e)| {
+            match e.turn {
+                Some(turn) => {
+                    *current_side != turn.side || turn.ap == 0
+                },
+                None => true,
+            }
+        });
     if is_end_of_turn {
         *current_side = match *current_side {
             Player => Computer,
             Computer => Player,
         };
-        for e in entities.mut_iter() {
+        for (_id, e) in entities.mut_iter() {
             match e.turn {
                 Some(turn) => {
                     if turn.side == *current_side {

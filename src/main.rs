@@ -18,6 +18,7 @@ use systems::{Command};
 pub mod components;
 mod engine;
 mod entity_manager;
+mod map;
 pub mod path_finding;
 mod systems;
 pub mod tcod;

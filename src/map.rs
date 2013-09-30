@@ -10,7 +10,9 @@ struct Map {
     height: uint,
 }
 
-struct Path;
+struct Path {
+    priv path: tcod::TCOD_path_t,
+}
 
 #[deriving(Clone, Eq)]
 pub enum Walkability {
@@ -83,18 +85,25 @@ impl Map {
     }
 
     pub fn find_path(&self, from: (int, int), to: (int, int)) -> Path {
+        //let x_dest, y_dest = to;
         let cb = |xf: int, yf: int, xt: int, yt: int| {
             // The points should not be the same and should be neighbors
             assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-            if self.is_walkable(xt as  int, yt as int) { 1.0 }
-                else { 0.0 }
+            if self.is_walkable(xt as  int, yt as int) {
+                1.0
+            } else if (xt, yt) == to { // Treat the destination as walkable so
+                // we always find a path to it (if there is one). The user can
+                // deal with the fact that it's blocked.
+                1.0
+            } else {
+                0.0
+            }
         };
-        tcod::path_new_using_function(self.width as int, self.height as int,
-                                      cb, 1.0);
-        Path
+        Path{path: tcod::path_new_using_function(self.width as int, self.height as int,
+                                      cb, 1.0)}
     }
 
-    pub fn walk_path(&mut self, path: Path) -> Option<(int, int)> {
+    pub fn walk_path(&mut self, path: &mut Path) -> Option<(int, int)> {
         None
     }
 }

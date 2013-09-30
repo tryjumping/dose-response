@@ -5,4 +5,5 @@ dist
 /dose-response-rust
 /lib/librtcod-*.so
 /bench/tcod-fps-bench-rust
-/dose-response
+/bin/*
+dose-response

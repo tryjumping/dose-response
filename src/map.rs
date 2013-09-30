@@ -1,4 +1,5 @@
 use std::vec;
+use tcod;
 
 struct Map {
     surface: ~[Walkability],
@@ -82,6 +83,14 @@ impl Map {
     }
 
     pub fn find_path(&self, from: (int, int), to: (int, int)) -> Path {
+        let cb = |xf: int, yf: int, xt: int, yt: int| {
+            // The points should not be the same and should be neighbors
+            assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
+            if self.is_walkable(xt as  int, yt as int) { 1.0 }
+                else { 0.0 }
+        };
+        tcod::path_new_using_function(self.width as int, self.height as int,
+                                      cb, 1.0);
         Path
     }
 

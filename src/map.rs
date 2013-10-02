@@ -108,8 +108,7 @@ impl Map {
         EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}
     }
 
-    pub fn find_path(&self, from: (int, int), to: (int, int)) -> Path {
-        //let x_dest, y_dest = to;
+    pub fn find_path(&self, from: (int, int), to: (int, int)) -> Option<Path> {
         let cb = |xf: int, yf: int, xt: int, yt: int| {
             // The points should not be the same and should be neighbors
             assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
@@ -123,11 +122,28 @@ impl Map {
                 0.0
             }
         };
-        Path{path: tcod::path_new_using_function(self.width as int, self.height as int,
-                                      cb, 1.0)}
+        let path = tcod::path_new_using_function(self.width as int, self.height as int,
+                                                 cb, 1.0);
+        let (sx, sy) = from;
+        let (dx, dy) = to;
+        match tcod::path_compute(path, sx, sy, dx, dy) {
+            true => Some(Path{path: path}),
+            false => None,
+        }
     }
+}
 
-    pub fn walk_path(&mut self, path: &mut Path) -> Option<(int, int)> {
-        None
+impl Path {
+    pub fn walk(&mut self) -> Option<(int, int)> {
+        match tcod::path_size(self.path) {
+            0 => None,
+            _ => tcod::path_walk(self.path, true),
+        }
+    }
+}
+
+impl Drop for Path {
+    fn drop(&mut self) {
+        tcod::path_delete(self.path);
     }
 }

@@ -1,4 +1,5 @@
 use std::vec;
+use std::iter;
 use tcod;
 
 struct Map {
@@ -20,7 +21,29 @@ pub enum Walkability {
     Solid,
 }
 
-struct EntityIterator;
+struct EntityIterator {
+    priv e1: Option<(int, Walkability)>,
+    priv e2: Option<(int, Walkability)>,
+}
+
+impl iter::Iterator<int> for EntityIterator {
+    fn next(&mut self) -> Option<int> {
+        match self.e1 {
+            Some((id, _)) => {
+                self.e1 = self.e2;
+                self.e2 = None;
+                Some(id)
+            }
+            None => match self.e2 {
+                Some((id, _)) => {
+                    self.e2 = None;
+                    Some(id)
+                }
+                None => None,
+            }
+        }
+    }
+}
 
 impl Map {
     pub fn new(width: uint, height: uint) -> Map {
@@ -81,7 +104,8 @@ impl Map {
     }
 
     pub fn entities_on_pos(&self, x: int, y: int) -> EntityIterator {
-        EntityIterator
+        let idx = self.index_from_coords(x, y);
+        EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}
     }
 
     pub fn find_path(&self, from: (int, int), to: (int, int)) -> Path {

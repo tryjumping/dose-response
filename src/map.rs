@@ -103,6 +103,23 @@ impl Map {
         }
     }
 
+    pub fn move_entity(&mut self, id: int, from: (int, int), to: (int, int)) {
+        let from_idx = match from {(x, y) => self.index_from_coords(x, y)};
+        match self.entities_1[from_idx] {
+            Some((e_id, walkable)) if e_id == id => {
+                self.entities_1[from_idx] = None;
+                match to {(x, y) => self.place_entity(x, y, id, walkable)};
+            }
+            _ => match self.entities_2[from_idx] {
+                Some((e_id, walkable)) if e_id == id => {
+                    self.entities_2[from_idx] = None;
+                    match to {(x, y) => self.place_entity(x, y, id, walkable)};
+                }
+                _ => fail!("Entity %? not found on position %?", id, from),
+            }
+        }
+    }
+
     pub fn entities_on_pos(&self, x: int, y: int) -> EntityIterator {
         let idx = self.index_from_coords(x, y);
         EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}

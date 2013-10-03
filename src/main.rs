@@ -18,8 +18,7 @@ use systems::{Command};
 pub mod components;
 mod engine;
 mod entity_manager;
-mod map;
-pub mod path_finding;
+pub mod map;
 mod systems;
 pub mod tcod;
 mod world_gen;
@@ -30,7 +29,7 @@ struct GameState {
     commands: ~RingBuf<Command>,
     rng: rand::IsaacRng,
     logger: CommandLogger,
-    map: tcod::TCOD_map_t,
+    map: map::Map,
     side: components::Side,
 }
 
@@ -110,7 +109,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
         commands: commands,
         rng: rng,
         logger: logger,
-        map: tcod::map_new(width, height),
+        map: map::Map::new(width, height),
         side: c::Player,
     };
     let mut player = c::GameObject::new();
@@ -125,6 +124,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     for &(x, y, item) in world.iter() {
         let mut bg = c::GameObject::new();
         bg.position = Some(c::Position{x: x, y: y});
+        bg.background = Some(c::Background);
         if item == world_gen::Tree {
             bg.tile = Some(c::Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
             bg.solid = Some(c::Solid);
@@ -148,13 +148,17 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     }
 
     // Initialise the map's walkability data
-    tcod::map_clear(state.map, true, true);
-    for (_id, e) in state.entities.iter() {
+    for (id, e) in state.entities.iter() {
         match e.position {
             Some(c::Position{x, y}) => {
-                let solid = e.solid.is_some();
-                tcod::map_set_properties(state.map, x as uint, y as uint,
-                                         true, !solid);
+                let walkable = match e.solid {
+                    Some(_) => map::Solid,
+                    None => map::Walkable,
+                };
+                match e.background {
+                    Some(_) => state.map.set_walkability(x, y, walkable),
+                    None => state.map.place_entity(id as int, x, y, walkable),
+                }
             },
             None => (),
         }
@@ -208,12 +212,12 @@ fn update(state: &mut GameState,
     if escape_pressed(keys) { return engine::Exit }
 
     process_input(keys, state.commands);
-    for (_id, e) in state.entities.mut_iter() {
+    for (id, e) in state.entities.mut_iter() {
         systems::turn_system(e, state.side);
         systems::input_system(e, state.commands, state.logger, state.side);
-        systems::ai_system(e, &mut state.rng, state.map, state.side);
-        systems::path_system(e, state.map);
-        systems::movement_system(e, state.map);
+        systems::ai_system(e, &mut state.rng, &state.map, state.side);
+        systems::path_system(e, &state.map);
+        systems::movement_system(e, id as int, &mut state.map);
         systems::tile_system(e, display);
         systems::idle_ai_system(e, state.side);
     }

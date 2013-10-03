@@ -2,11 +2,9 @@ use components::*;
 use engine::{Display, Color};
 use extra::container::Deque;
 use extra::ringbuf::RingBuf;
-use tcod::TCOD_map_t;
-use tcod;
+use map;
 use std::rand::Rng;
 use super::CommandLogger;
-use path_finding::{PathFinder};
 use entity_manager::EntityManager;
 
 
@@ -69,7 +67,7 @@ pub fn input_system(entity: &mut GameObject, commands: &mut RingBuf<Command>,
     }
 }
 
-pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, _map: TCOD_map_t, current_side: Side) {
+pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, _map: &map::Map, current_side: Side) {
     if entity.ai.is_none() { return }
     if entity.position.is_none() { return }
     match current_side {
@@ -93,21 +91,20 @@ pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, _map: TCOD_map_t,
 
 }
 
-pub fn path_system(entity: &mut GameObject, map: TCOD_map_t) {
+pub fn path_system(entity: &mut GameObject, map: &map::Map) {
     if entity.position.is_none() { return }
 
     match entity.destination {
         Some(dest) => {
             let pos = entity.position.get_ref();
-            entity.path = PathFinder::new(map, pos.x, pos.y, dest.x, dest.y)
-                .map_move(|p| Path(p));
+            entity.path = map.find_path((pos.x, pos.y), (dest.x, dest.y));
         },
         None => (),
     }
     entity.destination = None;
 }
 
-pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
+pub fn movement_system(entity: &mut GameObject, id: int, map: &mut map::Map) {
     if entity.position.is_none() { return }
     if entity.path.is_none() { return }
     if entity.turn.is_none() { return }
@@ -116,16 +113,14 @@ pub fn movement_system(entity: &mut GameObject, map: TCOD_map_t) {
 
     match (*entity.path.get_mut_ref()).walk() {
         Some((x, y)) => {
-            if tcod::map_is_walkable(map, x, y) {  // Bump into the blocked entity
+            if map.is_walkable(x, y) {  // Move to the cell
                 entity.spend_ap(1);
-                let old_pos = *entity.position.get_ref();
-                entity.position = Some(Position{x: x, y: y});
-                // The original position is walkable again
-                tcod::map_set_properties(map, old_pos.x as uint, old_pos.y as uint, true, true);
-                // Set new position walkability
-                let solid = entity.solid.is_some();
-                tcod::map_set_properties(map, x as uint, y as uint, true, !solid);
-            } else {  // Move to the cell
+                // Update the entity position in the map
+                match *entity.position.get_ref() {
+                    Position{x: oldx, y: oldy} => map.move_entity(id, (oldx, oldy), (x, y))
+                };
+                map.move_entity(id, (1, 1), (x, y));
+            } else {  // Bump into the blocked entity
                 // TODO
                 // entity.bump = Some(Bump(x, y));
             }

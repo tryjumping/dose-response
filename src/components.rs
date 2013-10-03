@@ -1,5 +1,5 @@
 use engine::{Color};
-use path_finding;
+pub use map::Path;
 
 #[deriving(Eq)]
 pub enum Side {
@@ -9,9 +9,9 @@ pub enum Side {
 
 pub struct AcceptsUserInput;
 pub struct AI;
+pub struct Background;
 pub struct Position {x: int, y: int}
 pub struct Destination {x: int, y: int}
-pub struct Path(path_finding::PathFinder);
 pub struct Solid;
 pub struct Tile{level: uint, glyph: char, color: Color}
 pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_turn: int}
@@ -19,6 +19,7 @@ pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_turn: int}
 pub struct GameObject {
     ai: Option<AI>,
     accepts_user_input: Option<AcceptsUserInput>,
+    background: Option<Background>,
     position: Option<Position>,
     destination: Option<Destination>,
     path: Option<Path>,
@@ -32,6 +33,7 @@ impl GameObject {
         GameObject {
             ai: None,
             accepts_user_input: None,
+            background: None,
             position: None,
             destination: None,
             path: None,

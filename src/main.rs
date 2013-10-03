@@ -148,7 +148,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     }
 
     // Initialise the map's walkability data
-    for (id, e) in state.entities.iter() {
+    for (e, id) in state.entities.iter() {
         match e.position {
             Some(c::Position{x, y}) => {
                 let walkable = match e.solid {
@@ -157,7 +157,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                 };
                 match e.background {
                     Some(_) => state.map.set_walkability(x, y, walkable),
-                    None => state.map.place_entity(id as int, x, y, walkable),
+                    None => state.map.place_entity(id, x, y, walkable),
                 }
             },
             None => (),
@@ -212,12 +212,12 @@ fn update(state: &mut GameState,
     if escape_pressed(keys) { return engine::Exit }
 
     process_input(keys, state.commands);
-    for (id, e) in state.entities.mut_iter() {
+    for (e, id) in state.entities.mut_iter() {
         systems::turn_system(e, state.side);
         systems::input_system(e, state.commands, state.logger, state.side);
         systems::ai_system(e, &mut state.rng, &state.map, state.side);
         systems::path_system(e, &state.map);
-        systems::movement_system(e, id as int, &mut state.map);
+        systems::movement_system(e, id, &mut state.map);
         systems::tile_system(e, display);
         systems::idle_ai_system(e, state.side);
     }

@@ -150,7 +150,7 @@ pub fn idle_ai_system(entity: &mut GameObject, current_side: Side) {
 
 
 pub fn end_of_turn_system(entities: &mut EntityManager<GameObject>, current_side: &mut Side) {
-    let is_end_of_turn = entities.iter().all(|(_id, e)| {
+    let is_end_of_turn = entities.iter().all(|(e, _id)| {
             match e.turn {
                 Some(turn) => {
                     *current_side != turn.side || turn.ap == 0
@@ -163,7 +163,7 @@ pub fn end_of_turn_system(entities: &mut EntityManager<GameObject>, current_side
             Player => Computer,
             Computer => Player,
         };
-        for (_id, e) in entities.mut_iter() {
+        for (e, _id) in entities.mut_iter() {
             match e.turn {
                 Some(turn) => {
                     if turn.side == *current_side {

@@ -1,4 +1,4 @@
-use std::iter::Enumerate;
+use std::iter::{Enumerate, Map};
 use std::vec::{VecIterator, VecMutIterator};
 
 struct EntityManager<E> {
@@ -25,11 +25,11 @@ impl<E> EntityManager<E> {
         &mut self.entities[id]
     }
 
-    pub fn iter<'r>(&'r self) -> Enumerate<VecIterator<'r, E>> {
-        return self.entities.iter().enumerate()
+    pub fn iter<'r>(&'r self) -> Map<(uint, &'r E), (&'r E, int), Enumerate<VecIterator<'r, E>>> {
+        return self.entities.iter().enumerate().map(|(id, e)| (e, id as int))
     }
 
-    pub fn mut_iter<'r>(&'r mut self) -> Enumerate<VecMutIterator<'r, E>> {
-        return self.entities.mut_iter().enumerate()
+    pub fn mut_iter<'r>(&'r mut self) -> Map<(uint, &'r mut E), (&'r mut E, int), Enumerate<VecMutIterator<'r, E>>> {
+        return self.entities.mut_iter().enumerate().map(|(id, e)| (e, id as int))
     }
 }

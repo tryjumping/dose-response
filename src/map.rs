@@ -164,3 +164,40 @@ impl Drop for Path {
         tcod::path_delete(self.path);
     }
 }
+
+
+#[cfg(test)]
+mod test {
+    use super::{Map, Walkable, Solid};
+
+    #[test]
+    fn test_empty_map_isnt_walkable() {
+        let map = Map::new(5, 5);
+        assert!(!map.is_walkable(0, 0));
+        assert!(!map.is_walkable(4, 4));
+    }
+
+    #[test]
+    fn test_setting_walkability() {
+        let mut map = Map::new(5, 5);
+        assert_eq!(map.is_walkable(0, 0), false);
+        assert_eq!(map.is_walkable(1, 1), false);
+        map.set_walkability(1, 1, Walkable);
+        assert_eq!(map.is_walkable(0, 0), false);
+        assert_eq!(map.is_walkable(1, 1), true);
+        map.set_walkability(1, 1, Walkable);
+        assert_eq!(map.is_walkable(0, 0), false);
+        assert_eq!(map.is_walkable(1, 1), true);
+        map.set_walkability(1, 1, Solid);
+        assert_eq!(map.is_walkable(0, 0), false);
+        assert_eq!(map.is_walkable(1, 1), false);
+    }
+
+    #[test]
+    fn test_path_finding() {
+        let map = Map::new(5, 5);
+        let p = map.find_path((0, 0), (3, 3));
+        assert!(p.is_some());
+    }
+
+}

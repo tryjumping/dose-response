@@ -3,12 +3,19 @@ APP_NAME=dose-response
 APP=$(BIN)/$(APP_NAME)
 LIB=./lib
 LAUNCHER=./$(APP_NAME)
+SOURCES=$(wildcard src/**/*.rs src/*.rs)
 
 all: build
 
 build: $(APP) $(LAUNCHER)
 
-$(APP): $(wildcard src/**/*.rs src/*.rs)
+test:
+	mkdir -p $(BIN)
+	rust build --test -W ctypes -L./lib -O src/main.rs -o $(BIN)/test-$(APP_NAME)
+	LD_LIBRARY_PATH="$(LIB)" $(BIN)/test-$(APP_NAME)
+
+
+$(APP): $(SOURCES)
 	mkdir -p $(BIN)
 	rust build -W ctypes -L./lib -O src/main.rs -o $(APP)
 

@@ -115,12 +115,13 @@ pub fn movement_system(entity: &mut GameObject, id: int, map: &mut map::Map) {
         Some((x, y)) => {
             if map.is_walkable((x, y)) {  // Move to the cell
                 entity.spend_ap(1);
-                // Update the entity position in the map
+                // Update the entity position in the map:
                 match *entity.position.get_ref() {
                     Position{x: oldx, y: oldy} => map.move_entity(id, (oldx, oldy), (x, y))
                 };
-                map.move_entity(id, (1, 1), (x, y));
+                entity.position = Some(Position{x: x, y: y});
             } else {  // Bump into the blocked entity
+                println!("Entity {} bumped into: ({}, {})", id, x, y);
                 // TODO
                 // entity.bump = Some(Bump(x, y));
             }

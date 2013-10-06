@@ -14,7 +14,6 @@ struct Map {
 
 struct Path {
     priv path: tcod::TCOD_path_t,
-    priv path_data: ~PathData,
 }
 
 #[deriving(Clone, Eq)]
@@ -135,30 +134,22 @@ impl Map {
     pub fn find_path(@mut self, from: (int, int), to: (int, int)) -> Option<Path> {
         let (sx, sy) = from;
         let (dx, dy) = to;
-        let pd = ~PathData{dx: dx as c_int, dy: dy as c_int, map: self};
+        if dx < 0 || dy < 0 || dx >= self.width as int || dy >= self.height as int { return None; }
         let path = tcod::path_new_using_function(self.width as int, self.height as int,
-                                                 cb, pd, 1.0);
+                                                 cb, self, 1.0);
         match tcod::path_compute(path, sx, sy, dx, dy) {
-            true => Some(Path{path: path, path_data: pd}),
+            true => Some(Path{path: path}),
             false => None,
         }
     }
-}
-
-struct PathData {
-    priv map: @mut Map,
-    priv dx: c_int,
-    priv dy: c_int,
 }
 
 extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
     use std::cast;
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-    let pd: &mut PathData = unsafe { cast::transmute(path_data_ptr) };
-    if pd.map.is_walkable((xt as  int, yt as int)) {
-        1.0
-    } else if (pd.dx, pd.dy) == (xt, yt) {
+    let pd: &Map = unsafe { cast::transmute(path_data_ptr) };
+    if pd.is_walkable((xt as  int, yt as int)) {
         1.0
     } else {
         0.0
@@ -182,7 +173,6 @@ impl Path {
     }
 }
 
-#[unsafe_destructor]
 impl Drop for Path {
     fn drop(&mut self) {
         tcod::path_delete(self.path);

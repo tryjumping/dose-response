@@ -1,5 +1,5 @@
 use std::libc::{c_int, c_char, uint8_t, c_void, c_float};
-
+use std::cast;
 
 pub type TCOD_console_t = *c_void;
 
@@ -7,6 +7,7 @@ pub type TCOD_map_t = *c_void;
 
 pub type TCOD_path_t = *c_void;
 
+pub type TCOD_path_callback_t = extern "C" fn(xf: c_int, _yf: c_int, _xt: c_int, _yt: c_int, ud: *c_void) -> c_float;
 
 enum TCOD_renderer_t {
     TCOD_RENDERER_GLSL,
@@ -110,8 +111,7 @@ extern "C" {
 
     fn TCOD_path_new_using_map(map: TCOD_map_t, diagonalCost: c_float) -> TCOD_path_t;
     fn TCOD_path_new_using_function(map_width: c_int, map_height: c_int,
-                                    func: &fn(xFrom: c_int, yFrom: c_int, xTo: c_int, yTo: c_int,
-                                              user_data: *c_void) -> c_float,
+                                    func: TCOD_path_callback_t,
                                     user_data: *c_void,
                                     diagonalCost: c_float) -> TCOD_path_t;
     fn TCOD_path_compute(path: TCOD_path_t, ox: c_int, oy: c_int,
@@ -350,18 +350,15 @@ pub fn path_new_using_map(map: TCOD_map_t, diagonal_cost: float) -> TCOD_path_t 
 }
 
 #[fixed_stack_segment]
-pub fn path_new_using_function(map_width: int, map_height: int,
-                               func: &fn(x_from: int, y_from: int, x_to: int, y_to: int) -> float,
-                               //TODO: user_data: *c_void,
+pub fn path_new_using_function<T>(map_width: int, map_height: int,
+                               path_cb: TCOD_path_callback_t,
+                               user_data: &T,
                                diagonal_cost: float) -> TCOD_path_t {
     assert!(map_width >= 0 && map_height >= 0);
-    let c_fun  = |xf: c_int, yf: c_int, xt: c_int, yt: c_int, _| {
-        func(xf as int, yf as int, xt as int, yt as int) as c_float
-    };
     unsafe {
         TCOD_path_new_using_function(map_width as c_int, map_height as c_int,
-                                     c_fun,
-                                     0 as *c_void,
+                                     path_cb,
+                                     cast::transmute(user_data),
                                      diagonal_cost as c_float)
     }
 }

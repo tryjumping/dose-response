@@ -1,6 +1,7 @@
 use std::vec;
 use std::iter;
 use tcod;
+use std::libc::*;
 
 struct Map {
     surface: ~[Walkability],
@@ -126,21 +127,8 @@ impl Map {
     }
 
     pub fn find_path(&self, from: (int, int), to: (int, int)) -> Option<Path> {
-        let cb = |xf: int, yf: int, xt: int, yt: int| {
-            // The points should not be the same and should be neighbors
-            assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-            if self.is_walkable(xt as  int, yt as int) {
-                1.0
-            } else if (xt, yt) == to { // Treat the destination as walkable so
-                // we always find a path to it (if there is one). The user can
-                // deal with the fact that it's blocked.
-                1.0
-            } else {
-                0.0
-            }
-        };
         let path = tcod::path_new_using_function(self.width as int, self.height as int,
-                                                 cb, 1.0);
+                                                 cb, self, 1.0);
         let (sx, sy) = from;
         let (dx, dy) = to;
         match tcod::path_compute(path, sx, sy, dx, dy) {
@@ -150,10 +138,30 @@ impl Map {
     }
 }
 
+extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, map_ptr: *c_void) -> c_float {
+    use std::cast;
+    // The points should be right next to each other:
+    assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
+    let map: &Map = unsafe { cast::transmute(map_ptr) };
+    if map.is_walkable(xt as  int, yt as int) {
+        1.0
+    } else {
+        0.0
+    }
+}
+
+
 impl Path {
     pub fn walk(&mut self) -> Option<(int, int)> {
         match tcod::path_size(self.path) {
             0 => None,
+            // Treat the destination as walkable so we always find a path to it
+            // (if there is one). The user can deal with the fact that it's
+            // blocked.
+            1 => {
+                tcod::path_walk(self.path, false); // Consume the last step
+                Some(tcod::path_get_destination(self.path))
+            }
             _ => tcod::path_walk(self.path, true),
         }
     }
@@ -195,7 +203,14 @@ mod test {
 
     #[test]
     fn test_path_finding() {
-        let map = Map::new(5, 5);
+        let mut map = Map::new(5, 5);
+        // Add a walkable path from (0, 0) to (3, 3)
+        map.set_walkability(0, 0, Walkable);
+        map.set_walkability(1, 1, Walkable);
+        map.set_walkability(1, 2, Walkable);
+        map.set_walkability(1, 3, Walkable);
+        map.set_walkability(2, 4, Walkable);
+        map.set_walkability(3, 3, Walkable);
         let p = map.find_path((0, 0), (3, 3));
         assert!(p.is_some());
     }

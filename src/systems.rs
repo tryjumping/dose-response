@@ -91,7 +91,7 @@ pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, _map: &map::Map, 
 
 }
 
-pub fn path_system(entity: &mut GameObject, map: &map::Map) {
+pub fn path_system(entity: &mut GameObject, map: @mut map::Map) {
     if entity.position.is_none() { return }
 
     match entity.destination {

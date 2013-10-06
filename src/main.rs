@@ -29,7 +29,7 @@ struct GameState {
     commands: ~RingBuf<Command>,
     rng: rand::IsaacRng,
     logger: CommandLogger,
-    map: map::Map,
+    map: @mut map::Map,
     side: components::Side,
 }
 
@@ -215,9 +215,9 @@ fn update(state: &mut GameState,
     for (e, id) in state.entities.mut_iter() {
         systems::turn_system(e, state.side);
         systems::input_system(e, state.commands, state.logger, state.side);
-        systems::ai_system(e, &mut state.rng, &state.map, state.side);
-        systems::path_system(e, &state.map);
-        systems::movement_system(e, id, &mut state.map);
+        systems::ai_system(e, &mut state.rng, state.map, state.side);
+        systems::path_system(e, state.map);
+        systems::movement_system(e, id, state.map);
         systems::tile_system(e, display);
         systems::idle_ai_system(e, state.side);
     }

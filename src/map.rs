@@ -14,6 +14,7 @@ struct Map {
 
 struct Path {
     priv path: tcod::TCOD_path_t,
+    priv path_data: ~PathData,
 }
 
 #[deriving(Clone, Eq)]
@@ -47,8 +48,8 @@ impl iter::Iterator<int> for EntityIterator {
 }
 
 impl Map {
-    pub fn new(width: uint, height: uint) -> Map {
-        Map{
+    pub fn new(width: uint, height: uint) -> @mut Map {
+        @mut Map{
             surface: vec::from_elem(width * height, Solid),
             entities_1: vec::from_elem(width * height, None),
             entities_2: vec::from_elem(width * height, None),
@@ -67,7 +68,7 @@ impl Map {
         self.surface[self.index_from_coords(x, y)] = walkable;
     }
 
-    pub fn place_entity(&mut self, x: int, y: int, entity: int, walkable: Walkability) {
+    pub fn place_entity(&mut self, entity: int, x: int, y: int, walkable: Walkability) {
         let idx = self.index_from_coords(x, y);
         // XXX: this is shit. If we ever need to support more than 2 entities/items
         // at the same place, we need to swap this for a proper data structure.
@@ -126,24 +127,33 @@ impl Map {
         EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}
     }
 
-    pub fn find_path(&self, from: (int, int), to: (int, int)) -> Option<Path> {
-        let path = tcod::path_new_using_function(self.width as int, self.height as int,
-                                                 cb, self, 1.0);
+    pub fn find_path(@mut self, from: (int, int), to: (int, int)) -> Option<Path> {
         let (sx, sy) = from;
         let (dx, dy) = to;
+        let pd = ~PathData{dx: dx as c_int, dy: dy as c_int, map: self};
+        let path = tcod::path_new_using_function(self.width as int, self.height as int,
+                                                 cb, pd, 1.0);
         match tcod::path_compute(path, sx, sy, dx, dy) {
-            true => Some(Path{path: path}),
+            true => Some(Path{path: path, path_data: pd}),
             false => None,
         }
     }
 }
 
-extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, map_ptr: *c_void) -> c_float {
+struct PathData {
+    priv map: @mut Map,
+    priv dx: c_int,
+    priv dy: c_int,
+}
+
+extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
     use std::cast;
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-    let map: &Map = unsafe { cast::transmute(map_ptr) };
-    if map.is_walkable(xt as  int, yt as int) {
+    let pd: &PathData = unsafe { cast::transmute(path_data_ptr) };
+    if pd.map.is_walkable(xt as  int, yt as int) {
+        1.0
+    } else if (pd.dx, pd.dy) == (xt, yt) {
         1.0
     } else {
         0.0
@@ -167,6 +177,7 @@ impl Path {
     }
 }
 
+#[unsafe_destructor]
 impl Drop for Path {
     fn drop(&mut self) {
         tcod::path_delete(self.path);
@@ -187,7 +198,7 @@ mod test {
 
     #[test]
     fn test_setting_walkability() {
-        let mut map = Map::new(5, 5);
+        let map = Map::new(5, 5);
         assert_eq!(map.is_walkable(0, 0), false);
         assert_eq!(map.is_walkable(1, 1), false);
         map.set_walkability(1, 1, Walkable);
@@ -203,7 +214,7 @@ mod test {
 
     #[test]
     fn test_path_finding() {
-        let mut map = Map::new(5, 5);
+        let map = Map::new(5, 5);
         // Add a walkable path from (0, 0) to (3, 3)
         map.set_walkability(0, 0, Walkable);
         map.set_walkability(1, 1, Walkable);
@@ -217,7 +228,7 @@ mod test {
 
     #[test]
     fn test_path_finding_with_blocked_destination() {
-        let mut map = Map::new(5, 5);
+        let map = Map::new(5, 5);
         map.set_walkability(0, 0, Walkable);
         map.set_walkability(1, 1, Solid);
         let p = map.find_path((0, 0), (1, 1));
@@ -226,11 +237,26 @@ mod test {
 
     #[test]
     fn test_path_finding_with_blocked_path() {
-        let mut map = Map::new(5, 5);
+        let map = Map::new(5, 5);
         map.set_walkability(0, 0, Walkable);
         map.set_walkability(3, 3, Walkable);
         let p = map.find_path((0, 0), (3, 3));
         assert!(p.is_none());
     }
 
+    #[test]
+    fn test_path_ref_safety() {
+        let path = {
+            let map = Map::new(2, 2);
+            map.set_walkability(0, 0, Walkable);
+            map.set_walkability(1, 1, Walkable);
+            map.find_path((0,0), (1,1))
+        };
+        assert!(path.is_some());
+        let mut p = path.unwrap();
+        p.walk();
+        p.walk();
+        p.walk();
+        p.walk();
+    }
 }

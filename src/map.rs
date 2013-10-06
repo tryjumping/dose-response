@@ -135,21 +135,41 @@ impl Map {
         let (sx, sy) = from;
         let (dx, dy) = to;
         if dx < 0 || dy < 0 || dx >= self.width as int || dy >= self.height as int { return None; }
+        // XXX: I really don't understand why the `&PathData{...}` below doesn't
+        // get freed as soon as this function returns. Is it because it contains
+        // a managed box and therefore becomes managed itself or something?
+        // Of course, it's possible that it does get freed, we have a dangling
+        // pointer and we're just lucky.
+        // But: 1. this isn't an unsafe block even though the function we're
+        // calling does contain one inside. Wouldn't the compiler complain?
+        // And 2. Valgrind doesn't report any memory leaks or access to a freed
+        // memory.
         let path = tcod::path_new_using_function(self.width as int, self.height as int,
-                                                 cb, self, 1.0);
+                                                 cb, &PathData{dx: dx, dy: dy, map: self}, 1.0);
         match tcod::path_compute(path, sx, sy, dx, dy) {
-            true => Some(Path{path: path}),
-            false => None,
+            true => {
+                Some(Path{path: path})
+            }
+            false => {
+                tcod::path_delete(path);
+                None
+            }
         }
     }
 }
+
+struct PathData{dx: int, dy: int, map: @mut Map}
 
 extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
     use std::cast;
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-    let pd: &Map = unsafe { cast::transmute(path_data_ptr) };
-    if pd.is_walkable((xt as  int, yt as int)) {
+    let pd: &PathData = unsafe { cast::transmute(path_data_ptr) };
+
+    // Succeed if we're at the destination even if it's not walkable:
+    if (pd.dx as c_int, pd.dy as c_int) == (xt, yt) {
+        1.0
+    } else if pd.map.is_walkable((xt as  int, yt as int)) {
         1.0
     } else {
         0.0
@@ -165,10 +185,16 @@ impl Path {
             // (if there is one). The user can deal with the fact that it's
             // blocked.
             1 => {
-                tcod::path_walk(self.path, false); // Consume the last step
-                Some(tcod::path_get_destination(self.path))
+                let dest = Some(tcod::path_get_destination(self.path));
+                // Replace the previous path with an empty one:
+                tcod::path_delete(self.path);
+                self.path = tcod::path_new_using_function(1, 1, cb, &(), 1.0);
+                assert!(tcod::path_size(self.path) == 0);
+                dest
             }
-            _ => tcod::path_walk(self.path, true),
+            _ => {
+                tcod::path_walk(self.path, true)
+            },
         }
     }
 }

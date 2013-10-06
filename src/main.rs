@@ -156,8 +156,8 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                     None => map::Walkable,
                 };
                 match e.background {
-                    Some(_) => state.map.set_walkability(x, y, walkable),
-                    None => state.map.place_entity(id, x, y, walkable),
+                    Some(_) => state.map.set_walkability((x, y), walkable),
+                    None => state.map.place_entity(id, (x, y), walkable),
                 }
             },
             None => (),

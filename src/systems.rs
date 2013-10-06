@@ -113,7 +113,7 @@ pub fn movement_system(entity: &mut GameObject, id: int, map: &mut map::Map) {
 
     match (*entity.path.get_mut_ref()).walk() {
         Some((x, y)) => {
-            if map.is_walkable(x, y) {  // Move to the cell
+            if map.is_walkable((x, y)) {  // Move to the cell
                 entity.spend_ap(1);
                 // Update the entity position in the map
                 match *entity.position.get_ref() {

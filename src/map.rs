@@ -64,11 +64,14 @@ impl Map {
         y * (self.width as int) + x
     }
 
-    pub fn set_walkability(&mut self, x: int, y: int, walkable: Walkability) {
-        self.surface[self.index_from_coords(x, y)] = walkable;
+    pub fn set_walkability(&mut self, pos: (int, int), walkable: Walkability) {
+        match pos {
+            (x, y) => self.surface[self.index_from_coords(x, y)] = walkable
+        }
     }
 
-    pub fn place_entity(&mut self, entity: int, x: int, y: int, walkable: Walkability) {
+    pub fn place_entity(&mut self, entity: int, pos: (int, int), walkable: Walkability) {
+        let (x, y) = pos;
         let idx = self.index_from_coords(x, y);
         // XXX: this is shit. If we ever need to support more than 2 entities/items
         // at the same place, we need to swap this for a proper data structure.
@@ -92,7 +95,8 @@ impl Map {
         }
     }
 
-    pub fn is_walkable(&self, x: int, y: int) -> bool {
+    pub fn is_walkable(&self, pos: (int, int)) -> bool {
+        let (x, y) = pos;
         let idx = self.index_from_coords(x, y);
         if self.surface[idx] == Solid { return false }
         match self.entities_1[idx] {
@@ -110,19 +114,20 @@ impl Map {
         match self.entities_1[from_idx] {
             Some((e_id, walkable)) if e_id == id => {
                 self.entities_1[from_idx] = None;
-                match to {(x, y) => self.place_entity(x, y, id, walkable)};
+                match to {(x, y) => self.place_entity(id, (x, y), walkable)};
             }
             _ => match self.entities_2[from_idx] {
                 Some((e_id, walkable)) if e_id == id => {
                     self.entities_2[from_idx] = None;
-                    match to {(x, y) => self.place_entity(x, y, id, walkable)};
+                    match to {(x, y) => self.place_entity(id, (x, y), walkable)};
                 }
                 _ => fail!("Entity %? not found on position %?", id, from),
             }
         }
     }
 
-    pub fn entities_on_pos(&self, x: int, y: int) -> EntityIterator {
+    pub fn entities_on_pos(&self, pos: (int, int)) -> EntityIterator {
+        let (x, y) = pos;
         let idx = self.index_from_coords(x, y);
         EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}
     }
@@ -150,8 +155,8 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void)
     use std::cast;
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-    let pd: &PathData = unsafe { cast::transmute(path_data_ptr) };
-    if pd.map.is_walkable(xt as  int, yt as int) {
+    let pd: &mut PathData = unsafe { cast::transmute(path_data_ptr) };
+    if pd.map.is_walkable((xt as  int, yt as int)) {
         1.0
     } else if (pd.dx, pd.dy) == (xt, yt) {
         1.0
@@ -192,36 +197,36 @@ mod test {
     #[test]
     fn test_empty_map_isnt_walkable() {
         let map = Map::new(5, 5);
-        assert!(!map.is_walkable(0, 0));
-        assert!(!map.is_walkable(4, 4));
+        assert!(!map.is_walkable((0, 0)));
+        assert!(!map.is_walkable((4, 4)));
     }
 
     #[test]
     fn test_setting_walkability() {
         let map = Map::new(5, 5);
-        assert_eq!(map.is_walkable(0, 0), false);
-        assert_eq!(map.is_walkable(1, 1), false);
-        map.set_walkability(1, 1, Walkable);
-        assert_eq!(map.is_walkable(0, 0), false);
-        assert_eq!(map.is_walkable(1, 1), true);
-        map.set_walkability(1, 1, Walkable);
-        assert_eq!(map.is_walkable(0, 0), false);
-        assert_eq!(map.is_walkable(1, 1), true);
-        map.set_walkability(1, 1, Solid);
-        assert_eq!(map.is_walkable(0, 0), false);
-        assert_eq!(map.is_walkable(1, 1), false);
+        assert_eq!(map.is_walkable((0, 0)), false);
+        assert_eq!(map.is_walkable((1, 1)), false);
+        map.set_walkability((1, 1), Walkable);
+        assert_eq!(map.is_walkable((0, 0)), false);
+        assert_eq!(map.is_walkable((1, 1)), true);
+        map.set_walkability((1, 1), Walkable);
+        assert_eq!(map.is_walkable((0, 0)), false);
+        assert_eq!(map.is_walkable((1, 1)), true);
+        map.set_walkability((1, 1), Solid);
+        assert_eq!(map.is_walkable((0, 0)), false);
+        assert_eq!(map.is_walkable((1, 1)), false);
     }
 
     #[test]
     fn test_path_finding() {
         let map = Map::new(5, 5);
         // Add a walkable path from (0, 0) to (3, 3)
-        map.set_walkability(0, 0, Walkable);
-        map.set_walkability(1, 1, Walkable);
-        map.set_walkability(1, 2, Walkable);
-        map.set_walkability(1, 3, Walkable);
-        map.set_walkability(2, 4, Walkable);
-        map.set_walkability(3, 3, Walkable);
+        map.set_walkability((0, 0), Walkable);
+        map.set_walkability((1, 1), Walkable);
+        map.set_walkability((1, 2), Walkable);
+        map.set_walkability((1, 3), Walkable);
+        map.set_walkability((2, 4), Walkable);
+        map.set_walkability((3, 3), Walkable);
         let p = map.find_path((0, 0), (3, 3));
         assert!(p.is_some());
     }
@@ -229,8 +234,8 @@ mod test {
     #[test]
     fn test_path_finding_with_blocked_destination() {
         let map = Map::new(5, 5);
-        map.set_walkability(0, 0, Walkable);
-        map.set_walkability(1, 1, Solid);
+        map.set_walkability((0, 0), Walkable);
+        map.set_walkability((1, 1), Solid);
         let p = map.find_path((0, 0), (1, 1));
         assert!(p.is_some());
     }
@@ -238,8 +243,8 @@ mod test {
     #[test]
     fn test_path_finding_with_blocked_path() {
         let map = Map::new(5, 5);
-        map.set_walkability(0, 0, Walkable);
-        map.set_walkability(3, 3, Walkable);
+        map.set_walkability((0, 0), Walkable);
+        map.set_walkability((3, 3), Walkable);
         let p = map.find_path((0, 0), (3, 3));
         assert!(p.is_none());
     }
@@ -248,8 +253,8 @@ mod test {
     fn test_path_ref_safety() {
         let path = {
             let map = Map::new(2, 2);
-            map.set_walkability(0, 0, Walkable);
-            map.set_walkability(1, 1, Walkable);
+            map.set_walkability((0, 0), Walkable);
+            map.set_walkability((1, 1), Walkable);
             map.find_path((0,0), (1,1))
         };
         assert!(path.is_some());

@@ -215,4 +215,22 @@ mod test {
         assert!(p.is_some());
     }
 
+    #[test]
+    fn test_path_finding_with_blocked_destination() {
+        let mut map = Map::new(5, 5);
+        map.set_walkability(0, 0, Walkable);
+        map.set_walkability(1, 1, Solid);
+        let p = map.find_path((0, 0), (1, 1));
+        assert!(p.is_some());
+    }
+
+    #[test]
+    fn test_path_finding_with_blocked_path() {
+        let mut map = Map::new(5, 5);
+        map.set_walkability(0, 0, Walkable);
+        map.set_walkability(3, 3, Walkable);
+        let p = map.find_path((0, 0), (3, 3));
+        assert!(p.is_none());
+    }
+
 }

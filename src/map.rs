@@ -211,14 +211,14 @@ mod test {
     use super::{Map, Walkable, Solid};
 
     #[test]
-    fn test_empty_map_isnt_walkable() {
+    fn empty_map_isnt_walkable() {
         let map = Map::new(5, 5);
         assert!(!map.is_walkable((0, 0)));
         assert!(!map.is_walkable((4, 4)));
     }
 
     #[test]
-    fn test_setting_walkability() {
+    fn setting_walkability() {
         let map = Map::new(5, 5);
         assert_eq!(map.is_walkable((0, 0)), false);
         assert_eq!(map.is_walkable((1, 1)), false);
@@ -234,7 +234,7 @@ mod test {
     }
 
     #[test]
-    fn test_path_finding() {
+    fn path_finding() {
         let map = Map::new(5, 5);
         // Add a walkable path from (0, 0) to (3, 3)
         map.set_walkability((0, 0), Walkable);
@@ -248,7 +248,7 @@ mod test {
     }
 
     #[test]
-    fn test_path_finding_with_blocked_destination() {
+    fn path_finding_with_blocked_destination() {
         let map = Map::new(5, 5);
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((1, 1), Solid);
@@ -257,7 +257,7 @@ mod test {
     }
 
     #[test]
-    fn test_path_finding_with_blocked_path() {
+    fn path_finding_with_blocked_path() {
         let map = Map::new(5, 5);
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((3, 3), Walkable);
@@ -266,7 +266,7 @@ mod test {
     }
 
     #[test]
-    fn test_path_ref_safety() {
+    fn path_ref_safety() {
         let path = {
             let map = Map::new(2, 2);
             map.set_walkability((0, 0), Walkable);
@@ -282,7 +282,7 @@ mod test {
     }
 
     #[test]
-    fn test_placing_entity() {
+    fn placing_entity() {
         let map = Map::new(2, 2);
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((1, 1), Walkable);
@@ -295,7 +295,7 @@ mod test {
     }
 
     #[test]
-    fn test_placing_multiple_entities() {
+    fn placing_multiple_entities() {
         let map = Map::new(2, 2);
         map.set_walkability((0, 0), Walkable);
         map.place_entity(10, (0, 0), Walkable);
@@ -314,17 +314,69 @@ mod test {
     }
 
     #[test]
-    fn test_updating_entities_walkability() {
+    fn update_entities_walkability() {
+        let map = Map::new(2, 2);
+        map.set_walkability((0, 0), Walkable);
 
+        map.place_entity(10, (0, 0), Walkable);
+        assert_eq!(map.is_walkable((0, 0)), true);
+
+        map.place_entity(10, (0, 0), Solid);
+        assert_eq!(map.is_walkable((0, 0)), false);
+
+        map.place_entity(10, (0, 0), Walkable);
+        assert_eq!(map.is_walkable((0, 0)), true);
     }
 
     #[test]
-    fn test_moving_entity() {
+    fn move_entity() {
+        let map = Map::new(2, 2);
+        map.set_walkability((0, 0), Walkable);
+        map.set_walkability((1, 1), Walkable);
+        map.place_entity(10, (0, 0), Solid);
+        map.place_entity(11, (0, 0), Walkable);
+        assert_eq!(map.is_walkable((0, 0)), false);
+        assert_eq!(map.is_walkable((1, 1)), true);
 
+        map.move_entity(10, (0, 0), (1, 1));
+        assert_eq!(map.is_walkable((0, 0)), true);
+        assert_eq!(map.is_walkable((1, 1)), false);
+    }
+
+    #[test]
+    #[should_fail]
+    fn move_invalid_entity() {
+        let map = Map::new(2, 2);
+        map.set_walkability((0, 0), Walkable);
+        map.set_walkability((1, 1), Walkable);
+        map.place_entity(10, (0, 0), Solid);
+        map.place_entity(11, (0, 0), Walkable);
+        assert_eq!(map.is_walkable((0, 0)), false);
+        assert_eq!(map.is_walkable((1, 1)), true);
+
+        map.move_entity(12, (0, 0), (1, 1));
     }
 
     #[test]
     fn test_entities_on_pos() {
+        let map = Map::new(2, 2);
 
+        map.place_entity(10, (0, 0), Solid);
+        map.place_entity(11, (0, 0), Walkable);
+        assert_eq!(map.entities_on_pos((0, 0)).len(), 2);
+        let mut two_entities_iterator = map.entities_on_pos((0, 0));
+        assert_eq!(two_entities_iterator.next(), Some(10));
+        assert_eq!(two_entities_iterator.next(), Some(11));
+        assert_eq!(two_entities_iterator.next(), None);
+
+        map.place_entity(12, (0, 1), Walkable);
+        assert_eq!(map.entities_on_pos((0, 1)).len(), 1);
+        let mut one_entity_iterator = map.entities_on_pos((0, 1));
+        assert_eq!(one_entity_iterator.next(), Some(12));
+        assert_eq!(one_entity_iterator.next(), None);
+
+        assert_eq!(map.entities_on_pos((1, 1)).len(), 0);
+        let mut zero_entities_iterator = map.entities_on_pos((1, 1));
+        assert_eq!(zero_entities_iterator.next(), None);
     }
 }

@@ -280,4 +280,51 @@ mod test {
         p.walk();
         p.walk();
     }
+
+    #[test]
+    fn test_placing_entity() {
+        let map = Map::new(2, 2);
+        map.set_walkability((0, 0), Walkable);
+        map.set_walkability((1, 1), Walkable);
+        map.place_entity(10, (0, 0), Solid);
+        assert_eq!(map.is_walkable((0, 0)), false);
+        map.place_entity(11, (1, 1), Walkable);
+        assert_eq!(map.is_walkable((1, 1)), true);
+        map.place_entity(12, (0, 1), Walkable);
+        assert_eq!(map.is_walkable((0, 1)), false);
+    }
+
+    #[test]
+    fn test_placing_multiple_entities() {
+        let map = Map::new(2, 2);
+        map.set_walkability((0, 0), Walkable);
+        map.place_entity(10, (0, 0), Walkable);
+        map.place_entity(11, (0, 0), Walkable);
+        assert_eq!(map.is_walkable((0, 0)), true);
+
+        map.set_walkability((0, 1), Walkable);
+        map.place_entity(12, (0, 1), Walkable);
+        map.place_entity(13, (0, 1), Solid);
+        assert_eq!(map.is_walkable((0, 1)), false);
+
+        map.set_walkability((1, 0), Walkable);
+        map.place_entity(14, (1, 0), Solid);
+        map.place_entity(15, (1, 0), Walkable);
+        assert_eq!(map.is_walkable((1, 0)), false);
+    }
+
+    #[test]
+    fn test_updating_entities_walkability() {
+
+    }
+
+    #[test]
+    fn test_moving_entity() {
+
+    }
+
+    #[test]
+    fn test_entities_on_pos() {
+
+    }
 }

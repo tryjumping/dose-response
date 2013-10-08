@@ -1,3 +1,6 @@
+* add the entity id in the Map as a generic type
+  - maybe do the same for position?
+* write tests for all the Map functions
 * combat system
 * addiction system (deplete state of mind, death of exhaustion)
 * doses (can use them, increase tolerance, overdose)

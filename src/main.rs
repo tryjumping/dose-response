@@ -157,7 +157,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                 };
                 match e.background {
                     Some(_) => state.map.set_walkability((x, y), walkable),
-                    None => state.map.place_entity(id, (x, y), walkable),
+                    None => state.map.place_entity(*id, (x, y), walkable),
                 }
             },
             None => (),
@@ -217,7 +217,7 @@ fn update(state: &mut GameState,
         systems::input_system(e, state.commands, state.logger, state.side);
         systems::ai_system(e, &mut state.rng, state.map, state.side);
         systems::path_system(e, state.map);
-        systems::movement_system(e, id, state.map);
+        systems::movement_system(e, *id, state.map);
         systems::tile_system(e, display);
         systems::idle_ai_system(e, state.side);
     }

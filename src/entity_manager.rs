@@ -6,7 +6,7 @@ struct EntityManager<E> {
     priv next_id: ID,
 }
 
-struct ID(int);
+pub struct ID(int);
 
 impl<E> EntityManager<E> {
     pub fn new() -> EntityManager<E> {
@@ -19,12 +19,20 @@ impl<E> EntityManager<E> {
         *self.next_id - 1
     }
 
-    pub fn get_ref<'r>(&'r self, id: ID) -> &'r E {
-        &self.entities[*id]
+    pub fn get_ref<'r>(&'r self, id: ID) -> Option<&'r E> {
+        if *id >= 0 && *id < (self.entities.len() as int) {
+            Some(&self.entities[*id])
+        } else {
+            None
+        }
     }
 
-    pub fn get_ref_mut<'r>(&'r mut self, id: ID) -> &'r mut E {
-        &mut self.entities[*id]
+    pub fn get_mut_ref<'r>(&'r mut self, id: ID) -> Option<&'r mut E> {
+        if *id >= 0 && *id < (self.entities.len() as int) {
+            Some(&mut self.entities[*id])
+        } else {
+            None
+        }
     }
 
     pub fn iter<'r>(&'r self) -> Map<(uint, &'r E), (&'r E, ID), Enumerate<VecIterator<'r, E>>> {

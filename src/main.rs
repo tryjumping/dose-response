@@ -17,7 +17,7 @@ use systems::{Command};
 
 pub mod components;
 mod engine;
-mod entity_manager;
+pub mod entity_manager;
 pub mod map;
 mod systems;
 pub mod tcod;
@@ -212,14 +212,22 @@ fn update(state: &mut GameState,
     if escape_pressed(keys) { return engine::Exit }
 
     process_input(keys, state.commands);
-    for (e, id) in state.entities.mut_iter() {
-        systems::turn_system(e, state.side);
-        systems::input_system(e, state.commands, state.logger, state.side);
-        systems::ai_system(e, &mut state.rng, state.map, state.side);
-        systems::path_system(e, state.map);
-        systems::movement_system(e, *id, state.map);
-        systems::tile_system(e, display);
-        systems::idle_ai_system(e, state.side);
+    // TODO: fix this for a correct number/ID iterator
+    for num_id in range(0, 10000) {
+        let id = entity_manager::ID(num_id);
+        if state.entities.get_ref(id).is_none() {
+            loop
+        }
+        let ecm = &mut state.entities;
+        systems::turn_system(id, ecm, state.side);
+        systems::input_system(id, ecm, state.commands, state.logger, state.side);
+        systems::ai_system(id, ecm, &mut state.rng, state.map, state.side);
+        systems::path_system(id, ecm, state.map);
+        systems::movement_system(id, ecm, state.map);
+        systems::bump_system(id, ecm);
+        systems::combat_system(id, ecm);
+        systems::tile_system(id, ecm, display);
+        systems::idle_ai_system(id, ecm, state.side);
     }
     systems::end_of_turn_system(&mut state.entities, &mut state.side);
     engine::Running

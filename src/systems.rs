@@ -5,7 +5,7 @@ use extra::ringbuf::RingBuf;
 use map;
 use std::rand::Rng;
 use super::CommandLogger;
-use entity_manager::EntityManager;
+use entity_manager::{EntityManager, ID};
 
 
 #[deriving(Rand, ToStr)]
@@ -29,16 +29,24 @@ impl FromStr for Command {
     }
 }
 
-pub fn turn_system(entity: &mut GameObject, current_side: Side) {
-    entity.turn.mutate(|t| if t.side == current_side {
-            Turn{spent_this_turn: 0, .. t}
-        } else {
-            t
-        });
+pub fn turn_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Side) {
+    match ecm.get_mut_ref(id) {
+        Some(entity) => {
+            entity.turn.mutate(|t| if t.side == current_side {
+                    Turn{spent_this_turn: 0, .. t}
+                } else {
+                    t
+                });
+        }
+        None => {}
+    }
 }
 
-pub fn input_system(entity: &mut GameObject, commands: &mut RingBuf<Command>,
+pub fn input_system(id: ID, ecm: &mut EntityManager<GameObject>, commands: &mut RingBuf<Command>,
                     logger: CommandLogger, current_side: Side) {
+    if ecm.get_ref(id).is_none() { return }
+    let entity = ecm.get_mut_ref(id).unwrap();
+
     if entity.accepts_user_input.is_none() { return }
     if entity.position.is_none() { return }
     match current_side {
@@ -67,7 +75,10 @@ pub fn input_system(entity: &mut GameObject, commands: &mut RingBuf<Command>,
     }
 }
 
-pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, _map: &map::Map, current_side: Side) {
+pub fn ai_system<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut T, _map: &map::Map, current_side: Side) {
+    if ecm.get_ref(id).is_none() { return }
+    let entity = ecm.get_mut_ref(id).unwrap();
+
     if entity.ai.is_none() { return }
     if entity.position.is_none() { return }
     match current_side {
@@ -91,7 +102,10 @@ pub fn ai_system<T: Rng>(entity: &mut GameObject, rng: &mut T, _map: &map::Map, 
 
 }
 
-pub fn path_system(entity: &mut GameObject, map: @mut map::Map) {
+pub fn path_system(id: ID, ecm: &mut EntityManager<GameObject>, map: @mut map::Map) {
+    if ecm.get_ref(id).is_none() { return }
+    let entity = ecm.get_mut_ref(id).unwrap();
+
     if entity.position.is_none() { return }
 
     match entity.destination {
@@ -104,7 +118,10 @@ pub fn path_system(entity: &mut GameObject, map: @mut map::Map) {
     entity.destination = None;
 }
 
-pub fn movement_system(entity: &mut GameObject, id: int, map: &mut map::Map) {
+pub fn movement_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
+    if ecm.get_ref(id).is_none() { return }
+    let entity = ecm.get_mut_ref(id).unwrap();
+
     if entity.position.is_none() { return }
     if entity.path.is_none() { return }
     if entity.turn.is_none() { return }
@@ -118,21 +135,70 @@ pub fn movement_system(entity: &mut GameObject, id: int, map: &mut map::Map) {
                 // Update both the entity position component and the map:
                 match *entity.position.get_ref() {
                     Position{x: oldx, y: oldy} => {
-                        map.move_entity(id, (oldx, oldy), (x, y));
+                        map.move_entity(*id, (oldx, oldy), (x, y));
                         entity.position = Some(Position{x: x, y: y});
                     }
                 };
             } else {  // Bump into the blocked entity
-                println!("Entity {} bumped into: ({}, {})", id, x, y);
-                // TODO
-                // entity.bump = Some(Bump(x, y));
+                // TODO: assert there's only one solid entity on pos [x, y]
+                for (bumpee, walkable) in map.entities_on_pos((x, y)) {
+                    assert!(bumpee != *id);
+                    match walkable {
+                        map::Walkable => loop,
+                        map::Solid => {
+                            println!("Entity {} bumped into {} at: ({}, {})", *id, bumpee, x, y);
+                            entity.bump = Some(Bump(ID(bumpee)));
+                            break;
+                        }
+                    }
+                }
             }
         },
         None => return,
     }
 }
 
-pub fn tile_system(entity: &GameObject, display: &mut Display) {
+
+pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
+    let bumpee_id = {match ecm.get_ref(entity_id).unwrap().bump {Some(id) => *id, None => {return}}};
+    let bumpee = {ecm.get_ref(bumpee_id).unwrap().turn};
+    match ecm.get_mut_ref(entity_id) {
+        Some(e) => {
+            if bumpee.is_some() && e.turn.is_some() && bumpee.unwrap().side != e.turn.unwrap().side {
+                println!("Entity {} attacks {}.", *entity_id, *bumpee_id)
+                e.attack = Some(Attack(bumpee_id));
+            } else {
+                println!("Entity {} hits the wall.", *entity_id);
+            }
+            e.bump = None;
+        }
+        _ => (),
+    }
+}
+
+pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>) {
+    let target = match ecm.get_ref(id) {
+        Some(e) => match e.attack {
+            Some(target_id) => target_id,
+            None => return,
+        },
+        None => { return }
+    };
+    match ecm.get_mut_ref(*target) {
+        Some(e) => {
+            e.ai = None;
+            e.position = None; // TODO: remove it from the map
+            e.accepts_user_input = None;
+            e.turn = None;
+        }
+        None => {}
+    }
+}
+
+pub fn tile_system(id: ID, ecm: &EntityManager<GameObject>, display: &mut Display) {
+    if ecm.get_ref(id).is_none() { return }
+    let entity = ecm.get_ref(id).unwrap();
+
     if entity.position.is_none() { return }
     if entity.tile.is_none() { return }
 
@@ -141,7 +207,10 @@ pub fn tile_system(entity: &GameObject, display: &mut Display) {
     display.draw_char(level, x as uint, y as uint, glyph, color, Color(20, 20, 20));
 }
 
-pub fn idle_ai_system(entity: &mut GameObject, current_side: Side) {
+pub fn idle_ai_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Side) {
+    if ecm.get_ref(id).is_none() { return }
+    let entity = ecm.get_mut_ref(id).unwrap();
+
     if entity.turn.is_none() { return }
     if entity.ai.is_none() { return }
     if current_side != Computer { return }

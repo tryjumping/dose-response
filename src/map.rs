@@ -27,18 +27,18 @@ struct EntityIterator {
     priv e2: Option<(int, Walkability)>,
 }
 
-impl iter::Iterator<int> for EntityIterator {
-    fn next(&mut self) -> Option<int> {
+impl iter::Iterator<(int, Walkability)> for EntityIterator {
+    fn next(&mut self) -> Option<(int, Walkability)> {
         match self.e1 {
-            Some((id, _)) => {
+            Some((id, walkability)) => {
                 self.e1 = self.e2;
                 self.e2 = None;
-                Some(id)
+                Some((id, walkability))
             }
             None => match self.e2 {
-                Some((id, _)) => {
+                Some((id, walkability)) => {
                     self.e2 = None;
-                    Some(id)
+                    Some((id, walkability))
                 }
                 None => None,
             }
@@ -123,6 +123,10 @@ impl Map {
                 _ => fail!("Entity %? not found on position %?", id, from),
             }
         }
+    }
+
+    pub fn remove_entity(&mut self, id: int, pos: (int, int)) {
+
     }
 
     pub fn entities_on_pos(&self, pos: (int, int)) -> EntityIterator {
@@ -365,18 +369,23 @@ mod test {
         map.place_entity(11, (0, 0), Walkable);
         assert_eq!(map.entities_on_pos((0, 0)).len(), 2);
         let mut two_entities_iterator = map.entities_on_pos((0, 0));
-        assert_eq!(two_entities_iterator.next(), Some(10));
-        assert_eq!(two_entities_iterator.next(), Some(11));
+        assert_eq!(two_entities_iterator.next(), Some((10, Solid)));
+        assert_eq!(two_entities_iterator.next(), Some((11, Walkable)));
         assert_eq!(two_entities_iterator.next(), None);
 
         map.place_entity(12, (0, 1), Walkable);
         assert_eq!(map.entities_on_pos((0, 1)).len(), 1);
         let mut one_entity_iterator = map.entities_on_pos((0, 1));
-        assert_eq!(one_entity_iterator.next(), Some(12));
+        assert_eq!(one_entity_iterator.next(), Some((12, Walkable)));
         assert_eq!(one_entity_iterator.next(), None);
 
         assert_eq!(map.entities_on_pos((1, 1)).len(), 0);
         let mut zero_entities_iterator = map.entities_on_pos((1, 1));
         assert_eq!(zero_entities_iterator.next(), None);
+    }
+
+    #[test]
+    fn remove_entity() {
+        fail!();
     }
 }

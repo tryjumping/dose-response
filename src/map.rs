@@ -126,7 +126,18 @@ impl Map {
     }
 
     pub fn remove_entity(&mut self, id: int, pos: (int, int)) {
-
+        let idx = match pos {(x, y) => self.index_from_coords(x, y)};
+        match self.entities_1[idx] {
+            Some((e_id, _walkable)) if e_id == id => {
+                self.entities_1[idx] = None;
+            }
+            _ => match self.entities_2[idx] {
+                Some((e_id, _walkable)) if e_id == id => {
+                    self.entities_2[idx] = None;
+                }
+                _ => fail!("Entity %? not found on position %?", id, pos),
+            }
+        }
     }
 
     pub fn entities_on_pos(&self, pos: (int, int)) -> EntityIterator {
@@ -386,6 +397,19 @@ mod test {
 
     #[test]
     fn remove_entity() {
-        fail!();
+        let map = Map::new(2, 2);
+        map.set_walkability((0, 0), Walkable);
+        map.place_entity(10, (0, 0), Solid);
+        map.place_entity(11, (0, 0), Walkable);
+        assert_eq!(map.is_walkable((0, 0)), false);
+        assert_eq!(map.entities_on_pos((0, 0)).len(), 2);
+
+        map.remove_entity(10, (0, 0));
+        assert_eq!(map.is_walkable((0, 0)), true);
+        assert_eq!(map.entities_on_pos((0, 0)).len(), 1);
+
+        map.remove_entity(11, (0, 0));
+        assert_eq!(map.is_walkable((0, 0)), true);
+        assert_eq!(map.entities_on_pos((0, 0)).len(), 0);
     }
 }

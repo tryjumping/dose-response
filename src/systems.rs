@@ -176,22 +176,49 @@ pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
     }
 }
 
-pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>) {
-    let target = match ecm.get_ref(id) {
+pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
+    let free_aps = match ecm.get_ref(id) {
+        Some(e) => {
+            match e.turn {
+                Some(t) => t.ap,
+                None => 0
+            }
+        }
+        None => 0,
+    };
+    let target_id = match ecm.get_ref(id) {
         Some(e) => match e.attack {
-            Some(target_id) => target_id,
+            Some(attack_component) => *attack_component,
             None => return,
         },
         None => { return }
     };
-    match ecm.get_mut_ref(*target) {
-        Some(e) => {
-            e.ai = None;
-            e.position = None; // TODO: remove it from the map
-            e.accepts_user_input = None;
-            e.turn = None;
+    let attack_successful = ecm.get_ref(target_id).is_some() && free_aps > 0;
+    if attack_successful {
+        // attacker spends an AP
+        match ecm.get_mut_ref(id) {
+            Some(attacker) => {
+                attacker.spend_ap(1);
+                attacker.attack = None;
+            }
+            None => {}
         }
-        None => {}
+        // kill the target
+        match ecm.get_mut_ref(target_id) {
+            Some(target) => {
+                target.ai = None;
+                match target.position {
+                    Some(Position{x, y}) => {
+                        target.position = None;
+                        map.remove_entity(*target_id, (x, y));
+                    }
+                    None => {}
+                }
+                target.accepts_user_input = None;
+                target.turn = None;
+            }
+            None => {}
+        }
     }
 }
 

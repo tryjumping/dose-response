@@ -225,7 +225,7 @@ fn update(state: &mut GameState,
         systems::path_system(id, ecm, state.map);
         systems::movement_system(id, ecm, state.map);
         systems::bump_system(id, ecm);
-        systems::combat_system(id, ecm);
+        systems::combat_system(id, ecm, state.map);
         systems::tile_system(id, ecm, display);
         systems::idle_ai_system(id, ecm, state.side);
     }

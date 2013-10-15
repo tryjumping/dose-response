@@ -215,9 +215,7 @@ fn update(state: &mut GameState,
     if escape_pressed(keys) { return engine::Exit }
 
     process_input(keys, state.commands);
-    // TODO: fix this for a correct number/ID iterator
-    for num_id in range(0, 10000) {
-        let id = entity_manager::ID(num_id);
+    for id in state.entities.id_iter() {
         if state.entities.get_ref(id).is_none() {
             loop
         }

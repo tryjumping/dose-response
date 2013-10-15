@@ -1,4 +1,4 @@
-use std::iter::{Enumerate, Map};
+use std::iter::{Enumerate, Map, Range};
 use std::vec::{VecIterator, VecMutIterator};
 
 struct EntityManager<E> {
@@ -41,5 +41,9 @@ impl<E> EntityManager<E> {
 
     pub fn mut_iter<'r>(&'r mut self) -> Map<(uint, &'r mut E), (&'r mut E, ID), Enumerate<VecMutIterator<'r, E>>> {
         return self.entities.mut_iter().enumerate().map(|(id, e)| (e, ID(id as int)))
+    }
+
+    pub fn id_iter(&self) -> Map<int, ID, Range<int>> {
+        range(0, *self.next_id - 1).map(|index| ID(index))
     }
 }

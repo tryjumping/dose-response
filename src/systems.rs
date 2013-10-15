@@ -275,3 +275,18 @@ pub fn end_of_turn_system(entities: &mut EntityManager<GameObject>, current_side
         }
     }
 }
+
+pub fn player_dead_system(id: ID, ecm: &mut EntityManager<GameObject>, player_id: ID) {
+    let player_dead = match ecm.get_ref(player_id) {
+        Some(player) => {
+            player.position.is_none() || player.turn.is_none()
+        }
+        None => fail!("Could not find the Player entity (id: %?)", player_id),
+    };
+    if player_dead {
+        match ecm.get_mut_ref(id) {
+            Some(e) => e.ai = None,
+            None => (),
+        }
+    }
+}

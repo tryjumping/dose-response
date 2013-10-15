@@ -31,6 +31,7 @@ struct GameState {
     logger: CommandLogger,
     map: @mut map::Map,
     side: components::Side,
+    player_id: entity_manager::ID,
 }
 
 impl world_gen::WorldItem {
@@ -111,6 +112,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
         logger: logger,
         map: map::Map::new(width, height),
         side: c::Player,
+        player_id: entity_manager::ID(0),
     };
     let mut player = c::GameObject::new();
     player.accepts_user_input = Some(c::AcceptsUserInput);
@@ -119,6 +121,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     player.turn = Some(c::Turn{side: c::Player, ap: 1, max_ap: 1, spent_this_turn: 0});
     player.solid = Some(c::Solid);
     state.entities.add(player);
+    assert!(state.entities.get_ref(state.player_id).is_some());
 
     let world = world_gen::forrest(&mut state.rng, width, height);
     for &(x, y, item) in world.iter() {
@@ -228,6 +231,7 @@ fn update(state: &mut GameState,
         systems::combat_system(id, ecm, state.map);
         systems::tile_system(id, ecm, display);
         systems::idle_ai_system(id, ecm, state.side);
+        systems::player_dead_system(id, ecm, state.player_id);
     }
     systems::end_of_turn_system(&mut state.entities, &mut state.side);
     engine::Running

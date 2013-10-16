@@ -1,7 +1,3 @@
-* add the entity id in the Map as a generic type
-  - maybe do the same for position?
-* write tests for all the Map functions
-* combat system
 * addiction system (deplete state of mind, death of exhaustion)
 * doses (can use them, increase tolerance, overdose)
 * AI system
@@ -28,3 +24,9 @@
 * don't use uint for non-size variables
 * remove `TCOD_` from all the tcod.rs types
 * Customise the starting area (no solid ground, no monsters near, a drug nearby)
+
+* add the entity id in the Map as a generic type
+  - maybe do the same for position?
+  - This requires the extern callback to tcod_find_path_using_function to be
+  generic (because the map is generic and we need to cast the `*void user_data`
+   to `Map<T>`) and that's hitting a compiler bug.

@@ -146,6 +146,18 @@ impl Map {
         EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}
     }
 
+    // TODO: a better (safer, more inclined with how Rust would work) interface
+    // for this would be to return the iterator over the path points at the
+    // given moment.
+    // The iterator would contain an imutable borrowed pointer to the map so the
+    // map wouldn't be accessible until it goes out of scope, but it's enough to:
+    // 1. iterate over the path as it is now
+    // 2. get the first element of the path and walk there
+    // In the second case, the user would call `map.find_path` again the next
+    // time the entity was supposed to move. This would be costly in the naive
+    // implementation (finding the path again each time) but we could make it
+    // smarter by caching/recalculating it internally. Point is, that would not
+    // leak outside of `Map`.
     pub fn find_path(@mut self, from: (int, int), to: (int, int)) -> Option<Path> {
         let (sx, sy) = from;
         let (dx, dy) = to;

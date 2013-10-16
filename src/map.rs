@@ -47,8 +47,8 @@ impl iter::Iterator<(int, Walkability)> for EntityIterator {
 }
 
 impl Map {
-    pub fn new(width: uint, height: uint) -> @mut Map {
-        @mut Map{
+    pub fn new(width: uint, height: uint) -> Map {
+        Map{
             surface: vec::from_elem(width * height, Solid),
             entities_1: vec::from_elem(width * height, None),
             entities_2: vec::from_elem(width * height, None),
@@ -158,7 +158,7 @@ impl Map {
     // implementation (finding the path again each time) but we could make it
     // smarter by caching/recalculating it internally. Point is, that would not
     // leak outside of `Map`.
-    pub fn find_path(@mut self, from: (int, int), to: (int, int)) -> Option<Path> {
+    pub fn find_path(&mut self, from: (int, int), to: (int, int)) -> Option<Path> {
         let (sx, sy) = from;
         let (dx, dy) = to;
         if dx < 0 || dy < 0 || dx >= self.width as int || dy >= self.height as int { return None; }
@@ -185,7 +185,7 @@ impl Map {
     }
 }
 
-struct PathData{dx: int, dy: int, map: @mut Map}
+struct PathData<'self>{dx: int, dy: int, map: &'self Map}
 
 extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
     use std::cast;
@@ -246,7 +246,7 @@ mod test {
 
     #[test]
     fn setting_walkability() {
-        let map = Map::new(5, 5);
+        let mut map = Map::new(5, 5);
         assert_eq!(map.is_walkable((0, 0)), false);
         assert_eq!(map.is_walkable((1, 1)), false);
         map.set_walkability((1, 1), Walkable);
@@ -262,7 +262,7 @@ mod test {
 
     #[test]
     fn path_finding() {
-        let map = Map::new(5, 5);
+        let mut map = Map::new(5, 5);
         // Add a walkable path from (0, 0) to (3, 3)
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((1, 1), Walkable);
@@ -276,7 +276,7 @@ mod test {
 
     #[test]
     fn path_finding_with_blocked_destination() {
-        let map = Map::new(5, 5);
+        let mut map = Map::new(5, 5);
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((1, 1), Solid);
         let p = map.find_path((0, 0), (1, 1));
@@ -285,7 +285,7 @@ mod test {
 
     #[test]
     fn path_finding_with_blocked_path() {
-        let map = Map::new(5, 5);
+        let mut map = Map::new(5, 5);
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((3, 3), Walkable);
         let p = map.find_path((0, 0), (3, 3));
@@ -295,7 +295,7 @@ mod test {
     #[test]
     fn path_ref_safety() {
         let path = {
-            let map = Map::new(2, 2);
+            let mut map = Map::new(2, 2);
             map.set_walkability((0, 0), Walkable);
             map.set_walkability((1, 1), Walkable);
             map.find_path((0,0), (1,1))
@@ -310,7 +310,7 @@ mod test {
 
     #[test]
     fn placing_entity() {
-        let map = Map::new(2, 2);
+        let mut map = Map::new(2, 2);
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((1, 1), Walkable);
         map.place_entity(10, (0, 0), Solid);
@@ -323,7 +323,7 @@ mod test {
 
     #[test]
     fn placing_multiple_entities() {
-        let map = Map::new(2, 2);
+        let mut map = Map::new(2, 2);
         map.set_walkability((0, 0), Walkable);
         map.place_entity(10, (0, 0), Walkable);
         map.place_entity(11, (0, 0), Walkable);
@@ -342,7 +342,7 @@ mod test {
 
     #[test]
     fn update_entities_walkability() {
-        let map = Map::new(2, 2);
+        let mut map = Map::new(2, 2);
         map.set_walkability((0, 0), Walkable);
 
         map.place_entity(10, (0, 0), Walkable);
@@ -357,7 +357,7 @@ mod test {
 
     #[test]
     fn move_entity() {
-        let map = Map::new(2, 2);
+        let mut map = Map::new(2, 2);
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((1, 1), Walkable);
         map.place_entity(10, (0, 0), Solid);
@@ -373,7 +373,7 @@ mod test {
     #[test]
     #[should_fail]
     fn move_invalid_entity() {
-        let map = Map::new(2, 2);
+        let mut map = Map::new(2, 2);
         map.set_walkability((0, 0), Walkable);
         map.set_walkability((1, 1), Walkable);
         map.place_entity(10, (0, 0), Solid);
@@ -386,7 +386,7 @@ mod test {
 
     #[test]
     fn test_entities_on_pos() {
-        let map = Map::new(2, 2);
+        let mut map = Map::new(2, 2);
 
         map.place_entity(10, (0, 0), Solid);
         map.place_entity(11, (0, 0), Walkable);
@@ -409,7 +409,7 @@ mod test {
 
     #[test]
     fn remove_entity() {
-        let map = Map::new(2, 2);
+        let mut map = Map::new(2, 2);
         map.set_walkability((0, 0), Walkable);
         map.place_entity(10, (0, 0), Solid);
         map.place_entity(11, (0, 0), Walkable);

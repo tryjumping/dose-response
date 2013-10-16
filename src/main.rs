@@ -29,7 +29,7 @@ struct GameState {
     commands: ~RingBuf<Command>,
     rng: rand::IsaacRng,
     logger: CommandLogger,
-    map: @mut map::Map,
+    map: map::Map,
     side: components::Side,
     player_id: entity_manager::ID,
 }
@@ -222,11 +222,11 @@ fn update(state: &mut GameState,
         let ecm = &mut state.entities;
         systems::turn_system(id, ecm, state.side);
         systems::input_system(id, ecm, state.commands, state.logger, state.side);
-        systems::ai_system(id, ecm, &mut state.rng, state.map, state.side);
-        systems::path_system(id, ecm, state.map);
-        systems::movement_system(id, ecm, state.map);
+        systems::ai_system(id, ecm, &mut state.rng, &state.map, state.side);
+        systems::path_system(id, ecm, &mut state.map);
+        systems::movement_system(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);
-        systems::combat_system(id, ecm, state.map);
+        systems::combat_system(id, ecm, &mut state.map);
         systems::tile_system(id, ecm, display);
         systems::idle_ai_system(id, ecm, state.side);
         systems::player_dead_system(id, ecm, state.player_id);

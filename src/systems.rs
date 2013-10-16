@@ -102,7 +102,7 @@ pub fn ai_system<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut 
 
 }
 
-pub fn path_system(id: ID, ecm: &mut EntityManager<GameObject>, map: @mut map::Map) {
+pub fn path_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
     if ecm.get_ref(id).is_none() { return }
     let entity = ecm.get_mut_ref(id).unwrap();
 

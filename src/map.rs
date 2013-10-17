@@ -96,6 +96,10 @@ impl Map {
 
     pub fn is_walkable(&self, pos: (int, int)) -> bool {
         let (x, y) = pos;
+        let out_of_bounds = x < 0 || (x as uint) >= self.width ||
+            y < 0 || (y as uint) >= self.height;
+        if out_of_bounds { return false }
+
         let idx = self.index_from_coords(x, y);
         if self.surface[idx] == Solid { return false }
         match self.entities_1[idx] {

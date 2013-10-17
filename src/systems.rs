@@ -81,28 +81,63 @@ pub mod ai {
     use components::*;
     use components;
     use map::Map;
-    use super::Command;
+    use std::num::{abs, max};
 
+
+    fn distance(p1: &Position, p2: &Position) -> int {
+        max(abs(p1.x - p2.x), abs(p1.y - p2.y))
+    }
+
+    fn random_neighbouring_destination<T: Rng>(rng: &mut T,
+                                               pos: Position,
+                                               map: &Map) -> Destination {
+        let neighbors = [
+            (pos.x, pos.y-1),
+            (pos.x, pos.y+1),
+            (pos.x-1, pos.y),
+            (pos.x+1, pos.y),
+            (pos.x-1, pos.y-1),
+            (pos.x+1, pos.y-1),
+            (pos.x-1, pos.y+1),
+            (pos.x+1, pos.y+1),
+        ];
+        let mut walkables: ~[(int, int)] = ~[];
+        for &p in neighbors.iter() {
+            if map.is_walkable(p) { walkables.push(p) }
+        }
+        if walkables.is_empty() {
+            Destination{x: pos.x, y: pos.y}  // Nowhere to go
+        } else {
+            match rng.choose(walkables) {
+                (x, y) => Destination{x: x, y: y}
+            }
+        }
+    }
 
     fn individual_behaviour<T: Rng>(id: ID,
                                     ecm: &mut EntityManager<GameObject>,
                                     rng: &mut T,
-                                    _map: &Map) -> Destination {
-        let pos = ecm.get_ref(id).unwrap().position.unwrap();
-        match rng.gen::<Command>() {
-            N => Destination{x: pos.x, y: pos.y-1},
-            S => Destination{x: pos.x, y: pos.y+1},
-            W => Destination{x: pos.x-1, y: pos.y},
-            E => Destination{x: pos.x+1, y: pos.y},
-
-            NW => Destination{x: pos.x-1, y: pos.y-1},
-            NE => Destination{x: pos.x+1, y: pos.y-1},
-            SW => Destination{x: pos.x-1, y: pos.y+1},
-            SE => Destination{x: pos.x+1, y: pos.y+1},
+                                    map: &Map,
+                                    player_pos: Position) -> Destination {
+        let e = ecm.get_mut_ref(id).unwrap();
+        let pos = e.position.unwrap();
+        let player_distance = distance(&pos, &player_pos);
+        match player_distance {
+            dist if dist < 5 => e.ai.get_mut_ref().state = components::ai::Aggressive,
+            dist if dist > 8 => e.ai.get_mut_ref().state = components::ai::Idle,
+            _ => {}
+        }
+        match e.ai.get_ref().state {
+            components::ai::Aggressive => {
+                Destination{x: player_pos.x, y: player_pos.y}
+            }
+            components::ai::Idle => {
+                random_neighbouring_destination(rng, pos, map)
+            }
         }
     }
 
-    pub fn process<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut T, map: &Map, current_side: Side) {
+    pub fn process<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut T, map: &Map, current_side: Side, player_id: ID) {
         match ecm.get_ref(id) {
             Some(e) => {
                 if e.ai.is_none() || e.position.is_none() { return }
@@ -114,9 +149,13 @@ pub mod ai {
             _ => return,
         }
 
+        let player_pos = match ecm.get_ref(player_id) {
+            Some(p) if p.position.is_some() => p.position.unwrap(),
+            _ => { return }
+        };
         let dest = match ecm.get_ref(id).unwrap().ai.unwrap().behaviour {
-            components::ai::Individual => individual_behaviour(id, ecm, rng, map),
-            components::ai::Pack => individual_behaviour(id, ecm, rng, map),
+            components::ai::Individual => individual_behaviour(id, ecm, rng, map, player_pos),
+            components::ai::Pack => individual_behaviour(id, ecm, rng, map, player_pos),
         };
         ecm.get_mut_ref(id).unwrap().destination = Some(dest);
     }

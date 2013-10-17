@@ -226,7 +226,7 @@ fn update(state: &mut GameState,
         let ecm = &mut state.entities;
         systems::turn_system(id, ecm, state.side);
         systems::input_system(id, ecm, state.commands, state.logger, state.side);
-        systems::ai::process(id, ecm, &mut state.rng, &state.map, state.side);
+        systems::ai::process(id, ecm, &mut state.rng, &state.map, state.side, state.player_id);
         systems::path_system(id, ecm, &mut state.map);
         systems::movement_system(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);

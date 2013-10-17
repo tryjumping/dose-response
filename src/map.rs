@@ -10,7 +10,6 @@ struct Map {
     // NOTE: assuming up to two entities in a single place right now.
     entities_1: ~[Option<(int, Walkability)>],
     entities_2: ~[Option<(int, Walkability)>],
-    pd: ~[PathData],
     width: uint,
     height: uint,
 }
@@ -51,7 +50,6 @@ impl Map {
             surface: vec::from_elem(width * height, Solid),
             entities_1: vec::from_elem(width * height, None),
             entities_2: vec::from_elem(width * height, None),
-            pd: vec::with_capacity(100000),
             width: width,
             height: height,
         }
@@ -165,29 +163,19 @@ impl Map {
     // implementation (finding the path again each time) but we could make it
     // smarter by caching/recalculating it internally. Point is, that would not
     // leak outside of `Map`.
-    pub fn find_path(&mut self, from: (int, int), to: (int, int)) -> Option<PathResource> {
+    pub fn find_path(&mut self, from: (int, int), to: (int, int)) -> Option<~Path> {
         let (sx, sy) = from;
         let (dx, dy) = to;
         if dx < 0 || dy < 0 || dx >= self.width as int || dy >= self.height as int { return None; }
-        // XXX: I really don't understand why the `&PathData{...}` below doesn't
-        // get freed as soon as this function returns. Is it because it contains
-        // a managed box and therefore becomes managed itself or something?
-        // Of course, it's possible that it does get freed, we have a dangling
-        // pointer and we're just lucky.
-        // But: 1. this isn't an unsafe block even though the function we're
-        // calling does contain one inside. Wouldn't the compiler complain?
-        // And 2. Valgrind doesn't report any memory leaks or access to a freed
-        // memory.
-        let pd = PathData{dx: dx, dy: dy, map: self};
-        self.pd.push(pd);
+        let mut path_obj = ~Path{map: Handle::new(self), tcod_res: None, from: from, to: to};
         let path = tcod::path_new_using_function(self.width as int, self.height as int,
-                                                 cb, &self.pd[self.pd.len()-1], 1.0);
+                                                 cb, path_obj, 1.0);
+        path_obj.tcod_res = Some(PathResource{path: path});
         match tcod::path_compute(path, sx, sy, dx, dy) {
             true => {
-                Some(PathResource{path: path})
+                Some(path_obj)
             }
             false => {
-                tcod::path_delete(path);
                 None
             }
         }
@@ -195,6 +183,23 @@ impl Map {
 
     fn return_handle(&self) -> Handle<Map> {
         Handle::new(self)
+    }
+}
+
+struct Path {
+    priv map: Handle<Map>,
+    priv tcod_res: Option<PathResource>,
+    from: (int, int),
+    to: (int, int),
+}
+
+impl Path {
+    pub fn walk(&mut self) -> Option<(int, int)> {
+        if self.tcod_res.is_some() {
+            self.tcod_res.get_mut_ref().walk()
+        } else {
+            None
+        }
     }
 }
 
@@ -218,12 +223,13 @@ struct PathData{dx: int, dy: int, map: *mut Map}
 extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-    let pd: &PathData = unsafe { cast::transmute(path_data_ptr) };
+    let path: &Path = unsafe { cast::transmute(path_data_ptr) };
 
+    let (dx, dy) = path.to;
     // Succeed if we're at the destination even if it's not walkable:
-    if (pd.dx as c_int, pd.dy as c_int) == (xt, yt) {
+    if (dx as c_int, dy as c_int) == (xt, yt) {
         1.0
-    } else if unsafe { (*pd.map).is_walkable((xt as  int, yt as int))} {
+    } else if unsafe { path.map.as_ref().is_walkable((xt as  int, yt as int))} {
         1.0
     } else {
         0.0
@@ -236,7 +242,7 @@ struct PathResource {
 }
 
 impl PathResource {
-    pub fn walk(&mut self) -> Option<(int, int)> {
+    fn walk(&mut self) -> Option<(int, int)> {
         match tcod::path_size(self.path) {
             0 => None,
             // Treat the destination as walkable so we always find a path to it

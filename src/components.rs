@@ -1,5 +1,5 @@
 use engine::{Color};
-pub use map::PathResource;
+pub use map::Path;
 pub use self::ai::AI;
 use entity_manager;
 
@@ -41,7 +41,7 @@ pub struct GameObject {
     bump: Option<Bump>,
     position: Option<Position>,
     destination: Option<Destination>,
-    path: Option<PathResource>,
+    path: Option<~Path>,
     solid: Option<Solid>,
     tile: Option<Tile>,
     turn: Option<Turn>,

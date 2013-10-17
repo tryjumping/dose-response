@@ -3,7 +3,6 @@ use engine::{Display, Color};
 use extra::container::Deque;
 use extra::ringbuf::RingBuf;
 use map;
-use std::rand::Rng;
 use super::CommandLogger;
 use entity_manager::{EntityManager, ID};
 
@@ -75,32 +74,55 @@ pub fn input_system(id: ID, ecm: &mut EntityManager<GameObject>, commands: &mut 
     }
 }
 
-pub fn ai_system<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut T, _map: &map::Map, current_side: Side) {
-    if ecm.get_ref(id).is_none() { return }
-    let entity = ecm.get_mut_ref(id).unwrap();
 
-    if entity.ai.is_none() { return }
-    if entity.position.is_none() { return }
-    match current_side {
-        Computer => (),
-        _ => return,
+pub mod ai {
+    use std::rand::Rng;
+    use entity_manager::{ID, EntityManager};
+    use components::*;
+    use components;
+    use map::Map;
+    use super::Command;
+
+
+    fn individual_behaviour<T: Rng>(id: ID,
+                                    ecm: &mut EntityManager<GameObject>,
+                                    rng: &mut T,
+                                    _map: &Map) -> Destination {
+        let pos = ecm.get_ref(id).unwrap().position.unwrap();
+        match rng.gen::<Command>() {
+            N => Destination{x: pos.x, y: pos.y-1},
+            S => Destination{x: pos.x, y: pos.y+1},
+            W => Destination{x: pos.x-1, y: pos.y},
+            E => Destination{x: pos.x+1, y: pos.y},
+
+            NW => Destination{x: pos.x-1, y: pos.y-1},
+            NE => Destination{x: pos.x+1, y: pos.y-1},
+            SW => Destination{x: pos.x-1, y: pos.y+1},
+            SE => Destination{x: pos.x+1, y: pos.y+1},
+        }
     }
 
-    let pos = entity.position.get_ref();
-    let dest = match rng.gen::<Command>() {
-        N => Destination{x: pos.x, y: pos.y-1},
-        S => Destination{x: pos.x, y: pos.y+1},
-        W => Destination{x: pos.x-1, y: pos.y},
-        E => Destination{x: pos.x+1, y: pos.y},
+    pub fn process<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut T, map: &Map, current_side: Side) {
+        match ecm.get_ref(id) {
+            Some(e) => {
+                if e.ai.is_none() || e.position.is_none() { return }
+            }
+            None => { return }
+        }
+        match current_side {
+            Computer => (),
+            _ => return,
+        }
 
-        NW => Destination{x: pos.x-1, y: pos.y-1},
-        NE => Destination{x: pos.x+1, y: pos.y-1},
-        SW => Destination{x: pos.x-1, y: pos.y+1},
-        SE => Destination{x: pos.x+1, y: pos.y+1},
-    };
-    entity.destination = Some(dest);
+        let dest = match ecm.get_ref(id).unwrap().ai.unwrap().behaviour {
+            components::ai::Individual => individual_behaviour(id, ecm, rng, map),
+            components::ai::Pack => individual_behaviour(id, ecm, rng, map),
+        };
+        ecm.get_mut_ref(id).unwrap().destination = Some(dest);
+    }
 
 }
+
 
 pub fn path_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
     if ecm.get_ref(id).is_none() { return }

@@ -1,5 +1,6 @@
 use engine::{Color};
 pub use map::Path;
+pub use self::ai::AI;
 use entity_manager;
 
 #[deriving(Eq)]
@@ -8,8 +9,21 @@ pub enum Side {
     Computer,
 }
 
+mod ai {
+    pub enum Behaviour {
+        Individual,
+        Pack,
+    }
+
+    pub enum State {
+        Idle,
+        Aggressive,
+    }
+
+    pub struct AI{behaviour: Behaviour, state: State}
+}
+
 pub struct AcceptsUserInput;
-pub struct AI;
 pub struct Attack(entity_manager::ID);
 pub struct Background;
 pub struct Bump(entity_manager::ID);

@@ -140,7 +140,11 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
             e.position = Some(c::Position{x: x, y: y});
             let mut level = 1;
             if item.is_monster() {
-                e.ai = Some(c::AI);
+                let behaviour = match item {
+                    world_gen::Hunger => c::ai::Pack,
+                    _ => c::ai::Individual,
+                };
+                e.ai = Some(c::AI{behaviour: behaviour, state: c::ai::Idle});
                 e.turn = Some(c::Turn{side: c::Computer, ap: 0, max_ap: 1, spent_this_turn: 0});
                 e.solid = Some(c::Solid);
                 level = 2;
@@ -222,7 +226,7 @@ fn update(state: &mut GameState,
         let ecm = &mut state.entities;
         systems::turn_system(id, ecm, state.side);
         systems::input_system(id, ecm, state.commands, state.logger, state.side);
-        systems::ai_system(id, ecm, &mut state.rng, &state.map, state.side);
+        systems::ai::process(id, ecm, &mut state.rng, &state.map, state.side);
         systems::path_system(id, ecm, &mut state.map);
         systems::movement_system(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);

@@ -1,3 +1,4 @@
+use std::cast;
 use std::vec;
 use std::iter;
 use tcod;
@@ -8,6 +9,7 @@ struct Map {
     // NOTE: assuming up to two entities in a single place right now.
     entities_1: ~[Option<(int, Walkability)>],
     entities_2: ~[Option<(int, Walkability)>],
+    pd: ~[PathData],
     width: uint,
     height: uint,
 }
@@ -52,6 +54,7 @@ impl Map {
             surface: vec::from_elem(width * height, Solid),
             entities_1: vec::from_elem(width * height, None),
             entities_2: vec::from_elem(width * height, None),
+            pd: vec::with_capacity(100000),
             width: width,
             height: height,
         }
@@ -178,8 +181,10 @@ impl Map {
         // calling does contain one inside. Wouldn't the compiler complain?
         // And 2. Valgrind doesn't report any memory leaks or access to a freed
         // memory.
+        let pd = PathData{dx: dx, dy: dy, map: self};
+        self.pd.push(pd);
         let path = tcod::path_new_using_function(self.width as int, self.height as int,
-                                                 cb, &PathData{dx: dx, dy: dy, map: self}, 1.0);
+                                                 cb, &self.pd[self.pd.len()-1], 1.0);
         match tcod::path_compute(path, sx, sy, dx, dy) {
             true => {
                 Some(Path{path: path})
@@ -192,10 +197,9 @@ impl Map {
     }
 }
 
-struct PathData<'self>{dx: int, dy: int, map: &'self Map}
+struct PathData{dx: int, dy: int, map: *mut Map}
 
 extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
-    use std::cast;
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
     let pd: &PathData = unsafe { cast::transmute(path_data_ptr) };
@@ -203,7 +207,7 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void)
     // Succeed if we're at the destination even if it's not walkable:
     if (pd.dx as c_int, pd.dy as c_int) == (xt, yt) {
         1.0
-    } else if pd.map.is_walkable((xt as  int, yt as int)) {
+    } else if unsafe { (*pd.map).is_walkable((xt as  int, yt as int))} {
         1.0
     } else {
         0.0

@@ -14,10 +14,6 @@ struct Map {
     height: uint,
 }
 
-struct Path {
-    priv path: tcod::TCOD_path_t,
-}
-
 #[deriving(Clone, Eq)]
 pub enum Walkability {
     Walkable,
@@ -168,7 +164,7 @@ impl Map {
     // implementation (finding the path again each time) but we could make it
     // smarter by caching/recalculating it internally. Point is, that would not
     // leak outside of `Map`.
-    pub fn find_path(&mut self, from: (int, int), to: (int, int)) -> Option<Path> {
+    pub fn find_path(&mut self, from: (int, int), to: (int, int)) -> Option<PathResource> {
         let (sx, sy) = from;
         let (dx, dy) = to;
         if dx < 0 || dy < 0 || dx >= self.width as int || dy >= self.height as int { return None; }
@@ -187,7 +183,7 @@ impl Map {
                                                  cb, &self.pd[self.pd.len()-1], 1.0);
         match tcod::path_compute(path, sx, sy, dx, dy) {
             true => {
-                Some(Path{path: path})
+                Some(PathResource{path: path})
             }
             false => {
                 tcod::path_delete(path);
@@ -215,7 +211,11 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void)
 }
 
 
-impl Path {
+struct PathResource {
+    priv path: tcod::TCOD_path_t,
+}
+
+impl PathResource {
     pub fn walk(&mut self) -> Option<(int, int)> {
         match tcod::path_size(self.path) {
             0 => None,
@@ -226,7 +226,7 @@ impl Path {
                 let dest = Some(tcod::path_get_destination(self.path));
                 // Replace the previous path with an empty one:
                 tcod::path_delete(self.path);
-                self.path = tcod::path_new_using_function(1, 1, cb, &(), 1.0);
+                self.path = tcod::path_new_using_function(1, 1, dummy_cb, &(), 1.0);
                 assert!(tcod::path_size(self.path) == 0);
                 dest
             }
@@ -237,10 +237,14 @@ impl Path {
     }
 }
 
-impl Drop for Path {
+impl Drop for PathResource {
     fn drop(&mut self) {
         tcod::path_delete(self.path);
     }
+}
+
+extern fn dummy_cb(_xf: c_int, _yf: c_int, _xt: c_int, _yt: c_int, _path_data_ptr: *c_void) -> c_float {
+    1.0
 }
 
 

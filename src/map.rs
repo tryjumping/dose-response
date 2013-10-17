@@ -3,6 +3,7 @@ use std::vec;
 use std::iter;
 use tcod;
 use std::libc::*;
+use std::util::Void;
 
 struct Map {
     surface: ~[Walkability],
@@ -191,6 +192,25 @@ impl Map {
             }
         }
     }
+
+    fn return_handle(&self) -> Handle<Map> {
+        Handle::new(self)
+    }
+}
+
+
+struct Handle<T> {
+    priv ptr: *Void,
+}
+
+impl<T> Handle<T> {
+    fn new(resource: &T) -> Handle<T> {
+        Handle{ptr: resource as *T as *Void}
+    }
+
+    unsafe fn as_ref<'r>(&'r self) -> &'r T {
+        cast::transmute(self.ptr)
+    }
 }
 
 struct PathData{dx: int, dy: int, map: *mut Map}
@@ -251,6 +271,15 @@ extern fn dummy_cb(_xf: c_int, _yf: c_int, _xt: c_int, _yt: c_int, _path_data_pt
 #[cfg(test)]
 mod test {
     use super::{Map, Walkable, Solid};
+
+    #[test]
+    fn handle() {
+        let mut map = Map::new(5, 5);
+        let h = map.return_handle();
+        assert_eq!(unsafe {h.as_ref()}.is_walkable((1, 1)), false);
+        map.set_walkability((1, 1), Walkable);
+        assert_eq!(unsafe {h.as_ref()}.is_walkable((1, 1)), true);
+    }
 
     #[test]
     fn empty_map_isnt_walkable() {

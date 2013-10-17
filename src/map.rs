@@ -146,6 +146,9 @@ impl Map {
 
     pub fn entities_on_pos(&self, pos: (int, int)) -> EntityIterator {
         let (x, y) = pos;
+        let out_of_bounds = x < 0 || (x as uint) >= self.width ||
+            y < 0 || (y as uint) >= self.height;
+        if out_of_bounds { return EntityIterator{e1: None, e2: None} }
         let idx = self.index_from_coords(x, y);
         EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}
     }

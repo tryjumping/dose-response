@@ -137,6 +137,45 @@ pub mod ai {
         }
     }
 
+    fn hunting_pack_behaviour<T: Rng>(id: ID,
+                                      ecm: &mut EntityManager<GameObject>,
+                                      rng: &mut T,
+                                      map: &Map,
+                                      player_pos: Position) -> Destination {
+        let pos = ecm.get_ref(id).unwrap().position.unwrap();
+        let state = match ecm.get_mut_ref(id) {
+            Some(e) => {
+                let player_distance = distance(&pos, &player_pos);
+                if player_distance < 4 {
+                    e.ai.get_mut_ref().state = components::ai::Aggressive
+                }
+                e.ai.get_ref().state
+            }
+            None => fail!("Unreachable: the entity must be available here"),
+        };
+        match state {
+            components::ai::Aggressive => {
+                let r = 8;
+                for x in range(pos.x - r, pos.x + r) {
+                    for y in range(pos.y - r, pos.y + r) {
+                        for (m_id, _) in map.entities_on_pos((x, y)) {
+                            match ecm.get_mut_ref(ID(m_id)) {
+                                Some(m) => if m.ai.is_some() {
+                                    m.ai.get_mut_ref().state = components::ai::Aggressive;
+                                },
+                                None => {}
+                            }
+                        }
+                    }
+                }
+                Destination{x: player_pos.x, y: player_pos.y}
+            }
+            components::ai::Idle => {
+                random_neighbouring_destination(rng, pos, map)
+            }
+        }
+    }
+
     pub fn process<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut T, map: &Map, current_side: Side, player_id: ID) {
         match ecm.get_ref(id) {
             Some(e) => {
@@ -155,7 +194,7 @@ pub mod ai {
         };
         let dest = match ecm.get_ref(id).unwrap().ai.unwrap().behaviour {
             components::ai::Individual => individual_behaviour(id, ecm, rng, map, player_pos),
-            components::ai::Pack => individual_behaviour(id, ecm, rng, map, player_pos),
+            components::ai::Pack => hunting_pack_behaviour(id, ecm, rng, map, player_pos),
         };
         ecm.get_mut_ref(id).unwrap().destination = Some(dest);
     }

@@ -266,7 +266,7 @@ pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
         Some(e) => {
             if bumpee.is_some() && e.turn.is_some() && bumpee.unwrap().side != e.turn.unwrap().side {
                 println!("Entity {} attacks {}.", *entity_id, *bumpee_id)
-                e.attack = Some(Attack(bumpee_id));
+                e.attack_target = Some(AttackTarget(bumpee_id));
             } else {
                 println!("Entity {} hits the wall.", *entity_id);
             }
@@ -287,7 +287,7 @@ pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map:
         None => 0,
     };
     let target_id = match ecm.get_ref(id) {
-        Some(e) => match e.attack {
+        Some(e) => match e.attack_target {
             Some(attack_component) => *attack_component,
             None => return,
         },
@@ -299,7 +299,7 @@ pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map:
         match ecm.get_mut_ref(id) {
             Some(attacker) => {
                 attacker.spend_ap(1);
-                attacker.attack = None;
+                attacker.attack_target = None;
             }
             None => {}
         }

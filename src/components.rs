@@ -24,7 +24,7 @@ mod ai {
 }
 
 pub struct AcceptsUserInput;
-pub struct Attack(entity_manager::ID);
+pub struct AttackTarget(entity_manager::ID);
 pub struct Background;
 pub struct Bump(entity_manager::ID);
 pub struct Position {x: int, y: int}
@@ -36,7 +36,7 @@ pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_turn: int}
 pub struct GameObject {
     ai: Option<AI>,
     accepts_user_input: Option<AcceptsUserInput>,
-    attack: Option<Attack>,
+    attack_target: Option<AttackTarget>,
     background: Option<Background>,
     bump: Option<Bump>,
     position: Option<Position>,
@@ -52,7 +52,7 @@ impl GameObject {
         GameObject {
             ai: None,
             accepts_user_input: None,
-            attack: None,
+            attack_target: None,
             background: None,
             bump: None,
             position: None,

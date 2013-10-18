@@ -332,8 +332,8 @@ pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map:
             ModifyAttributes{state_of_mind, will} => {
                 target.attributes.mutate(
                     |attrs| Attributes{
-                        state_of_mind: attrs.state_of_mind - state_of_mind,
-                        will: attrs.will - will});
+                        state_of_mind: attrs.state_of_mind + state_of_mind,
+                        will: attrs.will + will});
             }
         }
     }

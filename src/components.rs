@@ -25,6 +25,12 @@ mod ai {
 
 pub struct AcceptsUserInput;
 pub struct AttackTarget(entity_manager::ID);
+pub enum AttackType {
+    Kill,
+    Stun{duration: int},
+    Panic{duration: int},
+    ModifyAttributes{state_of_mind: int, will: int},
+}
 pub struct Background;
 pub struct Bump(entity_manager::ID);
 pub struct Position {x: int, y: int}
@@ -37,6 +43,7 @@ pub struct GameObject {
     ai: Option<AI>,
     accepts_user_input: Option<AcceptsUserInput>,
     attack_target: Option<AttackTarget>,
+    attack_type: Option<AttackType>,
     background: Option<Background>,
     bump: Option<Bump>,
     position: Option<Position>,
@@ -53,6 +60,7 @@ impl GameObject {
             ai: None,
             accepts_user_input: None,
             attack_target: None,
+            attack_type: None,
             background: None,
             bump: None,
             position: None,

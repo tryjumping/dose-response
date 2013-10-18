@@ -138,7 +138,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
         if item != world_gen::Tree && item != world_gen::Empty {
             let mut e = c::GameObject::new();
             e.position = Some(c::Position{x: x, y: y});
-            let mut level = 1;
+            let mut tile_level = 1;
             if item.is_monster() {
                 let behaviour = match item {
                     world_gen::Hunger => c::ai::Pack,
@@ -148,9 +148,18 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                 let max_ap = if item == world_gen::Depression { 2 } else { 1 };
                 e.turn = Some(c::Turn{side: c::Computer, ap: 0, max_ap: max_ap, spent_this_turn: 0});
                 e.solid = Some(c::Solid);
-                level = 2;
+                let attack_type = match item {
+                    world_gen::Anxiety => c::ModifyAttributes{state_of_mind: 0, will: -1},
+                    world_gen::Depression => c::Kill,
+                    world_gen::Hunger => c::ModifyAttributes{state_of_mind: -20, will: 0},
+                    world_gen::Voices => c::Stun{duration: 3},
+                    world_gen::Shadows => c::Panic{duration: 3},
+                    _ => unreachable!(),
+                };
+                e.attack_type = Some(attack_type);
+                tile_level = 2;
             }
-            e.tile = Some(c::Tile{level: level, glyph: item.to_glyph(), color: item.to_color()});
+            e.tile = Some(c::Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
             state.entities.add(e);
         }
     }

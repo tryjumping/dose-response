@@ -101,6 +101,7 @@ extern "C" {
     fn TCOD_console_blit(src: TCOD_console_t, xSrc: c_int, ySrc: c_int, wSrc: c_int, hSrc: c_int,
                          dst: TCOD_console_t, xDst: c_int, yDst: c_int,
                          foreground_alpha: c_float, background_alpha: c_float) -> ();
+    fn TCOD_console_delete(con: TCOD_console_t);
     fn TCOD_map_new(width: c_int, height: c_int) -> TCOD_map_t;
     fn TCOD_map_set_properties(map: TCOD_map_t, x: c_int, y: c_int,
                                is_transparent: uint8_t, is_walkable: uint8_t);
@@ -297,6 +298,13 @@ pub fn console_blit(source_console: TCOD_console_t,
                           destination_console,
                           destination_x as c_int, destination_y as c_int,
                           foreground_alpha as c_float, background_alpha as c_float);
+    }
+}
+
+#[fixed_stack_segment]
+pub fn console_delete(con: TCOD_console_t) {
+    unsafe {
+        TCOD_console_delete(con);
     }
 }
 

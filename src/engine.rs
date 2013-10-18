@@ -47,10 +47,26 @@ impl Display {
                                   foreground.tcod(), background.tcod());
     }
 
+    pub fn write_text(&mut self, text: &str, x: uint, y: uint,
+                      foreground: Color, background: Color) {
+        let level = self.consoles.len() - 1;  // write to the topmost console
+        for (i, chr) in text.char_offset_iter() {
+            self.draw_char(level, x+i, y, chr, foreground, background);
+        }
+    }
+
     pub fn set_background(&mut self, x: uint, y: uint, color: Color) {
         tcod::console_set_char_background(self.background_console, x, y,
                                           color.tcod(), tcod::TCOD_BKGND_NONE);
+    }
+}
 
+impl Drop for Display {
+    fn drop(&mut self) {
+        tcod::console_delete(self.background_console);
+        for &con in self.consoles.iter() {
+            tcod::console_delete(con);
+        }
     }
 }
 

@@ -277,13 +277,11 @@ pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
 }
 
 pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
-    let free_aps = match ecm.get_ref(id) {
-        Some(e) => {
-            match e.turn {
-                Some(t) => t.ap,
-                None => 0
-            }
-        }
+    if ecm.get_ref(id).is_none() { return }
+    if ecm.get_ref(id).unwrap().attack_target.is_none() { return }
+    if ecm.get_ref(id).unwrap().attack_type.is_none() { return }
+    let free_aps = match ecm.get_ref(id).unwrap().turn {
+        Some(t) => t.ap,
         None => 0,
     };
     let target_id = match ecm.get_ref(id) {
@@ -303,9 +301,11 @@ pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map:
             }
             None => {}
         }
-        // kill the target
-        match ecm.get_mut_ref(target_id) {
-            Some(target) => {
+        let attack_type = ecm.get_ref(id).unwrap().attack_type.unwrap();
+        let target = ecm.get_mut_ref(target_id).unwrap();
+        match attack_type {
+            Kill => {
+                println!("Entity {} was killed by {}", *target_id, *id);
                 target.ai = None;
                 match target.position {
                     Some(Position{x, y}) => {
@@ -317,7 +317,24 @@ pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map:
                 target.accepts_user_input = None;
                 target.turn = None;
             }
-            None => {}
+            Stun{duration} => {
+                println!("Entity {} was stunned by {}", *target_id, *id);
+                target.stunned.mutate_default(
+                    Stunned{duration: duration},
+                    |existing| Stunned{duration: existing.duration + duration});
+            }
+            Panic{duration} => {
+                println!("Entity {} panics because of {}", *target_id, *id);
+                target.panicking.mutate_default(
+                    Panicking{duration: duration},
+                    |existing| Panicking{duration: existing.duration + duration});
+            }
+            ModifyAttributes{state_of_mind, will} => {
+                target.attributes.mutate(
+                    |attrs| Attributes{
+                        state_of_mind: attrs.state_of_mind - state_of_mind,
+                        will: attrs.will - will});
+            }
         }
     }
 }

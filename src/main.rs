@@ -116,6 +116,8 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     };
     let mut player = c::GameObject::new();
     player.accepts_user_input = Some(c::AcceptsUserInput);
+    player.attack_type = Some(c::Kill);
+    player.attributes = Some(c::Attributes{state_of_mind: 20, will: 2});
     player.position = Some(c::Position{x: 10, y: 20});
     player.tile = Some(c::Tile{level: 2, glyph: '@', color: col::player});
     player.turn = Some(c::Turn{side: c::Player, ap: 1, max_ap: 1, spent_this_turn: 0});

@@ -31,11 +31,14 @@ pub enum AttackType {
     Panic{duration: int},
     ModifyAttributes{state_of_mind: int, will: int},
 }
+pub struct Attributes{state_of_mind: int, will: int}
 pub struct Background;
 pub struct Bump(entity_manager::ID);
 pub struct Position {x: int, y: int}
 pub struct Destination {x: int, y: int}
 pub struct Solid;
+pub struct Stunned{duration: int}
+pub struct Panicking{duration: int}
 pub struct Tile{level: uint, glyph: char, color: Color}
 pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_turn: int}
 
@@ -44,12 +47,15 @@ pub struct GameObject {
     accepts_user_input: Option<AcceptsUserInput>,
     attack_target: Option<AttackTarget>,
     attack_type: Option<AttackType>,
+    attributes: Option<Attributes>,
     background: Option<Background>,
     bump: Option<Bump>,
     position: Option<Position>,
     destination: Option<Destination>,
     path: Option<~Path>,
+    panicking: Option<Panicking>,
     solid: Option<Solid>,
+    stunned: Option<Stunned>,
     tile: Option<Tile>,
     turn: Option<Turn>,
 }
@@ -61,12 +67,15 @@ impl GameObject {
             accepts_user_input: None,
             attack_target: None,
             attack_type: None,
+            attributes: None,
             background: None,
             bump: None,
             position: None,
             destination: None,
             path: None,
+            panicking: None,
             solid: None,
+            stunned: None,
             tile: None,
             turn: None,
         }

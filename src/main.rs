@@ -243,10 +243,11 @@ fn update(state: &mut GameState,
         systems::movement_system(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);
         systems::combat_system(id, ecm, &mut state.map);
-        systems::tile_system(id, ecm, display);
         systems::idle_ai_system(id, ecm, state.side);
         systems::player_dead_system(id, ecm, state.player_id);
+        systems::tile_system(id, ecm, display);
     }
+    systems::gui::process(&state.entities, display, state.player_id);
     systems::end_of_turn_system(&mut state.entities, &mut state.side);
     engine::Running
 }

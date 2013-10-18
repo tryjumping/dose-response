@@ -407,3 +407,36 @@ pub fn player_dead_system(id: ID, ecm: &mut EntityManager<GameObject>, player_id
         }
     }
 }
+
+pub mod gui {
+    use engine::{Display, Color};
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+
+    pub fn process(ecm: &EntityManager<GameObject>,
+                   display: &mut Display,
+                   player_id: ID) {
+        let (_width, height) = display.size();
+        let attrs = ecm.get_ref(player_id).unwrap().attributes.unwrap();
+        let dead = match ecm.get_ref(player_id).unwrap().position.is_none() {
+            true => ~"dead ",
+            false => ~"",
+        };
+        let stunned = match ecm.get_ref(player_id).unwrap().stunned {
+            Some(Stunned{duration}) => format!("stunned({}) ", duration),
+            None => ~"",
+        };
+        let panicking = match ecm.get_ref(player_id).unwrap().panicking {
+            Some(Panicking{duration}) => format!("panic({}) ", duration),
+            None => ~"",
+        };
+        let effects = format!("{}{}{}", dead, stunned, panicking);
+        let status_bar = format!("Intoxication: {},  Will: {}, Effects: {}",
+                                 attrs.state_of_mind,
+                                 attrs.will,
+                                 effects);
+        display.write_text(status_bar,
+                           0, height - 1,
+                           Color(255, 255, 255), Color(0, 0, 0));
+    }
+}

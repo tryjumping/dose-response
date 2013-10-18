@@ -95,6 +95,8 @@ extern "C" {
                              alignment: TCOD_alignment_t,
                              fmt: *c_char) -> ();
     fn TCOD_console_new(w: c_int, h: c_int) -> TCOD_console_t;
+    fn TCOD_console_get_width(con: TCOD_console_t) -> c_int;
+    fn TCOD_console_get_height(con: TCOD_console_t) -> c_int;
     fn TCOD_console_set_default_background(con: TCOD_console_t, col: TCOD_color_t) -> ();
     fn TCOD_console_set_default_foreground(con: TCOD_console_t, col: TCOD_color_t) -> ();
     fn TCOD_console_set_key_color(con: TCOD_console_t, col: TCOD_color_t) -> ();
@@ -258,6 +260,20 @@ pub fn console_new(width: uint, height: uint) -> TCOD_console_t {
     assert!(width < max_uint); assert!(height < max_uint);
     unsafe {
         TCOD_console_new(width as c_int, height as c_int)
+    }
+}
+
+#[fixed_stack_segment]
+pub fn console_get_width(con: TCOD_console_t) -> int {
+    unsafe {
+        TCOD_console_get_width(con) as int
+    }
+}
+
+#[fixed_stack_segment]
+pub fn console_get_height(con: TCOD_console_t) -> int {
+    unsafe {
+        TCOD_console_get_height(con) as int
     }
 }
 

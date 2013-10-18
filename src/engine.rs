@@ -59,6 +59,11 @@ impl Display {
         tcod::console_set_char_background(self.background_console, x, y,
                                           color.tcod(), tcod::TCOD_BKGND_NONE);
     }
+
+    pub fn size(&self) -> (uint, uint) {
+        (tcod::console_get_width(self.background_console) as uint,
+         tcod::console_get_height(self.background_console) as uint)
+    }
 }
 
 impl Drop for Display {

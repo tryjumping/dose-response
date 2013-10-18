@@ -145,7 +145,8 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                     _ => c::ai::Individual,
                 };
                 e.ai = Some(c::AI{behaviour: behaviour, state: c::ai::Idle});
-                e.turn = Some(c::Turn{side: c::Computer, ap: 0, max_ap: 1, spent_this_turn: 0});
+                let max_ap = if item == world_gen::Depression { 2 } else { 1 };
+                e.turn = Some(c::Turn{side: c::Computer, ap: 0, max_ap: max_ap, spent_this_turn: 0});
                 e.solid = Some(c::Solid);
                 level = 2;
             }

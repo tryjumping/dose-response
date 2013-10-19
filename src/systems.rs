@@ -88,9 +88,9 @@ pub mod ai {
         max(abs(p1.x - p2.x), abs(p1.y - p2.y))
     }
 
-    fn random_neighbouring_destination<T: Rng>(rng: &mut T,
-                                               pos: Position,
-                                               map: &Map) -> Destination {
+    pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
+                                                pos: Position,
+                                                map: &Map) -> (int, int) {
         let neighbors = [
             (pos.x, pos.y-1),
             (pos.x, pos.y+1),
@@ -106,11 +106,9 @@ pub mod ai {
             if map.is_walkable(p) { walkables.push(p) }
         }
         if walkables.is_empty() {
-            Destination{x: pos.x, y: pos.y}  // Nowhere to go
+            (pos.x, pos.y)  // Nowhere to go
         } else {
-            match rng.choose(walkables) {
-                (x, y) => Destination{x: x, y: y}
-            }
+            rng.choose(walkables)
         }
     }
 
@@ -132,7 +130,9 @@ pub mod ai {
                 Destination{x: player_pos.x, y: player_pos.y}
             }
             components::ai::Idle => {
-                random_neighbouring_destination(rng, pos, map)
+                match random_neighbouring_position(rng, pos, map) {
+                    (x, y) => Destination{x: x, y: y}
+                }
             }
         }
     }
@@ -171,7 +171,9 @@ pub mod ai {
                 Destination{x: player_pos.x, y: player_pos.y}
             }
             components::ai::Idle => {
-                random_neighbouring_destination(rng, pos, map)
+                match random_neighbouring_position(rng, pos, map) {
+                    (x, y) => Destination{x: x, y: y}
+                }
             }
         }
     }
@@ -218,34 +220,45 @@ pub fn path_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::M
     entity.destination = None;
 }
 
-pub fn movement_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
-    if ecm.get_ref(id).is_none() { return }
-    let entity = ecm.get_mut_ref(id).unwrap();
 
-    if entity.position.is_none() { return }
-    if entity.path.is_none() { return }
-    if entity.turn.is_none() { return }
+pub mod movement {
+    use std::rand::Rng;
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+    use map::{Map, Walkable, Solid};
+    use super::ai;
 
-    if entity.turn.get_ref().ap <= 0 { return }
+    pub fn run<T: Rng>(id: ID,
+                       ecm: &mut EntityManager<GameObject>,
+                       rng: &mut T,
+                       map: &mut Map) {
+        if ecm.get_ref(id).is_none() { return }
+        let entity = ecm.get_mut_ref(id).unwrap();
 
-    match (*entity.path.get_mut_ref()).walk() {
-        Some((x, y)) => {
-            if map.is_walkable((x, y)) {  // Move to the cell
+        if entity.position.is_none() { return }
+        if entity.path.is_none() { return }
+        if entity.turn.is_none() { return }
+
+        if entity.turn.get_ref().ap <= 0 { return }
+
+        let pos = entity.position.unwrap();
+        let move_entity = |dest: (int, int)| {
+            let (x, y) = dest;
+            if dest == (pos.x, pos.y) {  // Wait (spends an AP but do nothing)
                 entity.spend_ap(1);
-                // Update both the entity position component and the map:
-                match *entity.position.get_ref() {
-                    Position{x: oldx, y: oldy} => {
-                        map.move_entity(*id, (oldx, oldy), (x, y));
-                        entity.position = Some(Position{x: x, y: y});
-                    }
-                };
+            } else if map.is_walkable(dest) {  // Move to the cell
+                entity.spend_ap(1);
+                { // Update both the entity position component and the map:
+                    map.move_entity(*id, (pos.x, pos.y), dest);
+                    entity.position = Some(Position{x: x, y: y});
+                }
             } else {  // Bump into the blocked entity
                 // TODO: assert there's only one solid entity on pos [x, y]
-                for (bumpee, walkable) in map.entities_on_pos((x, y)) {
+                for (bumpee, walkable) in map.entities_on_pos(dest) {
                     assert!(bumpee != *id);
                     match walkable {
-                        map::Walkable => loop,
-                        map::Solid => {
+                        Walkable => loop,
+                        Solid => {
                             println!("Entity {} bumped into {} at: ({}, {})", *id, bumpee, x, y);
                             entity.bump = Some(Bump(ID(bumpee)));
                             break;
@@ -253,11 +266,23 @@ pub fn movement_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut ma
                     }
                 }
             }
-        },
-        None => return,
+        };
+
+        match (entity.path.get_mut_ref()).walk() {
+            Some(walk_destination) => {
+                let dest = if entity.stunned.is_some() {
+                    (pos.x, pos.y)
+                } else if entity.panicking.is_some() {
+                    ai::random_neighbouring_position(rng, pos, map)
+                } else {
+                    walk_destination
+                };
+                move_entity(dest);
+            }
+            None => return,
+        }
     }
 }
-
 
 pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
     let bumpee_id = {match ecm.get_ref(entity_id).unwrap().bump {Some(id) => *id, None => {return}}};

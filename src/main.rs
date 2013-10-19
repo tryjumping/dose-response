@@ -250,7 +250,7 @@ fn update(state: &mut GameState,
         systems::input_system(id, ecm, state.commands, state.logger, state.current_side);
         systems::ai::process(id, ecm, &mut state.rng, &state.map, state.current_side, state.player_id);
         systems::path_system(id, ecm, &mut state.map);
-        systems::movement_system(id, ecm, &mut state.map);
+        systems::movement::run(id, ecm, &mut state.rng, &mut state.map);
         systems::bump_system(id, ecm);
         systems::combat_system(id, ecm, &mut state.map, state.current_turn);
         systems::effect_duration::run(id, ecm, state.current_turn);

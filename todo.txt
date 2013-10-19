@@ -1,13 +1,5 @@
-* addiction system (deplete state of mind, death of exhaustion)
 * doses (can use them, increase tolerance, overdose)
-* AI system
-  - follow when player gets near
-  - pack AI for Hunger
-* special monster attacks
-  - stun
-  - panic
-  - attribute drain
-* the bottom info bar
+* addiction system (deplete state of mind, death of exhaustion)
 * graphical effect of high/withdrawn
 * irresistible doses
   - the irresistible area glows

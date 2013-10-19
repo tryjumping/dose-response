@@ -28,7 +28,7 @@ impl FromStr for Command {
     }
 }
 
-pub fn turn_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Side) {
+pub fn turn_tick_counter_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Side) {
     match ecm.get_mut_ref(id) {
         Some(entity) => {
             entity.turn.mutate(|t| if t.side == current_side {
@@ -365,36 +365,58 @@ pub fn idle_ai_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side:
 }
 
 
-pub fn end_of_turn_system(entities: &mut EntityManager<GameObject>, current_side: &mut Side) {
-    let is_end_of_turn = entities.iter().all(|(e, _id)| {
-            match e.turn {
-                Some(turn) => {
-                    *current_side != turn.side || turn.ap == 0
-                },
-                None => true,
+pub mod turn_system {
+    use components;
+    use components::*;
+    use entity_manager::{EntityManager};
+
+    impl components::Side {
+        fn next(&self) -> Side {
+            match *self {
+                Player => Computer,
+                Computer => Player,
             }
-        });
-    if is_end_of_turn {
-        *current_side = match *current_side {
-            Player => Computer,
-            Computer => Player,
-        };
-        for (e, _id) in entities.mut_iter() {
-            match e.turn {
-                Some(turn) => {
-                    if turn.side == *current_side {
-                        e.turn = Some(Turn{
-                                ap: turn.max_ap,
-                                spent_this_tick: 0,
-                                count: turn.count + 1,
-                                .. turn});
-                    }
-                },
-                None => (),
+        }
+
+        fn is_last(&self) -> bool {
+            *self == Computer
+        }
+    }
+
+    pub fn run(entities: &mut EntityManager<GameObject>,
+               current_side: &mut Side,
+               current_turn: &mut int) {
+        let switch_sides = entities.iter().all(|(e, _id)| {
+                match e.turn {
+                    Some(turn) => {
+                        (*current_side != turn.side) || (turn.ap == 0)
+                    },
+                    None => true,
+                }
+            });
+        if switch_sides {
+            if current_side.is_last() {
+                *current_turn += 1;
+            }
+            *current_side = current_side.next();
+            for (e, _id) in entities.mut_iter() {
+                match e.turn {
+                    Some(turn) => {
+                        if turn.side == *current_side {
+                            e.turn = Some(Turn{
+                                    ap: turn.max_ap,
+                                    .. turn});
+                        }
+                    },
+                    None => (),
+                }
             }
         }
     }
+
+
 }
+
 
 pub fn player_dead_system(id: ID, ecm: &mut EntityManager<GameObject>, player_id: ID) {
     let player_dead = match ecm.get_ref(player_id) {

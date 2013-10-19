@@ -40,7 +40,7 @@ pub struct Solid;
 pub struct Stunned{duration: int}
 pub struct Panicking{duration: int}
 pub struct Tile{level: uint, glyph: char, color: Color}
-pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int, count: int}
+pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
 
 pub struct GameObject {
     ai: Option<AI>,

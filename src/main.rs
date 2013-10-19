@@ -30,7 +30,8 @@ struct GameState {
     rng: rand::IsaacRng,
     logger: CommandLogger,
     map: map::Map,
-    side: components::Side,
+    current_side: components::Side,
+    current_turn: int,
     player_id: entity_manager::ID,
 }
 
@@ -111,7 +112,8 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
         rng: rng,
         logger: logger,
         map: map::Map::new(width, height),
-        side: c::Player,
+        current_side: c::Computer,
+        current_turn: 0,
         player_id: entity_manager::ID(0),
     };
     let mut player = c::GameObject::new();
@@ -121,10 +123,10 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     player.position = Some(c::Position{x: 10, y: 20});
     player.tile = Some(c::Tile{level: 2, glyph: '@', color: col::player});
     player.turn = Some(c::Turn{side: c::Player,
-                               ap: 1,
+                               ap: 0,
                                max_ap: 1,
                                spent_this_tick: 0,
-                               count: 1});
+        });
     player.solid = Some(c::Solid);
     state.entities.add(player);
     assert!(state.entities.get_ref(state.player_id).is_some());
@@ -156,7 +158,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                                       ap: 0,
                                       max_ap: max_ap,
                                       spent_this_tick: 0,
-                                      count: 0});
+                    });
                 e.solid = Some(c::Solid);
                 let attack_type = match item {
                     world_gen::Anxiety => c::ModifyAttributes{state_of_mind: 0, will: -1},
@@ -244,19 +246,21 @@ fn update(state: &mut GameState,
             loop
         }
         let ecm = &mut state.entities;
-        systems::turn_system(id, ecm, state.side);
-        systems::input_system(id, ecm, state.commands, state.logger, state.side);
-        systems::ai::process(id, ecm, &mut state.rng, &state.map, state.side, state.player_id);
+        systems::turn_tick_counter_system(id, ecm, state.current_side);
+        systems::input_system(id, ecm, state.commands, state.logger, state.current_side);
+        systems::ai::process(id, ecm, &mut state.rng, &state.map, state.current_side, state.player_id);
         systems::path_system(id, ecm, &mut state.map);
         systems::movement_system(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);
         systems::combat_system(id, ecm, &mut state.map);
-        systems::idle_ai_system(id, ecm, state.side);
+        systems::idle_ai_system(id, ecm, state.current_side);
         systems::player_dead_system(id, ecm, state.player_id);
         systems::tile_system(id, ecm, display);
     }
     systems::gui::process(&state.entities, display, state.player_id);
-    systems::end_of_turn_system(&mut state.entities, &mut state.side);
+    systems::turn_system::run(&mut state.entities,
+                              &mut state.current_side,
+                              &mut state.current_turn);
     engine::Running
 }
 

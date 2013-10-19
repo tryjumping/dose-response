@@ -284,6 +284,52 @@ pub mod movement {
     }
 }
 
+pub mod interaction {
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+    use map::Map;
+
+    pub fn run(id: ID,
+               ecm: &mut EntityManager<GameObject>,
+               map: &mut Map) {
+        if ecm.get_ref(id).is_none() { return }
+        // Only humans can use stuff for now:
+        if ecm.get_ref(id).unwrap().accepts_user_input.is_none() { return }
+        let pos = match ecm.get_ref(id).unwrap().position {
+            Some(p) => (p.x, p.y),
+            None => return,
+        };
+        for (inter_id, _walkability) in map.entities_on_pos(pos) {
+            if *id == inter_id { loop }
+            if ecm.get_ref(ID(inter_id)).is_none() { loop }
+
+            let mut should_remove = false;
+            match ecm.get_ref(ID(inter_id)).unwrap().attribute_modifier {
+                Some(modifier) => {
+                    ecm.get_mut_ref(id).unwrap().attributes.mutate(
+                        |attrs| Attributes{
+                            state_of_mind: attrs.state_of_mind + modifier.state_of_mind,
+                            will: attrs.will + modifier.will,
+                        });
+                    should_remove = true;
+                }
+                None => {}
+            }
+            match ecm.get_ref(ID(inter_id)).unwrap().explosion_effect {
+                Some(ExplosionEffect{radius}) => {
+                    // TODO: kill entities within radius
+                    should_remove = true;
+                }
+                None => {}
+            }
+            if should_remove {
+                ecm.get_mut_ref(ID(inter_id)).unwrap().position = None;
+                map.remove_entity(inter_id, pos);
+            }
+        }
+    }
+}
+
 pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
     let bumpee_id = {match ecm.get_ref(entity_id).unwrap().bump {Some(id) => *id, None => {return}}};
     let bumpee = {ecm.get_ref(bumpee_id).unwrap().turn};
@@ -376,12 +422,18 @@ pub mod combat {
                         Panicking{turn: current_turn, duration: duration},
                         |existing| Panicking{duration: existing.duration + duration, .. existing});
                 }
-                ModifyAttributes{state_of_mind, will} => {
-                    let target = ecm.get_mut_ref(target_id).unwrap();
-                    target.attributes.mutate(
-                        |attrs| Attributes{
-                            state_of_mind: attrs.state_of_mind + state_of_mind,
-                            will: attrs.will + will});
+                ModifyAttributes => {
+                    match ecm.get_ref(id).unwrap().attribute_modifier {
+                        Some(modifier) => {
+                            let target = ecm.get_mut_ref(target_id).unwrap();
+                            target.attributes.mutate(
+                                |attrs| Attributes{
+                                    state_of_mind: attrs.state_of_mind + modifier.state_of_mind,
+                                    will: attrs.will + modifier.will});
+
+                        }
+                        None => fail!("The attacker must have attribute_modifier"),
+                    }
                 }
             }
         }

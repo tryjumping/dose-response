@@ -160,16 +160,35 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                                       spent_this_tick: 0,
                     });
                 e.solid = Some(c::Solid);
-                let attack_type = match item {
-                    world_gen::Anxiety => c::ModifyAttributes{state_of_mind: 0, will: -1},
-                    world_gen::Depression => c::Kill,
-                    world_gen::Hunger => c::ModifyAttributes{state_of_mind: -20, will: 0},
-                    world_gen::Voices => c::Stun{duration: 4},
-                    world_gen::Shadows => c::Panic{duration: 4},
+                match item {
+                    world_gen::Anxiety => {
+                        e.attack_type = Some(c::ModifyAttributes);
+                        e.attribute_modifier = Some(
+                            c::AttributeModifier{state_of_mind: 0, will: -1});
+                    }
+                    world_gen::Depression => e.attack_type = Some(c::Kill),
+                    world_gen::Hunger => {
+                        e.attack_type = Some(c::ModifyAttributes);
+                        e.attribute_modifier = Some(
+                            c::AttributeModifier{state_of_mind: -20, will: 0})
+                    }
+                    world_gen::Voices => e.attack_type = Some(c::Stun{duration: 4}),
+                    world_gen::Shadows => e.attack_type = Some(c::Panic{duration: 4}),
                     _ => unreachable!(),
                 };
-                e.attack_type = Some(attack_type);
                 tile_level = 2;
+            } else if item == world_gen::Dose {
+                e.explosion_effect = Some(c::ExplosionEffect{radius: 4});
+                e.attribute_modifier = Some(c::AttributeModifier{
+                        state_of_mind: 40,
+                        will: 0,
+                    });
+            } else if item == world_gen::StrongDose {
+                e.explosion_effect = Some(c::ExplosionEffect{radius: 6});
+                e.attribute_modifier = Some(c::AttributeModifier{
+                        state_of_mind: 90,
+                        will: 0,
+                    });
             }
             e.tile = Some(c::Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
             state.entities.add(e);
@@ -251,6 +270,7 @@ fn update(state: &mut GameState,
         systems::ai::process(id, ecm, &mut state.rng, &state.map, state.current_side, state.player_id);
         systems::path_system(id, ecm, &mut state.map);
         systems::movement::run(id, ecm, &mut state.rng, &mut state.map);
+        systems::interaction::run(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);
         systems::combat::run(id, ecm, &mut state.map, state.current_turn);
         systems::effect_duration::run(id, ecm, state.current_turn);

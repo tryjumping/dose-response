@@ -11,6 +11,11 @@ pub enum Side {
     Computer,
 }
 
+pub struct AttributeModifier{
+    state_of_mind: int,
+    will: int
+}
+
 mod ai {
     pub enum Behaviour {
         Individual,
@@ -31,11 +36,12 @@ pub enum AttackType {
     Kill,
     Stun{duration: int},
     Panic{duration: int},
-    ModifyAttributes{state_of_mind: int, will: int},
+    ModifyAttributes,
 }
 pub struct Attributes{state_of_mind: int, will: int}
 pub struct Background;
 pub struct Bump(entity_manager::ID);
+pub struct ExplosionEffect{radius: int}
 pub struct Position {x: int, y: int}
 pub struct Destination {x: int, y: int}
 pub struct Solid;
@@ -54,6 +60,8 @@ pub struct GameObject {
     bump: Option<Bump>,
     position: Option<Position>,
     destination: Option<Destination>,
+    explosion_effect: Option<ExplosionEffect>,
+    attribute_modifier: Option<AttributeModifier>,
     path: Option<~Path>,
     panicking: Option<Panicking>,
     solid: Option<Solid>,
@@ -70,10 +78,12 @@ impl GameObject {
             attack_target: None,
             attack_type: None,
             attributes: None,
+            attribute_modifier: None,
             background: None,
             bump: None,
             position: None,
             destination: None,
+            explosion_effect: None,
             path: None,
             panicking: None,
             solid: None,

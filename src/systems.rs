@@ -324,7 +324,8 @@ pub mod combat {
             },
             None => { return }
         };
-        let kill_entity = |e: &mut GameObject, id: ID| {
+        let kill_entity = |id: ID| {
+            let e = ecm.get_mut_ref(id).unwrap();
             e.ai = None;
             match e.position {
                 Some(Position{x, y}) => {
@@ -347,25 +348,29 @@ pub mod combat {
                 None => {}
             }
             let attack_type = ecm.get_ref(id).unwrap().attack_type.unwrap();
-            let target = ecm.get_mut_ref(target_id).unwrap();
             match attack_type {
                 Kill => {
                     println!("Entity {} was killed by {}", *target_id, *id);
-                    kill_entity(target, target_id);
+                    kill_entity(target_id);
                 }
                 Stun{duration} => {
                     println!("Entity {} was stunned by {}", *target_id, *id);
+                    kill_entity(id);
+                    let target = ecm.get_mut_ref(target_id).unwrap();
                     target.stunned.mutate_default(
                         Stunned{turn: current_turn, duration: duration},
                         |existing| Stunned{duration: existing.duration + duration, .. existing});
                 }
                 Panic{duration} => {
                     println!("Entity {} panics because of {}", *target_id, *id);
+                    kill_entity(id);
+                    let target = ecm.get_mut_ref(target_id).unwrap();
                     target.panicking.mutate_default(
                         Panicking{turn: current_turn, duration: duration},
                         |existing| Panicking{duration: existing.duration + duration, .. existing});
                 }
                 ModifyAttributes{state_of_mind, will} => {
+                    let target = ecm.get_mut_ref(target_id).unwrap();
                     target.attributes.mutate(
                         |attrs| Attributes{
                             state_of_mind: attrs.state_of_mind + state_of_mind,

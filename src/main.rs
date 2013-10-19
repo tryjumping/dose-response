@@ -254,6 +254,7 @@ fn update(state: &mut GameState,
         systems::bump_system(id, ecm);
         systems::combat::run(id, ecm, &mut state.map, state.current_turn);
         systems::effect_duration::run(id, ecm, state.current_turn);
+        systems::will::run(id, ecm, &mut state.map);
         systems::idle_ai_system(id, ecm, state.current_side);
         systems::player_dead_system(id, ecm, state.player_id);
         systems::tile_system(id, ecm, display);

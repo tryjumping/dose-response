@@ -306,6 +306,26 @@ pub mod combat {
     use entity_manager::{EntityManager, ID};
     use map::{Map};
 
+    pub fn kill_entity(id: ID,
+                       ecm: &mut EntityManager<GameObject>,
+                       map: &mut Map) {
+        match ecm.get_mut_ref(id) {
+            Some(e) => {
+                e.ai = None;
+                match e.position {
+                    Some(Position{x, y}) => {
+                        e.position = None;
+                        map.remove_entity(*id, (x, y));
+                    }
+                    None => {}
+                }
+                e.accepts_user_input = None;
+                e.turn = None;
+            }
+            None => {}
+        }
+    }
+
     pub fn run(id: ID,
                ecm: &mut EntityManager<GameObject>,
                map: &mut Map,
@@ -324,19 +344,6 @@ pub mod combat {
             },
             None => { return }
         };
-        let kill_entity = |id: ID| {
-            let e = ecm.get_mut_ref(id).unwrap();
-            e.ai = None;
-            match e.position {
-                Some(Position{x, y}) => {
-                    e.position = None;
-                    map.remove_entity(*id, (x, y));
-                }
-                None => {}
-            }
-            e.accepts_user_input = None;
-            e.turn = None;
-        };
         let attack_successful = ecm.get_ref(target_id).is_some() && free_aps > 0;
         if attack_successful {
             // attacker spends an AP
@@ -351,11 +358,11 @@ pub mod combat {
             match attack_type {
                 Kill => {
                     println!("Entity {} was killed by {}", *target_id, *id);
-                    kill_entity(target_id);
+                    kill_entity(target_id, ecm, map);
                 }
                 Stun{duration} => {
                     println!("Entity {} was stunned by {}", *target_id, *id);
-                    kill_entity(id);
+                    kill_entity(id, ecm, map);
                     let target = ecm.get_mut_ref(target_id).unwrap();
                     target.stunned.mutate_default(
                         Stunned{turn: current_turn, duration: duration},
@@ -363,7 +370,7 @@ pub mod combat {
                 }
                 Panic{duration} => {
                     println!("Entity {} panics because of {}", *target_id, *id);
-                    kill_entity(id);
+                    kill_entity(id, ecm, map);
                     let target = ecm.get_mut_ref(target_id).unwrap();
                     target.panicking.mutate_default(
                         Panicking{turn: current_turn, duration: duration},
@@ -399,6 +406,25 @@ mod effect_duration {
             Some(t) => Some(t),
             None => None,
         };
+    }
+}
+
+mod will {
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+    use map::Map;
+    use super::combat;
+
+    pub fn run(id: ID,
+               ecm: &mut EntityManager<GameObject>,
+               map: &mut Map) {
+        if ecm.get_ref(id).is_none() { return }
+        if ecm.get_ref(id).unwrap().attributes.is_none() { return }
+
+        let attrs = ecm.get_ref(id).unwrap().attributes.unwrap();
+        if attrs.will <= 0 {
+            combat::kill_entity(id, ecm, map);
+        }
     }
 }
 

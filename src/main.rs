@@ -164,8 +164,8 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                     world_gen::Anxiety => c::ModifyAttributes{state_of_mind: 0, will: -1},
                     world_gen::Depression => c::Kill,
                     world_gen::Hunger => c::ModifyAttributes{state_of_mind: -20, will: 0},
-                    world_gen::Voices => c::Stun{duration: 3},
-                    world_gen::Shadows => c::Panic{duration: 3},
+                    world_gen::Voices => c::Stun{duration: 4},
+                    world_gen::Shadows => c::Panic{duration: 4},
                     _ => unreachable!(),
                 };
                 e.attack_type = Some(attack_type);
@@ -252,12 +252,16 @@ fn update(state: &mut GameState,
         systems::path_system(id, ecm, &mut state.map);
         systems::movement_system(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);
-        systems::combat_system(id, ecm, &mut state.map);
+        systems::combat_system(id, ecm, &mut state.map, state.current_turn);
+        systems::effect_duration::run(id, ecm, state.current_turn);
         systems::idle_ai_system(id, ecm, state.current_side);
         systems::player_dead_system(id, ecm, state.player_id);
         systems::tile_system(id, ecm, display);
     }
-    systems::gui::process(&state.entities, display, state.player_id);
+    systems::gui::process(&state.entities,
+                          display,
+                          state.player_id,
+                          state.current_turn);
     systems::turn_system::run(&mut state.entities,
                               &mut state.current_side,
                               &mut state.current_turn);

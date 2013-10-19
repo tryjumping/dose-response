@@ -276,7 +276,10 @@ pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
     }
 }
 
-pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
+pub fn combat_system(id: ID,
+                     ecm: &mut EntityManager<GameObject>,
+                     map: &mut map::Map,
+                     current_turn: int) {
     if ecm.get_ref(id).is_none() { return }
     if ecm.get_ref(id).unwrap().attack_target.is_none() { return }
     if ecm.get_ref(id).unwrap().attack_type.is_none() { return }
@@ -320,14 +323,14 @@ pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map:
             Stun{duration} => {
                 println!("Entity {} was stunned by {}", *target_id, *id);
                 target.stunned.mutate_default(
-                    Stunned{duration: duration},
-                    |existing| Stunned{duration: existing.duration + duration});
+                    Stunned{turn: current_turn, duration: duration},
+                    |existing| Stunned{duration: existing.duration + duration, .. existing});
             }
             Panic{duration} => {
                 println!("Entity {} panics because of {}", *target_id, *id);
                 target.panicking.mutate_default(
-                    Panicking{duration: duration},
-                    |existing| Panicking{duration: existing.duration + duration});
+                    Panicking{turn: current_turn, duration: duration},
+                    |existing| Panicking{duration: existing.duration + duration, .. existing});
             }
             ModifyAttributes{state_of_mind, will} => {
                 target.attributes.mutate(
@@ -336,6 +339,27 @@ pub fn combat_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map:
                         will: attrs.will + will});
             }
         }
+    }
+}
+
+
+mod effect_duration {
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+
+    pub fn run(id: ID, ecm: &mut EntityManager<GameObject>, current_turn: int) {
+        if ecm.get_ref(id).is_none() { return }
+        let e = ecm.get_mut_ref(id).unwrap();
+        e.stunned = match e.stunned {
+            Some(t) if t.remaining(current_turn) == 0 => None,
+            Some(t) => Some(t),
+            None => None,
+        };
+        e.panicking = match e.panicking {
+            Some(t) if t.remaining(current_turn) == 0 => None,
+            Some(t) => Some(t),
+            None => None,
+        };
     }
 }
 
@@ -440,7 +464,8 @@ pub mod gui {
 
     pub fn process(ecm: &EntityManager<GameObject>,
                    display: &mut Display,
-                   player_id: ID) {
+                   player_id: ID,
+                   current_turn: int) {
         let (_width, height) = display.size();
         let attrs = ecm.get_ref(player_id).unwrap().attributes.unwrap();
         let dead = match ecm.get_ref(player_id).unwrap().position.is_none() {
@@ -448,11 +473,11 @@ pub mod gui {
             false => ~"",
         };
         let stunned = match ecm.get_ref(player_id).unwrap().stunned {
-            Some(Stunned{duration}) => format!("stunned({}) ", duration),
+            Some(s) => format!("stunned({}) ", s.remaining(current_turn)),
             None => ~"",
         };
         let panicking = match ecm.get_ref(player_id).unwrap().panicking {
-            Some(Panicking{duration}) => format!("panic({}) ", duration),
+            Some(p) => format!("panic({}) ", p.remaining(current_turn)),
             None => ~"",
         };
         let effects = format!("{}{}{}", dead, stunned, panicking);

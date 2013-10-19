@@ -1,3 +1,5 @@
+use std::num;
+
 use engine::{Color};
 pub use map::Path;
 pub use self::ai::AI;
@@ -37,8 +39,8 @@ pub struct Bump(entity_manager::ID);
 pub struct Position {x: int, y: int}
 pub struct Destination {x: int, y: int}
 pub struct Solid;
-pub struct Stunned{duration: int}
-pub struct Panicking{duration: int}
+pub struct Stunned{turn: int, duration: int}
+pub struct Panicking{turn: int, duration: int}
 pub struct Tile{level: uint, glyph: char, color: Color}
 pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
 
@@ -93,5 +95,17 @@ impl GameObject {
             },
             None => fail!(),
         }
+    }
+}
+
+impl Stunned {
+    pub fn remaining(&self, current_turn: int) -> int {
+        num::max((self.turn + self.duration) - current_turn, 0)
+    }
+}
+
+impl Panicking {
+    pub fn remaining(&self, current_turn: int) -> int {
+        num::max((self.turn + self.duration) - current_turn, 0)
     }
 }

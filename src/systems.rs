@@ -290,7 +290,7 @@ pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
     match ecm.get_mut_ref(entity_id) {
         Some(e) => {
             if bumpee.is_some() && e.turn.is_some() && bumpee.unwrap().side != e.turn.unwrap().side {
-                println!("Entity {} attacks {}.", *entity_id, *bumpee_id)
+                println!("Entity {} attacks {}.", *entity_id, *bumpee_id);
                 e.attack_target = Some(AttackTarget(bumpee_id));
             } else {
                 println!("Entity {} hits the wall.", *entity_id);
@@ -301,67 +301,76 @@ pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
     }
 }
 
-pub fn combat_system(id: ID,
-                     ecm: &mut EntityManager<GameObject>,
-                     map: &mut map::Map,
-                     current_turn: int) {
-    if ecm.get_ref(id).is_none() { return }
-    if ecm.get_ref(id).unwrap().attack_target.is_none() { return }
-    if ecm.get_ref(id).unwrap().attack_type.is_none() { return }
-    let free_aps = match ecm.get_ref(id).unwrap().turn {
-        Some(t) => t.ap,
-        None => 0,
-    };
-    let target_id = match ecm.get_ref(id) {
-        Some(e) => match e.attack_target {
-            Some(attack_component) => *attack_component,
-            None => return,
-        },
-        None => { return }
-    };
-    let attack_successful = ecm.get_ref(target_id).is_some() && free_aps > 0;
-    if attack_successful {
-        // attacker spends an AP
-        match ecm.get_mut_ref(id) {
-            Some(attacker) => {
-                attacker.spend_ap(1);
-                attacker.attack_target = None;
-            }
-            None => {}
-        }
-        let attack_type = ecm.get_ref(id).unwrap().attack_type.unwrap();
-        let target = ecm.get_mut_ref(target_id).unwrap();
-        match attack_type {
-            Kill => {
-                println!("Entity {} was killed by {}", *target_id, *id);
-                target.ai = None;
-                match target.position {
-                    Some(Position{x, y}) => {
-                        target.position = None;
-                        map.remove_entity(*target_id, (x, y));
-                    }
-                    None => {}
+pub mod combat {
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+    use map::{Map};
+
+    pub fn run(id: ID,
+               ecm: &mut EntityManager<GameObject>,
+               map: &mut Map,
+               current_turn: int) {
+        if ecm.get_ref(id).is_none() { return }
+        if ecm.get_ref(id).unwrap().attack_target.is_none() { return }
+        if ecm.get_ref(id).unwrap().attack_type.is_none() { return }
+        let free_aps = match ecm.get_ref(id).unwrap().turn {
+            Some(t) => t.ap,
+            None => 0,
+        };
+        let target_id = match ecm.get_ref(id) {
+            Some(e) => match e.attack_target {
+                Some(attack_component) => *attack_component,
+                None => return,
+            },
+            None => { return }
+        };
+        let kill_entity = |e: &mut GameObject, id: ID| {
+            e.ai = None;
+            match e.position {
+                Some(Position{x, y}) => {
+                    e.position = None;
+                    map.remove_entity(*id, (x, y));
                 }
-                target.accepts_user_input = None;
-                target.turn = None;
+                None => {}
             }
-            Stun{duration} => {
-                println!("Entity {} was stunned by {}", *target_id, *id);
-                target.stunned.mutate_default(
-                    Stunned{turn: current_turn, duration: duration},
-                    |existing| Stunned{duration: existing.duration + duration, .. existing});
+            e.accepts_user_input = None;
+            e.turn = None;
+        };
+        let attack_successful = ecm.get_ref(target_id).is_some() && free_aps > 0;
+        if attack_successful {
+            // attacker spends an AP
+            match ecm.get_mut_ref(id) {
+                Some(attacker) => {
+                    attacker.spend_ap(1);
+                    attacker.attack_target = None;
+                }
+                None => {}
             }
-            Panic{duration} => {
-                println!("Entity {} panics because of {}", *target_id, *id);
-                target.panicking.mutate_default(
-                    Panicking{turn: current_turn, duration: duration},
-                    |existing| Panicking{duration: existing.duration + duration, .. existing});
-            }
-            ModifyAttributes{state_of_mind, will} => {
-                target.attributes.mutate(
-                    |attrs| Attributes{
-                        state_of_mind: attrs.state_of_mind + state_of_mind,
-                        will: attrs.will + will});
+            let attack_type = ecm.get_ref(id).unwrap().attack_type.unwrap();
+            let target = ecm.get_mut_ref(target_id).unwrap();
+            match attack_type {
+                Kill => {
+                    println!("Entity {} was killed by {}", *target_id, *id);
+                    kill_entity(target, target_id);
+                }
+                Stun{duration} => {
+                    println!("Entity {} was stunned by {}", *target_id, *id);
+                    target.stunned.mutate_default(
+                        Stunned{turn: current_turn, duration: duration},
+                        |existing| Stunned{duration: existing.duration + duration, .. existing});
+                }
+                Panic{duration} => {
+                    println!("Entity {} panics because of {}", *target_id, *id);
+                    target.panicking.mutate_default(
+                        Panicking{turn: current_turn, duration: duration},
+                        |existing| Panicking{duration: existing.duration + duration, .. existing});
+                }
+                ModifyAttributes{state_of_mind, will} => {
+                    target.attributes.mutate(
+                        |attrs| Attributes{
+                            state_of_mind: attrs.state_of_mind + state_of_mind,
+                            will: attrs.will + will});
+                }
             }
         }
     }

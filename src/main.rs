@@ -252,7 +252,7 @@ fn update(state: &mut GameState,
         systems::path_system(id, ecm, &mut state.map);
         systems::movement::run(id, ecm, &mut state.rng, &mut state.map);
         systems::bump_system(id, ecm);
-        systems::combat_system(id, ecm, &mut state.map, state.current_turn);
+        systems::combat::run(id, ecm, &mut state.map, state.current_turn);
         systems::effect_duration::run(id, ecm, state.current_turn);
         systems::idle_ai_system(id, ecm, state.current_side);
         systems::player_dead_system(id, ecm, state.player_id);

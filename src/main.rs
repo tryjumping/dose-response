@@ -120,7 +120,11 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     player.attributes = Some(c::Attributes{state_of_mind: 20, will: 2});
     player.position = Some(c::Position{x: 10, y: 20});
     player.tile = Some(c::Tile{level: 2, glyph: '@', color: col::player});
-    player.turn = Some(c::Turn{side: c::Player, ap: 1, max_ap: 1, spent_this_turn: 0});
+    player.turn = Some(c::Turn{side: c::Player,
+                               ap: 1,
+                               max_ap: 1,
+                               spent_this_tick: 0,
+                               count: 1});
     player.solid = Some(c::Solid);
     state.entities.add(player);
     assert!(state.entities.get_ref(state.player_id).is_some());
@@ -148,7 +152,11 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                 };
                 e.ai = Some(c::AI{behaviour: behaviour, state: c::ai::Idle});
                 let max_ap = if item == world_gen::Depression { 2 } else { 1 };
-                e.turn = Some(c::Turn{side: c::Computer, ap: 0, max_ap: max_ap, spent_this_turn: 0});
+                e.turn = Some(c::Turn{side: c::Computer,
+                                      ap: 0,
+                                      max_ap: max_ap,
+                                      spent_this_tick: 0,
+                                      count: 0});
                 e.solid = Some(c::Solid);
                 let attack_type = match item {
                     world_gen::Anxiety => c::ModifyAttributes{state_of_mind: 0, will: -1},

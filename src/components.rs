@@ -40,7 +40,7 @@ pub struct Solid;
 pub struct Stunned{duration: int}
 pub struct Panicking{duration: int}
 pub struct Tile{level: uint, glyph: char, color: Color}
-pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_turn: int}
+pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int, count: int}
 
 pub struct GameObject {
     ai: Option<AI>,
@@ -88,7 +88,7 @@ impl GameObject {
 
                 self.turn = Some(Turn{
                         ap: turn.ap - spend,
-                        spent_this_turn: turn.spent_this_turn + spend,
+                        spent_this_tick: turn.spent_this_tick + spend,
                         .. turn});
             },
             None => fail!(),

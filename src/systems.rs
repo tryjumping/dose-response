@@ -32,7 +32,7 @@ pub fn turn_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Si
     match ecm.get_mut_ref(id) {
         Some(entity) => {
             entity.turn.mutate(|t| if t.side == current_side {
-                    Turn{spent_this_turn: 0, .. t}
+                    Turn{spent_this_tick: 0, .. t}
                 } else {
                     t
                 });
@@ -360,7 +360,7 @@ pub fn idle_ai_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side:
     if current_side != Computer { return }
 
     let turn = *entity.turn.get_ref();
-    let is_idle = (turn.side == current_side) && turn.spent_this_turn == 0;
+    let is_idle = (turn.side == current_side) && turn.spent_this_tick == 0;
     if is_idle && turn.ap > 0 { entity.spend_ap(1) };
 }
 
@@ -383,8 +383,11 @@ pub fn end_of_turn_system(entities: &mut EntityManager<GameObject>, current_side
             match e.turn {
                 Some(turn) => {
                     if turn.side == *current_side {
-                        e.turn = Some(Turn{side: turn.side, ap: turn.max_ap,
-                                        spent_this_turn: 0, .. turn});
+                        e.turn = Some(Turn{
+                                ap: turn.max_ap,
+                                spent_this_tick: 0,
+                                count: turn.count + 1,
+                                .. turn});
                     }
                 },
                 None => (),

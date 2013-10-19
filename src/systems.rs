@@ -288,6 +288,7 @@ pub mod interaction {
     use components::*;
     use entity_manager::{EntityManager, ID};
     use map::Map;
+    use super::combat;
 
     pub fn run(id: ID,
                ecm: &mut EntityManager<GameObject>,
@@ -317,7 +318,17 @@ pub mod interaction {
             }
             match ecm.get_ref(ID(inter_id)).unwrap().explosion_effect {
                 Some(ExplosionEffect{radius}) => {
-                    // TODO: kill entities within radius
+                    let (px, py) = pos;
+                    for x in range(px - radius, px + radius) {
+                        for y in range(py - radius, py + radius) {
+                            for (m_id, _) in map.entities_on_pos((x, y)) {
+                                let monster_id = ID(m_id);
+                                if ecm.get_mut_ref(ID(m_id)).unwrap().ai.is_some() {
+                                    combat::kill_entity(ID(m_id), ecm, map);
+                                }
+                            }
+                        }
+                    }
                     should_remove = true;
                 }
                 None => {}

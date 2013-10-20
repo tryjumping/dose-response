@@ -2,8 +2,9 @@ use extra::container::Deque;
 use extra::ringbuf::RingBuf;
 use tcod;
 
-pub enum MainLoopState {
+pub enum MainLoopState<T> {
     Running,
+    NewState(T),
     Exit,
 }
 
@@ -94,8 +95,8 @@ impl Key {
 
 pub fn main_loop<S>(width: uint, height: uint, title: &str,
                     font_path: Path,
-                    initial_state: ~S,
-                    update: &fn(&mut S, &mut Display, &mut RingBuf<Key>) -> MainLoopState) {
+                    initial_state: S,
+                    update: &fn(&mut S, &mut Display, &mut RingBuf<Key>) -> MainLoopState<S>) {
     let fullscreen = false;
     let default_fg = Color(255, 255, 255);
     let console_count = 3;
@@ -131,8 +132,12 @@ pub fn main_loop<S>(width: uint, height: uint, title: &str,
             tcod::console_clear(con);
         }
 
-        match update(game_state, &mut tcod_display, &mut keys) {
+        match update(&mut game_state, &mut tcod_display, &mut keys) {
             Running => (),
+            NewState(new_state) => {
+                game_state = new_state;
+                loop;
+            }
             Exit => break,
         }
 

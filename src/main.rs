@@ -43,6 +43,13 @@ fn escape_pressed(keys: &RingBuf<Key>) -> bool {
     false
 }
 
+fn f5_pressed(keys: &RingBuf<Key>) -> bool {
+    for &key in keys.iter() {
+        if key.code == 54 { return true; }
+    }
+    false
+}
+
 fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
     // TODO: switch to DList and consume it with `mut_iter`.
     loop {
@@ -74,11 +81,23 @@ fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
 }
 
 
-
 fn update(state: &mut GameState,
           display: &mut Display,
-          keys: &mut RingBuf<Key>) -> MainLoopState {
+          keys: &mut RingBuf<Key>) -> MainLoopState<GameState> {
     if escape_pressed(keys) { return engine::Exit }
+    if f5_pressed(keys) {
+        println!("Restarting game");
+        keys.clear();
+        let mut state = new_game_state(state.map.width, state.map.height);
+        let player = world::player_entity();
+        state.entities.add(player);
+        assert!(state.entities.get_ref(state.player_id).is_some());
+        world::populate_world(&mut state.entities,
+                              &mut state.map,
+                              &mut state.rng,
+                              world_gen::forrest);
+        return engine::NewState(state);
+    }
 
     process_input(keys, state.commands);
     for id in state.entities.id_iter() {
@@ -222,7 +241,7 @@ fn main() {
     let title = "Dose Response";
     let font_path = Path("./fonts/dejavu16x16_gs_tc.png");
 
-    let mut game_state = ~match os::args().len() {
+    let mut game_state = match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
             new_game_state(width, height)
         },

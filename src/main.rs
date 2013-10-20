@@ -104,18 +104,7 @@ mod col {
     pub static tree_3: Color = Color(63,255,63);
 }
 
-fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
-                 rng: rand::IsaacRng, logger: CommandLogger) -> ~GameState {
-    let mut state = ~GameState {
-        entities: EntityManager::new(),
-        commands: commands,
-        rng: rng,
-        logger: logger,
-        map: map::Map::new(width, height),
-        current_side: c::Computer,
-        current_turn: 0,
-        player_id: entity_manager::ID(0),
-    };
+fn player_entity() -> c::GameObject {
     let mut player = c::GameObject::new();
     player.accepts_user_input = Some(c::AcceptsUserInput);
     player.attack_type = Some(c::Kill);
@@ -136,10 +125,14 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                                spent_this_tick: 0,
         });
     player.solid = Some(c::Solid);
-    state.entities.add(player);
-    assert!(state.entities.get_ref(state.player_id).is_some());
+    return player;
+}
 
-    let world = world_gen::forrest(&mut state.rng, width, height);
+fn populate_world<T: Rng>(ecm: &mut EntityManager<c::GameObject>,
+                          map: &mut map::Map,
+                          rng: &mut T,
+                          generate: &fn(&mut T, uint, uint) -> ~[(int, int, world_gen::WorldItem)]) {
+    let world = generate(rng, map.width, map.height);
     for &(x, y, item) in world.iter() {
         let mut bg = c::GameObject::new();
         bg.position = Some(c::Position{x: x, y: y});
@@ -150,7 +143,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
         } else { // put an empty item as the background
             bg.tile = Some(c::Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
-        state.entities.add(bg);
+        ecm.add(bg);
         if item != world_gen::Tree && item != world_gen::Empty {
             let mut e = c::GameObject::new();
             e.position = Some(c::Position{x: x, y: y});
@@ -199,25 +192,25 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
             } else if item == world_gen::Dose {
                 e.dose = Some(c::Dose{tolerance_modifier: 1, resist_radius: 2});
                 e.attribute_modifier = Some(c::AttributeModifier{
-                        state_of_mind: 40 + state.rng.gen_integer_range(-10, 11),
+                        state_of_mind: 40 + rng.gen_integer_range(-10, 11),
                         will: 0,
                     });
                 e.explosion_effect = Some(c::ExplosionEffect{radius: 4});
             } else if item == world_gen::StrongDose {
                 e.dose = Some(c::Dose{tolerance_modifier: 2, resist_radius: 3});
                 e.attribute_modifier = Some(c::AttributeModifier{
-                        state_of_mind: 90 + state.rng.gen_integer_range(-15, 16),
+                        state_of_mind: 90 + rng.gen_integer_range(-15, 16),
                         will: 0,
                     });
                 e.explosion_effect = Some(c::ExplosionEffect{radius: 6});
             }
             e.tile = Some(c::Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
-            state.entities.add(e);
+            ecm.add(e);
         }
     }
 
     // Initialise the map's walkability data
-    for (e, id) in state.entities.iter() {
+    for (e, id) in ecm.iter() {
         match e.position {
             Some(c::Position{x, y}) => {
                 let walkable = match e.solid {
@@ -225,15 +218,13 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                     None => map::Walkable,
                 };
                 match e.background {
-                    Some(_) => state.map.set_walkability((x, y), walkable),
-                    None => state.map.place_entity(*id, (x, y), walkable),
+                    Some(_) => map.set_walkability((x, y), walkable),
+                    None => map.place_entity(*id, (x, y), walkable),
                 }
             },
             None => (),
         }
     }
-
-    state
 }
 
 fn escape_pressed(keys: &RingBuf<Key>) -> bool {
@@ -340,63 +331,107 @@ impl CommandLogger {
     }
 }
 
+fn new_game_state(width: uint, height: uint) -> GameState {
+    let mut rng = rand::IsaacRng::new();
+    let seed: ~[u8];
+    let writer: @io::Writer;
+    let commands = ~RingBuf::new();
+    let seed_int = rng.gen_integer_range(0, 10000);
+    seed = seed_int.to_bytes(true);
+    rng = rand::IsaacRng::new_seeded(seed);
+    let cur_time = time::now();
+    let timestamp = time::strftime("%FT%T.", &cur_time) +
+        (cur_time.tm_nsec / 1000000).to_str();
+    let replay_dir = &Path("./replays/");
+    let replay_path = &replay_dir.push("replay-" + timestamp);
+    if !os::path_exists(replay_dir) {
+        os::mkdir_recursive(replay_dir, 0b111101101);
+    }
+    match io::file_writer(replay_path, [io::Create, io::Append]) {
+        Ok(w) => {
+            writer = w;
+            writer.write_line(seed_int.to_str());
+        },
+        Err(e) => fail!(fmt!("Failed to open the replay file: %s", e)),
+    };
+    let logger = CommandLogger{writer: writer};
+    let ecm = EntityManager::new();
+    let map = map::Map::new(width, height);
+    GameState {
+        entities: ecm,
+        commands: commands,
+        rng: rng,
+        logger: logger,
+        map: map,
+        current_side: c::Computer,
+        current_turn: 0,
+        player_id: entity_manager::ID(0),
+    }
+}
+
+fn replay_game_state(width: uint, height: uint) -> GameState {
+    let mut commands = ~RingBuf::new();
+    let replay_path = &Path(os::args()[1]);
+    let mut seed: ~[u8];
+    let writer: @Writer;
+    match io::read_whole_file_str(replay_path) {
+        Ok(contents) => {
+            let mut lines_it = contents.any_line_iter();
+            match lines_it.next() {
+                Some(seed_str) => seed = seed_from_str(seed_str),
+                None => fail!(fmt!("The replay file is empty")),
+            }
+            for line in lines_it {
+                match from_str(line) {
+                    Some(command) => commands.push_back(command),
+                    None => fail!(fmt!("Unknown command: %?", line)),
+                }
+            }
+            writer = @NullWriter as @Writer;
+        },
+        Err(e) => fail!(fmt!("Failed to read the replay file: %s", e))
+    }
+    let rng = rand::IsaacRng::new_seeded(seed);
+    let logger = CommandLogger{writer: writer};
+    let ecm = EntityManager::new();
+    let map = map::Map::new(width, height);
+    GameState {
+        entities: ecm,
+        commands: commands,
+        rng: rng,
+        logger: logger,
+        map: map,
+        current_side: c::Computer,
+        current_turn: 0,
+        player_id: entity_manager::ID(0),
+    }
+}
+
 
 fn main() {
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path("./fonts/dejavu16x16_gs_tc.png");
 
-    let mut rng = rand::IsaacRng::new();
-    let seed: ~[u8];
-    let writer: @io::Writer;
-    let mut commands = ~RingBuf::new();
-
-    match os::args().len() {
+    let mut game_state = ~match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
-            let seed_int = rng.gen_integer_range(0, 10000);
-            seed = seed_int.to_bytes(true);
-            let cur_time = time::now();
-            let timestamp = time::strftime("%FT%T.", &cur_time) +
-                (cur_time.tm_nsec / 1000000).to_str();
-            let replay_dir = &Path("./replays/");
-            let replay_path = &replay_dir.push("replay-" + timestamp);
-            if !os::path_exists(replay_dir) {
-                os::mkdir_recursive(replay_dir, 0b111101101);
-            }
-            match io::file_writer(replay_path, [io::Create, io::Append]) {
-                Ok(w) => {
-                    writer = w;
-                    writer.write_line(seed_int.to_str());
-                },
-                Err(e) => fail!(fmt!("Failed to open the replay file: %s", e)),
-            };
+            new_game_state(width, height)
         },
         2 => {  // Replay the game from the entered log
-            let replay_path = &Path(os::args()[1]);
-            match io::read_whole_file_str(replay_path) {
-                Ok(contents) => {
-                    let mut lines_it = contents.any_line_iter();
-                    match lines_it.next() {
-                        Some(seed_str) => seed = seed_from_str(seed_str),
-                        None => fail!(fmt!("The replay file is empty")),
-                    }
-                    for line in lines_it {
-                        match from_str(line) {
-                            Some(command) => commands.push_back(command),
-                            None => fail!(fmt!("Unknown command: %?", line)),
-                        }
-                    }
-                    writer = @NullWriter as @Writer;
-                },
-                Err(e) => fail!(fmt!("Failed to read the replay file: %s", e))
-            }
+            replay_game_state(width, height)
         },
         _ => fail!("You must pass either pass zero or one arguments."),
     };
-    rng = rand::IsaacRng::new_seeded(seed);
 
-    let logger = CommandLogger{writer: writer};
+    let player = player_entity();
+    game_state.entities.add(player);
+    assert!(game_state.entities.get_ref(game_state.player_id).is_some());
+    populate_world(&mut game_state.entities,
+                   &mut game_state.map,
+                   &mut game_state.rng,
+                   world_gen::forrest);
+
     engine::main_loop(width, height, title, font_path,
-                      initial_state(width, height, commands, rng, logger),
+                      game_state,
                       update);
 }

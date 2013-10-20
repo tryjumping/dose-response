@@ -1,4 +1,5 @@
-* restart the game on F5
+* BUG: Replay broken when the player is stunned
+* generate a new area when stepping over the edge of the screen
 * a safe initial area (no monsters, dose in sight)
 * map exploration (dark arena, uncovers slowly)
 * graphical effect of high/withdrawn
@@ -6,7 +7,6 @@
 * bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
-* generate a new area when stepping over the edge of the screen
 
 
 * read-up on the format!, println! and writeln! macros

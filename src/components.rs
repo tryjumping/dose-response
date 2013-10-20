@@ -11,6 +11,15 @@ pub enum Side {
     Computer,
 }
 
+#[deriving(Eq)]
+pub enum MonsterKind {
+    Anxiety,
+    Depression,
+    Hunger,
+    Voices,
+    Shadows,
+}
+
 pub struct AttributeModifier{
     state_of_mind: int,
     will: int
@@ -44,6 +53,7 @@ pub struct Addiction{tolerance: int, drop_per_turn: int, last_turn: int}
 pub struct Background;
 pub struct Bump(entity_manager::ID);
 pub struct ExplosionEffect{radius: int}
+pub struct Monster{kind: MonsterKind}
 pub struct Position {x: int, y: int}
 pub struct Destination {x: int, y: int}
 pub struct Dose{tolerance_modifier: int}
@@ -63,6 +73,7 @@ pub struct GameObject {
     anxiety_kill_counter: Option<AnxietyKillCounter>,
     background: Option<Background>,
     bump: Option<Bump>,
+    monster: Option<Monster>,
     position: Option<Position>,
     destination: Option<Destination>,
     dose: Option<Dose>,
@@ -90,6 +101,7 @@ impl GameObject {
             background: None,
             bump: None,
             dose: None,
+            monster: None,
             position: None,
             destination: None,
             explosion_effect: None,

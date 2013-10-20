@@ -427,6 +427,21 @@ pub mod combat {
                 Kill => {
                     println!("Entity {} was killed by {}", *target_id, *id);
                     kill_entity(target_id, ecm, map);
+                    let target_is_anxiety = match ecm.get_ref(target_id).unwrap().monster {
+                        Some(m) => m.kind == Anxiety,
+                        None => false,
+                    };
+                    match ecm.get_mut_ref(id) {
+                        Some(ref mut e) if target_is_anxiety && e.anxiety_kill_counter.is_some() => {
+                            do e.anxiety_kill_counter.mutate |counter| {
+                                AnxietyKillCounter{
+                                    count: counter.count + 1,
+                                    .. counter
+                                }
+                            };
+                        }
+                        _ => {}
+                    }
                 }
                 Stun{duration} => {
                     println!("Entity {} was stunned by {}", *target_id, *id);
@@ -527,6 +542,24 @@ mod will {
                map: &mut Map) {
         if ecm.get_ref(id).is_none() { return }
         if ecm.get_ref(id).unwrap().attributes.is_none() { return }
+
+        match ecm.get_mut_ref(id) {
+            Some(ref mut e) if e.anxiety_kill_counter.is_some() => {
+                let kc = e.anxiety_kill_counter.unwrap();
+                if kc.count >= kc.threshold {
+                    do e.attributes.mutate |attrs| {
+                        Attributes{will: attrs.will + 1, .. attrs}
+                    };
+                    do e.anxiety_kill_counter.mutate |counter| {
+                        AnxietyKillCounter{
+                            count: counter.threshold - counter.count,
+                            .. counter
+                        }
+                    };
+                }
+            }
+            _ => {}
+        }
 
         let attrs = ecm.get_ref(id).unwrap().attributes.unwrap();
         if attrs.will <= 0 {

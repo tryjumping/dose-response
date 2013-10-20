@@ -125,6 +125,9 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
             drop_per_turn: 1,
             last_turn: 1,
         });
+    player.anxiety_kill_counter = Some(c::AnxietyKillCounter{
+            count: 0,
+            threshold: 10});
     player.position = Some(c::Position{x: 10, y: 20});
     player.tile = Some(c::Tile{level: 2, glyph: '@', color: col::player});
     player.turn = Some(c::Turn{side: c::Player,
@@ -167,18 +170,29 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                 e.solid = Some(c::Solid);
                 match item {
                     world_gen::Anxiety => {
+                        e.monster = Some(c::Monster{kind: c::Anxiety});
                         e.attack_type = Some(c::ModifyAttributes);
                         e.attribute_modifier = Some(
                             c::AttributeModifier{state_of_mind: 0, will: -1});
                     }
-                    world_gen::Depression => e.attack_type = Some(c::Kill),
+                    world_gen::Depression => {
+                        e.monster = Some(c::Monster{kind: c::Depression});
+                        e.attack_type = Some(c::Kill)
+                    },
                     world_gen::Hunger => {
+                        e.monster = Some(c::Monster{kind: c::Hunger});
                         e.attack_type = Some(c::ModifyAttributes);
                         e.attribute_modifier = Some(
                             c::AttributeModifier{state_of_mind: -20, will: 0})
                     }
-                    world_gen::Voices => e.attack_type = Some(c::Stun{duration: 4}),
-                    world_gen::Shadows => e.attack_type = Some(c::Panic{duration: 4}),
+                    world_gen::Voices => {
+                        e.monster = Some(c::Monster{kind: c::Voices});
+                        e.attack_type = Some(c::Stun{duration: 4})
+                    },
+                    world_gen::Shadows => {
+                        e.monster = Some(c::Monster{kind: c::Shadows});
+                        e.attack_type = Some(c::Panic{duration: 4})
+                    },
                     _ => unreachable!(),
                 };
                 tile_level = 2;

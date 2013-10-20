@@ -31,6 +31,7 @@ mod ai {
 }
 
 pub struct AcceptsUserInput;
+pub struct AnxietyKillCounter{count: int, threshold: int}
 pub struct AttackTarget(entity_manager::ID);
 pub enum AttackType {
     Kill,
@@ -59,6 +60,7 @@ pub struct GameObject {
     attack_target: Option<AttackTarget>,
     attack_type: Option<AttackType>,
     attributes: Option<Attributes>,
+    anxiety_kill_counter: Option<AnxietyKillCounter>,
     background: Option<Background>,
     bump: Option<Bump>,
     position: Option<Position>,
@@ -83,6 +85,7 @@ impl GameObject {
             attack_target: None,
             attack_type: None,
             attributes: None,
+            anxiety_kill_counter: None,
             attribute_modifier: None,
             background: None,
             bump: None,

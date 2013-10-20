@@ -25,7 +25,7 @@ pub struct AttributeModifier{
     will: int
 }
 
-mod ai {
+pub mod ai {
     pub enum Behaviour {
         Individual,
         Pack,

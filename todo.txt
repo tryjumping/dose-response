@@ -1,11 +1,11 @@
-* doses (can use them, increase tolerance, overdose)
-* addiction system (deplete state of mind, death of exhaustion)
-* graphical effect of high/withdrawn
+* restart the game on F5
+* addiction system (deplete state of mind, death of exhaustion, death of overdose)
+* gain will while killing Anxieties
 * irresistible doses
   - the irresistible area glows
+* variable state of mind bonus for doses
 * map exploration (dark arena, uncovers slowly)
-* gain will while killing Anxieties
-* kill nearby monsters on dose use
+* graphical effect of high/withdrawn
 * bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99

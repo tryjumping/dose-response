@@ -300,23 +300,37 @@ pub mod interaction {
             Some(p) => (p.x, p.y),
             None => return,
         };
-        for (inter_id, _walkability) in map.entities_on_pos(pos) {
-            if *id == inter_id { loop }
-            if ecm.get_ref(ID(inter_id)).is_none() { loop }
-
-            let mut should_remove = false;
-            match ecm.get_ref(ID(inter_id)).unwrap().attribute_modifier {
+        for (entity_map_id, _walkability) in map.entities_on_pos(pos) {
+            let interactive_id = ID(entity_map_id);
+            if id == interactive_id { loop }
+            match ecm.get_ref(interactive_id) {
+                Some(i) => if i.attribute_modifier.is_some() || i.explosion_effect.is_some() {},
+                _ => { loop }  // entity doesn't exist or isn't interactive
+            }
+            let is_dose = ecm.get_ref(interactive_id).unwrap().dose.is_some();
+            match ecm.get_ref(interactive_id).unwrap().attribute_modifier {
                 Some(modifier) => {
+                    let tolerance = match ecm.get_ref(id).unwrap().addiction {
+                        Some(addiction) if is_dose => addiction.tolerance,
+                        _ => 0,
+                    };
                     ecm.get_mut_ref(id).unwrap().attributes.mutate(
                         |attrs| Attributes{
-                            state_of_mind: attrs.state_of_mind + modifier.state_of_mind,
+                            state_of_mind: attrs.state_of_mind + modifier.state_of_mind - tolerance,
                             will: attrs.will + modifier.will,
                         });
-                    should_remove = true;
                 }
                 None => {}
             }
-            match ecm.get_ref(ID(inter_id)).unwrap().explosion_effect {
+            match ecm.get_ref(interactive_id).unwrap().dose {
+                Some(dose) => {
+                    ecm.get_mut_ref(id).unwrap().addiction.mutate(
+                        |a| Addiction{
+                            tolerance: a.tolerance + dose.tolerance_modifier, .. a});
+                }
+                None => {}
+            }
+            match ecm.get_ref(interactive_id).unwrap().explosion_effect {
                 Some(ExplosionEffect{radius}) => {
                     let (px, py) = pos;
                     for x in range(px - radius, px + radius) {
@@ -329,14 +343,11 @@ pub mod interaction {
                             }
                         }
                     }
-                    should_remove = true;
                 }
                 None => {}
             }
-            if should_remove {
-                ecm.get_mut_ref(ID(inter_id)).unwrap().position = None;
-                map.remove_entity(inter_id, pos);
-            }
+            ecm.get_mut_ref(interactive_id).unwrap().position = None;
+            map.remove_entity(*interactive_id, pos);
         }
     }
 }

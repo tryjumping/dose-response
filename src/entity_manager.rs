@@ -6,6 +6,7 @@ struct EntityManager<E> {
     priv next_id: ID,
 }
 
+#[deriving(Eq)]
 pub struct ID(int);
 
 impl<E> EntityManager<E> {

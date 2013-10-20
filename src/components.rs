@@ -39,11 +39,13 @@ pub enum AttackType {
     ModifyAttributes,
 }
 pub struct Attributes{state_of_mind: int, will: int}
+pub struct Addiction{tolerance: int, drop_per_turn: int, last_turn: int}
 pub struct Background;
 pub struct Bump(entity_manager::ID);
 pub struct ExplosionEffect{radius: int}
 pub struct Position {x: int, y: int}
 pub struct Destination {x: int, y: int}
+pub struct Dose{tolerance_modifier: int}
 pub struct Solid;
 pub struct Stunned{turn: int, duration: int}
 pub struct Panicking{turn: int, duration: int}
@@ -53,6 +55,7 @@ pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
 pub struct GameObject {
     ai: Option<AI>,
     accepts_user_input: Option<AcceptsUserInput>,
+    addiction: Option<Addiction>,
     attack_target: Option<AttackTarget>,
     attack_type: Option<AttackType>,
     attributes: Option<Attributes>,
@@ -60,6 +63,7 @@ pub struct GameObject {
     bump: Option<Bump>,
     position: Option<Position>,
     destination: Option<Destination>,
+    dose: Option<Dose>,
     explosion_effect: Option<ExplosionEffect>,
     attribute_modifier: Option<AttributeModifier>,
     path: Option<~Path>,
@@ -75,12 +79,14 @@ impl GameObject {
         GameObject {
             ai: None,
             accepts_user_input: None,
+            addiction: None,
             attack_target: None,
             attack_type: None,
             attributes: None,
             attribute_modifier: None,
             background: None,
             bump: None,
+            dose: None,
             position: None,
             destination: None,
             explosion_effect: None,

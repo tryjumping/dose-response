@@ -120,6 +120,11 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     player.accepts_user_input = Some(c::AcceptsUserInput);
     player.attack_type = Some(c::Kill);
     player.attributes = Some(c::Attributes{state_of_mind: 20, will: 2});
+    player.addiction = Some(c::Addiction{
+            tolerance: 0,
+            drop_per_turn: 1,
+            last_turn: 0,
+        });
     player.position = Some(c::Position{x: 10, y: 20});
     player.tile = Some(c::Tile{level: 2, glyph: '@', color: col::player});
     player.turn = Some(c::Turn{side: c::Player,
@@ -178,17 +183,19 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                 };
                 tile_level = 2;
             } else if item == world_gen::Dose {
-                e.explosion_effect = Some(c::ExplosionEffect{radius: 4});
+                e.dose = Some(c::Dose{tolerance_modifier: 1});
                 e.attribute_modifier = Some(c::AttributeModifier{
                         state_of_mind: 40,
                         will: 0,
                     });
+                e.explosion_effect = Some(c::ExplosionEffect{radius: 4});
             } else if item == world_gen::StrongDose {
-                e.explosion_effect = Some(c::ExplosionEffect{radius: 6});
+                e.dose = Some(c::Dose{tolerance_modifier: 2});
                 e.attribute_modifier = Some(c::AttributeModifier{
                         state_of_mind: 90,
                         will: 0,
                     });
+                e.explosion_effect = Some(c::ExplosionEffect{radius: 6});
             }
             e.tile = Some(c::Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
             state.entities.add(e);

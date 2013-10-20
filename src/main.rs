@@ -280,7 +280,7 @@ fn update(state: &mut GameState,
         systems::interaction::run(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);
         systems::combat::run(id, ecm, &mut state.map, state.current_turn);
-        systems::addiction::run(id, ecm, state.current_turn);
+        systems::addiction::run(id, ecm, &mut state.map, state.current_turn);
         systems::effect_duration::run(id, ecm, state.current_turn);
         systems::will::run(id, ecm, &mut state.map);
         systems::idle_ai_system(id, ecm, state.current_side);

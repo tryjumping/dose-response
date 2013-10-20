@@ -1,5 +1,4 @@
 * restart the game on F5
-* addiction system (deplete state of mind, death of exhaustion, death of overdose)
 * gain will while killing Anxieties
 * irresistible doses
   - the irresistible area glows

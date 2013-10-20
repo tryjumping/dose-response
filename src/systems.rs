@@ -485,8 +485,13 @@ mod effect_duration {
 mod addiction {
     use components::*;
     use entity_manager::{EntityManager, ID};
+    use map::Map;
+    use super::combat;
 
-    pub fn run(id: ID, ecm: &mut EntityManager<GameObject>, current_turn: int) {
+    pub fn run(id: ID,
+               ecm: &mut EntityManager<GameObject>,
+               map: &mut Map,
+               current_turn: int) {
         match ecm.get_mut_ref(id) {
             Some(ref mut e) if e.addiction.is_some() && e.attributes.is_some() => {
                 let addiction = e.addiction.unwrap();
@@ -502,7 +507,11 @@ mod addiction {
                     };
                 }
             }
-            _ => {}
+            _ => {return}
+        }
+        let som = ecm.get_ref(id).unwrap().attributes.unwrap().state_of_mind;
+        if som <= 0 || som >= 100 {
+            combat::kill_entity(id, ecm, map);
         }
     }
 }

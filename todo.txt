@@ -3,7 +3,7 @@
 * gain will while killing Anxieties
 * irresistible doses
   - the irresistible area glows
-* variable state of mind bonus for doses
+* a safe initial area (no monsters, dose in sight)
 * map exploration (dark arena, uncovers slowly)
 * graphical effect of high/withdrawn
 * bonuses on superhigh

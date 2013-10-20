@@ -323,8 +323,8 @@ pub mod interaction {
                         for y in range(py - radius, py + radius) {
                             for (m_id, _) in map.entities_on_pos((x, y)) {
                                 let monster_id = ID(m_id);
-                                if ecm.get_mut_ref(ID(m_id)).unwrap().ai.is_some() {
-                                    combat::kill_entity(ID(m_id), ecm, map);
+                                if ecm.get_mut_ref(monster_id).unwrap().ai.is_some() {
+                                    combat::kill_entity(monster_id, ecm, map);
                                 }
                             }
                         }

@@ -56,7 +56,7 @@ pub struct ExplosionEffect{radius: int}
 pub struct Monster{kind: MonsterKind}
 pub struct Position {x: int, y: int}
 pub struct Destination {x: int, y: int}
-pub struct Dose{tolerance_modifier: int}
+pub struct Dose{tolerance_modifier: int, resist_radius: int}
 pub struct Solid;
 pub struct Stunned{turn: int, duration: int}
 pub struct Panicking{turn: int, duration: int}

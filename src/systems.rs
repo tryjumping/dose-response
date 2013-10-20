@@ -84,7 +84,7 @@ pub mod ai {
     use std::num::{abs, max};
 
 
-    fn distance(p1: &Position, p2: &Position) -> int {
+    pub fn distance(p1: &Position, p2: &Position) -> int {
         max(abs(p1.x - p2.x), abs(p1.y - p2.y))
     }
 
@@ -203,6 +203,67 @@ pub mod ai {
 
 }
 
+pub mod dose {
+    use std::num;
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+    use map::Map;
+    use super::ai;
+
+
+    pub fn run(id: ID,
+               ecm: &mut EntityManager<GameObject>,
+               map: &Map) {
+        if ecm.get_ref(id).is_none() {return}
+        if ecm.get_ref(id).unwrap().addiction.is_none() {return}
+        if ecm.get_ref(id).unwrap().attributes.is_none() {return}
+        if ecm.get_ref(id).unwrap().position.is_none() {return}
+        if ecm.get_ref(id).unwrap().destination.is_none() {
+            // Prevent the PC from running towards the dose without any input
+            // from the player:
+            ecm.get_mut_ref(id).unwrap().path = None;
+            return
+        }
+
+        let will = ecm.get_ref(id).unwrap().attributes.unwrap().will;
+        let search_radius = 3;  // max irresistibility for a dose is curretnly 3
+        let mut doses: ~[ID] = ~[];
+        let pos = ecm.get_ref(id).unwrap().position.unwrap();
+        for x in range(pos.x - search_radius, pos.x + search_radius) {
+            for y in range(pos.y - search_radius, pos.y + search_radius) {
+                for (dose_id, _) in map.entities_on_pos((x, y)) {
+                    match ecm.get_ref(ID(dose_id)) {
+                        Some(dose) if dose.dose.is_some() => {
+                            let dose_pos = dose.position.unwrap();
+                            let path_to_dose = map.find_path((pos.x, pos.y), (dose_pos.x, dose_pos.y));
+                            let resist_radius = num::max(dose.dose.get_ref().resist_radius - will, 0);
+                            let is_irresistible = match path_to_dose {
+                                Some(p) => p.len() <= resist_radius,
+                                None => false,
+                            };
+                            if is_irresistible {
+                                doses.push(ID(dose_id));
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        let nearest_dose = do doses.iter().min_by |&dose| {
+            ai::distance(ecm.get_ref(*dose).unwrap().position.get_ref(), &pos)
+        };
+        match nearest_dose {
+            Some(&dose_id) => {
+                let dose_pos = ecm.get_ref(dose_id).unwrap().position.unwrap();
+                let dest = Destination{x: dose_pos.x, y: dose_pos.y};
+                ecm.get_mut_ref(id).unwrap().destination = Some(dest);
+            }
+            None => {return}
+        }
+
+    }
+}
 
 pub fn path_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
     if ecm.get_ref(id).is_none() { return }

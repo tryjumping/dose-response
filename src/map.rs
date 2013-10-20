@@ -163,7 +163,7 @@ impl Map {
     // implementation (finding the path again each time) but we could make it
     // smarter by caching/recalculating it internally. Point is, that would not
     // leak outside of `Map`.
-    pub fn find_path(&mut self, from: (int, int), to: (int, int)) -> Option<~Path> {
+    pub fn find_path(&self, from: (int, int), to: (int, int)) -> Option<~Path> {
         let (sx, sy) = from;
         let (dx, dy) = to;
         if dx < 0 || dy < 0 || dx >= self.width as int || dy >= self.height as int { return None; }
@@ -199,6 +199,13 @@ impl Path {
             self.tcod_res.get_mut_ref().walk()
         } else {
             None
+        }
+    }
+
+    pub fn len(&self) -> int {
+        match self.tcod_res {
+            Some(ref r) => r.len(),
+            None => 0,
         }
     }
 }
@@ -260,6 +267,10 @@ impl PathResource {
                 tcod::path_walk(self.path, true)
             },
         }
+    }
+
+    fn len(&self) -> int {
+        tcod::path_size(self.path)
     }
 }
 

@@ -1,10 +1,8 @@
 * restart the game on F5
-* gain will while killing Anxieties
-* irresistible doses
-  - the irresistible area glows
 * a safe initial area (no monsters, dose in sight)
 * map exploration (dark arena, uncovers slowly)
 * graphical effect of high/withdrawn
+* background glow for the irresistible area around a dose
 * bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99

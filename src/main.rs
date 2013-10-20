@@ -197,14 +197,14 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
                 };
                 tile_level = 2;
             } else if item == world_gen::Dose {
-                e.dose = Some(c::Dose{tolerance_modifier: 1});
+                e.dose = Some(c::Dose{tolerance_modifier: 1, resist_radius: 2});
                 e.attribute_modifier = Some(c::AttributeModifier{
                         state_of_mind: 40 + state.rng.gen_integer_range(-10, 11),
                         will: 0,
                     });
                 e.explosion_effect = Some(c::ExplosionEffect{radius: 4});
             } else if item == world_gen::StrongDose {
-                e.dose = Some(c::Dose{tolerance_modifier: 2});
+                e.dose = Some(c::Dose{tolerance_modifier: 2, resist_radius: 3});
                 e.attribute_modifier = Some(c::AttributeModifier{
                         state_of_mind: 90 + state.rng.gen_integer_range(-15, 16),
                         will: 0,
@@ -289,6 +289,7 @@ fn update(state: &mut GameState,
         systems::turn_tick_counter_system(id, ecm, state.current_side);
         systems::input_system(id, ecm, state.commands, state.logger, state.current_side);
         systems::ai::process(id, ecm, &mut state.rng, &state.map, state.current_side, state.player_id);
+        systems::dose::run(id, ecm, &state.map);
         systems::path_system(id, ecm, &mut state.map);
         systems::movement::run(id, ecm, &mut state.rng, &mut state.map);
         systems::interaction::run(id, ecm, &mut state.map);

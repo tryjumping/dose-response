@@ -457,18 +457,17 @@ mod effect_duration {
     use entity_manager::{EntityManager, ID};
 
     pub fn run(id: ID, ecm: &mut EntityManager<GameObject>, current_turn: int) {
-        if ecm.get_ref(id).is_none() { return }
-        let e = ecm.get_mut_ref(id).unwrap();
-        e.stunned = match e.stunned {
-            Some(t) if t.remaining(current_turn) == 0 => None,
-            Some(t) => Some(t),
-            None => None,
-        };
-        e.panicking = match e.panicking {
-            Some(t) if t.remaining(current_turn) == 0 => None,
-            Some(t) => Some(t),
-            None => None,
-        };
+        match ecm.get_mut_ref(id) {
+            Some(e) => {
+                e.stunned = do e.stunned.and_then |t| {
+                    if t.remaining(current_turn) == 0 {None} else {Some(t)}
+                };
+                e.panicking = do e.panicking.and_then |t| {
+                    if t.remaining(current_turn) == 0 {None} else {Some(t)}
+                };
+            }
+            None => {}
+        }
     }
 }
 

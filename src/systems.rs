@@ -482,6 +482,31 @@ mod effect_duration {
     }
 }
 
+mod addiction {
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+
+    pub fn run(id: ID, ecm: &mut EntityManager<GameObject>, current_turn: int) {
+        match ecm.get_mut_ref(id) {
+            Some(ref mut e) if e.addiction.is_some() && e.attributes.is_some() => {
+                let addiction = e.addiction.unwrap();
+                if current_turn > addiction.last_turn {
+                    do e.attributes.mutate |attr| {
+                        Attributes{
+                            state_of_mind: attr.state_of_mind - addiction.drop_per_turn,
+                            .. attr
+                        }
+                    };
+                    do e.addiction.mutate |add| {
+                        Addiction{last_turn: current_turn, .. add}
+                    };
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 mod will {
     use components::*;
     use entity_manager::{EntityManager, ID};

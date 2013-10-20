@@ -123,7 +123,7 @@ fn initial_state(width: uint, height: uint, commands: ~RingBuf<Command>,
     player.addiction = Some(c::Addiction{
             tolerance: 0,
             drop_per_turn: 1,
-            last_turn: 0,
+            last_turn: 1,
         });
     player.position = Some(c::Position{x: 10, y: 20});
     player.tile = Some(c::Tile{level: 2, glyph: '@', color: col::player});
@@ -280,6 +280,7 @@ fn update(state: &mut GameState,
         systems::interaction::run(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);
         systems::combat::run(id, ecm, &mut state.map, state.current_turn);
+        systems::addiction::run(id, ecm, state.current_turn);
         systems::effect_duration::run(id, ecm, state.current_turn);
         systems::will::run(id, ecm, &mut state.map);
         systems::idle_ai_system(id, ecm, state.current_side);

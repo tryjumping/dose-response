@@ -12,6 +12,9 @@
 * remove `TCOD_` from all the tcod.rs types
 * Customise the starting area (no solid ground, no monsters near, a drug nearby)
 
+* write a generic system interface so we can simplify the `update` function.
+* write a nicer interface/macros to ECM
+* write a defsystem macro that handles the system boilerplate?
 * add the entity id in the Map as a generic type
   - maybe do the same for position?
   - This requires the extern callback to tcod_find_path_using_function to be

@@ -106,6 +106,8 @@ fn update(state: &mut GameState,
         }
         let ecm = &mut state.entities;
         systems::turn_tick_counter_system(id, ecm, state.current_side);
+        systems::effect_duration::run(id, ecm, state.current_turn);
+        systems::addiction::run(id, ecm, &mut state.map, state.current_turn);
         systems::input_system(id, ecm, state.commands, state.logger, state.current_side);
         systems::ai::process(id, ecm, &mut state.rng, &state.map, state.current_side, state.player_id);
         systems::dose::run(id, ecm, &state.map);
@@ -114,8 +116,6 @@ fn update(state: &mut GameState,
         systems::interaction::run(id, ecm, &mut state.map);
         systems::bump_system(id, ecm);
         systems::combat::run(id, ecm, &mut state.map, state.current_turn);
-        systems::addiction::run(id, ecm, &mut state.map, state.current_turn);
-        systems::effect_duration::run(id, ecm, state.current_turn);
         systems::will::run(id, ecm, &mut state.map);
         systems::idle_ai_system(id, ecm, state.current_side);
         systems::player_dead_system(id, ecm, state.player_id);

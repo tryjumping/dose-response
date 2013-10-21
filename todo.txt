@@ -1,4 +1,3 @@
-* generate a new area when stepping over the edge of the screen
 * a safe initial area (no monsters, dose in sight)
 * map exploration (dark arena, uncovers slowly)
 * graphical effect of high/withdrawn

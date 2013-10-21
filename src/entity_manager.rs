@@ -36,6 +36,10 @@ impl<E> EntityManager<E> {
         }
     }
 
+    pub fn take_out(&mut self, id: ID) -> E {
+        self.entities.remove(*id as uint)
+    }
+
     pub fn iter<'r>(&'r self) -> Map<(uint, &'r E), (&'r E, ID), Enumerate<VecIterator<'r, E>>> {
         return self.entities.iter().enumerate().map(|(id, e)| (e, ID(id as int)))
     }

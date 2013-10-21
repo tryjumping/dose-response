@@ -19,13 +19,13 @@ pub mod components;
 mod engine;
 pub mod entity_manager;
 pub mod map;
-mod systems;
+pub mod systems;
 pub mod tcod;
 pub mod world_gen;
-mod world;
+pub mod world;
 
 
-struct GameState {
+pub struct GameState {
     entities: EntityManager<GameObject>,
     commands: ~RingBuf<Command>,
     rng: rand::IsaacRng,
@@ -101,25 +101,26 @@ fn update(state: &mut GameState,
 
     process_input(keys, state.commands);
     for id in state.entities.id_iter() {
+        let mut abort_early = false;
         if state.entities.get_ref(id).is_none() {
             loop
         }
-        let ecm = &mut state.entities;
-        systems::turn_tick_counter_system(id, ecm, state.current_side);
-        systems::effect_duration::run(id, ecm, state.current_turn);
-        systems::addiction::run(id, ecm, &mut state.map, state.current_turn);
-        systems::input_system(id, ecm, state.commands, state.logger, state.current_side);
-        systems::ai::process(id, ecm, &mut state.rng, &state.map, state.current_side, state.player_id);
-        systems::dose::run(id, ecm, &state.map);
-        systems::path_system(id, ecm, &mut state.map);
-        systems::movement::run(id, ecm, &mut state.rng, &mut state.map);
-        systems::interaction::run(id, ecm, &mut state.map);
-        systems::bump_system(id, ecm);
-        systems::combat::run(id, ecm, &mut state.map, state.current_turn);
-        systems::will::run(id, ecm, &mut state.map);
-        systems::idle_ai_system(id, ecm, state.current_side);
-        systems::player_dead_system(id, ecm, state.player_id);
-        systems::tile_system(id, ecm, display);
+        systems::turn_tick_counter_system(id, &mut state.entities, state.current_side);
+        systems::effect_duration::run(id, &mut state.entities, state.current_turn);
+        systems::addiction::run(id, &mut state.entities, &mut state.map, state.current_turn);
+        systems::input_system(id, &mut state.entities, state.commands, state.logger, state.current_side);
+        systems::leave_area::run(state.player_id, state, &mut abort_early);
+        systems::ai::process(id, &mut state.entities, &mut state.rng, &state.map, state.current_side, state.player_id);
+        systems::dose::run(id, &mut state.entities, &state.map);
+        systems::path_system(id, &mut state.entities, &mut state.map);
+        systems::movement::run(id, &mut state.entities, &mut state.rng, &mut state.map);
+        systems::interaction::run(id, &mut state.entities, &mut state.map);
+        systems::bump_system(id, &mut state.entities);
+        systems::combat::run(id, &mut state.entities, &mut state.map, state.current_turn);
+        systems::will::run(id, &mut state.entities, &mut state.map);
+        systems::idle_ai_system(id, &mut state.entities, state.current_side);
+        systems::player_dead_system(id, &mut state.entities, state.player_id);
+        systems::tile_system(id, &state.entities, display);
     }
     systems::gui::process(&state.entities,
                           display,

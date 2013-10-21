@@ -75,6 +75,46 @@ pub fn input_system(id: ID, ecm: &mut EntityManager<GameObject>, commands: &mut 
 }
 
 
+pub mod leave_area {
+    use components::*;
+    use super::super::GameState;
+    use entity_manager::{ID, EntityManager};
+    use map::Map;
+    use world_gen;
+    use world;
+
+    pub fn run(player_id: ID, state: &mut GameState, abort_early: &mut bool) {
+        if state.entities.get_ref(player_id).is_none() {return}
+        let dest = match state.entities.get_ref(player_id).unwrap().destination {
+            Some(dest) => dest,
+            None => {return}
+        };
+        let (x, y) = (dest.x as uint, dest.y as uint);
+        if x < 0 || y < 0 || x >= state.map.width || y >= state.map.height {
+            let mut player = state.entities.take_out(player_id);
+            player.position = Some(Position{
+                    x: (state.map.width / 2) as int,
+                    y: (state.map.height / 2) as int,
+                });
+            player.bump = None;
+            player.attack_target = None;
+            player.destination = None;
+            player.path = None;
+            state.entities = EntityManager::new();
+            state.map = Map::new(state.map.width, state.map.height);
+            state.entities.add(player);
+            world::populate_world(&mut state.entities,
+                                  &mut state.map,
+                                  &mut state.rng,
+                                  world_gen::forrest);
+            // We don't want the curret tick to continue after we've messed with
+            // the game state:
+            *abort_early = true;
+            return
+        }
+    }
+}
+
 pub mod ai {
     use std::rand::Rng;
     use entity_manager::{ID, EntityManager};

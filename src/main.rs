@@ -110,6 +110,9 @@ fn update(state: &mut GameState,
         systems::addiction::run(id, &mut state.entities, &mut state.map, state.current_turn);
         systems::input_system(id, &mut state.entities, state.commands, state.logger, state.current_side);
         systems::leave_area::run(state.player_id, state, &mut abort_early);
+        if abort_early {
+            return engine::Running;
+        }
         systems::ai::process(id, &mut state.entities, &mut state.rng, &state.map, state.current_side, state.player_id);
         systems::dose::run(id, &mut state.entities, &state.map);
         systems::path_system(id, &mut state.entities, &mut state.map);

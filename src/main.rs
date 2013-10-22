@@ -104,34 +104,33 @@ fn update(state: &mut GameState,
         return engine::NewState(state);
     }
 
+    let systems = [
+        systems::turn_tick_counter::system,
+        systems::effect_duration::system,
+        systems::addiction::system,
+        systems::input::system,
+        systems::leave_area::system,
+        systems::ai::system,
+        systems::panic::system,
+        systems::stun::system,
+        systems::dose::system,
+        systems::path::system,
+        systems::movement::system,
+        systems::interaction::system,
+        systems::bump::system,
+        systems::combat::system,
+        systems::will::system,
+        systems::idle_ai::system,
+        systems::player_dead::system,
+    ];
+
     process_input(keys, &mut state.resources.commands);
     for id in state.entities.id_iter() {
-        let mut abort_early = false;
-        if state.entities.get_ref(id).is_none() {
-            loop
+        for &sys in systems.iter() {
+            if state.entities.get_ref(id).is_some() {
+                sys(id, &mut state.entities, state.player_id, &mut state.resources);
+            }
         }
-        systems::turn_tick_counter::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::effect_duration::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::addiction::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::input::system(id, &mut state.entities, state.player_id, &mut state.resources);
-
-        // TODO: add `clear` to ecm, handle abort early differently
-        systems::leave_area::system(state.player_id, state, &mut abort_early);
-        if abort_early {
-            return engine::Running;
-        }
-        systems::ai::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::panic::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::stun::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::dose::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::path::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::movement::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::interaction::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::bump::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::combat::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::will::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::idle_ai::system(id, &mut state.entities, state.player_id, &mut state.resources);
-        systems::player_dead::system(id, &mut state.entities, state.player_id, &mut state.resources);
         systems::tile::system(id, &state.entities, display);
     }
     systems::gui::system(&state.entities,

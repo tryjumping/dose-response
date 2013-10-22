@@ -6,7 +6,7 @@ pub mod turn_tick_counter {
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
                   _player_id: ID,
-                  res: &Resources) {
+                  res: &mut Resources) {
         match ecm.get_mut_ref(id) {
             Some(entity) => {
                 entity.turn.mutate(|t| if t.side == res.side {
@@ -88,40 +88,41 @@ pub mod input {
 
 pub mod leave_area {
     use components::*;
-    use super::super::GameState;
     use entity_manager::{ID, EntityManager};
     use map::Map;
     use world_gen;
     use world;
+    use super::super::Resources;
 
-    pub fn system(player_id: ID, state: &mut GameState, abort_early: &mut bool) {
-        if state.entities.get_ref(player_id).is_none() {return}
-        let dest = match state.entities.get_ref(player_id).unwrap().destination {
+    pub fn system(player_id: ID,
+                  ecm: &mut EntityManager<GameObject>,
+                  _player_id: ID,
+                  res: &mut Resources) {
+        if ecm.get_ref(player_id).is_none() {return}
+        let dest = match ecm.get_ref(player_id).unwrap().destination {
             Some(dest) => dest,
             None => {return}
         };
         let (x, y) = (dest.x as uint, dest.y as uint);
-        if x < 0 || y < 0 || x >= state.resources.map.width || y >= state.resources.map.height {
-            let mut player = state.entities.take_out(player_id);
+        if x < 0 || y < 0 || x >= res.map.width || y >= res.map.height {
+            let mut player = ecm.take_out(player_id);
             player.position = Some(Position{
-                    x: (state.resources.map.width / 2) as int,
-                    y: (state.resources.map.height / 2) as int,
+                    x: (res.map.width / 2) as int,
+                    y: (res.map.height / 2) as int,
                 });
             player.bump = None;
             player.attack_target = None;
             player.destination = None;
             player.path = None;
-            state.entities = EntityManager::new();
-            state.resources.map = Map::new(state.resources.map.width, state.resources.map.height);
-            state.entities.add(player);
-            world::populate_world(&mut state.entities,
-                                  &mut state.resources.map,
-                                  &mut state.resources.rng,
+            ecm.clear();
+            res.map = Map::new(res.map.width, res.map.height);
+            ecm.add(player);
+            world::populate_world(ecm,
+                                  &mut res.map,
+                                  &mut res.rng,
                                   world_gen::forrest);
-            // We don't want the curret tick to continue after we've messed with
-            // the game state:
-            *abort_early = true;
-            return
+            // TODO: We don't want the curret tick to continue after we've messed with
+            // the game state. Signal the main loop to abort it early.
         }
     }
 }
@@ -291,7 +292,7 @@ pub mod stun {
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
                   _player_id: ID,
-                  _res: &Resources) {
+                  _res: &mut Resources) {
         let e = match ecm.get_mut_ref(id) {
             Some(e) => e,
             None => {return}
@@ -315,7 +316,7 @@ pub mod dose {
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
                   _player_id: ID,
-                  res: &Resources) {
+                  res: &mut Resources) {
         if ecm.get_ref(id).is_none() {return}
         if ecm.get_ref(id).unwrap().addiction.is_none() {return}
         if ecm.get_ref(id).unwrap().attributes.is_none() {return}
@@ -522,7 +523,7 @@ pub mod bump {
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
                   _player_id: ID,
-                  _res: &Resources) {
+                  _res: &mut Resources) {
         let bumpee_id = match ecm.get_ref(id).unwrap().bump {
             Some(id) => *id,
             None => {return}
@@ -661,7 +662,7 @@ mod effect_duration {
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
                   _player_id: ID,
-                  res: &Resources) {
+                  res: &mut Resources) {
         match ecm.get_mut_ref(id) {
             Some(e) => {
                 e.stunned = do e.stunned.and_then |t| {
@@ -774,7 +775,7 @@ pub mod idle_ai {
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
                   _player_id: ID,
-                  res: &Resources) {
+                  res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
 
@@ -847,7 +848,7 @@ pub mod player_dead {
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
                   player_id: ID,
-                  _res: &Resources) {
+                  _res: &mut Resources) {
         let player_dead = match ecm.get_ref(player_id) {
             Some(player) => {
                 player.position.is_none() || player.turn.is_none()
@@ -872,7 +873,7 @@ pub mod gui {
     pub fn system(ecm: &EntityManager<GameObject>,
                   player_id: ID,
                   display: &mut Display,
-                  res: &Resources) {
+                  res: &mut Resources) {
         let (_width, height) = display.size();
         let attrs = ecm.get_ref(player_id).unwrap().attributes.unwrap();
         let dead = match ecm.get_ref(player_id).unwrap().position.is_none() {

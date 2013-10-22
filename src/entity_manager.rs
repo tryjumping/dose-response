@@ -51,4 +51,8 @@ impl<E> EntityManager<E> {
     pub fn id_iter(&self) -> Map<int, ID, Range<int>> {
         range(0, *self.next_id).map(|index| ID(index))
     }
+
+    pub fn clear(&mut self) {
+        self.entities.truncate(0);
+    }
 }

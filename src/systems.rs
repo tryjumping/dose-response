@@ -1,76 +1,85 @@
-use components::*;
-use engine::{Display, Color};
-use extra::container::Deque;
-use extra::ringbuf::RingBuf;
-use map;
-use super::CommandLogger;
-use entity_manager::{EntityManager, ID};
+pub mod turn_tick_counter {
+    use components::{GameObject, Side, Turn};
+    use entity_manager::{EntityManager, ID};
 
-
-#[deriving(Rand, ToStr)]
-pub enum Command {
-    N, E, S, W, NE, NW, SE, SW,
-}
-
-impl FromStr for Command {
-    fn from_str(name: &str) -> Option<Command> {
-        match name {
-            "N" => Some(N),
-            "E" => Some(E),
-            "S" => Some(S),
-            "W" => Some(W),
-            "NE" => Some(NE),
-            "NW" => Some(NW),
-            "SE" => Some(SE),
-            "SW" => Some(SW),
-            _ => None,
+    pub fn system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Side) {
+        match ecm.get_mut_ref(id) {
+            Some(entity) => {
+                entity.turn.mutate(|t| if t.side == current_side {
+                        Turn{spent_this_tick: 0, .. t}
+                    } else {
+                        t
+                    });
+            }
+            None => {}
         }
     }
 }
 
-pub fn turn_tick_counter_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Side) {
-    match ecm.get_mut_ref(id) {
-        Some(entity) => {
-            entity.turn.mutate(|t| if t.side == current_side {
-                    Turn{spent_this_tick: 0, .. t}
-                } else {
-                    t
-                });
+pub mod input {
+    use extra::ringbuf::RingBuf;
+    use components::*;
+    use entity_manager::{EntityManager, ID};
+    use super::super::CommandLogger;
+    use self::commands::*;
+
+    pub mod commands {
+        #[deriving(Rand, ToStr)]
+        pub enum Command {
+            N, E, S, W, NE, NW, SE, SW,
         }
-        None => {}
-    }
-}
-
-pub fn input_system(id: ID, ecm: &mut EntityManager<GameObject>, commands: &mut RingBuf<Command>,
-                    logger: CommandLogger, current_side: Side) {
-    if ecm.get_ref(id).is_none() { return }
-    let entity = ecm.get_mut_ref(id).unwrap();
-
-    if entity.accepts_user_input.is_none() { return }
-    if entity.position.is_none() { return }
-    match current_side {
-        Player => (),
-        _ => return,
     }
 
-    let pos = entity.position.get_ref();
-    match commands.pop_front() {
-        Some(command) => {
-            logger.log(command);
-            let dest = match command {
-                N => Destination{x: pos.x, y: pos.y-1},
-                S => Destination{x: pos.x, y: pos.y+1},
-                W => Destination{x: pos.x-1, y: pos.y},
-                E => Destination{x: pos.x+1, y: pos.y},
+    impl FromStr for Command {
+        fn from_str(name: &str) -> Option<Command> {
+            match name {
+                "N" => Some(N),
+                "E" => Some(E),
+                "S" => Some(S),
+                "W" => Some(W),
+                "NE" => Some(NE),
+                "NW" => Some(NW),
+                "SE" => Some(SE),
+                "SW" => Some(SW),
+                _ => None,
+            }
+        }
+    }
 
-                NW => Destination{x: pos.x-1, y: pos.y-1},
-                NE => Destination{x: pos.x+1, y: pos.y-1},
-                SW => Destination{x: pos.x-1, y: pos.y+1},
-                SE => Destination{x: pos.x+1, y: pos.y+1},
-            };
-            entity.destination = Some(dest);
-        },
-        None => (),
+    pub fn system(id: ID,
+                  ecm: &mut EntityManager<GameObject>,
+                  commands: &mut RingBuf<Command>,
+                  logger: CommandLogger,
+                  current_side: Side) {
+        if ecm.get_ref(id).is_none() { return }
+        let entity = ecm.get_mut_ref(id).unwrap();
+
+        if entity.accepts_user_input.is_none() { return }
+        if entity.position.is_none() { return }
+        match current_side {
+            Player => (),
+            _ => return,
+        }
+
+        let pos = entity.position.get_ref();
+        match commands.pop_front() {
+            Some(command) => {
+                logger.log(command);
+                let dest = match command {
+                    N => Destination{x: pos.x, y: pos.y-1},
+                    S => Destination{x: pos.x, y: pos.y+1},
+                    W => Destination{x: pos.x-1, y: pos.y},
+                    E => Destination{x: pos.x+1, y: pos.y},
+
+                    NW => Destination{x: pos.x-1, y: pos.y-1},
+                    NE => Destination{x: pos.x+1, y: pos.y-1},
+                    SW => Destination{x: pos.x-1, y: pos.y+1},
+                    SE => Destination{x: pos.x+1, y: pos.y+1},
+                };
+                entity.destination = Some(dest);
+            },
+            None => (),
+        }
     }
 }
 
@@ -83,7 +92,7 @@ pub mod leave_area {
     use world_gen;
     use world;
 
-    pub fn run(player_id: ID, state: &mut GameState, abort_early: &mut bool) {
+    pub fn system(player_id: ID, state: &mut GameState, abort_early: &mut bool) {
         if state.entities.get_ref(player_id).is_none() {return}
         let dest = match state.entities.get_ref(player_id).unwrap().destination {
             Some(dest) => dest,
@@ -140,7 +149,7 @@ pub mod ai {
             (pos.x+1, pos.y-1),
             (pos.x-1, pos.y+1),
             (pos.x+1, pos.y+1),
-        ];
+            ];
         let mut walkables: ~[(int, int)] = ~[];
         for &p in neighbors.iter() {
             if map.is_walkable(p) { walkables.push(p) }
@@ -218,7 +227,7 @@ pub mod ai {
         }
     }
 
-    pub fn process<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut T, map: &Map, current_side: Side, player_id: ID) {
+    pub fn system<T: Rng>(id: ID, ecm: &mut EntityManager<GameObject>, rng: &mut T, map: &Map, current_side: Side, player_id: ID) {
         match ecm.get_ref(id) {
             Some(e) => {
                 if e.ai.is_none() || e.position.is_none() { return }
@@ -250,10 +259,10 @@ pub mod panic {
     use super::ai;
     use map::Map;
 
-    pub fn run<T: Rng>(id: ID,
-                       ecm: &mut EntityManager<GameObject>,
-                       rng: &mut T,
-                       map: &Map) {
+    pub fn system<T: Rng>(id: ID,
+                          ecm: &mut EntityManager<GameObject>,
+                          rng: &mut T,
+                          map: &Map) {
         let e = match ecm.get_mut_ref(id) {
             Some(e) => e,
             None => {return}
@@ -273,7 +282,7 @@ pub mod stun {
     use components::{Destination, GameObject};
     use entity_manager::{EntityManager, ID};
 
-    pub fn run(id: ID, ecm: &mut EntityManager<GameObject>) {
+    pub fn system(id: ID, ecm: &mut EntityManager<GameObject>) {
         let e = match ecm.get_mut_ref(id) {
             Some(e) => e,
             None => {return}
@@ -295,9 +304,9 @@ pub mod dose {
     use super::ai;
 
 
-    pub fn run(id: ID,
-               ecm: &mut EntityManager<GameObject>,
-               map: &Map) {
+    pub fn system(id: ID,
+                  ecm: &mut EntityManager<GameObject>,
+                  map: &Map) {
         if ecm.get_ref(id).is_none() {return}
         if ecm.get_ref(id).unwrap().addiction.is_none() {return}
         if ecm.get_ref(id).unwrap().attributes.is_none() {return}
@@ -349,20 +358,26 @@ pub mod dose {
     }
 }
 
-pub fn path_system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut map::Map) {
-    if ecm.get_ref(id).is_none() { return }
-    let entity = ecm.get_mut_ref(id).unwrap();
+pub mod path {
+    use components::{GameObject};
+    use entity_manager::{EntityManager, ID};
+    use map::Map;
 
-    if entity.position.is_none() { return }
+    pub fn system(id: ID, ecm: &mut EntityManager<GameObject>, map: &mut Map) {
+        if ecm.get_ref(id).is_none() { return }
+        let entity = ecm.get_mut_ref(id).unwrap();
 
-    match entity.destination {
-        Some(dest) => {
-            let pos = entity.position.get_ref();
-            entity.path = map.find_path((pos.x, pos.y), (dest.x, dest.y));
-        },
-        None => (),
+        if entity.position.is_none() { return }
+
+        match entity.destination {
+            Some(dest) => {
+                let pos = entity.position.get_ref();
+                entity.path = map.find_path((pos.x, pos.y), (dest.x, dest.y));
+            },
+            None => (),
+        }
+        entity.destination = None;
     }
-    entity.destination = None;
 }
 
 
@@ -371,9 +386,9 @@ pub mod movement {
     use entity_manager::{EntityManager, ID};
     use map::{Map, Walkable, Solid};
 
-    pub fn run(id: ID,
-               ecm: &mut EntityManager<GameObject>,
-               map: &mut Map) {
+    pub fn system(id: ID,
+                  ecm: &mut EntityManager<GameObject>,
+                  map: &mut Map) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
 
@@ -422,9 +437,9 @@ pub mod interaction {
     use map::Map;
     use super::combat;
 
-    pub fn run(id: ID,
-               ecm: &mut EntityManager<GameObject>,
-               map: &mut Map) {
+    pub fn system(id: ID,
+                  ecm: &mut EntityManager<GameObject>,
+                  map: &mut Map) {
         if ecm.get_ref(id).is_none() { return }
         // Only humans can use stuff for now:
         if ecm.get_ref(id).unwrap().accepts_user_input.is_none() { return }
@@ -484,20 +499,28 @@ pub mod interaction {
     }
 }
 
-pub fn bump_system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
-    let bumpee_id = {match ecm.get_ref(entity_id).unwrap().bump {Some(id) => *id, None => {return}}};
-    let bumpee = {ecm.get_ref(bumpee_id).unwrap().turn};
-    match ecm.get_mut_ref(entity_id) {
-        Some(e) => {
-            if bumpee.is_some() && e.turn.is_some() && bumpee.unwrap().side != e.turn.unwrap().side {
-                println!("Entity {} attacks {}.", *entity_id, *bumpee_id);
-                e.attack_target = Some(AttackTarget(bumpee_id));
-            } else {
-                println!("Entity {} hits the wall.", *entity_id);
+pub mod bump {
+    use components::{AttackTarget, GameObject};
+    use entity_manager::{EntityManager, ID};
+
+    pub fn system(entity_id: ID, ecm: &mut EntityManager<GameObject>) {
+        let bumpee_id = match ecm.get_ref(entity_id).unwrap().bump {
+            Some(id) => *id,
+            None => {return}
+        };
+        let bumpee = ecm.get_ref(bumpee_id).unwrap().turn;
+        match ecm.get_mut_ref(entity_id) {
+            Some(e) => {
+                if bumpee.is_some() && e.turn.is_some() && bumpee.unwrap().side != e.turn.unwrap().side {
+                    println!("Entity {} attacks {}.", *entity_id, *bumpee_id);
+                    e.attack_target = Some(AttackTarget(bumpee_id));
+                } else {
+                    println!("Entity {} hits the wall.", *entity_id);
+                }
+                e.bump = None;
             }
-            e.bump = None;
+            _ => (),
         }
-        _ => (),
     }
 }
 
@@ -526,10 +549,10 @@ pub mod combat {
         }
     }
 
-    pub fn run(id: ID,
-               ecm: &mut EntityManager<GameObject>,
-               map: &mut Map,
-               current_turn: int) {
+    pub fn system(id: ID,
+                  ecm: &mut EntityManager<GameObject>,
+                  map: &mut Map,
+                  current_turn: int) {
         if ecm.get_ref(id).is_none() { return }
         if ecm.get_ref(id).unwrap().attack_target.is_none() { return }
         if ecm.get_ref(id).unwrap().attack_type.is_none() { return }
@@ -614,7 +637,7 @@ mod effect_duration {
     use components::*;
     use entity_manager::{EntityManager, ID};
 
-    pub fn run(id: ID, ecm: &mut EntityManager<GameObject>, current_turn: int) {
+    pub fn system(id: ID, ecm: &mut EntityManager<GameObject>, current_turn: int) {
         match ecm.get_mut_ref(id) {
             Some(e) => {
                 e.stunned = do e.stunned.and_then |t| {
@@ -635,10 +658,10 @@ mod addiction {
     use map::Map;
     use super::combat;
 
-    pub fn run(id: ID,
-               ecm: &mut EntityManager<GameObject>,
-               map: &mut Map,
-               current_turn: int) {
+    pub fn system(id: ID,
+                  ecm: &mut EntityManager<GameObject>,
+                  map: &mut Map,
+                  current_turn: int) {
         match ecm.get_mut_ref(id) {
             Some(ref mut e) if e.addiction.is_some() && e.attributes.is_some() => {
                 let addiction = e.addiction.unwrap();
@@ -669,9 +692,9 @@ mod will {
     use map::Map;
     use super::combat;
 
-    pub fn run(id: ID,
-               ecm: &mut EntityManager<GameObject>,
-               map: &mut Map) {
+    pub fn system(id: ID,
+                  ecm: &mut EntityManager<GameObject>,
+                  map: &mut Map) {
         if ecm.get_ref(id).is_none() { return }
         if ecm.get_ref(id).unwrap().attributes.is_none() { return }
 
@@ -700,33 +723,44 @@ mod will {
     }
 }
 
-pub fn tile_system(id: ID, ecm: &EntityManager<GameObject>, display: &mut Display) {
-    if ecm.get_ref(id).is_none() { return }
-    let entity = ecm.get_ref(id).unwrap();
+pub mod tile {
+    use components::{GameObject, Position, Tile};
+    use entity_manager::{EntityManager, ID};
+    use engine::{Color, Display};
 
-    if entity.position.is_none() { return }
-    if entity.tile.is_none() { return }
+    pub fn system(id: ID, ecm: &EntityManager<GameObject>, display: &mut Display) {
+        if ecm.get_ref(id).is_none() { return }
+        let entity = ecm.get_ref(id).unwrap();
 
-    let &Position{x, y} = entity.position.get_ref();
-    let &Tile{level, glyph, color} = entity.tile.get_ref();
-    display.draw_char(level, x as uint, y as uint, glyph, color, Color(20, 20, 20));
+        if entity.position.is_none() { return }
+        if entity.tile.is_none() { return }
+
+        let &Position{x, y} = entity.position.get_ref();
+        let &Tile{level, glyph, color} = entity.tile.get_ref();
+        display.draw_char(level, x as uint, y as uint, glyph, color, Color(20, 20, 20));
+    }
 }
 
-pub fn idle_ai_system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Side) {
-    if ecm.get_ref(id).is_none() { return }
-    let entity = ecm.get_mut_ref(id).unwrap();
+pub mod idle_ai {
+    use components::{Computer, GameObject, Side};
+    use entity_manager::{EntityManager, ID};
 
-    if entity.turn.is_none() { return }
-    if entity.ai.is_none() { return }
-    if current_side != Computer { return }
+    pub fn system(id: ID, ecm: &mut EntityManager<GameObject>, current_side: Side) {
+        if ecm.get_ref(id).is_none() { return }
+        let entity = ecm.get_mut_ref(id).unwrap();
 
-    let turn = *entity.turn.get_ref();
-    let is_idle = (turn.side == current_side) && turn.spent_this_tick == 0;
-    if is_idle && turn.ap > 0 { entity.spend_ap(1) };
+        if entity.turn.is_none() { return }
+        if entity.ai.is_none() { return }
+        if current_side != Computer { return }
+
+        let turn = *entity.turn.get_ref();
+        let is_idle = (turn.side == current_side) && turn.spent_this_tick == 0;
+        if is_idle && turn.ap > 0 { entity.spend_ap(1) };
+    }
 }
 
 
-pub mod turn_system {
+pub mod turn {
     use components;
     use components::*;
     use entity_manager::{EntityManager};
@@ -744,9 +778,9 @@ pub mod turn_system {
         }
     }
 
-    pub fn run(entities: &mut EntityManager<GameObject>,
-               current_side: &mut Side,
-               current_turn: &mut int) {
+    pub fn system(entities: &mut EntityManager<GameObject>,
+                  current_side: &mut Side,
+                  current_turn: &mut int) {
         let switch_sides = entities.iter().all(|(e, _id)| {
                 match e.turn {
                     Some(turn) => {
@@ -774,22 +808,24 @@ pub mod turn_system {
             }
         }
     }
-
-
 }
 
+pub mod player_dead {
+    use components::{GameObject};
+    use entity_manager::{EntityManager, ID};
 
-pub fn player_dead_system(id: ID, ecm: &mut EntityManager<GameObject>, player_id: ID) {
-    let player_dead = match ecm.get_ref(player_id) {
-        Some(player) => {
-            player.position.is_none() || player.turn.is_none()
-        }
-        None => fail!("Could not find the Player entity (id: %?)", player_id),
-    };
-    if player_dead {
-        match ecm.get_mut_ref(id) {
-            Some(e) => e.ai = None,
-            None => (),
+    pub fn system(id: ID, ecm: &mut EntityManager<GameObject>, player_id: ID) {
+        let player_dead = match ecm.get_ref(player_id) {
+            Some(player) => {
+                player.position.is_none() || player.turn.is_none()
+            }
+            None => fail!("Could not find the Player entity (id: %?)", player_id),
+        };
+        if player_dead {
+            match ecm.get_mut_ref(id) {
+                Some(e) => e.ai = None,
+                None => (),
+            }
         }
     }
 }
@@ -799,10 +835,10 @@ pub mod gui {
     use components::*;
     use entity_manager::{EntityManager, ID};
 
-    pub fn process(ecm: &EntityManager<GameObject>,
-                   display: &mut Display,
-                   player_id: ID,
-                   current_turn: int) {
+    pub fn system(ecm: &EntityManager<GameObject>,
+                  display: &mut Display,
+                  player_id: ID,
+                  current_turn: int) {
         let (_width, height) = display.size();
         let attrs = ecm.get_ref(player_id).unwrap().attributes.unwrap();
         let dead = match ecm.get_ref(player_id).unwrap().position.is_none() {

@@ -114,9 +114,11 @@ fn update(state: &mut GameState,
             return engine::Running;
         }
         systems::ai::process(id, &mut state.entities, &mut state.rng, &state.map, state.current_side, state.player_id);
+        systems::panic::run(id, &mut state.entities, &mut state.rng, &state.map);
+        systems::stun::run(id, &mut state.entities);
         systems::dose::run(id, &mut state.entities, &state.map);
         systems::path_system(id, &mut state.entities, &mut state.map);
-        systems::movement::run(id, &mut state.entities, &mut state.rng, &mut state.map);
+        systems::movement::run(id, &mut state.entities, &mut state.map);
         systems::interaction::run(id, &mut state.entities, &mut state.map);
         systems::bump_system(id, &mut state.entities);
         systems::combat::run(id, &mut state.entities, &mut state.map, state.current_turn);

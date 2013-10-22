@@ -2,17 +2,17 @@ extern mod extra;
 
 use std::io;
 
-use std::rand;
-use std::rand::Rng;
+use std::rand::{Rng, IsaacRng};
 use std::os;
 use std::to_bytes::{ToBytes};
 use entity_manager::EntityManager;
 
-use components::{GameObject, Computer};
+use components::{GameObject, Computer, Side};
 use engine::{Display, MainLoopState, Key};
 use extra::ringbuf::RingBuf;
 use extra::container::Deque;
 use extra::time;
+use map::Map;
 use systems::input::commands;
 use systems::input::commands::Command;
 
@@ -28,13 +28,17 @@ pub mod world;
 
 pub struct GameState {
     entities: EntityManager<GameObject>,
-    commands: ~RingBuf<commands::Command>,
-    rng: rand::IsaacRng,
-    logger: CommandLogger,
-    map: map::Map,
-    current_side: components::Side,
-    current_turn: int,
+    resources: Resources,
     player_id: entity_manager::ID,
+}
+
+pub struct Resources {
+    map: Map,
+    side: Side,
+    turn: int,
+    rng: IsaacRng,
+    commands: RingBuf<Command>,
+    command_logger: CommandLogger,
 }
 
 fn escape_pressed(keys: &RingBuf<Key>) -> bool {
@@ -89,52 +93,53 @@ fn update(state: &mut GameState,
     if f5_pressed(keys) {
         println!("Restarting game");
         keys.clear();
-        let mut state = new_game_state(state.map.width, state.map.height);
+        let mut state = new_game_state(state.resources.map.width, state.resources.map.height);
         let player = world::player_entity();
         state.entities.add(player);
         assert!(state.entities.get_ref(state.player_id).is_some());
         world::populate_world(&mut state.entities,
-                              &mut state.map,
-                              &mut state.rng,
+                              &mut state.resources.map,
+                              &mut state.resources.rng,
                               world_gen::forrest);
         return engine::NewState(state);
     }
 
-    process_input(keys, state.commands);
+    process_input(keys, &mut state.resources.commands);
     for id in state.entities.id_iter() {
         let mut abort_early = false;
         if state.entities.get_ref(id).is_none() {
             loop
         }
-        systems::turn_tick_counter::system(id, &mut state.entities, state.current_side);
-        systems::effect_duration::system(id, &mut state.entities, state.current_turn);
-        systems::addiction::system(id, &mut state.entities, &mut state.map, state.current_turn);
-        systems::input::system(id, &mut state.entities, state.commands, state.logger, state.current_side);
+        systems::turn_tick_counter::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::effect_duration::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::addiction::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::input::system(id, &mut state.entities, state.player_id, &mut state.resources);
+
+        // TODO: add `clear` to ecm, handle abort early differently
         systems::leave_area::system(state.player_id, state, &mut abort_early);
         if abort_early {
             return engine::Running;
         }
-        systems::ai::system(id, &mut state.entities, &mut state.rng, &state.map, state.current_side, state.player_id);
-        systems::panic::system(id, &mut state.entities, &mut state.rng, &state.map);
-        systems::stun::system(id, &mut state.entities);
-        systems::dose::system(id, &mut state.entities, &state.map);
-        systems::path::system(id, &mut state.entities, &mut state.map);
-        systems::movement::system(id, &mut state.entities, &mut state.map);
-        systems::interaction::system(id, &mut state.entities, &mut state.map);
-        systems::bump::system(id, &mut state.entities);
-        systems::combat::system(id, &mut state.entities, &mut state.map, state.current_turn);
-        systems::will::system(id, &mut state.entities, &mut state.map);
-        systems::idle_ai::system(id, &mut state.entities, state.current_side);
-        systems::player_dead::system(id, &mut state.entities, state.player_id);
+        systems::ai::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::panic::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::stun::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::dose::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::path::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::movement::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::interaction::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::bump::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::combat::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::will::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::idle_ai::system(id, &mut state.entities, state.player_id, &mut state.resources);
+        systems::player_dead::system(id, &mut state.entities, state.player_id, &mut state.resources);
         systems::tile::system(id, &state.entities, display);
     }
     systems::gui::system(&state.entities,
-                         display,
                          state.player_id,
-                         state.current_turn);
+                         display,
+                         &mut state.resources);
     systems::turn::system(&mut state.entities,
-                          &mut state.current_side,
-                          &mut state.current_turn);
+                          &mut state.resources);
     engine::Running
 }
 
@@ -167,13 +172,13 @@ impl CommandLogger {
 }
 
 fn new_game_state(width: uint, height: uint) -> GameState {
-    let mut rng = rand::IsaacRng::new();
+    let mut rng = IsaacRng::new();
     let seed: ~[u8];
     let writer: @io::Writer;
-    let commands = ~RingBuf::new();
+    let commands = RingBuf::new();
     let seed_int = rng.gen_integer_range(0, 10000);
     seed = seed_int.to_bytes(true);
-    rng = rand::IsaacRng::new_seeded(seed);
+    rng = IsaacRng::new_seeded(seed);
     let cur_time = time::now();
     let timestamp = time::strftime("%FT%T.", &cur_time) +
         (cur_time.tm_nsec / 1000000).to_str();
@@ -194,18 +199,20 @@ fn new_game_state(width: uint, height: uint) -> GameState {
     let map = map::Map::new(width, height);
     GameState {
         entities: ecm,
-        commands: commands,
-        rng: rng,
-        logger: logger,
-        map: map,
-        current_side: Computer,
-        current_turn: 0,
+        resources: Resources{
+            commands: commands,
+            command_logger: logger,
+            map: map,
+            rng: rng,
+            side: Computer,
+            turn: 0,
+        },
         player_id: entity_manager::ID(0),
     }
 }
 
 fn replay_game_state(width: uint, height: uint) -> GameState {
-    let mut commands = ~RingBuf::new();
+    let mut commands = RingBuf::new();
     let replay_path = &Path(os::args()[1]);
     let mut seed: ~[u8];
     let writer: @Writer;
@@ -226,18 +233,20 @@ fn replay_game_state(width: uint, height: uint) -> GameState {
         },
         Err(e) => fail!(fmt!("Failed to read the replay file: %s", e))
     }
-    let rng = rand::IsaacRng::new_seeded(seed);
+    let rng = IsaacRng::new_seeded(seed);
     let logger = CommandLogger{writer: writer};
     let ecm = EntityManager::new();
     let map = map::Map::new(width, height);
     GameState {
         entities: ecm,
-        commands: commands,
-        rng: rng,
-        logger: logger,
-        map: map,
-        current_side: Computer,
-        current_turn: 0,
+        resources: Resources {
+            commands: commands,
+            rng: rng,
+            command_logger: logger,
+            map: map,
+            side: Computer,
+            turn: 0,
+        },
         player_id: entity_manager::ID(0),
     }
 }
@@ -262,8 +271,8 @@ fn main() {
     game_state.entities.add(player);
     assert!(game_state.entities.get_ref(game_state.player_id).is_some());
     world::populate_world(&mut game_state.entities,
-                          &mut game_state.map,
-                          &mut game_state.rng,
+                          &mut game_state.resources.map,
+                          &mut game_state.resources.rng,
                           world_gen::forrest);
 
     engine::main_loop(width, height, title, font_path,

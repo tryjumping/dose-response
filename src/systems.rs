@@ -5,7 +5,6 @@ pub mod turn_tick_counter {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         match ecm.get_mut_ref(id) {
             Some(entity) => {
@@ -51,7 +50,6 @@ pub mod input {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
@@ -94,18 +92,18 @@ pub mod leave_area {
     use world;
     use super::super::Resources;
 
-    pub fn system(player_id: ID,
+    pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
-        if ecm.get_ref(player_id).is_none() {return}
-        let dest = match ecm.get_ref(player_id).unwrap().destination {
+        if id != res.player_id {return}
+        if ecm.get_ref(res.player_id).is_none() {return}
+        let dest = match ecm.get_ref(res.player_id).unwrap().destination {
             Some(dest) => dest,
             None => {return}
         };
         let (x, y) = (dest.x as uint, dest.y as uint);
         if x < 0 || y < 0 || x >= res.map.width || y >= res.map.height {
-            let mut player = ecm.take_out(player_id);
+            let mut player = ecm.take_out(res.player_id);
             player.position = Some(Position{
                     x: (res.map.width / 2) as int,
                     y: (res.map.height / 2) as int,
@@ -116,7 +114,8 @@ pub mod leave_area {
             player.path = None;
             ecm.clear();
             res.map = Map::new(res.map.width, res.map.height);
-            ecm.add(player);
+            let player_id = ecm.add(player);
+            res.player_id = player_id;
             world::populate_world(ecm,
                                   &mut res.map,
                                   &mut res.rng,
@@ -233,7 +232,6 @@ pub mod ai {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  player_id: ID,
                   res: &mut Resources) {
         match ecm.get_ref(id) {
             Some(e) => {
@@ -246,7 +244,7 @@ pub mod ai {
             _ => return,
         }
 
-        let player_pos = match ecm.get_ref(player_id) {
+        let player_pos = match ecm.get_ref(res.player_id) {
             Some(p) if p.position.is_some() => p.position.unwrap(),
             _ => { return }
         };
@@ -266,8 +264,7 @@ pub mod panic {
     use super::super::Resources;
 
     pub fn system(id: ID,
-                          ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
+                  ecm: &mut EntityManager<GameObject>,
                   res: &mut Resources) {
         let e = match ecm.get_mut_ref(id) {
             Some(e) => e,
@@ -291,7 +288,6 @@ pub mod stun {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   _res: &mut Resources) {
         let e = match ecm.get_mut_ref(id) {
             Some(e) => e,
@@ -315,7 +311,6 @@ pub mod dose {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() {return}
         if ecm.get_ref(id).unwrap().addiction.is_none() {return}
@@ -375,7 +370,6 @@ pub mod path {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
@@ -402,7 +396,6 @@ pub mod movement {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
@@ -454,7 +447,6 @@ pub mod interaction {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         // Only humans can use stuff for now:
@@ -522,7 +514,6 @@ pub mod bump {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   _res: &mut Resources) {
         let bumpee_id = match ecm.get_ref(id).unwrap().bump {
             Some(id) => *id,
@@ -572,7 +563,6 @@ pub mod combat {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         if ecm.get_ref(id).unwrap().attack_target.is_none() { return }
@@ -661,7 +651,6 @@ mod effect_duration {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         match ecm.get_mut_ref(id) {
             Some(e) => {
@@ -685,7 +674,6 @@ mod addiction {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         match ecm.get_mut_ref(id) {
             Some(ref mut e) if e.addiction.is_some() && e.attributes.is_some() => {
@@ -719,7 +707,6 @@ mod will {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         if ecm.get_ref(id).unwrap().attributes.is_none() { return }
@@ -774,7 +761,6 @@ pub mod idle_ai {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  _player_id: ID,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
@@ -847,13 +833,12 @@ pub mod player_dead {
 
     pub fn system(id: ID,
                   ecm: &mut EntityManager<GameObject>,
-                  player_id: ID,
-                  _res: &mut Resources) {
-        let player_dead = match ecm.get_ref(player_id) {
+                  res: &mut Resources) {
+        let player_dead = match ecm.get_ref(res.player_id) {
             Some(player) => {
                 player.position.is_none() || player.turn.is_none()
             }
-            None => fail!("Could not find the Player entity (id: %?)", player_id),
+            None => fail!("Could not find the Player entity (id: %?)", res.player_id),
         };
         if player_dead {
             match ecm.get_mut_ref(id) {
@@ -867,24 +852,23 @@ pub mod player_dead {
 pub mod gui {
     use engine::{Display, Color};
     use components::*;
-    use entity_manager::{EntityManager, ID};
+    use entity_manager::{EntityManager};
     use super::super::Resources;
 
     pub fn system(ecm: &EntityManager<GameObject>,
-                  player_id: ID,
-                  display: &mut Display,
-                  res: &mut Resources) {
+                  res: &mut Resources,
+                  display: &mut Display) {
         let (_width, height) = display.size();
-        let attrs = ecm.get_ref(player_id).unwrap().attributes.unwrap();
-        let dead = match ecm.get_ref(player_id).unwrap().position.is_none() {
+        let attrs = ecm.get_ref(res.player_id).unwrap().attributes.unwrap();
+        let dead = match ecm.get_ref(res.player_id).unwrap().position.is_none() {
             true => ~"dead ",
             false => ~"",
         };
-        let stunned = match ecm.get_ref(player_id).unwrap().stunned {
+        let stunned = match ecm.get_ref(res.player_id).unwrap().stunned {
             Some(s) => format!("stunned({}) ", s.remaining(res.turn)),
             None => ~"",
         };
-        let panicking = match ecm.get_ref(player_id).unwrap().panicking {
+        let panicking = match ecm.get_ref(res.player_id).unwrap().panicking {
             Some(p) => format!("panic({}) ", p.remaining(res.turn)),
             None => ~"",
         };

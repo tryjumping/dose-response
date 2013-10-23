@@ -29,7 +29,6 @@ pub mod world;
 pub struct GameState {
     entities: EntityManager<GameObject>,
     resources: Resources,
-    player_id: entity_manager::ID,
 }
 
 pub struct Resources {
@@ -39,6 +38,7 @@ pub struct Resources {
     rng: IsaacRng,
     commands: RingBuf<Command>,
     command_logger: CommandLogger,
+    player_id: entity_manager::ID,
 }
 
 fn escape_pressed(keys: &RingBuf<Key>) -> bool {
@@ -96,7 +96,7 @@ fn update(state: &mut GameState,
         let mut state = new_game_state(state.resources.map.width, state.resources.map.height);
         let player = world::player_entity();
         state.entities.add(player);
-        assert!(state.entities.get_ref(state.player_id).is_some());
+        assert!(state.entities.get_ref(state.resources.player_id).is_some());
         world::populate_world(&mut state.entities,
                               &mut state.resources.map,
                               &mut state.resources.rng,
@@ -128,15 +128,14 @@ fn update(state: &mut GameState,
     for id in state.entities.id_iter() {
         for &sys in systems.iter() {
             if state.entities.get_ref(id).is_some() {
-                sys(id, &mut state.entities, state.player_id, &mut state.resources);
+                sys(id, &mut state.entities, &mut state.resources);
             }
         }
         systems::tile::system(id, &state.entities, display);
     }
     systems::gui::system(&state.entities,
-                         state.player_id,
-                         display,
-                         &mut state.resources);
+                         &mut state.resources,
+                         display);
     systems::turn::system(&mut state.entities,
                           &mut state.resources);
     engine::Running
@@ -205,8 +204,8 @@ fn new_game_state(width: uint, height: uint) -> GameState {
             rng: rng,
             side: Computer,
             turn: 0,
+            player_id: entity_manager::ID(0),
         },
-        player_id: entity_manager::ID(0),
     }
 }
 
@@ -245,8 +244,8 @@ fn replay_game_state(width: uint, height: uint) -> GameState {
             map: map,
             side: Computer,
             turn: 0,
+            player_id: entity_manager::ID(0),
         },
-        player_id: entity_manager::ID(0),
     }
 }
 
@@ -267,8 +266,9 @@ fn main() {
     };
 
     let player = world::player_entity();
-    game_state.entities.add(player);
-    assert!(game_state.entities.get_ref(game_state.player_id).is_some());
+    let player_id = game_state.entities.add(player);
+    assert_eq!(player_id, entity_manager::ID(0));
+    game_state.resources.player_id = player_id;
     world::populate_world(&mut game_state.entities,
                           &mut game_state.resources.map,
                           &mut game_state.resources.rng,

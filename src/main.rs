@@ -120,7 +120,6 @@ fn update(state: &mut GameState,
         systems::bump::system,
         systems::combat::system,
         systems::will::system,
-        systems::idle_ai::system,
         systems::player_dead::system,
     ];
 

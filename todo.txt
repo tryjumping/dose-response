@@ -6,9 +6,6 @@
   - see entities on som >= 98
   - uncover the entire map on som == 99
 
-* rename GameObject to Entity
-* drop the `idle_ai` system and fix the game instead
-
 * read-up on the format!, println! and writeln! macros
 * don't use uint for non-size variables
 * remove `TCOD_` from all the tcod.rs types

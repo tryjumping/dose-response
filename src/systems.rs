@@ -164,6 +164,22 @@ pub mod ai {
         }
     }
 
+    pub fn entity_blocked(pos: Position, map: &Map) -> bool {
+        let neighbors = [
+            (pos.x, pos.y-1),
+            (pos.x, pos.y+1),
+            (pos.x-1, pos.y),
+            (pos.x+1, pos.y),
+            (pos.x-1, pos.y-1),
+            (pos.x+1, pos.y-1),
+            (pos.x-1, pos.y+1),
+            (pos.x+1, pos.y+1),
+            ];
+        !do neighbors.iter().any |&neighbor_pos| {
+            map.is_walkable(neighbor_pos)
+        }
+    }
+
     fn individual_behaviour<T: Rng>(id: ID,
                                     ecm: &mut EntityManager<Entity>,
                                     rng: &mut T,
@@ -248,9 +264,15 @@ pub mod ai {
             Some(p) if p.position.is_some() => p.position.unwrap(),
             _ => { return }
         };
-        let dest = match ecm.get_ref(id).unwrap().ai.unwrap().behaviour {
-            components::ai::Individual => individual_behaviour(id, ecm, &mut res.rng, &mut res.map, player_pos),
-            components::ai::Pack => hunting_pack_behaviour(id, ecm, &mut res.rng, &mut res.map, player_pos),
+        let pos = ecm.get_ref(id).unwrap().position.unwrap();
+        let dest = if entity_blocked(pos, &res.map) {
+            println!("Found a blocked entity: {}", *id);
+            Destination{x: pos.x, y: pos.y}
+        } else {
+            match ecm.get_ref(id).unwrap().ai.unwrap().behaviour {
+                components::ai::Individual => individual_behaviour(id, ecm, &mut res.rng, &mut res.map, player_pos),
+                components::ai::Pack => hunting_pack_behaviour(id, ecm, &mut res.rng, &mut res.map, player_pos),
+            }
         };
         ecm.get_mut_ref(id).unwrap().destination = Some(dest);
     }
@@ -434,7 +456,11 @@ pub mod movement {
                     }
                 }
             }
-            None => return,
+            None => {
+                println!("Entity {} waits.", *id);
+                entity.spend_ap(1);
+                entity.path = None;
+            }
         }
     }
 }
@@ -753,28 +779,6 @@ pub mod tile {
         display.draw_char(level, x as uint, y as uint, glyph, color, Color(20, 20, 20));
     }
 }
-
-pub mod idle_ai {
-    use components::{Computer, Entity};
-    use entity_manager::{EntityManager, ID};
-    use super::super::Resources;
-
-    pub fn system(id: ID,
-                  ecm: &mut EntityManager<Entity>,
-                  res: &mut Resources) {
-        if ecm.get_ref(id).is_none() { return }
-        let entity = ecm.get_mut_ref(id).unwrap();
-
-        if entity.turn.is_none() { return }
-        if entity.ai.is_none() { return }
-        if res.side != Computer { return }
-
-        let turn = *entity.turn.get_ref();
-        let is_idle = (turn.side == res.side) && turn.spent_this_tick == 0;
-        if is_idle && turn.ap > 0 { entity.spend_ap(1) };
-    }
-}
-
 
 pub mod turn {
     use components;

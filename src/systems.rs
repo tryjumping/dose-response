@@ -404,6 +404,11 @@ pub mod path {
             Some(dest) => {
                 let pos = entity.position.get_ref();
                 entity.path = res.map.find_path((pos.x, pos.y), (dest.x, dest.y));
+                if entity.path.is_none() {
+                    // if we can't find a path, make the entity wait by setting
+                    // the destination to the current position:
+                    entity.path = res.map.find_path((pos.x, pos.y), (pos.x, pos.y));
+                }
             },
             None => (),
         }

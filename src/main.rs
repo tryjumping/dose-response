@@ -95,10 +95,12 @@ fn update(state: &mut GameState,
         keys.clear();
         let mut state = new_game_state(state.resources.map.width, state.resources.map.height);
         let player = world::player_entity();
+        let player_pos = player.position.unwrap();
         state.entities.add(player);
         assert!(state.entities.get_ref(state.resources.player_id).is_some());
         world::populate_world(&mut state.entities,
                               &mut state.resources.map,
+                              player_pos,
                               &mut state.resources.rng,
                               world_gen::forrest);
         return engine::NewState(state);
@@ -130,7 +132,9 @@ fn update(state: &mut GameState,
                 sys(id, &mut state.entities, &mut state.resources);
             }
         }
-        systems::tile::system(id, &state.entities, display);
+        if state.entities.get_ref(id).is_some() {
+            systems::tile::system(id, &state.entities, display);
+        }
     }
     systems::gui::system(&state.entities,
                          &mut state.resources,
@@ -265,11 +269,13 @@ fn main() {
     };
 
     let player = world::player_entity();
+    let player_pos = player.position.unwrap();
     let player_id = game_state.entities.add(player);
     assert_eq!(player_id, entity_manager::ID(0));
     game_state.resources.player_id = player_id;
     world::populate_world(&mut game_state.entities,
                           &mut game_state.resources.map,
+                          player_pos,
                           &mut game_state.resources.rng,
                           world_gen::forrest);
 

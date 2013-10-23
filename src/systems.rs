@@ -114,10 +114,12 @@ pub mod leave_area {
             player.path = None;
             ecm.clear();
             res.map = Map::new(res.map.width, res.map.height);
+            let player_pos = player.position.unwrap();
             let player_id = ecm.add(player);
             res.player_id = player_id;
             world::populate_world(ecm,
                                   &mut res.map,
+                                  player_pos,
                                   &mut res.rng,
                                   world_gen::forrest);
             // TODO: We don't want the curret tick to continue after we've messed with

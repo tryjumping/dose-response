@@ -6,17 +6,33 @@ use entity_manager::EntityManager;
 use map;
 use map::Map;
 use world_gen;
+use systems::ai::distance;
 
 
 pub fn populate_world<T: Rng>(ecm: &mut EntityManager<Entity>,
                               map: &mut Map,
+                              player_pos: Position,
                               rng: &mut T,
                               generate: &fn(&mut T, uint, uint) -> ~[(int, int, world_gen::WorldItem)]) {
+    let near_player = |x, y| distance(&player_pos, &Position{x: x, y: y}) < 6;
+    let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
+    let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),
+                            player_pos.y + rng.choose(pos_offset));
     let world = generate(rng, map.width, map.height);
     for &(x, y, item) in world.iter() {
         let mut bg = Entity::new();
         bg.position = Some(Position{x: x, y: y});
         bg.background = Some(Background);
+        let item = if (x, y) == (player_pos.x, player_pos.y) {
+            world_gen::Empty
+        } else {
+            item
+        };
+        let item = if (x, y) == initial_dose_pos {
+            world_gen::Dose
+        } else {
+            item
+        };
         if item == world_gen::Tree {
             bg.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
             bg.solid = Some(Solid);
@@ -24,6 +40,9 @@ pub fn populate_world<T: Rng>(ecm: &mut EntityManager<Entity>,
             bg.tile = Some(Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
         ecm.add(bg);
+        if near_player(x, y) && ((x, y) != initial_dose_pos) {
+            loop
+        };
         if item != world_gen::Tree && item != world_gen::Empty {
             let mut e = Entity::new();
             e.position = Some(Position{x: x, y: y});

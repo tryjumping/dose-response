@@ -1,4 +1,3 @@
-* a safe initial area (no monsters, dose in sight)
 * map exploration (dark arena, uncovers slowly)
 * graphical effect of high/withdrawn
 * background glow for the irresistible area around a dose

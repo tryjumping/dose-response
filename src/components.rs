@@ -63,7 +63,7 @@ pub struct Panicking{turn: int, duration: int}
 pub struct Tile{level: uint, glyph: char, color: Color}
 pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
 
-pub struct GameObject {
+pub struct Entity {
     ai: Option<AI>,
     accepts_user_input: Option<AcceptsUserInput>,
     addiction: Option<Addiction>,
@@ -87,9 +87,9 @@ pub struct GameObject {
     turn: Option<Turn>,
 }
 
-impl GameObject {
-    pub fn new() -> GameObject {
-        GameObject {
+impl Entity {
+    pub fn new() -> Entity {
+        Entity {
             ai: None,
             accepts_user_input: None,
             addiction: None,

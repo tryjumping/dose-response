@@ -8,13 +8,13 @@ use map::Map;
 use world_gen;
 
 
-pub fn populate_world<T: Rng>(ecm: &mut EntityManager<GameObject>,
+pub fn populate_world<T: Rng>(ecm: &mut EntityManager<Entity>,
                               map: &mut Map,
                               rng: &mut T,
                               generate: &fn(&mut T, uint, uint) -> ~[(int, int, world_gen::WorldItem)]) {
     let world = generate(rng, map.width, map.height);
     for &(x, y, item) in world.iter() {
-        let mut bg = GameObject::new();
+        let mut bg = Entity::new();
         bg.position = Some(Position{x: x, y: y});
         bg.background = Some(Background);
         if item == world_gen::Tree {
@@ -25,7 +25,7 @@ pub fn populate_world<T: Rng>(ecm: &mut EntityManager<GameObject>,
         }
         ecm.add(bg);
         if item != world_gen::Tree && item != world_gen::Empty {
-            let mut e = GameObject::new();
+            let mut e = Entity::new();
             e.position = Some(Position{x: x, y: y});
             let mut tile_level = 1;
             if item.is_monster() {
@@ -107,8 +107,8 @@ pub fn populate_world<T: Rng>(ecm: &mut EntityManager<GameObject>,
     }
 }
 
-pub fn player_entity() -> GameObject {
-    let mut player = GameObject::new();
+pub fn player_entity() -> Entity {
+    let mut player = Entity::new();
     player.accepts_user_input = Some(AcceptsUserInput);
     player.attack_type = Some(Kill);
     player.attributes = Some(Attributes{state_of_mind: 20, will: 2});

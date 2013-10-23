@@ -1,10 +1,10 @@
 pub mod turn_tick_counter {
-    use components::{GameObject, Turn};
+    use components::{Entity, Turn};
     use entity_manager::{EntityManager, ID};
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         match ecm.get_mut_ref(id) {
             Some(entity) => {
@@ -49,7 +49,7 @@ pub mod input {
     }
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
@@ -93,7 +93,7 @@ pub mod leave_area {
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if id != res.player_id {return}
         if ecm.get_ref(res.player_id).is_none() {return}
@@ -165,7 +165,7 @@ pub mod ai {
     }
 
     fn individual_behaviour<T: Rng>(id: ID,
-                                    ecm: &mut EntityManager<GameObject>,
+                                    ecm: &mut EntityManager<Entity>,
                                     rng: &mut T,
                                     map: &Map,
                                     player_pos: Position) -> Destination {
@@ -190,7 +190,7 @@ pub mod ai {
     }
 
     fn hunting_pack_behaviour<T: Rng>(id: ID,
-                                      ecm: &mut EntityManager<GameObject>,
+                                      ecm: &mut EntityManager<Entity>,
                                       rng: &mut T,
                                       map: &Map,
                                       player_pos: Position) -> Destination {
@@ -231,7 +231,7 @@ pub mod ai {
     }
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         match ecm.get_ref(id) {
             Some(e) => {
@@ -258,13 +258,13 @@ pub mod ai {
 }
 
 pub mod panic {
-    use components::{Destination, GameObject};
+    use components::{Destination, Entity};
     use entity_manager::{EntityManager, ID};
     use super::ai;
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         let e = match ecm.get_mut_ref(id) {
             Some(e) => e,
@@ -282,12 +282,12 @@ pub mod panic {
 }
 
 pub mod stun {
-    use components::{Destination, GameObject};
+    use components::{Destination, Entity};
     use entity_manager::{EntityManager, ID};
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   _res: &mut Resources) {
         let e = match ecm.get_mut_ref(id) {
             Some(e) => e,
@@ -310,7 +310,7 @@ pub mod dose {
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() {return}
         if ecm.get_ref(id).unwrap().addiction.is_none() {return}
@@ -364,12 +364,12 @@ pub mod dose {
 }
 
 pub mod path {
-    use components::{GameObject};
+    use components::{Entity};
     use entity_manager::{EntityManager, ID};
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
@@ -395,7 +395,7 @@ pub mod movement {
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
@@ -446,7 +446,7 @@ pub mod interaction {
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         // Only humans can use stuff for now:
@@ -508,12 +508,12 @@ pub mod interaction {
 }
 
 pub mod bump {
-    use components::{AttackTarget, GameObject};
+    use components::{AttackTarget, Entity};
     use entity_manager::{EntityManager, ID};
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   _res: &mut Resources) {
         let bumpee_id = match ecm.get_ref(id).unwrap().bump {
             Some(id) => *id,
@@ -542,7 +542,7 @@ pub mod combat {
     use super::super::Resources;
 
     pub fn kill_entity(id: ID,
-                       ecm: &mut EntityManager<GameObject>,
+                       ecm: &mut EntityManager<Entity>,
                        map: &mut Map) {
         match ecm.get_mut_ref(id) {
             Some(e) => {
@@ -562,7 +562,7 @@ pub mod combat {
     }
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         if ecm.get_ref(id).unwrap().attack_target.is_none() { return }
@@ -650,7 +650,7 @@ mod effect_duration {
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         match ecm.get_mut_ref(id) {
             Some(e) => {
@@ -673,7 +673,7 @@ mod addiction {
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         match ecm.get_mut_ref(id) {
             Some(ref mut e) if e.addiction.is_some() && e.attributes.is_some() => {
@@ -706,7 +706,7 @@ mod will {
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         if ecm.get_ref(id).unwrap().attributes.is_none() { return }
@@ -737,11 +737,11 @@ mod will {
 }
 
 pub mod tile {
-    use components::{GameObject, Position, Tile};
+    use components::{Entity, Position, Tile};
     use entity_manager::{EntityManager, ID};
     use engine::{Color, Display};
 
-    pub fn system(id: ID, ecm: &EntityManager<GameObject>, display: &mut Display) {
+    pub fn system(id: ID, ecm: &EntityManager<Entity>, display: &mut Display) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_ref(id).unwrap();
 
@@ -755,12 +755,12 @@ pub mod tile {
 }
 
 pub mod idle_ai {
-    use components::{Computer, GameObject};
+    use components::{Computer, Entity};
     use entity_manager::{EntityManager, ID};
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         if ecm.get_ref(id).is_none() { return }
         let entity = ecm.get_mut_ref(id).unwrap();
@@ -795,7 +795,7 @@ pub mod turn {
         }
     }
 
-    pub fn system(entities: &mut EntityManager<GameObject>,
+    pub fn system(entities: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         let switch_sides = entities.iter().all(|(e, _id)| {
                 match e.turn {
@@ -827,12 +827,12 @@ pub mod turn {
 }
 
 pub mod player_dead {
-    use components::{GameObject};
+    use components::{Entity};
     use entity_manager::{EntityManager, ID};
     use super::super::Resources;
 
     pub fn system(id: ID,
-                  ecm: &mut EntityManager<GameObject>,
+                  ecm: &mut EntityManager<Entity>,
                   res: &mut Resources) {
         let player_dead = match ecm.get_ref(res.player_id) {
             Some(player) => {
@@ -855,7 +855,7 @@ pub mod gui {
     use entity_manager::{EntityManager};
     use super::super::Resources;
 
-    pub fn system(ecm: &EntityManager<GameObject>,
+    pub fn system(ecm: &EntityManager<Entity>,
                   res: &mut Resources,
                   display: &mut Display) {
         let (_width, height) = display.size();

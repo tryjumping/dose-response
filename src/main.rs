@@ -7,7 +7,7 @@ use std::os;
 use std::to_bytes::{ToBytes};
 use entity_manager::EntityManager;
 
-use components::{GameObject, Computer, Side};
+use components::{Entity, Computer, Side};
 use engine::{Display, MainLoopState, Key};
 use extra::ringbuf::RingBuf;
 use extra::container::Deque;
@@ -27,7 +27,7 @@ pub mod world;
 
 
 pub struct GameState {
-    entities: EntityManager<GameObject>,
+    entities: EntityManager<Entity>,
     resources: Resources,
 }
 

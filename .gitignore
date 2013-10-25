@@ -7,3 +7,4 @@ dist
 /bench/tcod-fps-bench-rust
 /bin/*
 dose-response
+src/components.rs

@@ -8,6 +8,7 @@ pub enum MainLoopState<T> {
     Exit,
 }
 
+#[deriving(Eq)]
 pub struct Color(u8, u8, u8);
 
 pub static transparent_background: Color = Color(253, 1, 254);

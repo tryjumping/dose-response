@@ -3,7 +3,7 @@ APP_NAME=dose-response
 APP=$(BIN)/$(APP_NAME)
 LIB=./lib
 LAUNCHER=./$(APP_NAME)
-SOURCES=$(wildcard src/**/*.rs src/*.rs)
+SOURCES=$(wildcard src/**/*.rs src/*.rs) src/components.rs
 
 all: build
 
@@ -14,6 +14,10 @@ test:
 	rust build --test -W ctypes -L./lib -O src/main.rs -o $(BIN)/test-$(APP_NAME)
 	LD_LIBRARY_PATH="$(LIB)" $(BIN)/test-$(APP_NAME)
 
+
+src/components.rs: build_ecm.py components.rs components_prelude.rs
+	cp components_prelude.rs src/components.rs
+	python build_ecm.py components.rs | rustc --pretty normal - >> src/components.rs
 
 $(APP): $(SOURCES)
 	mkdir -p $(BIN)

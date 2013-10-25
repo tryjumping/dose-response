@@ -124,7 +124,28 @@ pub mod components {
 }
 
 
+macro_rules! generate_entity_manager_from(
+    ($($comp:ident {$($field:ident: $tp:ty),+}),+) => (
+        $(
+            pub struct $comp {$($field: $tp,)+ }
+        )+
+    )
+)
+
+
+generate_entity_manager_from!(
+    P{x: int, y: int},
+    Stuff{x: uint},
+    Dest{x: int, y: int}
+)
+
 fn main() {
+    let p = P{x: 1, y: 2};
+    // TODO: this doesn't seem to work:
+    // let (p, s, d) = (P{x: 1, y: 2}, Stuff{x: 10u}, Dest{x: 10, y: 20});
+    // error: `Stuff` does not name a structure
+    // and the same for `Dest`
+
     let mut ecm = EM::new();
     let e1 = ecm.new_entity();
     assert_eq!(ecm.has(e1, tPosition), false);

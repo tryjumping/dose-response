@@ -1,4 +1,5 @@
 use std::num;
+use std::iter::{Map, Range};
 
 use engine::{Color};
 pub use map;

@@ -19,6 +19,11 @@ src/components.rs: build_ecm.py components.rs components_prelude.rs
 	cp components_prelude.rs src/components.rs
 	python build_ecm.py components.rs | rustc --pretty normal - >> src/components.rs
 
+test_component_codegen:
+	python build_ecm.py | rustc --pretty normal - > test_component_codegen.rs
+	rustc --test -W ctypes test_component_codegen.rs -o test_component_codegen
+	./test_component_codegen
+
 $(APP): $(SOURCES)
 	mkdir -p $(BIN)
 	rust build -W ctypes -L./lib -O src/main.rs -o $(APP)

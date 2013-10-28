@@ -9,7 +9,7 @@ all: build
 
 build: $(APP) $(LAUNCHER)
 
-test:
+test: $(SOURCES)
 	mkdir -p $(BIN)
 	rust build --test -W ctypes -L./lib -O src/main.rs -o $(BIN)/test-$(APP_NAME)
 	LD_LIBRARY_PATH="$(LIB)" $(BIN)/test-$(APP_NAME)

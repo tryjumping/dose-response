@@ -86,7 +86,7 @@ pub mod leave_area {
         let dest = ecm.get_destination(e);
         let (x, y) = (dest.x as uint, dest.y as uint);
         if x < 0 || y < 0 || x >= res.map.width || y >= res.map.height {
-            let mut player_entity = ecm.take_out(res.player_id);
+            let player_entity = ecm.take_out(res.player_id);
             ecm.remove_all_entities();
             let player_id = ecm.add_entity(player_entity);
             res.player_id = player_id;
@@ -126,189 +126,168 @@ pub mod ai {
         max(abs(p1.x - p2.x), abs(p1.y - p2.y))
     }
 
-//     pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
-//                                                 pos: Position,
-//                                                 map: &Map) -> (int, int) {
-//         let neighbors = [
-//             (pos.x, pos.y-1),
-//             (pos.x, pos.y+1),
-//             (pos.x-1, pos.y),
-//             (pos.x+1, pos.y),
-//             (pos.x-1, pos.y-1),
-//             (pos.x+1, pos.y-1),
-//             (pos.x-1, pos.y+1),
-//             (pos.x+1, pos.y+1),
-//             ];
-//         let mut walkables: ~[(int, int)] = ~[];
-//         for &p in neighbors.iter() {
-//             if map.is_walkable(p) { walkables.push(p) }
-//         }
-//         if walkables.is_empty() {
-//             (pos.x, pos.y)  // Nowhere to go
-//         } else {
-//             rng.choose(walkables)
-//         }
-//     }
+    pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
+                                                pos: Position,
+                                                map: &Map) -> (int, int) {
+        let neighbors = [
+            (pos.x, pos.y-1),
+            (pos.x, pos.y+1),
+            (pos.x-1, pos.y),
+            (pos.x+1, pos.y),
+            (pos.x-1, pos.y-1),
+            (pos.x+1, pos.y-1),
+            (pos.x-1, pos.y+1),
+            (pos.x+1, pos.y+1),
+            ];
+        let mut walkables: ~[(int, int)] = ~[];
+        for &p in neighbors.iter() {
+            if map.is_walkable(p) { walkables.push(p) }
+        }
+        if walkables.is_empty() {
+            (pos.x, pos.y)  // Nowhere to go
+        } else {
+            rng.choose(walkables)
+        }
+    }
 
-//     pub fn entity_blocked(pos: Position, map: &Map) -> bool {
-//         let neighbors = [
-//             (pos.x, pos.y-1),
-//             (pos.x, pos.y+1),
-//             (pos.x-1, pos.y),
-//             (pos.x+1, pos.y),
-//             (pos.x-1, pos.y-1),
-//             (pos.x+1, pos.y-1),
-//             (pos.x-1, pos.y+1),
-//             (pos.x+1, pos.y+1),
-//             ];
-//         !do neighbors.iter().any |&neighbor_pos| {
-//             map.is_walkable(neighbor_pos)
-//         }
-//     }
+    pub fn entity_blocked(pos: Position, map: &Map) -> bool {
+        let neighbors = [
+            (pos.x, pos.y-1),
+            (pos.x, pos.y+1),
+            (pos.x-1, pos.y),
+            (pos.x+1, pos.y),
+            (pos.x-1, pos.y-1),
+            (pos.x+1, pos.y-1),
+            (pos.x-1, pos.y+1),
+            (pos.x+1, pos.y+1),
+            ];
+        !do neighbors.iter().any |&neighbor_pos| {
+            map.is_walkable(neighbor_pos)
+        }
+    }
 
-//     fn individual_behaviour<T: Rng>(id: ID,
-//                                     ecm: &mut EntityManager<Entity>,
-//                                     rng: &mut T,
-//                                     map: &Map,
-//                                     player_pos: Position) -> Destination {
-//         let e = ecm.get_mut_ref(id).unwrap();
-//         let pos = e.position.unwrap();
-//         let player_distance = distance(&pos, &player_pos);
-//         match player_distance {
-//             dist if dist < 5 => e.ai.get_mut_ref().state = components::ai::Aggressive,
-//             dist if dist > 8 => e.ai.get_mut_ref().state = components::ai::Idle,
-//             _ => {}
-//         }
-//         match e.ai.get_ref().state {
-//             components::ai::Aggressive => {
-//                 Destination{x: player_pos.x, y: player_pos.y}
-//             }
-//             components::ai::Idle => {
-//                 match random_neighbouring_position(rng, pos, map) {
-//                     (x, y) => Destination{x: x, y: y}
-//                 }
-//             }
-//         }
-//     }
+    fn individual_behaviour<T: Rng>(e: ID,
+                                    ecm: &mut ComponentManager,
+                                    rng: &mut T,
+                                    map: &Map,
+                                    player_pos: Position) -> Destination {
+        let pos = ecm.get_position(e);
+        let player_distance = distance(&pos, &player_pos);
+        match player_distance {
+            dist if dist < 5 => ecm.get_ai(e).state = components::ai::Aggressive,
+            dist if dist > 8 => ecm.get_ai(e).state = components::ai::Idle,
+            _ => {}
+        }
+        match ecm.get_ai(e).state {
+            components::ai::Aggressive => {
+                Destination{x: player_pos.x, y: player_pos.y}
+            }
+            components::ai::Idle => {
+                match random_neighbouring_position(rng, pos, map) {
+                    (x, y) => Destination{x: x, y: y}
+                }
+            }
+        }
+    }
 
-//     fn hunting_pack_behaviour<T: Rng>(id: ID,
-//                                       ecm: &mut EntityManager<Entity>,
-//                                       rng: &mut T,
-//                                       map: &Map,
-//                                       player_pos: Position) -> Destination {
-//         let pos = ecm.get_ref(id).unwrap().position.unwrap();
-//         let state = match ecm.get_mut_ref(id) {
-//             Some(e) => {
-//                 let player_distance = distance(&pos, &player_pos);
-//                 if player_distance < 4 {
-//                     e.ai.get_mut_ref().state = components::ai::Aggressive
-//                 }
-//                 e.ai.get_ref().state
-//             }
-//             None => fail!("Unreachable: the entity must be available here"),
-//         };
-//         match state {
-//             components::ai::Aggressive => {
-//                 let r = 8;
-//                 for x in range(pos.x - r, pos.x + r) {
-//                     for y in range(pos.y - r, pos.y + r) {
-//                         for (m_id, _) in map.entities_on_pos((x, y)) {
-//                             match ecm.get_mut_ref(ID(m_id)) {
-//                                 Some(m) => if m.ai.is_some() {
-//                                     m.ai.get_mut_ref().state = components::ai::Aggressive;
-//                                 },
-//                                 None => {}
-//                             }
-//                         }
-//                     }
-//                 }
-//                 Destination{x: player_pos.x, y: player_pos.y}
-//             }
-//             components::ai::Idle => {
-//                 match random_neighbouring_position(rng, pos, map) {
-//                     (x, y) => Destination{x: x, y: y}
-//                 }
-//             }
-//         }
-//     }
+    fn hunting_pack_behaviour<T: Rng>(e: ID,
+                                      ecm: &mut ComponentManager,
+                                      rng: &mut T,
+                                      map: &Map,
+                                      player_pos: Position) -> Destination {
+        let pos = ecm.get_position(e);
+        let player_distance = distance(&pos, &player_pos);
+        if player_distance < 4 {
+            let ai = ecm.get_ai(e);
+            ecm.set_ai(e, AI{state: components::ai::Aggressive,
+                             .. ai});
+        }
+        match ecm.get_ai(e).state {
+            components::ai::Aggressive => {
+                let r = 8;
+                for x in range(pos.x - r, pos.x + r) {
+                    for y in range(pos.y - r, pos.y + r) {
+                        for (m_id, _) in map.entities_on_pos((x, y)) {
+                            let monster = ID(m_id);
+                            if ecm.has_entity(monster) && ecm.has_ai(monster) {
+                                let ai = ecm.get_ai(monster);
+                                ecm.set_ai(monster,
+                                           AI{state: components::ai::Aggressive,
+                                              .. ai});
+                            }
+                        }
+                    }
+                }
+                Destination{x: player_pos.x, y: player_pos.y}
+            }
+            components::ai::Idle => {
+                match random_neighbouring_position(rng, pos, map) {
+                    (x, y) => Destination{x: x, y: y}
+                }
+            }
+        }
+    }
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   res: &mut Resources) {
-//         match ecm.get_ref(id) {
-//             Some(e) => {
-//                 if e.ai.is_none() || e.position.is_none() { return }
-//             }
-//             None => { return }
-//         }
-//         match res.side {
-//             Computer => (),
-//             _ => return,
-//         }
-
-//         let player_pos = match ecm.get_ref(res.player_id) {
-//             Some(p) if p.position.is_some() => p.position.unwrap(),
-//             _ => { return }
-//         };
-//         let pos = ecm.get_ref(id).unwrap().position.unwrap();
-//         let dest = if entity_blocked(pos, &res.map) {
-//             println!("Found a blocked entity: {}", *id);
-//             Destination{x: pos.x, y: pos.y}
-//         } else {
-//             match ecm.get_ref(id).unwrap().ai.unwrap().behaviour {
-//                 components::ai::Individual => individual_behaviour(id, ecm, &mut res.rng, &mut res.map, player_pos),
-//                 components::ai::Pack => hunting_pack_behaviour(id, ecm, &mut res.rng, &mut res.map, player_pos),
-//             }
-//         };
-//         ecm.get_mut_ref(id).unwrap().destination = Some(dest);
-//     }
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  res: &mut Resources) {
+        if !ecm.has_ai(e) {return}
+        if !ecm.has_position(e) {return}
+        if res.side != Computer {return}
+        if !ecm.has_entity(res.player_id) {
+            fail!("AI system: player entity doesn't exist.");
+        }
+        if !ecm.has_position(res.player_id) {
+            fail!("AI system: player doesn't have Position.");
+        }
+        let player_pos = ecm.get_position(res.player_id);
+        let pos = ecm.get_position(e);
+        let dest = if entity_blocked(pos, &res.map) {
+            println!("Found a blocked entity: {}", *e);
+            Destination{x: pos.x, y: pos.y}
+        } else {
+            match ecm.get_ai(e).behaviour {
+                components::ai::Individual => individual_behaviour(e, ecm, &mut res.rng, &mut res.map, player_pos),
+                components::ai::Pack => hunting_pack_behaviour(e, ecm, &mut res.rng, &mut res.map, player_pos),
+            }
+        };
+        ecm.set_destination(e, dest);
+    }
 
 }
 
-// pub mod panic {
-//     use components::{Destination, Entity};
-//     use entity_manager::{EntityManager, ID};
-//     use super::ai;
-//     use super::super::Resources;
+pub mod panic {
+    use components::{ComponentManager, ID, Destination};
+    use super::ai;
+    use super::super::Resources;
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   res: &mut Resources) {
-//         let e = match ecm.get_mut_ref(id) {
-//             Some(e) => e,
-//             None => {return}
-//         };
-//         if e.panicking.is_none() || e.destination.is_none() {return}
-//         let pos = match e.position {
-//             Some(pos) => pos,
-//             None => unreachable!(),
-//         };
-//         match ai::random_neighbouring_position(&mut res.rng, pos, &mut res.map) {
-//             (x, y) => e.destination = Some(Destination{x: x, y: y})
-//         }
-//     }
-// }
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  res: &mut Resources) {
+        if ecm.has_panicking(e) {return}
+        if ecm.has_destination(e) {return}
+        if ecm.has_position(e) {return}
+        let pos = ecm.get_position(e);
+        match ai::random_neighbouring_position(&mut res.rng, pos, &mut res.map) {
+            (x, y) => ecm.set_destination(e, Destination{x: x, y: y}),
+        }
+    }
+}
 
-// pub mod stun {
-//     use components::{Destination, Entity};
-//     use entity_manager::{EntityManager, ID};
-//     use super::super::Resources;
+pub mod stun {
+    use components::{ComponentManager, ID, Destination, Position};
+    use super::super::Resources;
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   _res: &mut Resources) {
-//         let e = match ecm.get_mut_ref(id) {
-//             Some(e) => e,
-//             None => {return}
-//         };
-//         if e.stunned.is_none() || e.destination.is_none() {return}
-//         let pos = match e.position {
-//             Some(pos) => pos,
-//             None => unreachable!(),
-//         };
-//         e.destination = Some(Destination{x: pos.x, y: pos.y});
-//     }
-// }
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  _res: &mut Resources) {
+        if !ecm.has_stunned(e) {return}
+        if !ecm.has_destination(e) {return}
+        if !ecm.has_position(e) {return}
+        let Position{x, y} = ecm.get_position(e);
+        ecm.set_destination(e, Destination{x: x, y: y});
+    }
+}
 
 // pub mod dose {
 //     use std::num;
@@ -456,101 +435,90 @@ pub mod ai {
 //     }
 // }
 
-// pub mod interaction {
-//     use components::*;
-//     use entity_manager::{EntityManager, ID};
-//     use super::combat;
-//     use super::super::Resources;
+pub mod interaction {
+    use components::*;
+    use super::combat;
+    use super::super::Resources;
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   res: &mut Resources) {
-//         if ecm.get_ref(id).is_none() { return }
-//         // Only humans can use stuff for now:
-//         if ecm.get_ref(id).unwrap().accepts_user_input.is_none() { return }
-//         let pos = match ecm.get_ref(id).unwrap().position {
-//             Some(p) => (p.x, p.y),
-//             None => return,
-//         };
-//         for (entity_map_id, _walkability) in res.map.entities_on_pos(pos) {
-//             let interactive_id = ID(entity_map_id);
-//             if id == interactive_id { loop }
-//             match ecm.get_ref(interactive_id) {
-//                 Some(i) => if i.attribute_modifier.is_some() || i.explosion_effect.is_some() {},
-//                 _ => { loop }  // entity doesn't exist or isn't interactive
-//             }
-//             let is_dose = ecm.get_ref(interactive_id).unwrap().dose.is_some();
-//             match ecm.get_ref(interactive_id).unwrap().attribute_modifier {
-//                 Some(modifier) => {
-//                     let tolerance = match ecm.get_ref(id).unwrap().addiction {
-//                         Some(addiction) if is_dose => addiction.tolerance,
-//                         _ => 0,
-//                     };
-//                     ecm.get_mut_ref(id).unwrap().attributes.mutate(
-//                         |attrs| Attributes{
-//                             state_of_mind: attrs.state_of_mind + modifier.state_of_mind - tolerance,
-//                             will: attrs.will + modifier.will,
-//                         });
-//                 }
-//                 None => {}
-//             }
-//             match ecm.get_ref(interactive_id).unwrap().dose {
-//                 Some(dose) => {
-//                     ecm.get_mut_ref(id).unwrap().addiction.mutate(
-//                         |a| Addiction{
-//                             tolerance: a.tolerance + dose.tolerance_modifier, .. a});
-//                 }
-//                 None => {}
-//             }
-//             match ecm.get_ref(interactive_id).unwrap().explosion_effect {
-//                 Some(ExplosionEffect{radius}) => {
-//                     let (px, py) = pos;
-//                     for x in range(px - radius, px + radius) {
-//                         for y in range(py - radius, py + radius) {
-//                             for (m_id, _) in res.map.entities_on_pos((x, y)) {
-//                                 let monster_id = ID(m_id);
-//                                 if ecm.get_mut_ref(monster_id).unwrap().ai.is_some() {
-//                                     combat::kill_entity(monster_id, ecm, &mut res.map);
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//                 None => {}
-//             }
-//             ecm.get_mut_ref(interactive_id).unwrap().position = None;
-//             res.map.remove_entity(*interactive_id, pos);
-//         }
-//     }
-// }
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  res: &mut Resources) {
+        // Only humans can use stuff for now:
+        if !ecm.has_accepts_user_input(e) { return }
+        if !ecm.has_position(e) { return }
+        let pos = match ecm.get_position(e) {Position{x, y} => (x, y)};
+        for (entity_map_id, _walkability) in res.map.entities_on_pos(pos) {
+            let inter = ID(entity_map_id);
+            if e == inter { loop }  // Entity cannot interact with itself
+            if !ecm.has_entity(inter) {loop}
+            let is_interactive = ecm.has_attribute_modifier(inter) || ecm.has_explosion_effect(inter);
+            if !is_interactive {loop}
+            let is_dose = ecm.has_dose(inter);
+            if ecm.has_attribute_modifier(inter) {
+                let tolerance = if is_dose && ecm.has_addiction(e) {
+                    ecm.get_addiction(e).tolerance
+                } else {
+                    0
+                };
+                if ecm.has_attributes(e) {
+                    let attrs = ecm.get_attributes(e);
+                    let modifier = ecm.get_attribute_modifier(inter);
+                    ecm.set_attributes(e, Attributes{
+                            state_of_mind: attrs.state_of_mind + modifier.state_of_mind - tolerance,
+                            will: attrs.will + modifier.will,
+                        });
+                }
+            }
+            if is_dose {
+                if ecm.has_addiction(e) {
+                    let addiction = ecm.get_addiction(e);
+                    let dose = ecm.get_dose(inter);
+                    ecm.set_addiction(e, Addiction{
+                            tolerance: addiction.tolerance + dose.tolerance_modifier,
+                            .. addiction});
+                }
+            }
+            if ecm.has_explosion_effect(inter) {
+                let radius = ecm.get_explosion_effect(inter).radius;
+                let (px, py) = pos;
+                for x in range(px - radius, px + radius) {
+                    for y in range(py - radius, py + radius) {
+                        for (m_id, _) in res.map.entities_on_pos((x, y)) {
+                            let monster = ID(m_id);
+                            if ecm.has_ai(monster) {
+                                combat::kill_entity(monster, ecm, &mut res.map);
+                            }
+                        }
+                    }
+                }
+            }
+            ecm.remove_position(inter);
+            res.map.remove_entity(*inter, pos);
+        }
+    }
+}
 
-// pub mod bump {
-//     use components::{AttackTarget, Entity};
-//     use entity_manager::{EntityManager, ID};
-//     use super::super::Resources;
+pub mod bump {
+    use components::{AttackTarget, ComponentManager, ID};
+    use super::super::Resources;
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   _res: &mut Resources) {
-//         let bumpee_id = match ecm.get_ref(id).unwrap().bump {
-//             Some(id) => *id,
-//             None => {return}
-//         };
-//         let bumpee = ecm.get_ref(bumpee_id).unwrap().turn;
-//         match ecm.get_mut_ref(id) {
-//             Some(e) => {
-//                 if bumpee.is_some() && e.turn.is_some() && bumpee.unwrap().side != e.turn.unwrap().side {
-//                     println!("Entity {} attacks {}.", *id, *bumpee_id);
-//                     e.attack_target = Some(AttackTarget(bumpee_id));
-//                 } else {
-//                     println!("Entity {} hits the wall.", *id);
-//                 }
-//                 e.bump = None;
-//             }
-//             _ => (),
-//         }
-//     }
-// }
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  _res: &mut Resources) {
+        if !ecm.has_bump(e) {return}
+        let bumpee = *ecm.get_bump(e);
+        ecm.remove_bump(e);
+        if !ecm.has_entity(bumpee) {return}
+        let different_sides = (ecm.has_turn(bumpee) && ecm.has_turn(e)
+                               && ecm.get_turn(bumpee).side != ecm.get_turn(e).side);
+        if different_sides {
+            println!("Entity {} attacks {}.", *e, *bumpee);
+            ecm.set_attack_target(e, AttackTarget(bumpee));
+        } else {
+            println!("Entity {} hits the wall.", *e);
+        }
+    }
+}
 
 pub mod combat {
     use components::*;
@@ -571,86 +539,72 @@ pub mod combat {
         ecm.remove_turn(e);
     }
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   res: &mut Resources) {
-//         if ecm.get_ref(id).is_none() { return }
-//         if ecm.get_ref(id).unwrap().attack_target.is_none() { return }
-//         if ecm.get_ref(id).unwrap().attack_type.is_none() { return }
-//         let free_aps = match ecm.get_ref(id).unwrap().turn {
-//             Some(t) => t.ap,
-//             None => 0,
-//         };
-//         let target_id = match ecm.get_ref(id) {
-//             Some(e) => match e.attack_target {
-//                 Some(attack_component) => *attack_component,
-//                 None => return,
-//             },
-//             None => { return }
-//         };
-//         let attack_successful = ecm.get_ref(target_id).is_some() && free_aps > 0;
-//         if attack_successful {
-//             // attacker spends an AP
-//             match ecm.get_mut_ref(id) {
-//                 Some(attacker) => {
-//                     attacker.spend_ap(1);
-//                     attacker.attack_target = None;
-//                 }
-//                 None => {}
-//             }
-//             let attack_type = ecm.get_ref(id).unwrap().attack_type.unwrap();
-//             match attack_type {
-//                 Kill => {
-//                     println!("Entity {} was killed by {}", *target_id, *id);
-//                     kill_entity(target_id, ecm, &mut res.map);
-//                     let target_is_anxiety = match ecm.get_ref(target_id).unwrap().monster {
-//                         Some(m) => m.kind == Anxiety,
-//                         None => false,
-//                     };
-//                     match ecm.get_mut_ref(id) {
-//                         Some(ref mut e) if target_is_anxiety && e.anxiety_kill_counter.is_some() => {
-//                             do e.anxiety_kill_counter.mutate |counter| {
-//                                 AnxietyKillCounter{
-//                                     count: counter.count + 1,
-//                                     .. counter
-//                                 }
-//                             };
-//                         }
-//                         _ => {}
-//                     }
-//                 }
-//                 Stun{duration} => {
-//                     println!("Entity {} was stunned by {}", *target_id, *id);
-//                     kill_entity(id, ecm, &mut res.map);
-//                     let target = ecm.get_mut_ref(target_id).unwrap();
-//                     target.stunned.mutate_default(
-//                         Stunned{turn: res.turn, duration: duration},
-//                         |existing| Stunned{duration: existing.duration + duration, .. existing});
-//                 }
-//                 Panic{duration} => {
-//                     println!("Entity {} panics because of {}", *target_id, *id);
-//                     kill_entity(id, ecm, &mut res.map);
-//                     let target = ecm.get_mut_ref(target_id).unwrap();
-//                     target.panicking.mutate_default(
-//                         Panicking{turn: res.turn, duration: duration},
-//                         |existing| Panicking{duration: existing.duration + duration, .. existing});
-//                 }
-//                 ModifyAttributes => {
-//                     match ecm.get_ref(id).unwrap().attribute_modifier {
-//                         Some(modifier) => {
-//                             let target = ecm.get_mut_ref(target_id).unwrap();
-//                             target.attributes.mutate(
-//                                 |attrs| Attributes{
-//                                     state_of_mind: attrs.state_of_mind + modifier.state_of_mind,
-//                                     will: attrs.will + modifier.will});
-
-//                         }
-//                         None => fail!("The attacker must have attribute_modifier"),
-//                     }
-//                 }
-//             }
-//         }
-//     }
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  res: &mut Resources) {
+        if !ecm.has_attack_target(e) {return}
+        if !ecm.has_attack_type(e) {return}
+        if !ecm.has_turn(e) {return}
+        let free_aps = ecm.get_turn(e).ap;
+        let target = *ecm.get_attack_target(e);
+        ecm.remove_attack_target(e);
+        let attack_successful = ecm.has_entity(target) && free_aps > 0;
+        if !attack_successful {return}
+        // attacker spends an AP
+        let turn = ecm.get_turn(e);
+        ecm.set_turn(e, turn.spend_ap(1));
+        match ecm.get_attack_type(e) {
+            Kill => {
+                println!("Entity {} was killed by {}", *target, *e);
+                kill_entity(target, ecm, &mut res.map);
+                let target_is_anxiety = (ecm.has_monster(target) &&
+                                         ecm.get_monster(target).kind == Anxiety);
+                if target_is_anxiety && ecm.has_anxiety_kill_counter(e) {
+                    let counter = ecm.get_anxiety_kill_counter(e);
+                    ecm.set_anxiety_kill_counter(e, AnxietyKillCounter{
+                            count: counter.count + 1,
+                            .. counter
+                        });
+                }
+            }
+            Stun{duration} => {
+                println!("Entity {} was stunned by {}", *target, *e);
+                // An attacker with stun disappears after delivering the blow
+                kill_entity(e, ecm, &mut res.map);
+                let stunned = if ecm.has_stunned(target) {
+                    let prev = ecm.get_stunned(target);
+                    Stunned{duration: prev.duration + duration, .. prev}
+                } else {
+                    Stunned{turn: res.turn, duration: duration}
+                };
+                ecm.set_stunned(target, stunned);
+            }
+            Panic{duration} => {
+                println!("Entity {} panics because of {}", *target, *e);
+                // An attacker with stun disappears after delivering the blow
+                kill_entity(e, ecm, &mut res.map);
+                let panicking = if ecm.has_panicking(target) {
+                    let prev = ecm.get_panicking(target);
+                    Panicking{duration: prev.duration + duration, .. prev}
+                } else {
+                    Panicking{turn: res.turn, duration: duration}
+                };
+                ecm.set_panicking(target, panicking);
+            }
+            ModifyAttributes => {
+                if !ecm.has_attribute_modifier(e) {
+                    fail!("The attacker must have attribute_modifier");
+                }
+                let modifier = ecm.get_attribute_modifier(e);
+                if ecm.has_attributes(target) {
+                    let attrs = ecm.get_attributes(target);
+                    ecm.set_attributes(target, Attributes{
+                            state_of_mind: attrs.state_of_mind + modifier.state_of_mind,
+                            will: attrs.will + modifier.will})
+                }
+            }
+        }
+    }
 }
 
 
@@ -704,42 +658,34 @@ mod addiction {
     }
 }
 
-// mod will {
-//     use components::*;
-//     use entity_manager::{EntityManager, ID};
-//     use super::combat;
-//     use super::super::Resources;
+mod will {
+    use components::*;
+    use super::combat;
+    use super::super::Resources;
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   res: &mut Resources) {
-//         if ecm.get_ref(id).is_none() { return }
-//         if ecm.get_ref(id).unwrap().attributes.is_none() { return }
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  res: &mut Resources) {
+        if !ecm.has_attributes(e) {return}
+        let attrs = ecm.get_attributes(e);
 
-//         match ecm.get_mut_ref(id) {
-//             Some(ref mut e) if e.anxiety_kill_counter.is_some() => {
-//                 let kc = e.anxiety_kill_counter.unwrap();
-//                 if kc.count >= kc.threshold {
-//                     do e.attributes.mutate |attrs| {
-//                         Attributes{will: attrs.will + 1, .. attrs}
-//                     };
-//                     do e.anxiety_kill_counter.mutate |counter| {
-//                         AnxietyKillCounter{
-//                             count: counter.threshold - counter.count,
-//                             .. counter
-//                         }
-//                     };
-//                 }
-//             }
-//             _ => {}
-//         }
-
-//         let attrs = ecm.get_ref(id).unwrap().attributes.unwrap();
-//         if attrs.will <= 0 {
-//             combat::kill_entity(id, ecm, &mut res.map);
-//         }
-//     }
-// }
+        if ecm.has_anxiety_kill_counter(e) {
+            let kc = ecm.get_anxiety_kill_counter(e);
+            if kc.count >= kc.threshold {
+                ecm.set_attributes(e,
+                                   Attributes{will: attrs.will + 1, .. attrs});
+                ecm.set_anxiety_kill_counter(e,
+                                             AnxietyKillCounter{
+                        count: kc.threshold - kc.count,
+                        .. kc
+                    });
+            }
+        }
+        if ecm.get_attributes(e).will <= 0 {
+            combat::kill_entity(e, ecm, &mut res.map);
+        }
+    }
+}
 
 pub mod tile {
     use components::{ComponentManager, ID, Position, Tile};
@@ -843,8 +789,8 @@ pub mod gui {
 
         let attrs = ecm.get_attributes(player);
         let dead = match ecm.has_position(player) {
-            true => ~"dead ",
-            false => ~"",
+            true => ~"",
+            false => ~"dead ",
         };
         let stunned = match ecm.has_stunned(player) {
             true => format!("stunned({}) ", ecm.get_stunned(player).remaining(res.turn)),

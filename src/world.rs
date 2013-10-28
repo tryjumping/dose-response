@@ -19,7 +19,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                             player_pos.y + rng.choose(pos_offset));
     let world = generate(rng, map.width, map.height);
     for &(x, y, item) in world.iter() {
-        let mut bg = ecm.new_entity();
+        let bg = ecm.new_entity();
         ecm.set_position(bg, Position{x: x, y: y});
         ecm.set_background(bg, Background);
         let item = if (x, y) == (player_pos.x, player_pos.y) {
@@ -42,7 +42,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
             loop
         };
         if item != world_gen::Tree && item != world_gen::Empty {
-            let mut e = ecm.new_entity();
+            let e = ecm.new_entity();
             ecm.set_position(e, Position{x: x, y: y});
             let mut tile_level = 1;
             if item.is_monster() {
@@ -120,7 +120,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
 }
 
 pub fn player_entity(ecm: &mut ComponentManager) -> ID {
-    let mut player = ecm.new_entity();
+    let player = ecm.new_entity();
     ecm.set_accepts_user_input(player, AcceptsUserInput);
     ecm.set_attack_type(player, Kill);
     ecm.set_attributes(player, Attributes{state_of_mind: 20, will: 2});

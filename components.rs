@@ -8,13 +8,13 @@ struct AttributeModifier{state_of_mind: int, will: int}
 struct Attributes{state_of_mind: int, will: int}
 struct Background
 struct Bump(ID)
-struct ExplosionEffect{radius: int}
-struct Monster{kind: MonsterKind}
-struct Position {x: int, y: int}
 struct Destination {x: int, y: int}
 struct Dose{tolerance_modifier: int, resist_radius: int}
+struct ExplosionEffect{radius: int}
+struct Monster{kind: MonsterKind}
+struct Panicking{turn: int, duration: int}
+struct Position {x: int, y: int}
 struct Solid
 struct Stunned{turn: int, duration: int}
-struct Panicking{turn: int, duration: int}
 struct Tile{level: uint, glyph: char, color: Color}
 struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}

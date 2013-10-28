@@ -74,6 +74,12 @@ pub fn new() -> ComponentManager {
         }
     }
 
+    pub fn add_entity(&mut self, entity: Entity) -> ID {
+        self.entities.push(entity);
+        self.next_id = ID(*self.next_id + 1);
+        ID(*self.next_id - 1)
+    }
+
     pub fn iter(&self) -> Map<int, ID, Range<int>> {
         range(*self.initial_id, *self.next_id).map(|index| ID(index))
     }

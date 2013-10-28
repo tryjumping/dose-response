@@ -5,9 +5,8 @@ use std::io;
 use std::rand::{Rng, IsaacRng};
 use std::os;
 use std::to_bytes::{ToBytes};
-use entity_manager::EntityManager;
 
-use components::{Entity, Computer, Side};
+use components::{ComponentManager, ID, Computer, Side};
 use engine::{Display, MainLoopState, Key};
 use extra::ringbuf::RingBuf;
 use extra::container::Deque;
@@ -18,7 +17,6 @@ use systems::input::commands::Command;
 
 pub mod components;
 mod engine;
-pub mod entity_manager;
 pub mod map;
 pub mod systems;
 pub mod tcod;
@@ -27,7 +25,7 @@ pub mod world;
 
 
 pub struct GameState {
-    entities: EntityManager<Entity>,
+    entities: ComponentManager,
     resources: Resources,
 }
 
@@ -38,7 +36,7 @@ pub struct Resources {
     rng: IsaacRng,
     commands: RingBuf<Command>,
     command_logger: CommandLogger,
-    player_id: entity_manager::ID,
+    player_id: ID,
 }
 
 fn escape_pressed(keys: &RingBuf<Key>) -> bool {
@@ -94,10 +92,9 @@ fn update(state: &mut GameState,
         println!("Restarting game");
         keys.clear();
         let mut state = new_game_state(state.resources.map.width, state.resources.map.height);
-        let player = world::player_entity();
-        let player_pos = player.position.unwrap();
-        state.entities.add(player);
-        assert!(state.entities.get_ref(state.resources.player_id).is_some());
+        let player = world::player_entity(&mut state.entities);
+        let player_pos = state.entities.get_position(player);
+        assert!(state.entities.has_entity(state.resources.player_id));
         world::populate_world(&mut state.entities,
                               &mut state.resources.map,
                               player_pos,
@@ -108,31 +105,31 @@ fn update(state: &mut GameState,
 
     let systems = [
         systems::turn_tick_counter::system,
-        systems::effect_duration::system,
-        systems::addiction::system,
-        systems::input::system,
-        systems::leave_area::system,
-        systems::ai::system,
-        systems::panic::system,
-        systems::stun::system,
-        systems::dose::system,
-        systems::path::system,
-        systems::movement::system,
-        systems::interaction::system,
-        systems::bump::system,
-        systems::combat::system,
-        systems::will::system,
-        systems::player_dead::system,
+        // systems::effect_duration::system,
+        // systems::addiction::system,
+        // systems::input::system,
+        // systems::leave_area::system,
+        // systems::ai::system,
+        // systems::panic::system,
+        // systems::stun::system,
+        // systems::dose::system,
+        // systems::path::system,
+        // systems::movement::system,
+        // systems::interaction::system,
+        // systems::bump::system,
+        // systems::combat::system,
+        // systems::will::system,
+        // systems::player_dead::system,
     ];
 
     process_input(keys, &mut state.resources.commands);
-    for id in state.entities.id_iter() {
+    for id in state.entities.iter() {
         for &sys in systems.iter() {
-            if state.entities.get_ref(id).is_some() {
+            if state.entities.has_entity(id) {
                 sys(id, &mut state.entities, &mut state.resources);
             }
         }
-        if state.entities.get_ref(id).is_some() {
+        if state.entities.has_entity(id) {
             systems::tile::system(id, &state.entities, display);
         }
     }
@@ -196,7 +193,7 @@ fn new_game_state(width: uint, height: uint) -> GameState {
         Err(e) => fail!(fmt!("Failed to open the replay file: %s", e)),
     };
     let logger = CommandLogger{writer: writer};
-    let ecm = EntityManager::new();
+    let ecm = ComponentManager::new();
     let map = map::Map::new(width, height);
     GameState {
         entities: ecm,
@@ -207,7 +204,7 @@ fn new_game_state(width: uint, height: uint) -> GameState {
             rng: rng,
             side: Computer,
             turn: 0,
-            player_id: entity_manager::ID(0),
+            player_id: ID(0),
         },
     }
 }
@@ -236,7 +233,7 @@ fn replay_game_state(width: uint, height: uint) -> GameState {
     }
     let rng = IsaacRng::new_seeded(seed);
     let logger = CommandLogger{writer: writer};
-    let ecm = EntityManager::new();
+    let ecm = ComponentManager::new();
     let map = map::Map::new(width, height);
     GameState {
         entities: ecm,
@@ -247,7 +244,7 @@ fn replay_game_state(width: uint, height: uint) -> GameState {
             map: map,
             side: Computer,
             turn: 0,
-            player_id: entity_manager::ID(0),
+            player_id: ID(0),
         },
     }
 }
@@ -268,11 +265,10 @@ fn main() {
         _ => fail!("You must pass either pass zero or one arguments."),
     };
 
-    let player = world::player_entity();
-    let player_pos = player.position.unwrap();
-    let player_id = game_state.entities.add(player);
-    assert_eq!(player_id, entity_manager::ID(0));
-    game_state.resources.player_id = player_id;
+    let player = world::player_entity(&mut game_state.entities);
+    let player_pos = game_state.entities.get_position(player);
+    assert_eq!(player, ID(0));
+    game_state.resources.player_id = player;
     world::populate_world(&mut game_state.entities,
                           &mut game_state.resources.map,
                           player_pos,

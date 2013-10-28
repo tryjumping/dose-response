@@ -2,14 +2,13 @@ use std::rand::Rng;
 
 use components::*;
 use engine::Color;
-use entity_manager::EntityManager;
 use map;
 use map::Map;
 use world_gen;
 use systems::ai::distance;
 
 
-pub fn populate_world<T: Rng>(ecm: &mut EntityManager<Entity>,
+pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                               map: &mut Map,
                               player_pos: Position,
                               rng: &mut T,
@@ -20,9 +19,9 @@ pub fn populate_world<T: Rng>(ecm: &mut EntityManager<Entity>,
                             player_pos.y + rng.choose(pos_offset));
     let world = generate(rng, map.width, map.height);
     for &(x, y, item) in world.iter() {
-        let mut bg = Entity::new();
-        bg.position = Some(Position{x: x, y: y});
-        bg.background = Some(Background);
+        let mut bg = ecm.new_entity();
+        ecm.set_position(bg, Position{x: x, y: y});
+        ecm.set_background(bg, Background);
         let item = if (x, y) == (player_pos.x, player_pos.y) {
             world_gen::Empty
         } else {
@@ -34,119 +33,113 @@ pub fn populate_world<T: Rng>(ecm: &mut EntityManager<Entity>,
             item
         };
         if item == world_gen::Tree {
-            bg.tile = Some(Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
-            bg.solid = Some(Solid);
+            ecm.set_tile(bg, Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
+            ecm.set_solid(bg, Solid);
         } else { // put an empty item as the background
-            bg.tile = Some(Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
+            ecm.set_tile(bg, Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
-        ecm.add(bg);
         if near_player(x, y) && ((x, y) != initial_dose_pos) {
             loop
         };
         if item != world_gen::Tree && item != world_gen::Empty {
-            let mut e = Entity::new();
-            e.position = Some(Position{x: x, y: y});
+            let mut e = ecm.new_entity();
+            ecm.set_position(e, Position{x: x, y: y});
             let mut tile_level = 1;
             if item.is_monster() {
                 let behaviour = match item {
                     world_gen::Hunger => ai::Pack,
                     _ => ai::Individual,
                 };
-                e.ai = Some(AI{behaviour: behaviour, state: ai::Idle});
+                ecm.set_ai(e, AI{behaviour: behaviour, state: ai::Idle});
                 let max_ap = if item == world_gen::Depression { 2 } else { 1 };
-                e.turn = Some(Turn{side: Computer,
+                ecm.set_turn(e, Turn{side: Computer,
                                    ap: 0,
                                    max_ap: max_ap,
                                    spent_this_tick: 0,
                     });
-                e.solid = Some(Solid);
+                ecm.set_solid(e, Solid);
                 match item {
                     world_gen::Anxiety => {
-                        e.monster = Some(Monster{kind: Anxiety});
-                        e.attack_type = Some(ModifyAttributes);
-                        e.attribute_modifier = Some(
+                        ecm.set_monster(e, Monster{kind: Anxiety});
+                        ecm.set_attack_type(e, ModifyAttributes);
+                        ecm.set_attribute_modifier(e,
                             AttributeModifier{state_of_mind: 0, will: -1});
                     }
                     world_gen::Depression => {
-                        e.monster = Some(Monster{kind: Depression});
-                        e.attack_type = Some(Kill)
+                        ecm.set_monster(e, Monster{kind: Depression});
+                        ecm.set_attack_type(e, Kill)
                     },
                     world_gen::Hunger => {
-                        e.monster = Some(Monster{kind: Hunger});
-                        e.attack_type = Some(ModifyAttributes);
-                        e.attribute_modifier = Some(
+                        ecm.set_monster(e, Monster{kind: Hunger});
+                        ecm.set_attack_type(e, ModifyAttributes);
+                        ecm.set_attribute_modifier(e,
                             AttributeModifier{state_of_mind: -20, will: 0})
                     }
                     world_gen::Voices => {
-                        e.monster = Some(Monster{kind: Voices});
-                        e.attack_type = Some(Stun{duration: 4})
+                        ecm.set_monster(e, Monster{kind: Voices});
+                        ecm.set_attack_type(e, Stun{duration: 4})
                     },
                     world_gen::Shadows => {
-                        e.monster = Some(Monster{kind: Shadows});
-                        e.attack_type = Some(Panic{duration: 4})
+                        ecm.set_monster(e, Monster{kind: Shadows});
+                        ecm.set_attack_type(e, Panic{duration: 4})
                     },
                     _ => unreachable!(),
                 };
                 tile_level = 2;
             } else if item == world_gen::Dose {
-                e.dose = Some(Dose{tolerance_modifier: 1, resist_radius: 2});
-                e.attribute_modifier = Some(AttributeModifier{
+                ecm.set_dose(e, Dose{tolerance_modifier: 1, resist_radius: 2});
+                ecm.set_attribute_modifier(e, AttributeModifier{
                         state_of_mind: 40 + rng.gen_integer_range(-10, 11),
                         will: 0,
                     });
-                e.explosion_effect = Some(ExplosionEffect{radius: 4});
+                ecm.set_explosion_effect(e, ExplosionEffect{radius: 4});
             } else if item == world_gen::StrongDose {
-                e.dose = Some(Dose{tolerance_modifier: 2, resist_radius: 3});
-                e.attribute_modifier = Some(AttributeModifier{
+                ecm.set_dose(e, Dose{tolerance_modifier: 2, resist_radius: 3});
+                ecm.set_attribute_modifier(e, AttributeModifier{
                         state_of_mind: 90 + rng.gen_integer_range(-15, 16),
                         will: 0,
                     });
-                e.explosion_effect = Some(ExplosionEffect{radius: 6});
+                ecm.set_explosion_effect(e, ExplosionEffect{radius: 6});
             }
-            e.tile = Some(Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
-            ecm.add(e);
+            ecm.set_tile(e, Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
         }
     }
 
     // Initialise the map's walkability data
-    for (e, id) in ecm.iter() {
-        match e.position {
-            Some(Position{x, y}) => {
-                let walkable = match e.solid {
-                    Some(_) => map::Solid,
-                    None => map::Walkable,
-                };
-                match e.background {
-                    Some(_) => map.set_walkability((x, y), walkable),
-                    None => map.place_entity(*id, (x, y), walkable),
-                }
-            },
-            None => (),
+    for e in ecm.iter() {
+        let Position{x, y} =  ecm.get_position(e);
+        let walkable = match ecm.has_solid(e) {
+            true => map::Solid,
+            false => map::Walkable,
+        };
+        match ecm.has_background(e) {
+            true => map.set_walkability((x, y), walkable),
+            false => map.place_entity(*e, (x, y), walkable),
         }
     }
 }
 
-pub fn player_entity() -> Entity {
-    let mut player = Entity::new();
-    player.accepts_user_input = Some(AcceptsUserInput);
-    player.attack_type = Some(Kill);
-    player.attributes = Some(Attributes{state_of_mind: 20, will: 2});
-    player.addiction = Some(Addiction{
+pub fn player_entity(ecm: &mut ComponentManager) -> ID {
+    let mut player = ecm.new_entity();
+    ecm.set_accepts_user_input(player, AcceptsUserInput);
+    ecm.set_attack_type(player, Kill);
+    ecm.set_attributes(player, Attributes{state_of_mind: 20, will: 2});
+    ecm.set_addiction(player, Addiction{
             tolerance: 0,
             drop_per_turn: 1,
             last_turn: 1,
         });
-    player.anxiety_kill_counter = Some(AnxietyKillCounter{
+    ecm.set_anxiety_kill_counter(player, AnxietyKillCounter{
             count: 0,
             threshold: 10});
-    player.position = Some(Position{x: 10, y: 20});
-    player.tile = Some(Tile{level: 2, glyph: '@', color: col::player});
-    player.turn = Some(Turn{side: Player,
+    ecm.set_position(player, Position{x: 10, y: 20});
+    ecm.set_tile(player, Tile{level: 2, glyph: '@', color: col::player});
+    ecm.set_turn(player, Turn{side: Player,
                             ap: 0,
                             max_ap: 1,
                             spent_this_tick: 0,
         });
-    player.solid = Some(Solid);
+    ecm.set_solid(player, Solid);
     return player;
 }
 

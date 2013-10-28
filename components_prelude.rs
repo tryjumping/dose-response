@@ -3,7 +3,6 @@ use std::iter::{Map, Range};
 
 use engine::{Color};
 pub use map;
-use entity_manager;
 
 #[deriving(Eq)]
 pub enum Side {

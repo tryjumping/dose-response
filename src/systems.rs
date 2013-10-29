@@ -104,7 +104,6 @@ pub mod leave_area {
             ecm.remove_bump(player_id);
             ecm.remove_attack_target(player_id);
             ecm.remove_destination(player_id);
-            ecm.remove_path(player_id);
             res.map = Map::new(res.map.width, res.map.height);
             let player_pos = ecm.get_position(player_id);
             world::populate_world(ecm,
@@ -297,14 +296,7 @@ pub mod dose {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        ensure_components!(ecm, e, Addiction, Attributes, Position);
-        if !ecm.has_destination(e) {
-            // Prevent the PC from running towards the dose without any input
-            // from the player:
-            ecm.remove_path(e);
-            return;
-        }
-
+        ensure_components!(ecm, e, Addiction, Attributes, Position, Destination);
         let will = ecm.get_attributes(e).will;
         let pos = ecm.get_position(e);
         let search_radius = 3;  // max irresistibility for a dose is curretnly 3
@@ -344,38 +336,6 @@ pub mod dose {
     }
 }
 
-pub mod path {
-    use components::*;
-    use super::ai;
-    use super::super::Resources;
-
-    pub fn system(e: ID,
-                  ecm: &mut ComponentManager,
-                  _res: &mut Resources) {
-        ensure_components!(ecm, e, Position, Destination);
-        let pos = ecm.get_position(e);
-        let dest = ecm.get_destination(e);
-        if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) <= 1 {
-            ecm.set_path(e, Path{from: (pos.x, pos.y), to: (dest.x, dest.y)});
-        } else {
-            ecm.set_path(e, Path{from: (pos.x, pos.y), to: (pos.x, pos.y)});
-            //fail!("TODO: paths longer than 1 step are not implemented yet.");
-            // match res.map.find_path((pos.x, pos.y), (dest.x, dest.y)) {
-            //     Some(path) => {
-            //         ecm.set_path(e, Path{from: (pos.x, pos.y), to: (dest.x, dest.y)});
-            //     }
-            //     None => {
-            //         // if we can't find a path, make the entity wait by setting
-            //         // the destination to the current position:
-            //         ecm.set_path(e, Path{from: (pos.x, pos.y), to: (pos.x, pos.y)});
-            //     }
-            // }
-        }
-        ecm.remove_destination(e);
-    }
-}
-
-
 pub mod movement {
     use components::*;
     use map::{Walkable, Solid};
@@ -385,45 +345,67 @@ pub mod movement {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        ensure_components!(ecm, e, Position, Path, Turn);
+        ensure_components!(ecm, e, Position, Destination, Turn);
         let turn = ecm.get_turn(e);
         if turn.ap <= 0 {return}
 
         let pos = ecm.get_position(e);
-        let path = ecm.get_path(e);
-        assert_eq!((pos.x, pos.y), path.from);
-        if path.from == path.to {
+        let dest = ecm.get_destination(e);
+        if (pos.x, pos.y) == (dest.x, dest.y) {
             // Wait (spends an AP but do nothing)
             println!("Entity {} waits.", *e);
             ecm.set_turn(e, turn.spend_ap(1));
-            ecm.remove_path(e);
-        } else if ai::distance(&pos, &match path.to {(x, y) => Position{x: x, y: y}}) == 1 {
-            if res.map.is_walkable(path.to)  {  // Move to the cell
+            ecm.remove_destination(e);
+        } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
+            if res.map.is_walkable((dest.x, dest.y))  {  // Move to the cell
                 ecm.set_turn(e, turn.spend_ap(1));
                 { // Update both the entity position component and the map:
-                    res.map.move_entity(*e, path.from, path.to);
-                    let (x, y) = path.to;
-                    ecm.set_position(e, Position{x: x, y: y});
+                    res.map.move_entity(*e, (pos.x, pos.y), (dest.x, dest.y));
+                    ecm.set_position(e, Position{x: dest.x, y: dest.y});
                 }
-                ecm.remove_path(e);
+                ecm.remove_destination(e);
             } else {  // Bump into the blocked entity
                 // TODO: assert there's only one solid entity on pos [x, y]
-                for (bumpee, walkable) in res.map.entities_on_pos(path.to) {
+                for (bumpee, walkable) in res.map.entities_on_pos((dest.x, dest.y)) {
                     assert!(bumpee != *e);
                     match walkable {
                         Walkable => loop,
                         Solid => {
-                            let (x, y) = path.to;
-                            println!("Entity {} bumped into {} at: ({}, {})", *e, bumpee, x, y);
+                            println!("Entity {} bumped into {} at: ({}, {})",
+                                     *e, bumpee, dest.x, dest.y);
                             ecm.set_bump(e, Bump(ID(bumpee)));
-                            ecm.remove_path(e);
+                            ecm.remove_destination(e);
                             break;
                         }
                     }
                 }
             }
-        } else {
-            fail!("TODO: Trying to walk a path with more then 1 step.");
+        } else {  // Farther away than 1 space. Need to use path finding
+            match res.map.find_path((pos.x, pos.y), (dest.x, dest.y)) {
+                Some(ref mut path) => {
+                    assert!(path.len() > 1,
+                            "The path shouldn't be trivial. We already handled that.");
+                    match path.walk() {
+                        Some((x, y)) => {
+                            let new_pos = Position{x: x, y: y};
+                            assert!(ai::distance(&pos, &new_pos) == 1,
+                                    "The step should be right next to the curret pos.");
+                            ecm.set_turn(e, turn.spend_ap(1));
+                            { // Update both the entity position component and the map:
+                                res.map.move_entity(*e, (pos.x, pos.y), (x, y));
+                                ecm.set_position(e, new_pos);
+                            }
+                        }
+                        // "The path exists but can't be walked?!"
+                        None => unreachable!(),
+                    }
+                }
+                None => {
+                    println!("Entity {} cannot find a path so it waits.", *e);
+                    ecm.set_turn(e, turn.spend_ap(1));
+                    ecm.remove_destination(e);
+                }
+            }
         }
     }
 }

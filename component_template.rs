@@ -13,7 +13,6 @@ struct Dose{tolerance_modifier: int, resist_radius: int}
 struct ExplosionEffect{radius: int}
 struct Monster{kind: MonsterKind}
 struct Panicking{turn: int, duration: int}
-struct Path{from: (int, int), to: (int, int)}
 struct Position {x: int, y: int}
 struct Solid
 struct Stunned{turn: int, duration: int}

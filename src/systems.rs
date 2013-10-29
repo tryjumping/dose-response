@@ -99,7 +99,7 @@ pub mod leave_area {
             ecm.remove_bump(player_id);
             ecm.remove_attack_target(player_id);
             ecm.remove_destination(player_id);
-            //ecm.remove_path(player_id);
+            ecm.remove_path(player_id);
             res.map = Map::new(res.map.width, res.map.height);
             let player_pos = ecm.get_position(player_id);
             world::populate_world(ecm,
@@ -350,34 +350,36 @@ pub mod stun {
 //     }
 // }
 
-// pub mod path {
-//     use components::{Entity};
-//     use entity_manager::{EntityManager, ID};
-//     use super::super::Resources;
+pub mod path {
+    use components::{ComponentManager, ID, Path, Position};
+    use super::ai;
+    use super::super::Resources;
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   res: &mut Resources) {
-//         if ecm.get_ref(id).is_none() { return }
-//         let entity = ecm.get_mut_ref(id).unwrap();
-
-//         if entity.position.is_none() { return }
-
-//         match entity.destination {
-//             Some(dest) => {
-//                 let pos = entity.position.get_ref();
-//                 entity.path = res.map.find_path((pos.x, pos.y), (dest.x, dest.y));
-//                 if entity.path.is_none() {
-//                     // if we can't find a path, make the entity wait by setting
-//                     // the destination to the current position:
-//                     entity.path = res.map.find_path((pos.x, pos.y), (pos.x, pos.y));
-//                 }
-//             },
-//             None => (),
-//         }
-//         entity.destination = None;
-//     }
-// }
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  _res: &mut Resources) {
+        if !ecm.has_position(e) {return}
+        if !ecm.has_destination(e) {return}
+        let pos = ecm.get_position(e);
+        let dest = ecm.get_destination(e);
+        if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) <= 1 {
+            ecm.set_path(e, Path{from: (pos.x, pos.y), to: (dest.x, dest.y)});
+        } else {
+            fail!("TODO: paths longer than 1 step are not implemented yet.");
+            // match res.map.find_path((pos.x, pos.y), (dest.x, dest.y)) {
+            //     Some(path) => {
+            //         ecm.set_path(e, Path{from: (pos.x, pos.y), to: (dest.x, dest.y)});
+            //     }
+            //     None => {
+            //         // if we can't find a path, make the entity wait by setting
+            //         // the destination to the current position:
+            //         ecm.set_path(e, Path{from: (pos.x, pos.y), to: (pos.x, pos.y)});
+            //     }
+            // }
+        }
+        ecm.remove_destination(e);
+    }
+}
 
 
 // pub mod movement {

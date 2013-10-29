@@ -264,9 +264,9 @@ pub mod panic {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if ecm.has_panicking(e) {return}
-        if ecm.has_destination(e) {return}
-        if ecm.has_position(e) {return}
+        if !ecm.has_panicking(e) {return}
+        if !ecm.has_destination(e) {return}
+        if !ecm.has_position(e) {return}
         let pos = ecm.get_position(e);
         match ai::random_neighbouring_position(&mut res.rng, pos, &mut res.map) {
             (x, y) => ecm.set_destination(e, Destination{x: x, y: y}),
@@ -487,7 +487,7 @@ pub mod interaction {
                     for y in range(py - radius, py + radius) {
                         for (m_id, _) in res.map.entities_on_pos((x, y)) {
                             let monster = ID(m_id);
-                            if ecm.has_ai(monster) {
+                            if ecm.has_entity(monster) && ecm.has_ai(monster) {
                                 combat::kill_entity(monster, ecm, &mut res.map);
                             }
                         }

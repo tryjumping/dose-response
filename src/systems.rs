@@ -333,7 +333,22 @@ pub mod dose {
         match nearest_dose {
             Some(&dose) => {
                 let Position{x, y} = ecm.get_position(dose);
-                ecm.set_destination(e, Destination{x: x, y: y});
+                // We walk the path here to make sure we only move one step at a
+                // time.
+                match res.map.find_path((pos.x, pos.y), (x, y)) {
+                    Some(ref mut path) => {
+                        let resist_radius = num::max(ecm.get_dose(dose).resist_radius - will, 0);
+                        if path.len() <= resist_radius {
+                            match path.walk() {
+                                Some((x, y)) => {
+                                    ecm.set_destination(e, Destination{x: x, y: y});
+                                }
+                                None => unreachable!(),
+                            }
+                        }
+                    }
+                    None => {}
+                }
             }
             None => {}
         }

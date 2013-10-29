@@ -44,8 +44,8 @@ pub mod input {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_accepts_user_input(e) { return }
-        if !ecm.has_position(e) { return }
+        if !ecm.has_accepts_user_input(e) {return}
+        if !ecm.has_position(e) {return}
         if res.side != Player {return}
 
         let pos = ecm.get_position(e);
@@ -382,60 +382,60 @@ pub mod path {
 }
 
 
-// pub mod movement {
-//     use components::*;
-//     use entity_manager::{EntityManager, ID};
-//     use map::{Walkable, Solid};
-//     use super::super::Resources;
+pub mod movement {
+    use components::*;
+    use map::{Walkable, Solid};
+    use super::ai;
+    use super::super::Resources;
 
-//     pub fn system(id: ID,
-//                   ecm: &mut EntityManager<Entity>,
-//                   res: &mut Resources) {
-//         if ecm.get_ref(id).is_none() { return }
-//         let entity = ecm.get_mut_ref(id).unwrap();
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  res: &mut Resources) {
+        if !ecm.has_position(e) {return}
+        if !ecm.has_path(e) {return}
+        if !ecm.has_turn(e) {return}
 
-//         if entity.position.is_none() { return }
-//         if entity.path.is_none() { return }
-//         if entity.turn.is_none() { return }
+        let turn = ecm.get_turn(e);
+        if turn.ap <= 0 {return}
 
-//         if entity.turn.get_ref().ap <= 0 { return }
-
-//         let pos = entity.position.unwrap();
-//         match (entity.path.get_mut_ref()).walk() {
-//             Some(dest) => {
-//                 let (x, y) = dest;
-//                 if dest == (pos.x, pos.y) {  // Wait (spends an AP but do nothing)
-//                     println!("Entity {} waits.", *id);
-//                     entity.spend_ap(1);
-//                 } else if res.map.is_walkable(dest) {  // Move to the cell
-//                     entity.spend_ap(1);
-//                     { // Update both the entity position component and the map:
-//                         res.map.move_entity(*id, (pos.x, pos.y), dest);
-//                         entity.position = Some(Position{x: x, y: y});
-//                     }
-//                 } else {  // Bump into the blocked entity
-//                     // TODO: assert there's only one solid entity on pos [x, y]
-//                     for (bumpee, walkable) in res.map.entities_on_pos(dest) {
-//                         assert!(bumpee != *id);
-//                         match walkable {
-//                             Walkable => loop,
-//                             Solid => {
-//                                 println!("Entity {} bumped into {} at: ({}, {})", *id, bumpee, x, y);
-//                                 entity.bump = Some(Bump(ID(bumpee)));
-//                                 break;
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//             None => {
-//                 println!("Entity {} waits.", *id);
-//                 entity.spend_ap(1);
-//                 entity.path = None;
-//             }
-//         }
-//     }
-// }
+        let pos = ecm.get_position(e);
+        let path = ecm.get_path(e);
+        assert_eq!((pos.x, pos.y), path.from);
+        if path.from == path.to {
+            // Wait (spends an AP but do nothing)
+            println!("Entity {} waits.", *e);
+            ecm.set_turn(e, turn.spend_ap(1));
+            ecm.remove_path(e);
+        } else if ai::distance(&pos, &match path.to {(x, y) => Position{x: x, y: y}}) == 1 {
+            if res.map.is_walkable(path.to)  {  // Move to the cell
+                ecm.set_turn(e, turn.spend_ap(1));
+                { // Update both the entity position component and the map:
+                    res.map.move_entity(*e, path.from, path.to);
+                    let (x, y) = path.to;
+                    ecm.set_position(e, Position{x: x, y: y});
+                }
+                ecm.remove_path(e);
+            } else {  // Bump into the blocked entity
+                // TODO: assert there's only one solid entity on pos [x, y]
+                for (bumpee, walkable) in res.map.entities_on_pos(path.to) {
+                    assert!(bumpee != *e);
+                    match walkable {
+                        Walkable => loop,
+                        Solid => {
+                            let (x, y) = path.to;
+                            println!("Entity {} bumped into {} at: ({}, {})", *e, bumpee, x, y);
+                            ecm.set_bump(e, Bump(ID(bumpee)));
+                            ecm.remove_path(e);
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            fail!("TODO: Trying to walk a path with more then 1 step.");
+        }
+    }
+}
 
 pub mod interaction {
     use components::*;

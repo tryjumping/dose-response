@@ -365,7 +365,8 @@ pub mod path {
         if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) <= 1 {
             ecm.set_path(e, Path{from: (pos.x, pos.y), to: (dest.x, dest.y)});
         } else {
-            fail!("TODO: paths longer than 1 step are not implemented yet.");
+            ecm.set_path(e, Path{from: (pos.x, pos.y), to: (pos.x, pos.y)});
+            //fail!("TODO: paths longer than 1 step are not implemented yet.");
             // match res.map.find_path((pos.x, pos.y), (dest.x, dest.y)) {
             //     Some(path) => {
             //         ecm.set_path(e, Path{from: (pos.x, pos.y), to: (dest.x, dest.y)});

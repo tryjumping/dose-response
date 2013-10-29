@@ -15,9 +15,8 @@ test: $(SOURCES)
 	LD_LIBRARY_PATH="$(LIB)" $(BIN)/test-$(APP_NAME)
 
 
-src/components.rs: build_ecm.py components.rs components_prelude.rs
-	cp components_prelude.rs src/components.rs
-	python build_ecm.py components.rs | rustc --pretty normal - >> src/components.rs
+src/components.rs: build_ecm.py component_template.rs
+	./.venv/bin/python build_ecm.py component_template.rs > src/components.rs
 
 test_component_codegen:
 	python build_ecm.py | rustc --pretty normal - > test_component_codegen.rs

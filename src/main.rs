@@ -109,6 +109,7 @@ fn update(state: &mut GameState,
         systems::addiction::system,
         systems::input::system,
         systems::leave_area::system,
+        systems::player_dead::system,
         systems::ai::system,
         systems::panic::system,
         systems::stun::system,
@@ -119,7 +120,6 @@ fn update(state: &mut GameState,
         systems::bump::system,
         systems::combat::system,
         systems::will::system,
-        systems::player_dead::system,
     ];
 
     process_input(keys, &mut state.resources.commands);

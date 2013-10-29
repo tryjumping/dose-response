@@ -1,14 +1,20 @@
+macro_rules! ensure_components(
+    ($ecm:expr, $entity:expr, $($component:ident),+) => (
+        if !$ecm.has_entity($entity) || $(!$ecm.has_component($entity, concat_idents!(t, $component)))||+ {return}
+    )
+)
+
 pub mod turn_tick_counter {
-    use components::{ComponentManager, ID, Turn};
+    use components::*;
     use super::super::Resources;
 
-    pub fn system(id: ID,
+    pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_turn(id) {return}
-        let turn = ecm.get_turn(id);
+        ensure_components!(ecm, e, Turn);
+        let turn = ecm.get_turn(e);
         if turn.side == res.side {
-            ecm.set_turn(id, Turn{spent_this_tick: 0, .. turn});
+            ecm.set_turn(e, Turn{spent_this_tick: 0, .. turn});
         }
     }
 }
@@ -44,8 +50,7 @@ pub mod input {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_accepts_user_input(e) {return}
-        if !ecm.has_position(e) {return}
+        ensure_components!(ecm, e, AcceptsUserInput, Position);
         if res.side != Player {return}
 
         let pos = ecm.get_position(e);
@@ -81,8 +86,8 @@ pub mod leave_area {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
+        ensure_components!(ecm, e, Position, Destination);
         if e != res.player_id {return}
-        if !ecm.has_destination(e) {return}
         let dest = ecm.get_destination(e);
         let (x, y) = (dest.x as uint, dest.y as uint);
         if x < 0 || y < 0 || x >= res.map.width || y >= res.map.height {
@@ -231,15 +236,9 @@ pub mod ai {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_ai(e) {return}
-        if !ecm.has_position(e) {return}
+        ensure_components!(ecm, e, AI, Position);
+        ensure_components!(ecm, res.player_id, Position);
         if res.side != Computer {return}
-        if !ecm.has_entity(res.player_id) {
-            fail!("AI system: player entity doesn't exist.");
-        }
-        if !ecm.has_position(res.player_id) {
-            fail!("AI system: player doesn't have Position.");
-        }
         let player_pos = ecm.get_position(res.player_id);
         let pos = ecm.get_position(e);
         let dest = if entity_blocked(pos, &res.map) {
@@ -257,16 +256,14 @@ pub mod ai {
 }
 
 pub mod panic {
-    use components::{ComponentManager, ID, Destination};
+    use components::*;
     use super::ai;
     use super::super::Resources;
 
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_panicking(e) {return}
-        if !ecm.has_destination(e) {return}
-        if !ecm.has_position(e) {return}
+        ensure_components!(ecm, e, Panicking, Position, Destination);
         let pos = ecm.get_position(e);
         match ai::random_neighbouring_position(&mut res.rng, pos, &mut res.map) {
             (x, y) => ecm.set_destination(e, Destination{x: x, y: y}),
@@ -275,15 +272,13 @@ pub mod panic {
 }
 
 pub mod stun {
-    use components::{ComponentManager, ID, Destination, Position};
+    use components::*;
     use super::super::Resources;
 
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   _res: &mut Resources) {
-        if !ecm.has_stunned(e) {return}
-        if !ecm.has_destination(e) {return}
-        if !ecm.has_position(e) {return}
+        ensure_components!(ecm, e, Stunned, Position, Destination);
         let Position{x, y} = ecm.get_position(e);
         ecm.set_destination(e, Destination{x: x, y: y});
     }
@@ -351,15 +346,14 @@ pub mod stun {
 // }
 
 pub mod path {
-    use components::{ComponentManager, ID, Path, Position};
+    use components::*;
     use super::ai;
     use super::super::Resources;
 
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   _res: &mut Resources) {
-        if !ecm.has_position(e) {return}
-        if !ecm.has_destination(e) {return}
+        ensure_components!(ecm, e, Position, Destination);
         let pos = ecm.get_position(e);
         let dest = ecm.get_destination(e);
         if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) <= 1 {
@@ -392,10 +386,7 @@ pub mod movement {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_position(e) {return}
-        if !ecm.has_path(e) {return}
-        if !ecm.has_turn(e) {return}
-
+        ensure_components!(ecm, e, Position, Path, Turn);
         let turn = ecm.get_turn(e);
         if turn.ap <= 0 {return}
 
@@ -447,8 +438,7 @@ pub mod interaction {
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
         // Only humans can use stuff for now:
-        if !ecm.has_accepts_user_input(e) { return }
-        if !ecm.has_position(e) { return }
+        ensure_components!(ecm, e, AcceptsUserInput, Position);
         let pos = match ecm.get_position(e) {Position{x, y} => (x, y)};
         for (entity_map_id, _walkability) in res.map.entities_on_pos(pos) {
             let inter = ID(entity_map_id);
@@ -502,13 +492,13 @@ pub mod interaction {
 }
 
 pub mod bump {
-    use components::{AttackTarget, ComponentManager, ID};
+    use components::*;
     use super::super::Resources;
 
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   _res: &mut Resources) {
-        if !ecm.has_bump(e) {return}
+        ensure_components!(ecm, e, Bump)
         let bumpee = *ecm.get_bump(e);
         ecm.remove_bump(e);
         if !ecm.has_entity(bumpee) {return}
@@ -545,9 +535,7 @@ pub mod combat {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_attack_target(e) {return}
-        if !ecm.has_attack_type(e) {return}
-        if !ecm.has_turn(e) {return}
+        ensure_components!(ecm, e, AttackTarget, AttackType, Turn);
         let free_aps = ecm.get_turn(e).ap;
         let target = *ecm.get_attack_target(e);
         ecm.remove_attack_target(e);
@@ -643,8 +631,7 @@ mod addiction {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_addiction(e) {return}
-        if !ecm.has_attributes(e) {return}
+        ensure_components!(ecm, e, Addiction, Attributes);
         let addiction = ecm.get_addiction(e);
         let attr = ecm.get_attributes(e);
         if res.turn > addiction.last_turn {
@@ -669,7 +656,7 @@ mod will {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        if !ecm.has_attributes(e) {return}
+        ensure_components!(ecm, e, Attributes);
         let attrs = ecm.get_attributes(e);
 
         if ecm.has_anxiety_kill_counter(e) {
@@ -787,9 +774,7 @@ pub mod gui {
                   display: &mut Display) {
         let (_width, height) = display.size();
         let player = res.player_id;
-        if !ecm.has_entity(player) {return}
-        if !ecm.has_attributes(player) {return}
-
+        ensure_components!(ecm, player, Attributes);
         let attrs = ecm.get_attributes(player);
         let dead = match ecm.has_position(player) {
             true => ~"",

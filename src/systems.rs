@@ -177,9 +177,14 @@ pub mod ai {
                                     player_pos: Position) -> Destination {
         let pos = ecm.get_position(e);
         let player_distance = distance(&pos, &player_pos);
+        let ai = ecm.get_ai(e);
         match player_distance {
-            dist if dist < 5 => ecm.get_ai(e).state = components::ai::Aggressive,
-            dist if dist > 8 => ecm.get_ai(e).state = components::ai::Idle,
+            dist if dist < 5 => {
+                ecm.set_ai(e, AI{state: components::ai::Aggressive, .. ai});
+            }
+            dist if dist > 8 => {
+                ecm.set_ai(e, AI{state: components::ai::Idle, .. ai});
+            }
             _ => {}
         }
         match ecm.get_ai(e).state {
@@ -203,8 +208,7 @@ pub mod ai {
         let player_distance = distance(&pos, &player_pos);
         if player_distance < 4 {
             let ai = ecm.get_ai(e);
-            ecm.set_ai(e, AI{state: components::ai::Aggressive,
-                             .. ai});
+            ecm.set_ai(e, AI{state: components::ai::Aggressive, .. ai});
         }
         match ecm.get_ai(e).state {
             components::ai::Aggressive => {

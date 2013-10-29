@@ -246,8 +246,12 @@ pub mod ai {
             Destination{x: pos.x, y: pos.y}
         } else {
             match ecm.get_ai(e).behaviour {
-                components::ai::Individual => individual_behaviour(e, ecm, &mut res.rng, &mut res.map, player_pos),
-                components::ai::Pack => hunting_pack_behaviour(e, ecm, &mut res.rng, &mut res.map, player_pos),
+                components::ai::Individual => {
+                    individual_behaviour(e, ecm, &mut res.rng, &mut res.map, player_pos)
+                }
+                components::ai::Pack => {
+                    hunting_pack_behaviour(e, ecm, &mut res.rng, &mut res.map, player_pos)
+                }
             }
         };
         ecm.set_destination(e, dest);

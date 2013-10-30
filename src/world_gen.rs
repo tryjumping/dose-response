@@ -15,7 +15,7 @@ pub enum WorldItem {
     Shadows,
 }
 
-pub fn forrest<T: Rng>(rng: &mut T, w: uint, h: uint) -> ~[(int, int, WorldItem)] {
+pub fn forrest<T: Rng>(rng: &mut T, w: int, h: int) -> ~[(int, int, WorldItem)] {
     let monster_count = 5;
     let monster_weight = 30 / monster_count;
     let opts = [
@@ -32,8 +32,7 @@ pub fn forrest<T: Rng>(rng: &mut T, w: uint, h: uint) -> ~[(int, int, WorldItem)
     let mut result: ~[(int, int, WorldItem)] = ~[];
     for x in range(0, w) {
         for y in range(0, h) {
-            result.push((x as int, y as int,
-                       rng.choose_weighted(opts)));
+            result.push((x, y, rng.choose_weighted(opts)));
         }
     }
     result

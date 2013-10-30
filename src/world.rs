@@ -12,7 +12,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                               map: &mut Map,
                               player_pos: Position,
                               rng: &mut T,
-                              generate: &fn(&mut T, uint, uint) -> ~[(int, int, world_gen::WorldItem)]) {
+                              generate: &fn(&mut T, int, int) -> ~[(int, int, world_gen::WorldItem)]) {
     let near_player = |x, y| distance(&player_pos, &Position{x: x, y: y}) < 6;
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),

@@ -10,8 +10,8 @@ struct Map {
     // NOTE: assuming up to two entities in a single place right now.
     entities_1: ~[Option<(int, Walkability)>],
     entities_2: ~[Option<(int, Walkability)>],
-    width: uint,
-    height: uint,
+    width: int,
+    height: int,
 }
 
 #[deriving(Clone, Eq)]
@@ -45,20 +45,21 @@ impl iter::Iterator<(int, Walkability)> for EntityIterator {
 }
 
 impl Map {
-    pub fn new(width: uint, height: uint) -> Map {
+    pub fn new(width: int, height: int) -> Map {
+        let cell_count = (width * height) as uint;
         Map{
-            surface: vec::from_elem(width * height, Solid),
-            entities_1: vec::from_elem(width * height, None),
-            entities_2: vec::from_elem(width * height, None),
+            surface: vec::from_elem(cell_count, Solid),
+            entities_1: vec::from_elem(cell_count, None),
+            entities_2: vec::from_elem(cell_count, None),
             width: width,
             height: height,
         }
     }
 
     fn index_from_coords(&self, x: int, y: int) -> int {
-        assert!(x >= 0 && (x as uint) < self.width);
-        assert!(y >= 0 && (y as uint) < self.height);
-        y * (self.width as int) + x
+        assert!(x >= 0 && x < self.width);
+        assert!(y >= 0 && y < self.height);
+        y * self.width + x
     }
 
     pub fn set_walkability(&mut self, pos: (int, int), walkable: Walkability) {
@@ -94,8 +95,7 @@ impl Map {
 
     pub fn is_walkable(&self, pos: (int, int)) -> bool {
         let (x, y) = pos;
-        let out_of_bounds = x < 0 || (x as uint) >= self.width ||
-            y < 0 || (y as uint) >= self.height;
+        let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
         if out_of_bounds { return false }
 
         let idx = self.index_from_coords(x, y);
@@ -144,8 +144,7 @@ impl Map {
 
     pub fn entities_on_pos(&self, pos: (int, int)) -> EntityIterator {
         let (x, y) = pos;
-        let out_of_bounds = x < 0 || (x as uint) >= self.width ||
-            y < 0 || (y as uint) >= self.height;
+        let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
         if out_of_bounds { return EntityIterator{e1: None, e2: None} }
         let idx = self.index_from_coords(x, y);
         EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}
@@ -166,9 +165,9 @@ impl Map {
     pub fn find_path(&self, from: (int, int), to: (int, int)) -> Option<~Path> {
         let (sx, sy) = from;
         let (dx, dy) = to;
-        if dx < 0 || dy < 0 || dx >= self.width as int || dy >= self.height as int { return None; }
+        if dx < 0 || dy < 0 || dx >= self.width || dy >= self.height { return None; }
         let mut path_obj = ~Path{map: Handle::new(self), tcod_res: None, from: from, to: to};
-        let path = tcod::path_new_using_function(self.width as int, self.height as int,
+        let path = tcod::path_new_using_function(self.width, self.height,
                                                  cb, path_obj, 1.0);
         path_obj.tcod_res = Some(PathResource{path: path});
         match tcod::path_compute(path, sx, sy, dx, dy) {
@@ -236,7 +235,7 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void)
     // Succeed if we're at the destination even if it's not walkable:
     if (dx as c_int, dy as c_int) == (xt, yt) {
         1.0
-    } else if unsafe { path.map.as_ref().is_walkable((xt as  int, yt as int))} {
+    } else if unsafe { path.map.as_ref().is_walkable((xt as int, yt as int))} {
         1.0
     } else {
         0.0

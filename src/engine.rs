@@ -25,7 +25,7 @@ pub struct Display {
 }
 
 impl Display {
-    fn new(width: uint, height: uint, console_count: uint) -> Display {
+    fn new(width: int, height: int, console_count: uint) -> Display {
         let mut result = Display {
             background_console: tcod::console_new(width, height),
             consoles: ~[],
@@ -41,7 +41,7 @@ impl Display {
         result
     }
 
-    pub fn draw_char(&mut self, level: uint, x: uint, y: uint, c: char,
+    pub fn draw_char(&mut self, level: uint, x: int, y: int, c: char,
                      foreground: Color, background: Color) {
         assert!(level < self.consoles.len());
         self.set_background(x, y, background);
@@ -49,22 +49,22 @@ impl Display {
                                   foreground.tcod(), background.tcod());
     }
 
-    pub fn write_text(&mut self, text: &str, x: uint, y: uint,
+    pub fn write_text(&mut self, text: &str, x: int, y: int,
                       foreground: Color, background: Color) {
         let level = self.consoles.len() - 1;  // write to the topmost console
         for (i, chr) in text.char_offset_iter() {
-            self.draw_char(level, x+i, y, chr, foreground, background);
+            self.draw_char(level, x + i as int, y, chr, foreground, background);
         }
     }
 
-    pub fn set_background(&mut self, x: uint, y: uint, color: Color) {
+    pub fn set_background(&mut self, x: int, y: int, color: Color) {
         tcod::console_set_char_background(self.background_console, x, y,
                                           color.tcod(), tcod::TCOD_BKGND_NONE);
     }
 
-    pub fn size(&self) -> (uint, uint) {
-        (tcod::console_get_width(self.background_console) as uint,
-         tcod::console_get_height(self.background_console) as uint)
+    pub fn size(&self) -> (int, int) {
+        (tcod::console_get_width(self.background_console),
+         tcod::console_get_height(self.background_console))
     }
 }
 
@@ -94,7 +94,7 @@ impl Key {
 }
 
 
-pub fn main_loop<S>(width: uint, height: uint, title: &str,
+pub fn main_loop<S>(width: int, height: int, title: &str,
                     font_path: Path,
                     initial_state: S,
                     update: &fn(&mut S, &mut Display, &mut RingBuf<Key>) -> MainLoopState<S>) {

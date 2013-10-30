@@ -89,8 +89,10 @@ pub mod leave_area {
         ensure_components!(ecm, e, Position, Destination);
         if e != res.player_id {return}
         let dest = ecm.get_destination(e);
-        let (x, y) = (dest.x as uint, dest.y as uint);
-        if x < 0 || y < 0 || x >= res.map.width || y >= res.map.height {
+        let left_map_boundaries = (dest.x < 0 || dest.y < 0 ||
+                                   dest.x >= res.map.width ||
+                                   dest.y >= res.map.height);
+        if left_map_boundaries {
             let player_entity = ecm.take_out(res.player_id);
             ecm.remove_all_entities();
             let player_id = ecm.add_entity(player_entity);
@@ -688,7 +690,7 @@ pub mod tile {
 
         let Position{x, y} = ecm.get_position(entity);
         let Tile{level, glyph, color} = ecm.get_tile(entity);
-        display.draw_char(level, x as uint, y as uint, glyph, color, Color(20, 20, 20));
+        display.draw_char(level, x, y, glyph, color, Color(20, 20, 20));
     }
 }
 

@@ -168,7 +168,7 @@ impl CommandLogger {
     }
 }
 
-fn new_game_state(width: uint, height: uint) -> GameState {
+fn new_game_state(width: int, height: int) -> GameState {
     let mut rng = IsaacRng::new();
     let seed: ~[u8];
     let writer: @io::Writer;
@@ -208,7 +208,7 @@ fn new_game_state(width: uint, height: uint) -> GameState {
     }
 }
 
-fn replay_game_state(width: uint, height: uint) -> GameState {
+fn replay_game_state(width: int, height: int) -> GameState {
     let mut commands = RingBuf::new();
     let replay_path = &Path(os::args()[1]);
     let mut seed: ~[u8];

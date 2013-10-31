@@ -14,14 +14,14 @@ pub struct Color(u8, u8, u8);
 pub static transparent_background: Color = Color(253, 1, 254);
 
 impl Color {
-    fn tcod(&self) -> tcod::TCOD_color_t {
-        match *self { Color(r, g, b) => tcod::TCOD_color_t{r: r, g: g, b: b} }
+    fn tcod(&self) -> tcod::Color {
+        match *self { Color(r, g, b) => tcod::Color{r: r, g: g, b: b} }
     }
 }
 
 pub struct Display {
-    priv background_console: tcod::TCOD_console_t,
-    priv consoles: ~[tcod::TCOD_console_t],
+    priv background_console: tcod::console_t,
+    priv consoles: ~[tcod::console_t],
 }
 
 impl Display {
@@ -59,7 +59,7 @@ impl Display {
 
     pub fn set_background(&mut self, x: int, y: int, color: Color) {
         tcod::console_set_char_background(self.background_console, x, y,
-                                          color.tcod(), tcod::TCOD_BKGND_NONE);
+                                          color.tcod(), tcod::BKGND_NONE);
     }
 
     pub fn size(&self) -> (int, int) {
@@ -107,7 +107,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
     let mut tcod_display = Display::new(width, height, console_count);
     let mut keys = RingBuf::new();
     while !tcod::console_is_window_closed() {
-        let mut key: tcod::TCOD_key_t;
+        let mut key: tcod::Key;
         loop {
             key = tcod::console_check_for_keypress(tcod::KeyPressed);
             match key.vk {
@@ -151,7 +151,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
                                1f, 1f);
         }
         tcod::console_print_ex(tcod::ROOT_CONSOLE, width-1, height-1,
-                               tcod::TCOD_BKGND_NONE, tcod::TCOD_RIGHT,
+                               tcod::BKGND_NONE, tcod::Right,
                                fmt!("FPS: %?", tcod::sys_get_fps()));
         tcod::console_flush();
     }

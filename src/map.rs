@@ -244,7 +244,7 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void)
 
 
 struct PathResource {
-    priv path: tcod::TCOD_path_t,
+    priv path: tcod::path_t,
 }
 
 impl PathResource {

@@ -696,7 +696,7 @@ pub mod tile {
         let Tile{level, glyph, color} = ecm.get_tile(e);
         let is_visible = if ecm.has_position(player) && ecm.has_exploration(player) {
             let player_pos = ecm.get_position(res.player_id);
-            precise_distance((x, y), (player_pos.x, player_pos.y)) < ecm.get_exploration(res.player_id).radius as float
+            precise_distance((x, y), (player_pos.x, player_pos.y)) <= ecm.get_exploration(res.player_id).radius
         } else {
             false
         };
@@ -791,12 +791,12 @@ pub mod exploration {
     use map::{Explored};
     use super::super::Resources;
 
-    pub fn precise_distance(p1: (int, int), p2: (int, int)) -> float {
+    pub fn precise_distance(p1: (int, int), p2: (int, int)) -> int {
         let (x1, y1) = p1;
         let (x2, y2) = p2;
         let a = num::pow(num::abs(x1 - x2) as float, 2f);
         let b = num::pow(num::abs(y1 - y2) as float, 2f);
-        num::sqrt(a + b)
+        num::sqrt(a + b).floor() as int
     }
 
     pub fn system(e: ID,
@@ -813,7 +813,7 @@ pub mod exploration {
         }
         for x in range(pos.x - radius, pos.x + radius) {
             for y in range(pos.y - radius, pos.y + radius) {
-                if precise_distance((pos.x, pos.y), (x, y)) < radius as float {
+                if precise_distance((pos.x, pos.y), (x, y)) <= radius {
                     res.map.set_explored((x, y), Explored);
                 }
             }

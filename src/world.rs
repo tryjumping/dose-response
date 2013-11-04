@@ -23,7 +23,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
         let bg = ecm.new_entity();
         ecm.set_position(bg, Position{x: x, y: y});
         ecm.set_background(bg, Background);
-        let explored = precise_distance((x, y), (player_pos.x, player_pos.y)) < 6f;
+        let explored = precise_distance((x, y), (player_pos.x, player_pos.y)) < 6;
         if explored {
             map.set_explored((x, y), Explored);
         }

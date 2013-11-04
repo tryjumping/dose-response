@@ -196,19 +196,19 @@ impl world_gen::WorldItem {
 mod col {
     use engine::Color;
 
-    pub static background: Color = Color(0, 0, 0);
-    pub static dim_background: Color = Color(15, 15, 15);
-    pub static foreground: Color = Color(255, 255, 255);
-    pub static anxiety: Color = Color(191,0,0);
-    pub static depression: Color = Color(111,63,255);
-    pub static hunger: Color = Color(127,101,63);
-    pub static voices: Color = Color(95,95,95);
-    pub static shadows: Color = Color(95,95,95);
-    pub static player: Color = Color(255,255,255);
-    pub static empty_tile: Color = Color(223,223,223);
-    pub static dose: Color = Color(114,184,255);
-    pub static dose_glow: Color = Color(0,63,47);
-    pub static tree_1: Color = Color(0,191,0);
-    pub static tree_2: Color = Color(0,255,0);
-    pub static tree_3: Color = Color(63,255,63);
+    pub static background: Color = Color{r: 0, g: 0, b: 0};
+    pub static dim_background: Color = Color{r: 15, g: 15, b: 15};
+    pub static foreground: Color = Color{r: 255, g: 255, b: 255};
+    pub static anxiety: Color = Color{r: 191,g: 0,b: 0};
+    pub static depression: Color = Color{r: 111,g: 63,b: 255};
+    pub static hunger: Color = Color{r: 127,g: 101,b: 63};
+    pub static voices: Color = Color{r: 95,g: 95,b: 95};
+    pub static shadows: Color = Color{r: 95,g: 95,b: 95};
+    pub static player: Color = Color{r: 255,g: 255,b: 255};
+    pub static empty_tile: Color = Color{r: 223,g: 223,b: 223};
+    pub static dose: Color = Color{r: 114,g: 184,b: 255};
+    pub static dose_glow: Color = Color{r: 0,g: 63,b: 47};
+    pub static tree_1: Color = Color{r: 0,g: 191,b: 0};
+    pub static tree_2: Color = Color{r: 0,g: 255,b: 0};
+    pub static tree_3: Color = Color{r: 63,g: 255,b: 63};
 }

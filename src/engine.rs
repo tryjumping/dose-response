@@ -1,6 +1,7 @@
 use extra::container::Deque;
 use extra::ringbuf::RingBuf;
-use tcod;
+pub use tcod::Color;
+pub use tcod;
 
 pub enum MainLoopState<T> {
     Running,
@@ -8,16 +9,7 @@ pub enum MainLoopState<T> {
     Exit,
 }
 
-#[deriving(Eq)]
-pub struct Color(u8, u8, u8);
-
-pub static transparent_background: Color = Color(253, 1, 254);
-
-impl Color {
-    fn tcod(&self) -> tcod::Color {
-        match *self { Color(r, g, b) => tcod::Color{r: r, g: g, b: b} }
-    }
-}
+pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};
 
 pub struct Display {
     priv background_console: tcod::console_t,
@@ -32,12 +24,12 @@ impl Display {
         };
         do console_count.times {
             let con = tcod::console_new(width, height);
-            tcod::console_set_key_color(con, transparent_background.tcod());
-            tcod::console_set_default_background(con, transparent_background.tcod());
+            tcod::console_set_key_color(con, transparent_background);
+            tcod::console_set_default_background(con, transparent_background);
             result.consoles.push(con);
         }
-        tcod::console_set_key_color(result.background_console, transparent_background.tcod());
-        tcod::console_set_default_background(result.background_console, transparent_background.tcod());
+        tcod::console_set_key_color(result.background_console, transparent_background);
+        tcod::console_set_default_background(result.background_console, transparent_background);
         result
     }
 
@@ -46,7 +38,7 @@ impl Display {
         assert!(level < self.consoles.len());
         self.set_background(x, y, background);
         tcod::console_put_char_ex(self.consoles[level], x, y, c,
-                                  foreground.tcod(), background.tcod());
+                                  foreground, background);
     }
 
     pub fn write_text(&mut self, text: &str, x: int, y: int,
@@ -59,7 +51,7 @@ impl Display {
 
     pub fn set_background(&mut self, x: int, y: int, color: Color) {
         tcod::console_set_char_background(self.background_console, x, y,
-                                          color.tcod(), tcod::BKGND_NONE);
+                                          color, tcod::BKGND_NONE);
     }
 
     pub fn size(&self) -> (int, int) {
@@ -99,7 +91,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
                     initial_state: S,
                     update: &fn(&mut S, &mut Display, &mut RingBuf<Key>) -> MainLoopState<S>) {
     let fullscreen = false;
-    let default_fg = Color(255, 255, 255);
+    let default_fg = Color::new(255, 255, 255);
     let console_count = 3;
     tcod::console_set_custom_font(font_path);
     tcod::console_init_root(width, height, title, fullscreen);
@@ -126,7 +118,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
             }
         }
 
-        tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg.tcod());
+        tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg);
         tcod::console_clear(tcod::ROOT_CONSOLE);
         tcod::console_clear(tcod_display.background_console);
         for &con in tcod_display.consoles.iter() {

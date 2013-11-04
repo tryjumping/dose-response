@@ -690,7 +690,7 @@ pub mod tile {
 
         let Position{x, y} = ecm.get_position(entity);
         let Tile{level, glyph, color} = ecm.get_tile(entity);
-        display.draw_char(level, x, y, glyph, color, Color(20, 20, 20));
+        display.draw_char(level, x, y, glyph, color, Color::new(20, 20, 20));
     }
 }
 
@@ -797,6 +797,6 @@ pub mod gui {
                                  effects);
         display.write_text(status_bar,
                            0, height - 1,
-                           Color(255, 255, 255), Color(0, 0, 0));
+                           Color::new(255, 255, 255), Color::new(0, 0, 0));
     }
 }

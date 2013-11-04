@@ -7,7 +7,7 @@ pub use self::ffi::BKGND_NONE;
 pub use self::ffi::Key;
 pub use self::ffi::Right;
 
-use self::ffi::{c_int, uint8_t, c_float, c_bool};
+use self::ffi::{c_int, c_float, c_bool};
 
 
 pub struct Map {
@@ -203,6 +203,13 @@ mod ffi {
         g: uint8_t,
         b: uint8_t,
     }
+impl Color {
+    pub fn new(red: u8, green: u8, blue: u8) -> Color {
+        Color{r: red as uint8_t, g: green as uint8_t, b: blue as uint8_t}
+    }
+}
+
+
 
     pub enum TextAlignment {
         Left,
@@ -292,13 +299,6 @@ mod ffi {
 
 
 pub static ROOT_CONSOLE: console_t = 0 as console_t;
-
-
-impl ffi::Color {
-    pub fn new(red: u8, green: u8, blue: u8) -> Color {
-        Color{r: red as uint8_t, g: green as uint8_t, b: blue as uint8_t}
-    }
-}
 
 
 #[fixed_stack_segment]

@@ -682,18 +682,32 @@ mod will {
 pub mod tile {
     use components::*;
     use super::super::Resources;
-    use engine::{Color, Display};
+    use engine::Display;
+    use super::exploration::precise_distance;
+    use world::col;
 
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources,
                   display: &mut Display) {
         ensure_components!(ecm, e, Position, Tile);
+        let player = res.player_id;
         let Position{x, y} = ecm.get_position(e);
         let Tile{level, glyph, color} = ecm.get_tile(e);
+        let is_visible = if ecm.has_position(player) && ecm.has_exploration(player) {
+            let player_pos = ecm.get_position(res.player_id);
+            precise_distance((x, y), (player_pos.x, player_pos.y)) < ecm.get_exploration(res.player_id).radius as float
+        } else {
+            false
+        };
         let is_explored = res.map.is_explored((x, y));
         if is_explored {
-            display.draw_char(level, x, y, glyph, color, Color::new(20, 20, 20));
+            let bg = if is_visible {
+                col::background
+            } else {
+                col::dim_background
+            };
+            display.draw_char(level, x, y, glyph, color, bg);
         }
     }
 }
@@ -785,15 +799,18 @@ pub mod exploration {
         num::sqrt(a + b)
     }
 
-
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
         if e != res.player_id {return}
-        ensure_components!(ecm, e, Position, Exploration);
+        ensure_components!(ecm, e, Position, Exploration, Attributes);
         let pos = ecm.get_position(e);
         let exploration = ecm.get_exploration(e);
-        let radius = exploration.radius;
+        let attrs = ecm.get_attributes(e);
+        let radius = (4 * attrs.state_of_mind + 293) / 99;  // range(3, 8)
+        if radius != exploration.radius {
+            ecm.set_exploration(e, Exploration{radius: radius});
+        }
         for x in range(pos.x - radius, pos.x + radius) {
             for y in range(pos.y - radius, pos.y + radius) {
                 if precise_distance((pos.x, pos.y), (x, y)) < radius as float {

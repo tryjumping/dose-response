@@ -194,7 +194,7 @@ impl world_gen::WorldItem {
     }
 }
 
-mod col {
+pub mod col {
     use engine::Color;
 
     pub static background: Color = Color{r: 0, g: 0, b: 0};

@@ -603,3 +603,6 @@ def run(replay_file_name=None):
         for con in consoles[-5:]:
             tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, 1)
         tcod.console_flush()
+
+if __name__ == '__main__':
+    run()

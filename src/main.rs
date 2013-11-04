@@ -6,7 +6,7 @@ use std::rand::{Rng, IsaacRng};
 use std::os;
 use std::to_bytes::{ToBytes};
 
-use components::{ComponentManager, ID, Computer, Side};
+use components::{ComponentManager, ID, Computer, Side, Position};
 use engine::{Display, MainLoopState, Key};
 use extra::ringbuf::RingBuf;
 use extra::container::Deque;
@@ -269,6 +269,7 @@ fn main() {
     };
 
     let player = world::player_entity(&mut game_state.entities);
+    game_state.entities.set_position(player, Position{x: width / 2, y: height / 2});
     let player_pos = game_state.entities.get_position(player);
     assert_eq!(player, ID(0));
     game_state.resources.player_id = player;

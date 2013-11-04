@@ -6,7 +6,7 @@ use std::libc::*;
 use std::util::Void;
 
 struct Map {
-    surface: ~[Walkability],
+    surface: ~[(Walkability, Exploration)],
     // NOTE: assuming up to two entities in a single place right now.
     entities_1: ~[Option<(int, Walkability)>],
     entities_2: ~[Option<(int, Walkability)>],
@@ -18,6 +18,12 @@ struct Map {
 pub enum Walkability {
     Walkable,
     Solid,
+}
+
+#[deriving(Clone, Eq)]
+pub enum Exploration {
+    Explored,
+    Unexplored,
 }
 
 struct EntityIterator {
@@ -48,7 +54,7 @@ impl Map {
     pub fn new(width: int, height: int) -> Map {
         let cell_count = (width * height) as uint;
         Map{
-            surface: vec::from_elem(cell_count, Solid),
+            surface: vec::from_elem(cell_count, (Solid, Unexplored)),
             entities_1: vec::from_elem(cell_count, None),
             entities_2: vec::from_elem(cell_count, None),
             width: width,
@@ -64,7 +70,35 @@ impl Map {
 
     pub fn set_walkability(&mut self, pos: (int, int), walkable: Walkability) {
         match pos {
-            (x, y) => self.surface[self.index_from_coords(x, y)] = walkable
+            (x, y) => {
+                let idx = self.index_from_coords(x, y);
+                match self.surface[idx] {
+                    (_, explored) => self.surface[idx] = (walkable, explored)
+                }
+            }
+        }
+    }
+
+    pub fn set_explored(&mut self, pos: (int, int), explored: Exploration) {
+        match pos {
+            (x, y) => {
+                let idx = self.index_from_coords(x, y);
+                match self.surface[idx] {
+                    (walkable, _) => self.surface[idx] = (walkable, explored)
+                }
+            }
+        }
+    }
+
+    pub fn is_explored(&self, pos: (int, int)) -> bool {
+        let (x, y) = pos;
+        let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
+        if out_of_bounds { return false }
+
+        let idx = self.index_from_coords(x, y);
+        match self.surface[idx] {
+            (_, Explored) => true,
+            (_, Unexplored) => false,
         }
     }
 
@@ -99,7 +133,10 @@ impl Map {
         if out_of_bounds { return false }
 
         let idx = self.index_from_coords(x, y);
-        if self.surface[idx] == Solid { return false }
+        match self.surface[idx] {
+            (Solid, _) => return false,
+            _ => {}
+        }
         match self.entities_1[idx] {
             Some((_, Solid)) => return false,
             _ => (),
@@ -251,7 +288,7 @@ extern fn dummy_cb(_xf: c_int, _yf: c_int, _xt: c_int, _yt: c_int, _path_data_pt
 
 #[cfg(test)]
 mod test {
-    use super::{Map, Walkable, Solid};
+    use super::{Map, Walkable, Solid, Explored, Unexplored};
 
     #[test]
     fn handle() {
@@ -283,6 +320,19 @@ mod test {
         map.set_walkability((1, 1), Solid);
         assert_eq!(map.is_walkable((0, 0)), false);
         assert_eq!(map.is_walkable((1, 1)), false);
+    }
+
+    #[test]
+    fn exploration() {
+        let mut map = Map::new(5, 5);
+        assert_eq!(map.is_explored((0, 0)), false);
+        assert_eq!(map.is_explored((1, 1)), false);
+        map.set_explored((1, 1), Explored);
+        assert_eq!(map.is_explored((0, 0)), false);
+        assert_eq!(map.is_explored((1, 1)), true);
+        map.set_explored((1, 1), Unexplored);
+        assert_eq!(map.is_explored((0, 0)), false);
+        assert_eq!(map.is_explored((1, 1)), false);
     }
 
     #[test]

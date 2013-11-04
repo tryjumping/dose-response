@@ -80,13 +80,13 @@ impl Map {
     }
 
     pub fn set_explored(&mut self, pos: (int, int), explored: Exploration) {
-        match pos {
-            (x, y) => {
-                let idx = self.index_from_coords(x, y);
-                match self.surface[idx] {
-                    (walkable, _) => self.surface[idx] = (walkable, explored)
-                }
-            }
+        let (x, y) = pos;
+        let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
+        if out_of_bounds { return }
+
+        let idx = self.index_from_coords(x, y);
+        match self.surface[idx] {
+            (walkable, _) => self.surface[idx] = (walkable, explored)
         }
     }
 

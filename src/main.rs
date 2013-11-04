@@ -119,6 +119,7 @@ fn update(state: &mut GameState,
         systems::bump::system,
         systems::combat::system,
         systems::will::system,
+        systems::exploration::system,
     ];
 
     process_input(keys, &mut state.resources.commands);
@@ -129,7 +130,10 @@ fn update(state: &mut GameState,
             }
         }
         if state.entities.has_entity(id) {
-            systems::tile::system(id, &state.entities, display);
+            systems::tile::system(id,
+                                  &mut state.entities,
+                                  &mut state.resources,
+                                  display);
         }
     }
     systems::gui::system(&state.entities,

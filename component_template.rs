@@ -6,6 +6,7 @@ struct AttackTarget(ID)
 enum   AttackType {Kill, Stun{duration: int}, Panic{duration: int}, ModifyAttributes}
 struct AttributeModifier{state_of_mind: int, will: int}
 struct Attributes{state_of_mind: int, will: int}
+struct Exploration{radius: int}
 struct Background
 struct Bump(ID)
 struct Destination {x: int, y: int}

@@ -133,6 +133,7 @@ pub fn player_entity(ecm: &mut ComponentManager) -> ID {
             count: 0,
             threshold: 10});
     ecm.set_position(player, Position{x: 10, y: 20});
+    ecm.set_exploration(player, Exploration{radius: 5});
     ecm.set_tile(player, Tile{level: 2, glyph: '@', color: col::player});
     ecm.set_turn(player, Turn{side: Player,
                             ap: 0,

@@ -680,17 +680,21 @@ mod will {
 }
 
 pub mod tile {
-    use components::{ComponentManager, ID, Position, Tile};
+    use components::*;
+    use super::super::Resources;
     use engine::{Color, Display};
 
-    pub fn system(entity: ID, ecm: &ComponentManager, display: &mut Display) {
-        if !ecm.has_entity(entity) {return}
-        if !ecm.has_position(entity) { return }
-        if !ecm.has_tile(entity) { return }
-
-        let Position{x, y} = ecm.get_position(entity);
-        let Tile{level, glyph, color} = ecm.get_tile(entity);
-        display.draw_char(level, x, y, glyph, color, Color::new(20, 20, 20));
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  res: &mut Resources,
+                  display: &mut Display) {
+        ensure_components!(ecm, e, Position, Tile);
+        let Position{x, y} = ecm.get_position(e);
+        let Tile{level, glyph, color} = ecm.get_tile(e);
+        let is_explored = res.map.is_explored((x, y));
+        if is_explored {
+            display.draw_char(level, x, y, glyph, color, Color::new(20, 20, 20));
+        }
     }
 }
 
@@ -761,6 +765,27 @@ pub mod player_dead {
             match ecm.has_ai(id) {
                 true => ecm.remove_ai(id),
                 false => (),
+            }
+        }
+    }
+}
+
+pub mod exploration {
+    use components::*;
+    use map::{Explored};
+    use super::super::Resources;
+
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  res: &mut Resources) {
+        if e != res.player_id {return}
+        ensure_components!(ecm, e, Position, Exploration);
+        let pos = ecm.get_position(e);
+        let exploration = ecm.get_exploration(e);
+        let radius = exploration.radius;
+        for x in range(pos.x - radius, pos.x + radius) {
+            for y in range(pos.y - radius, pos.y + radius) {
+                res.map.set_explored((x, y), Explored)
             }
         }
     }

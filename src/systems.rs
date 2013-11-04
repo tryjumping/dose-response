@@ -771,9 +771,20 @@ pub mod player_dead {
 }
 
 pub mod exploration {
+    use std::num;
+
     use components::*;
     use map::{Explored};
     use super::super::Resources;
+
+    pub fn precise_distance(p1: (int, int), p2: (int, int)) -> float {
+        let (x1, y1) = p1;
+        let (x2, y2) = p2;
+        let a = num::pow(num::abs(x1 - x2) as float, 2f);
+        let b = num::pow(num::abs(y1 - y2) as float, 2f);
+        num::sqrt(a + b)
+    }
+
 
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
@@ -785,7 +796,9 @@ pub mod exploration {
         let radius = exploration.radius;
         for x in range(pos.x - radius, pos.x + radius) {
             for y in range(pos.y - radius, pos.y + radius) {
-                res.map.set_explored((x, y), Explored)
+                if precise_distance((pos.x, pos.y), (x, y)) < radius as float {
+                    res.map.set_explored((x, y), Explored);
+                }
             }
         }
     }

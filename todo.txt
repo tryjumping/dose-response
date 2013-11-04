@@ -5,10 +5,7 @@
   - see entities on som >= 98
   - uncover the entire map on som == 99
 
-* cleanup the tcod.rs code
-  - don't expose the raw path_t, map_t, etc. types. Wrap them in a type with a
-  destructor instead.
-* use `tcod::Color` and its `new` constructor and remove `engine::Color`.
+* wrap tcod::console_t if feasible
 
 * write a generic system interface so we can simplify the `update` function.
 * write a defsystem macro that handles the system boilerplate?

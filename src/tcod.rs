@@ -6,9 +6,59 @@ pub use self::ffi::BKGND_NONE;
 pub use self::ffi::Key;
 pub use self::ffi::Right;
 pub use self::ffi::path_t;
-pub use self::ffi::map_t;
 
 use self::ffi::{c_int, uint8_t, c_float, c_bool};
+
+
+pub struct Map {
+    priv tcod_map: ffi::map_t,
+}
+
+impl Map {
+
+    #[fixed_stack_segment]
+    pub fn new(width: int, height: int) -> Map {
+        assert!(width > 0 && height > 0);
+        unsafe {
+            Map{tcod_map: ffi::TCOD_map_new(width as c_int, height as c_int)}
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn size(&self) -> (int, int) {
+        unsafe {
+            (ffi::TCOD_map_get_width(self.tcod_map) as int,
+             ffi::TCOD_map_get_height(self.tcod_map) as int)
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn set(&mut self, x: int, y: int, transparent: bool, walkable: bool) {
+        assert!(x >= 0 && y >= 0);
+        unsafe {
+            ffi::TCOD_map_set_properties(self.tcod_map, x as c_int, y as c_int,
+                                         transparent as c_bool,
+                                         walkable as c_bool);
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn is_walkable(&self, x: int, y: int) -> bool {
+        assert!(x >= 0 && y >= 0);
+        unsafe {
+            ffi::TCOD_map_is_walkable(self.tcod_map, x as c_int, y as c_int) != 0
+        }
+    }
+}
+
+impl Drop for Map {
+    #[fixed_stack_segment]
+    fn drop(&mut self) {
+        unsafe {
+            ffi::TCOD_map_delete(self.tcod_map)
+        }
+    }
+}
 
 
 mod ffi {
@@ -126,6 +176,7 @@ mod ffi {
         fn TCOD_map_get_width(map: map_t) -> c_int;
         fn TCOD_map_get_height(map: map_t) -> c_int;
         fn TCOD_map_clear(map: map_t, transparent: c_bool, walkable: c_bool);
+        fn TCOD_map_delete(map: map_t);
         fn TCOD_path_new_using_map(map: map_t, diagonalCost: c_float)
                                    -> path_t;
         fn TCOD_path_new_using_function(map_width: c_int, map_height: c_int,
@@ -352,48 +403,7 @@ pub fn console_delete(con: console_t) {
 }
 
 #[fixed_stack_segment]
-pub fn map_new(width: int, height: int) -> map_t {
-    assert!(width > 0 && height > 0);
-    unsafe {
-        ffi::TCOD_map_new(width as c_int, height as c_int)
-    }
-}
-
-#[fixed_stack_segment]
-pub fn map_set_properties(map: map_t, x: int, y: int,
-                          transparent: bool, walkable: bool) {
-    assert!(x >= 0 && y >= 0);
-    unsafe {
-        ffi::TCOD_map_set_properties(map, x as c_int, y as c_int,
-                                     transparent as c_bool, walkable as c_bool);
-    }
-}
-
-#[fixed_stack_segment]
-pub fn map_is_walkable(map: map_t, x: int, y: int) -> bool {
-    assert!(x >= 0 && y >= 0);
-    unsafe {
-        ffi::TCOD_map_is_walkable(map, x as c_int, y as c_int) != 0
-    }
-}
-
-#[fixed_stack_segment]
-pub fn map_size(map: map_t) -> (int, int) {
-    unsafe {
-        (ffi::TCOD_map_get_width(map) as int,
-         ffi::TCOD_map_get_height(map) as int)
-    }
-}
-
-#[fixed_stack_segment]
-pub fn map_clear(map: map_t, transparent: bool, walkable: bool) {
-    unsafe {
-        ffi::TCOD_map_clear(map, transparent as c_bool, walkable as c_bool);
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_new_using_map(map: map_t, diagonal_cost: float) -> path_t {
+pub fn path_new_using_map(map: ffi::map_t, diagonal_cost: float) -> path_t {
     unsafe {
         ffi::TCOD_path_new_using_map(map, diagonal_cost as c_float)
     }

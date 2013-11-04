@@ -4,8 +4,12 @@
 * bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
+* improve level generator not to create blocked entities
+* add different levels
 
 * wrap tcod::console_t if feasible
+* replace Map with Position caching on the ComponentManager level
+
 
 * write a generic system interface so we can simplify the `update` function.
 * write a defsystem macro that handles the system boilerplate?

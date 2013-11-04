@@ -167,11 +167,11 @@ impl Map {
         let (dx, dy) = to;
         if dx < 0 || dy < 0 || dx >= self.width || dy >= self.height { return None; }
         let mut path_obj = ~Path{map: Handle::new(self), tcod_res: None, from: from, to: to};
-        let path = tcod::path_new_using_function(self.width, self.height,
-                                                 cb, path_obj, 1.0);
-        path_obj.tcod_res = Some(PathResource{path: path});
-        match tcod::path_compute(path, sx, sy, dx, dy) {
+        let mut path = tcod::Path::new_using_function(self.width, self.height,
+                                                      cb, path_obj, 1.0);
+        match path.find(sx, sy, dx, dy) {
             true => {
+                path_obj.tcod_res = Some(path);
                 Some(path_obj)
             }
             false => {
@@ -187,7 +187,7 @@ impl Map {
 
 struct Path {
     priv map: Handle<Map>,
-    priv tcod_res: Option<PathResource>,
+    priv tcod_res: Option<tcod::Path>,
     from: (int, int),
     to: (int, int),
 }
@@ -195,7 +195,8 @@ struct Path {
 impl Path {
     pub fn walk(&mut self) -> Option<(int, int)> {
         if self.tcod_res.is_some() {
-            self.tcod_res.get_mut_ref().walk()
+            let recalculate = true;
+            self.tcod_res.get_mut_ref().walk(recalculate)
         } else {
             None
         }
@@ -242,42 +243,6 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void)
     }
 }
 
-
-struct PathResource {
-    priv path: tcod::path_t,
-}
-
-impl PathResource {
-    fn walk(&mut self) -> Option<(int, int)> {
-        match tcod::path_size(self.path) {
-            0 => None,
-            // Treat the destination as walkable so we always find a path to it
-            // (if there is one). The user can deal with the fact that it's
-            // blocked.
-            1 => {
-                let dest = Some(tcod::path_get_destination(self.path));
-                // Replace the previous path with an empty one:
-                tcod::path_delete(self.path);
-                self.path = tcod::path_new_using_function(1, 1, dummy_cb, &(), 1.0);
-                assert!(tcod::path_size(self.path) == 0);
-                dest
-            }
-            _ => {
-                tcod::path_walk(self.path, true)
-            },
-        }
-    }
-
-    fn len(&self) -> int {
-        tcod::path_size(self.path)
-    }
-}
-
-impl Drop for PathResource {
-    fn drop(&mut self) {
-        tcod::path_delete(self.path);
-    }
-}
 
 extern fn dummy_cb(_xf: c_int, _yf: c_int, _xt: c_int, _yt: c_int, _path_data_ptr: *c_void) -> c_float {
     1.0

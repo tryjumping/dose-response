@@ -1,11 +1,11 @@
 use std::cast;
+use std::path;
 
 pub use self::ffi::Color;
 pub use self::ffi::console_t;
 pub use self::ffi::BKGND_NONE;
 pub use self::ffi::Key;
 pub use self::ffi::Right;
-pub use self::ffi::path_t;
 
 use self::ffi::{c_int, uint8_t, c_float, c_bool};
 
@@ -14,8 +14,11 @@ pub struct Map {
     priv tcod_map: ffi::map_t,
 }
 
-impl Map {
+pub struct Path {
+    priv tcod_path: ffi::path_t,
+}
 
+impl Map {
     #[fixed_stack_segment]
     pub fn new(width: int, height: int) -> Map {
         assert!(width > 0 && height > 0);
@@ -56,6 +59,98 @@ impl Drop for Map {
     fn drop(&mut self) {
         unsafe {
             ffi::TCOD_map_delete(self.tcod_map)
+        }
+    }
+}
+
+
+impl Path {
+    #[fixed_stack_segment]
+    pub fn new_using_map(map: Map, diagonal_cost: float) -> Path {
+        unsafe {
+            Path {
+                tcod_path: ffi::TCOD_path_new_using_map(map.tcod_map,
+                                                        diagonal_cost as c_float)
+            }
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn new_using_function<T>(map_width: int, map_height: int,
+                                 path_cb: ffi::path_callback_t,
+                                 user_data: &T,
+                                 diagonal_cost: float) -> Path {
+        assert!(map_width > 0 && map_height > 0);
+        unsafe {
+            Path {
+                tcod_path: ffi::TCOD_path_new_using_function(map_width as c_int,
+                                                             map_height as c_int,
+                                                             path_cb,
+                                                             cast::transmute(user_data),
+                                                             diagonal_cost as c_float)
+
+            }
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn find(&mut self,
+                from_x: int, from_y: int,
+                to_x: int, to_y: int)
+                -> bool {
+        assert!(from_x >= 0 && from_y >= 0 && to_x >= 0 && to_y >= 0);
+        unsafe {
+            ffi::TCOD_path_compute(self.tcod_path,
+                                   from_x as c_int, from_y as c_int,
+                                   to_x as c_int, to_y as c_int) != 0
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn walk(&mut self, recalculate_when_needed: bool)
+                -> Option<(int, int)> {
+        unsafe {
+            let mut x: c_int = 0;
+            let mut y: c_int = 0;
+            match ffi::TCOD_path_walk(self.tcod_path, &mut x, &mut y,
+                                      recalculate_when_needed as c_bool) != 0 {
+                true => Some((x as int, y as int)),
+                false => None,
+            }
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn is_empty(&self) -> bool {
+        unsafe {
+            ffi::TCOD_path_is_empty(self.tcod_path) != 0
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn len(&self) -> int {
+        unsafe {
+            ffi::TCOD_path_size(self.tcod_path) as int
+        }
+    }
+
+    #[fixed_stack_segment]
+    pub fn destination(&self) -> (int, int) {
+        unsafe {
+            let mut x: c_int = 0;
+            let mut y: c_int = 0;
+            ffi::TCOD_path_get_destination(self.tcod_path, &mut x, &mut y);
+            (x as int, y as int)
+        }
+    }
+
+}
+
+impl Drop for Path {
+    #[fixed_stack_segment]
+    fn drop(&mut self) {
+        unsafe {
+            ffi::TCOD_path_delete(self.tcod_path);
         }
     }
 }
@@ -236,7 +331,7 @@ pub fn console_init_root(width: int, height: int, title: &str, fullscreen: bool)
 }
 
 #[fixed_stack_segment]
-pub fn console_set_custom_font(font_path: Path) {
+pub fn console_set_custom_font(font_path: path::Path) {
     unsafe {
         let flags = (ffi::FONT_TYPE_GREYSCALE as c_int |
                      ffi::FONT_LAYOUT_TCOD as c_int);
@@ -399,81 +494,5 @@ pub fn console_blit(source_console: console_t,
 pub fn console_delete(con: console_t) {
     unsafe {
         ffi::TCOD_console_delete(con);
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_new_using_map(map: ffi::map_t, diagonal_cost: float) -> path_t {
-    unsafe {
-        ffi::TCOD_path_new_using_map(map, diagonal_cost as c_float)
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_new_using_function<T>(map_width: int, map_height: int,
-                                  path_cb: ffi::path_callback_t,
-                                  user_data: &T,
-                                  diagonal_cost: float) -> path_t {
-    assert!(map_width > 0 && map_height > 0);
-    unsafe {
-        ffi::TCOD_path_new_using_function(map_width as c_int, map_height as c_int,
-                                          path_cb,
-                                          cast::transmute(user_data),
-                                          diagonal_cost as c_float)
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_compute(path: path_t, ox: int, oy: int,
-                    dx: int, dy: int) -> bool {
-    assert!(ox >= 0 && oy >= 0 && dx >= 0 && dy >= 0);
-    unsafe {
-        ffi::TCOD_path_compute(path, ox as c_int, oy as c_int,
-                               dx as c_int, dy as c_int) != 0
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_walk(path: path_t, recalculate_when_needed: bool)
-                 -> Option<(int, int)> {
-    unsafe {
-        let mut x: c_int = 0;
-        let mut y: c_int = 0;
-        match ffi::TCOD_path_walk(path, &mut x, &mut y,
-                                  recalculate_when_needed as c_bool) != 0 {
-            true => Some((x as int, y as int)),
-            false => None,
-        }
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_is_empty(path: path_t) -> bool {
-    unsafe {
-        ffi::TCOD_path_is_empty(path) != 0
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_size(path: path_t) -> int {
-    unsafe {
-        ffi::TCOD_path_size(path) as int
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_get_destination(path: path_t) -> (int, int) {
-    unsafe {
-        let mut x: c_int = 0;
-        let mut y: c_int = 0;
-        ffi::TCOD_path_get_destination(path, &mut x, &mut y);
-        (x as int, y as int)
-    }
-}
-
-#[fixed_stack_segment]
-pub fn path_delete(path: path_t) {
-    unsafe {
-        ffi::TCOD_path_delete(path);
     }
 }

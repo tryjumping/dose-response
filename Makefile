@@ -11,7 +11,7 @@ build: $(APP) $(LAUNCHER)
 
 test: $(SOURCES)
 	mkdir -p $(BIN)
-	rust build --test -W ctypes -L./lib -O src/main.rs -o $(BIN)/test-$(APP_NAME)
+	rustc --test -W ctypes -L./lib -O src/main.rs -o $(BIN)/test-$(APP_NAME)
 	LD_LIBRARY_PATH="$(LIB)" $(BIN)/test-$(APP_NAME)
 
 
@@ -24,12 +24,13 @@ test_component_codegen:
 	./test_component_codegen
 
 $(APP): $(SOURCES)
-	mkdir -p $(BIN)
-	rust build -W ctypes -L./lib -O src/main.rs -o $(APP)
+	@mkdir -p $(BIN)
+	rustc -W ctypes -L./lib src/main.rs -o $(APP)
 
 $(LAUNCHER):
-	echo '#!/bin/bash\nLD_LIBRARY_PATH="$(LIB)" $(APP) $$@' > $(LAUNCHER)
-	chmod a+x $(LAUNCHER)
+	@echo '#!/bin/bash' > $(LAUNCHER)
+	@echo 'LD_LIBRARY_PATH="$(LIB)" $(APP) $$@' >> $(LAUNCHER)
+	@chmod a+x $(LAUNCHER)
 
 run: build
 	$(LAUNCHER)

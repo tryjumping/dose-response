@@ -91,9 +91,11 @@ fn update(state: &mut GameState,
     if f5_pressed(keys) {
         println!("Restarting game");
         keys.clear();
-        let mut state = new_game_state(state.resources.map.width, state.resources.map.height);
+        let (width, height) = (state.resources.map.width, state.resources.map.height);
+        let mut state = new_game_state(width, height);
         let player = world::player_entity(&mut state.entities);
-        let player_pos = state.entities.get_position(player);
+        let player_pos = Position{x: width / 2, y: height / 2};
+        state.entities.set_position(player, player_pos);
         assert!(state.entities.has_entity(state.resources.player_id));
         world::populate_world(&mut state.entities,
                               &mut state.resources.map,

@@ -1,4 +1,5 @@
-* map exploration (dark arena, uncovers slowly)
+* BUG: the game is a bit jerky sometimes
+  - looks like this may be related to pathfinding in the AI or something
 * graphical effect of high/withdrawn
 * background glow for the irresistible area around a dose
 * bonuses on superhigh

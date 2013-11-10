@@ -525,7 +525,16 @@ pub mod combat {
                        map: &mut Map) {
         if !ecm.has_entity(e) {return}
         ecm.remove_ai(e);
-        if ecm.has_position(e) {
+        // Replace the entity's Tile with the tile of a corpse.
+        if ecm.has_death_tile(e) && ecm.has_tile(e) {
+            let death_tile = ecm.get_death_tile(e);
+            let tile = ecm.get_tile(e);
+            ecm.set_tile(e, Tile{glyph: death_tile.glyph,
+                                 color: death_tile.color,
+                                 .. tile});
+        } else {
+            // TODO: don't remove the position here, make systems recognise
+            // entity's activeness by something else.
             let Position{x, y} = ecm.get_position(e);
             ecm.remove_position(e);
             map.remove_entity(*e, (x, y));

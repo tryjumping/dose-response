@@ -9,6 +9,7 @@ struct Attributes{state_of_mind: int, will: int}
 struct Exploration{radius: int}
 struct Background
 struct Bump(ID)
+struct DeathTile{glyph: char, color: Color}
 struct Destination {x: int, y: int}
 struct Dose{tolerance_modifier: int, resist_radius: int}
 struct ExplosionEffect{radius: int}

@@ -11,7 +11,7 @@ build: $(APP) $(LAUNCHER)
 
 test: $(SOURCES)
 	mkdir -p $(BIN)
-	rustc --test -W ctypes -L./lib -O src/main.rs -o $(BIN)/test-$(APP_NAME)
+	rustc --test -W ctypes -L./lib src/main.rs -o $(BIN)/test-$(APP_NAME)
 	LD_LIBRARY_PATH="$(LIB)" $(BIN)/test-$(APP_NAME)
 
 
@@ -25,7 +25,7 @@ test_component_codegen:
 
 $(APP): $(SOURCES)
 	@mkdir -p $(BIN)
-	rustc -W ctypes -L./lib src/main.rs -o $(APP)
+	rustc -W ctypes -O -L./lib src/main.rs -o $(APP)
 
 $(LAUNCHER):
 	@echo '#!/bin/bash' > $(LAUNCHER)

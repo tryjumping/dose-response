@@ -37,6 +37,7 @@ pub struct Resources {
     commands: RingBuf<Command>,
     command_logger: CommandLogger,
     player_id: ID,
+    cheating: bool,
 }
 
 fn escape_pressed(keys: &RingBuf<Key>) -> bool {
@@ -49,6 +50,13 @@ fn escape_pressed(keys: &RingBuf<Key>) -> bool {
 fn f5_pressed(keys: &RingBuf<Key>) -> bool {
     for &key in keys.iter() {
         if key.code == 54 { return true; }
+    }
+    false
+}
+
+fn f6_pressed(keys: &RingBuf<Key>) -> bool {
+    for &key in keys.iter() {
+        if key.code == 55 { return true; }
     }
     false
 }
@@ -103,6 +111,10 @@ fn update(state: &mut GameState,
                               &mut state.resources.rng,
                               world_gen::forrest);
         return engine::NewState(state);
+    }
+    if f6_pressed(keys) {
+        state.resources.cheating = !state.resources.cheating;
+        println!("Cheating set to: {}", state.resources.cheating);
     }
 
     let systems = [
@@ -210,6 +222,7 @@ fn new_game_state(width: int, height: int) -> GameState {
             side: Computer,
             turn: 0,
             player_id: ID(0),
+            cheating: false,
         },
     }
 }
@@ -250,6 +263,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
             side: Computer,
             turn: 0,
             player_id: ID(0),
+            cheating: false,
         },
     }
 }

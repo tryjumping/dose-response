@@ -711,13 +711,13 @@ pub mod tile {
         };
         let shows_in_fog_of_war = ecm.has_background(e) || ecm.has_dose(e);
         let is_explored = res.map.is_explored((x, y));
-        if is_explored {
+        if is_explored || res.cheating {
             let bg = if is_visible {
                 col::background
             } else {
                 col::dim_background
             };
-            if is_visible || shows_in_fog_of_war {
+            if is_visible || shows_in_fog_of_war || res.cheating {
                 display.draw_char(level, x, y, glyph, color, bg);
             }
         }

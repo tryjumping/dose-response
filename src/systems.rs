@@ -709,6 +709,7 @@ pub mod tile {
         } else {
             false
         };
+        let shows_in_fog_of_war = ecm.has_background(e) || ecm.has_dose(e);
         let is_explored = res.map.is_explored((x, y));
         if is_explored {
             let bg = if is_visible {
@@ -716,7 +717,9 @@ pub mod tile {
             } else {
                 col::dim_background
             };
-            display.draw_char(level, x, y, glyph, color, bg);
+            if is_visible || shows_in_fog_of_war {
+                display.draw_char(level, x, y, glyph, color, bg);
+            }
         }
     }
 }

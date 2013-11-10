@@ -1,5 +1,9 @@
 * BUG: the game is a bit jerky sometimes
-  - looks like this may be related to pathfinding in the AI or something
+  - doesn't seem to be a (purely) AI thing. Even when we replaced AI for a
+  random destination the problem persisted.
+  - when we set AI to just always wait, the hangs were still occasionally there.
+  They could have been rarer, but they also just may have been harder to notice
+  (because the only thing moving was the player)
 * graphical effect of high/withdrawn
 * background glow for the irresistible area around a dose
 * bonuses on superhigh

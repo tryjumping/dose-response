@@ -89,7 +89,7 @@ impl Key {
 pub fn main_loop<S>(width: int, height: int, title: &str,
                     font_path: Path,
                     initial_state: S,
-                    update: &fn(&mut S, &mut Display, &mut RingBuf<Key>) -> MainLoopState<S>) {
+                    update: &fn(&mut S, &mut Display, &mut RingBuf<Key>, dt_s: float) -> MainLoopState<S>) {
     let fullscreen = false;
     let default_fg = Color::new(255, 255, 255);
     let console_count = 3;
@@ -125,7 +125,10 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
             tcod::console_clear(con);
         }
 
-        match update(&mut game_state, &mut tcod_display, &mut keys) {
+        match update(&mut game_state,
+                     &mut tcod_display,
+                     &mut keys,
+                     tcod::sys_get_last_frame_length()) {
             Running => (),
             NewState(new_state) => {
                 game_state = new_state;

@@ -94,7 +94,8 @@ fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
 
 fn update(state: &mut GameState,
           display: &mut Display,
-          keys: &mut RingBuf<Key>) -> MainLoopState<GameState> {
+          keys: &mut RingBuf<Key>,
+          dt_s: float) -> MainLoopState<GameState> {
     if escape_pressed(keys) { return engine::Exit }
     if f5_pressed(keys) {
         println!("Restarting game");

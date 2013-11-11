@@ -238,6 +238,7 @@ impl Color {
     extern "C" {
         fn TCOD_sys_set_fps(val: c_int) -> ();
         fn TCOD_sys_get_fps() -> c_int;
+        fn TCOD_sys_get_last_frame_length() -> c_float;
         fn TCOD_console_init_root(w: c_int, h: c_int, title: *c_char,
                                   fullscreen: c_bool, renderer: renderer_t);
         fn TCOD_console_set_custom_font(fontFile: *c_char, flags: c_int,
@@ -317,6 +318,13 @@ pub fn sys_get_fps() -> int {
     }
     assert!(result >= 0);
     return result as int
+}
+
+#[fixed_stack_segment]
+pub fn sys_get_last_frame_length() -> float {
+    unsafe {
+        ffi::TCOD_sys_get_last_frame_length() as float
+    }
 }
 
 #[fixed_stack_segment]

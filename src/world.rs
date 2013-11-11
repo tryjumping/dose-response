@@ -110,6 +110,12 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                         state_of_mind: 130 + rng.gen_integer_range(-15, 16),
                         will: 0,
                     });
+                ecm.set_fade_color(e, FadeColor{
+                        from: item.to_color(),
+                        to: Color{r: 15, g: 255, b: 243},
+                        duration_s: 0.5f,
+                        repetitions: Infinite,
+                    });
                 ecm.set_explosion_effect(e, ExplosionEffect{radius: 6});
             }
             ecm.set_tile(e, Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});

@@ -1,3 +1,4 @@
+* fade out animation for Shadows and Voices when they bit you
 * graphical effect of high/withdrawn
 * background glow for the irresistible area around a dose
 * bonuses on superhigh

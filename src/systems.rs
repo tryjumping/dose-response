@@ -530,8 +530,12 @@ pub mod combat {
             let death_tile = ecm.get_death_tile(e);
             let tile = ecm.get_tile(e);
             ecm.set_tile(e, Tile{glyph: death_tile.glyph,
-                                 color: death_tile.color,
                                  .. tile});
+            ecm.set_fade_color(e, FadeColor{
+                    color: death_tile.color,
+                    duration_s: 1f,
+                    repetitions: Count(1),
+                });
         } else {
             // TODO: don't remove the position here, make systems recognise
             // entity's activeness by something else.
@@ -875,6 +879,18 @@ pub mod color_fade {
         if progress >= 1f {
             progress = 1f;
             anim.current = anim.to;
+            match ecm.get_fade_color(e).repetitions {
+                Count(n) if n > 1 => {
+                    ecm.set_fade_color(e, FadeColor{repetitions: Count(n-1), .. fade_color});
+                }
+                Count(_) => {
+                    ecm.remove_fade_color(e);
+                    ecm.remove_color_animation(e);
+                    ecm.set_tile(e, Tile{color: anim.current, .. tile});
+                    return;
+                }
+                Infinite => {}
+            }
         } else {
             let dr = ((anim.to.r as float - anim.from.r as float) * progress);
             let dg = ((anim.to.g as float - anim.from.g as float) * progress);

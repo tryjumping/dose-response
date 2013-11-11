@@ -140,7 +140,7 @@ pub fn player_entity(ecm: &mut ComponentManager) -> ID {
             threshold: 10});
     ecm.set_exploration(player, Exploration{radius: 5});
     ecm.set_tile(player, Tile{level: 2, glyph: '@', color: col::player});
-    ecm.set_death_tile(player, DeathTile{glyph: '&', color: col::player});
+    ecm.set_death_tile(player, DeathTile{glyph: '&', color: col::dead_player});
     ecm.set_turn(player, Turn{side: Player,
                             ap: 0,
                             max_ap: 1,
@@ -212,6 +212,7 @@ pub mod col {
     pub static voices: Color = Color{r: 95,g: 95,b: 95};
     pub static shadows: Color = Color{r: 95,g: 95,b: 95};
     pub static player: Color = Color{r: 255,g: 255,b: 255};
+    pub static dead_player: Color = Color{r: 80, g: 80, b: 80};
     pub static empty_tile: Color = Color{r: 223,g: 223,b: 223};
     pub static dose: Color = Color{r: 114,g: 126,b: 255};
     pub static dose_glow: Color = Color{r: 0,g: 63,b: 47};

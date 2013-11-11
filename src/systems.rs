@@ -718,7 +718,12 @@ pub mod tile {
                 col::dim_background
             };
             if is_visible || shows_in_fog_of_war || res.cheating {
-                display.draw_char(level, x, y, glyph, color, bg);
+                let final_color = if ecm.has_color_animation(e) {
+                    ecm.get_color_animation(e).current
+                } else {
+                    color
+                };
+                display.draw_char(level, x, y, glyph, final_color, bg);
             }
         }
     }
@@ -832,6 +837,59 @@ pub mod exploration {
         }
     }
 }
+
+
+pub mod color_fade {
+    use components::*;
+    use engine::Color;
+    use super::super::Resources;
+
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  _res: &mut Resources,
+                  dt_s: float) {
+        ensure_components!(ecm, e, Tile, FadeColor);
+        let tile = ecm.get_tile(e);
+        let fade_color = ecm.get_fade_color(e);
+        let mut anim = if ecm.has_color_animation(e) {
+            ecm.get_color_animation(e)
+        } else {
+            ColorAnimation{
+                from: tile.color,
+                to: fade_color.color,
+                current: tile.color,
+                duration_s: fade_color.duration_s,
+                progress: 0f,
+            }
+        };
+        let step = dt_s / anim.duration_s;
+        if anim.progress == 1f {
+            let to = anim.to;
+            // TODO: this line triggers ICE. Verify on master and report it:
+            // (anim.to, anim.from) = (anim.from, anim.to);
+            anim.to = anim.from;
+            anim.from = to;
+            anim.progress = 0f;
+        }
+        let mut progress = anim.progress + step;
+        if progress >= 1f {
+            progress = 1f;
+            anim.current = anim.to;
+        } else {
+            let dr = ((anim.to.r as float - anim.from.r as float) * progress);
+            let dg = ((anim.to.g as float - anim.from.g as float) * progress);
+            let db = ((anim.to.b as float- anim.from.b as float) * progress);
+            anim.current = Color{
+                r: (anim.from.r as float + dr) as u8,
+                g: (anim.from.g as float + dg) as u8,
+                b: (anim.from.b as float + db) as u8,
+            }
+        }
+        anim.progress = progress;
+        ecm.set_color_animation(e, anim);
+    }
+}
+
 
 pub mod gui {
     use engine::{Display, Color};

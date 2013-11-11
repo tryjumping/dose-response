@@ -145,6 +145,7 @@ fn update(state: &mut GameState,
             }
         }
         if state.entities.has_entity(id) {
+            systems::color_fade::system(id, &mut state.entities, &mut state.resources, dt_s);
             systems::tile::system(id,
                                   &mut state.entities,
                                   &mut state.resources,

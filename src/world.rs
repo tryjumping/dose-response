@@ -93,6 +93,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                 tile_level = 2;
             } else if item == world_gen::Dose {
                 ecm.set_dose(e, Dose{tolerance_modifier: 1, resist_radius: 2});
+                ecm.set_fade_color(e, FadeColor{color: Color{r: 15, g: 255, b: 243}, duration_s: 0.6f, repetitions: Infinite});
                 ecm.set_attribute_modifier(e, AttributeModifier{
                         state_of_mind: 72 + rng.gen_integer_range(-5, 6),
                         will: 0,
@@ -212,7 +213,7 @@ pub mod col {
     pub static shadows: Color = Color{r: 95,g: 95,b: 95};
     pub static player: Color = Color{r: 255,g: 255,b: 255};
     pub static empty_tile: Color = Color{r: 223,g: 223,b: 223};
-    pub static dose: Color = Color{r: 114,g: 184,b: 255};
+    pub static dose: Color = Color{r: 114,g: 126,b: 255};
     pub static dose_glow: Color = Color{r: 0,g: 63,b: 47};
     pub static tree_1: Color = Color{r: 0,g: 191,b: 0};
     pub static tree_2: Color = Color{r: 0,g: 255,b: 0};

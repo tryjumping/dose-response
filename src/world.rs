@@ -93,7 +93,12 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                 tile_level = 2;
             } else if item == world_gen::Dose {
                 ecm.set_dose(e, Dose{tolerance_modifier: 1, resist_radius: 2});
-                ecm.set_fade_color(e, FadeColor{color: Color{r: 15, g: 255, b: 243}, duration_s: 0.6f, repetitions: Infinite});
+                ecm.set_fade_color(e, FadeColor{
+                        from: item.to_color(),
+                        to: Color{r: 15, g: 255, b: 243},
+                        duration_s: 0.6f,
+                        repetitions: Infinite,
+                    });
                 ecm.set_attribute_modifier(e, AttributeModifier{
                         state_of_mind: 72 + rng.gen_integer_range(-5, 6),
                         will: 0,

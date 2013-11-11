@@ -530,9 +530,11 @@ pub mod combat {
             let death_tile = ecm.get_death_tile(e);
             let tile = ecm.get_tile(e);
             ecm.set_tile(e, Tile{glyph: death_tile.glyph,
+                                 color: death_tile.color,
                                  .. tile});
             ecm.set_fade_color(e, FadeColor{
-                    color: death_tile.color,
+                    from: tile.color,
+                    to: death_tile.color,
                     duration_s: 1f,
                     repetitions: Count(1),
                 });
@@ -723,7 +725,7 @@ pub mod tile {
             };
             if is_visible || shows_in_fog_of_war || res.cheating {
                 let final_color = if ecm.has_color_animation(e) {
-                    ecm.get_color_animation(e).current
+                    ecm.get_color_animation(e).color
                 } else {
                     color
                 };
@@ -852,53 +854,48 @@ pub mod color_fade {
                   ecm: &mut ComponentManager,
                   _res: &mut Resources,
                   dt_s: float) {
-        ensure_components!(ecm, e, Tile, FadeColor);
-        let tile = ecm.get_tile(e);
-        let fade_color = ecm.get_fade_color(e);
+        ensure_components!(ecm, e, FadeColor);
+        let mut fade = ecm.get_fade_color(e);
         let mut anim = if ecm.has_color_animation(e) {
             ecm.get_color_animation(e)
         } else {
             ColorAnimation{
-                from: tile.color,
-                to: fade_color.color,
-                current: tile.color,
-                duration_s: fade_color.duration_s,
+                color: fade.from,
                 progress: 0f,
             }
         };
-        let step = dt_s / anim.duration_s;
+        let step = dt_s / fade.duration_s;
         if anim.progress == 1f {
-            let to = anim.to;
-            // TODO: this line triggers ICE. Verify on master and report it:
-            // (anim.to, anim.from) = (anim.from, anim.to);
-            anim.to = anim.from;
-            anim.from = to;
             anim.progress = 0f;
+            ecm.set_fade_color(e, FadeColor{
+                    to: fade.from,
+                    from: fade.to,
+                    .. fade});
+            fade = ecm.get_fade_color(e);
         }
         let mut progress = anim.progress + step;
         if progress >= 1f {
             progress = 1f;
-            anim.current = anim.to;
-            match ecm.get_fade_color(e).repetitions {
+            anim.color = fade.to;
+            match fade.repetitions {
                 Count(n) if n > 1 => {
-                    ecm.set_fade_color(e, FadeColor{repetitions: Count(n-1), .. fade_color});
+                    ecm.set_fade_color(e, FadeColor{repetitions: Count(n-1), .. fade});
                 }
                 Count(_) => {
                     ecm.remove_fade_color(e);
                     ecm.remove_color_animation(e);
-                    ecm.set_tile(e, Tile{color: anim.current, .. tile});
                     return;
                 }
                 Infinite => {}
             }
         } else {
-            let dr = ((anim.to.r as float - anim.from.r as float) * progress);
-            let dg = ((anim.to.g as float - anim.from.g as float) * progress);
-            let db = ((anim.to.b as float- anim.from.b as float) * progress);
-            anim.current = Color{
-                r: (anim.from.r as float + dr) as u8,
-                g: (anim.from.g as float + dg) as u8,
-                b: (anim.from.b as float + db) as u8,
+            let dr = ((fade.to.r as float - fade.from.r as float) * progress);
+            let dg = ((fade.to.g as float - fade.from.g as float) * progress);
+            let db = ((fade.to.b as float - fade.from.b as float) * progress);
+            anim.color = Color{
+                r: (fade.from.r as float + dr) as u8,
+                g: (fade.from.g as float + dg) as u8,
+                b: (fade.from.b as float + db) as u8,
             }
         }
         anim.progress = progress;

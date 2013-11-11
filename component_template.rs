@@ -7,8 +7,8 @@ enum   AttackType {Kill, Stun{duration: int}, Panic{duration: int}, ModifyAttrib
 struct AttributeModifier{state_of_mind: int, will: int}
 struct Attributes{state_of_mind: int, will: int}
 struct Exploration{radius: int}
-struct FadeColor{color: Color, duration_s: float, repetitions: Repetitions}
-struct ColorAnimation{from: Color, to: Color, current: Color, duration_s: float, progress: float}
+struct FadeColor{from: Color, to: Color, duration_s: float, repetitions: Repetitions}
+struct ColorAnimation{color: Color, progress: float}
 struct Background
 struct Bump(ID)
 struct DeathTile{glyph: char, color: Color}

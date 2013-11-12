@@ -1,3 +1,6 @@
+* Use TCOD path-finding directly
+* Implement position caching in the ComponentManager
+* Use ComponentManager position caching directly
 * BUG: crash on when we have too many dead entities in a single place (see replay)
 * Remove the map as the position cache
   -- should fix the too many entities crash

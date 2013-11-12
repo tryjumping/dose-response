@@ -1,3 +1,5 @@
+* Decomplect the Position with any other meaning (such as: this entity is alive,
+  etc.)
 * graphical effect of high/withdrawn
 * background glow for the irresistible area around a dose
 * bonuses on superhigh

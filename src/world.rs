@@ -173,7 +173,7 @@ impl world_gen::WorldItem {
             world_gen::Depression => 'D',
             world_gen::Hunger => 'h',
             world_gen::Voices => 'v',
-            world_gen::Shadows => 's',
+            world_gen::Shadows => 'S',
         }
     }
 

@@ -135,6 +135,7 @@ fn update(state: &mut GameState,
         systems::combat::system,
         systems::will::system,
         systems::exploration::system,
+        systems::fade_out::system,
     ];
 
     process_input(keys, &mut state.resources.commands);

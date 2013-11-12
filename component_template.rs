@@ -8,6 +8,8 @@ struct AttributeModifier{state_of_mind: int, will: int}
 struct Attributes{state_of_mind: int, will: int}
 struct Exploration{radius: int}
 struct FadeColor{from: Color, to: Color, duration_s: float, repetitions: Repetitions}
+struct FadeOut{to: Color, duration_s: float}
+struct FadingOut
 struct ColorAnimation{color: Color, progress: float}
 struct Background
 struct Bump(ID)

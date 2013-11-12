@@ -518,6 +518,7 @@ pub mod bump {
 pub mod combat {
     use components::*;
     use map::{Map};
+    use engine::Color;
     use super::super::Resources;
 
     pub fn kill_entity(e: ID,
@@ -538,6 +539,9 @@ pub mod combat {
                     duration_s: 1f,
                     repetitions: Count(1),
                 });
+        } else if ecm.has_fade_out(e) {
+            let Position{x, y} = ecm.get_position(e);
+            map.remove_entity(*e, (x, y));
         } else {
             // TODO: don't remove the position here, make systems recognise
             // entity's activeness by something else.
@@ -578,6 +582,13 @@ pub mod combat {
             Stun{duration} => {
                 println!("Entity {} was stunned by {}", *target, *e);
                 // An attacker with stun disappears after delivering the blow
+                ecm.set_fade_out(e, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
+                if ecm.has_tile(e) {
+                    let tile = ecm.get_tile(e);
+                    if tile.level > 0 {
+                        ecm.set_tile(e, Tile{level: tile.level - 1, .. tile});
+                    }
+                }
                 kill_entity(e, ecm, &mut res.map);
                 let stunned = if ecm.has_stunned(target) {
                     let prev = ecm.get_stunned(target);
@@ -590,6 +601,13 @@ pub mod combat {
             Panic{duration} => {
                 println!("Entity {} panics because of {}", *target, *e);
                 // An attacker with stun disappears after delivering the blow
+                ecm.set_fade_out(e, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
+                if ecm.has_tile(e) {
+                    let tile = ecm.get_tile(e);
+                    if tile.level > 0 {
+                        ecm.set_tile(e, Tile{level: tile.level - 1, .. tile});
+                    }
+                }
                 kill_entity(e, ecm, &mut res.map);
                 let panicking = if ecm.has_panicking(target) {
                     let prev = ecm.get_panicking(target);
@@ -900,6 +918,35 @@ pub mod color_fade {
         }
         anim.progress = progress;
         ecm.set_color_animation(e, anim);
+    }
+}
+
+pub mod fade_out {
+    use components::*;
+    use super::super::Resources;
+
+    pub fn system(e: ID,
+                  ecm: &mut ComponentManager,
+                  _res: &mut Resources) {
+        ensure_components!(ecm, e, FadeOut, Tile);
+        let fade_out = ecm.get_fade_out(e);
+        let tile = ecm.get_tile(e);
+        if !ecm.has_fading_out(e) {
+            // replace any existing animation with our fade out
+            ecm.remove_color_animation(e);
+            ecm.set_fade_color(e, FadeColor{
+                    from: tile.color,
+                    to: fade_out.to,
+                    duration_s: fade_out.duration_s,
+                    repetitions: Count(1),
+                });
+            ecm.set_fading_out(e, FadingOut);
+        } else if !ecm.has_color_animation(e) {
+            // the animation has ended, finish the fade out
+            ecm.remove_tile(e);
+            ecm.remove_fade_out(e);
+            ecm.remove_fading_out(e);
+        }
     }
 }
 

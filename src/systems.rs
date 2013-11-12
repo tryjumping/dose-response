@@ -525,6 +525,9 @@ pub mod combat {
                        ecm: &mut ComponentManager,
                        map: &mut Map) {
         if !ecm.has_entity(e) {return}
+        // TODO: we assume that an entity without a turn is already dead. Add a
+        // `Dead` component (or something similar) instead.
+        if !ecm.has_turn(e) {return}
         ecm.remove_ai(e);
         // Replace the entity's Tile with the tile of a corpse.
         if ecm.has_death_tile(e) && ecm.has_tile(e) {

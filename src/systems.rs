@@ -86,7 +86,7 @@ pub mod leave_area {
     pub fn system(e: ID,
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
-        ensure_components!(ecm, e, Position, Destination);
+        ensure_components!(ecm, e, Destination);
         if e != res.player_id {return}
         let dest = ecm.get_destination(e);
         let left_map_boundaries = (dest.x < 0 || dest.y < 0 ||
@@ -517,7 +517,7 @@ pub mod bump {
 
 pub mod combat {
     use components::*;
-    use map::{Map};
+    use map::{Map, Walkable};
     use engine::Color;
     use super::super::Resources;
 
@@ -527,8 +527,18 @@ pub mod combat {
         if !ecm.has_entity(e) {return}
         // TODO: we assume that an entity without a turn is already dead. Add a
         // `Dead` component (or something similar) instead.
+        // TODO: also, this is a bug: killing should be idempotent
         if !ecm.has_turn(e) {return}
         ecm.remove_ai(e);
+        ecm.remove_accepts_user_input(e);
+        ecm.remove_turn(e);
+        ecm.remove_destination(e);
+        // Remove entity's solidity in the component and in the map
+        if ecm.has_solid(e) && ecm.has_position(e) {
+            ecm.remove_solid(e);
+            let Position{x, y} = ecm.get_position(e);
+            map.place_entity(*e, (x, y), Walkable);
+        }
         // Replace the entity's Tile with the tile of a corpse.
         if ecm.has_death_tile(e) && ecm.has_tile(e) {
             let death_tile = ecm.get_death_tile(e);
@@ -543,17 +553,13 @@ pub mod combat {
                     repetitions: Count(1),
                 });
         } else if ecm.has_fade_out(e) {
+            // TODO: we probably shouldn't remove the fading-out entities here.
+            // Makes no sense. Just remove their tiles after the fadeout.
             let Position{x, y} = ecm.get_position(e);
             map.remove_entity(*e, (x, y));
         } else {
-            // TODO: don't remove the position here, make systems recognise
-            // entity's activeness by something else.
-            let Position{x, y} = ecm.get_position(e);
-            ecm.remove_position(e);
-            map.remove_entity(*e, (x, y));
+            ecm.remove_tile(e);
         }
-        ecm.remove_accepts_user_input(e);
-        ecm.remove_turn(e);
     }
 
     pub fn system(e: ID,
@@ -572,6 +578,17 @@ pub mod combat {
             Kill => {
                 println!("Entity {} was killed by {}", *target, *e);
                 kill_entity(target, ecm, &mut res.map);
+                // TODO: This is a hack. The player should fade out, the other
+                // monsters just disappear. Need to make this better without
+                // special-casing the player.
+                if target != res.player_id {
+                    match ecm.get_position(target) {
+                        Position{x, y} => {
+                            ecm.remove_position(target);
+                            res.map.remove_entity(*target, (x, y));
+                        }
+                    }
+                }
                 let target_is_anxiety = (ecm.has_monster(target) &&
                                          ecm.get_monster(target).kind == Anxiety);
                 if target_is_anxiety && ecm.has_anxiety_kill_counter(e) {
@@ -847,7 +864,7 @@ pub mod exploration {
                   ecm: &mut ComponentManager,
                   res: &mut Resources) {
         if e != res.player_id {return}
-        ensure_components!(ecm, e, Position, Exploration, Attributes);
+        ensure_components!(ecm, e, AcceptsUserInput, Position, Exploration, Attributes);
         let pos = ecm.get_position(e);
         let exploration = ecm.get_exploration(e);
         let attrs = ecm.get_attributes(e);

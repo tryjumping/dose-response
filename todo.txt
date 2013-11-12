@@ -1,5 +1,9 @@
-* Decomplect the Position with any other meaning (such as: this entity is alive,
-  etc.)
+* BUG: crash on when we have too many dead entities in a single place (see replay)
+* Remove the map as the position cache
+  -- should fix the too many entities crash
+* Don't remove an entity in `kill_entity` on fadeout (see TODO)
+* Split utils into individual files
+* Split systems into individual files
 * graphical effect of high/withdrawn
 * background glow for the irresistible area around a dose
 * bonuses on superhigh

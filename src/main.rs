@@ -252,6 +252,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
         },
         Err(e) => fail!(fmt!("Failed to read the replay file: %s", e))
     }
+    println!("Replaying game log: '{}'", replay_path.to_str());
     let rng = IsaacRng::new_seeded(seed);
     let logger = CommandLogger{writer: writer};
     let ecm = ComponentManager::new();

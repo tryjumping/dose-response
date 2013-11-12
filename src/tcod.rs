@@ -88,7 +88,6 @@ impl Path {
                                                              path_cb,
                                                              cast::transmute(user_data),
                                                              diagonal_cost as c_float)
-
             }
         }
     }

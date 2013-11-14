@@ -122,6 +122,10 @@ if __name__ == '__main__':
                             if l.strip()]
     components = [component_name(s) for s in definitions]
 
+    TODO: add "default_components" thingy
+
+
+
     environment = Environment()
     environment.filters['ident'] = to_snake_case
     template = environment.from_string(template_section)

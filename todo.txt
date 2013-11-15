@@ -5,9 +5,14 @@
 * Remove the map as the position cache
   -- should fix the too many entities crash
 * Don't remove an entity in `kill_entity` on fadeout (see TODO)
+* Add proper keycodes/enums
+* Add generic is_key_pressed function
 * Split utils into individual files
 * Split systems into individual files
 * graphical effect of high/withdrawn
+  - use tcod::console_set_fade for low (instead of changing the blitting fade
+    value)
+  - though that would fade the GUI as well...
 * background glow for the irresistible area around a dose
 * bonuses on superhigh
   - see entities on som >= 98
@@ -32,3 +37,32 @@
   - This requires the extern callback to tcod_find_path_using_function to be
   generic (because the map is generic and we need to cast the `*void user_data`
    to `Map<T>`) and that's hitting a compiler bug.
+
+
+
+
+
+
+Notes on tcod:
+
+Fade the entire screen in/out of a colour:
+     tcod::console_set_fade(fade: u8, tcod::Color)
+     (`fade` is <0, 255>, `Color` is the colour to fade from/to)
+
+(great on death, etc.)
+
+
+The tcod background flags are confusing and at least in my experiments not
+    particularly functional. Just use:
+
+    `tcod::console_put_char_ex` which lets you directly specify both foreground
+    and background colours and dosen't use the background flags at all.
+
+There doesn't seem to be a way to mix two cells together, i.e. have a proper
+disappearing fade. To do that, we'd probably have to invoke some SDL, or just
+switch away from TCOD. Seems to be a limitation of the library. Or as a
+kinda-solution, don't use dots for background walkable tiles and instead use a
+coloured spaces or something.
+
+I kinda like dots, though. They work better at figuring the distances --
+especially wrt diagonals.

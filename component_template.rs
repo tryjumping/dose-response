@@ -26,8 +26,10 @@ struct Tile{level: uint, glyph: char, color: Color}
 struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
 ---
 use std::num;
-use std::iter::{Map, Range};
+use std::iter;
+use std::vec::VecIterator;
 use std::hashmap::HashMap;
+use std::container::Map;
 
 use engine::{Color};
 pub use map;
@@ -104,6 +106,7 @@ pub struct ComponentManager {
     priv initial_id: ID,
     priv next_id: ID,
     priv position_cache: HashMap<(int, int), ~[ID]>,
+    priv empty_vector: ~[ID],  // Used to return positions on cache miss
 }
 
 impl ComponentManager {
@@ -113,6 +116,7 @@ pub fn new() -> ComponentManager {
             initial_id: ID(0),
             next_id: ID(0),
             position_cache: HashMap::new(),
+            empty_vector: ~[],
         }
     }
 
@@ -145,7 +149,7 @@ pub fn new() -> ComponentManager {
         }
     }
 
-    pub fn iter(&self) -> Map<int, ID, Range<int>> {
+    pub fn iter(&self) -> iter::Map<int, ID, iter::Range<int>> {
         range(*self.initial_id, *self.next_id).map(|index| ID(index))
     }
 
@@ -244,6 +248,13 @@ pub fn new() -> ComponentManager {
             cache.remove(id_index);
         }
         self.remove_position_(id)
+    }
+
+    pub fn entities_on_pos<'r>(&'r self, pos: Position) -> VecIterator<'r, ID> {
+        match self.position_cache.find(&(pos.x, pos.y)) {
+            Some(entities) => entities.iter(),
+            None => self.empty_vector.iter(),
+        }
     }
 }
 

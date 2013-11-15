@@ -229,14 +229,14 @@ pub fn new() -> ComponentManager {
             self.remove_position(id);
         }
         self.set_position_(id, pos);
-        let mut cache = self.position_cache.get_mut(&(pos.x, pos.y));
+        let cache = self.position_cache.find_or_insert((pos.x, pos.y), ~[]);
         cache.push(id);
     }
 
     pub fn remove_position(&mut self, id: ID) {
         if self.has_position(id) {
             let pos = self.get_position(id);
-            let mut cache = self.position_cache.get_mut(&(pos.x, pos.y));
+            let cache = self.position_cache.get_mut(&(pos.x, pos.y));
             let id_index = match cache.iter().position(|&i| i == id) {
                 Some(index) => index,
                 None => fail2!("Position cache is missing the entity {}", *id),

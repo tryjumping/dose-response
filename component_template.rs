@@ -27,7 +27,7 @@ struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
 ---
 use std::num;
 use std::iter;
-use std::vec::VecIterator;
+use std::vec::MoveIterator;
 use std::hashmap::HashMap;
 use std::container::Map;
 
@@ -98,7 +98,7 @@ pub enum ComponentType {
     {% endfor %}
 }
 
-#[deriving(Eq, ToStr)]
+#[deriving(Clone, Eq, ToStr)]
 pub struct ID(int);
 
 pub struct ComponentManager {
@@ -250,10 +250,10 @@ pub fn new() -> ComponentManager {
         self.remove_position_(id)
     }
 
-    pub fn entities_on_pos<'r>(&'r self, pos: Position) -> VecIterator<'r, ID> {
+    pub fn entities_on_pos(&self, pos: Position) -> MoveIterator<ID> {
         match self.position_cache.find(&(pos.x, pos.y)) {
-            Some(entities) => entities.iter(),
-            None => self.empty_vector.iter(),
+            Some(entities) => entities.clone().move_iter(),
+            None => self.empty_vector.clone().move_iter(),
         }
     }
 }

@@ -1,5 +1,4 @@
 use components::*;
-use map::{Walkable, Solid};
 use super::ai;
 use super::super::Resources;
 
@@ -27,17 +26,17 @@ pub fn system(e: ID,
             ecm.remove_destination(e);
         } else {  // Bump into the blocked entity
             // TODO: assert there's only one solid entity on pos [x, y]
-            for (bumpee, walkable) in res.map.entities_on_pos((dest.x, dest.y)) {
-                assert!(bumpee != *e);
-                match walkable {
-                    Walkable => loop,
-                    Solid => {
+            for bumpee in ecm.entities_on_pos(Position{x: dest.x, y: dest.y}) {
+                assert!(bumpee != e);
+                match ecm.has_solid(bumpee) {
+                    true => {
                         println!("Entity {} bumped into {} at: ({}, {})",
-                                 *e, bumpee, dest.x, dest.y);
-                        ecm.set_bump(e, Bump(ID(bumpee)));
+                                 *e, *bumpee, dest.x, dest.y);
+                        ecm.set_bump(e, Bump(bumpee));
                         ecm.remove_destination(e);
                         break;
                     }
+                    false => {}
                 }
             }
         }

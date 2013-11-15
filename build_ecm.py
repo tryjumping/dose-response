@@ -7,10 +7,10 @@ from jinja2 import Environment
 
 
 def delimiter(component_statement):
-    if component_statement[-1] != '}':
-        return ';'
-    else:
+    if '}' in component_statement:
         return ''
+    else:
+        return ';'
 
 def component_name(component_statement):
     m = re.match(r'\w+\s+(\w+)', component_statement)
@@ -117,16 +117,17 @@ if __name__ == '__main__':
         exit(1)
 
 
-    definitions = [l.strip() + delimiter(l.strip())
+    definitions = [l.strip() + '\n' + delimiter(l)
                             for l in component_section.split('\n')
                             if l.strip()]
     components = [component_name(s) for s in definitions]
-
-    TODO: add "default_components" thingy
-
-
+    default_components = [component_name(s) for s in component_section.split('\n')
+                          if s.strip() and not s.strip().endswith('callbacks')]
 
     environment = Environment()
     environment.filters['ident'] = to_snake_case
     template = environment.from_string(template_section)
-    print(template.render(definitions=definitions, components=components))
+    print(template.render(definitions=definitions,
+                          components=components,
+                          default_components=default_components,
+    ))

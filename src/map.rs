@@ -62,34 +62,6 @@ impl Map {
         }
     }
 
-    fn index_from_coords(&self, x: int, y: int) -> int {
-        assert!(x >= 0 && x < self.width);
-        assert!(y >= 0 && y < self.height);
-        y * self.width + x
-    }
-
-    pub fn set_walkability(&mut self, pos: (int, int), walkable: Walkability) {
-        match pos {
-            (x, y) => {
-                let idx = self.index_from_coords(x, y);
-                match self.surface[idx] {
-                    (_, explored) => self.surface[idx] = (walkable, explored)
-                }
-            }
-        }
-    }
-
-    pub fn set_explored(&mut self, pos: (int, int), explored: Exploration) {
-        let (x, y) = pos;
-        let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
-        if out_of_bounds { return }
-
-        let idx = self.index_from_coords(x, y);
-        match self.surface[idx] {
-            (walkable, _) => self.surface[idx] = (walkable, explored)
-        }
-    }
-
     // TODO: a better (safer, more inclined with how Rust would work) interface
     // for this would be to return the iterator over the path points at the
     // given moment.

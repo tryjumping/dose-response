@@ -7,6 +7,7 @@ enum   AttackType {Kill, Stun{duration: int}, Panic{duration: int}, ModifyAttrib
 struct AttributeModifier{state_of_mind: int, will: int}
 struct Attributes{state_of_mind: int, will: int}
 struct Exploration{radius: int}
+struct Explored
 struct FadeColor{from: Color, to: Color, duration_s: float, repetitions: Repetitions}
 struct FadeOut{to: Color, duration_s: float}
 struct FadingOut

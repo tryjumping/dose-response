@@ -12,7 +12,9 @@ pub fn distance(p1: &Position, p2: &Position) -> int {
 
 pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
                                             pos: Position,
-                                            ecm: &ComponentManager) -> (int, int) {
+                                            ecm: &ComponentManager,
+                                            map_size: (int, int))
+                                            -> (int, int) {
     let neighbors = [
         (pos.x, pos.y-1),
         (pos.x, pos.y+1),
@@ -26,7 +28,7 @@ pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
     let mut walkables: ~[(int, int)] = ~[];
     for &p in neighbors.iter() {
         let pos = match p { (x, y) => Position{x: x, y: y} };
-        if is_walkable(pos, ecm) { walkables.push(p) }
+        if is_walkable(pos, ecm, map_size) { walkables.push(p) }
     }
     if walkables.is_empty() {
         (pos.x, pos.y)  // Nowhere to go
@@ -35,7 +37,8 @@ pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
     }
 }
 
-pub fn entity_blocked(pos: Position, ecm: &ComponentManager) -> bool {
+pub fn entity_blocked(pos: Position, ecm: &ComponentManager, map_size: (int, int))
+                      -> bool {
     let neighbors = [
         (pos.x, pos.y-1),
         (pos.x, pos.y+1),
@@ -48,13 +51,14 @@ pub fn entity_blocked(pos: Position, ecm: &ComponentManager) -> bool {
         ];
     !do neighbors.iter().any |&neighbor_pos| {
         let pos = match neighbor_pos { (x, y) => Position{x: x, y: y}};
-        is_walkable(pos, ecm)
+        is_walkable(pos, ecm, map_size)
     }
 }
 
 fn individual_behaviour<T: Rng>(e: ID,
                                 ecm: &mut ComponentManager,
                                 rng: &mut T,
+                                map_size: (int, int),
                                 player_pos: Position) -> Destination {
     let pos = ecm.get_position(e);
     let player_distance = distance(&pos, &player_pos);
@@ -73,7 +77,7 @@ fn individual_behaviour<T: Rng>(e: ID,
             Destination{x: player_pos.x, y: player_pos.y}
         }
         components::ai::Idle => {
-            match random_neighbouring_position(rng, pos, ecm) {
+            match random_neighbouring_position(rng, pos, ecm, map_size) {
                 (x, y) => Destination{x: x, y: y}
             }
         }
@@ -83,6 +87,7 @@ fn individual_behaviour<T: Rng>(e: ID,
 fn hunting_pack_behaviour<T: Rng>(e: ID,
                                   ecm: &mut ComponentManager,
                                   rng: &mut T,
+                                  map_size: (int, int),
                                   player_pos: Position) -> Destination {
     let pos = ecm.get_position(e);
     let player_distance = distance(&pos, &player_pos);
@@ -108,7 +113,7 @@ fn hunting_pack_behaviour<T: Rng>(e: ID,
             Destination{x: player_pos.x, y: player_pos.y}
         }
         components::ai::Idle => {
-            match random_neighbouring_position(rng, pos, ecm) {
+            match random_neighbouring_position(rng, pos, ecm, map_size) {
                 (x, y) => Destination{x: x, y: y}
             }
         }
@@ -123,16 +128,17 @@ pub fn system(e: ID,
     if res.side != Computer {return}
     let player_pos = ecm.get_position(res.player_id);
     let pos = ecm.get_position(e);
-    let dest = if entity_blocked(pos, ecm) {
+    let dest = if entity_blocked(pos, ecm, (res.map.width, res.map.height)) {
         println!("Found a blocked entity: {}", *e);
         Destination{x: pos.x, y: pos.y}
     } else {
+        let map_size = (res.map.width, res.map.height);
         match ecm.get_ai(e).behaviour {
             components::ai::Individual => {
-                individual_behaviour(e, ecm, &mut res.rng, player_pos)
+                individual_behaviour(e, ecm, &mut res.rng, map_size, player_pos)
             }
             components::ai::Pack => {
-                hunting_pack_behaviour(e, ecm, &mut res.rng, player_pos)
+                hunting_pack_behaviour(e, ecm, &mut res.rng, map_size, player_pos)
             }
         }
     };

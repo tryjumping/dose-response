@@ -2,8 +2,7 @@ use std::rand::Rng;
 
 use components::*;
 use engine::Color;
-use map;
-use map::{Map, Explored};
+use map::{Map};
 use world_gen;
 use systems::ai::distance;
 use systems::exploration::precise_distance;
@@ -25,7 +24,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
         ecm.set_background(bg, Background);
         let explored = precise_distance((x, y), (player_pos.x, player_pos.y)) < 6;
         if explored {
-            map.set_explored((x, y), Explored);
+            ecm.set_explored(bg, Explored);
         }
         let item = if (x, y) == (player_pos.x, player_pos.y) {
             world_gen::Empty
@@ -119,18 +118,6 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                 ecm.set_explosion_effect(e, ExplosionEffect{radius: 6});
             }
             ecm.set_tile(e, Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
-        }
-    }
-
-    // Initialise the map's walkability data
-    for e in ecm.iter() {
-        let Position{x, y} =  ecm.get_position(e);
-        let walkable = match ecm.has_solid(e) {
-            true => map::Solid,
-            false => map::Walkable,
-        };
-        if ecm.has_background(e) {
-            map.set_walkability((x, y), walkable);
         }
     }
 }

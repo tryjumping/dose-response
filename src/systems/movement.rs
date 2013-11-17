@@ -2,7 +2,15 @@ use components::*;
 use super::ai;
 use super::super::Resources;
 
-pub fn is_walkable(pos: Position, ecm: &ComponentManager) -> bool {
+pub fn is_walkable(pos: Position, ecm: &ComponentManager, map_size: (int, int))
+                   -> bool {
+    match map_size {
+        (width, height) => {
+            if pos.x < 0 || pos.y < 0 || pos.x >= width || pos.y >= height {
+                return false;
+            }
+        }
+    }
     !do ecm.entities_on_pos(pos).any |e| {
         ecm.has_solid(e)
     }
@@ -23,7 +31,8 @@ pub fn system(e: ID,
         ecm.set_turn(e, turn.spend_ap(1));
         ecm.remove_destination(e);
     } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
-        if is_walkable(Position{x: dest.x, y: dest.y}, ecm)  {  // Move to the cell
+        let map_size = (res.map.width, res.map.height);
+        if is_walkable(Position{x: dest.x, y: dest.y}, ecm, map_size)  {  // Move to the cell
             ecm.set_turn(e, turn.spend_ap(1));
             ecm.set_position(e, Position{x: dest.x, y: dest.y});
             ecm.remove_destination(e);

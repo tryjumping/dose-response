@@ -1,7 +1,6 @@
 use std::num;
 
 use components::*;
-use map::{Explored};
 use super::super::Resources;
 
 pub fn precise_distance(p1: (int, int), p2: (int, int)) -> int {
@@ -27,7 +26,11 @@ pub fn system(e: ID,
     for x in range(pos.x - radius, pos.x + radius) {
         for y in range(pos.y - radius, pos.y + radius) {
             if precise_distance((pos.x, pos.y), (x, y)) <= radius {
-                res.map.set_explored((x, y), Explored);
+                for exploree in ecm.entities_on_pos(Position{x: x, y: y}) {
+                    if ecm.has_explored(exploree) {
+                        ecm.set_explored(exploree, Explored);
+                    }
+                }
             }
         }
     }

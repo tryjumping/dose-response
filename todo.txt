@@ -1,9 +1,4 @@
-* Use TCOD path-finding directly
-* Implement position caching in the ComponentManager
-* Use ComponentManager position caching directly
-* BUG: crash on when we have too many dead entities in a single place (see replay)
-* Remove the map as the position cache
-  -- should fix the too many entities crash
+* BUG: crash on leaving the map (something broken with the position cache)
 * Don't remove an entity in `kill_entity` on fadeout (see TODO)
 * Add proper keycodes/enums
 * Add generic is_key_pressed function

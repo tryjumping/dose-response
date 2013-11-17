@@ -19,7 +19,9 @@ pub fn system(e: ID,
         false
     };
     let shows_in_fog_of_war = ecm.has_background(e) || ecm.has_dose(e);
-    let is_explored = res.map.is_explored((x, y));
+    // TODO: fix exploration
+    //let is_explored = res.map.is_explored((x, y));
+    let is_explored = true;
     if is_explored || res.cheating {
         let bg = if is_visible {
             col::background

@@ -90,39 +90,6 @@ impl Map {
         }
     }
 
-    pub fn is_explored(&self, pos: (int, int)) -> bool {
-        let (x, y) = pos;
-        let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
-        if out_of_bounds { return false }
-
-        let idx = self.index_from_coords(x, y);
-        match self.surface[idx] {
-            (_, Explored) => true,
-            (_, Unexplored) => false,
-        }
-    }
-
-    pub fn is_walkable(&self, pos: (int, int)) -> bool {
-        let (x, y) = pos;
-        let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
-        if out_of_bounds { return false }
-
-        let idx = self.index_from_coords(x, y);
-        match self.surface[idx] {
-            (Solid, _) => return false,
-            _ => {}
-        }
-        match self.entities_1[idx] {
-            Some((_, Solid)) => return false,
-            _ => (),
-        }
-        match self.entities_2[idx] {
-            Some((_, Solid)) => return false,
-            _ => return true,
-        }
-    }
-
-
     // TODO: a better (safer, more inclined with how Rust would work) interface
     // for this would be to return the iterator over the path points at the
     // given moment.
@@ -209,8 +176,8 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void)
     // Succeed if we're at the destination even if it's not walkable:
     if (dx as c_int, dy as c_int) == (xt, yt) {
         1.0
-    } else if unsafe { path.map.as_ref().is_walkable((xt as int, yt as int))} {
-        1.0
+    // } else if unsafe { path.map.as_ref().is_walkable((xt as int, yt as int))} {
+    //     1.0
     } else {
         0.0
     }

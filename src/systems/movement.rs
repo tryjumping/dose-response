@@ -2,6 +2,12 @@ use components::*;
 use super::ai;
 use super::super::Resources;
 
+pub fn is_walkable(pos: Position, ecm: &ComponentManager) -> bool {
+    !do ecm.entities_on_pos(pos).any |e| {
+        ecm.has_solid(e)
+    }
+}
+
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
               res: &mut Resources) {
@@ -17,7 +23,7 @@ pub fn system(e: ID,
         ecm.set_turn(e, turn.spend_ap(1));
         ecm.remove_destination(e);
     } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
-        if res.map.is_walkable((dest.x, dest.y))  {  // Move to the cell
+        if is_walkable(Position{x: dest.x, y: dest.y}, ecm)  {  // Move to the cell
             ecm.set_turn(e, turn.spend_ap(1));
             ecm.set_position(e, Position{x: dest.x, y: dest.y});
             ecm.remove_destination(e);

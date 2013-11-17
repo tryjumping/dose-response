@@ -7,7 +7,7 @@ pub fn system(e: ID,
               res: &mut Resources) {
     ensure_components!(ecm, e, Panicking, Position, Destination);
     let pos = ecm.get_position(e);
-    match ai::random_neighbouring_position(&mut res.rng, pos, &mut res.map) {
+    match ai::random_neighbouring_position(&mut res.rng, pos, ecm) {
         (x, y) => ecm.set_destination(e, Destination{x: x, y: y}),
     }
 }

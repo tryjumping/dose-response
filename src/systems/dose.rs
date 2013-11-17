@@ -2,13 +2,33 @@ use std::num;
 use components::*;
 use super::ai;
 use super::super::Resources;
+use systems::movement::find_path;
+
+fn is_irresistible(addict: ID,
+                   dose: ID,
+                   ecm: &ComponentManager,
+                   map_size: (int, int)) -> bool {
+    let pos = ecm.get_position(addict);
+    let dose_pos = ecm.get_position(dose);
+    unsafe {
+        match find_path((pos.x, pos.y), (dose_pos.x, dose_pos.y), map_size, ecm) {
+            Some(p) => p.len() <= resist_radius(addict, dose, ecm),
+            None => false,
+        }
+    }
+}
+
+fn resist_radius(addict: ID, dose: ID, ecm: &ComponentManager) -> int {
+    let will = ecm.get_attributes(addict).will;
+    num::max(ecm.get_dose(dose).resist_radius - will, 0)
+}
 
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
               res: &mut Resources) {
     ensure_components!(ecm, e, Addiction, Attributes, Position, Destination);
-    let will = ecm.get_attributes(e).will;
     let pos = ecm.get_position(e);
+    let map_size = (res.map.width, res.map.height);
     let search_radius = 3;  // max irresistibility for a dose is curretnly 3
     let mut doses: ~[ID] = ~[];
     for x in range(pos.x - search_radius, pos.x + search_radius) {
@@ -19,14 +39,7 @@ pub fn system(e: ID,
                            *dose, x, y);
                 }
                 if !ecm.has_dose(dose) {loop};
-                let dose_pos = ecm.get_position(dose);
-                let path_to_dose = res.map.find_path((pos.x, pos.y), (dose_pos.x, dose_pos.y));
-                let resist_radius = num::max(ecm.get_dose(dose).resist_radius - will, 0);
-                let is_irresistible = match path_to_dose {
-                    Some(p) => p.len() <= resist_radius,
-                    None => false,
-                };
-                if is_irresistible {
+                if is_irresistible(e, dose, ecm, map_size) {
                     doses.push(dose);
                 }
             }
@@ -38,21 +51,22 @@ pub fn system(e: ID,
     match nearest_dose {
         Some(&dose) => {
             let Position{x, y} = ecm.get_position(dose);
-            // We walk the path here to make sure we only move one step at a
-            // time.
-            match res.map.find_path((pos.x, pos.y), (x, y)) {
-                Some(ref mut path) => {
-                    let resist_radius = num::max(ecm.get_dose(dose).resist_radius - will, 0);
-                    if path.len() <= resist_radius {
-                        match path.walk() {
-                            Some((x, y)) => {
-                                ecm.set_destination(e, Destination{x: x, y: y});
+            unsafe {
+                // We walk the path here to make sure we only move one step at a
+                // time.
+                match find_path((pos.x, pos.y), (x, y), map_size, ecm) {
+                    Some(ref mut path) => {
+                        if path.len() <= resist_radius(e, dose, ecm) {
+                            match path.walk(true) {
+                                Some((x, y)) => {
+                                    ecm.set_destination(e, Destination{x: x, y: y});
+                                }
+                                None => unreachable!(),
                             }
-                            None => unreachable!(),
                         }
                     }
+                    None => {}
                 }
-                None => {}
             }
         }
         None => {}

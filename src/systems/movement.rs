@@ -25,21 +25,45 @@ fn is_solid(pos: Position, ecm: &ComponentManager) -> bool {
     }
 }
 
+struct PathWithUserData {
+    priv to: (int, int),
+    priv ecm: *ComponentManager,
+    priv path: Option<Path>,
+}
+
+impl PathWithUserData {
+    pub fn len(&self) -> int {
+        self.path.get_ref().len()
+    }
+
+    pub fn walk(&mut self, recalculate: bool) -> Option<(int, int)> {
+        self.path.get_mut_ref().walk(recalculate)
+    }
+}
+
 // This is unsafe because we're passing the the pointer to ecm to the tcod
 // callback and then return an object with the associated callback. Should ecm
 // be destroyed before the Path we're returning, things would go wrong. So the
 // caller has to make sure that doesn't happen.
 pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), ecm: &ComponentManager)
-                 -> Option<Path> {
+                 -> Option<~PathWithUserData> {
     let (sx, sy) = from;
     let (dx, dy) = to;
     let (width, height) = map_size;
     if dx < 0 || dy < 0 || dx >= width || dy >= height {
         return None;
     }
-    let mut path = Path::new_using_function(width, height, cb, &(to, ecm), 1.0);
-    match path.find(sx, sy, dx, dy){
-        true => Some(path),
+    let mut p = ~PathWithUserData {
+        to: to,
+        ecm: ecm as *ComponentManager,
+        path: None,
+    };
+    let mut path = Path::new_using_function(width, height, cb, p, 1.0);
+    match path.find(sx, sy, dx, dy) {
+        true => {
+            p.path = Some(path);
+            Some(p)
+        }
         false => None,
     }
 }
@@ -47,13 +71,13 @@ pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), 
 extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-    let &(to, ecm): &((int, int), &ComponentManager) = unsafe { cast::transmute(path_data_ptr) };
+    let p: &PathWithUserData = unsafe { cast::transmute(path_data_ptr) };
 
-    let (dx, dy) = to;
+    let (dx, dy) = p.to;
     // Succeed if we're at the destination even if it's not walkable:
     if (dx as c_int, dy as c_int) == (xt, yt) {
         1.0
-    } else if is_solid(Position{x: xt as int, y: yt as int}, ecm) {
+    } else if is_solid(Position{x: xt as int, y: yt as int}, unsafe {cast::transmute(p.ecm)}) {
         0.0
     } else {
         1.0

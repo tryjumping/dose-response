@@ -1,6 +1,11 @@
+use std::cast;
+use std::libc::{c_int, c_float, c_void};
+
 use components::*;
 use super::ai;
 use super::super::Resources;
+use tcod::Path;
+
 
 pub fn is_walkable(pos: Position, ecm: &ComponentManager, map_size: (int, int))
                    -> bool {
@@ -11,10 +16,50 @@ pub fn is_walkable(pos: Position, ecm: &ComponentManager, map_size: (int, int))
             }
         }
     }
-    !do ecm.entities_on_pos(pos).any |e| {
+    !is_solid(pos, ecm)
+}
+
+fn is_solid(pos: Position, ecm: &ComponentManager) -> bool {
+    do ecm.entities_on_pos(pos).any |e| {
         ecm.has_solid(e)
     }
 }
+
+// This is unsafe because we're passing the the pointer to ecm to the tcod
+// callback and then return an object with the associated callback. Should ecm
+// be destroyed before the Path we're returning, things would go wrong. So the
+// caller has to make sure that doesn't happen.
+pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), ecm: &ComponentManager)
+                 -> Option<Path> {
+    let (sx, sy) = from;
+    let (dx, dy) = to;
+    let (width, height) = map_size;
+    if dx < 0 || dy < 0 || dx >= width || dy >= height {
+        return None;
+    }
+    let mut path = Path::new_using_function(width, height, cb, &(to, ecm), 1.0);
+    match path.find(sx, sy, dx, dy){
+        true => Some(path),
+        false => None,
+    }
+}
+
+extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
+    // The points should be right next to each other:
+    assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
+    let &(to, ecm): &((int, int), &ComponentManager) = unsafe { cast::transmute(path_data_ptr) };
+
+    let (dx, dy) = to;
+    // Succeed if we're at the destination even if it's not walkable:
+    if (dx as c_int, dy as c_int) == (xt, yt) {
+        1.0
+    } else if is_solid(Position{x: xt as int, y: yt as int}, ecm) {
+        0.0
+    } else {
+        1.0
+    }
+}
+
 
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
@@ -25,13 +70,13 @@ pub fn system(e: ID,
 
     let pos = ecm.get_position(e);
     let dest = ecm.get_destination(e);
+    let map_size = (res.map.width, res.map.height);
     if (pos.x, pos.y) == (dest.x, dest.y) {
         // Wait (spends an AP but do nothing)
         println!("Entity {} waits.", *e);
         ecm.set_turn(e, turn.spend_ap(1));
         ecm.remove_destination(e);
     } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
-        let map_size = (res.map.width, res.map.height);
         if is_walkable(Position{x: dest.x, y: dest.y}, ecm, map_size)  {  // Move to the cell
             ecm.set_turn(e, turn.spend_ap(1));
             ecm.set_position(e, Position{x: dest.x, y: dest.y});
@@ -53,26 +98,28 @@ pub fn system(e: ID,
             }
         }
     } else {  // Farther away than 1 space. Need to use path finding
-        match res.map.find_path((pos.x, pos.y), (dest.x, dest.y)) {
-            Some(ref mut path) => {
-                assert!(path.len() > 1,
-                        "The path shouldn't be trivial. We already handled that.");
-                match path.walk() {
-                    Some((x, y)) => {
-                        let new_pos = Position{x: x, y: y};
-                        assert!(ai::distance(&pos, &new_pos) == 1,
-                                "The step should be right next to the curret pos.");
-                        ecm.set_turn(e, turn.spend_ap(1));
-                        ecm.set_position(e, new_pos);
+        unsafe {
+            match find_path((pos.x, pos.y), (dest.x, dest.y), map_size, ecm) {
+                Some(ref mut path) => {
+                    assert!(path.len() > 1,
+                            "The path shouldn't be trivial. We already handled that.");
+                    match path.walk(true) {
+                        Some((x, y)) => {
+                            let new_pos = Position{x: x, y: y};
+                            assert!(ai::distance(&pos, &new_pos) == 1,
+                                    "The step should be right next to the curret pos.");
+                            ecm.set_turn(e, turn.spend_ap(1));
+                            ecm.set_position(e, new_pos);
+                        }
+                        // "The path exists but can't be walked?!"
+                        None => unreachable!(),
                     }
-                    // "The path exists but can't be walked?!"
-                    None => unreachable!(),
                 }
-            }
-            None => {
-                println!("Entity {} cannot find a path so it waits.", *e);
-                ecm.set_turn(e, turn.spend_ap(1));
-                ecm.remove_destination(e);
+                None => {
+                    println!("Entity {} cannot find a path so it waits.", *e);
+                    ecm.set_turn(e, turn.spend_ap(1));
+                    ecm.remove_destination(e);
+                }
             }
         }
     }

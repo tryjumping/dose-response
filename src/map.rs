@@ -102,31 +102,6 @@ impl Map {
         }
     }
 
-    pub fn place_entity(&mut self, entity: int, pos: (int, int), walkable: Walkability) {
-        let (x, y) = pos;
-        let idx = self.index_from_coords(x, y);
-        // XXX: this is shit. If we ever need to support more than 2 entities/items
-        // at the same place, we need to swap this for a proper data structure.
-        match (self.entities_1[idx], self.entities_2[idx]) {
-            (None, None) => {
-                self.entities_1[idx] = Some((entity, walkable))
-            }
-            (None, Some((id, _))) if id == entity => {
-                self.entities_2[idx] = Some((entity, walkable))
-            }
-            (Some((id, _)), None) if id == entity => {
-                self.entities_1[idx] = Some((entity, walkable))
-            }
-            (None, Some(*)) => {
-                self.entities_1[idx] = Some((entity, walkable))
-            }
-            (Some(*), None) => {
-                self.entities_2[idx] = Some((entity, walkable))
-            }
-            (Some(*), Some(*)) => fail!("All entity slots on position %?, %? are full", x, y),
-        }
-    }
-
     pub fn is_walkable(&self, pos: (int, int)) -> bool {
         let (x, y) = pos;
         let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
@@ -147,45 +122,6 @@ impl Map {
         }
     }
 
-    pub fn move_entity(&mut self, id: int, from: (int, int), to: (int, int)) {
-        let from_idx = match from {(x, y) => self.index_from_coords(x, y)};
-        match self.entities_1[from_idx] {
-            Some((e_id, walkable)) if e_id == id => {
-                self.entities_1[from_idx] = None;
-                match to {(x, y) => self.place_entity(id, (x, y), walkable)};
-            }
-            _ => match self.entities_2[from_idx] {
-                Some((e_id, walkable)) if e_id == id => {
-                    self.entities_2[from_idx] = None;
-                    match to {(x, y) => self.place_entity(id, (x, y), walkable)};
-                }
-                _ => fail!("Entity %? not found on position %?", id, from),
-            }
-        }
-    }
-
-    pub fn remove_entity(&mut self, id: int, pos: (int, int)) {
-        let idx = match pos {(x, y) => self.index_from_coords(x, y)};
-        match self.entities_1[idx] {
-            Some((e_id, _walkable)) if e_id == id => {
-                self.entities_1[idx] = None;
-            }
-            _ => match self.entities_2[idx] {
-                Some((e_id, _walkable)) if e_id == id => {
-                    self.entities_2[idx] = None;
-                }
-                _ => fail!("Entity %? not found on position %?", id, pos),
-            }
-        }
-    }
-
-    pub fn entities_on_pos(&self, pos: (int, int)) -> EntityIterator {
-        let (x, y) = pos;
-        let out_of_bounds = x < 0 || x >= self.width || y < 0 || y >= self.height;
-        if out_of_bounds { return EntityIterator{e1: None, e2: None} }
-        let idx = self.index_from_coords(x, y);
-        EntityIterator{e1: self.entities_1[idx], e2: self.entities_2[idx]}
-    }
 
     // TODO: a better (safer, more inclined with how Rust would work) interface
     // for this would be to return the iterator over the path points at the

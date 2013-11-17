@@ -1,11 +1,9 @@
 use components::*;
-use map::{Map, Walkable};
 use engine::Color;
 use super::super::Resources;
 
 pub fn kill_entity(e: ID,
-                   ecm: &mut ComponentManager,
-                   map: &mut Map) {
+                   ecm: &mut ComponentManager) {
     if !ecm.has_entity(e) {return}
     // TODO: we assume that an entity without a turn is already dead. Add a
     // `Dead` component (or something similar) instead.
@@ -15,11 +13,8 @@ pub fn kill_entity(e: ID,
     ecm.remove_accepts_user_input(e);
     ecm.remove_turn(e);
     ecm.remove_destination(e);
-    // Remove entity's solidity in the component and in the map
-    if ecm.has_solid(e) && ecm.has_position(e) {
+    if ecm.has_solid(e) {
         ecm.remove_solid(e);
-        let Position{x, y} = ecm.get_position(e);
-        map.place_entity(*e, (x, y), Walkable);
     }
     // Replace the entity's Tile with the tile of a corpse.
     if ecm.has_death_tile(e) && ecm.has_tile(e) {
@@ -37,8 +32,6 @@ pub fn kill_entity(e: ID,
     } else if ecm.has_fade_out(e) {
         // TODO: we probably shouldn't remove the fading-out entities here.
         // Makes no sense. Just remove their tiles after the fadeout.
-        let Position{x, y} = ecm.get_position(e);
-        map.remove_entity(*e, (x, y));
     } else {
         ecm.remove_tile(e);
     }
@@ -59,17 +52,12 @@ pub fn system(e: ID,
     match ecm.get_attack_type(e) {
         Kill => {
             println!("Entity {} was killed by {}", *target, *e);
-            kill_entity(target, ecm, &mut res.map);
+            kill_entity(target, ecm);
             // TODO: This is a hack. The player should fade out, the other
             // monsters just disappear. Need to make this better without
             // special-casing the player.
             if target != res.player_id {
-                match ecm.get_position(target) {
-                    Position{x, y} => {
-                        ecm.remove_position(target);
-                        res.map.remove_entity(*target, (x, y));
-                    }
-                }
+                ecm.remove_position(target);
             }
             let target_is_anxiety = (ecm.has_monster(target) &&
                                      ecm.get_monster(target).kind == Anxiety);
@@ -91,7 +79,7 @@ pub fn system(e: ID,
                     ecm.set_tile(e, Tile{level: tile.level - 1, .. tile});
                 }
             }
-            kill_entity(e, ecm, &mut res.map);
+            kill_entity(e, ecm);
             let stunned = if ecm.has_stunned(target) {
                 let prev = ecm.get_stunned(target);
                 Stunned{duration: prev.duration + duration, .. prev}
@@ -110,7 +98,7 @@ pub fn system(e: ID,
                     ecm.set_tile(e, Tile{level: tile.level - 1, .. tile});
                 }
             }
-            kill_entity(e, ecm, &mut res.map);
+            kill_entity(e, ecm);
             let panicking = if ecm.has_panicking(target) {
                 let prev = ecm.get_panicking(target);
                 Panicking{duration: prev.duration + duration, .. prev}

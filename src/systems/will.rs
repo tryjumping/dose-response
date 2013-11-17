@@ -4,7 +4,7 @@ use super::super::Resources;
 
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
-              res: &mut Resources) {
+              _res: &mut Resources) {
     ensure_components!(ecm, e, Attributes);
     let attrs = ecm.get_attributes(e);
 
@@ -21,6 +21,6 @@ pub fn system(e: ID,
         }
     }
     if ecm.get_attributes(e).will <= 0 {
-        combat::kill_entity(e, ecm, &mut res.map);
+        combat::kill_entity(e, ecm);
     }
 }

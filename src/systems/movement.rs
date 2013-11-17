@@ -19,10 +19,7 @@ pub fn system(e: ID,
     } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
         if res.map.is_walkable((dest.x, dest.y))  {  // Move to the cell
             ecm.set_turn(e, turn.spend_ap(1));
-            { // Update both the entity position component and the map:
-                res.map.move_entity(*e, (pos.x, pos.y), (dest.x, dest.y));
-                ecm.set_position(e, Position{x: dest.x, y: dest.y});
-            }
+            ecm.set_position(e, Position{x: dest.x, y: dest.y});
             ecm.remove_destination(e);
         } else {  // Bump into the blocked entity
             // TODO: assert there's only one solid entity on pos [x, y]
@@ -51,10 +48,7 @@ pub fn system(e: ID,
                         assert!(ai::distance(&pos, &new_pos) == 1,
                                 "The step should be right next to the curret pos.");
                         ecm.set_turn(e, turn.spend_ap(1));
-                        { // Update both the entity position component and the map:
-                            res.map.move_entity(*e, (pos.x, pos.y), (x, y));
-                            ecm.set_position(e, new_pos);
-                        }
+                        ecm.set_position(e, new_pos);
                     }
                     // "The path exists but can't be walked?!"
                     None => unreachable!(),

@@ -17,6 +17,6 @@ pub fn system(e: ID,
     };
     let som = ecm.get_attributes(e).state_of_mind;
     if som <= 0 || som >= 100 {
-        combat::kill_entity(e, ecm, &mut res.map);
+        combat::kill_entity(e, ecm);
     }
 }

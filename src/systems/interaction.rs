@@ -4,12 +4,11 @@ use super::super::Resources;
 
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
-              res: &mut Resources) {
+              _res: &mut Resources) {
     // Only humans can use stuff for now:
     ensure_components!(ecm, e, AcceptsUserInput, Position);
-    let pos = match ecm.get_position(e) {Position{x, y} => (x, y)};
-    for (entity_map_id, _walkability) in res.map.entities_on_pos(pos) {
-        let inter = ID(entity_map_id);
+    let pos = ecm.get_position(e);
+    for inter in ecm.entities_on_pos(pos) {
         if e == inter { loop }  // Entity cannot interact with itself
         if !ecm.has_entity(inter) {loop}
         let is_interactive = ecm.has_attribute_modifier(inter) || ecm.has_explosion_effect(inter);
@@ -41,19 +40,16 @@ pub fn system(e: ID,
         }
         if ecm.has_explosion_effect(inter) {
             let radius = ecm.get_explosion_effect(inter).radius;
-            let (px, py) = pos;
-            for x in range(px - radius, px + radius) {
-                for y in range(py - radius, py + radius) {
-                    for (m_id, _) in res.map.entities_on_pos((x, y)) {
-                        let monster = ID(m_id);
+            for x in range(pos.x - radius, pos.x + radius) {
+                for y in range(pos.y - radius, pos.y + radius) {
+                    for monster in ecm.entities_on_pos(Position{x: x, y: y}) {
                         if ecm.has_entity(monster) && ecm.has_ai(monster) {
-                            combat::kill_entity(monster, ecm, &mut res.map);
+                            combat::kill_entity(monster, ecm);
                         }
                     }
                 }
             }
         }
         ecm.remove_position(inter);
-        res.map.remove_entity(*inter, pos);
     }
 }

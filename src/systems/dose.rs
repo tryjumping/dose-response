@@ -13,11 +13,10 @@ pub fn system(e: ID,
     let mut doses: ~[ID] = ~[];
     for x in range(pos.x - search_radius, pos.x + search_radius) {
         for y in range(pos.y - search_radius, pos.y + search_radius) {
-            for (dose_id, _) in res.map.entities_on_pos((x, y)) {
-                let dose = ID(dose_id);
+            for dose in ecm.entities_on_pos(Position{x: x, y: y}) {
                 if !ecm.has_entity(dose) {
                     fail2!("dose system: dose {} on pos {}, {} not in ecm.",
-                           dose_id, x, y);
+                           *dose, x, y);
                 }
                 if !ecm.has_dose(dose) {loop};
                 let dose_pos = ecm.get_position(dose);

@@ -129,9 +129,8 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
             true => map::Solid,
             false => map::Walkable,
         };
-        match ecm.has_background(e) {
-            true => map.set_walkability((x, y), walkable),
-            false => map.place_entity(*e, (x, y), walkable),
+        if ecm.has_background(e) {
+            map.set_walkability((x, y), walkable);
         }
     }
 }

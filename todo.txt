@@ -1,3 +1,4 @@
+* BUG: player's corpse can be hidden by a monster on death
 * If the attacking entity can't find a path, it shouldn't just wait. Make it
   move in a random direction instead.
 * Don't remove an entity in `kill_entity` on fadeout (see TODO)

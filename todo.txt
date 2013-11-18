@@ -1,4 +1,5 @@
-* BUG: crash on leaving the map (something broken with the position cache)
+* If the attacking entity can't find a path, it shouldn't just wait. Make it
+  move in a random direction instead.
 * Don't remove an entity in `kill_entity` on fadeout (see TODO)
 * Add proper keycodes/enums
 * Add generic is_key_pressed function

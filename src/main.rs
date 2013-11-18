@@ -11,13 +11,11 @@ use engine::{Display, MainLoopState, Key};
 use extra::ringbuf::RingBuf;
 use extra::container::Deque;
 use extra::time;
-use map::Map;
 use systems::input::commands;
 use systems::input::commands::Command;
 
 pub mod components;
 mod engine;
-pub mod map;
 pub mod systems;
 pub mod tcod;
 pub mod world_gen;
@@ -30,8 +28,8 @@ pub struct GameState {
 }
 
 pub struct Resources {
-    map: Map,
     side: Side,
+    world_size: (int, int),
     turn: int,
     rng: IsaacRng,
     commands: RingBuf<Command>,
@@ -100,14 +98,14 @@ fn update(state: &mut GameState,
     if f5_pressed(keys) {
         println!("Restarting game");
         keys.clear();
-        let (width, height) = (state.resources.map.width, state.resources.map.height);
+        let (width, height) = state.resources.world_size;
         let mut state = new_game_state(width, height);
         let player = world::player_entity(&mut state.entities);
         let player_pos = Position{x: width / 2, y: height / 2};
         state.entities.set_position(player, player_pos);
         assert!(state.entities.has_entity(state.resources.player_id));
         world::populate_world(&mut state.entities,
-                              &mut state.resources.map,
+                              state.resources.world_size,
                               player_pos,
                               &mut state.resources.rng,
                               world_gen::forrest);
@@ -214,18 +212,17 @@ fn new_game_state(width: int, height: int) -> GameState {
     };
     let logger = CommandLogger{writer: writer};
     let ecm = ComponentManager::new();
-    let map = map::Map::new(width, height);
     GameState {
         entities: ecm,
         resources: Resources{
             commands: commands,
             command_logger: logger,
-            map: map,
             rng: rng,
             side: Computer,
             turn: 0,
             player_id: ID(0),
             cheating: false,
+            world_size: (width, height),
         },
     }
 }
@@ -256,18 +253,17 @@ fn replay_game_state(width: int, height: int) -> GameState {
     let rng = IsaacRng::new_seeded(seed);
     let logger = CommandLogger{writer: writer};
     let ecm = ComponentManager::new();
-    let map = map::Map::new(width, height);
     GameState {
         entities: ecm,
         resources: Resources {
             commands: commands,
             rng: rng,
             command_logger: logger,
-            map: map,
             side: Computer,
             turn: 0,
             player_id: ID(0),
             cheating: false,
+            world_size: (width, height),
         },
     }
 }
@@ -294,7 +290,7 @@ fn main() {
     assert_eq!(player, ID(0));
     game_state.resources.player_id = player;
     world::populate_world(&mut game_state.entities,
-                          &mut game_state.resources.map,
+                          game_state.resources.world_size,
                           player_pos,
                           &mut game_state.resources.rng,
                           world_gen::forrest);

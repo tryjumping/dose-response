@@ -28,7 +28,6 @@ pub fn system(e: ID,
               res: &mut Resources) {
     ensure_components!(ecm, e, Addiction, Attributes, Position, Destination);
     let pos = ecm.get_position(e);
-    let map_size = (res.map.width, res.map.height);
     let search_radius = 3;  // max irresistibility for a dose is curretnly 3
     let mut doses: ~[ID] = ~[];
     for x in range(pos.x - search_radius, pos.x + search_radius) {
@@ -39,7 +38,7 @@ pub fn system(e: ID,
                            *dose, x, y);
                 }
                 if !ecm.has_dose(dose) {loop};
-                if is_irresistible(e, dose, ecm, map_size) {
+                if is_irresistible(e, dose, ecm, res.world_size) {
                     doses.push(dose);
                 }
             }
@@ -54,7 +53,7 @@ pub fn system(e: ID,
             unsafe {
                 // We walk the path here to make sure we only move one step at a
                 // time.
-                match find_path((pos.x, pos.y), (x, y), map_size, ecm) {
+                match find_path((pos.x, pos.y), (x, y), res.world_size, ecm) {
                     Some(ref mut path) => {
                         if path.len() <= resist_radius(e, dose, ecm) {
                             match path.walk(true) {

@@ -2,14 +2,13 @@ use std::rand::Rng;
 
 use components::*;
 use engine::Color;
-use map::{Map};
 use world_gen;
 use systems::ai::distance;
 use systems::exploration::precise_distance;
 
 
 pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
-                              map: &mut Map,
+                              world_size: (int, int),
                               player_pos: Position,
                               rng: &mut T,
                               generate: &fn(&mut T, int, int) -> ~[(int, int, world_gen::WorldItem)]) {
@@ -17,7 +16,8 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),
                             player_pos.y + rng.choose(pos_offset));
-    let world = generate(rng, map.width, map.height);
+    let (width, height) = world_size;
+    let world = generate(rng, width, height);
     for &(x, y, item) in world.iter() {
         let bg = ecm.new_entity();
         ecm.set_position(bg, Position{x: x, y: y});

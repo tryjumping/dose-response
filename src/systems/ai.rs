@@ -128,17 +128,16 @@ pub fn system(e: ID,
     if res.side != Computer {return}
     let player_pos = ecm.get_position(res.player_id);
     let pos = ecm.get_position(e);
-    let dest = if entity_blocked(pos, ecm, (res.map.width, res.map.height)) {
+    let dest = if entity_blocked(pos, ecm, res.world_size) {
         println!("Found a blocked entity: {}", *e);
         Destination{x: pos.x, y: pos.y}
     } else {
-        let map_size = (res.map.width, res.map.height);
         match ecm.get_ai(e).behaviour {
             components::ai::Individual => {
-                individual_behaviour(e, ecm, &mut res.rng, map_size, player_pos)
+                individual_behaviour(e, ecm, &mut res.rng, res.world_size, player_pos)
             }
             components::ai::Pack => {
-                hunting_pack_behaviour(e, ecm, &mut res.rng, map_size, player_pos)
+                hunting_pack_behaviour(e, ecm, &mut res.rng, res.world_size, player_pos)
             }
         }
     };

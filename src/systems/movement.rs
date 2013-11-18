@@ -94,14 +94,14 @@ pub fn system(e: ID,
 
     let pos = ecm.get_position(e);
     let dest = ecm.get_destination(e);
-    let map_size = (res.map.width, res.map.height);
     if (pos.x, pos.y) == (dest.x, dest.y) {
         // Wait (spends an AP but do nothing)
         println!("Entity {} waits.", *e);
         ecm.set_turn(e, turn.spend_ap(1));
         ecm.remove_destination(e);
     } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
-        if is_walkable(Position{x: dest.x, y: dest.y}, ecm, map_size)  {  // Move to the cell
+        if is_walkable(Position{x: dest.x, y: dest.y}, ecm, res.world_size)  {
+            // Move to the cell
             ecm.set_turn(e, turn.spend_ap(1));
             ecm.set_position(e, Position{x: dest.x, y: dest.y});
             ecm.remove_destination(e);
@@ -123,7 +123,7 @@ pub fn system(e: ID,
         }
     } else {  // Farther away than 1 space. Need to use path finding
         unsafe {
-            match find_path((pos.x, pos.y), (dest.x, dest.y), map_size, ecm) {
+            match find_path((pos.x, pos.y), (dest.x, dest.y), res.world_size, ecm) {
                 Some(ref mut path) => {
                     assert!(path.len() > 1,
                             "The path shouldn't be trivial. We already handled that.");

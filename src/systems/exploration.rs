@@ -27,7 +27,7 @@ pub fn system(e: ID,
         for y in range(pos.y - radius, pos.y + radius) {
             if precise_distance((pos.x, pos.y), (x, y)) <= radius {
                 for exploree in ecm.entities_on_pos(Position{x: x, y: y}) {
-                    if ecm.has_explored(exploree) {
+                    if ecm.has_tile(exploree) && ecm.has_position(exploree) {
                         ecm.set_explored(exploree, Explored);
                     }
                 }

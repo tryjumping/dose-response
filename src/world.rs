@@ -103,6 +103,9 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                         will: 0,
                     });
                 ecm.set_explosion_effect(e, ExplosionEffect{radius: 4});
+                if (x, y) == initial_dose_pos {
+                    ecm.set_explored(e, Explored);
+                }
             } else if item == world_gen::StrongDose {
                 ecm.set_dose(e, Dose{tolerance_modifier: 2, resist_radius: 3});
                 ecm.set_attribute_modifier(e, AttributeModifier{

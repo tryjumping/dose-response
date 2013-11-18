@@ -128,7 +128,15 @@ pub fn new() -> ComponentManager {
     pub fn add_entity(&mut self, entity: Entity) -> ID {
         self.entities.push(entity);
         self.next_id = ID(*self.next_id + 1);
-        ID(*self.next_id - 1)
+        let e = ID(*self.next_id - 1);
+        if self.has_position(e) {  // update the cache
+            let pos = self.get_position(e);
+            // Just remove the component. There is no entry in the cache yet.
+            self.remove_position_(e);
+            // Add the Position back to the entity and cache it
+            self.set_position(e, pos);
+        }
+        e
     }
 
     fn index(&self, id: ID) -> uint {
@@ -156,6 +164,7 @@ pub fn new() -> ComponentManager {
 
     pub fn remove_all_entities(&mut self) {
         self.entities.truncate(0);
+        self.position_cache.clear();
         self.initial_id = self.next_id;
     }
 

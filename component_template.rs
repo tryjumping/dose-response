@@ -33,7 +33,6 @@ use std::hashmap::HashMap;
 use std::container::Map;
 
 use engine::{Color};
-pub use map;
 
 #[deriving(Eq)]
 pub enum Side {

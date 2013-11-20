@@ -1,11 +1,5 @@
-* BUG: player's corpse can be hidden by a monster on death
-* If the attacking entity can't find a path, it shouldn't just wait. Make it
-  move in a random direction instead.
-* Don't remove an entity in `kill_entity` on fadeout (see TODO)
-* Add proper keycodes/enums
-* Add generic is_key_pressed function
-* Split utils into individual files
-* Split systems into individual files
+* Add a "hail mary pass" (something that could save you out of a tough spot --
+  but not reliably and can be used only rarely)
 * graphical effect of high/withdrawn
   - use tcod::console_set_fade for low (instead of changing the blitting fade
     value)
@@ -14,8 +8,18 @@
 * bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
+* BUG: player's corpse can be hidden by a monster on death
+* If the attacking entity can't find a path, it shouldn't just wait. Make it
+  move in a random direction instead.
+* Don't remove an entity in `kill_entity` on fadeout (see TODO)
+* Add proper keycodes/enums
+* Add generic is_key_pressed function
+* Split utils into individual files
+* Split systems into individual files
 * improve level generator not to create blocked entities
+* consider restricting the possible ways to leave the map
 * add different levels
+* Add the Marla Daniels quote (maybe when you die instead of when you start?)
 
 * BUG: the game is a bit jerky sometimes
   - doesn't seem to be a (purely) AI thing. Even when we replaced AI for a
@@ -24,19 +28,27 @@
   They could have been rarer, but they also just may have been harder to notice
   (because the only thing moving was the player)
 * wrap tcod::console_t if feasible
-* replace Map with Position caching on the ComponentManager level
-
-
 * write a generic system interface so we can simplify the `update` function.
 * write a defsystem macro that handles the system boilerplate?
-* add the entity id in the Map as a generic type
-  - maybe do the same for position?
-  - This requires the extern callback to tcod_find_path_using_function to be
-  generic (because the map is generic and we need to cast the `*void user_data`
-   to `Map<T>`) and that's hitting a compiler bug.
+* make sure it's compatible with the colour blind
+* particle effects on hit/death
+* animate player state changes (added/removed will, got stunned, etc.)
+* change player's colour on stunned/panicked
+* save&exit/load game
+* don't cover the map with the bottom status bar
+* uncover the entire map on death
+* save the map state on death/exit in the replay log so we can verify the replay
+pass produced the same result.
 
 
-
+* play with integrating different scripting languages:
+  - guile
+  - racket
+  - lua
+  - squirrel
+  - javascript
+  (how hard to integrate with rust? how calling functions per entity from rust? 
+  how performant running the game loop?)
 
 
 

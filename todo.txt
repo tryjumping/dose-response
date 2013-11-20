@@ -1,3 +1,7 @@
+* Panic doesn't bump into monsters (because they're "solid")
+  options:
+  - just pick a random location (can bump into the wall)
+  - pick a non-wall location (either empty or with a monster on it)
 * Add a "hail mary pass" (something that could save you out of a tough spot --
   but not reliably and can be used only rarely)
 * graphical effect of high/withdrawn
@@ -47,7 +51,7 @@ pass produced the same result.
   - lua
   - squirrel
   - javascript
-  (how hard to integrate with rust? how calling functions per entity from rust? 
+  (how hard to integrate with rust? how calling functions per entity from rust?
   how performant running the game loop?)
 
 

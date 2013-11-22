@@ -14,6 +14,7 @@ pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};
 pub struct Display {
     priv background_console: tcod::console_t,
     priv consoles: ~[tcod::console_t],
+    priv fade: Option<(u8, Color)>,
 }
 
 impl Display {
@@ -21,6 +22,7 @@ impl Display {
         let mut result = Display {
             background_console: tcod::console_new(width, height),
             consoles: ~[],
+            fade: None,
         };
         do console_count.times {
             let con = tcod::console_new(width, height);
@@ -57,6 +59,10 @@ impl Display {
     pub fn size(&self) -> (int, int) {
         (tcod::console_get_width(self.background_console),
          tcod::console_get_height(self.background_console))
+    }
+
+    pub fn fade(&mut self, fade_ammount: u8, color: Color) {
+        self.fade = Some((fade_ammount, color));
     }
 }
 
@@ -124,6 +130,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
         for &con in tcod_display.consoles.iter() {
             tcod::console_clear(con);
         }
+        tcod_display.fade = None;
 
         match update(&mut game_state,
                      &mut tcod_display,
@@ -148,6 +155,11 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
         tcod::console_print_ex(tcod::ROOT_CONSOLE, width-1, height-1,
                                tcod::BKGND_NONE, tcod::Right,
                                fmt!("FPS: %?", tcod::sys_get_fps()));
+        match tcod_display.fade {
+            Some((amount, color)) => tcod::console_set_fade(amount, color),
+            // colour doesn't matter, value 255 means no fade:
+            None => tcod::console_set_fade(255, Color{r: 0, g: 0, b: 0}),
+        }
         tcod::console_flush();
     }
 }

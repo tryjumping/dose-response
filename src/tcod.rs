@@ -241,6 +241,7 @@ mod ffi {
                                   fullscreen: c_bool, renderer: renderer_t);
         fn TCOD_console_set_custom_font(fontFile: *c_char, flags: c_int,
                                         nb_char_horiz: c_int, nb_char_vertic: c_int);
+        fn TCOD_console_set_fade(fade: u8, fading_color: Color);
         fn TCOD_console_is_window_closed() -> c_bool;
         fn TCOD_console_wait_for_keypress(flush: c_bool) -> Key;
         fn TCOD_console_check_for_keypress(pressed: c_int) -> Key;
@@ -333,6 +334,13 @@ pub fn console_init_root(width: int, height: int, title: &str, fullscreen: bool)
             |c_title| ffi::TCOD_console_init_root(width as c_int, height as c_int,
                                                   c_title, fullscreen as c_bool,
                                                   ffi::RENDERER_SDL));
+    }
+}
+
+#[fixed_stack_segment]
+pub fn console_set_fade(fade: u8, fading_color: Color) {
+    unsafe {
+        ffi::TCOD_console_set_fade(fade, fading_color);
     }
 }
 

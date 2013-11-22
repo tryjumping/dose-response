@@ -1,3 +1,11 @@
+* Don't allow suicide (if there's a way to avoid it)
+  - e.g. fatfingering the arrow when the Depression is near
+* Replace the "Intoxication/SoM" value in bar with a textual description.
+* Add a better effects on player's death:
+  1. fade out to red/black completely
+  2. uncover the entire map (with a reverse fade)
+     - with full colours
+     - showing player's corpse
 * Panic doesn't bump into monsters (because they're "solid")
   options:
   - just pick a random location (can bump into the wall)
@@ -40,7 +48,6 @@
 * change player's colour on stunned/panicked
 * save&exit/load game
 * don't cover the map with the bottom status bar
-* uncover the entire map on death
 * save the map state on death/exit in the replay log so we can verify the replay
 pass produced the same result.
 

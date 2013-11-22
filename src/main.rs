@@ -156,6 +156,9 @@ fn update(state: &mut GameState,
                          display);
     systems::turn::system(&mut state.entities,
                           &mut state.resources);
+    systems::addiction_graphics::system(&mut state.entities,
+                                        &mut state.resources,
+                                        display);
     engine::Running
 }
 

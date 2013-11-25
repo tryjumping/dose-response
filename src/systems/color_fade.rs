@@ -6,7 +6,14 @@ pub fn system(e: ID,
               ecm: &mut ComponentManager,
               _res: &mut Resources,
               dt_s: float) {
-    ensure_components!(ecm, e, FadeColor);
+    if !ecm.has_entity(e) {return}
+    if !ecm.has_fade_color(e) {
+        if ecm.has_color_animation(e) {
+            // Removing the `FadeColor` component should stop the animation
+            ecm.remove_color_animation(e);
+        }
+        return
+    }
     let mut fade = ecm.get_fade_color(e);
     let mut anim = if ecm.has_color_animation(e) {
         ecm.get_color_animation(e)

@@ -11,7 +11,7 @@ struct Explored
 struct FadeColor{from: Color, to: Color, duration_s: float, repetitions: Repetitions}
 struct FadeOut{to: Color, duration_s: float}
 struct FadingOut
-struct ColorAnimation{color: Color, progress: float}
+struct ColorAnimation{color: Color, progress: float, forward: bool}
 struct Background
 struct Bump(ID)
 struct DeathTile{glyph: char, color: Color}

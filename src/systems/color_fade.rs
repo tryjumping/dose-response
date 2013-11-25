@@ -2,6 +2,22 @@ use components::*;
 use engine::Color;
 use super::super::Resources;
 
+fn fade_color(from: Color, to: Color, progress: float) -> Color {
+    if progress <= 0f {
+        return from;
+    } else if progress >= 1f {
+        return to;
+    };
+    let dr = ((to.r as float - from.r as float) * progress);
+    let dg = ((to.g as float - from.g as float) * progress);
+    let db = ((to.b as float - from.b as float) * progress);
+    Color{
+        r: (from.r as float + dr) as u8,
+        g: (from.g as float + dg) as u8,
+        b: (from.b as float + db) as u8,
+    }
+}
+
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
               _res: &mut Resources,
@@ -14,28 +30,21 @@ pub fn system(e: ID,
         }
         return
     }
-    let mut fade = ecm.get_fade_color(e);
+    let fade = ecm.get_fade_color(e);
     let mut anim = if ecm.has_color_animation(e) {
         ecm.get_color_animation(e)
     } else {
         ColorAnimation{
             color: fade.from,
             progress: 0f,
+            forward: true,
         }
     };
     let step = dt_s / fade.duration_s;
-    if anim.progress == 1f {
+    anim.progress += step;
+    if anim.progress >= 1f {
         anim.progress = 0f;
-        ecm.set_fade_color(e, FadeColor{
-                to: fade.from,
-                from: fade.to,
-                .. fade});
-        fade = ecm.get_fade_color(e);
-    }
-    let mut progress = anim.progress + step;
-    if progress >= 1f {
-        progress = 1f;
-        anim.color = fade.to;
+        anim.forward = !anim.forward;
         match fade.repetitions {
             Count(n) if n > 1 => {
                 ecm.set_fade_color(e, FadeColor{repetitions: Count(n-1), .. fade});
@@ -47,16 +56,11 @@ pub fn system(e: ID,
             }
             Infinite => {}
         }
+    };
+    if anim.forward {
+        anim.color = fade_color(fade.from, fade.to, anim.progress);
     } else {
-        let dr = ((fade.to.r as float - fade.from.r as float) * progress);
-        let dg = ((fade.to.g as float - fade.from.g as float) * progress);
-        let db = ((fade.to.b as float - fade.from.b as float) * progress);
-        anim.color = Color{
-            r: (fade.from.r as float + dr) as u8,
-            g: (fade.from.g as float + dg) as u8,
-            b: (fade.from.b as float + db) as u8,
-        }
+        anim.color = fade_color(fade.to, fade.from, anim.progress);
     }
-    anim.progress = progress;
     ecm.set_color_animation(e, anim);
 }

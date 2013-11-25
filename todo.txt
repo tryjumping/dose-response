@@ -1,3 +1,9 @@
+* Add variety in the background Tree colours
+* The field of view should decrease only when withdrawn
+* Change the rate of the `High` animation based on the intoxication ammount
+  (very high: fast-paced, should slow down on the way to sobriety)
+* Replace "state_of_mind" with intoxication
+* Display the current intoxication level in the GUI instead of the number
 * Don't allow suicide (if there's a way to avoid it)
   - e.g. fatfingering the arrow when the Depression is near
 * Replace the "Intoxication/SoM" value in bar with a textual description.

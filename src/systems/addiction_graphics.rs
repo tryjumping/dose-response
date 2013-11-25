@@ -15,23 +15,12 @@ pub fn system(ecm: &mut ComponentManager,
         display.fade(fade, Color{r: 0, g: 0, b: 0});
     } else if som >= 40 {
         for e in ecm.iter() {
+            if !ecm.has_entity(e) || !ecm.has_position(e) {loop}
+            let pos = ecm.get_position(e);
             if !ecm.has_color_animation(e) && ecm.has_background(e) {
-                // TODO: unsafe, check for the components first!
-                let pos = ecm.get_position(e);
-                let col = match som > 70 {
-                    true => Color{r: 219, g: 0, b: 40},
-                    false => ecm.get_tile(e).color,
-                };
+                let col = Color{r: 219, g: 0, b: 40};
                 let high_col = Color{r: 58, g: 217, b: 183};
-                //let high_col = Color{r: 255, g: 255, b: 25};
-                //let high_col = Color{r: col.r+128, g: col.g+128, b: col.b+128};
                 ecm.set_fade_color(e, FadeColor{
-                        // from: Color{r: col.r + 20, g: col.g - 20, b: col.b + 20},
-                        // to: Color{r: col.r - 20, g: col.g + 20, b: col.b - 20},
-                        // from: Color{r: col.g, g: col.b, b: col.r},
-                        // to: Color{r: col.b, g: col.r, b: col.g},
-                        // from: Color{r: 58, g: 217, b: 183},
-                        // to: Color{r: 219, g: 0, b: 40},
                         from: high_col,
                         to: Color{r: col.r - high_col.r, g: col.g - high_col.g, b: col.b - high_col.b},
                         repetitions: Infinite,

@@ -2,8 +2,9 @@ use std::num::max;
 
 use components::*;
 use super::super::Resources;
-use engine::{Color, Display};
+use engine::Display;
 use self::intoxication_states::*;
+use world::col;
 
 pub mod intoxication_states {
     #[deriving(Eq)]
@@ -40,7 +41,7 @@ pub fn system(ecm: &mut ComponentManager,
     match IntoxicationStates::from_int(som) {
         Exhausted | DeliriumTremens | Withdrawal => {
             let fade = max((som as u8) * 5 + 50, 50);
-            display.fade(fade, Color{r: 0, g: 0, b: 0});
+            display.fade(fade, col::background);
             for e in ecm.iter() {
                 if ecm.has_background(e) && ecm.has_fade_color(e) {
                     ecm.remove_fade_color(e);
@@ -59,15 +60,9 @@ pub fn system(ecm: &mut ComponentManager,
                 if !ecm.has_entity(e) || !ecm.has_position(e) {loop}
                 let pos = ecm.get_position(e);
                 if !ecm.has_color_animation(e) && ecm.has_background(e) {
-                    let col = Color{r: 219, g: 0, b: 40};
-                    let high_col = Color{r: 58, g: 217, b: 183};
                     ecm.set_fade_color(e, FadeColor{
-                            from: high_col,
-                            to: Color{
-                                r: col.r - high_col.r,
-                                g: col.g - high_col.g,
-                                b: col.b - high_col.b
-                            },
+                            from: col::high,
+                            to: col::high_to,
                             repetitions: Infinite,
                             duration_s: 0.7 + (((pos.x * pos.y) % 100) as float) / 200.0,
                         });

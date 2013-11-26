@@ -41,6 +41,11 @@ pub fn system(ecm: &mut ComponentManager,
         Exhausted | DeliriumTremens | Withdrawal => {
             let fade = max((som as u8) * 5 + 50, 50);
             display.fade(fade, Color{r: 0, g: 0, b: 0});
+            for e in ecm.iter() {
+                if ecm.has_background(e) && ecm.has_fade_color(e) {
+                    ecm.remove_fade_color(e);
+                }
+            }
         }
         Sober => {
             for e in ecm.iter() {

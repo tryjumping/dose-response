@@ -1,3 +1,4 @@
+use std::rand;
 use std::rand::Rng;
 
 use components::*;
@@ -169,7 +170,7 @@ impl world_gen::WorldItem {
     fn to_color(self) -> Color {
         match self {
             world_gen::Empty => col::empty_tile,
-            world_gen::Tree => col::tree_1,
+            world_gen::Tree => rand::rng().choose(&[col::tree_1, col::tree_2, col::tree_3]),
             world_gen::Dose => col::dose,
             world_gen::StrongDose => col::dose,
 

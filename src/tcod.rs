@@ -196,7 +196,7 @@ mod ffi {
         shift: c_bool,
     }
 
-    #[deriving(Eq)]
+    #[deriving(Clone, Eq)]
     pub struct Color {
         r: uint8_t,
         g: uint8_t,

@@ -5,6 +5,7 @@ pub use self::ffi::Color;
 pub use self::ffi::console_t;
 pub use self::ffi::BKGND_NONE;
 pub use self::ffi::Key;
+pub use self::ffi::*;
 pub use self::ffi::Right;
 
 use self::ffi::{c_int, c_float, c_bool};
@@ -19,7 +20,6 @@ pub struct Path {
 }
 
 impl Map {
-    #[fixed_stack_segment]
     pub fn new(width: int, height: int) -> Map {
         assert!(width > 0 && height > 0);
         unsafe {
@@ -27,7 +27,6 @@ impl Map {
         }
     }
 
-    #[fixed_stack_segment]
     pub fn size(&self) -> (int, int) {
         unsafe {
             (ffi::TCOD_map_get_width(self.tcod_map) as int,
@@ -35,7 +34,6 @@ impl Map {
         }
     }
 
-    #[fixed_stack_segment]
     pub fn set(&mut self, x: int, y: int, transparent: bool, walkable: bool) {
         assert!(x >= 0 && y >= 0);
         unsafe {
@@ -45,7 +43,6 @@ impl Map {
         }
     }
 
-    #[fixed_stack_segment]
     pub fn is_walkable(&self, x: int, y: int) -> bool {
         assert!(x >= 0 && y >= 0);
         unsafe {
@@ -55,7 +52,6 @@ impl Map {
 }
 
 impl Drop for Map {
-    #[fixed_stack_segment]
     fn drop(&mut self) {
         unsafe {
             ffi::TCOD_map_delete(self.tcod_map)
@@ -65,8 +61,7 @@ impl Drop for Map {
 
 
 impl Path {
-    #[fixed_stack_segment]
-    pub fn new_using_map(map: Map, diagonal_cost: float) -> Path {
+    pub fn new_using_map(map: Map, diagonal_cost: f32) -> Path {
         unsafe {
             Path {
                 tcod_path: ffi::TCOD_path_new_using_map(map.tcod_map,
@@ -75,11 +70,10 @@ impl Path {
         }
     }
 
-    #[fixed_stack_segment]
     pub fn new_using_function<T>(map_width: int, map_height: int,
                                  path_cb: ffi::path_callback_t,
                                  user_data: &T,
-                                 diagonal_cost: float) -> Path {
+                                 diagonal_cost: f32) -> Path {
         assert!(map_width > 0 && map_height > 0);
         unsafe {
             Path {
@@ -92,7 +86,6 @@ impl Path {
         }
     }
 
-    #[fixed_stack_segment]
     pub fn find(&mut self,
                 from_x: int, from_y: int,
                 to_x: int, to_y: int)
@@ -105,7 +98,6 @@ impl Path {
         }
     }
 
-    #[fixed_stack_segment]
     pub fn walk(&mut self, recalculate_when_needed: bool)
                 -> Option<(int, int)> {
         unsafe {
@@ -119,21 +111,18 @@ impl Path {
         }
     }
 
-    #[fixed_stack_segment]
     pub fn is_empty(&self) -> bool {
         unsafe {
             ffi::TCOD_path_is_empty(self.tcod_path) != 0
         }
     }
 
-    #[fixed_stack_segment]
     pub fn len(&self) -> int {
         unsafe {
             ffi::TCOD_path_size(self.tcod_path) as int
         }
     }
 
-    #[fixed_stack_segment]
     pub fn destination(&self) -> (int, int) {
         unsafe {
             let mut x: c_int = 0;
@@ -146,7 +135,6 @@ impl Path {
 }
 
 impl Drop for Path {
-    #[fixed_stack_segment]
     fn drop(&mut self) {
         unsafe {
             ffi::TCOD_path_delete(self.tcod_path);
@@ -185,8 +173,82 @@ mod ffi {
         FONT_LAYOUT_TCOD=8,
     }
 
+    #[deriving(Eq, ToStr)]
+    #[repr(C)]
+    pub enum KeyCodes {
+        NONE,
+        ESCAPE,
+        BACKSPACE,
+        TAB,
+        ENTER,
+        SHIFT,
+        CONTROL,
+        ALT,
+        PAUSE,
+        CAPSLOCK,
+        PAGEUP,
+        PAGEDOWN,
+        END,
+        HOME,
+        UP,
+        LEFT,
+        RIGHT,
+        DOWN,
+        PRINTSCREEN,
+        INSERT,
+        DELETE,
+        LWIN,
+        RWIN,
+        APPS,
+        NUM0,
+        NUM_1,
+        NUM_2,
+        NUM_3,
+        NUM_4,
+        NUM_5,
+        NUM_6,
+        NUM_7,
+        NUM_8,
+        NUM_9,
+        KP0,
+        KP1,
+        KP2,
+        KP3,
+        KP4,
+        KP5,
+        KP6,
+        KP7,
+        KP8,
+        KP9,
+        KPADD,
+        KPSUB,
+        KPDIV,
+        KPMUL,
+        KPDEC,
+        KPENTER,
+        F1,
+        F2,
+        F3,
+        F4,
+        F5,
+        F6,
+        F7,
+        F8,
+        F9,
+        F10,
+        F11,
+        F12,
+        NUMLOCK,
+        SCROLLLOCK,
+        SPACE,
+        CHAR,
+        STUFFY_STUFF,
+    }
+
+    #[repr(C)]
     pub struct Key {
-        vk: c_int,
+        // TODO: dosen't seem to work now
+        vk: KeyCodes,
         c: c_char,
         pressed: c_bool,
         lalt: c_bool,
@@ -234,66 +296,66 @@ mod ffi {
 
     #[link_args = "-ltcod"]
     extern "C" {
-        fn TCOD_sys_set_fps(val: c_int) -> ();
-        fn TCOD_sys_get_fps() -> c_int;
-        fn TCOD_sys_get_last_frame_length() -> c_float;
-        fn TCOD_console_init_root(w: c_int, h: c_int, title: *c_char,
+        pub fn TCOD_sys_set_fps(val: c_int) -> ();
+        pub fn TCOD_sys_get_fps() -> c_int;
+        pub fn TCOD_sys_get_last_frame_length() -> c_float;
+        pub fn TCOD_console_init_root(w: c_int, h: c_int, title: *c_char,
                                   fullscreen: c_bool, renderer: renderer_t);
-        fn TCOD_console_set_custom_font(fontFile: *c_char, flags: c_int,
+        pub fn TCOD_console_set_custom_font(fontFile: *c_char, flags: c_int,
                                         nb_char_horiz: c_int, nb_char_vertic: c_int);
-        fn TCOD_console_set_fade(fade: u8, fading_color: Color);
-        fn TCOD_console_is_window_closed() -> c_bool;
-        fn TCOD_console_wait_for_keypress(flush: c_bool) -> Key;
-        fn TCOD_console_check_for_keypress(pressed: c_int) -> Key;
-        fn TCOD_console_set_char_background(con: console_t, x: c_int, y: c_int,
+        pub fn TCOD_console_set_fade(fade: u8, fading_color: Color);
+        pub fn TCOD_console_is_window_closed() -> c_bool;
+        pub fn TCOD_console_wait_for_keypress(flush: c_bool) -> Key;
+        pub fn TCOD_console_check_for_keypress(pressed: c_int) -> Key;
+        pub fn TCOD_console_set_char_background(con: console_t, x: c_int, y: c_int,
                                             col: Color,
                                             flag: BackgroundFlag);
-        fn TCOD_console_set_char_foreground(con: console_t, x: c_int, y: c_int,
+        pub fn TCOD_console_set_char_foreground(con: console_t, x: c_int, y: c_int,
                                             col: Color);
-        fn TCOD_console_put_char(con: console_t, x: c_int, y: c_int, c: c_int,
+        pub fn TCOD_console_put_char(con: console_t, x: c_int, y: c_int, c: c_int,
                                  flag: BackgroundFlag);
-        fn TCOD_console_put_char_ex(con: console_t, x: c_int, y: c_int, c: c_int,
+        pub fn TCOD_console_put_char_ex(con: console_t, x: c_int, y: c_int, c: c_int,
                                     fore: Color, back: Color) -> ();
-        fn TCOD_console_clear(con: console_t);
-        fn TCOD_console_flush() -> ();
-        fn TCOD_console_print_ex(con: console_t, x: c_int, y: c_int,
+        pub fn TCOD_console_clear(con: console_t);
+        pub fn TCOD_console_flush() -> ();
+        pub fn TCOD_console_print_ex(con: console_t, x: c_int, y: c_int,
                                  flag: BackgroundFlag,
                                  alignment: TextAlignment,
                                  fmt: *c_char) -> ();
-        fn TCOD_console_new(w: c_int, h: c_int) -> console_t;
-        fn TCOD_console_get_width(con: console_t) -> c_int;
-        fn TCOD_console_get_height(con: console_t) -> c_int;
-        fn TCOD_console_set_default_background(con: console_t, col: Color);
-        fn TCOD_console_set_default_foreground(con: console_t, col: Color);
-        fn TCOD_console_set_key_color(con: console_t, col: Color);
-        fn TCOD_console_blit(src: console_t, xSrc: c_int, ySrc: c_int,
+        pub fn TCOD_console_new(w: c_int, h: c_int) -> console_t;
+        pub fn TCOD_console_get_width(con: console_t) -> c_int;
+        pub fn TCOD_console_get_height(con: console_t) -> c_int;
+        pub fn TCOD_console_set_default_background(con: console_t, col: Color);
+        pub fn TCOD_console_set_default_foreground(con: console_t, col: Color);
+        pub fn TCOD_console_set_key_color(con: console_t, col: Color);
+        pub fn TCOD_console_blit(src: console_t, xSrc: c_int, ySrc: c_int,
                              wSrc: c_int, hSrc: c_int,
                              dst: console_t, xDst: c_int, yDst: c_int,
                              foreground_alpha: c_float, background_alpha: c_float);
-        fn TCOD_console_delete(con: console_t);
-        fn TCOD_map_new(width: c_int, height: c_int) -> map_t;
-        fn TCOD_map_set_properties(map: map_t, x: c_int, y: c_int,
+        pub fn TCOD_console_delete(con: console_t);
+        pub fn TCOD_map_new(width: c_int, height: c_int) -> map_t;
+        pub fn TCOD_map_set_properties(map: map_t, x: c_int, y: c_int,
                                    is_transparent: c_bool, is_walkable: c_bool);
-        fn TCOD_map_is_walkable(map: map_t, x: c_int, y: c_int) -> c_bool;
-        fn TCOD_map_get_width(map: map_t) -> c_int;
-        fn TCOD_map_get_height(map: map_t) -> c_int;
-        fn TCOD_map_clear(map: map_t, transparent: c_bool, walkable: c_bool);
-        fn TCOD_map_delete(map: map_t);
-        fn TCOD_path_new_using_map(map: map_t, diagonalCost: c_float)
+        pub fn TCOD_map_is_walkable(map: map_t, x: c_int, y: c_int) -> c_bool;
+        pub fn TCOD_map_get_width(map: map_t) -> c_int;
+        pub fn TCOD_map_get_height(map: map_t) -> c_int;
+        pub fn TCOD_map_clear(map: map_t, transparent: c_bool, walkable: c_bool);
+        pub fn TCOD_map_delete(map: map_t);
+        pub fn TCOD_path_new_using_map(map: map_t, diagonalCost: c_float)
                                    -> path_t;
-        fn TCOD_path_new_using_function(map_width: c_int, map_height: c_int,
+        pub fn TCOD_path_new_using_function(map_width: c_int, map_height: c_int,
                                         func: path_callback_t,
                                         user_data: *c_void,
                                         diagonalCost: c_float) -> path_t;
-        fn TCOD_path_compute(path: path_t, ox: c_int, oy: c_int,
+        pub fn TCOD_path_compute(path: path_t, ox: c_int, oy: c_int,
                              dx: c_int, dy: c_int) -> c_bool;
-        fn TCOD_path_walk(path: path_t, x: *mut c_int, y: *mut c_int,
+        pub fn TCOD_path_walk(path: path_t, x: *mut c_int, y: *mut c_int,
                           recalculate_when_needed: c_bool) -> c_bool;
-        fn TCOD_path_is_empty(path: path_t) -> c_bool;
-        fn TCOD_path_size(path: path_t) -> c_int;
-        fn TCOD_path_get_destination(path: path_t,
+        pub fn TCOD_path_is_empty(path: path_t) -> c_bool;
+        pub fn TCOD_path_size(path: path_t) -> c_int;
+        pub fn TCOD_path_get_destination(path: path_t,
                                      x: *mut c_int, y: *mut c_int);
-        fn TCOD_path_delete(path: path_t);
+        pub fn TCOD_path_delete(path: path_t);
     }
 }
 
@@ -301,7 +363,6 @@ mod ffi {
 pub static ROOT_CONSOLE: console_t = 0 as console_t;
 
 
-#[fixed_stack_segment]
 pub fn sys_set_fps(fps: int) {
     assert!(fps > 0);
     unsafe {
@@ -309,7 +370,6 @@ pub fn sys_set_fps(fps: int) {
     }
 }
 
-#[fixed_stack_segment]
 pub fn sys_get_fps() -> int {
     let mut result;
     unsafe {
@@ -319,14 +379,12 @@ pub fn sys_get_fps() -> int {
     return result as int
 }
 
-#[fixed_stack_segment]
-pub fn sys_get_last_frame_length() -> float {
+pub fn sys_get_last_frame_length() -> f32 {
     unsafe {
-        ffi::TCOD_sys_get_last_frame_length() as float
+        ffi::TCOD_sys_get_last_frame_length() as f32
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_init_root(width: int, height: int, title: &str, fullscreen: bool) {
     assert!(width > 0 && height > 0);
     unsafe {
@@ -337,25 +395,22 @@ pub fn console_init_root(width: int, height: int, title: &str, fullscreen: bool)
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_set_fade(fade: u8, fading_color: Color) {
     unsafe {
         ffi::TCOD_console_set_fade(fade, fading_color);
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_set_custom_font(font_path: path::Path) {
     unsafe {
         let flags = (ffi::FONT_TYPE_GREYSCALE as c_int |
                      ffi::FONT_LAYOUT_TCOD as c_int);
-        do font_path.to_str().with_c_str |path| {
+        font_path.with_c_str( |path| {
             ffi::TCOD_console_set_custom_font(path, flags, 32, 8);
-        }
+        });
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_is_window_closed() -> bool {
     unsafe {
         ffi::TCOD_console_is_window_closed() != 0
@@ -368,21 +423,18 @@ pub enum KeyStatus {
     KeyPressedOrReleased = 1 | 2,
 }
 
-#[fixed_stack_segment]
 pub fn console_wait_for_keypress(flush: bool) -> Key {
     unsafe {
         ffi::TCOD_console_wait_for_keypress(flush as c_bool)
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_check_for_keypress(status: KeyStatus) -> Key {
     unsafe {
         ffi::TCOD_console_check_for_keypress(status as c_int)
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_set_char_background(con: console_t, x: int, y: int,
                                    color: Color,
                                    background_flag: ffi::BackgroundFlag) {
@@ -393,7 +445,6 @@ pub fn console_set_char_background(con: console_t, x: int, y: int,
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_put_char(con: console_t, x: int, y: int, glyph: char,
                         background_flag: ffi::BackgroundFlag) {
     assert!(x >= 0 && y >= 0);
@@ -403,7 +454,6 @@ pub fn console_put_char(con: console_t, x: int, y: int, glyph: char,
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_put_char_ex(con: console_t, x: int, y: int, glyph: char,
                            foreground: Color, background: Color) {
     assert!(x >= 0 && y >= 0);
@@ -413,21 +463,18 @@ pub fn console_put_char_ex(con: console_t, x: int, y: int, glyph: char,
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_clear(con: console_t) {
     unsafe {
         ffi::TCOD_console_clear(con);
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_flush() {
     unsafe {
         ffi::TCOD_console_flush();
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_print_ex(con: console_t, x: int, y: int,
                         background_flag: ffi::BackgroundFlag,
                         alignment: ffi::TextAlignment,
@@ -441,7 +488,6 @@ pub fn console_print_ex(con: console_t, x: int, y: int,
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_new(width: int, height: int) -> console_t {
     assert!(width > 0 && height > 0);
     unsafe {
@@ -449,48 +495,42 @@ pub fn console_new(width: int, height: int) -> console_t {
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_get_width(con: console_t) -> int {
     unsafe {
         ffi::TCOD_console_get_width(con) as int
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_get_height(con: console_t) -> int {
     unsafe {
         ffi::TCOD_console_get_height(con) as int
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_set_default_background(con: console_t, color: Color) {
     unsafe {
         ffi::TCOD_console_set_default_background(con, color);
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_set_default_foreground(con: console_t, color: Color) {
     unsafe {
         ffi::TCOD_console_set_default_foreground(con, color);
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_set_key_color(con: console_t, color: Color) {
     unsafe {
         ffi::TCOD_console_set_key_color(con, color);
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_blit(source_console: console_t,
                     source_x: int, source_y: int,
                     source_width: int, source_height: int,
                     destination_console: console_t,
                     destination_x: int, destination_y: int,
-                    foreground_alpha: float, background_alpha: float) {
+                    foreground_alpha: f32, background_alpha: f32) {
     assert!(source_x >= 0 && source_y >= 0 &&
             source_width > 0 && source_height > 0 &&
             destination_x >= 0 && destination_y >= 0);
@@ -504,7 +544,6 @@ pub fn console_blit(source_console: console_t,
     }
 }
 
-#[fixed_stack_segment]
 pub fn console_delete(con: console_t) {
     unsafe {
         ffi::TCOD_console_delete(con);

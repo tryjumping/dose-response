@@ -154,6 +154,7 @@ mod ffi {
         fn(xf: c_int, _yf: c_int, _xt: c_int, _yt: c_int, ud: *c_void)
            -> c_float;
 
+    #[repr(C)]
     pub enum renderer_t {
         RENDERER_GLSL,
         RENDERER_OPENGL,
@@ -271,12 +272,14 @@ mod ffi {
         }
     }
 
+    #[repr(C)]
     pub enum TextAlignment {
         Left,
         Right,
         Center,
     }
 
+    #[repr(C)]
     pub enum BackgroundFlag {
         BKGND_NONE,
         BKGND_SET,

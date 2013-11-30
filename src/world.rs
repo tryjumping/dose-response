@@ -12,7 +12,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                               world_size: (int, int),
                               player_pos: Position,
                               rng: &mut T,
-                              generate: &fn(&mut T, int, int) -> ~[(int, int, world_gen::WorldItem)]) {
+                              generate: fn(&mut T, int, int) -> ~[(int, int, world_gen::WorldItem)]) {
     let near_player = |x, y| distance(&player_pos, &Position{x: x, y: y}) < 6;
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),
@@ -44,7 +44,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
             ecm.set_tile(bg, Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
         if near_player(x, y) && ((x, y) != initial_dose_pos) {
-            loop
+            continue
         };
         if item != world_gen::Tree && item != world_gen::Empty {
             let e = ecm.new_entity();
@@ -96,7 +96,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                 ecm.set_fade_color(e, FadeColor{
                         from: item.to_color(),
                         to: Color{r: 15, g: 255, b: 243},
-                        duration_s: 0.6f,
+                        duration_s: 0.6f32,
                         repetitions: Infinite,
                     });
                 ecm.set_attribute_modifier(e, AttributeModifier{
@@ -116,7 +116,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                 ecm.set_fade_color(e, FadeColor{
                         from: item.to_color(),
                         to: Color{r: 15, g: 255, b: 243},
-                        duration_s: 0.5f,
+                        duration_s: 0.5f32,
                         repetitions: Infinite,
                     });
                 ecm.set_explosion_effect(e, ExplosionEffect{radius: 6});

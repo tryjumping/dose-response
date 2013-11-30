@@ -1,3 +1,5 @@
+#[feature(macro_rules, struct_variant, globs)];
+
 extern mod extra;
 
 use std::io;

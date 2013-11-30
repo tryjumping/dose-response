@@ -37,7 +37,7 @@ pub fn system(e: ID,
                     fail2!("dose system: dose {} on pos {}, {} not in ecm.",
                            *dose, x, y);
                 }
-                if !ecm.has_dose(dose) {loop};
+                if !ecm.has_dose(dose) {continue};
                 if is_irresistible(e, dose, ecm, res.world_size) {
                     doses.push(dose);
                 }

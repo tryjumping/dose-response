@@ -26,7 +26,7 @@ pub fn kill_entity(e: ID,
         ecm.set_fade_color(e, FadeColor{
                 from: tile.color,
                 to: death_tile.color,
-                duration_s: 1f,
+                duration_s: 1f32,
                 repetitions: Count(1),
             });
     } else if ecm.has_fade_out(e) {

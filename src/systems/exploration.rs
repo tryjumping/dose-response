@@ -7,8 +7,8 @@ use super::addiction_graphics::intoxication_states::*;
 pub fn precise_distance(p1: (int, int), p2: (int, int)) -> int {
     let (x1, y1) = p1;
     let (x2, y2) = p2;
-    let a = num::pow(num::abs(x1 - x2) as float, 2f);
-    let b = num::pow(num::abs(y1 - y2) as float, 2f);
+    let a = num::pow(num::abs(x1 - x2) as float, 2f32);
+    let b = num::pow(num::abs(y1 - y2) as float, 2f32);
     num::sqrt(a + b).floor() as int
 }
 

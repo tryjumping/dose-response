@@ -3,9 +3,9 @@ use engine::Color;
 use super::super::Resources;
 
 fn fade_color(from: Color, to: Color, progress: float) -> Color {
-    if progress <= 0f {
+    if progress <= 0f32 {
         return from;
-    } else if progress >= 1f {
+    } else if progress >= 1f32 {
         return to;
     };
     let dr = ((to.r as float - from.r as float) * progress);
@@ -36,14 +36,14 @@ pub fn system(e: ID,
     } else {
         ColorAnimation{
             color: fade.from,
-            progress: 0f,
+            progress: 0f32,
             forward: true,
         }
     };
     let step = dt_s / fade.duration_s;
     anim.progress += step;
-    if anim.progress >= 1f {
-        anim.progress = 0f;
+    if anim.progress >= 1f32 {
+        anim.progress = 0f32;
         anim.forward = !anim.forward;
         match fade.repetitions {
             Count(n) if n > 1 => {

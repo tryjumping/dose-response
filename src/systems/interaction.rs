@@ -9,10 +9,10 @@ pub fn system(e: ID,
     ensure_components!(ecm, e, AcceptsUserInput, Position);
     let pos = ecm.get_position(e);
     for inter in ecm.entities_on_pos(pos) {
-        if e == inter { loop }  // Entity cannot interact with itself
-        if !ecm.has_entity(inter) {loop}
+        if e == inter {continue}  // Entity cannot interact with itself
+        if !ecm.has_entity(inter) {continue}
         let is_interactive = ecm.has_attribute_modifier(inter) || ecm.has_explosion_effect(inter);
-        if !is_interactive {loop}
+        if !is_interactive {continue}
         let is_dose = ecm.has_dose(inter);
         if ecm.has_attribute_modifier(inter) {
             let tolerance = if is_dose && ecm.has_addiction(e) {

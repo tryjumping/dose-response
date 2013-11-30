@@ -95,7 +95,7 @@ impl Key {
 pub fn main_loop<S>(width: int, height: int, title: &str,
                     font_path: Path,
                     initial_state: S,
-                    update: &fn(&mut S, &mut Display, &mut RingBuf<Key>, dt_s: float) -> MainLoopState<S>) {
+                    update: fn(&mut S, &mut Display, &mut RingBuf<Key>, dt_s: float) -> MainLoopState<S>) {
     let fullscreen = false;
     let default_fg = Color::new(255, 255, 255);
     let console_count = 3;
@@ -139,18 +139,18 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
             Running => (),
             NewState(new_state) => {
                 game_state = new_state;
-                loop;
+                continue;
             }
             Exit => break,
         }
 
         tcod::console_blit(tcod_display.background_console, 0, 0, width, height,
                            tcod::ROOT_CONSOLE, 0, 0,
-                           1f, 1f);
+                           1f32, 1f32);
         for &con in tcod_display.consoles.iter() {
             tcod::console_blit(con, 0, 0, width, height,
                                tcod::ROOT_CONSOLE, 0, 0,
-                               1f, 1f);
+                               1f32, 1f32);
         }
         tcod::console_print_ex(tcod::ROOT_CONSOLE, width-1, height-1,
                                tcod::BKGND_NONE, tcod::Right,

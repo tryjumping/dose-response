@@ -34,8 +34,8 @@ pub fn system(e: ID,
         for y in range(pos.y - search_radius, pos.y + search_radius) {
             for dose in ecm.entities_on_pos(Position{x: x, y: y}) {
                 if !ecm.has_entity(dose) {
-                    fail2!("dose system: dose {} on pos {}, {} not in ecm.",
-                           *dose, x, y);
+                    fail!("dose system: dose {} on pos {}, {} not in ecm.",
+                          *dose, x, y);
                 }
                 if !ecm.has_dose(dose) {continue};
                 if is_irresistible(e, dose, ecm, res.world_size) {
@@ -44,9 +44,9 @@ pub fn system(e: ID,
             }
         }
     }
-    let nearest_dose = do doses.iter().min_by |&dose| {
+    let nearest_dose = doses.iter().min_by(|&dose| {
         ai::distance(&ecm.get_position(*dose), &pos)
-    };
+    });
     match nearest_dose {
         Some(&dose) => {
             let Position{x, y} = ecm.get_position(dose);

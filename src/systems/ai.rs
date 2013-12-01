@@ -49,10 +49,10 @@ pub fn entity_blocked(pos: Position, ecm: &ComponentManager, map_size: (int, int
         (pos.x-1, pos.y+1),
         (pos.x+1, pos.y+1),
         ];
-    !do neighbors.iter().any |&neighbor_pos| {
+    !neighbors.iter().any(|&neighbor_pos| {
         let pos = match neighbor_pos { (x, y) => Position{x: x, y: y}};
         is_walkable(pos, ecm, map_size)
-    }
+    });
 }
 
 fn individual_behaviour<T: Rng>(e: ID,

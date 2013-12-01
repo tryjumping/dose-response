@@ -6,7 +6,7 @@ pub fn system(id: ID,
               res: &mut Resources) {
     let player = res.player_id;
     if !ecm.has_entity(player) {
-        fail!("Could not find the Player entity (id: %?)", res.player_id)
+        fail!("Could not find the Player entity (id: {})", *res.player_id)
     }
     let player_dead = !ecm.has_position(player) || !ecm.has_turn(player);
     if player_dead {

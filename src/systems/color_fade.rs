@@ -2,26 +2,26 @@ use components::*;
 use engine::Color;
 use super::super::Resources;
 
-fn fade_color(from: Color, to: Color, progress: float) -> Color {
+fn fade_color(from: Color, to: Color, progress: f32) -> Color {
     if progress <= 0f32 {
         return from;
     } else if progress >= 1f32 {
         return to;
     };
-    let dr = ((to.r as float - from.r as float) * progress);
-    let dg = ((to.g as float - from.g as float) * progress);
-    let db = ((to.b as float - from.b as float) * progress);
+    let dr = ((to.r as f32 - from.r as f32) * progress);
+    let dg = ((to.g as f32 - from.g as f32) * progress);
+    let db = ((to.b as f32 - from.b as f32) * progress);
     Color{
-        r: (from.r as float + dr) as u8,
-        g: (from.g as float + dg) as u8,
-        b: (from.b as float + db) as u8,
+        r: (from.r as f32 + dr) as u8,
+        g: (from.g as f32 + dg) as u8,
+        b: (from.b as f32 + db) as u8,
     }
 }
 
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
               _res: &mut Resources,
-              dt_s: float) {
+              dt_s: f32) {
     if !ecm.has_entity(e) {return}
     if !ecm.has_fade_color(e) {
         if ecm.has_color_animation(e) {

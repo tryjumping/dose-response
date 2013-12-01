@@ -20,9 +20,9 @@ pub fn is_walkable(pos: Position, ecm: &ComponentManager, map_size: (int, int))
 }
 
 fn is_solid(pos: Position, ecm: &ComponentManager) -> bool {
-    do ecm.entities_on_pos(pos).any |e| {
+    ecm.entities_on_pos(pos).any(|e| {
         ecm.has_solid(e)
-    }
+    })
 }
 
 struct PathWithUserData {

@@ -24,12 +24,12 @@ impl Display {
             consoles: ~[],
             fade: None,
         };
-        do console_count.times {
+        console_count.times(|| {
             let con = tcod::console_new(width, height);
             tcod::console_set_key_color(con, transparent_background);
             tcod::console_set_default_background(con, transparent_background);
             result.consoles.push(con);
-        }
+        });
         tcod::console_set_key_color(result.background_console, transparent_background);
         tcod::console_set_default_background(result.background_console, transparent_background);
         result
@@ -46,7 +46,7 @@ impl Display {
     pub fn write_text(&mut self, text: &str, x: int, y: int,
                       foreground: Color, background: Color) {
         let level = self.consoles.len() - 1;  // write to the topmost console
-        for (i, chr) in text.char_offset_iter() {
+        for (i, chr) in text.char_indices() {
             self.draw_char(level, x + i as int, y, chr, foreground, background);
         }
     }
@@ -95,7 +95,7 @@ impl Key {
 pub fn main_loop<S>(width: int, height: int, title: &str,
                     font_path: Path,
                     initial_state: S,
-                    update: fn(&mut S, &mut Display, &mut RingBuf<Key>, dt_s: float) -> MainLoopState<S>) {
+                    update: fn(&mut S, &mut Display, &mut RingBuf<Key>, dt_s: f32) -> MainLoopState<S>) {
     let fullscreen = false;
     let default_fg = Color::new(255, 255, 255);
     let console_count = 3;
@@ -109,7 +109,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
         loop {
             key = tcod::console_check_for_keypress(tcod::KeyPressed);
             match key.vk {
-                0 => break,
+                tcod::NONE => break,
                 _ => {
                     keys.push_back(Key{
                         code: key.vk as int,
@@ -154,7 +154,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
         }
         tcod::console_print_ex(tcod::ROOT_CONSOLE, width-1, height-1,
                                tcod::BKGND_NONE, tcod::Right,
-                               fmt!("FPS: %?", tcod::sys_get_fps()));
+                               format!("FPS: {}", tcod::sys_get_fps()));
         match tcod_display.fade {
             Some((amount, color)) => tcod::console_set_fade(amount, color),
             // colour doesn't matter, value 255 means no fade:

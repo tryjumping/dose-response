@@ -1,4 +1,4 @@
-* BUG: killed by an invisible monster
+* BUG: Game restart unbearably slow
 * Change the rate of the `High` animation based on the intoxication ammount
   (very high: fast-paced, should slow down on the way to sobriety)
 * Add smooth animations for the fade-out when growing Withdrawn

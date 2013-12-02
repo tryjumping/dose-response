@@ -38,7 +38,16 @@
 * improve level generator not to create blocked entities
 * consider restricting the possible ways to leave the map
 * add different levels
-* Add the Marla Daniels quote (maybe when you die instead of when you start?)
+* Never crash on failure
+  - Run the main game in a separate task
+  - use task failure-handling to trap the errors
+  - generate an error report that the user can send
+* Add the Marla Daniels quote
+  - The first time the game is launched, it should just jump into the play
+  - (that was the genius of Braid)
+  - (we can use the unexplored area to show help/hints)
+  - Any other time, we'll show the menu with the quote load-game option
+
 
 * BUG: the game is a bit jerky sometimes
   - doesn't seem to be a (purely) AI thing. Even when we replaced AI for a

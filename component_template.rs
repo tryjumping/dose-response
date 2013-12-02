@@ -6,18 +6,18 @@ struct AttackTarget(ID)
 enum   AttackType {Kill, Stun{duration: int}, Panic{duration: int}, ModifyAttributes}
 struct AttributeModifier{state_of_mind: int, will: int}
 struct Attributes{state_of_mind: int, will: int}
-struct Exploration{radius: int}
-struct Explored
-struct FadeColor{from: Color, to: Color, duration_s: f32, repetitions: Repetitions}
-struct FadeOut{to: Color, duration_s: f32}
-struct FadingOut
-struct ColorAnimation{color: Color, progress: f32, forward: bool}
 struct Background
 struct Bump(ID)
+struct ColorAnimation{color: Color, progress: f32, forward: bool}
 struct DeathTile{glyph: char, color: Color}
 struct Destination {x: int, y: int}
 struct Dose{tolerance_modifier: int, resist_radius: int}
+struct Exploration{radius: int}
+struct Explored
 struct ExplosionEffect{radius: int}
+struct FadeColor{from: Color, to: Color, duration_s: f32, repetitions: Repetitions}
+struct FadeOut{to: Color, duration_s: f32}
+struct FadingOut
 struct Monster{kind: MonsterKind}
 struct Panicking{turn: int, duration: int}
 struct Position {x: int, y: int}  //callbacks

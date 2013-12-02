@@ -11,7 +11,9 @@ pub fn system(e: ID,
     for inter in ecm.entities_on_pos(pos) {
         if e == inter {continue}  // Entity cannot interact with itself
         if !ecm.has_entity(inter) {continue}
-        let is_interactive = ecm.has_attribute_modifier(inter) || ecm.has_explosion_effect(inter);
+        // TODO: only doses are interactive for now. If we add more, we should
+        // create a new `Interactive` component and test its presense here:
+        let is_interactive = ecm.has_dose(inter);
         if !is_interactive {continue}
         let is_dose = ecm.has_dose(inter);
         if ecm.has_attribute_modifier(inter) {

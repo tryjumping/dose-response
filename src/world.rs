@@ -100,7 +100,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                         repetitions: Infinite,
                     });
                 ecm.set_attribute_modifier(e, AttributeModifier{
-                        state_of_mind: 72 + rng.gen_integer_range(-5, 6),
+                        state_of_mind: 72 + rng.gen_range(-5, 6),
                         will: 0,
                     });
                 ecm.set_explosion_effect(e, ExplosionEffect{radius: 4});
@@ -110,7 +110,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
             } else if item == world_gen::StrongDose {
                 ecm.set_dose(e, Dose{tolerance_modifier: 2, resist_radius: 3});
                 ecm.set_attribute_modifier(e, AttributeModifier{
-                        state_of_mind: 130 + rng.gen_integer_range(-15, 16),
+                        state_of_mind: 130 + rng.gen_range(-15, 16),
                         will: 0,
                     });
                 ecm.set_fade_color(e, FadeColor{

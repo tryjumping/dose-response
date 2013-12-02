@@ -184,7 +184,7 @@ struct CommandLogger {
 
 impl CommandLogger {
     fn log(&self, command: Command) {
-        self.writer.write_line(command.to_str());
+        self.writer.write((command.to_str() + "\n").as_bytes());
         self.writer.flush();
     }
 }
@@ -192,9 +192,8 @@ impl CommandLogger {
 fn new_game_state(width: int, height: int) -> GameState {
     let mut rng = IsaacRng::new();
     let seed: ~[u8];
-    let writer: io::Writer;
     let commands = RingBuf::new();
-    let seed_int = rng.gen_integer_range(0, 10000);
+    let seed_int = rng.gen_range(0, 10000);
     seed = seed_int.to_bytes(true);
     rng.reseed(seed);
     let cur_time = time::now();
@@ -205,13 +204,11 @@ fn new_game_state(width: int, height: int) -> GameState {
     if !replay_dir.exists() {
         io::fs::mkdir_recursive(replay_dir, 0b111101101);
     }
-    match File::create(replay_path) {
-        Some(f) => {
-            writer = f;
-            writer.write_line(seed_int.to_str());
-        },
-        None => fail!("Failed to create the replay file."),
+    let writer = match File::create(replay_path) {
+        Some(f) => f,
+        None => fail!("Failed to create the replay file.")
     };
+    writer.write((seed_int.to_str() + "\n").as_bytes());
     let logger = CommandLogger{writer: writer};
     let ecm = ComponentManager::new();
     GameState {

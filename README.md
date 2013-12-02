@@ -5,7 +5,7 @@ Dose Response
 Requirements
 ------------
 
-* Rust compiler, commit `df41115213e851b9f23dfea3d6782dea5243a5d4`.
+* Rust compiler, commit `61443dc1f5089df637edba83587b9f3020063266`.
 * Python 2.7
 * Jinja2 (see `requirements.txt`)
 

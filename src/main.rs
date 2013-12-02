@@ -135,11 +135,15 @@ fn update(state: &mut GameState,
     } else {
         state.resources.paused
     };
-    let input_system = if state.resources.paused {
+    let mut input_system = if state.resources.paused {
         null_input_system
     } else {
         systems::input::system
     };
+    // Move one step forward in the paused replay
+    if state.resources.paused && read_key(keys, keys::RIGHT) {
+        input_system = systems::input::system;
+    }
     let systems = [
         systems::turn_tick_counter::system,
         systems::effect_duration::system,

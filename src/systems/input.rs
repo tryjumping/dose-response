@@ -20,7 +20,7 @@ impl FromStr for Command {
             "NW" => Some(NW),
             "SE" => Some(SE),
             "SW" => Some(SW),
-            _ => None,
+            _ => fail!("Unknown command: '{}'", name)
         }
     }
 }

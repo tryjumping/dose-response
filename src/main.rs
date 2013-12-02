@@ -38,6 +38,8 @@ pub struct Resources {
     command_logger: CommandLogger,
     player_id: ID,
     cheating: bool,
+    replay: bool,
+    paused: bool,
 }
 
 fn key_pressed(keys: &RingBuf<Key>, key_code: engine::keys::KeyCodes) -> bool {
@@ -47,6 +49,29 @@ fn key_pressed(keys: &RingBuf<Key>, key_code: engine::keys::KeyCodes) -> bool {
         }
     }
     false
+}
+
+/// Consumes the first occurence of the given key in the buffer.
+///
+/// Returns `true` if the key has been in the buffer.
+fn read_key(keys: &mut RingBuf<Key>, key: engine::keys::KeyCodes) -> bool {
+    let mut len = keys.len();
+    let mut processed = 0;
+    let mut found = false;
+    while processed < len {
+        match keys.pop_front() {
+            Some(pressed_key) if !found && pressed_key.code == key => {
+                len -= 1;
+                found = true;
+            }
+            Some(pressed_key) => {
+                keys.push_back(pressed_key);
+            }
+            None => return false
+        }
+        processed += 1;
+    }
+    return found;
 }
 
 fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
@@ -75,6 +100,7 @@ fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
     }
 }
 
+pub fn null_input_system(_e: ID, _ecm: &mut ComponentManager, _res: &mut Resources) {}
 
 fn update(state: &mut GameState,
           display: &mut Display,
@@ -102,11 +128,23 @@ fn update(state: &mut GameState,
         println!("Cheating set to: {}", state.resources.cheating);
     }
 
+
+    state.resources.paused = if state.resources.replay && read_key(keys, keys::SPACE) {
+        if !state.resources.paused {println!("Pausing the replay")};
+        !state.resources.paused
+    } else {
+        state.resources.paused
+    };
+    let input_system = if state.resources.paused {
+        null_input_system
+    } else {
+        systems::input::system
+    };
     let systems = [
         systems::turn_tick_counter::system,
         systems::effect_duration::system,
         systems::addiction::system,
-        systems::input::system,
+        input_system,
         systems::leave_area::system,
         systems::player_dead::system,
         systems::ai::system,
@@ -202,6 +240,8 @@ fn new_game_state(width: int, height: int) -> GameState {
             turn: 0,
             player_id: ID(0),
             cheating: false,
+            replay: false,
+            paused: false,
             world_size: (width, height),
         },
     }
@@ -245,6 +285,8 @@ fn replay_game_state(width: int, height: int) -> GameState {
             turn: 0,
             player_id: ID(0),
             cheating: false,
+            replay: true,
+            paused: false,
             world_size: (width, height),
         },
     }

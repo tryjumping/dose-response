@@ -22,6 +22,7 @@
   - use tcod::console_set_fade for low (instead of changing the blitting fade
     value)
   - though that would fade the GUI as well...
+* Move the default gfx config (fullscreen, font path, etc.) to libtcod.cfg
 * background glow for the irresistible area around a dose
 * bonuses on superhigh
   - see entities on som >= 98

@@ -1,6 +1,7 @@
 use extra::container::Deque;
 use extra::ringbuf::RingBuf;
 pub use tcod::Color;
+pub use keys = tcod::key_codes;
 pub use tcod;
 
 pub enum MainLoopState<T> {
@@ -109,7 +110,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
         loop {
             key = tcod::console_check_for_keypress(tcod::KeyPressed);
             match key.vk {
-                tcod::NONE => break,
+                keys::NONE => break,
                 _ => {
                     keys.push_back(Key{
                         code: key.vk as int,

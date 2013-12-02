@@ -9,7 +9,7 @@ use std::rand::{Rng, IsaacRng, SeedableRng};
 use std::os;
 
 use components::{ComponentManager, ID, Computer, Side, Position};
-use engine::{Display, MainLoopState, Key};
+use engine::{Display, MainLoopState, Key, keys};
 use extra::ringbuf::RingBuf;
 use extra::container::Deque;
 use extra::time;
@@ -42,21 +42,21 @@ pub struct Resources {
 
 fn escape_pressed(keys: &RingBuf<Key>) -> bool {
     for &key in keys.iter() {
-        if key.char as int == 27 { return true; }
+        if key.code == keys::ESCAPE { return true; }
     }
     false
 }
 
 fn f5_pressed(keys: &RingBuf<Key>) -> bool {
     for &key in keys.iter() {
-        if key.code == 54 { return true; }
+        if key.code == keys::F5 { return true; }
     }
     false
 }
 
 fn f6_pressed(keys: &RingBuf<Key>) -> bool {
     for &key in keys.iter() {
-        if key.code == 55 { return true; }
+        if key.code == keys::F6 { return true; }
     }
     false
 }
@@ -67,18 +67,14 @@ fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
         match keys.pop_front() {
             Some(key) => {
                 match key.code {
-                    // Up
-                    14 => commands.push_back(commands::N),
-                    // Down
-                    17 => commands.push_back(commands::S),
-                    // Left
-                    15 => match (key.ctrl(), key.shift()) {
+                    keys::UP => commands.push_back(commands::N),
+                    keys::DOWN => commands.push_back(commands::S),
+                    keys::LEFT => match (key.ctrl(), key.shift()) {
                         (false, true) => commands.push_back(commands::NW),
                         (true, false) => commands.push_back(commands::SW),
                         _ => commands.push_back(commands::W),
                     },
-                    // Right
-                    16 => match (key.ctrl(), key.shift()) {
+                    keys::RIGHT => match (key.ctrl(), key.shift()) {
                         (false, true) => commands.push_back(commands::NE),
                         (true, false) => commands.push_back(commands::SE),
                         _ => commands.push_back(commands::E),

@@ -77,7 +77,7 @@ impl Drop for Display {
 }
 
 pub struct Key {
-    code: int,
+    code: keys::KeyCodes,
     char: char,
     left_alt: bool,
     right_alt: bool,
@@ -113,7 +113,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
                 keys::NONE => break,
                 _ => {
                     keys.push_back(Key{
-                        code: key.vk as int,
+                        code: key.vk,
                         char: key.c as u8 as char,
                         left_alt: key.lalt != 0,
                         right_alt: key.ralt != 0,

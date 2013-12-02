@@ -52,7 +52,7 @@ pub fn entity_blocked(pos: Position, ecm: &ComponentManager, map_size: (int, int
     !neighbors.iter().any(|&neighbor_pos| {
         let pos = match neighbor_pos { (x, y) => Position{x: x, y: y}};
         is_walkable(pos, ecm, map_size)
-    });
+    })
 }
 
 fn individual_behaviour<T: Rng>(e: ID,

@@ -7,7 +7,6 @@ use std::io::File;
 
 use std::rand::{Rng, IsaacRng, SeedableRng};
 use std::os;
-use std::to_bytes::{ToBytes};
 
 use components::{ComponentManager, ID, Computer, Side, Position};
 use engine::{Display, MainLoopState, Key};
@@ -165,33 +164,32 @@ fn update(state: &mut GameState,
     engine::Running
 }
 
-fn seed_from_str(source: &str) -> ~[u8] {
-    match from_str::<int>(source) {
-        Some(n) => n.to_bytes(true),
-        None => fail!("The seed must be a number"),
-    }
-}
-
 struct NullWriter;
 
 impl io::Writer for NullWriter {
     fn write(&mut self, _buf: &[u8]) {}
 }
 
+
+fn write_line(writer: &mut Writer, line: &str) {
+    let line_with_nl = line + "\n";
+    writer.write(line_with_nl.as_bytes());
+    writer.flush();
+}
+
+
 struct CommandLogger {
-    priv writer: ~io::Writer,
+    priv writer: ~Writer,
 }
 
 impl CommandLogger {
-    fn log(&self, command: Command) {
-        self.writer.write((command.to_str() + "\n").as_bytes());
-        self.writer.flush();
+    fn log(&mut self, command: Command) {
+        write_line(self.writer, command.to_str());
     }
 }
 
 fn new_game_state(width: int, height: int) -> GameState {
     let mut rng = IsaacRng::new();
-    let seed: ~[u8];
     let commands = RingBuf::new();
     let seed = rng.gen_range(0u32, 10000);
     rng.reseed([seed]);
@@ -203,12 +201,12 @@ fn new_game_state(width: int, height: int) -> GameState {
         io::fs::mkdir_recursive(replay_dir, 0b111101101);
     }
     let replay_path = &replay_dir.join("replay-" + timestamp);
-    let writer = match File::create(replay_path) {
-        Some(f) => f,
+    let mut writer = match File::create(replay_path) {
+        Some(f) => ~f as ~Writer,
         None => fail!("Failed to create the replay file.")
     };
-    writer.write((seed.to_str() + "\n").as_bytes());
-    let logger = CommandLogger{writer: ~writer as ~Writer};
+    write_line(writer, seed.to_str());
+    let logger = CommandLogger{writer: writer};
     let ecm = ComponentManager::new();
     GameState {
         entities: ecm,
@@ -228,16 +226,19 @@ fn new_game_state(width: int, height: int) -> GameState {
 fn replay_game_state(width: int, height: int) -> GameState {
     let mut commands = RingBuf::new();
     let replay_path = &Path::init(os::args()[1]);
-    let mut seed: ~[u8];
+    let mut seed: u32;
     match File::open(replay_path) {
-        Some(file) => {
+        Some(mut file) => {
             let contents = std::str::from_utf8(file.read_to_end());
-            let mut lines_it = contents.lines();
-            match lines_it.next() {
-                Some(seed_str) => seed = seed_from_str(seed_str),
-                None => fail!("The replay file is empty"),
+            let mut lines = contents.lines();
+            match lines.next() {
+                Some(seed_str) => match from_str(seed_str) {
+                    Some(parsed_seed) => seed = parsed_seed,
+                    None => fail!("The seed must be a number.")
+                },
+                None => fail!("The replay file is empty."),
             }
-            for line in lines_it {
+            for line in lines {
                 match from_str(line) {
                     Some(command) => commands.push_back(command),
                     None => fail!("Unknown command: {}", line),
@@ -247,7 +248,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
         None => fail!("Failed to read the replay file: {}", replay_path.display())
     }
     println!("Replaying game log: '{}'", replay_path.display());
-    let rng: IsaacRng = SeedableRng::from_seed(seed);
+    let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
     let logger = CommandLogger{writer: ~NullWriter as ~Writer};
     let ecm = ComponentManager::new();
     GameState {

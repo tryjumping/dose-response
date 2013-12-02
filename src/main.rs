@@ -40,23 +40,11 @@ pub struct Resources {
     cheating: bool,
 }
 
-fn escape_pressed(keys: &RingBuf<Key>) -> bool {
-    for &key in keys.iter() {
-        if key.code == keys::ESCAPE { return true; }
-    }
-    false
-}
-
-fn f5_pressed(keys: &RingBuf<Key>) -> bool {
-    for &key in keys.iter() {
-        if key.code == keys::F5 { return true; }
-    }
-    false
-}
-
-fn f6_pressed(keys: &RingBuf<Key>) -> bool {
-    for &key in keys.iter() {
-        if key.code == keys::F6 { return true; }
+fn key_pressed(keys: &RingBuf<Key>, key_code: engine::keys::KeyCodes) -> bool {
+    for &pressed_key in keys.iter() {
+        if pressed_key.code == key_code {
+            return true;
+        }
     }
     false
 }
@@ -92,8 +80,8 @@ fn update(state: &mut GameState,
           display: &mut Display,
           keys: &mut RingBuf<Key>,
           dt_s: f32) -> MainLoopState<GameState> {
-    if escape_pressed(keys) { return engine::Exit }
-    if f5_pressed(keys) {
+    if key_pressed(keys, keys::ESCAPE) { return engine::Exit }
+    if key_pressed(keys, keys::F5) {
         println!("Restarting game");
         keys.clear();
         let (width, height) = state.resources.world_size;
@@ -109,7 +97,7 @@ fn update(state: &mut GameState,
                               world_gen::forrest);
         return engine::NewState(state);
     }
-    if f6_pressed(keys) {
+    if key_pressed(keys, keys::F6) {
         state.resources.cheating = !state.resources.cheating;
         println!("Cheating set to: {}", state.resources.cheating);
     }

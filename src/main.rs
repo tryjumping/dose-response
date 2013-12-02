@@ -193,23 +193,22 @@ fn new_game_state(width: int, height: int) -> GameState {
     let mut rng = IsaacRng::new();
     let seed: ~[u8];
     let commands = RingBuf::new();
-    let seed_int = rng.gen_range(0, 10000);
-    seed = seed_int.to_bytes(true);
-    rng.reseed(seed);
+    let seed = rng.gen_range(0u32, 10000);
+    rng.reseed([seed]);
     let cur_time = time::now();
     let timestamp = time::strftime("%FT%T.", &cur_time) +
         (cur_time.tm_nsec / 1000000).to_str();
     let replay_dir = &Path::init("./replays/");
-    let replay_path = &replay_dir.push("replay-" + timestamp);
     if !replay_dir.exists() {
         io::fs::mkdir_recursive(replay_dir, 0b111101101);
     }
+    let replay_path = &replay_dir.join("replay-" + timestamp);
     let writer = match File::create(replay_path) {
         Some(f) => f,
         None => fail!("Failed to create the replay file.")
     };
-    writer.write((seed_int.to_str() + "\n").as_bytes());
-    let logger = CommandLogger{writer: writer};
+    writer.write((seed.to_str() + "\n").as_bytes());
+    let logger = CommandLogger{writer: ~writer as ~Writer};
     let ecm = ComponentManager::new();
     GameState {
         entities: ecm,
@@ -233,7 +232,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
     match File::open(replay_path) {
         Some(file) => {
             let contents = std::str::from_utf8(file.read_to_end());
-            let mut lines_it = contents.any_line_iter();
+            let mut lines_it = contents.lines();
             match lines_it.next() {
                 Some(seed_str) => seed = seed_from_str(seed_str),
                 None => fail!("The replay file is empty"),
@@ -245,11 +244,11 @@ fn replay_game_state(width: int, height: int) -> GameState {
                 }
             }
         },
-        Err(e) => fail!("Failed to read the replay file: {}", e)
+        None => fail!("Failed to read the replay file: {}", replay_path.display())
     }
-    println!("Replaying game log: '{}'", replay_path.to_str());
+    println!("Replaying game log: '{}'", replay_path.display());
     let rng: IsaacRng = SeedableRng::from_seed(seed);
-    let logger = CommandLogger{writer: NullWriter};
+    let logger = CommandLogger{writer: ~NullWriter as ~Writer};
     let ecm = ComponentManager::new();
     GameState {
         entities: ecm,

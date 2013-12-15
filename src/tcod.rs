@@ -4,7 +4,7 @@ use std::path;
 pub use self::ffi::Color;
 pub use self::ffi::console_t;
 pub use self::ffi::BKGND_NONE;
-pub use self::ffi::key_codes;
+pub use self::ffi::key_code;
 pub use self::ffi::Key;
 pub use self::ffi::*;
 pub use self::ffi::Right;
@@ -163,11 +163,13 @@ mod ffi {
         NB_RENDERERS,
     }
 
+    #[repr(C)]
     enum key_status_t {
         KEY_PRESSED=1,
         KEY_RELEASED=2,
     }
 
+    #[repr(C)]
     pub enum font_flags_t {
         FONT_LAYOUT_ASCII_INCOL=1,
         FONT_LAYOUT_ASCII_INROW=2,
@@ -175,60 +177,62 @@ mod ffi {
         FONT_LAYOUT_TCOD=8,
     }
 
-    pub mod key_codes {
+    pub mod key_code {
         #[deriving(Eq, ToStr)]
         #[repr(C)]
-        pub enum KeyCodes {
-            NONE,
-            ESCAPE,
-            BACKSPACE,
-            TAB,
-            ENTER,
-            SHIFT,
-            CONTROL,
-            ALT,
-            PAUSE,
-            CAPSLOCK,
-            PAGEUP,
-            PAGEDOWN,
-            END,
-            HOME,
-            UP,
-            LEFT,
-            RIGHT,
-            DOWN,
-            PRINTSCREEN,
-            INSERT,
-            DELETE,
-            LWIN,
-            RWIN,
-            APPS,
-            NUM0,
-            NUM_1,
-            NUM_2,
-            NUM_3,
-            NUM_4,
-            NUM_5,
-            NUM_6,
-            NUM_7,
-            NUM_8,
-            NUM_9,
-            KP0,
-            KP1,
-            KP2,
-            KP3,
-            KP4,
-            KP5,
-            KP6,
-            KP7,
-            KP8,
-            KP9,
-            KPADD,
-            KPSUB,
-            KPDIV,
-            KPMUL,
-            KPDEC,
-            KPENTER,
+        pub enum KeyCode {
+            NoKey,
+            Escape,
+            Backspace,
+            Tab,
+            Enter,
+            Shift,
+            Control,
+            Alt,
+            Pause,
+            Capslock,
+            Pageup,
+            Pagedown,
+            End,
+            Home,
+            Up,
+            Left,
+            Right,
+            Down,
+            PrintScreen,
+            Insert,
+            Delete,
+            LeftWin,
+            RightWin,
+            Apps,
+            // The numbers on the alphanum section of the keyboard
+            Number0,
+            Number1,
+            Number2,
+            Number3,
+            Number4,
+            Number5,
+            Number6,
+            Number7,
+            Number8,
+            Number9,
+            // The numbers on the numeric keypad
+            NumPad0,
+            NumPad1,
+            NumPad2,
+            NumPad3,
+            NumPad4,
+            NumPad5,
+            NumPad6,
+            NumPad7,
+            NumPad8,
+            NumPad9,
+            NumPadAdd,
+            NumPadSubtract,
+            NumPadDivide,
+            NumPadMultiply,
+            NumPadDecimal,
+            NumPadEnter,
             F1,
             F2,
             F3,
@@ -243,16 +247,13 @@ mod ffi {
             F12,
             NUMLOCK,
             SCROLLLOCK,
-            SPACE,
-            CHAR,
-            STUFFY_STUFF,
+            Spacebar,
         }
     }
 
     #[repr(C)]
     pub struct Key {
-        // TODO: dosen't seem to work now
-        vk: key_codes::KeyCodes,
+        vk: key_code::KeyCode,
         c: c_char,
         pressed: c_bool,
         lalt: c_bool,
@@ -263,6 +264,7 @@ mod ffi {
     }
 
     #[deriving(Clone, Eq)]
+    #[repr(C)]
     pub struct Color {
         r: uint8_t,
         g: uint8_t,

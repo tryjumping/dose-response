@@ -9,7 +9,7 @@ use std::rand::{Rng, IsaacRng, SeedableRng};
 use std::os;
 
 use components::{ComponentManager, ID, Computer, Side, Position};
-use engine::{Display, MainLoopState, Key, keys};
+use engine::{Display, MainLoopState, Key, key};
 use extra::ringbuf::RingBuf;
 use extra::container::Deque;
 use extra::time;
@@ -42,7 +42,7 @@ pub struct Resources {
     paused: bool,
 }
 
-fn key_pressed(keys: &RingBuf<Key>, key_code: engine::keys::KeyCodes) -> bool {
+fn key_pressed(keys: &RingBuf<Key>, key_code: engine::key::KeyCode) -> bool {
     for &pressed_key in keys.iter() {
         if pressed_key.code == key_code {
             return true;
@@ -54,7 +54,7 @@ fn key_pressed(keys: &RingBuf<Key>, key_code: engine::keys::KeyCodes) -> bool {
 /// Consumes the first occurence of the given key in the buffer.
 ///
 /// Returns `true` if the key has been in the buffer.
-fn read_key(keys: &mut RingBuf<Key>, key: engine::keys::KeyCodes) -> bool {
+fn read_key(keys: &mut RingBuf<Key>, key: engine::key::KeyCode) -> bool {
     let mut len = keys.len();
     let mut processed = 0;
     let mut found = false;
@@ -80,14 +80,14 @@ fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
         match keys.pop_front() {
             Some(key) => {
                 match key.code {
-                    keys::UP => commands.push_back(commands::N),
-                    keys::DOWN => commands.push_back(commands::S),
-                    keys::LEFT => match (key.ctrl(), key.shift()) {
+                    key::Up => commands.push_back(commands::N),
+                    key::Down => commands.push_back(commands::S),
+                    key::Left => match (key.ctrl(), key.shift()) {
                         (false, true) => commands.push_back(commands::NW),
                         (true, false) => commands.push_back(commands::SW),
                         _ => commands.push_back(commands::W),
                     },
-                    keys::RIGHT => match (key.ctrl(), key.shift()) {
+                    key::Right => match (key.ctrl(), key.shift()) {
                         (false, true) => commands.push_back(commands::NE),
                         (true, false) => commands.push_back(commands::SE),
                         _ => commands.push_back(commands::E),
@@ -106,8 +106,8 @@ fn update(state: &mut GameState,
           display: &mut Display,
           keys: &mut RingBuf<Key>,
           dt_s: f32) -> MainLoopState<GameState> {
-    if key_pressed(keys, keys::ESCAPE) { return engine::Exit }
-    if key_pressed(keys, keys::F5) {
+    if key_pressed(keys, key::Escape) { return engine::Exit }
+    if key_pressed(keys, key::F5) {
         println!("Restarting game");
         keys.clear();
         let (width, height) = state.resources.world_size;
@@ -123,13 +123,13 @@ fn update(state: &mut GameState,
                               world_gen::forrest);
         return engine::NewState(state);
     }
-    if key_pressed(keys, keys::F6) {
+    if key_pressed(keys, key::F6) {
         state.resources.cheating = !state.resources.cheating;
         println!("Cheating set to: {}", state.resources.cheating);
     }
 
 
-    state.resources.paused = if state.resources.replay && read_key(keys, keys::SPACE) {
+    state.resources.paused = if state.resources.replay && read_key(keys, key::Spacebar) {
         if !state.resources.paused {println!("Pausing the replay")};
         !state.resources.paused
     } else {
@@ -141,7 +141,7 @@ fn update(state: &mut GameState,
         systems::input::system
     };
     // Move one step forward in the paused replay
-    if state.resources.paused && read_key(keys, keys::RIGHT) {
+    if state.resources.paused && read_key(keys, key::Right) {
         input_system = systems::input::system;
     }
     let systems = [

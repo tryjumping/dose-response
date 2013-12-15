@@ -1,8 +1,4 @@
-* BUG: Panic doesn't bump into monsters (because they're "solid")
-  options:
-  - just pick a random location (can bump into the wall)
-  - pick a non-wall location (either empty or with a monster on it)
-* bonuses on superhigh
+* Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
 * Add a "hail mary pass" (something that could save you out of a tough spot --

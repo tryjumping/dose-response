@@ -1,11 +1,8 @@
 * Change the rate of the `High` animation based on the intoxication ammount
   (very high: fast-paced, should slow down on the way to sobriety)
 * Add smooth animations for the fade-out when growing Withdrawn
-* Replace "state_of_mind" with intoxication
-* Display the current intoxication level in the GUI instead of the number
 * Don't allow suicide (if there's a way to avoid it)
   - e.g. fatfingering the arrow when the Depression is near
-* Replace the "Intoxication/SoM" value in bar with a textual description.
 * Add a better effects on player's death:
   1. fade out to red/black completely
   2. uncover the entire map (with a reverse fade)
@@ -46,6 +43,7 @@
   - (that was the genius of Braid)
   - (we can use the unexplored area to show help/hints)
   - Any other time, we'll show the menu with the quote load-game option
+* Replace "state_of_mind" with "intoxication" in the code
 
 
 * BUG: the game is a bit jerky sometimes

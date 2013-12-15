@@ -37,10 +37,10 @@ pub fn system(ecm: &ComponentManager,
         false => ~"",
     };
     let effects = format!("{}{}{}", dead, stunned, panicking);
-    let status_bar = format!("{},  Will: {}, Effects: {}",
+    let status_bar = format!("{}  Will: {}  {}",
                              intoxication_description,
                              attrs.will,
-                             effects);
+                             if effects.len() > 0 {"Effects: " + effects} else {~""});
     display.write_text(status_bar,
                        0, height - 1,
                        Color::new(255, 255, 255), Color::new(0, 0, 0));

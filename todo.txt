@@ -1,49 +1,55 @@
-* Change the rate of the `High` animation based on the intoxication ammount
-  (very high: fast-paced, should slow down on the way to sobriety)
+* BUG: Panic doesn't bump into monsters (because they're "solid")
+  options:
+  - just pick a random location (can bump into the wall)
+  - pick a non-wall location (either empty or with a monster on it)
+* bonuses on superhigh
+  - see entities on som >= 98
+  - uncover the entire map on som == 99
+* Add a "hail mary pass" (something that could save you out of a tough spot --
+  but not reliably and can be used only rarely)
+* background glow for the irresistible area around a dose
+* BUG: player's corpse can be hidden by a monster on death
 * Add smooth animations for the fade-out when growing Withdrawn
+* Don't cover the map with the bottom status bar
+* If the attacking entity can't find a path, it shouldn't just wait. Make it
+  move in a random direction instead.
+* Add different worlds the player can go to when leaving the map
+  - this could either be completely random
+  - or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two
+  other worlds, then three different worlds, etc.)
+* improve level generator not to create blocked entities
+* consider restricting the possible ways to leave the map
 * Don't allow suicide (if there's a way to avoid it)
   - e.g. fatfingering the arrow when the Depression is near
+* Change the rate of the `High` animation based on the intoxication ammount
+  (very high: fast-paced, should slow down on the way to sobriety)
 * Add a better effects on player's death:
   1. fade out to red/black completely
   2. uncover the entire map (with a reverse fade)
      - with full colours
      - showing player's corpse
-* Panic doesn't bump into monsters (because they're "solid")
-  options:
-  - just pick a random location (can bump into the wall)
-  - pick a non-wall location (either empty or with a monster on it)
-* Add a "hail mary pass" (something that could save you out of a tough spot --
-  but not reliably and can be used only rarely)
-* graphical effect of high/withdrawn
-  - use tcod::console_set_fade for low (instead of changing the blitting fade
-    value)
-  - though that would fade the GUI as well...
 * Move the default gfx config (fullscreen, font path, etc.) to libtcod.cfg
-* background glow for the irresistible area around a dose
-* bonuses on superhigh
-  - see entities on som >= 98
-  - uncover the entire map on som == 99
-* BUG: player's corpse can be hidden by a monster on death
-* If the attacking entity can't find a path, it shouldn't just wait. Make it
-  move in a random direction instead.
-* Don't remove an entity in `kill_entity` on fadeout (see TODO)
-* Add proper keycodes/enums
-* Add generic is_key_pressed function
-* Split utils into individual files
-* Split systems into individual files
-* improve level generator not to create blocked entities
-* consider restricting the possible ways to leave the map
-* add different levels
+  - that way we won't have to implement a lot of options UI
+  - should properly commented, suggesting available font options and such
+* Don't remove an entity in `kill_entity` on fadeout (see the TODO in the code)
 * Never crash on failure
   - Run the main game in a separate task
   - use task failure-handling to trap the errors
   - generate an error report that the user can send
 * Add the Marla Daniels quote
-  - The first time the game is launched, it should just jump into the play
-  - (that was the genius of Braid)
-  - (we can use the unexplored area to show help/hints)
-  - Any other time, we'll show the menu with the quote load-game option
-* Replace "state_of_mind" with "intoxication" in the code
+  - When the game is launched and there aren't any saves, it should just jump into the play
+    * (that was the genius of Braid)
+    * (we can use the unexplored area to show help/hints)
+  - Any other time, we'll show the menu with the quote & the load-game option
+  - Possibly, we may show it during player's death, if it makes sense
+* particle effects on hit/death
+* animate player state changes (added/removed will, got stunned, etc.)
+* change player's colour on stunned/panicked
+* Pick a good colour palette
+  - we've been picking up our colours pretty randomly so far, need to polish the
+  final look
+* save&exit/load game
+* make sure it's compatible with the colour blind
 
 
 * BUG: the game is a bit jerky sometimes
@@ -52,17 +58,17 @@
   - when we set AI to just always wait, the hangs were still occasionally there.
   They could have been rarer, but they also just may have been harder to notice
   (because the only thing moving was the player)
+
+
+General code improvements
+
 * wrap tcod::console_t if feasible
+* Replace "state_of_mind" with "intoxication" in the code
 * write a generic system interface so we can simplify the `update` function.
 * write a defsystem macro that handles the system boilerplate?
-* make sure it's compatible with the colour blind
-* particle effects on hit/death
-* animate player state changes (added/removed will, got stunned, etc.)
-* change player's colour on stunned/panicked
-* save&exit/load game
-* don't cover the map with the bottom status bar
 * save the map state on death/exit in the replay log so we can verify the replay
 pass produced the same result.
+* Split utils into individual files
 
 
 * play with integrating different scripting languages:

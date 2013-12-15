@@ -1,11 +1,11 @@
 use engine::{Display, Color};
 use components::*;
 use super::super::Resources;
-use systems::addiction_graphics::intoxication_states::*;
+use systems::addiction_graphics::intoxication_state::*;
 
 
 fn intoxication_to_str(state: int) -> ~str {
-    match IntoxicationStates::from_int(state) {
+    match IntoxicationState::from_int(state) {
         Exhausted => ~"Exhausted",
         DeliriumTremens => ~"Delirium tremens",
         Withdrawal => ~"Withdrawn",

@@ -2,7 +2,7 @@ use std::num;
 
 use components::*;
 use super::super::Resources;
-use super::addiction_graphics::intoxication_states::*;
+use super::addiction_graphics::intoxication_state::*;
 
 pub fn precise_distance(p1: (int, int), p2: (int, int)) -> int {
     let (x1, y1) = p1;
@@ -20,7 +20,7 @@ pub fn system(e: ID,
     let pos = ecm.get_position(e);
     let exploration = ecm.get_exploration(e);
     let attrs = ecm.get_attributes(e);
-    let radius = match IntoxicationStates::from_int(attrs.state_of_mind) {
+    let radius = match IntoxicationState::from_int(attrs.state_of_mind) {
         Exhausted | DeliriumTremens => 4,
         Withdrawal => 5,
         Sober => 6,

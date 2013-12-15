@@ -3,12 +3,12 @@ use std::num::max;
 use components::*;
 use super::super::Resources;
 use engine::Display;
-use self::intoxication_states::*;
+use self::intoxication_state::*;
 use world::col;
 
-pub mod intoxication_states {
+pub mod intoxication_state {
     #[deriving(Eq)]
-    pub enum IntoxicationStates {
+    pub enum IntoxicationState {
         Exhausted,
         DeliriumTremens,
         Withdrawal,
@@ -18,8 +18,8 @@ pub mod intoxication_states {
         Overdosed,
     }
 
-    impl IntoxicationStates {
-        pub fn from_int(value: int) -> IntoxicationStates {
+    impl IntoxicationState {
+        pub fn from_int(value: int) -> IntoxicationState {
             match value {
                 val if val <= 0 => Exhausted,
                 1..5   => DeliriumTremens,
@@ -38,7 +38,7 @@ pub fn system(ecm: &mut ComponentManager,
               display: &mut Display) {
     ensure_components!(ecm, res.player_id, Attributes);
     let som = ecm.get_attributes(res.player_id).state_of_mind;
-    match IntoxicationStates::from_int(som) {
+    match IntoxicationState::from_int(som) {
         Exhausted | DeliriumTremens | Withdrawal => {
             let fade = max((som as u8) * 5 + 50, 50);
             display.fade(fade, col::background);

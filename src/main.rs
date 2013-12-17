@@ -4,6 +4,7 @@ extern mod extra;
 
 use std::io;
 use std::io::File;
+use std::io::util::NullWriter;
 
 use std::rand::{Rng, IsaacRng, SeedableRng};
 use std::os;
@@ -188,12 +189,6 @@ fn update(state: &mut GameState,
                                         &mut state.resources,
                                         display);
     engine::Running
-}
-
-struct NullWriter;
-
-impl io::Writer for NullWriter {
-    fn write(&mut self, _buf: &[u8]) {}
 }
 
 

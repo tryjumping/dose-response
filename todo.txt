@@ -1,4 +1,3 @@
-* Replace our custom NullWriter with std::io::util::NullWriter
 * Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99

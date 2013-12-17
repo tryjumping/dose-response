@@ -164,12 +164,6 @@ mod ffi {
     }
 
     #[repr(C)]
-    enum key_status_t {
-        KEY_PRESSED=1,
-        KEY_RELEASED=2,
-    }
-
-    #[repr(C)]
     pub enum font_flags_t {
         FONT_LAYOUT_ASCII_INCOL=1,
         FONT_LAYOUT_ASCII_INROW=2,
@@ -302,7 +296,7 @@ mod ffi {
         BKGND_DEFAULT
     }
 
-    #[link_args = "-ltcod"]
+    #[link(name = "tcod")]
     extern "C" {
         pub fn TCOD_sys_set_fps(val: c_int) -> ();
         pub fn TCOD_sys_get_fps() -> c_int;

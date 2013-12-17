@@ -222,7 +222,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     let cur_time = time::now();
     let timestamp = time::strftime("%FT%T.", &cur_time) +
         (cur_time.tm_nsec / 1000000).to_str();
-    let replay_dir = &Path::init("./replays/");
+    let replay_dir = &Path::new("./replays/");
     if !replay_dir.exists() {
         io::fs::mkdir_recursive(replay_dir, 0b111101101);
     }
@@ -253,11 +253,12 @@ fn new_game_state(width: int, height: int) -> GameState {
 
 fn replay_game_state(width: int, height: int) -> GameState {
     let mut commands = RingBuf::new();
-    let replay_path = &Path::init(os::args()[1]);
+    let replay_path = &Path::new(os::args()[1]);
     let mut seed: u32;
     match File::open(replay_path) {
         Some(mut file) => {
-            let contents = std::str::from_utf8(file.read_to_end());
+            let bin_data = file.read_to_end();
+            let contents = std::str::from_utf8(bin_data);
             let mut lines = contents.lines();
             match lines.next() {
                 Some(seed_str) => match from_str(seed_str) {
@@ -300,7 +301,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
 fn main() {
     let (width, height) = (80, 50);
     let title = "Dose Response";
-    let font_path = Path::init("./fonts/dejavu16x16_gs_tc.png");
+    let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 
     let mut game_state = match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log

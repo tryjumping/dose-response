@@ -182,13 +182,6 @@ impl world_gen::WorldItem {
         }
     }
 
-    fn is_solid(self) -> bool {
-        match self {
-            world_gen::Empty | world_gen::Dose | world_gen::StrongDose => false,
-            _ => true,
-        }
-    }
-
     fn is_monster(self) -> bool {
         match self {
             world_gen::Anxiety |

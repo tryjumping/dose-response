@@ -10,3 +10,4 @@ dose-response
 src/components.rs
 /test_component_codegen
 /test_component_codegen.rs
+test-dose-response

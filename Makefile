@@ -1,18 +1,15 @@
-BIN=./bin
-APP_NAME=dose-response
-APP=$(BIN)/$(APP_NAME)
-LIB=./lib
-LAUNCHER=./$(APP_NAME)
+APP=dose-response
+LIB_DIR=lib
 SOURCES=$(wildcard src/**/*.rs src/*.rs) src/components.rs
+CFLAGS=-L$(LIB_DIR) --link-args '-Wl,--rpath=$$ORIGIN/$(LIB_DIR)'
 
 all: build
 
-build: $(APP) $(LAUNCHER)
+build: $(APP)
 
 test: $(SOURCES)
-	mkdir -p $(BIN)
-	rustc --test -W ctypes -L./lib src/main.rs -o $(BIN)/test-$(APP_NAME)
-	LD_LIBRARY_PATH="$(LIB)" $(BIN)/test-$(APP_NAME)
+	rustc --test -W ctypes $(CFLAGS) src/main.rs -o test-$(APP)
+	./test-$(APP)
 
 
 src/components.rs: build_ecm.py component_template.rs
@@ -24,22 +21,16 @@ test_component_codegen:
 	./test_component_codegen
 
 $(APP): $(SOURCES)
-	@mkdir -p $(BIN)
-	rustc -W ctypes -O -L./lib src/main.rs -o $(APP)
-
-$(LAUNCHER):
-	@echo '#!/bin/bash' > $(LAUNCHER)
-	@echo 'LD_LIBRARY_PATH="$(LIB)" $(APP) $$@' >> $(LAUNCHER)
-	@chmod a+x $(LAUNCHER)
+	rustc -W ctypes -O $(CFLAGS) src/main.rs -o $(APP)
 
 run: build
-	$(LAUNCHER)
+	./$(APP)
 
 replay: build
-	$(LAUNCHER) `find replays -type f -name 'replay-*' | sort | tail -n 1`
+	./$(APP) `find replays -type f -name 'replay-*' | sort | tail -n 1`
 
 clean:
-	rm -rf dist *.pyc $(BIN) $(LAUNCHER) lib/librtcod-*.so
+	rm -rf dist *.pyc $(APP) test-$(APP) lib/librtcod-*.so
 
 test-py:
 	python test_entity_component_manager.py

@@ -58,6 +58,20 @@
 
 General code improvements
 
+* Switch to `rustpkg`, release tcod as a separate crate
+
+  This would change the workflow we're using to build stuff:
+
+  1. checkout github.com/tomassedovic/dose-response
+  2. rustpkg install github.com/tomassedovic/tcod
+     - NOTE: rustpkg install doesn't work for me atm, we could do this in the
+  meantime:
+        $ cd code/tcod
+        $ rustpkg build tcod
+        $ cp -r ../dose-response/.rust
+        $ rm -rf ../dose-response/.{rust,git}
+  3. rustpkg build dose-response (we'd put this into Makefile)
+
 * wrap tcod::console_t if feasible
 * Replace "state_of_mind" with "intoxication" in the code
 * write a generic system interface so we can simplify the `update` function.

@@ -72,6 +72,21 @@ General code improvements
         $ rm -rf ../dose-response/.{rust,git}
   3. rustpkg build dose-response (we'd put this into Makefile)
 
+  Initially, though, we could just put tcod under dose-response/src/tcod/ to
+figure out the kinks.
+
+  Also, looks like the binary produced with `rustpkg build` and `rustpkg
+install` are identical (including their rpath settings). This means that we
+can't just distribute `bin/dose-response` and expect things to work -- the
+rpath there doesn't make any sense.
+
+  Looks like rustpkg can make things simpler for development -- using all the
+libs together. But we'll have to add a special linking option for distribution
+anyway -- to specify the right rpath.
+
+
+
+
 * wrap tcod::console_t if feasible
 * Replace "state_of_mind" with "intoxication" in the code
 * write a generic system interface so we can simplify the `update` function.

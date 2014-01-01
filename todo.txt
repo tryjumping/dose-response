@@ -58,6 +58,14 @@
 
 General code improvements
 
+* Generate tcod using rust-bindgen:
+
+  https://github.com/crabtw/rust-bindgen
+
+  The bindgen pass will evetually be integrated to Rust:
+
+  https://github.com/mozilla/rust/issues/2124
+
 * Switch to `rustpkg`, release tcod as a separate crate
 
   This would change the workflow we're using to build stuff:

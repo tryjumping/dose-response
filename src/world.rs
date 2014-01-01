@@ -141,7 +141,10 @@ pub fn player_entity(ecm: &mut ComponentManager) -> ID {
             threshold: 10});
     ecm.set_exploration(player, Exploration{radius: 5});
     ecm.set_tile(player, Tile{level: 2, glyph: '@', color: col::player});
-    ecm.set_death_tile(player, DeathTile{glyph: '&', color: col::dead_player});
+    ecm.set_corpse(player, Corpse{
+            glyph: '&',
+            color: col::dead_player,
+            solid: true});
     ecm.set_turn(player, Turn{side: Player,
                             ap: 0,
                             max_ap: 1,

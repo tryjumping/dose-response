@@ -13,19 +13,20 @@ pub fn kill_entity(e: ID,
     ecm.remove_accepts_user_input(e);
     ecm.remove_turn(e);
     ecm.remove_destination(e);
-    if ecm.has_solid(e) {
+    let solid_corpse = ecm.has_corpse(e) && ecm.get_corpse(e).solid;
+    if !solid_corpse {
         ecm.remove_solid(e);
     }
     // Replace the entity's Tile with the tile of a corpse.
-    if ecm.has_death_tile(e) && ecm.has_tile(e) {
-        let death_tile = ecm.get_death_tile(e);
+    if ecm.has_corpse(e) && ecm.has_tile(e) {
+        let corpse = ecm.get_corpse(e);
         let tile = ecm.get_tile(e);
-        ecm.set_tile(e, Tile{glyph: death_tile.glyph,
-                             color: death_tile.color,
+        ecm.set_tile(e, Tile{glyph: corpse.glyph,
+                             color: corpse.color,
                              .. tile});
         ecm.set_fade_color(e, FadeColor{
                 from: tile.color,
-                to: death_tile.color,
+                to: corpse.color,
                 duration_s: 1f32,
                 repetitions: Count(1),
             });

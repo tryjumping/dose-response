@@ -9,7 +9,7 @@ struct Attributes{state_of_mind: int, will: int}
 struct Background
 struct Bump(ID)
 struct ColorAnimation{color: Color, progress: f32, forward: bool}
-struct DeathTile{glyph: char, color: Color}
+struct Corpse{glyph: char, color: Color, solid: bool}
 struct Destination {x: int, y: int}
 struct Dose{tolerance_modifier: int, resist_radius: int}
 struct Exploration{radius: int}

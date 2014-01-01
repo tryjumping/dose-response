@@ -4,7 +4,6 @@
 * Add a "hail mary pass" (something that could save you out of a tough spot --
   but not reliably and can be used only rarely)
 * background glow for the irresistible area around a dose
-* BUG: player's corpse can be hidden by a monster on death
 * Add smooth animations for the fade-out when growing Withdrawn
 * Don't cover the map with the bottom status bar
 * If the attacking entity can't find a path, it shouldn't just wait. Make it

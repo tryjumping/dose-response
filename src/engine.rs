@@ -1,3 +1,5 @@
+#[allow(dead_code)];
+
 use extra::container::Deque;
 use extra::ringbuf::RingBuf;
 pub use tcod::Color;

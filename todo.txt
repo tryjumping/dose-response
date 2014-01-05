@@ -1,9 +1,17 @@
 * Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
+* background glow for the irresistible area around a dose
 * Add a "hail mary pass" (something that could save you out of a tough spot --
   but not reliably and can be used only rarely)
-* background glow for the irresistible area around a dose
+  - I wonder if this should instead be something like spelunky's bombs, i.e.
+  something you find/make but that you can carry and have a limited amount of.
+  - or maybe a ranged weapon type of some kind?
+  I've been having trouble finding a thematic fit for Adom's prayer. So maybe an
+  item or a limited ability would work better here...
+* We need a greater pressure for exploration and leaving the area. In my current
+playthroughs I just never care enough to leave.
+  - consider tweaking the intoxication gain and drop to create stronger pressure
 * Add smooth animations for the fade-out when growing Withdrawn
 * Don't cover the map with the bottom status bar
 * If the attacking entity can't find a path, it shouldn't just wait. Make it
@@ -18,7 +26,7 @@
   - e.g. fatfingering the arrow when the Depression is near
 * Change the rate of the `High` animation based on the intoxication ammount
   (very high: fast-paced, should slow down on the way to sobriety)
-* Add a better effects on player's death:
+* Add better effects on player's death:
   1. fade out to red/black completely
   2. uncover the entire map (with a reverse fade)
      - with full colours

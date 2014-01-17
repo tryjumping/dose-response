@@ -3,6 +3,7 @@ use components::*;
 use super::ai;
 use super::super::Resources;
 use systems::movement::find_path;
+use util::Deref;
 
 fn is_irresistible(addict: ID,
                    dose: ID,
@@ -35,7 +36,7 @@ pub fn system(e: ID,
             for dose in ecm.entities_on_pos(Position{x: x, y: y}) {
                 if !ecm.has_entity(dose) {
                     fail!("dose system: dose {} on pos {}, {} not in ecm.",
-                          *dose, x, y);
+                          dose.deref(), x, y);
                 }
                 if !ecm.has_dose(dose) {continue};
                 if is_irresistible(e, dose, ecm, res.world_size) {

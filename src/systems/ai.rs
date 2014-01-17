@@ -4,6 +4,7 @@ use components;
 use std::num::{abs, max};
 use super::super::Resources;
 use systems::movement::is_walkable;
+use util::Deref;
 
 
 pub fn distance(p1: &Position, p2: &Position) -> int {
@@ -129,7 +130,7 @@ pub fn system(e: ID,
     let player_pos = ecm.get_position(res.player_id);
     let pos = ecm.get_position(e);
     let dest = if entity_blocked(pos, ecm, res.world_size) {
-        println!("Found a blocked entity: {}", *e);
+        println!("Found a blocked entity: {}", e.deref());
         Destination{x: pos.x, y: pos.y}
     } else {
         match ecm.get_ai(e).behaviour {

@@ -23,6 +23,7 @@ pub mod systems;
 pub mod tcod;
 pub mod world_gen;
 pub mod world;
+pub mod util;
 
 
 pub struct GameState {

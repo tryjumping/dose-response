@@ -1,6 +1,7 @@
 use components::*;
 use engine::Color;
 use super::super::Resources;
+use util::Deref;
 
 pub fn kill_entity(e: ID,
                    ecm: &mut ComponentManager) {
@@ -43,7 +44,7 @@ pub fn system(e: ID,
               res: &mut Resources) {
     ensure_components!(ecm, e, AttackTarget, AttackType, Turn);
     let free_aps = ecm.get_turn(e).ap;
-    let target = *ecm.get_attack_target(e);
+    let target = ecm.get_attack_target(e).deref();
     ecm.remove_attack_target(e);
     let attack_successful = ecm.has_entity(target) && free_aps > 0;
     if !attack_successful {return}
@@ -52,7 +53,7 @@ pub fn system(e: ID,
     ecm.set_turn(e, turn.spend_ap(1));
     match ecm.get_attack_type(e) {
         Kill => {
-            println!("Entity {} was killed by {}", *target, *e);
+            println!("Entity {} was killed by {}", target.deref(), e.deref());
             kill_entity(target, ecm);
             // TODO: This is a hack. The player should fade out, the other
             // monsters just disappear. Need to make this better without
@@ -71,7 +72,7 @@ pub fn system(e: ID,
             }
         }
         Stun{duration} => {
-            println!("Entity {} was stunned by {}", *target, *e);
+            println!("Entity {} was stunned by {}", target.deref(), e.deref());
             // An attacker with stun disappears after delivering the blow
             ecm.set_fade_out(e, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
             if ecm.has_tile(e) {
@@ -90,7 +91,7 @@ pub fn system(e: ID,
             ecm.set_stunned(target, stunned);
         }
         Panic{duration} => {
-            println!("Entity {} panics because of {}", *target, *e);
+            println!("Entity {} panics because of {}", target.deref(), e.deref());
             // An attacker with stun disappears after delivering the blow
             ecm.set_fade_out(e, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
             if ecm.has_tile(e) {

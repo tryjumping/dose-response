@@ -5,6 +5,7 @@ use components::*;
 use super::ai;
 use super::super::Resources;
 use tcod::Path;
+use util::Deref;
 
 
 pub fn is_walkable(pos: Position, ecm: &ComponentManager, map_size: (int, int))
@@ -96,7 +97,7 @@ pub fn system(e: ID,
     let dest = ecm.get_destination(e);
     if (pos.x, pos.y) == (dest.x, dest.y) {
         // Wait (spends an AP but do nothing)
-        println!("Entity {} waits.", *e);
+        println!("Entity {} waits.", e.deref());
         ecm.set_turn(e, turn.spend_ap(1));
         ecm.remove_destination(e);
     } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
@@ -112,7 +113,7 @@ pub fn system(e: ID,
                 match ecm.has_solid(bumpee) {
                     true => {
                         println!("Entity {} bumped into {} at: ({}, {})",
-                                 *e, *bumpee, dest.x, dest.y);
+                                 e.deref(), bumpee.deref(), dest.x, dest.y);
                         ecm.set_bump(e, Bump(bumpee));
                         ecm.remove_destination(e);
                         break;
@@ -140,7 +141,7 @@ pub fn system(e: ID,
                     }
                 }
                 None => {
-                    println!("Entity {} cannot find a path so it waits.", *e);
+                    println!("Entity {} cannot find a path so it waits.", e.deref());
                     ecm.set_turn(e, turn.spend_ap(1));
                     ecm.remove_destination(e);
                 }

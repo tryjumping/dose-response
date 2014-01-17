@@ -33,6 +33,7 @@ use std::hashmap::HashMap;
 use std::container::Map;
 
 use engine::{Color};
+use util::Deref;
 
 #[deriving(Eq)]
 pub enum Side {
@@ -70,6 +71,22 @@ pub mod ai {
 
 }
 
+impl Deref<ID> for Bump {
+    pub fn deref(&self) -> ID {
+        match *self {
+            Bump(inner) => inner
+        }
+    }
+}
+
+impl Deref<ID> for AttackTarget {
+    pub fn deref(&self) -> ID {
+        match *self {
+            AttackTarget(inner) => inner
+        }
+    }
+}
+
 {%for def in definitions %}
 #[deriving(Eq)]
 pub {{ def }}
@@ -101,6 +118,14 @@ pub enum ComponentType {
 #[deriving(Clone, Eq, ToStr)]
 pub struct ID(int);
 
+impl Deref<int> for ID {
+    fn deref(&self) -> int {
+        match *self {
+            ID(inner) => inner
+        }
+    }
+}
+
 pub struct ComponentManager {
     priv entities: ~[Entity],
     priv initial_id: ID,
@@ -126,8 +151,8 @@ pub fn new() -> ComponentManager {
 
     pub fn add_entity(&mut self, entity: Entity) -> ID {
         self.entities.push(entity);
-        self.next_id = ID(*self.next_id + 1);
-        let e = ID(*self.next_id - 1);
+        self.next_id = ID(self.next_id.deref() + 1);
+        let e = ID(self.next_id.deref() - 1);
         if self.has_position(e) {  // update the cache
             let pos = self.get_position(e);
             // Just remove the component. There is no entry in the cache yet.
@@ -139,7 +164,7 @@ pub fn new() -> ComponentManager {
     }
 
     fn index(&self, id: ID) -> uint {
-        (*id - *self.initial_id) as uint
+        (id.deref() - self.initial_id.deref()) as uint
     }
 
     pub fn has_entity(&self, id: ID) -> bool {
@@ -158,7 +183,7 @@ pub fn new() -> ComponentManager {
     }
 
     pub fn iter(&self) -> iter::Map<int, ID, iter::Range<int>> {
-        range(*self.initial_id, *self.next_id).map(|index| ID(index))
+        range(self.initial_id.deref(), self.next_id.deref()).map(|index| ID(index))
     }
 
     pub fn remove_all_entities(&mut self) {
@@ -252,7 +277,7 @@ pub fn new() -> ComponentManager {
             let cache = self.position_cache.get_mut(&(pos.x, pos.y));
             let id_index = match cache.iter().position(|&i| i == id) {
                 Some(index) => index,
-                None => fail!("Position cache is missing the entity {}", *id),
+                None => fail!("Position cache is missing the entity {}", id.deref()),
             };
             cache.remove(id_index);
         }

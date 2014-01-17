@@ -4,6 +4,11 @@
 * background glow for the irresistible area around a dose
 * Add a "hail mary pass" (something that could save you out of a tough spot --
   but not reliably and can be used only rarely)
+  - For now scatter food around the world, with small explosion effect on use.
+  Can be picked up and carried (unlike doses). Triggered by the 'e' key ("eat").
+    - explosion radius: 2
+    - starting food: 2
+  ---
   - I wonder if this should instead be something like spelunky's bombs, i.e.
   something you find/make but that you can carry and have a limited amount of.
   - or maybe a ranged weapon type of some kind?

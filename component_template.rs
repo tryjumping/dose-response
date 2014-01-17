@@ -12,6 +12,7 @@ struct ColorAnimation{color: Color, progress: f32, forward: bool}
 struct Corpse{glyph: char, color: Color, solid: bool}
 struct Destination {x: int, y: int}
 struct Dose{tolerance_modifier: int, resist_radius: int}
+struct Edible
 struct Exploration{radius: int}
 struct Explored
 struct ExplosionEffect{radius: int}
@@ -20,6 +21,7 @@ struct FadeOut{to: Color, duration_s: f32}
 struct FadingOut
 struct Monster{kind: MonsterKind}
 struct Panicking{turn: int, duration: int}
+struct Pickable
 struct Position {x: int, y: int}  //callbacks
 struct Solid
 struct Stunned{turn: int, duration: int}

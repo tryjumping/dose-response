@@ -120,6 +120,10 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                         repetitions: Infinite,
                     });
                 ecm.set_explosion_effect(e, ExplosionEffect{radius: 6});
+            } else if item == world_gen::Food {
+                ecm.set_explosion_effect(e, ExplosionEffect{radius: 2});
+                ecm.set_pickable(e, Pickable);
+                ecm.set_edible(e, Edible);
             }
             ecm.set_tile(e, Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
         }

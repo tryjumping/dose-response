@@ -72,7 +72,7 @@ pub mod ai {
 }
 
 impl Deref<ID> for Bump {
-    pub fn deref(&self) -> ID {
+    fn deref(&self) -> ID {
         match *self {
             Bump(inner) => inner
         }
@@ -80,7 +80,7 @@ impl Deref<ID> for Bump {
 }
 
 impl Deref<ID> for AttackTarget {
-    pub fn deref(&self) -> ID {
+    fn deref(&self) -> ID {
         match *self {
             AttackTarget(inner) => inner
         }

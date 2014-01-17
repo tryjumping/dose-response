@@ -1,6 +1,7 @@
 use components::*;
 use self::commands::*;
 use super::super::Resources;
+use extra::container::Deque;
 
 pub mod commands {
     #[deriving(Rand, ToStr)]

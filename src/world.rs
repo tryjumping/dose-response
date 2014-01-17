@@ -162,6 +162,7 @@ impl world_gen::WorldItem {
             world_gen::Tree => '#',
             world_gen::Dose => 'i',
             world_gen::StrongDose => 'I',
+            world_gen::Food => '%',
             world_gen::Anxiety => 'a',
             world_gen::Depression => 'D',
             world_gen::Hunger => 'h',
@@ -176,6 +177,7 @@ impl world_gen::WorldItem {
             world_gen::Tree => rand::task_rng().choose(&[col::tree_1, col::tree_2, col::tree_3]),
             world_gen::Dose => col::dose,
             world_gen::StrongDose => col::dose,
+            world_gen::Food => col::food,
 
             world_gen::Anxiety => col::anxiety,
             world_gen::Depression => col::depression,
@@ -213,6 +215,7 @@ pub mod col {
     pub static empty_tile: Color = Color{r: 223,g: 223,b: 223};
     pub static dose: Color = Color{r: 114,g: 126,b: 255};
     pub static dose_glow: Color = Color{r: 0,g: 63,b: 47};
+    pub static food: Color = Color{r: 148, g: 113, b: 0};
     pub static tree_1: Color = Color{r: 0,g: 191,b: 0};
     pub static tree_2: Color = Color{r: 0,g: 255,b: 0};
     pub static tree_3: Color = Color{r: 63,g: 255,b: 63};

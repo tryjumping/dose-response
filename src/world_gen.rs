@@ -8,6 +8,7 @@ pub enum WorldItem {
 
     Dose,
     StrongDose,
+    Food,
 
     Anxiety,
     Depression,
@@ -20,10 +21,11 @@ pub fn forrest<T: Rng>(rng: &mut T, w: int, h: int) -> ~[(int, int, WorldItem)] 
     let monster_count = 5;
     let monster_weight = 30 / monster_count;
     let opts = WeightedChoice::new(~[
-        Weighted{weight: 600, item: Empty},
+        Weighted{weight: 595, item: Empty},
         Weighted{weight: 390, item: Tree},
         Weighted{weight: 7,  item: Dose},
         Weighted{weight: 3,  item: StrongDose},
+        Weighted{weight: 5,  item: Food},
         Weighted{weight: monster_weight,  item: Anxiety},
         Weighted{weight: monster_weight,  item: Depression},
         Weighted{weight: monster_weight,  item: Hunger},

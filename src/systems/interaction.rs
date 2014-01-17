@@ -11,9 +11,10 @@ pub fn system(e: ID,
     for inter in ecm.entities_on_pos(pos) {
         if e == inter {continue}  // Entity cannot interact with itself
         if !ecm.has_entity(inter) {continue}
-        // TODO: only doses are interactive for now. If we add more, we should
-        // create a new `Interactive` component and test its presense here:
-        let is_interactive = ecm.has_dose(inter);
+        // TODO: only doses and food are interactive for now. If we add more, we
+        // should create a new `Interactive` component and test its presense
+        // here:
+        let is_interactive = ecm.has_dose(inter) || ecm.has_pickable(inter);
         if !is_interactive {continue}
         let is_dose = ecm.has_dose(inter);
         if ecm.has_attribute_modifier(inter) {
@@ -39,18 +40,21 @@ pub fn system(e: ID,
                         tolerance: addiction.tolerance + dose.tolerance_modifier,
                         .. addiction});
             }
-        }
-        if ecm.has_explosion_effect(inter) {
-            let radius = ecm.get_explosion_effect(inter).radius;
-            for x in range(pos.x - radius, pos.x + radius) {
-                for y in range(pos.y - radius, pos.y + radius) {
-                    for monster in ecm.entities_on_pos(Position{x: x, y: y}) {
-                        if ecm.has_entity(monster) && ecm.has_ai(monster) {
-                            combat::kill_entity(monster, ecm);
+            if ecm.has_explosion_effect(inter) {
+                let radius = ecm.get_explosion_effect(inter).radius;
+                for x in range(pos.x - radius, pos.x + radius) {
+                    for y in range(pos.y - radius, pos.y + radius) {
+                        for monster in ecm.entities_on_pos(Position{x: x, y: y}) {
+                            if ecm.has_entity(monster) && ecm.has_ai(monster) {
+                                combat::kill_entity(monster, ecm);
+                            }
                         }
                     }
                 }
             }
+        } else {
+            ecm.set_inventory_item(inter, InventoryItem{owner: e});
+            println!("Item {:?} picked up by {:?}", inter, e);
         }
         ecm.remove_position(inter);
     }

@@ -19,6 +19,7 @@ struct ExplosionEffect{radius: int}
 struct FadeColor{from: Color, to: Color, duration_s: f32, repetitions: Repetitions}
 struct FadeOut{to: Color, duration_s: f32}
 struct FadingOut
+struct InventoryItem{owner: ID}
 struct Monster{kind: MonsterKind}
 struct Panicking{turn: int, duration: int}
 struct Pickable

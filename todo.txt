@@ -6,7 +6,6 @@
 * Panic doesn't affect eating
 * Eating when you have no food causes you to waste an AP
 * Display the amount of food in the status bar
-* Make the food visible through Fog of War
 * Rename `ExplosionEffect` to `AreaEffect`?
 * We need a greater pressure for exploration and leaving the area. In my current
 playthroughs I just never care enough to leave.

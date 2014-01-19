@@ -133,6 +133,9 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
                 ecm.set_explosion_effect(e, ExplosionEffect{radius: 2});
                 ecm.set_pickable(e, Pickable);
                 ecm.set_edible(e, Edible);
+                if is_initial_food {
+                    ecm.set_explored(e, Explored);
+                }
             }
             ecm.set_tile(e, Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
         }

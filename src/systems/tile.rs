@@ -18,7 +18,7 @@ pub fn system(e: ID,
     } else {
         false
     };
-    let shows_in_fog_of_war = ecm.has_background(e) || ecm.has_dose(e);
+    let shows_in_fog_of_war = ecm.has_background(e) || ecm.has_explored(e);
     let is_explored = ecm.has_explored(e);
     if is_explored || res.cheating {
         let bg = if is_visible {

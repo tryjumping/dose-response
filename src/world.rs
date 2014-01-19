@@ -17,6 +17,12 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),
                             player_pos.y + rng.choose(pos_offset));
+    let mut initial_foods_pos: ~[(int, int)] = ~[];
+    rng.gen_range::<uint>(1, 4).times(|| {
+            let pos = (player_pos.x + rng.choose(pos_offset),
+                       player_pos.y + rng.choose(pos_offset));
+            initial_foods_pos.push(pos);
+    });
     let (width, height) = world_size;
     let world = generate(rng, width, height);
     for &(x, y, item) in world.iter() {
@@ -32,8 +38,11 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
         } else {
             item
         };
+        let is_initial_food = initial_foods_pos.iter().any(|&p| p == (x, y));
         let item = if (x, y) == initial_dose_pos {
             world_gen::Dose
+        } else if is_initial_food {
+            world_gen::Food
         } else {
             item
         };
@@ -43,7 +52,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
         } else { // put an empty item as the background
             ecm.set_tile(bg, Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
-        if near_player(x, y) && ((x, y) != initial_dose_pos) {
+        if near_player(x, y) && ((x, y) != initial_dose_pos) && !is_initial_food {
             continue
         };
         if item != world_gen::Tree && item != world_gen::Empty {

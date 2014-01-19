@@ -244,6 +244,7 @@ mod ffi {
             NUMLOCK,
             SCROLLLOCK,
             Spacebar,
+            Char,
         }
     }
 

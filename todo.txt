@@ -2,18 +2,13 @@
   - see entities on som >= 98
   - uncover the entire map on som == 99
 * background glow for the irresistible area around a dose
-* Add a "hail mary pass" (something that could save you out of a tough spot --
-  but not reliably and can be used only rarely)
-  - For now scatter food around the world, with small explosion effect on use.
-  Can be picked up and carried (unlike doses). Triggered by the 'e' key ("eat").
-    - explosion radius: 2
-    - starting food: 2
-  ---
-  - I wonder if this should instead be something like spelunky's bombs, i.e.
-  something you find/make but that you can carry and have a limited amount of.
-  - or maybe a ranged weapon type of some kind?
-  I've been having trouble finding a thematic fit for Adom's prayer. So maybe an
-  item or a limited ability would work better here...
+* Stun doesn't affect eating
+* Panic doesn't affect eating
+* Eating when you have no food causes you to waste an AP
+* Generate a random amount of food (1, 3) at the starting area
+* Display the amount of food in the status bar
+* Make the food visible through Fog of War
+* Rename `ExplosionEffect` to `AreaEffect`?
 * We need a greater pressure for exploration and leaving the area. In my current
 playthroughs I just never care enough to leave.
   - consider tweaking the intoxication gain and drop to create stronger pressure

@@ -11,6 +11,7 @@ pub mod bump;
 pub mod color_fade;
 pub mod combat;
 pub mod dose;
+pub mod eating;
 pub mod effect_duration;
 pub mod exploration;
 pub mod fade_out;

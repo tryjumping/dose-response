@@ -7,6 +7,7 @@ pub mod commands {
     #[deriving(Rand, ToStr)]
     pub enum Command {
         N, E, S, W, NE, NW, SE, SW,
+        Eat,
     }
 }
 
@@ -21,6 +22,7 @@ impl FromStr for Command {
             "NW" => Some(NW),
             "SE" => Some(SE),
             "SW" => Some(SW),
+            "Eat" => Some(Eat),
             _ => fail!("Unknown command: '{}'", name)
         }
     }
@@ -46,6 +48,11 @@ pub fn system(e: ID,
                 NE => Destination{x: pos.x+1, y: pos.y-1},
                 SW => Destination{x: pos.x-1, y: pos.y+1},
                 SE => Destination{x: pos.x+1, y: pos.y+1},
+
+                Eat => {
+                    super::eating::system(e, ecm, res);
+                    Destination{x: pos.x, y: pos.y}
+                }
             };
             ecm.set_destination(e, dest);
         },

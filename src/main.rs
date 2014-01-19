@@ -94,6 +94,12 @@ fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
                         (true, false) => commands.push_back(commands::SE),
                         _ => commands.push_back(commands::E),
                     },
+                    key::Char => {
+                        match key.char {
+                            'e' => commands.push_back(commands::Eat),
+                            _ => (),
+                        }
+                    }
                     _ => (),
                 }
             },
@@ -158,6 +164,7 @@ fn update(state: &mut GameState,
         systems::panic::system,
         systems::stun::system,
         systems::movement::system,
+        //systems::eating::system,
         systems::interaction::system,
         systems::bump::system,
         systems::combat::system,

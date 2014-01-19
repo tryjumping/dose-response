@@ -1,4 +1,5 @@
 use std::num;
+use std::iter::range_inclusive;
 
 use components::*;
 use super::super::Resources;
@@ -30,8 +31,8 @@ pub fn system(e: ID,
     if radius != exploration.radius {
         ecm.set_exploration(e, Exploration{radius: radius});
     }
-    for x in range(pos.x - radius, pos.x + radius) {
-        for y in range(pos.y - radius, pos.y + radius) {
+    for x in range_inclusive(pos.x - radius, pos.x + radius) {
+        for y in range_inclusive(pos.y - radius, pos.y + radius) {
             if precise_distance((pos.x, pos.y), (x, y)) <= radius {
                 for exploree in ecm.entities_on_pos(Position{x: x, y: y}) {
                     if ecm.has_tile(exploree) && ecm.has_position(exploree) {

@@ -1,4 +1,6 @@
 use std::num;
+use std::iter::range_inclusive;
+
 use components::*;
 use super::ai;
 use super::super::Resources;
@@ -31,8 +33,8 @@ pub fn system(e: ID,
     let pos = ecm.get_position(e);
     let search_radius = 3;  // max irresistibility for a dose is curretnly 3
     let mut doses: ~[ID] = ~[];
-    for x in range(pos.x - search_radius, pos.x + search_radius) {
-        for y in range(pos.y - search_radius, pos.y + search_radius) {
+    for x in range_inclusive(pos.x - search_radius, pos.x + search_radius) {
+        for y in range_inclusive(pos.y - search_radius, pos.y + search_radius) {
             for dose in ecm.entities_on_pos(Position{x: x, y: y}) {
                 if !ecm.has_entity(dose) {
                     fail!("dose system: dose {} on pos {}, {} not in ecm.",

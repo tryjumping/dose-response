@@ -1,4 +1,6 @@
+use std::iter::range_inclusive;
 use std::rand::Rng;
+
 use components::*;
 use components;
 use std::num::{abs, max};
@@ -99,8 +101,8 @@ fn hunting_pack_behaviour<T: Rng>(e: ID,
     match ecm.get_ai(e).state {
         components::ai::Aggressive => {
             let r = 8;
-            for x in range(pos.x - r, pos.x + r) {
-                for y in range(pos.y - r, pos.y + r) {
+            for x in range_inclusive(pos.x - r, pos.x + r) {
+                for y in range_inclusive(pos.y - r, pos.y + r) {
                     for monster in ecm.entities_on_pos(Position{x: x, y: y}) {
                         if ecm.has_entity(monster) && ecm.has_ai(monster) {
                             let ai = ecm.get_ai(monster);

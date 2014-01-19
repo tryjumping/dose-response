@@ -1,3 +1,5 @@
+use std::iter::range_inclusive;
+
 use components::*;
 use super::combat;
 use super::super::Resources;
@@ -42,8 +44,8 @@ pub fn system(e: ID,
             }
             if ecm.has_explosion_effect(inter) {
                 let radius = ecm.get_explosion_effect(inter).radius;
-                for x in range(pos.x - radius, pos.x + radius) {
-                    for y in range(pos.y - radius, pos.y + radius) {
+                for x in range_inclusive(pos.x - radius, pos.x + radius) {
+                    for y in range_inclusive(pos.y - radius, pos.y + radius) {
                         for monster in ecm.entities_on_pos(Position{x: x, y: y}) {
                             if ecm.has_entity(monster) && ecm.has_ai(monster) {
                                 combat::kill_entity(monster, ecm);

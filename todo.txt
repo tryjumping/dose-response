@@ -1,11 +1,11 @@
+* Display the amount of food in the status bar
+* Bug: Eating when you have no food causes you to waste an AP
+* Stun doesn't affect eating
+* Panic doesn't affect eating
 * Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
 * background glow for the irresistible area around a dose
-* Stun doesn't affect eating
-* Panic doesn't affect eating
-* Eating when you have no food causes you to waste an AP
-* Display the amount of food in the status bar
 * Rename `ExplosionEffect` to `AreaEffect`?
 * We need a greater pressure for exploration and leaving the area. In my current
 playthroughs I just never care enough to leave.
@@ -18,11 +18,13 @@ playthroughs I just never care enough to leave.
   - this could either be completely random
   - or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two
   other worlds, then three different worlds, etc.)
+  Some notes on different world generation:
+  - http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
 * improve level generator not to create blocked entities
 * consider restricting the possible ways to leave the map
 * Don't allow suicide (if there's a way to avoid it)
   - e.g. fatfingering the arrow when the Depression is near
-* Change the rate of the `High` animation based on the intoxication ammount
+* Change the rate of the `High` animation based on the intoxication amount
   (very high: fast-paced, should slow down on the way to sobriety)
 * Add better effects on player's death:
   1. fade out to red/black completely
@@ -32,6 +34,18 @@ playthroughs I just never care enough to leave.
 * Move the default gfx config (fullscreen, font path, etc.) to libtcod.cfg
   - that way we won't have to implement a lot of options UI
   - should properly commented, suggesting available font options and such
+  Examples:
+  - font path
+  - font size
+  - fullscreen (yes/no)
+* Use a config file for other in-game configuration
+  TCOD has a builtin format & parser:
+  - http://doryen.eptalys.net/data/libtcod/doc/1.5.1/html2/parser_run.html?c=true
+  Examples:
+  - key bindings
+  - colour-blind mode (yes/no)
+  - location to the replays
+  - location to the saved games?
 * Don't remove an entity in `kill_entity` on fadeout (see the TODO in the code)
 * Never crash on failure
   - Run the main game in a separate task
@@ -52,7 +66,6 @@ playthroughs I just never care enough to leave.
 * save&exit/load game
 * make sure it's compatible with the colour blind
 
-
 * BUG: the game is a bit jerky sometimes
   - doesn't seem to be a (purely) AI thing. Even when we replaced AI for a
   random destination the problem persisted.
@@ -71,31 +84,13 @@ General code improvements
 
   https://github.com/mozilla/rust/issues/2124
 
-* Switch to `rustpkg`, release tcod as a separate crate
+* Switch to `cargo-lite`, release tcod as a separate crate
 
-  This would change the workflow we're using to build stuff:
+* Look at our IO code, see if we can utilise read_to_str and
+  write_str/write_line
+  - https://github.com/mozilla/rust/pull/10861
+  - http://static.rust-lang.org/doc/master/complement-cheatsheet.html#how-do-i-iterate-over-the-lines-in-a-file
 
-  1. checkout github.com/tomassedovic/dose-response
-  2. rustpkg install github.com/tomassedovic/tcod
-     - NOTE: rustpkg install doesn't work for me atm, we could do this in the
-  meantime:
-        $ cd code/tcod
-        $ rustpkg build tcod
-        $ cp -r ../dose-response/.rust
-        $ rm -rf ../dose-response/.{rust,git}
-  3. rustpkg build dose-response (we'd put this into Makefile)
-
-  Initially, though, we could just put tcod under dose-response/src/tcod/ to
-figure out the kinks.
-
-  Also, looks like the binary produced with `rustpkg build` and `rustpkg
-install` are identical (including their rpath settings). This means that we
-can't just distribute `bin/dose-response` and expect things to work -- the
-rpath there doesn't make any sense.
-
-  Looks like rustpkg can make things simpler for development -- using all the
-libs together. But we'll have to add a special linking option for distribution
-anyway -- to specify the right rpath.
 
 
 

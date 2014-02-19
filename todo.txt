@@ -1,5 +1,4 @@
 * Display the amount of food in the status bar
-* Bug: Eating when you have no food causes you to waste an AP
 * Stun doesn't affect eating
 * Panic doesn't affect eating
 * Add bonuses on superhigh

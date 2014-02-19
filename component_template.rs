@@ -28,6 +28,7 @@ struct Solid
 struct Stunned{turn: int, duration: int}
 struct Tile{level: uint, glyph: char, color: Color}
 struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
+struct UsingItem{item: ID}
 ---
 use std::num;
 use std::iter;

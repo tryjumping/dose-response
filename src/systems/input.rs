@@ -34,27 +34,32 @@ pub fn system(e: ID,
     ensure_components!(ecm, e, AcceptsUserInput, Position);
     if res.side != Player {return}
 
+    // Clean up state from any previous commands
+    ecm.remove_destination(e);
+    ecm.remove_using_item(e);
+
     let pos = ecm.get_position(e);
     match res.commands.pop_front() {
         Some(command) => {
             res.command_logger.log(command);
-            let dest = match command {
-                N => Destination{x: pos.x, y: pos.y-1},
-                S => Destination{x: pos.x, y: pos.y+1},
-                W => Destination{x: pos.x-1, y: pos.y},
-                E => Destination{x: pos.x+1, y: pos.y},
+            match command {
+                N => ecm.set_destination(e, Destination{x: pos.x, y: pos.y-1}),
+                S => ecm.set_destination(e, Destination{x: pos.x, y: pos.y+1}),
+                W => ecm.set_destination(e, Destination{x: pos.x-1, y: pos.y}),
+                E => ecm.set_destination(e, Destination{x: pos.x+1, y: pos.y}),
 
-                NW => Destination{x: pos.x-1, y: pos.y-1},
-                NE => Destination{x: pos.x+1, y: pos.y-1},
-                SW => Destination{x: pos.x-1, y: pos.y+1},
-                SE => Destination{x: pos.x+1, y: pos.y+1},
+                NW => ecm.set_destination(e, Destination{x: pos.x-1, y: pos.y-1}),
+                NE => ecm.set_destination(e, Destination{x: pos.x+1, y: pos.y-1}),
+                SW => ecm.set_destination(e, Destination{x: pos.x-1, y: pos.y+1}),
+                SE => ecm.set_destination(e, Destination{x: pos.x+1, y: pos.y+1}),
 
                 Eat => {
-                    super::eating::system(e, ecm, res);
-                    Destination{x: pos.x, y: pos.y}
+                    match super::eating::get_first_owned_food(ecm, e) {
+                        Some(food) => ecm.set_using_item(e, UsingItem{item: food}),
+                        None => (),
+                    }
                 }
             };
-            ecm.set_destination(e, dest);
         },
         None => (),
     }

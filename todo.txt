@@ -1,4 +1,3 @@
-* Display the amount of food in the status bar
 * Stun doesn't affect eating
 * Panic doesn't affect eating
 * Add bonuses on superhigh

@@ -16,6 +16,10 @@ fn intoxication_to_str(state: int) -> ~str {
     }
 }
 
+fn food_count(ecm: &ComponentManager, player: ID) -> uint {
+    ecm.iter().count(|e| ecm.has_inventory_item(e) && ecm.has_edible(e) && ecm.get_inventory_item(e).owner == player)
+}
+
 pub fn system(ecm: &ComponentManager,
               res: &mut Resources,
               display: &mut Display) {
@@ -37,9 +41,10 @@ pub fn system(ecm: &ComponentManager,
         false => ~"",
     };
     let effects = format!("{}{}{}", dead, stunned, panicking);
-    let status_bar = format!("{}  Will: {}  {}",
+    let status_bar = format!("{}  Will: {}  Food: {}  {}",
                              intoxication_description,
                              attrs.will,
+                             food_count(ecm, player),
                              if effects.len() > 0 {"Effects: " + effects} else {~""});
     display.write_text(status_bar,
                        0, height - 1,

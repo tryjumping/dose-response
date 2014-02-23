@@ -1,5 +1,3 @@
-* Stun doesn't affect eating
-* Panic doesn't affect eating
 * Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99

@@ -46,9 +46,15 @@ fn random_nonwall_destination<T: Rng>(rng: &mut T,
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
               res: &mut Resources) {
-    ensure_components!(ecm, e, Panicking, Position, Destination);
-    let pos = ecm.get_position(e);
-    match random_nonwall_destination(&mut res.rng, pos, ecm, res.world_size) {
-        (x, y) => ecm.set_destination(e, Destination{x: x, y: y}),
+    ensure_components!(ecm, e, Panicking, Position);
+    if ecm.has_using_item(e) || ecm.has_destination(e) {
+        // Prevent the item usage
+        println!("Entity {:?} panics.", e);
+        ecm.remove_using_item(e);
+        // Randomly run around
+        let pos = ecm.get_position(e);
+        match random_nonwall_destination(&mut res.rng, pos, ecm, res.world_size) {
+            (x, y) => ecm.set_destination(e, Destination{x: x, y: y}),
+        }
     }
 }

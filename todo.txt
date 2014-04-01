@@ -1,3 +1,5 @@
+* Implement the Deref trait for our custom types (ID, etc.) and switch back to
+  using `*` for the unwrapping.
 * Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99

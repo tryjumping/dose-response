@@ -136,3 +136,78 @@ coloured spaces or something.
 
 I kinda like dots, though. They work better at figuring the distances --
 especially wrt diagonals.
+
+
+
+Some notes on the entity system and its tuning
+----------------------------------------------
+
+Catalogue the data we already have in real use (Dose Response):
+
+1. Throughout the entities' lifetime, what's the ratio of each component type
+   vs. the total number of entities?
+2. Document all the components that each systems guards on and accesses in the
+   body
+3. Document the different requirements for each system (have to access all
+   entities, can just iterate over an array of components, needs to draw on
+   screen, etc.)
+4. Document all the high-level operations that an entity manager is required to
+   do in each system (set/remove the current entity's component, read other
+   entity's components)
+5. Determine if it's more costly to iterate over all entities and skip the
+   non-matching ones or to try and store everything in a continuous block of
+   memory so that each system iterates *only* over the valid entities)
+
+It's quite possible the way we do things is too dynamic for cache-friendliness
+to work. If so, consider how would a cache-friendly approach change things and
+what to do about it (it quite possibly ain't worth the effort -- we're not being
+cache-friendly now anyways).
+
+Posible design ideas:
+
+Store components in variable-sized vectors? E.g. for a 1000 entities, we'd have
+one ~[(EntityId, PositionComponent)] array that's pretty much full and another
+one that says ~[(EntityId, MonsterComponent)] that's half-empty. For a given
+entity, the IDs would match.
+
+  - this wouldn't solve the "Only over Position + Tile" entities/components
+  - would solve the "Iterate over a single component type"
+
+
+
+Maintain all the possible component groups the systems are interested in. Each
+such group has a pointer to all the pertinent components (well, either a poiter
+or there's a book-keeping required to keep them all in sync).
+
+I.e. the tile_system expects: Iterator<(EntityId, &PositionComponent,
+&TileComponent)> but the movement_system wants: Iterator<(EntityId,
+&PositionComponent, &DestinationComponent)>
+
+  - not cache-friendly
+  - involved book-keeping
+  - systems would only iterate over the entities they care about
+
+
+
+
+Notes on perfect hashing:
+
+Minimal Perfect hashing is a technique that allows us to map the keys to
+consecutive integers of the same size. One needs to know all the keys in
+advance, but that shouldn't be a problem.
+
+This could be great to solve the dispatch based on component types. However,
+there are easier implementations (using a standard hash table, assigning the
+keys manually) so this should be explored only when the resulting lib is too
+slow/unwieldy.
+
+
+Some resources:
+
+introduction:  http://stevehanov.ca/blog/index.php?id=119
+
+a fast implementation:  http://iswsa.acm.org/mphf/index.html
+
+librafy for perfect hashing:  http://cmph.sourceforge.net/
+
+another implementation:  http://burtleburtle.net/bob/c/perfect.c

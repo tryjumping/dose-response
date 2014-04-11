@@ -7,7 +7,7 @@ CARGO_RUSTFLAGS?=
 all: $(APP)
 
 deps:
-	cargo-lite build
+	cargo-lite --force build
 
 # Don't call directly -- will be invoked by cargo-lite from deps
 bin:

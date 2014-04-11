@@ -1,6 +1,7 @@
 APP=dose-response
 LIB_DIR=lib
 SOURCES=$(wildcard src/**/*.rs src/*.rs) src/components.rs
+CFLAGS=-C link-args='-Wl,--rpath=$$ORIGIN/lib'
 
 all: build
 
@@ -21,7 +22,7 @@ test_component_codegen:
 
 $(APP): $(SOURCES)
 	cargo-lite build
-	rustc -W ctypes -O src/main.rs -o $@
+	rustc -O -W ctypes -Llib $(CFLAGS) src/main.rs -o $@
 
 run: build
 	./$(APP)

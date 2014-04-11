@@ -1,30 +1,24 @@
 APP=dose-response
 LIB_DIR=lib
-SOURCES=$(wildcard src/**/*.rs src/*.rs) src/components.rs
+SOURCES=$(wildcard src/**/*.rs src/*.rs)
 CFLAGS=-C link-args='-Wl,--rpath=$$ORIGIN/lib'
+CARGO_RUSTFLAGS?=
 
-all: build
+all: $(APP)
 
-build: $(APP)
+deps:
+	cargo-lite build
+
+bin:
+	rustc -W ctypes -Llib $(CFLAGS) $(CARGO_RUSTFLAGS) src/main.rs -o $(APP)
 
 test: $(SOURCES)
 	rustc --test -W ctypes src/main.rs -o test-$(APP)
 	./test-$(APP)
 
+$(APP): $(SOURCES) deps bin
 
-src/components.rs: build_ecm.py component_template.rs
-	./.venv/bin/python $^ > $@
-
-test_component_codegen:
-	python build_ecm.py | rustc --pretty normal - > $@.rs
-	rustc --test -W ctypes $@.rs -o $@
-	./$@
-
-$(APP): $(SOURCES)
-	cargo-lite build
-	rustc -O -W ctypes -Llib $(CFLAGS) src/main.rs -o $@
-
-run: build
+run: $(APP)
 	./$(APP)
 
 replay: build
@@ -32,9 +26,3 @@ replay: build
 
 clean:
 	rm -rf dist *.pyc $(APP) test-$(APP) lib/librtcod-*.so
-
-test-py:
-	python test_entity_component_manager.py
-
-bench-py:
-	python ./benchmark.py all artemis

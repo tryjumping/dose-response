@@ -1,8 +1,8 @@
-#[allow(dead_code)];
+#![allow(dead_code)]
 
-use extra::container::Deque;
-use extra::ringbuf::RingBuf;
-pub use tcod::Color;
+use collections::deque::Deque;
+use collections::ringbuf::RingBuf;
+pub use tcod::{Color, Console};
 pub use key = tcod::key_code;
 pub use tcod;
 
@@ -15,26 +15,26 @@ pub enum MainLoopState<T> {
 pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};
 
 pub struct Display {
-    priv background_console: tcod::console_t,
-    priv consoles: ~[tcod::console_t],
+    priv background_console: Console,
+    priv consoles: ~[Console],
     priv fade: Option<(u8, Color)>,
 }
 
 impl Display {
     fn new(width: int, height: int, console_count: uint) -> Display {
         let mut result = Display {
-            background_console: tcod::console_new(width, height),
+            background_console: Console::new(width, height),
             consoles: ~[],
             fade: None,
         };
-        console_count.times(|| {
-            let con = tcod::console_new(width, height);
-            tcod::console_set_key_color(con, transparent_background);
-            tcod::console_set_default_background(con, transparent_background);
+        for _ in range(0, console_count) {
+            let mut con = Console::new(width, height);
+            con.set_key_color(transparent_background);
+            con.set_default_background(transparent_background);
             result.consoles.push(con);
-        });
-        tcod::console_set_key_color(result.background_console, transparent_background);
-        tcod::console_set_default_background(result.background_console, transparent_background);
+        }
+        result.background_console.set_key_color(transparent_background);
+        result.background_console.set_default_background(transparent_background);
         result
     }
 
@@ -42,8 +42,8 @@ impl Display {
                      foreground: Color, background: Color) {
         assert!(level < self.consoles.len());
         self.set_background(x, y, background);
-        tcod::console_put_char_ex(self.consoles[level], x, y, c,
-                                  foreground, background);
+        self.consoles[level].put_char_ex(x, y, c,
+                                         foreground, background);
     }
 
     pub fn write_text(&mut self, text: &str, x: int, y: int,
@@ -55,26 +55,17 @@ impl Display {
     }
 
     pub fn set_background(&mut self, x: int, y: int, color: Color) {
-        tcod::console_set_char_background(self.background_console, x, y,
-                                          color, tcod::BKGND_NONE);
+        self.background_console.set_char_background(x, y,
+                                                    color, tcod::background_flag::None);
     }
 
     pub fn size(&self) -> (int, int) {
-        (tcod::console_get_width(self.background_console),
-         tcod::console_get_height(self.background_console))
+        (self.background_console.width(),
+         self.background_console.height())
     }
 
     pub fn fade(&mut self, fade_ammount: u8, color: Color) {
         self.fade = Some((fade_ammount, color));
-    }
-}
-
-impl Drop for Display {
-    fn drop(&mut self) {
-        tcod::console_delete(self.background_console);
-        for &con in self.consoles.iter() {
-            tcod::console_delete(con);
-        }
     }
 }
 
@@ -102,12 +93,12 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
     let fullscreen = false;
     let default_fg = Color::new(255, 255, 255);
     let console_count = 3;
-    tcod::console_set_custom_font(font_path);
-    tcod::console_init_root(width, height, title, fullscreen);
+    let mut root_console = Console::init_root(width, height, title, fullscreen);
+    root_console.set_custom_font(font_path);
     let mut game_state = initial_state;
     let mut tcod_display = Display::new(width, height, console_count);
     let mut keys = RingBuf::new();
-    while !tcod::console_is_window_closed() {
+    while !root_console.window_closed() {
         let mut key: tcod::Key;
         loop {
             key = tcod::console_check_for_keypress(tcod::KeyPressed);
@@ -127,11 +118,11 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
             }
         }
 
-        tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg);
-        tcod::console_clear(tcod::ROOT_CONSOLE);
-        tcod::console_clear(tcod_display.background_console);
+        root_console.set_default_foreground(default_fg);
+        root_console.clear();
+        tcod_display.background_console.clear();
         for &con in tcod_display.consoles.iter() {
-            tcod::console_clear(con);
+            con.clear();
         }
         tcod_display.fade = None;
 
@@ -147,22 +138,22 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
             Exit => break,
         }
 
-        tcod::console_blit(tcod_display.background_console, 0, 0, width, height,
-                           tcod::ROOT_CONSOLE, 0, 0,
+        tcod::console_blit(&tcod_display.background_console, 0, 0, width, height,
+                           &mut root_console, 0, 0,
                            1f32, 1f32);
         for &con in tcod_display.consoles.iter() {
-            tcod::console_blit(con, 0, 0, width, height,
-                               tcod::ROOT_CONSOLE, 0, 0,
+            tcod::console_blit(&con, 0, 0, width, height,
+                               &mut root_console, 0, 0,
                                1f32, 1f32);
         }
-        tcod::console_print_ex(tcod::ROOT_CONSOLE, width-1, height-1,
-                               tcod::BKGND_NONE, tcod::Right,
+        root_console.print_ex(width-1, height-1,
+                               tcod::background_flag::None, tcod::Right,
                                format!("FPS: {}", tcod::sys_get_fps()));
         match tcod_display.fade {
-            Some((amount, color)) => tcod::console_set_fade(amount, color),
+            Some((amount, color)) => root_console.set_fade(amount, color),
             // colour doesn't matter, value 255 means no fade:
-            None => tcod::console_set_fade(255, Color{r: 0, g: 0, b: 0}),
+            None => root_console.set_fade(255, Color{r: 0, g: 0, b: 0}),
         }
-        tcod::console_flush();
+        root_console.flush();
     }
 }

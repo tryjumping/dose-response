@@ -334,17 +334,23 @@
 //                       update);
 // }
 
+extern crate collections;
+
 extern crate emhyr;
 extern crate tcod;
 
 use emhyr::{ComponentManager, ECM};
 
+use engine::{Display};
+
+mod engine;
+
 
 fn main() {
     let mut ecm = ECM::new();
     let player = ecm.new_entity();
-    tcod::console_set_custom_font(Path::new("./fonts/dejavu16x16_gs_tc.png"));
-    let console = tcod::console_init_root(80, 25, "Whatever", false);
+    let mut console = tcod::Console::init_root(80, 25, "Whatever", false);
+    console.set_custom_font(Path::new("./fonts/dejavu16x16_gs_tc.png"));
     println!("Hello, world!");
     println!("This is the player entity: {:?}", player);
 }

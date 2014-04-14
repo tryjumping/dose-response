@@ -101,7 +101,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
     while !root_console.window_closed() {
         let mut key: tcod::Key;
         loop {
-            key = tcod::console_check_for_keypress(tcod::KeyPressed);
+            key = root_console.check_for_keypress(tcod::KeyPressed);
             match key.vk {
                 key::NoKey => break,
                 _ => {

@@ -15,9 +15,9 @@ pub enum MainLoopState<T> {
 pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};
 
 pub struct Display {
-    priv background_console: Console,
-    priv consoles: ~[Console],
-    priv fade: Option<(u8, Color)>,
+    background_console: Console,
+    consoles: ~[Console],
+    fade: Option<(u8, Color)>,
 }
 
 impl Display {
@@ -69,27 +69,11 @@ impl Display {
     }
 }
 
-pub struct Key {
-    code: key::KeyCode,
-    char: char,
-    left_alt: bool,
-    right_alt: bool,
-    left_ctrl: bool,
-    right_ctrl: bool,
-    shift: bool,
-}
-
-impl Key {
-    pub fn alt(&self) -> bool { self.left_alt || self.right_alt }
-    pub fn ctrl(&self) -> bool { self.left_ctrl || self.right_ctrl }
-    pub fn shift(&self) -> bool { self.shift }
-}
-
 
 pub fn main_loop<S>(width: int, height: int, title: &str,
                     font_path: Path,
                     initial_state: S,
-                    update: fn(&mut S, &mut Display, &mut RingBuf<Key>, dt_s: f32) -> MainLoopState<S>) {
+                    update: fn(&mut S, &mut Display, &mut RingBuf<tcod::KeyState>, dt_s: f32) -> MainLoopState<S>) {
     let fullscreen = false;
     let default_fg = Color::new(255, 255, 255);
     let console_count = 3;
@@ -99,21 +83,12 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
     let mut tcod_display = Display::new(width, height, console_count);
     let mut keys = RingBuf::new();
     while !root_console.window_closed() {
-        let mut key: tcod::Key;
+        let mut key: tcod::KeyState;
         loop {
-            key = root_console.check_for_keypress(tcod::KeyPressed);
-            match key.vk {
-                key::NoKey => break,
-                _ => {
-                    keys.push_back(Key{
-                        code: key.vk,
-                        char: key.c as u8 as char,
-                        left_alt: key.lalt != 0,
-                        right_alt: key.ralt != 0,
-                        left_ctrl: key.lctrl != 0,
-                        right_ctrl: key.rctrl != 0,
-                        shift: key.shift != 0,
-                    });
+            match root_console.check_for_keypress(tcod::Pressed) {
+                None => break,
+                Some(key) => {
+                    keys.push_back(key);
                 }
             }
         }
@@ -121,7 +96,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
         root_console.set_default_foreground(default_fg);
         root_console.clear();
         tcod_display.background_console.clear();
-        for &con in tcod_display.consoles.iter() {
+        for con in tcod_display.consoles.mut_iter() {
             con.clear();
         }
         tcod_display.fade = None;
@@ -129,7 +104,7 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
         match update(&mut game_state,
                      &mut tcod_display,
                      &mut keys,
-                     tcod::sys_get_last_frame_length()) {
+                     tcod::system::get_last_frame_length()) {
             Running => (),
             NewState(new_state) => {
                 game_state = new_state;
@@ -138,17 +113,17 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
             Exit => break,
         }
 
-        tcod::console_blit(&tcod_display.background_console, 0, 0, width, height,
-                           &mut root_console, 0, 0,
-                           1f32, 1f32);
-        for &con in tcod_display.consoles.iter() {
-            tcod::console_blit(&con, 0, 0, width, height,
-                               &mut root_console, 0, 0,
-                               1f32, 1f32);
+        Console::blit(&tcod_display.background_console, 0, 0, width, height,
+                      &mut root_console, 0, 0,
+                      1f32, 1f32);
+        for con in tcod_display.consoles.mut_iter() {
+            Console::blit(con, 0, 0, width, height,
+                          &mut root_console, 0, 0,
+                          1f32, 1f32);
         }
         root_console.print_ex(width-1, height-1,
                                tcod::background_flag::None, tcod::Right,
-                               format!("FPS: {}", tcod::sys_get_fps()));
+                               format!("FPS: {}", tcod::system::get_fps()));
         match tcod_display.fade {
             Some((amount, color)) => root_console.set_fade(amount, color),
             // colour doesn't matter, value 255 means no fade:

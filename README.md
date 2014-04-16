@@ -5,9 +5,7 @@ Dose Response
 Requirements
 ------------
 
-* Rust compiler, version 0.9
-* Python 2.7
-* Jinja2 (see `requirements.txt`)
+* Rust compiler (nightly)
 
 
 Building from the source
@@ -15,8 +13,6 @@ Building from the source
 
 1. git clone http://example.com/dose-response.git
 1. cd dose-response
-1. virtualenv --distribute .venv
-1. .venv/bin/pip install -r requirements.txt
 1. make
 
 Running the game

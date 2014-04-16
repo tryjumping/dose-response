@@ -1,5 +1,6 @@
 use components::{Destination, Player, Position, UsingItem};
 use emhyr::{ComponentManager, ECM, Entity};
+use std::from_str::FromStr;
 use self::commands::*;
 use super::super::Resources;
 use collections::Deque;
@@ -12,22 +13,22 @@ pub mod commands {
     }
 }
 
-// impl FromStr for Command {
-//     fn from_str(name: &str) -> Option<Command> {
-//         match name {
-//             "N" => Some(N),
-//             "E" => Some(E),
-//             "S" => Some(S),
-//             "W" => Some(W),
-//             "NE" => Some(NE),
-//             "NW" => Some(NW),
-//             "SE" => Some(SE),
-//             "SW" => Some(SW),
-//             "Eat" => Some(Eat),
-//             _ => fail!("Unknown command: '{}'", name)
-//         }
-//     }
-// }
+impl FromStr for Command {
+    fn from_str(name: &str) -> Option<Command> {
+        match name {
+            "N" => Some(N),
+            "E" => Some(E),
+            "S" => Some(S),
+            "W" => Some(W),
+            "NE" => Some(NE),
+            "NW" => Some(NW),
+            "SE" => Some(SE),
+            "SW" => Some(SW),
+            "Eat" => Some(Eat),
+            _ => fail!("Unknown command: '{}'", name)
+        }
+    }
+}
 
 pub fn system(e: Entity,
               ecm: &mut ECM,

@@ -283,8 +283,8 @@ fn replay_game_state(width: int, height: int) -> GameState {
             }
             for line in lines {
                 match from_str(line) {
-                    Ok(command) => commands.push_back(command),
-                    Err(_) => fail!("Unknown command: {}", line),
+                    Some(command) => commands.push_back(command),
+                    None => fail!("Unknown command: {}", line),
                 }
             }
         },

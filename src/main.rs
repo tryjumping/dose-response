@@ -228,7 +228,7 @@ impl CommandLogger {
 }
 
 fn new_game_state(width: int, height: int) -> GameState {
-    let mut rng = IsaacRng::new();
+    let mut rng = IsaacRng::new().unwrap();
     let commands = RingBuf::new();
     let seed = rng.gen_range(0u32, 10000);
     rng.reseed([seed]);
@@ -241,8 +241,8 @@ fn new_game_state(width: int, height: int) -> GameState {
     }
     let replay_path = &replay_dir.join("replay-" + timestamp);
     let mut writer = match File::create(replay_path) {
-        Some(f) => ~f as ~Writer,
-        None => fail!("Failed to create the replay file.")
+        Ok(f) => ~f as ~Writer,
+        Err(msg) => fail!("Failed to create the replay file. {}", msg)
     };
     write_line(writer, seed.to_str());
     let logger = CommandLogger{writer: writer};
@@ -270,10 +270,10 @@ fn replay_game_state(width: int, height: int) -> GameState {
     let replay_path = &Path::new(os::args()[1]);
     let mut seed: u32;
     match File::open(replay_path) {
-        Some(mut file) => {
-            let bin_data = file.read_to_end();
-            let contents = std::str::from_utf8(bin_data);
-            let mut lines = contents.lines();
+        Ok(mut file) => {
+            let bin_data = file.read_to_end().unwrap();
+            let contents = std::str::from_utf8(bin_data.slice(0, bin_data.len()));
+            let mut lines = contents.unwrap().lines();
             match lines.next() {
                 Some(seed_str) => match from_str(seed_str) {
                     Some(parsed_seed) => seed = parsed_seed,
@@ -283,12 +283,13 @@ fn replay_game_state(width: int, height: int) -> GameState {
             }
             for line in lines {
                 match from_str(line) {
-                    Some(command) => commands.push_back(command),
-                    None => fail!("Unknown command: {}", line),
+                    Ok(command) => commands.push_back(command),
+                    Err(_) => fail!("Unknown command: {}", line),
                 }
             }
         },
-        None => fail!("Failed to read the replay file: {}", replay_path.display())
+        Err(msg) => fail!("Failed to read the replay file: {}. Reason: {}",
+                          replay_path.display(), msg)
     }
     println!("Replaying game log: '{}'", replay_path.display());
     let rng: IsaacRng = SeedableRng::from_seed(&[seed]);

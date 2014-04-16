@@ -3,15 +3,10 @@ use std::rand::Rng;
 
 use components::*;
 use components;
-use std::num::{abs, max};
 use super::super::Resources;
 use systems::movement::is_walkable;
 use util::Deref;
 
-
-pub fn distance(p1: &Position, p2: &Position) -> int {
-    max(abs(p1.x - p2.x), abs(p1.y - p2.y))
-}
 
 pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
                                             pos: Position,

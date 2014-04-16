@@ -1,35 +1,35 @@
-use std::rand;
-use std::rand::Rng;
+use rand;
+use rand::Rng;
+use emhyr::{ComponentManager, ECM, Entity};
 
 use components::*;
 use engine::Color;
 use world_gen;
-use systems::ai::distance;
-use systems::exploration::precise_distance;
+use util;
 
 
-pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
+pub fn populate_world<T: Rng>(ecm: &mut ECM,
                               world_size: (int, int),
                               player_pos: Position,
                               rng: &mut T,
                               generate: fn(&mut T, int, int) -> ~[(int, int, world_gen::WorldItem)]) {
-    let near_player = |x, y| distance(&player_pos, &Position{x: x, y: y}) < 6;
+    let near_player = |x, y| util::distance(&player_pos, &Position{x: x, y: y}) < 6;
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),
                             player_pos.y + rng.choose(pos_offset));
     let mut initial_foods_pos: ~[(int, int)] = ~[];
-    rng.gen_range::<uint>(1, 4).times(|| {
+    for _ in range(0, rng.gen_range::<uint>(1, 4)) {
             let pos = (player_pos.x + rng.choose(pos_offset),
                        player_pos.y + rng.choose(pos_offset));
             initial_foods_pos.push(pos);
-    });
+    };
     let (width, height) = world_size;
     let world = generate(rng, width, height);
     for &(x, y, item) in world.iter() {
         let bg = ecm.new_entity();
         ecm.set_position(bg, Position{x: x, y: y});
         ecm.set_background(bg, Background);
-        let explored = precise_distance((x, y), (player_pos.x, player_pos.y)) < 6;
+        let explored = util::precise_distance((x, y), (player_pos.x, player_pos.y)) < 6;
         if explored {
             ecm.set_explored(bg, Explored);
         }
@@ -142,7 +142,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ComponentManager,
     }
 }
 
-pub fn player_entity(ecm: &mut ComponentManager) -> ID {
+pub fn player_entity(ecm: &mut ECM) -> Entity {
     let player = ecm.new_entity();
     ecm.set_accepts_user_input(player, AcceptsUserInput);
     ecm.set_attack_type(player, Kill);

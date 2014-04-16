@@ -28,7 +28,7 @@ use systems::input::commands::Command;
 pub mod components;
 mod engine;
 pub mod systems;
-// pub mod world_gen;
+pub mod world_gen;
 // pub mod world;
 // pub mod util;
 

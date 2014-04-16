@@ -3,39 +3,69 @@ use emhyr::{Entity};
 use engine::{Color};
 
 
-struct AI{behaviour: ai::Behaviour, state: ai::State}
-struct AcceptsUserInput;
-struct Addiction{tolerance: int, drop_per_turn: int, last_turn: int}
-struct AnxietyKillCounter{count: int, threshold: int}
-struct AttackTarget(Entity);
-enum   AttackType {Kill, Stun{duration: int}, Panic{duration: int}, ModifyAttributes}
-struct AttributeModifier{state_of_mind: int, will: int}
-struct Attributes{state_of_mind: int, will: int}
-struct Background;
-struct Bump(Entity);
-struct ColorAnimation{color: Color, progress: f32, forward: bool}
-struct Corpse{glyph: char, color: Color, solid: bool}
+pub struct AI{behaviour: ai::Behaviour, state: ai::State}
+
+pub struct AcceptsUserInput;
+
+pub struct Addiction{tolerance: int, drop_per_turn: int, last_turn: int}
+
+pub struct AnxietyKillCounter{count: int, threshold: int}
+
+pub struct AttackTarget(Entity);
+
+pub enum   AttackType {Kill, Stun{duration: int}, Panic{duration: int}, ModifyAttributes}
+
+pub struct AttributeModifier{state_of_mind: int, will: int}
+
+pub struct Attributes{state_of_mind: int, will: int}
+
+pub struct Background;
+
+pub struct Bump(Entity);
+
+pub struct ColorAnimation{color: Color, progress: f32, forward: bool}
+
+pub struct Corpse{glyph: char, color: Color, solid: bool}
+
 #[deriving(Eq, Clone, Show)]
-struct Destination {x: int, y: int}
-struct Dose{tolerance_modifier: int, resist_radius: int}
-struct Edible;
-struct Exploration{radius: int}
-struct Explored;
-struct ExplosionEffect{radius: int}
-struct FadeColor{from: Color, to: Color, duration_s: f32, repetitions: Repetitions}
-struct FadeOut{to: Color, duration_s: f32}
-struct FadingOut;
-struct InventoryItem{owner: Entity}
-struct Monster{kind: MonsterKind}
-struct Panicking{turn: int, duration: int}
-struct Pickable;
+pub struct Destination {pub x: int, pub y: int}
+
+pub struct Dose{tolerance_modifier: int, resist_radius: int}
+
+pub struct Edible;
+
+pub struct Exploration{radius: int}
+
+pub struct Explored;
+
+pub struct ExplosionEffect{radius: int}
+
+pub struct FadeColor{from: Color, to: Color, duration_s: f32, repetitions: Repetitions}
+
+pub struct FadeOut{to: Color, duration_s: f32}
+
+pub struct FadingOut;
+
+pub struct InventoryItem{owner: Entity}
+
+pub struct Monster{kind: MonsterKind}
+
+pub struct Panicking{turn: int, duration: int}
+
+pub struct Pickable;
+
 #[deriving(Eq, Clone, Show)]
-struct Position {x: int, y: int}
-struct Solid;
-struct Stunned{turn: int, duration: int}
-struct Tile{level: uint, glyph: char, color: Color}
-struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
-struct UsingItem{item: Entity}
+pub struct Position {pub x: int, pub y: int}
+
+pub struct Solid;
+
+pub struct Stunned{turn: int, duration: int}
+
+pub struct Tile{level: uint, glyph: char, color: Color}
+
+pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
+
+pub struct UsingItem{item: Entity}
 
 
 #[deriving(Eq)]

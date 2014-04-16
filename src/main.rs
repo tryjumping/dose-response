@@ -246,7 +246,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     };
     write_line(writer, seed.to_str());
     let logger = CommandLogger{writer: writer};
-    let ecm = ECM::new();
+    let mut ecm = ECM::new();
     let player = ecm.new_entity();
     GameState {
         entities: ecm,
@@ -294,7 +294,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
     println!("Replaying game log: '{}'", replay_path.display());
     let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
     let logger = CommandLogger{writer: ~NullWriter as ~Writer};
-    let ecm = ECM::new();
+    let mut ecm = ECM::new();
     let player = ecm.new_entity();
     GameState {
         entities: ecm,

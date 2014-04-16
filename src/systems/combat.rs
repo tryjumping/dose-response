@@ -22,10 +22,10 @@ pub fn kill_entity(e: ID,
     if ecm.has_corpse(e) && ecm.has_tile(e) {
         let corpse = ecm.get_corpse(e);
         let tile = ecm.get_tile(e);
-        ecm.set_tile(e, Tile{glyph: corpse.glyph,
+        ecm.set(e, Tile{glyph: corpse.glyph,
                              color: corpse.color,
                              .. tile});
-        ecm.set_fade_color(e, FadeColor{
+        ecm.set(e, FadeColor{
                 from: tile.color,
                 to: corpse.color,
                 duration_s: 1f32,
@@ -50,7 +50,7 @@ pub fn system(e: ID,
     if !attack_successful {return}
     // attacker spends an AP
     let turn = ecm.get_turn(e);
-    ecm.set_turn(e, turn.spend_ap(1));
+    ecm.set(e, turn.spend_ap(1));
     match ecm.get_attack_type(e) {
         Kill => {
             println!("Entity {} was killed by {}", target.deref(), e.deref());
@@ -65,7 +65,7 @@ pub fn system(e: ID,
                                      ecm.get_monster(target).kind == Anxiety);
             if target_is_anxiety && ecm.has_anxiety_kill_counter(e) {
                 let counter = ecm.get_anxiety_kill_counter(e);
-                ecm.set_anxiety_kill_counter(e, AnxietyKillCounter{
+                ecm.set(e, AnxietyKillCounter{
                         count: counter.count + 1,
                         .. counter
                     });
@@ -78,7 +78,7 @@ pub fn system(e: ID,
             if ecm.has_tile(e) {
                 let tile = ecm.get_tile(e);
                 if tile.level > 0 {
-                    ecm.set_tile(e, Tile{level: tile.level - 1, .. tile});
+                    ecm.set(e, Tile{level: tile.level - 1, .. tile});
                 }
             }
             kill_entity(e, ecm);
@@ -97,7 +97,7 @@ pub fn system(e: ID,
             if ecm.has_tile(e) {
                 let tile = ecm.get_tile(e);
                 if tile.level > 0 {
-                    ecm.set_tile(e, Tile{level: tile.level - 1, .. tile});
+                    ecm.set(e, Tile{level: tile.level - 1, .. tile});
                 }
             }
             kill_entity(e, ecm);
@@ -116,7 +116,7 @@ pub fn system(e: ID,
             let modifier = ecm.get_attribute_modifier(e);
             if ecm.has_attributes(target) {
                 let attrs = ecm.get_attributes(target);
-                ecm.set_attributes(target, Attributes{
+                ecm.set(target, Attributes{
                         state_of_mind: attrs.state_of_mind + modifier.state_of_mind,
                         will: attrs.will + modifier.will})
             }

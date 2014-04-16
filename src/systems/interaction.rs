@@ -9,7 +9,7 @@ pub fn system(e: ID,
               _res: &mut Resources) {
     // Only humans can use stuff for now:
     ensure_components!(ecm, e, AcceptsUserInput, Position);
-    let pos = ecm.get_position(e);
+    let pos = ecm.get::<Position>(e);
     for inter in ecm.entities_on_pos(pos) {
         if e == inter {continue}  // Entity cannot interact with itself
         if !ecm.has_entity(inter) {continue}
@@ -28,7 +28,7 @@ pub fn system(e: ID,
             if ecm.has_attributes(e) {
                 let attrs = ecm.get_attributes(e);
                 let modifier = ecm.get_attribute_modifier(inter);
-                ecm.set_attributes(e, Attributes{
+                ecm.set(e, Attributes{
                         state_of_mind: attrs.state_of_mind + modifier.state_of_mind - tolerance,
                         will: attrs.will + modifier.will,
                     });
@@ -38,7 +38,7 @@ pub fn system(e: ID,
             if ecm.has_addiction(e) {
                 let addiction = ecm.get_addiction(e);
                 let dose = ecm.get_dose(inter);
-                ecm.set_addiction(e, Addiction{
+                ecm.set(e, Addiction{
                         tolerance: addiction.tolerance + dose.tolerance_modifier,
                         .. addiction});
             }

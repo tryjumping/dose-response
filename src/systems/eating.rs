@@ -35,11 +35,11 @@ pub fn system(e: ID,
     println!("{:?} eats food {:?}", e, food);
     ecm.remove_inventory_item(food);
     ecm.remove_using_item(e);
-    ecm.set_turn(e, turn.spend_ap(1));
+    ecm.set(e, turn.spend_ap(1));
     // TODO: this is copypasted from the Interaction system. Deduplicate!
     if ecm.has_explosion_effect(food) {
         println!("Eating kills off nearby enemies");
-        let pos = ecm.get_position(e);
+        let pos = ecm.get::<Position>(e);
         let radius = ecm.get_explosion_effect(food).radius;
         for x in range_inclusive(pos.x - radius, pos.x + radius) {
             for y in range_inclusive(pos.y - radius, pos.y + radius) {

@@ -3,78 +3,164 @@ use emhyr::{Entity};
 use engine::{Color};
 
 
-pub struct AI{behaviour: ai::Behaviour, state: ai::State}
+#[deriving(Eq, Clone, Show)]
+pub struct AI{
+    pub behaviour: ai::Behaviour,
+    pub state: ai::State,
+}
 
+#[deriving(Eq, Clone, Show)]
 pub struct AcceptsUserInput;
 
-pub struct Addiction{tolerance: int, drop_per_turn: int, last_turn: int}
+#[deriving(Eq, Clone, Show)]
+pub struct Addiction{
+    pub tolerance: int,
+    pub drop_per_turn: int,
+    pub last_turn: int,
+}
 
-pub struct AnxietyKillCounter{count: int, threshold: int}
+#[deriving(Eq, Clone, Show)]
+pub struct AnxietyKillCounter{
+    pub count: int,
+    pub threshold: int,
+}
 
+#[deriving(Eq, Clone, Show)]
 pub struct AttackTarget(Entity);
 
-pub enum   AttackType {Kill, Stun{duration: int}, Panic{duration: int}, ModifyAttributes}
+#[deriving(Eq, Clone, Show)]
+pub enum AttackType {
+    Kill,
+    Stun {pub duration: int},
+    Panic{pub duration: int},
+    ModifyAttributes,
+}
 
-pub struct AttributeModifier{state_of_mind: int, will: int}
+#[deriving(Eq, Clone, Show)]
+pub struct AttributeModifier{
+    pub state_of_mind: int,
+    pub will: int,
+}
 
-pub struct Attributes{state_of_mind: int, will: int}
+#[deriving(Eq, Clone, Show)]
+pub struct Attributes{
+    pub state_of_mind: int,
+    pub will: int,
+}
 
+#[deriving(Eq, Clone, Show)]
 pub struct Background;
 
+#[deriving(Eq, Clone, Show)]
 pub struct Bump(Entity);
 
-pub struct ColorAnimation{color: Color, progress: f32, forward: bool}
+#[deriving(Eq, Clone, Show)]
+pub struct ColorAnimation{
+    pub color: Color,
+    pub progress: f32,
+    pub forward: bool,
+}
 
-pub struct Corpse{glyph: char, color: Color, solid: bool}
+#[deriving(Eq, Clone, Show)]
+pub struct Corpse{
+    pub glyph: char,
+    pub color: Color,
+    pub solid: bool,
+}
 
 #[deriving(Eq, Clone, Show)]
 pub struct Destination {pub x: int, pub y: int}
 
-pub struct Dose{tolerance_modifier: int, resist_radius: int}
+#[deriving(Eq, Clone, Show)]
+pub struct Dose{
+    pub tolerance_modifier: int,
+    pub resist_radius: int,
+}
 
+#[deriving(Eq, Clone, Show)]
 pub struct Edible;
 
-pub struct Exploration{radius: int}
+#[deriving(Eq, Clone, Show)]
+pub struct Exploration{pub radius: int}
 
+#[deriving(Eq, Clone, Show)]
 pub struct Explored;
 
-pub struct ExplosionEffect{radius: int}
+#[deriving(Eq, Clone, Show)]
+pub struct ExplosionEffect{pub radius: int}
 
-pub struct FadeColor{from: Color, to: Color, duration_s: f32, repetitions: Repetitions}
+#[deriving(Eq, Clone, Show)]
+pub struct FadeColor{
+    pub from: Color,
+    pub to: Color,
+    pub duration_s: f32,
+    pub repetitions: Repetitions,
+}
 
-pub struct FadeOut{to: Color, duration_s: f32}
+#[deriving(Eq, Clone, Show)]
+pub struct FadeOut{
+    pub to: Color,
+    pub duration_s: f32,
+}
 
+#[deriving(Eq, Clone, Show)]
 pub struct FadingOut;
 
-pub struct InventoryItem{owner: Entity}
+#[deriving(Eq, Clone, Show)]
+pub struct InventoryItem{pub owner: Entity}
 
-pub struct Monster{kind: MonsterKind}
+#[deriving(Eq, Clone, Show)]
+pub struct Monster{pub kind: MonsterKind}
 
-pub struct Panicking{turn: int, duration: int}
+#[deriving(Eq, Clone, Show)]
+pub struct Panicking{
+    pub turn: int,
+    pub duration: int}
 
+#[deriving(Eq, Clone, Show)]
 pub struct Pickable;
 
 #[deriving(Eq, Clone, Show)]
-pub struct Position {pub x: int, pub y: int}
+pub struct Position {
+    pub x: int,
+    pub y: int,
+}
 
+#[deriving(Eq, Clone, Show)]
 pub struct Solid;
 
-pub struct Stunned{turn: int, duration: int}
+#[deriving(Eq, Clone, Show)]
+pub struct Stunned{
+    pub turn: int,
+    pub duration: int,
+}
 
-pub struct Tile{level: uint, glyph: char, color: Color}
+#[deriving(Eq, Clone, Show)]
+pub struct Tile{
+    pub level: uint,
+    pub glyph: char,
+    pub color: Color,
+}
 
-pub struct Turn{side: Side, ap: int, max_ap: int, spent_this_tick: int}
+#[deriving(Eq, Clone, Show)]
+pub struct Turn{
+    pub side: Side,
+    pub ap: int,
+    pub max_ap: int,
+    pub spent_this_tick: int,
+}
 
-pub struct UsingItem{item: Entity}
+#[deriving(Eq, Clone, Show)]
+pub struct UsingItem{pub item: Entity}
 
 
-#[deriving(Eq)]
+#[deriving(Eq, Clone, Show)]
 pub enum Side {
     Player,
     Computer,
 }
 
-#[deriving(Eq)]
+#[deriving(Eq, Clone, Show)]
 pub enum MonsterKind {
     Anxiety,
     Depression,
@@ -83,23 +169,22 @@ pub enum MonsterKind {
     Shadows,
 }
 
-#[deriving(Eq)]
+#[deriving(Eq, Clone, Show)]
 pub enum Repetitions {
     Infinite,
     Count(int),
 }
 
 pub mod ai {
-    #[deriving(Eq)]
+    #[deriving(Eq, Clone, Show)]
     pub enum Behaviour {
         Individual,
         Pack,
     }
 
-    #[deriving(Eq)]
+    #[deriving(Eq, Clone, Show)]
     pub enum State {
         Idle,
         Aggressive,
     }
-
 }

@@ -47,7 +47,7 @@ pub fn system(e: ID,
         anim.forward = !anim.forward;
         match fade.repetitions {
             Count(n) if n > 1 => {
-                ecm.set_fade_color(e, FadeColor{repetitions: Count(n-1), .. fade});
+                ecm.set(e, FadeColor{repetitions: Count(n-1), .. fade});
             }
             Count(_) => {
                 ecm.remove_fade_color(e);

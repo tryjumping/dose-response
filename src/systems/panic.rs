@@ -52,7 +52,7 @@ pub fn system(e: ID,
         println!("Entity {:?} panics.", e);
         ecm.remove_using_item(e);
         // Randomly run around
-        let pos = ecm.get_position(e);
+        let pos = ecm.get::<Position>(e);
         match random_nonwall_destination(&mut res.rng, pos, ecm, res.world_size) {
             (x, y) => ecm.set_destination(e, Destination{x: x, y: y}),
         }

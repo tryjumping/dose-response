@@ -10,10 +10,10 @@ pub fn system(e: ID,
               display: &mut Display) {
     ensure_components!(ecm, e, Position, Tile);
     let player = res.player_id;
-    let Position{x, y} = ecm.get_position(e);
+    let Position{x, y} = ecm.get::<Position>(e);
     let Tile{level, glyph, color} = ecm.get_tile(e);
     let is_visible = if ecm.has_position(player) && ecm.has_exploration(player) {
-        let player_pos = ecm.get_position(res.player_id);
+        let player_pos = ecm.get::<Position>(res.player_id);
         precise_distance((x, y), (player_pos.x, player_pos.y)) <= ecm.get_exploration(res.player_id).radius
     } else {
         false

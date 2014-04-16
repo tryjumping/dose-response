@@ -58,9 +58,9 @@ pub fn system(ecm: &mut ComponentManager,
         High | VeryHigh | Overdosed => {
             for e in ecm.iter() {
                 if !ecm.has_entity(e) || !ecm.has_position(e) {continue}
-                let pos = ecm.get_position(e);
+                let pos = ecm.get::<Position>(e);
                 if !ecm.has_color_animation(e) && ecm.has_background(e) {
-                    ecm.set_fade_color(e, FadeColor{
+                    ecm.set(e, FadeColor{
                             from: col::high,
                             to: col::high_to,
                             repetitions: Infinite,

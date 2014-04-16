@@ -11,8 +11,8 @@ fn is_irresistible(addict: ID,
                    dose: ID,
                    ecm: &ComponentManager,
                    map_size: (int, int)) -> bool {
-    let pos = ecm.get_position(addict);
-    let dose_pos = ecm.get_position(dose);
+    let pos = ecm.get::<Position>(addict);
+    let dose_pos = ecm.get::<Position>(dose);
     unsafe {
         match find_path((pos.x, pos.y), (dose_pos.x, dose_pos.y), map_size, ecm) {
             Some(p) => p.len() <= resist_radius(addict, dose, ecm),
@@ -30,7 +30,7 @@ pub fn system(e: ID,
               ecm: &mut ComponentManager,
               res: &mut Resources) {
     ensure_components!(ecm, e, Addiction, Attributes, Position, Destination);
-    let pos = ecm.get_position(e);
+    let pos = ecm.get::<Position>(e);
     let search_radius = 3;  // max irresistibility for a dose is curretnly 3
     let mut doses: ~[ID] = ~[];
     for x in range_inclusive(pos.x - search_radius, pos.x + search_radius) {
@@ -48,11 +48,11 @@ pub fn system(e: ID,
         }
     }
     let nearest_dose = doses.iter().min_by(|&dose| {
-        ai::distance(&ecm.get_position(*dose), &pos)
+        ai::distance(&ecm.get::<Position>(*dose), &pos)
     });
     match nearest_dose {
         Some(&dose) => {
-            let Position{x, y} = ecm.get_position(dose);
+            let Position{x, y} = ecm.get::<Position>(dose);
             unsafe {
                 // We walk the path here to make sure we only move one step at a
                 // time.

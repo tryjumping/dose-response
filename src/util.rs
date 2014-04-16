@@ -11,7 +11,7 @@ pub fn distance(p1: &Position, p2: &Position) -> int {
 pub fn precise_distance(p1: (int, int), p2: (int, int)) -> int {
     let (x1, y1) = p1;
     let (x2, y2) = p2;
-    let a = pow(abs(x1 - x2) as f32, 2f32);
-    let b = pow(abs(y1 - y2) as f32, 2f32);
+    let a = pow(abs(x1 - x2) as f32, 2);
+    let b = pow(abs(y1 - y2) as f32, 2);
     (a + b).sqrt().floor() as int
 }

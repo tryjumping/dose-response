@@ -27,11 +27,11 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
     let world = generate(rng, width, height);
     for &(x, y, item) in world.iter() {
         let bg = ecm.new_entity();
-        ecm.set_position(bg, Position{x: x, y: y});
-        ecm.set_background(bg, Background);
+        ecm.set(bg, Position{x: x, y: y});
+        ecm.set(bg, Background);
         let explored = util::precise_distance((x, y), (player_pos.x, player_pos.y)) < 6;
         if explored {
-            ecm.set_explored(bg, Explored);
+            ecm.set(bg, Explored);
         }
         let item = if (x, y) == (player_pos.x, player_pos.y) {
             world_gen::Empty
@@ -47,126 +47,126 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
             item
         };
         if item == world_gen::Tree {
-            ecm.set_tile(bg, Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
-            ecm.set_solid(bg, Solid);
+            ecm.set(bg, Tile{level: 0, glyph: item.to_glyph(), color: item.to_color()});
+            ecm.set(bg, Solid);
         } else { // put an empty item as the background
-            ecm.set_tile(bg, Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
+            ecm.set(bg, Tile{level: 0, glyph: world_gen::Empty.to_glyph(), color: world_gen::Empty.to_color()});
         }
         if near_player(x, y) && ((x, y) != initial_dose_pos) && !is_initial_food {
             continue
         };
         if item != world_gen::Tree && item != world_gen::Empty {
             let e = ecm.new_entity();
-            ecm.set_position(e, Position{x: x, y: y});
+            ecm.set(e, Position{x: x, y: y});
             let mut tile_level = 1;
             if item.is_monster() {
                 let behaviour = match item {
                     world_gen::Hunger => ai::Pack,
                     _ => ai::Individual,
                 };
-                ecm.set_ai(e, AI{behaviour: behaviour, state: ai::Idle});
+                ecm.set(e, AI{behaviour: behaviour, state: ai::Idle});
                 let max_ap = if item == world_gen::Depression { 2 } else { 1 };
-                ecm.set_turn(e, Turn{side: Computer,
+                ecm.set(e, Turn{side: Computer,
                                    ap: 0,
                                    max_ap: max_ap,
                                    spent_this_tick: 0,
                     });
-                ecm.set_solid(e, Solid);
+                ecm.set(e, Solid);
                 match item {
                     world_gen::Anxiety => {
-                        ecm.set_monster(e, Monster{kind: Anxiety});
-                        ecm.set_attack_type(e, ModifyAttributes);
-                        ecm.set_attribute_modifier(e,
+                        ecm.set(e, Monster{kind: Anxiety});
+                        ecm.set(e, ModifyAttributes);
+                        ecm.set(e,
                             AttributeModifier{state_of_mind: 0, will: -1});
                     }
                     world_gen::Depression => {
-                        ecm.set_monster(e, Monster{kind: Depression});
-                        ecm.set_attack_type(e, Kill)
+                        ecm.set(e, Monster{kind: Depression});
+                        ecm.set(e, Kill)
                     },
                     world_gen::Hunger => {
-                        ecm.set_monster(e, Monster{kind: Hunger});
-                        ecm.set_attack_type(e, ModifyAttributes);
-                        ecm.set_attribute_modifier(e,
+                        ecm.set(e, Monster{kind: Hunger});
+                        ecm.set(e, ModifyAttributes);
+                        ecm.set(e,
                             AttributeModifier{state_of_mind: -20, will: 0})
                     }
                     world_gen::Voices => {
-                        ecm.set_monster(e, Monster{kind: Voices});
-                        ecm.set_attack_type(e, Stun{duration: 4})
+                        ecm.set(e, Monster{kind: Voices});
+                        ecm.set(e, Stun{duration: 4})
                     },
                     world_gen::Shadows => {
-                        ecm.set_monster(e, Monster{kind: Shadows});
-                        ecm.set_attack_type(e, Panic{duration: 4})
+                        ecm.set(e, Monster{kind: Shadows});
+                        ecm.set(e, Panic{duration: 4})
                     },
                     _ => unreachable!(),
                 };
                 tile_level = 2;
             } else if item == world_gen::Dose {
-                ecm.set_dose(e, Dose{tolerance_modifier: 1, resist_radius: 2});
-                ecm.set_fade_color(e, FadeColor{
+                ecm.set(e, Dose{tolerance_modifier: 1, resist_radius: 2});
+                ecm.set(e, FadeColor{
                         from: item.to_color(),
                         to: Color{r: 15, g: 255, b: 243},
                         duration_s: 0.6f32,
                         repetitions: Infinite,
                     });
-                ecm.set_attribute_modifier(e, AttributeModifier{
+                ecm.set(e, AttributeModifier{
                         state_of_mind: 72 + rng.gen_range(-5, 6),
                         will: 0,
                     });
-                ecm.set_explosion_effect(e, ExplosionEffect{radius: 4});
+                ecm.set(e, ExplosionEffect{radius: 4});
                 if (x, y) == initial_dose_pos {
-                    ecm.set_explored(e, Explored);
+                    ecm.set(e, Explored);
                 }
             } else if item == world_gen::StrongDose {
-                ecm.set_dose(e, Dose{tolerance_modifier: 2, resist_radius: 3});
-                ecm.set_attribute_modifier(e, AttributeModifier{
+                ecm.set(e, Dose{tolerance_modifier: 2, resist_radius: 3});
+                ecm.set(e, AttributeModifier{
                         state_of_mind: 130 + rng.gen_range(-15, 16),
                         will: 0,
                     });
-                ecm.set_fade_color(e, FadeColor{
+                ecm.set(e, FadeColor{
                         from: item.to_color(),
                         to: Color{r: 15, g: 255, b: 243},
                         duration_s: 0.5f32,
                         repetitions: Infinite,
                     });
-                ecm.set_explosion_effect(e, ExplosionEffect{radius: 6});
+                ecm.set(e, ExplosionEffect{radius: 6});
             } else if item == world_gen::Food {
-                ecm.set_explosion_effect(e, ExplosionEffect{radius: 2});
-                ecm.set_pickable(e, Pickable);
-                ecm.set_edible(e, Edible);
+                ecm.set(e, ExplosionEffect{radius: 2});
+                ecm.set(e, Pickable);
+                ecm.set(e, Edible);
                 if is_initial_food {
-                    ecm.set_explored(e, Explored);
+                    ecm.set(e, Explored);
                 }
             }
-            ecm.set_tile(e, Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
+            ecm.set(e, Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()});
         }
     }
 }
 
 pub fn player_entity(ecm: &mut ECM) -> Entity {
     let player = ecm.new_entity();
-    ecm.set_accepts_user_input(player, AcceptsUserInput);
-    ecm.set_attack_type(player, Kill);
-    ecm.set_attributes(player, Attributes{state_of_mind: 20, will: 2});
-    ecm.set_addiction(player, Addiction{
+    ecm.set(player, AcceptsUserInput);
+    ecm.set(player, Kill);
+    ecm.set(player, Attributes{state_of_mind: 20, will: 2});
+    ecm.set(player, Addiction{
             tolerance: 0,
             drop_per_turn: 1,
             last_turn: 1,
         });
-    ecm.set_anxiety_kill_counter(player, AnxietyKillCounter{
+    ecm.set(player, AnxietyKillCounter{
             count: 0,
             threshold: 10});
-    ecm.set_exploration(player, Exploration{radius: 5});
-    ecm.set_tile(player, Tile{level: 2, glyph: '@', color: col::player});
-    ecm.set_corpse(player, Corpse{
+    ecm.set(player, Exploration{radius: 5});
+    ecm.set(player, Tile{level: 2, glyph: '@', color: col::player});
+    ecm.set(player, Corpse{
             glyph: '&',
             color: col::dead_player,
             solid: true});
-    ecm.set_turn(player, Turn{side: Player,
+    ecm.set(player, Turn{side: Player,
                             ap: 0,
                             max_ap: 1,
                             spent_this_tick: 0,
         });
-    ecm.set_solid(player, Solid);
+    ecm.set(player, Solid);
     return player;
 }
 

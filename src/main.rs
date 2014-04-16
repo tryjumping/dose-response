@@ -130,7 +130,7 @@ fn update(state: &mut GameState,
         // let mut state = new_game_state(width, height);
         // let player = world::player_entity(&mut state.entities);
         // let player_pos = Position{x: width / 2, y: height / 2};
-        // state.entities.set_position(player, player_pos);
+        // state.entities.set(player, player_pos);
         // assert!(state.entities.has_entity(state.resources.player_id));
         // world::populate_world(&mut state.entities,
         //                       state.resources.world_size,
@@ -331,8 +331,8 @@ fn main() {
 
     fail!("TODO");
     // let player = world::player_entity(&mut game_state.entities);
-    // game_state.entities.set_position(player, Position{x: width / 2, y: height / 2});
-    // let player_pos = game_state.entities.get_position(player);
+    // game_state.entities.set(player, Position{x: width / 2, y: height / 2});
+    // let player_pos = game_state.entities.get::<Position>(player);
     // assert_eq!(player, ID(0));
     // game_state.resources.player_id = player;
     // world::populate_world(&mut game_state.entities,

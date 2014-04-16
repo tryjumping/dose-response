@@ -36,7 +36,7 @@ pub fn system(ecm: &mut ComponentManager,
                 true => {
                     let turn = ecm.get_turn(e);
                     if turn.side == res.side {
-                        ecm.set_turn(e, Turn{
+                        ecm.set(e, Turn{
                                 ap: turn.max_ap,
                                 .. turn});
                     }

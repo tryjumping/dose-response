@@ -11,9 +11,9 @@ pub fn system(e: ID,
     if ecm.has_anxiety_kill_counter(e) {
         let kc = ecm.get_anxiety_kill_counter(e);
         if kc.count >= kc.threshold {
-            ecm.set_attributes(e,
+            ecm.set(e,
                                Attributes{will: attrs.will + 1, .. attrs});
-            ecm.set_anxiety_kill_counter(e,
+            ecm.set(e,
                                          AnxietyKillCounter{
                     count: kc.threshold - kc.count,
                     .. kc

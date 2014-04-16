@@ -10,7 +10,7 @@ pub fn system(e: ID,
     if !ecm.has_fading_out(e) {
         // replace any existing animation with our fade out
         ecm.remove_color_animation(e);
-        ecm.set_fade_color(e, FadeColor{
+        ecm.set(e, FadeColor{
                 from: tile.color,
                 to: fade_out.to,
                 duration_s: fade_out.duration_s,

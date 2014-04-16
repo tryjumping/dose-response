@@ -93,18 +93,18 @@ pub fn system(e: ID,
     let turn = ecm.get_turn(e);
     if turn.ap <= 0 {return}
 
-    let pos = ecm.get_position(e);
+    let pos = ecm.get::<Position>(e);
     let dest = ecm.get_destination(e);
     if (pos.x, pos.y) == (dest.x, dest.y) {
         // Wait (spends an AP but do nothing)
         println!("Entity {} waits.", e.deref());
-        ecm.set_turn(e, turn.spend_ap(1));
+        ecm.set(e, turn.spend_ap(1));
         ecm.remove_destination(e);
     } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
         if is_walkable(Position{x: dest.x, y: dest.y}, ecm, res.world_size)  {
             // Move to the cell
-            ecm.set_turn(e, turn.spend_ap(1));
-            ecm.set_position(e, Position{x: dest.x, y: dest.y});
+            ecm.set(e, turn.spend_ap(1));
+            ecm.set(e, Position{x: dest.x, y: dest.y});
             ecm.remove_destination(e);
         } else {  // Bump into the blocked entity
             // TODO: assert there's only one solid entity on pos [x, y]
@@ -133,8 +133,8 @@ pub fn system(e: ID,
                             let new_pos = Position{x: x, y: y};
                             assert!(ai::distance(&pos, &new_pos) == 1,
                                     "The step should be right next to the curret pos.");
-                            ecm.set_turn(e, turn.spend_ap(1));
-                            ecm.set_position(e, new_pos);
+                            ecm.set(e, turn.spend_ap(1));
+                            ecm.set(e, new_pos);
                         }
                         // "The path exists but can't be walked?!"
                         None => unreachable!(),
@@ -142,7 +142,7 @@ pub fn system(e: ID,
                 }
                 None => {
                     println!("Entity {} cannot find a path so it waits.", e.deref());
-                    ecm.set_turn(e, turn.spend_ap(1));
+                    ecm.set(e, turn.spend_ap(1));
                     ecm.remove_destination(e);
                 }
             }

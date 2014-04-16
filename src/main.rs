@@ -34,7 +34,7 @@ pub mod systems;
 
 
 pub struct GameState {
-    entities: ECM,
+    ecm: ECM,
     resources: Resources,
 }
 
@@ -249,7 +249,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     let mut ecm = ECM::new();
     let player = ecm.new_entity();
     GameState {
-        entities: ecm,
+        ecm: ecm,
         resources: Resources{
             commands: commands,
             command_logger: logger,
@@ -297,7 +297,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
     let mut ecm = ECM::new();
     let player = ecm.new_entity();
     GameState {
-        entities: ecm,
+        ecm: ecm,
         resources: Resources {
             commands: commands,
             rng: rng,

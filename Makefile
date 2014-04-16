@@ -11,8 +11,7 @@ test: $(SOURCES)
 	./test-$(APP)
 
 $(APP): $(SOURCES)
-	cargo-lite build
-	if [ ! -f $(APP) ]; then cargo-lite build --force; fi
+	cargo-lite build --force
 
 run: $(APP)
 	./$(APP)

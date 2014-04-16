@@ -21,7 +21,7 @@ use collections::{Deque, RingBuf};
 use rand::{Rng, IsaacRng, SeedableRng};
 use tcod::{KeyState, Printable, Special};
 
-use components::{Computer, Side};
+use components::{Computer, Position, Side};
 use engine::{Display, MainLoopState, key};
 use systems::input::commands::Command;
 
@@ -45,7 +45,7 @@ pub struct Resources {
     rng: IsaacRng,
     commands: RingBuf<Command>,
     command_logger: CommandLogger,
-    player_id: Entity,
+    player: Entity,
     cheating: bool,
     replay: bool,
     paused: bool,
@@ -256,7 +256,7 @@ fn new_game_state(width: int, height: int) -> GameState {
             rng: rng,
             side: Computer,
             turn: 0,
-            player_id: player,
+            player: player,
             cheating: false,
             replay: false,
             paused: false,
@@ -304,7 +304,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
             command_logger: logger,
             side: Computer,
             turn: 0,
-            player_id: player,
+            player: player,
             cheating: false,
             replay: true,
             paused: false,
@@ -329,17 +329,15 @@ fn main() {
         _ => fail!("You must pass either pass zero or one arguments."),
     };
 
-    fail!("TODO");
-    // let player = world::player_entity(&mut game_state.entities);
-    // game_state.entities.set(player, Position{x: width / 2, y: height / 2});
-    // let player_pos = game_state.entities.get::<Position>(player);
-    // assert_eq!(player, ID(0));
-    // game_state.resources.player_id = player;
-    // world::populate_world(&mut game_state.entities,
-    //                       game_state.resources.world_size,
-    //                       player_pos,
-    //                       &mut game_state.resources.rng,
-    //                       world_gen::forrest);
+    let player = game_state.resources.player;
+    world::create_player(&mut game_state.ecm, player);
+    game_state.ecm.set(player, Position{x: width / 2, y: height / 2});
+    let player_pos: Position = game_state.ecm.get(player);
+    world::populate_world(&mut game_state.ecm,
+                          game_state.resources.world_size,
+                          player_pos,
+                          &mut game_state.resources.rng,
+                          world_gen::forrest);
 
     engine::main_loop(width, height, title, font_path,
                       game_state,

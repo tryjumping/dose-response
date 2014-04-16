@@ -12,7 +12,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
                               world_size: (int, int),
                               player_pos: Position,
                               rng: &mut T,
-                              generate: fn(&mut T, int, int) -> ~[(int, int, world_gen::WorldItem)]) {
+                              generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {
     let near_player = |x, y| util::distance(&player_pos, &Position{x: x, y: y}) < 6;
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),
@@ -142,8 +142,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
     }
 }
 
-pub fn player_entity(ecm: &mut ECM) -> Entity {
-    let player = ecm.new_entity();
+pub fn create_player(ecm: &mut ECM, player: Entity) {
     ecm.set(player, AcceptsUserInput);
     ecm.set(player, Kill);
     ecm.set(player, Attributes{state_of_mind: 20, will: 2});
@@ -167,7 +166,6 @@ pub fn player_entity(ecm: &mut ECM) -> Entity {
                             spent_this_tick: 0,
         });
     ecm.set(player, Solid);
-    return player;
 }
 
 

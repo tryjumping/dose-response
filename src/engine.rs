@@ -69,7 +69,6 @@ impl Display {
     }
 }
 
-
 pub fn main_loop<S>(width: int, height: int, title: &str,
                     font_path: Path,
                     initial_state: S,

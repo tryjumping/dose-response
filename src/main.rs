@@ -23,6 +23,7 @@ use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
 use engine::{Display, MainLoopState, key};
+use systems::input::commands;
 use systems::input::commands::Command;
 
 pub mod components;
@@ -83,37 +84,39 @@ fn read_key(keys: &mut RingBuf<KeyState>, key: tcod::Key) -> bool {
     return found;
 }
 
-// fn process_input(keys: &mut RingBuf<Key>, commands: &mut RingBuf<Command>) {
-//     // TODO: switch to DList and consume it with `mut_iter`.
-//     loop {
-//         match keys.pop_front() {
-//             Some(key) => {
-//                 match key.code {
-//                     key::Up => commands.push_back(commands::N),
-//                     key::Down => commands.push_back(commands::S),
-//                     key::Left => match (key.ctrl(), key.shift()) {
-//                         (false, true) => commands.push_back(commands::NW),
-//                         (true, false) => commands.push_back(commands::SW),
-//                         _ => commands.push_back(commands::W),
-//                     },
-//                     key::Right => match (key.ctrl(), key.shift()) {
-//                         (false, true) => commands.push_back(commands::NE),
-//                         (true, false) => commands.push_back(commands::SE),
-//                         _ => commands.push_back(commands::E),
-//                     },
-//                     key::Char => {
-//                         match key.char {
-//                             'e' => commands.push_back(commands::Eat),
-//                             _ => (),
-//                         }
-//                     }
-//                     _ => (),
-//                 }
-//             },
-//             None => break,
-//         }
-//     }
-// }
+
+fn ctrl(key: tcod::KeyState) -> bool {
+    key.left_ctrl || key.right_ctrl
+}
+
+fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Command>) {
+    // TODO: switch to DList and consume it with `mut_iter`.
+    loop {
+        match keys.pop_front() {
+            Some(key) => {
+                match key.key {
+                    Special(key::Up) => commands.push_back(commands::N),
+                    Special(key::Down) => commands.push_back(commands::S),
+                    Special(key::Left) => match (ctrl(key), key.shift) {
+                        (false, true) => commands.push_back(commands::NW),
+                        (true, false) => commands.push_back(commands::SW),
+                        _ => commands.push_back(commands::W),
+                    },
+                    Special(key::Right) => match (ctrl(key), key.shift) {
+                        (false, true) => commands.push_back(commands::NE),
+                        (true, false) => commands.push_back(commands::SE),
+                        _ => commands.push_back(commands::E),
+                    },
+                    Printable('e') => {
+                        commands.push_back(commands::Eat);
+                    }
+                    _ => (),
+                }
+            },
+            None => break,
+        }
+    }
+}
 
 pub fn null_input_system(_e: Entity, _ecm: &mut ECM, _res: &mut Resources) {}
 
@@ -181,8 +184,8 @@ fn update(state: &mut GameState,
         // systems::fade_out::system,
     ];
 
+    process_input(keys, &mut state.resources.commands);
     fail!("TODO");
-    // process_input(keys, &mut state.resources.commands);
     // for id in state.entities.iter() {
     //     for &sys in systems.iter() {
     //         if state.entities.has_entity(id) {

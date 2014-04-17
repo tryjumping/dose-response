@@ -1,8 +1,8 @@
-// macro_rules! ensure_components(
-//     ($ecm:expr, $entity:expr, $($component:ident),+) => (
-//         if !$ecm.has_entity($entity) || $(!$ecm.has_component($entity, concat_idents!(t, $component)))||+ {return}
-//     )
-// )
+macro_rules! ensure_components(
+    ($ecm:expr, $entity:expr, $($component:ident),+) => (
+        if !$ecm.has_entity($entity) || $(!$ecm.has::<$component>($entity))||+ {return}
+    )
+)
 
 // pub mod addiction;
 // pub mod addiction_graphics;
@@ -23,7 +23,7 @@ pub mod input;
 // pub mod panic;
 // pub mod player_dead;
 // pub mod stun;
-// pub mod tile;
+pub mod tile;
 // pub mod turn;
 // pub mod turn_tick_counter;
 // pub mod will;

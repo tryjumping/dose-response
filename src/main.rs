@@ -194,10 +194,10 @@ fn update(state: &mut GameState,
         if state.ecm.has_entity(id) {
             fail!("TODO");
             systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s);
-        //     systems::tile::system(id,
-        //                           &mut state.entities,
-        //                           &mut state.resources,
-        //                           display);
+            systems::tile::system(id,
+                                  &mut state.ecm,
+                                  &mut state.resources,
+                                  display);
         }
     }
     // systems::gui::system(&state.entities,

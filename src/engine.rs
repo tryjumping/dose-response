@@ -77,12 +77,12 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
     let fullscreen = false;
     let default_fg = Color::new(255, 255, 255);
     let console_count = 3;
+    Console::set_custom_font(font_path);
     let mut root_console = Console::init_root(width, height, title, fullscreen);
-    root_console.set_custom_font(font_path);
     let mut game_state = initial_state;
     let mut tcod_display = Display::new(width, height, console_count);
     let mut keys = RingBuf::new();
-    while !root_console.window_closed() {
+    while !Console::window_closed() {
         let mut key: tcod::KeyState;
         loop {
             match root_console.check_for_keypress(tcod::Pressed) {

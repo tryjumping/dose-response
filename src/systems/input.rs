@@ -1,4 +1,4 @@
-use components::{Destination, Player, Position, UsingItem};
+use components::{AcceptsUserInput, Destination, Player, Position, UsingItem};
 use emhyr::{ComponentManager, ECM, Entity};
 use std::from_str::FromStr;
 use self::commands::*;
@@ -33,7 +33,7 @@ impl FromStr for Command {
 pub fn system(e: Entity,
               ecm: &mut ECM,
               res: &mut Resources) {
-    // ensure_components!(ecm, e, AcceptsUserInput, Position);
+    ensure_components!(ecm, e, AcceptsUserInput, Position);
     if res.side != Player {return}
 
     // Clean up state from any previous commands

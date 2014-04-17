@@ -5,7 +5,7 @@ macro_rules! ensure_components(
 )
 
 // pub mod addiction;
-// pub mod addiction_graphics;
+pub mod addiction_graphics;
 // pub mod ai;
 // pub mod bump;
 pub mod color_fade;
@@ -15,7 +15,7 @@ pub mod color_fade;
 // pub mod effect_duration;
 // pub mod exploration;
 // pub mod fade_out;
-// pub mod gui;
+pub mod gui;
 pub mod input;
 // pub mod interaction;
 // pub mod leave_area;

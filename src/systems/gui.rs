@@ -1,3 +1,4 @@
+use emhyr::{ComponentManager, ECM, Entity};
 use engine::{Display, Color};
 use components::*;
 use super::super::Resources;
@@ -16,24 +17,24 @@ fn intoxication_to_str(state: int) -> ~str {
     }
 }
 
-fn food_count(ecm: &ComponentManager, player: ID) -> uint {
-    ecm.iter().count(|e| ecm.has_inventory_item(e) && ecm.has_edible(e) && ecm.get_inventory_item(e).owner == player)
+fn food_count(ecm: &ECM, player: Entity) -> uint {
+    ecm.iter().count(|e| ecm.has::<InventoryItem>(e) && ecm.has::<Edible>(e) && ecm.get::<InventoryItem>(e).owner == player)
 }
 
-pub fn system(ecm: &ComponentManager,
+pub fn system(ecm: &ECM,
               res: &mut Resources,
               display: &mut Display) {
     let (_width, height) = display.size();
-    let player = res.player_id;
+    let player = res.player;
     ensure_components!(ecm, player, Attributes);
-    let attrs = ecm.get_attributes(player);
-    let dead = match ecm.has_position(player) {
+    let attrs: Attributes = ecm.get(player);
+    let dead = match ecm.has::<Position>(player) {
         true => ~"",
         false => ~"dead ",
     };
     let intoxication_description = intoxication_to_str(attrs.state_of_mind);
-    let stunned = match ecm.has_stunned(player) {
-        true => format!("stunned({}) ", ecm.get_stunned(player).remaining(res.turn)),
+    let stunned = match ecm.has::<Stunned>(player) {
+        true => format!("stunned({}) ", ecm.get::<Stunned>(player).remaining(res.turn)),
         false => ~"",
     };
     let panicking = match ecm.has_panicking(player) {

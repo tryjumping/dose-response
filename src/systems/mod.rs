@@ -24,6 +24,6 @@ pub mod input;
 // pub mod player_dead;
 // pub mod stun;
 pub mod tile;
-// pub mod turn;
+pub mod turn;
 // pub mod turn_tick_counter;
 // pub mod will;

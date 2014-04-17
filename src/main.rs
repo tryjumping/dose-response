@@ -202,9 +202,9 @@ fn update(state: &mut GameState,
     systems::gui::system(&state.ecm,
                          &mut state.resources,
                          display);
+    systems::turn::system(&mut state.ecm,
+                          &mut state.resources);
     fail!("TODO");
-    // systems::turn::system(&mut state.entities,
-    //                       &mut state.resources);
     // systems::addiction_graphics::system(&mut state.entities,
     //                                     &mut state.resources,
     //                                     display);

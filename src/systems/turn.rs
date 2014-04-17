@@ -1,3 +1,4 @@
+use emhyr::{ComponentManager, ECM};
 use components;
 use components::*;
 use super::super::Resources;
@@ -15,12 +16,12 @@ impl components::Side {
     }
 }
 
-pub fn system(ecm: &mut ComponentManager,
+pub fn system(ecm: &mut ECM,
               res: &mut Resources) {
     let switch_sides = ecm.iter().all(|e| {
-            match ecm.has_turn(e) {
+            match ecm.has::<Turn>(e) {
                 true => {
-                    let turn = ecm.get_turn(e);
+                    let turn: Turn = ecm.get(e);
                     (res.side != turn.side) || (turn.ap == 0)
                 },
                 false => true,
@@ -32,9 +33,9 @@ pub fn system(ecm: &mut ComponentManager,
         }
         res.side = res.side.next();
         for e in ecm.iter() {
-            match ecm.has_turn(e) {
+            match ecm.has::<Turn>(e) {
                 true => {
-                    let turn = ecm.get_turn(e);
+                    let turn: Turn = ecm.get(e);
                     if turn.side == res.side {
                         ecm.set(e, Turn{
                                 ap: turn.max_ap,

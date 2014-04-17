@@ -155,6 +155,7 @@ pub fn create_player(ecm: &mut ECM, player: Entity) {
             count: 0,
             threshold: 10});
     ecm.set(player, Exploration{radius: 5});
+    ecm.set(player, Explored);
     ecm.set(player, Tile{level: 2, glyph: '@', color: col::player});
     ecm.set(player, Corpse{
             glyph: '&',

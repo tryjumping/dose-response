@@ -185,21 +185,21 @@ fn update(state: &mut GameState,
     ];
 
     process_input(keys, &mut state.resources.commands);
-    fail!("TODO");
-    // for id in state.entities.iter() {
-    //     for &sys in systems.iter() {
-    //         if state.entities.has_entity(id) {
-    //             sys(id, &mut state.entities, &mut state.resources);
-    //         }
-    //     }
-    //     if state.entities.has_entity(id) {
-    //         systems::color_fade::system(id, &mut state.entities, &mut state.resources, dt_s);
-    //         systems::tile::system(id,
-    //                               &mut state.entities,
-    //                               &mut state.resources,
-    //                               display);
-    //     }
-    // }
+    for id in state.ecm.iter() {
+        for &sys in systems.iter() {
+            if state.ecm.has_entity(id) {
+                sys(id, &mut state.ecm, &mut state.resources);
+            }
+        }
+        if state.ecm.has_entity(id) {
+            fail!("TODO");
+            systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s);
+        //     systems::tile::system(id,
+        //                           &mut state.entities,
+        //                           &mut state.resources,
+        //                           display);
+        }
+    }
     // systems::gui::system(&state.entities,
     //                      &mut state.resources,
     //                      display);

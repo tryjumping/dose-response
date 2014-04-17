@@ -1,3 +1,4 @@
+use emhyr::{ComponentManager, ECM, Entity};
 use components::*;
 use engine::Color;
 use super::super::Resources;
@@ -18,21 +19,21 @@ fn fade_color(from: Color, to: Color, progress: f32) -> Color {
     }
 }
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
+pub fn system(e: Entity,
+              ecm: &mut ECM,
               _res: &mut Resources,
               dt_s: f32) {
     if !ecm.has_entity(e) {return}
-    if !ecm.has_fade_color(e) {
-        if ecm.has_color_animation(e) {
+    if !ecm.has::<FadeColor>(e) {
+        if ecm.has::<ColorAnimation>(e) {
             // Removing the `FadeColor` component should stop the animation
-            ecm.remove_color_animation(e);
+            ecm.remove::<ColorAnimation>(e);
         }
         return
     }
-    let fade = ecm.get_fade_color(e);
-    let mut anim = if ecm.has_color_animation(e) {
-        ecm.get_color_animation(e)
+    let fade: FadeColor = ecm.get(e);
+    let mut anim: ColorAnimation = if ecm.has::<ColorAnimation>(e) {
+        ecm.get(e)
     } else {
         ColorAnimation{
             color: fade.from,
@@ -50,8 +51,8 @@ pub fn system(e: ID,
                 ecm.set(e, FadeColor{repetitions: Count(n-1), .. fade});
             }
             Count(_) => {
-                ecm.remove_fade_color(e);
-                ecm.remove_color_animation(e);
+                ecm.remove::<FadeColor>(e);
+                ecm.remove::<ColorAnimation>(e);
                 return;
             }
             Infinite => {}
@@ -62,5 +63,5 @@ pub fn system(e: ID,
     } else {
         anim.color = fade_color(fade.to, fade.from, anim.progress);
     }
-    ecm.set_color_animation(e, anim);
+    ecm.set(e, anim);
 }

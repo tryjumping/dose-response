@@ -37,8 +37,8 @@ pub fn system(ecm: &ECM,
         true => format!("stunned({}) ", ecm.get::<Stunned>(player).remaining(res.turn)),
         false => ~"",
     };
-    let panicking = match ecm.has_panicking(player) {
-        true => format!("panic({}) ", ecm.get_panicking(player).remaining(res.turn)),
+    let panicking = match ecm.has::<Panicking>(player) {
+        true => format!("panic({}) ", ecm.get::<Panicking>(player).remaining(res.turn)),
         false => ~"",
     };
     let effects = format!("{}{}{}", dead, stunned, panicking);

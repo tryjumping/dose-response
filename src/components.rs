@@ -1,3 +1,4 @@
+use std::cmp::max;
 use emhyr::{Entity};
 
 use engine::{Color};
@@ -186,5 +187,27 @@ pub mod ai {
     pub enum State {
         Idle,
         Aggressive,
+    }
+}
+
+
+impl Turn {
+    pub fn spend_ap(&self, spend: int) -> Turn {
+        assert!(spend <= self.ap);
+        Turn{ap: self.ap - spend,
+             spent_this_tick: self.spent_this_tick + spend,
+             .. *self}
+    }
+}
+
+impl Stunned {
+    pub fn remaining(&self, current_turn: int) -> int {
+        max((self.turn + self.duration) - current_turn, 0)
+    }
+}
+
+impl Panicking {
+    pub fn remaining(&self, current_turn: int) -> int {
+        max((self.turn + self.duration) - current_turn, 0)
     }
 }

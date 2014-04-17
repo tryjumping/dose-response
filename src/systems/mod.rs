@@ -19,7 +19,7 @@ pub mod gui;
 pub mod input;
 // pub mod interaction;
 // pub mod leave_area;
-// pub mod movement;
+pub mod movement;
 // pub mod panic;
 // pub mod player_dead;
 // pub mod stun;

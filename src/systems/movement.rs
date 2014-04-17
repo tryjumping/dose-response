@@ -1,14 +1,14 @@
 use std::cast;
-use std::libc::{c_int, c_float, c_void};
+use libc::{c_int, c_float, c_void};
+use emhyr::{ComponentManager, ECM, Entity};
 
 use components::*;
-use super::ai;
 use super::super::Resources;
 use tcod::Path;
-use util::Deref;
+use util::distance;
 
 
-pub fn is_walkable(pos: Position, ecm: &ComponentManager, map_size: (int, int))
+pub fn is_walkable(pos: Position, ecm: &ECM, map_size: (int, int))
                    -> bool {
     match map_size {
         (width, height) => {
@@ -20,16 +20,17 @@ pub fn is_walkable(pos: Position, ecm: &ComponentManager, map_size: (int, int))
     !is_solid(pos, ecm)
 }
 
-fn is_solid(pos: Position, ecm: &ComponentManager) -> bool {
-    ecm.entities_on_pos(pos).any(|e| {
-        ecm.has_solid(e)
-    })
+fn is_solid(pos: Position, ecm: &ECM) -> bool {
+    fail!("TODO");
+    // ecm.entities_on_pos(pos).any(|e| {
+    //     ecm.has_solid(e)
+    // })
 }
 
 struct PathWithUserData {
-    priv to: (int, int),
-    priv ecm: *ComponentManager,
-    priv path: Option<Path>,
+    to: (int, int),
+    ecm: *ECM,
+    path: Option<Path>,
 }
 
 impl PathWithUserData {
@@ -46,7 +47,7 @@ impl PathWithUserData {
 // callback and then return an object with the associated callback. Should ecm
 // be destroyed before the Path we're returning, things would go wrong. So the
 // caller has to make sure that doesn't happen.
-pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), ecm: &ComponentManager)
+pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), ecm: *mut ECM)
                  -> Option<~PathWithUserData> {
     let (sx, sy) = from;
     let (dx, dy) = to;
@@ -56,10 +57,10 @@ pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), 
     }
     let mut p = ~PathWithUserData {
         to: to,
-        ecm: ecm as *ComponentManager,
+        ecm: ecm as *ECM,
         path: None,
     };
-    let mut path = Path::new_using_function(width, height, cb, p, 1.0);
+    let mut path = Path::new_using_function(width, height, Some(cb), p, 1.0);
     match path.find(sx, sy, dx, dy) {
         true => {
             p.path = Some(path);
@@ -69,7 +70,7 @@ pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), 
     }
 }
 
-extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void) -> c_float {
+extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *mut c_void) -> c_float {
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
     let p: &PathWithUserData = unsafe { cast::transmute(path_data_ptr) };
@@ -86,41 +87,42 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *c_void)
 }
 
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
+pub fn system(e: Entity,
+              ecm: &mut ECM,
               res: &mut Resources) {
     ensure_components!(ecm, e, Position, Destination, Turn);
-    let turn = ecm.get_turn(e);
+    let turn: Turn = ecm.get(e);
     if turn.ap <= 0 {return}
 
-    let pos = ecm.get::<Position>(e);
-    let dest = ecm.get_destination(e);
+    let pos: Position = ecm.get(e);
+    let dest: Destination = ecm.get(e);
     if (pos.x, pos.y) == (dest.x, dest.y) {
         // Wait (spends an AP but do nothing)
-        println!("Entity {} waits.", e.deref());
+        println!("Entity {:?} waits.", e);
         ecm.set(e, turn.spend_ap(1));
-        ecm.remove_destination(e);
-    } else if ai::distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
+        ecm.remove::<Destination>(e);
+    } else if distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
         if is_walkable(Position{x: dest.x, y: dest.y}, ecm, res.world_size)  {
             // Move to the cell
             ecm.set(e, turn.spend_ap(1));
             ecm.set(e, Position{x: dest.x, y: dest.y});
-            ecm.remove_destination(e);
+            ecm.remove::<Destination>(e);
         } else {  // Bump into the blocked entity
             // TODO: assert there's only one solid entity on pos [x, y]
-            for bumpee in ecm.entities_on_pos(Position{x: dest.x, y: dest.y}) {
-                assert!(bumpee != e);
-                match ecm.has_solid(bumpee) {
-                    true => {
-                        println!("Entity {} bumped into {} at: ({}, {})",
-                                 e.deref(), bumpee.deref(), dest.x, dest.y);
-                        ecm.set_bump(e, Bump(bumpee));
-                        ecm.remove_destination(e);
-                        break;
-                    }
-                    false => {}
-                }
-            }
+            fail!("TODO entities_on_pos");
+            // for bumpee in ecm.entities_on_pos(Position{x: dest.x, y: dest.y}) {
+            //     assert!(bumpee != e);
+            //     match ecm.has_solid(bumpee) {
+            //         true => {
+            //             println!("Entity {} bumped into {} at: ({}, {})",
+            //                      e.deref(), bumpee.deref(), dest.x, dest.y);
+            //             ecm.set_bump(e, Bump(bumpee));
+            //             ecm.remove_destination(e);
+            //             break;
+            //         }
+            //         false => {}
+            //     }
+            // }
         }
     } else {  // Farther away than 1 space. Need to use path finding
         unsafe {
@@ -131,7 +133,7 @@ pub fn system(e: ID,
                     match path.walk(true) {
                         Some((x, y)) => {
                             let new_pos = Position{x: x, y: y};
-                            assert!(ai::distance(&pos, &new_pos) == 1,
+                            assert!(distance(&pos, &new_pos) == 1,
                                     "The step should be right next to the curret pos.");
                             ecm.set(e, turn.spend_ap(1));
                             ecm.set(e, new_pos);
@@ -141,9 +143,9 @@ pub fn system(e: ID,
                     }
                 }
                 None => {
-                    println!("Entity {} cannot find a path so it waits.", e.deref());
+                    println!("Entity {:?} cannot find a path so it waits.", e);
                     ecm.set(e, turn.spend_ap(1));
-                    ecm.remove_destination(e);
+                    ecm.remove::<Destination>(e);
                 }
             }
         }

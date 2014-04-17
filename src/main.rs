@@ -2,6 +2,7 @@
 #![feature(macro_rules, struct_variant, globs)]
 
 extern crate collections;
+extern crate libc;
 extern crate rand;
 extern crate time;
 
@@ -174,7 +175,7 @@ fn update(state: &mut GameState,
         // systems::dose::system,
         // systems::panic::system,
         // systems::stun::system,
-        // systems::movement::system,
+        systems::movement::system,
         // systems::eating::system,
         // systems::interaction::system,
         // systems::bump::system,

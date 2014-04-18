@@ -127,21 +127,20 @@ fn update(state: &mut GameState,
           dt_s: f32) -> MainLoopState<GameState> {
     if key_pressed(keys, Special(key::Escape)) { return engine::Exit }
     if key_pressed(keys, Special(key::F5)) {
-        fail!("TODO");
-        // println!("Restarting game");
-        // keys.clear();
-        // let (width, height) = state.resources.world_size;
-        // let mut state = new_game_state(width, height);
-        // let player = world::player_entity(&mut state.entities);
-        // let player_pos = Position{x: width / 2, y: height / 2};
-        // state.entities.set(player, player_pos);
-        // assert!(state.entities.has_entity(state.resources.player_id));
-        // world::populate_world(&mut state.entities,
-        //                       state.resources.world_size,
-        //                       player_pos,
-        //                       &mut state.resources.rng,
-        //                       world_gen::forrest);
-        // return engine::NewState(state);
+        println!("Restarting game");
+        keys.clear();
+        let (width, height) = state.resources.world_size;
+        let mut state = new_game_state(width, height);
+        let player = state.ecm.new_entity();
+        world::create_player(&mut state.ecm, player);
+        let player_pos = Position{x: width / 2, y: height / 2};
+        state.ecm.set(player, player_pos);
+        world::populate_world(&mut state.ecm,
+                              state.resources.world_size,
+                              player_pos,
+                              &mut state.resources.rng,
+                              world_gen::forrest);
+        return engine::NewState(state);
     }
     if key_pressed(keys, Special(key::F6)) {
         state.resources.cheating = !state.resources.cheating;

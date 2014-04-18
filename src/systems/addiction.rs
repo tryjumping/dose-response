@@ -9,11 +9,11 @@ pub fn system(e: ID,
     let addiction = ecm.get_addiction(e);
     let attr = ecm.get_attributes(e);
     if res.turn > addiction.last_turn {
-        ecm.set_attributes(e, Attributes{
+        ecm.set(e, Attributes{
                 state_of_mind: attr.state_of_mind - addiction.drop_per_turn,
                 .. attr
             });
-        ecm.set_addiction(e, Addiction{last_turn: res.turn, .. addiction});
+        ecm.set(e, Addiction{last_turn: res.turn, .. addiction});
     };
     let som = ecm.get_attributes(e).state_of_mind;
     if som <= 0 || som >= 100 {

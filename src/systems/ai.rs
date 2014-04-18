@@ -3,15 +3,10 @@ use std::rand::Rng;
 
 use components::*;
 use components;
-use std::num::{abs, max};
 use super::super::Resources;
 use systems::movement::is_walkable;
 use util::Deref;
 
-
-pub fn distance(p1: &Position, p2: &Position) -> int {
-    max(abs(p1.x - p2.x), abs(p1.y - p2.y))
-}
 
 pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
                                             pos: Position,
@@ -63,15 +58,15 @@ fn individual_behaviour<T: Rng>(e: ID,
                                 rng: &mut T,
                                 map_size: (int, int),
                                 player_pos: Position) -> Destination {
-    let pos = ecm.get_position(e);
+    let pos = ecm.get::<Position>(e);
     let player_distance = distance(&pos, &player_pos);
     let ai = ecm.get_ai(e);
     match player_distance {
         dist if dist < 5 => {
-            ecm.set_ai(e, AI{state: components::ai::Aggressive, .. ai});
+            ecm.set(e, AI{state: components::ai::Aggressive, .. ai});
         }
         dist if dist > 8 => {
-            ecm.set_ai(e, AI{state: components::ai::Idle, .. ai});
+            ecm.set(e, AI{state: components::ai::Idle, .. ai});
         }
         _ => {}
     }
@@ -92,11 +87,11 @@ fn hunting_pack_behaviour<T: Rng>(e: ID,
                                   rng: &mut T,
                                   map_size: (int, int),
                                   player_pos: Position) -> Destination {
-    let pos = ecm.get_position(e);
+    let pos = ecm.get::<Position>(e);
     let player_distance = distance(&pos, &player_pos);
     if player_distance < 4 {
         let ai = ecm.get_ai(e);
-        ecm.set_ai(e, AI{state: components::ai::Aggressive, .. ai});
+        ecm.set(e, AI{state: components::ai::Aggressive, .. ai});
     }
     match ecm.get_ai(e).state {
         components::ai::Aggressive => {
@@ -106,7 +101,7 @@ fn hunting_pack_behaviour<T: Rng>(e: ID,
                     for monster in ecm.entities_on_pos(Position{x: x, y: y}) {
                         if ecm.has_entity(monster) && ecm.has_ai(monster) {
                             let ai = ecm.get_ai(monster);
-                            ecm.set_ai(monster,
+                            ecm.set(monster,
                                        AI{state: components::ai::Aggressive,
                                           .. ai});
                         }
@@ -129,8 +124,8 @@ pub fn system(e: ID,
     ensure_components!(ecm, e, AI, Position);
     ensure_components!(ecm, res.player_id, Position);
     if res.side != Computer {return}
-    let player_pos = ecm.get_position(res.player_id);
-    let pos = ecm.get_position(e);
+    let player_pos = ecm.get::<Position>(res.player_id);
+    let pos = ecm.get::<Position>(e);
     let dest = if entity_blocked(pos, ecm, res.world_size) {
         println!("Found a blocked entity: {}", e.deref());
         Destination{x: pos.x, y: pos.y}

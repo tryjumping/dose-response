@@ -1,10 +1,12 @@
-use components::*;
+use components::{AcceptsUserInput, Destination, Player, Position, UsingItem};
+use emhyr::{ComponentManager, ECM, Entity};
+use std::from_str::FromStr;
 use self::commands::*;
 use super::super::Resources;
-use extra::container::Deque;
+use collections::Deque;
 
 pub mod commands {
-    #[deriving(Rand, ToStr)]
+    #[deriving(Rand, Show)]
     pub enum Command {
         N, E, S, W, NE, NW, SE, SW,
         Eat,
@@ -28,36 +30,37 @@ impl FromStr for Command {
     }
 }
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
+pub fn system(e: Entity,
+              ecm: &mut ECM,
               res: &mut Resources) {
     ensure_components!(ecm, e, AcceptsUserInput, Position);
     if res.side != Player {return}
 
     // Clean up state from any previous commands
-    ecm.remove_destination(e);
-    ecm.remove_using_item(e);
+    ecm.remove::<Destination>(e);
+    ecm.remove::<UsingItem>(e);
 
-    let pos = ecm.get_position(e);
+    let pos = ecm.get::<Position>(e);
     match res.commands.pop_front() {
         Some(command) => {
             res.command_logger.log(command);
             match command {
-                N => ecm.set_destination(e, Destination{x: pos.x, y: pos.y-1}),
-                S => ecm.set_destination(e, Destination{x: pos.x, y: pos.y+1}),
-                W => ecm.set_destination(e, Destination{x: pos.x-1, y: pos.y}),
-                E => ecm.set_destination(e, Destination{x: pos.x+1, y: pos.y}),
+                N => ecm.set(e, Destination{x: pos.x, y: pos.y-1}),
+                S => ecm.set(e, Destination{x: pos.x, y: pos.y+1}),
+                W => ecm.set(e, Destination{x: pos.x-1, y: pos.y}),
+                E => ecm.set(e, Destination{x: pos.x+1, y: pos.y}),
 
-                NW => ecm.set_destination(e, Destination{x: pos.x-1, y: pos.y-1}),
-                NE => ecm.set_destination(e, Destination{x: pos.x+1, y: pos.y-1}),
-                SW => ecm.set_destination(e, Destination{x: pos.x-1, y: pos.y+1}),
-                SE => ecm.set_destination(e, Destination{x: pos.x+1, y: pos.y+1}),
+                NW => ecm.set(e, Destination{x: pos.x-1, y: pos.y-1}),
+                NE => ecm.set(e, Destination{x: pos.x+1, y: pos.y-1}),
+                SW => ecm.set(e, Destination{x: pos.x-1, y: pos.y+1}),
+                SE => ecm.set(e, Destination{x: pos.x+1, y: pos.y+1}),
 
                 Eat => {
-                    match super::eating::get_first_owned_food(ecm, e) {
-                        Some(food) => ecm.set_using_item(e, UsingItem{item: food}),
-                        None => (),
-                    }
+                    fail!("TODO");
+                    // match super::eating::get_first_owned_food(ecm, e) {
+                    //     Some(food) => ecm.set_using_item(e, UsingItem{item: food}),
+                    //     None => (),
+                    // }
                 }
             };
         },

@@ -1,8 +1,8 @@
-#[allow(dead_code)];
+#![allow(dead_code)]
 
-use extra::container::Deque;
-use extra::ringbuf::RingBuf;
-pub use tcod::Color;
+use collections::deque::Deque;
+use collections::ringbuf::RingBuf;
+pub use tcod::{Color, Console};
 pub use key = tcod::key_code;
 pub use tcod;
 
@@ -15,26 +15,26 @@ pub enum MainLoopState<T> {
 pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};
 
 pub struct Display {
-    priv background_console: tcod::console_t,
-    priv consoles: ~[tcod::console_t],
-    priv fade: Option<(u8, Color)>,
+    background_console: Console,
+    consoles: ~[Console],
+    fade: Option<(u8, Color)>,
 }
 
 impl Display {
     fn new(width: int, height: int, console_count: uint) -> Display {
         let mut result = Display {
-            background_console: tcod::console_new(width, height),
+            background_console: Console::new(width, height),
             consoles: ~[],
             fade: None,
         };
-        console_count.times(|| {
-            let con = tcod::console_new(width, height);
-            tcod::console_set_key_color(con, transparent_background);
-            tcod::console_set_default_background(con, transparent_background);
+        for _ in range(0, console_count) {
+            let mut con = Console::new(width, height);
+            con.set_key_color(transparent_background);
+            con.set_default_background(transparent_background);
             result.consoles.push(con);
-        });
-        tcod::console_set_key_color(result.background_console, transparent_background);
-        tcod::console_set_default_background(result.background_console, transparent_background);
+        }
+        result.background_console.set_key_color(transparent_background);
+        result.background_console.set_default_background(transparent_background);
         result
     }
 
@@ -42,8 +42,8 @@ impl Display {
                      foreground: Color, background: Color) {
         assert!(level < self.consoles.len());
         self.set_background(x, y, background);
-        tcod::console_put_char_ex(self.consoles[level], x, y, c,
-                                  foreground, background);
+        self.consoles[level].put_char_ex(x, y, c,
+                                         foreground, background);
     }
 
     pub fn write_text(&mut self, text: &str, x: int, y: int,
@@ -55,13 +55,13 @@ impl Display {
     }
 
     pub fn set_background(&mut self, x: int, y: int, color: Color) {
-        tcod::console_set_char_background(self.background_console, x, y,
-                                          color, tcod::BKGND_NONE);
+        self.background_console.set_char_background(x, y,
+                                                    color, tcod::background_flag::None);
     }
 
     pub fn size(&self) -> (int, int) {
-        (tcod::console_get_width(self.background_console),
-         tcod::console_get_height(self.background_console))
+        (self.background_console.width(),
+         self.background_console.height())
     }
 
     pub fn fade(&mut self, fade_ammount: u8, color: Color) {
@@ -69,76 +69,41 @@ impl Display {
     }
 }
 
-impl Drop for Display {
-    fn drop(&mut self) {
-        tcod::console_delete(self.background_console);
-        for &con in self.consoles.iter() {
-            tcod::console_delete(con);
-        }
-    }
-}
-
-pub struct Key {
-    code: key::KeyCode,
-    char: char,
-    left_alt: bool,
-    right_alt: bool,
-    left_ctrl: bool,
-    right_ctrl: bool,
-    shift: bool,
-}
-
-impl Key {
-    pub fn alt(&self) -> bool { self.left_alt || self.right_alt }
-    pub fn ctrl(&self) -> bool { self.left_ctrl || self.right_ctrl }
-    pub fn shift(&self) -> bool { self.shift }
-}
-
-
 pub fn main_loop<S>(width: int, height: int, title: &str,
                     font_path: Path,
                     initial_state: S,
-                    update: fn(&mut S, &mut Display, &mut RingBuf<Key>, dt_s: f32) -> MainLoopState<S>) {
+                    update: fn(&mut S, &mut Display, &mut RingBuf<tcod::KeyState>, dt_s: f32) -> MainLoopState<S>) {
     let fullscreen = false;
     let default_fg = Color::new(255, 255, 255);
     let console_count = 3;
-    tcod::console_set_custom_font(font_path);
-    tcod::console_init_root(width, height, title, fullscreen);
+    Console::set_custom_font(font_path);
+    let mut root_console = Console::init_root(width, height, title, fullscreen);
     let mut game_state = initial_state;
     let mut tcod_display = Display::new(width, height, console_count);
     let mut keys = RingBuf::new();
-    while !tcod::console_is_window_closed() {
-        let mut key: tcod::Key;
+    while !Console::window_closed() {
+        let mut key: tcod::KeyState;
         loop {
-            key = tcod::console_check_for_keypress(tcod::KeyPressed);
-            match key.vk {
-                key::NoKey => break,
-                _ => {
-                    keys.push_back(Key{
-                        code: key.vk,
-                        char: key.c as u8 as char,
-                        left_alt: key.lalt != 0,
-                        right_alt: key.ralt != 0,
-                        left_ctrl: key.lctrl != 0,
-                        right_ctrl: key.rctrl != 0,
-                        shift: key.shift != 0,
-                    });
+            match root_console.check_for_keypress(tcod::Pressed) {
+                None => break,
+                Some(key) => {
+                    keys.push_back(key);
                 }
             }
         }
 
-        tcod::console_set_default_foreground(tcod::ROOT_CONSOLE, default_fg);
-        tcod::console_clear(tcod::ROOT_CONSOLE);
-        tcod::console_clear(tcod_display.background_console);
-        for &con in tcod_display.consoles.iter() {
-            tcod::console_clear(con);
+        root_console.set_default_foreground(default_fg);
+        root_console.clear();
+        tcod_display.background_console.clear();
+        for con in tcod_display.consoles.mut_iter() {
+            con.clear();
         }
         tcod_display.fade = None;
 
         match update(&mut game_state,
                      &mut tcod_display,
                      &mut keys,
-                     tcod::sys_get_last_frame_length()) {
+                     tcod::system::get_last_frame_length()) {
             Running => (),
             NewState(new_state) => {
                 game_state = new_state;
@@ -147,22 +112,22 @@ pub fn main_loop<S>(width: int, height: int, title: &str,
             Exit => break,
         }
 
-        tcod::console_blit(tcod_display.background_console, 0, 0, width, height,
-                           tcod::ROOT_CONSOLE, 0, 0,
-                           1f32, 1f32);
-        for &con in tcod_display.consoles.iter() {
-            tcod::console_blit(con, 0, 0, width, height,
-                               tcod::ROOT_CONSOLE, 0, 0,
-                               1f32, 1f32);
+        Console::blit(&tcod_display.background_console, 0, 0, width, height,
+                      &mut root_console, 0, 0,
+                      1f32, 1f32);
+        for con in tcod_display.consoles.mut_iter() {
+            Console::blit(con, 0, 0, width, height,
+                          &mut root_console, 0, 0,
+                          1f32, 1f32);
         }
-        tcod::console_print_ex(tcod::ROOT_CONSOLE, width-1, height-1,
-                               tcod::BKGND_NONE, tcod::Right,
-                               format!("FPS: {}", tcod::sys_get_fps()));
+        root_console.print_ex(width-1, height-1,
+                               tcod::background_flag::None, tcod::Right,
+                               format!("FPS: {}", tcod::system::get_fps()));
         match tcod_display.fade {
-            Some((amount, color)) => tcod::console_set_fade(amount, color),
+            Some((amount, color)) => root_console.set_fade(amount, color),
             // colour doesn't matter, value 255 means no fade:
-            None => tcod::console_set_fade(255, Color{r: 0, g: 0, b: 0}),
+            None => root_console.set_fade(255, Color{r: 0, g: 0, b: 0}),
         }
-        tcod::console_flush();
+        root_console.flush();
     }
 }

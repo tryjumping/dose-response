@@ -1,3 +1,4 @@
+* BUG: Background colours slightly differ on newgame vs. restart (F5)
 * Implement the Deref trait for our custom types (ID, etc.) and switch back to
   using `*` for the unwrapping.
 * Add bonuses on superhigh

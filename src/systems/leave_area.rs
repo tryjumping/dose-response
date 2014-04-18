@@ -20,14 +20,14 @@ pub fn system(e: ID,
         res.player_id = player_id;
         // The player starts in the middle of the map with no pending
         // actions:
-        ecm.set_position(player_id, Position{
+        ecm.set(player_id, Position{
                 x: (width / 2) as int,
                 y: (height / 2) as int,
             });
         ecm.remove_bump(player_id);
         ecm.remove_attack_target(player_id);
         ecm.remove_destination(player_id);
-        let player_pos = ecm.get_position(player_id);
+        let player_pos = ecm.get::<Position>(player_id);
         world::populate_world(ecm,
                               res.world_size,
                               player_pos,

@@ -1,5 +1,8 @@
 #![allow(dead_code)]
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use collections::deque::Deque;
 use collections::ringbuf::RingBuf;
 pub use tcod::{Color, Console};
@@ -66,6 +69,39 @@ impl Display {
 
     pub fn fade(&mut self, fade_ammount: u8, color: Color) {
         self.fade = Some((fade_ammount, color));
+    }
+}
+
+pub struct Engine {
+    display: Rc<RefCell<Display>>,
+    keys: Rc<RefCell<RingBuf<tcod::KeyState>>>,
+}
+
+impl Engine {
+    pub fn new(width: int, height: int,
+               window_title: &str, font_path: Path) -> Engine {
+        Console::set_custom_font(font_path);
+        let fullscreen = false;
+        let console_count = 3;
+        Engine {
+            display: Rc::new(RefCell::new(Display::new(width, height, console_count))),
+            keys: Rc::new(RefCell::new(RingBuf::new())),
+        }
+    }
+
+    pub fn display(&self) -> Rc<RefCell<Display>> {
+        self.display.clone()
+    }
+
+    pub fn keys(&self) -> Rc<RefCell<RingBuf<tcod::KeyState>>> {
+        self.keys.clone()
+    }
+
+    pub fn main_loop<T>(&self, state: T, update: fn(T, dt_s: f32) -> Option<T>) {
+        // TODO: move the contents of the top-level main_loop here.
+        let mut s1 = update(state, 0.016).unwrap();
+        let mut s2 = update(s1, 0.016).unwrap();
+        let mut s3 = update(s2, 0.017);
     }
 }
 

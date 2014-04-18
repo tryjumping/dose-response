@@ -11,12 +11,14 @@ extern crate emhyr;
 extern crate tcod;
 
 
-use emhyr::{ComponentManager, ECM, Entity};
+use emhyr::{ComponentManager, ECM, Entity, System};
 
 use std::io;
 use std::io::File;
 use std::io::util::NullWriter;
 use std::os;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use collections::{Deque, RingBuf};
 use rand::{Rng, IsaacRng, SeedableRng};
@@ -316,7 +318,26 @@ fn replay_game_state(width: int, height: int) -> GameState {
 }
 
 
+struct TileSystem {
+    ecm: Rc<RefCell<ECM>>,
+    display: Rc<RefCell<engine::Display>>,
+}
+
+impl System for TileSystem {
+    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+        if !self.ecm.borrow().has::<Position>(entity) {return}
+        let pos: Position = self.ecm.borrow().get(entity);
+
+        self.display.borrow_mut().draw_char(0,
+                                            pos.x, pos.y, 'x',
+                                            world::col::player,
+                                            world::col::background);
+    }
+}
+
+
 fn main() {
+    use emhyr::World;
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
@@ -330,6 +351,21 @@ fn main() {
         },
         _ => fail!("You must pass either pass zero or one arguments."),
     };
+
+    fail!("TODO playing with a new engine structure");
+    let mut w = World::new(ECM::new());
+    let mut e = engine::Engine::new(width, height, title, font_path.clone());
+    // Appease the borrow checker: we can't do w.ecm_handle() inside of
+    // w.add_system() because that's a double borrow
+    let ecm = w.ecm();
+
+    w.add_system(box TileSystem{ecm: ecm.clone(), display: e.display()});
+    fn my_update(mut state: World<ECM>, dt_s: f32) -> Option<World<ECM>> {
+        state.update((dt_s * 1000.0) as uint);
+        Some(state)
+    }
+    e.main_loop(w, my_update);
+
 
     let player = game_state.resources.player;
     world::create_player(&mut game_state.ecm, player);

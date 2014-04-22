@@ -19,7 +19,7 @@ pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};
 
 pub struct Display {
     background_console: Console,
-    consoles: ~[Console],
+    consoles: Vec<Console>,
     fade: Option<(u8, Color)>,
 }
 
@@ -27,7 +27,7 @@ impl Display {
     fn new(width: int, height: int, console_count: uint) -> Display {
         let mut result = Display {
             background_console: Console::new(width, height),
-            consoles: ~[],
+            consoles: Vec::new(),
             fade: None,
         };
         for _ in range(0, console_count) {
@@ -45,8 +45,8 @@ impl Display {
                      foreground: Color, background: Color) {
         assert!(level < self.consoles.len());
         self.set_background(x, y, background);
-        self.consoles[level].put_char_ex(x, y, c,
-                                         foreground, background);
+        self.consoles.get_mut(level).put_char_ex(x, y, c,
+                                                 foreground, background);
     }
 
     pub fn write_text(&mut self, text: &str, x: int, y: int,

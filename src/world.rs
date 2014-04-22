@@ -17,7 +17,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),
                             player_pos.y + rng.choose(pos_offset));
-    let mut initial_foods_pos: ~[(int, int)] = ~[];
+    let mut initial_foods_pos = Vec::<(int, int)>::new();
     for _ in range(0, rng.gen_range::<uint>(1, 4)) {
             let pos = (player_pos.x + rng.choose(pos_offset),
                        player_pos.y + rng.choose(pos_offset));

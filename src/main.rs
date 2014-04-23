@@ -272,26 +272,6 @@ fn replay_game_state(width: int, height: int) -> GameState {
 }
 
 
-struct TileSystem {
-    ecm: Rc<RefCell<ECM>>,
-    display: Rc<RefCell<engine::Display>>,
-    keys: Rc<RefCell<RingBuf<KeyState>>>,
-}
-
-impl System for TileSystem {
-    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
-        self.keys.borrow_mut();
-        if !self.ecm.borrow().has::<Position>(entity) {return}
-        let pos: Position = self.ecm.borrow().get(entity);
-
-        self.display.borrow_mut().draw_char(0,
-                                            pos.x, pos.y, 'x',
-                                            world::col::player,
-                                            world::col::background);
-    }
-}
-
-
 fn main() {
     use emhyr::World;
     let (width, height) = (80, 50);
@@ -323,7 +303,7 @@ fn main() {
     // Appease the borrow checker: we can't do world.ecm inside of
     // world.add_system() because that's a double borrow:
     let ecm = game_state.world.ecm();
-    game_state.world.add_system(box TileSystem{ecm: ecm.clone(), display: engine.display(), keys: engine.keys()});
+    game_state.world.add_system(box systems::tile::System::new(ecm.clone(), engine.display(), player));
 
     // TODO: add the remaining systems
     // systems::turn_tick_counter::system,

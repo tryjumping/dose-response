@@ -94,7 +94,7 @@ impl Engine {
         self.keys.clone()
     }
 
-    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt_s: f32) -> Option<T>) {
+    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt_s: f32, &Engine) -> Option<T>) {
         let default_fg = Color::new(255, 255, 255);
         while !Console::window_closed() {
             let mut key: tcod::KeyState;
@@ -114,7 +114,7 @@ impl Engine {
             }
             self.display.borrow_mut().fade = None;
 
-            match update(state, tcod::system::get_last_frame_length()) {
+            match update(state, tcod::system::get_last_frame_length(), self) {
                 Some(new_state) => {
                     state = new_state;
                     continue;

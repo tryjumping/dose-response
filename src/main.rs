@@ -376,8 +376,4 @@ fn main() {
                           player_pos,
                           &mut game_state.resources.rng,
                           world_gen::forrest);
-
-    engine::main_loop(width, height, title, font_path,
-                      game_state,
-                      update);
 }

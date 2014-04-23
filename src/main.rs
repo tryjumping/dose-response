@@ -11,7 +11,7 @@ extern crate emhyr;
 extern crate tcod;
 
 
-use emhyr::{ComponentManager, ECM, Entity, System};
+use emhyr::{ComponentManager, ECM, Entity, System, World};
 
 use std::io;
 use std::io::File;
@@ -38,11 +38,7 @@ pub mod util;
 
 
 pub struct GameState {
-    ecm: ECM,
-    resources: Resources,
-}
-
-pub struct Resources {
+    world: World<ECM>,
     side: Side,
     world_size: (int, int),
     turn: int,
@@ -54,6 +50,7 @@ pub struct Resources {
     replay: bool,
     paused: bool,
 }
+
 
 fn key_pressed(keys: &RingBuf<KeyState>, key_code: tcod::Key) -> bool {
     for &pressed_key in keys.iter() {
@@ -121,96 +118,96 @@ fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comm
     }
 }
 
-pub fn null_input_system(_e: Entity, _ecm: &mut ECM, _res: &mut Resources) {}
+pub fn null_input_system(_e: Entity, _ecm: &mut ECM) {}
 
-fn update(state: &mut GameState,
-          display: &mut Display,
-          keys: &mut RingBuf<KeyState>,
-          dt_s: f32) -> MainLoopState<GameState> {
-    if key_pressed(keys, Special(key::Escape)) { return engine::Exit }
-    if key_pressed(keys, Special(key::F5)) {
-        println!("Restarting game");
-        keys.clear();
-        let (width, height) = state.resources.world_size;
-        let mut state = new_game_state(width, height);
-        let player = state.ecm.new_entity();
-        world::create_player(&mut state.ecm, player);
-        let player_pos = Position{x: width / 2, y: height / 2};
-        state.ecm.set(player, player_pos);
-        world::populate_world(&mut state.ecm,
-                              state.resources.world_size,
-                              player_pos,
-                              &mut state.resources.rng,
-                              world_gen::forrest);
-        return engine::NewState(state);
-    }
-    if key_pressed(keys, Special(key::F6)) {
-        state.resources.cheating = !state.resources.cheating;
-        println!("Cheating set to: {}", state.resources.cheating);
-    }
+// fn update(state: &mut GameState,
+//           display: &mut Display,
+//           keys: &mut RingBuf<KeyState>,
+//           dt_s: f32) -> MainLoopState<GameState> {
+//     if key_pressed(keys, Special(key::Escape)) { return engine::Exit }
+//     if key_pressed(keys, Special(key::F5)) {
+//         println!("Restarting game");
+//         keys.clear();
+//         let (width, height) = state.resources.world_size;
+//         let mut state = new_game_state(width, height);
+//         let player = state.ecm.new_entity();
+//         world::create_player(&mut state.ecm, player);
+//         let player_pos = Position{x: width / 2, y: height / 2};
+//         state.ecm.set(player, player_pos);
+//         world::populate_world(&mut state.ecm,
+//                               state.resources.world_size,
+//                               player_pos,
+//                               &mut state.resources.rng,
+//                               world_gen::forrest);
+//         return engine::NewState(state);
+//     }
+//     if key_pressed(keys, Special(key::F6)) {
+//         state.resources.cheating = !state.resources.cheating;
+//         println!("Cheating set to: {}", state.resources.cheating);
+//     }
 
 
-    state.resources.paused = if state.resources.replay && read_key(keys, Special(key::Spacebar)) {
-        if !state.resources.paused {println!("Pausing the replay")};
-        !state.resources.paused
-    } else {
-        state.resources.paused
-    };
-    let mut input_system = if state.resources.paused {
-        null_input_system
-    } else {
-        systems::input::system
-    };
-    // Move one step forward in the paused replay
-    if state.resources.paused && read_key(keys, Special(key::Right)) {
-        input_system = systems::input::system;
-    }
-    let systems = [
-        // systems::turn_tick_counter::system,
-        // systems::effect_duration::system,
-        // systems::addiction::system,
-        input_system,
-        // systems::leave_area::system,
-        // systems::player_dead::system,
-        // systems::ai::system,
-        // systems::dose::system,
-        // systems::panic::system,
-        // systems::stun::system,
-        systems::movement::system,
-        // systems::eating::system,
-        // systems::interaction::system,
-        // systems::bump::system,
-        // systems::combat::system,
-        // systems::will::system,
-        // systems::exploration::system,
-        // systems::fade_out::system,
-    ];
+//     state.resources.paused = if state.resources.replay && read_key(keys, Special(key::Spacebar)) {
+//         if !state.resources.paused {println!("Pausing the replay")};
+//         !state.resources.paused
+//     } else {
+//         state.resources.paused
+//     };
+//     let mut input_system = if state.resources.paused {
+//         null_input_system
+//     } else {
+//         systems::input::system
+//     };
+//     // Move one step forward in the paused replay
+//     if state.resources.paused && read_key(keys, Special(key::Right)) {
+//         input_system = systems::input::system;
+//     }
+//     let systems = [
+//         // systems::turn_tick_counter::system,
+//         // systems::effect_duration::system,
+//         // systems::addiction::system,
+//         input_system,
+//         // systems::leave_area::system,
+//         // systems::player_dead::system,
+//         // systems::ai::system,
+//         // systems::dose::system,
+//         // systems::panic::system,
+//         // systems::stun::system,
+//         systems::movement::system,
+//         // systems::eating::system,
+//         // systems::interaction::system,
+//         // systems::bump::system,
+//         // systems::combat::system,
+//         // systems::will::system,
+//         // systems::exploration::system,
+//         // systems::fade_out::system,
+//     ];
 
-    process_input(keys, &mut state.resources.commands);
-    for id in state.ecm.iter() {
-        for &sys in systems.iter() {
-            if state.ecm.has_entity(id) {
-                sys(id, &mut state.ecm, &mut state.resources);
-            }
-        }
-        if state.ecm.has_entity(id) {
-            systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s);
-            systems::tile::system(id,
-                                  &mut state.ecm,
-                                  &mut state.resources,
-                                  display);
-        }
-    }
-    systems::gui::system(&state.ecm,
-                         &mut state.resources,
-                         display);
-    systems::turn::system(&mut state.ecm,
-                          &mut state.resources);
-    systems::addiction_graphics::system(&mut state.ecm,
-                                        &mut state.resources,
-                                        display);
-    engine::Running
-}
+//     process_input(keys, &mut state.resources.commands);
+//     for id in state.ecm.iter() {
+//         for &sys in systems.iter() {
+//             if state.ecm.has_entity(id) {
+//                 sys(id, &mut state.ecm, &mut state.resources);
+//             }
+//         }
+//         if state.ecm.has_entity(id) {
+//             systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s);
+//             systems::tile::system(id,
+//                                   &mut state.ecm,
+//                                   &mut state.resources,
+//                                   display);
+//         }
+//     }
+//     systems::gui::system(&state.ecm,
+//                          &mut state.resources,
+//                          display);
+//     systems::turn::system(&mut state.ecm,
+//                           &mut state.resources);
+//     systems::addiction_graphics::system(&mut state.ecm,
+//                                         &mut state.resources,
+//                                         display);
+//     engine::Running
+// }
 
 
 // TODO: no longer needed?
@@ -253,19 +250,17 @@ fn new_game_state(width: int, height: int) -> GameState {
     let mut ecm = ECM::new();
     let player = ecm.new_entity();
     GameState {
-        ecm: ecm,
-        resources: Resources{
-            commands: commands,
-            command_logger: logger,
-            rng: rng,
-            side: Computer,
-            turn: 0,
-            player: player,
-            cheating: false,
-            replay: false,
-            paused: false,
-            world_size: (width, height),
-        },
+        world: World::new(ecm),
+        commands: commands,
+        command_logger: logger,
+        rng: rng,
+        side: Computer,
+        turn: 0,
+        player: player,
+        cheating: false,
+        replay: false,
+        paused: false,
+        world_size: (width, height),
     }
 }
 
@@ -301,19 +296,17 @@ fn replay_game_state(width: int, height: int) -> GameState {
     let mut ecm = ECM::new();
     let player = ecm.new_entity();
     GameState {
-        ecm: ecm,
-        resources: Resources {
-            commands: commands,
-            rng: rng,
-            command_logger: logger,
-            side: Computer,
-            turn: 0,
-            player: player,
-            cheating: false,
-            replay: true,
-            paused: false,
-            world_size: (width, height),
-        },
+        world: World::new(ecm),
+        commands: commands,
+        rng: rng,
+        command_logger: logger,
+        side: Computer,
+        turn: 0,
+        player: player,
+        cheating: false,
+        replay: true,
+        paused: false,
+        world_size: (width, height),
     }
 }
 
@@ -352,31 +345,25 @@ fn main() {
         _ => fail!("You must pass either pass zero or one arguments."),
     };
 
-    fail!("TODO playing with a new engine structure");
-    let mut w = World::new(game_state.ecm);
-    let mut e = engine::Engine::new(width, height, title, font_path.clone());
-    // Appease the borrow checker: we can't do w.ecm_handle() inside of
-    // w.add_system() because that's a double borrow
-    let ecm = w.ecm();
+    let mut engine = engine::Engine::new(width, height, title, font_path.clone());
 
-    // let player = game_state.resources.player;
-    // world::create_player(&mut game_state.ecm, player);
-    // game_state.ecm.set(player, Position{x: width / 2, y: height / 2});
-    // let player_pos: Position = game_state.ecm.get(player);
-    // world::populate_world(&mut game_state.ecm,
-    //                       game_state.resources.world_size,
-    //                       player_pos,
-    //                       &mut game_state.resources.rng,
-    //                       world_gen::forrest);
+    let player = game_state.player;
+    world::create_player(&mut *game_state.world.ecm().borrow_mut(), player);
+    game_state.world.ecm().borrow_mut().set(player, Position{x: width / 2, y: height / 2});
+    let player_pos: Position = game_state.world.ecm().borrow().get(player);
+    world::populate_world(&mut *game_state.world.ecm().borrow_mut(),
+                          game_state.world_size,
+                          player_pos,
+                          &mut game_state.rng,
+                          world_gen::forrest);
 
-    w.add_system(box TileSystem{ecm: ecm.clone(), display: e.display()});
+    // Appease the borrow checker: we can't do world.ecm() inside of
+    // world.add_system() because that's a double borrow:
+    let ecm = game_state.world.ecm();
+    game_state.world.add_system(box TileSystem{ecm: ecm.clone(), display: engine.display()});
     fn my_update(mut state: GameState, dt_s: f32) -> Option<GameState> {
-        //state.update((dt_s * 1000.0) as uint);
+        state.world.update((dt_s * 1000.0) as uint);
         Some(state)
     }
-    // TODO: replace GameState.ecm with GameState.world
-    // merge resources back
-    e.main_loop(game_state, my_update);
-
-
+    engine.main_loop(game_state, my_update);
 }

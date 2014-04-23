@@ -2,7 +2,6 @@ use components::{AcceptsUserInput, Destination, Player, Position, UsingItem};
 use emhyr::{ComponentManager, ECM, Entity};
 use std::from_str::FromStr;
 use self::commands::*;
-use super::super::Resources;
 use collections::Deque;
 
 pub mod commands {
@@ -32,38 +31,39 @@ impl FromStr for Command {
 
 pub fn system(e: Entity,
               ecm: &mut ECM,
-              res: &mut Resources) {
-    ensure_components!(ecm, e, AcceptsUserInput, Position);
-    if res.side != Player {return}
+              ) {
+    fail!("TODO");
+    // ensure_components!(ecm, e, AcceptsUserInput, Position);
+    // if res.side != Player {return}
 
-    // Clean up state from any previous commands
-    ecm.remove::<Destination>(e);
-    ecm.remove::<UsingItem>(e);
+    // // Clean up state from any previous commands
+    // ecm.remove::<Destination>(e);
+    // ecm.remove::<UsingItem>(e);
 
-    let pos = ecm.get::<Position>(e);
-    match res.commands.pop_front() {
-        Some(command) => {
-            res.command_logger.log(command);
-            match command {
-                N => ecm.set(e, Destination{x: pos.x, y: pos.y-1}),
-                S => ecm.set(e, Destination{x: pos.x, y: pos.y+1}),
-                W => ecm.set(e, Destination{x: pos.x-1, y: pos.y}),
-                E => ecm.set(e, Destination{x: pos.x+1, y: pos.y}),
+    // let pos = ecm.get::<Position>(e);
+    // match res.commands.pop_front() {
+    //     Some(command) => {
+    //         res.command_logger.log(command);
+    //         match command {
+    //             N => ecm.set(e, Destination{x: pos.x, y: pos.y-1}),
+    //             S => ecm.set(e, Destination{x: pos.x, y: pos.y+1}),
+    //             W => ecm.set(e, Destination{x: pos.x-1, y: pos.y}),
+    //             E => ecm.set(e, Destination{x: pos.x+1, y: pos.y}),
 
-                NW => ecm.set(e, Destination{x: pos.x-1, y: pos.y-1}),
-                NE => ecm.set(e, Destination{x: pos.x+1, y: pos.y-1}),
-                SW => ecm.set(e, Destination{x: pos.x-1, y: pos.y+1}),
-                SE => ecm.set(e, Destination{x: pos.x+1, y: pos.y+1}),
+    //             NW => ecm.set(e, Destination{x: pos.x-1, y: pos.y-1}),
+    //             NE => ecm.set(e, Destination{x: pos.x+1, y: pos.y-1}),
+    //             SW => ecm.set(e, Destination{x: pos.x-1, y: pos.y+1}),
+    //             SE => ecm.set(e, Destination{x: pos.x+1, y: pos.y+1}),
 
-                Eat => {
-                    fail!("TODO");
-                    // match super::eating::get_first_owned_food(ecm, e) {
-                    //     Some(food) => ecm.set_using_item(e, UsingItem{item: food}),
-                    //     None => (),
-                    // }
-                }
-            };
-        },
-        None => (),
-    }
+    //             Eat => {
+    //                 fail!("TODO");
+    //                 // match super::eating::get_first_owned_food(ecm, e) {
+    //                 //     Some(food) => ecm.set_using_item(e, UsingItem{item: food}),
+    //                 //     None => (),
+    //                 // }
+    //             }
+    //         };
+    //     },
+    //     None => (),
+    // }
 }

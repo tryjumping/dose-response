@@ -3,7 +3,6 @@ use libc::{c_int, c_float, c_void};
 use emhyr::{ComponentManager, ECM, Entity};
 
 use components::*;
-use super::super::Resources;
 use tcod::Path;
 use util::distance;
 
@@ -89,65 +88,66 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *mut c_v
 
 pub fn system(e: Entity,
               ecm: &mut ECM,
-              res: &mut Resources) {
-    ensure_components!(ecm, e, Position, Destination, Turn);
-    let turn: Turn = ecm.get(e);
-    if turn.ap <= 0 {return}
+              ) {
+    fail!("TODO");
+    // ensure_components!(ecm, e, Position, Destination, Turn);
+    // let turn: Turn = ecm.get(e);
+    // if turn.ap <= 0 {return}
 
-    let pos: Position = ecm.get(e);
-    let dest: Destination = ecm.get(e);
-    if (pos.x, pos.y) == (dest.x, dest.y) {
-        // Wait (spends an AP but do nothing)
-        println!("Entity {:?} waits.", e);
-        ecm.set(e, turn.spend_ap(1));
-        ecm.remove::<Destination>(e);
-    } else if distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
-        if is_walkable(Position{x: dest.x, y: dest.y}, ecm, res.world_size)  {
-            // Move to the cell
-            ecm.set(e, turn.spend_ap(1));
-            ecm.set(e, Position{x: dest.x, y: dest.y});
-            ecm.remove::<Destination>(e);
-        } else {  // Bump into the blocked entity
-            // TODO: assert there's only one solid entity on pos [x, y]
-            fail!("TODO entities_on_pos");
-            // for bumpee in ecm.entities_on_pos(Position{x: dest.x, y: dest.y}) {
-            //     assert!(bumpee != e);
-            //     match ecm.has_solid(bumpee) {
-            //         true => {
-            //             println!("Entity {} bumped into {} at: ({}, {})",
-            //                      e.deref(), bumpee.deref(), dest.x, dest.y);
-            //             ecm.set_bump(e, Bump(bumpee));
-            //             ecm.remove_destination(e);
-            //             break;
-            //         }
-            //         false => {}
-            //     }
-            // }
-        }
-    } else {  // Farther away than 1 space. Need to use path finding
-        unsafe {
-            match find_path((pos.x, pos.y), (dest.x, dest.y), res.world_size, ecm) {
-                Some(ref mut path) => {
-                    assert!(path.len() > 1,
-                            "The path shouldn't be trivial. We already handled that.");
-                    match path.walk(true) {
-                        Some((x, y)) => {
-                            let new_pos = Position{x: x, y: y};
-                            assert!(distance(&pos, &new_pos) == 1,
-                                    "The step should be right next to the curret pos.");
-                            ecm.set(e, turn.spend_ap(1));
-                            ecm.set(e, new_pos);
-                        }
-                        // "The path exists but can't be walked?!"
-                        None => unreachable!(),
-                    }
-                }
-                None => {
-                    println!("Entity {:?} cannot find a path so it waits.", e);
-                    ecm.set(e, turn.spend_ap(1));
-                    ecm.remove::<Destination>(e);
-                }
-            }
-        }
-    }
+    // let pos: Position = ecm.get(e);
+    // let dest: Destination = ecm.get(e);
+    // if (pos.x, pos.y) == (dest.x, dest.y) {
+    //     // Wait (spends an AP but do nothing)
+    //     println!("Entity {:?} waits.", e);
+    //     ecm.set(e, turn.spend_ap(1));
+    //     ecm.remove::<Destination>(e);
+    // } else if distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
+    //     if is_walkable(Position{x: dest.x, y: dest.y}, ecm, res.world_size)  {
+    //         // Move to the cell
+    //         ecm.set(e, turn.spend_ap(1));
+    //         ecm.set(e, Position{x: dest.x, y: dest.y});
+    //         ecm.remove::<Destination>(e);
+    //     } else {  // Bump into the blocked entity
+    //         // TODO: assert there's only one solid entity on pos [x, y]
+    //         fail!("TODO entities_on_pos");
+    //         // for bumpee in ecm.entities_on_pos(Position{x: dest.x, y: dest.y}) {
+    //         //     assert!(bumpee != e);
+    //         //     match ecm.has_solid(bumpee) {
+    //         //         true => {
+    //         //             println!("Entity {} bumped into {} at: ({}, {})",
+    //         //                      e.deref(), bumpee.deref(), dest.x, dest.y);
+    //         //             ecm.set_bump(e, Bump(bumpee));
+    //         //             ecm.remove_destination(e);
+    //         //             break;
+    //         //         }
+    //         //         false => {}
+    //         //     }
+    //         // }
+    //     }
+    // } else {  // Farther away than 1 space. Need to use path finding
+    //     unsafe {
+    //         match find_path((pos.x, pos.y), (dest.x, dest.y), res.world_size, ecm) {
+    //             Some(ref mut path) => {
+    //                 assert!(path.len() > 1,
+    //                         "The path shouldn't be trivial. We already handled that.");
+    //                 match path.walk(true) {
+    //                     Some((x, y)) => {
+    //                         let new_pos = Position{x: x, y: y};
+    //                         assert!(distance(&pos, &new_pos) == 1,
+    //                                 "The step should be right next to the curret pos.");
+    //                         ecm.set(e, turn.spend_ap(1));
+    //                         ecm.set(e, new_pos);
+    //                     }
+    //                     // "The path exists but can't be walked?!"
+    //                     None => unreachable!(),
+    //                 }
+    //             }
+    //             None => {
+    //                 println!("Entity {:?} cannot find a path so it waits.", e);
+    //                 ecm.set(e, turn.spend_ap(1));
+    //                 ecm.remove::<Destination>(e);
+    //             }
+    //         }
+    //     }
+    // }
 }

@@ -1,7 +1,6 @@
 use emhyr::{ComponentManager, ECM, Entity};
 use components::*;
 use engine::Color;
-use super::super::Resources;
 
 fn fade_color(from: Color, to: Color, progress: f32) -> Color {
     if progress <= 0f32 {
@@ -21,7 +20,6 @@ fn fade_color(from: Color, to: Color, progress: f32) -> Color {
 
 pub fn system(e: Entity,
               ecm: &mut ECM,
-              _res: &mut Resources,
               dt_s: f32) {
     if !ecm.has_entity(e) {return}
     if !ecm.has::<FadeColor>(e) {

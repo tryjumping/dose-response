@@ -117,7 +117,6 @@ impl Engine {
             match update(state, tcod::system::get_last_frame_length(), self) {
                 Some(new_state) => {
                     state = new_state;
-                    continue;
                 }
                 None => break,
             }

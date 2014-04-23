@@ -353,27 +353,30 @@ fn main() {
     };
 
     fail!("TODO playing with a new engine structure");
-    let mut w = World::new(ECM::new());
+    let mut w = World::new(game_state.ecm);
     let mut e = engine::Engine::new(width, height, title, font_path.clone());
     // Appease the borrow checker: we can't do w.ecm_handle() inside of
     // w.add_system() because that's a double borrow
     let ecm = w.ecm();
 
+    // let player = game_state.resources.player;
+    // world::create_player(&mut game_state.ecm, player);
+    // game_state.ecm.set(player, Position{x: width / 2, y: height / 2});
+    // let player_pos: Position = game_state.ecm.get(player);
+    // world::populate_world(&mut game_state.ecm,
+    //                       game_state.resources.world_size,
+    //                       player_pos,
+    //                       &mut game_state.resources.rng,
+    //                       world_gen::forrest);
+
     w.add_system(box TileSystem{ecm: ecm.clone(), display: e.display()});
-    fn my_update(mut state: World<ECM>, dt_s: f32) -> Option<World<ECM>> {
-        state.update((dt_s * 1000.0) as uint);
+    fn my_update(mut state: GameState, dt_s: f32) -> Option<GameState> {
+        //state.update((dt_s * 1000.0) as uint);
         Some(state)
     }
-    e.main_loop(w, my_update);
+    // TODO: replace GameState.ecm with GameState.world
+    // merge resources back
+    e.main_loop(game_state, my_update);
 
 
-    let player = game_state.resources.player;
-    world::create_player(&mut game_state.ecm, player);
-    game_state.ecm.set(player, Position{x: width / 2, y: height / 2});
-    let player_pos: Position = game_state.ecm.get(player);
-    world::populate_world(&mut game_state.ecm,
-                          game_state.resources.world_size,
-                          player_pos,
-                          &mut game_state.resources.rng,
-                          world_gen::forrest);
 }

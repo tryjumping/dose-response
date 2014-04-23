@@ -9,12 +9,6 @@ pub use tcod::{Color, Console};
 pub use key = tcod::key_code;
 pub use tcod;
 
-pub enum MainLoopState<T> {
-    Running,
-    NewState(T),
-    Exit,
-}
-
 pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};
 
 pub struct Display {

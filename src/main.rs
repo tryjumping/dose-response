@@ -25,7 +25,7 @@ use rand::{Rng, IsaacRng, SeedableRng};
 use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
-use engine::{Display, MainLoopState, key};
+use engine::{Display, key};
 use systems::input::commands;
 use systems::input::commands::Command;
 

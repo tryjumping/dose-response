@@ -44,7 +44,7 @@ pub struct GameState {
     turn: int,
     rng: IsaacRng,
     commands: Rc<RefCell<RingBuf<Command>>>,
-    command_logger: CommandLogger,
+    command_logger: Rc<RefCell<CommandLogger>>,
     player: Entity,
     cheating: bool,
     replay: bool,
@@ -213,7 +213,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     GameState {
         world: World::new(ecm),
         commands: Rc::new(RefCell::new(commands)),
-        command_logger: logger,
+        command_logger: Rc::new(RefCell::new(logger)),
         rng: rng,
         side: Rc::new(Cell::new(Computer)),
         turn: 0,
@@ -260,7 +260,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
         world: World::new(ecm),
         commands: Rc::new(RefCell::new(commands)),
         rng: rng,
-        command_logger: logger,
+        command_logger: Rc::new(RefCell::new(logger)),
         side: Rc::new(Cell::new(Computer)),
         turn: 0,
         player: player,
@@ -304,11 +304,13 @@ fn main() {
     // world.add_system() because that's a double borrow:
     let ecm = game_state.world.ecm();
     game_state.world.add_system(box systems::tile::System::new(ecm.clone(), engine.display(), player));
-    // TODO: a command_logger system that uses game_state.command_logger to write out the current command
-    game_state.world.add_system(box systems::input::System::new(
+    game_state.world.add_system(box systems::command_logger::System::new(
         ecm.clone(),
         game_state.commands.clone(),
-    ));
+        game_state.command_logger.clone()));
+    game_state.world.add_system(box systems::input::System::new(
+        ecm.clone(),
+        game_state.commands.clone()));
 
     // TODO: add the remaining systems
     // systems::turn_tick_counter::system,

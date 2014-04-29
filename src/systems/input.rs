@@ -1,9 +1,9 @@
-use components::{AcceptsUserInput, Destination, Player, Position, Side, UsingItem};
+use components::{AcceptsUserInput, Destination, Position, UsingItem};
 use emhyr::{ComponentManager, ECM, Entity};
 use emhyr;
 use std::from_str::FromStr;
 use std::rc::Rc;
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use self::commands::*;
 use collections::{Deque, RingBuf};
 
@@ -35,20 +35,14 @@ impl FromStr for Command {
 pub struct System {
     ecm: Rc<RefCell<ECM>>,
     commands: Rc<RefCell<RingBuf<Command>>>,
-    player: Entity,
-    current_side: Rc<Cell<Side>>,
 }
 
 impl System {
     pub fn new(ecm: Rc<RefCell<ECM>>,
-               commands: Rc<RefCell<RingBuf<Command>>>,
-               player: Entity,
-               current_side: Rc<Cell<Side>>) -> System {
+               commands: Rc<RefCell<RingBuf<Command>>>) -> System {
         System{
             ecm: ecm,
             commands: commands,
-            player: player,
-            current_side: current_side,
         }
     }
 }
@@ -57,7 +51,6 @@ impl emhyr::System for System {
     fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
         let mut ecm = &mut *self.ecm.borrow_mut();
         ensure_components!(ecm, e, AcceptsUserInput, Position);
-        if self.current_side.get() != Player {return}
 
         // Clean up state from any previous commands
         ecm.remove::<Destination>(e);

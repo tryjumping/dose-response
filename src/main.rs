@@ -308,8 +308,6 @@ fn main() {
     game_state.world.add_system(box systems::input::System::new(
         ecm.clone(),
         game_state.commands.clone(),
-        player,
-        game_state.side.clone(),
     ));
 
     // TODO: add the remaining systems

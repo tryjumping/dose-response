@@ -1,8 +1,11 @@
-use components::{AcceptsUserInput, Destination, Player, Position, UsingItem};
+use components::{AcceptsUserInput, Destination, Player, Position, Side, UsingItem};
 use emhyr::{ComponentManager, ECM, Entity};
+use emhyr;
 use std::from_str::FromStr;
+use std::rc::Rc;
+use std::cell::{Cell, RefCell};
 use self::commands::*;
-use collections::Deque;
+use collections::{Deque, RingBuf};
 
 pub mod commands {
     #[deriving(Rand, Show)]
@@ -29,41 +32,61 @@ impl FromStr for Command {
     }
 }
 
-pub fn system(e: Entity,
-              ecm: &mut ECM,
-              ) {
-    fail!("TODO");
-    // ensure_components!(ecm, e, AcceptsUserInput, Position);
-    // if res.side != Player {return}
+pub struct System {
+    ecm: Rc<RefCell<ECM>>,
+    commands: Rc<RefCell<RingBuf<Command>>>,
+    player: Entity,
+    current_side: Rc<Cell<Side>>,
+}
 
-    // // Clean up state from any previous commands
-    // ecm.remove::<Destination>(e);
-    // ecm.remove::<UsingItem>(e);
+impl System {
+    pub fn new(ecm: Rc<RefCell<ECM>>,
+               commands: Rc<RefCell<RingBuf<Command>>>,
+               player: Entity,
+               current_side: Rc<Cell<Side>>) -> System {
+        System{
+            ecm: ecm,
+            commands: commands,
+            player: player,
+            current_side: current_side,
+        }
+    }
+}
 
-    // let pos = ecm.get::<Position>(e);
-    // match res.commands.pop_front() {
-    //     Some(command) => {
-    //         res.command_logger.log(command);
-    //         match command {
-    //             N => ecm.set(e, Destination{x: pos.x, y: pos.y-1}),
-    //             S => ecm.set(e, Destination{x: pos.x, y: pos.y+1}),
-    //             W => ecm.set(e, Destination{x: pos.x-1, y: pos.y}),
-    //             E => ecm.set(e, Destination{x: pos.x+1, y: pos.y}),
+impl emhyr::System for System {
+    fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
+        let mut ecm = &mut *self.ecm.borrow_mut();
+        ensure_components!(ecm, e, AcceptsUserInput, Position);
+        if self.current_side.get() != Player {return}
 
-    //             NW => ecm.set(e, Destination{x: pos.x-1, y: pos.y-1}),
-    //             NE => ecm.set(e, Destination{x: pos.x+1, y: pos.y-1}),
-    //             SW => ecm.set(e, Destination{x: pos.x-1, y: pos.y+1}),
-    //             SE => ecm.set(e, Destination{x: pos.x+1, y: pos.y+1}),
+        // Clean up state from any previous commands
+        ecm.remove::<Destination>(e);
+        ecm.remove::<UsingItem>(e);
 
-    //             Eat => {
-    //                 fail!("TODO");
-    //                 // match super::eating::get_first_owned_food(ecm, e) {
-    //                 //     Some(food) => ecm.set_using_item(e, UsingItem{item: food}),
-    //                 //     None => (),
-    //                 // }
-    //             }
-    //         };
-    //     },
-    //     None => (),
-    // }
+        let pos = ecm.get::<Position>(e);
+        match self.commands.borrow_mut().pop_front() {
+            Some(command) => {
+                match command {
+                    N => ecm.set(e, Destination{x: pos.x, y: pos.y-1}),
+                    S => ecm.set(e, Destination{x: pos.x, y: pos.y+1}),
+                    W => ecm.set(e, Destination{x: pos.x-1, y: pos.y}),
+                    E => ecm.set(e, Destination{x: pos.x+1, y: pos.y}),
+
+                    NW => ecm.set(e, Destination{x: pos.x-1, y: pos.y-1}),
+                    NE => ecm.set(e, Destination{x: pos.x+1, y: pos.y-1}),
+                    SW => ecm.set(e, Destination{x: pos.x-1, y: pos.y+1}),
+                    SE => ecm.set(e, Destination{x: pos.x+1, y: pos.y+1}),
+
+                    Eat => {
+                        fail!("TODO");
+                        // match super::eating::get_first_owned_food(ecm, e) {
+                        //     Some(food) => ecm.set_using_item(e, UsingItem{item: food}),
+                        //     None => (),
+                        // }
+                    }
+                };
+            },
+            None => (),
+         }
+    }
 }

@@ -18,7 +18,7 @@ use std::io::File;
 use std::io::util::NullWriter;
 use std::os;
 use std::rc::Rc;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use collections::{Deque, RingBuf};
 use rand::{Rng, IsaacRng, SeedableRng};
@@ -39,11 +39,11 @@ pub mod util;
 
 pub struct GameState {
     world: World<ECM>,
-    side: Side,
+    side: Rc<Cell<Side>>,
     world_size: (int, int),
     turn: int,
     rng: IsaacRng,
-    commands: RingBuf<Command>,
+    commands: Rc<RefCell<RingBuf<Command>>>,
     command_logger: CommandLogger,
     player: Entity,
     cheating: bool,
@@ -165,7 +165,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
     //     input_system = systems::input::system;
     // }
 
-    process_input(&mut *keys.borrow_mut(), &mut state.commands);
+    process_input(&mut *keys.borrow_mut(), &mut *state.commands.borrow_mut());
     state.world.update((dt_s * 1000.0) as uint);
     Some(state)
 }
@@ -212,10 +212,10 @@ fn new_game_state(width: int, height: int) -> GameState {
     let player = ecm.new_entity();
     GameState {
         world: World::new(ecm),
-        commands: commands,
+        commands: Rc::new(RefCell::new(commands)),
         command_logger: logger,
         rng: rng,
-        side: Computer,
+        side: Rc::new(Cell::new(Computer)),
         turn: 0,
         player: player,
         cheating: false,
@@ -258,10 +258,10 @@ fn replay_game_state(width: int, height: int) -> GameState {
     let player = ecm.new_entity();
     GameState {
         world: World::new(ecm),
-        commands: commands,
+        commands: Rc::new(RefCell::new(commands)),
         rng: rng,
         command_logger: logger,
-        side: Computer,
+        side: Rc::new(Cell::new(Computer)),
         turn: 0,
         player: player,
         cheating: false,
@@ -304,6 +304,13 @@ fn main() {
     // world.add_system() because that's a double borrow:
     let ecm = game_state.world.ecm();
     game_state.world.add_system(box systems::tile::System::new(ecm.clone(), engine.display(), player));
+    // TODO: a command_logger system that uses game_state.command_logger to write out the current command
+    game_state.world.add_system(box systems::input::System::new(
+        ecm.clone(),
+        game_state.commands.clone(),
+        player,
+        game_state.side.clone(),
+    ));
 
     // TODO: add the remaining systems
     // systems::turn_tick_counter::system,

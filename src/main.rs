@@ -305,7 +305,7 @@ fn main() {
     let ecm = game_state.world.ecm();
     let player_rc = Rc::new(RefCell::new(player));
     game_state.world.add_system(box systems::tile::TileSystem::new(ecm.clone(), engine.display(), player_rc.clone()));
-    game_state.world.add_system(box systems::command_logger::System::new(
+    game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
         ecm.clone(),
         game_state.commands.clone(),
         game_state.command_logger.clone()));

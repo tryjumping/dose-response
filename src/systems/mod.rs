@@ -11,24 +11,24 @@ macro_rules! define_system (
      fn process_entity(&mut self, dt_ms: uint, e: Entity) $process_entity_body:expr
     } => {
         pub struct $name {
-            ecm: std::rc::Rc<std::cell::RefCell<ECM>>,
-            $($resource: std::rc::Rc<std::cell::RefCell<$ty>>),+
+            ecm: ::std::rc::Rc<::std::cell::RefCell<ECM>>,
+            $($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+
         }
 
         impl $name {
-            pub fn new(ecm: std::rc::Rc<std::cell::RefCell<ECM>>,
-                       $($resource: std::rc::Rc<std::cell::RefCell<$ty>>),+) -> $name {
+            pub fn new(ecm: ::std::rc::Rc<::std::cell::RefCell<ECM>>,
+                       $($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+) -> $name {
                 $name {
                     ecm: ecm,
                     $($resource: $resource),+
                 }
             }
 
-            pub fn ecm<'a>(&'a self) -> std::cell::RefMut<'a, ECM> {
+            pub fn ecm<'a>(&'a self) -> ::std::cell::RefMut<'a, ECM> {
                 self.ecm.borrow_mut()
             }
 
-            $(pub fn $resource<'a>(&'a self) -> std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
+            $(pub fn $resource<'a>(&'a self) -> ::std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
         }
 
         impl System for $name {

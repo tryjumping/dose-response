@@ -1,4 +1,4 @@
-use emhyr::{ComponentManager, ECM, Entity, System};
+use emhyr::{ComponentManager, ECM, Entity};
 use components::{Background, ColorAnimation, Exploration, Explored, Position, Tile};
 use engine::Display;
 use util::precise_distance;

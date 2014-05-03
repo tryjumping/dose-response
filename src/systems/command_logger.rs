@@ -1,6 +1,6 @@
 use collections::{Deque, RingBuf};
 
-use emhyr::{ComponentManager, ECM, Entity, System};
+use emhyr::{ComponentManager, ECM, Entity};
 
 use components::{AcceptsUserInput, Position};
 use systems::input::commands::Command;

@@ -31,7 +31,7 @@ macro_rules! define_system (
             $(pub fn $resource<'a>(&'a self) -> ::std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
         }
 
-        impl System for $name {
+        impl ::emhyr::System for $name {
             fn valid_entity(&self, e: $entity_type) -> bool {
                 let ecm = self.ecm.borrow();
                 ecm.has_entity(e) && $(ecm.has::<$component>(e))&&+

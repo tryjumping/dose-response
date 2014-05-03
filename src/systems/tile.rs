@@ -1,38 +1,28 @@
-use std::rc::Rc;
-use std::cell::RefCell;
+use std;
 
-
-use emhyr::{ComponentManager, ECM, Entity};
-use emhyr;
+use emhyr::{ComponentManager, ECM, Entity, System};
 use components::{Background, ColorAnimation, Exploration, Explored, Position, Tile};
 use engine::Display;
 use util::precise_distance;
 use color = world::col;
 
 
-pub struct System {
-    ecm: Rc<RefCell<ECM>>,
-    display: Rc<RefCell<Display>>,
-    player: Entity,
+define_system! {
+    name: TileSystem;
+    required_components: Position, Tile;
+    resources: display: Display, player: Entity;
 }
 
-impl System {
-    pub fn new(ecm: Rc<RefCell<ECM>>,
-               display: Rc<RefCell<Display>>,
-               player: Entity) -> System {
-        System{ecm: ecm, display: display, player: player}
-    }
-}
-
-impl emhyr::System for System {
+impl System for TileSystem {
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
-        let ecm = &*self.ecm.borrow();
-        ensure_components!(ecm, e, Position, Tile);
+        if !self.valid_entity(e) {return};
+        let player = *self.player();
+        let mut ecm = self.ecm();
         let Position{x, y} = ecm.get::<Position>(e);
         let Tile{level, glyph, color} = ecm.get::<Tile>(e);
-        let is_visible = if ecm.has::<Position>(self.player) && ecm.has::<Exploration>(self.player) {
-            let player_pos: Position = ecm.get(self.player);
-            precise_distance((x, y), (player_pos.x, player_pos.y)) <= ecm.get::<Exploration>(self.player).radius
+        let is_visible = if ecm.has::<Position>(player) && ecm.has::<Exploration>(player) {
+            let player_pos: Position = ecm.get(player);
+            precise_distance((x, y), (player_pos.x, player_pos.y)) <= ecm.get::<Exploration>(player).radius
         } else {
             false
         };
@@ -52,7 +42,7 @@ impl emhyr::System for System {
                 } else {
                     color
                 };
-                self.display.borrow_mut().draw_char(level, x, y, glyph, final_color, bg);
+                self.display().draw_char(level, x, y, glyph, final_color, bg);
             }
         }
     }

@@ -4,6 +4,40 @@ macro_rules! ensure_components(
     )
 )
 
+macro_rules! define_system (
+    {name: $name:ident;
+     required_components: $($component:ident),+;
+     resources: $($resource:ident : $ty:ty),+;
+    } => {
+        pub struct $name {
+            ecm: std::rc::Rc<std::cell::RefCell<ECM>>,
+            $($resource: std::rc::Rc<std::cell::RefCell<$ty>>),+
+        }
+
+        impl $name {
+            pub fn new(ecm: std::rc::Rc<std::cell::RefCell<ECM>>,
+                       $($resource: std::rc::Rc<std::cell::RefCell<$ty>>),+) -> $name {
+                $name {
+                    ecm: ecm,
+                    $($resource: $resource),+
+                }
+            }
+
+            pub fn ecm<'a>(&'a self) -> std::cell::RefMut<'a, ECM> {
+                self.ecm.borrow_mut()
+            }
+
+            $(pub fn $resource<'a>(&'a self) -> std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
+
+            pub fn valid_entity(&self, e: Entity) -> bool {
+                let ecm = self.ecm.borrow();
+                ecm.has_entity(e) && $(ecm.has::<$component>(e))&&+
+            }
+        }
+    }
+)
+
+
 // pub mod addiction;
 pub mod addiction_graphics;
 // pub mod ai;

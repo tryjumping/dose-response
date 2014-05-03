@@ -303,7 +303,8 @@ fn main() {
     // Appease the borrow checker: we can't do world.ecm inside of
     // world.add_system() because that's a double borrow:
     let ecm = game_state.world.ecm();
-    game_state.world.add_system(box systems::tile::System::new(ecm.clone(), engine.display(), player));
+    let player_rc = Rc::new(RefCell::new(player));
+    game_state.world.add_system(box systems::tile::TileSystem::new(ecm.clone(), engine.display(), player_rc.clone()));
     game_state.world.add_system(box systems::command_logger::System::new(
         ecm.clone(),
         game_state.commands.clone(),

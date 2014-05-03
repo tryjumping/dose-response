@@ -11,11 +11,7 @@ define_system! {
     name: TileSystem;
     required_components: Position, Tile;
     resources: display: Display, player: Entity;
-}
-
-impl System for TileSystem {
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
-        if !self.valid_entity(e) {return};
         let player = *self.player();
         let mut ecm = self.ecm();
         let Position{x, y} = ecm.get::<Position>(e);

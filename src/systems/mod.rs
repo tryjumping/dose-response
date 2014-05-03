@@ -8,6 +8,7 @@ macro_rules! define_system (
     {name: $name:ident;
      required_components: $($component:ident),+;
      resources: $($resource:ident : $ty:ty),+;
+     fn process_entity(&mut self, dt_ms: uint, e: Entity) $process_entity_body:expr
     } => {
         pub struct $name {
             ecm: std::rc::Rc<std::cell::RefCell<ECM>>,
@@ -28,10 +29,16 @@ macro_rules! define_system (
             }
 
             $(pub fn $resource<'a>(&'a self) -> std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
+        }
 
-            pub fn valid_entity(&self, e: Entity) -> bool {
+        impl System for $name {
+            fn valid_entity(&self, e: Entity) -> bool {
                 let ecm = self.ecm.borrow();
                 ecm.has_entity(e) && $(ecm.has::<$component>(e))&&+
+            }
+
+            fn process_entity(&mut self, dt_ms: uint, e: Entity) {
+                $process_entity_body
             }
         }
     }

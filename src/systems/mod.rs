@@ -6,8 +6,12 @@ macro_rules! ensure_components(
 
 macro_rules! define_system (
     {name: $name:ident;
-     required_components: $($component:ident),+;
-     resources: $($resource:ident : $ty:ty),+;
+     components(
+         $($component:ident),+
+     );
+     resources(
+         $($resource:ident : $ty:ty),+
+     );
      fn process_entity(&mut self, $dt_ms:ident : $uint_type:ty, $entity:ident : $entity_type:ty) $process_entity_body:expr
     } => {
         pub struct $name {

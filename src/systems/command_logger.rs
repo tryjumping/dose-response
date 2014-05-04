@@ -10,7 +10,7 @@ use super::super::CommandLogger;
 define_system! {
     name: CommandLoggerSystem;
     components(AcceptsUserInput, Position);
-    resources(commands: RingBuf<Command>, logger: CommandLogger);
+    resources(ecm: ECM, commands: RingBuf<Command>, logger: CommandLogger);
     fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
         let ecm = self.ecm();
         match self.commands().front() {

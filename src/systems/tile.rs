@@ -8,7 +8,7 @@ use color = world::col;
 define_system! {
     name: TileSystem;
     components(Position, Tile);
-    resources(display: Display, player: Entity);
+    resources(ecm: ECM, display: Display, player: Entity);
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
         let player = *self.player();
         let mut ecm = self.ecm();

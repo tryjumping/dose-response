@@ -36,7 +36,7 @@ impl FromStr for Command {
 define_system! {
     name: InputSystem;
     components(AcceptsUserInput, Position);
-    resources(commands: RingBuf<Command>);
+    resources(ecm: ECM, commands: RingBuf<Command>);
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
         let mut ecm = self.ecm();
         // Clean up state from any previous commands

@@ -85,12 +85,11 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *mut c_v
     }
 }
 
-
-pub fn system(e: Entity,
-              ecm: &mut ECM,
-              ) {
-    fail!("TODO");
-    // ensure_components!(ecm, e, Position, Destination, Turn);
+define_system! {
+    name: InputSystem;
+    components(Position, Destination, Turn);
+    resources(ecm: ECM);
+    fn process_entity(&mut self, dt_ms: uint, e: Entity) {
     // let turn: Turn = ecm.get(e);
     // if turn.ap <= 0 {return}
 
@@ -150,4 +149,5 @@ pub fn system(e: Entity,
     //         }
     //     }
     // }
+    }
 }

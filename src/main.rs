@@ -321,7 +321,6 @@ fn main() {
     // systems::turn_tick_counter::system,
     // systems::effect_duration::system,
     // systems::addiction::system,
-    // input_system,
     // systems::leave_area::system,
     // systems::player_dead::system,
     // systems::ai::system,

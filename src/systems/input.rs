@@ -1,11 +1,10 @@
-use components::{AcceptsUserInput, Destination, Position, UsingItem};
-use emhyr::{ComponentManager, ECM, Entity};
-use emhyr;
 use std::from_str::FromStr;
-use std::rc::Rc;
-use std::cell::RefCell;
-use self::commands::*;
 use collections::{Deque, RingBuf};
+use emhyr::{ComponentManager, ECM, Entity};
+
+use components::{AcceptsUserInput, Destination, Position, UsingItem};
+use self::commands::*;
+
 
 pub mod commands {
     #[deriving(Rand, Show)]
@@ -14,6 +13,7 @@ pub mod commands {
         Eat,
     }
 }
+
 
 impl FromStr for Command {
     fn from_str(name: &str) -> Option<Command> {
@@ -32,32 +32,19 @@ impl FromStr for Command {
     }
 }
 
-pub struct System {
-    ecm: Rc<RefCell<ECM>>,
-    commands: Rc<RefCell<RingBuf<Command>>>,
-}
 
-impl System {
-    pub fn new(ecm: Rc<RefCell<ECM>>,
-               commands: Rc<RefCell<RingBuf<Command>>>) -> System {
-        System{
-            ecm: ecm,
-            commands: commands,
-        }
-    }
-}
-
-impl emhyr::System for System {
-    fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
-        let mut ecm = &mut *self.ecm.borrow_mut();
-        ensure_components!(ecm, e, AcceptsUserInput, Position);
-
+define_system! {
+    name: InputSystem;
+    required_components: AcceptsUserInput, Position;
+    resources: commands: RingBuf<Command>;
+    fn process_entity(&mut self, dt_ms: uint, e: Entity) {
+        let mut ecm = self.ecm();
         // Clean up state from any previous commands
         ecm.remove::<Destination>(e);
         ecm.remove::<UsingItem>(e);
 
         let pos = ecm.get::<Position>(e);
-        match self.commands.borrow_mut().pop_front() {
+        match self.commands().pop_front() {
             Some(command) => {
                 match command {
                     N => ecm.set(e, Destination{x: pos.x, y: pos.y-1}),

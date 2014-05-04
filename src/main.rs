@@ -309,7 +309,7 @@ fn main() {
         ecm.clone(),
         game_state.commands.clone(),
         game_state.command_logger.clone()));
-    game_state.world.add_system(box systems::input::System::new(
+    game_state.world.add_system(box systems::input::InputSystem::new(
         ecm.clone(),
         game_state.commands.clone()));
 

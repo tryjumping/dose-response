@@ -304,6 +304,7 @@ fn main() {
     // world.add_system() because that's a double borrow:
     let ecm = game_state.world.ecm();
     let player_rc = Rc::new(RefCell::new(player));
+    let world_size_rc = Rc::new(RefCell::new(game_state.world_size));
 
     game_state.world.add_system(box systems::tile::TileSystem::new(
         ecm.clone(),
@@ -316,6 +317,9 @@ fn main() {
     game_state.world.add_system(box systems::input::InputSystem::new(
         ecm.clone(),
         game_state.commands.clone()));
+    game_state.world.add_system(box systems::movement::MovementSystem::new(
+        ecm.clone(),
+        world_size_rc.clone()));
 
     // TODO: add the remaining systems
     // systems::turn_tick_counter::system,

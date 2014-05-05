@@ -11,8 +11,6 @@ extern crate emhyr;
 extern crate tcod;
 
 
-use emhyr::{ComponentManager, ECM, Entity, System, World};
-
 use std::io;
 use std::io::File;
 use std::io::util::NullWriter;
@@ -25,12 +23,14 @@ use rand::{Rng, IsaacRng, SeedableRng};
 use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
+use ecm::{ComponentManager, ECM, Entity, System, World};
 use engine::{Display, key};
 use systems::input::commands;
 use systems::input::commands::Command;
 
 pub mod components;
 mod engine;
+pub mod ecm;
 pub mod systems;
 pub mod world_gen;
 pub mod world;

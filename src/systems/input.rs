@@ -1,8 +1,8 @@
 use std::from_str::FromStr;
 use collections::{Deque, RingBuf};
-use emhyr::{ComponentManager, ECM, Entity};
 
 use components::{AcceptsUserInput, Destination, Position, UsingItem};
+use ecm::{ComponentManager, ECM, Entity};
 use self::commands::*;
 
 

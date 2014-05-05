@@ -1,8 +1,8 @@
 use rand;
 use rand::Rng;
-use emhyr::{ComponentManager, ECM, Entity};
 
 use components::*;
+use ecm::{ComponentManager, ECM, Entity};
 use engine::Color;
 use world_gen;
 use util;

@@ -1,5 +1,5 @@
-use emhyr::{ComponentManager, ECM, Entity};
 use components::{Background, ColorAnimation, Exploration, Explored, Position, Tile};
+use ecm::{ComponentManager, ECM, Entity};
 use engine::Display;
 use util::precise_distance;
 use color = world::col;

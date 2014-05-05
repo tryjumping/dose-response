@@ -1,10 +1,10 @@
 use std::cast;
 use std::iter::FromIterator;
 use libc::{c_int, c_float, c_void};
-use emhyr::{ComponentManager, ECM, Entity};
+use tcod::Path;
 
 use components::*;
-use tcod::Path;
+use ecm::{ComponentManager, ECM, Entity};
 use util::distance;
 
 

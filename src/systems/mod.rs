@@ -1,9 +1,3 @@
-macro_rules! ensure_components(
-    ($ecm:expr, $entity:expr, $($component:ident),+) => (
-        if !$ecm.has_entity($entity) || $(!$ecm.has::<$component>($entity))||+ {return}
-    )
-)
-
 macro_rules! define_system (
     {name: $name:ident;
      components(

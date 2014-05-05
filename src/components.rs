@@ -53,7 +53,7 @@ pub struct Attributes{
 pub struct Background;
 
 #[deriving(Eq, Clone, Show)]
-pub struct Bump(Entity);
+pub struct Bump(pub Entity);
 
 #[deriving(Eq, Clone, Show)]
 pub struct ColorAnimation{

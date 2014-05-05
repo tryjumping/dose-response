@@ -1,4 +1,5 @@
 use std::cast;
+use std::iter::FromIterator;
 use libc::{c_int, c_float, c_void};
 use emhyr::{ComponentManager, ECM, Entity};
 
@@ -20,10 +21,18 @@ pub fn is_walkable(pos: Position, ecm: &ECM, map_size: (int, int))
 }
 
 fn is_solid(pos: Position, ecm: &ECM) -> bool {
-   fail!("TODO");
-    // ecm.entities_on_pos(pos).any(|e| {
-    //     ecm.has_solid(e)
-    // })
+    entities_on_pos(ecm, pos).iter().any(|&e| {
+        ecm.has::<Solid>(e)
+    })
+}
+
+fn entities_on_pos(ecm: &ECM, pos: Position) -> Vec<Entity> {
+    // TODO: SLOOOOOOOOOOOOOW
+    FromIterator::from_iter(
+        ecm.iter().
+            filter(|&e|
+                   ecm.has::<Position>(e) &&
+                   ecm.get::<Position>(e) == pos))
 }
 
 struct PathWithUserData {
@@ -110,23 +119,23 @@ define_system! {
                 ecm.remove::<Destination>(e);
             } else {  // Bump into the blocked entity
                 // TODO: assert there's only one solid entity on pos [x, y]
-                fail!("TODO entities_on_pos");
-                // for bumpee in ecm.entities_on_pos(Position{x: dest.x, y: dest.y}) {
-                //     assert!(bumpee != e);
-                //     match ecm.has_solid(bumpee) {
-                //         true => {
-                //             println!("Entity {} bumped into {} at: ({}, {})",
-                //                      e.deref(), bumpee.deref(), dest.x, dest.y);
-                //             ecm.set_bump(e, Bump(bumpee));
-                //             ecm.remove_destination(e);
-                //             break;
-                //         }
-                //         false => {}
-                //     }
-                // }
+                for &bumpee in entities_on_pos(&*ecm, Position{x: dest.x, y: dest.y}).iter() {
+                    assert!(bumpee != e);
+                    match ecm.has::<Solid>(bumpee) {
+                        true => {
+                            println!("Entity {} bumped into {} at: ({}, {})",
+                                     e, bumpee, dest.x, dest.y);
+                            ecm.set(e, Bump(bumpee));
+                            ecm.remove::<Destination>(e);
+                            break;
+                        }
+                        false => {}
+                    }
+                }
             }
         } else {  // Farther away than 1 space. Need to use path finding
             println!("walking more than 1 step");
+            fail!("TODO: walking more than 1 step");
         //     unsafe {
         //         match find_path((pos.x, pos.y), (dest.x, dest.y), res.world_size, ecm) {
         //             Some(ref mut path) => {

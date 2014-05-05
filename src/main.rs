@@ -39,7 +39,7 @@ pub mod util;
 
 pub struct GameState {
     world: World<ECM>,
-    side: Rc<Cell<Side>>,
+    side: Rc<RefCell<Side>>,
     world_size: (int, int),
     turn: int,
     rng: IsaacRng,
@@ -178,6 +178,10 @@ fn write_line(writer: &mut Writer, line: &str) {
     writer.flush();
 }
 
+fn rc_mut<T>(val: T) -> Rc<RefCell<T>> {
+    Rc::new(RefCell::new(val))
+}
+
 
 struct CommandLogger {
     writer: ~Writer,
@@ -212,10 +216,10 @@ fn new_game_state(width: int, height: int) -> GameState {
     let player = ecm.new_entity();
     GameState {
         world: World::new(ecm),
-        commands: Rc::new(RefCell::new(commands)),
-        command_logger: Rc::new(RefCell::new(logger)),
+        commands: rc_mut(commands),
+        command_logger: rc_mut(logger),
         rng: rng,
-        side: Rc::new(Cell::new(Computer)),
+        side: rc_mut(Computer),
         turn: 0,
         player: player,
         cheating: false,
@@ -258,10 +262,10 @@ fn replay_game_state(width: int, height: int) -> GameState {
     let player = ecm.new_entity();
     GameState {
         world: World::new(ecm),
-        commands: Rc::new(RefCell::new(commands)),
+        commands: rc_mut(commands),
         rng: rng,
-        command_logger: Rc::new(RefCell::new(logger)),
-        side: Rc::new(Cell::new(Computer)),
+        command_logger: rc_mut(logger),
+        side: rc_mut(Computer),
         turn: 0,
         player: player,
         cheating: false,
@@ -303,8 +307,8 @@ fn main() {
     // Appease the borrow checker: we can't do world.ecm inside of
     // world.add_system() because that's a double borrow:
     let ecm = game_state.world.ecm();
-    let player_rc = Rc::new(RefCell::new(player));
-    let world_size_rc = Rc::new(RefCell::new(game_state.world_size));
+    let player_rc = rc_mut(player);
+    let world_size_rc = rc_mut(game_state.world_size);
 
     game_state.world.add_system(box systems::tile::TileSystem::new(
         ecm.clone(),

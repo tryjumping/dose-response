@@ -4,15 +4,15 @@ use components::*;
 use systems::addiction_graphics::intoxication_state::*;
 
 
-fn intoxication_to_str(state: int) -> ~str {
+fn intoxication_to_str(state: int) -> &'static str {
     match IntoxicationState::from_int(state) {
-        Exhausted => ~"Exhausted",
-        DeliriumTremens => ~"Delirium tremens",
-        Withdrawal => ~"Withdrawn",
-        Sober => ~"Sober",
-        High => ~"High",
-        VeryHigh => ~"High as a kite",
-        Overdosed => ~"Overdosed",
+        Exhausted => "Exhausted",
+        DeliriumTremens => "Delirium tremens",
+        Withdrawal => "Withdrawn",
+        Sober => "Sober",
+        High => "High",
+        VeryHigh => "High as a kite",
+        Overdosed => "Overdosed",
     }
 }
 

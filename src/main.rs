@@ -310,10 +310,9 @@ fn main() {
     let player_rc = rc_mut(player);
     let world_size_rc = rc_mut(game_state.world_size);
 
-    game_state.world.add_system(box systems::tile::TileSystem::new(
+    game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
         ecm.clone(),
-        engine.display(),
-        player_rc.clone()));
+        game_state.side.clone()));
     game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
         ecm.clone(),
         game_state.commands.clone(),
@@ -324,14 +323,17 @@ fn main() {
     game_state.world.add_system(box systems::movement::MovementSystem::new(
         ecm.clone(),
         world_size_rc.clone()));
-    game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
+    game_state.world.add_system(box systems::tile::TileSystem::new(
         ecm.clone(),
-        game_state.side.clone()));
+        engine.display(),
+        player_rc.clone()));
 
-    // TODO: add the remaining systems
+    // TODO: add the missing systems. Keep the here to maintain the right order:
     // systems::turn_tick_counter::system,
     // systems::effect_duration::system,
     // systems::addiction::system,
+    // command_logger system (split from input_system)
+    // input_system,
     // systems::leave_area::system,
     // systems::player_dead::system,
     // systems::ai::system,

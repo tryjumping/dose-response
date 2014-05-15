@@ -58,5 +58,5 @@ pub mod movement;
 // pub mod stun;
 pub mod tile;
 pub mod turn;
-// pub mod turn_tick_counter;
+pub mod turn_tick_counter;
 // pub mod will;

@@ -324,6 +324,9 @@ fn main() {
     game_state.world.add_system(box systems::movement::MovementSystem::new(
         ecm.clone(),
         world_size_rc.clone()));
+    game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
+        ecm.clone(),
+        game_state.side.clone()));
 
     // TODO: add the remaining systems
     // systems::turn_tick_counter::system,

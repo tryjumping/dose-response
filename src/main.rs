@@ -313,6 +313,8 @@ fn main() {
     game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
         ecm.clone(),
         game_state.side.clone()));
+    // TODO: systems::effect_duration::system,
+    // TODO: systems::addiction::system,
     game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
         ecm.clone(),
         game_state.commands.clone(),
@@ -320,39 +322,30 @@ fn main() {
     game_state.world.add_system(box systems::input::InputSystem::new(
         ecm.clone(),
         game_state.commands.clone()));
+    // TODO: systems::leave_area::system,
+    // TODO: systems::player_dead::system,
+    // TODO: systems::ai::system,
+    // TODO: systems::dose::system,
+    // TODO: systems::panic::system,
+    // TODO: systems::stun::system,
     game_state.world.add_system(box systems::movement::MovementSystem::new(
         ecm.clone(),
         world_size_rc.clone()));
+    // TODO: systems::eating::system,
+    // TODO: systems::interaction::system,
+    // TODO: systems::bump::system,
+    // TODO: systems::combat::system,
+    // TODO: systems::will::system,
+    // TODO: systems::exploration::system,
+    // TODO: systems::fade_out::system,
+    // TODO: systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s)
     game_state.world.add_system(box systems::tile::TileSystem::new(
         ecm.clone(),
         engine.display(),
         player_rc.clone()));
-
-    // TODO: add the missing systems. Keep the here to maintain the right order:
-    // systems::turn_tick_counter::system,
-    // systems::effect_duration::system,
-    // systems::addiction::system,
-    // command_logger system (split from input_system)
-    // input_system,
-    // systems::leave_area::system,
-    // systems::player_dead::system,
-    // systems::ai::system,
-    // systems::dose::system,
-    // systems::panic::system,
-    // systems::stun::system,
-    // systems::movement::system,
-    // systems::eating::system,
-    // systems::interaction::system,
-    // systems::bump::system,
-    // systems::combat::system,
-    // systems::will::system,
-    // systems::exploration::system,
-    // systems::fade_out::system,
-    // systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s)
-    // systems::tile::system(id, &mut state.ecm, &mut state.resources, display);
-    // systems::gui::system(&state.ecm, &mut state.resources, display);
-    // systems::turn::system(&mut state.ecm, &mut state.resources);
-    // systems::addiction_graphics::system(&mut state.ecm, &mut state.resources, display);
+    // TODO: systems::gui::system(&state.ecm, &mut state.resources, display);
+    // TODO: systems::turn::system(&mut state.ecm, &mut state.resources);
+    // TODO: systems::addiction_graphics::system(&mut state.ecm, &mut state.resources, display);
 
     engine.main_loop(game_state, update);
 }

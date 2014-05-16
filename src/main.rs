@@ -345,6 +345,9 @@ fn main() {
         player_rc.clone()));
     // TODO: systems::gui::system(&state.ecm, &mut state.resources, display);
     // TODO: systems::turn::system(&mut state.ecm, &mut state.resources);
+    game_state.world.add_system(box systems::turn::TurnSystem::new(
+        ecm.clone(),
+        game_state.side.clone()));
     // TODO: systems::addiction_graphics::system(&mut state.ecm, &mut state.resources, display);
 
     engine.main_loop(game_state, update);

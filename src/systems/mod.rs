@@ -32,6 +32,32 @@ macro_rules! define_system (
                 $process_entity_body
             }
         }
+    };
+    {name: $name:ident;
+     resources(
+         $($resource:ident : $ty:ty),*
+     );
+     fn process_all_entities(&mut self, $dt_ms:ident : $uint_type:ty, mut $entities:ident : $entity_iter_type:ty) $process_all_entities_body:expr
+    } => {
+        pub struct $name {
+            $($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+
+        }
+
+        impl $name {
+            pub fn new($($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+) -> $name {
+                $name {
+                    $($resource: $resource),+
+                }
+            }
+
+            $(pub fn $resource<'a>(&'a self) -> ::std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
+        }
+
+        impl ::emhyr::System for $name {
+            fn process_all_entities(&mut self, $dt_ms: $uint_type, mut $entities: $entity_iter_type) {
+                $process_all_entities_body
+            }
+        }
     }
 )
 

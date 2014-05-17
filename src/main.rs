@@ -41,7 +41,7 @@ pub struct GameState {
     world: World<ECM>,
     side: Rc<RefCell<Side>>,
     world_size: (int, int),
-    turn: int,
+    turn: Rc<RefCell<int>>,
     rng: IsaacRng,
     commands: Rc<RefCell<RingBuf<Command>>>,
     command_logger: Rc<RefCell<CommandLogger>>,
@@ -220,7 +220,7 @@ fn new_game_state(width: int, height: int) -> GameState {
         command_logger: rc_mut(logger),
         rng: rng,
         side: rc_mut(Computer),
-        turn: 0,
+        turn: rc_mut(0),
         player: player,
         cheating: false,
         replay: false,
@@ -266,7 +266,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
         rng: rng,
         command_logger: rc_mut(logger),
         side: rc_mut(Computer),
-        turn: 0,
+        turn: rc_mut(0),
         player: player,
         cheating: false,
         replay: true,
@@ -344,10 +344,10 @@ fn main() {
         engine.display(),
         player_rc.clone()));
     // TODO: systems::gui::system(&state.ecm, &mut state.resources, display);
-    // TODO: systems::turn::system(&mut state.ecm, &mut state.resources);
     game_state.world.add_system(box systems::turn::TurnSystem::new(
         ecm.clone(),
-        game_state.side.clone()));
+        game_state.side.clone(),
+        game_state.turn.clone()));
     // TODO: systems::addiction_graphics::system(&mut state.ecm, &mut state.resources, display);
 
     engine.main_loop(game_state, update);

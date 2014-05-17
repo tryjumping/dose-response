@@ -99,7 +99,7 @@ define_system! {
     components(Position, Destination, Turn);
     resources(ecm: ECM, world_size: (int, int));
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
-        let mut ecm = self.ecm();
+        let mut ecm = &mut *self.ecm();
         let turn: Turn = ecm.get(e);
         if turn.ap <= 0 {return}
 
@@ -135,31 +135,30 @@ define_system! {
             }
         } else {  // Farther away than 1 space. Need to use path finding
             println!("walking more than 1 step");
-            fail!("TODO: walking more than 1 step");
-        //     unsafe {
-        //         match find_path((pos.x, pos.y), (dest.x, dest.y), res.world_size, ecm) {
-        //             Some(ref mut path) => {
-        //                 assert!(path.len() > 1,
-        //                         "The path shouldn't be trivial. We already handled that.");
-        //                 match path.walk(true) {
-        //                     Some((x, y)) => {
-        //                         let new_pos = Position{x: x, y: y};
-        //                         assert!(distance(&pos, &new_pos) == 1,
-        //                                 "The step should be right next to the curret pos.");
-        //                         ecm.set(e, turn.spend_ap(1));
-        //                         ecm.set(e, new_pos);
-        //                     }
-        //                     // "The path exists but can't be walked?!"
-        //                     None => unreachable!(),
-        //                 }
-        //             }
-        //             None => {
-        //                 println!("Entity {:?} cannot find a path so it waits.", e);
-        //                 ecm.set(e, turn.spend_ap(1));
-        //                 ecm.remove::<Destination>(e);
-        //             }
-        //         }
-        //     }
+            unsafe {
+                match find_path((pos.x, pos.y), (dest.x, dest.y), *self.world_size(), ecm) {
+                    Some(ref mut path) => {
+                        assert!(path.len() > 1,
+                                "The path shouldn't be trivial. We already handled that.");
+                        match path.walk(true) {
+                            Some((x, y)) => {
+                                let new_pos = Position{x: x, y: y};
+                                assert!(distance(&pos, &new_pos) == 1,
+                                        "The step should be right next to the curret pos.");
+                                ecm.set(e, turn.spend_ap(1));
+                                ecm.set(e, new_pos);
+                            }
+                            // "The path exists but can't be walked?!"
+                            None => unreachable!(),
+                        }
+                    }
+                    None => {
+                        println!("Entity {:?} cannot find a path so it waits.", e);
+                        ecm.set(e, turn.spend_ap(1));
+                        ecm.remove::<Destination>(e);
+                    }
+                }
+            }
         }
     }
 }

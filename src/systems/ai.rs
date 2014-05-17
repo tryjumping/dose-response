@@ -1,16 +1,16 @@
 use std::iter::range_inclusive;
-use std::rand::Rng;
+use rand::Rng;
 
-use components::*;
-use components;
-use super::super::Resources;
-use systems::movement::is_walkable;
-use util::Deref;
+use ecm::{ComponentManager, ECM, Entity};
+use components::ai;
+use components::{AI, Destination, Position, Side, Computer};
+use systems::movement::{entities_on_pos, is_walkable};
+use util::distance;
 
 
 pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
                                             pos: Position,
-                                            ecm: &ComponentManager,
+                                            ecm: &ECM,
                                             map_size: (int, int))
                                             -> (int, int) {
     let neighbors = [
@@ -23,7 +23,7 @@ pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
         (pos.x-1, pos.y+1),
         (pos.x+1, pos.y+1),
         ];
-    let mut walkables: ~[(int, int)] = ~[];
+    let mut walkables: Vec<(int, int)> = Vec::new();
     for &p in neighbors.iter() {
         let pos = match p { (x, y) => Position{x: x, y: y} };
         if is_walkable(pos, ecm, map_size) { walkables.push(p) }
@@ -31,11 +31,11 @@ pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
     if walkables.is_empty() {
         (pos.x, pos.y)  // Nowhere to go
     } else {
-        rng.choose(walkables)
+        rng.choose(walkables.slice(0, walkables.len()))
     }
 }
 
-pub fn entity_blocked(pos: Position, ecm: &ComponentManager, map_size: (int, int))
+pub fn entity_blocked(pos: Position, ecm: &ECM, map_size: (int, int))
                       -> bool {
     let neighbors = [
         (pos.x, pos.y-1),
@@ -53,28 +53,28 @@ pub fn entity_blocked(pos: Position, ecm: &ComponentManager, map_size: (int, int
     })
 }
 
-fn individual_behaviour<T: Rng>(e: ID,
-                                ecm: &mut ComponentManager,
+fn individual_behaviour<T: Rng>(e: Entity,
+                                ecm: &mut ECM,
                                 rng: &mut T,
                                 map_size: (int, int),
                                 player_pos: Position) -> Destination {
     let pos = ecm.get::<Position>(e);
     let player_distance = distance(&pos, &player_pos);
-    let ai = ecm.get_ai(e);
+    let ai: AI = ecm.get(e);
     match player_distance {
         dist if dist < 5 => {
-            ecm.set(e, AI{state: components::ai::Aggressive, .. ai});
+            ecm.set(e, AI{state: ai::Aggressive, .. ai});
         }
         dist if dist > 8 => {
-            ecm.set(e, AI{state: components::ai::Idle, .. ai});
+            ecm.set(e, AI{state: ai::Idle, .. ai});
         }
         _ => {}
     }
-    match ecm.get_ai(e).state {
-        components::ai::Aggressive => {
+    match ecm.get::<AI>(e).state {
+        ai::Aggressive => {
             Destination{x: player_pos.x, y: player_pos.y}
         }
-        components::ai::Idle => {
+        ai::Idle => {
             match random_neighbouring_position(rng, pos, ecm, map_size) {
                 (x, y) => Destination{x: x, y: y}
             }
@@ -82,27 +82,27 @@ fn individual_behaviour<T: Rng>(e: ID,
     }
 }
 
-fn hunting_pack_behaviour<T: Rng>(e: ID,
-                                  ecm: &mut ComponentManager,
+fn hunting_pack_behaviour<T: Rng>(e: Entity,
+                                  ecm: &mut ECM,
                                   rng: &mut T,
                                   map_size: (int, int),
                                   player_pos: Position) -> Destination {
     let pos = ecm.get::<Position>(e);
     let player_distance = distance(&pos, &player_pos);
     if player_distance < 4 {
-        let ai = ecm.get_ai(e);
-        ecm.set(e, AI{state: components::ai::Aggressive, .. ai});
+        let ai: AI = ecm.get(e);
+        ecm.set(e, AI{state: ai::Aggressive, .. ai});
     }
-    match ecm.get_ai(e).state {
-        components::ai::Aggressive => {
+    match ecm.get::<AI>(e).state {
+        ai::Aggressive => {
             let r = 8;
             for x in range_inclusive(pos.x - r, pos.x + r) {
                 for y in range_inclusive(pos.y - r, pos.y + r) {
-                    for monster in ecm.entities_on_pos(Position{x: x, y: y}) {
-                        if ecm.has_entity(monster) && ecm.has_ai(monster) {
-                            let ai = ecm.get_ai(monster);
+                    for &monster in entities_on_pos(ecm, Position{x: x, y: y}).iter() {
+                        if ecm.has_entity(monster) && ecm.has::<AI>(monster) {
+                            let ai: AI = ecm.get(monster);
                             ecm.set(monster,
-                                       AI{state: components::ai::Aggressive,
+                                       AI{state: ai::Aggressive,
                                           .. ai});
                         }
                     }
@@ -110,7 +110,7 @@ fn hunting_pack_behaviour<T: Rng>(e: ID,
             }
             Destination{x: player_pos.x, y: player_pos.y}
         }
-        components::ai::Idle => {
+        ai::Idle => {
             match random_neighbouring_position(rng, pos, ecm, map_size) {
                 (x, y) => Destination{x: x, y: y}
             }
@@ -118,26 +118,33 @@ fn hunting_pack_behaviour<T: Rng>(e: ID,
     }
 }
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
-              res: &mut Resources) {
-    ensure_components!(ecm, e, AI, Position);
-    ensure_components!(ecm, res.player_id, Position);
-    if res.side != Computer {return}
-    let player_pos = ecm.get::<Position>(res.player_id);
-    let pos = ecm.get::<Position>(e);
-    let dest = if entity_blocked(pos, ecm, res.world_size) {
-        println!("Found a blocked entity: {}", e.deref());
-        Destination{x: pos.x, y: pos.y}
-    } else {
-        match ecm.get_ai(e).behaviour {
-            components::ai::Individual => {
-                individual_behaviour(e, ecm, &mut res.rng, res.world_size, player_pos)
+
+define_system! {
+    name: AISystem;
+    components(AI, Position);
+    resources(ecm: ECM, player: Entity, side: Side, world_size: (int, int), rng: ::rand::IsaacRng);
+    fn process_entity(&mut self, dt_ms: uint, e: Entity) {
+        let mut ecm = &mut *self.ecm();
+        if !ecm.has::<Position>(*self.player()) { return }
+        if *self.side() != Computer { return }
+
+        let world_size = *self.world_size();
+        let player_pos = ecm.get::<Position>(*self.player());
+        let pos = ecm.get::<Position>(e);
+        let mut rng = &mut *self.rng();
+        let dest = if entity_blocked(pos, ecm, world_size) {
+            println!("Found a blocked entity: {:?}", e);
+            Destination{x: pos.x, y: pos.y}
+        } else {
+            match ecm.get::<AI>(e).behaviour {
+                ai::Individual => {
+                    individual_behaviour(e, ecm, rng, world_size, player_pos)
+                }
+                ai::Pack => {
+                    hunting_pack_behaviour(e, ecm, rng, world_size, player_pos)
+                }
             }
-            components::ai::Pack => {
-                hunting_pack_behaviour(e, ecm, &mut res.rng, res.world_size, player_pos)
-            }
-        }
-    };
-    ecm.set_destination(e, dest);
+        };
+        ecm.set(e, dest);
+    }
 }

@@ -64,7 +64,7 @@ macro_rules! define_system (
 
 // pub mod addiction;
 pub mod addiction_graphics;
-// pub mod ai;
+pub mod ai;
 // pub mod bump;
 pub mod color_fade;
 // pub mod combat;

@@ -26,7 +26,7 @@ fn is_solid(pos: Position, ecm: &ECM) -> bool {
     })
 }
 
-fn entities_on_pos(ecm: &ECM, pos: Position) -> Vec<Entity> {
+pub fn entities_on_pos(ecm: &ECM, pos: Position) -> Vec<Entity> {
     // TODO: SLOOOOOOOOOOOOOW
     FromIterator::from_iter(
         ecm.iter().

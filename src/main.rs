@@ -42,7 +42,7 @@ pub struct GameState {
     side: Rc<RefCell<Side>>,
     world_size: (int, int),
     turn: Rc<RefCell<int>>,
-    rng: IsaacRng,
+    rng: Rc<RefCell<IsaacRng>>,
     commands: Rc<RefCell<RingBuf<Command>>>,
     command_logger: Rc<RefCell<CommandLogger>>,
     player: Entity,
@@ -135,7 +135,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
         world::populate_world(&mut *state.world.ecm.borrow_mut(),
                               state.world_size,
                               player_pos,
-                              &mut state.rng,
+                              &mut *state.rng.borrow_mut(),
                               world_gen::forrest);
         return Some(state);
     }
@@ -218,7 +218,7 @@ fn new_game_state(width: int, height: int) -> GameState {
         world: World::new(ecm),
         commands: rc_mut(commands),
         command_logger: rc_mut(logger),
-        rng: rng,
+        rng: rc_mut(rng),
         side: rc_mut(Computer),
         turn: rc_mut(0),
         player: player,
@@ -263,7 +263,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
     GameState {
         world: World::new(ecm),
         commands: rc_mut(commands),
-        rng: rng,
+        rng: rc_mut(rng),
         command_logger: rc_mut(logger),
         side: rc_mut(Computer),
         turn: rc_mut(0),
@@ -301,7 +301,7 @@ fn main() {
     world::populate_world(&mut *game_state.world.ecm.borrow_mut(),
                           game_state.world_size,
                           player_pos,
-                          &mut game_state.rng,
+                          &mut *game_state.rng.borrow_mut(),
                           world_gen::forrest);
 
     // Appease the borrow checker: we can't do world.ecm inside of
@@ -324,7 +324,12 @@ fn main() {
         game_state.commands.clone()));
     // TODO: systems::leave_area::system,
     // TODO: systems::player_dead::system,
-    // TODO: systems::ai::system,
+    game_state.world.add_system(box systems::ai::AISystem::new(
+        ecm.clone(),
+        player_rc.clone(),
+        game_state.side.clone(),
+        world_size_rc.clone(),
+        game_state.rng.clone()));
     // TODO: systems::dose::system,
     // TODO: systems::panic::system,
     // TODO: systems::stun::system,

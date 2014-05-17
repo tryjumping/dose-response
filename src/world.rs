@@ -162,8 +162,8 @@ pub fn create_player(ecm: &mut ECM, player: Entity) {
             color: col::dead_player,
             solid: true});
     ecm.set(player, Turn{side: Player,
-                            ap: 1000,
-                            max_ap: 1000,
+                            ap: 1,
+                            max_ap: 1,
                             spent_this_tick: 0,
         });
     ecm.set(player, Solid);

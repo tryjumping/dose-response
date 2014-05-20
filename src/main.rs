@@ -313,7 +313,8 @@ fn main() {
     game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
         ecm.clone(),
         game_state.side.clone()));
-    // TODO: systems::effect_duration::system,
+    // TODO: systems::effect_duration::system - Stunned,
+    // TODO: systems::effect_duration::system - Panicking,
     // TODO: systems::addiction::system,
     game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
         ecm.clone(),

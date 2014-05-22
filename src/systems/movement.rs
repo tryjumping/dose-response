@@ -111,7 +111,6 @@ define_system! {
             ecm.set(e, turn.spend_ap(1));
             ecm.remove::<Destination>(e);
         } else if distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
-            println!("walking 1 step");
             if is_walkable(Position{x: dest.x, y: dest.y}, &*ecm, *self.world_size())  {
                 // Move to the cell
                 ecm.set(e, turn.spend_ap(1));
@@ -134,7 +133,7 @@ define_system! {
                 }
             }
         } else {  // Farther away than 1 space. Need to use path finding
-            println!("walking more than 1 step");
+            // TODO: can we minimise the unsafe block to contain just the find_path call?
             unsafe {
                 match find_path((pos.x, pos.y), (dest.x, dest.y), *self.world_size(), ecm) {
                     Some(ref mut path) => {

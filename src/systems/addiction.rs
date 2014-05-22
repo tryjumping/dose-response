@@ -1,22 +1,26 @@
-use components::*;
-use super::combat;
-use super::super::Resources;
+use ecm::{ComponentManager, ECM, Entity};
+use components::{Addiction, Attributes};
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
-              res: &mut Resources) {
-    ensure_components!(ecm, e, Addiction, Attributes);
-    let addiction = ecm.get_addiction(e);
-    let attr = ecm.get_attributes(e);
-    if res.turn > addiction.last_turn {
-        ecm.set(e, Attributes{
+
+define_system! {
+    name: AddictionSystem;
+    components(Addiction, Attributes);
+    resources(ecm: ECM, current_turn: int);
+    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+        let mut ecm = &mut *self.ecm();
+        let addiction: Addiction = ecm.get(entity);
+        let attr: Attributes = ecm.get(entity);
+        let current_turn = *self.current_turn();
+        if current_turn > addiction.last_turn {
+            ecm.set(entity, Attributes{
                 state_of_mind: attr.state_of_mind - addiction.drop_per_turn,
                 .. attr
             });
-        ecm.set(e, Addiction{last_turn: res.turn, .. addiction});
-    };
-    let som = ecm.get_attributes(e).state_of_mind;
-    if som <= 0 || som >= 100 {
-        combat::kill_entity(e, ecm);
+            ecm.set(entity, Addiction{last_turn: current_turn, .. addiction});
+        };
+        let som = ecm.get::<Attributes>(entity).state_of_mind;
+        if som <= 0 || som >= 100 {
+            ::systems::combat::kill_entity(entity, ecm);
+        }
     }
 }

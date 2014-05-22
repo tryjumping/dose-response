@@ -1,27 +1,28 @@
-use components::*;
+use ecm::{ComponentManager, ECM, Entity};
 use engine::Color;
-use super::super::Resources;
-use util::Deref;
+use components::{AI, AcceptsUserInput, Corpse, Count, Destination, FadeColor,
+                 FadeOut, Solid, Tile, Turn};
 
-pub fn kill_entity(e: ID,
-                   ecm: &mut ComponentManager) {
+
+pub fn kill_entity(e: Entity,
+                   ecm: &mut ECM) {
     if !ecm.has_entity(e) {return}
     // TODO: we assume that an entity without a turn is already dead. Add a
     // `Dead` component (or something similar) instead.
     // TODO: also, this is a bug: killing should be idempotent
-    if !ecm.has_turn(e) {return}
-    ecm.remove_ai(e);
-    ecm.remove_accepts_user_input(e);
-    ecm.remove_turn(e);
-    ecm.remove_destination(e);
-    let solid_corpse = ecm.has_corpse(e) && ecm.get_corpse(e).solid;
+    if !ecm.has::<Turn>(e) {return}
+    ecm.remove::<AI>(e);
+    ecm.remove::<AcceptsUserInput>(e);
+    ecm.remove::<Turn>(e);
+    ecm.remove::<Destination>(e);
+    let solid_corpse = ecm.has::<Corpse>(e) && ecm.get::<Corpse>(e).solid;
     if !solid_corpse {
-        ecm.remove_solid(e);
+        ecm.remove::<Solid>(e);
     }
     // Replace the entity's Tile with the tile of a corpse.
-    if ecm.has_corpse(e) && ecm.has_tile(e) {
-        let corpse = ecm.get_corpse(e);
-        let tile = ecm.get_tile(e);
+    if ecm.has::<Corpse>(e) && ecm.has::<Tile>(e) {
+        let corpse = ecm.get::<Corpse>(e);
+        let tile = ecm.get::<Tile>(e);
         ecm.set(e, Tile{glyph: corpse.glyph,
                              color: corpse.color,
                              .. tile});
@@ -31,14 +32,14 @@ pub fn kill_entity(e: ID,
                 duration_s: 1f32,
                 repetitions: Count(1),
             });
-    } else if ecm.has_fade_out(e) {
+    } else if ecm.has::<FadeOut>(e) {
         // TODO: we probably shouldn't remove the fading-out entities here.
         // Makes no sense. Just remove their tiles after the fadeout.
     } else {
-        ecm.remove_tile(e);
+        ecm.remove::<Tile>(e);
     }
 }
-
+/*
 pub fn system(e: ID,
               ecm: &mut ComponentManager,
               res: &mut Resources) {
@@ -123,3 +124,4 @@ pub fn system(e: ID,
         }
     }
 }
+*/

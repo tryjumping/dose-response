@@ -319,7 +319,9 @@ fn main() {
     game_state.world.add_system(box systems::panic_effect_duration::PanicEffectDurationSystem::new(
         ecm.clone(),
         game_state.turn.clone()));
-    // TODO: systems::addiction::system,
+    game_state.world.add_system(box systems::addiction::AddictionSystem::new(
+        ecm.clone(),
+        game_state.turn.clone()));
     game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
         ecm.clone(),
         game_state.commands.clone(),

@@ -4,7 +4,7 @@ use rand::Rng;
 use ecm::{ComponentManager, ECM, Entity};
 use components::ai;
 use components::{AI, Destination, Position, Side, Computer};
-use systems::movement::{entities_on_pos, is_walkable};
+use systems::movement::is_walkable;
 use util::distance;
 
 
@@ -98,7 +98,7 @@ fn hunting_pack_behaviour<T: Rng>(e: Entity,
             let r = 8;
             for x in range_inclusive(pos.x - r, pos.x + r) {
                 for y in range_inclusive(pos.y - r, pos.y + r) {
-                    for &monster in entities_on_pos(ecm, Position{x: x, y: y}).iter() {
+                    for monster in ecm.entities_on_pos((x, y)) {
                         if ecm.has_entity(monster) && ecm.has::<AI>(monster) {
                             let ai: AI = ecm.get(monster);
                             ecm.set(monster,

@@ -21,18 +21,9 @@ pub fn is_walkable(pos: Position, ecm: &ECM, map_size: (int, int))
 }
 
 fn is_solid(pos: Position, ecm: &ECM) -> bool {
-    entities_on_pos(ecm, pos).iter().any(|&e| {
+    ecm.entities_on_pos((pos.x, pos.y)).any(|e| {
         ecm.has::<Solid>(e)
     })
-}
-
-pub fn entities_on_pos(ecm: &ECM, pos: Position) -> Vec<Entity> {
-    // TODO: SLOOOOOOOOOOOOOW
-    FromIterator::from_iter(
-        ecm.iter().
-            filter(|&e|
-                   ecm.has::<Position>(e) &&
-                   ecm.get::<Position>(e) == pos))
 }
 
 struct PathWithUserData {
@@ -118,7 +109,7 @@ define_system! {
                 ecm.remove::<Destination>(e);
             } else {  // Bump into the blocked entity
                 // TODO: assert there's only one solid entity on pos [x, y]
-                for &bumpee in entities_on_pos(&*ecm, Position{x: dest.x, y: dest.y}).iter() {
+                for bumpee in ecm.entities_on_pos((dest.x, dest.y)) {
                     assert!(bumpee != e);
                     match ecm.has::<Solid>(bumpee) {
                         true => {

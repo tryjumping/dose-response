@@ -23,12 +23,12 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
                               generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {
     let near_player = |x, y| util::distance(&player_pos, &Position{x: x, y: y}) < 6;
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
-    let initial_dose_pos = (player_pos.x + rng.choose(pos_offset),
-                            player_pos.y + rng.choose(pos_offset));
+    let initial_dose_pos = (player_pos.x + *rng.choose(pos_offset).unwrap(),
+                            player_pos.y + *rng.choose(pos_offset).unwrap());
     let mut initial_foods_pos = Vec::<(int, int)>::new();
     for _ in range(0, rng.gen_range::<uint>(1, 4)) {
-            let pos = (player_pos.x + rng.choose(pos_offset),
-                       player_pos.y + rng.choose(pos_offset));
+            let pos = (player_pos.x + *rng.choose(pos_offset).unwrap(),
+                       player_pos.y + *rng.choose(pos_offset).unwrap());
             initial_foods_pos.push(pos);
     };
     let (width, height) = world_size;
@@ -197,7 +197,7 @@ impl world_gen::WorldItem {
     fn to_color(self) -> Color {
         match self {
             world_gen::Empty => col::empty_tile,
-            world_gen::Tree => rand::task_rng().choose(&[col::tree_1, col::tree_2, col::tree_3]),
+            world_gen::Tree => *rand::task_rng().choose(&[col::tree_1, col::tree_2, col::tree_3]).unwrap(),
             world_gen::Dose => col::dose,
             world_gen::StrongDose => col::dose,
             world_gen::Food => col::food,

@@ -173,7 +173,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
 
 // TODO: no longer needed?
 fn write_line(writer: &mut Writer, line: &str) {
-    let line_with_nl = line + "\n";
+    let line_with_nl = StrBuf::from_str(line).append("\n");
     writer.write(line_with_nl.as_bytes());
     writer.flush();
 }
@@ -184,12 +184,12 @@ fn rc_mut<T>(val: T) -> Rc<RefCell<T>> {
 
 
 struct CommandLogger {
-    writer: ~Writer,
+    writer: Box<Writer>,
 }
 
 impl CommandLogger {
     fn log(&mut self, command: Command) {
-        write_line(self.writer, command.to_str());
+        write_line(self.writer, command.to_str().as_slice());
     }
 }
 
@@ -199,18 +199,17 @@ fn new_game_state(width: int, height: int) -> GameState {
     let seed = rng.gen_range(0u32, 10000);
     rng.reseed([seed]);
     let cur_time = time::now();
-    let timestamp = time::strftime("%FT%T.", &cur_time) +
-        (cur_time.tm_nsec / 1000000).to_str();
+    let timestamp = time::strftime("%FT%T.", &cur_time).append((cur_time.tm_nsec / 1000000).to_str().as_slice());
     let replay_dir = &Path::new("./replays/");
     if !replay_dir.exists() {
-        io::fs::mkdir_recursive(replay_dir, 0b111101101);
+        io::fs::mkdir_recursive(replay_dir, io::FilePermission::from_bits(0b111101101).unwrap());
     }
-    let replay_path = &replay_dir.join("replay-" + timestamp);
+    let replay_path = &replay_dir.join(StrBuf::from_str("replay-").append(timestamp.as_slice()));
     let mut writer = match File::create(replay_path) {
-        Ok(f) => ~f as ~Writer,
+        Ok(f) => box f,
         Err(msg) => fail!("Failed to create the replay file. {}", msg)
     };
-    write_line(writer, seed.to_str());
+    write_line(&mut *writer as &mut Writer, seed.to_str().as_slice());
     let logger = CommandLogger{writer: writer};
     let mut ecm = ECM::new();
     let player = ecm.new_entity();
@@ -231,7 +230,7 @@ fn new_game_state(width: int, height: int) -> GameState {
 
 fn replay_game_state(width: int, height: int) -> GameState {
     let mut commands = RingBuf::new();
-    let replay_path = &Path::new(os::args()[1]);
+    let replay_path = &Path::new(os::args().get(1).as_slice());
     let mut seed: u32;
     match File::open(replay_path) {
         Ok(mut file) => {
@@ -257,7 +256,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
     }
     println!("Replaying game log: '{}'", replay_path.display());
     let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
-    let logger = CommandLogger{writer: ~NullWriter as ~Writer};
+    let logger = CommandLogger{writer: box NullWriter};
     let mut ecm = ECM::new();
     let player = ecm.new_entity();
     GameState {

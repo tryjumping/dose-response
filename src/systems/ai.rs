@@ -28,10 +28,9 @@ pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
         let pos = match p { (x, y) => Position{x: x, y: y} };
         if is_walkable(pos, ecm, map_size) { walkables.push(p) }
     }
-    if walkables.is_empty() {
-        (pos.x, pos.y)  // Nowhere to go
-    } else {
-        rng.choose(walkables.slice(0, walkables.len()))
+    match rng.choose(walkables.slice(0, walkables.len())) {
+        Some(&random_pos) => random_pos,
+        None => (pos.x, pos.y)  // Nowhere to go
     }
 }
 

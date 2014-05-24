@@ -131,7 +131,7 @@ impl Engine {
             }
             self.root_console.print_ex(width-1, height-1,
                                   tcod::background_flag::None, tcod::Right,
-                                  format!("FPS: {}", tcod::system::get_fps()));
+                                  format!("FPS: {}", tcod::system::get_fps()).as_slice());
             match self.display.borrow().fade {
                 Some((amount, color)) => self.root_console.set_fade(amount, color),
                 // colour doesn't matter, value 255 means no fade:

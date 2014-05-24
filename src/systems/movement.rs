@@ -1,4 +1,4 @@
-use std::cast;
+use std::intrinsics::transmute;
 use std::iter::FromIterator;
 use libc::{c_int, c_float, c_void};
 use tcod::Path;
@@ -47,14 +47,14 @@ impl PathWithUserData {
 // be destroyed before the Path we're returning, things would go wrong. So the
 // caller has to make sure that doesn't happen.
 pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), ecm: *mut ECM)
-                 -> Option<~PathWithUserData> {
+                 -> Option<Box<PathWithUserData>> {
     let (sx, sy) = from;
     let (dx, dy) = to;
     let (width, height) = map_size;
     if dx < 0 || dy < 0 || dx >= width || dy >= height {
         return None;
     }
-    let mut p = ~PathWithUserData {
+    let mut p = box PathWithUserData {
         to: to,
         ecm: ecm as *ECM,
         path: None,
@@ -72,13 +72,13 @@ pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), 
 extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *mut c_void) -> c_float {
     // The points should be right next to each other:
     assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-    let p: &PathWithUserData = unsafe { cast::transmute(path_data_ptr) };
+    let p: &PathWithUserData = unsafe { transmute(path_data_ptr) };
 
     let (dx, dy) = p.to;
     // Succeed if we're at the destination even if it's not walkable:
     if (dx as c_int, dy as c_int) == (xt, yt) {
         1.0
-    } else if is_solid(Position{x: xt as int, y: yt as int}, unsafe {cast::transmute(p.ecm)}) {
+    } else if is_solid(Position{x: xt as int, y: yt as int}, unsafe {transmute(p.ecm)}) {
         0.0
     } else {
         1.0

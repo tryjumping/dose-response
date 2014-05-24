@@ -1,4 +1,4 @@
-use components::*;
+use components::{AnxietyKillCounter, Attributes};
 use super::combat;
 use super::super::Resources;
 

@@ -1,6 +1,6 @@
 use emhyr::{ComponentManager, ECM, Entity};
 use engine::{Display, Color};
-use components::*;
+use components::{InventoryItem, Edible};
 use systems::addiction_graphics::intoxication_state::*;
 
 

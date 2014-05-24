@@ -1,7 +1,7 @@
 use std::num;
 use std::iter::range_inclusive;
 
-use components::*;
+use components::{Destination, Position};
 use super::ai;
 use super::super::Resources;
 use systems::movement::find_path;

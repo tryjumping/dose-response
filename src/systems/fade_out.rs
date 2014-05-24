@@ -1,4 +1,5 @@
-use components::*;
+use components::{FadeOut, FadingOut, Tile};
+use components::{Count};
 use super::super::Resources;
 
 pub fn system(e: ID,

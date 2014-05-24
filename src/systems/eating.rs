@@ -1,6 +1,6 @@
 use std::iter::range_inclusive;
 
-use components::*;
+use components::{AcceptsUserInput, Position, Turn, UsingItem};
 use super::super::Resources;
 use super::combat;
 

@@ -1,4 +1,4 @@
-use components::*;
+use components::{AttackTarget, Bump};
 use super::super::Resources;
 use util::Deref;
 

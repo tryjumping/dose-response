@@ -3,7 +3,7 @@ use std::iter::FromIterator;
 use libc::{c_int, c_float, c_void};
 use tcod::Path;
 
-use components::*;
+use components::{Bump, Destination, Position, Solid, Turn};
 use ecm::{ComponentManager, ECM, Entity};
 use util::distance;
 

@@ -1,7 +1,7 @@
 use std::num;
 use std::iter::range_inclusive;
 
-use components::*;
+use components::{AcceptsUserInput, Position, Exploration, Attributes, Explored};
 use super::super::Resources;
 use super::addiction_graphics::intoxication_state::*;
 

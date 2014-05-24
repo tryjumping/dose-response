@@ -1,6 +1,6 @@
 use std::rand::Rng;
 
-use components::*;
+use components::{Destination, Panicking, Position};
 use super::super::Resources;
 use systems::movement::is_walkable;
 

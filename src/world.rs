@@ -1,7 +1,15 @@
 use rand;
 use rand::Rng;
 
-use components::*;
+// TODO: looks like we want to namespace these some more:
+use components::{AcceptsUserInput,Attributes, Addiction, AnxietyKillCounter, AI,
+                 AttributeModifier, Corpse, Dose, ExplosionEffect, FadeColor,
+                 Kill, ModifyAttributes, Monster, Panic, Infinite, Stun,
+                 Exploration, Position, Tile, Turn};
+use components::{Anxiety, Depression, Hunger, Shadows, Voices};  // monster types
+use components::{Computer, Player};  // sides
+use components::{Background, Edible, Explored, Pickable, Solid};  // flags
+use components::ai;
 use ecm::{ComponentManager, ECM, Entity};
 use engine::Color;
 use world_gen;

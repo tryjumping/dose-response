@@ -1,5 +1,6 @@
 use emhyr::{ComponentManager, ECM, Entity};
-use components::*;
+use components::{ColorAnimation, FadeColor};
+use components::{Count, Infinite};
 use engine::Color;
 
 fn fade_color(from: Color, to: Color, progress: f32) -> Color {

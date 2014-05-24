@@ -2,7 +2,7 @@ use std::cmp::max;
 
 use emhyr::{ComponentManager, ECM, Entity};
 
-use components::*;
+use components::{Attributes, Background, FadeColor, Position};
 use engine::Display;
 use self::intoxication_state::*;
 use world::col;

@@ -1,4 +1,4 @@
-use components::*;
+use components::{Destination, Position};
 use world_gen;
 use world;
 use super::super::Resources;

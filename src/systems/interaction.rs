@@ -1,6 +1,6 @@
 use std::iter::range_inclusive;
 
-use components::*;
+use components::{AcceptsUserInput, Position, Attributes, Addiction, InventoryItem};
 use super::combat;
 use super::super::Resources;
 

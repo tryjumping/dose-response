@@ -1,4 +1,4 @@
-use components::*;
+use components::{Position, Stunned};
 use super::super::Resources;
 
 pub fn system(e: ID,

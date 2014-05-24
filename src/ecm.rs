@@ -1,15 +1,32 @@
+use std::any::{Any, AnyRefExt};
+use std::intrinsics::TypeId;
+use std::vec::MoveItems;
+use collections::HashMap;
 use emhyr::EntityIterator;
+use components::Position;
+
 
 pub use emhyr::{ComponentManager, Entity, System, World};
 
 
 pub struct ECM {
     ecm: ::emhyr::ECM,
+    position_cache: HashMap<(int, int), Vec<Entity>>,
 }
 
 impl ECM {
     pub fn new() -> ECM {
-        ECM{ecm: ::emhyr::ECM::new()}
+        ECM{
+            ecm: ::emhyr::ECM::new(),
+            position_cache: HashMap::new(),
+        }
+    }
+
+    pub fn entities_on_pos(&self, pos: (int, int)) -> MoveItems<Entity> {
+        match self.position_cache.find(&pos) {
+            Some(entities) => entities.clone().move_iter(),
+            None => Vec::new().move_iter(),
+        }
     }
 }
 
@@ -30,6 +47,15 @@ impl ComponentManager<EntityIterator> for ECM {
     }
 
     fn set<T: Send+Clone>(&mut self, entity: Entity, component: T) {
+        match (&component as &Any).as_ref::<Position>() {
+            Some(pos) => {
+                // Removes any previous position from the cache
+                self.remove::<Position>(entity);
+                let cache = self.position_cache.find_or_insert((pos.x, pos.y), Vec::new());
+                cache.push(entity);
+            }
+            None => {}
+        }
         self.ecm.set(entity, component)
     }
 
@@ -42,6 +68,15 @@ impl ComponentManager<EntityIterator> for ECM {
     }
 
     fn remove<T: 'static>(&mut self, entity: Entity) {
+        if (TypeId::of::<T>() == TypeId::of::<Position>()) && self.has::<Position>(entity) {
+            let pos: Position = self.get(entity);
+            let cache = self.position_cache.get_mut(&(pos.x, pos.y));
+            let cached_entity_index = match cache.iter().position(|&i| i == entity) {
+                Some(index) => index,
+                None => fail!("Position cache is missing the entity {:?}", entity),
+            };
+            cache.remove(cached_entity_index);
+        }
         self.ecm.remove::<T>(entity)
     }
 

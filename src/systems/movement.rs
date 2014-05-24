@@ -113,8 +113,6 @@ define_system! {
                     assert!(bumpee != e);
                     match ecm.has::<Solid>(bumpee) {
                         true => {
-                            println!("Entity {} bumped into {} at: ({}, {})",
-                                     e, bumpee, dest.x, dest.y);
                             ecm.set(e, Bump(bumpee));
                             ecm.remove::<Destination>(e);
                             break;

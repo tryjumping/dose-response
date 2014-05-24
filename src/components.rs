@@ -27,7 +27,7 @@ pub struct AnxietyKillCounter{
 }
 
 #[deriving(Eq, Clone, Show)]
-pub struct AttackTarget(Entity);
+pub struct AttackTarget(pub Entity);
 
 #[deriving(Eq, Clone, Show)]
 pub enum AttackType {

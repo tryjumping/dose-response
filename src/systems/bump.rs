@@ -1,20 +1,24 @@
-use components::{AttackTarget, Bump};
-use super::super::Resources;
-use util::Deref;
+use ecm::{ComponentManager, ECM, Entity};
+use components::{AttackTarget, Bump, Turn};
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
-              _res: &mut Resources) {
-    ensure_components!(ecm, e, Bump)
-        let bumpee = ecm.get_bump(e).deref();
-    ecm.remove_bump(e);
-    if !ecm.has_entity(bumpee) {return}
-    let different_sides = (ecm.has_turn(bumpee) && ecm.has_turn(e)
-                           && ecm.get_turn(bumpee).side != ecm.get_turn(e).side);
-    if different_sides {
-        println!("Entity {} attacks {}.", e.deref(), bumpee.deref());
-        ecm.set_attack_target(e, AttackTarget(bumpee));
-    } else {
-        println!("Entity {} hits the wall.", e.deref());
+
+define_system! {
+    name: BumpSystem;
+    components(Bump, Turn);
+    resources(ecm: ECM);
+    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+        let mut ecm = &mut *self.ecm();
+        let Bump(bumpee) = ecm.get::<Bump>(entity);
+        ecm.remove::<Bump>(entity);
+        if !ecm.has_entity(bumpee) {return}
+
+        let opposing_sides = (ecm.has::<Turn>(bumpee)
+                              && ecm.get::<Turn>(bumpee).side != ecm.get::<Turn>(entity).side);
+        if opposing_sides {
+            println!("Entity {} attacks {}.", entity, bumpee);
+            ecm.set(entity, AttackTarget(bumpee));
+        } else {
+            println!("Entity {} hits the wall.", entity);
+        }
     }
 }

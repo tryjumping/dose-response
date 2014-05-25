@@ -346,7 +346,9 @@ fn main() {
     // TODO: systems::interaction::system,
     game_state.world.add_system(box systems::bump::BumpSystem::new(
         ecm.clone()));
-    // TODO: systems::combat::system,
+    game_state.world.add_system(box systems::combat::CombatSystem::new(
+        ecm.clone(),
+        player_rc.clone()));
     // TODO: systems::will::system,
     // TODO: systems::exploration::system,
     // TODO: systems::fade_out::system,

@@ -47,19 +47,19 @@ define_system! {
     name: CombatSystem;
     components(AttackTarget, AttackType, Turn);
     resources(ecm: ECM, player: Entity, current_turn: int);
-    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+    fn process_entity(&mut self, dt_ms: uint, attacker: Entity) {
         let mut ecm = &mut *self.ecm();
-        let free_aps = ecm.get::<Turn>(entity).ap;
-        let AttackTarget(target) = ecm.get::<AttackTarget>(entity);
-        ecm.remove::<AttackTarget>(entity);
+        let free_aps = ecm.get::<Turn>(attacker).ap;
+        let AttackTarget(target) = ecm.get::<AttackTarget>(attacker);
+        ecm.remove::<AttackTarget>(attacker);
         let attack_successful = ecm.has_entity(target) && free_aps > 0;
         if !attack_successful {return}
         // attacker spends an AP
-        let turn: Turn = ecm.get(entity);
-        ecm.set(entity, turn.spend_ap(1));
-        match ecm.get::<AttackType>(entity) {
+        let turn: Turn = ecm.get(attacker);
+        ecm.set(attacker, turn.spend_ap(1));
+        match ecm.get::<AttackType>(attacker) {
             Kill => {
-                println!("Entity {:?} was killed by {:?}", target, entity);
+                println!("Entity {:?} was killed by {:?}", target, attacker);
                 kill_entity(target, ecm);
                 // TODO: This is a hack. The player should fade out, the other
                 // monsters just disappear. Need to make this better without
@@ -69,27 +69,27 @@ define_system! {
                 }
                 let target_is_anxiety = (ecm.has::<Monster>(target) &&
                                          ecm.get::<Monster>(target).kind == Anxiety);
-                if target_is_anxiety && ecm.has::<AnxietyKillCounter>(entity) {
-                    let counter = ecm.get::<AnxietyKillCounter>(entity);
-                    ecm.set(entity, AnxietyKillCounter{
+                if target_is_anxiety && ecm.has::<AnxietyKillCounter>(attacker) {
+                    let counter = ecm.get::<AnxietyKillCounter>(attacker);
+                    ecm.set(attacker, AnxietyKillCounter{
                         count: counter.count + 1,
                         .. counter
                     });
                 }
             }
             Stun{duration} => {
-                println!("Entity {:?} was stunned by {:?}", target, entity);
+                println!("Entity {:?} was stunned by {:?}", target, attacker);
                 // An attacker with stun disappears after delivering the blow
-                ecm.set(entity, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
-                if ecm.has::<Tile>(entity) {
+                ecm.set(attacker, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
+                if ecm.has::<Tile>(attacker) {
                     // TODO: why are we decrementing the tile level here? Looks like
                     // a hack for a faulty display logic to me.
-                    let tile = ecm.get::<Tile>(entity);
+                    let tile = ecm.get::<Tile>(attacker);
                     if tile.level > 0 {
-                        ecm.set(entity, Tile{level: tile.level - 1, .. tile});
+                        ecm.set(attacker, Tile{level: tile.level - 1, .. tile});
                     }
                 }
-                kill_entity(entity, ecm);
+                kill_entity(attacker, ecm);
                 let stunned = if ecm.has::<Stunned>(target) {
                     let prev = ecm.get::<Stunned>(target);
                     Stunned{duration: prev.duration + duration, .. prev}
@@ -99,18 +99,18 @@ define_system! {
                 ecm.set(target, stunned);
             }
             Panic{duration} => {
-                println!("Entity {:?} panics because of {:?}", target, entity);
+                println!("Entity {:?} panics because of {:?}", target, attacker);
                 // An attacker with stun disappears after delivering the blow
-                ecm.set(entity, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
-                if ecm.has::<Tile>(entity) {
+                ecm.set(attacker, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
+                if ecm.has::<Tile>(attacker) {
                     // TODO: why are we decrementing the tile level here? Looks like
                     // a hack for a faulty display logic to me.
-                    let tile = ecm.get::<Tile>(entity);
+                    let tile = ecm.get::<Tile>(attacker);
                     if tile.level > 0 {
-                        ecm.set(entity, Tile{level: tile.level - 1, .. tile});
+                        ecm.set(attacker, Tile{level: tile.level - 1, .. tile});
                     }
                 }
-                kill_entity(entity, ecm);
+                kill_entity(attacker, ecm);
                 let panicking = if ecm.has::<Panicking>(target) {
                     let prev = ecm.get::<Panicking>(target);
                     Panicking{duration: prev.duration + duration, .. prev}
@@ -120,10 +120,10 @@ define_system! {
                 ecm.set(target, panicking);
             }
             ModifyAttributes => {
-                if !ecm.has::<AttributeModifier>(entity) {
+                if !ecm.has::<AttributeModifier>(attacker) {
                     fail!("The attacker must have attribute_modifier");
                 }
-                let modifier = ecm.get::<AttributeModifier>(entity);
+                let modifier = ecm.get::<AttributeModifier>(attacker);
                 if ecm.has::<Attributes>(target) {
                     let attrs = ecm.get::<Attributes>(target);
                     ecm.set(target, Attributes{

@@ -35,7 +35,6 @@ pub mod point;
 pub mod systems;
 pub mod world_gen;
 pub mod world;
-pub mod util;
 
 
 pub struct GameState {

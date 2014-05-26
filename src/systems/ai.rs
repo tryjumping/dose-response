@@ -5,7 +5,7 @@ use ecm::{ComponentManager, ECM, Entity};
 use components::ai;
 use components::{AI, Destination, Position, Side, Computer};
 use systems::movement::is_walkable;
-use util::distance;
+use point;
 
 
 pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
@@ -58,7 +58,7 @@ fn individual_behaviour<T: Rng>(e: Entity,
                                 map_size: (int, int),
                                 player_pos: Position) -> Destination {
     let pos = ecm.get::<Position>(e);
-    let player_distance = distance(&pos, &player_pos);
+    let player_distance = point::tile_distance(pos, player_pos);
     let ai: AI = ecm.get(e);
     match player_distance {
         dist if dist < 5 => {
@@ -87,7 +87,7 @@ fn hunting_pack_behaviour<T: Rng>(e: Entity,
                                   map_size: (int, int),
                                   player_pos: Position) -> Destination {
     let pos = ecm.get::<Position>(e);
-    let player_distance = distance(&pos, &player_pos);
+    let player_distance = point::tile_distance(pos, player_pos);
     if player_distance < 4 {
         let ai: AI = ecm.get(e);
         ecm.set(e, AI{state: ai::Aggressive, .. ai});

@@ -5,7 +5,7 @@ use tcod::Path;
 
 use components::{Bump, Destination, Position, Solid, Turn};
 use ecm::{ComponentManager, ECM, Entity};
-use util::distance;
+use point;
 
 
 pub fn is_walkable(pos: Position, ecm: &ECM, map_size: (int, int))
@@ -101,7 +101,7 @@ define_system! {
             println!("Entity {:?} waits.", e);
             ecm.set(e, turn.spend_ap(1));
             ecm.remove::<Destination>(e);
-        } else if distance(&pos, &Position{x: dest.x, y: dest.y}) == 1 {
+        } else if point::tile_distance(pos, dest) == 1 {
             if is_walkable(Position{x: dest.x, y: dest.y}, &*ecm, *self.world_size())  {
                 // Move to the cell
                 ecm.set(e, turn.spend_ap(1));
@@ -131,7 +131,7 @@ define_system! {
                         match path.walk(true) {
                             Some((x, y)) => {
                                 let new_pos = Position{x: x, y: y};
-                                assert!(distance(&pos, &new_pos) == 1,
+                                assert!(point::tile_distance(pos, new_pos) == 1,
                                         "The step should be right next to the curret pos.");
                                 ecm.set(e, turn.spend_ap(1));
                                 ecm.set(e, new_pos);

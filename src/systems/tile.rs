@@ -1,7 +1,7 @@
 use components::{Background, ColorAnimation, Exploration, Explored, Position, Tile};
 use ecm::{ComponentManager, ECM, Entity};
 use engine::Display;
-use util::precise_distance;
+use point;
 use color = world::col;
 
 
@@ -16,7 +16,7 @@ define_system! {
         let Tile{level, glyph, color} = ecm.get::<Tile>(e);
         let is_visible = if ecm.has::<Position>(player) && ecm.has::<Exploration>(player) {
             let player_pos: Position = ecm.get(player);
-            precise_distance((x, y), (player_pos.x, player_pos.y)) <= ecm.get::<Exploration>(player).radius
+            point::distance((x, y), player_pos) <= ecm.get::<Exploration>(player).radius as f32
         } else {
             false
         };

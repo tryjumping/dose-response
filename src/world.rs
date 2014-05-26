@@ -13,7 +13,7 @@ use components::ai;
 use ecm::{ComponentManager, ECM, Entity};
 use engine::Color;
 use world_gen;
-use util;
+use point;
 
 
 pub fn populate_world<T: Rng>(ecm: &mut ECM,
@@ -21,7 +21,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
                               player_pos: Position,
                               rng: &mut T,
                               generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {
-    let near_player = |x, y| util::distance(&player_pos, &Position{x: x, y: y}) < 6;
+    let near_player = |x, y| point::tile_distance(player_pos, (x, y)) < 6;
     let pos_offset = [-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + *rng.choose(pos_offset).unwrap(),
                             player_pos.y + *rng.choose(pos_offset).unwrap());
@@ -37,7 +37,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
         let bg = ecm.new_entity();
         ecm.set(bg, Position{x: x, y: y});
         ecm.set(bg, Background);
-        let explored = util::precise_distance((x, y), (player_pos.x, player_pos.y)) < 6;
+        let explored = point::distance((x, y), (player_pos.x, player_pos.y)) < 6f32;
         if explored {
             ecm.set(bg, Explored);
         }

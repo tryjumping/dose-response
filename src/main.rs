@@ -173,7 +173,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
 
 // TODO: no longer needed?
 fn write_line(writer: &mut Writer, line: &str) {
-    let line_with_nl = StrBuf::from_str(line).append("\n");
+    let line_with_nl = String::from_str(line).append("\n");
     writer.write(line_with_nl.as_bytes());
     writer.flush();
 }
@@ -204,7 +204,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     if !replay_dir.exists() {
         io::fs::mkdir_recursive(replay_dir, io::FilePermission::from_bits(0b111101101).unwrap());
     }
-    let replay_path = &replay_dir.join(StrBuf::from_str("replay-").append(timestamp.as_slice()));
+    let replay_path = &replay_dir.join(String::from_str("replay-").append(timestamp.as_slice()));
     let mut writer = match File::create(replay_path) {
         Ok(f) => box f,
         Err(msg) => fail!("Failed to create the replay file. {}", msg)

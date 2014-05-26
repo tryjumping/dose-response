@@ -348,7 +348,8 @@ fn main() {
         ecm.clone()));
     game_state.world.add_system(box systems::combat::CombatSystem::new(
         ecm.clone(),
-        player_rc.clone()));
+        player_rc.clone(),
+        game_state.turn.clone()));
     // TODO: systems::will::system,
     // TODO: systems::exploration::system,
     // TODO: systems::fade_out::system,

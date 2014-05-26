@@ -1,8 +1,10 @@
 use ecm::{ComponentManager, ECM, Entity};
 use engine::Color;
 use components::{Anxiety, AnxietyKillCounter, AI, AttackTarget, AttackType,
+                 Attributes, AttributeModifier,
                  AcceptsUserInput, Count, Corpse, Destination, FadeColor,
-                 FadeOut, Kill, Monster, Panic, Position, Solid, Stun, Tile, Turn};
+                 FadeOut, Kill, Monster, Panic, Panicking, Position, Solid, Stun,
+                 Stunned, Tile, Turn};
 
 
 pub fn kill_entity(e: Entity,
@@ -44,7 +46,7 @@ pub fn kill_entity(e: Entity,
 define_system! {
     name: CombatSystem;
     components(AttackTarget, AttackType, Turn);
-    resources(ecm: ECM, player: Entity);
+    resources(ecm: ECM, player: Entity, current_turn: int);
     fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
         let mut ecm = &mut *self.ecm();
         let free_aps = ecm.get::<Turn>(entity).ap;
@@ -76,57 +78,58 @@ define_system! {
                 }
             }
             Stun{duration} => {
-                println!("TODO: stunned");
-                // println!("Entity {} was stunned by {}", target.deref(), e.deref());
-                // // An attacker with stun disappears after delivering the blow
-                // ecm.set_fade_out(e, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
-                // if ecm.has_tile(e) {
-                //     let tile = ecm.get_tile(e);
-                //     if tile.level > 0 {
-                //         ecm.set(e, Tile{level: tile.level - 1, .. tile});
-                //     }
-                // }
-                // kill_entity(e, ecm);
-                // let stunned = if ecm.has_stunned(target) {
-                //     let prev = ecm.get_stunned(target);
-                //     Stunned{duration: prev.duration + duration, .. prev}
-                // } else {
-                //     Stunned{turn: res.turn, duration: duration}
-                // };
-                // ecm.set_stunned(target, stunned);
+                println!("Entity {:?} was stunned by {:?}", target, entity);
+                // An attacker with stun disappears after delivering the blow
+                ecm.set(entity, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
+                if ecm.has::<Tile>(entity) {
+                    // TODO: why are we decrementing the tile level here? Looks like
+                    // a hack for a faulty display logic to me.
+                    let tile = ecm.get::<Tile>(entity);
+                    if tile.level > 0 {
+                        ecm.set(entity, Tile{level: tile.level - 1, .. tile});
+                    }
+                }
+                kill_entity(entity, ecm);
+                let stunned = if ecm.has::<Stunned>(target) {
+                    let prev = ecm.get::<Stunned>(target);
+                    Stunned{duration: prev.duration + duration, .. prev}
+                } else {
+                    Stunned{turn: *self.current_turn(), duration: duration}
+                };
+                ecm.set(target, stunned);
             }
             Panic{duration} => {
-                println!("TODO: panic");
                 println!("Entity {:?} panics because of {:?}", target, entity);
-                // // An attacker with stun disappears after delivering the blow
-                // ecm.set_fade_out(e, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
-                // if ecm.has_tile(e) {
-                //     let tile = ecm.get_tile(e);
-                //     if tile.level > 0 {
-                //         ecm.set(e, Tile{level: tile.level - 1, .. tile});
-                //     }
-                // }
-                // kill_entity(e, ecm);
-                // let panicking = if ecm.has_panicking(target) {
-                //     let prev = ecm.get_panicking(target);
-                //     Panicking{duration: prev.duration + duration, .. prev}
-                // } else {
-                //     Panicking{turn: res.turn, duration: duration}
-                // };
-                // ecm.set_panicking(target, panicking);
+                // An attacker with stun disappears after delivering the blow
+                ecm.set(entity, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
+                if ecm.has::<Tile>(entity) {
+                    // TODO: why are we decrementing the tile level here? Looks like
+                    // a hack for a faulty display logic to me.
+                    let tile = ecm.get::<Tile>(entity);
+                    if tile.level > 0 {
+                        ecm.set(entity, Tile{level: tile.level - 1, .. tile});
+                    }
+                }
+                kill_entity(entity, ecm);
+                let panicking = if ecm.has::<Panicking>(target) {
+                    let prev = ecm.get::<Panicking>(target);
+                    Panicking{duration: prev.duration + duration, .. prev}
+                } else {
+                    Panicking{turn: *self.current_turn(), duration: duration}
+                };
+                ecm.set(target, panicking);
             }
             ModifyAttributes => {
-                println!("TODO: modify attributes");
-                // if !ecm.has_attribute_modifier(e) {
-                //     fail!("The attacker must have attribute_modifier");
-                // }
-                // let modifier = ecm.get_attribute_modifier(e);
-                // if ecm.has_attributes(target) {
-                //     let attrs = ecm.get_attributes(target);
-                //     ecm.set(target, Attributes{
-                //         state_of_mind: attrs.state_of_mind + modifier.state_of_mind,
-                //         will: attrs.will + modifier.will})
-                // }
+                if !ecm.has::<AttributeModifier>(entity) {
+                    fail!("The attacker must have attribute_modifier");
+                }
+                let modifier = ecm.get::<AttributeModifier>(entity);
+                if ecm.has::<Attributes>(target) {
+                    let attrs = ecm.get::<Attributes>(target);
+                    ecm.set(target, Attributes{
+                        state_of_mind: attrs.state_of_mind + modifier.state_of_mind,
+                        will: attrs.will + modifier.will})
+                }
             }
         }
     }

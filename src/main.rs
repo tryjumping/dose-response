@@ -31,6 +31,7 @@ use systems::input::commands::Command;
 pub mod components;
 mod engine;
 pub mod ecm;
+pub mod point;
 pub mod systems;
 pub mod world_gen;
 pub mod world;

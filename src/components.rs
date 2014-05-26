@@ -2,6 +2,7 @@ use std::cmp::max;
 use emhyr::{Entity};
 
 use engine::{Color};
+use point::Point;
 
 
 #[deriving(Eq, Clone, Show)]
@@ -72,6 +73,12 @@ pub struct Corpse{
 #[deriving(Eq, Clone, Show)]
 pub struct Destination {pub x: int, pub y: int}
 
+impl Point for Destination {
+    fn coordinates(&self) -> (int, int) {
+        (self.x, self.y)
+    }
+}
+
 #[deriving(Eq, Clone, Show)]
 pub struct Dose{
     pub tolerance_modifier: int,
@@ -125,6 +132,12 @@ pub struct Pickable;
 pub struct Position {
     pub x: int,
     pub y: int,
+}
+
+impl Point for Position {
+    fn coordinates(&self) -> (int, int) {
+        (self.x, self.y)
+    }
 }
 
 #[deriving(Eq, Clone, Show)]

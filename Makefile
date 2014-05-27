@@ -7,7 +7,7 @@ CARGO_RUSTFLAGS?=
 all: $(APP)
 
 test: $(SOURCES)
-	rustc --test -W ctypes src/main.rs -o test-$(APP)
+	rustc --test -W ctypes src/tests.rs -o test-$(APP)
 	./test-$(APP)
 
 $(APP): $(SOURCES)

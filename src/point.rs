@@ -59,3 +59,14 @@ pub fn points_within_radius<T: Point>(center: T, radius: int) -> PointsWithinRad
         max_y: center_y + radius,
     }
 }
+
+
+#[cfg(test)]
+mod test {
+    use super::{Point, PointsWithinRadius, tile_distance, distance, points_within_radius};
+
+    #[test]
+    fn test_tile_distance() {
+        assert_eq!(tile_distance((0, 0), (0, 0)), 0);
+    }
+}

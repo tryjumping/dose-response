@@ -63,10 +63,96 @@ pub fn points_within_radius<T: Point>(center: T, radius: int) -> PointsWithinRad
 
 #[cfg(test)]
 mod test {
-    use super::{Point, PointsWithinRadius, tile_distance, distance, points_within_radius};
+    use std::iter::FromIterator;
+    use std::num::{abs, Float};
+    use super::{tile_distance, distance, points_within_radius};
 
     #[test]
     fn test_tile_distance() {
         assert_eq!(tile_distance((0, 0), (0, 0)), 0);
+
+        assert_eq!(tile_distance((0, 0), ( 1, 0)), 1);
+        assert_eq!(tile_distance((0, 0), (-1, 0)), 1);
+        assert_eq!(tile_distance((0, 0), ( 1, 1)), 1);
+        assert_eq!(tile_distance((0, 0), (-1, 1)), 1);
+        assert_eq!(tile_distance((0, 0), (0,  1)), 1);
+        assert_eq!(tile_distance((0, 0), (0, -1)), 1);
+        assert_eq!(tile_distance((0, 0), (1,  1)), 1);
+        assert_eq!(tile_distance((0, 0), (1, -1)), 1);
+
+        assert_eq!(tile_distance((-3, -3), (10, 10)), 13);
+        assert_eq!(tile_distance((-3, -3), (5, -2)), 8);
+    }
+
+    #[test]
+    fn test_euclidean_distance() {
+        let actual = distance((0, 0), (0, 0));
+        let expected = 0.0;
+        assert!(abs(actual - expected) <= Float::epsilon());
+
+        let actual = distance((0, 0), (10, 10));
+        let expected = 14.142136;
+        assert!(abs(actual - expected) <= Float::epsilon());
+
+        let actual = distance((0, 0), (10, -10));
+        let expected = 14.142136;
+        assert!(abs(actual - expected) <= Float::epsilon());
+
+        let actual = distance((0, 0), (-10, 10));
+        let expected = 14.142136;
+        assert!(abs(actual - expected) <= Float::epsilon());
+
+        let actual = distance((0, 0), (10, -10));
+        let expected = 14.142136;
+        assert!(abs(actual - expected) <= Float::epsilon());
+
+        let actual = distance((0, 0), (3, 4));
+        let expected = 5.0;
+        assert!(abs(actual - expected) <= Float::epsilon());
+
+        let actual = distance((0, 0), (-3, 4));
+        let expected = 5.0;
+        assert!(abs(actual - expected) <= Float::epsilon());
+
+        let actual = distance((0, 0), (3, -4));
+        let expected = 5.0;
+        assert!(abs(actual - expected) <= Float::epsilon());
+
+        let actual = distance((0, 0), (-3, -4));
+        let expected = 5.0;
+        assert!(abs(actual - expected) <= Float::epsilon());
+}
+
+    #[test]
+    fn test_points_within_radius_of_zero() {
+        let actual: Vec<(int, int)> = FromIterator::from_iter(points_within_radius((3, 3), 0));
+        assert!(actual.as_slice() == [(3, 3)]);
+    }
+
+    #[test]
+    fn test_points_within_radius_of_one() {
+        let actual: Vec<(int, int)> = FromIterator::from_iter(points_within_radius((3, 3), 1));
+        let expected = [(2, 2), (3, 2), (4, 2),
+                        (2, 3), (3, 3), (4, 3),
+                        (2, 4), (3, 4), (4, 4)];
+        assert!(actual.as_slice() == expected);
+    }
+
+    #[test]
+    fn test_points_within_radius_of_five() {
+        use std::iter::range_inclusive;
+
+        let mut actual: Vec<(int, int)> = FromIterator::from_iter(points_within_radius((0, 0), 5));
+
+        let mut expected = Vec::new();
+        for x in range_inclusive(-5, 5) {
+            for y in range_inclusive(-5, 5) {
+                expected.push((x, y));
+            }
+        }
+        // the order is undefined so make sure we don't fail just because of ordering
+        actual.sort();
+        expected.sort();
+        assert!(actual.as_slice() == expected.as_slice());
     }
 }

@@ -25,3 +25,37 @@ pub fn distance<P1: Point, P2: Point>(p1: P1, p2: P2) -> f32 {
     let b = pow((y1 - y2) as f32, 2);
     (a + b).sqrt()
 }
+
+struct PointsWithinRadius {
+    x: int,
+    y: int,
+    initial_x: int,
+    max_x: int,
+    max_y: int,
+}
+
+impl Iterator<(int, int)> for PointsWithinRadius {
+    fn next(&mut self) -> Option<(int, int)> {
+        if (self.y > self.max_y) || (self.x > self.max_x) {
+            return None;
+        }
+        let current_point = (self.x, self.y);
+        self.x += 1;
+        if self.x > self.max_x {
+            self.x = self.initial_x;
+            self.y += 1;
+        }
+        Some(current_point)
+    }
+}
+
+pub fn points_within_radius<T: Point>(center: T, radius: int) -> PointsWithinRadius {
+    let (center_x, center_y) = center.coordinates();
+    PointsWithinRadius{
+        x: center_x - radius,
+        y: center_y - radius,
+        initial_x: center_x - radius,
+        max_x: center_x + radius,
+        max_y: center_y + radius,
+    }
+}

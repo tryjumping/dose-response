@@ -33,18 +33,19 @@ pub fn system(e: ID,
     let pos = ecm.get::<Position>(e);
     let search_radius = 3;  // max irresistibility for a dose is curretnly 3
     let mut doses: ~[ID] = ~[];
+    for (x, y) in points_within_radius(entity_position) {
+        for dose in ecm.entities_on_pos((x, y)) {
+            if !ecm.has_entity(dose) {
+                fail!("dose system: dose {:?} on pos {:?} not in ecm.", dose, (x, y));
+            }
+            if !ecm.has_dose(dose) {continue};
+            if is_irresistible(e, dose, ecm, res.world_size) {
+                doses.push(dose);
+            }
+        }
+    }
     for x in range_inclusive(pos.x - search_radius, pos.x + search_radius) {
         for y in range_inclusive(pos.y - search_radius, pos.y + search_radius) {
-            for dose in ecm.entities_on_pos(Position{x: x, y: y}) {
-                if !ecm.has_entity(dose) {
-                    fail!("dose system: dose {} on pos {}, {} not in ecm.",
-                          dose.deref(), x, y);
-                }
-                if !ecm.has_dose(dose) {continue};
-                if is_irresistible(e, dose, ecm, res.world_size) {
-                    doses.push(dose);
-                }
-            }
         }
     }
     let nearest_dose = doses.iter().min_by(|&dose| {

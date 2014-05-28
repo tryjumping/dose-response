@@ -81,7 +81,7 @@ pub mod input;
 pub mod movement;
 pub mod panic;
 pub mod panic_effect_duration;
-// pub mod stun;
+pub mod stun;
 pub mod stun_effect_duration;
 pub mod tile;
 pub mod turn;

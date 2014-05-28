@@ -1,15 +1,19 @@
-use components::{Position, Stunned};
-use super::super::Resources;
+use ecm::{ComponentManager, ECM, Entity};
+use components::{Destination, Position, Stunned, UsingItem};
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
-              _res: &mut Resources) {
-    ensure_components!(ecm, e, Stunned, Position);
-    if ecm.has_destination(e) {
-        let Position{x, y} = ecm.get::<Position>(e);
-        ecm.set_destination(e, Destination{x: x, y: y});
-    } else if ecm.has_using_item(e) {
-        println!("Entity {:?} cannot use items because it's stunned.", e);
-        ecm.remove_using_item(e);
+
+define_system! {
+    name: StunSystem;
+    components(Stunned, Position);
+    resources(ecm: ECM);
+    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+        let mut ecm = &mut *self.ecm();
+        if ecm.has::<Destination>(entity) {
+            let Position{x, y} = ecm.get::<Position>(entity);
+            ecm.set(entity, Destination{x: x, y: y});
+        } else if ecm.has::<UsingItem>(entity) {
+            println!("{:?} cannot use items because it's stunned.", entity);
+            ecm.remove::<UsingItem>(entity);
+        }
     }
 }

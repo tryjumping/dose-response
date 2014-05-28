@@ -361,7 +361,11 @@ fn main() {
         ecm.clone(),
         engine.display(),
         player_rc.clone()));
-    // TODO: systems::gui::system(&state.ecm, &mut state.resources, display);
+    game_state.world.add_system(box systems::gui::GUISystem::new(
+        ecm.clone(),
+        engine.display(),
+        player_rc.clone(),
+        game_state.turn.clone()));
     game_state.world.add_system(box systems::turn::TurnSystem::new(
         ecm.clone(),
         game_state.side.clone(),

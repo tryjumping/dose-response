@@ -3,7 +3,7 @@ use rand::Rng;
 
 use ecm::{ComponentManager, ECM, Entity};
 use components::ai;
-use components::{AI, Destination, Position, Side, Computer};
+use components::{AI, Destination, Position, Side, Computer, Turn};
 use systems::movement::is_walkable;
 use point;
 
@@ -124,11 +124,15 @@ define_system! {
     resources(ecm: ECM, player: Entity, side: Side, world_size: (int, int), rng: ::rand::IsaacRng);
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
         let mut ecm = &mut *self.ecm();
-        if !ecm.has::<Position>(*self.player()) { return }
+        let player = *self.player();
+        // TODO: having a generic is_alive predicate would be better. How about
+        // testing for the presence of Position && (AI || AcceptsUserInput)?
+        let player_alive = ecm.has::<Position>(player) && ecm.has::<Turn>(player);
+        if !player_alive { return }
         if *self.side() != Computer { return }
 
         let world_size = *self.world_size();
-        let player_pos = ecm.get::<Position>(*self.player());
+        let player_pos = ecm.get::<Position>(player);
         let pos = ecm.get::<Position>(e);
         let mut rng = &mut *self.rng();
         let dest = if entity_blocked(pos, ecm, world_size) {

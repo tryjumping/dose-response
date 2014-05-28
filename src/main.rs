@@ -329,7 +329,6 @@ fn main() {
         ecm.clone(),
         game_state.commands.clone()));
     // TODO: systems::leave_area::system,
-    // TODO: systems::player_dead::system,
     game_state.world.add_system(box systems::ai::AISystem::new(
         ecm.clone(),
         player_rc.clone(),

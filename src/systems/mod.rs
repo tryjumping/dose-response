@@ -79,7 +79,7 @@ pub mod input;
 // pub mod interaction;
 // pub mod leave_area;
 pub mod movement;
-// pub mod panic;
+pub mod panic;
 pub mod panic_effect_duration;
 // pub mod stun;
 pub mod stun_effect_duration;

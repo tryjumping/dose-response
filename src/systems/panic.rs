@@ -1,22 +1,22 @@
-use std::rand::Rng;
+use rand::{IsaacRng, Rng};
 
-use components::{Destination, Panicking, Position};
-use super::super::Resources;
+use ecm::{ComponentManager, ECM, Entity};
+use components::{Background, Destination, Panicking, Position, Solid, UsingItem};
 use systems::movement::is_walkable;
+use point::Point;
 
 
-fn is_wall(pos: Position, ecm: &ComponentManager) -> bool {
-    ecm.entities_on_pos(pos).any(|e| {
-        ecm.has_background(e) && ecm.has_solid(e)
+fn is_wall(pos: Position, ecm: &ECM) -> bool {
+    ecm.entities_on_pos(pos.coordinates()).any(|e| {
+        ecm.has::<Background>(e) && ecm.has::<Solid>(e)
     })
 }
 
 // Can be either an empty place or one with a monster (i.e. blocked but bumpable)
 fn random_nonwall_destination<T: Rng>(rng: &mut T,
                                       pos: Position,
-                                      ecm: &ComponentManager,
-                                      map_size: (int, int))
-                                      -> (int, int) {
+                                      ecm: &ECM,
+                                      map_size: (int, int)) -> (int, int) {
     let neighbors = [
         (pos.x, pos.y-1),
         (pos.x, pos.y+1),
@@ -27,34 +27,35 @@ fn random_nonwall_destination<T: Rng>(rng: &mut T,
         (pos.x-1, pos.y+1),
         (pos.x+1, pos.y+1),
         ];
-    let mut potential_destinations: ~[(int, int)] = ~[];
+    let mut potential_destinations: Vec<(int, int)> = Vec::new();
     for &p in neighbors.iter() {
         let pos = match p { (x, y) => Position{x: x, y: y} };
         if is_walkable(pos, ecm, map_size) || !is_wall(pos, ecm) {
             potential_destinations.push(p)
         }
     }
-    if potential_destinations.is_empty() {
-        (pos.x, pos.y)  // Nowhere to go
-    } else {
-        rng.choose(potential_destinations)
+    match rng.choose(potential_destinations.as_slice()) {
+        Some(&p) => p,
+        None => (pos.x, pos.y),  // Nowhere to go
     }
 }
 
 
-
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
-              res: &mut Resources) {
-    ensure_components!(ecm, e, Panicking, Position);
-    if ecm.has_using_item(e) || ecm.has_destination(e) {
-        // Prevent the item usage
-        println!("Entity {:?} panics.", e);
-        ecm.remove_using_item(e);
-        // Randomly run around
-        let pos = ecm.get::<Position>(e);
-        match random_nonwall_destination(&mut res.rng, pos, ecm, res.world_size) {
-            (x, y) => ecm.set_destination(e, Destination{x: x, y: y}),
+define_system! {
+    name: PanicSystem;
+    components(Panicking, Position);
+    resources(ecm: ECM, world_size: (int, int), rng: IsaacRng);
+    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+        let mut ecm = &mut *self.ecm();
+        if ecm.has::<UsingItem>(entity) || ecm.has::<Destination>(entity) {
+            println!("{:?} panics.", entity);
+            // Prevent the item usage
+            ecm.remove::<UsingItem>(entity);
+            // Randomly run around
+            let pos = ecm.get::<Position>(entity);
+            match random_nonwall_destination(&mut *self.rng(), pos, ecm, *self.world_size()) {
+                (x, y) => ecm.set(entity, Destination{x: x, y: y}),
+            }
         }
     }
 }

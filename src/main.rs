@@ -28,13 +28,13 @@ use engine::{Display, key};
 use systems::input::commands;
 use systems::input::commands::Command;
 
-pub mod components;
+mod components;
 mod engine;
-pub mod ecm;
-pub mod point;
-pub mod systems;
-pub mod world_gen;
-pub mod world;
+mod ecm;
+mod point;
+mod systems;
+mod world_gen;
+mod world;
 
 
 pub struct GameState {

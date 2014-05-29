@@ -370,7 +370,10 @@ fn main() {
         ecm.clone(),
         game_state.side.clone(),
         game_state.turn.clone()));
-    // TODO: systems::addiction_graphics::system(&mut state.ecm, &mut state.resources, display);
+    game_state.world.add_system(box systems::addiction_graphics::AddictionGraphicsSystem::new(
+        ecm.clone(),
+        engine.display(),
+        player_rc.clone()));
 
     engine.main_loop(game_state, update);
 }

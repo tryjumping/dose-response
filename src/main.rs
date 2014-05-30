@@ -348,6 +348,8 @@ fn main() {
         ecm.clone(),
         world_size_rc.clone()));
     // TODO: systems::eating::system,
+    game_state.world.add_system(box systems::eating::EatingSystem::new(
+        ecm.clone()));
     // TODO: systems::interaction::system,
     game_state.world.add_system(box systems::bump::BumpSystem::new(
         ecm.clone()));

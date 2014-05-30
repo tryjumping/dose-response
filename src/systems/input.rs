@@ -38,7 +38,7 @@ define_system! {
     components(AcceptsUserInput, Position);
     resources(ecm: ECM, commands: RingBuf<Command>);
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
-        let mut ecm = self.ecm();
+        let mut ecm = &mut *self.ecm();
         // Clean up state from any previous commands
         ecm.remove::<Destination>(e);
         ecm.remove::<UsingItem>(e);
@@ -58,11 +58,10 @@ define_system! {
                     SE => ecm.set(e, Destination{x: pos.x+1, y: pos.y+1}),
 
                     Eat => {
-                        fail!("TODO");
-                        // match super::eating::get_first_owned_food(ecm, e) {
-                        //     Some(food) => ecm.set_using_item(e, UsingItem{item: food}),
-                        //     None => (),
-                        // }
+                        match super::eating::get_first_owned_food(ecm, e) {
+                            Some(food) => ecm.set(e, UsingItem{item: food}),
+                            None => (),
+                        }
                     }
                 };
             },

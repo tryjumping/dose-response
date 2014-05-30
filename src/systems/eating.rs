@@ -1,13 +1,15 @@
-use std::iter::range_inclusive;
-
-use components::{AcceptsUserInput, Position, Turn, UsingItem};
-use super::super::Resources;
+use components::{AcceptsUserInput, AI, InventoryItem, Edible, ExplosionEffect,
+                 Position, Turn, UsingItem};
+use ecm::{ComponentManager, ECM, Entity};
 use super::combat;
+use point;
 
-pub fn get_first_owned_food(ecm: &ComponentManager, owner: ID) -> Option<ID> {
+
+pub fn get_first_owned_food(ecm: &ECM, owner: Entity) -> Option<Entity> {
+    // TODO: sloooooooow. Add some caching like with Position?
     for e in ecm.iter() {
-        if ecm.has_inventory_item(e) {
-            let item = ecm.get_inventory_item(e);
+        if ecm.has::<InventoryItem>(e) {
+            let item = ecm.get::<InventoryItem>(e);
             if item.owner == owner {
                 return Some(e);
             }
@@ -16,41 +18,40 @@ pub fn get_first_owned_food(ecm: &ComponentManager, owner: ID) -> Option<ID> {
     None
 }
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
-              _res: &mut Resources) {
-    // Only the player can eat for now:
-    ensure_components!(ecm, e, AcceptsUserInput, Position, Turn, UsingItem);
-    println!("processing food system");
-    let food = ecm.get_using_item(e).item;
-    if !ecm.has_edible(food) {
-        println!("food {:?} isn't edible", food);
-        return;
-    }
-    assert!(ecm.has_inventory_item(food));
-    let turn = ecm.get_turn(e);
-    if turn.ap <= 0 {
-        return;
-    }
-    println!("{:?} eats food {:?}", e, food);
-    ecm.remove_inventory_item(food);
-    ecm.remove_using_item(e);
-    ecm.set(e, turn.spend_ap(1));
-    // TODO: this is copypasted from the Interaction system. Deduplicate!
-    if ecm.has_explosion_effect(food) {
-        println!("Eating kills off nearby enemies");
-        let pos = ecm.get::<Position>(e);
-        let radius = ecm.get_explosion_effect(food).radius;
-        for x in range_inclusive(pos.x - radius, pos.x + radius) {
-            for y in range_inclusive(pos.y - radius, pos.y + radius) {
-                for monster in ecm.entities_on_pos(Position{x: x, y: y}) {
-                    if ecm.has_entity(monster) && ecm.has_ai(monster) {
+
+define_system! {
+    name: EatingSystem;
+    components(UsingItem, Position, Turn);
+    resources(ecm: ECM);
+    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+        let ecm = &mut *self.ecm();
+        let food = ecm.get::<UsingItem>(entity).item;
+        if !ecm.has::<Edible>(food) {
+            println!("item {:?} isn't edible", food);
+            return;
+        }
+        assert!(ecm.has::<InventoryItem>(food));
+        let turn = ecm.get::<Turn>(entity);
+        if turn.ap <= 0 {
+            return;
+        }
+        println!("{:?} eats food {:?}", entity, food);
+        ecm.remove::<InventoryItem>(food);
+        ecm.remove::<UsingItem>(entity);
+        ecm.set(entity, turn.spend_ap(1));
+        if ecm.has::<ExplosionEffect>(food) {
+            println!("Eating kills off nearby enemies");
+            let pos = ecm.get::<Position>(entity);
+            let radius = ecm.get::<ExplosionEffect>(food).radius;
+            for (x, y) in point::points_within_radius(pos, radius) {
+                for monster in ecm.entities_on_pos((x, y)) {
+                    if ecm.has_entity(monster) && ecm.has::<AI>(monster) {
                         combat::kill_entity(monster, ecm);
                     }
                 }
             }
+        } else {
+            println!("The food doesn't have enemy-killing effect.");
         }
-    } else {
-        println!("The food doesn't have enemy-killing effect.");
     }
 }

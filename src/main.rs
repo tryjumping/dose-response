@@ -335,7 +335,9 @@ fn main() {
         game_state.side.clone(),
         world_size_rc.clone(),
         game_state.rng.clone()));
-    // TODO: systems::dose::system,
+    game_state.world.add_system(box systems::dose::DoseSystem::new(
+        ecm.clone(),
+        world_size_rc.clone()));
     game_state.world.add_system(box systems::panic::PanicSystem::new(
         ecm.clone(),
         world_size_rc.clone(),

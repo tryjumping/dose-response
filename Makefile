@@ -16,7 +16,7 @@ $(APP): $(SOURCES)
 run: $(APP)
 	./$(APP)
 
-replay: build
+replay: $(APP)
 	./$(APP) `find replays -type f -name 'replay-*' | sort | tail -n 1`
 
 clean:

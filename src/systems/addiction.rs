@@ -1,5 +1,6 @@
 use ecm::{ComponentManager, ECM, Entity};
 use components::{Addiction, Attributes};
+use entity_util;
 
 
 define_system! {
@@ -20,7 +21,7 @@ define_system! {
         };
         let som = ecm.get::<Attributes>(entity).state_of_mind;
         if som <= 0 || som >= 100 {
-            ::systems::combat::kill_entity(entity, ecm);
+            entity_util::kill(ecm, entity);
         }
     }
 }

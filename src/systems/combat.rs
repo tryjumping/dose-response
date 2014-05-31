@@ -5,43 +5,8 @@ use components::{Anxiety, AnxietyKillCounter, AI, AttackTarget, AttackType,
                  AcceptsUserInput, Count, Corpse, Destination, FadeColor,
                  FadeOut, Kill, Monster, Panic, Panicking, Position, Solid, Stun,
                  Stunned, Tile, Turn};
+use entity_util;
 
-
-pub fn kill_entity(e: Entity,
-                   ecm: &mut ECM) {
-    if !ecm.has_entity(e) {return}
-    // TODO: we assume that an entity without a turn is already dead. Add a
-    // `Dead` component (or something similar) instead.
-    // TODO: also, this is a bug: killing should be idempotent
-    if !ecm.has::<Turn>(e) {return}
-    ecm.remove::<AI>(e);
-    ecm.remove::<AcceptsUserInput>(e);
-    ecm.remove::<Turn>(e);
-    ecm.remove::<Destination>(e);
-    let solid_corpse = ecm.has::<Corpse>(e) && ecm.get::<Corpse>(e).solid;
-    if !solid_corpse {
-        ecm.remove::<Solid>(e);
-    }
-    // Replace the entity's Tile with the tile of a corpse.
-    if ecm.has::<Corpse>(e) && ecm.has::<Tile>(e) {
-        let corpse = ecm.get::<Corpse>(e);
-        let tile = ecm.get::<Tile>(e);
-        ecm.set(e, Tile{glyph: corpse.glyph,
-                             color: corpse.color,
-                             .. tile});
-        ecm.set(e, FadeColor{
-                from: tile.color,
-                to: corpse.color,
-                duration_s: 1f32,
-                repetitions: Count(1),
-            });
-    } else if ecm.has::<FadeOut>(e) {
-        // TODO: we probably shouldn't remove the fading-out entities here.
-        // Makes no sense. Just remove their tiles after the fadeout.
-    } else {
-        ecm.remove::<Tile>(e);
-    }
-}
 
 define_system! {
     name: CombatSystem;
@@ -60,7 +25,7 @@ define_system! {
         match ecm.get::<AttackType>(attacker) {
             Kill => {
                 println!("Entity {:?} was killed by {:?}", target, attacker);
-                kill_entity(target, ecm);
+                entity_util::kill(ecm, target);
                 // TODO: This is a hack. The player should fade out, the other
                 // monsters just disappear. Need to make this better without
                 // special-casing the player.
@@ -89,7 +54,7 @@ define_system! {
                         ecm.set(attacker, Tile{level: tile.level - 1, .. tile});
                     }
                 }
-                kill_entity(attacker, ecm);
+                entity_util::kill(ecm, attacker);
                 let stunned = if ecm.has::<Stunned>(target) {
                     let prev = ecm.get::<Stunned>(target);
                     Stunned{duration: prev.duration + duration, .. prev}
@@ -110,7 +75,7 @@ define_system! {
                         ecm.set(attacker, Tile{level: tile.level - 1, .. tile});
                     }
                 }
-                kill_entity(attacker, ecm);
+                entity_util::kill(ecm, attacker);
                 let panicking = if ecm.has::<Panicking>(target) {
                     let prev = ecm.get::<Panicking>(target);
                     Panicking{duration: prev.duration + duration, .. prev}

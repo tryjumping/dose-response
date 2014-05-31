@@ -1,9 +1,8 @@
 use components::{AcceptsUserInput, Addiction, AI, AttributeModifier, Attributes,
                  Dose, ExplosionEffect, Pickable, Position, InventoryItem};
 use ecm::{ComponentManager, ECM, Entity};
-use super::combat;
 use point::Point;
-use super::eating::explosion;
+use entity_util;
 
 
 define_system! {
@@ -47,7 +46,7 @@ define_system! {
                 }
                 if ecm.has::<ExplosionEffect>(inter) {
                     let radius = ecm.get::<ExplosionEffect>(inter).radius;
-                    explosion(ecm, pos, radius);
+                    entity_util::explosion(ecm, pos, radius);
                 }
             } else {
                 ecm.set(inter, InventoryItem{owner: actor});

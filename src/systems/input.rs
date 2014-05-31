@@ -4,6 +4,7 @@ use collections::{Deque, RingBuf};
 use components::{AcceptsUserInput, Destination, Position, UsingItem};
 use ecm::{ComponentManager, ECM, Entity};
 use self::commands::*;
+use entity_util;
 
 
 pub mod commands {
@@ -58,7 +59,7 @@ define_system! {
                     SE => ecm.set(e, Destination{x: pos.x+1, y: pos.y+1}),
 
                     Eat => {
-                        match super::eating::get_first_owned_food(ecm, e) {
+                        match entity_util::get_first_owned_food(ecm, e) {
                             Some(food) => ecm.set(e, UsingItem{item: food}),
                             None => (),
                         }

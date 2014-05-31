@@ -347,10 +347,10 @@ fn main() {
     game_state.world.add_system(box systems::movement::MovementSystem::new(
         ecm.clone(),
         world_size_rc.clone()));
-    // TODO: systems::eating::system,
     game_state.world.add_system(box systems::eating::EatingSystem::new(
         ecm.clone()));
-    // TODO: systems::interaction::system,
+    game_state.world.add_system(box systems::interaction::InteractionSystem::new(
+        ecm.clone()));
     game_state.world.add_system(box systems::bump::BumpSystem::new(
         ecm.clone()));
     game_state.world.add_system(box systems::combat::CombatSystem::new(

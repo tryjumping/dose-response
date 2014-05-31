@@ -76,7 +76,7 @@ pub mod eating;
 // pub mod fade_out;
 pub mod gui;
 pub mod input;
-// pub mod interaction;
+pub mod interaction;
 // pub mod leave_area;
 pub mod movement;
 pub mod panic;

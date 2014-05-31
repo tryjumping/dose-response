@@ -12,7 +12,7 @@ define_system! {
             let Position{x, y} = ecm.get::<Position>(entity);
             ecm.set(entity, Destination{x: x, y: y});
         } else if ecm.has::<UsingItem>(entity) {
-            println!("{:?} cannot use items because it's stunned.", entity);
+            println!("{} cannot use items because it's stunned.", entity);
             ecm.remove::<UsingItem>(entity);
         }
     }

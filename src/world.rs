@@ -1,5 +1,5 @@
-use rand;
-use rand::Rng;
+use std::rand;
+use std::rand::Rng;
 
 // TODO: looks like we want to namespace these some more:
 use components::{AcceptsUserInput,Attributes, Addiction, AnxietyKillCounter, AI,
@@ -178,7 +178,18 @@ pub fn create_player(ecm: &mut ECM, player: Entity) {
 }
 
 
-impl world_gen::WorldItem {
+// TODO: adding this dummy trait so we can implemen these methods here instead
+// of in the world_gen module where the struct is defined. A recent Rust upgrade
+// broke that and I'm not currently sure if that's to stay or not.
+//
+// We'll see once things settle down.
+trait MyWorldItemDummyTrait {
+    fn to_glyph(self) -> char;
+    fn to_color(self) -> Color;
+    fn is_monster(self) -> bool;
+}
+
+impl MyWorldItemDummyTrait for world_gen::WorldItem {
     fn to_glyph(self) -> char {
         match self {
             world_gen::Empty => '.',

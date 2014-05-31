@@ -50,7 +50,7 @@ define_system! {
                 }
             } else {
                 ecm.set(inter, InventoryItem{owner: actor});
-                println!("Item {:?} picked up by {:?}", inter, actor);
+                println!("Item {} picked up by {}", inter, actor);
             }
             ecm.remove::<Position>(inter);
         }

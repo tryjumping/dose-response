@@ -8,7 +8,7 @@ use self::intoxication_state::*;
 use world::col;
 
 pub mod intoxication_state {
-    #[deriving(Eq)]
+    #[deriving(PartialEq)]
     pub enum IntoxicationState {
         Exhausted,
         DeliriumTremens,

@@ -195,7 +195,7 @@ impl CommandLogger {
 }
 
 fn new_game_state(width: int, height: int) -> GameState {
-    let mut rng = IsaacRng::new().unwrap();
+    let mut rng = IsaacRng::new_unseeded();
     let commands = RingBuf::new();
     let seed = rng.gen_range(0u32, 10000);
     rng.reseed([seed]);

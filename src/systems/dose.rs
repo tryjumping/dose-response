@@ -38,7 +38,7 @@ define_system! {
         for (x, y) in point::points_within_radius(pos, search_radius) {
             for dose in ecm.entities_on_pos((x, y)) {
                 if !ecm.has_entity(dose) {
-                    fail!("dose system: dose {:?} on pos {:?} not in ecm.", dose, (x, y));
+                    fail!("dose system: dose {} on pos {} not in ecm.", dose, (x, y));
                 }
                 if !ecm.has::<Dose>(dose) {continue};
                 if is_irresistible(addict, dose, ecm, world_size) {

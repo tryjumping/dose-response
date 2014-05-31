@@ -98,7 +98,7 @@ define_system! {
         let dest: Destination = ecm.get(e);
         if (pos.x, pos.y) == (dest.x, dest.y) {
             // Wait (spends an AP but do nothing)
-            println!("Entity {:?} waits.", e);
+            println!("Entity {} waits.", e);
             ecm.set(e, turn.spend_ap(1));
             ecm.remove::<Destination>(e);
         } else if point::tile_distance(pos, dest) == 1 {
@@ -141,7 +141,7 @@ define_system! {
                         }
                     }
                     None => {
-                        println!("Entity {:?} cannot find a path so it waits.", e);
+                        println!("Entity {} cannot find a path so it waits.", e);
                         ecm.set(e, turn.spend_ap(1));
                         ecm.remove::<Destination>(e);
                     }

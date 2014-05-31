@@ -13,7 +13,7 @@ define_system! {
         let ecm = &mut *self.ecm();
         let food = ecm.get::<UsingItem>(entity).item;
         if !ecm.has::<Edible>(food) {
-            println!("item {:?} isn't edible", food);
+            println!("item {} isn't edible", food);
             return;
         }
         assert!(ecm.has::<InventoryItem>(food));
@@ -21,7 +21,7 @@ define_system! {
         if turn.ap <= 0 {
             return;
         }
-        println!("{:?} eats food {:?}", entity, food);
+        println!("{} eats food {}", entity, food);
         ecm.remove::<InventoryItem>(food);
         ecm.remove::<UsingItem>(entity);
         ecm.set(entity, turn.spend_ap(1));

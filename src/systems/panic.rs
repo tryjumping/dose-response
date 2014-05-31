@@ -48,7 +48,7 @@ define_system! {
     fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
         let mut ecm = &mut *self.ecm();
         if ecm.has::<UsingItem>(entity) || ecm.has::<Destination>(entity) {
-            println!("{:?} panics.", entity);
+            println!("{} panics.", entity);
             // Prevent the item usage
             ecm.remove::<UsingItem>(entity);
             // Randomly run around

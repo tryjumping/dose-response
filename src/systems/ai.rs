@@ -136,7 +136,7 @@ define_system! {
         let pos = ecm.get::<Position>(e);
         let mut rng = &mut *self.rng();
         let dest = if entity_blocked(pos, ecm, world_size) {
-            println!("Found a blocked entity: {:?}", e);
+            println!("Found a blocked entity: {}", e);
             Destination{x: pos.x, y: pos.y}
         } else {
             match ecm.get::<AI>(e).behaviour {

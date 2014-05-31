@@ -73,7 +73,7 @@ impl ComponentManager<EntityIterator> for ECM {
             let cache = self.position_cache.get_mut(&(pos.x, pos.y));
             let cached_entity_index = match cache.iter().position(|&i| i == entity) {
                 Some(index) => index,
-                None => fail!("Position cache is missing the entity {:?}", entity),
+                None => fail!("Position cache is missing the entity {}", entity),
             };
             cache.remove(cached_entity_index);
         }

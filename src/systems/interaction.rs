@@ -3,7 +3,7 @@ use components::{AcceptsUserInput, Addiction, AI, AttributeModifier, Attributes,
 use ecm::{ComponentManager, ECM, Entity};
 use super::combat;
 use point::Point;
-use point;
+use super::eating::explosion;
 
 
 define_system! {
@@ -47,13 +47,7 @@ define_system! {
                 }
                 if ecm.has::<ExplosionEffect>(inter) {
                     let radius = ecm.get::<ExplosionEffect>(inter).radius;
-                    for (x, y) in point::points_within_radius(pos, radius) {
-                        for monster in ecm.entities_on_pos((x, y)) {
-                            if ecm.has_entity(monster) && ecm.has::<AI>(monster) {
-                                combat::kill_entity(monster, ecm);
-                            }
-                        }
-                    }
+                    explosion(ecm, pos, radius);
                 }
             } else {
                 ecm.set(inter, InventoryItem{owner: actor});

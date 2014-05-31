@@ -29,8 +29,9 @@ use systems::input::commands;
 use systems::input::commands::Command;
 
 mod components;
-mod engine;
 mod ecm;
+mod engine;
+mod entity_util;
 mod point;
 mod systems;
 mod world_gen;

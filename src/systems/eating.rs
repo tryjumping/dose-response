@@ -18,6 +18,16 @@ pub fn get_first_owned_food(ecm: &ECM, owner: Entity) -> Option<Entity> {
     None
 }
 
+pub fn explosion<T: point::Point>(ecm: &mut ECM, center: T, radius: int) {
+    for (x, y) in point::points_within_radius(center, radius) {
+        for e in ecm.entities_on_pos((x, y)) {
+            if ecm.has_entity(e) && ecm.has::<AI>(e) {
+                combat::kill_entity(e, ecm);
+            }
+        }
+    }
+}
+
 
 define_system! {
     name: EatingSystem;
@@ -43,13 +53,7 @@ define_system! {
             println!("Eating kills off nearby enemies");
             let pos = ecm.get::<Position>(entity);
             let radius = ecm.get::<ExplosionEffect>(food).radius;
-            for (x, y) in point::points_within_radius(pos, radius) {
-                for monster in ecm.entities_on_pos((x, y)) {
-                    if ecm.has_entity(monster) && ecm.has::<AI>(monster) {
-                        combat::kill_entity(monster, ecm);
-                    }
-                }
-            }
+            explosion(ecm, pos, radius);
         } else {
             println!("The food doesn't have enemy-killing effect.");
         }

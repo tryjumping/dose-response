@@ -360,7 +360,9 @@ fn main() {
         game_state.turn.clone()));
     game_state.world.add_system(box systems::will::WillSystem::new(
         ecm.clone()));
-    // TODO: systems::exploration::system,
+    game_state.world.add_system(box systems::exploration::ExplorationSystem::new(
+        ecm.clone(),
+        player_rc.clone()));
     // TODO: systems::fade_out::system,
     // TODO: systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s)
     game_state.world.add_system(box systems::tile::TileSystem::new(

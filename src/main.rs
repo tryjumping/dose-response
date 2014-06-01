@@ -47,7 +47,7 @@ pub struct GameState {
     commands: Rc<RefCell<RingBuf<Command>>>,
     command_logger: Rc<RefCell<CommandLogger>>,
     player: Entity,
-    cheating: bool,
+    cheating: Rc<RefCell<bool>>,
     replay: bool,
     paused: bool,
 }
@@ -142,8 +142,9 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
     }
 
     if key_pressed(&*keys.borrow(), Special(key::F6)) {
-        state.cheating = !state.cheating;
-        println!("Cheating set to: {}", state.cheating);
+        let cheating = !*state.cheating.borrow();
+        *state.cheating.borrow_mut() = cheating;
+        println!("Cheating set to: {}", cheating);
     }
 
     state.paused = if state.replay && read_key(&mut *keys.borrow_mut(), Special(key::Spacebar)) {
@@ -222,7 +223,7 @@ fn new_game_state(width: int, height: int) -> GameState {
         side: rc_mut(Computer),
         turn: rc_mut(0),
         player: player,
-        cheating: false,
+        cheating: rc_mut(false),
         replay: false,
         paused: false,
         world_size: (width, height),
@@ -268,7 +269,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
         side: rc_mut(Computer),
         turn: rc_mut(0),
         player: player,
-        cheating: false,
+        cheating: rc_mut(false),
         replay: true,
         paused: false,
         world_size: (width, height),
@@ -368,7 +369,8 @@ fn main() {
     game_state.world.add_system(box systems::tile::TileSystem::new(
         ecm.clone(),
         engine.display(),
-        player_rc.clone()));
+        player_rc.clone(),
+        game_state.cheating.clone()));
     game_state.world.add_system(box systems::gui::GUISystem::new(
         ecm.clone(),
         engine.display(),

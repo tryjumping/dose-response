@@ -8,7 +8,7 @@ use color = world::col;
 define_system! {
     name: TileSystem;
     components(Position, Tile);
-    resources(ecm: ECM, display: Display, player: Entity);
+    resources(ecm: ECM, display: Display, player: Entity, cheating: bool);
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
         let player = *self.player();
         let mut ecm = self.ecm();
@@ -22,8 +22,7 @@ define_system! {
         };
         let shows_in_fog_of_war = ecm.has::<Background>(e) || ecm.has::<Explored>(e);
         let is_explored = ecm.has::<Explored>(e);
-        // TODO: get the current value of cheating from GameState
-        let cheating = true;
+        let cheating = *self.cheating();
         if is_explored || cheating {
             let bg = if is_visible {
                 color::background

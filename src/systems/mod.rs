@@ -86,4 +86,4 @@ pub mod stun_effect_duration;
 pub mod tile;
 pub mod turn;
 pub mod turn_tick_counter;
-// pub mod will;
+pub mod will;

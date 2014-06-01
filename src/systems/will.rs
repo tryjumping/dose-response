@@ -1,26 +1,29 @@
 use components::{AnxietyKillCounter, Attributes};
-use super::combat;
-use super::super::Resources;
+use ecm::{ComponentManager, ECM, Entity};
+use entity_util;
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
-              _res: &mut Resources) {
-    ensure_components!(ecm, e, Attributes);
-    let attrs = ecm.get_attributes(e);
 
-    if ecm.has_anxiety_kill_counter(e) {
-        let kc = ecm.get_anxiety_kill_counter(e);
-        if kc.count >= kc.threshold {
-            ecm.set(e,
-                               Attributes{will: attrs.will + 1, .. attrs});
-            ecm.set(e,
-                                         AnxietyKillCounter{
-                    count: kc.threshold - kc.count,
-                    .. kc
-                });
+define_system! {
+    name: WillSystem;
+    components(Attributes);
+    resources(ecm: ECM);
+    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+        let mut ecm = &mut *self.ecm();
+        let attrs = ecm.get::<Attributes>(entity);
+        if ecm.has::<AnxietyKillCounter>(entity) {
+            let kc = ecm.get::<AnxietyKillCounter>(entity);
+            if kc.count >= kc.threshold {
+                ecm.set(entity,
+                        Attributes{will: attrs.will + 1, .. attrs});
+                ecm.set(entity,
+                        AnxietyKillCounter{
+                            count: kc.threshold - kc.count,
+                            .. kc
+                        });
+            }
         }
-    }
-    if ecm.get_attributes(e).will <= 0 {
-        combat::kill_entity(e, ecm);
+        if ecm.get::<Attributes>(entity).will <= 0 {
+            entity_util::kill(ecm, entity);
+        }
     }
 }

@@ -358,7 +358,8 @@ fn main() {
         ecm.clone(),
         player_rc.clone(),
         game_state.turn.clone()));
-    // TODO: systems::will::system,
+    game_state.world.add_system(box systems::will::WillSystem::new(
+        ecm.clone()));
     // TODO: systems::exploration::system,
     // TODO: systems::fade_out::system,
     // TODO: systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s)

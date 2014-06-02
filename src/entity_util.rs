@@ -15,15 +15,28 @@ pub fn set_color_animation_loop(ecm: &mut ECM, e: Entity,
         repetitions: repetitions,
         transition_duration: duration,
         current: ColorAnimationState{
-            color: to,
+            color: from,
             fade_direction: Forward,
             elapsed_time: Sec(0.0),
         },
     });
 }
 
-pub fn fade_out(ecm: &mut ECM, e: Entity, color: Color, duration: Sec) {
-    unimplemented!();
+pub fn fade_out(ecm: &mut ECM, e: Entity, color_to_fade_out: Color, duration: Sec) {
+    assert!(ecm.has::<Tile>(e), "Can't fade out an entity without a tile.");
+    let tile = ecm.get::<Tile>(e);
+    ecm.set(e, FadingOut);
+    ecm.set(e, ColorAnimation{
+        from: tile.color,
+        to: color_to_fade_out,
+        repetitions: Count(1),
+        transition_duration: duration,
+        current: ColorAnimationState{
+            color: tile.color,
+            fade_direction: Forward,
+            elapsed_time: Sec(0.0),
+        }
+    });
 }
 
 pub fn kill(ecm: &mut ECM, e: Entity) {
@@ -43,18 +56,11 @@ pub fn kill(ecm: &mut ECM, e: Entity) {
     // Replace the entity's Tile with the tile of a corpse.
     if ecm.has::<Corpse>(e) && ecm.has::<Tile>(e) {
         let corpse = ecm.get::<Corpse>(e);
+        fade_out(ecm, e, corpse.color, Sec(1.0));
         let tile = ecm.get::<Tile>(e);
         ecm.set(e, Tile{glyph: corpse.glyph,
-                             color: corpse.color,
-                             .. tile});
-
-        fail!("TODO: fade out to corpse");
-        // ecm.set(e, FadeColor{
-        //         from: tile.color,
-        //         to: corpse.color,
-        //         duration_s: 1f32,
-        //         repetitions: Count(1),
-        //     });
+                        color: corpse.color,
+                        .. tile});
     } else if ecm.has::<FadingOut>(e) {
         // TODO: we probably shouldn't remove the fading-out entities here.
         // Makes no sense. Just remove their tiles after the fadeout.

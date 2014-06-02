@@ -46,14 +46,6 @@ define_system! {
                 println!("Entity {} was stunned by {}", target, attacker);
                 // An attacker with stun disappears after delivering the blow
                 entity_util::fade_out(ecm, attacker, Color{r: 0, g: 0, b: 0}, Sec(0.4));
-                if ecm.has::<Tile>(attacker) {
-                    // TODO: why are we decrementing the tile level here? Looks like
-                    // a hack for a faulty display logic to me.
-                    let tile = ecm.get::<Tile>(attacker);
-                    if tile.level > 0 {
-                        ecm.set(attacker, Tile{level: tile.level - 1, .. tile});
-                    }
-                }
                 entity_util::kill(ecm, attacker);
                 let stunned = if ecm.has::<Stunned>(target) {
                     let prev = ecm.get::<Stunned>(target);
@@ -67,14 +59,6 @@ define_system! {
                 println!("Entity {} panics because of {}", target, attacker);
                 // An attacker with stun disappears after delivering the blow
                 entity_util::fade_out(ecm, attacker, Color{r: 0, g: 0, b: 0}, Sec(0.4));
-                if ecm.has::<Tile>(attacker) {
-                    // TODO: why are we decrementing the tile level here? Looks like
-                    // a hack for a faulty display logic to me.
-                    let tile = ecm.get::<Tile>(attacker);
-                    if tile.level > 0 {
-                        ecm.set(attacker, Tile{level: tile.level - 1, .. tile});
-                    }
-                }
                 entity_util::kill(ecm, attacker);
                 let panicking = if ecm.has::<Panicking>(target) {
                     let prev = ecm.get::<Panicking>(target);

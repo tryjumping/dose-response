@@ -56,11 +56,22 @@ pub struct Background;
 #[deriving(PartialEq, Clone, Show)]
 pub struct Bump(pub Entity);
 
+// TODO: maybe we should rename "repetitions" to "transitions" instead. Because
+// to change from the starting colour to the new one should take Count(2) reps.
 #[deriving(PartialEq, Clone, Show)]
 pub struct ColorAnimation{
+    pub from: Color,
+    pub to: Color,
+    pub repetitions: Repetitions,
+    pub transition_duration: Sec,
+    pub current: ColorAnimationState,
+}
+
+#[deriving(PartialEq, Clone, Show)]
+pub struct ColorAnimationState {
     pub color: Color,
-    pub progress: f32,
-    pub forward: bool,
+    pub fade_direction: ColorFadeDirection,
+    pub elapsed_time: Sec,
 }
 
 #[deriving(PartialEq, Clone, Show)]
@@ -96,20 +107,6 @@ pub struct Explored;
 
 #[deriving(PartialEq, Clone, Show)]
 pub struct ExplosionEffect{pub radius: int}
-
-#[deriving(PartialEq, Clone, Show)]
-pub struct FadeColor{
-    pub from: Color,
-    pub to: Color,
-    pub duration_s: f32,
-    pub repetitions: Repetitions,
-}
-
-#[deriving(PartialEq, Clone, Show)]
-pub struct FadeOut{
-    pub to: Color,
-    pub duration_s: f32,
-}
 
 #[deriving(PartialEq, Clone, Show)]
 pub struct FadingOut;
@@ -187,6 +184,15 @@ pub enum MonsterKind {
 pub enum Repetitions {
     Infinite,
     Count(int),
+}
+
+#[deriving(PartialEq, Clone, Show)]
+pub struct Sec(pub f32);
+
+#[deriving(PartialEq, Clone, Show)]
+pub enum ColorFadeDirection {
+    Forward,
+    Backward,
 }
 
 pub mod ai {

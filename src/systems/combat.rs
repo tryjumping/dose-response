@@ -2,9 +2,9 @@ use ecm::{ComponentManager, ECM, Entity};
 use engine::Color;
 use components::{Anxiety, AnxietyKillCounter, AI, AttackTarget, AttackType,
                  Attributes, AttributeModifier,
-                 AcceptsUserInput, Count, Corpse, Destination, FadeColor,
-                 FadeOut, Kill, Monster, Panic, Panicking, Position, Solid, Stun,
-                 Stunned, Tile, Turn};
+                 AcceptsUserInput, Count, Corpse, Destination,
+                 Kill, Monster, Panic, Panicking, Position, Solid, Stun,
+                 Stunned, Tile, Turn,  Sec};
 use entity_util;
 
 
@@ -45,7 +45,7 @@ define_system! {
             Stun{duration} => {
                 println!("Entity {} was stunned by {}", target, attacker);
                 // An attacker with stun disappears after delivering the blow
-                ecm.set(attacker, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
+                entity_util::fade_out(ecm, attacker, Color{r: 0, g: 0, b: 0}, Sec(0.4));
                 if ecm.has::<Tile>(attacker) {
                     // TODO: why are we decrementing the tile level here? Looks like
                     // a hack for a faulty display logic to me.
@@ -66,7 +66,7 @@ define_system! {
             Panic{duration} => {
                 println!("Entity {} panics because of {}", target, attacker);
                 // An attacker with stun disappears after delivering the blow
-                ecm.set(attacker, FadeOut{to: Color{r: 0, g: 0, b: 0}, duration_s: 0.4});
+                entity_util::fade_out(ecm, attacker, Color{r: 0, g: 0, b: 0}, Sec(0.4));
                 if ecm.has::<Tile>(attacker) {
                     // TODO: why are we decrementing the tile level here? Looks like
                     // a hack for a faulty display logic to me.

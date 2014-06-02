@@ -66,7 +66,7 @@ pub mod addiction;
 pub mod addiction_graphics;
 pub mod ai;
 pub mod bump;
-pub mod color_fade;
+pub mod color_animation;
 pub mod combat;
 pub mod command_logger;
 pub mod dose;

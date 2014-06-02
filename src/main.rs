@@ -364,9 +364,10 @@ fn main() {
     game_state.world.add_system(box systems::exploration::ExplorationSystem::new(
         ecm.clone(),
         player_rc.clone()));
-    game_state.world.add_system(box systems::fade_out::FadeOutSystem::new(
+    // game_state.world.add_system(box systems::fade_out::FadeOutSystem::new(
+    //     ecm.clone()));
+    game_state.world.add_system(box systems::color_animation::ColorAnimationSystem::new(
         ecm.clone()));
-    // todo: systems::color_fade::system(id, &mut state.ecm, &mut state.resources, dt_s)
     game_state.world.add_system(box systems::tile::TileSystem::new(
         ecm.clone(),
         engine.display(),

@@ -1,8 +1,30 @@
-use components::{AI, AcceptsUserInput, Corpse, Count, Destination, FadeColor, FadeOut,
+use components::{AI, AcceptsUserInput, Corpse, Count, Destination,
                  InventoryItem, Solid, Tile, Turn};
+use components::{ColorAnimation, ColorAnimationState, FadingOut, Sec, Repetitions, Forward};
 use ecm::{ComponentManager, ECM, Entity};
+use engine::Color;
 use point;
 
+
+pub fn set_color_animation_loop(ecm: &mut ECM, e: Entity,
+                                from: Color, to: Color,
+                                repetitions: Repetitions, duration: Sec) {
+    ecm.set(e, ColorAnimation{
+        from: from,
+        to: to,
+        repetitions: repetitions,
+        transition_duration: duration,
+        current: ColorAnimationState{
+            color: to,
+            fade_direction: Forward,
+            elapsed_time: Sec(0.0),
+        },
+    });
+}
+
+pub fn fade_out(ecm: &mut ECM, e: Entity, color: Color, duration: Sec) {
+    unimplemented!();
+}
 
 pub fn kill(ecm: &mut ECM, e: Entity) {
     if !ecm.has_entity(e) {return}
@@ -25,13 +47,15 @@ pub fn kill(ecm: &mut ECM, e: Entity) {
         ecm.set(e, Tile{glyph: corpse.glyph,
                              color: corpse.color,
                              .. tile});
-        ecm.set(e, FadeColor{
-                from: tile.color,
-                to: corpse.color,
-                duration_s: 1f32,
-                repetitions: Count(1),
-            });
-    } else if ecm.has::<FadeOut>(e) {
+
+        fail!("TODO: fade out to corpse");
+        // ecm.set(e, FadeColor{
+        //         from: tile.color,
+        //         to: corpse.color,
+        //         duration_s: 1f32,
+        //         repetitions: Count(1),
+        //     });
+    } else if ecm.has::<FadingOut>(e) {
         // TODO: we probably shouldn't remove the fading-out entities here.
         // Makes no sense. Just remove their tiles after the fadeout.
     } else {

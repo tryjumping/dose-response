@@ -3,15 +3,16 @@ use std::rand::Rng;
 
 // TODO: looks like we want to namespace these some more:
 use components::{AcceptsUserInput,Attributes, Addiction, AnxietyKillCounter, AI,
-                 AttributeModifier, Corpse, Dose, ExplosionEffect, FadeColor,
+                 AttributeModifier, Corpse, Dose, ExplosionEffect,
                  Kill, ModifyAttributes, Monster, Panic, Infinite, Stun,
-                 Exploration, Position, Tile, Turn};
+                 Exploration, Position, Tile, Turn, Sec};
 use components::{Anxiety, Depression, Hunger, Shadows, Voices};  // monster types
 use components::{Computer, Player};  // sides
 use components::{Background, Edible, Explored, Pickable, Solid};  // flags
 use components::ai;
 use ecm::{ComponentManager, ECM, Entity};
 use engine::Color;
+use entity_util;
 use world_gen;
 use point;
 
@@ -110,12 +111,9 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
                 tile_level = 2;
             } else if item == world_gen::Dose {
                 ecm.set(e, Dose{tolerance_modifier: 1, resist_radius: 2});
-                ecm.set(e, FadeColor{
-                        from: item.to_color(),
-                        to: Color{r: 15, g: 255, b: 243},
-                        duration_s: 0.6f32,
-                        repetitions: Infinite,
-                    });
+                entity_util::set_color_animation_loop(
+                    ecm, e, item.to_color(), Color{r: 15, g: 255, b: 243},
+                    Infinite, Sec(0.6));
                 ecm.set(e, AttributeModifier{
                         state_of_mind: 72 + rng.gen_range(-5, 6),
                         will: 0,
@@ -130,12 +128,9 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
                         state_of_mind: 130 + rng.gen_range(-15, 16),
                         will: 0,
                     });
-                ecm.set(e, FadeColor{
-                        from: item.to_color(),
-                        to: Color{r: 15, g: 255, b: 243},
-                        duration_s: 0.5f32,
-                        repetitions: Infinite,
-                    });
+                entity_util::set_color_animation_loop(
+                    ecm, e, item.to_color(), Color{r: 15, g: 255, b: 243},
+                    Infinite, Sec(0.5));
                 ecm.set(e, ExplosionEffect{radius: 6});
             } else if item == world_gen::Food {
                 ecm.set(e, ExplosionEffect{radius: 2});

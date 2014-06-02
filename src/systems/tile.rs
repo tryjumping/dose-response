@@ -31,7 +31,7 @@ define_system! {
             };
             if is_visible || shows_in_fog_of_war || cheating {
                 let final_color = if ecm.has::<ColorAnimation>(e) {
-                    ecm.get::<ColorAnimation>(e).color
+                    ecm.get::<ColorAnimation>(e).current.color
                 } else {
                     color
                 };

@@ -1,27 +1,31 @@
-use components::{FadeOut, FadingOut, Tile};
+use components::{ColorAnimation, FadeColor, FadeOut, FadingOut, Tile};
 use components::{Count};
-use super::super::Resources;
+use ecm::{ComponentManager, ECM, Entity};
 
-pub fn system(e: ID,
-              ecm: &mut ComponentManager,
-              _res: &mut Resources) {
-    ensure_components!(ecm, e, FadeOut, Tile);
-    let fade_out = ecm.get_fade_out(e);
-    let tile = ecm.get_tile(e);
-    if !ecm.has_fading_out(e) {
-        // replace any existing animation with our fade out
-        ecm.remove_color_animation(e);
-        ecm.set(e, FadeColor{
+
+define_system! {
+    name: FadeOutSystem;
+    components(FadeOut, Tile);
+    resources(ecm: ECM);
+    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+        let mut ecm = self.ecm();
+        let fade_out = ecm.get::<FadeOut>(entity);
+        let tile = ecm.get::<Tile>(entity);
+        if !ecm.has::<FadingOut>(entity) {
+            // replace any existing animation with our fade out
+            ecm.remove::<ColorAnimation>(entity);
+            ecm.set(entity, FadeColor{
                 from: tile.color,
                 to: fade_out.to,
                 duration_s: fade_out.duration_s,
                 repetitions: Count(1),
             });
-        ecm.set_fading_out(e, FadingOut);
-    } else if !ecm.has_color_animation(e) {
-        // the animation has ended, finish the fade out
-        ecm.remove_tile(e);
-        ecm.remove_fade_out(e);
-        ecm.remove_fading_out(e);
+            ecm.set(entity, FadingOut);
+        } else if !ecm.has::<ColorAnimation>(entity) {
+            // the animation has ended, finish the fade out
+            ecm.remove::<Tile>(entity);
+            ecm.remove::<FadeOut>(entity);
+            ecm.remove::<FadingOut>(entity);
+        }
     }
 }

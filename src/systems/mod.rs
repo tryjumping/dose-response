@@ -71,7 +71,6 @@ pub mod combat;
 pub mod command_logger;
 pub mod dose;
 pub mod eating;
-// pub mod effect_duration;
 pub mod exploration;
 pub mod fade_out;
 pub mod gui;

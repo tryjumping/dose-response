@@ -23,7 +23,7 @@ pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
         (pos.x-1, pos.y+1),
         (pos.x+1, pos.y+1),
         ];
-    let mut walkables: Vec<(int, int)> = Vec::new();
+    let mut walkables: Vec<(int, int)> = vec![];
     for &p in neighbors.iter() {
         let pos = match p { (x, y) => Position{x: x, y: y} };
         if is_walkable(pos, ecm, map_size) { walkables.push(p) }

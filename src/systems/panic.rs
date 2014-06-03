@@ -27,7 +27,7 @@ fn random_nonwall_destination<T: Rng>(rng: &mut T,
         (pos.x-1, pos.y+1),
         (pos.x+1, pos.y+1),
         ];
-    let mut potential_destinations: Vec<(int, int)> = Vec::new();
+    let mut potential_destinations: Vec<(int, int)> = vec![];
     for &p in neighbors.iter() {
         let pos = match p { (x, y) => Position{x: x, y: y} };
         if is_walkable(pos, ecm, map_size) || !is_wall(pos, ecm) {

@@ -21,7 +21,7 @@ impl Display {
     fn new(width: int, height: int, console_count: uint) -> Display {
         let mut result = Display {
             background_console: Console::new(width, height),
-            consoles: Vec::new(),
+            consoles: vec![],
             fade: None,
         };
         for _ in range(0, console_count) {

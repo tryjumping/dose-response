@@ -33,7 +33,7 @@ pub fn forrest<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(int, int, WorldItem)
         Weighted{weight: monster_weight,  item: Shadows},
     ];
     let opts = WeightedChoice::new(weights);
-    let mut result: Vec<(int, int, WorldItem)> = Vec::new();
+    let mut result: Vec<(int, int, WorldItem)> = vec![];
     for x in range(0, w) {
         for y in range(0, h) {
             result.push((x, y, opts.ind_sample(rng)));

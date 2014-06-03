@@ -25,7 +25,7 @@ impl ECM {
     pub fn entities_on_pos(&self, pos: (int, int)) -> MoveItems<Entity> {
         match self.position_cache.find(&pos) {
             Some(entities) => entities.clone().move_iter(),
-            None => Vec::new().move_iter(),
+            None => vec![].move_iter(),
         }
     }
 }
@@ -51,7 +51,7 @@ impl ComponentManager<EntityIterator> for ECM {
             Some(pos) => {
                 // Removes any previous position from the cache
                 self.remove::<Position>(entity);
-                let cache = self.position_cache.find_or_insert((pos.x, pos.y), Vec::new());
+                let cache = self.position_cache.find_or_insert((pos.x, pos.y), vec![]);
                 cache.push(entity);
             }
             None => {}

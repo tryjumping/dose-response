@@ -34,7 +34,7 @@ define_system! {
         let world_size = *self.world_size();
         let pos = ecm.get::<Position>(addict);
         let search_radius = 3;  // max irresistibility for a dose is curretnly 3
-        let mut doses: Vec<Entity> = Vec::new();
+        let mut doses: Vec<Entity> = vec![];
         for (x, y) in point::points_within_radius(pos, search_radius) {
             for dose in ecm.entities_on_pos((x, y)) {
                 if !ecm.has_entity(dose) {

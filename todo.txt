@@ -1,6 +1,11 @@
+* BUG: restart is broken (blank screen)
+* BUG: make replay is untested
+* BUG: step by step replay doesn't work
 * BUG: player corpse disappears after fadeout
 * BUG: Voices and Shadows bodies briefly appear after fadeout
 * BUG: Background colours slightly differ on newgame vs. restart (F5)
+* BUG: weird shape of the exploration area
+* BUG: leaving the area is broken
 * Add emhyr::ComponentManager::get_opt<T>(&self, entity) -> Option<T>
   - if ecm.has::<T> { ecm.get::<T> } is a fairly common pattern we have
   - maybe have that as the only option once we add Artemis-style componentMappers?

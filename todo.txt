@@ -1,4 +1,7 @@
 * BUG: restart is broken (blank screen)
+* BUG: a monster once seen is visible even in the unexplored area
+  - looks like we're adding `Explored` to everything
+  - should be just the background
 * BUG: make replay is untested
 * BUG: step by step replay doesn't work
 * BUG: player corpse disappears after fadeout
@@ -18,6 +21,11 @@
 * We need a greater pressure for exploration and leaving the area. In my current
 playthroughs I just never care enough to leave.
   - consider tweaking the intoxication gain and drop to create stronger pressure
+* Hey, like, just a though: What about an infinite world instead of discrete
+  screens?
+  - may (suprisingly) provide more variety
+  - would fit the exploration feel I'm going for
+  - no need to figure out special exit handling, etc. Just go as far as you can/want.
 * Add smooth animations for the fade-out when growing Withdrawn
 * Don't cover the map with the bottom status bar
 * If the attacking entity can't find a path, it shouldn't just wait. Make it

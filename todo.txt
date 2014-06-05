@@ -1,4 +1,4 @@
-* BUG: replay seems to be broken (need to test)
+* Looks like we're always generating the same map now?????
 * BUG: restart is broken (blank screen)
 * BUG: a monster once seen is visible even in the unexplored area
   - looks like we're adding `Explored` to everything

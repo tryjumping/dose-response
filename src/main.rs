@@ -265,12 +265,12 @@ fn replay_game_state(width: int, height: int) -> GameState {
     GameState {
         world: World::new(ecm),
         commands: rc_mut(commands),
-        rng: rc_mut(rng),
         command_logger: rc_mut(logger),
+        rng: rc_mut(rng),
         side: rc_mut(Computer),
         turn: rc_mut(0),
         player: player,
-        cheating: rc_mut(false),
+        cheating: rc_mut(true),
         replay: true,
         paused: false,
         world_size: (width, height),
@@ -330,7 +330,8 @@ fn main() {
         game_state.command_logger.clone()));
     game_state.world.add_system(box systems::input::InputSystem::new(
         ecm.clone(),
-        game_state.commands.clone()));
+        game_state.commands.clone(),
+        game_state.side.clone()));
     // TODO: systems::leave_area::system,
     game_state.world.add_system(box systems::ai::AISystem::new(
         ecm.clone(),

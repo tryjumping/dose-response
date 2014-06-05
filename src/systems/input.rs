@@ -1,7 +1,7 @@
 use std::from_str::FromStr;
 use collections::{Deque, RingBuf};
 
-use components::{AcceptsUserInput, Destination, Position, UsingItem};
+use components::{AcceptsUserInput, Destination, Position, UsingItem, Side, Player};
 use ecm::{ComponentManager, ECM, Entity};
 use self::commands::*;
 use entity_util;
@@ -37,8 +37,13 @@ impl FromStr for Command {
 define_system! {
     name: InputSystem;
     components(AcceptsUserInput, Position);
-    resources(ecm: ECM, commands: RingBuf<Command>);
+    resources(ecm: ECM, commands: RingBuf<Command>, current_side: Side);
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
+        // Don't process input if it's not your turn (otherwise it will be eaten
+        // & ignored)
+        // (NOTE: only the player can process input for now)
+        if *self.current_side() != Player { return }
+
         let mut ecm = &mut *self.ecm();
         // Clean up state from any previous commands
         ecm.remove::<Destination>(e);

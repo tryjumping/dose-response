@@ -211,6 +211,7 @@ fn new_game_state(width: int, height: int) -> GameState {
         Ok(f) => box f,
         Err(msg) => fail!("Failed to create the replay file. {}", msg)
     };
+    println!("Recording the gameplay to '{}'", replay_path.display());
     write_line(&mut *writer as &mut Writer, seed.to_str().as_slice());
     let logger = CommandLogger{writer: writer};
     let mut ecm = ECM::new();

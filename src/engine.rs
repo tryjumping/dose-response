@@ -3,8 +3,8 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use collections::deque::Deque;
-use collections::ringbuf::RingBuf;
+use std::collections::Deque;
+use std::collections::RingBuf;
 pub use tcod::{Color, Console};
 pub use key = tcod::key_code;
 pub use tcod;

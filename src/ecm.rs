@@ -1,7 +1,7 @@
 use std::any::{Any, AnyRefExt};
+use std::collections::HashMap;
 use std::intrinsics::TypeId;
 use std::vec::MoveItems;
-use collections::HashMap;
 use emhyr::EntityIterator;
 use components::Position;
 

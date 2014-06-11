@@ -17,7 +17,7 @@ fn intoxication_to_str(state: int) -> &'static str {
 }
 
 fn food_count(ecm: &ECM, player: Entity) -> uint {
-    ecm.iter().count(|e| ecm.has::<InventoryItem>(e) && ecm.has::<Edible>(e) && ecm.get::<InventoryItem>(e).owner == player)
+    ecm.iter().filter(|&e| ecm.has::<InventoryItem>(e) && ecm.has::<Edible>(e) && ecm.get::<InventoryItem>(e).owner == player).count()
 }
 
 define_system! {

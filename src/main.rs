@@ -24,7 +24,7 @@ use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
 use ecm::{ComponentManager, ECM, Entity, System, World};
-use engine::{Display, key};
+use engine::{Display, Engine, key};
 use systems::input::commands;
 use systems::input::commands::Command;
 
@@ -276,25 +276,8 @@ fn replay_game_state(width: int, height: int) -> GameState {
     }
 }
 
-
-fn main() {
-    use emhyr::World;
-    let (width, height) = (80, 50);
-    let title = "Dose Response";
-    let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
-
-    let mut game_state = match os::args().len() {
-        1 => {  // Run the game with a new seed, create the replay log
-            new_game_state(width, height)
-        },
-        2 => {  // Replay the game from the entered log
-            replay_game_state(width, height)
-        },
-        _ => fail!("You must pass either pass zero or one arguments."),
-    };
-
-    let mut engine = engine::Engine::new(width, height, title, font_path.clone());
-
+fn initialise_world(game_state: &mut GameState, engine: &Engine) {
+    let (width, height) = game_state.world_size;
     let player = game_state.player;
     world::create_player(&mut *game_state.world.ecm.borrow_mut(), player);
     game_state.world.ecm.borrow_mut().set(player, Position{x: width / 2, y: height / 2});
@@ -387,6 +370,26 @@ fn main() {
         ecm.clone(),
         engine.display(),
         player_rc.clone()));
+}
 
+
+fn main() {
+    use emhyr::World;
+    let (width, height) = (80, 50);
+    let title = "Dose Response";
+    let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
+
+    let mut game_state = match os::args().len() {
+        1 => {  // Run the game with a new seed, create the replay log
+            new_game_state(width, height)
+        },
+        2 => {  // Replay the game from the entered log
+            replay_game_state(width, height)
+        },
+        _ => fail!("You must pass either pass zero or one arguments."),
+    };
+
+    let mut engine = Engine::new(width, height, title, font_path.clone());
+    initialise_world(&mut game_state, &engine);
     engine.main_loop(game_state, update);
 }

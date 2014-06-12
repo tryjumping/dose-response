@@ -187,6 +187,10 @@ impl CommandLogger {
     }
 }
 
+// TODO: maybe refactor the common bits of this and `replay_game_state`? A lot
+// of the GameState initialisation is common across both methods. All that
+// really differs is the seed, replay filesystem stuff and the
+// commands/command_logger.
 fn new_game_state(width: int, height: int) -> GameState {
     let commands = RingBuf::new();
     let seed = rand::random::<u32>();

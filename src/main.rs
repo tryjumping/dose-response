@@ -3,7 +3,6 @@
 
 extern crate collections;
 extern crate libc;
-extern crate rand;
 extern crate time;
 
 
@@ -19,7 +18,8 @@ use std::rc::Rc;
 use std::cell::{Cell, RefCell};
 
 use collections::{Deque, RingBuf};
-use rand::{Rng, IsaacRng, SeedableRng};
+use std::rand::{Rng, IsaacRng, SeedableRng};
+use std::rand;
 use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
@@ -196,10 +196,9 @@ impl CommandLogger {
 }
 
 fn new_game_state(width: int, height: int) -> GameState {
-    let mut rng = IsaacRng::new_unseeded();
     let commands = RingBuf::new();
-    let seed = rng.gen_range(0u32, 10000);
-    rng.reseed([seed]);
+    let seed = rand::random::<u32>();
+    let mut rng: IsaacRng = SeedableRng::from_seed(&[seed]);
     let cur_time = time::now();
     let timestamp = time::strftime("%FT%T.", &cur_time).append((cur_time.tm_nsec / 1000000).to_str().as_slice());
     let replay_dir = &Path::new("./replays/");

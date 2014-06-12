@@ -1,5 +1,5 @@
 use std::iter::range_inclusive;
-use rand::Rng;
+use std::rand::Rng;
 
 use ecm::{ComponentManager, ECM, Entity};
 use components::ai;
@@ -121,7 +121,7 @@ fn hunting_pack_behaviour<T: Rng>(e: Entity,
 define_system! {
     name: AISystem;
     components(AI, Position);
-    resources(ecm: ECM, player: Entity, side: Side, world_size: (int, int), rng: ::rand::IsaacRng);
+    resources(ecm: ECM, player: Entity, side: Side, world_size: (int, int), rng: ::std::rand::IsaacRng);
     fn process_entity(&mut self, dt_ms: uint, e: Entity) {
         let mut ecm = &mut *self.ecm();
         let player = *self.player();

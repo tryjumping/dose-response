@@ -1,4 +1,4 @@
-use rand::{IsaacRng, Rng};
+use std::rand::{IsaacRng, Rng};
 
 use ecm::{ComponentManager, ECM, Entity};
 use components::{Background, Destination, Panicking, Position, Solid, UsingItem};

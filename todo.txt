@@ -1,5 +1,7 @@
 * Looks like we're always generating the same map now?????
 * BUG: restart is broken (blank screen)
+* Move emhyr to AnyMap
+  - https://github.com/chris-morgan/anymap
 * BUG: a monster once seen is visible even in the unexplored area
   - looks like we're adding `Explored` to everything
   - should be just the background

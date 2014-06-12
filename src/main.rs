@@ -129,15 +129,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
         keys.borrow_mut().clear();
         let (width, height) = state.world_size;
         let mut state = new_game_state(width, height);
-        let player = state.world.ecm.borrow_mut().new_entity();
-        world::create_player(&mut *state.world.ecm.borrow_mut(), player);
-        let player_pos = Position{x: width / 2, y: height / 2};
-        state.world.ecm.borrow_mut().set(player, player_pos);
-        world::populate_world(&mut *state.world.ecm.borrow_mut(),
-                              state.world_size,
-                              player_pos,
-                              &mut *state.rng.borrow_mut(),
-                              world_gen::forrest);
+        initialise_world(&mut state, engine);
         return Some(state);
     }
 

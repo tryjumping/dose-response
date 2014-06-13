@@ -10,6 +10,43 @@
 * BUG: Background colours slightly differ on newgame vs. restart (F5)
 * BUG: weird shape of the exploration area
 * BUG: leaving the area is broken
+* Speed it up:
+  - TODO: add a `name() -> &str` method to the `System` trait (with default
+  impl), collect metrics for each system automatically in `World::update`,
+  generate stats (system name, mean time) on demand. Print these
+  from `main` sorted by avg time on exit. Use u64 to store the aggregate
+  - no gameplay benchmark (just the initial screen):
+    - master: 40fps
+    - no systems: 175fps
+    - average elapsed times in miliseconds for individual systems:
+# high outliers
+3.691964788730    19    tile
+1.407352112680    10    movement
+1.358316901410    0     turn tick
+
+1.099623239440    3     addiction
+0.970633802817    6     AI
+0.931253521127    12    interaction
+0.849813380282    1     stun effect duration
+0.847876760563    4     command logger
+0.845862676056    7     dose
+0.831024647887    13    bump
+0.826845070423    15    will
+0.812070422535    2     panic effect duration
+0.809221830986    8     panic
+0.806130281690    5     input
+0.743781690141    9     stun
+0.682545774648    17    fade out
+0.679024647887    18    color animation
+0.664633802817    11    eating
+0.663855633803    14    combat
+0.646908450704    22    addiction graphics
+
+# low outliers
+0.319144366197    20    GUI
+0.082823943662    16    exploration
+0.004661971830    21    turn
+
 * Add emhyr::ComponentManager::get_opt<T>(&self, entity) -> Option<T>
   - if ecm.has::<T> { ecm.get::<T> } is a fairly common pattern we have
   - maybe have that as the only option once we add Artemis-style componentMappers?

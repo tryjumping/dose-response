@@ -123,7 +123,20 @@ pub fn null_input_system(_e: Entity, _ecm: &mut ECM) {}
 
 fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<GameState> {
     let keys = engine.keys();
-    if key_pressed(&*keys.borrow(), Special(key::Escape)) { return None }
+    if key_pressed(&*keys.borrow(), Special(key::Escape)) {
+        use std::cmp::{Less, Equal, Greater};
+        let mut stats = state.world.generate_stats();
+        stats.sort_by(|&(name_1, time_1), &(name_2, time_2)|
+                      if time_1 < time_2 { Greater }
+                      else if time_1 > time_2 { Less }
+                      else if time_1 == time_2 { Equal }
+                      else { println!("{}, {}", time_1, time_2); unreachable!() });
+        println!("Average update time in miliseconds per system:");
+        for &(system_name, average_time_ns) in stats.iter() {
+            println!("{:4.3f}\t{}", average_time_ns / 1000000.0, system_name);
+        }
+        return None;
+    }
     if key_pressed(&*keys.borrow(), Special(key::F5)) {
         println!("Restarting game");
         keys.borrow_mut().clear();

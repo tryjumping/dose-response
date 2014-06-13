@@ -31,6 +31,10 @@ macro_rules! define_system (
             fn process_entity(&mut self, $dt_ms: $uint_type, $entity: $entity_type) {
                 $process_entity_body
             }
+
+            fn name(&self) -> &str {
+                stringify!($name)
+            }
         }
     };
     {name: $name:ident;
@@ -56,6 +60,10 @@ macro_rules! define_system (
         impl ::emhyr::System for $name {
             fn process_all_entities(&mut self, $dt_ms: $uint_type, mut $entities: $entity_iter_type) {
                 $process_all_entities_body
+            }
+
+            fn name(&self) -> &str {
+                stringify!($name)
             }
         }
     }

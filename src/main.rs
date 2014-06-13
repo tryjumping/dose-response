@@ -131,10 +131,14 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
                       else if time_1 > time_2 { Less }
                       else if time_1 == time_2 { Equal }
                       else { println!("{}, {}", time_1, time_2); unreachable!() });
-        println!("Average update time in miliseconds per system:");
+        println!("Mean update time in miliseconds per system:");
         for &(system_name, average_time_ns) in stats.iter() {
             println!("{:4.3f}\t{}", average_time_ns / 1000000.0, system_name);
         }
+        let total_time_ns = stats.iter()
+            .map(|&(_, time_ns)| time_ns)
+            .fold(0.0, |a, b| a + b);
+        println!("\nAggregate mean time per tick: {}ms", total_time_ns / 1000000.0);
         return None;
     }
     if key_pressed(&*keys.borrow(), Special(key::F5)) {

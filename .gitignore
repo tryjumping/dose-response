@@ -10,3 +10,4 @@ dose-response
 /test_component_codegen
 /test_component_codegen.rs
 test-dose-response
+/lib/*.rlib

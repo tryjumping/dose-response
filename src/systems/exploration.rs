@@ -7,7 +7,7 @@ use super::addiction_graphics::intoxication_state::*;
 define_system! {
     name: ExplorationSystem;
     resources(ecm: ECM, player: Entity);
-    fn process_all_entities(&mut self, dt_ms: uint, mut entities: &mut Iterator<Entity>) {
+    fn process_all_entities(&mut self, _dt_ms: uint, mut _entities: &mut Iterator<Entity>) {
         let mut ecm = self.ecm();
         let player = *self.player();
         if !(ecm.has::<AcceptsUserInput>(player) && ecm.has::<Position>(player) && ecm.has::<Exploration>(player) && ecm.has::<Attributes>(player)) {

@@ -11,20 +11,20 @@ extern crate tcod;
 
 
 use std::io;
-use std::io::File;
+use std::io::{File, IoResult};
 use std::io::util::NullWriter;
 use std::os;
 use std::rc::Rc;
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 
 use collections::{Deque, RingBuf};
-use std::rand::{Rng, IsaacRng, SeedableRng};
+use std::rand::{IsaacRng, SeedableRng};
 use std::rand;
 use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
-use ecm::{ComponentManager, ECM, Entity, System, World};
-use engine::{Display, Engine, key};
+use ecm::{ComponentManager, ECM, Entity, World};
+use engine::{Engine, key};
 use systems::input::commands;
 use systems::input::commands::Command;
 
@@ -119,14 +119,12 @@ fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comm
     }
 }
 
-pub fn null_input_system(_e: Entity, _ecm: &mut ECM) {}
-
 fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<GameState> {
     let keys = engine.keys();
     if key_pressed(&*keys.borrow(), Special(key::Escape)) {
         use std::cmp::{Less, Equal, Greater};
         let mut stats = state.world.generate_stats();
-        stats.sort_by(|&(name_1, time_1), &(name_2, time_2)|
+        stats.sort_by(|&(_, time_1), &(_, time_2)|
                       if time_1 < time_2 { Greater }
                       else if time_1 > time_2 { Less }
                       else if time_1 == time_2 { Equal }
@@ -183,10 +181,11 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
 
 
 // TODO: no longer needed?
-fn write_line(writer: &mut Writer, line: &str) {
+fn write_line(writer: &mut Writer, line: &str) -> IoResult<()> {
     let line_with_nl = String::from_str(line).append("\n");
-    writer.write(line_with_nl.as_bytes());
-    writer.flush();
+    try!(writer.write(line_with_nl.as_bytes()));
+    try!(writer.flush());
+    return Ok(());
 }
 
 fn rc_mut<T>(val: T) -> Rc<RefCell<T>> {
@@ -200,7 +199,7 @@ struct CommandLogger {
 
 impl CommandLogger {
     fn log(&mut self, command: Command) {
-        write_line(self.writer, command.to_str().as_slice());
+        write_line(self.writer, command.to_str().as_slice()).unwrap();
     }
 }
 
@@ -211,12 +210,13 @@ impl CommandLogger {
 fn new_game_state(width: int, height: int) -> GameState {
     let commands = RingBuf::new();
     let seed = rand::random::<u32>();
-    let mut rng: IsaacRng = SeedableRng::from_seed(&[seed]);
+    let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
     let cur_time = time::now();
     let timestamp = time::strftime("%FT%T.", &cur_time).append((cur_time.tm_nsec / 1000000).to_str().as_slice());
     let replay_dir = &Path::new("./replays/");
     if !replay_dir.exists() {
-        io::fs::mkdir_recursive(replay_dir, io::FilePermission::from_bits(0b111101101).unwrap());
+        io::fs::mkdir_recursive(replay_dir,
+                                io::FilePermission::from_bits(0b111101101).unwrap()).unwrap();
     }
     let replay_path = &replay_dir.join(String::from_str("replay-").append(timestamp.as_slice()));
     let mut writer = match File::create(replay_path) {
@@ -224,7 +224,7 @@ fn new_game_state(width: int, height: int) -> GameState {
         Err(msg) => fail!("Failed to create the replay file. {}", msg)
     };
     println!("Recording the gameplay to '{}'", replay_path.display());
-    write_line(&mut *writer as &mut Writer, seed.to_str().as_slice());
+    write_line(&mut *writer as &mut Writer, seed.to_str().as_slice()).unwrap();
     let logger = CommandLogger{writer: writer};
     let mut ecm = ECM::new();
     let player = ecm.new_entity();
@@ -387,7 +387,6 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
 
 
 fn main() {
-    use emhyr::World;
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");

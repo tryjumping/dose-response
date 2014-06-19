@@ -38,13 +38,13 @@ define_system! {
     name: InputSystem;
     components(AcceptsUserInput, Position);
     resources(ecm: ECM, commands: RingBuf<Command>, current_side: Side);
-    fn process_entity(&mut self, dt_ms: uint, e: Entity) {
+    fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
         // Don't process input if it's not your turn (otherwise it will be eaten
         // & ignored)
         // (NOTE: only the player can process input for now)
         if *self.current_side() != Player { return }
 
-        let mut ecm = &mut *self.ecm();
+        let ecm = &mut *self.ecm();
         // Clean up state from any previous commands
         ecm.remove::<Destination>(e);
         ecm.remove::<UsingItem>(e);

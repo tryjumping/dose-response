@@ -9,7 +9,7 @@ define_system! {
     name: TileSystem;
     components(Position, Tile);
     resources(ecm: ECM, display: Display, player: Entity, cheating: bool);
-    fn process_entity(&mut self, dt_ms: uint, e: Entity) {
+    fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
         let player = *self.player();
         let mut ecm = self.ecm();
         let Position{x, y} = ecm.get::<Position>(e);

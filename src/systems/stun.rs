@@ -6,8 +6,8 @@ define_system! {
     name: StunSystem;
     components(Stunned, Position);
     resources(ecm: ECM);
-    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
-        let mut ecm = &mut *self.ecm();
+    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
+        let ecm = &mut *self.ecm();
         if ecm.has::<Destination>(entity) {
             let Position{x, y} = ecm.get::<Position>(entity);
             ecm.set(entity, Destination{x: x, y: y});

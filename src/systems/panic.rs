@@ -45,8 +45,8 @@ define_system! {
     name: PanicSystem;
     components(Panicking, Position);
     resources(ecm: ECM, world_size: (int, int), rng: IsaacRng);
-    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
-        let mut ecm = &mut *self.ecm();
+    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
+        let ecm = &mut *self.ecm();
         if ecm.has::<UsingItem>(entity) || ecm.has::<Destination>(entity) {
             println!("{} panics.", entity);
             // Prevent the item usage

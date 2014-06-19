@@ -1,4 +1,4 @@
-use components::{AcceptsUserInput, Addiction, AI, AttributeModifier, Attributes,
+use components::{AcceptsUserInput, Addiction, AttributeModifier, Attributes,
                  Dose, ExplosionEffect, Pickable, Position, InventoryItem};
 use ecm::{ComponentManager, ECM, Entity};
 use point::Point;
@@ -9,8 +9,8 @@ define_system! {
     name: InteractionSystem;
     components(AcceptsUserInput, Position);
     resources(ecm: ECM);
-    fn process_entity(&mut self, dt_ms: uint, actor: Entity) {
-        let mut ecm = &mut *self.ecm();
+    fn process_entity(&mut self, _dt_ms: uint, actor: Entity) {
+        let ecm = &mut *self.ecm();
         let pos = ecm.get::<Position>(actor);
         for inter in ecm.entities_on_pos(pos.coordinates()) {
             if actor == inter {continue}  // Entity cannot interact with itself

@@ -5,6 +5,7 @@ use engine::Color;
 
 
 fn fade_color(from: Color, to: Color, progress: f32) -> Color {
+    #![allow(unnecessary_parens)]
     if progress <= 0f32 {
         return from;
     } else if progress >= 1f32 {

@@ -122,8 +122,8 @@ define_system! {
     name: AISystem;
     components(AI, Position);
     resources(ecm: ECM, player: Entity, side: Side, world_size: (int, int), rng: ::std::rand::IsaacRng);
-    fn process_entity(&mut self, dt_ms: uint, e: Entity) {
-        let mut ecm = &mut *self.ecm();
+    fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
+        let ecm = &mut *self.ecm();
         let player = *self.player();
         // TODO: having a generic is_alive predicate would be better. How about
         // testing for the presence of Position && (AI || AcceptsUserInput)?
@@ -134,7 +134,7 @@ define_system! {
         let world_size = *self.world_size();
         let player_pos = ecm.get::<Position>(player);
         let pos = ecm.get::<Position>(e);
-        let mut rng = &mut *self.rng();
+        let rng = &mut *self.rng();
         let dest = if entity_blocked(pos, ecm, world_size) {
             println!("Found a blocked entity: {}", e);
             Destination{x: pos.x, y: pos.y}

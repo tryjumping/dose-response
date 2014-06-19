@@ -7,8 +7,8 @@ define_system! {
     name: AddictionSystem;
     components(Addiction, Attributes);
     resources(ecm: ECM, current_turn: int);
-    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
-        let mut ecm = &mut *self.ecm();
+    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
+        let ecm = &mut *self.ecm();
         let addiction: Addiction = ecm.get(entity);
         let attr: Attributes = ecm.get(entity);
         let current_turn = *self.current_turn();

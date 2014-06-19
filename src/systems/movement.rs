@@ -1,5 +1,4 @@
 use std::intrinsics::transmute;
-use std::iter::FromIterator;
 use libc::{c_int, c_float, c_void};
 use tcod::Path;
 
@@ -89,8 +88,8 @@ define_system! {
     name: MovementSystem;
     components(Position, Destination, Turn);
     resources(ecm: ECM, world_size: (int, int));
-    fn process_entity(&mut self, dt_ms: uint, e: Entity) {
-        let mut ecm = &mut *self.ecm();
+    fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
+        let ecm = &mut *self.ecm();
         let turn: Turn = ecm.get(e);
         if turn.ap <= 0 {return}
 

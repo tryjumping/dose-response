@@ -17,8 +17,8 @@ impl ::components::Side {
 define_system! {
     name: TurnSystem;
     resources(ecm: ECM, side: Side, turn: int);
-    fn process_all_entities(&mut self, dt_ms: uint, mut entities: &mut Iterator<Entity>) {
-        let mut ecm = self.ecm();
+    fn process_all_entities(&mut self, _dt_ms: uint, mut _entities: &mut Iterator<Entity>) {
+        let ecm = &mut *self.ecm();
         let mut current_side = self.side();
         let switch_sides = ecm.iter().all(|e| {
                 match ecm.has::<Turn>(e) {

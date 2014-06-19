@@ -97,7 +97,6 @@ impl Engine {
     pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt_s: f32, &Engine) -> Option<T>) {
         let default_fg = Color::new(255, 255, 255);
         while !Console::window_closed() {
-            let mut key: tcod::KeyState;
             loop {
                 match self.root_console.check_for_keypress(tcod::Pressed) {
                     None => break,

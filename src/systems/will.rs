@@ -7,8 +7,8 @@ define_system! {
     name: WillSystem;
     components(Attributes);
     resources(ecm: ECM);
-    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
-        let mut ecm = &mut *self.ecm();
+    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
+        let ecm = &mut *self.ecm();
         let attrs = ecm.get::<Attributes>(entity);
         if ecm.has::<AnxietyKillCounter>(entity) {
             let kc = ecm.get::<AnxietyKillCounter>(entity);

@@ -1,7 +1,6 @@
-use components::{AcceptsUserInput, AI, InventoryItem, Edible, ExplosionEffect,
+use components::{InventoryItem, Edible, ExplosionEffect,
                  Position, Turn, UsingItem};
 use ecm::{ComponentManager, ECM, Entity};
-use point;
 use entity_util;
 
 
@@ -9,7 +8,7 @@ define_system! {
     name: EatingSystem;
     components(UsingItem, Position, Turn);
     resources(ecm: ECM);
-    fn process_entity(&mut self, dt_ms: uint, entity: Entity) {
+    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
         let ecm = &mut *self.ecm();
         let food = ecm.get::<UsingItem>(entity).item;
         if !ecm.has::<Edible>(food) {

@@ -1,10 +1,9 @@
 use ecm::{ComponentManager, ECM, Entity};
 use engine::Color;
-use components::{Anxiety, AnxietyKillCounter, AI, AttackTarget, AttackType,
-                 Attributes, AttributeModifier,
-                 AcceptsUserInput, Count, Corpse, Destination,
-                 Kill, Monster, Panic, Panicking, Position, Solid, Stun,
-                 Stunned, Tile, Turn,  Sec};
+use components::{Anxiety, AnxietyKillCounter, AttackTarget, AttackType,
+                 Attributes, AttributeModifier, ModifyAttributes,
+                 Kill, Monster, Panic, Panicking, Position, Stun,
+                 Stunned, Turn,  Sec};
 use entity_util;
 
 
@@ -12,8 +11,8 @@ define_system! {
     name: CombatSystem;
     components(AttackTarget, AttackType, Turn);
     resources(ecm: ECM, player: Entity, current_turn: int);
-    fn process_entity(&mut self, dt_ms: uint, attacker: Entity) {
-        let mut ecm = &mut *self.ecm();
+    fn process_entity(&mut self, _dt_ms: uint, attacker: Entity) {
+        let ecm = &mut *self.ecm();
         let free_aps = ecm.get::<Turn>(attacker).ap;
         let AttackTarget(target) = ecm.get::<AttackTarget>(attacker);
         ecm.remove::<AttackTarget>(attacker);
@@ -32,8 +31,8 @@ define_system! {
                 if target != *self.player() {
                     ecm.remove::<Position>(target);
                 }
-                let target_is_anxiety = (ecm.has::<Monster>(target) &&
-                                         ecm.get::<Monster>(target).kind == Anxiety);
+                let target_is_anxiety = ecm.has::<Monster>(target) &&
+                    ecm.get::<Monster>(target).kind == Anxiety;
                 if target_is_anxiety && ecm.has::<AnxietyKillCounter>(attacker) {
                     let counter = ecm.get::<AnxietyKillCounter>(attacker);
                     ecm.set(attacker, AnxietyKillCounter{

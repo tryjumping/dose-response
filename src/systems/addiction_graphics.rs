@@ -2,8 +2,8 @@ use std::cmp::max;
 
 use ecm::{ComponentManager, ECM, Entity};
 
-use components::{Attributes, Background, ColorAnimation, ColorAnimationState, Position};
-use components::{Infinite, Sec, Forward};
+use components::{Attributes, Background, ColorAnimation, Position};
+use components::{Infinite, Sec};
 use engine::Display;
 use self::intoxication_state::*;
 use world::col;
@@ -40,7 +40,7 @@ define_system! {
     name: AddictionGraphicsSystem;
     resources(ecm: ECM, display: Display, player: Entity);
     fn process_all_entities(&mut self, _dt_ms: uint, mut _entities: &mut Iterator<Entity>) {
-        let mut ecm = &mut *self.ecm();
+        let ecm = &mut *self.ecm();
         let mut display = self.display();
         let player = *self.player();
         if !ecm.has::<Attributes>(player) {return}

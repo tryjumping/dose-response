@@ -112,7 +112,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
             } else if item == world_gen::Dose {
                 ecm.set(e, Dose{tolerance_modifier: 1, resist_radius: 2});
                 entity_util::set_color_animation_loop(
-                    ecm, e, item.to_color(), Color{r: 15, g: 255, b: 243},
+                    ecm, e, item.to_color(), col::dose_glow,
                     Infinite, Sec(0.6));
                 ecm.set(e, AttributeModifier{
                         state_of_mind: 72 + rng.gen_range(-5, 6),
@@ -129,7 +129,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
                         will: 0,
                     });
                 entity_util::set_color_animation_loop(
-                    ecm, e, item.to_color(), Color{r: 15, g: 255, b: 243},
+                    ecm, e, item.to_color(), col::dose_glow,
                     Infinite, Sec(0.5));
                 ecm.set(e, ExplosionEffect{radius: 6});
             } else if item == world_gen::Food {
@@ -233,7 +233,6 @@ pub mod col {
 
     pub static background: Color = Color{r: 0, g: 0, b: 0};
     pub static dim_background: Color = Color{r: 30, g: 30, b: 30};
-    pub static foreground: Color = Color{r: 255, g: 255, b: 255};
     pub static anxiety: Color = Color{r: 191,g: 0,b: 0};
     pub static depression: Color = Color{r: 111,g: 63,b: 255};
     pub static hunger: Color = Color{r: 127,g: 101,b: 63};
@@ -243,7 +242,7 @@ pub mod col {
     pub static dead_player: Color = Color{r: 80, g: 80, b: 80};
     pub static empty_tile: Color = Color{r: 223,g: 223,b: 223};
     pub static dose: Color = Color{r: 114,g: 126,b: 255};
-    pub static dose_glow: Color = Color{r: 0,g: 63,b: 47};
+    pub static dose_glow: Color = Color{r: 15, g: 255, b: 243};
     pub static food: Color = Color{r: 148, g: 113, b: 0};
     pub static tree_1: Color = Color{r: 0,g: 191,b: 0};
     pub static tree_2: Color = Color{r: 0,g: 255,b: 0};

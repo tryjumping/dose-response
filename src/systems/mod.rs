@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 macro_rules! define_system (
     {name: $name:ident;
      components(

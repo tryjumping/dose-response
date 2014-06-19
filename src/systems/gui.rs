@@ -23,9 +23,9 @@ fn food_count(ecm: &ECM, player: Entity) -> uint {
 define_system! {
     name: GUISystem;
     resources(ecm: ECM, display: Display, player: Entity, current_turn: int);
-    fn process_all_entities(&mut self, dt_ms: uint, mut entities: &mut Iterator<Entity>) {
-        let mut ecm = &mut *self.ecm();
-        let mut display = &mut *self.display();
+    fn process_all_entities(&mut self, _dt_ms: uint, mut _entities: &mut Iterator<Entity>) {
+        let ecm = &mut *self.ecm();
+        let display = &mut *self.display();
         let (_width, height) = display.size();
         let player = *self.player();
         let current_turn = *self.current_turn();

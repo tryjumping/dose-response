@@ -1,5 +1,4 @@
 use std::cmp;
-use std::iter::range_inclusive;
 
 use components::{Addiction, Attributes, Destination, Dose, Position};
 use ecm::{ComponentManager, ECM, Entity};
@@ -29,7 +28,7 @@ define_system! {
     name: DoseSystem;
     components(Addiction, Attributes, Position, Destination);
     resources(ecm: ECM, world_size: (int, int));
-    fn process_entity(&mut self, dt_ms: uint, addict: Entity) {
+    fn process_entity(&mut self, _dt_ms: uint, addict: Entity) {
         let ecm = &mut *self.ecm();
         let world_size = *self.world_size();
         let pos = ecm.get::<Position>(addict);

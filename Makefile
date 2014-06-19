@@ -1,17 +1,18 @@
 APP=dose-response
 LIB_DIR=lib
 SOURCES=$(wildcard src/**/*.rs src/*.rs)
+LIBS=$(wildcard lib/*.rlib)
 CFLAGS=-C link-args='-Wl,--rpath=$$ORIGIN/lib'
 CARGO_RUSTFLAGS?=
 
 all: $(APP)
 
-test: $(SOURCES)
+test: $(SOURCES) $(LIBS)
 	rustc --test -W ctypes src/tests.rs -o test-$(APP)
 	./test-$(APP)
 
-$(APP): $(SOURCES)
-	cargo-lite build --force
+$(APP): $(SOURCES) $(LIBS)
+	rustc src/main.rs -O -o $(APP) -L $(LIB_DIR) $(CFLAGS)
 
 run: $(APP)
 	./$(APP)

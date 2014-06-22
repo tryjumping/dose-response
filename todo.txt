@@ -10,6 +10,10 @@
 * BUG: Background colours slightly differ on newgame vs. restart (F5)
 * BUG: weird shape of the exploration area
 * BUG: leaving the area is broken
+* Using emhyr with smallintmax and explicit component indexes makes the game significantly
+(about twice) faster. But the manual indexes are a huge PITA.
+       - macro would be a solution
+       - but can we create sequential indexes?
 * Speed it up:
   - TODO: add a `name() -> &str` method to the `System` trait (with default
   impl), collect metrics for each system automatically in `World::update`,

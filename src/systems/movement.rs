@@ -27,7 +27,7 @@ fn is_solid(pos: Position, ecm: &ECM) -> bool {
 
 struct PathWithUserData {
     to: (int, int),
-    ecm: *ECM,
+    ecm: *const ECM,
     path: Option<Path>,
 }
 
@@ -45,7 +45,7 @@ impl PathWithUserData {
 // callback and then return an object with the associated callback. Should ecm
 // be destroyed before the Path we're returning, things would go wrong. So the
 // caller has to make sure that doesn't happen.
-pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), ecm: *mut ECM)
+pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), ecm: *const ECM)
                  -> Option<Box<PathWithUserData>> {
     let (sx, sy) = from;
     let (dx, dy) = to;
@@ -55,7 +55,7 @@ pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), 
     }
     let mut p = box PathWithUserData {
         to: to,
-        ecm: ecm as *ECM,
+        ecm: ecm as *const ECM,
         path: None,
     };
     let mut path = Path::new_using_function(width, height, Some(cb), p, 1.0);

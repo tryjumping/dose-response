@@ -32,6 +32,7 @@ mod components;
 mod ecm;
 mod engine;
 mod entity_util;
+mod flags;
 mod point;
 mod systems;
 mod world_gen;

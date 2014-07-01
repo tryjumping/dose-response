@@ -4,13 +4,14 @@ use std::intrinsics::TypeId;
 use std::vec::MoveItems;
 use emhyr::EntityIterator;
 use components::Position;
+use flags::Flags;
 
 
 pub use emhyr::{ComponentManager, Entity, System, World};
 
 
 pub struct ECM {
-    ecm: ::emhyr::ECM,
+    ecm: ::emhyr::ECM<Flags>,
     position_cache: HashMap<(int, int), Vec<Entity>>,
 }
 
@@ -31,7 +32,7 @@ impl ECM {
 }
 
 
-impl ComponentManager<EntityIterator> for ECM {
+impl ComponentManager<Flags, EntityIterator> for ECM {
     fn new_entity(&mut self) -> Entity { self.ecm.new_entity() }
 
     fn has_entity(&self, entity: Entity) -> bool {

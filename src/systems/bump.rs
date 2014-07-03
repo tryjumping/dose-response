@@ -15,10 +15,10 @@ define_system! {
         let opposing_sides = ecm.has::<Turn>(bumpee) &&
             ecm.get::<Turn>(bumpee).side != ecm.get::<Turn>(entity).side;
         if opposing_sides {
-            println!("Entity {} attacks {}.", entity, bumpee);
+            println!("{} attacks {}.", entity, bumpee);
             ecm.set(entity, AttackTarget(bumpee));
         } else {
-            println!("Entity {} hits the wall.", entity);
+            println!("{} hits the wall.", entity);
         }
     }
 }

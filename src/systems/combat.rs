@@ -23,7 +23,7 @@ define_system! {
         ecm.set(attacker, turn.spend_ap(1));
         match ecm.get::<AttackType>(attacker) {
             Kill => {
-                println!("Entity {} was killed by {}", target, attacker);
+                println!("{} was killed by {}", target, attacker);
                 entity_util::kill(ecm, target);
                 // TODO: This is a hack. The player should fade out, the other
                 // monsters just disappear. Need to make this better without
@@ -42,7 +42,7 @@ define_system! {
                 }
             }
             Stun{duration} => {
-                println!("Entity {} was stunned by {}", target, attacker);
+                println!("{} was stunned by {}", target, attacker);
                 // An attacker with stun disappears after delivering the blow
                 entity_util::fade_out(ecm, attacker, Color{r: 0, g: 0, b: 0}, Sec(0.4));
                 entity_util::kill(ecm, attacker);
@@ -55,7 +55,7 @@ define_system! {
                 ecm.set(target, stunned);
             }
             Panic{duration} => {
-                println!("Entity {} panics because of {}", target, attacker);
+                println!("{} panics because of {}", target, attacker);
                 // An attacker with stun disappears after delivering the blow
                 entity_util::fade_out(ecm, attacker, Color{r: 0, g: 0, b: 0}, Sec(0.4));
                 entity_util::kill(ecm, attacker);

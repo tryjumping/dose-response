@@ -115,7 +115,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
                     ecm, e, item.to_color(), col::dose_glow,
                     Infinite, Sec(0.6));
                 ecm.set(e, AttributeModifier{
-                        state_of_mind: 72 + rng.gen_range(-5, 6),
+                        state_of_mind: 72 + rng.gen_range(-5i, 6),
                         will: 0,
                     });
                 ecm.set(e, ExplosionEffect{radius: 4});
@@ -125,7 +125,7 @@ pub fn populate_world<T: Rng>(ecm: &mut ECM,
             } else if item == world_gen::StrongDose {
                 ecm.set(e, Dose{tolerance_modifier: 2, resist_radius: 3});
                 ecm.set(e, AttributeModifier{
-                        state_of_mind: 130 + rng.gen_range(-15, 16),
+                        state_of_mind: 130 + rng.gen_range(-15i, 16),
                         will: 0,
                     });
                 entity_util::set_color_animation_loop(

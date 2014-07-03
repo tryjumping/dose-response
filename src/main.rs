@@ -177,7 +177,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
 
     process_input(&mut *keys.borrow_mut(), &mut *state.commands.borrow_mut());
     // TODO this crashes the compiler: WTF?
-    // state.world.update((dt_s * 1000.0) as uint);
+    state.world.update((dt_s * 1000.0) as uint);
     Some(state)
 }
 

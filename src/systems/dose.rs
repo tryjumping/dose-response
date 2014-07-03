@@ -7,7 +7,7 @@ use point;
 
 fn is_irresistible(addict: Entity,
                    dose: Entity,
-                   ecm: &mut ECM,
+                   ecm: &ECM,
                    map_size: (int, int)) -> bool {
     let pos = ecm.get::<Position>(addict);
     let dose_pos = ecm.get::<Position>(dose);
@@ -54,9 +54,9 @@ define_system! {
                 unsafe {
                     // We walk the path here to make sure we only move one step at a
                     // time.
-                    match find_path((pos.x, pos.y), (x, y), world_size, ecm) {
+                    match find_path((pos.x, pos.y), (x, y), world_size, &*ecm) {
                         Some(ref mut path) => {
-                            if path.len() <= resist_radius(addict, dose, ecm) {
+                            if path.len() <= resist_radius(addict, dose, &*ecm) {
                                 match path.walk(true) {
                                     Some((x, y)) => {
                                         ecm.set(addict, Destination{x: x, y: y});

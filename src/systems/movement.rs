@@ -123,7 +123,7 @@ define_system! {
         } else {  // Farther away than 1 space. Need to use path finding
             // TODO: can we minimise the unsafe block to contain just the find_path call?
             unsafe {
-                match find_path((pos.x, pos.y), (dest.x, dest.y), *self.world_size(), ecm) {
+                match find_path((pos.x, pos.y), (dest.x, dest.y), *self.world_size(), &*ecm) {
                     Some(ref mut path) => {
                         assert!(path.len() > 1,
                                 "The path shouldn't be trivial. We already handled that.");

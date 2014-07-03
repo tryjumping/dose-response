@@ -1,36 +1,36 @@
 use std::cmp::max;
-use emhyr::{Entity};
+use emhyr::{Entity, Component};
 
 use engine::{Color};
 use point::Point;
 
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct AI{
     pub behaviour: ai::Behaviour,
     pub state: ai::State,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct AcceptsUserInput;
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Addiction{
     pub tolerance: int,
     pub drop_per_turn: int,
     pub last_turn: int,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct AnxietyKillCounter{
     pub count: int,
     pub threshold: int,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct AttackTarget(pub Entity);
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub enum AttackType {
     Kill,
     Stun {pub duration: int},
@@ -38,27 +38,27 @@ pub enum AttackType {
     ModifyAttributes,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct AttributeModifier{
     pub state_of_mind: int,
     pub will: int,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Attributes{
     pub state_of_mind: int,
     pub will: int,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Background;
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Bump(pub Entity);
 
 // TODO: maybe we should rename "repetitions" to "transitions" instead. Because
 // to change from the starting colour to the new one should take Count(2) reps.
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct ColorAnimation{
     pub from: Color,
     pub to: Color,
@@ -74,14 +74,14 @@ pub struct ColorAnimationState {
     pub elapsed_time: Sec,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Corpse{
     pub glyph: char,
     pub color: Color,
     pub solid: bool,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Destination {pub x: int, pub y: int}
 
 impl Point for Destination {
@@ -90,42 +90,42 @@ impl Point for Destination {
     }
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Dose{
     pub tolerance_modifier: int,
     pub resist_radius: int,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Edible;
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Exploration{pub radius: int}
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Explored;
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct ExplosionEffect{pub radius: int}
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct FadingOut;
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct InventoryItem{pub owner: Entity}
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Monster{pub kind: MonsterKind}
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Panicking{
     pub turn: int,
     pub duration: int}
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Pickable;
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Position {
     pub x: int,
     pub y: int,
@@ -137,23 +137,23 @@ impl Point for Position {
     }
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Solid;
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Stunned{
     pub turn: int,
     pub duration: int,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Tile{
     pub level: uint,
     pub glyph: char,
     pub color: Color,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct Turn{
     pub side: Side,
     pub ap: int,
@@ -161,7 +161,7 @@ pub struct Turn{
     pub spent_this_tick: int,
 }
 
-#[deriving(PartialEq, Clone, Show)]
+#[component]
 pub struct UsingItem{pub item: Entity}
 
 

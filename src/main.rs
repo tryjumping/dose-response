@@ -1,12 +1,12 @@
 #![crate_id = "dose-response#0.1.0"]
-#![feature(macro_rules, struct_variant, globs)]
+#![feature(macro_rules, struct_variant, globs, phase)]
 
 extern crate collections;
 extern crate libc;
 extern crate time;
 
 
-extern crate emhyr;
+#[phase(plugin, link)] extern crate emhyr;
 extern crate tcod;
 
 
@@ -176,12 +176,13 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
     // }
 
     process_input(&mut *keys.borrow_mut(), &mut *state.commands.borrow_mut());
-    state.world.update((dt_s * 1000.0) as uint);
+    // TODO this crashes the compiler: WTF?
+    // state.world.update((dt_s * 1000.0) as uint);
     Some(state)
 }
 
 
-// TODO: no longer needed?
+// // TODO: no longer needed?
 fn write_line(writer: &mut Writer, line: &str) -> IoResult<()> {
     let line_with_nl = String::from_str(line).append("\n");
     try!(writer.write(line_with_nl.as_bytes()));
@@ -204,10 +205,10 @@ impl CommandLogger {
     }
 }
 
-// TODO: maybe refactor the common bits of this and `replay_game_state`? A lot
-// of the GameState initialisation is common across both methods. All that
-// really differs is the seed, replay filesystem stuff and the
-// commands/command_logger.
+// // TODO: maybe refactor the common bits of this and `replay_game_state`? A lot
+// // of the GameState initialisation is common across both methods. All that
+// // really differs is the seed, replay filesystem stuff and the
+// // commands/command_logger.
 fn new_game_state(width: int, height: int) -> GameState {
     let commands = RingBuf::new();
     let seed = rand::random::<u32>();

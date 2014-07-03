@@ -5,9 +5,10 @@ use std::vec::MoveItems;
 use emhyr::EntityIterator;
 use components::Position;
 use flags::Flags;
+use std::collections::enum_set::EnumSet;
 
 
-pub use emhyr::{ComponentManager, Entity, System, World};
+pub use emhyr::{Component, ComponentManager, Entity, System, World};
 
 
 pub struct ECM {
@@ -47,7 +48,7 @@ impl ComponentManager<Flags, EntityIterator> for ECM {
         self.ecm.remove_all_entities()
     }
 
-    fn set<T: Send+Clone>(&mut self, entity: Entity, component: T) {
+    fn set<T: 'static+Component>(&mut self, entity: Entity, component: T) {
         match (&component as &Any).as_ref::<Position>() {
             Some(pos) => {
                 // Removes any previous position from the cache
@@ -60,15 +61,15 @@ impl ComponentManager<Flags, EntityIterator> for ECM {
         self.ecm.set(entity, component)
     }
 
-    fn has<T: 'static>(&self, entity: Entity) -> bool {
+    fn has<T: 'static+Component>(&self, entity: Entity) -> bool {
         self.ecm.has::<T>(entity)
     }
 
-    fn get<T: 'static+Clone>(&self, entity: Entity) -> T {
+    fn get<T: 'static+Component>(&self, entity: Entity) -> T {
         self.ecm.get::<T>(entity)
     }
 
-    fn remove<T: 'static>(&mut self, entity: Entity) {
+    fn remove<T: 'static+Component>(&mut self, entity: Entity) {
         if (TypeId::of::<T>() == TypeId::of::<Position>()) && self.has::<Position>(entity) {
             let pos: Position = self.get(entity);
             let cache = self.position_cache.get_mut(&(pos.x, pos.y));
@@ -81,13 +82,22 @@ impl ComponentManager<Flags, EntityIterator> for ECM {
         self.ecm.remove::<T>(entity)
     }
 
-    fn make<T>(&mut self, entity: Entity) {
-        self.ecm.make::<T>(entity)
+    fn make(&mut self, entity: Entity, flag: Flags) {
+        self.ecm.make(entity, flag)
     }
 
-    fn is<T>(&self, entity: Entity) -> bool {
-        self.ecm.is::<T>(entity)
+    fn is(&self, entity: Entity, flag: Flags) -> bool {
+        self.ecm.is(entity, flag)
     }
+
+    fn clear(&mut self, entity: Entity, flag: Flags) {
+        self.ecm.clear(entity, flag)
+    }
+
+    fn flags<'a>(&'a mut self, entity: Entity) -> &'a mut EnumSet<Flags> {
+        self.ecm.flags(entity)
+    }
+
     fn iter(&self) -> EntityIterator {
         self.ecm.iter()
     }

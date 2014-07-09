@@ -1,5 +1,6 @@
 * Use `type Handle<T> =  Rc<RefCell<T>>`
   - will simplify the game state code
+* Use `expect(error message)` method instead of `unwrap` for Options
 * BUG: a monster once seen is visible even in the unexplored area
   - looks like we're adding `Explored` to everything
   - should be just the background

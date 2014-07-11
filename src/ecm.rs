@@ -12,7 +12,7 @@ pub use emhyr::{Component, ComponentManager, Entity, System, World};
 
 
 pub struct ECM {
-    ecm: ::emhyr::ECM<Flags>,
+    ecm: ::emhyr::ECM,
     position_cache: HashMap<(int, int), Vec<Entity>>,
 }
 
@@ -33,7 +33,7 @@ impl ECM {
 }
 
 
-impl ComponentManager<Flags, EntityIterator> for ECM {
+impl ComponentManager<EntityIterator> for ECM {
     fn new_entity(&mut self) -> Entity { self.ecm.new_entity() }
 
     fn has_entity(&self, entity: Entity) -> bool {
@@ -82,21 +82,21 @@ impl ComponentManager<Flags, EntityIterator> for ECM {
         self.ecm.remove::<T>(entity)
     }
 
-    fn make(&mut self, entity: Entity, flag: Flags) {
-        self.ecm.make(entity, flag)
-    }
+    // fn make(&mut self, entity: Entity, flag: Flags) {
+    //     self.ecm.make(entity, flag)
+    // }
 
-    fn is(&self, entity: Entity, flag: Flags) -> bool {
-        self.ecm.is(entity, flag)
-    }
+    // fn is(&self, entity: Entity, flag: Flags) -> bool {
+    //     self.ecm.is(entity, flag)
+    // }
 
-    fn clear(&mut self, entity: Entity, flag: Flags) {
-        self.ecm.clear(entity, flag)
-    }
+    // fn clear(&mut self, entity: Entity, flag: Flags) {
+    //     self.ecm.clear(entity, flag)
+    // }
 
-    fn flags<'a>(&'a mut self, entity: Entity) -> &'a mut EnumSet<Flags> {
-        self.ecm.flags(entity)
-    }
+    // fn flags<'a>(&'a mut self, entity: Entity) -> &'a mut EnumSet<Flags> {
+    //     self.ecm.flags(entity)
+    // }
 
     fn iter(&self) -> EntityIterator {
         self.ecm.iter()

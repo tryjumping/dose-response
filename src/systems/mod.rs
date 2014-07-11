@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 macro_rules! define_system (
     {name: $name:ident;
      components(
@@ -7,7 +6,7 @@ macro_rules! define_system (
      resources(
          $($resource:ident : $ty:ty),*
      );
-     fn process_entity(&mut self, $dt_ms:ident : $uint_type:ty, $entity:ident : $entity_type:ty) $process_entity_body:expr
+     fn process_entity(&mut $self_i:ident, $dt_ms:ident : $uint_type:ty, $entity:ident : $entity_type:ty) $process_entity_body:expr
     } => {
         pub struct $name {
             $($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+
@@ -29,7 +28,7 @@ macro_rules! define_system (
                 ecm.has_entity(e) && $(ecm.has::<$component>(e))&&+
             }
 
-            fn process_entity(&mut self, $dt_ms: $uint_type, $entity: $entity_type) {
+            fn process_entity(&mut $self_i, $dt_ms: $uint_type, $entity: $entity_type) {
                 $process_entity_body
             }
 
@@ -60,7 +59,7 @@ macro_rules! define_system (
 
         impl ::emhyr::System for $name {
             fn process_all_entities(&mut self, $dt_ms: $uint_type, mut $entities: $entity_iter_type) {
-                $process_all_entities_body
+                //$process_all_entities_body
             }
 
             fn name(&self) -> &str {

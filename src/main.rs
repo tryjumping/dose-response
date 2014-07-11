@@ -1,4 +1,3 @@
-#![crate_id = "dose-response#0.1.0"]
 #![feature(macro_rules, struct_variant, globs, phase)]
 
 extern crate collections;
@@ -201,7 +200,7 @@ struct CommandLogger {
 
 impl CommandLogger {
     fn log(&mut self, command: Command) {
-        write_line(self.writer, command.to_str().as_slice()).unwrap();
+        write_line(self.writer, command.to_string().as_slice()).unwrap();
     }
 }
 
@@ -214,7 +213,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     let seed = rand::random::<u32>();
     let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
     let cur_time = time::now();
-    let timestamp = time::strftime("%FT%T.", &cur_time).append((cur_time.tm_nsec / 1000000).to_str().as_slice());
+    let timestamp = time::strftime("%FT%T.", &cur_time).append((cur_time.tm_nsec / 1000000).to_string().as_slice());
     let replay_dir = &Path::new("./replays/");
     if !replay_dir.exists() {
         io::fs::mkdir_recursive(replay_dir,
@@ -226,7 +225,7 @@ fn new_game_state(width: int, height: int) -> GameState {
         Err(msg) => fail!("Failed to create the replay file. {}", msg)
     };
     println!("Recording the gameplay to '{}'", replay_path.display());
-    write_line(&mut *writer as &mut Writer, seed.to_str().as_slice()).unwrap();
+    write_line(&mut *writer as &mut Writer, seed.to_string().as_slice()).unwrap();
     let logger = CommandLogger{writer: writer};
     let mut ecm = ECM::new();
     let player = ecm.new_entity();

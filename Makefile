@@ -5,17 +5,16 @@ LIBS=$(wildcard lib/*.rlib)
 CFLAGS=-C link-args='-Wl,--rpath=$$ORIGIN/lib'
 CARGO_RUSTFLAGS?=
 
-all: $(APP)
+build: $(SOURCES)
+	cargo build
+	patchelf --set-rpath '$$ORIGIN/deps/' target/$(APP)
 
 test: $(SOURCES) $(LIBS)
 	rustc --test -W ctypes src/tests.rs -o test-$(APP)
 	./test-$(APP)
 
-$(APP): $(SOURCES) $(LIBS)
-	rustc src/main.rs -O -o $(APP) -L $(LIB_DIR) $(CFLAGS)
-
-run: $(APP)
-	./$(APP)
+run: build
+	./target/$(APP)
 
 replay: $(APP)
 	./$(APP) `find replays -type f -name 'replay-*' | sort | tail -n 1`

@@ -10,7 +10,4 @@ dose-response
 /test_component_codegen
 /test_component_codegen.rs
 test-dose-response
-/lib/*.rlib
-/lib/libanymap-c9011025-0.9.so
-/lib/libemhyr-0163726d-0.1.0.so
-/lib/libanymap-9a50571b-0.9.0.so
+/target/

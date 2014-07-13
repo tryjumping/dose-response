@@ -19,6 +19,7 @@ macro_rules! define_system (
                 }
             }
 
+            #[allow(dead_code)]
             $(pub fn $resource<'a>(&'a self) -> ::std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
         }
 
@@ -41,7 +42,7 @@ macro_rules! define_system (
      resources(
          $($resource:ident : $ty:ty),*
      );
-     fn process_all_entities(&mut self, $dt_ms:ident : $uint_type:ty, mut $entities:ident : $entity_iter_type:ty) $process_all_entities_body:expr
+     fn process_all_entities(&mut $self_i:ident, $dt_ms:ident : $uint_type:ty, mut $entities:ident : $entity_iter_type:ty) $process_all_entities_body:expr
     } => {
         pub struct $name {
             $($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+
@@ -58,8 +59,8 @@ macro_rules! define_system (
         }
 
         impl ::emhyr::System for $name {
-            fn process_all_entities(&mut self, $dt_ms: $uint_type, mut $entities: $entity_iter_type) {
-                //$process_all_entities_body
+            fn process_all_entities(&mut $self_i, $dt_ms: $uint_type, mut $entities: $entity_iter_type) {
+                $process_all_entities_body
             }
 
             fn name(&self) -> &str {

@@ -4,8 +4,6 @@ use std::intrinsics::TypeId;
 use std::vec::MoveItems;
 use emhyr::EntityIterator;
 use components::Position;
-use flags::Flags;
-use std::collections::enum_set::EnumSet;
 
 
 pub use emhyr::{Component, ComponentManager, Entity, System, World};

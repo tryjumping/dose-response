@@ -1,4 +1,4 @@
-#![feature(macro_rules, struct_variant, globs, phase)]
+#![feature(macro_rules, struct_variant, globs, phase, link_args)]
 
 extern crate collections;
 extern crate libc;
@@ -7,7 +7,6 @@ extern crate time;
 
 #[phase(plugin, link)] extern crate emhyr;
 extern crate tcod;
-
 
 use std::io;
 use std::io::{File, IoResult};
@@ -37,6 +36,8 @@ mod systems;
 mod world_gen;
 mod world;
 
+// Set the binary's RPATH to the `deps` directory:
+#[link_args ="-Wl,-rpath=$ORIGIN/deps"] extern {}
 
 pub struct GameState {
     world: World<ECM>,

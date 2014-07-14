@@ -10,14 +10,14 @@ build: $(SOURCES) target/deps/libtcod.so
 	patchelf --set-rpath '$$ORIGIN/deps/' target/$(APP)
 
 target/deps/libtcod.so: lib/libtcod.so
-	@mkdir -p target/deps/ target/deps/libtcod.so
+	@mkdir -p target/deps/
 	ln -s -r lib/libtcod.so target/deps/
 
-target/deps/release/libtcod.so: lib/libtcod.so
-	@mkdir -p target/deps/release/ target/deps/release/libtcod.so
-	ln -s -r lib/libtcod.so target/deps/
+target/release/deps/libtcod.so: lib/libtcod.so
+	@mkdir -p target/release/deps/
+	ln -s -r lib/libtcod.so target/release/deps/
 
-release: $(SOURCES) target/deps/release/libtcod.so
+release: $(SOURCES) target/release/deps/libtcod.so
 	cargo build --release
 	patchelf --set-rpath '$$ORIGIN/deps/' target/release/$(APP)
 

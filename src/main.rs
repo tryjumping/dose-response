@@ -247,7 +247,7 @@ fn new_game_state(width: int, height: int) -> GameState {
 
 fn replay_game_state(width: int, height: int) -> GameState {
     let mut commands = RingBuf::new();
-    let replay_path = &Path::new(os::args().get(1).as_slice());
+    let replay_path = &Path::new(os::args()[1].as_slice());
     let mut seed: u32;
     match File::open(replay_path) {
         Ok(mut file) => {

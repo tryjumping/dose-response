@@ -1,16 +1,16 @@
+use std::time::Duration;
 use components::{Side, Turn};
-use ecm::{ComponentManager, ECM, Entity};
+use emhyr::{Components, Entity};
 
 
 define_system! {
     name: TurnTickCounterSystem;
     components(Turn);
-    resources(ecm: ECM, side: Side);
-    fn process_entity(&mut self, _dt_ms: uint, e: Entity) {
-        let ecm = &mut *self.ecm();
-        let turn: Turn = ecm.get(e);
+    resources(side: Side);
+    fn process_entity(&mut self, cs: &mut Components, _dt: Duration, e: Entity) {
+        let turn: Turn = cs.get(e);
         if turn.side == *self.side() {
-            ecm.set(e, Turn{spent_this_tick: 0, .. turn});
+            cs.set(Turn{spent_this_tick: 0, .. turn}, e);
         }
     }
 }

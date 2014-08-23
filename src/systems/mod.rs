@@ -1,43 +1,42 @@
-// macro_rules! define_system (
-//     {name: $name:ident;
-//      components(
-//          $($component:ident),+
-//      );
-//      resources(
-//          $($resource:ident : $ty:ty),*
-//      );
-//      fn process_entity(&mut $self_i:ident, $dt_ms:ident : $uint_type:ty, $entity:ident : $entity_type:ty) $process_entity_body:expr
-//     } => {
-//         pub struct $name {
-//             $($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+
-//         }
+macro_rules! define_system (
+    {name: $name:ident;
+     components(
+         $($component:ident),+
+     );
+     resources(
+         $($resource:ident : $ty:ty),*
+     );
+     fn process_entity(&mut $self_i:ident, $cs:ident : &mut $cs_type:ty, $dt:ident : $dt_type:ty, $entity:ident : $entity_type:ty) $process_entity_body:expr
+    } => {
+        pub struct $name {
+            $($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+
+        }
 
-//         impl $name {
-//             pub fn new($($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+) -> $name {
-//                 $name {
-//                     $($resource: $resource),+
-//                 }
-//             }
+        impl $name {
+            pub fn new($($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+) -> $name {
+                $name {
+                    $($resource: $resource),+
+                }
+            }
 
-//             #[allow(dead_code)]
-//             $(pub fn $resource<'a>(&'a self) -> ::std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
-//         }
+            #[allow(dead_code)]
+            $(pub fn $resource<'a>(&'a self) -> ::std::cell::RefMut<'a, $ty> {self.$resource.borrow_mut()})+
+        }
 
-//         impl ::emhyr::System for $name {
-//             fn valid_entity(&self, e: $entity_type) -> bool {
-//                 let ecm = self.ecm.borrow();
-//                 ecm.has_entity(e) && $(ecm.has::<$component>(e))&&+
-//             }
+        impl ::emhyr::System for $name {
+            fn requirements(&self) -> ::emhyr::Requirements {
+                ::emhyr::RequiredComponents(vec![$(::std::intrinsics::TypeId::of::<$component>()),+])
+            }
 
-//             fn process_entity(&mut $self_i, $dt_ms: $uint_type, $entity: $entity_type) {
-//                 $process_entity_body
-//             }
+            fn process_entity(&mut $self_i, $cs: &mut $cs_type, $dt: $dt_type, $entity: $entity_type) {
+                $process_entity_body
+            }
 
-//             fn name(&self) -> &str {
-//                 stringify!($name)
-//             }
-//         }
-//     };
+            fn name(&self) -> &str {
+                stringify!($name)
+            }
+        }
+    };
 //     {name: $name:ident;
 //      resources(
 //          $($resource:ident : $ty:ty),*
@@ -68,7 +67,7 @@
 //             }
 //         }
 //     }
-// )
+)
 
 
 // pub mod addiction;
@@ -93,5 +92,5 @@ pub mod input;
 // pub mod stun_effect_duration;
 // pub mod tile;
 // pub mod turn;
-// pub mod turn_tick_counter;
+pub mod turn_tick_counter;
 // pub mod will;

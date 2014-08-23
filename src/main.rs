@@ -309,9 +309,8 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     let player_rc = rc_mut(player);
     let world_size_rc = rc_mut(game_state.world_size);
 
-    // game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
-    //     ecm.clone(),
-    //     game_state.side.clone()));
+    game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
+        game_state.side.clone()));
     // game_state.world.add_system(box systems::stun_effect_duration::StunEffectDurationSystem::new(
     //     ecm.clone(),
     //     game_state.turn.clone()));;

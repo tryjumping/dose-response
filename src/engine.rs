@@ -6,7 +6,7 @@ use std::cell::RefCell;
 use std::collections::Deque;
 use std::collections::RingBuf;
 pub use tcod::{Color, Console};
-pub use key = tcod::key_code;
+pub use tcod::key_code as key;
 pub use tcod;
 
 pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};

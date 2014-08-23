@@ -8,6 +8,7 @@ extern crate time;
 #[phase(plugin, link)] extern crate emhyr;
 extern crate tcod;
 
+use std::time::Duration;
 use std::io;
 use std::io::{File, IoResult};
 use std::io::util::NullWriter;
@@ -21,13 +22,12 @@ use std::rand;
 use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
-use ecm::{ComponentManager, ECM, Entity, World};
+use emhyr::{Entity, World};
 use engine::{Engine, key};
 use systems::input::commands;
 use systems::input::commands::Command;
 
 mod components;
-mod ecm;
 mod engine;
 mod entity_util;
 mod flags;
@@ -39,8 +39,8 @@ mod world;
 // Set the binary's RPATH to the `deps` directory:
 #[link_args ="-Wl,-rpath=$ORIGIN/deps"] extern {}
 
-pub struct GameState {
-    world: World<ECM>,
+pub struct GameState<'a> {
+    world: World<'a>,
     side: Rc<RefCell<Side>>,
     world_size: (int, int),
     turn: Rc<RefCell<int>>,
@@ -120,22 +120,25 @@ fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comm
     }
 }
 
-fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<GameState> {
+fn update<'a>(mut state: GameState<'a>, dt_s: f32, engine: &engine::Engine) -> Option<GameState<'a>> {
     let keys = engine.keys();
     if key_pressed(&*keys.borrow(), Special(key::Escape)) {
         use std::cmp::{Less, Equal, Greater};
         let mut stats = state.world.generate_stats();
-        stats.sort_by(|&(_, time_1), &(_, time_2)|
+        stats.sort_by(|&(_, time_1, _), &(_, time_2, _)|
                       if time_1 < time_2 { Greater }
                       else if time_1 > time_2 { Less }
                       else if time_1 == time_2 { Equal }
                       else { println!("{}, {}", time_1, time_2); unreachable!() });
         println!("Mean update time in miliseconds per system:");
-        for &(system_name, average_time_ns) in stats.iter() {
-            println!("{:4.3f}\t{}", average_time_ns / 1000000.0, system_name);
+        for &(system_name, average_time_ns, system_only_ns) in stats.iter() {
+            println!("{:4.3f}\t{:4.3f}\t{}",
+                     average_time_ns / 1000000.0,
+                     system_only_ns / 1000000.0,
+                     system_name);
         }
         let total_time_ns = stats.iter()
-            .map(|&(_, time_ns)| time_ns)
+            .map(|&(_, time_ns, _)| time_ns)
             .fold(0.0, |a, b| a + b);
         println!("\nAggregate mean time per tick: {}ms", total_time_ns / 1000000.0);
         return None;
@@ -177,7 +180,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
 
     process_input(&mut *keys.borrow_mut(), &mut *state.commands.borrow_mut());
     // TODO this crashes the compiler: WTF?
-    state.world.update((dt_s * 1000.0) as uint);
+    state.world.update(Duration::milliseconds((dt_s * 1000.0) as i32));
     Some(state)
 }
 
@@ -209,7 +212,7 @@ impl CommandLogger {
 // // of the GameState initialisation is common across both methods. All that
 // // really differs is the seed, replay filesystem stuff and the
 // // commands/command_logger.
-fn new_game_state(width: int, height: int) -> GameState {
+fn new_game_state<'a>(width: int, height: int) -> GameState<'a> {
     let commands = RingBuf::new();
     let seed = rand::random::<u32>();
     let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
@@ -228,10 +231,10 @@ fn new_game_state(width: int, height: int) -> GameState {
     println!("Recording the gameplay to '{}'", replay_path.display());
     write_line(&mut *writer as &mut Writer, seed.to_string().as_slice()).unwrap();
     let logger = CommandLogger{writer: writer};
-    let mut ecm = ECM::new();
-    let player = ecm.new_entity();
+    let mut world = World::new();
+    let player = world.new_entity();
     GameState {
-        world: World::new(ecm),
+        world: world,
         commands: rc_mut(commands),
         command_logger: rc_mut(logger),
         rng: rc_mut(rng),
@@ -245,7 +248,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     }
 }
 
-fn replay_game_state(width: int, height: int) -> GameState {
+fn replay_game_state<'a>(width: int, height: int) -> GameState<'a> {
     let mut commands = RingBuf::new();
     let replay_path = &Path::new(os::args()[1].as_slice());
     let mut seed: u32;
@@ -274,10 +277,10 @@ fn replay_game_state(width: int, height: int) -> GameState {
     println!("Replaying game log: '{}'", replay_path.display());
     let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
     let logger = CommandLogger{writer: box NullWriter};
-    let mut ecm = ECM::new();
-    let player = ecm.new_entity();
+    let mut world = World::new();
+    let player = world.new_entity();
     GameState {
-        world: World::new(ecm),
+        world: world,
         commands: rc_mut(commands),
         command_logger: rc_mut(logger),
         rng: rc_mut(rng),
@@ -294,97 +297,94 @@ fn replay_game_state(width: int, height: int) -> GameState {
 fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     let (width, height) = game_state.world_size;
     let player = game_state.player;
-    world::create_player(&mut *game_state.world.ecm.borrow_mut(), player);
-    game_state.world.ecm.borrow_mut().set(player, Position{x: width / 2, y: height / 2});
-    let player_pos: Position = game_state.world.ecm.borrow().get(player);
-    world::populate_world(&mut *game_state.world.ecm.borrow_mut(),
+    world::create_player(&mut game_state.world.cs, player);
+    game_state.world.cs.set(Position{x: width / 2, y: height / 2}, player);
+    let player_pos: Position = game_state.world.cs.get(player);
+    world::populate_world(&mut game_state.world,
                           game_state.world_size,
                           player_pos,
                           &mut *game_state.rng.borrow_mut(),
                           world_gen::forrest);
 
-    // Appease the borrow checker: we can't do world.ecm inside of
-    // world.add_system() because that's a double borrow:
-    let ecm = game_state.world.ecm();
     let player_rc = rc_mut(player);
     let world_size_rc = rc_mut(game_state.world_size);
 
-    game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
-        ecm.clone(),
-        game_state.side.clone()));
-    game_state.world.add_system(box systems::stun_effect_duration::StunEffectDurationSystem::new(
-        ecm.clone(),
-        game_state.turn.clone()));;
-    game_state.world.add_system(box systems::panic_effect_duration::PanicEffectDurationSystem::new(
-        ecm.clone(),
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::addiction::AddictionSystem::new(
-        ecm.clone(),
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
-        ecm.clone(),
-        game_state.commands.clone(),
-        game_state.command_logger.clone()));
-    game_state.world.add_system(box systems::input::InputSystem::new(
-        ecm.clone(),
-        game_state.commands.clone(),
-        game_state.side.clone()));
-    // TODO: systems::leave_area::system,
-    game_state.world.add_system(box systems::ai::AISystem::new(
-        ecm.clone(),
-        player_rc.clone(),
-        game_state.side.clone(),
-        world_size_rc.clone(),
-        game_state.rng.clone()));
-    game_state.world.add_system(box systems::dose::DoseSystem::new(
-        ecm.clone(),
-        world_size_rc.clone()));
-    game_state.world.add_system(box systems::panic::PanicSystem::new(
-        ecm.clone(),
-        world_size_rc.clone(),
-        game_state.rng.clone()));
-    game_state.world.add_system(box systems::stun::StunSystem::new(
-        ecm.clone()));
-    game_state.world.add_system(box systems::movement::MovementSystem::new(
-        ecm.clone(),
-        world_size_rc.clone()));
-    game_state.world.add_system(box systems::eating::EatingSystem::new(
-        ecm.clone()));
-    game_state.world.add_system(box systems::interaction::InteractionSystem::new(
-        ecm.clone()));
-    game_state.world.add_system(box systems::bump::BumpSystem::new(
-        ecm.clone()));
-    game_state.world.add_system(box systems::combat::CombatSystem::new(
-        ecm.clone(),
-        player_rc.clone(),
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::will::WillSystem::new(
-        ecm.clone()));
-    game_state.world.add_system(box systems::exploration::ExplorationSystem::new(
-        ecm.clone(),
-        player_rc.clone()));
-    game_state.world.add_system(box systems::fade_out::FadeOutSystem::new(
-        ecm.clone()));
-    game_state.world.add_system(box systems::color_animation::ColorAnimationSystem::new(
-        ecm.clone()));
-    game_state.world.add_system(box systems::tile::TileSystem::new(
-        ecm.clone(),
-        engine.display(),
-        player_rc.clone(),
-        game_state.cheating.clone()));
-    game_state.world.add_system(box systems::gui::GUISystem::new(
-        ecm.clone(),
-        engine.display(),
-        player_rc.clone(),
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::turn::TurnSystem::new(
-        ecm.clone(),
-        game_state.side.clone(),
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::addiction_graphics::AddictionGraphicsSystem::new(
-        ecm.clone(),
-        engine.display(),
-        player_rc.clone()));
+    // game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
+    //     ecm.clone(),
+    //     game_state.side.clone()));
+    // game_state.world.add_system(box systems::stun_effect_duration::StunEffectDurationSystem::new(
+    //     ecm.clone(),
+    //     game_state.turn.clone()));;
+    // game_state.world.add_system(box systems::panic_effect_duration::PanicEffectDurationSystem::new(
+    //     ecm.clone(),
+    //     game_state.turn.clone()));
+    // game_state.world.add_system(box systems::addiction::AddictionSystem::new(
+    //     ecm.clone(),
+    //     game_state.turn.clone()));
+    // game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
+    //     ecm.clone(),
+    //     game_state.commands.clone(),
+    //     game_state.command_logger.clone()));
+    // game_state.world.add_system(box systems::input::InputSystem::new(
+    //     ecm.clone(),
+    //     game_state.commands.clone(),
+    //     game_state.side.clone()));
+    // // TODO: systems::leave_area::system,
+    // game_state.world.add_system(box systems::ai::AISystem::new(
+    //     ecm.clone(),
+    //     player_rc.clone(),
+    //     game_state.side.clone(),
+    //     world_size_rc.clone(),
+    //     game_state.rng.clone()));
+    // game_state.world.add_system(box systems::dose::DoseSystem::new(
+    //     ecm.clone(),
+    //     world_size_rc.clone()));
+    // game_state.world.add_system(box systems::panic::PanicSystem::new(
+    //     ecm.clone(),
+    //     world_size_rc.clone(),
+    //     game_state.rng.clone()));
+    // game_state.world.add_system(box systems::stun::StunSystem::new(
+    //     ecm.clone()));
+    // game_state.world.add_system(box systems::movement::MovementSystem::new(
+    //     ecm.clone(),
+    //     world_size_rc.clone()));
+    // game_state.world.add_system(box systems::eating::EatingSystem::new(
+    //     ecm.clone()));
+    // game_state.world.add_system(box systems::interaction::InteractionSystem::new(
+    //     ecm.clone()));
+    // game_state.world.add_system(box systems::bump::BumpSystem::new(
+    //     ecm.clone()));
+    // game_state.world.add_system(box systems::combat::CombatSystem::new(
+    //     ecm.clone(),
+    //     player_rc.clone(),
+    //     game_state.turn.clone()));
+    // game_state.world.add_system(box systems::will::WillSystem::new(
+    //     ecm.clone()));
+    // game_state.world.add_system(box systems::exploration::ExplorationSystem::new(
+    //     ecm.clone(),
+    //     player_rc.clone()));
+    // game_state.world.add_system(box systems::fade_out::FadeOutSystem::new(
+    //     ecm.clone()));
+    // game_state.world.add_system(box systems::color_animation::ColorAnimationSystem::new(
+    //     ecm.clone()));
+    // game_state.world.add_system(box systems::tile::TileSystem::new(
+    //     ecm.clone(),
+    //     engine.display(),
+    //     player_rc.clone(),
+    //     game_state.cheating.clone()));
+    // game_state.world.add_system(box systems::gui::GUISystem::new(
+    //     ecm.clone(),
+    //     engine.display(),
+    //     player_rc.clone(),
+    //     game_state.turn.clone()));
+    // game_state.world.add_system(box systems::turn::TurnSystem::new(
+    //     ecm.clone(),
+    //     game_state.side.clone(),
+    //     game_state.turn.clone()));
+    // game_state.world.add_system(box systems::addiction_graphics::AddictionGraphicsSystem::new(
+    //     ecm.clone(),
+    //     engine.display(),
+    //     player_rc.clone()));
 }
 
 

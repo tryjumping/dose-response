@@ -2,7 +2,7 @@ use components::{Background, ColorAnimation, Exploration, Explored, Position, Ti
 use ecm::{ComponentManager, ECM, Entity};
 use engine::Display;
 use point;
-use color = world::col;
+use world::col as color;
 
 
 define_system! {

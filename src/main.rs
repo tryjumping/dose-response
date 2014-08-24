@@ -311,79 +311,64 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
 
     game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
         game_state.side.clone()));
-    // game_state.world.add_system(box systems::stun_effect_duration::StunEffectDurationSystem::new(
-    //     ecm.clone(),
-    //     game_state.turn.clone()));;
-    // game_state.world.add_system(box systems::panic_effect_duration::PanicEffectDurationSystem::new(
-    //     ecm.clone(),
-    //     game_state.turn.clone()));
-    // game_state.world.add_system(box systems::addiction::AddictionSystem::new(
-    //     ecm.clone(),
-    //     game_state.turn.clone()));
-    // game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
-    //     ecm.clone(),
-    //     game_state.commands.clone(),
-    //     game_state.command_logger.clone()));
-    // game_state.world.add_system(box systems::input::InputSystem::new(
-    //     ecm.clone(),
-    //     game_state.commands.clone(),
-    //     game_state.side.clone()));
+    game_state.world.add_system(box systems::stun_effect_duration::StunEffectDurationSystem::new(
+        game_state.turn.clone()));;
+    game_state.world.add_system(box systems::panic_effect_duration::PanicEffectDurationSystem::new(
+        game_state.turn.clone()));
+    game_state.world.add_system(box systems::addiction::AddictionSystem::new(
+        game_state.turn.clone()));
+    game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
+        game_state.commands.clone(),
+        game_state.command_logger.clone()));
+    game_state.world.add_system(box systems::input::InputSystem::new(
+         game_state.commands.clone(),
+        game_state.side.clone()));
     // // TODO: systems::leave_area::system,
-    // game_state.world.add_system(box systems::ai::AISystem::new(
-    //     ecm.clone(),
-    //     player_rc.clone(),
-    //     game_state.side.clone(),
-    //     world_size_rc.clone(),
-    //     game_state.rng.clone()));
-    // game_state.world.add_system(box systems::dose::DoseSystem::new(
-    //     ecm.clone(),
-    //     world_size_rc.clone()));
-    // game_state.world.add_system(box systems::panic::PanicSystem::new(
-    //     ecm.clone(),
-    //     world_size_rc.clone(),
-    //     game_state.rng.clone()));
-    // game_state.world.add_system(box systems::stun::StunSystem::new(
-    //     ecm.clone()));
-    // game_state.world.add_system(box systems::movement::MovementSystem::new(
-    //     ecm.clone(),
-    //     world_size_rc.clone()));
-    // game_state.world.add_system(box systems::eating::EatingSystem::new(
-    //     ecm.clone()));
-    // game_state.world.add_system(box systems::interaction::InteractionSystem::new(
-    //     ecm.clone()));
-    // game_state.world.add_system(box systems::bump::BumpSystem::new(
-    //     ecm.clone()));
-    // game_state.world.add_system(box systems::combat::CombatSystem::new(
-    //     ecm.clone(),
-    //     player_rc.clone(),
-    //     game_state.turn.clone()));
-    // game_state.world.add_system(box systems::will::WillSystem::new(
-    //     ecm.clone()));
-    // game_state.world.add_system(box systems::exploration::ExplorationSystem::new(
-    //     ecm.clone(),
-    //     player_rc.clone()));
-    // game_state.world.add_system(box systems::fade_out::FadeOutSystem::new(
-    //     ecm.clone()));
-    // game_state.world.add_system(box systems::color_animation::ColorAnimationSystem::new(
-    //     ecm.clone()));
-    // game_state.world.add_system(box systems::tile::TileSystem::new(
-    //     ecm.clone(),
-    //     engine.display(),
-    //     player_rc.clone(),
-    //     game_state.cheating.clone()));
-    // game_state.world.add_system(box systems::gui::GUISystem::new(
-    //     ecm.clone(),
-    //     engine.display(),
-    //     player_rc.clone(),
-    //     game_state.turn.clone()));
-    // game_state.world.add_system(box systems::turn::TurnSystem::new(
-    //     ecm.clone(),
-    //     game_state.side.clone(),
-    //     game_state.turn.clone()));
-    // game_state.world.add_system(box systems::addiction_graphics::AddictionGraphicsSystem::new(
-    //     ecm.clone(),
-    //     engine.display(),
-    //     player_rc.clone()));
+    game_state.world.add_system(box systems::ai::AISystem::new(
+        player_rc.clone(),
+        game_state.side.clone(),
+        world_size_rc.clone(),
+        game_state.rng.clone()));
+    game_state.world.add_system(box systems::dose::DoseSystem::new(
+        world_size_rc.clone()));
+    game_state.world.add_system(box systems::panic::PanicSystem::new(
+        world_size_rc.clone(),
+        game_state.rng.clone()));
+    game_state.world.add_system(box systems::stun::StunSystem::new(
+        player_rc.clone()));
+    game_state.world.add_system(box systems::movement::MovementSystem::new(
+        world_size_rc.clone()));
+    game_state.world.add_system(box systems::eating::EatingSystem::new(
+        player_rc.clone()));
+    game_state.world.add_system(box systems::interaction::InteractionSystem::new(
+        player_rc.clone()));
+    game_state.world.add_system(box systems::bump::BumpSystem::new(
+        player_rc.clone()));
+    game_state.world.add_system(box systems::combat::CombatSystem::new(
+        player_rc.clone(),
+        game_state.turn.clone()));
+    game_state.world.add_system(box systems::will::WillSystem::new(
+        player_rc.clone()));
+    game_state.world.add_system(box systems::exploration::ExplorationSystem::new(
+        player_rc.clone()));
+    game_state.world.add_system(box systems::fade_out::FadeOutSystem::new(
+        player_rc.clone()));
+    game_state.world.add_system(box systems::color_animation::ColorAnimationSystem::new(
+        player_rc.clone()));
+    game_state.world.add_system(box systems::tile::TileSystem::new(
+        engine.display(),
+        player_rc.clone(),
+        game_state.cheating.clone()));
+    game_state.world.add_system(box systems::gui::GUISystem::new(
+        engine.display(),
+        player_rc.clone(),
+        game_state.turn.clone()));
+    game_state.world.add_system(box systems::turn::TurnSystem::new(
+        game_state.side.clone(),
+        game_state.turn.clone()));
+    game_state.world.add_system(box systems::addiction_graphics::AddictionGraphicsSystem::new(
+        engine.display(),
+        player_rc.clone()));
 }
 
 

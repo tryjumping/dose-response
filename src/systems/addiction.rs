@@ -1,4 +1,5 @@
-use ecm::{ComponentManager, ECM, Entity};
+use std::time::Duration;
+use emhyr::{Components, Entity};
 use components::{Addiction, Attributes};
 use entity_util;
 
@@ -6,22 +7,21 @@ use entity_util;
 define_system! {
     name: AddictionSystem;
     components(Addiction, Attributes);
-    resources(ecm: ECM, current_turn: int);
-    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
-        let ecm = &mut *self.ecm();
-        let addiction: Addiction = ecm.get(entity);
-        let attr: Attributes = ecm.get(entity);
+    resources(current_turn: int);
+    fn process_entity(&mut self, cs: &mut Components, _dt: Duration, entity: Entity) {
+        let addiction: Addiction = cs.get(entity);
+        let attr: Attributes = cs.get(entity);
         let current_turn = *self.current_turn();
         if current_turn > addiction.last_turn {
-            ecm.set(entity, Attributes{
+            cs.set(Attributes{
                 state_of_mind: attr.state_of_mind - addiction.drop_per_turn,
                 .. attr
-            });
-            ecm.set(entity, Addiction{last_turn: current_turn, .. addiction});
+            }, entity);
+            cs.set(Addiction{last_turn: current_turn, .. addiction}, entity);
         };
-        let som = ecm.get::<Attributes>(entity).state_of_mind;
+        let som = cs.get::<Attributes>(entity).state_of_mind;
         if som <= 0 || som >= 100 {
-            entity_util::kill(ecm, entity);
+            entity_util::kill(cs, entity);
         }
     }
 }

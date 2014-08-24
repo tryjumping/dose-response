@@ -1,4 +1,6 @@
-use ecm::{ComponentManager, ECM, Entity};
+use std::time::Duration;
+
+use emhyr::{Components, Entity, Entities};
 use components::{Computer, Player, Side, Turn};
 
 impl ::components::Side {
@@ -16,14 +18,13 @@ impl ::components::Side {
 
 define_system! {
     name: TurnSystem;
-    resources(ecm: ECM, side: Side, turn: int);
-    fn process_all_entities(&mut self, _dt_ms: uint, mut _entities: &mut Iterator<Entity>) {
-        let ecm = &mut *self.ecm();
+    resources(side: Side, turn: int);
+    fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, mut entities: Entities) {
         let mut current_side = self.side();
-        let switch_sides = ecm.iter().all(|e| {
-                match ecm.has::<Turn>(e) {
+        let switch_sides = entities.clone().all(|e| {
+                match cs.has::<Turn>(e) {
                     true => {
-                        let turn: Turn = ecm.get(e);
+                        let turn: Turn = cs.get(e);
                         (*current_side != turn.side) || (turn.ap == 0)
                     },
                     false => true,
@@ -34,14 +35,14 @@ define_system! {
                 *self.turn() += 1;
             }
             *current_side = current_side.next();
-            for e in ecm.iter() {
-                match ecm.has::<Turn>(e) {
+            for e in entities {
+                match cs.has::<Turn>(e) {
                     true => {
-                        let turn: Turn = ecm.get(e);
+                        let turn: Turn = cs.get(e);
                         if turn.side == *current_side {
-                            ecm.set(e, Turn{
+                            cs.set(Turn{
                                     ap: turn.max_ap,
-                                    .. turn});
+                                    .. turn}, e);
                         }
                     },
                     false => (),

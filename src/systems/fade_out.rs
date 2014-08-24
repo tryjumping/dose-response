@@ -1,17 +1,17 @@
+use std::time::Duration;
 use components::{ColorAnimation, FadingOut, Tile};
-use ecm::{ComponentManager, ECM, Entity};
+use emhyr::{Components, Entity};
 
 
 define_system! {
     name: FadeOutSystem;
     components(FadingOut, Tile);
-    resources(ecm: ECM);
-    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
-        let ecm = &mut *self.ecm();
+    resources(player: Entity);
+    fn process_entity(&mut self, cs: &mut Components, _dt: Duration, entity: Entity) {
         // the animation has ended, finish the fade out
-        if !ecm.has::<ColorAnimation>(entity) {
-            ecm.remove::<Tile>(entity);
-            ecm.remove::<FadingOut>(entity);
+        if !cs.has::<ColorAnimation>(entity) {
+            cs.unset::<Tile>(entity);
+            cs.unset::<FadingOut>(entity);
         }
     }
 }

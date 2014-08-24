@@ -1,29 +1,27 @@
+use std::time::Duration;
 use components::{AnxietyKillCounter, Attributes};
-use ecm::{ComponentManager, ECM, Entity};
+use emhyr::{Components, Entity};
 use entity_util;
 
 
 define_system! {
     name: WillSystem;
     components(Attributes);
-    resources(ecm: ECM);
-    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
-        let ecm = &mut *self.ecm();
-        let attrs = ecm.get::<Attributes>(entity);
-        if ecm.has::<AnxietyKillCounter>(entity) {
-            let kc = ecm.get::<AnxietyKillCounter>(entity);
+    resources(player: Entity);
+    fn process_entity(&mut self, cs: &mut Components, _dt: Duration, entity: Entity) {
+        let attrs = cs.get::<Attributes>(entity);
+        if cs.has::<AnxietyKillCounter>(entity) {
+            let kc = cs.get::<AnxietyKillCounter>(entity);
             if kc.count >= kc.threshold {
-                ecm.set(entity,
-                        Attributes{will: attrs.will + 1, .. attrs});
-                ecm.set(entity,
-                        AnxietyKillCounter{
+                cs.set(Attributes{will: attrs.will + 1, .. attrs}, entity);
+                cs.set(AnxietyKillCounter{
                             count: kc.threshold - kc.count,
                             .. kc
-                        });
+                        }, entity);
             }
         }
-        if ecm.get::<Attributes>(entity).will <= 0 {
-            entity_util::kill(ecm, entity);
+        if cs.get::<Attributes>(entity).will <= 0 {
+            entity_util::kill(cs, entity);
         }
     }
 }

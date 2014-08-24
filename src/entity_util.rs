@@ -1,6 +1,7 @@
+use std::time::Duration;
 use components::{AI, AcceptsUserInput, Corpse, Count, Destination,
                  InventoryItem, Solid, Tile, Turn};
-use components::{ColorAnimation, ColorAnimationState, FadingOut, Sec, Repetitions, Forward};
+use components::{ColorAnimation, ColorAnimationState, FadingOut, Repetitions, Forward};
 use engine::Color;
 use point;
 use emhyr::{Components, Entity};
@@ -8,7 +9,7 @@ use emhyr::{Components, Entity};
 
 pub fn set_color_animation_loop(cs: &mut Components, e: Entity,
                                 from: Color, to: Color,
-                                repetitions: Repetitions, duration: Sec) {
+                                repetitions: Repetitions, duration: Duration) {
     cs.set(ColorAnimation{
         from: from,
         to: to,
@@ -17,12 +18,12 @@ pub fn set_color_animation_loop(cs: &mut Components, e: Entity,
         current: ColorAnimationState{
             color: from,
             fade_direction: Forward,
-            elapsed_time: Sec(0.0),
+            elapsed_time: Duration::milliseconds(0),
         },
     }, e);
 }
 
-pub fn fade_out(cs: &mut Components, e: Entity, color_to_fade_out: Color, duration: Sec) {
+pub fn fade_out(cs: &mut Components, e: Entity, color_to_fade_out: Color, duration: Duration) {
     assert!(cs.has::<Tile>(e), "Can't fade out an entity without a tile.");
     let tile = cs.get::<Tile>(e);
     cs.set(FadingOut, e);
@@ -34,7 +35,7 @@ pub fn fade_out(cs: &mut Components, e: Entity, color_to_fade_out: Color, durati
         current: ColorAnimationState{
             color: tile.color,
             fade_direction: Forward,
-            elapsed_time: Sec(0.0),
+            elapsed_time: Duration::milliseconds(0),
         }
     }, e);
 }
@@ -55,7 +56,7 @@ pub fn kill(cs: &mut Components, e: Entity) {
     // Replace the entity's Tile with the tile of a corpse.
     if cs.has::<Corpse>(e) && cs.has::<Tile>(e) {
         let corpse = cs.get::<Corpse>(e);
-        fade_out(cs, e, corpse.color, Sec(1.0));
+        fade_out(cs, e, corpse.color, Duration::seconds(1));
         let tile = cs.get::<Tile>(e);
         cs.set(Tile{glyph: corpse.glyph,
                     color: corpse.color,
@@ -68,25 +69,27 @@ pub fn kill(cs: &mut Components, e: Entity) {
     }
 }
 
-// pub fn explosion<T: point::Point>(cs: &mut Components, center: T, radius: int) {
-//     for (x, y) in point::points_within_radius(center, radius) {
-//         for e in ecm.entities_on_pos((x, y)) {
-//             if ecm.has_entity(e) && ecm.has::<AI>(e) {
-//                 kill(ecm, e);
-//             }
-//         }
-//     }
-// }
+pub fn explosion<T: point::Point>(cs: &mut Components, center: T, radius: int) {
+    for (x, y) in point::points_within_radius(center, radius) {
+        fail!("entities_on_pos");
+        // for e in ecm.entities_on_pos((x, y)) {
+        //     if ecm.has_entity(e) && ecm.has::<AI>(e) {
+        //         kill(ecm, e);
+        //     }
+        // }
+    }
+}
 
-// pub fn get_first_owned_food(ecm: &ECM, owner: Entity) -> Option<Entity> {
-//     // TODO: sloooooooow. Add some caching like with Position?
-//     for e in ecm.iter() {
-//         if ecm.has::<InventoryItem>(e) {
-//             let item = ecm.get::<InventoryItem>(e);
-//             if item.owner == owner {
-//                 return Some(e);
-//             }
-//         }
-//     }
-//     None
-// }
+pub fn get_first_owned_food(ecm: &Components, owner: Entity) -> Option<Entity> {
+    fail!("TODO: GET FIRST OWNED FOOD NOT IMPLEMENTED");
+    // TODO: sloooooooow. Add some caching like with Position?
+    // for e in ecm.iter() {
+    //     if ecm.has::<InventoryItem>(e) {
+    //         let item = ecm.get::<InventoryItem>(e);
+    //         if item.owner == owner {
+    //             return Some(e);
+    //         }
+    //     }
+    // }
+    // None
+}

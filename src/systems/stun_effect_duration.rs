@@ -1,15 +1,15 @@
-use ecm::{ComponentManager, ECM, Entity};
+use std::time::Duration;
+use emhyr::{Components, Entity};
 use components::{Stunned};
 
 define_system! {
     name: StunEffectDurationSystem;
     components(Stunned);
-    resources(ecm: ECM, current_turn: int);
-    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
-        let ecm = &mut *self.ecm();
-        let stunned: Stunned = ecm.get(entity);
+    resources(current_turn: int);
+    fn process_entity(&mut self, cs: &mut Components, _dt: Duration, entity: Entity) {
+        let stunned: Stunned = cs.get(entity);
         if stunned.remaining(*self.current_turn()) == 0 {
-            ecm.remove::<Stunned>(entity);
+            cs.unset::<Stunned>(entity);
         }
     }
 }

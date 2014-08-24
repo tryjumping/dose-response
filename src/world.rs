@@ -1,11 +1,12 @@
 use std::rand;
 use std::rand::Rng;
+use std::time::Duration;
 
 // TODO: looks like we want to namespace these some more:
 use components::{AcceptsUserInput,Attributes, Addiction, AnxietyKillCounter, AI,
                  AttributeModifier, Corpse, Dose, ExplosionEffect,
                  Kill, ModifyAttributes, Monster, Panic, Infinite, Stun,
-                 Exploration, Position, Tile, Turn, Sec};
+                 Exploration, Position, Tile, Turn};
 use components::{Anxiety, Depression, Hunger, Shadows, Voices};  // monster types
 use components::{Computer, Player};  // sides
 use components::{Background, Edible, Explored, Pickable, Solid};  // flags
@@ -111,7 +112,7 @@ pub fn populate_world<T: Rng>(world: &mut World,
                 world.cs.set(Dose{tolerance_modifier: 1, resist_radius: 2}, e);
                 entity_util::set_color_animation_loop(
                     &mut world.cs, e, item.to_color(), col::dose_glow,
-                    Infinite, Sec(0.6));
+                    Infinite, Duration::milliseconds(600));
                 world.cs.set(AttributeModifier{
                         state_of_mind: 72 + rng.gen_range(-5i, 6),
                         will: 0,
@@ -128,7 +129,7 @@ pub fn populate_world<T: Rng>(world: &mut World,
                     }, e);
                 entity_util::set_color_animation_loop(
                     &mut world.cs, e, item.to_color(), col::dose_glow,
-                    Infinite, Sec(0.5));
+                    Infinite, Duration::milliseconds(500));
                 world.cs.set(ExplosionEffect{radius: 6}, e);
             } else if item == world_gen::Food {
                 world.cs.set(ExplosionEffect{radius: 2}, e);

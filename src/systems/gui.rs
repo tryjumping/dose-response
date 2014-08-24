@@ -1,4 +1,5 @@
-use ecm::{ComponentManager, ECM, Entity};
+use std::time::Duration;
+use emhyr::{Components, Entity, Entities};
 use engine::{Display, Color};
 use components::{Attributes, Edible, InventoryItem, Position, Stunned, Panicking};
 use systems::addiction_graphics::intoxication_state::*;
@@ -16,38 +17,38 @@ fn intoxication_to_str(state: int) -> &'static str {
     }
 }
 
-fn food_count(ecm: &ECM, player: Entity) -> uint {
-    ecm.iter().filter(|&e| ecm.has::<InventoryItem>(e) && ecm.has::<Edible>(e) && ecm.get::<InventoryItem>(e).owner == player).count()
+fn food_count(ecm: &Components, player: Entity) -> uint {
+    fail!("food_count entity iter");
+    // ecm.iter().filter(|&e| ecm.has::<InventoryItem>(e) && ecm.has::<Edible>(e) && ecm.get::<InventoryItem>(e).owner == player).count()
 }
 
 define_system! {
     name: GUISystem;
-    resources(ecm: ECM, display: Display, player: Entity, current_turn: int);
-    fn process_all_entities(&mut self, _dt_ms: uint, mut _entities: &mut Iterator<Entity>) {
-        let ecm = &mut *self.ecm();
+    resources(display: Display, player: Entity, current_turn: int);
+    fn process_all_entities(&mut self, cs: &mut Components, _dt_ms: Duration, mut _entities: Entities) {
         let display = &mut *self.display();
         let (_width, height) = display.size();
         let player = *self.player();
         let current_turn = *self.current_turn();
-        if !ecm.has_entity(player) || !ecm.has::<Attributes>(player) {return}
+        if !cs.has::<Attributes>(player) {return}
 
-        let attrs: Attributes = ecm.get(player);
+        let attrs = cs.get::<Attributes>(player);
         let intoxication_description = intoxication_to_str(attrs.state_of_mind);
         let mut status_bar = format!("{}  Will: {}  Food: {}",
                                  intoxication_description,
                                  attrs.will,
-                                 food_count(ecm, player));
+                                 food_count(cs, player));
 
         let mut effects = String::new();
-        if !ecm.has::<Position>(player) {
+        if !cs.has::<Position>(player) {
             effects.push_str("dead ");
         };
-        if ecm.has::<Stunned>(player) {
-            let remaining = ecm.get::<Stunned>(player).remaining(current_turn);
+        if cs.has::<Stunned>(player) {
+            let remaining = cs.get::<Stunned>(player).remaining(current_turn);
             effects.push_str(format!("stunned({})", remaining).as_slice());
         };
-        if ecm.has::<Panicking>(player) {
-            let remaining = ecm.get::<Panicking>(player).remaining(current_turn);
+        if cs.has::<Panicking>(player) {
+            let remaining = cs.get::<Panicking>(player).remaining(current_turn);
             effects.push_str(format!("panic({}) ", remaining).as_slice());
         };
         if effects.len() > 0 {

@@ -1,22 +1,21 @@
-use ecm::{ComponentManager, ECM, Entity};
+use std::time::Duration;
+use emhyr::{Components, Entity};
 use components::{AttackTarget, Bump, Turn};
 
 
 define_system! {
     name: BumpSystem;
     components(Bump, Turn);
-    resources(ecm: ECM);
-    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
-        let ecm = &mut *self.ecm();
-        let Bump(bumpee) = ecm.get::<Bump>(entity);
-        ecm.remove::<Bump>(entity);
-        if !ecm.has_entity(bumpee) {return}
+    resources(player: Entity);
+    fn process_entity(&mut self, cs: &mut Components, _dt: Duration, entity: Entity) {
+        let Bump(bumpee) = cs.get::<Bump>(entity);
+        cs.unset::<Bump>(entity);
 
-        let opposing_sides = ecm.has::<Turn>(bumpee) &&
-            ecm.get::<Turn>(bumpee).side != ecm.get::<Turn>(entity).side;
+        let opposing_sides = cs.has::<Turn>(bumpee) &&
+            cs.get::<Turn>(bumpee).side != cs.get::<Turn>(entity).side;
         if opposing_sides {
             println!("{} attacks {}.", entity, bumpee);
-            ecm.set(entity, AttackTarget(bumpee));
+            cs.set(AttackTarget(bumpee), entity);
         } else {
             println!("{} hits the wall.", entity);
         }

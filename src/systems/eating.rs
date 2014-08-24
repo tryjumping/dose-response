@@ -1,34 +1,34 @@
+use std::time::Duration;
 use components::{InventoryItem, Edible, ExplosionEffect,
                  Position, Turn, UsingItem};
-use ecm::{ComponentManager, ECM, Entity};
+use emhyr::{Components, Entity};
 use entity_util;
 
 
 define_system! {
     name: EatingSystem;
     components(UsingItem, Position, Turn);
-    resources(ecm: ECM);
-    fn process_entity(&mut self, _dt_ms: uint, entity: Entity) {
-        let ecm = &mut *self.ecm();
-        let food = ecm.get::<UsingItem>(entity).item;
-        if !ecm.has::<Edible>(food) {
+    resources(player: Entity);
+    fn process_entity(&mut self, cs: &mut Components, _dt: Duration, entity: Entity) {
+        let food = cs.get::<UsingItem>(entity).item;
+        if !cs.has::<Edible>(food) {
             println!("item {} isn't edible", food);
             return;
         }
-        assert!(ecm.has::<InventoryItem>(food));
-        let turn = ecm.get::<Turn>(entity);
+        assert!(cs.has::<InventoryItem>(food));
+        let turn = cs.get::<Turn>(entity);
         if turn.ap <= 0 {
             return;
         }
         println!("{} eats food {}", entity, food);
-        ecm.remove::<InventoryItem>(food);
-        ecm.remove::<UsingItem>(entity);
-        ecm.set(entity, turn.spend_ap(1));
-        if ecm.has::<ExplosionEffect>(food) {
+        cs.unset::<InventoryItem>(food);
+        cs.unset::<UsingItem>(entity);
+        cs.set(turn.spend_ap(1), entity);
+        if cs.has::<ExplosionEffect>(food) {
             println!("Eating kills off nearby enemies");
-            let pos = ecm.get::<Position>(entity);
-            let radius = ecm.get::<ExplosionEffect>(food).radius;
-            entity_util::explosion(ecm, pos, radius);
+            let pos = cs.get::<Position>(entity);
+            let radius = cs.get::<ExplosionEffect>(food).radius;
+            entity_util::explosion(cs, pos, radius);
         } else {
             println!("The food doesn't have enemy-killing effect.");
         }

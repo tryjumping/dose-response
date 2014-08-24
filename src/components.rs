@@ -1,4 +1,5 @@
 use std::cmp::max;
+use std::time::Duration;
 use emhyr::{Entity, Component};
 
 use engine::{Color};
@@ -63,7 +64,7 @@ pub struct ColorAnimation{
     pub from: Color,
     pub to: Color,
     pub repetitions: Repetitions,
-    pub transition_duration: Sec,
+    pub transition_duration: Duration,
     pub current: ColorAnimationState,
 }
 
@@ -71,7 +72,7 @@ pub struct ColorAnimation{
 pub struct ColorAnimationState {
     pub color: Color,
     pub fade_direction: ColorFadeDirection,
-    pub elapsed_time: Sec,
+    pub elapsed_time: Duration,
 }
 
 #[component]
@@ -185,9 +186,6 @@ pub enum Repetitions {
     Infinite,
     Count(int),
 }
-
-#[deriving(PartialEq, Clone, Show)]
-pub struct Sec(pub f32);
 
 #[deriving(PartialEq, Clone, Show)]
 pub enum ColorFadeDirection {

@@ -1,6 +1,9 @@
 * Use `type Handle<T> =  Rc<RefCell<T>>`
   - will simplify the game state code
 * Use `expect(error message)` method instead of `unwrap` for Options
+* Use rust-geom for unit type safety (has Point types etc. too)
+  - https://github.com/servo/rust-geom
+  - docs:  http://doc.servo.org/geom/index.html
 * BUG: a monster once seen is visible even in the unexplored area
   - looks like we're adding `Explored` to everything
   - should be just the background

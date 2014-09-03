@@ -70,7 +70,7 @@ define_system! {
                     if !cs.has::<ColorAnimation>(e) && cs.has::<Background>(e) {
                         entity_util::set_color_animation_loop(
                             cs, e, col::high, col::high_to, Infinite,
-                            Duration::milliseconds(700 + (((pos.x * pos.y) % 100) as i32) * 5));
+                            Duration::milliseconds(700 + (((pos.x * pos.y) % 100) as i64) * 5));
                     }
                 }
             }

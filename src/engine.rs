@@ -3,7 +3,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use std::collections::Deque;
 use std::collections::RingBuf;
 pub use tcod::{Color, Console};
 pub use tcod::key_code as key;
@@ -101,7 +100,7 @@ impl Engine {
                 match self.root_console.check_for_keypress(tcod::Pressed) {
                     None => break,
                     Some(key) => {
-                        self.keys.borrow_mut().push_back(key);
+                        self.keys.borrow_mut().push(key);
                     }
                 }
             }

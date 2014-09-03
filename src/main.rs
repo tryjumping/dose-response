@@ -180,7 +180,7 @@ fn update<'a>(mut state: GameState<'a>, dt_s: f32, engine: &engine::Engine) -> O
 
     process_input(&mut *keys.borrow_mut(), &mut *state.commands.borrow_mut());
     // TODO this crashes the compiler: WTF?
-    state.world.update(Duration::milliseconds((dt_s * 1000.0) as i32));
+    state.world.update(Duration::milliseconds((dt_s * 1000.0) as i64));
     Some(state)
 }
 
@@ -199,7 +199,7 @@ fn rc_mut<T>(val: T) -> Rc<RefCell<T>> {
 
 
 struct CommandLogger {
-    writer: Box<Writer>,
+    writer: Box<Writer+'static>,
 }
 
 impl CommandLogger {
@@ -214,8 +214,8 @@ impl CommandLogger {
 // // commands/command_logger.
 fn new_game_state<'a>(width: int, height: int) -> GameState<'a> {
     let commands = RingBuf::new();
-    let seed = rand::random::<u32>();
-    let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
+    let seed: &[_] = &[rand::random::<u32>()];
+    let rng: IsaacRng = SeedableRng::from_seed(seed);
     let cur_time = time::now();
     let timestamp = time::strftime("%FT%T.", &cur_time).append((cur_time.tm_nsec / 1000000).to_string().as_slice());
     let replay_dir = &Path::new("./replays/");
@@ -275,7 +275,8 @@ fn replay_game_state<'a>(width: int, height: int) -> GameState<'a> {
                           replay_path.display(), msg)
     }
     println!("Replaying game log: '{}'", replay_path.display());
-    let rng: IsaacRng = SeedableRng::from_seed(&[seed]);
+    let seed_arr: &[_] = &[seed];
+    let rng: IsaacRng = SeedableRng::from_seed(seed_arr);
     let logger = CommandLogger{writer: box NullWriter};
     let mut world = World::new();
     let player = world.new_entity();

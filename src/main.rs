@@ -307,6 +307,16 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
                           &mut *game_state.rng.borrow_mut(),
                           world_gen::forrest);
 
+    // Register the components World doesn't know about yet
+    game_state.world.register_component::<components::Stunned>();
+    game_state.world.register_component::<components::Panicking>();
+    game_state.world.register_component::<components::Destination>();
+    game_state.world.register_component::<components::UsingItem>();
+    game_state.world.register_component::<components::Bump>();
+    game_state.world.register_component::<components::AttackTarget>();
+    game_state.world.register_component::<components::FadingOut>();
+
+
     let player_rc = rc_mut(player);
     let world_size_rc = rc_mut(game_state.world_size);
 

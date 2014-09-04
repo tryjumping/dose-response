@@ -321,7 +321,8 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
         game_state.commands.clone(),
         game_state.command_logger.clone()));
     game_state.world.add_system(box systems::input::InputSystem::new(
-         game_state.commands.clone(),
+        player_rc.clone(),
+        game_state.commands.clone(),
         game_state.side.clone()));
     // // TODO: systems::leave_area::system,
     game_state.world.add_system(box systems::ai::AISystem::new(

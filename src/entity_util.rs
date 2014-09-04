@@ -5,7 +5,7 @@ use components::{ColorAnimation, ColorAnimationState, FadingOut, Repetitions, Fo
 use engine::Color;
 use point;
 use point::Point;
-use emhyr::{Components, Entity};
+use emhyr::{Components, Entity, Entities};
 
 pub use super::PositionCache;
 
@@ -83,18 +83,17 @@ pub fn explosion<T: point::Point>(cache: &PositionCache, cs: &mut Components,
     }
 }
 
-pub fn get_first_owned_food(ecm: &Components, owner: Entity) -> Option<Entity> {
-    fail!("TODO: GET FIRST OWNED FOOD NOT IMPLEMENTED");
+pub fn get_first_owned_food(owner: Entity, cs: &Components, mut entities: Entities) -> Option<Entity> {
     // TODO: sloooooooow. Add some caching like with Position?
-    // for e in ecm.iter() {
-    //     if ecm.has::<InventoryItem>(e) {
-    //         let item = ecm.get::<InventoryItem>(e);
-    //         if item.owner == owner {
-    //             return Some(e);
-    //         }
-    //     }
-    // }
-    // None
+    for e in entities {
+        if cs.has::<InventoryItem>(e) {
+            let item = cs.get::<InventoryItem>(e);
+            if item.owner == owner {
+                return Some(e);
+            }
+        }
+    }
+    None
 }
 
 

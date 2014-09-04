@@ -3,7 +3,7 @@ use std::time::Duration;
 use collections::{Deque, RingBuf};
 
 use components::{AcceptsUserInput, Destination, Position, UsingItem, Side, Player};
-use emhyr::{Components, Entity};
+use emhyr::{Components, Entity, Entities};
 use self::commands::*;
 use entity_util;
 
@@ -37,35 +37,36 @@ impl FromStr for Command {
 
 define_system! {
     name: InputSystem;
-    components(AcceptsUserInput, Position);
-    resources(commands: RingBuf<Command>, current_side: Side);
-    fn process_entity(&mut self, cs: &mut Components, _dt: Duration, e: Entity) {
+    resources(player: Entity, commands: RingBuf<Command>, current_side: Side);
+    fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, mut entities: Entities) {
         // Don't process input if it's not your turn (otherwise it will be eaten
         // & ignored)
         // (NOTE: only the player can process input for now)
         if *self.current_side() != Player { return }
+        let player = *self.player();
+        if !cs.has::<AcceptsUserInput>(player) || !cs.has::<Position>(player) { return }
 
         // Clean up state from any previous commands
-        cs.unset::<Destination>(e);
-        cs.unset::<UsingItem>(e);
+        cs.unset::<Destination>(player);
+        cs.unset::<UsingItem>(player);
 
-        let pos = cs.get::<Position>(e);
+        let pos = cs.get::<Position>(player);
         match self.commands().pop_front() {
             Some(command) => {
                 match command {
-                    N => cs.set(Destination{x: pos.x, y: pos.y-1}, e),
-                    S => cs.set(Destination{x: pos.x, y: pos.y+1}, e),
-                    W => cs.set(Destination{x: pos.x-1, y: pos.y}, e),
-                    E => cs.set(Destination{x: pos.x+1, y: pos.y}, e),
+                    N => cs.set(Destination{x: pos.x, y: pos.y-1}, player),
+                    S => cs.set(Destination{x: pos.x, y: pos.y+1}, player),
+                    W => cs.set(Destination{x: pos.x-1, y: pos.y}, player),
+                    E => cs.set(Destination{x: pos.x+1, y: pos.y}, player),
 
-                    NW => cs.set(Destination{x: pos.x-1, y: pos.y-1}, e),
-                    NE => cs.set(Destination{x: pos.x+1, y: pos.y-1}, e),
-                    SW => cs.set(Destination{x: pos.x-1, y: pos.y+1}, e),
-                    SE => cs.set(Destination{x: pos.x+1, y: pos.y+1}, e),
+                    NW => cs.set(Destination{x: pos.x-1, y: pos.y-1}, player),
+                    NE => cs.set(Destination{x: pos.x+1, y: pos.y-1}, player),
+                    SW => cs.set(Destination{x: pos.x-1, y: pos.y+1}, player),
+                    SE => cs.set(Destination{x: pos.x+1, y: pos.y+1}, player),
 
                     Eat => {
-                        match entity_util::get_first_owned_food(cs, e) {
-                            Some(food) => cs.set(UsingItem{item: food}, e),
+                        match entity_util::get_first_owned_food(player, cs, entities) {
+                            Some(food) => cs.set(UsingItem{item: food}, player),
                             None => (),
                         }
                     }

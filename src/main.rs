@@ -41,18 +41,43 @@ mod world;
 
 pub struct GameState<'a> {
     world: World<'a>,
-    side: Rc<RefCell<Side>>,
     world_size: (int, int),
-    turn: Rc<RefCell<int>>,
     rng: Rc<RefCell<IsaacRng>>,
     commands: Rc<RefCell<RingBuf<Command>>>,
     command_logger: Rc<RefCell<CommandLogger>>,
+    side: Rc<RefCell<Side>>,
+    turn: Rc<RefCell<int>>,
     player: Entity,
     cheating: Rc<RefCell<bool>>,
     replay: bool,
     paused: bool,
 }
 
+impl<'a> GameState<'a> {
+    fn new(width: int, height: int,
+           commands: RingBuf<Command>,
+           log_writer: Box<Writer+'static>,
+           seed: u32,
+           cheating: bool,
+           replay: bool) -> GameState<'a> {
+        let seed_arr: &[_] = &[seed];
+        let mut world = World::new();
+        let player = world.new_entity();
+        GameState {
+            world: world,
+            world_size: (width, height),
+            rng: rc_mut(SeedableRng::from_seed(seed_arr)),
+            commands: rc_mut(commands),
+            command_logger: rc_mut(CommandLogger{writer: log_writer}),
+            side: rc_mut(Computer),
+            turn: rc_mut(0),
+            player: player,
+            cheating: rc_mut(cheating),
+            replay: replay,
+            paused: false,
+        }
+    }
+}
 
 fn key_pressed(keys: &RingBuf<KeyState>, key_code: tcod::Key) -> bool {
     for &pressed_key in keys.iter() {
@@ -208,14 +233,9 @@ impl CommandLogger {
     }
 }
 
-// // TODO: maybe refactor the common bits of this and `replay_game_state`? A lot
-// // of the GameState initialisation is common across both methods. All that
-// // really differs is the seed, replay filesystem stuff and the
-// // commands/command_logger.
 fn new_game_state<'a>(width: int, height: int) -> GameState<'a> {
     let commands = RingBuf::new();
-    let seed: &[_] = &[rand::random::<u32>()];
-    let rng: IsaacRng = SeedableRng::from_seed(seed);
+    let seed = rand::random::<u32>();
     let cur_time = time::now();
     let timestamp = time::strftime("%FT%T.", &cur_time).append((cur_time.tm_nsec / 1000000).to_string().as_slice());
     let replay_dir = &Path::new("./replays/");
@@ -230,22 +250,7 @@ fn new_game_state<'a>(width: int, height: int) -> GameState<'a> {
     };
     println!("Recording the gameplay to '{}'", replay_path.display());
     write_line(&mut *writer as &mut Writer, seed.to_string().as_slice()).unwrap();
-    let logger = CommandLogger{writer: writer};
-    let mut world = World::new();
-    let player = world.new_entity();
-    GameState {
-        world: world,
-        commands: rc_mut(commands),
-        command_logger: rc_mut(logger),
-        rng: rc_mut(rng),
-        side: rc_mut(Computer),
-        turn: rc_mut(0),
-        player: player,
-        cheating: rc_mut(false),
-        replay: false,
-        paused: false,
-        world_size: (width, height),
-    }
+    GameState::new(width, height, commands, writer, seed, false, false)
 }
 
 fn replay_game_state<'a>(width: int, height: int) -> GameState<'a> {
@@ -275,24 +280,7 @@ fn replay_game_state<'a>(width: int, height: int) -> GameState<'a> {
                           replay_path.display(), msg)
     }
     println!("Replaying game log: '{}'", replay_path.display());
-    let seed_arr: &[_] = &[seed];
-    let rng: IsaacRng = SeedableRng::from_seed(seed_arr);
-    let logger = CommandLogger{writer: box NullWriter};
-    let mut world = World::new();
-    let player = world.new_entity();
-    GameState {
-        world: world,
-        commands: rc_mut(commands),
-        command_logger: rc_mut(logger),
-        rng: rc_mut(rng),
-        side: rc_mut(Computer),
-        turn: rc_mut(0),
-        player: player,
-        cheating: rc_mut(true),
-        replay: true,
-        paused: false,
-        world_size: (width, height),
-    }
+    GameState::new(width, height, commands, box NullWriter, seed, true, true)
 }
 
 fn initialise_world(game_state: &mut GameState, engine: &Engine) {

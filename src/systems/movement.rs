@@ -101,18 +101,17 @@ define_system! {
                 cs.unset::<Destination>(e);
             } else {  // Bump into the blocked entity
                 // TODO: assert there's only one solid entity on pos [x, y]
-                fail!("entities_on_pos not implemented");
-                // for bumpee in cs.entities_on_pos((dest.x, dest.y)) {
-                //     assert!(bumpee != e);
-                //     match cs.has::<Solid>(bumpee) {
-                //         true => {
-                //             cs.set(Bump(bumpee), e);
-                //             cs.unset::<Destination>(e);
-                //             break;
-                //         }
-                //         false => {}
-                //     }
-                // }
+                for bumpee in self.position_cache().entities_on_pos(dest) {
+                    assert!(bumpee != e);
+                    match cs.has::<Solid>(bumpee) {
+                        true => {
+                            cs.set(Bump(bumpee), e);
+                            cs.unset::<Destination>(e);
+                            break;
+                        }
+                        false => {}
+                    }
+                }
             }
         } else {  // Farther away than 1 space. Need to use path finding
             // TODO: can we minimise the unsafe block to contain just the find_path call?

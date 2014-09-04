@@ -3,22 +3,29 @@ use std::time::Duration;
 
 use components::{Addiction, Attributes, Destination, Dose, Position};
 use emhyr::{Components, Entity};
-use entity_util::PositionCache;
+use entity_util::{PositionCache, is_solid};
 use point;
+use point::Point;
 
-fn is_irresistible(addict: Entity,
-                   dose: Entity,
-                   cs: &Components,
-                   map_size: (int, int)) -> bool {
+fn cannot_resist(addict: Entity,
+                 dose: Entity,
+                 cache: &PositionCache,
+                 cs: &Components,
+                 map_size: (int, int)) -> bool {
+    use tcod::AStarPath;
     let pos = cs.get::<Position>(addict);
     let dose_pos = cs.get::<Position>(dose);
-    unsafe {
-        fail!("TODO; PATH FINDING IN DOSE");
-        // match find_path((pos.x, pos.y), (dose_pos.x, dose_pos.y), map_size, cs) {
-        //     Some(p) => p.len() <= resist_radius(addict, dose, cs),
-        //     None => false,
-        // }
-    }
+    let (width, height) = map_size;
+    let mut path = AStarPath::new_from_callback(
+        width, height, |from, to| {
+            if is_solid(to, cache, cs) {
+                0.0
+            } else {
+                1.0
+            }
+        }, 1.0);
+    path.find(pos.coordinates(), dose_pos.coordinates()) &&
+        (path.len() <= resist_radius(addict, dose, cs))
 }
 
 fn resist_radius(addict: Entity, dose: Entity, cs: &Components) -> int {
@@ -39,7 +46,7 @@ define_system! {
         for (x, y) in point::points_within_radius(pos, search_radius) {
             for dose in cache.entities_on_pos((x, y)) {
                 if !cs.has::<Dose>(dose) {continue};
-                if is_irresistible(addict, dose, cs, world_size) {
+                if cannot_resist(addict, dose, cache, cs, world_size) {
                     doses.push(dose);
                 }
             }

@@ -4,6 +4,7 @@ use std::time::Duration;
 use components::{Addiction, Attributes, Destination, Dose, Position};
 use emhyr::{Components, Entity};
 use systems::movement::find_path;
+use entity_util::PositionCache;
 use point;
 
 fn is_irresistible(addict: Entity,
@@ -28,23 +29,20 @@ fn resist_radius(addict: Entity, dose: Entity, cs: &Components) -> int {
 define_system! {
     name: DoseSystem;
     components(Addiction, Attributes, Position, Destination);
-    resources(world_size: (int, int));
+    resources(position_cache: PositionCache, world_size: (int, int));
     fn process_entity(&mut self, cs: &mut Components, _dt: Duration, addict: Entity) {
         let world_size = *self.world_size();
+        let cache = &*self.position_cache();
         let pos = cs.get::<Position>(addict);
         let search_radius = 3;  // max irresistibility for a dose is curretnly 3
         let mut doses: Vec<Entity> = vec![];
         for (x, y) in point::points_within_radius(pos, search_radius) {
-            fail!("entities_on_pos not worky");
-            // for dose in cs.entities_on_pos((x, y)) {
-            //     if !cs.has_entity(dose) {
-            //         fail!("dose system: dose {} on pos {} not in cs.", dose, (x, y));
-            //     }
-            //     if !cs.has::<Dose>(dose) {continue};
-            //     if is_irresistible(addict, dose, cs, world_size) {
-            //         doses.push(dose);
-            //     }
-            // }
+            for dose in cache.entities_on_pos((x, y)) {
+                if !cs.has::<Dose>(dose) {continue};
+                if is_irresistible(addict, dose, cs, world_size) {
+                    doses.push(dose);
+                }
+            }
         }
         let nearest_dose = doses.iter().min_by(|&dose| {
             point::tile_distance(cs.get::<Position>(*dose), pos)

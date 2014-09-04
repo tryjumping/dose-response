@@ -331,6 +331,7 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
         world_size_rc.clone(),
         game_state.rng.clone()));
     game_state.world.add_system(box systems::dose::DoseSystem::new(
+        game_state.position_cache.clone(),
         world_size_rc.clone()));
     game_state.world.add_system(box systems::panic::PanicSystem::new(
         game_state.position_cache.clone(),

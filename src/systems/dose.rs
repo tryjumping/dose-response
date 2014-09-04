@@ -3,7 +3,6 @@ use std::time::Duration;
 
 use components::{Addiction, Attributes, Destination, Dose, Position};
 use emhyr::{Components, Entity};
-use systems::movement::find_path;
 use entity_util::PositionCache;
 use point;
 
@@ -14,10 +13,11 @@ fn is_irresistible(addict: Entity,
     let pos = cs.get::<Position>(addict);
     let dose_pos = cs.get::<Position>(dose);
     unsafe {
-        match find_path((pos.x, pos.y), (dose_pos.x, dose_pos.y), map_size, cs) {
-            Some(p) => p.len() <= resist_radius(addict, dose, cs),
-            None => false,
-        }
+        fail!("TODO; PATH FINDING IN DOSE");
+        // match find_path((pos.x, pos.y), (dose_pos.x, dose_pos.y), map_size, cs) {
+        //     Some(p) => p.len() <= resist_radius(addict, dose, cs),
+        //     None => false,
+        // }
     }
 }
 
@@ -53,19 +53,20 @@ define_system! {
                 unsafe {
                     // We walk the path here to make sure we only move one step at a
                     // time.
-                    match find_path((pos.x, pos.y), (x, y), world_size, &*cs) {
-                        Some(ref mut path) => {
-                            if path.len() <= resist_radius(addict, dose, cs) {
-                                match path.walk(true) {
-                                    Some((x, y)) => {
-                                        cs.set(Destination{x: x, y: y}, addict);
-                                    }
-                                    None => unreachable!(),
-                                }
-                            }
-                        }
-                        None => {}
-                    }
+                    fail!("TODO: path finding in dose");
+                    // match find_path((pos.x, pos.y), (x, y), world_size, &*cs) {
+                    //     Some(ref mut path) => {
+                    //         if path.len() <= resist_radius(addict, dose, cs) {
+                    //             match path.walk(true) {
+                    //                 Some((x, y)) => {
+                    //                     cs.set(Destination{x: x, y: y}, addict);
+                    //                 }
+                    //                 None => unreachable!(),
+                    //             }
+                    //         }
+                    //     }
+                    //     None => {}
+                    // }
                 }
             }
             None => {}

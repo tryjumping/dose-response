@@ -1,80 +1,37 @@
 use std::intrinsics::transmute;
 use std::time::Duration;
 use libc::{c_int, c_float, c_void};
-use tcod::Path;
-
 use components::{Bump, Destination, Position, Solid, Turn};
 use emhyr::{Components, Entity};
 use point;
+use point::Point;
 use entity_util::{PositionCache, is_walkable};
+use tcod::{AStarPath, DijkstraPath};
+use std::cell::RefCell;
+use std::rc::Rc;
+use emhyr::System;
 
 
-fn is_solid(pos: Position, cs: &Components) -> bool {
-    fail!("is_solid NOT IMPLEMENTED YET");
-    // cs.entities_on_pos((pos.x, pos.y)).any(|e| {
-    //     cs.has::<Solid>(e)
-    // })
-}
-
-struct PathWithUserData<'a> {
-    to: (int, int),
-    cs: *const Components<'a>,
-    path: Option<Path>,
-}
-
-impl<'a> PathWithUserData<'a> {
-    pub fn len(&self) -> int {
-        self.path.get_ref().len()
-    }
-
-    pub fn walk(&mut self, recalculate: bool) -> Option<(int, int)> {
-        self.path.get_mut_ref().walk(recalculate)
-    }
-}
-
-// This is unsafe because we're passing the the pointer to ecm to the tcod
-// callback and then return an object with the associated callback. Should ecm
-// be destroyed before the Path we're returning, things would go wrong. So the
-// caller has to make sure that doesn't happen.
-pub unsafe fn find_path(from: (int, int), to: (int, int), map_size: (int, int), cs: *const Components)
-                 -> Option<Box<PathWithUserData>> {
-    let (sx, sy) = from;
-    let (dx, dy) = to;
-    let (width, height) = map_size;
-    if dx < 0 || dy < 0 || dx >= width || dy >= height {
-        return None;
-    }
-    let mut p = box PathWithUserData {
-        to: to,
-        cs: cs as *const Components,
-        path: None,
-    };
-    fail!("TODO: find_path not working now");
-    // let mut path = Path::new_using_function(width, height, Some(cb),
-    //                                         transmute::<Box<PathWithUserData>, &PathWithUserData>(p), 1.0);
-    // match path.find(sx, sy, dx, dy) {
-    //     true => {
-    //         p.path = Some(path);
-    //         Some(p)
-    //     }
-    //     false => None,
-    // }
-}
-
-extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *mut c_void) -> c_float {
-    // The points should be right next to each other:
-    assert!((xf, yf) != (xt, yt) && ((xf-xt) * (yf-yt)).abs() <= 1);
-    let p: &PathWithUserData = unsafe { transmute(path_data_ptr) };
-
-    let (dx, dy) = p.to;
-    // Succeed if we're at the destination even if it's not walkable:
-    if (dx as c_int, dy as c_int) == (xt, yt) {
-        1.0
-    } else if is_solid(Position{x: xt as int, y: yt as int}, unsafe {transmute(p.cs)}) {
-        0.0
-    } else {
-        1.0
-    }
+pub fn walk_one_step<P1: Point, P2: Point>(source: P1, destination: P2, world_size: (int, int),
+                     cache: &PositionCache, cs: &Components) -> Option<(int, int)> {
+    let (width, height) = world_size;
+    let mut path = AStarPath::new_from_callback(
+        width, height,
+        |from, to| {
+            use entity_util;
+            // The destination is probably a monster or a player (who are solid).
+            // Count that area as walkable.
+            if to == destination.coordinates() {
+                1.0
+            } else if entity_util::is_solid(to, cache, cs) {
+                0.0
+            } else {
+                1.0
+            }
+        }, 1.0);
+    path.find(source.coordinates(), destination.coordinates());
+    assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
+    path.walk_one_step(true)
 }
 
 define_system! {
@@ -114,29 +71,20 @@ define_system! {
                 }
             }
         } else {  // Farther away than 1 space. Need to use path finding
-            // TODO: can we minimise the unsafe block to contain just the find_path call?
-            unsafe {
-                match find_path((pos.x, pos.y), (dest.x, dest.y), *self.world_size(), &*cs) {
-                    Some(ref mut path) => {
-                        assert!(path.len() > 1,
-                                "The path shouldn't be trivial. We already handled that.");
-                        match path.walk(true) {
-                            Some((x, y)) => {
-                                let new_pos = Position{x: x, y: y};
-                                assert!(point::tile_distance(pos, new_pos) == 1,
-                                        "The step should be right next to the curret pos.");
-                                cs.set(turn.spend_ap(1), e);
-                                cs.set(new_pos, e);
-                            }
-                            // "The path exists but can't be walked?!"
-                            None => unreachable!(),
-                        }
-                    }
-                    None => {
-                        println!("{} cannot find a path so it waits.", e);
-                        cs.set(turn.spend_ap(1), e);
-                        cs.unset::<Destination>(e);
-                    }
+            println!("{} finding path from: {} to {}", e, pos, dest);
+            let step = walk_one_step(pos, dest, *self.world_size(), &*self.position_cache(), cs);
+            match step {
+                Some((x, y)) => {
+                    let new_pos = Position{x: x, y: y};
+                    assert!(point::tile_distance(pos, new_pos) == 1,
+                            "The step should be right next to the curret pos.");
+                    cs.set(turn.spend_ap(1), e);
+                    cs.set(new_pos, e);
+                }
+                None => {
+                    println!("{} cannot find a path so it waits.", e);
+                    cs.set(turn.spend_ap(1), e);
+                    cs.unset::<Destination>(e);
                 }
             }
         }

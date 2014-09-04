@@ -5,12 +5,13 @@ use std::time::Duration;
 use emhyr::{Components, Entity};
 use components::ai;
 use components::{AI, Destination, Position, Side, Computer, Turn};
-use systems::movement::is_walkable;
+use entity_util::{PositionCache, is_walkable};
 use point;
 
 
 pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
                                             pos: Position,
+                                            cache: &PositionCache,
                                             cs: &Components,
                                             map_size: (int, int))
                                             -> (int, int) {
@@ -27,7 +28,7 @@ pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
     let mut walkables: Vec<(int, int)> = vec![];
     for &p in neighbors.iter() {
         let pos = match p { (x, y) => Position{x: x, y: y} };
-        if is_walkable(pos, cs, map_size) { walkables.push(p) }
+        if is_walkable(pos, cache, cs, map_size) { walkables.push(p) }
     }
     match rng.choose(walkables.slice(0, walkables.len())) {
         Some(&random_pos) => random_pos,
@@ -35,7 +36,7 @@ pub fn random_neighbouring_position<T: Rng>(rng: &mut T,
     }
 }
 
-pub fn entity_blocked(pos: Position, cs: &Components, map_size: (int, int))
+pub fn entity_blocked(pos: Position, cache: &PositionCache, cs: &Components, map_size: (int, int))
                       -> bool {
     let neighbors = [
         (pos.x, pos.y-1),
@@ -49,11 +50,12 @@ pub fn entity_blocked(pos: Position, cs: &Components, map_size: (int, int))
         ];
     !neighbors.iter().any(|&neighbor_pos| {
         let pos = match neighbor_pos { (x, y) => Position{x: x, y: y}};
-        is_walkable(pos, cs, map_size)
+        is_walkable(pos, cache, cs, map_size)
     })
 }
 
 fn individual_behaviour<T: Rng>(e: Entity,
+                                cache: &PositionCache,
                                 cs: &mut Components,
                                 rng: &mut T,
                                 map_size: (int, int),
@@ -75,7 +77,7 @@ fn individual_behaviour<T: Rng>(e: Entity,
             Destination{x: player_pos.x, y: player_pos.y}
         }
         ai::Idle => {
-            match random_neighbouring_position(rng, pos, cs, map_size) {
+            match random_neighbouring_position(rng, pos, cache, cs, map_size) {
                 (x, y) => Destination{x: x, y: y}
             }
         }
@@ -83,6 +85,7 @@ fn individual_behaviour<T: Rng>(e: Entity,
 }
 
 fn hunting_pack_behaviour<T: Rng>(e: Entity,
+                                  cache: &PositionCache,
                                   cs: &mut Components,
                                   rng: &mut T,
                                   map_size: (int, int),
@@ -111,7 +114,7 @@ fn hunting_pack_behaviour<T: Rng>(e: Entity,
             Destination{x: player_pos.x, y: player_pos.y}
         }
         ai::Idle => {
-            match random_neighbouring_position(rng, pos, cs, map_size) {
+            match random_neighbouring_position(rng, pos, cache, cs, map_size) {
                 (x, y) => Destination{x: x, y: y}
             }
         }
@@ -122,9 +125,11 @@ fn hunting_pack_behaviour<T: Rng>(e: Entity,
 define_system! {
     name: AISystem;
     components(AI, Position);
-    resources(player: Entity, side: Side, world_size: (int, int), rng: ::std::rand::IsaacRng);
+    resources(player: Entity, position_cache: PositionCache, side: Side,
+              world_size: (int, int), rng: ::std::rand::IsaacRng);
     fn process_entity(&mut self, cs: &mut Components, _dt: Duration, e: Entity) {
         let player = *self.player();
+        let cache = &*self.position_cache();
         // TODO: having a generic is_alive predicate would be better. How about
         // testing for the presence of Position && (AI || AcceptsUserInput)?
         let player_alive = cs.has::<Position>(player) && cs.has::<Turn>(player);
@@ -135,16 +140,16 @@ define_system! {
         let player_pos = cs.get::<Position>(player);
         let pos = cs.get::<Position>(e);
         let rng = &mut *self.rng();
-        let dest = if entity_blocked(pos, cs, world_size) {
+        let dest = if entity_blocked(pos, cache, cs, world_size) {
             println!("Found a blocked entity: {}", e);
             Destination{x: pos.x, y: pos.y}
         } else {
             match cs.get::<AI>(e).behaviour {
                 ai::Individual => {
-                    individual_behaviour(e, cs, rng, world_size, player_pos)
+                    individual_behaviour(e, cache, cs, rng, world_size, player_pos)
                 }
                 ai::Pack => {
-                    hunting_pack_behaviour(e, cs, rng, world_size, player_pos)
+                    hunting_pack_behaviour(e, cache, cs, rng, world_size, player_pos)
                 }
             }
         };

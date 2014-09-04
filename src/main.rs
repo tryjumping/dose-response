@@ -326,17 +326,20 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     // // TODO: systems::leave_area::system,
     game_state.world.add_system(box systems::ai::AISystem::new(
         player_rc.clone(),
+        game_state.position_cache.clone(),
         game_state.side.clone(),
         world_size_rc.clone(),
         game_state.rng.clone()));
     game_state.world.add_system(box systems::dose::DoseSystem::new(
         world_size_rc.clone()));
     game_state.world.add_system(box systems::panic::PanicSystem::new(
+        game_state.position_cache.clone(),
         world_size_rc.clone(),
         game_state.rng.clone()));
     game_state.world.add_system(box systems::stun::StunSystem::new(
         player_rc.clone()));
     game_state.world.add_system(box systems::movement::MovementSystem::new(
+        game_state.position_cache.clone(),
         world_size_rc.clone()));
     game_state.world.add_system(box systems::eating::EatingSystem::new(
         player_rc.clone()));

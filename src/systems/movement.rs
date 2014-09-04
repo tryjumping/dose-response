@@ -6,19 +6,8 @@ use tcod::Path;
 use components::{Bump, Destination, Position, Solid, Turn};
 use emhyr::{Components, Entity};
 use point;
+use entity_util::{PositionCache, is_walkable};
 
-
-pub fn is_walkable(pos: Position, cs: &Components, map_size: (int, int))
-                   -> bool {
-    match map_size {
-        (width, height) => {
-            if pos.x < 0 || pos.y < 0 || pos.x >= width || pos.y >= height {
-                return false;
-            }
-        }
-    }
-    !is_solid(pos, cs)
-}
 
 fn is_solid(pos: Position, cs: &Components) -> bool {
     fail!("is_solid NOT IMPLEMENTED YET");
@@ -91,11 +80,12 @@ extern fn cb(xf: c_int, yf: c_int, xt: c_int, yt: c_int, path_data_ptr: *mut c_v
 define_system! {
     name: MovementSystem;
     components(Position, Destination, Turn);
-    resources(world_size: (int, int));
+    resources(position_cache: PositionCache, world_size: (int, int));
     fn process_entity(&mut self, cs: &mut Components, _dt: Duration, e: Entity) {
         let turn: Turn = cs.get(e);
         if turn.ap <= 0 {return}
 
+        let cache = &*self.position_cache();
         let pos: Position = cs.get(e);
         let dest: Destination = cs.get(e);
         if (pos.x, pos.y) == (dest.x, dest.y) {
@@ -104,7 +94,7 @@ define_system! {
             cs.set(turn.spend_ap(1), e);
             cs.unset::<Destination>(e);
         } else if point::tile_distance(pos, dest) == 1 {
-            if is_walkable(Position{x: dest.x, y: dest.y}, cs, *self.world_size())  {
+            if is_walkable(dest, cache, cs, *self.world_size())  {
                 // Move to the cell
                 cs.set(turn.spend_ap(1), e);
                 cs.set(Position{x: dest.x, y: dest.y}, e);

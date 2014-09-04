@@ -4,7 +4,10 @@ use components::{AI, AcceptsUserInput, Corpse, Count, Destination,
 use components::{ColorAnimation, ColorAnimationState, FadingOut, Repetitions, Forward};
 use engine::Color;
 use point;
+use point::Point;
 use emhyr::{Components, Entity};
+
+pub use super::PositionCache;
 
 
 pub fn set_color_animation_loop(cs: &mut Components, e: Entity,
@@ -92,4 +95,28 @@ pub fn get_first_owned_food(ecm: &Components, owner: Entity) -> Option<Entity> {
     //     }
     // }
     // None
+}
+
+
+pub fn is_solid<P: Point>(pos: P, cache: &PositionCache, cs: &Components) -> bool {
+    cache.entities_on_pos(pos.coordinates()).any(|e| {
+        cs.has::<Solid>(e)
+    })
+}
+
+pub fn is_walkable<P: Point>(pos: P, cache: &PositionCache, cs: &Components,
+                             map_size: (int, int)) -> bool {
+    let (width, height) = map_size;
+    let (x, y) = pos.coordinates();
+    if x < 0 || y < 0 || x >= width || y >= height {
+        return false;
+    };
+    !is_solid(pos, cache, cs)
+}
+
+pub fn is_wall<P: Point>(pos: P, cache: &PositionCache, cs: &Components) -> bool {
+    fail!("entities on pos not implemented");
+    // ecm.entities_on_pos(pos.coordinates()).any(|e| {
+    //     ecm.has::<Background>(e) && ecm.has::<Solid>(e)
+    // })
 }

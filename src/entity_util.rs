@@ -1,5 +1,5 @@
 use std::time::Duration;
-use components::{AI, AcceptsUserInput, Corpse, Count, Destination,
+use components::{AI, AcceptsUserInput, Background, Corpse, Count, Destination,
                  InventoryItem, Solid, Tile, Turn};
 use components::{ColorAnimation, ColorAnimationState, FadingOut, Repetitions, Forward};
 use engine::Color;
@@ -115,8 +115,7 @@ pub fn is_walkable<P: Point>(pos: P, cache: &PositionCache, cs: &Components,
 }
 
 pub fn is_wall<P: Point>(pos: P, cache: &PositionCache, cs: &Components) -> bool {
-    fail!("entities on pos not implemented");
-    // ecm.entities_on_pos(pos.coordinates()).any(|e| {
-    //     ecm.has::<Background>(e) && ecm.has::<Solid>(e)
-    // })
+    cache.entities_on_pos(pos.coordinates()).any(|e| {
+        cs.has::<Background>(e) && cs.has::<Solid>(e)
+    })
 }

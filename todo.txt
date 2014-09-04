@@ -8,13 +8,17 @@
   - looks like we're adding `Explored` to everything
   - should be just the background
 * BUG: restart messes things up
-* BUG: make replay is untested
 * BUG: step by step replay doesn't work
 * BUG: player corpse disappears after fadeout
 * BUG: Voices and Shadows bodies briefly appear after fadeout
 * BUG: Background colours slightly differ on newgame vs. restart (F5)
 * BUG: weird shape of the exploration area
 * BUG: leaving the area is broken
+* Uncover and unfade the screen on player death
+* Better display the movement of D monsters:
+  - they're moving too fast currently (FPS dependent)
+  - we should show a path trail
+  - and also slow them down (visually -- so like they move every say 200ms, not every tick)
 * Using emhyr with smallintmax and explicit component indexes makes the game significantly
 (about twice) faster. But the manual indexes are a huge PITA.
        - macro would be a solution

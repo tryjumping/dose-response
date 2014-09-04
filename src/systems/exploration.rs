@@ -1,18 +1,20 @@
 use std::time::Duration;
 use components::{AcceptsUserInput, Position, Exploration, Attributes, Explored, Tile};
 use emhyr::{Components, Entity, Entities};
+use entity_util::PositionCache;
 use point;
 use super::addiction_graphics::intoxication_state::*;
 
 
 define_system! {
     name: ExplorationSystem;
-    resources(player: Entity);
+    resources(player: Entity, position_cache: PositionCache);
     fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, mut _entities: Entities) {
         let player = *self.player();
         if !(cs.has::<AcceptsUserInput>(player) && cs.has::<Position>(player) && cs.has::<Exploration>(player) && cs.has::<Attributes>(player)) {
             return
         }
+        let cache = &*self.position_cache();
         let pos = cs.get::<Position>(player);
         let exploration = cs.get::<Exploration>(player);
         let attrs = cs.get::<Attributes>(player);
@@ -28,12 +30,11 @@ define_system! {
         }
         for (x, y) in point::points_within_radius(pos, radius) {
             if point::distance(pos, (x, y)) <= radius as f32 {
-                fail!("entities_on_pos");
-                // for exploree in cs.entities_on_pos((x, y)) {
-                //     if cs.has::<Tile>(exploree) && cs.has::<Position>(exploree) {
-                //         cs.set(Explored, exploree);
-                //     }
-                // }
+                for exploree in cache.entities_on_pos((x, y)) {
+                    if cs.has::<Tile>(exploree) && cs.has::<Position>(exploree) {
+                        cs.set(Explored, exploree);
+                    }
+                }
             }
         }
     }

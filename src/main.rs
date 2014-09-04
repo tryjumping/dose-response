@@ -354,7 +354,8 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     game_state.world.add_system(box systems::will::WillSystem::new(
         player_rc.clone()));
     game_state.world.add_system(box systems::exploration::ExplorationSystem::new(
-        player_rc.clone()));
+        player_rc.clone(),
+        game_state.position_cache.clone()));
     game_state.world.add_system(box systems::fade_out::FadeOutSystem::new(
         player_rc.clone()));
     game_state.world.add_system(box systems::color_animation::ColorAnimationSystem::new(

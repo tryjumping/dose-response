@@ -85,7 +85,6 @@ define_system! {
         let turn: Turn = cs.get(e);
         if turn.ap <= 0 {return}
 
-        let cache = &*self.position_cache();
         let pos: Position = cs.get(e);
         let dest: Destination = cs.get(e);
         if (pos.x, pos.y) == (dest.x, dest.y) {
@@ -94,7 +93,8 @@ define_system! {
             cs.set(turn.spend_ap(1), e);
             cs.unset::<Destination>(e);
         } else if point::tile_distance(pos, dest) == 1 {
-            if is_walkable(dest, cache, cs, *self.world_size())  {
+            let walkable = is_walkable(dest, &*self.position_cache(), cs, *self.world_size());
+            if walkable {
                 // Move to the cell
                 cs.set(turn.spend_ap(1), e);
                 cs.set(Position{x: dest.x, y: dest.y}, e);

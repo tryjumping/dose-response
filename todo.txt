@@ -7,6 +7,7 @@
 * BUG: a monster once seen is visible even in the unexplored area
   - looks like we're adding `Explored` to everything
   - should be just the background
+* BUG: restart messes things up
 * BUG: make replay is untested
 * BUG: step by step replay doesn't work
 * BUG: player corpse disappears after fadeout

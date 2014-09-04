@@ -231,7 +231,7 @@ struct CommandLogger {
 
 impl CommandLogger {
     fn log(&mut self, command: Command) {
-        write_line(self.writer, command.to_string().as_slice()).unwrap();
+        write_line(&mut self.writer, command.to_string().as_slice()).unwrap();
     }
 }
 

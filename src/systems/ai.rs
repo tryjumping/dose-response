@@ -101,14 +101,13 @@ fn hunting_pack_behaviour<T: Rng>(e: Entity,
             let r = 8;
             for x in range_inclusive(pos.x - r, pos.x + r) {
                 for y in range_inclusive(pos.y - r, pos.y + r) {
-                    fail!("TODO: entities_on_pos don't exist");
-                    // for monster in cs.entities_on_pos((x, y)) {
-                    //     if cs.has::<AI>(monster) {
-                    //         let ai = cs.get::<AI>(monster);
-                    //         cs.set(AI{state: ai::Aggressive,
-                    //                       .. ai}, monster);
-                    //     }
-                    // }
+                    for monster in cache.entities_on_pos((x, y)) {
+                        if cs.has::<AI>(monster) {
+                            let ai = cs.get::<AI>(monster);
+                            cs.set(AI{state: ai::Aggressive,
+                                          .. ai}, monster);
+                        }
+                    }
                 }
             }
             Destination{x: player_pos.x, y: player_pos.y}

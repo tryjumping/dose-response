@@ -10,9 +10,9 @@ define_system! {
     components(AcceptsUserInput, Position);
     resources(player: Entity, position_cache: PositionCache);
     fn process_entity(&mut self, cs: &mut Components, _dt: Duration, actor: Entity) {
-        let cache = &*self.position_cache();
         let pos = cs.get::<Position>(actor);
-        for inter in cache.entities_on_pos(pos) {
+        let mut entities = self.position_cache().entities_on_pos(pos);
+        for inter in entities {
             if actor == inter {continue}  // Entity cannot interact with itself
             // TODO: only doses and food are interactive for now. If we add more, we
             // should create a new `Interactive` component and test its presense
@@ -45,7 +45,7 @@ define_system! {
                 }
                 if cs.has::<ExplosionEffect>(inter) {
                     let radius = cs.get::<ExplosionEffect>(inter).radius;
-                    explosion(cs, pos, radius);
+                    explosion(&*self.position_cache(), cs, pos, radius);
                 }
             } else {
                 cs.set(InventoryItem{owner: actor}, inter);

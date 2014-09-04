@@ -72,14 +72,14 @@ pub fn kill(cs: &mut Components, e: Entity) {
     }
 }
 
-pub fn explosion<T: point::Point>(cs: &mut Components, center: T, radius: int) {
+pub fn explosion<T: point::Point>(cache: &PositionCache, cs: &mut Components,
+                                  center: T, radius: int) {
     for (x, y) in point::points_within_radius(center, radius) {
-        fail!("entities_on_pos");
-        // for e in ecm.entities_on_pos((x, y)) {
-        //     if ecm.has_entity(e) && ecm.has::<AI>(e) {
-        //         kill(ecm, e);
-        //     }
-        // }
+        for e in cache.entities_on_pos((x, y)) {
+            if cs.has::<AI>(e) {
+                kill(cs, e);
+            }
+        }
     }
 }
 

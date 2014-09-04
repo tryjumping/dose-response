@@ -343,6 +343,7 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
         game_state.position_cache.clone(),
         world_size_rc.clone()));
     game_state.world.add_system(box systems::eating::EatingSystem::new(
+        game_state.position_cache.clone(),
         player_rc.clone()));
     game_state.world.add_system(box systems::interaction::InteractionSystem::new(
         player_rc.clone(),

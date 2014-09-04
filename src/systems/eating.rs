@@ -2,13 +2,13 @@ use std::time::Duration;
 use components::{InventoryItem, Edible, ExplosionEffect,
                  Position, Turn, UsingItem};
 use emhyr::{Components, Entity};
-use entity_util;
+use entity_util::{PositionCache, explosion};
 
 
 define_system! {
     name: EatingSystem;
     components(UsingItem, Position, Turn);
-    resources(player: Entity);
+    resources(position_cache: PositionCache, player: Entity);
     fn process_entity(&mut self, cs: &mut Components, _dt: Duration, entity: Entity) {
         let food = cs.get::<UsingItem>(entity).item;
         if !cs.has::<Edible>(food) {
@@ -28,7 +28,7 @@ define_system! {
             println!("Eating kills off nearby enemies");
             let pos = cs.get::<Position>(entity);
             let radius = cs.get::<ExplosionEffect>(food).radius;
-            entity_util::explosion(cs, pos, radius);
+            explosion(&*self.position_cache(), cs, pos, radius);
         } else {
             println!("The food doesn't have enemy-killing effect.");
         }

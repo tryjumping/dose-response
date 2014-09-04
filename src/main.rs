@@ -344,7 +344,8 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     game_state.world.add_system(box systems::eating::EatingSystem::new(
         player_rc.clone()));
     game_state.world.add_system(box systems::interaction::InteractionSystem::new(
-        player_rc.clone()));
+        player_rc.clone(),
+        game_state.position_cache.clone()));
     game_state.world.add_system(box systems::bump::BumpSystem::new(
         player_rc.clone()));
     game_state.world.add_system(box systems::combat::CombatSystem::new(
@@ -398,8 +399,8 @@ impl PositionCache {
         }
     }
 
-    pub fn entities_on_pos(&self, pos: (int, int)) -> MoveItems<Entity> {
-        match self.map.find(&pos) {
+    pub fn entities_on_pos<P: point::Point>(&self, pos: P) -> MoveItems<Entity> {
+        match self.map.find(&pos.coordinates()) {
             Some(entities) => entities.clone().move_iter(),
             None => vec![].move_iter(),
         }

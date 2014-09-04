@@ -8,15 +8,16 @@ extern crate time;
 #[phase(plugin, link)] extern crate emhyr;
 extern crate tcod;
 
+use std::collections::{Deque, RingBuf, HashMap};
 use std::time::Duration;
 use std::io;
 use std::io::{File, IoResult};
 use std::io::util::NullWriter;
 use std::os;
 use std::rc::Rc;
+use std::vec::MoveItems;
 use std::cell::RefCell;
 
-use collections::{Deque, RingBuf};
 use std::rand::{IsaacRng, SeedableRng};
 use std::rand;
 use tcod::{KeyState, Printable, Special};
@@ -45,6 +46,7 @@ pub struct GameState<'a> {
     rng: Rc<RefCell<IsaacRng>>,
     commands: Rc<RefCell<RingBuf<Command>>>,
     command_logger: Rc<RefCell<CommandLogger>>,
+    position_cache: Rc<RefCell<PositionCache>>,
     side: Rc<RefCell<Side>>,
     turn: Rc<RefCell<int>>,
     player: Entity,
@@ -69,6 +71,7 @@ impl<'a> GameState<'a> {
             rng: rc_mut(SeedableRng::from_seed(seed_arr)),
             commands: rc_mut(commands),
             command_logger: rc_mut(CommandLogger{writer: log_writer}),
+            position_cache: rc_mut(PositionCache::new()),
             side: rc_mut(Computer),
             turn: rc_mut(0),
             player: player,
@@ -304,7 +307,6 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     game_state.world.register_component::<components::AttackTarget>();
     game_state.world.register_component::<components::FadingOut>();
 
-
     let player_rc = rc_mut(player);
     let world_size_rc = rc_mut(game_state.world_size);
 
@@ -370,8 +372,42 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
         player_rc.clone()));
 }
 
+pub struct PositionCache {
+    map: HashMap<(int, int), Vec<Entity>>,
+}
+
+impl PositionCache {
+    pub fn new() -> PositionCache {
+        PositionCache{map: HashMap::new()}
+    }
+
+    pub fn set(&mut self, pos: (int, int), e: Entity) {
+        let mut entities = self.map.find_or_insert_with(pos, |_| vec![]);
+        entities.push(e);
+    }
+
+    pub fn unset(&mut self, pos: (int, int), e: Entity) {
+        let ref mut entities = self.map.get_mut(&pos);
+        match entities.iter().position(|&i| i == e) {
+            Some(entity_index) => {
+                entities.remove(entity_index);
+            }
+            None => fail!("{} at position {} missing from the cache.", e, pos),
+        }
+    }
+
+    pub fn entities_on_pos(&self, pos: (int, int)) -> MoveItems<Entity> {
+        match self.map.find(&pos) {
+            Some(entities) => entities.clone().move_iter(),
+            None => vec![].move_iter(),
+        }
+    }
+}
+
 
 fn main() {
+    use std::any::{Any, AnyRefExt};
+    use emhyr::{ComponentSet, ComponentUnset};
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
@@ -388,5 +424,28 @@ fn main() {
 
     let mut engine = Engine::new(width, height, title, font_path.clone());
     initialise_world(&mut game_state, &engine);
+    let mut pos_cache = game_state.position_cache.clone();
+    game_state.world.on_component_change(|e, component, change| {
+        match component.downcast_ref::<Position>() {
+            Some(pos) => {
+                let coords = (pos.x, pos.y);
+                let mut cache = pos_cache.borrow_mut();
+                match change {
+                    ComponentSet => {
+                        // We don't need to remove any previous Position the
+                        // entity may have had from the cache because Emhyr will
+                        // have fired a ComponentRemoved event.
+                        cache.set(coords, e);
+                    }
+                    ComponentRemoved => {
+                        // We know it's a Position and we know it must have been
+                        // set before. Therefore we know it's in the cache:
+                        cache.unset(coords, e);
+                    }
+                }
+            }
+            None => (),
+        }
+    });
     engine.main_loop(game_state, update);
 }

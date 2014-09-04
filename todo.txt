@@ -15,6 +15,7 @@
 * BUG: weird shape of the exploration area
 * BUG: leaving the area is broken
 * Uncover and unfade the screen on player death
+* Stop the High colour animation on player death
 * Better display the movement of D monsters:
   - they're moving too fast currently (FPS dependent)
   - we should show a path trail

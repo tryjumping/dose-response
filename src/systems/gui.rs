@@ -17,7 +17,7 @@ fn intoxication_to_str(state: int) -> &'static str {
     }
 }
 
-fn food_count(cs: &Components, player: Entity, mut entities: Entities) -> uint {
+fn food_count(cs: &Components, player: Entity, entities: Entities) -> uint {
     entities.filter(|&e| cs.has::<InventoryItem>(e) && cs.has::<Edible>(e) &&
                     cs.get::<InventoryItem>(e).owner == player).count()
 }
@@ -25,7 +25,7 @@ fn food_count(cs: &Components, player: Entity, mut entities: Entities) -> uint {
 define_system! {
     name: GUISystem;
     resources(display: Display, player: Entity, current_turn: int);
-    fn process_all_entities(&mut self, cs: &mut Components, _dt_ms: Duration, mut entities: Entities) {
+    fn process_all_entities(&mut self, cs: &mut Components, _dt_ms: Duration, entities: Entities) {
         let display = &mut *self.display();
         let (_width, height) = display.size();
         let player = *self.player();

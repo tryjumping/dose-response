@@ -41,7 +41,7 @@ macro_rules! define_system (
      resources(
          $($resource:ident : $ty:ty),*
      );
-     fn process_all_entities(&mut $self_i:ident, $cs:ident : &mut $cs_type:ty, $dt:ident : $dt_type:ty, mut $entities:ident : $entity_iter_type:ty) $process_entity_body:expr
+     fn process_all_entities(&mut $self_i:ident, $cs:ident : &mut $cs_type:ty, $dt:ident : $dt_type:ty, $entities:ident : $entity_iter_type:ty) $process_entity_body:expr
     } => {
         pub struct $name {
             $($resource: ::std::rc::Rc<::std::cell::RefCell<$ty>>),+
@@ -63,7 +63,7 @@ macro_rules! define_system (
                 ::emhyr::NoRequirements
             }
 
-            fn process_all_entities(&mut $self_i, $cs: &mut $cs_type, $dt: $dt_type, mut $entities: $entity_iter_type) {
+            fn process_all_entities(&mut $self_i, $cs: &mut $cs_type, $dt: $dt_type, $entities: $entity_iter_type) {
                 $process_entity_body
             }
 

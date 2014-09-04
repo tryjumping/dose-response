@@ -1,15 +1,10 @@
-use std::intrinsics::transmute;
 use std::time::Duration;
-use libc::{c_int, c_float, c_void};
 use components::{Bump, Destination, Position, Solid, Turn};
 use emhyr::{Components, Entity};
 use point;
 use point::Point;
 use entity_util::{PositionCache, is_walkable};
-use tcod::{AStarPath, DijkstraPath};
-use std::cell::RefCell;
-use std::rc::Rc;
-use emhyr::System;
+use tcod::AStarPath;
 
 
 pub fn walk_one_step<P1: Point, P2: Point>(source: P1, destination: P2, world_size: (int, int),
@@ -17,7 +12,7 @@ pub fn walk_one_step<P1: Point, P2: Point>(source: P1, destination: P2, world_si
     let (width, height) = world_size;
     let mut path = AStarPath::new_from_callback(
         width, height,
-        |from, to| {
+        |_from, to| {
             use entity_util;
             // The destination is probably a monster or a player (who are solid).
             // Count that area as walkable.

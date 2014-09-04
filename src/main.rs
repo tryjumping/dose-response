@@ -104,7 +104,7 @@ fn read_key(keys: &mut RingBuf<KeyState>, key: tcod::Key) -> bool {
                 found = true;
             }
             Some(pressed_key) => {
-                keys.push_back(pressed_key);
+                keys.push(pressed_key);
             }
             None => return false
         }
@@ -124,20 +124,20 @@ fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comm
         match keys.pop_front() {
             Some(key) => {
                 match key.key {
-                    Special(key::Up) => commands.push_back(commands::N),
-                    Special(key::Down) => commands.push_back(commands::S),
+                    Special(key::Up) => commands.push(commands::N),
+                    Special(key::Down) => commands.push(commands::S),
                     Special(key::Left) => match (ctrl(key), key.shift) {
-                        (false, true) => commands.push_back(commands::NW),
-                        (true, false) => commands.push_back(commands::SW),
-                        _ => commands.push_back(commands::W),
+                        (false, true) => commands.push(commands::NW),
+                        (true, false) => commands.push(commands::SW),
+                        _ => commands.push(commands::W),
                     },
                     Special(key::Right) => match (ctrl(key), key.shift) {
-                        (false, true) => commands.push_back(commands::NE),
-                        (true, false) => commands.push_back(commands::SE),
-                        _ => commands.push_back(commands::E),
+                        (false, true) => commands.push(commands::NE),
+                        (true, false) => commands.push(commands::SE),
+                        _ => commands.push(commands::E),
                     },
                     Printable('e') => {
-                        commands.push_back(commands::Eat);
+                        commands.push(commands::Eat);
                     }
                     _ => (),
                 }
@@ -273,7 +273,7 @@ fn replay_game_state<'a>(width: int, height: int) -> GameState<'a> {
             }
             for line in lines {
                 match from_str(line) {
-                    Some(command) => commands.push_back(command),
+                    Some(command) => commands.push(command),
                     None => fail!("Unknown command: {}", line),
                 }
             }
@@ -344,8 +344,7 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
         game_state.position_cache.clone(),
         world_size_rc.clone()));
     game_state.world.add_system(box systems::eating::EatingSystem::new(
-        game_state.position_cache.clone(),
-        player_rc.clone()));
+        game_state.position_cache.clone()));
     game_state.world.add_system(box systems::interaction::InteractionSystem::new(
         player_rc.clone(),
         game_state.position_cache.clone()));
@@ -389,7 +388,7 @@ impl PositionCache {
     }
 
     pub fn set(&mut self, pos: (int, int), e: Entity) {
-        let mut entities = self.map.find_or_insert_with(pos, |_| vec![]);
+        let entities = self.map.find_or_insert_with(pos, |_| vec![]);
         entities.push(e);
     }
 
@@ -413,8 +412,6 @@ impl PositionCache {
 
 
 fn main() {
-    use std::any::{Any, AnyRefExt};
-    use emhyr::{ComponentSet, ComponentUnset};
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
@@ -429,8 +426,10 @@ fn main() {
         _ => fail!("You must pass either pass zero or one arguments."),
     };
 
-    let mut pos_cache = game_state.position_cache.clone();
+    let pos_cache = game_state.position_cache.clone();
     game_state.world.on_component_change(|e, component, change| {
+        use std::any::AnyRefExt;
+        use emhyr::{ComponentSet, ComponentUnset};
         match component.downcast_ref::<Position>() {
             Some(pos) => {
                 let coords = (pos.x, pos.y);
@@ -442,7 +441,7 @@ fn main() {
                         // have fired a ComponentRemoved event.
                         cache.set(coords, e);
                     }
-                    ComponentRemoved => {
+                    ComponentUnset => {
                         // We know it's a Position and we know it must have been
                         // set before. Therefore we know it's in the cache:
                         cache.unset(coords, e);

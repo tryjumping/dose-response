@@ -38,7 +38,7 @@ impl FromStr for Command {
 define_system! {
     name: InputSystem;
     resources(player: Entity, commands: RingBuf<Command>, current_side: Side);
-    fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, mut entities: Entities) {
+    fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, entities: Entities) {
         // Don't process input if it's not your turn (otherwise it will be eaten
         // & ignored)
         // (NOTE: only the player can process input for now)

@@ -40,7 +40,7 @@ pub mod intoxication_state {
 define_system! {
     name: AddictionGraphicsSystem;
     resources(display: Display, player: Entity);
-    fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, mut entities: Entities) {
+    fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, entities: Entities) {
         let mut display = self.display();
         let player = *self.player();
         if !cs.has::<Attributes>(player) {return}
@@ -50,6 +50,7 @@ define_system! {
             Exhausted | DeliriumTremens | Withdrawal => {
                 let fade = max((som as u8) * 5 + 50, 50);
                 display.fade(fade, col::background);
+                let mut entities = entities;
                 for e in entities {
                     if cs.has::<Background>(e) && cs.has::<ColorAnimation>(e) {
                         cs.unset::<ColorAnimation>(e);
@@ -57,6 +58,7 @@ define_system! {
                 }
             }
             Sober => {
+                let mut entities = entities;
                 for e in entities {
                     if cs.has::<Background>(e) && cs.has::<ColorAnimation>(e) {
                         cs.unset::<ColorAnimation>(e);
@@ -64,6 +66,7 @@ define_system! {
                 }
             }
             High | VeryHigh | Overdosed => {
+                let mut entities = entities;
                 for e in entities {
                     if !cs.has::<Position>(e) {continue}
                     let pos = cs.get::<Position>(e);

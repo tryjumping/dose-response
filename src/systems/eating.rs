@@ -8,7 +8,7 @@ use entity_util::{PositionCache, explosion};
 define_system! {
     name: EatingSystem;
     components(UsingItem, Position, Turn);
-    resources(position_cache: PositionCache, player: Entity);
+    resources(position_cache: PositionCache);
     fn process_entity(&mut self, cs: &mut Components, _dt: Duration, entity: Entity) {
         let food = cs.get::<UsingItem>(entity).item;
         if !cs.has::<Edible>(food) {

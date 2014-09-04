@@ -17,7 +17,7 @@ fn cannot_resist(addict: Entity,
     let dose_pos = cs.get::<Position>(dose);
     let (width, height) = map_size;
     let mut path = AStarPath::new_from_callback(
-        width, height, |from, to| {
+        width, height, |_from, to| {
             if is_solid(to, cache, cs) {
                 0.0
             } else {
@@ -62,7 +62,7 @@ define_system! {
                 let (width, height) = world_size;
                 let step = {
                     let mut path = AStarPath::new_from_callback(
-                        width, height, |from, to| {
+                        width, height, |_from, to| {
                             if is_solid(to, cache, cs) {
                                 0.0
                             } else {

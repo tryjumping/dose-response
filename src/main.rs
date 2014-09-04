@@ -427,8 +427,6 @@ fn main() {
         _ => fail!("You must pass either pass zero or one arguments."),
     };
 
-    let mut engine = Engine::new(width, height, title, font_path.clone());
-    initialise_world(&mut game_state, &engine);
     let mut pos_cache = game_state.position_cache.clone();
     game_state.world.on_component_change(|e, component, change| {
         match component.downcast_ref::<Position>() {
@@ -452,5 +450,7 @@ fn main() {
             None => (),
         }
     });
+    let mut engine = Engine::new(width, height, title, font_path.clone());
+    initialise_world(&mut game_state, &engine);
     engine.main_loop(game_state, update);
 }

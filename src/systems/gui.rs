@@ -17,15 +17,15 @@ fn intoxication_to_str(state: int) -> &'static str {
     }
 }
 
-fn food_count(ecm: &Components, player: Entity) -> uint {
-    fail!("food_count entity iter");
-    // ecm.iter().filter(|&e| ecm.has::<InventoryItem>(e) && ecm.has::<Edible>(e) && ecm.get::<InventoryItem>(e).owner == player).count()
+fn food_count(cs: &Components, player: Entity, mut entities: Entities) -> uint {
+    entities.filter(|&e| cs.has::<InventoryItem>(e) && cs.has::<Edible>(e) &&
+                    cs.get::<InventoryItem>(e).owner == player).count()
 }
 
 define_system! {
     name: GUISystem;
     resources(display: Display, player: Entity, current_turn: int);
-    fn process_all_entities(&mut self, cs: &mut Components, _dt_ms: Duration, mut _entities: Entities) {
+    fn process_all_entities(&mut self, cs: &mut Components, _dt_ms: Duration, mut entities: Entities) {
         let display = &mut *self.display();
         let (_width, height) = display.size();
         let player = *self.player();
@@ -37,7 +37,7 @@ define_system! {
         let mut status_bar = format!("{}  Will: {}  Food: {}",
                                  intoxication_description,
                                  attrs.will,
-                                 food_count(cs, player));
+                                 food_count(cs, player, entities));
 
         let mut effects = String::new();
         if !cs.has::<Position>(player) {

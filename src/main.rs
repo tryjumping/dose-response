@@ -31,7 +31,6 @@ use systems::input::commands::Command;
 mod components;
 mod engine;
 mod entity_util;
-mod flags;
 mod point;
 mod systems;
 mod world_gen;

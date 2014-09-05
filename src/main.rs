@@ -36,9 +36,6 @@ mod systems;
 mod world_gen;
 mod world;
 
-// Set the binary's RPATH to the `deps` directory:
-#[link_args ="-Wl,-rpath=$ORIGIN/deps"] extern {}
-
 pub struct GameState<'a> {
     world: World<'a>,
     world_size: (int, int),

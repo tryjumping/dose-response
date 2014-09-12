@@ -3,7 +3,7 @@ name = "dose-response"
 version = "0.1.0"
 dependencies = [
  "emhyr 0.1.0",
- "tcod 0.1.0 (git+https://github.com/tomassedovic/tcod-rs.git#fd04fe4d44637ee4d4979455040c15551c78dfe0)",
+ "tcod 0.1.0 (git+https://github.com/tomassedovic/tcod-rs.git#d9bf93af213d50bc1256006a0f3e52c1e28e8dce)",
 ]
 
 [[package]]
@@ -20,5 +20,5 @@ dependencies = [
 [[package]]
 name = "tcod"
 version = "0.1.0"
-source = "git+https://github.com/tomassedovic/tcod-rs.git#fd04fe4d44637ee4d4979455040c15551c78dfe0"
+source = "git+https://github.com/tomassedovic/tcod-rs.git#d9bf93af213d50bc1256006a0f3e52c1e28e8dce"
 

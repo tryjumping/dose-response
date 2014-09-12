@@ -10,13 +10,14 @@ use tcod::AStarPath;
 pub fn walk_one_step<P1: Point, P2: Point>(source: P1, destination: P2, world_size: (int, int),
                      cache: &PositionCache, cs: &Components) -> Option<(int, int)> {
     let (width, height) = world_size;
+    let dest_coords = destination.coordinates();
     let mut path = AStarPath::new_from_callback(
         width, height,
-        |_from, to| {
+        |&mut: _from: (int, int), to: (int, int)| -> f32 {
             use entity_util;
             // The destination is probably a monster or a player (who are solid).
             // Count that area as walkable.
-            if to == destination.coordinates() {
+            if to == dest_coords {
                 1.0
             } else if entity_util::is_solid(to, cache, cs) {
                 0.0

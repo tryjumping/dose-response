@@ -1,4 +1,4 @@
-#![feature(macro_rules, struct_variant, globs, phase, link_args)]
+#![feature(macro_rules, struct_variant, globs, phase, link_args, unboxed_closures)]
 
 extern crate collections;
 extern crate libc;
@@ -23,7 +23,7 @@ use std::rand;
 use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
-use emhyr::{Entity, World};
+use emhyr::{Change, Entity, World};
 use engine::{Engine, key};
 use systems::input::commands;
 use systems::input::commands::Command;
@@ -36,8 +36,8 @@ mod systems;
 mod world_gen;
 mod world;
 
-pub struct GameState<'a> {
-    world: World<'a>,
+pub struct GameState {
+    world: World,
     world_size: (int, int),
     rng: Rc<RefCell<IsaacRng>>,
     commands: Rc<RefCell<RingBuf<Command>>>,
@@ -51,13 +51,13 @@ pub struct GameState<'a> {
     paused: bool,
 }
 
-impl<'a> GameState<'a> {
+impl GameState {
     fn new(width: int, height: int,
            commands: RingBuf<Command>,
            log_writer: Box<Writer+'static>,
            seed: u32,
            cheating: bool,
-           replay: bool) -> GameState<'a> {
+           replay: bool) -> GameState {
         let seed_arr: &[_] = &[seed];
         let mut world = World::new();
         let player = world.new_entity();
@@ -144,7 +144,7 @@ fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comm
     }
 }
 
-fn update<'a>(mut state: GameState<'a>, dt_s: f32, engine: &engine::Engine) -> Option<GameState<'a>> {
+fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<GameState> {
     let keys = engine.keys();
     if key_pressed(&*keys.borrow(), Special(key::Escape)) {
         use std::cmp::{Less, Equal, Greater};
@@ -232,7 +232,7 @@ impl CommandLogger {
     }
 }
 
-fn new_game_state<'a>(width: int, height: int) -> GameState<'a> {
+fn new_game_state(width: int, height: int) -> GameState {
     let commands = RingBuf::new();
     let seed = rand::random::<u32>();
     let cur_time = time::now();
@@ -252,7 +252,7 @@ fn new_game_state<'a>(width: int, height: int) -> GameState<'a> {
     GameState::new(width, height, commands, writer, seed, false, false)
 }
 
-fn replay_game_state<'a>(width: int, height: int) -> GameState<'a> {
+fn replay_game_state(width: int, height: int) -> GameState {
     let mut commands = RingBuf::new();
     let replay_path = &Path::new(os::args()[1].as_slice());
     let mut seed: u32;
@@ -423,29 +423,24 @@ fn main() {
         _ => fail!("You must pass either pass zero or one arguments."),
     };
 
+    game_state.world.register_component::<Position>();
     let pos_cache = game_state.position_cache.clone();
-    game_state.world.on_component_change(|e, component, change| {
-        use std::any::AnyRefExt;
+    game_state.world.on_component_change(|&mut: e, pos: Position, change: Change| {
         use emhyr::{ComponentSet, ComponentUnset};
-        match component.downcast_ref::<Position>() {
-            Some(pos) => {
-                let coords = (pos.x, pos.y);
-                let mut cache = pos_cache.borrow_mut();
-                match change {
-                    ComponentSet => {
-                        // We don't need to remove any previous Position the
-                        // entity may have had from the cache because Emhyr will
-                        // have fired a ComponentRemoved event.
-                        cache.set(coords, e);
-                    }
-                    ComponentUnset => {
-                        // We know it's a Position and we know it must have been
-                        // set before. Therefore we know it's in the cache:
-                        cache.unset(coords, e);
-                    }
-                }
+        let coords = (pos.x, pos.y);
+        let mut cache = pos_cache.borrow_mut();
+        match change {
+            ComponentSet => {
+                // We don't need to remove any previous Position the
+                // entity may have had from the cache because Emhyr will
+                // have fired a ComponentRemoved event.
+                cache.set(coords, e);
             }
-            None => (),
+            ComponentUnset => {
+                // We know it's a Position and we know it must have been
+                // set before. Therefore we know it's in the cache:
+                cache.unset(coords, e);
+            }
         }
     });
     let mut engine = Engine::new(width, height, title, font_path.clone());

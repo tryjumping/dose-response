@@ -7,11 +7,8 @@
 * BUG: a monster once seen is visible even in the unexplored area
   - looks like we're adding `Explored` to everything
   - should be just the background
-* BUG: restart messes things up
 * BUG: step by step replay doesn't work
-* BUG: player corpse disappears after fadeout
 * BUG: Voices and Shadows bodies briefly appear after fadeout
-* BUG: Background colours slightly differ on newgame vs. restart (F5)
 * BUG: weird shape of the exploration area
 * BUG: leaving the area is broken
 * Uncover and unfade the screen on player death

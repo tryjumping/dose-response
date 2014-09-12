@@ -283,6 +283,29 @@ fn replay_game_state(width: int, height: int) -> GameState {
 }
 
 fn initialise_world(game_state: &mut GameState, engine: &Engine) {
+    // Hook up the position cache. This has to happen before we set any position
+    // to any entity (else those won't be in the cache).
+    game_state.world.register_component::<Position>();
+    let pos_cache = game_state.position_cache.clone();
+    game_state.world.on_component_change(|&mut: e, pos: Position, change: Change| {
+        use emhyr::{ComponentSet, ComponentUnset};
+        let coords = (pos.x, pos.y);
+        let mut cache = pos_cache.borrow_mut();
+        match change {
+            ComponentSet => {
+                // We don't need to remove any previous Position the
+                // entity may have had from the cache because Emhyr will
+                // have fired a ComponentRemoved event.
+                cache.set(coords, e);
+            }
+            ComponentUnset => {
+                // We know it's a Position and we know it must have been
+                // set before. Therefore we know it's in the cache:
+                cache.unset(coords, e);
+            }
+        }
+    });
+
     let (width, height) = game_state.world_size;
     let player = game_state.player;
     world::create_player(&mut game_state.world.cs, player);
@@ -423,26 +446,6 @@ fn main() {
         _ => fail!("You must pass either pass zero or one arguments."),
     };
 
-    game_state.world.register_component::<Position>();
-    let pos_cache = game_state.position_cache.clone();
-    game_state.world.on_component_change(|&mut: e, pos: Position, change: Change| {
-        use emhyr::{ComponentSet, ComponentUnset};
-        let coords = (pos.x, pos.y);
-        let mut cache = pos_cache.borrow_mut();
-        match change {
-            ComponentSet => {
-                // We don't need to remove any previous Position the
-                // entity may have had from the cache because Emhyr will
-                // have fired a ComponentRemoved event.
-                cache.set(coords, e);
-            }
-            ComponentUnset => {
-                // We know it's a Position and we know it must have been
-                // set before. Therefore we know it's in the cache:
-                cache.unset(coords, e);
-            }
-        }
-    });
     let mut engine = Engine::new(width, height, title, font_path.clone());
     initialise_world(&mut game_state, &engine);
     engine.main_loop(game_state, update);

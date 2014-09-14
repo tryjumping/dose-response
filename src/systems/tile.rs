@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use components::{Background, ColorAnimation, Exploration, Explored, Position, Tile};
+use components::{Background, ColorAnimation, Exploration, Explored, Monster,
+                 Position, Tile};
 use emhyr::{Components, Entity};
 use engine::Display;
 use point;
@@ -21,7 +22,8 @@ define_system! {
         } else {
             false
         };
-        let shows_in_fog_of_war = cs.has::<Background>(e) || cs.has::<Explored>(e);
+        let shows_in_fog_of_war = cs.has::<Background>(e) ||
+            (cs.has::<Explored>(e) && !cs.has::<Monster>(e));
         let is_explored = cs.has::<Explored>(e);
         let cheating = *self.cheating();
         if is_explored || cheating {

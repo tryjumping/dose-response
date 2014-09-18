@@ -13,6 +13,12 @@
   - they're moving too fast currently (FPS dependent)
   - we should show a path trail
   - and also slow them down (visually -- so like they move every say 200ms, not every tick)
+* Improve the radius calculation by not looking at the points' coordinates but
+their actual space each tile represents. The tiles are not points but squares
+with an area. This should provide a visually better result (but will be harder
+to compute)
+* Consider switching to a single precomputed Dijkstra object
+  - benchmark this in tcod but I think it should be faster
 * Using emhyr with smallintmax and explicit component indexes makes the game significantly
 (about twice) faster. But the manual indexes are a huge PITA.
        - macro would be a solution

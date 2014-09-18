@@ -6,7 +6,6 @@
   - docs:  http://doc.servo.org/geom/index.html
 * BUG: step by step replay doesn't work
 * BUG: Voices and Shadows bodies briefly appear after fadeout
-* BUG: weird shape of the exploration area
 * BUG: leaving the area is broken
 * Uncover and unfade the screen on player death
 * Stop the High colour animation on player death

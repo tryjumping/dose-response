@@ -39,7 +39,7 @@ pub fn populate_world<T: Rng>(world: &mut World,
         let bg = world.new_entity();
         world.cs.set(Position{x: x, y: y}, bg);
         world.cs.set(Background, bg);
-        let explored = point::distance((x, y), (player_pos.x, player_pos.y)) < 6f32;
+        let explored = point::distance((x, y), (player_pos.x, player_pos.y)) < 7f32;
         if explored {
             world.cs.set(Explored, bg);
         }
@@ -156,7 +156,7 @@ pub fn create_player(cs: &mut Components, player: Entity) {
     cs.set(AnxietyKillCounter{
             count: 0,
             threshold: 10}, player);
-    cs.set(Exploration{radius: 5}, player);
+    cs.set(Exploration{radius: 6}, player);
     cs.set(Explored, player);
     cs.set(Tile{level: 2, glyph: '@', color: col::player}, player);
     cs.set(Corpse{

@@ -18,7 +18,7 @@ define_system! {
         let Tile{level, glyph, color} = cs.get::<Tile>(e);
         let is_visible = if cs.has::<Position>(player) && cs.has::<Exploration>(player) {
             let player_pos: Position = cs.get(player);
-            point::distance((x, y), player_pos) <= cs.get::<Exploration>(player).radius as f32
+            point::distance((x, y), player_pos) < cs.get::<Exploration>(player).radius as f32
         } else {
             false
         };

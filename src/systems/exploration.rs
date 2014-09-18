@@ -29,7 +29,7 @@ define_system! {
             cs.set(Exploration{radius: radius}, player);
         }
         for (x, y) in point::points_within_radius(pos, radius) {
-            if point::distance(pos, (x, y)) <= radius as f32 {
+            if point::distance(pos, (x, y)) < (radius + 1) as f32 {
                 for exploree in cache.entities_on_pos((x, y)) {
                     if cs.has::<Tile>(exploree) && cs.has::<Position>(exploree) {
                         cs.set(Explored, exploree);

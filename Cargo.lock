@@ -3,22 +3,23 @@ name = "dose-response"
 version = "0.1.0"
 dependencies = [
  "emhyr 0.1.0",
- "tcod 0.1.0 (git+https://github.com/tomassedovic/tcod-rs.git#d9bf93af213d50bc1256006a0f3e52c1e28e8dce)",
+ "tcod 0.1.0 (git+https://github.com/tomassedovic/tcod-rs.git#57479996e141e38fb568e0732bd8b4b638e35faf)",
 ]
 
 [[package]]
 name = "anymap"
 version = "0.9.0"
+source = "git+https://github.com/chris-morgan/anymap.git#ad7ea81ba60233358fe3a025f08ee05537c3eb4d"
 
 [[package]]
 name = "emhyr"
 version = "0.1.0"
 dependencies = [
- "anymap 0.9.0",
+ "anymap 0.9.0 (git+https://github.com/chris-morgan/anymap.git#ad7ea81ba60233358fe3a025f08ee05537c3eb4d)",
 ]
 
 [[package]]
 name = "tcod"
 version = "0.1.0"
-source = "git+https://github.com/tomassedovic/tcod-rs.git#d9bf93af213d50bc1256006a0f3e52c1e28e8dce"
+source = "git+https://github.com/tomassedovic/tcod-rs.git#57479996e141e38fb568e0732bd8b4b638e35faf"
 

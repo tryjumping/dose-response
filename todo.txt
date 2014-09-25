@@ -13,6 +13,8 @@
   - they're moving too fast currently (FPS dependent)
   - we should show a path trail
   - and also slow them down (visually -- so like they move every say 200ms, not every tick)
+* When the PC is drawn to an irresistible dose, they must walk through the
+monsters if that's the shortest path even if it means death.
 * Improve the radius calculation by not looking at the points' coordinates but
 their actual space each tile represents. The tiles are not points but squares
 with an area. This should provide a visually better result (but will be harder

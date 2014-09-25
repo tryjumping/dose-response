@@ -107,7 +107,7 @@ impl Engine {
             self.root_console.set_default_foreground(default_fg);
             self.root_console.clear();
             self.display.borrow_mut().background_console.clear();
-            for con in self.display.borrow_mut().consoles.mut_iter() {
+            for con in self.display.borrow_mut().consoles.iter_mut() {
                 con.clear();
             }
             self.display.borrow_mut().fade = None;
@@ -122,7 +122,7 @@ impl Engine {
             Console::blit(&self.display.borrow_mut().background_console, 0, 0, width, height,
                           &mut self.root_console, 0, 0,
                           1f32, 1f32);
-            for con in self.display.borrow_mut().consoles.mut_iter() {
+            for con in self.display.borrow_mut().consoles.iter_mut() {
                 Console::blit(con, 0, 0, width, height,
                               &mut self.root_console, 0, 0,
                               1f32, 1f32);

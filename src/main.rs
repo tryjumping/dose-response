@@ -11,8 +11,9 @@ extern crate tcod;
 use std::collections::{Deque, RingBuf, HashMap};
 use std::time::Duration;
 use std::io;
-use std::io::{File, IoResult};
+use std::io::File;
 use std::io::util::NullWriter;
+use std::io::fs:: PathExtensions;
 use std::os;
 use std::rc::Rc;
 use std::vec::MoveItems;
@@ -209,14 +210,6 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
 }
 
 
-// // TODO: no longer needed?
-fn write_line(writer: &mut Writer, line: &str) -> IoResult<()> {
-    let line_with_nl = String::from_str(line).append("\n");
-    try!(writer.write(line_with_nl.as_bytes()));
-    try!(writer.flush());
-    return Ok(());
-}
-
 fn rc_mut<T>(val: T) -> Rc<RefCell<T>> {
     Rc::new(RefCell::new(val))
 }
@@ -228,7 +221,7 @@ struct CommandLogger {
 
 impl CommandLogger {
     fn log(&mut self, command: Command) {
-        write_line(&mut self.writer, command.to_string().as_slice()).unwrap();
+        self.writer.write_line(command.to_string().as_slice()).unwrap();
     }
 }
 
@@ -236,19 +229,20 @@ fn new_game_state(width: int, height: int) -> GameState {
     let commands = RingBuf::new();
     let seed = rand::random::<u32>();
     let cur_time = time::now();
-    let timestamp = time::strftime("%FT%T.", &cur_time).append((cur_time.tm_nsec / 1000000).to_string().as_slice());
+    let timestamp = format!("{}{}", time::strftime("%FT%T.", &cur_time),
+                            (cur_time.tm_nsec / 1000000).to_string());
     let replay_dir = &Path::new("./replays/");
     if !replay_dir.exists() {
         io::fs::mkdir_recursive(replay_dir,
                                 io::FilePermission::from_bits(0b111101101).unwrap()).unwrap();
     }
-    let replay_path = &replay_dir.join(String::from_str("replay-").append(timestamp.as_slice()));
+    let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
     let mut writer = match File::create(replay_path) {
         Ok(f) => box f,
         Err(msg) => fail!("Failed to create the replay file. {}", msg)
     };
     println!("Recording the gameplay to '{}'", replay_path.display());
-    write_line(&mut *writer as &mut Writer, seed.to_string().as_slice()).unwrap();
+    writer.write_line(seed.to_string().as_slice()).unwrap();
     GameState::new(width, height, commands, writer, seed, false, false)
 }
 
@@ -424,8 +418,8 @@ impl PositionCache {
 
     pub fn entities_on_pos<P: point::Point>(&self, pos: P) -> MoveItems<Entity> {
         match self.map.find(&pos.coordinates()) {
-            Some(entities) => entities.clone().move_iter(),
-            None => vec![].move_iter(),
+            Some(entities) => entities.clone().into_iter(),
+            None => vec![].into_iter(),
         }
     }
 }

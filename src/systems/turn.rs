@@ -1,20 +1,7 @@
 use std::time::Duration;
 
 use emhyr::{Components, Entities};
-use components::{Computer, Player, Side, Turn};
-
-impl ::components::Side {
-    fn next(&self) -> Side {
-        match *self {
-            Player => Computer,
-            Computer => Player,
-        }
-    }
-
-    fn is_last(&self) -> bool {
-        *self == Computer
-    }
-}
+use components::{Side, Turn};
 
 define_system! {
     name: TurnSystem;

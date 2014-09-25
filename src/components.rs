@@ -172,6 +172,19 @@ pub enum Side {
     Computer,
 }
 
+impl Side {
+    pub fn next(self) -> Side {
+        match self {
+            Player => Computer,
+            Computer => Player,
+        }
+    }
+
+    pub fn is_last(self) -> bool {
+        self == Computer
+    }
+}
+
 #[deriving(PartialEq, Clone, Show)]
 pub enum MonsterKind {
     Anxiety,

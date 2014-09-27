@@ -25,7 +25,7 @@ macro_rules! define_system (
 
         impl ::emhyr::System for $name {
             fn requirements(&self) -> ::emhyr::Requirements {
-                ::emhyr::RequiredComponents(vec![$(::std::intrinsics::TypeId::of::<$component>()),+])
+                ::emhyr::RequiredComponents(vec![$(::emhyr::Component::unique_index(::emhyr::Phantom::<$component>)),+])
             }
 
             fn process_entity(&mut $self_i, $cs: &mut $cs_type, $dt: $dt_type, $entity: $entity_type) {

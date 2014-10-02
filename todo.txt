@@ -1,12 +1,10 @@
-* Use `type Handle<T> =  Rc<RefCell<T>>`
-  - will simplify the game state code
-* Use `expect(error message)` method instead of `unwrap` for Options
-* Use rust-geom for unit type safety (has Point types etc. too)
-  - https://github.com/servo/rust-geom
-  - docs:  http://doc.servo.org/geom/index.html
-* BUG: step by step replay doesn't work
+* Don't cover the map with the bottom status bar
 * BUG: Voices and Shadows bodies briefly appear after fadeout
-* BUG: leaving the area is broken
+* BUG: step by step replay doesn't work
+* Add bonuses on superhigh
+  - see entities on som >= 98
+  - uncover the entire map on som == 99
+* background glow for the irresistible area around a dose
 * Uncover and unfade the screen on player death
 * Stop the High colour animation on player death
 * Better display the movement of D monsters:
@@ -15,82 +13,26 @@
   - and also slow them down (visually -- so like they move every say 200ms, not every tick)
 * When the PC is drawn to an irresistible dose, they must walk through the
 monsters if that's the shortest path even if it means death.
-* Improve the radius calculation by not looking at the points' coordinates but
-their actual space each tile represents. The tiles are not points but squares
-with an area. This should provide a visually better result (but will be harder
-to compute)
-* Consider switching to a single precomputed Dijkstra object
-  - benchmark this in tcod but I think it should be faster
-* Using emhyr with smallintmax and explicit component indexes makes the game significantly
-(about twice) faster. But the manual indexes are a huge PITA.
-       - macro would be a solution
-       - but can we create sequential indexes?
-* Speed it up:
-  - TODO: add a `name() -> &str` method to the `System` trait (with default
-  impl), collect metrics for each system automatically in `World::update`,
-  generate stats (system name, mean time) on demand. Print these
-  from `main` sorted by avg time on exit. Use u64 to store the aggregate
-  - no gameplay benchmark (just the initial screen):
-    - master: 40fps
-    - no systems: 175fps
-    - average elapsed times in miliseconds for individual systems:
-# high outliers
-3.691964788730    19    tile
-1.407352112680    10    movement
-1.358316901410    0     turn tick
-
-1.099623239440    3     addiction
-0.970633802817    6     AI
-0.931253521127    12    interaction
-0.849813380282    1     stun effect duration
-0.847876760563    4     command logger
-0.845862676056    7     dose
-0.831024647887    13    bump
-0.826845070423    15    will
-0.812070422535    2     panic effect duration
-0.809221830986    8     panic
-0.806130281690    5     input
-0.743781690141    9     stun
-0.682545774648    17    fade out
-0.679024647887    18    color animation
-0.664633802817    11    eating
-0.663855633803    14    combat
-0.646908450704    22    addiction graphics
-
-# low outliers
-0.319144366197    20    GUI
-0.082823943662    16    exploration
-0.004661971830    21    turn
-
-* Add emhyr::ComponentManager::get_opt<T>(&self, entity) -> Option<T>
-  - if ecm.has::<T> { ecm.get::<T> } is a fairly common pattern we have
-  - maybe have that as the only option once we add Artemis-style componentMappers?
-* Consider using deftypes units for the engine (replacing dt_ms: uint with Ms(uint), etc.).
-* Add bonuses on superhigh
-  - see entities on som >= 98
-  - uncover the entire map on som == 99
-* background glow for the irresistible area around a dose
-* Rename `ExplosionEffect` to `AreaEffect`?
-* We need a greater pressure for exploration and leaving the area. In my current
-playthroughs I just never care enough to leave.
-  - consider tweaking the intoxication gain and drop to create stronger pressure
-* Hey, like, just a though: What about an infinite world instead of discrete
-  screens?
-  - may (suprisingly) provide more variety
-  - would fit the exploration feel I'm going for
-  - no need to figure out special exit handling, etc. Just go as far as you can/want.
+* Figure out gameplay beyond the initial screen
+  * We need a greater pressure for exploration and leaving the area. In my current
+  playthroughs I just never care enough to leave.
+    - consider tweaking the intoxication gain and drop to create stronger pressure
+  * Hey, like, just a though: What about an infinite world instead of discrete
+    screens?
+    - may (suprisingly) provide more variety
+    - would fit the exploration feel I'm going for
+    - no need to figure out special exit handling, etc. Just go as far as you can/want.
+  * Add different worlds the player can go to when leaving the map
+    - this could either be completely random
+    - or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two
+    other worlds, then three different worlds, etc.)
+    Some notes on different world generation:
+    - http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
+  * consider restricting the possible ways to leave the map
 * Add smooth animations for the fade-out when growing Withdrawn
-* Don't cover the map with the bottom status bar
 * If the attacking entity can't find a path, it shouldn't just wait. Make it
   move in a random direction instead.
-* Add different worlds the player can go to when leaving the map
-  - this could either be completely random
-  - or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two
-  other worlds, then three different worlds, etc.)
-  Some notes on different world generation:
-  - http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
 * improve level generator not to create blocked entities
-* consider restricting the possible ways to leave the map
 * Don't allow suicide (if there's a way to avoid it)
   - e.g. fatfingering the arrow when the Depression is near
 * Change the rate of the `High` animation based on the intoxication amount
@@ -115,11 +57,44 @@ playthroughs I just never care enough to leave.
   - colour-blind mode (yes/no)
   - location to the replays
   - location to the saved games?
+* Improve the radius calculation by not looking at the points' coordinates but
+their actual space each tile represents. The tiles are not points but squares
+with an area. This should provide a visually better result (but will be harder
+to compute)
+* Speed it up:
+  - no gameplay benchmark (just the initial screen):
+    - master: 40fps
+    - no systems: 175fps
+    - average elapsed times in miliseconds for individual systems:
+        # high outliers
+        3.691964788730    19    tile
+        1.407352112680    10    movement
+        1.358316901410    0     turn tick
+
+        1.099623239440    3     addiction
+        0.970633802817    6     AI
+        0.931253521127    12    interaction
+        0.849813380282    1     stun effect duration
+        0.847876760563    4     command logger
+        0.845862676056    7     dose
+        0.831024647887    13    bump
+        0.826845070423    15    will
+        0.812070422535    2     panic effect duration
+        0.809221830986    8     panic
+        0.806130281690    5     input
+        0.743781690141    9     stun
+        0.682545774648    17    fade out
+        0.679024647887    18    color animation
+        0.664633802817    11    eating
+        0.663855633803    14    combat
+        0.646908450704    22    addiction graphics
+
+        # low outliers
+        0.319144366197    20    GUI
+        0.082823943662    16    exploration
+        0.004661971830    21    turn
+
 * Don't remove an entity in `kill_entity` on fadeout (see the TODO in the code)
-* Never crash on failure
-  - Run the main game in a separate task
-  - use task failure-handling to trap the errors
-  - generate an error report that the user can send
 * Add the Marla Daniels quote
   - When the game is launched and there aren't any saves, it should just jump into the play
     * (that was the genius of Braid)
@@ -145,42 +120,23 @@ playthroughs I just never care enough to leave.
 
 General code improvements
 
-* Generate tcod using rust-bindgen:
-
-  https://github.com/crabtw/rust-bindgen
-
-  The bindgen pass will evetually be integrated to Rust:
-
-  https://github.com/mozilla/rust/issues/2124
-
-* Switch to `cargo-lite`, release tcod as a separate crate
-
-* Look at our IO code, see if we can utilise read_to_str and
-  write_str/write_line
-  - https://github.com/mozilla/rust/pull/10861
-  - http://static.rust-lang.org/doc/master/complement-cheatsheet.html#how-do-i-iterate-over-the-lines-in-a-file
-
-
-
-
-
-* wrap tcod::console_t if feasible
+* Use `type Handle<T> =  Rc<RefCell<T>>`
+  - will simplify the game state code
+* Use `expect(error message)` method instead of `unwrap` for Options
+* Use rust-geom for unit type safety (has Point types etc. too)
+  - https://github.com/servo/rust-geom
+  - docs:  http://doc.servo.org/geom/index.html
+* Add emhyr::ComponentManager::get_opt<T>(&self, entity) -> Option<T>
+  - if ecm.has::<T> { ecm.get::<T> } is a fairly common pattern we have
+  - maybe have that as the only option once we add Artemis-style componentMappers?
+* Never crash on failure
+  - Run the main game in a separate task
+  - use task failure-handling to trap the errors
+  - generate an error report that the user can send
+* Rename `ExplosionEffect` to `AreaEffect`?
 * Replace "state_of_mind" with "intoxication" in the code
-* write a generic system interface so we can simplify the `update` function.
-* write a defsystem macro that handles the system boilerplate?
 * save the map state on death/exit in the replay log so we can verify the replay
 pass produced the same result.
-* Split utils into individual files
-
-
-* play with integrating different scripting languages:
-  - guile
-  - racket
-  - lua
-  - squirrel
-  - javascript
-  (how hard to integrate with rust? how calling functions per entity from rust?
-  how performant running the game loop?)
 
 
 

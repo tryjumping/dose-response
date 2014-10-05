@@ -26,11 +26,11 @@ pub mod intoxication_state {
         pub fn from_int(value: int) -> IntoxicationState {
             match value {
                 val if val <= 0 => Exhausted,
-                1..5   => DeliriumTremens,
-                6..15  => Withdrawal,
-                16..20 => Sober,
-                21..80 => High,
-                81..99 => VeryHigh,
+                1...5   => DeliriumTremens,
+                6...15  => Withdrawal,
+                16...20 => Sober,
+                21...80 => High,
+                81...99 => VeryHigh,
                 _ => Overdosed,
             }
         }

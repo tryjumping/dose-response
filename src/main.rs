@@ -281,7 +281,7 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     // to any entity (else those won't be in the cache).
     game_state.world.register_component::<Position>();
     let pos_cache = game_state.position_cache.clone();
-    game_state.world.on_component_change(|&mut: e, pos: Position, change: Change| {
+    game_state.world.on_component_change(move |&mut: e, pos: Position, change: Change| {
         use emhyr::{ComponentSet, ComponentUnset};
         let coords = (pos.x, pos.y);
         let mut cache = pos_cache.borrow_mut();

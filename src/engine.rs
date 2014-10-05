@@ -8,7 +8,7 @@ pub use tcod::{Color, Console};
 pub use tcod::key_code as key;
 pub use tcod;
 
-pub static transparent_background: Color = Color{r: 253, g: 1, b: 254};
+pub static TRANSPARENT_BACKGROUND: Color = Color{r: 253, g: 1, b: 254};
 
 pub struct Display {
     background_console: Console,
@@ -25,12 +25,12 @@ impl Display {
         };
         for _ in range(0, console_count) {
             let mut con = Console::new(width, height);
-            con.set_key_color(transparent_background);
-            con.set_default_background(transparent_background);
+            con.set_key_color(TRANSPARENT_BACKGROUND);
+            con.set_default_background(TRANSPARENT_BACKGROUND);
             result.consoles.push(con);
         }
-        result.background_console.set_key_color(transparent_background);
-        result.background_console.set_default_background(transparent_background);
+        result.background_console.set_key_color(TRANSPARENT_BACKGROUND);
+        result.background_console.set_default_background(TRANSPARENT_BACKGROUND);
         result
     }
 

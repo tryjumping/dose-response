@@ -9,6 +9,7 @@ extern crate time;
 extern crate tcod;
 
 use std::collections::{Deque, RingBuf, HashMap};
+use std::collections::hashmap::{Occupied, Vacant};
 use std::time::Duration;
 use std::io;
 use std::io::File;
@@ -402,7 +403,10 @@ impl PositionCache {
     }
 
     pub fn set(&mut self, pos: (int, int), e: Entity) {
-        let entities = self.map.find_or_insert_with(pos, |_| vec![]);
+        let entities = match self.map.entry(pos) {
+            Vacant(entry) => entry.set(vec![]),
+            Occupied(entry) => entry.into_mut(),
+        };
         entities.push(e);
     }
 

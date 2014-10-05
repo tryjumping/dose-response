@@ -1,6 +1,6 @@
 use std::cmp::max;
 use std::time::Duration;
-use emhyr::{Entity, Component};
+use emhyr::Entity;
 
 use engine::{Color};
 use point::Point;

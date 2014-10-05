@@ -43,6 +43,7 @@ monsters if that's the shortest path even if it means death.
   2. uncover the entire map (with a reverse fade)
      - with full colours
      - showing player's corpse
+* Specific (glitchy?) graphics for death by overdose
 * Move the default gfx config (fullscreen, font path, etc.) to libtcod.cfg
   - that way we won't have to implement a lot of options UI
   - should properly commented, suggesting available font options and such

@@ -1,6 +1,5 @@
 * Don't cover the map with the bottom status bar
-* BUG: Voices and Shadows bodies briefly appear after fadeout
-* BUG: step by step replay doesn't work
+* Food should give a bit of State of Mind back but never increase intoxication
 * Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
@@ -29,6 +28,8 @@ monsters if that's the shortest path even if it means death.
     Some notes on different world generation:
     - http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
   * consider restricting the possible ways to leave the map
+* BUG: Voices and Shadows bodies briefly appear after fadeout
+* BUG: step by step replay doesn't work
 * Add smooth animations for the fade-out when growing Withdrawn
 * If the attacking entity can't find a path, it shouldn't just wait. Make it
   move in a random direction instead.

@@ -17,9 +17,3 @@ path = "../emhyr"
 [dependencies.tcod]
 
 git = "https://github.com/tomassedovic/tcod-rs.git"
-
-# Workaround for https://github.com/rust-lang/rust/issues/17021
-[profile.dev]
-debug = false
-[profile.test]
-debug = false

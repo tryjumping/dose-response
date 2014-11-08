@@ -103,7 +103,7 @@ fn read_key(keys: &mut RingBuf<KeyState>, key: tcod::Key) -> bool {
                 found = true;
             }
             Some(pressed_key) => {
-                keys.push(pressed_key);
+                keys.push_back(pressed_key);
             }
             None => return false
         }
@@ -123,20 +123,20 @@ fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comm
         match keys.pop_front() {
             Some(key) => {
                 match key.key {
-                    Special(key::Up) => commands.push(commands::N),
-                    Special(key::Down) => commands.push(commands::S),
+                    Special(key::Up) => commands.push_back(commands::N),
+                    Special(key::Down) => commands.push_back(commands::S),
                     Special(key::Left) => match (ctrl(key), key.shift) {
-                        (false, true) => commands.push(commands::NW),
-                        (true, false) => commands.push(commands::SW),
-                        _ => commands.push(commands::W),
+                        (false, true) => commands.push_back(commands::NW),
+                        (true, false) => commands.push_back(commands::SW),
+                        _ => commands.push_back(commands::W),
                     },
                     Special(key::Right) => match (ctrl(key), key.shift) {
-                        (false, true) => commands.push(commands::NE),
-                        (true, false) => commands.push(commands::SE),
-                        _ => commands.push(commands::E),
+                        (false, true) => commands.push_back(commands::NE),
+                        (true, false) => commands.push_back(commands::SE),
+                        _ => commands.push_back(commands::E),
                     },
                     Printable('e') => {
-                        commands.push(commands::Eat);
+                        commands.push_back(commands::Eat);
                     }
                     _ => (),
                 }
@@ -265,7 +265,7 @@ fn replay_game_state(width: int, height: int) -> GameState {
             }
             for line in lines {
                 match from_str(line) {
-                    Some(command) => commands.push(command),
+                    Some(command) => commands.push_back(command),
                     None => panic!("Unknown command: {}", line),
                 }
             }
@@ -421,7 +421,7 @@ impl PositionCache {
     }
 
     pub fn entities_on_pos<P: point::Point>(&self, pos: P) -> MoveItems<Entity> {
-        match self.map.find(&pos.coordinates()) {
+        match self.map.get(&pos.coordinates()) {
             Some(entities) => entities.clone().into_iter(),
             None => vec![].into_iter(),
         }

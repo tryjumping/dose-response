@@ -228,7 +228,7 @@ impl MyWorldItemDummyTrait for world_gen::WorldItem {
 }
 
 pub mod col {
-    #![allow(non_uppercase_statics)]
+    #![allow(non_upper_case_globals)]
     use engine::Color;
 
     pub static background: Color = Color{r: 0, g: 0, b: 0};

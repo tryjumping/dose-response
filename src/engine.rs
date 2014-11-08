@@ -99,7 +99,7 @@ impl Engine {
                 match tcod::Console::check_for_keypress(tcod::Pressed) {
                     None => break,
                     Some(key) => {
-                        self.keys.borrow_mut().push(key);
+                        self.keys.borrow_mut().push_back(key);
                     }
                 }
             }

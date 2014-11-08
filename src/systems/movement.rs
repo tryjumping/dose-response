@@ -14,16 +14,17 @@ pub fn walk_one_step<P1: Point, P2: Point>(source: P1, destination: P2, world_si
     let mut path = AStarPath::new_from_callback(
         width, height,
         |&mut: _from: (int, int), to: (int, int)| -> f32 {
-            use entity_util;
-            // The destination is probably a monster or a player (who are solid).
-            // Count that area as walkable.
-            if to == dest_coords {
-                1.0
-            } else if entity_util::is_solid(to, cache, cs) {
-                0.0
-            } else {
-                1.0
-            }
+            panic!("fixme walk_one_step");
+            // use entity_util;
+            // // The destination is probably a monster or a player (who are solid).
+            // // Count that area as walkable.
+            // if to == dest_coords {
+            //     1.0
+            // } else if entity_util::is_solid(to, cache, cs) {
+            //     0.0
+            // } else {
+            //     1.0
+            // }
         }, 1.0);
     path.find(source.coordinates(), destination.coordinates());
     assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");

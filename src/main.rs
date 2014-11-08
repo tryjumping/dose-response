@@ -411,7 +411,7 @@ impl PositionCache {
     }
 
     pub fn unset(&mut self, pos: (int, int), e: Entity) {
-        let ref mut entities = self.map.get_mut(&pos);
+        let ref mut entities = &mut self.map[pos];
         match entities.iter().position(|&i| i == e) {
             Some(entity_index) => {
                 entities.remove(entity_index);

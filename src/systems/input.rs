@@ -1,6 +1,6 @@
 use std::from_str::FromStr;
 use std::time::Duration;
-use collections::{Deque, RingBuf};
+use collections::{RingBuf};
 
 use components::{AcceptsUserInput, Destination, Position, UsingItem, Side, Player};
 use emhyr::{Components, Entity, Entities};
@@ -29,7 +29,7 @@ impl FromStr for Command {
             "SE" => Some(SE),
             "SW" => Some(SW),
             "Eat" => Some(Eat),
-            _ => fail!("Unknown command: '{}'", name)
+            _ => panic!("Unknown command: '{}'", name)
         }
     }
 }

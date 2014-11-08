@@ -69,7 +69,7 @@ define_system! {
             }
             ModifyAttributes => {
                 if !cs.has::<AttributeModifier>(attacker) {
-                    fail!("The attacker must have attribute_modifier");
+                    panic!("The attacker must have attribute_modifier");
                 }
                 let modifier = cs.get::<AttributeModifier>(attacker);
                 if cs.has::<Attributes>(target) {

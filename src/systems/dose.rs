@@ -18,6 +18,7 @@ fn cannot_resist(addict: Entity,
     let (width, height) = map_size;
     let mut path = AStarPath::new_from_callback(
         width, height, |&mut: _from: (int, int), to: (int, int)| -> f32 {
+            // TODO: problem is, we're using &cache and &cs here
             if is_solid(to, cache, cs) {
                 0.0
             } else {

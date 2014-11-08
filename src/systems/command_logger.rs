@@ -1,5 +1,5 @@
 use std::time::Duration;
-use std::collections::{Deque, RingBuf};
+use std::collections::{RingBuf};
 
 use components::{AcceptsUserInput, Position};
 use emhyr::{Components, Entity};

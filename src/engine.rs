@@ -38,8 +38,7 @@ impl Display {
                      foreground: Color, background: Color) {
         assert!(level < self.consoles.len());
         self.set_background(x, y, background);
-        self.consoles.get_mut(level).put_char_ex(x, y, c,
-                                                 foreground, background);
+        self.consoles[level].put_char_ex(x, y, c, foreground, background);
     }
 
     pub fn write_text(&mut self, text: &str, x: int, y: int,
@@ -97,7 +96,7 @@ impl Engine {
         let default_fg = Color::new(255, 255, 255);
         while !Console::window_closed() {
             loop {
-                match self.root_console.check_for_keypress(tcod::Pressed) {
+                match tcod::Console::check_for_keypress(tcod::Pressed) {
                     None => break,
                     Some(key) => {
                         self.keys.borrow_mut().push(key);
@@ -131,11 +130,11 @@ impl Engine {
                                   tcod::background_flag::None, tcod::Right,
                                   format!("FPS: {}", tcod::system::get_fps()).as_slice());
             match self.display.borrow().fade {
-                Some((amount, color)) => self.root_console.set_fade(amount, color),
+                Some((amount, color)) => tcod::Console::set_fade(amount, color),
                 // colour doesn't matter, value 255 means no fade:
-                None => self.root_console.set_fade(255, Color{r: 0, g: 0, b: 0}),
+                None => tcod::Console::set_fade(255, Color{r: 0, g: 0, b: 0}),
             }
-            self.root_console.flush();
+            tcod::Console::flush();
         }
     }
 }

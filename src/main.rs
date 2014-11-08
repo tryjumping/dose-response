@@ -8,8 +8,8 @@ extern crate time;
 #[phase(plugin, link)] extern crate emhyr;
 extern crate tcod;
 
-use std::collections::{Deque, RingBuf, HashMap};
-use std::collections::hashmap::{Occupied, Vacant};
+use std::collections::{RingBuf, HashMap};
+use std::collections::hash_map::{Occupied, Vacant};
 use std::time::Duration;
 use std::io;
 use std::io::File;
@@ -240,7 +240,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
     let mut writer = match File::create(replay_path) {
         Ok(f) => box f,
-        Err(msg) => fail!("Failed to create the replay file. {}", msg)
+        Err(msg) => panic!("Failed to create the replay file. {}", msg)
     };
     println!("Recording the gameplay to '{}'", replay_path.display());
     writer.write_line(seed.to_string().as_slice()).unwrap();
@@ -259,18 +259,18 @@ fn replay_game_state(width: int, height: int) -> GameState {
             match lines.next() {
                 Some(seed_str) => match from_str(seed_str) {
                     Some(parsed_seed) => seed = parsed_seed,
-                    None => fail!("The seed must be a number.")
+                    None => panic!("The seed must be a number.")
                 },
-                None => fail!("The replay file is empty."),
+                None => panic!("The replay file is empty."),
             }
             for line in lines {
                 match from_str(line) {
                     Some(command) => commands.push(command),
-                    None => fail!("Unknown command: {}", line),
+                    None => panic!("Unknown command: {}", line),
                 }
             }
         },
-        Err(msg) => fail!("Failed to read the replay file: {}. Reason: {}",
+        Err(msg) => panic!("Failed to read the replay file: {}. Reason: {}",
                           replay_path.display(), msg)
     }
     println!("Replaying game log: '{}'", replay_path.display());
@@ -416,7 +416,7 @@ impl PositionCache {
             Some(entity_index) => {
                 entities.remove(entity_index);
             }
-            None => fail!("{} at position {} missing from the cache.", e, pos),
+            None => panic!("{} at position {} missing from the cache.", e, pos),
         }
     }
 
@@ -441,7 +441,7 @@ fn main() {
         2 => {  // Replay the game from the entered log
             replay_game_state(width, height)
         },
-        _ => fail!("You must pass either pass zero or one arguments."),
+        _ => panic!("You must pass either pass zero or one arguments."),
     };
 
     let mut engine = Engine::new(width, height, title, font_path.clone());

@@ -18,13 +18,11 @@ fn cannot_resist(addict: Entity,
     let (width, height) = map_size;
     let mut path = AStarPath::new_from_callback(
         width, height, |&mut: _from: (int, int), to: (int, int)| -> f32 {
-            panic!("FIXME: `cannot_resist` lifetime issues");
-            // TODO: problem is, we're using &cache and &cs here
-            // if is_solid(to, cache, cs) {
-            //     0.0
-            // } else {
-            //     1.0
-            // }
+            if is_solid(to, cache, cs) {
+                0.0
+            } else {
+                1.0
+            }
         }, 1.0);
     path.find(pos.coordinates(), dose_pos.coordinates()) &&
         (path.len() <= resist_radius(addict, dose, cs))
@@ -41,19 +39,17 @@ define_system! {
     resources(position_cache: PositionCache, world_size: (int, int));
     fn process_entity(&mut self, cs: &mut Components, _dt: Duration, addict: Entity) {
         let world_size = *self.world_size();
-        panic!("fixme");
-        //let cache = &*self.position_cache();
+        let cache = &*self.position_cache();
         let pos = cs.get::<Position>(addict);
         let search_radius = 3;  // max irresistibility for a dose is curretnly 3
         let mut doses: Vec<Entity> = vec![];
         for (x, y) in point::points_within_radius(pos, search_radius) {
-            panic!("fixme");
-            // for dose in cache.entities_on_pos((x, y)) {
-            //     if !cs.has::<Dose>(dose) {continue};
-            //     if cannot_resist(addict, dose, cache, cs, world_size) {
-            //         doses.push(dose);
-            //     }
-            // }
+            for dose in cache.entities_on_pos((x, y)) {
+                if !cs.has::<Dose>(dose) {continue};
+                if cannot_resist(addict, dose, cache, cs, world_size) {
+                    doses.push(dose);
+                }
+            }
         }
         let nearest_dose = doses.iter().min_by(|&dose| {
             point::tile_distance(cs.get::<Position>(*dose), pos)
@@ -66,21 +62,20 @@ define_system! {
                 let (width, height) = world_size;
                 let step = {
                     let cs: &Components = cs;
-                    panic!("fixme");
-                    // let mut path = AStarPath::new_from_callback(
-                    //     width, height, |&mut: _from: (int, int), to: (int, int)| -> f32 {
-                    //         if is_solid(to, cache, cs) {
-                    //             0.0
-                    //         } else {
-                    //             1.0
-                    //         }
-                    //     }, 1.0);
-                    // if path.find(pos.coordinates(), (x, y)) && (
-                    //     path.len() <= resist_radius(addict, dose, cs)) {
-                    //     Some(path.walk_one_step(true).expect("The path must exist here."))
-                    // } else {
-                    //     None
-                    // }
+                    let mut path = AStarPath::new_from_callback(
+                        width, height, |&mut: _from: (int, int), to: (int, int)| -> f32 {
+                            if is_solid(to, cache, cs) {
+                                0.0
+                            } else {
+                                1.0
+                            }
+                        }, 1.0);
+                    if path.find(pos.coordinates(), (x, y)) && (
+                        path.len() <= resist_radius(addict, dose, cs)) {
+                        Some(path.walk_one_step(true).expect("The path must exist here."))
+                    } else {
+                        None
+                    }
                 };
                 match step {
                     Some((x, y)) => {

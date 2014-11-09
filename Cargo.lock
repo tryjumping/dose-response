@@ -13,5 +13,5 @@ version = "0.1.0"
 [[package]]
 name = "tcod"
 version = "0.1.0"
-source = "git+https://github.com/tomassedovic/tcod-rs.git#f301abc228dc69ad64340a1e9a74acbf2ddc0dcf"
+source = "git+https://github.com/tomassedovic/tcod-rs.git#b5b125b584d7f44b1c987c82791de55c01d94b6a"
 

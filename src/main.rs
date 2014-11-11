@@ -27,12 +27,14 @@ use tcod::{KeyState, Printable, Special};
 use components::{Computer, Position, Side};
 use emhyr::{Change, Entity, World};
 use engine::{Engine, key};
+use level::Level;
 use systems::input::commands;
 use systems::input::commands::Command;
 
 mod components;
 mod engine;
 mod entity_util;
+mod level;
 mod point;
 mod systems;
 mod world_gen;
@@ -429,22 +431,33 @@ impl PositionCache {
 }
 
 
+fn update_level(mut level: Level, dt_s: f32, engine: &engine::Engine) -> Option<Level> {
+    let display = engine.display();
+    level.render(&mut *display.borrow_mut());
+    let keys = engine.keys();
+    if key_pressed(&*keys.borrow(), Special(key::Escape)) {
+        None
+    } else {
+        Some(level)
+    }
+}
+
 fn main() {
     let (width, height) = (80, 50);
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 
-    let mut game_state = match os::args().len() {
-        1 => {  // Run the game with a new seed, create the replay log
-            new_game_state(width, height)
-        },
-        2 => {  // Replay the game from the entered log
-            replay_game_state(width, height)
-        },
-        _ => panic!("You must pass either pass zero or one arguments."),
-    };
-
+    // let mut game_state = match os::args().len() {
+    //     1 => {  // Run the game with a new seed, create the replay log
+    //         new_game_state(width, height)
+    //     },
+    //     2 => {  // Replay the game from the entered log
+    //         replay_game_state(width, height)
+    //     },
+    //     _ => panic!("You must pass either pass zero or one arguments."),
+    // };
+    let level = Level::new(width, height - 2);
     let mut engine = Engine::new(width, height, title, font_path.clone());
-    initialise_world(&mut game_state, &engine);
-    engine.main_loop(game_state, update);
+    // initialise_world(&mut game_state, &engine);
+    engine.main_loop(level, update_level);
 }

@@ -436,10 +436,9 @@ fn update_level(mut level: Level, dt_s: f32, engine: &engine::Engine) -> Option<
     level.render(&mut *display.borrow_mut());
     let keys = engine.keys();
     if key_pressed(&*keys.borrow(), Special(key::Escape)) {
-        None
-    } else {
-        Some(level)
+        return None;
     }
+    Some(level)
 }
 
 fn main() {

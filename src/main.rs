@@ -16,9 +16,7 @@ use std::io::File;
 use std::io::util::NullWriter;
 use std::io::fs:: PathExtensions;
 use std::os;
-use std::rc::Rc;
 use std::vec::MoveItems;
-use std::cell::RefCell;
 
 use std::rand::{IsaacRng, SeedableRng};
 use std::rand;
@@ -44,13 +42,13 @@ pub struct GameState {
     world: World,
     level: Level,
     world_size: (int, int),
-    rng: Rc<RefCell<IsaacRng>>,
-    commands: Rc<RefCell<RingBuf<Command>>>,
-    command_logger: Rc<RefCell<CommandLogger>>,
-    side: Rc<RefCell<Side>>,
-    turn: Rc<RefCell<int>>,
+    rng: IsaacRng,
+    commands: RingBuf<Command>,
+    command_logger: CommandLogger,
+    side: Side,
+    turn: int,
     player: Entity,
-    cheating: Rc<RefCell<bool>>,
+    cheating: bool,
     replay: bool,
     paused: bool,
 }
@@ -69,13 +67,13 @@ impl GameState {
             world: world,
             level: Level::new(width, height - 2),
             world_size: (width, height),
-            rng: rc_mut(SeedableRng::from_seed(seed_arr)),
-            commands: rc_mut(commands),
-            command_logger: rc_mut(CommandLogger{writer: log_writer}),
-            side: rc_mut(Computer),
-            turn: rc_mut(0),
+            rng: SeedableRng::from_seed(seed_arr),
+            commands: commands,
+            command_logger: CommandLogger{writer: log_writer},
+            side: Computer,
+            turn: 0,
             player: player,
-            cheating: rc_mut(cheating),
+            cheating: cheating,
             replay: replay,
             paused: false,
         }
@@ -181,9 +179,8 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
     }
 
     if key_pressed(&*keys.borrow(), Special(key::F6)) {
-        let cheating = !*state.cheating.borrow();
-        *state.cheating.borrow_mut() = cheating;
-        println!("Cheating set to: {}", cheating);
+        state.cheating = !state.cheating;
+        println!("Cheating set to: {}", state.cheating);
     }
 
     state.paused = if state.replay && read_key(&mut *keys.borrow_mut(), Special(key::Spacebar)) {
@@ -206,15 +203,11 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
     //     input_system = systems::input::system;
     // }
 
-    process_input(&mut *keys.borrow_mut(), &mut *state.commands.borrow_mut());
+    process_input(&mut *keys.borrow_mut(), &mut state.commands);
     state.level.render(&mut *engine.display().borrow_mut());
     Some(state)
 }
 
-
-fn rc_mut<T>(val: T) -> Rc<RefCell<T>> {
-    Rc::new(RefCell::new(val))
-}
 
 
 struct CommandLogger {
@@ -287,7 +280,7 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     world::populate_world(&mut game_state.world,
                           game_state.world_size,
                           player_pos,
-                          &mut *game_state.rng.borrow_mut(),
+                          &mut game_state.rng,
                           world_gen::forrest);
 }
 

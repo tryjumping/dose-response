@@ -252,6 +252,7 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     let player_pos: Position = game_state.world.cs.get(player);
     world::populate_world(&mut game_state.world,
                           game_state.world_size,
+                          &mut game_state.level,
                           player_pos,
                           &mut game_state.rng,
                           world_gen::forrest);

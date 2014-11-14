@@ -17,8 +17,8 @@ pub enum Tile {
 impl ToGlyph for Tile {
     fn to_glyph(&self) -> char {
         match *self {
-            Empty => '#',
-            Tree => '.',
+            Empty => '.',
+            Tree => '#',
         }
     }
 }
@@ -46,15 +46,11 @@ pub struct Level {
 impl Level {
     pub fn new(width: int, height: int) -> Level {
         assert!(width > 0 && height > 0);
-        let mut map = Vec::with_capacity((width * height) as uint);
-        for _ in range(0, width * height) {
-            map.push(Empty);
-        }
         Level {
             width: width,
             height: height,
             player: Some(Player{pos: (40, 25)}),
-            map: map,
+            map: Vec::from_elem((width * height) as uint, Empty),
         }
     }
 

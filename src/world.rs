@@ -14,12 +14,14 @@ use components::ai;
 use emhyr::{World, Components, Entity};
 use engine::Color;
 use entity_util;
+use level::Level;
 use world_gen;
 use point;
 
 
 pub fn populate_world<T: Rng>(world: &mut World,
                               world_size: (int, int),
+                              level: &mut Level,
                               player_pos: Position,
                               rng: &mut T,
                               generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {

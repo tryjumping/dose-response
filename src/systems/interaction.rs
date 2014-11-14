@@ -2,7 +2,7 @@ use std::time::Duration;
 use components::{AcceptsUserInput, Addiction, AttributeModifier, Attributes,
                  Dose, ExplosionEffect, Pickable, Position, InventoryItem};
 use emhyr::{Components, Entity};
-use entity_util::{PositionCache, explosion};
+use entity_util::{explosion};
 
 
 define_system! {

@@ -4,7 +4,7 @@ use std::time::Duration;
 use components::{Addiction, Attributes, Destination, Dose, Position};
 use emhyr::{Components, Entity};
 use tcod::AStarPath;
-use entity_util::{PositionCache, is_solid};
+use entity_util::{is_solid};
 use point;
 use point::Point;
 

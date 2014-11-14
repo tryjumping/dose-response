@@ -5,7 +5,7 @@ use std::time::Duration;
 use emhyr::{Components, Entity};
 use components::ai;
 use components::{AI, Destination, Position, Side, Computer, Turn};
-use entity_util::{PositionCache, is_walkable};
+use entity_util::{is_walkable};
 use point;
 
 

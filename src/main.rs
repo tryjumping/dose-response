@@ -42,11 +42,11 @@ mod world;
 
 pub struct GameState {
     world: World,
+    level: Level,
     world_size: (int, int),
     rng: Rc<RefCell<IsaacRng>>,
     commands: Rc<RefCell<RingBuf<Command>>>,
     command_logger: Rc<RefCell<CommandLogger>>,
-    position_cache: Rc<RefCell<PositionCache>>,
     side: Rc<RefCell<Side>>,
     turn: Rc<RefCell<int>>,
     player: Entity,
@@ -67,11 +67,11 @@ impl GameState {
         let player = world.new_entity();
         GameState {
             world: world,
+            level: Level::new(width, height - 2),
             world_size: (width, height),
             rng: rc_mut(SeedableRng::from_seed(seed_arr)),
             commands: rc_mut(commands),
             command_logger: rc_mut(CommandLogger{writer: log_writer}),
-            position_cache: rc_mut(PositionCache::new()),
             side: rc_mut(Computer),
             turn: rc_mut(0),
             player: player,
@@ -207,8 +207,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
     // }
 
     process_input(&mut *keys.borrow_mut(), &mut *state.commands.borrow_mut());
-    // TODO this crashes the compiler: WTF?
-    state.world.update(Duration::milliseconds((dt_s * 1000.0) as i64));
+    state.level.render(&mut *engine.display().borrow_mut());
     Some(state)
 }
 
@@ -280,29 +279,6 @@ fn replay_game_state(width: int, height: int) -> GameState {
 }
 
 fn initialise_world(game_state: &mut GameState, engine: &Engine) {
-    // Hook up the position cache. This has to happen before we set any position
-    // to any entity (else those won't be in the cache).
-    game_state.world.register_component::<Position>();
-    let pos_cache = game_state.position_cache.clone();
-    game_state.world.on_component_change(move |&mut: e, pos: Position, change: Change| {
-        use emhyr::{ComponentSet, ComponentUnset};
-        let coords = (pos.x, pos.y);
-        let mut cache = pos_cache.borrow_mut();
-        match change {
-            ComponentSet => {
-                // We don't need to remove any previous Position the
-                // entity may have had from the cache because Emhyr will
-                // have fired a ComponentRemoved event.
-                cache.set(coords, e);
-            }
-            ComponentUnset => {
-                // We know it's a Position and we know it must have been
-                // set before. Therefore we know it's in the cache:
-                cache.unset(coords, e);
-            }
-        }
-    });
-
     let (width, height) = game_state.world_size;
     let player = game_state.player;
     world::create_player(&mut game_state.world.cs, player);
@@ -313,132 +289,6 @@ fn initialise_world(game_state: &mut GameState, engine: &Engine) {
                           player_pos,
                           &mut *game_state.rng.borrow_mut(),
                           world_gen::forrest);
-
-    // Register the components World doesn't know about yet
-    game_state.world.register_component::<components::Stunned>();
-    game_state.world.register_component::<components::Panicking>();
-    game_state.world.register_component::<components::Destination>();
-    game_state.world.register_component::<components::UsingItem>();
-    game_state.world.register_component::<components::Bump>();
-    game_state.world.register_component::<components::AttackTarget>();
-    game_state.world.register_component::<components::FadingOut>();
-
-    let player_rc = rc_mut(player);
-    let world_size_rc = rc_mut(game_state.world_size);
-
-    game_state.world.add_system(box systems::turn_tick_counter::TurnTickCounterSystem::new(
-        game_state.side.clone()));
-    game_state.world.add_system(box systems::stun_effect_duration::StunEffectDurationSystem::new(
-        game_state.turn.clone()));;
-    game_state.world.add_system(box systems::panic_effect_duration::PanicEffectDurationSystem::new(
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::addiction::AddictionSystem::new(
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::command_logger::CommandLoggerSystem::new(
-        game_state.commands.clone(),
-        game_state.command_logger.clone()));
-    game_state.world.add_system(box systems::input::InputSystem::new(
-        player_rc.clone(),
-        game_state.commands.clone(),
-        game_state.side.clone()));
-    // // TODO: systems::leave_area::system,
-    game_state.world.add_system(box systems::ai::AISystem::new(
-        player_rc.clone(),
-        game_state.position_cache.clone(),
-        game_state.side.clone(),
-        world_size_rc.clone(),
-        game_state.rng.clone()));
-    game_state.world.add_system(box systems::dose::DoseSystem::new(
-        game_state.position_cache.clone(),
-        world_size_rc.clone()));
-    game_state.world.add_system(box systems::panic::PanicSystem::new(
-        game_state.position_cache.clone(),
-        world_size_rc.clone(),
-        game_state.rng.clone()));
-    game_state.world.add_system(box systems::stun::StunSystem::new(
-        player_rc.clone()));
-    game_state.world.add_system(box systems::movement::MovementSystem::new(
-        game_state.position_cache.clone(),
-        world_size_rc.clone()));
-    game_state.world.add_system(box systems::eating::EatingSystem::new(
-        game_state.position_cache.clone()));
-    game_state.world.add_system(box systems::interaction::InteractionSystem::new(
-        player_rc.clone(),
-        game_state.position_cache.clone()));
-    game_state.world.add_system(box systems::bump::BumpSystem::new(
-        player_rc.clone()));
-    game_state.world.add_system(box systems::combat::CombatSystem::new(
-        player_rc.clone(),
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::will::WillSystem::new(
-        player_rc.clone()));
-    game_state.world.add_system(box systems::exploration::ExplorationSystem::new(
-        player_rc.clone(),
-        game_state.position_cache.clone()));
-    game_state.world.add_system(box systems::fade_out::FadeOutSystem::new(
-        player_rc.clone()));
-    game_state.world.add_system(box systems::color_animation::ColorAnimationSystem::new(
-        player_rc.clone()));
-    game_state.world.add_system(box systems::tile::TileSystem::new(
-        engine.display(),
-        player_rc.clone(),
-        game_state.cheating.clone()));
-    game_state.world.add_system(box systems::gui::GUISystem::new(
-        engine.display(),
-        player_rc.clone(),
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::turn::TurnSystem::new(
-        game_state.side.clone(),
-        game_state.turn.clone()));
-    game_state.world.add_system(box systems::addiction_graphics::AddictionGraphicsSystem::new(
-        engine.display(),
-        player_rc.clone()));
-}
-
-pub struct PositionCache {
-    map: HashMap<(int, int), Vec<Entity>>,
-}
-
-impl PositionCache {
-    pub fn new() -> PositionCache {
-        PositionCache{map: HashMap::new()}
-    }
-
-    pub fn set(&mut self, pos: (int, int), e: Entity) {
-        let entities = match self.map.entry(pos) {
-            Vacant(entry) => entry.set(vec![]),
-            Occupied(entry) => entry.into_mut(),
-        };
-        entities.push(e);
-    }
-
-    pub fn unset(&mut self, pos: (int, int), e: Entity) {
-        let ref mut entities = &mut self.map[pos];
-        match entities.iter().position(|&i| i == e) {
-            Some(entity_index) => {
-                entities.remove(entity_index);
-            }
-            None => panic!("{} at position {} missing from the cache.", e, pos),
-        }
-    }
-
-    pub fn entities_on_pos<P: point::Point>(&self, pos: P) -> MoveItems<Entity> {
-        match self.map.get(&pos.coordinates()) {
-            Some(entities) => entities.clone().into_iter(),
-            None => vec![].into_iter(),
-        }
-    }
-}
-
-
-fn update_level(mut level: Level, dt_s: f32, engine: &engine::Engine) -> Option<Level> {
-    let display = engine.display();
-    level.render(&mut *display.borrow_mut());
-    let keys = engine.keys();
-    if key_pressed(&*keys.borrow(), Special(key::Escape)) {
-        return None;
-    }
-    Some(level)
 }
 
 fn main() {
@@ -446,17 +296,17 @@ fn main() {
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 
-    // let mut game_state = match os::args().len() {
-    //     1 => {  // Run the game with a new seed, create the replay log
-    //         new_game_state(width, height)
-    //     },
-    //     2 => {  // Replay the game from the entered log
-    //         replay_game_state(width, height)
-    //     },
-    //     _ => panic!("You must pass either pass zero or one arguments."),
-    // };
-    let level = Level::new(width, height - 2);
+    let mut game_state = match os::args().len() {
+        1 => {  // Run the game with a new seed, create the replay log
+            new_game_state(width, height)
+        },
+        2 => {  // Replay the game from the entered log
+            replay_game_state(width, height)
+        },
+        _ => panic!("You must pass either pass zero or one arguments."),
+    };
+
     let mut engine = Engine::new(width, height, title, font_path.clone());
-    // initialise_world(&mut game_state, &engine);
-    engine.main_loop(level, update_level);
+    initialise_world(&mut game_state, &engine);
+    engine.main_loop(game_state, update);
 }

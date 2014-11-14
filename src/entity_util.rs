@@ -7,8 +7,6 @@ use point;
 use point::Point;
 use emhyr::{Components, Entity, Entities};
 
-pub use super::PositionCache;
-
 
 pub fn set_color_animation_loop(cs: &mut Components, e: Entity,
                                 from: Color, to: Color,
@@ -72,16 +70,16 @@ pub fn kill(cs: &mut Components, e: Entity) {
     }
 }
 
-pub fn explosion<T: point::Point>(cache: &PositionCache, cs: &mut Components,
-                                  center: T, radius: int) {
-    for (x, y) in point::points_within_radius(center, radius) {
-        for e in cache.entities_on_pos((x, y)) {
-            if cs.has::<AI>(e) {
-                kill(cs, e);
-            }
-        }
-    }
-}
+// pub fn explosion<T: point::Point>(cache: &PositionCache, cs: &mut Components,
+//                                   center: T, radius: int) {
+//     for (x, y) in point::points_within_radius(center, radius) {
+//         for e in cache.entities_on_pos((x, y)) {
+//             if cs.has::<AI>(e) {
+//                 kill(cs, e);
+//             }
+//         }
+//     }
+// }
 
 pub fn get_first_owned_food(owner: Entity, cs: &Components, mut entities: Entities) -> Option<Entity> {
     // TODO: sloooooooow. Add some caching like with Position?
@@ -97,24 +95,24 @@ pub fn get_first_owned_food(owner: Entity, cs: &Components, mut entities: Entiti
 }
 
 
-pub fn is_solid<P: Point>(pos: P, cache: &PositionCache, cs: &Components) -> bool {
-    cache.entities_on_pos(pos.coordinates()).any(|e| {
-        cs.has::<Solid>(e)
-    })
-}
+// pub fn is_solid<P: Point>(pos: P, cache: &PositionCache, cs: &Components) -> bool {
+//     cache.entities_on_pos(pos.coordinates()).any(|e| {
+//         cs.has::<Solid>(e)
+//     })
+// }
 
-pub fn is_walkable<P: Point>(pos: P, cache: &PositionCache, cs: &Components,
-                             map_size: (int, int)) -> bool {
-    let (width, height) = map_size;
-    let (x, y) = pos.coordinates();
-    if x < 0 || y < 0 || x >= width || y >= height {
-        return false;
-    };
-    !is_solid(pos, cache, cs)
-}
+// pub fn is_walkable<P: Point>(pos: P, cache: &PositionCache, cs: &Components,
+//                              map_size: (int, int)) -> bool {
+//     let (width, height) = map_size;
+//     let (x, y) = pos.coordinates();
+//     if x < 0 || y < 0 || x >= width || y >= height {
+//         return false;
+//     };
+//     !is_solid(pos, cache, cs)
+// }
 
-pub fn is_wall<P: Point>(pos: P, cache: &PositionCache, cs: &Components) -> bool {
-    cache.entities_on_pos(pos.coordinates()).any(|e| {
-        cs.has::<Background>(e) && cs.has::<Solid>(e)
-    })
-}
+// pub fn is_wall<P: Point>(pos: P, cache: &PositionCache, cs: &Components) -> bool {
+//     cache.entities_on_pos(pos.coordinates()).any(|e| {
+//         cs.has::<Background>(e) && cs.has::<Solid>(e)
+//     })
+// }

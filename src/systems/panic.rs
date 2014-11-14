@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use emhyr::{Components, Entity};
 use components::{Destination, Panicking, Position, UsingItem};
-use entity_util::{PositionCache, is_walkable, is_wall};
+use entity_util::{is_walkable, is_wall};
 
 
 // Can be either an empty place or one with a monster (i.e. blocked but bumpable)

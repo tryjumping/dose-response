@@ -1,7 +1,6 @@
 use std::time::Duration;
 use components::{AcceptsUserInput, Position, Exploration, Attributes, Explored, Tile};
 use emhyr::{Components, Entity, Entities};
-use entity_util::PositionCache;
 use point;
 use super::addiction_graphics::intoxication_state::*;
 

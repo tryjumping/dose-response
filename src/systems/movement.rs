@@ -3,7 +3,7 @@ use components::{Bump, Destination, Position, Solid, Turn};
 use emhyr::{Components, Entity};
 use point;
 use point::Point;
-use entity_util::{PositionCache, is_walkable};
+use entity_util::{is_walkable};
 use tcod::AStarPath;
 
 

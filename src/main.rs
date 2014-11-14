@@ -41,7 +41,7 @@ mod world;
 pub struct GameState {
     world: World,
     level: Level,
-    world_size: (int, int),
+    display_size: (int, int),
     rng: IsaacRng,
     commands: RingBuf<Command>,
     command_logger: CommandLogger,
@@ -66,7 +66,7 @@ impl GameState {
         GameState {
             world: world,
             level: Level::new(width, height - 2),
-            world_size: (width, height),
+            display_size: (width, height),
             rng: SeedableRng::from_seed(seed_arr),
             commands: commands,
             command_logger: CommandLogger{writer: log_writer},
@@ -153,7 +153,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     if key_pressed(&engine.keys, Special(key::F5)) {
         println!("Restarting game");
         engine.keys.clear();
-        let (width, height) = state.world_size;
+        let (width, height) = state.display_size;
         let mut state = new_game_state(width, height);
         initialise_world(&mut state, engine);
         return Some(state);
@@ -245,13 +245,13 @@ fn replay_game_state(width: int, height: int) -> GameState {
 }
 
 fn initialise_world(game_state: &mut GameState, engine: &Engine) {
-    let (width, height) = game_state.world_size;
+    let (width, height) = game_state.level.size();
     let player = game_state.player;
     world::create_player(&mut game_state.world.cs, player);
     game_state.world.cs.set(Position{x: width / 2, y: height / 2}, player);
     let player_pos: Position = game_state.world.cs.get(player);
     world::populate_world(&mut game_state.world,
-                          game_state.world_size,
+                          (width, height),
                           &mut game_state.level,
                           player_pos,
                           &mut game_state.rng,

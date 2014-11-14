@@ -15,6 +15,7 @@ use emhyr::{World, Components, Entity};
 use engine::Color;
 use entity_util;
 use level::Level;
+use level;
 use world_gen;
 use point;
 
@@ -38,6 +39,15 @@ pub fn populate_world<T: Rng>(world: &mut World,
     let (width, height) = world_size;
     let map = generate(rng, width, height);
     for &(x, y, item) in map.iter() {
+        // TODO: fix the world generator to return the right items:
+        let level_tile = match item {
+            world_gen::Empty => level::Empty,
+            world_gen::Tree => level::Tree,
+            _ => level::Empty,
+        };
+        level.set_tile((x, y), level_tile);
+        continue;
+        // TODO: drop all this ECS stuff
         let bg = world.new_entity();
         world.cs.set(Position{x: x, y: y}, bg);
         world.cs.set(Background, bg);

@@ -1,4 +1,5 @@
 use engine::Display;
+use point::Point;
 use world::col as color;
 
 
@@ -52,6 +53,15 @@ impl Level {
             player: Some(Player{pos: (40, 25)}),
             map: Vec::from_elem((width * height) as uint, Empty),
         }
+    }
+
+    pub fn set_tile<P: Point>(&mut self, pos: P, tile: Tile) {
+        let (x, y) = pos.coordinates();
+        self.map[(y * self.width + x) as uint] = tile;
+    }
+
+    pub fn size(&self) -> (int, int) {
+        (self.width, self.height)
     }
 
     pub fn render(&self, display: &mut Display) {

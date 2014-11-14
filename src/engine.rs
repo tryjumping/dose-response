@@ -1,8 +1,5 @@
 #![allow(dead_code)]
 
-use std::rc::Rc;
-use std::cell::RefCell;
-
 use std::collections::RingBuf;
 pub use tcod::{Color, Console};
 pub use tcod::key_code as key;
@@ -65,8 +62,8 @@ impl Display {
 }
 
 pub struct Engine {
-    display: Rc<RefCell<Display>>,
-    keys: Rc<RefCell<RingBuf<tcod::KeyState>>>,
+    pub display: Display,
+    pub keys: RingBuf<tcod::KeyState>,
     root_console: tcod::Console,
 }
 
@@ -77,39 +74,31 @@ impl Engine {
         let fullscreen = false;
         let console_count = 3;
         Engine {
-            display: Rc::new(RefCell::new(Display::new(width, height, console_count))),
-            keys: Rc::new(RefCell::new(RingBuf::new())),
+            display: Display::new(width, height, console_count),
+            keys: RingBuf::new(),
             root_console: Console::init_root(width, height, window_title, fullscreen),
 
         }
     }
 
-    pub fn display(&self) -> Rc<RefCell<Display>> {
-        self.display.clone()
-    }
-
-    pub fn keys(&self) -> Rc<RefCell<RingBuf<tcod::KeyState>>> {
-        self.keys.clone()
-    }
-
-    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt_s: f32, &Engine) -> Option<T>) {
+    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt_s: f32, &mut Engine) -> Option<T>) {
         let default_fg = Color::new(255, 255, 255);
         while !Console::window_closed() {
             loop {
                 match tcod::Console::check_for_keypress(tcod::Pressed) {
                     None => break,
                     Some(key) => {
-                        self.keys.borrow_mut().push_back(key);
+                        self.keys.push_back(key);
                     }
                 }
             }
             self.root_console.set_default_foreground(default_fg);
             self.root_console.clear();
-            self.display.borrow_mut().background_console.clear();
-            for con in self.display.borrow_mut().consoles.iter_mut() {
+            self.display.background_console.clear();
+            for con in self.display.consoles.iter_mut() {
                 con.clear();
             }
-            self.display.borrow_mut().fade = None;
+            self.display.fade = None;
 
             match update(state, tcod::system::get_last_frame_length(), self) {
                 Some(new_state) => {
@@ -117,11 +106,11 @@ impl Engine {
                 }
                 None => break,
             }
-            let (width, height) = self.display.borrow().size();
-            Console::blit(&self.display.borrow_mut().background_console, 0, 0, width, height,
+            let (width, height) = self.display.size();
+            Console::blit(&self.display.background_console, 0, 0, width, height,
                           &mut self.root_console, 0, 0,
                           1f32, 1f32);
-            for con in self.display.borrow_mut().consoles.iter_mut() {
+            for con in self.display.consoles.iter_mut() {
                 Console::blit(con, 0, 0, width, height,
                               &mut self.root_console, 0, 0,
                               1f32, 1f32);
@@ -129,7 +118,7 @@ impl Engine {
             self.root_console.print_ex(width-1, height-1,
                                   tcod::background_flag::None, tcod::Right,
                                   format!("FPS: {}", tcod::system::get_fps()).as_slice());
-            match self.display.borrow().fade {
+            match self.display.fade {
                 Some((amount, color)) => tcod::Console::set_fade(amount, color),
                 // colour doesn't matter, value 255 means no fade:
                 None => tcod::Console::set_fade(255, Color{r: 0, g: 0, b: 0}),

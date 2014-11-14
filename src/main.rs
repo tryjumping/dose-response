@@ -146,9 +146,8 @@ fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comm
     }
 }
 
-fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<GameState> {
-    let keys = engine.keys();
-    if key_pressed(&*keys.borrow(), Special(key::Escape)) {
+fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
+    if key_pressed(&engine.keys, Special(key::Escape)) {
         use std::cmp::{Less, Equal, Greater};
         let mut stats = state.world.generate_stats();
         stats.sort_by(|&(_, time_1, _), &(_, time_2, _)|
@@ -169,21 +168,21 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
         println!("\nAggregate mean time per tick: {}ms", total_time_ns / 1000000.0);
         return None;
     }
-    if key_pressed(&*keys.borrow(), Special(key::F5)) {
+    if key_pressed(&engine.keys, Special(key::F5)) {
         println!("Restarting game");
-        keys.borrow_mut().clear();
+        engine.keys.clear();
         let (width, height) = state.world_size;
         let mut state = new_game_state(width, height);
         initialise_world(&mut state, engine);
         return Some(state);
     }
 
-    if key_pressed(&*keys.borrow(), Special(key::F6)) {
+    if key_pressed(&engine.keys, Special(key::F6)) {
         state.cheating = !state.cheating;
         println!("Cheating set to: {}", state.cheating);
     }
 
-    state.paused = if state.replay && read_key(&mut *keys.borrow_mut(), Special(key::Spacebar)) {
+    state.paused = if state.replay && read_key(&mut engine.keys, Special(key::Spacebar)) {
         if !state.paused {println!("Pausing the replay")};
         !state.paused
     } else {
@@ -203,8 +202,8 @@ fn update(mut state: GameState, dt_s: f32, engine: &engine::Engine) -> Option<Ga
     //     input_system = systems::input::system;
     // }
 
-    process_input(&mut *keys.borrow_mut(), &mut state.commands);
-    state.level.render(&mut *engine.display().borrow_mut());
+    process_input(&mut engine.keys, &mut state.commands);
+    state.level.render(&mut engine.display);
     Some(state)
 }
 

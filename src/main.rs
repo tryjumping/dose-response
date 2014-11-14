@@ -148,24 +148,6 @@ fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comm
 
 fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
     if key_pressed(&engine.keys, Special(key::Escape)) {
-        use std::cmp::{Less, Equal, Greater};
-        let mut stats = state.world.generate_stats();
-        stats.sort_by(|&(_, time_1, _), &(_, time_2, _)|
-                      if time_1 < time_2 { Greater }
-                      else if time_1 > time_2 { Less }
-                      else if time_1 == time_2 { Equal }
-                      else { println!("{}, {}", time_1, time_2); unreachable!() });
-        println!("Mean update time in miliseconds per system:");
-        for &(system_name, average_time_ns, system_only_ns) in stats.iter() {
-            println!("{:4.3f}\t{:4.3f}\t{}",
-                     average_time_ns / 1000000.0,
-                     system_only_ns / 1000000.0,
-                     system_name);
-        }
-        let total_time_ns = stats.iter()
-            .map(|&(_, time_ns, _)| time_ns)
-            .fold(0.0, |a, b| a + b);
-        println!("\nAggregate mean time per tick: {}ms", total_time_ns / 1000000.0);
         return None;
     }
     if key_pressed(&engine.keys, Special(key::F5)) {
@@ -189,18 +171,10 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         state.paused
     };
 
-    // TODO: move this to an input system or something?
-    // TODO: this is the pause/step-on-replay code
-    // let mut input_system = if state.paused {
-    //     null_input_system
-    // } else {
-    //     systems::input::system
-    // };
-
-    // // Move one step forward in the paused replay
-    // if state.paused && read_key(&mut *keys.borrow_mut(), Special(key::Right)) {
-    //     input_system = systems::input::system;
-    // }
+    // Move one step forward in the paused replay
+    if state.paused && read_key(&mut engine.keys, Special(key::Right)) {
+        unimplemented!();
+    }
 
     process_input(&mut engine.keys, &mut state.commands);
     state.level.render(&mut engine.display);

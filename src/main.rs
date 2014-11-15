@@ -29,39 +29,6 @@ mod world_gen;
 mod world;
 
 
-fn key_pressed(keys: &RingBuf<KeyState>, key_code: tcod::Key) -> bool {
-    for &pressed_key in keys.iter() {
-        if pressed_key.key == key_code {
-            return true;
-        }
-    }
-    false
-}
-
-/// Consumes the first occurence of the given key in the buffer.
-///
-/// Returns `true` if the key has been in the buffer.
-fn read_key(keys: &mut RingBuf<KeyState>, key: tcod::Key) -> bool {
-    let mut len = keys.len();
-    let mut processed = 0;
-    let mut found = false;
-    while processed < len {
-        match keys.pop_front() {
-            Some(pressed_key) if !found && pressed_key.key == key => {
-                len -= 1;
-                found = true;
-            }
-            Some(pressed_key) => {
-                keys.push_back(pressed_key);
-            }
-            None => return false
-        }
-        processed += 1;
-    }
-    return found;
-}
-
-
 fn ctrl(key: tcod::KeyState) -> bool {
     key.left_ctrl || key.right_ctrl
 }
@@ -96,10 +63,10 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 }
 
 fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
-    if key_pressed(&engine.keys, Special(key::Escape)) {
+    if engine.key_pressed(Special(key::Escape)) {
         return None;
     }
-    if key_pressed(&engine.keys, Special(key::F5)) {
+    if engine.key_pressed(Special(key::F5)) {
         println!("Restarting game");
         engine.keys.clear();
         let (width, height) = state.display_size;
@@ -108,12 +75,12 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         return Some(state);
     }
 
-    if key_pressed(&engine.keys, Special(key::F6)) {
+    if engine.key_pressed(Special(key::F6)) {
         state.cheating = !state.cheating;
         println!("Cheating set to: {}", state.cheating);
     }
 
-    state.paused = if state.replay && read_key(&mut engine.keys, Special(key::Spacebar)) {
+    state.paused = if state.replay && engine.read_key(Special(key::Spacebar)) {
         if !state.paused {println!("Pausing the replay")};
         !state.paused
     } else {
@@ -121,7 +88,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     };
 
     // Move one step forward in the paused replay
-    if state.paused && read_key(&mut engine.keys, Special(key::Right)) {
+    if state.paused && engine.read_key(Special(key::Right)) {
         unimplemented!();
     }
 

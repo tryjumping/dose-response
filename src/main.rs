@@ -7,15 +7,12 @@ extern crate time;
 
 extern crate tcod;
 
-use std::collections::{RingBuf, HashMap};
-use std::collections::hash_map::{Occupied, Vacant};
-use std::time::Duration;
+use std::collections::{RingBuf};
 use std::io;
 use std::io::File;
 use std::io::util::NullWriter;
 use std::io::fs:: PathExtensions;
 use std::os;
-use std::vec::MoveItems;
 
 use std::rand::{IsaacRng, SeedableRng};
 use std::rand;

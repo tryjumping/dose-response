@@ -7,67 +7,27 @@ extern crate time;
 
 extern crate tcod;
 
-use std::collections::{RingBuf};
-use std::io;
-use std::io::File;
-use std::io::util::NullWriter;
-use std::io::fs:: PathExtensions;
+use std::collections::RingBuf;
 use std::os;
 
-use std::rand::{IsaacRng, SeedableRng};
-use std::rand;
 use tcod::{KeyState, Printable, Special};
 
-use components::{Computer, Position, Side};
+use components::Position;
 use engine::{Engine, key};
-use level::Level;
+use game_state::GameState;
 use systems::input::commands;
 use systems::input::commands::Command;
 
 mod components;
 mod engine;
 //mod entity_util;
+mod game_state;
 mod level;
 mod point;
 mod systems;
 mod world_gen;
 mod world;
 
-pub struct GameState {
-    level: Level,
-    display_size: (int, int),
-    rng: IsaacRng,
-    commands: RingBuf<Command>,
-    command_logger: CommandLogger,
-    side: Side,
-    turn: int,
-    cheating: bool,
-    replay: bool,
-    paused: bool,
-}
-
-impl GameState {
-    fn new(width: int, height: int,
-           commands: RingBuf<Command>,
-           log_writer: Box<Writer+'static>,
-           seed: u32,
-           cheating: bool,
-           replay: bool) -> GameState {
-        let seed_arr: &[_] = &[seed];
-        GameState {
-            level: Level::new(width, height - 2),
-            display_size: (width, height),
-            rng: SeedableRng::from_seed(seed_arr),
-            commands: commands,
-            command_logger: CommandLogger{writer: log_writer},
-            side: Computer,
-            turn: 0,
-            cheating: cheating,
-            replay: replay,
-            paused: false,
-        }
-    }
-}
 
 fn key_pressed(keys: &RingBuf<KeyState>, key_code: tcod::Key) -> bool {
     for &pressed_key in keys.iter() {
@@ -143,7 +103,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         println!("Restarting game");
         engine.keys.clear();
         let (width, height) = state.display_size;
-        let mut state = new_game(width, height);
+        let mut state = GameState::new_game(width, height);
         initialise_world(&mut state, engine);
         return Some(state);
     }
@@ -172,67 +132,6 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
 
 
 
-struct CommandLogger {
-    writer: Box<Writer+'static>,
-}
-
-impl CommandLogger {
-    fn log(&mut self, command: Command) {
-        self.writer.write_line(command.to_string().as_slice()).unwrap();
-    }
-}
-
-fn new_game(width: int, height: int) -> GameState {
-    let commands = RingBuf::new();
-    let seed = rand::random::<u32>();
-    let cur_time = time::now();
-    let timestamp = format!("{}{}", time::strftime("%FT%T.", &cur_time),
-                            (cur_time.tm_nsec / 1000000).to_string());
-    let replay_dir = &Path::new("./replays/");
-    if !replay_dir.exists() {
-        io::fs::mkdir_recursive(replay_dir,
-                                io::FilePermission::from_bits(0b111101101).unwrap()).unwrap();
-    }
-    let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
-    let mut writer = match File::create(replay_path) {
-        Ok(f) => box f,
-        Err(msg) => panic!("Failed to create the replay file. {}", msg)
-    };
-    println!("Recording the gameplay to '{}'", replay_path.display());
-    writer.write_line(seed.to_string().as_slice()).unwrap();
-    GameState::new(width, height, commands, writer, seed, false, false)
-}
-
-fn replay_game(width: int, height: int) -> GameState {
-    let mut commands = RingBuf::new();
-    let replay_path = &Path::new(os::args()[1].as_slice());
-    let mut seed: u32;
-    match File::open(replay_path) {
-        Ok(mut file) => {
-            let bin_data = file.read_to_end().unwrap();
-            let contents = std::str::from_utf8(bin_data.slice(0, bin_data.len()));
-            let mut lines = contents.unwrap().lines();
-            match lines.next() {
-                Some(seed_str) => match from_str(seed_str) {
-                    Some(parsed_seed) => seed = parsed_seed,
-                    None => panic!("The seed must be a number.")
-                },
-                None => panic!("The replay file is empty."),
-            }
-            for line in lines {
-                match from_str(line) {
-                    Some(command) => commands.push_back(command),
-                    None => panic!("Unknown command: {}", line),
-                }
-            }
-        },
-        Err(msg) => panic!("Failed to read the replay file: {}. Reason: {}",
-                          replay_path.display(), msg)
-    }
-    println!("Replaying game log: '{}'", replay_path.display());
-    GameState::new(width, height, commands, box NullWriter, seed, true, true)
-}
-
 fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     let (width, height) = game_state.level.size();
     let player_pos = Position{x: width / 2, y: height / 2};
@@ -255,10 +154,10 @@ fn main() {
 
     let mut game_state = match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
-            new_game(width, height)
+            GameState::new_game(width, height)
         },
         2 => {  // Replay the game from the entered log
-            replay_game(width, height)
+            GameState::replay_game(width, height)
         },
         _ => panic!("You must pass either pass zero or one arguments."),
     };

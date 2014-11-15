@@ -5,7 +5,6 @@ extern crate libc;
 extern crate time;
 
 
-#[phase(plugin, link)] extern crate emhyr;
 extern crate tcod;
 
 use std::collections::{RingBuf, HashMap};
@@ -23,7 +22,6 @@ use std::rand;
 use tcod::{KeyState, Printable, Special};
 
 use components::{Computer, Position, Side};
-use emhyr::{Change, Entity, World};
 use engine::{Engine, key};
 use level::Level;
 use systems::input::commands;
@@ -39,7 +37,6 @@ mod world_gen;
 mod world;
 
 pub struct GameState {
-    world: World,
     level: Level,
     display_size: (int, int),
     rng: IsaacRng,
@@ -47,7 +44,6 @@ pub struct GameState {
     command_logger: CommandLogger,
     side: Side,
     turn: int,
-    player: Entity,
     cheating: bool,
     replay: bool,
     paused: bool,
@@ -61,10 +57,7 @@ impl GameState {
            cheating: bool,
            replay: bool) -> GameState {
         let seed_arr: &[_] = &[seed];
-        let mut world = World::new();
-        let player = world.new_entity();
         GameState {
-            world: world,
             level: Level::new(width, height - 2),
             display_size: (width, height),
             rng: SeedableRng::from_seed(seed_arr),
@@ -72,7 +65,6 @@ impl GameState {
             command_logger: CommandLogger{writer: log_writer},
             side: Computer,
             turn: 0,
-            player: player,
             cheating: cheating,
             replay: replay,
             paused: false,
@@ -246,12 +238,13 @@ fn replay_game_state(width: int, height: int) -> GameState {
 
 fn initialise_world(game_state: &mut GameState, engine: &Engine) {
     let (width, height) = game_state.level.size();
-    let player = game_state.player;
-    world::create_player(&mut game_state.world.cs, player);
-    game_state.world.cs.set(Position{x: width / 2, y: height / 2}, player);
-    let player_pos: Position = game_state.world.cs.get(player);
-    world::populate_world(&mut game_state.world,
-                          (width, height),
+    let player_pos = Position{x: width / 2, y: height / 2};
+    // TODO:
+    // let player = game_state.player;
+    // world::create_player(&mut game_state.world.cs, player);
+    // game_state.world.cs.set(Position{x: width / 2, y: height / 2}, player);
+    // let player_pos: Position = game_state.world.cs.get(player);
+    world::populate_world((width, height),
                           &mut game_state.level,
                           player_pos,
                           &mut game_state.rng,

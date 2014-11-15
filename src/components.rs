@@ -1,37 +1,30 @@
 use std::cmp::max;
 use std::time::Duration;
-use emhyr::Entity;
 
 use engine::{Color};
 use point::Point;
 
 
-#[component]
 pub struct AI{
     pub behaviour: ai::Behaviour,
     pub state: ai::State,
 }
 
-#[component]
 pub struct AcceptsUserInput;
 
-#[component]
 pub struct Addiction{
     pub tolerance: int,
     pub drop_per_turn: int,
     pub last_turn: int,
 }
 
-#[component]
 pub struct AnxietyKillCounter{
     pub count: int,
     pub threshold: int,
 }
 
-#[component]
-pub struct AttackTarget(pub Entity);
+// pub struct AttackTarget(pub Entity);
 
-#[component]
 pub enum AttackType {
     Kill,
     Stun {pub duration: int},
@@ -39,27 +32,22 @@ pub enum AttackType {
     ModifyAttributes,
 }
 
-#[component]
 pub struct AttributeModifier{
     pub state_of_mind: int,
     pub will: int,
 }
 
-#[component]
 pub struct Attributes{
     pub state_of_mind: int,
     pub will: int,
 }
 
-#[component]
 pub struct Background;
 
-#[component]
-pub struct Bump(pub Entity);
+// pub struct Bump(pub Entity);
 
 // TODO: maybe we should rename "repetitions" to "transitions" instead. Because
 // to change from the starting colour to the new one should take Count(2) reps.
-#[component]
 pub struct ColorAnimation{
     pub from: Color,
     pub to: Color,
@@ -75,14 +63,12 @@ pub struct ColorAnimationState {
     pub elapsed_time: Duration,
 }
 
-#[component]
 pub struct Corpse{
     pub glyph: char,
     pub color: Color,
     pub solid: bool,
 }
 
-#[component]
 pub struct Destination {pub x: int, pub y: int}
 
 impl Point for Destination {
@@ -91,42 +77,31 @@ impl Point for Destination {
     }
 }
 
-#[component]
 pub struct Dose{
     pub tolerance_modifier: int,
     pub resist_radius: int,
 }
 
-#[component]
 pub struct Edible;
 
-#[component]
 pub struct Exploration{pub radius: int}
 
-#[component]
 pub struct Explored;
 
-#[component]
 pub struct ExplosionEffect{pub radius: int}
 
-#[component]
 pub struct FadingOut;
 
-#[component]
-pub struct InventoryItem{pub owner: Entity}
+// pub struct InventoryItem{pub owner: Entity}
 
-#[component]
 pub struct Monster{pub kind: MonsterKind}
 
-#[component]
 pub struct Panicking{
     pub turn: int,
     pub duration: int}
 
-#[component]
 pub struct Pickable;
 
-#[component]
 pub struct Position {
     pub x: int,
     pub y: int,
@@ -138,23 +113,19 @@ impl Point for Position {
     }
 }
 
-#[component]
 pub struct Solid;
 
-#[component]
 pub struct Stunned{
     pub turn: int,
     pub duration: int,
 }
 
-#[component]
 pub struct Tile{
     pub level: uint,
     pub glyph: char,
     pub color: Color,
 }
 
-#[component]
 pub struct Turn{
     pub side: Side,
     pub ap: int,
@@ -162,8 +133,7 @@ pub struct Turn{
     pub spent_this_tick: int,
 }
 
-#[component]
-pub struct UsingItem{pub item: Entity}
+// pub struct UsingItem{pub item: Entity}
 
 
 #[deriving(PartialEq, Clone, Show)]

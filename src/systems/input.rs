@@ -2,8 +2,7 @@ use std::from_str::FromStr;
 use std::time::Duration;
 use collections::{RingBuf};
 
-use components::{AcceptsUserInput, Destination, Position, UsingItem, Side, Player};
-use emhyr::{Components, Entity, Entities};
+use components::{AcceptsUserInput, Destination, Position, Side, Player};
 use self::commands::*;
 use entity_util;
 
@@ -35,44 +34,44 @@ impl FromStr for Command {
 }
 
 
-define_system! {
-    name: InputSystem;
-    resources(player: Entity, commands: RingBuf<Command>, current_side: Side);
-    fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, entities: Entities) {
-        // Don't process input if it's not your turn (otherwise it will be eaten
-        // & ignored)
-        // (NOTE: only the player can process input for now)
-        if *self.current_side() != Player { return }
-        let player = *self.player();
-        if !cs.has::<AcceptsUserInput>(player) || !cs.has::<Position>(player) { return }
+// define_system! {
+//     name: InputSystem;
+//     resources(player: Entity, commands: RingBuf<Command>, current_side: Side);
+//     fn process_all_entities(&mut self, cs: &mut Components, _dt: Duration, entities: Entities) {
+//         // Don't process input if it's not your turn (otherwise it will be eaten
+//         // & ignored)
+//         // (NOTE: only the player can process input for now)
+//         if *self.current_side() != Player { return }
+//         let player = *self.player();
+//         if !cs.has::<AcceptsUserInput>(player) || !cs.has::<Position>(player) { return }
 
-        // Clean up state from any previous commands
-        cs.unset::<Destination>(player);
-        cs.unset::<UsingItem>(player);
+//         // Clean up state from any previous commands
+//         cs.unset::<Destination>(player);
+//         cs.unset::<UsingItem>(player);
 
-        let pos = cs.get::<Position>(player);
-        match self.commands().pop_front() {
-            Some(command) => {
-                match command {
-                    N => cs.set(Destination{x: pos.x, y: pos.y-1}, player),
-                    S => cs.set(Destination{x: pos.x, y: pos.y+1}, player),
-                    W => cs.set(Destination{x: pos.x-1, y: pos.y}, player),
-                    E => cs.set(Destination{x: pos.x+1, y: pos.y}, player),
+//         let pos = cs.get::<Position>(player);
+//         match self.commands().pop_front() {
+//             Some(command) => {
+//                 match command {
+//                     N => cs.set(Destination{x: pos.x, y: pos.y-1}, player),
+//                     S => cs.set(Destination{x: pos.x, y: pos.y+1}, player),
+//                     W => cs.set(Destination{x: pos.x-1, y: pos.y}, player),
+//                     E => cs.set(Destination{x: pos.x+1, y: pos.y}, player),
 
-                    NW => cs.set(Destination{x: pos.x-1, y: pos.y-1}, player),
-                    NE => cs.set(Destination{x: pos.x+1, y: pos.y-1}, player),
-                    SW => cs.set(Destination{x: pos.x-1, y: pos.y+1}, player),
-                    SE => cs.set(Destination{x: pos.x+1, y: pos.y+1}, player),
+//                     NW => cs.set(Destination{x: pos.x-1, y: pos.y-1}, player),
+//                     NE => cs.set(Destination{x: pos.x+1, y: pos.y-1}, player),
+//                     SW => cs.set(Destination{x: pos.x-1, y: pos.y+1}, player),
+//                     SE => cs.set(Destination{x: pos.x+1, y: pos.y+1}, player),
 
-                    Eat => {
-                        match entity_util::get_first_owned_food(player, cs, entities) {
-                            Some(food) => cs.set(UsingItem{item: food}, player),
-                            None => (),
-                        }
-                    }
-                };
-            },
-            None => (),
-         }
-    }
-}
+//                     Eat => {
+//                         match entity_util::get_first_owned_food(player, cs, entities) {
+//                             Some(food) => cs.set(UsingItem{item: food}, player),
+//                             None => (),
+//                         }
+//                     }
+//                 };
+//             },
+//             None => (),
+//          }
+//     }
+// }

@@ -2,13 +2,8 @@
 name = "dose-response"
 version = "0.1.0"
 dependencies = [
- "emhyr 0.1.0",
  "tcod 0.1.0 (git+https://github.com/tomassedovic/tcod-rs.git)",
 ]
-
-[[package]]
-name = "emhyr"
-version = "0.1.0"
 
 [[package]]
 name = "tcod"

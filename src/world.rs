@@ -11,7 +11,6 @@ use components::{Anxiety, Depression, Hunger, Shadows, Voices};  // monster type
 use components::{Computer, Player};  // sides
 use components::{Background, Edible, Explored, Pickable, Solid};  // flags
 use components::ai;
-use emhyr::{World, Components, Entity};
 use engine::Color;
 use entity_util;
 use level::Level;
@@ -20,8 +19,7 @@ use world_gen;
 use point;
 
 
-pub fn populate_world<T: Rng>(world: &mut World,
-                              world_size: (int, int),
+pub fn populate_world<T: Rng>(world_size: (int, int),
                               level: &mut Level,
                               player_pos: Position,
                               rng: &mut T,
@@ -48,6 +46,7 @@ pub fn populate_world<T: Rng>(world: &mut World,
         level.set_tile((x, y), level_tile);
         continue;
         // TODO: drop all this ECS stuff
+/*
         let bg = world.new_entity();
         world.cs.set(Position{x: x, y: y}, bg);
         world.cs.set(Background, bg);
@@ -153,35 +152,36 @@ pub fn populate_world<T: Rng>(world: &mut World,
             }
             world.cs.set(Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()}, e);
         }
+*/
     }
 }
 
-pub fn create_player(cs: &mut Components, player: Entity) {
-    cs.set(AcceptsUserInput, player);
-    cs.set(Kill, player);
-    cs.set(Attributes{state_of_mind: 20, will: 2}, player);
-    cs.set(Addiction{
-            tolerance: 0,
-            drop_per_turn: 1,
-            last_turn: 1,
-        }, player);
-    cs.set(AnxietyKillCounter{
-            count: 0,
-            threshold: 10}, player);
-    cs.set(Exploration{radius: 6}, player);
-    cs.set(Explored, player);
-    cs.set(Tile{level: 2, glyph: '@', color: col::player}, player);
-    cs.set(Corpse{
-            glyph: '&',
-            color: col::dead_player,
-            solid: true}, player);
-    cs.set(Turn{side: Player,
-                            ap: 1,
-                            max_ap: 1,
-                            spent_this_tick: 0,
-        }, player);
-    cs.set(Solid, player);
-}
+// pub fn create_player(cs: &mut Components, player: Entity) {
+//     cs.set(AcceptsUserInput, player);
+//     cs.set(Kill, player);
+//     cs.set(Attributes{state_of_mind: 20, will: 2}, player);
+//     cs.set(Addiction{
+//             tolerance: 0,
+//             drop_per_turn: 1,
+//             last_turn: 1,
+//         }, player);
+//     cs.set(AnxietyKillCounter{
+//             count: 0,
+//             threshold: 10}, player);
+//     cs.set(Exploration{radius: 6}, player);
+//     cs.set(Explored, player);
+//     cs.set(Tile{level: 2, glyph: '@', color: col::player}, player);
+//     cs.set(Corpse{
+//             glyph: '&',
+//             color: col::dead_player,
+//             solid: true}, player);
+//     cs.set(Turn{side: Player,
+//                             ap: 1,
+//                             max_ap: 1,
+//                             spent_this_tick: 0,
+//         }, player);
+//     cs.set(Solid, player);
+// }
 
 
 // TODO: adding this dummy trait so we can implemen these methods here instead

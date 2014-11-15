@@ -10,9 +10,6 @@ build = "make cargo-build"
 name = "dose-response"
 path = "src/main.rs"
 
-[dependencies.emhyr]
-
-path = "../emhyr"
 
 [dependencies.tcod]
 

@@ -12,7 +12,6 @@ use std::os;
 
 use tcod::{KeyState, Printable, Special};
 
-use components::Position;
 use engine::{Engine, key};
 use game_state::GameState;
 use systems::input::commands;
@@ -71,7 +70,6 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         engine.keys.clear();
         let (width, height) = state.display_size;
         let mut state = GameState::new_game(width, height);
-        initialise_world(&mut state, engine);
         return Some(state);
     }
 
@@ -99,21 +97,6 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
 
 
 
-fn initialise_world(game_state: &mut GameState, engine: &Engine) {
-    let (width, height) = game_state.level.size();
-    let player_pos = Position{x: width / 2, y: height / 2};
-    // TODO:
-    // let player = game_state.player;
-    // world::create_player(&mut game_state.world.cs, player);
-    // game_state.world.cs.set(Position{x: width / 2, y: height / 2}, player);
-    // let player_pos: Position = game_state.world.cs.get(player);
-    world::populate_world((width, height),
-                          &mut game_state.level,
-                          player_pos,
-                          &mut game_state.rng,
-                          world_gen::forrest);
-}
-
 fn main() {
     let (width, height) = (80, 50);
     let title = "Dose Response";
@@ -130,6 +113,5 @@ fn main() {
     };
 
     let mut engine = Engine::new(width, height, title, font_path.clone());
-    initialise_world(&mut game_state, &engine);
     engine.main_loop(game_state, update);
 }

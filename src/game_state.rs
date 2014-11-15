@@ -13,6 +13,8 @@ use time;
 use components::{Computer, Position, Side};
 use level::Level;
 use systems::input::commands::Command;
+use world;
+use world_gen;
 
 
 pub struct GameState {
@@ -68,7 +70,9 @@ impl GameState {
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
         writer.write_line(seed.to_string().as_slice()).unwrap();
-        GameState::new(width, height, commands, writer, seed, false, false)
+        let mut state = GameState::new(width, height, commands, writer, seed, false, false);
+        initialise_world(&mut state);
+        state
     }
 
     pub fn replay_game(width: int, height: int) -> GameState {
@@ -98,8 +102,25 @@ impl GameState {
                                replay_path.display(), msg)
         }
         println!("Replaying game log: '{}'", replay_path.display());
-        GameState::new(width, height, commands, box NullWriter, seed, true, true)
+        let mut state = GameState::new(width, height, commands, box NullWriter, seed, true, true);
+        initialise_world(&mut state);
+        state
     }
+}
+
+fn initialise_world(game_state: &mut GameState) {
+    let (width, height) = game_state.level.size();
+    let player_pos = Position{x: width / 2, y: height / 2};
+    // TODO:
+    // let player = game_state.player;
+    // world::create_player(&mut game_state.world.cs, player);
+    // game_state.world.cs.set(Position{x: width / 2, y: height / 2}, player);
+    // let player_pos: Position = game_state.world.cs.get(player);
+    world::populate_world((width, height),
+                          &mut game_state.level,
+                          player_pos,
+                          &mut game_state.rng,
+                          world_gen::forrest);
 }
 
 

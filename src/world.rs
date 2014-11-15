@@ -3,16 +3,8 @@ use std::rand::Rng;
 use std::time::Duration;
 
 // TODO: looks like we want to namespace these some more:
-use components::{AcceptsUserInput,Attributes, Addiction, AnxietyKillCounter, AI,
-                 AttributeModifier, Corpse, Dose, ExplosionEffect,
-                 Kill, ModifyAttributes, Monster, Panic, Infinite, Stun,
-                 Exploration, Position, Tile, Turn};
-use components::{Anxiety, Depression, Hunger, Shadows, Voices};  // monster types
-use components::{Computer, Player};  // sides
-use components::{Background, Edible, Explored, Pickable, Solid};  // flags
-use components::ai;
+use components::Position;
 use engine::Color;
-use entity_util;
 use level::Level;
 use level;
 use world_gen;

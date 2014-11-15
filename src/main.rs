@@ -26,7 +26,7 @@ use systems::input::commands::Command;
 
 mod components;
 mod engine;
-mod entity_util;
+//mod entity_util;
 mod level;
 mod point;
 mod systems;

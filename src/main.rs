@@ -1,4 +1,4 @@
-#![feature(macro_rules, struct_variant, globs, phase, link_args, unboxed_closures)]
+#![feature(if_let, macro_rules, struct_variant, globs, phase, link_args, unboxed_closures)]
 
 extern crate collections;
 extern crate libc;
@@ -14,6 +14,7 @@ use tcod::{KeyState, Printable, Special};
 
 use engine::{Engine, key};
 use game_state::GameState;
+use point::Point;
 use systems::input::commands;
 use systems::input::commands::Command;
 
@@ -91,6 +92,27 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     }
 
     process_keys(&mut engine.keys, &mut state.commands);
+
+    // Process the player input
+    if let Some(command) = state.commands.pop_front() {
+        let (x, y) = state.level.player().coordinates();
+        match command {
+            commands::N => state.level.move_player((x,     y - 1)),
+            commands::S => state.level.move_player((x,     y + 1)),
+            commands::W => state.level.move_player((x - 1, y    )),
+            commands::E => state.level.move_player((x + 1, y    )),
+
+            commands::NW => state.level.move_player((x - 1, y - 1)),
+            commands::NE => state.level.move_player((x + 1, y - 1)),
+            commands::SW => state.level.move_player((x - 1, y + 1)),
+            commands::SE => state.level.move_player((x + 1, y + 1)),
+
+            commands::Eat => {
+                unimplemented!();
+            }
+        }
+    }
+
     state.level.render(&mut engine.display);
     Some(state)
 }

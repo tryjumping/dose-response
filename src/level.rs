@@ -29,6 +29,10 @@ pub struct Player {
     pos: (int, int),
 }
 
+impl Point for Player {
+    fn coordinates(&self) -> (int, int) { self.pos }
+}
+
 
 impl ToGlyph for Player {
     fn to_glyph(&self) -> char {
@@ -40,7 +44,7 @@ impl ToGlyph for Player {
 pub struct Level {
     width: int,
     height: int,
-    player: Option<Player>,
+    player: Player,
     map: Vec<Tile>,
 }
 
@@ -50,7 +54,7 @@ impl Level {
         Level {
             width: width,
             height: height,
-            player: Some(Player{pos: (40, 25)}),
+            player: Player{pos: (40, 25)},
             map: Vec::from_elem((width * height) as uint, Empty),
         }
     }
@@ -64,6 +68,14 @@ impl Level {
         (self.width, self.height)
     }
 
+    pub fn player(&self) -> &Player {
+        &self.player
+    }
+
+    pub fn move_player<P: Point>(&mut self, new_pos: P) {
+        self.player.pos = new_pos.coordinates()
+    }
+
     pub fn render(&self, display: &mut Display) {
         let (mut x, mut y) = (0, 0);
         for &tile in self.map.iter() {
@@ -74,12 +86,7 @@ impl Level {
                 y += 1;
             }
         }
-        match self.player {
-            Some(player) => {
-                let (x, y) = player.pos;
-                display.draw_char(2, x, y, player.to_glyph(), color::player, color::background);
-            },
-            None => {}
-        }
+        let (x, y) = self.player.pos;
+        display.draw_char(2, x, y, self.player.to_glyph(), color::player, color::background);
     }
 }

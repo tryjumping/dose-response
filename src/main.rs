@@ -106,7 +106,7 @@ fn ctrl(key: tcod::KeyState) -> bool {
     key.left_ctrl || key.right_ctrl
 }
 
-fn process_input(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Command>) {
+fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Command>) {
     // TODO: switch to DList and consume it with `mut_iter`.
     loop {
         match keys.pop_front() {
@@ -143,7 +143,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         println!("Restarting game");
         engine.keys.clear();
         let (width, height) = state.display_size;
-        let mut state = new_game_state(width, height);
+        let mut state = new_game(width, height);
         initialise_world(&mut state, engine);
         return Some(state);
     }
@@ -165,7 +165,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         unimplemented!();
     }
 
-    process_input(&mut engine.keys, &mut state.commands);
+    process_keys(&mut engine.keys, &mut state.commands);
     state.level.render(&mut engine.display);
     Some(state)
 }
@@ -182,7 +182,7 @@ impl CommandLogger {
     }
 }
 
-fn new_game_state(width: int, height: int) -> GameState {
+fn new_game(width: int, height: int) -> GameState {
     let commands = RingBuf::new();
     let seed = rand::random::<u32>();
     let cur_time = time::now();
@@ -203,7 +203,7 @@ fn new_game_state(width: int, height: int) -> GameState {
     GameState::new(width, height, commands, writer, seed, false, false)
 }
 
-fn replay_game_state(width: int, height: int) -> GameState {
+fn replay_game(width: int, height: int) -> GameState {
     let mut commands = RingBuf::new();
     let replay_path = &Path::new(os::args()[1].as_slice());
     let mut seed: u32;
@@ -255,10 +255,10 @@ fn main() {
 
     let mut game_state = match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
-            new_game_state(width, height)
+            new_game(width, height)
         },
         2 => {  // Replay the game from the entered log
-            replay_game_state(width, height)
+            replay_game(width, height)
         },
         _ => panic!("You must pass either pass zero or one arguments."),
     };

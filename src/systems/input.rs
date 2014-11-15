@@ -24,7 +24,7 @@ impl FromStr for Command {
             "SE" => Some(SE),
             "SW" => Some(SW),
             "Eat" => Some(Eat),
-            _ => panic!("Unknown command: '{}'", name)
+            _ => None,
         }
     }
 }

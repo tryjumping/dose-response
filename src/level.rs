@@ -1,4 +1,4 @@
-use engine::Display;
+use engine::{Color, Display};
 use point::Point;
 use world::col as color;
 
@@ -7,10 +7,49 @@ trait ToGlyph {
     fn to_glyph(&self) -> char;
 }
 
+trait ToColor {
+    fn to_color(&self) -> Color;
+}
+
 
 #[deriving(PartialEq, Clone, Show)]
 pub struct Cell {
     tile: Tile,
+    monster: Option<Monster>,
+}
+
+
+#[deriving(PartialEq, Clone, Show)]
+pub enum Monster {
+    Anxiety,
+    Depression,
+    Hunger,
+    Shadows,
+    Voices,
+}
+
+impl ToGlyph for Monster {
+    fn to_glyph(&self) -> char {
+        match *self {
+            Anxiety => 'a',
+            Depression => 'D',
+            Hunger => 'h',
+            Shadows => 'S',
+            Voices => 'V',
+        }
+    }
+}
+
+impl ToColor for Monster {
+    fn to_color(&self) -> Color {
+        match *self {
+            Anxiety => color::anxiety,
+            Depression => color::depression,
+            Hunger => color::hunger,
+            Shadows => color::voices,
+            Voices => color::shadows,
+        }
+    }
 }
 
 
@@ -26,6 +65,16 @@ impl ToGlyph for Tile {
         match *self {
             Empty => '.',
             Tree => '#',
+        }
+    }
+}
+
+impl ToColor for Tile {
+    fn to_color(&self) -> Color {
+        match *self {
+            Empty => color::empty_tile,
+            // TODO: this should be random for different tiles
+            Tree => color::tree_1,
         }
     }
 }
@@ -61,13 +110,18 @@ impl Level {
             width: width,
             height: height,
             player: Player{pos: (40, 25)},
-            map: Vec::from_elem((width * height) as uint, Cell{tile: Empty}),
+            map: Vec::from_elem((width * height) as uint, Cell{tile: Empty, monster: None}),
         }
     }
 
     pub fn set_tile<P: Point>(&mut self, pos: P, tile: Tile) {
         let (x, y) = pos.coordinates();
         self.map[(y * self.width + x) as uint].tile = tile;
+    }
+
+    pub fn set_monster<P: Point>(&mut self, pos: P, monster: Monster) {
+        let (x, y) = pos.coordinates();
+        self.map[(y * self.width + x) as uint].monster = Some(monster);
     }
 
     pub fn size(&self) -> (int, int) {
@@ -83,9 +137,14 @@ impl Level {
     }
 
     pub fn render(&self, display: &mut Display) {
+        // TODO: we're explicitly controlling the rendering order now, can
+        // probably do away with tile levels.
         let (mut x, mut y) = (0, 0);
         for cell in self.map.iter() {
-            display.draw_char(0, x, y, cell.tile.to_glyph(), color::tree_1, color::background);
+            display.draw_char(0, x, y, cell.tile.to_glyph(), cell.tile.to_color(), color::background);
+            if let Some(monster) = cell.monster {
+                display.draw_char(2, x, y, monster.to_glyph(), monster.to_color(), color::background);
+            }
             x += 1;
             if x >= self.width {
                 x = 0;

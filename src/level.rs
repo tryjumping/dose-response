@@ -16,6 +16,7 @@ trait ToColor {
 pub struct Cell {
     tile: Tile,
     monster: Option<Monster>,
+    items: Vec<Item>,
 }
 
 
@@ -96,6 +97,34 @@ impl ToGlyph for Player {
 }
 
 
+#[deriving(PartialEq, Show)]
+pub enum Item {
+    Dose,
+    StrongDose,
+    Food,
+}
+
+impl ToGlyph for Item {
+    fn to_glyph(&self) -> char {
+        match *self {
+            Dose => 'i',
+            StrongDose => 'I',
+            Food => '%',
+        }
+    }
+}
+
+impl ToColor for Item {
+    fn to_color(&self) -> Color {
+        match *self {
+            Dose => color::dose,
+            StrongDose => color::dose,
+            Food => color::food,
+        }
+    }
+}
+
+
 pub struct Level {
     width: int,
     height: int,
@@ -110,7 +139,8 @@ impl Level {
             width: width,
             height: height,
             player: Player{pos: (40, 25)},
-            map: Vec::from_fn((width * height) as uint, |_| Cell{tile: Empty, monster: None}),
+            map: Vec::from_fn((width * height) as uint,
+                              |_| Cell{tile: Empty, monster: None, items: vec![]}),
         }
     }
 
@@ -122,6 +152,11 @@ impl Level {
     pub fn set_monster<P: Point>(&mut self, pos: P, monster: Monster) {
         let (x, y) = pos.coordinates();
         self.map[(y * self.width + x) as uint].monster = Some(monster);
+    }
+
+    pub fn add_item<P: Point>(&mut self, pos: P, item: Item) {
+        let (x, y) = pos.coordinates();
+        self.map[(y * self.width + x) as uint].items.push(item);
     }
 
     pub fn size(&self) -> (int, int) {
@@ -140,6 +175,9 @@ impl Level {
         let (mut x, mut y) = (0, 0);
         for cell in self.map.iter() {
             display.draw_char(x, y, cell.tile.to_glyph(), cell.tile.to_color(), color::background);
+            for item in cell.items.iter() {
+                display.draw_char(x, y, item.to_glyph(), item.to_color(), color::background);
+            }
             if let Some(monster) = cell.monster {
                 display.draw_char(x, y, monster.to_glyph(), monster.to_color(), color::background);
             }

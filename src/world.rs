@@ -47,6 +47,16 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
                 _ => unreachable!(),
             };
             level.set_monster((x, y), monster);
+        } else {
+            let item = match item {
+                world_gen::Dose => Some(level::Dose),
+                world_gen::StrongDose => Some(level::StrongDose),
+                world_gen::Food => Some(level::Food),
+                _ => None,
+            };
+            if let Some(item) = item {
+                level.add_item((x, y), item);
+            }
         }
         continue;
         // TODO: drop all this ECS stuff

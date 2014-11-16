@@ -17,9 +17,9 @@ pub trait ToColor {
 
 #[deriving(PartialEq, Show)]
 pub struct Cell {
-    tile: Tile,
-    monster: Option<Monster>,
-    items: Vec<Item>,
+    pub tile: Tile,
+    pub monster: Option<Monster>,
+    pub items: Vec<Item>,
 }
 
 
@@ -67,6 +67,11 @@ impl Level {
             map: Vec::from_fn((width * height) as uint,
                               |_| Cell{tile: Empty, monster: None, items: vec![]}),
         }
+    }
+
+    pub fn cell<P: Point>(&self, pos: P) -> &Cell {
+        let (x, y) = pos.coordinates();
+        &self.map[(y * self.width + x) as uint]
     }
 
     pub fn set_tile<P: Point>(&mut self, pos: P, tile: Tile) {

@@ -137,13 +137,11 @@ impl Level {
     }
 
     pub fn render(&self, display: &mut Display) {
-        // TODO: we're explicitly controlling the rendering order now, can
-        // probably do away with tile levels.
         let (mut x, mut y) = (0, 0);
         for cell in self.map.iter() {
-            display.draw_char(0, x, y, cell.tile.to_glyph(), cell.tile.to_color(), color::background);
+            display.draw_char(x, y, cell.tile.to_glyph(), cell.tile.to_color(), color::background);
             if let Some(monster) = cell.monster {
-                display.draw_char(2, x, y, monster.to_glyph(), monster.to_color(), color::background);
+                display.draw_char(x, y, monster.to_glyph(), monster.to_color(), color::background);
             }
             x += 1;
             if x >= self.width {
@@ -152,6 +150,6 @@ impl Level {
             }
         }
         let (x, y) = self.player.pos;
-        display.draw_char(2, x, y, self.player.to_glyph(), color::player, color::background);
+        display.draw_char(x, y, self.player.to_glyph(), color::player, color::background);
     }
 }

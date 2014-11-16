@@ -130,7 +130,12 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
                 };
                 if within_level {
                     if state.level.cell((x, y)).monster.is_some() {
-                        println!("TODO: attack monster");
+                        match state.level.kill_monster((x, y)).unwrap() {
+                            monster::Anxiety => {
+                                println!("TODO: increase the anxiety kill counter / add one Will");
+                            }
+                            _ => {}
+                        }
                     } else if walkable {
                         state.level.move_player((x, y));
                         if state.level.cell((x, y)).items.len() > 0 {

@@ -101,6 +101,11 @@ impl Level {
         self.player.move_to(new_pos);
     }
 
+    pub fn kill_monster<P: Point>(&mut self, pos: P) -> Option<Monster> {
+        let (x, y) = pos.coordinates();
+        self.map[(y * self.width + x) as uint].monster.take()
+    }
+
     pub fn render(&self, display: &mut Display) {
         let (mut x, mut y) = (0, 0);
         for cell in self.map.iter() {

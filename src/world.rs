@@ -5,6 +5,7 @@ use std::time::Duration;
 // TODO: looks like we want to namespace these some more:
 use components::Position;
 use engine::Color;
+use item;
 use level::Level;
 use monster::Monster;
 use monster;
@@ -50,9 +51,9 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
             level.set_monster((x, y), monster);
         } else {
             let item = match item {
-                world_gen::Dose => Some(level::Dose),
-                world_gen::StrongDose => Some(level::StrongDose),
-                world_gen::Food => Some(level::Food),
+                world_gen::Dose => Some(item::Dose),
+                world_gen::StrongDose => Some(item::StrongDose),
+                world_gen::Food => Some(item::Food),
                 _ => None,
             };
             if let Some(item) = item {

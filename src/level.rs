@@ -1,4 +1,5 @@
 use engine::{Color, Display};
+use item::Item;
 use monster::Monster;
 use player::Player;
 use point::Point;
@@ -44,34 +45,6 @@ impl ToColor for Tile {
             Empty => color::empty_tile,
             // TODO: this should be random for different tiles
             Tree => color::tree_1,
-        }
-    }
-}
-
-
-#[deriving(PartialEq, Show)]
-pub enum Item {
-    Dose,
-    StrongDose,
-    Food,
-}
-
-impl ToGlyph for Item {
-    fn to_glyph(&self) -> char {
-        match *self {
-            Dose => 'i',
-            StrongDose => 'I',
-            Food => '%',
-        }
-    }
-}
-
-impl ToColor for Item {
-    fn to_color(&self) -> Color {
-        match *self {
-            Dose => color::dose,
-            StrongDose => color::dose,
-            Food => color::food,
         }
     }
 }

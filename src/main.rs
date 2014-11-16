@@ -22,6 +22,7 @@ mod components;
 mod engine;
 //mod entity_util;
 mod game_state;
+mod item;
 mod level;
 mod monster;
 mod player;

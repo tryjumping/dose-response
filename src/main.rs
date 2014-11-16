@@ -23,6 +23,7 @@ mod engine;
 //mod entity_util;
 mod game_state;
 mod level;
+mod player;
 mod point;
 mod systems;
 mod world_gen;

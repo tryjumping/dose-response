@@ -1,13 +1,14 @@
 use engine::{Color, Display};
+use player::Player;
 use point::Point;
 use world::col as color;
 
 
-trait ToGlyph {
+pub trait ToGlyph {
     fn to_glyph(&self) -> char;
 }
 
-trait ToColor {
+pub trait ToColor {
     fn to_color(&self) -> Color;
 }
 
@@ -81,22 +82,6 @@ impl ToColor for Tile {
 }
 
 
-pub struct Player {
-    pos: (int, int),
-}
-
-impl Point for Player {
-    fn coordinates(&self) -> (int, int) { self.pos }
-}
-
-
-impl ToGlyph for Player {
-    fn to_glyph(&self) -> char {
-        '@'
-    }
-}
-
-
 #[deriving(PartialEq, Show)]
 pub enum Item {
     Dose,
@@ -138,7 +123,7 @@ impl Level {
         Level {
             width: width,
             height: height,
-            player: Player{pos: (40, 25)},
+            player: Player::new((40, 25)),
             map: Vec::from_fn((width * height) as uint,
                               |_| Cell{tile: Empty, monster: None, items: vec![]}),
         }
@@ -168,7 +153,7 @@ impl Level {
     }
 
     pub fn move_player<P: Point>(&mut self, new_pos: P) {
-        self.player.pos = new_pos.coordinates()
+        self.player.move_to(new_pos);
     }
 
     pub fn render(&self, display: &mut Display) {
@@ -187,7 +172,7 @@ impl Level {
                 y += 1;
             }
         }
-        let (x, y) = self.player.pos;
+        let (x, y) = self.player.coordinates();
         display.draw_char(x, y, self.player.to_glyph(), color::player, color::background);
     }
 }

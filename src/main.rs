@@ -122,7 +122,11 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         };
         match action {
             Move(x, y) => {
-                state.level.move_player((x, y));
+                let (w, h) = state.level.size();
+                let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
+                if within_level {
+                    state.level.move_player((x, y));
+                }
             }
             Eat => {
                 unimplemented!();

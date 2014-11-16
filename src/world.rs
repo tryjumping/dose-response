@@ -4,12 +4,10 @@ use std::time::Duration;
 
 // TODO: looks like we want to namespace these some more:
 use components::Position;
-use engine::Color;
+use color::{mod, Color};
 use item;
-use level::Level;
-use monster::Monster;
-use monster;
-use level;
+use level::{mod, Level};
+use monster::{mod, Monster};
 use world_gen;
 use point;
 
@@ -229,17 +227,17 @@ impl MyWorldItemDummyTrait for world_gen::WorldItem {
 
     fn to_color(self) -> Color {
         match self {
-            world_gen::Empty => col::empty_tile,
-            world_gen::Tree => *rand::task_rng().choose(&[col::tree_1, col::tree_2, col::tree_3]).unwrap(),
-            world_gen::Dose => col::dose,
-            world_gen::StrongDose => col::dose,
-            world_gen::Food => col::food,
+            world_gen::Empty => color::empty_tile,
+            world_gen::Tree => *rand::task_rng().choose(&[color::tree_1, color::tree_2, color::tree_3]).unwrap(),
+            world_gen::Dose => color::dose,
+            world_gen::StrongDose => color::dose,
+            world_gen::Food => color::food,
 
-            world_gen::Anxiety => col::anxiety,
-            world_gen::Depression => col::depression,
-            world_gen::Hunger => col::hunger,
-            world_gen::Voices => col::voices,
-            world_gen::Shadows => col::shadows,
+            world_gen::Anxiety => color::anxiety,
+            world_gen::Depression => color::depression,
+            world_gen::Hunger => color::hunger,
+            world_gen::Voices => color::voices,
+            world_gen::Shadows => color::shadows,
         }
     }
 
@@ -253,28 +251,4 @@ impl MyWorldItemDummyTrait for world_gen::WorldItem {
             _ => false,
         }
     }
-}
-
-pub mod col {
-    #![allow(non_upper_case_globals)]
-    use engine::Color;
-
-    pub static background: Color = Color{r: 0, g: 0, b: 0};
-    pub static dim_background: Color = Color{r: 30, g: 30, b: 30};
-    pub static anxiety: Color = Color{r: 191,g: 0,b: 0};
-    pub static depression: Color = Color{r: 111,g: 63,b: 255};
-    pub static hunger: Color = Color{r: 127,g: 101,b: 63};
-    pub static voices: Color = Color{r: 95,g: 95,b: 95};
-    pub static shadows: Color = Color{r: 95,g: 95,b: 95};
-    pub static player: Color = Color{r: 255,g: 255,b: 255};
-    pub static dead_player: Color = Color{r: 80, g: 80, b: 80};
-    pub static empty_tile: Color = Color{r: 223,g: 223,b: 223};
-    pub static dose: Color = Color{r: 114,g: 126,b: 255};
-    pub static dose_glow: Color = Color{r: 15, g: 255, b: 243};
-    pub static food: Color = Color{r: 148, g: 113, b: 0};
-    pub static tree_1: Color = Color{r: 0,g: 191,b: 0};
-    pub static tree_2: Color = Color{r: 0,g: 255,b: 0};
-    pub static tree_3: Color = Color{r: 63,g: 255,b: 63};
-    pub static high: Color = Color{r: 58, g: 217, b: 183};
-    pub static high_to: Color = Color{r: 161, g: 39, b: 113};
 }

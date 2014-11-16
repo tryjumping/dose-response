@@ -1,6 +1,5 @@
-use engine::Color;
+use color::{mod, Color};
 use level::{ToColor, ToGlyph};
-use world::col as color;
 
 
 #[deriving(PartialEq, Show)]

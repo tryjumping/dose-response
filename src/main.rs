@@ -18,6 +18,7 @@ use point::Point;
 use systems::input::commands;
 use systems::input::commands::Command;
 
+mod color;
 mod components;
 mod engine;
 //mod entity_util;

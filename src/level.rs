@@ -1,9 +1,9 @@
-use engine::{Color, Display};
+use color::{mod, Color};
+use engine::Display;
 use item::Item;
 use monster::Monster;
 use player::Player;
 use point::Point;
-use world::col as color;
 
 
 pub trait ToGlyph {

@@ -6,7 +6,8 @@ use std::time::Duration;
 use components::Position;
 use engine::Color;
 use level::Level;
-use level::Monster;
+use monster::Monster;
+use monster;
 use level;
 use world_gen;
 use point;
@@ -39,11 +40,11 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
         level.set_tile((x, y), level_tile);
         if item.is_monster() {
             let monster = match item {
-                world_gen::Anxiety => level::Anxiety,
-                world_gen::Depression => level::Depression,
-                world_gen::Hunger => level::Hunger,
-                world_gen::Shadows => level::Shadows,
-                world_gen::Voices => level::Voices,
+                world_gen::Anxiety => monster::Anxiety,
+                world_gen::Depression => monster::Depression,
+                world_gen::Hunger => monster::Hunger,
+                world_gen::Shadows => monster::Shadows,
+                world_gen::Voices => monster::Voices,
                 _ => unreachable!(),
             };
             level.set_monster((x, y), monster);

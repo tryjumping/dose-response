@@ -8,7 +8,13 @@ trait ToGlyph {
 }
 
 
-#[deriving(PartialEq, Clone, Rand)]
+#[deriving(PartialEq, Clone, Show)]
+pub struct Cell {
+    tile: Tile,
+}
+
+
+#[deriving(PartialEq, Clone, Rand, Show)]
 pub enum Tile {
     Empty,
     Tree,
@@ -45,7 +51,7 @@ pub struct Level {
     width: int,
     height: int,
     player: Player,
-    map: Vec<Tile>,
+    map: Vec<Cell>,
 }
 
 impl Level {
@@ -55,13 +61,13 @@ impl Level {
             width: width,
             height: height,
             player: Player{pos: (40, 25)},
-            map: Vec::from_elem((width * height) as uint, Empty),
+            map: Vec::from_elem((width * height) as uint, Cell{tile: Empty}),
         }
     }
 
     pub fn set_tile<P: Point>(&mut self, pos: P, tile: Tile) {
         let (x, y) = pos.coordinates();
-        self.map[(y * self.width + x) as uint] = tile;
+        self.map[(y * self.width + x) as uint].tile = tile;
     }
 
     pub fn size(&self) -> (int, int) {
@@ -78,8 +84,8 @@ impl Level {
 
     pub fn render(&self, display: &mut Display) {
         let (mut x, mut y) = (0, 0);
-        for &tile in self.map.iter() {
-            display.draw_char(0, x, y, tile.to_glyph(), color::tree_1, color::background);
+        for cell in self.map.iter() {
+            display.draw_char(0, x, y, cell.tile.to_glyph(), color::tree_1, color::background);
             x += 1;
             if x >= self.width {
                 x = 0;

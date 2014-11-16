@@ -12,14 +12,14 @@ trait ToColor {
 }
 
 
-#[deriving(PartialEq, Clone, Show)]
+#[deriving(PartialEq, Show)]
 pub struct Cell {
     tile: Tile,
     monster: Option<Monster>,
 }
 
 
-#[deriving(PartialEq, Clone, Show)]
+#[deriving(PartialEq, Show)]
 pub enum Monster {
     Anxiety,
     Depression,
@@ -53,7 +53,7 @@ impl ToColor for Monster {
 }
 
 
-#[deriving(PartialEq, Clone, Rand, Show)]
+#[deriving(PartialEq, Rand, Show)]
 pub enum Tile {
     Empty,
     Tree,
@@ -110,7 +110,7 @@ impl Level {
             width: width,
             height: height,
             player: Player{pos: (40, 25)},
-            map: Vec::from_elem((width * height) as uint, Cell{tile: Empty, monster: None}),
+            map: Vec::from_fn((width * height) as uint, |_| Cell{tile: Empty, monster: None}),
         }
     }
 

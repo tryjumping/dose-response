@@ -28,6 +28,9 @@ monsters if that's the shortest path even if it means death.
     Some notes on different world generation:
     - http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
   * consider restricting the possible ways to leave the map
+* More effects on high
+  - monsters are weaker (Depression moving by one step per turn)
+  - dynamic / changing environment?
 * BUG: Voices and Shadows bodies briefly appear after fadeout
 * BUG: step by step replay doesn't work
 * Add smooth animations for the fade-out when growing Withdrawn

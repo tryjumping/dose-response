@@ -138,8 +138,13 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
                         }
                     } else if walkable {
                         state.level.move_player((x, y));
-                        if state.level.cell((x, y)).items.len() > 0 {
-                            println!("TODO: pick up item");
+                        loop {
+                            match state.level.pickup_item((x, y)) {
+                                Some(item) => {
+                                    println!("Picked up item {}", item);
+                                }
+                                None => break,
+                            }
                         }
                     }
                 }

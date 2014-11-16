@@ -106,6 +106,11 @@ impl Level {
         self.map[(y * self.width + x) as uint].monster.take()
     }
 
+    pub fn pickup_item<P: Point>(&mut self, pos: P) -> Option<Item> {
+        let (x, y) = pos.coordinates();
+        self.map[(y * self.width + x) as uint].items.pop()
+    }
+
     pub fn render(&self, display: &mut Display) {
         let (mut x, mut y) = (0, 0);
         for cell in self.map.iter() {

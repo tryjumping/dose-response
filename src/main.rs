@@ -66,6 +66,13 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
     }
 }
 
+
+enum Action {
+    Move(int, int),
+    Eat,
+}
+
+
 fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
     if engine.key_pressed(Special(key::Escape)) {
         return None;
@@ -100,18 +107,24 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     // Process the player input
     if let Some(command) = state.commands.pop_front() {
         let (x, y) = state.level.player().coordinates();
-        match command {
-            commands::N => state.level.move_player((x,     y - 1)),
-            commands::S => state.level.move_player((x,     y + 1)),
-            commands::W => state.level.move_player((x - 1, y    )),
-            commands::E => state.level.move_player((x + 1, y    )),
+        let action = match command {
+            commands::N => Move(x,     y - 1),
+            commands::S => Move(x,     y + 1),
+            commands::W => Move(x - 1, y    ),
+            commands::E => Move(x + 1, y    ),
 
-            commands::NW => state.level.move_player((x - 1, y - 1)),
-            commands::NE => state.level.move_player((x + 1, y - 1)),
-            commands::SW => state.level.move_player((x - 1, y + 1)),
-            commands::SE => state.level.move_player((x + 1, y + 1)),
+            commands::NW => Move(x - 1, y - 1),
+            commands::NE => Move(x + 1, y - 1),
+            commands::SW => Move(x - 1, y + 1),
+            commands::SE => Move(x + 1, y + 1),
 
-            commands::Eat => {
+            commands::Eat => Eat,
+        };
+        match action {
+            Move(x, y) => {
+                state.level.move_player((x, y));
+            }
+            Eat => {
                 unimplemented!();
             }
         }

@@ -155,6 +155,15 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         }
     }
 
+
+    // TODO: Process the monsters:
+    // for each monster:
+    // let action  = monster.run_ai()
+    // match action {
+    //     Move(x, y) => ...,
+    // }
+
+
     state.level.render(&mut engine.display);
     Some(state)
 }

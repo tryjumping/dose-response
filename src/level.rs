@@ -69,24 +69,32 @@ impl Level {
         }
     }
 
-    pub fn cell<P: Point>(&self, pos: P) -> &Cell {
+    fn index<P: Point>(&self, pos: P) -> uint {
         let (x, y) = pos.coordinates();
-        &self.map[(y * self.width + x) as uint]
+        assert!(x >= 0 && y >= 0 && x < self.width && y < self.height);
+        (y * self.width + x) as uint
+    }
+
+    pub fn cell<P: Point>(&self, pos: P) -> &Cell {
+        let index = self.index(pos);
+        &self.map[index]
+    }
+
+    fn cell_mut<P: Point>(&mut self, pos: P) -> &mut Cell {
+        let index = self.index(pos);
+        &mut self.map[index]
     }
 
     pub fn set_tile<P: Point>(&mut self, pos: P, tile: Tile) {
-        let (x, y) = pos.coordinates();
-        self.map[(y * self.width + x) as uint].tile = tile;
+        self.cell_mut(pos).tile = tile;
     }
 
     pub fn set_monster<P: Point>(&mut self, pos: P, monster: Monster) {
-        let (x, y) = pos.coordinates();
-        self.map[(y * self.width + x) as uint].monster = Some(monster);
+        self.cell_mut(pos).monster = Some(monster);
     }
 
     pub fn add_item<P: Point>(&mut self, pos: P, item: Item) {
-        let (x, y) = pos.coordinates();
-        self.map[(y * self.width + x) as uint].items.push(item);
+        self.cell_mut(pos).items.push(item);
     }
 
     pub fn size(&self) -> (int, int) {
@@ -102,13 +110,11 @@ impl Level {
     }
 
     pub fn kill_monster<P: Point>(&mut self, pos: P) -> Option<Monster> {
-        let (x, y) = pos.coordinates();
-        self.map[(y * self.width + x) as uint].monster.take()
+        self.cell_mut(pos).monster.take()
     }
 
     pub fn pickup_item<P: Point>(&mut self, pos: P) -> Option<Item> {
-        let (x, y) = pos.coordinates();
-        self.map[(y * self.width + x) as uint].items.pop()
+        self.cell_mut(pos).items.pop()
     }
 
     pub fn render(&self, display: &mut Display) {

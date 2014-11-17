@@ -1,4 +1,4 @@
-#![feature(if_let, macro_rules, struct_variant, globs, phase, link_args, unboxed_closures)]
+#![feature(if_let, macro_rules, globs, phase, link_args, unboxed_closures)]
 
 extern crate collections;
 extern crate libc;

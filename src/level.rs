@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::rand::Rng;
 
 use color::{mod, Color};
 use engine::Display;
@@ -120,8 +121,49 @@ impl Level {
         self.monsters.remove(&pos.coordinates())
     }
 
+    pub fn move_monster<P: Point, Q: Point>(&mut self, from: P, to: Q) {
+        // There can be only one monster on each cell. Bail if the destination
+        // is already occupied:
+        if self.monsters.contains_key(&to.coordinates()) {
+            return
+        }
+        if let Some(monster) = self.monsters.remove(&from.coordinates()) {
+            self.monsters.insert(to.coordinates(), monster);
+        }
+    }
+
     pub fn pickup_item<P: Point>(&mut self, pos: P) -> Option<Item> {
         self.cell_mut(pos).items.pop()
+    }
+
+    pub fn monsters(&self) -> ::std::collections::hash_map::Entries<(int, int), Monster> {
+        self.monsters.iter()
+    }
+
+    pub fn random_neighbour_position<T: Rng, P: Point>(&self, rng: &mut T, pos: P) -> (int, int) {
+        let (x, y) = pos.coordinates();
+        let neighbors = [
+            (x,   y-1),
+            (x,   y+1),
+            (x-1, y),
+            (x+1, y),
+            (x-1, y-1),
+            (x+1, y-1),
+            (x-1, y+1),
+            (x+1, y+1),
+        ];
+        let mut walkables = vec![];
+        for &pos in neighbors.iter() {
+            let (x, y) = pos;
+            let within_bounds = (x >= 0 && y >= 0 && x < self.width && y < self.height);
+            if within_bounds && self.cell(pos).tile == Empty {
+                walkables.push(pos)
+            }
+        }
+        match rng.choose(walkables.slice(0, walkables.len())) {
+            Some(&random_pos) => random_pos,
+            None => (x, y)  // Nowhere to go
+        }
     }
 
     pub fn render(&self, display: &mut Display) {

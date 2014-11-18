@@ -162,7 +162,21 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     // match action {
     //     Move(x, y) => ...,
     // }
-
+    let mut monster_actions = vec![];
+    // TODO: we need to make sure these are always processed in the same order,
+    // otherwise replay is bust!
+    for (&pos, monster) in state.level.monsters() {
+        let (new_x, new_y) = state.level.random_neighbour_position(&mut state.rng, pos);
+        monster_actions.push((pos, Move(new_x, new_y)));
+    }
+    for (pos, action) in monster_actions.into_iter() {
+        match action {
+            Move(x, y) => {
+                state.level.move_monster(pos, (x, y));
+            }
+            _ => {}
+        }
+    }
 
     state.level.render(&mut engine.display);
     Some(state)

@@ -188,6 +188,7 @@ impl Level {
             }
         }
         for (&(x, y), monster) in self.monsters.iter() {
+            assert!((x, y) != self.player().coordinates(), "Monster can't be on the same cell as player.");
             display.draw_char(x, y, monster.to_glyph(), monster.to_color(), color::background);
         }
         let (x, y) = self.player.coordinates();

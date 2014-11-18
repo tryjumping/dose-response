@@ -142,7 +142,11 @@ fn process_monsters(state: &mut GameState) {
     for (pos, action) in monster_actions.into_iter() {
         match action {
             Action::Move(x, y) => {
-                state.level.move_monster(pos, (x, y));
+                if state.level.player().coordinates() == (x, y) {
+                    println!("TODO: {} attacks player", pos);
+                } else {
+                    state.level.move_monster(pos, (x, y));
+                }
             }
             _ => {}
         }

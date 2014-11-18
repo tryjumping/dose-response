@@ -124,11 +124,11 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
             Move(x, y) => {
                 let (w, h) = state.level.size();
                 let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
-                let walkable = match state.level.cell((x, y)).tile {
-                    level::Empty => true,
-                    _ => false,
-                };
                 if within_level {
+                    let walkable = match state.level.cell((x, y)).tile {
+                        level::Empty => true,
+                        _ => false,
+                    };
                     if state.level.monster((x, y)).is_some() {
                         match state.level.kill_monster((x, y)).unwrap() {
                             monster::Anxiety => {

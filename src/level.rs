@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use color::{mod, Color};
 use engine::Display;
 use item::Item;
@@ -18,7 +20,6 @@ pub trait ToColor {
 #[deriving(PartialEq, Show)]
 pub struct Cell {
     pub tile: Tile,
-    pub monster: Option<Monster>,
     pub items: Vec<Item>,
 }
 
@@ -54,6 +55,7 @@ pub struct Level {
     width: int,
     height: int,
     player: Player,
+    monsters: HashMap<(int, int), Monster>,
     map: Vec<Cell>,
 }
 
@@ -64,8 +66,9 @@ impl Level {
             width: width,
             height: height,
             player: Player::new((40, 25)),
+            monsters: HashMap::new(),
             map: Vec::from_fn((width * height) as uint,
-                              |_| Cell{tile: Empty, monster: None, items: vec![]}),
+                              |_| Cell{tile: Empty, items: vec![]}),
         }
     }
 
@@ -90,7 +93,11 @@ impl Level {
     }
 
     pub fn set_monster<P: Point>(&mut self, pos: P, monster: Monster) {
-        self.cell_mut(pos).monster = Some(monster);
+        self.monsters.insert(pos.coordinates(), monster);
+    }
+
+    pub fn monster<P: Point>(&self, pos: P) -> Option<&Monster> {
+        self.monsters.get(&pos.coordinates())
     }
 
     pub fn add_item<P: Point>(&mut self, pos: P, item: Item) {
@@ -110,7 +117,7 @@ impl Level {
     }
 
     pub fn kill_monster<P: Point>(&mut self, pos: P) -> Option<Monster> {
-        self.cell_mut(pos).monster.take()
+        self.monsters.remove(&pos.coordinates())
     }
 
     pub fn pickup_item<P: Point>(&mut self, pos: P) -> Option<Item> {
@@ -124,14 +131,14 @@ impl Level {
             for item in cell.items.iter() {
                 display.draw_char(x, y, item.to_glyph(), item.to_color(), color::background);
             }
-            if let Some(monster) = cell.monster {
-                display.draw_char(x, y, monster.to_glyph(), monster.to_color(), color::background);
-            }
             x += 1;
             if x >= self.width {
                 x = 0;
                 y += 1;
             }
+        }
+        for (&(x, y), monster) in self.monsters.iter() {
+            display.draw_char(x, y, monster.to_glyph(), monster.to_color(), color::background);
         }
         let (x, y) = self.player.coordinates();
         display.draw_char(x, y, self.player.to_glyph(), color::player, color::background);

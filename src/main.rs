@@ -129,7 +129,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
                     _ => false,
                 };
                 if within_level {
-                    if state.level.cell((x, y)).monster.is_some() {
+                    if state.level.monster((x, y)).is_some() {
                         match state.level.kill_monster((x, y)).unwrap() {
                             monster::Anxiety => {
                                 println!("TODO: increase the anxiety kill counter / add one Will");

@@ -10,9 +10,9 @@ use std::str;
 
 use time;
 
-use components::{Computer, Position, Side};
+use components::{Position, Side};
 use level::Level;
-use systems::input::commands::Command;
+use systems::input::Command;
 use world;
 use world_gen;
 
@@ -44,7 +44,7 @@ impl GameState {
             rng: SeedableRng::from_seed(seed_arr),
             commands: commands,
             command_logger: CommandLogger{writer: log_writer},
-            side: Computer,
+            side: Side::Computer,
             turn: 0,
             cheating: cheating,
             replay: replay,

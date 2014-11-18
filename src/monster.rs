@@ -13,6 +13,8 @@ pub enum Monster {
 
 impl ToGlyph for Monster {
     fn to_glyph(&self) -> char {
+        use self::Monster::*;
+
         match *self {
             Anxiety => 'a',
             Depression => 'D',
@@ -25,6 +27,8 @@ impl ToGlyph for Monster {
 
 impl ToColor for Monster {
     fn to_color(&self) -> Color {
+        use self::Monster::*;
+
         match *self {
             Anxiety => color::anxiety,
             Depression => color::depression,

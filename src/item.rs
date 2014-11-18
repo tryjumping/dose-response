@@ -11,6 +11,8 @@ pub enum Item {
 
 impl ToGlyph for Item {
     fn to_glyph(&self) -> char {
+        use self::Item::*;
+
         match *self {
             Dose => 'i',
             StrongDose => 'I',
@@ -21,6 +23,8 @@ impl ToGlyph for Item {
 
 impl ToColor for Item {
     fn to_color(&self) -> Color {
+        use self::Item::*;
+
         match *self {
             Dose => color::dose,
             StrongDose => color::dose,

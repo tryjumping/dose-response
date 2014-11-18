@@ -12,11 +12,12 @@ use std::os;
 
 use tcod::{KeyState, Printable, Special};
 
-use engine::{Engine, key};
+use engine::{Engine, KeyCode};
 use game_state::GameState;
+use level::Tile;
+use monster::Monster;
 use point::Point;
-use systems::input::commands;
-use systems::input::commands::Command;
+use systems::input::Command;
 
 mod color;
 mod components;
@@ -43,20 +44,20 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
         match keys.pop_front() {
             Some(key) => {
                 match key.key {
-                    Special(key::Up) => commands.push_back(commands::N),
-                    Special(key::Down) => commands.push_back(commands::S),
-                    Special(key::Left) => match (ctrl(key), key.shift) {
-                        (false, true) => commands.push_back(commands::NW),
-                        (true, false) => commands.push_back(commands::SW),
-                        _ => commands.push_back(commands::W),
+                    Special(KeyCode::Up) => commands.push_back(Command::N),
+                    Special(KeyCode::Down) => commands.push_back(Command::S),
+                    Special(KeyCode::Left) => match (ctrl(key), key.shift) {
+                        (false, true) => commands.push_back(Command::NW),
+                        (true, false) => commands.push_back(Command::SW),
+                        _ => commands.push_back(Command::W),
                     },
-                    Special(key::Right) => match (ctrl(key), key.shift) {
-                        (false, true) => commands.push_back(commands::NE),
-                        (true, false) => commands.push_back(commands::SE),
-                        _ => commands.push_back(commands::E),
+                    Special(KeyCode::Right) => match (ctrl(key), key.shift) {
+                        (false, true) => commands.push_back(Command::NE),
+                        (true, false) => commands.push_back(Command::SE),
+                        _ => commands.push_back(Command::E),
                     },
                     Printable('e') => {
-                        commands.push_back(commands::Eat);
+                        commands.push_back(Command::Eat);
                     }
                     _ => (),
                 }
@@ -74,10 +75,10 @@ enum Action {
 
 
 fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
-    if engine.key_pressed(Special(key::Escape)) {
+    if engine.key_pressed(Special(KeyCode::Escape)) {
         return None;
     }
-    if engine.key_pressed(Special(key::F5)) {
+    if engine.key_pressed(Special(KeyCode::F5)) {
         println!("Restarting game");
         engine.keys.clear();
         let (width, height) = state.display_size;
@@ -85,12 +86,12 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         return Some(state);
     }
 
-    if engine.key_pressed(Special(key::F6)) {
+    if engine.key_pressed(Special(KeyCode::F6)) {
         state.cheating = !state.cheating;
         println!("Cheating set to: {}", state.cheating);
     }
 
-    state.paused = if state.replay && engine.read_key(Special(key::Spacebar)) {
+    state.paused = if state.replay && engine.read_key(Special(KeyCode::Spacebar)) {
         if !state.paused {println!("Pausing the replay")};
         !state.paused
     } else {
@@ -98,7 +99,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     };
 
     // Move one step forward in the paused replay
-    if state.paused && engine.read_key(Special(key::Right)) {
+    if state.paused && engine.read_key(Special(KeyCode::Right)) {
         unimplemented!();
     }
 
@@ -108,30 +109,30 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     if let Some(command) = state.commands.pop_front() {
         let (x, y) = state.level.player().coordinates();
         let action = match command {
-            commands::N => Move(x,     y - 1),
-            commands::S => Move(x,     y + 1),
-            commands::W => Move(x - 1, y    ),
-            commands::E => Move(x + 1, y    ),
+            Command::N => Action::Move(x,     y - 1),
+            Command::S => Action::Move(x,     y + 1),
+            Command::W => Action::Move(x - 1, y    ),
+            Command::E => Action::Move(x + 1, y    ),
 
-            commands::NW => Move(x - 1, y - 1),
-            commands::NE => Move(x + 1, y - 1),
-            commands::SW => Move(x - 1, y + 1),
-            commands::SE => Move(x + 1, y + 1),
+            Command::NW => Action::Move(x - 1, y - 1),
+            Command::NE => Action::Move(x + 1, y - 1),
+            Command::SW => Action::Move(x - 1, y + 1),
+            Command::SE => Action::Move(x + 1, y + 1),
 
-            commands::Eat => Eat,
+            Command::Eat => Action::Eat,
         };
         match action {
-            Move(x, y) => {
+            Action::Move(x, y) => {
                 let (w, h) = state.level.size();
                 let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
                 if within_level {
                     let walkable = match state.level.cell((x, y)).tile {
-                        level::Empty => true,
+                        Tile::Empty => true,
                         _ => false,
                     };
                     if state.level.monster((x, y)).is_some() {
                         match state.level.kill_monster((x, y)).unwrap() {
-                            monster::Anxiety => {
+                            Monster::Anxiety => {
                                 println!("TODO: increase the anxiety kill counter / add one Will");
                             }
                             _ => {}
@@ -149,7 +150,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
                     }
                 }
             }
-            Eat => {
+            Action::Eat => {
                 unimplemented!();
             }
         }
@@ -167,11 +168,11 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     // otherwise replay is bust!
     for (&pos, monster) in state.level.monsters() {
         let (new_x, new_y) = state.level.random_neighbour_position(&mut state.rng, pos);
-        monster_actions.push((pos, Move(new_x, new_y)));
+        monster_actions.push((pos, Action::Move(new_x, new_y)));
     }
     for (pos, action) in monster_actions.into_iter() {
         match action {
-            Move(x, y) => {
+            Action::Move(x, y) => {
                 state.level.move_monster(pos, (x, y));
             }
             _ => {}

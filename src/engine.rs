@@ -1,9 +1,7 @@
 #![allow(dead_code)]
 
 use std::collections::RingBuf;
-pub use tcod::{Color, Console, RootConsole};
-pub use tcod::key_code as key;
-pub use tcod;
+pub use tcod::{mod, Color, Console, RootConsole, KeyCode};
 
 
 pub struct Display {
@@ -31,7 +29,7 @@ impl Display {
     }
 
     pub fn set_background(&mut self, x: int, y: int, color: Color) {
-        RootConsole.set_char_background(x, y, color, tcod::background_flag::None);
+        RootConsole.set_char_background(x, y, color, tcod::BackgroundFlag::None);
     }
 
     pub fn size(&self) -> (int, int) {
@@ -83,7 +81,7 @@ impl Engine {
             }
             let (width, height) = self.display.size();
             RootConsole.print_ex(width-1, height-1,
-                                 tcod::background_flag::None, tcod::Right,
+                                 tcod::BackgroundFlag::None, tcod::Right,
                                  format!("FPS: {}", tcod::system::get_fps()).as_slice());
             match self.display.fade {
                 Some((amount, color)) => tcod::Console::set_fade(amount, color),

@@ -5,10 +5,10 @@ use std::time::Duration;
 // TODO: looks like we want to namespace these some more:
 use components::Position;
 use color::{mod, Color};
-use item;
-use level::{mod, Level};
-use monster::{mod, Monster};
-use world_gen;
+use item::Item;
+use level::{Level, Tile};
+use monster::Monster;
+use world_gen::{mod, WorldItem};
 use point;
 
 
@@ -32,26 +32,26 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
     for &(x, y, item) in map.iter() {
         // TODO: fix the world generator to return the right items:
         let level_tile = match item {
-            world_gen::Empty => level::Empty,
-            world_gen::Tree => level::Tree,
-            _ => level::Empty,
+            WorldItem::Empty => Tile::Empty,
+            WorldItem::Tree => Tile::Tree,
+            _ => Tile::Empty,
         };
         level.set_tile((x, y), level_tile);
         if item.is_monster() {
             let monster = match item {
-                world_gen::Anxiety => monster::Anxiety,
-                world_gen::Depression => monster::Depression,
-                world_gen::Hunger => monster::Hunger,
-                world_gen::Shadows => monster::Shadows,
-                world_gen::Voices => monster::Voices,
+                WorldItem::Anxiety => Monster::Anxiety,
+                WorldItem::Depression => Monster::Depression,
+                WorldItem::Hunger => Monster::Hunger,
+                WorldItem::Shadows => Monster::Shadows,
+                WorldItem::Voices => Monster::Voices,
                 _ => unreachable!(),
             };
             level.set_monster((x, y), monster);
         } else {
             let item = match item {
-                world_gen::Dose => Some(item::Dose),
-                world_gen::StrongDose => Some(item::StrongDose),
-                world_gen::Food => Some(item::Food),
+                WorldItem::Dose => Some(Item::Dose),
+                WorldItem::StrongDose => Some(Item::StrongDose),
+                WorldItem::Food => Some(Item::Food),
                 _ => None,
             };
             if let Some(item) = item {
@@ -212,42 +212,42 @@ trait MyWorldItemDummyTrait {
 impl MyWorldItemDummyTrait for world_gen::WorldItem {
     fn to_glyph(self) -> char {
         match self {
-            world_gen::Empty => '.',
-            world_gen::Tree => '#',
-            world_gen::Dose => 'i',
-            world_gen::StrongDose => 'I',
-            world_gen::Food => '%',
-            world_gen::Anxiety => 'a',
-            world_gen::Depression => 'D',
-            world_gen::Hunger => 'h',
-            world_gen::Voices => 'v',
-            world_gen::Shadows => 'S',
+            WorldItem::Empty => '.',
+            WorldItem::Tree => '#',
+            WorldItem::Dose => 'i',
+            WorldItem::StrongDose => 'I',
+            WorldItem::Food => '%',
+            WorldItem::Anxiety => 'a',
+            WorldItem::Depression => 'D',
+            WorldItem::Hunger => 'h',
+            WorldItem::Voices => 'v',
+            WorldItem::Shadows => 'S',
         }
     }
 
     fn to_color(self) -> Color {
         match self {
-            world_gen::Empty => color::empty_tile,
-            world_gen::Tree => *rand::task_rng().choose(&[color::tree_1, color::tree_2, color::tree_3]).unwrap(),
-            world_gen::Dose => color::dose,
-            world_gen::StrongDose => color::dose,
-            world_gen::Food => color::food,
+            WorldItem::Empty => color::empty_tile,
+            WorldItem::Tree => *rand::task_rng().choose(&[color::tree_1, color::tree_2, color::tree_3]).unwrap(),
+            WorldItem::Dose => color::dose,
+            WorldItem::StrongDose => color::dose,
+            WorldItem::Food => color::food,
 
-            world_gen::Anxiety => color::anxiety,
-            world_gen::Depression => color::depression,
-            world_gen::Hunger => color::hunger,
-            world_gen::Voices => color::voices,
-            world_gen::Shadows => color::shadows,
+            WorldItem::Anxiety => color::anxiety,
+            WorldItem::Depression => color::depression,
+            WorldItem::Hunger => color::hunger,
+            WorldItem::Voices => color::voices,
+            WorldItem::Shadows => color::shadows,
         }
     }
 
     fn is_monster(self) -> bool {
         match self {
-            world_gen::Anxiety |
-            world_gen::Depression |
-            world_gen::Hunger |
-            world_gen::Voices |
-            world_gen::Shadows => true,
+            WorldItem::Anxiety |
+            WorldItem::Depression |
+            WorldItem::Hunger |
+            WorldItem::Voices |
+            WorldItem::Shadows => true,
             _ => false,
         }
     }

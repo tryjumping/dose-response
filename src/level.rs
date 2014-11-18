@@ -34,6 +34,8 @@ pub enum Tile {
 
 impl ToGlyph for Tile {
     fn to_glyph(&self) -> char {
+        use self::Tile::*;
+
         match *self {
             Empty => '.',
             Tree => '#',
@@ -43,6 +45,8 @@ impl ToGlyph for Tile {
 
 impl ToColor for Tile {
     fn to_color(&self) -> Color {
+        use self::Tile::*;
+
         match *self {
             Empty => color::empty_tile,
             // TODO: this should be random for different tiles
@@ -69,7 +73,7 @@ impl Level {
             player: Player::new((40, 25)),
             monsters: HashMap::new(),
             map: Vec::from_fn((width * height) as uint,
-                              |_| Cell{tile: Empty, items: vec![]}),
+                              |_| Cell{tile: Tile::Empty, items: vec![]}),
         }
     }
 
@@ -156,7 +160,7 @@ impl Level {
         for &pos in neighbors.iter() {
             let (x, y) = pos;
             let within_bounds = (x >= 0 && y >= 0 && x < self.width && y < self.height);
-            if within_bounds && self.cell(pos).tile == Empty {
+            if within_bounds && self.cell(pos).tile == Tile::Empty {
                 walkables.push(pos)
             }
         }

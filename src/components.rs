@@ -145,13 +145,13 @@ pub enum Side {
 impl Side {
     pub fn next(self) -> Side {
         match self {
-            Player => Computer,
-            Computer => Player,
+            Side::Player => Side::Computer,
+            Side::Computer => Side::Player,
         }
     }
 
     pub fn is_last(self) -> bool {
-        self == Computer
+        self == Side::Computer
     }
 }
 

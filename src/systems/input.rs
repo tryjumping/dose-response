@@ -1,19 +1,16 @@
 use std::str::FromStr;
 
-use self::commands::*;
-
-
-pub mod commands {
-    #[deriving(Rand, Show)]
-    pub enum Command {
-        N, E, S, W, NE, NW, SE, SW,
-        Eat,
-    }
+#[deriving(Rand, Show)]
+pub enum Command {
+    N, E, S, W, NE, NW, SE, SW,
+    Eat,
 }
 
 
 impl FromStr for Command {
     fn from_str(name: &str) -> Option<Command> {
+        use self::Command::*;
+
         match name {
             "N" => Some(N),
             "E" => Some(E),

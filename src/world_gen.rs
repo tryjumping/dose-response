@@ -18,14 +18,16 @@ pub enum WorldItem {
 }
 
 pub fn forrest<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(int, int, WorldItem)> {
+    use self::WorldItem::*;
+
     let monster_count = 5;
     let monster_weight = 30 / monster_count;
     let mut weights = [
         Weighted{weight: 595, item: Empty},
         Weighted{weight: 390, item: Tree},
-        Weighted{weight: 7,  item: Dose},
-        Weighted{weight: 3,  item: StrongDose},
-        Weighted{weight: 5,  item: Food},
+        Weighted{weight: 7,   item: Dose},
+        Weighted{weight: 3,   item: StrongDose},
+        Weighted{weight: 5,   item: Food},
         Weighted{weight: monster_weight,  item: Anxiety},
         Weighted{weight: monster_weight,  item: Depression},
         Weighted{weight: monster_weight,  item: Hunger},

@@ -74,38 +74,7 @@ enum Action {
 }
 
 
-fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
-    if engine.key_pressed(Special(KeyCode::Escape)) {
-        return None;
-    }
-    if engine.key_pressed(Special(KeyCode::F5)) {
-        println!("Restarting game");
-        engine.keys.clear();
-        let (width, height) = state.display_size;
-        let mut state = GameState::new_game(width, height);
-        return Some(state);
-    }
-
-    if engine.key_pressed(Special(KeyCode::F6)) {
-        state.cheating = !state.cheating;
-        println!("Cheating set to: {}", state.cheating);
-    }
-
-    state.paused = if state.replay && engine.read_key(Special(KeyCode::Spacebar)) {
-        if !state.paused {println!("Pausing the replay")};
-        !state.paused
-    } else {
-        state.paused
-    };
-
-    // Move one step forward in the paused replay
-    if state.paused && engine.read_key(Special(KeyCode::Right)) {
-        unimplemented!();
-    }
-
-    process_keys(&mut engine.keys, &mut state.commands);
-
-    // Process the player input
+fn process_player(state: &mut GameState) {
     if let Some(command) = state.commands.pop_front() {
         let (x, y) = state.level.player().coordinates();
         let action = match command {
@@ -155,14 +124,10 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
             }
         }
     }
+}
 
 
-    // TODO: Process the monsters:
-    // for each monster:
-    // let action  = monster.run_ai()
-    // match action {
-    //     Move(x, y) => ...,
-    // }
+fn process_monsters(state: &mut GameState) {
     let mut monster_actions = vec![];
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
@@ -178,6 +143,40 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
             _ => {}
         }
     }
+}
+
+fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
+    if engine.key_pressed(Special(KeyCode::Escape)) {
+        return None;
+    }
+    if engine.key_pressed(Special(KeyCode::F5)) {
+        println!("Restarting game");
+        engine.keys.clear();
+        let (width, height) = state.display_size;
+        let mut state = GameState::new_game(width, height);
+        return Some(state);
+    }
+
+    if engine.key_pressed(Special(KeyCode::F6)) {
+        state.cheating = !state.cheating;
+        println!("Cheating set to: {}", state.cheating);
+    }
+
+    state.paused = if state.replay && engine.read_key(Special(KeyCode::Spacebar)) {
+        if !state.paused {println!("Pausing the replay")};
+        !state.paused
+    } else {
+        state.paused
+    };
+
+    // Move one step forward in the paused replay
+    if state.paused && engine.read_key(Special(KeyCode::Right)) {
+        unimplemented!();
+    }
+
+    process_keys(&mut engine.keys, &mut state.commands);
+    process_player(&mut state);
+    process_monsters(&mut state);
 
     state.level.render(&mut engine.display);
     Some(state)

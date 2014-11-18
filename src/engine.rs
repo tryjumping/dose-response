@@ -49,7 +49,9 @@ pub struct Engine {
 impl Engine {
     pub fn new(width: int, height: int,
                window_title: &str, font_path: Path) -> Engine {
-        Console::set_custom_font(font_path);
+        use tcod::FontFlags::{LayoutTcod, TypeGreyscale};
+        Console::set_custom_font(font_path, [LayoutTcod, TypeGreyscale],
+                                 32, 8);
         let fullscreen = false;
         Console::init_root(width, height, window_title, fullscreen);
         Engine {

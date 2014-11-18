@@ -4,6 +4,7 @@ use point::Point;
 
 pub struct Player {
     pos: (int, int),
+    alive: bool,
     ap: int,
     max_ap: int,
 }
@@ -13,6 +14,7 @@ impl Player {
     pub fn new<P: Point>(pos: P) -> Player {
         Player {
             pos: pos.coordinates(),
+            alive: true,
             ap: 1,
             max_ap: 1,
         }
@@ -34,6 +36,14 @@ impl Player {
     pub fn new_turn(&mut self) {
         self.ap = self.max_ap;
     }
+
+    pub fn alive(&self) -> bool {
+        self.alive
+    }
+
+    pub fn die(&mut self) {
+        self.alive = false;
+    }
 }
 
 impl Point for Player {
@@ -43,6 +53,10 @@ impl Point for Player {
 
 impl ToGlyph for Player {
     fn to_glyph(&self) -> char {
-        '@'
+        if self.alive {
+            '@'
+        } else {
+            '&'
+        }
     }
 }

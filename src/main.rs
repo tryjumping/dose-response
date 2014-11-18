@@ -76,6 +76,9 @@ enum Action {
 
 
 fn process_player(state: &mut GameState) {
+    if !state.level.player().alive() {
+        return
+    }
     if let Some(command) = state.commands.pop_front() {
         let (x, y) = state.level.player().coordinates();
         let action = match command {
@@ -132,6 +135,9 @@ fn process_player(state: &mut GameState) {
 
 
 fn process_monsters(state: &mut GameState) {
+    if !state.level.player().alive() {
+        return
+    }
     let mut monster_actions = vec![];
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
@@ -143,7 +149,8 @@ fn process_monsters(state: &mut GameState) {
         match action {
             Action::Move(x, y) => {
                 if state.level.player().coordinates() == (x, y) {
-                    println!("TODO: {} attacks player", pos);
+                    // TODO: attack action based on the monster
+                    state.level.player_mut().die();
                 } else {
                     state.level.move_monster(pos, (x, y));
                 }

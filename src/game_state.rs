@@ -56,8 +56,9 @@ impl GameState {
         let commands = RingBuf::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
-        let timestamp = format!("{}{}", time::strftime("%FT%T.", &cur_time),
-                                (cur_time.tm_nsec / 1000000).to_string());
+        let timestamp = format!("{}.{:03d}",
+                                time::strftime("%FT%T", &cur_time).unwrap(),
+                                (cur_time.tm_nsec / 1000000));
         let replay_dir = &Path::new("./replays/");
         if !replay_dir.exists() {
             io::fs::mkdir_recursive(replay_dir,

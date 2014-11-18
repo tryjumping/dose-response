@@ -12,6 +12,7 @@ use std::os;
 
 use tcod::{KeyState, Printable, Special};
 
+use components::Side;
 use engine::{Engine, KeyCode};
 use game_state::GameState;
 use level::Tile;
@@ -100,6 +101,7 @@ fn process_player(state: &mut GameState) {
                         _ => false,
                     };
                     if state.level.monster((x, y)).is_some() {
+                        state.level.player_mut().spend_ap(1);
                         match state.level.kill_monster((x, y)).unwrap() {
                             Monster::Anxiety => {
                                 println!("TODO: increase the anxiety kill counter / add one Will");
@@ -107,6 +109,7 @@ fn process_player(state: &mut GameState) {
                             _ => {}
                         }
                     } else if walkable {
+                        state.level.player_mut().spend_ap(1);
                         state.level.move_player((x, y));
                         loop {
                             match state.level.pickup_item((x, y)) {
@@ -120,6 +123,7 @@ fn process_player(state: &mut GameState) {
                 }
             }
             Action::Eat => {
+                state.level.player_mut().spend_ap(1);
                 unimplemented!();
             }
         }
@@ -175,8 +179,19 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     }
 
     process_keys(&mut engine.keys, &mut state.commands);
-    process_player(&mut state);
-    process_monsters(&mut state);
+    match state.side {
+        Side::Player => {
+            process_player(&mut state);
+            if !state.level.player_mut().has_ap(1) {
+                state.side = Side::Computer;
+            }
+        }
+        Side::Computer => {
+            process_monsters(&mut state);
+            state.side = Side::Player;
+            state.level.player_mut().new_turn();
+        }
+    }
 
     state.level.render(&mut engine.display);
     Some(state)

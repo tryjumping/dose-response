@@ -117,6 +117,10 @@ impl Level {
         &self.player
     }
 
+    pub fn player_mut(&mut self) -> &mut Player {
+        &mut self.player
+    }
+
     pub fn move_player<P: Point>(&mut self, new_pos: P) {
         self.player.move_to(new_pos);
     }

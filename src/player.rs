@@ -4,6 +4,8 @@ use point::Point;
 
 pub struct Player {
     pos: (int, int),
+    ap: int,
+    max_ap: int,
 }
 
 impl Player {
@@ -11,11 +13,26 @@ impl Player {
     pub fn new<P: Point>(pos: P) -> Player {
         Player {
             pos: pos.coordinates(),
+            ap: 1,
+            max_ap: 1,
         }
     }
 
     pub fn move_to<P: Point>(&mut self, new_position: P) {
         self.pos = new_position.coordinates();
+    }
+
+    pub fn spend_ap(&mut self, count: int) {
+        assert!(count <= self.ap);
+        self.ap -= count;
+    }
+
+    pub fn has_ap(&self, count: int) -> bool {
+        self.ap >= count
+    }
+
+    pub fn new_turn(&mut self) {
+        self.ap = self.max_ap;
     }
 }
 

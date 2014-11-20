@@ -14,7 +14,7 @@ source = "git+https://github.com/alexcrichton/gcc-rs#f25b3ba9c40303781189cc137fb
 [[package]]
 name = "tcod"
 version = "0.2.0"
-source = "git+https://github.com/tomassedovic/tcod-rs.git#0f51d5dba0deeca29c3b9e2a24a447051dd63466"
+source = "git+https://github.com/tomassedovic/tcod-rs.git#23254c0942128042997a797d404297ca910a4f57"
 
 [[package]]
 name = "time"

@@ -113,7 +113,13 @@ fn process_player(state: &mut GameState) {
                         loop {
                             match state.level.pickup_item((x, y)) {
                                 Some(item) => {
-                                    println!("Picked up item {}", item);
+                                    use item::Item::*;
+                                    match item {
+                                        Food => state.level.player_mut().inventory.push(item),
+                                        Dose | StrongDose => {
+                                            println!("TODO: use the dose");
+                                        }
+                                    }
                                 }
                                 None => break,
                             }

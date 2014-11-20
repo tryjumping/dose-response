@@ -1,4 +1,5 @@
 use color::{mod, Color};
+use item::Item;
 use level::Render;
 use monster::Damage;
 use point::Point;
@@ -11,8 +12,9 @@ pub struct Player {
     max_ap: int,
     state_of_mind: int,
     will: int,
-    panic: int,
-    stun: int,
+    pub panic: int,
+    pub stun: int,
+    inventory: Vec<Item>,
 }
 
 impl Player {
@@ -27,6 +29,7 @@ impl Player {
             will: 2,
             panic: 0,
             stun: 0,
+            inventory: vec![],
         }
     }
 
@@ -49,6 +52,18 @@ impl Player {
 
     pub fn alive(&self) -> bool {
         self.alive
+    }
+
+    pub fn state_of_mind(&self) -> int {
+        self.state_of_mind
+    }
+
+    pub fn will(&self) -> int {
+        self.will
+    }
+
+    pub fn inventory(&self) -> &Vec<Item> {
+        &self.inventory
     }
 
     pub fn damaged(&mut self, damage: Damage) {

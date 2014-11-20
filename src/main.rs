@@ -186,6 +186,37 @@ fn process_monsters(state: &mut GameState) {
     }
 }
 
+
+fn render_gui(display: &mut engine::Display, player: &player::Player) {
+    let (w, h) = display.size();
+    let attribute_line = format!("SoM: {},  Will: {},  Food: {}",
+                              player.state_of_mind(),
+                              player.will(),
+                              player.inventory().len());
+    display.write_text(attribute_line.as_slice(), 0, h-1,
+                       color::Color{r: 255, g: 255, b: 255},
+                       color::Color{r: 0, g: 0, b: 0});
+
+    let mut status_line = String::new();
+    if player.alive() {
+        if player.stun > 0 {
+            status_line.push_str(format!("Stunned({})", player.stun).as_slice());
+        }
+        if player.panic > 0 {
+            if status_line.len() > 0 {
+                status_line.push_str(",  ");
+            }
+            status_line.push_str(format!("Panicking({})", player.panic).as_slice())
+        }
+    } else {
+        status_line.push_str("Dead");
+    }
+    display.write_text(status_line.as_slice(), 0, h-2,
+                       color::Color{r: 255, g: 255, b: 255},
+                       color::Color{r: 0, g: 0, b: 0});
+}
+
+
 fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
     if engine.key_pressed(Special(KeyCode::Escape)) {
         return None;
@@ -231,6 +262,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
     }
 
     state.level.render(&mut engine.display);
+    render_gui(&mut engine.display, state.level.player());
     Some(state)
 }
 

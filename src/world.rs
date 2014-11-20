@@ -1,6 +1,5 @@
 use std::rand;
 use std::rand::Rng;
-use std::time::Duration;
 
 use color::{mod, Color};
 use item::Item;

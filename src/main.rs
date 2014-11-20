@@ -194,7 +194,7 @@ fn process_monsters(state: &mut GameState) {
 
 
 fn render_gui(display: &mut engine::Display, player: &player::Player) {
-    let (w, h) = display.size();
+    let (_w, h) = display.size();
     let attribute_line = format!("SoM: {},  Will: {},  Food: {}",
                               player.state_of_mind,
                               player.will,
@@ -223,7 +223,8 @@ fn render_gui(display: &mut engine::Display, player: &player::Player) {
 }
 
 
-fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
+// TODO: use Duration instead of f32 for `dt`
+fn update(mut state: GameState, _dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
     if engine.key_pressed(Special(KeyCode::Escape)) {
         return None;
     }
@@ -231,7 +232,7 @@ fn update(mut state: GameState, dt_s: f32, engine: &mut engine::Engine) -> Optio
         println!("Restarting game");
         engine.keys.clear();
         let (width, height) = state.display_size;
-        let mut state = GameState::new_game(width, height);
+        let state = GameState::new_game(width, height);
         return Some(state);
     }
 
@@ -279,7 +280,7 @@ fn main() {
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 
-    let mut game_state = match os::args().len() {
+    let game_state = match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
             GameState::new_game(width, height)
         },

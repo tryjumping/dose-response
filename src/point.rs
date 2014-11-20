@@ -1,4 +1,4 @@
-use std::num::{pow, Float, SignedInt};
+use std::num::{Int, Float, SignedInt};
 use std::cmp::{max};
 
 
@@ -33,8 +33,8 @@ pub fn tile_distance<P1: Point, P2: Point>(p1: &P1, p2: &P2) -> int {
 pub fn distance<P1: Point, P2: Point>(p1: &P1, p2: &P2) -> f32 {
     let (x1, y1) = p1.coordinates();
     let (x2, y2) = p2.coordinates();
-    let a = pow((x1 - x2), 2);
-    let b = pow((y1 - y2), 2);
+    let a = (x1 - x2).pow(2);
+    let b = (y1 - y2).pow(2);
     ((a + b) as f32).sqrt()
 }
 

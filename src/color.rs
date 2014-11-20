@@ -4,7 +4,7 @@ pub use engine::Color;
 
 
 pub static background: Color = Color{r: 0, g: 0, b: 0};
-pub static dim_background: Color = Color{r: 30, g: 30, b: 30};
+pub static _dim_background: Color = Color{r: 30, g: 30, b: 30};
 pub static anxiety: Color = Color{r: 191,g: 0,b: 0};
 pub static depression: Color = Color{r: 111,g: 63,b: 255};
 pub static hunger: Color = Color{r: 127,g: 101,b: 63};
@@ -19,5 +19,5 @@ pub static food: Color = Color{r: 148, g: 113, b: 0};
 pub static tree_1: Color = Color{r: 0,g: 191,b: 0};
 pub static tree_2: Color = Color{r: 0,g: 255,b: 0};
 pub static tree_3: Color = Color{r: 63,g: 255,b: 63};
-pub static high: Color = Color{r: 58, g: 217, b: 183};
-pub static high_to: Color = Color{r: 161, g: 39, b: 113};
+pub static _high: Color = Color{r: 58, g: 217, b: 183};
+pub static _high_to: Color = Color{r: 161, g: 39, b: 113};

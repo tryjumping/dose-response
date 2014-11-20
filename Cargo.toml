@@ -1,21 +1,16 @@
 [package]
-
 name = "dose-response"
 version = "0.1.0"
 authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
 build = "make cargo-build"
 
 [[bin]]
-
 name = "dose-response"
 path = "src/main.rs"
 
 
 [dependencies.tcod]
-
 git = "https://github.com/tomassedovic/tcod-rs.git"
 
-
 [dependencies.time]
-
 git = "https://github.com/rust-lang/time"

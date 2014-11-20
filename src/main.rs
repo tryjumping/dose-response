@@ -144,9 +144,9 @@ fn process_monsters(state: &mut GameState) {
         return
     }
     let player_pos = state.level.player().coordinates();
-    let mut monster_actions = vec![];
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
+    let mut monster_actions = vec![];
     for (&pos, monster) in state.level.monsters() {
         monster_actions.push((pos, monster.act(pos, player_pos, &state.level, &mut state.rng)));
     }

@@ -17,7 +17,7 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
                               player_pos: Position,
                               rng: &mut T,
                               generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {
-    let near_player = |x, y| point::tile_distance(player_pos, (x, y)) < 6;
+    let near_player = |x, y| point::tile_distance(&player_pos, &(x, y)) < 6;
     let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
     let initial_dose_pos = (player_pos.x + *rng.choose(pos_offset).unwrap(),
                             player_pos.y + *rng.choose(pos_offset).unwrap());

@@ -12,13 +12,13 @@ impl Point for (int, int) {
     }
 }
 
-pub fn tile_distance<P1: Point, P2: Point>(p1: P1, p2: P2) -> int {
+pub fn tile_distance<P1: Point, P2: Point>(p1: &P1, p2: &P2) -> int {
     let (x1, y1) = p1.coordinates();
     let (x2, y2) = p2.coordinates();
     max((x1 - x2).abs(), (y1 - y2).abs())
 }
 
-pub fn distance<P1: Point, P2: Point>(p1: P1, p2: P2) -> f32 {
+pub fn distance<P1: Point, P2: Point>(p1: &P1, p2: &P2) -> f32 {
     let (x1, y1) = p1.coordinates();
     let (x2, y2) = p2.coordinates();
     let a = pow((x1 - x2), 2);

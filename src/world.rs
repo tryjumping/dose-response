@@ -2,41 +2,52 @@ use std::rand;
 use std::rand::Rng;
 use std::time::Duration;
 
-// TODO: looks like we want to namespace these some more:
-use components::Position;
 use color::{mod, Color};
 use item::Item;
 use level::{Level, Tile};
 use monster::Monster;
 use world_gen::{mod, WorldItem};
-use point;
+use point::{mod, Point};
 
 
-pub fn populate_world<T: Rng>(world_size: (int, int),
+pub fn populate_world<T: Rng, P: Point>(world_size: (int, int),
                               level: &mut Level,
-                              player_pos: Position,
+                              player_pos: P,
                               rng: &mut T,
                               generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {
+    // TODO: this closure doesn't seem to work correctly (set all tiles to e.g.
+    // monsters and look at the shape of the gap this produces):
     let near_player = |x, y| point::tile_distance(&player_pos, &(x, y)) < 6;
     let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
-    let initial_dose_pos = (player_pos.x + *rng.choose(pos_offset).unwrap(),
-                            player_pos.y + *rng.choose(pos_offset).unwrap());
+    let initial_dose_pos = (player_pos.x() + *rng.choose(pos_offset).unwrap(),
+                            player_pos.y() + *rng.choose(pos_offset).unwrap());
     let mut initial_foods_pos = Vec::<(int, int)>::new();
     for _ in range(0, rng.gen_range::<uint>(1, 4)) {
-            let pos = (player_pos.x + *rng.choose(pos_offset).unwrap(),
-                       player_pos.y + *rng.choose(pos_offset).unwrap());
+            let pos = (player_pos.x() + *rng.choose(pos_offset).unwrap(),
+                       player_pos.y() + *rng.choose(pos_offset).unwrap());
             initial_foods_pos.push(pos);
     };
     let (width, height) = world_size;
     let map = generate(rng, width, height);
     for &(x, y, item) in map.iter() {
         // TODO: fix the world generator to return the right items:
-        let level_tile = match item {
+        let mut level_tile = match item {
             WorldItem::Empty => Tile::Empty,
             WorldItem::Tree => Tile::Tree,
             _ => Tile::Empty,
         };
+        // Player should always start on an empty tile:
+        if (x, y) == player_pos.coordinates() {
+            level_tile = Tile::Empty;
+        }
         level.set_tile((x, y), level_tile);
+        // TODO: right now we just bail to make sure we don't generate any
+        // monsters or items on player's position. Later this should instead
+        // ensure that there are no monsters, we have at least one dose and a
+        // random amount of food in sight:
+        if near_player(x, y) {
+            continue
+        }
         if item.is_monster() {
             let monster = match item {
                 WorldItem::Anxiety => Monster::Anxiety,

@@ -10,8 +10,8 @@ use std::str;
 
 use time;
 
-use components::Position;
 use level::Level;
+use point::Point;
 use systems::input::Command;
 use world;
 use world_gen;
@@ -118,12 +118,7 @@ impl GameState {
 
 fn initialise_world(game_state: &mut GameState) {
     let (width, height) = game_state.level.size();
-    let player_pos = Position{x: width / 2, y: height / 2};
-    // TODO:
-    // let player = game_state.player;
-    // world::create_player(&mut game_state.world.cs, player);
-    // game_state.world.cs.set(Position{x: width / 2, y: height / 2}, player);
-    // let player_pos: Position = game_state.world.cs.get(player);
+    let player_pos = game_state.level.player().coordinates();
     world::populate_world((width, height),
                           &mut game_state.level,
                           player_pos,

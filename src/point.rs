@@ -4,6 +4,18 @@ use std::cmp::{max};
 
 pub trait Point {
     fn coordinates(&self) -> (int, int);
+
+    fn x(&self) -> int {
+        match self.coordinates() {
+            (x, _) => x
+        }
+    }
+
+    fn y(&self) -> int {
+        match self.coordinates() {
+            (_, y) => y
+        }
+    }
 }
 
 impl Point for (int, int) {

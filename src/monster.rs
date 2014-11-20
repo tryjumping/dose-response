@@ -28,11 +28,16 @@ impl Monster {
     }
 
     pub fn act<P: Point, Q: Point, R: Rng>(&self, pos: P, player_pos: Q, level: &Level, rng: &mut R) -> Action {
-        let pos = pos.coordinates();
-        let player_pos = player_pos.coordinates();
-        if point::tile_distance(pos, player_pos) == 1 {
-            Action::Attack(player_pos, self.attack_damage())
+        let distance = point::tile_distance(&pos, &player_pos);
+        // TODO: track the state of the AI (agressive/idle) and switch between
+        // them as the distance change.
+        if distance == 1 {
+            Action::Attack(player_pos.coordinates(), self.attack_damage())
+        } else if distance < 5 {
+            // Follow the player:
+            Action::Move(player_pos.coordinates())
         } else {
+            // Move randomly about
             let new_pos = level.random_neighbour_position(rng, pos);
             Action::Move(new_pos)
         }

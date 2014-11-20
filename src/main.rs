@@ -101,10 +101,6 @@ fn process_player(state: &mut GameState) {
                 let (w, h) = state.level.size();
                 let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
                 if within_level {
-                    let walkable = match state.level.cell((x, y)).tile {
-                        Tile::Empty => true,
-                        _ => false,
-                    };
                     if state.level.monster((x, y)).is_some() {
                         state.level.player_mut().spend_ap(1);
                         match state.level.kill_monster((x, y)).unwrap() {
@@ -113,7 +109,7 @@ fn process_player(state: &mut GameState) {
                             }
                             _ => {}
                         }
-                    } else if walkable {
+                    } else if state.level.walkable((x, y)) {
                         state.level.player_mut().spend_ap(1);
                         state.level.move_player((x, y));
                         loop {
@@ -152,8 +148,31 @@ fn process_monsters(state: &mut GameState) {
     }
     for (pos, action) in monster_actions.into_iter() {
         match action {
-            Action::Move(new_pos) => {
-                state.level.move_monster(pos, new_pos);
+            Action::Move(destination) => {
+                if point::tile_distance(&pos, &destination) == 1 {
+                    state.level.move_monster(pos, destination);
+                } else {
+                    let (w, h) = state.level.size();
+                    // Walk one step:
+                    let newpos_opt = {
+                        let mut path = tcod::AStarPath::new_from_callback(
+                            w, h,
+                            |&mut: _from: (int, int), to: (int, int)| -> f32 {
+                                if state.level.walkable(to) {
+                                    1.0
+                                } else {
+                                    0.0
+                                }
+                            },
+                            1.0);
+                        path.find(pos.coordinates(), destination.coordinates());
+                        assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
+                        path.walk_one_step(true)
+                    };
+                    if let Some(newpos) = newpos_opt {
+                        state.level.move_monster(pos, newpos);
+                    }
+                }
             }
             Action::Attack(target_pos, damage) => {
                 assert!(target_pos == state.level.player().coordinates());

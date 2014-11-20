@@ -113,6 +113,10 @@ impl Level {
         (self.width, self.height)
     }
 
+    pub fn walkable<P: Point>(&self, pos: P) -> bool {
+        self.cell(pos).tile == Tile::Empty
+    }
+
     pub fn player(&self) -> &Player {
         &self.player
     }

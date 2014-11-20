@@ -50,7 +50,7 @@ impl Engine {
     pub fn new(width: int, height: int,
                window_title: &str, font_path: Path) -> Engine {
         use tcod::FontFlags::{LayoutTcod, TypeGreyscale};
-        Console::set_custom_font(font_path, [LayoutTcod, TypeGreyscale],
+        Console::set_custom_font(font_path, &[LayoutTcod, TypeGreyscale],
                                  32, 8);
         let fullscreen = false;
         Console::init_root(width, height, window_title, fullscreen);
@@ -61,7 +61,7 @@ impl Engine {
     }
 
     pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt_s: f32, &mut Engine) -> Option<T>) {
-        let default_fg = Color::new(255, 255, 255);
+        let default_fg = Color{r: 255, g: 255, b: 255};
         while !Console::window_closed() {
             loop {
                 match tcod::Console::check_for_keypress(tcod::Pressed) {

@@ -1,6 +1,7 @@
 use std::rand::Rng;
 use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 
+
 #[deriving(PartialEq, Clone, Rand)]
 pub enum WorldItem {
     Empty,
@@ -34,7 +35,7 @@ pub fn forrest<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(int, int, WorldItem)
         Weighted{weight: monster_weight,  item: Voices},
         Weighted{weight: monster_weight,  item: Shadows},
     ];
-    let opts = WeightedChoice::new(weights);
+    let opts = WeightedChoice::new(weights.as_mut_slice());
     let mut result: Vec<(int, int, WorldItem)> = vec![];
     for x in range(0, w) {
         for y in range(0, h) {

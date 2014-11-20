@@ -2,6 +2,7 @@
   a set order of processing.
 * Stun and Panic don't do anything right now
 * Shadows and Voices should fade out on attacking player
+* Generate the correct starting layout
 * Doses should add different amounts of SoM bonus
 * Doses should have an explosion effect on consuming
 * Depression should move by two spaces

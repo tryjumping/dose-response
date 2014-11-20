@@ -2,7 +2,7 @@ use std::rand::Rng;
 
 use super::Action;
 use color::{mod, Color};
-use level::{ToColor, ToGlyph, Level};
+use level::{Level, Render};
 use point::{mod, Point};
 
 
@@ -44,30 +44,16 @@ impl Monster {
     }
 }
 
-impl ToGlyph for Monster {
-    fn to_glyph(&self) -> char {
+impl Render for Monster {
+    fn render(&self) -> (char, Color, Color) {
         use self::Monster::*;
-
+        let bg = color::background;
         match *self {
-            Anxiety => 'a',
-            Depression => 'D',
-            Hunger => 'h',
-            Shadows => 'S',
-            Voices => 'V',
-        }
-    }
-}
-
-impl ToColor for Monster {
-    fn to_color(&self) -> Color {
-        use self::Monster::*;
-
-        match *self {
-            Anxiety => color::anxiety,
-            Depression => color::depression,
-            Hunger => color::hunger,
-            Shadows => color::voices,
-            Voices => color::shadows,
+            Anxiety => ('a', color::anxiety, bg),
+            Depression => ('D', color::depression, bg),
+            Hunger => ('h', color::hunger, bg),
+            Shadows => ('S', color::voices, bg),
+            Voices => ('V', color::shadows, bg),
         }
     }
 }

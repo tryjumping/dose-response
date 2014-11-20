@@ -1,4 +1,5 @@
-use level::ToGlyph;
+use color::{mod, Color};
+use level::Render;
 use monster::Damage;
 use point::Point;
 
@@ -70,12 +71,12 @@ impl Point for Player {
 }
 
 
-impl ToGlyph for Player {
-    fn to_glyph(&self) -> char {
+impl Render for Player {
+    fn render(&self) -> (char, Color, Color) {
         if self.alive {
-            '@'
+            ('@', color::player, color::background)
         } else {
-            '&'
+            ('&', color::dead_player, color::background)
         }
     }
 }

@@ -9,12 +9,8 @@ use player::Player;
 use point::Point;
 
 
-pub trait ToGlyph {
-    fn to_glyph(&self) -> char;
-}
-
-pub trait ToColor {
-    fn to_color(&self) -> Color;
+pub trait Render {
+    fn render(&self) -> (char, Color, Color);
 }
 
 
@@ -32,25 +28,14 @@ pub enum Tile {
 }
 
 
-impl ToGlyph for Tile {
-    fn to_glyph(&self) -> char {
+impl Render for Tile {
+    fn render(&self) -> (char, Color, Color) {
         use self::Tile::*;
-
+        let bg = color::background;
         match *self {
-            Empty => '.',
-            Tree => '#',
-        }
-    }
-}
-
-impl ToColor for Tile {
-    fn to_color(&self) -> Color {
-        use self::Tile::*;
-
-        match *self {
-            Empty => color::empty_tile,
+            Empty => ('.', color::empty_tile, bg),
             // TODO: this should be random for different tiles
-            Tree => color::tree_1,
+            Tree => ('#', color::tree_1, bg),
         }
     }
 }
@@ -181,9 +166,9 @@ impl Level {
     pub fn render(&self, display: &mut Display) {
         let (mut x, mut y) = (0, 0);
         for cell in self.map.iter() {
-            display.draw_char(x, y, cell.tile.to_glyph(), cell.tile.to_color(), color::background);
+            draw(display, (x, y), &cell.tile);
             for item in cell.items.iter() {
-                display.draw_char(x, y, item.to_glyph(), item.to_color(), color::background);
+                draw(display, (x, y), item);
             }
             x += 1;
             if x >= self.width {
@@ -191,11 +176,16 @@ impl Level {
                 y += 1;
             }
         }
-        for (&(x, y), monster) in self.monsters.iter() {
-            assert!((x, y) != self.player().coordinates(), "Monster can't be on the same cell as player.");
-            display.draw_char(x, y, monster.to_glyph(), monster.to_color(), color::background);
+        for (&pos, monster) in self.monsters.iter() {
+            assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
+            draw(display, pos, monster);
         }
-        let (x, y) = self.player.coordinates();
-        display.draw_char(x, y, self.player.to_glyph(), color::player, color::background);
+        draw(display, self.player.coordinates(), &self.player);
     }
+}
+
+fn draw<R: Render>(display: &mut Display, pos: (int, int), render: &R) {
+    let (x, y) = pos;
+    let (glyph, fg, bg) = render.render();
+    display.draw_char(x, y, glyph, fg, bg);
 }

@@ -1,5 +1,5 @@
 use color::{mod, Color};
-use level::{ToColor, ToGlyph};
+use level::Render;
 
 
 #[deriving(PartialEq, Show)]
@@ -9,26 +9,14 @@ pub enum Item {
     Food,
 }
 
-impl ToGlyph for Item {
-    fn to_glyph(&self) -> char {
+impl Render for Item {
+    fn render(&self) -> (char, Color, Color) {
         use self::Item::*;
-
+        let bg = color::background;
         match *self {
-            Dose => 'i',
-            StrongDose => 'I',
-            Food => '%',
-        }
-    }
-}
-
-impl ToColor for Item {
-    fn to_color(&self) -> Color {
-        use self::Item::*;
-
-        match *self {
-            Dose => color::dose,
-            StrongDose => color::dose,
-            Food => color::food,
+            Dose => ('i', color::dose, bg),
+            StrongDose => ('I', color::dose_glow, bg),
+            Food => ('%', color::food, bg),
         }
     }
 }

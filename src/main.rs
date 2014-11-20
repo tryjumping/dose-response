@@ -81,6 +81,7 @@ fn process_player(state: &mut GameState) {
         return
     }
     if let Some(command) = state.commands.pop_front() {
+        state.command_logger.log(command);
         let (x, y) = state.level.player().coordinates();
         let action = match command {
             Command::N => Action::Move(x,     y - 1),

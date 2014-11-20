@@ -130,7 +130,7 @@ pub struct CommandLogger {
 }
 
 impl CommandLogger {
-    fn log(&mut self, command: Command) {
+    pub fn log(&mut self, command: Command) {
         self.writer.write_line(command.to_string().as_slice()).unwrap();
     }
 }

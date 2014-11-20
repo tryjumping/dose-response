@@ -71,6 +71,7 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 
 enum Action {
     Move(int, int),
+    Attack(int, int, monster::Damage),
     Eat,
 }
 
@@ -129,6 +130,9 @@ fn process_player(state: &mut GameState) {
                 state.level.player_mut().spend_ap(1);
                 unimplemented!();
             }
+            Action::Attack(_, _, _) => {
+                unreachable!();
+            }
         }
     }
 }
@@ -138,24 +142,28 @@ fn process_monsters(state: &mut GameState) {
     if !state.level.player().alive() {
         return
     }
+    let player_pos = state.level.player().coordinates();
     let mut monster_actions = vec![];
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
     for (&pos, monster) in state.level.monsters() {
         let (new_x, new_y) = state.level.random_neighbour_position(&mut state.rng, pos);
-        monster_actions.push((pos, Action::Move(new_x, new_y)));
+        if (new_x, new_y) == player_pos {
+            monster_actions.push((pos, Action::Attack(new_x, new_y, monster.attack_damage())));
+        } else {
+            monster_actions.push((pos, Action::Move(new_x, new_y)));
+        }
     }
     for (pos, action) in monster_actions.into_iter() {
         match action {
             Action::Move(x, y) => {
-                if state.level.player().coordinates() == (x, y) {
-                    // TODO: attack action based on the monster
-                    state.level.player_mut().die();
-                } else {
-                    state.level.move_monster(pos, (x, y));
-                }
+                state.level.move_monster(pos, (x, y));
             }
-            _ => {}
+            Action::Attack(x, y, damage) => {
+                assert!((x, y) == state.level.player().coordinates());
+                state.level.player_mut().damaged(damage);
+            }
+            Action::Eat => unreachable!(),
         }
     }
 }

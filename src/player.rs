@@ -1,4 +1,5 @@
 use level::ToGlyph;
+use monster::Damage;
 use point::Point;
 
 
@@ -7,6 +8,10 @@ pub struct Player {
     alive: bool,
     ap: int,
     max_ap: int,
+    state_of_mind: int,
+    will: int,
+    panic: int,
+    stun: int,
 }
 
 impl Player {
@@ -17,6 +22,10 @@ impl Player {
             alive: true,
             ap: 1,
             max_ap: 1,
+            state_of_mind: 20,
+            will: 2,
+            panic: 0,
+            stun: 0,
         }
     }
 
@@ -41,8 +50,18 @@ impl Player {
         self.alive
     }
 
-    pub fn die(&mut self) {
-        self.alive = false;
+    pub fn damaged(&mut self, damage: Damage) {
+        use monster::Damage::*;
+        println!("Player took damage: {}", damage);
+        match damage {
+            Death => self.alive = false,
+            AttributeLoss{will, state_of_mind} => {
+                self.state_of_mind -= state_of_mind;
+                self.will -= will;
+            }
+            Panic(turns) => self.panic += turns,
+            Stun(turns) => self.stun += turns,
+        }
     }
 }
 

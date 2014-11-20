@@ -128,12 +128,15 @@ fn process_player(state: &mut GameState) {
                 }
             }
             Action::Eat => {
-                // TODO: actually remove the food from inventory
-                state.level.player_mut().spend_ap(1);
-                let food_explosion_radius = 2;
-                // TODO: move this to an "explode" procedure we can call elsewhere, too.
-                for expl_pos in point::points_within_radius(state.level.player().coordinates(), food_explosion_radius) {
-                    state.level.kill_monster(expl_pos);
+                if let Some(food_idx) = state.level.player().inventory.iter().position(|&i| i == item::Item::Food) {
+                    state.level.player_mut().inventory.remove(food_idx);
+                    state.level.player_mut().spend_ap(1);
+                    let food_explosion_radius = 2;
+                    // TODO: move this to an "explode" procedure we can call elsewhere, too.
+                    for expl_pos in point::points_within_radius(
+                        state.level.player().coordinates(), food_explosion_radius) {
+                        state.level.kill_monster(expl_pos);
+                    }
                 }
             }
             Action::Attack(_, _) => {

@@ -179,7 +179,7 @@ fn process_monsters(state: &mut GameState) {
             }
             Action::Attack(target_pos, damage) => {
                 assert!(target_pos == state.level.player().coordinates());
-                state.level.player_mut().damaged(damage);
+                state.level.player_mut().take_damage(damage);
             }
             Action::Eat => unreachable!(),
         }
@@ -190,9 +190,9 @@ fn process_monsters(state: &mut GameState) {
 fn render_gui(display: &mut engine::Display, player: &player::Player) {
     let (w, h) = display.size();
     let attribute_line = format!("SoM: {},  Will: {},  Food: {}",
-                              player.state_of_mind(),
-                              player.will(),
-                              player.inventory().len());
+                              player.state_of_mind,
+                              player.will,
+                              player.inventory.len());
     display.write_text(attribute_line.as_slice(), 0, h-1,
                        color::Color{r: 255, g: 255, b: 255},
                        color::Color{r: 0, g: 0, b: 0});

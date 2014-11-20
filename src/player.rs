@@ -6,15 +6,16 @@ use point::Point;
 
 
 pub struct Player {
+    pub will: int,
+    pub panic: int,
+    pub stun: int,
+    pub inventory: Vec<Item>,
+
     pos: (int, int),
     dead: bool,
     ap: int,
     max_ap: int,
-    state_of_mind: int,
-    will: int,
-    pub panic: int,
-    pub stun: int,
-    inventory: Vec<Item>,
+    pub state_of_mind: int,
 }
 
 impl Player {
@@ -54,19 +55,7 @@ impl Player {
         !self.dead && self.will > 0 && self.state_of_mind > 0
     }
 
-    pub fn state_of_mind(&self) -> int {
-        self.state_of_mind
-    }
-
-    pub fn will(&self) -> int {
-        self.will
-    }
-
-    pub fn inventory(&self) -> &Vec<Item> {
-        &self.inventory
-    }
-
-    pub fn damaged(&mut self, damage: Damage) {
+    pub fn take_damage(&mut self, damage: Damage) {
         use monster::Damage::*;
         println!("Player took damage: {}", damage);
         match damage {

@@ -70,8 +70,8 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 
 
 pub enum Action {
-    Move(int, int),
-    Attack(int, int, monster::Damage),
+    Move((int, int)),
+    Attack((int, int), monster::Damage),
     Eat,
 }
 
@@ -84,20 +84,20 @@ fn process_player(state: &mut GameState) {
         state.command_logger.log(command);
         let (x, y) = state.level.player().coordinates();
         let action = match command {
-            Command::N => Action::Move(x,     y - 1),
-            Command::S => Action::Move(x,     y + 1),
-            Command::W => Action::Move(x - 1, y    ),
-            Command::E => Action::Move(x + 1, y    ),
+            Command::N => Action::Move((x,     y - 1)),
+            Command::S => Action::Move((x,     y + 1)),
+            Command::W => Action::Move((x - 1, y    )),
+            Command::E => Action::Move((x + 1, y    )),
 
-            Command::NW => Action::Move(x - 1, y - 1),
-            Command::NE => Action::Move(x + 1, y - 1),
-            Command::SW => Action::Move(x - 1, y + 1),
-            Command::SE => Action::Move(x + 1, y + 1),
+            Command::NW => Action::Move((x - 1, y - 1)),
+            Command::NE => Action::Move((x + 1, y - 1)),
+            Command::SW => Action::Move((x - 1, y + 1)),
+            Command::SE => Action::Move((x + 1, y + 1)),
 
             Command::Eat => Action::Eat,
         };
         match action {
-            Action::Move(x, y) => {
+            Action::Move((x, y)) => {
                 let (w, h) = state.level.size();
                 let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
                 if within_level {
@@ -131,7 +131,7 @@ fn process_player(state: &mut GameState) {
                 state.level.player_mut().spend_ap(1);
                 unimplemented!();
             }
-            Action::Attack(_, _, _) => {
+            Action::Attack(_, _) => {
                 unreachable!();
             }
         }
@@ -152,11 +152,11 @@ fn process_monsters(state: &mut GameState) {
     }
     for (pos, action) in monster_actions.into_iter() {
         match action {
-            Action::Move(x, y) => {
-                state.level.move_monster(pos, (x, y));
+            Action::Move(new_pos) => {
+                state.level.move_monster(pos, new_pos);
             }
-            Action::Attack(x, y, damage) => {
-                assert!((x, y) == state.level.player().coordinates());
+            Action::Attack(target_pos, damage) => {
+                assert!(target_pos == state.level.player().coordinates());
                 state.level.player_mut().damaged(damage);
             }
             Action::Eat => unreachable!(),

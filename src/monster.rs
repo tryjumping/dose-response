@@ -3,7 +3,7 @@ use std::rand::Rng;
 use super::Action;
 use color::{mod, Color};
 use level::{ToColor, ToGlyph, Level};
-use point::Point;
+use point::{mod, Point};
 
 
 #[deriving(PartialEq, Show)]
@@ -27,12 +27,14 @@ impl Monster {
         }
     }
 
-    pub fn act<P: Point, Q: Point, R: Rng>(&self, pos: P, player_pos: Q, level: &Level, rng: &mut R) -> Action{
-        let (new_x, new_y) = level.random_neighbour_position(rng, pos);
-        if (new_x, new_y) == player_pos.coordinates() {
-            Action::Attack(new_x, new_y, self.attack_damage())
+    pub fn act<P: Point, Q: Point, R: Rng>(&self, pos: P, player_pos: Q, level: &Level, rng: &mut R) -> Action {
+        let pos = pos.coordinates();
+        let player_pos = player_pos.coordinates();
+        if point::tile_distance(pos, player_pos) == 1 {
+            Action::Attack(player_pos, self.attack_damage())
         } else {
-            Action::Move(new_x, new_y)
+            let new_pos = level.random_neighbour_position(rng, pos);
+            Action::Move(new_pos)
         }
     }
 }

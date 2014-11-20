@@ -3,7 +3,7 @@ name = "dose-response"
 version = "0.1.0"
 dependencies = [
  "tcod 0.2.0 (git+https://github.com/tomassedovic/tcod-rs.git)",
- "time 0.0.1 (git+https://github.com/rust-lang/time)",
+ "time 0.0.2 (git+https://github.com/rust-lang/time)",
 ]
 
 [[package]]
@@ -18,8 +18,8 @@ source = "git+https://github.com/tomassedovic/tcod-rs.git#0f51d5dba0deeca29c3b9e
 
 [[package]]
 name = "time"
-version = "0.0.1"
-source = "git+https://github.com/rust-lang/time#f4bc73862b942b9c8d8fc92ffe72b73c6616a2ea"
+version = "0.0.2"
+source = "git+https://github.com/rust-lang/time#b58210c93a44d7b83a1a9b68b462f5a7fa1942f3"
 dependencies = [
  "gcc 0.0.1 (git+https://github.com/alexcrichton/gcc-rs)",
 ]

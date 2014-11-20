@@ -69,7 +69,7 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 }
 
 
-enum Action {
+pub enum Action {
     Move(int, int),
     Attack(int, int, monster::Damage),
     Eat,
@@ -148,12 +148,7 @@ fn process_monsters(state: &mut GameState) {
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
     for (&pos, monster) in state.level.monsters() {
-        let (new_x, new_y) = state.level.random_neighbour_position(&mut state.rng, pos);
-        if (new_x, new_y) == player_pos {
-            monster_actions.push((pos, Action::Attack(new_x, new_y, monster.attack_damage())));
-        } else {
-            monster_actions.push((pos, Action::Move(new_x, new_y)));
-        }
+        monster_actions.push((pos, monster.act(pos, player_pos, &state.level, &mut state.rng)));
     }
     for (pos, action) in monster_actions.into_iter() {
         match action {

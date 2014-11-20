@@ -1,5 +1,9 @@
+use std::rand::Rng;
+
+use super::Action;
 use color::{mod, Color};
-use level::{ToColor, ToGlyph};
+use level::{ToColor, ToGlyph, Level};
+use point::Point;
 
 
 #[deriving(PartialEq, Show)]
@@ -20,6 +24,15 @@ impl Monster {
             Hunger => Damage::AttributeLoss{will: 0, state_of_mind: 20},
             Shadows => Damage::Panic(4),
             Voices => Damage::Stun(4),
+        }
+    }
+
+    pub fn act<P: Point, Q: Point, R: Rng>(&self, pos: P, player_pos: Q, level: &Level, rng: &mut R) -> Action{
+        let (new_x, new_y) = level.random_neighbour_position(rng, pos);
+        if (new_x, new_y) == player_pos.coordinates() {
+            Action::Attack(new_x, new_y, self.attack_damage())
+        } else {
+            Action::Move(new_x, new_y)
         }
     }
 }

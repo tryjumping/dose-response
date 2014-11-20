@@ -10,11 +10,18 @@ use std::str;
 
 use time;
 
-use components::{Position, Side};
+use components::Position;
 use level::Level;
 use systems::input::Command;
 use world;
 use world_gen;
+
+
+#[deriving(PartialEq, Clone, Show)]
+pub enum Side {
+    Player,
+    Computer,
+}
 
 
 pub struct GameState {

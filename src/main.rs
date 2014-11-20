@@ -12,10 +12,8 @@ use std::os;
 
 use tcod::{KeyState, Printable, Special};
 
-use components::Side;
 use engine::{Engine, KeyCode};
-use game_state::GameState;
-use level::Tile;
+use game_state::{GameState, Side};
 use monster::Monster;
 use point::Point;
 use systems::input::Command;
@@ -33,6 +31,7 @@ mod point;
 mod systems;
 mod world_gen;
 mod world;
+
 
 
 fn ctrl(key: tcod::KeyState) -> bool {

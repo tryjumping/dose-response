@@ -136,24 +136,6 @@ impl Point for Position {
 // // pub struct UsingItem{pub item: Entity}
 
 
-#[deriving(PartialEq, Clone, Show)]
-pub enum Side {
-    Player,
-    Computer,
-}
-
-impl Side {
-    pub fn next(self) -> Side {
-        match self {
-            Side::Player => Side::Computer,
-            Side::Computer => Side::Player,
-        }
-    }
-
-    pub fn is_last(self) -> bool {
-        self == Side::Computer
-    }
-}
 
 // #[deriving(PartialEq, Clone, Show)]
 // pub enum MonsterKind {

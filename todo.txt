@@ -1,17 +1,38 @@
-* Don't cover the map with the bottom status bar
-* Food should give a bit of State of Mind back but never increase intoxication
+* BUG: replay is broken because monsters are stored in a HashMap and don't have
+  a set order of processing.
+* Stun and Panic don't do anything right now
+* Shadows and Voices should fade out on attacking player
+* Doses should add different amounts of SoM bonus
+* Doses should have an explosion effect on consuming
+* Depression should move by two spaces
+* Monsters should switch back to Idle if the player is too far away
+* Display the SoM textual representation (overdosed, high, withdrawn) in the
+  status bar
+* Irresistible dose effect
+* Fog of war (radius dependent on State of Mind)
+* Every monster should have an action before we give the turn back to player
+* Doses should glow
+* Trees should vary in colours
+* Player should fade when dying
+* Background around a dose should glow in the Irresistible radius
+* Colours should go wild when the player is High
 * Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
-* background glow for the irresistible area around a dose
+* Food should give a bit of State of Mind back but never increase intoxication
 * Uncover and unfade the screen on player death
 * Stop the High colour animation on player death
+* When the PC is drawn to an irresistible dose, they must walk through the
+monsters if that's the shortest path even if it means death.
 * Better display the movement of D monsters:
   - they're moving too fast currently (FPS dependent)
   - we should show a path trail
   - and also slow them down (visually -- so like they move every say 200ms, not every tick)
-* When the PC is drawn to an irresistible dose, they must walk through the
-monsters if that's the shortest path even if it means death.
+
+
+
+
+/// old stuff
 * Figure out gameplay beyond the initial screen
   * We need a greater pressure for exploration and leaving the area. In my current
   playthroughs I just never care enough to leave.

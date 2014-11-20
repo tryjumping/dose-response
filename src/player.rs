@@ -7,7 +7,7 @@ use point::Point;
 
 pub struct Player {
     pos: (int, int),
-    alive: bool,
+    dead: bool,
     ap: int,
     max_ap: int,
     state_of_mind: int,
@@ -22,7 +22,7 @@ impl Player {
     pub fn new<P: Point>(pos: P) -> Player {
         Player {
             pos: pos.coordinates(),
-            alive: true,
+            dead: false,
             ap: 1,
             max_ap: 1,
             state_of_mind: 20,
@@ -51,7 +51,7 @@ impl Player {
     }
 
     pub fn alive(&self) -> bool {
-        self.alive
+        !self.dead && self.will > 0 && self.state_of_mind > 0
     }
 
     pub fn state_of_mind(&self) -> int {
@@ -70,7 +70,7 @@ impl Player {
         use monster::Damage::*;
         println!("Player took damage: {}", damage);
         match damage {
-            Death => self.alive = false,
+            Death => self.dead = true,
             AttributeLoss{will, state_of_mind} => {
                 self.state_of_mind -= state_of_mind;
                 self.will -= will;
@@ -88,7 +88,7 @@ impl Point for Player {
 
 impl Render for Player {
     fn render(&self) -> (char, Color, Color) {
-        if self.alive {
+        if self.alive() {
             ('@', color::player, color::background)
         } else {
             ('&', color::dead_player, color::background)

@@ -122,8 +122,13 @@ fn process_player(state: &mut GameState) {
                 }
             }
             Action::Eat => {
+                // TODO: actually remove the food from inventory
                 state.level.player_mut().spend_ap(1);
-                unimplemented!();
+                let food_explosion_radius = 2;
+                // TODO: move this to an "explode" procedure we can call elsewhere, too.
+                for expl_pos in point::points_within_radius(state.level.player().coordinates(), food_explosion_radius) {
+                    state.level.kill_monster(expl_pos);
+                }
             }
             Action::Attack(_, _) => {
                 unreachable!();

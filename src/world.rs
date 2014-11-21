@@ -11,6 +11,7 @@ use point::{mod, Point};
 
 pub fn populate_world<T: Rng, P: Point>(world_size: (int, int),
                               level: &mut Level,
+                              monsters: &mut Vec<Monster>,
                               player_pos: P,
                               rng: &mut T,
                               generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {
@@ -60,7 +61,9 @@ pub fn populate_world<T: Rng, P: Point>(world_size: (int, int),
                 kind: kind,
                 position: (x, y),
             };
-            level.set_monster((x, y), monster);
+            monsters.push(monster);
+            let monster_index = monsters.len() - 1;
+            level.set_monster((x, y), monster_index, &monster);
         } else {
             let item = match item {
                 WorldItem::Dose => Some(Item::Dose),

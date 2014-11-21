@@ -11,6 +11,7 @@ use std::str;
 use time;
 
 use level::Level;
+use monster::Monster;
 use player::Player;
 use point::Point;
 use systems::input::Command;
@@ -27,6 +28,7 @@ pub enum Side {
 
 pub struct GameState {
     pub player: Player,
+    pub monsters: Vec<Monster>,
     pub level: Level,
     pub display_size: (int, int),
     pub rng: IsaacRng,
@@ -49,6 +51,7 @@ impl GameState {
         let seed_arr: &[_] = &[seed];
         GameState {
             player: Player::new((40, 25)),
+            monsters: vec![],
             level: Level::new(width, height - 2),
             display_size: (width, height),
             rng: SeedableRng::from_seed(seed_arr),
@@ -124,6 +127,7 @@ fn initialise_world(game_state: &mut GameState) {
     // let player_pos = game_state.player.coordinates();
     world::populate_world((width, height),
                           &mut game_state.level,
+                          &mut game_state.monsters,
                           game_state.player.coordinates(),
                           &mut game_state.rng,
                           world_gen::forrest);

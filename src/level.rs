@@ -39,7 +39,7 @@ impl Render for Tile {
 pub struct Level {
     width: int,
     height: int,
-    monsters: HashMap<(int, int), Monster>,
+    monsters: HashMap<(int, int), uint>,
     map: Vec<Cell>,
 }
 
@@ -75,13 +75,13 @@ impl Level {
         self.cell_mut(pos).tile = tile;
     }
 
-    pub fn set_monster<P: Point>(&mut self, pos: P, monster: Monster) {
+    pub fn set_monster<P: Point>(&mut self, pos: P, monster_index: uint, monster: &Monster) {
         assert!(monster.position == pos.coordinates());
-        self.monsters.insert(pos.coordinates(), monster);
+        self.monsters.insert(pos.coordinates(), monster_index);
     }
 
-    pub fn monster<P: Point>(&self, pos: P) -> Option<&Monster> {
-        self.monsters.get(&pos.coordinates())
+    pub fn monster_on_pos<P: Point>(&self, pos: P) -> Option<uint> {
+        self.monsters.get(&pos.coordinates()).map(|&ix| ix)
     }
 
     pub fn add_item<P: Point>(&mut self, pos: P, item: Item) {
@@ -96,28 +96,28 @@ impl Level {
         self.cell(pos).tile == Tile::Empty
     }
 
-    pub fn kill_monster<P: Point>(&mut self, pos: P) -> Option<Monster> {
-        self.monsters.remove(&pos.coordinates())
+    pub fn remove_monster(&mut self, monster_index: uint, monster: &Monster) {
+        if let Some(removed_index) = self.monsters.remove(&monster.position) {
+            assert!(monster_index == removed_index,
+                    "The monster ID removed from the level must be correspond to the monster");
+        }
     }
 
-    pub fn move_monster<P: Point, Q: Point>(&mut self, from: P, to: Q) {
+    pub fn move_monster<P: Point>(&mut self, monster: &mut Monster, destination: P) {
+        let dest = destination.coordinates();
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
-        if self.monsters.contains_key(&to.coordinates()) {
-            return
-        }
-        if let Some(mut monster) = self.monsters.remove(&from.coordinates()) {
-            monster.position = to.coordinates();
-            self.monsters.insert(to.coordinates(), monster);
+        assert!(!self.monsters.contains_key(&dest))
+        if let Some(monster_index) = self.monsters.remove(&monster.position) {
+            monster.position = dest;
+            self.monsters.insert(dest, monster_index);
+        } else {
+            panic!("Moving a monster that doesn't exist");
         }
     }
 
     pub fn pickup_item<P: Point>(&mut self, pos: P) -> Option<Item> {
         self.cell_mut(pos).items.pop()
-    }
-
-    pub fn monsters(&self) -> ::std::collections::hash_map::Entries<(int, int), Monster> {
-        self.monsters.iter()
     }
 
     pub fn random_neighbour_position<T: Rng, P: Point>(&self, rng: &mut T, pos: P) -> (int, int) {
@@ -158,9 +158,6 @@ impl Level {
                 x = 0;
                 y += 1;
             }
-        }
-        for (&pos, monster) in self.monsters.iter() {
-            graphics::draw(display, pos, monster);
         }
     }
 }

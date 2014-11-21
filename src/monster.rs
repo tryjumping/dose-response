@@ -35,8 +35,8 @@ impl Monster {
         }
     }
 
-    pub fn act<P: Point, Q: Point, R: Rng>(&self, pos: P, player_pos: Q, level: &Level, rng: &mut R) -> Action {
-        let distance = point::tile_distance(&pos, &player_pos);
+    pub fn act<P: Point, R: Rng>(&self, player_pos: P, level: &Level, rng: &mut R) -> Action {
+        let distance = point::tile_distance(&self.position, &player_pos);
         // TODO: track the state of the AI (agressive/idle) and switch between
         // them as the distance change.
         if distance == 1 {
@@ -46,7 +46,7 @@ impl Monster {
             Action::Move(player_pos.coordinates())
         } else {
             // Move randomly about
-            let new_pos = level.random_neighbour_position(rng, pos);
+            let new_pos = level.random_neighbour_position(rng, self.position);
             Action::Move(new_pos)
         }
     }

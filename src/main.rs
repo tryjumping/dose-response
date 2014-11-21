@@ -74,6 +74,20 @@ pub enum Action {
 }
 
 
+fn kill_monster_at_pos(pos: (int, int),
+                       monsters: &mut Vec<monster::Monster>,
+                       level: &mut level::Level) -> monster::Monster {
+    match level.monster_on_pos(pos) {
+        Some(index) => {
+            let monster = monsters.remove(index).unwrap();
+            assert!(monster.position == pos);
+            level.remove_monster(index, &monster);
+            return monster
+        }
+        None => panic!(format!("No monster on position {}", pos)),
+    }
+}
+
 fn process_player(state: &mut GameState) {
     if !state.player.alive() {
         return
@@ -99,9 +113,12 @@ fn process_player(state: &mut GameState) {
                 let (w, h) = state.level.size();
                 let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
                 if within_level {
-                    if state.level.monster((x, y)).is_some() {
+                    if state.level.monster_on_pos((x, y)).is_some() {
                         state.player.spend_ap(1);
-                        match state.level.kill_monster((x, y)).unwrap().kind {
+                        let monster = kill_monster_at_pos((x, y),
+                                                          &mut state.monsters,
+                                                          &mut state.level);
+                        match monster.kind {
                             monster::Kind::Anxiety => {
                                 println!("TODO: increase the anxiety kill counter / add one Will");
                             }
@@ -135,7 +152,9 @@ fn process_player(state: &mut GameState) {
                     // TODO: move this to an "explode" procedure we can call elsewhere, too.
                     for expl_pos in point::points_within_radius(
                         state.player.coordinates(), food_explosion_radius) {
-                        state.level.kill_monster(expl_pos);
+                        kill_monster_at_pos(expl_pos,
+                                            &mut state.monsters,
+                                            &mut state.level);
                     }
                 }
             }
@@ -155,14 +174,16 @@ fn process_monsters(state: &mut GameState) {
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
     let mut monster_actions = vec![];
-    for (&pos, monster) in state.level.monsters() {
-        monster_actions.push((pos, monster.act(pos, player_pos, &state.level, &mut state.rng)));
+    for (index, &monster) in state.monsters.iter().enumerate() {
+        monster_actions.push((index,
+                              monster.act(player_pos, &state.level, &mut state.rng)));
     }
-    for (pos, action) in monster_actions.into_iter() {
+    for (monster_index, action) in monster_actions.into_iter() {
         match action {
             Action::Move(destination) => {
-                if point::tile_distance(&pos, &destination) == 1 {
-                    state.level.move_monster(pos, destination);
+                let mut monster = state.monsters[monster_index];
+                if point::tile_distance(&monster.position, &destination) == 1 {
+                    state.level.move_monster(&mut monster, destination);
                 } else {
                     let (w, h) = state.level.size();
                     // Walk one step:
@@ -177,12 +198,12 @@ fn process_monsters(state: &mut GameState) {
                                 }
                             },
                             1.0);
-                        path.find(pos.coordinates(), destination.coordinates());
+                        path.find(monster.position, destination.coordinates());
                         assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
                         path.walk_one_step(true)
                     };
                     if let Some(newpos) = newpos_opt {
-                        state.level.move_monster(pos, newpos);
+                        state.level.move_monster(&mut monster, newpos);
                     }
                 }
             }
@@ -274,6 +295,9 @@ fn update(mut state: GameState, _dt_s: f32, engine: &mut engine::Engine) -> Opti
     state.level.render(&mut engine.display);
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
+    for monster in state.monsters.iter() {
+        graphics::draw(&mut engine.display, monster.position, monster);
+    }
     graphics::draw(&mut engine.display, state.player.coordinates(), &state.player);
     render_gui(&mut engine.display, &state.player);
     Some(state)

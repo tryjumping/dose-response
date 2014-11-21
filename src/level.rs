@@ -5,7 +5,6 @@ use color::{mod, Color};
 use engine::Display;
 use item::Item;
 use monster::Monster;
-use player::Player;
 use point::Point;
 
 
@@ -44,7 +43,6 @@ impl Render for Tile {
 pub struct Level {
     width: int,
     height: int,
-    player: Player,
     monsters: HashMap<(int, int), Monster>,
     map: Vec<Cell>,
 }
@@ -55,7 +53,6 @@ impl Level {
         Level {
             width: width,
             height: height,
-            player: Player::new((40, 25)),
             monsters: HashMap::new(),
             map: Vec::from_fn((width * height) as uint,
                               |_| Cell{tile: Tile::Empty, items: vec![]}),
@@ -100,18 +97,6 @@ impl Level {
 
     pub fn walkable<P: Point>(&self, pos: P) -> bool {
         self.cell(pos).tile == Tile::Empty
-    }
-
-    pub fn player(&self) -> &Player {
-        &self.player
-    }
-
-    pub fn player_mut(&mut self) -> &mut Player {
-        &mut self.player
-    }
-
-    pub fn move_player<P: Point>(&mut self, new_pos: P) {
-        self.player.move_to(new_pos);
     }
 
     pub fn kill_monster<P: Point>(&mut self, pos: P) -> Option<Monster> {
@@ -177,14 +162,12 @@ impl Level {
             }
         }
         for (&pos, monster) in self.monsters.iter() {
-            assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
             draw(display, pos, monster);
         }
-        draw(display, self.player.coordinates(), &self.player);
     }
 }
 
-fn draw<R: Render>(display: &mut Display, pos: (int, int), render: &R) {
+pub fn draw<R: Render>(display: &mut Display, pos: (int, int), render: &R) {
     let (x, y) = pos;
     let (glyph, fg, bg) = render.render();
     display.draw_char(x, y, glyph, fg, bg);

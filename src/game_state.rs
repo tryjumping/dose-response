@@ -11,6 +11,7 @@ use std::str;
 use time;
 
 use level::Level;
+use player::Player;
 use point::Point;
 use systems::input::Command;
 use world;
@@ -25,6 +26,7 @@ pub enum Side {
 
 
 pub struct GameState {
+    pub player: Player,
     pub level: Level,
     pub display_size: (int, int),
     pub rng: IsaacRng,
@@ -46,6 +48,7 @@ impl GameState {
            replay: bool) -> GameState {
         let seed_arr: &[_] = &[seed];
         GameState {
+            player: Player::new((40, 25)),
             level: Level::new(width, height - 2),
             display_size: (width, height),
             rng: SeedableRng::from_seed(seed_arr),
@@ -118,10 +121,10 @@ impl GameState {
 
 fn initialise_world(game_state: &mut GameState) {
     let (width, height) = game_state.level.size();
-    let player_pos = game_state.level.player().coordinates();
+    // let player_pos = game_state.player.coordinates();
     world::populate_world((width, height),
                           &mut game_state.level,
-                          player_pos,
+                          game_state.player.coordinates(),
                           &mut game_state.rng,
                           world_gen::forrest);
 }

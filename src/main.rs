@@ -75,12 +75,12 @@ pub enum Action {
 
 
 fn process_player(state: &mut GameState) {
-    if !state.level.player().alive() {
+    if !state.player.alive() {
         return
     }
     if let Some(command) = state.commands.pop_front() {
         state.command_logger.log(command);
-        let (x, y) = state.level.player().coordinates();
+        let (x, y) = state.player.coordinates();
         let action = match command {
             Command::N => Action::Move((x,     y - 1)),
             Command::S => Action::Move((x,     y + 1)),
@@ -100,7 +100,7 @@ fn process_player(state: &mut GameState) {
                 let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
                 if within_level {
                     if state.level.monster((x, y)).is_some() {
-                        state.level.player_mut().spend_ap(1);
+                        state.player.spend_ap(1);
                         match state.level.kill_monster((x, y)).unwrap() {
                             Monster::Anxiety => {
                                 println!("TODO: increase the anxiety kill counter / add one Will");
@@ -108,14 +108,14 @@ fn process_player(state: &mut GameState) {
                             _ => {}
                         }
                     } else if state.level.walkable((x, y)) {
-                        state.level.player_mut().spend_ap(1);
-                        state.level.move_player((x, y));
+                        state.player.spend_ap(1);
+                        state.player.move_to((x, y));
                         loop {
                             match state.level.pickup_item((x, y)) {
                                 Some(item) => {
                                     use item::Item::*;
                                     match item {
-                                        Food => state.level.player_mut().inventory.push(item),
+                                        Food => state.player.inventory.push(item),
                                         Dose | StrongDose => {
                                             println!("TODO: use the dose");
                                         }
@@ -128,13 +128,13 @@ fn process_player(state: &mut GameState) {
                 }
             }
             Action::Eat => {
-                if let Some(food_idx) = state.level.player().inventory.iter().position(|&i| i == item::Item::Food) {
-                    state.level.player_mut().inventory.remove(food_idx);
-                    state.level.player_mut().spend_ap(1);
+                if let Some(food_idx) = state.player.inventory.iter().position(|&i| i == item::Item::Food) {
+                    state.player.inventory.remove(food_idx);
+                    state.player.spend_ap(1);
                     let food_explosion_radius = 2;
                     // TODO: move this to an "explode" procedure we can call elsewhere, too.
                     for expl_pos in point::points_within_radius(
-                        state.level.player().coordinates(), food_explosion_radius) {
+                        state.player.coordinates(), food_explosion_radius) {
                         state.level.kill_monster(expl_pos);
                     }
                 }
@@ -148,10 +148,10 @@ fn process_player(state: &mut GameState) {
 
 
 fn process_monsters(state: &mut GameState) {
-    if !state.level.player().alive() {
+    if !state.player.alive() {
         return
     }
-    let player_pos = state.level.player().coordinates();
+    let player_pos = state.player.coordinates();
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
     let mut monster_actions = vec![];
@@ -187,8 +187,8 @@ fn process_monsters(state: &mut GameState) {
                 }
             }
             Action::Attack(target_pos, damage) => {
-                assert!(target_pos == state.level.player().coordinates());
-                state.level.player_mut().take_damage(damage);
+                assert!(target_pos == state.player.coordinates());
+                state.player.take_damage(damage);
             }
             Action::Eat => unreachable!(),
         }
@@ -260,19 +260,22 @@ fn update(mut state: GameState, _dt_s: f32, engine: &mut engine::Engine) -> Opti
     match state.side {
         Side::Player => {
             process_player(&mut state);
-            if !state.level.player_mut().has_ap(1) {
+            if !state.player.has_ap(1) {
                 state.side = Side::Computer;
             }
         }
         Side::Computer => {
             process_monsters(&mut state);
             state.side = Side::Player;
-            state.level.player_mut().new_turn();
+            state.player.new_turn();
         }
     }
 
     state.level.render(&mut engine.display);
-    render_gui(&mut engine.display, state.level.player());
+    // TODO: assert no monster is on the same coords as the player
+    // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
+    level::draw(&mut engine.display, state.player.coordinates(), &state.player);
+    render_gui(&mut engine.display, &state.player);
     Some(state)
 }
 

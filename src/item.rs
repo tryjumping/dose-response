@@ -1,5 +1,5 @@
 use color::{mod, Color};
-use level::Render;
+use graphics::Render;
 
 
 #[deriving(PartialEq, Show)]

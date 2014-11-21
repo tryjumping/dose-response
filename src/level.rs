@@ -3,14 +3,10 @@ use std::rand::Rng;
 
 use color::{mod, Color};
 use engine::Display;
+use graphics::{mod, Render};
 use item::Item;
 use monster::Monster;
 use point::Point;
-
-
-pub trait Render {
-    fn render(&self) -> (char, Color, Color);
-}
 
 
 #[deriving(PartialEq, Show)]
@@ -151,9 +147,9 @@ impl Level {
     pub fn render(&self, display: &mut Display) {
         let (mut x, mut y) = (0, 0);
         for cell in self.map.iter() {
-            draw(display, (x, y), &cell.tile);
+            graphics::draw(display, (x, y), &cell.tile);
             for item in cell.items.iter() {
-                draw(display, (x, y), item);
+                graphics::draw(display, (x, y), item);
             }
             x += 1;
             if x >= self.width {
@@ -162,13 +158,7 @@ impl Level {
             }
         }
         for (&pos, monster) in self.monsters.iter() {
-            draw(display, pos, monster);
+            graphics::draw(display, pos, monster);
         }
     }
-}
-
-pub fn draw<R: Render>(display: &mut Display, pos: (int, int), render: &R) {
-    let (x, y) = pos;
-    let (glyph, fg, bg) = render.render();
-    display.draw_char(x, y, glyph, fg, bg);
 }

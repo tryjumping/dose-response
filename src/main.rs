@@ -22,6 +22,7 @@ mod color;
 mod engine;
 //mod entity_util;
 mod game_state;
+mod graphics;
 mod item;
 mod level;
 mod monster;
@@ -274,7 +275,7 @@ fn update(mut state: GameState, _dt_s: f32, engine: &mut engine::Engine) -> Opti
     state.level.render(&mut engine.display);
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
-    level::draw(&mut engine.display, state.player.coordinates(), &state.player);
+    graphics::draw(&mut engine.display, state.player.coordinates(), &state.player);
     render_gui(&mut engine.display, &state.player);
     Some(state)
 }

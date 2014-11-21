@@ -1,6 +1,6 @@
 use color::{mod, Color};
 use item::Item;
-use level::Render;
+use graphics::Render;
 use monster::Damage;
 use point::Point;
 

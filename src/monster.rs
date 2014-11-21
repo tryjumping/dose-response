@@ -2,7 +2,8 @@ use std::rand::Rng;
 
 use super::Action;
 use color::{mod, Color};
-use level::{Level, Render};
+use level::Level;
+use graphics::Render;
 use point::{mod, Point};
 
 

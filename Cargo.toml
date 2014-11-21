@@ -12,5 +12,5 @@ path = "src/main.rs"
 [dependencies.tcod]
 git = "https://github.com/tomassedovic/tcod-rs.git"
 
-[dependencies.time]
-git = "https://github.com/rust-lang/time"
+[dependencies]
+time = "*"

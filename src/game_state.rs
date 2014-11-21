@@ -63,7 +63,7 @@ impl GameState {
         let commands = RingBuf::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
-        let timestamp = format!("{}.{:03d}",
+        let timestamp = format!("{}.{:03}",
                                 time::strftime("%FT%T", &cur_time).unwrap(),
                                 (cur_time.tm_nsec / 1000000));
         let replay_dir = &Path::new("./replays/");

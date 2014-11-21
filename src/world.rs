@@ -4,7 +4,7 @@ use std::rand::Rng;
 use color::{mod, Color};
 use item::Item;
 use level::{Level, Tile};
-use monster::Monster;
+use monster::{mod, Monster};
 use world_gen::{mod, WorldItem};
 use point::{mod, Point};
 
@@ -48,13 +48,17 @@ pub fn populate_world<T: Rng, P: Point>(world_size: (int, int),
             continue
         }
         if item.is_monster() {
-            let monster = match item {
-                WorldItem::Anxiety => Monster::Anxiety,
-                WorldItem::Depression => Monster::Depression,
-                WorldItem::Hunger => Monster::Hunger,
-                WorldItem::Shadows => Monster::Shadows,
-                WorldItem::Voices => Monster::Voices,
+            let kind = match item {
+                WorldItem::Anxiety    => monster::Kind::Anxiety,
+                WorldItem::Depression => monster::Kind::Depression,
+                WorldItem::Hunger     => monster::Kind::Hunger,
+                WorldItem::Shadows    => monster::Kind::Shadows,
+                WorldItem::Voices     => monster::Kind::Voices,
                 _ => unreachable!(),
+            };
+            let monster = Monster {
+                kind: kind,
+                position: (x, y),
             };
             level.set_monster((x, y), monster);
         } else {

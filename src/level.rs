@@ -76,6 +76,7 @@ impl Level {
     }
 
     pub fn set_monster<P: Point>(&mut self, pos: P, monster: Monster) {
+        assert!(monster.position == pos.coordinates());
         self.monsters.insert(pos.coordinates(), monster);
     }
 
@@ -105,7 +106,8 @@ impl Level {
         if self.monsters.contains_key(&to.coordinates()) {
             return
         }
-        if let Some(monster) = self.monsters.remove(&from.coordinates()) {
+        if let Some(mut monster) = self.monsters.remove(&from.coordinates()) {
+            monster.position = to.coordinates();
             self.monsters.insert(to.coordinates(), monster);
         }
     }

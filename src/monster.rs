@@ -8,7 +8,14 @@ use point::{mod, Point};
 
 
 #[deriving(PartialEq, Show)]
-pub enum Monster {
+pub struct Monster {
+    pub kind: Kind,
+    pub position: (int, int),
+}
+
+
+#[deriving(PartialEq, Show)]
+pub enum Kind {
     Anxiety,
     Depression,
     Hunger,
@@ -18,8 +25,8 @@ pub enum Monster {
 
 impl Monster {
     pub fn attack_damage(&self) -> Damage {
-        use self::Monster::*;
-        match *self {
+        use self::Kind::*;
+        match self.kind {
             Anxiety => Damage::AttributeLoss{will: 1, state_of_mind: 0},
             Depression => Damage::Death,
             Hunger => Damage::AttributeLoss{will: 0, state_of_mind: 20},
@@ -47,9 +54,9 @@ impl Monster {
 
 impl Render for Monster {
     fn render(&self) -> (char, Color, Color) {
-        use self::Monster::*;
+        use self::Kind::*;
         let bg = color::background;
-        match *self {
+        match self.kind {
             Anxiety => ('a', color::anxiety, bg),
             Depression => ('D', color::depression, bg),
             Hunger => ('h', color::hunger, bg),

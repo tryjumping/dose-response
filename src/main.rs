@@ -14,7 +14,6 @@ use tcod::{KeyState, Printable, Special};
 
 use engine::{Engine, KeyCode};
 use game_state::{GameState, Side};
-use monster::Monster;
 use point::Point;
 use systems::input::Command;
 
@@ -102,8 +101,8 @@ fn process_player(state: &mut GameState) {
                 if within_level {
                     if state.level.monster((x, y)).is_some() {
                         state.player.spend_ap(1);
-                        match state.level.kill_monster((x, y)).unwrap() {
-                            Monster::Anxiety => {
+                        match state.level.kill_monster((x, y)).unwrap().kind {
+                            monster::Kind::Anxiety => {
                                 println!("TODO: increase the anxiety kill counter / add one Will");
                             }
                             _ => {}

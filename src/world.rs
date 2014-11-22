@@ -57,11 +57,7 @@ pub fn populate_world<T: Rng, P: Point>(world_size: (int, int),
                 WorldItem::Voices     => monster::Kind::Voices,
                 _ => unreachable!(),
             };
-            let monster = Monster {
-                kind: kind,
-                position: (x, y),
-                dead: false,
-            };
+            let monster = Monster::new(kind, (x, y));
             let monster_index = monsters.len();
             level.set_monster((x, y), monster_index, &monster);
             monsters.push(monster);

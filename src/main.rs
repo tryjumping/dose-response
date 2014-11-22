@@ -220,6 +220,11 @@ fn process_monsters(state: &mut GameState) {
             Action::Attack(target_pos, damage) => {
                 assert!(target_pos == state.player.coordinates());
                 state.player.take_damage(damage);
+                if state.monsters[monster_index].die_after_attack {
+                    kill_monster_at_pos(state.monsters[monster_index].position,
+                                        &mut state.monsters,
+                                        &mut state.level);
+                }
             }
             Action::Eat => unreachable!(),
         }

@@ -7,11 +7,15 @@ use graphics::Render;
 use point::{mod, Point};
 
 
+use self::Kind::*;
+
+
 #[deriving(PartialEq, Show)]
 pub struct Monster {
     pub kind: Kind,
     pub position: (int, int),
     pub dead: bool,
+    pub die_after_attack: bool,
 }
 
 
@@ -26,14 +30,18 @@ pub enum Kind {
 
 impl Monster {
     pub fn new(kind: Kind, position: (int, int)) -> Monster {
+        let die_after_attack = match kind {
+            Shadows | Voices => true,
+            Anxiety | Depression | Hunger => false,
+        };
         Monster {
             kind: kind,
             position: position,
             dead: false,
+            die_after_attack: die_after_attack,
         }
     }
     pub fn attack_damage(&self) -> Damage {
-        use self::Kind::*;
         match self.kind {
             Anxiety => Damage::AttributeLoss{will: 1, state_of_mind: 0},
             Depression => Damage::Death,
@@ -70,7 +78,6 @@ impl Drop for Monster {
 
 impl Render for Monster {
     fn render(&self) -> (char, Color, Color) {
-        use self::Kind::*;
         let bg = color::background;
         match self.kind {
             Anxiety => ('a', color::anxiety, bg),

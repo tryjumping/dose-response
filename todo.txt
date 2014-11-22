@@ -1,3 +1,9 @@
+* Slow down replay ticks
+  - just force lower FPS?
+  - or add sleep & stuff manually?
+* Clean up the monster list / level cache?
+  - was a huge source of bugs, maybe we want to tighten it up more?
+* Get rid of int/uint -- they're platform specific, just use i32 or whatever appropriate
 * Stun and Panic don't do anything right now
 * Shadows and Voices should fade out on attacking player
 * Generate the correct starting layout

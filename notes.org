@@ -1,0 +1,94 @@
+* Gameplay priority
+** Stun and Panic don't do anything right now
+** Generate the correct starting layout
+** Doses should add different amounts of SoM bonus
+** Doses should have an explosion effect on consuming
+** Depression should move by two spaces
+** Monsters should switch back to Idle if the player is too far away
+** Irresistible dose effect
+** Fog of war (radius dependent on State of Mind)
+** Every monster should have an action before we give the turn back to player
+** Colours should go wild when the player is High
+** Add bonuses on superhigh
+  - see entities on som >= 98
+  - uncover the entire map on som == 99
+** Food should give a bit of State of Mind back but never increase intoxication
+** When the PC is drawn to an irresistible dose
+they must walk through the monsters if that's the shortest path even if it means death
+* Other gameplay ideas & plans
+** Gameplay beyond the first screen
+*** We need a greater pressure for exploration and leaving the area.
+**** In my current playthroughs I just never care enough to leave.
+**** consider tweaking the intoxication gain and drop to create stronger pressure
+*** Hey, like, just a though: What about an infinite world instead of discrete screens?
+**** may (suprisingly) provide more variety
+**** would fit the exploration feel I'm going for
+**** no need to figure out special exit handling, etc. Just go as far as you can/want.
+*** Add different worlds the player can go to when leaving the map
+**** this could either be completely random
+**** or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two other worlds, then three different worlds, etc.)
+**** Some notes on different world generation:
+http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
+*** consider restricting the possible ways to leave the map
+** More effects on High
+*** monsters get weaker (Dempression moving by one step per turn)
+*** dynamic / changing environment?
+** improve level generator not to create blocked entities
+** Don't allow suicide (if there's a way to avoid it)
+*** e.g. fatfingering the arrow when the Depression is near
+** save&exit/load game
+* Polish (UI & stuff)
+** Shadows & Voices should fade out when dying after attack
+** Animate food & dose explosions (like in Cogmind)
+** Display the SoM textual representation (overdosed, high, withdrawn) in the status bar
+** Doses should glow
+** Trees should vary in colours
+** Player should fade when dying
+** Background around a dose should glow in the Irresistible radius
+** Uncover and unfade the screen on player death
+** Stop the High colour animation on player death
+** Better display the movement of D monsters:
+  - they're moving too fast currently (FPS dependent)
+  - we should show a path trail
+  - and also slow them down (visually -- so like they move every say 200ms, not every tick)
+** Smooth animations for the fade-out when growing Withdrawn
+** Change the rate of the `High` animation based on intoxication
+  (very high: fast-paced, should slow down on the way to sobriety)
+** Better effects on player's death:
+*** Fade out to red/black completely
+*** Uncover the entire map (with a reverse fade)
+    - with full colours
+    - showing player's corpse
+** Make the graphics on Overdose death glitchy
+** Better radious / FoV calculation
+Instead of looking at the points' coordinates, look at the actual (pixel) space
+each tile represents. The tiles are not points but squares with an area. This
+should provide a visually better result (but will be harder to compute).
+** Pick a good colour palette
+** Add the Marla Daniels quote
+  - When the game is launched and there aren't any saves, it should just jump into the play
+    * (that was the genius of Braid)
+    * (we can use the unexplored area to show help/hints)
+  - Any other time, we'll show the menu with the quote & the load-game option
+  - Possibly, we may show it during player's death, if it makes sense
+** Effects on hit/death
+   - colour fade (or something) on stun, removed will, death, etc.
+** Change player's colour on stunned/panicked
+** Make sure we're accessible to colour blind people
+* Code cleanup & improvements
+** Update each actor in every frame
+** Clean up the monster list / level cache?
+   - was a huge source of bugs, maybe we want to tighten it up more?
+** Get rid of int/uint -- they're platform specific, just use i32 or whatever appropriate
+** Use libtcod.cfg for config to libtcod.cfg
+   - that way we won't have to implement a lot of options UI
+   - http://doryen.eptalys.net/data/libtcod/doc/1.5.1/html2/parser_run.html?c=true
+   - should properly commented, suggesting available font options and such
+   - Examples:
+     - font path
+     - font size
+     - fullscreen (yes/no)
+     - key bindings
+     - colour-blind mode (yes/no)
+     - location to the replays
+     - location to the saved games?

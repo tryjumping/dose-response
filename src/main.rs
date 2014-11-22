@@ -265,6 +265,8 @@ fn render_gui(display: &mut engine::Display, player: &player::Player) {
 
 
 fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
+    assert!(state.monsters.iter().enumerate().all(|(index, monster)| index == monster.id()),
+            "Monster.id must always be equal to its index in state.monsters.");
     if engine.key_pressed(Special(KeyCode::Escape)) {
         return None;
     }

@@ -1,7 +1,3 @@
-* BUG: replay is broken because monsters are stored in a HashMap and don't have
-  a set order of processing.
-  -- TODO: should be fixed by the new fixed monster ordering. Verify!
-
 * Stun and Panic don't do anything right now
 * Shadows and Voices should fade out on attacking player
 * Generate the correct starting layout

@@ -8,6 +8,7 @@ extern crate time;
 extern crate tcod;
 
 use std::collections::RingBuf;
+use std::time::Duration;
 use std::os;
 
 use tcod::{KeyState, Printable, Special};
@@ -256,8 +257,7 @@ fn render_gui(display: &mut engine::Display, player: &player::Player) {
 }
 
 
-// TODO: use Duration instead of f32 for `dt`
-fn update(mut state: GameState, _dt_s: f32, engine: &mut engine::Engine) -> Option<GameState> {
+fn update(mut state: GameState, _dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
     if engine.key_pressed(Special(KeyCode::Escape)) {
         return None;
     }

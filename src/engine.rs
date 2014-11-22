@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
 use std::collections::RingBuf;
+use std::time::Duration;
+
 pub use tcod::{mod, Color, Console, RootConsole, KeyCode};
 
 
@@ -60,7 +62,7 @@ impl Engine {
         }
     }
 
-    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt_s: f32, &mut Engine) -> Option<T>) {
+    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, &mut Engine) -> Option<T>) {
         let default_fg = Color{r: 255, g: 255, b: 255};
         while !Console::window_closed() {
             loop {
@@ -75,7 +77,9 @@ impl Engine {
             RootConsole.clear();
             self.display.fade = None;
 
-            match update(state, tcod::system::get_last_frame_length(), self) {
+            match update(state,
+                         Duration::microseconds((tcod::system::get_last_frame_length() * 1_000_000.0) as i64),
+                         self) {
                 Some(new_state) => {
                     state = new_state;
                 }

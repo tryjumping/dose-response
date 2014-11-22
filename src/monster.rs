@@ -81,6 +81,7 @@ impl Monster {
     pub fn spend_ap(&mut self, count: int) {
         assert!(count <= self.ap);
         self.ap -= count;
+        self.spent_this_tick += 1;
     }
 
     pub fn has_ap(&self, count: int) -> bool {
@@ -89,6 +90,10 @@ impl Monster {
 
     pub fn new_turn(&mut self) {
         self.ap = self.max_ap;
+    }
+
+    pub fn ap_clear_tick(&mut self) {
+        self.spent_this_tick = 0;
     }
 }
 

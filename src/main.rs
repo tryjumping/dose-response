@@ -306,6 +306,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         //     monster must spend at most one action point per frame)
         //    - This implies we have to keep track of monsters that acted *in this frame*
         // 4. If no monster has an available action point, set side to Player.
+
+        // Process player
         match state.side {
             Side::Player => {
                 process_player(&mut state);
@@ -313,6 +315,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                     state.side = Side::Computer;
                 }
             }
+            Side::Computer => {}
+        }
+
+        // Process monsters
+        match state.side {
+            Side::Player => {}
             Side::Computer => {
                 process_monsters(&mut state);
                 state.side = Side::Player;

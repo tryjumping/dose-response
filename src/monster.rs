@@ -12,6 +12,7 @@ use self::Kind::*;
 
 #[deriving(PartialEq, Show)]
 pub struct Monster {
+    id: uint,
     pub kind: Kind,
     pub position: Point,
     pub dead: bool,
@@ -33,12 +34,13 @@ pub enum Kind {
 }
 
 impl Monster {
-    pub fn new(kind: Kind, position: Point) -> Monster {
+    pub fn new(id: uint, kind: Kind, position: Point) -> Monster {
         let die_after_attack = match kind {
             Shadows | Voices => true,
             Anxiety | Depression | Hunger => false,
         };
         Monster {
+            id: id,
             kind: kind,
             position: position,
             dead: false,
@@ -47,6 +49,10 @@ impl Monster {
             max_ap: 1,
             spent_this_tick: 0,
         }
+    }
+
+    pub fn id(&self) -> uint {
+        self.id
     }
 
     pub fn attack_damage(&self) -> Damage {

@@ -1,7 +1,3 @@
-* Update each actor in every frame
-* Clean up the monster list / level cache?
-  - was a huge source of bugs, maybe we want to tighten it up more?
-* Get rid of int/uint -- they're platform specific, just use i32 or whatever appropriate
 * Stun and Panic don't do anything right now
 * Shadows and Voices should fade out on attacking player
 * Generate the correct starting layout
@@ -32,6 +28,13 @@ monsters if that's the shortest path even if it means death.
   - we should show a path trail
   - and also slow them down (visually -- so like they move every say 200ms, not every tick)
 
+
+### Code cleanup / improvements
+
+* Update each actor in every frame
+* Clean up the monster list / level cache?
+  - was a huge source of bugs, maybe we want to tighten it up more?
+* Get rid of int/uint -- they're platform specific, just use i32 or whatever appropriate
 
 
 

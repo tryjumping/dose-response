@@ -174,8 +174,10 @@ fn process_monsters(state: &mut GameState) {
         return
     }
     let player_pos = state.player.pos;
-    // TODO: we need to make sure these are always processed in the same order,
-    // otherwise replay is bust!
+    for monster in state.monsters.iter_mut() {
+        monster.ap_clear_tick();
+    }
+
     let mut monster_actions = vec![];
     for (index, monster) in state.monsters.iter().enumerate().filter(|&(_, m)| !m.dead) {
         monster_actions.push((index,
@@ -207,10 +209,10 @@ fn process_monsters(state: &mut GameState) {
                 };
                 if let Some(step) = newpos_opt {
                     if state.level.monster_on_pos(step).is_none() {
-                        // TODO: spend an action point.
+                        state.monsters[monster_index].spend_ap(1);
                         state.level.move_monster(&mut state.monsters[monster_index], step);
                     } else {
-                        // Else: some other monster moved in before we did.
+                        // NOTE: some other monster moved in before we did.
                         // Don't do anything for now, don't spend any action
                         // points, we'll get our chance in the next pass.
                     }
@@ -218,6 +220,7 @@ fn process_monsters(state: &mut GameState) {
             }
             Action::Attack(target_pos, damage) => {
                 assert!(target_pos == state.player.pos);
+                state.monsters[monster_index].spend_ap(1);
                 state.player.take_damage(damage);
                 if state.monsters[monster_index].die_after_attack {
                     kill_monster_at_pos(state.monsters[monster_index].position,
@@ -313,6 +316,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 process_player(&mut state);
                 if !state.player.has_ap(1) {
                     state.side = Side::Computer;
+                    for monster in state.monsters.iter_mut() {
+                        monster.new_turn();
+                    }
                 }
             }
             Side::Computer => {}
@@ -323,8 +329,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             Side::Player => {}
             Side::Computer => {
                 process_monsters(&mut state);
-                state.side = Side::Player;
-                state.player.new_turn();
+                // TODO: if no remaining action points:
+                         state.side = Side::Player;
+                         state.player.new_turn();
             }
         }
     }

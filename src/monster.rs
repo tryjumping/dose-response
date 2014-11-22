@@ -44,7 +44,7 @@ impl Monster {
             dead: false,
             die_after_attack: die_after_attack,
             ap: 0,
-            max_ap: 0,
+            max_ap: 1,
             spent_this_tick: 0,
         }
     }

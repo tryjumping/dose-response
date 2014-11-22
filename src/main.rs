@@ -177,7 +177,7 @@ fn process_monsters(state: &mut GameState) {
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
     let mut monster_actions = vec![];
-    for (index, &monster) in state.monsters.iter().enumerate().filter(|&(_, m)| !m.dead) {
+    for (index, monster) in state.monsters.iter().enumerate().filter(|&(_, m)| !m.dead) {
         monster_actions.push((index,
                               monster.act(player_pos, &state.level, &mut state.rng)));
     }

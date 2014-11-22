@@ -25,6 +25,13 @@ pub enum Kind {
 }
 
 impl Monster {
+    pub fn new(kind: Kind, position: (int, int)) -> Monster {
+        Monster {
+            kind: kind,
+            position: position,
+            dead: false,
+        }
+    }
     pub fn attack_damage(&self) -> Damage {
         use self::Kind::*;
         match self.kind {
@@ -54,6 +61,11 @@ impl Monster {
             Action::Move(new_pos)
         }
     }
+}
+
+impl Drop for Monster {
+    // Implementing a destructor to prevent Moster from being Copy:
+    fn drop(&mut self) {}
 }
 
 impl Render for Monster {

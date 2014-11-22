@@ -70,6 +70,11 @@ impl Player {
     }
 }
 
+impl Drop for Player {
+    // Implementing Drop to prevent Player from being Copy:
+    fn drop(&mut self) {}
+}
+
 impl Point for Player {
     fn coordinates(&self) -> (int, int) { self.pos }
 }

@@ -2,16 +2,15 @@ use color::{mod, Color};
 use item::Item;
 use graphics::Render;
 use monster::Damage;
-use point::Point;
 
 
 pub struct Player {
+    pub pos: (int, int),
     pub will: int,
     pub panic: int,
     pub stun: int,
     pub inventory: Vec<Item>,
 
-    pos: (int, int),
     dead: bool,
     ap: int,
     max_ap: int,
@@ -20,9 +19,9 @@ pub struct Player {
 
 impl Player {
 
-    pub fn new<P: Point>(pos: P) -> Player {
+    pub fn new(pos: (int, int)) -> Player {
         Player {
-            pos: pos.coordinates(),
+            pos: pos,
             dead: false,
             ap: 1,
             max_ap: 1,
@@ -34,8 +33,8 @@ impl Player {
         }
     }
 
-    pub fn move_to<P: Point>(&mut self, new_position: P) {
-        self.pos = new_position.coordinates();
+    pub fn move_to(&mut self, new_position: (int, int)) {
+        self.pos = new_position;
     }
 
     pub fn spend_ap(&mut self, count: int) {
@@ -70,13 +69,10 @@ impl Player {
     }
 }
 
+
 impl Drop for Player {
     // Implementing Drop to prevent Player from being Copy:
     fn drop(&mut self) {}
-}
-
-impl Point for Player {
-    fn coordinates(&self) -> (int, int) { self.pos }
 }
 
 

@@ -2,37 +2,15 @@ use std::num::{Int, Float, SignedInt};
 use std::cmp::{max};
 
 
-pub trait Point {
-    fn coordinates(&self) -> (int, int);
-
-    fn x(&self) -> int {
-        match self.coordinates() {
-            (x, _) => x
-        }
-    }
-
-    fn y(&self) -> int {
-        match self.coordinates() {
-            (_, y) => y
-        }
-    }
-}
-
-impl Point for (int, int) {
-    fn coordinates(&self) -> (int, int) {
-        *self
-    }
-}
-
-pub fn tile_distance<P1: Point, P2: Point>(p1: &P1, p2: &P2) -> int {
-    let (x1, y1) = p1.coordinates();
-    let (x2, y2) = p2.coordinates();
+pub fn tile_distance(p1: (int, int), p2: (int, int)) -> int {
+    let (x1, y1) = p1;
+    let (x2, y2) = p2;
     max((x1 - x2).abs(), (y1 - y2).abs())
 }
 
-pub fn distance<P1: Point, P2: Point>(p1: &P1, p2: &P2) -> f32 {
-    let (x1, y1) = p1.coordinates();
-    let (x2, y2) = p2.coordinates();
+pub fn distance(p1: (int, int), p2: (int, int)) -> f32 {
+    let (x1, y1) = p1;
+    let (x2, y2) = p2;
     let a = (x1 - x2).pow(2);
     let b = (y1 - y2).pow(2);
     ((a + b) as f32).sqrt()
@@ -61,8 +39,8 @@ impl Iterator<(int, int)> for PointsWithinRadius {
     }
 }
 
-pub fn points_within_radius<T: Point>(center: T, radius: int) -> PointsWithinRadius {
-    let (center_x, center_y) = center.coordinates();
+pub fn points_within_radius(center: (int, int), radius: int) -> PointsWithinRadius {
+    let (center_x, center_y) = center;
     PointsWithinRadius{
         x: center_x - radius,
         y: center_y - radius,

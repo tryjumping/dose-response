@@ -6,26 +6,26 @@ use item::Item;
 use level::{Level, Tile};
 use monster::{mod, Monster};
 use world_gen::{mod, WorldItem};
-use point::{mod, Point};
+use point;
 
 
-pub fn populate_world<T: Rng, P: Point>(world_size: (int, int),
+pub fn populate_world<T: Rng>(world_size: (int, int),
                               level: &mut Level,
                               monsters: &mut Vec<Monster>,
-                              player_pos: P,
+                              player_pos: (int, int),
                               rng: &mut T,
                               generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {
     // TODO: this closure doesn't seem to work correctly (set all tiles to e.g.
     // monsters and look at the shape of the gap this produces):
-    let near_player = |x, y| point::tile_distance(&player_pos, &(x, y)) < 6;
+    let near_player = |x, y| point::tile_distance(player_pos, (x, y)) < 6;
     let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
-    let initial_dose_pos = (player_pos.x() + *rng.choose(pos_offset).unwrap(),
-                            player_pos.y() + *rng.choose(pos_offset).unwrap());
+    let initial_dose_pos = (player_pos.0 + *rng.choose(pos_offset).unwrap(),
+                            player_pos.1 + *rng.choose(pos_offset).unwrap());
     let mut initial_foods_pos = Vec::<(int, int)>::new();
     for _ in range(0, rng.gen_range::<uint>(1, 4)) {
-            let pos = (player_pos.x() + *rng.choose(pos_offset).unwrap(),
-                       player_pos.y() + *rng.choose(pos_offset).unwrap());
-            initial_foods_pos.push(pos);
+        let pos = (player_pos.0 + *rng.choose(pos_offset).unwrap(),
+                   player_pos.1 + *rng.choose(pos_offset).unwrap());
+        initial_foods_pos.push(pos);
     };
     let (width, height) = world_size;
     let map = generate(rng, width, height);
@@ -37,7 +37,7 @@ pub fn populate_world<T: Rng, P: Point>(world_size: (int, int),
             _ => Tile::Empty,
         };
         // Player should always start on an empty tile:
-        if (x, y) == player_pos.coordinates() {
+        if (x, y) == player_pos {
             level_tile = Tile::Empty;
         }
         level.set_tile((x, y), level_tile);

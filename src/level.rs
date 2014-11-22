@@ -6,7 +6,6 @@ use engine::Display;
 use graphics::{mod, Render};
 use item::Item;
 use monster::Monster;
-use point::Point;
 
 
 #[deriving(PartialEq, Show)]
@@ -55,36 +54,36 @@ impl Level {
         }
     }
 
-    fn index<P: Point>(&self, pos: P) -> uint {
-        let (x, y) = pos.coordinates();
+    fn index(&self, pos: (int, int)) -> uint {
+        let (x, y) = pos;
         assert!(x >= 0 && y >= 0 && x < self.width && y < self.height);
         (y * self.width + x) as uint
     }
 
-    pub fn cell<P: Point>(&self, pos: P) -> &Cell {
+    pub fn cell(&self, pos: (int, int)) -> &Cell {
         let index = self.index(pos);
         &self.map[index]
     }
 
-    fn cell_mut<P: Point>(&mut self, pos: P) -> &mut Cell {
+    fn cell_mut(&mut self, pos: (int, int)) -> &mut Cell {
         let index = self.index(pos);
         &mut self.map[index]
     }
 
-    pub fn set_tile<P: Point>(&mut self, pos: P, tile: Tile) {
+    pub fn set_tile(&mut self, pos: (int, int), tile: Tile) {
         self.cell_mut(pos).tile = tile;
     }
 
-    pub fn set_monster<P: Point>(&mut self, pos: P, monster_index: uint, monster: &Monster) {
-        assert!(monster.position == pos.coordinates());
-        self.monsters.insert(pos.coordinates(), monster_index);
+    pub fn set_monster(&mut self, pos: (int, int), monster_index: uint, monster: &Monster) {
+        assert!(monster.position == pos);
+        self.monsters.insert(pos, monster_index);
     }
 
-    pub fn monster_on_pos<P: Point>(&self, pos: P) -> Option<uint> {
-        self.monsters.get(&pos.coordinates()).map(|&ix| ix)
+    pub fn monster_on_pos(&self, pos: (int, int)) -> Option<uint> {
+        self.monsters.get(&pos).map(|&ix| ix)
     }
 
-    pub fn add_item<P: Point>(&mut self, pos: P, item: Item) {
+    pub fn add_item(&mut self, pos: (int, int), item: Item) {
         self.cell_mut(pos).items.push(item);
     }
 
@@ -92,7 +91,7 @@ impl Level {
         (self.width, self.height)
     }
 
-    pub fn walkable<P: Point>(&self, pos: P) -> bool {
+    pub fn walkable(&self, pos: (int, int)) -> bool {
         self.cell(pos).tile == Tile::Empty
     }
 
@@ -103,25 +102,24 @@ impl Level {
         }
     }
 
-    pub fn move_monster<P: Point>(&mut self, monster: &mut Monster, destination: P) {
-        let dest = destination.coordinates();
+    pub fn move_monster(&mut self, monster: &mut Monster, destination: (int, int)) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
-        assert!(!self.monsters.contains_key(&dest));
+        assert!(!self.monsters.contains_key(&destination));
         if let Some(monster_index) = self.monsters.remove(&monster.position) {
-            monster.position = dest;
-            self.monsters.insert(dest, monster_index);
+            monster.position = destination;
+            self.monsters.insert(destination, monster_index);
         } else {
             panic!("Moving a monster that doesn't exist");
         }
     }
 
-    pub fn pickup_item<P: Point>(&mut self, pos: P) -> Option<Item> {
+    pub fn pickup_item(&mut self, pos: (int, int)) -> Option<Item> {
         self.cell_mut(pos).items.pop()
     }
 
-    pub fn random_neighbour_position<T: Rng, P: Point>(&self, rng: &mut T, pos: P) -> (int, int) {
-        let (x, y) = pos.coordinates();
+    pub fn random_neighbour_position<T: Rng>(&self, rng: &mut T, pos: (int, int)) -> (int, int) {
+        let (x, y) = pos;
         let neighbors = [
             (x,   y-1),
             (x,   y+1),

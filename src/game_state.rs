@@ -14,7 +14,6 @@ use time;
 use level::Level;
 use monster::Monster;
 use player::Player;
-use point::Point;
 use systems::input::Command;
 use world;
 use world_gen;
@@ -127,11 +126,10 @@ impl GameState {
 
 fn initialise_world(game_state: &mut GameState) {
     let (width, height) = game_state.level.size();
-    // let player_pos = game_state.player.coordinates();
     world::populate_world((width, height),
                           &mut game_state.level,
                           &mut game_state.monsters,
-                          game_state.player.coordinates(),
+                          game_state.player.pos,
                           &mut game_state.rng,
                           world_gen::forrest);
 }

@@ -4,7 +4,7 @@ use super::Action;
 use color::{mod, Color};
 use level::Level;
 use graphics::Render;
-use point::{mod, Point};
+use point;
 
 
 use self::Kind::*;
@@ -56,18 +56,18 @@ impl Monster {
         }
     }
 
-    pub fn act<P: Point, R: Rng>(&self, player_pos: P, level: &Level, rng: &mut R) -> Action {
+    pub fn act<R: Rng>(&self, player_pos: (int, int), level: &Level, rng: &mut R) -> Action {
         if self.dead {
             panic!(format!("{} is dead, cannot run actions on it.", self));
         }
-        let distance = point::tile_distance(&self.position, &player_pos);
+        let distance = point::tile_distance(self.position, player_pos);
         // TODO: track the state of the AI (agressive/idle) and switch between
         // them as the distance change.
         if distance == 1 {
-            Action::Attack(player_pos.coordinates(), self.attack_damage())
+            Action::Attack(player_pos, self.attack_damage())
         } else if distance < 5 {
             // Follow the player:
-            Action::Move(player_pos.coordinates())
+            Action::Move(player_pos)
         } else {
             // Move randomly about
             let new_pos = level.random_neighbour_position(rng, self.position);

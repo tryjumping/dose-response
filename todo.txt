@@ -18,6 +18,7 @@ monsters if that's the shortest path even if it means death.
 
 
 ### Polish
+
 * Shadows & Voices should fade out when dying after attack
 * Animate food & dose explosions (like in Cogmind)
 * Display the SoM textual representation (overdosed, high, withdrawn) in the
@@ -37,8 +38,6 @@ monsters if that's the shortest path even if it means death.
 
 ### Code cleanup / improvements
 
-* Drop the Side enum
-* Drop the Point trait
 * Update each actor in every frame
 * Clean up the monster list / level cache?
   - was a huge source of bugs, maybe we want to tighten it up more?

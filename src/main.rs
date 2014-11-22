@@ -1,4 +1,4 @@
-#![feature(if_let, macro_rules, globs, phase, link_args, unboxed_closures)]
+#![feature(if_let, macro_rules, globs, phase, link_args, unboxed_closures, tuple_indexing)]
 
 extern crate collections;
 extern crate libc;
@@ -15,7 +15,6 @@ use tcod::{KeyState, Printable, Special};
 
 use engine::{Engine, KeyCode};
 use game_state::{GameState, Side};
-use point::Point;
 use systems::input::Command;
 
 mod color;
@@ -96,7 +95,7 @@ fn process_player(state: &mut GameState) {
     }
     if let Some(command) = state.commands.pop_front() {
         state.command_logger.log(command);
-        let (x, y) = state.player.coordinates();
+        let (x, y) = state.player.pos;
         let action = match command {
             Command::N => Action::Move((x,     y - 1)),
             Command::S => Action::Move((x,     y + 1)),
@@ -153,7 +152,7 @@ fn process_player(state: &mut GameState) {
                     let food_explosion_radius = 2;
                     // TODO: move this to an "explode" procedure we can call elsewhere, too.
                     for expl_pos in point::points_within_radius(
-                        state.player.coordinates(), food_explosion_radius) {
+                        state.player.pos, food_explosion_radius) {
                         if state.level.monster_on_pos(expl_pos).is_some() {
                             kill_monster_at_pos(expl_pos,
                                                 &mut state.monsters,
@@ -174,7 +173,7 @@ fn process_monsters(state: &mut GameState) {
     if !state.player.alive() {
         return
     }
-    let player_pos = state.player.coordinates();
+    let player_pos = state.player.pos;
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
     let mut monster_actions = vec![];
@@ -186,7 +185,7 @@ fn process_monsters(state: &mut GameState) {
         match action {
             Action::Move(destination) => {
                 let pos = state.monsters[monster_index].position;
-                let newpos_opt = if point::tile_distance(&pos, &destination) == 1 {
+                let newpos_opt = if point::tile_distance(pos, destination) == 1 {
                     Some(destination)
                 } else {
                     let (w, h) = state.level.size();
@@ -201,7 +200,7 @@ fn process_monsters(state: &mut GameState) {
                                 }
                             },
                             1.0);
-                        path.find(pos, destination.coordinates());
+                        path.find(pos, destination);
                         assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
                         path.walk_one_step(true)
                     }
@@ -218,7 +217,7 @@ fn process_monsters(state: &mut GameState) {
                 }
             }
             Action::Attack(target_pos, damage) => {
-                assert!(target_pos == state.player.coordinates());
+                assert!(target_pos == state.player.pos);
                 state.player.take_damage(damage);
                 if state.monsters[monster_index].die_after_attack {
                     kill_monster_at_pos(state.monsters[monster_index].position,
@@ -319,7 +318,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     for monster in state.monsters.iter().filter(|m| !m.dead) {
         graphics::draw(&mut engine.display, monster.position, monster);
     }
-    graphics::draw(&mut engine.display, state.player.coordinates(), &state.player);
+    graphics::draw(&mut engine.display, state.player.pos, &state.player);
     render_gui(&mut engine.display, &state.player);
     Some(state)
 }

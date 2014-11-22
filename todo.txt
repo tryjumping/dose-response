@@ -1,32 +1,38 @@
 * Stun and Panic don't do anything right now
-* Shadows and Voices should fade out on attacking player
 * Generate the correct starting layout
 * Doses should add different amounts of SoM bonus
 * Doses should have an explosion effect on consuming
 * Depression should move by two spaces
 * Monsters should switch back to Idle if the player is too far away
-* Display the SoM textual representation (overdosed, high, withdrawn) in the
-  status bar
 * Irresistible dose effect
 * Fog of war (radius dependent on State of Mind)
 * Every monster should have an action before we give the turn back to player
-* Doses should glow
-* Trees should vary in colours
-* Player should fade when dying
-* Background around a dose should glow in the Irresistible radius
 * Colours should go wild when the player is High
 * Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
 * Food should give a bit of State of Mind back but never increase intoxication
-* Uncover and unfade the screen on player death
-* Stop the High colour animation on player death
 * When the PC is drawn to an irresistible dose, they must walk through the
 monsters if that's the shortest path even if it means death.
+
+
+
+### Polish
+* Shadows & Voices should fade out when dying after attack
+* Animate food & dose explosions (like in Cogmind)
+* Display the SoM textual representation (overdosed, high, withdrawn) in the
+  status bar
+* Doses should glow
+* Trees should vary in colours
+* Player should fade when dying
+* Background around a dose should glow in the Irresistible radius
+* Uncover and unfade the screen on player death
+* Stop the High colour animation on player death
 * Better display the movement of D monsters:
   - they're moving too fast currently (FPS dependent)
   - we should show a path trail
   - and also slow them down (visually -- so like they move every say 200ms, not every tick)
+
 
 
 ### Code cleanup / improvements

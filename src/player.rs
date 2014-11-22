@@ -12,8 +12,9 @@ pub struct Player {
     pub inventory: Vec<Item>,
 
     dead: bool,
-    ap: int,
+
     max_ap: int,
+    ap: int,
     pub state_of_mind: int,
 }
 

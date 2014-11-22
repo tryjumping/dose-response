@@ -16,8 +16,10 @@ pub struct Monster {
     pub position: (int, int),
     pub dead: bool,
     pub die_after_attack: bool,
-    ap: int,
+
     max_ap: int,
+    ap: int,
+    spent_this_tick: int,
 }
 
 
@@ -43,6 +45,7 @@ impl Monster {
             die_after_attack: die_after_attack,
             ap: 0,
             max_ap: 0,
+            spent_this_tick: 0,
         }
     }
 

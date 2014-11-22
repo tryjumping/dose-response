@@ -296,6 +296,16 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     };
     if running || paused_one_step || timed_step {
         process_keys(&mut engine.keys, &mut state.commands);
+        // TODO: this is going to be a bit more involved to do properly.
+        // 1. Process 1 player action.
+        // 2. If the player has no remaining actions, process one action for every monster
+        //    (this should set side to Computer)
+        // clear out "spent this tick"
+        // 3. Retry process_monster for any monster who didn't take an action yet
+        //    (but don't let the monsters who did take an action do another. Each
+        //     monster must spend at most one action point per frame)
+        //    - This implies we have to keep track of monsters that acted *in this frame*
+        // 4. If no monster has an available action point, set side to Player.
         match state.side {
             Side::Player => {
                 process_player(&mut state);

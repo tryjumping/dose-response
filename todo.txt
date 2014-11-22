@@ -1,6 +1,4 @@
-* Slow down replay ticks
-  - just force lower FPS?
-  - or add sleep & stuff manually?
+* Update each actor in every frame
 * Clean up the monster list / level cache?
   - was a huge source of bugs, maybe we want to tighten it up more?
 * Get rid of int/uint -- they're platform specific, just use i32 or whatever appropriate

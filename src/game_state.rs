@@ -1,4 +1,5 @@
 use std::collections::RingBuf;
+use std::time::Duration;
 use std::io;
 use std::io::File;
 use std::io::fs::PathExtensions;
@@ -38,6 +39,7 @@ pub struct GameState {
     pub turn: int,
     pub cheating: bool,
     pub replay: bool,
+    pub clock: Duration,
     pub paused: bool,
 }
 
@@ -61,6 +63,7 @@ impl GameState {
             turn: 0,
             cheating: cheating,
             replay: replay,
+            clock: Duration::zero(),
             paused: false,
         }
     }

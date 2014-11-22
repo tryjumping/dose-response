@@ -257,7 +257,7 @@ fn render_gui(display: &mut engine::Display, player: &player::Player) {
 }
 
 
-fn update(mut state: GameState, _dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
+fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
     if engine.key_pressed(Special(KeyCode::Escape)) {
         return None;
     }
@@ -268,6 +268,8 @@ fn update(mut state: GameState, _dt: Duration, engine: &mut engine::Engine) -> O
         let state = GameState::new_game(width, height);
         return Some(state);
     }
+    state.clock = state.clock + dt;
+
 
     if engine.key_pressed(Special(KeyCode::F6)) {
         state.cheating = !state.cheating;
@@ -275,14 +277,20 @@ fn update(mut state: GameState, _dt: Duration, engine: &mut engine::Engine) -> O
     }
 
     state.paused = if state.replay && engine.read_key(Special(KeyCode::Spacebar)) {
-        if !state.paused {println!("Pausing the replay")};
         !state.paused
     } else {
         state.paused
     };
 
-    // Move one step forward in the paused replay
-    if !state.paused || (state.paused && engine.read_key(Special(KeyCode::Right))) {
+    let running = !state.paused && !state.replay;
+    let paused_one_step = state.paused && engine.read_key(Special(KeyCode::Right));
+    let timed_step = if state.replay && !state.paused && state.clock.num_milliseconds() >= 50 {
+        state.clock = Duration::zero();
+        true
+    } else {
+        false
+    };
+    if running || paused_one_step || timed_step {
         process_keys(&mut engine.keys, &mut state.commands);
         match state.side {
             Side::Player => {

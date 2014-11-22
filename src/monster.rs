@@ -4,7 +4,7 @@ use super::Action;
 use color::{mod, Color};
 use level::Level;
 use graphics::Render;
-use point;
+use point::{mod, Point};
 
 
 use self::Kind::*;
@@ -13,7 +13,7 @@ use self::Kind::*;
 #[deriving(PartialEq, Show)]
 pub struct Monster {
     pub kind: Kind,
-    pub position: (int, int),
+    pub position: Point,
     pub dead: bool,
     pub die_after_attack: bool,
 
@@ -33,7 +33,7 @@ pub enum Kind {
 }
 
 impl Monster {
-    pub fn new(kind: Kind, position: (int, int)) -> Monster {
+    pub fn new(kind: Kind, position: Point) -> Monster {
         let die_after_attack = match kind {
             Shadows | Voices => true,
             Anxiety | Depression | Hunger => false,
@@ -59,7 +59,7 @@ impl Monster {
         }
     }
 
-    pub fn act<R: Rng>(&self, player_pos: (int, int), level: &Level, rng: &mut R) -> Action {
+    pub fn act<R: Rng>(&self, player_pos: Point, level: &Level, rng: &mut R) -> Action {
         if self.dead {
             panic!(format!("{} is dead, cannot run actions on it.", self));
         }

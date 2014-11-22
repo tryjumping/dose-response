@@ -2,10 +2,11 @@ use color::{mod, Color};
 use item::Item;
 use graphics::Render;
 use monster::Damage;
+use point::Point;
 
 
 pub struct Player {
-    pub pos: (int, int),
+    pub pos: Point,
     pub will: int,
     pub panic: int,
     pub stun: int,
@@ -20,7 +21,7 @@ pub struct Player {
 
 impl Player {
 
-    pub fn new(pos: (int, int)) -> Player {
+    pub fn new(pos: Point) -> Player {
         Player {
             pos: pos,
             dead: false,
@@ -34,7 +35,7 @@ impl Player {
         }
     }
 
-    pub fn move_to(&mut self, new_position: (int, int)) {
+    pub fn move_to(&mut self, new_position: Point) {
         self.pos = new_position;
     }
 

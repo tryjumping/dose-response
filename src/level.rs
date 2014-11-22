@@ -6,6 +6,7 @@ use engine::Display;
 use graphics::{mod, Render};
 use item::Item;
 use monster::Monster;
+use point::Point;
 
 
 #[deriving(PartialEq, Show)]
@@ -38,7 +39,7 @@ impl Render for Tile {
 pub struct Level {
     width: int,
     height: int,
-    pub monsters: HashMap<(int, int), uint>,
+    pub monsters: HashMap<Point, uint>,
     map: Vec<Cell>,
 }
 
@@ -54,36 +55,35 @@ impl Level {
         }
     }
 
-    fn index(&self, pos: (int, int)) -> uint {
-        let (x, y) = pos;
+    fn index(&self, (x, y): Point) -> uint {
         assert!(x >= 0 && y >= 0 && x < self.width && y < self.height);
         (y * self.width + x) as uint
     }
 
-    pub fn cell(&self, pos: (int, int)) -> &Cell {
+    pub fn cell(&self, pos: Point) -> &Cell {
         let index = self.index(pos);
         &self.map[index]
     }
 
-    fn cell_mut(&mut self, pos: (int, int)) -> &mut Cell {
+    fn cell_mut(&mut self, pos: Point) -> &mut Cell {
         let index = self.index(pos);
         &mut self.map[index]
     }
 
-    pub fn set_tile(&mut self, pos: (int, int), tile: Tile) {
+    pub fn set_tile(&mut self, pos: Point, tile: Tile) {
         self.cell_mut(pos).tile = tile;
     }
 
-    pub fn set_monster(&mut self, pos: (int, int), monster_index: uint, monster: &Monster) {
+    pub fn set_monster(&mut self, pos: Point, monster_index: uint, monster: &Monster) {
         assert!(monster.position == pos);
         self.monsters.insert(pos, monster_index);
     }
 
-    pub fn monster_on_pos(&self, pos: (int, int)) -> Option<uint> {
+    pub fn monster_on_pos(&self, pos: Point) -> Option<uint> {
         self.monsters.get(&pos).map(|&ix| ix)
     }
 
-    pub fn add_item(&mut self, pos: (int, int), item: Item) {
+    pub fn add_item(&mut self, pos: Point, item: Item) {
         self.cell_mut(pos).items.push(item);
     }
 
@@ -91,7 +91,7 @@ impl Level {
         (self.width, self.height)
     }
 
-    pub fn walkable(&self, pos: (int, int)) -> bool {
+    pub fn walkable(&self, pos: Point) -> bool {
         self.cell(pos).tile == Tile::Empty
     }
 
@@ -102,7 +102,7 @@ impl Level {
         }
     }
 
-    pub fn move_monster(&mut self, monster: &mut Monster, destination: (int, int)) {
+    pub fn move_monster(&mut self, monster: &mut Monster, destination: Point) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
         assert!(!self.monsters.contains_key(&destination));
@@ -114,12 +114,11 @@ impl Level {
         }
     }
 
-    pub fn pickup_item(&mut self, pos: (int, int)) -> Option<Item> {
+    pub fn pickup_item(&mut self, pos: Point) -> Option<Item> {
         self.cell_mut(pos).items.pop()
     }
 
-    pub fn random_neighbour_position<T: Rng>(&self, rng: &mut T, pos: (int, int)) -> (int, int) {
-        let (x, y) = pos;
+    pub fn random_neighbour_position<T: Rng>(&self, rng: &mut T, (x, y): Point) -> Point {
         let neighbors = [
             (x,   y-1),
             (x,   y+1),

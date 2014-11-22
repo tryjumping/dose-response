@@ -2,13 +2,16 @@ use std::num::{Int, Float, SignedInt};
 use std::cmp::{max};
 
 
-pub fn tile_distance(p1: (int, int), p2: (int, int)) -> int {
+pub type Point = (int, int);
+
+
+pub fn tile_distance(p1: Point, p2: Point) -> int {
     let (x1, y1) = p1;
     let (x2, y2) = p2;
     max((x1 - x2).abs(), (y1 - y2).abs())
 }
 
-pub fn distance(p1: (int, int), p2: (int, int)) -> f32 {
+pub fn distance(p1: Point, p2: Point) -> f32 {
     let (x1, y1) = p1;
     let (x2, y2) = p2;
     let a = (x1 - x2).pow(2);
@@ -24,8 +27,8 @@ struct PointsWithinRadius {
     max_y: int,
 }
 
-impl Iterator<(int, int)> for PointsWithinRadius {
-    fn next(&mut self) -> Option<(int, int)> {
+impl Iterator<Point> for PointsWithinRadius {
+    fn next(&mut self) -> Option<Point> {
         if (self.y > self.max_y) || (self.x > self.max_x) {
             return None;
         }
@@ -39,7 +42,7 @@ impl Iterator<(int, int)> for PointsWithinRadius {
     }
 }
 
-pub fn points_within_radius(center: (int, int), radius: int) -> PointsWithinRadius {
+pub fn points_within_radius(center: Point, radius: int) -> PointsWithinRadius {
     let (center_x, center_y) = center;
     PointsWithinRadius{
         x: center_x - radius,
@@ -115,13 +118,13 @@ mod test {
 
     #[test]
     fn test_points_within_radius_of_zero() {
-        let actual: Vec<(int, int)> = FromIterator::from_iter(points_within_radius((3, 3), 0));
+        let actual: Vec<Point> = FromIterator::from_iter(points_within_radius((3, 3), 0));
         assert!(actual.as_slice() == [(3, 3)]);
     }
 
     #[test]
     fn test_points_within_radius_of_one() {
-        let actual: Vec<(int, int)> = FromIterator::from_iter(points_within_radius((3, 3), 1));
+        let actual: Vec<Point> = FromIterator::from_iter(points_within_radius((3, 3), 1));
         let expected = [(2, 2), (3, 2), (4, 2),
                         (2, 3), (3, 3), (4, 3),
                         (2, 4), (3, 4), (4, 4)];
@@ -132,7 +135,7 @@ mod test {
     fn test_points_within_radius_of_five() {
         use std::iter::range_inclusive;
 
-        let mut actual: Vec<(int, int)> = FromIterator::from_iter(points_within_radius((0, 0), 5));
+        let mut actual: Vec<Point> = FromIterator::from_iter(points_within_radius((0, 0), 5));
 
         let mut expected = Vec::new();
         for x in range_inclusive(-5, 5) {

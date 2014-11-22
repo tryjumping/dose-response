@@ -39,7 +39,7 @@ impl Render for Tile {
 pub struct Level {
     width: int,
     height: int,
-    monsters: HashMap<(int, int), uint>,
+    pub monsters: HashMap<(int, int), uint>,
     map: Vec<Cell>,
 }
 
@@ -107,7 +107,7 @@ impl Level {
         let dest = destination.coordinates();
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
-        assert!(!self.monsters.contains_key(&dest))
+        assert!(!self.monsters.contains_key(&dest));
         if let Some(monster_index) = self.monsters.remove(&monster.position) {
             monster.position = dest;
             self.monsters.insert(dest, monster_index);

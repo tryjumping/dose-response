@@ -11,6 +11,7 @@ use point::{mod, Point};
 pub struct Monster {
     pub kind: Kind,
     pub position: (int, int),
+    pub dead: bool,
 }
 
 
@@ -36,6 +37,9 @@ impl Monster {
     }
 
     pub fn act<P: Point, R: Rng>(&self, player_pos: P, level: &Level, rng: &mut R) -> Action {
+        if self.dead {
+            panic!(format!("{} is dead, cannot run actions on it.", self));
+        }
         let distance = point::tile_distance(&self.position, &player_pos);
         // TODO: track the state of the AI (agressive/idle) and switch between
         // them as the distance change.

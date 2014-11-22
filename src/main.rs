@@ -74,14 +74,15 @@ pub enum Action {
 }
 
 
-fn kill_monster_at_pos(pos: (int, int),
-                       monsters: &mut Vec<monster::Monster>,
-                       level: &mut level::Level) -> monster::Monster {
+fn kill_monster_at_pos<'a>(pos: (int, int),
+                       monsters: &'a mut Vec<monster::Monster>,
+                       level: &mut level::Level) -> &'a monster::Monster {
     match level.monster_on_pos(pos) {
         Some(index) => {
-            let monster = monsters.remove(index).unwrap();
-            assert!(monster.position == pos);
-            level.remove_monster(index, &monster);
+            let monster = &mut monsters[index];
+            assert_eq!(monster.position, pos);
+            monster.dead = true;
+            level.remove_monster(index, monster);
             return monster
         }
         None => panic!(format!("No monster on position {}", pos)),
@@ -152,9 +153,11 @@ fn process_player(state: &mut GameState) {
                     // TODO: move this to an "explode" procedure we can call elsewhere, too.
                     for expl_pos in point::points_within_radius(
                         state.player.coordinates(), food_explosion_radius) {
-                        kill_monster_at_pos(expl_pos,
-                                            &mut state.monsters,
-                                            &mut state.level);
+                        if state.level.monster_on_pos(expl_pos).is_some() {
+                            kill_monster_at_pos(expl_pos,
+                                                &mut state.monsters,
+                                                &mut state.level);
+                        }
                     }
                 }
             }
@@ -174,20 +177,19 @@ fn process_monsters(state: &mut GameState) {
     // TODO: we need to make sure these are always processed in the same order,
     // otherwise replay is bust!
     let mut monster_actions = vec![];
-    for (index, &monster) in state.monsters.iter().enumerate() {
+    for (index, &monster) in state.monsters.iter().enumerate().filter(|&(_, m)| !m.dead) {
         monster_actions.push((index,
                               monster.act(player_pos, &state.level, &mut state.rng)));
     }
     for (monster_index, action) in monster_actions.into_iter() {
         match action {
             Action::Move(destination) => {
-                let mut monster = state.monsters[monster_index];
-                if point::tile_distance(&monster.position, &destination) == 1 {
-                    state.level.move_monster(&mut monster, destination);
+                let pos = state.monsters[monster_index].position;
+                let newpos_opt = if point::tile_distance(&pos, &destination) == 1 {
+                    Some(destination)
                 } else {
                     let (w, h) = state.level.size();
-                    // Walk one step:
-                    let newpos_opt = {
+                    {   // Find path && walk one step:
                         let mut path = tcod::AStarPath::new_from_callback(
                             w, h,
                             |&mut: _from: (int, int), to: (int, int)| -> f32 {
@@ -198,12 +200,19 @@ fn process_monsters(state: &mut GameState) {
                                 }
                             },
                             1.0);
-                        path.find(monster.position, destination.coordinates());
+                        path.find(pos, destination.coordinates());
                         assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
                         path.walk_one_step(true)
-                    };
-                    if let Some(newpos) = newpos_opt {
-                        state.level.move_monster(&mut monster, newpos);
+                    }
+                };
+                if let Some(step) = newpos_opt {
+                    if state.level.monster_on_pos(step).is_none() {
+                        // TODO: spend an action point.
+                        state.level.move_monster(&mut state.monsters[monster_index], step);
+                    } else {
+                        // Else: some other monster moved in before we did.
+                        // Don't do anything for now, don't spend any action
+                        // points, we'll get our chance in the next pass.
                     }
                 }
             }
@@ -273,29 +282,28 @@ fn update(mut state: GameState, _dt_s: f32, engine: &mut engine::Engine) -> Opti
     };
 
     // Move one step forward in the paused replay
-    if state.paused && engine.read_key(Special(KeyCode::Right)) {
-        unimplemented!();
-    }
-
-    process_keys(&mut engine.keys, &mut state.commands);
-    match state.side {
-        Side::Player => {
-            process_player(&mut state);
-            if !state.player.has_ap(1) {
-                state.side = Side::Computer;
+    if !state.paused || (state.paused && engine.read_key(Special(KeyCode::Right))) {
+        process_keys(&mut engine.keys, &mut state.commands);
+        match state.side {
+            Side::Player => {
+                process_player(&mut state);
+                if !state.player.has_ap(1) {
+                    state.side = Side::Computer;
+                }
+            }
+            Side::Computer => {
+                process_monsters(&mut state);
+                state.side = Side::Player;
+                state.player.new_turn();
             }
         }
-        Side::Computer => {
-            process_monsters(&mut state);
-            state.side = Side::Player;
-            state.player.new_turn();
-        }
     }
+
 
     state.level.render(&mut engine.display);
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
-    for monster in state.monsters.iter() {
+    for monster in state.monsters.iter().filter(|m| !m.dead) {
         graphics::draw(&mut engine.display, monster.position, monster);
     }
     graphics::draw(&mut engine.display, state.player.coordinates(), &state.player);

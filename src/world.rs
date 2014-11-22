@@ -60,10 +60,13 @@ pub fn populate_world<T: Rng, P: Point>(world_size: (int, int),
             let monster = Monster {
                 kind: kind,
                 position: (x, y),
+                dead: false,
             };
             monsters.push(monster);
             let monster_index = monsters.len() - 1;
             level.set_monster((x, y), monster_index, &monster);
+            assert!(monster == monsters[monster_index]);
+            assert!(level.monster_on_pos((x, y)).unwrap() == monster_index);
         } else {
             let item = match item {
                 WorldItem::Dose => Some(Item::Dose),

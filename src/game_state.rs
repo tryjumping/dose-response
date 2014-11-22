@@ -57,7 +57,7 @@ impl GameState {
             rng: SeedableRng::from_seed(seed_arr),
             commands: commands,
             command_logger: CommandLogger{writer: log_writer},
-            side: Side::Computer,
+            side: Side::Player,
             turn: 0,
             cheating: cheating,
             replay: replay,

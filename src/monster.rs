@@ -16,6 +16,8 @@ pub struct Monster {
     pub position: (int, int),
     pub dead: bool,
     pub die_after_attack: bool,
+    ap: int,
+    max_ap: int,
 }
 
 
@@ -39,8 +41,11 @@ impl Monster {
             position: position,
             dead: false,
             die_after_attack: die_after_attack,
+            ap: 0,
+            max_ap: 0,
         }
     }
+
     pub fn attack_damage(&self) -> Damage {
         match self.kind {
             Anxiety => Damage::AttributeLoss{will: 1, state_of_mind: 0},
@@ -68,6 +73,19 @@ impl Monster {
             let new_pos = level.random_neighbour_position(rng, self.position);
             Action::Move(new_pos)
         }
+    }
+
+    pub fn spend_ap(&mut self, count: int) {
+        assert!(count <= self.ap);
+        self.ap -= count;
+    }
+
+    pub fn has_ap(&self, count: int) -> bool {
+        self.ap >= count
+    }
+
+    pub fn new_turn(&mut self) {
+        self.ap = self.max_ap;
     }
 }
 

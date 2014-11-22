@@ -37,6 +37,8 @@ monsters if that's the shortest path even if it means death.
 
 ### Code cleanup / improvements
 
+* Drop the Side enum
+* Drop the Point trait
 * Update each actor in every frame
 * Clean up the monster list / level cache?
   - was a huge source of bugs, maybe we want to tighten it up more?

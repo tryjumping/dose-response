@@ -3,11 +3,9 @@
 ** Generate the correct starting layout
 ** Doses should add different amounts of SoM bonus
 ** Doses should have an explosion effect on consuming
-** Depression should move by two spaces
 ** Monsters should switch back to Idle if the player is too far away
 ** Irresistible dose effect
 ** Fog of war (radius dependent on State of Mind)
-** Every monster should have an action before we give the turn back to player
 ** Colours should go wild when the player is High
 ** Add bonuses on superhigh
   - see entities on som >= 98

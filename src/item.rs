@@ -2,7 +2,7 @@ use color::{mod, Color};
 use graphics::Render;
 
 
-#[deriving(PartialEq, Rand, Show)]
+#[deriving(Clone, PartialEq, Rand, Show)]
 pub enum Item {
     Dose,
     StrongDose,

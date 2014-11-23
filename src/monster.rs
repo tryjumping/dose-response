@@ -23,7 +23,7 @@ pub struct Monster {
 }
 
 
-#[deriving(PartialEq, Rand, Show)]
+#[deriving(Clone, PartialEq, Rand, Show)]
 pub enum Kind {
     Anxiety,
     Depression,

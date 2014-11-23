@@ -16,7 +16,7 @@ pub struct Cell {
 }
 
 
-#[deriving(PartialEq, Rand, Show)]
+#[deriving(Clone, PartialEq, Rand, Show)]
 pub enum Tile {
     Empty,
     Tree,

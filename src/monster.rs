@@ -38,6 +38,10 @@ impl Monster {
             Shadows | Voices => true,
             Anxiety | Depression | Hunger => false,
         };
+        let max_ap = match kind {
+            Depression => 2,
+            Anxiety | Hunger | Shadows | Voices => 1,
+        };
         Monster {
             id: id,
             kind: kind,
@@ -45,7 +49,7 @@ impl Monster {
             dead: false,
             die_after_attack: die_after_attack,
             ap: 0,
-            max_ap: 1,
+            max_ap: max_ap,
         }
     }
 
@@ -83,6 +87,9 @@ impl Monster {
     }
 
     pub fn spend_ap(&mut self, count: int) {
+        if !(count <= self.ap) {
+            println!("bad assert: {}", self);
+        }
         assert!(count <= self.ap);
         self.ap -= count;
     }

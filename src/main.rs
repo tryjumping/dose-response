@@ -165,7 +165,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
         return
     }
 
-    for monster in monsters.iter_mut().filter(|m| !m.dead) {
+    for monster in monsters.iter_mut().filter(|m| !m.dead && m.has_ap(1)) {
         let action = monster.act(player.pos, level, rng);
         match action {
             Action::Move(destination) => {

@@ -18,7 +18,7 @@ pub struct Monster {
     pub dead: bool,
     pub die_after_attack: bool,
 
-    max_ap: int,
+    pub max_ap: int,
     ap: int,
 }
 
@@ -33,7 +33,7 @@ pub enum Kind {
 }
 
 impl Monster {
-    pub fn new(id: uint, kind: Kind, position: Point) -> Monster {
+    pub fn new(kind: Kind, position: Point) -> Monster {
         let die_after_attack = match kind {
             Shadows | Voices => true,
             Anxiety | Depression | Hunger => false,
@@ -43,7 +43,7 @@ impl Monster {
             Anxiety | Hunger | Shadows | Voices => 1,
         };
         Monster {
-            id: id,
+            id: 0,
             kind: kind,
             position: position,
             dead: false,
@@ -55,6 +55,10 @@ impl Monster {
 
     pub fn id(&self) -> uint {
         self.id
+    }
+
+    pub unsafe fn set_id(&mut self, id: uint) {
+        self.id = id;
     }
 
     pub fn attack_damage(&self) -> Damage {

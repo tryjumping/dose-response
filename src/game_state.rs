@@ -132,6 +132,12 @@ fn initialise_world(game_state: &mut GameState) {
                           game_state.player.pos,
                           &mut game_state.rng,
                           world_gen::forrest);
+    // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
+    game_state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
+    for (index, m) in game_state.monsters.iter_mut().enumerate() {
+        unsafe { m.set_id(index) }
+        game_state.level.set_monster(m.position, m.id(), m);
+    }
 }
 
 

@@ -57,11 +57,8 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
                 WorldItem::Voices     => monster::Kind::Voices,
                 _ => unreachable!(),
             };
-            let monster_index = monsters.len();
-            let monster = Monster::new(monster_index, kind, (x, y));
-            level.set_monster((x, y), monster_index, &monster);
+            let monster = Monster::new(kind, (x, y));
             monsters.push(monster);
-            assert!(level.monster_on_pos((x, y)).unwrap() == monster_index);
         } else {
             let item = match item {
                 WorldItem::Dose => Some(Item::Dose),

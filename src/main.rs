@@ -1,21 +1,20 @@
 #![feature(if_let, macro_rules, globs, phase, link_args, unboxed_closures, tuple_indexing)]
 
-extern crate collections;
 extern crate libc;
 extern crate time;
-
-
 extern crate tcod;
+
+
 use std::collections::RingBuf;
-use std::time::Duration;
 use std::os;
 use std::rand::Rng;
+use std::time::Duration;
 
 use tcod::{KeyState, Printable, Special};
 
 use engine::{Engine, KeyCode};
-use game_state::{GameState, Side};
-use systems::input::Command;
+use game_state::{Command, GameState, Side};
+
 
 mod color;
 mod engine;
@@ -27,8 +26,8 @@ mod level;
 mod monster;
 mod player;
 mod point;
-mod systems;
 mod world;
+
 
 
 

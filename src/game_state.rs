@@ -1,4 +1,5 @@
 use std::collections::RingBuf;
+use std::str::FromStr;
 use std::time::Duration;
 use std::io;
 use std::io::File;
@@ -15,7 +16,6 @@ use generators;
 use level::Level;
 use monster::Monster;
 use player::Player;
-use systems::input::Command;
 use world;
 
 
@@ -23,6 +23,32 @@ use world;
 pub enum Side {
     Player,
     Computer,
+}
+
+
+#[deriving(Show)]
+pub enum Command {
+    N, E, S, W, NE, NW, SE, SW,
+    Eat,
+}
+
+
+impl FromStr for Command {
+    fn from_str(name: &str) -> Option<Command> {
+        use self::Command::*;
+        match name {
+            "N" => Some(N),
+            "E" => Some(E),
+            "S" => Some(S),
+            "W" => Some(W),
+            "NE" => Some(NE),
+            "NW" => Some(NW),
+            "SE" => Some(SE),
+            "SW" => Some(SW),
+            "Eat" => Some(Eat),
+            _ => panic!("Unknown command: '{}'", name)
+        }
+    }
 }
 
 

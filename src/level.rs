@@ -133,7 +133,6 @@ impl Level {
         ];
         let mut walkables = vec![];
         for &pos in neighbors.iter() {
-            let (x, y) = pos;
             if self.walkable(pos) {
                 walkables.push(pos)
             }

@@ -65,6 +65,7 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 }
 
 
+#[deriving(Show)]
 pub enum Action {
     Move((int, int)),
     Attack((int, int), monster::Damage),
@@ -188,14 +189,19 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                         path.walk_one_step(false)
                     }
                 };
-                if let Some(step) = newpos_opt {
-                    monster.spend_ap(1);
-                    if level.monster_on_pos(step).is_none() {
-                        level.move_monster(monster, step);
-                    } else if step == monster.position {
-                        println!("{} cannot move so it waits.", monster);
-                    } else {
-                        unreachable!();
+                monster.spend_ap(1);
+                match newpos_opt {
+                    Some(step) => {
+                        if level.monster_on_pos(step).is_none() {
+                            level.move_monster(monster, step);
+                        } else if step == monster.position {
+                            println!("{} cannot move so it waits.", monster);
+                        } else {
+                            unreachable!();
+                        }
+                    }
+                    None => {
+                        println!("{} can't find a path so it waits.", monster);
                     }
                 }
             }

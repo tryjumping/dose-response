@@ -20,7 +20,7 @@ pub struct Monster {
 
     max_ap: int,
     ap: int,
-    spent_this_tick: int,
+    pub spent_this_tick: int,
 }
 
 

@@ -174,7 +174,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
         match action {
             Action::Move(destination) => {
                 let pos = monster.position;
-                let newpos_opt = if point::tile_distance(pos, destination) == 1 {
+                let newpos_opt = if point::tile_distance(pos, destination) <= 1 {
                     Some(destination)
                 } else {
                     let (w, h) = level.size();
@@ -191,17 +191,17 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                             1.0);
                         path.find(pos, destination);
                         assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
-                        path.walk_one_step(true)
+                        path.walk_one_step(false)
                     }
                 };
                 if let Some(step) = newpos_opt {
+                    monster.spend_ap(1);
                     if level.monster_on_pos(step).is_none() {
-                        monster.spend_ap(1);
                         level.move_monster(monster, step);
+                    } else if step == monster.position {
+                        println!("{} cannot move so it waits.", monster);
                     } else {
-                        // NOTE: some other monster moved in before we did.
-                        // Don't do anything for now, don't spend any action
-                        // points, we'll get our chance in the next pass.
+                        unreachable!();
                     }
                 }
             }
@@ -218,6 +218,9 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
             Action::Eat => unreachable!(),
         }
     }
+
+    assert!(monsters.iter().filter(|m| !m.dead).all(|monster| monster.spent_this_tick == 1),
+            "Each monster has been processed this tick.");
 }
 
 

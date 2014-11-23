@@ -92,7 +92,9 @@ impl Level {
     }
 
     pub fn walkable(&self, pos: Point) -> bool {
-        self.cell(pos).tile == Tile::Empty
+        let (x, y) = pos;
+        let within_bounds = x >= 0 && y >= 0 && x < self.width && y < self.height;
+        within_bounds && self.cell(pos).tile == Tile::Empty && self.monster_on_pos(pos).is_none()
     }
 
     pub fn remove_monster(&mut self, monster_index: uint, monster: &Monster) {
@@ -132,8 +134,7 @@ impl Level {
         let mut walkables = vec![];
         for &pos in neighbors.iter() {
             let (x, y) = pos;
-            let within_bounds = x >= 0 && y >= 0 && x < self.width && y < self.height;
-            if within_bounds && self.cell(pos).tile == Tile::Empty {
+            if self.walkable(pos) {
                 walkables.push(pos)
             }
         }

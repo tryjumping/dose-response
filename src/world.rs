@@ -5,16 +5,16 @@ use color::{mod, Color};
 use item::Item;
 use level::{Level, Tile};
 use monster::{mod, Monster};
-use generators::forrest;
+use generators::GeneratedWorld;
 use point::{mod, Point};
 
 
-pub fn populate_world<T: Rng>(world_size: (int, int),
+pub fn populate_world<R: Rng>(world_size: (int, int),
                               level: &mut Level,
                               monsters: &mut Vec<Monster>,
                               player_pos: (int, int),
-                              rng: &mut T,
-                              generate: fn(&mut T, int, int) -> Vec<(Point, Tile)>) {
+                              rng: &mut R,
+                              generate: fn(&mut R, int, int) -> GeneratedWorld) {
     // TODO: this closure doesn't seem to work correctly (set all tiles to e.g.
     // monsters and look at the shape of the gap this produces):
     let near_player = |x, y| point::tile_distance(player_pos, (x, y)) < 6;
@@ -28,7 +28,7 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
         initial_foods_pos.push(pos);
     };
     let (width, height) = world_size;
-    let map = generate(rng, width, height);
+    let (map, generated_monsters, items) = generate(rng, width, height);
     for &(pos, item) in map.iter() {
         let tile = if pos == player_pos {
             // Player should always start on an empty tile:
@@ -37,37 +37,17 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
             item
         };
         level.set_tile(pos, tile);
-        // TODO: right now we just bail to make sure we don't generate any
-        // monsters or items on player's position. Later this should instead
-        // ensure that there are no monsters, we have at least one dose and a
-        // random amount of food in sight:
-        // if near_player(x, y) {
-        //     continue
-        // }
-        // if item.is_monster() {
-        //     let kind = match item {
-        //         WorldItem::Anxiety    => monster::Kind::Anxiety,
-        //         WorldItem::Depression => monster::Kind::Depression,
-        //         WorldItem::Hunger     => monster::Kind::Hunger,
-        //         WorldItem::Shadows    => monster::Kind::Shadows,
-        //         WorldItem::Voices     => monster::Kind::Voices,
-        //         _ => unreachable!(),
-        //     };
-        //     let monster = Monster::new(kind, (x, y));
-        //     monsters.push(monster);
-        // } else {
-        //     let item = match item {
-        //         WorldItem::Dose => Some(Item::Dose),
-        //         WorldItem::StrongDose => Some(Item::StrongDose),
-        //         WorldItem::Food => Some(Item::Food),
-        //         _ => None,
-        //     };
-        //     if let Some(item) = item {
-        //         level.add_item((x, y), item);
-        //     }
-        // }
-        continue;
-        // TODO: drop all this ECS stuff
+    }
+    for &(pos, kind) in generated_monsters.iter() {
+        assert!(level.walkable(pos));
+        let monster = Monster::new(kind, pos);
+        monsters.push(monster);
+    }
+    for &(pos, item) in items.iter() {
+        assert!(level.walkable(pos));
+        level.add_item(pos, item);
+    }
+}
 /*
         let bg = world.new_entity();
         world.cs.set(Position{x: x, y: y}, bg);
@@ -175,8 +155,6 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
             world.cs.set(Tile{level: tile_level, glyph: item.to_glyph(), color: item.to_color()}, e);
         }
 */
-    }
-}
 
 // pub fn create_player(cs: &mut Components, player: Entity) {
 //     cs.set(AcceptsUserInput, player);

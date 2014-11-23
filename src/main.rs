@@ -165,10 +165,6 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
         return
     }
 
-    for monster in monsters.iter_mut() {
-        monster.ap_clear_tick();
-    }
-
     for monster in monsters.iter_mut().filter(|m| !m.dead) {
         let action = monster.act(player.pos, level, rng);
         match action {
@@ -218,9 +214,6 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
             Action::Eat => unreachable!(),
         }
     }
-
-    assert!(monsters.iter().filter(|m| !m.dead).all(|monster| monster.spent_this_tick == 1),
-            "Each monster has been processed this tick.");
 }
 
 

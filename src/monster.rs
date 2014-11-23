@@ -120,7 +120,7 @@ impl Render for Monster {
             Depression => ('D', color::depression, bg),
             Hunger => ('h', color::hunger, bg),
             Shadows => ('S', color::voices, bg),
-            Voices => ('V', color::shadows, bg),
+            Voices => ('v', color::shadows, bg),
         }
     }
 }

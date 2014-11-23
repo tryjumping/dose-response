@@ -1,26 +1,12 @@
 use std::rand::Rng;
 use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 
+use item::Item;
+use level::Tile;
+use monster::Kind;
 
-#[deriving(PartialEq, Clone, Rand)]
-pub enum WorldItem {
-    Empty,
-    Tree,
 
-    Dose,
-    StrongDose,
-    Food,
-
-    Anxiety,
-    Depression,
-    Hunger,
-    Voices,
-    Shadows,
-}
-
-pub fn forrest<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(int, int, WorldItem)> {
-    use self::WorldItem::*;
-
+/*
     let monster_count = 5;
     let monster_weight = 30 / monster_count;
     let mut weights = [
@@ -35,8 +21,15 @@ pub fn forrest<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(int, int, WorldItem)
         Weighted{weight: monster_weight,  item: Voices},
         Weighted{weight: monster_weight,  item: Shadows},
     ];
+*/
+
+pub fn generate_level<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(int, int, Tile)> {
+    let mut weights = [
+        Weighted{weight: 61, item: Tile::Empty},
+        Weighted{weight: 39, item: Tile::Tree},
+    ];
     let opts = WeightedChoice::new(weights.as_mut_slice());
-    let mut result: Vec<(int, int, WorldItem)> = vec![];
+    let mut result = vec![];
     for x in range(0, w) {
         for y in range(0, h) {
             result.push((x, y, opts.ind_sample(rng)));

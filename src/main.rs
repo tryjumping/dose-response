@@ -19,8 +19,8 @@ use systems::input::Command;
 
 mod color;
 mod engine;
-//mod entity_util;
 mod game_state;
+mod generators;
 mod graphics;
 mod item;
 mod level;
@@ -28,7 +28,6 @@ mod monster;
 mod player;
 mod point;
 mod systems;
-mod world_gen;
 mod world;
 
 

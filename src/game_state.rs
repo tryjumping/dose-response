@@ -11,12 +11,12 @@ use std::str;
 
 use time;
 
+use generators;
 use level::Level;
 use monster::Monster;
 use player::Player;
 use systems::input::Command;
 use world;
-use world_gen;
 
 
 #[deriving(PartialEq, Clone, Show)]
@@ -131,7 +131,7 @@ fn initialise_world(game_state: &mut GameState) {
                           &mut game_state.monsters,
                           game_state.player.pos,
                           &mut game_state.rng,
-                          world_gen::forrest);
+                          generators::forrest::generate_level);
     // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
     game_state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
     for (index, m) in game_state.monsters.iter_mut().enumerate() {

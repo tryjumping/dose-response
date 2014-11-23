@@ -5,7 +5,7 @@ use color::{mod, Color};
 use item::Item;
 use level::{Level, Tile};
 use monster::{mod, Monster};
-use world_gen::{mod, WorldItem};
+use generators::forrest;
 use point;
 
 
@@ -14,7 +14,7 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
                               monsters: &mut Vec<Monster>,
                               player_pos: (int, int),
                               rng: &mut T,
-                              generate: fn(&mut T, int, int) -> Vec<(int, int, world_gen::WorldItem)>) {
+                              generate: fn(&mut T, int, int) -> Vec<(int, int, Tile)>) {
     // TODO: this closure doesn't seem to work correctly (set all tiles to e.g.
     // monsters and look at the shape of the gap this produces):
     let near_player = |x, y| point::tile_distance(player_pos, (x, y)) < 6;
@@ -30,46 +30,42 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
     let (width, height) = world_size;
     let map = generate(rng, width, height);
     for &(x, y, item) in map.iter() {
-        // TODO: fix the world generator to return the right items:
-        let mut level_tile = match item {
-            WorldItem::Empty => Tile::Empty,
-            WorldItem::Tree => Tile::Tree,
-            _ => Tile::Empty,
+        let tile = if (x, y) == player_pos {
+            // Player should always start on an empty tile:
+            Tile::Empty
+        } else {
+            item
         };
-        // Player should always start on an empty tile:
-        if (x, y) == player_pos {
-            level_tile = Tile::Empty;
-        }
-        level.set_tile((x, y), level_tile);
+        level.set_tile((x, y), tile);
         // TODO: right now we just bail to make sure we don't generate any
         // monsters or items on player's position. Later this should instead
         // ensure that there are no monsters, we have at least one dose and a
         // random amount of food in sight:
-        if near_player(x, y) {
-            continue
-        }
-        if item.is_monster() {
-            let kind = match item {
-                WorldItem::Anxiety    => monster::Kind::Anxiety,
-                WorldItem::Depression => monster::Kind::Depression,
-                WorldItem::Hunger     => monster::Kind::Hunger,
-                WorldItem::Shadows    => monster::Kind::Shadows,
-                WorldItem::Voices     => monster::Kind::Voices,
-                _ => unreachable!(),
-            };
-            let monster = Monster::new(kind, (x, y));
-            monsters.push(monster);
-        } else {
-            let item = match item {
-                WorldItem::Dose => Some(Item::Dose),
-                WorldItem::StrongDose => Some(Item::StrongDose),
-                WorldItem::Food => Some(Item::Food),
-                _ => None,
-            };
-            if let Some(item) = item {
-                level.add_item((x, y), item);
-            }
-        }
+        // if near_player(x, y) {
+        //     continue
+        // }
+        // if item.is_monster() {
+        //     let kind = match item {
+        //         WorldItem::Anxiety    => monster::Kind::Anxiety,
+        //         WorldItem::Depression => monster::Kind::Depression,
+        //         WorldItem::Hunger     => monster::Kind::Hunger,
+        //         WorldItem::Shadows    => monster::Kind::Shadows,
+        //         WorldItem::Voices     => monster::Kind::Voices,
+        //         _ => unreachable!(),
+        //     };
+        //     let monster = Monster::new(kind, (x, y));
+        //     monsters.push(monster);
+        // } else {
+        //     let item = match item {
+        //         WorldItem::Dose => Some(Item::Dose),
+        //         WorldItem::StrongDose => Some(Item::StrongDose),
+        //         WorldItem::Food => Some(Item::Food),
+        //         _ => None,
+        //     };
+        //     if let Some(item) = item {
+        //         level.add_item((x, y), item);
+        //     }
+        // }
         continue;
         // TODO: drop all this ECS stuff
 /*
@@ -208,59 +204,3 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
 //         }, player);
 //     cs.set(Solid, player);
 // }
-
-
-// TODO: adding this dummy trait so we can implemen these methods here instead
-// of in the world_gen module where the struct is defined. A recent Rust upgrade
-// broke that and I'm not currently sure if that's to stay or not.
-//
-// We'll see once things settle down.
-trait MyWorldItemDummyTrait {
-    fn to_glyph(self) -> char;
-    fn to_color(self) -> Color;
-    fn is_monster(self) -> bool;
-}
-
-impl MyWorldItemDummyTrait for world_gen::WorldItem {
-    fn to_glyph(self) -> char {
-        match self {
-            WorldItem::Empty => '.',
-            WorldItem::Tree => '#',
-            WorldItem::Dose => 'i',
-            WorldItem::StrongDose => 'I',
-            WorldItem::Food => '%',
-            WorldItem::Anxiety => 'a',
-            WorldItem::Depression => 'D',
-            WorldItem::Hunger => 'h',
-            WorldItem::Voices => 'v',
-            WorldItem::Shadows => 'S',
-        }
-    }
-
-    fn to_color(self) -> Color {
-        match self {
-            WorldItem::Empty => color::empty_tile,
-            WorldItem::Tree => *rand::task_rng().choose(&[color::tree_1, color::tree_2, color::tree_3]).unwrap(),
-            WorldItem::Dose => color::dose,
-            WorldItem::StrongDose => color::dose,
-            WorldItem::Food => color::food,
-
-            WorldItem::Anxiety => color::anxiety,
-            WorldItem::Depression => color::depression,
-            WorldItem::Hunger => color::hunger,
-            WorldItem::Voices => color::voices,
-            WorldItem::Shadows => color::shadows,
-        }
-    }
-
-    fn is_monster(self) -> bool {
-        match self {
-            WorldItem::Anxiety |
-            WorldItem::Depression |
-            WorldItem::Hunger |
-            WorldItem::Voices |
-            WorldItem::Shadows => true,
-            _ => false,
-        }
-    }
-}

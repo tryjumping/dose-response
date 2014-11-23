@@ -4,6 +4,7 @@ use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 use item::Item;
 use level::Tile;
 use monster::Kind;
+use point::Point;
 
 
 /*
@@ -23,7 +24,7 @@ use monster::Kind;
     ];
 */
 
-pub fn generate_level<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(int, int, Tile)> {
+pub fn generate_level<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted{weight: 61, item: Tile::Empty},
         Weighted{weight: 39, item: Tile::Tree},
@@ -32,7 +33,7 @@ pub fn generate_level<T: Rng>(rng: &mut T, w: int, h: int) -> Vec<(int, int, Til
     let mut result = vec![];
     for x in range(0, w) {
         for y in range(0, h) {
-            result.push((x, y, opts.ind_sample(rng)));
+            result.push(((x, y), opts.ind_sample(rng)));
         }
     }
     result

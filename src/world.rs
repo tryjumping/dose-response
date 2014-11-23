@@ -6,7 +6,7 @@ use item::Item;
 use level::{Level, Tile};
 use monster::{mod, Monster};
 use generators::forrest;
-use point;
+use point::{mod, Point};
 
 
 pub fn populate_world<T: Rng>(world_size: (int, int),
@@ -14,7 +14,7 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
                               monsters: &mut Vec<Monster>,
                               player_pos: (int, int),
                               rng: &mut T,
-                              generate: fn(&mut T, int, int) -> Vec<(int, int, Tile)>) {
+                              generate: fn(&mut T, int, int) -> Vec<(Point, Tile)>) {
     // TODO: this closure doesn't seem to work correctly (set all tiles to e.g.
     // monsters and look at the shape of the gap this produces):
     let near_player = |x, y| point::tile_distance(player_pos, (x, y)) < 6;
@@ -29,14 +29,14 @@ pub fn populate_world<T: Rng>(world_size: (int, int),
     };
     let (width, height) = world_size;
     let map = generate(rng, width, height);
-    for &(x, y, item) in map.iter() {
-        let tile = if (x, y) == player_pos {
+    for &(pos, item) in map.iter() {
+        let tile = if pos == player_pos {
             // Player should always start on an empty tile:
             Tile::Empty
         } else {
             item
         };
-        level.set_tile((x, y), tile);
+        level.set_tile(pos, tile);
         // TODO: right now we just bail to make sure we don't generate any
         // monsters or items on player's position. Later this should instead
         // ensure that there are no monsters, we have at least one dose and a

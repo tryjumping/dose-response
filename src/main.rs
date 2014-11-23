@@ -6,10 +6,10 @@ extern crate time;
 
 
 extern crate tcod;
-
 use std::collections::RingBuf;
 use std::time::Duration;
 use std::os;
+use std::rand::Rng;
 
 use tcod::{KeyState, Printable, Special};
 
@@ -74,19 +74,9 @@ pub enum Action {
 }
 
 
-fn kill_monster_at_pos<'a>(pos: (int, int),
-                       monsters: &'a mut Vec<monster::Monster>,
-                       level: &mut level::Level) -> &'a monster::Monster {
-    match level.monster_on_pos(pos) {
-        Some(index) => {
-            let monster = &mut monsters[index];
-            assert_eq!(monster.position, pos);
-            monster.dead = true;
-            level.remove_monster(index, monster);
-            return monster
-        }
-        None => panic!(format!("No monster on position {}", pos)),
-    }
+fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
+    monster.dead = true;
+    level.remove_monster(monster.id(), monster);
 }
 
 fn process_player(state: &mut GameState) {
@@ -114,11 +104,11 @@ fn process_player(state: &mut GameState) {
                 let (w, h) = state.level.size();
                 let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
                 if within_level {
-                    if state.level.monster_on_pos((x, y)).is_some() {
+                    if let Some(monster_id) = state.level.monster_on_pos((x, y)) {
                         state.player.spend_ap(1);
-                        let monster = kill_monster_at_pos((x, y),
-                                                          &mut state.monsters,
-                                                          &mut state.level);
+                        let monster = &mut state.monsters[monster_id];
+                        assert_eq!(monster.id(), monster_id);
+                        kill_monster(monster, &mut state.level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
                                 println!("TODO: increase the anxiety kill counter / add one Will");
@@ -153,10 +143,8 @@ fn process_player(state: &mut GameState) {
                     // TODO: move this to an "explode" procedure we can call elsewhere, too.
                     for expl_pos in point::points_within_radius(
                         state.player.pos, food_explosion_radius) {
-                        if state.level.monster_on_pos(expl_pos).is_some() {
-                            kill_monster_at_pos(expl_pos,
-                                                &mut state.monsters,
-                                                &mut state.level);
+                        if let Some(monster_id) = state.level.monster_on_pos(expl_pos) {
+                            kill_monster(&mut state.monsters[monster_id], &mut state.level);
                         }
                     }
                 }
@@ -169,33 +157,32 @@ fn process_player(state: &mut GameState) {
 }
 
 
-fn process_monsters(state: &mut GameState) {
-    if !state.player.alive() {
+fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
+                            level: &mut level::Level,
+                            player: &mut player::Player,
+                            rng: &mut R) {
+    if !player.alive() {
         return
     }
-    let player_pos = state.player.pos;
-    for monster in state.monsters.iter_mut() {
+
+    for monster in monsters.iter_mut() {
         monster.ap_clear_tick();
     }
 
-    let mut monster_actions = vec![];
-    for (index, monster) in state.monsters.iter().enumerate().filter(|&(_, m)| !m.dead) {
-        monster_actions.push((index,
-                              monster.act(player_pos, &state.level, &mut state.rng)));
-    }
-    for (monster_index, action) in monster_actions.into_iter() {
+    for monster in monsters.iter_mut().filter(|m| !m.dead) {
+        let action = monster.act(player.pos, level, rng);
         match action {
             Action::Move(destination) => {
-                let pos = state.monsters[monster_index].position;
+                let pos = monster.position;
                 let newpos_opt = if point::tile_distance(pos, destination) == 1 {
                     Some(destination)
                 } else {
-                    let (w, h) = state.level.size();
+                    let (w, h) = level.size();
                     {   // Find path && walk one step:
                         let mut path = tcod::AStarPath::new_from_callback(
                             w, h,
                             |&mut: _from: (int, int), to: (int, int)| -> f32 {
-                                if state.level.walkable(to) {
+                                if level.walkable(to) {
                                     1.0
                                 } else {
                                     0.0
@@ -208,9 +195,9 @@ fn process_monsters(state: &mut GameState) {
                     }
                 };
                 if let Some(step) = newpos_opt {
-                    if state.level.monster_on_pos(step).is_none() {
-                        state.monsters[monster_index].spend_ap(1);
-                        state.level.move_monster(&mut state.monsters[monster_index], step);
+                    if level.monster_on_pos(step).is_none() {
+                        monster.spend_ap(1);
+                        level.move_monster(monster, step);
                     } else {
                         // NOTE: some other monster moved in before we did.
                         // Don't do anything for now, don't spend any action
@@ -218,16 +205,16 @@ fn process_monsters(state: &mut GameState) {
                     }
                 }
             }
+
             Action::Attack(target_pos, damage) => {
-                assert!(target_pos == state.player.pos);
-                state.monsters[monster_index].spend_ap(1);
-                state.player.take_damage(damage);
-                if state.monsters[monster_index].die_after_attack {
-                    kill_monster_at_pos(state.monsters[monster_index].position,
-                                        &mut state.monsters,
-                                        &mut state.level);
+                assert!(target_pos == player.pos);
+                monster.spend_ap(1);
+                player.take_damage(damage);
+                if monster.die_after_attack {
+                    kill_monster(monster, level);
                 }
             }
+
             Action::Eat => unreachable!(),
         }
     }
@@ -265,8 +252,6 @@ fn render_gui(display: &mut engine::Display, player: &player::Player) {
 
 
 fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
-    assert!(state.monsters.iter().enumerate().all(|(index, monster)| index == monster.id()),
-            "Monster.id must always be equal to its index in state.monsters.");
     if engine.key_pressed(Special(KeyCode::Escape)) {
         return None;
     }
@@ -326,14 +311,16 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             Side::Computer => {}
         }
 
+        assert!(state.monsters.iter().enumerate().all(|(index, monster)| index == monster.id()),
+                "Monster.id must always be equal to its index in state.monsters.");
         // Process monsters
         match state.side {
             Side::Player => {}
             Side::Computer => {
-                process_monsters(&mut state);
+                process_monsters(&mut state.monsters, &mut state.level, &mut state.player, &mut state.rng);
                 // TODO: if no remaining action points:
-                         state.side = Side::Player;
-                         state.player.new_turn();
+                state.side = Side::Player;
+                state.player.new_turn();
             }
         }
     }

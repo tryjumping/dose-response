@@ -1,12 +1,9 @@
-use std::rand;
 use std::rand::Rng;
 
-use color::{mod, Color};
-use item::Item;
 use level::{Level, Tile};
-use monster::{mod, Monster};
+use monster::Monster;
 use generators::GeneratedWorld;
-use point::{mod, Point};
+use point;
 
 
 pub fn populate_world<R: Rng>(world_size: (int, int),
@@ -22,6 +19,7 @@ pub fn populate_world<R: Rng>(world_size: (int, int),
     let initial_dose_pos = (player_pos.0 + *rng.choose(pos_offset).unwrap(),
                             player_pos.1 + *rng.choose(pos_offset).unwrap());
     let mut initial_foods_pos = Vec::<(int, int)>::new();
+    // TODO: move this random generation stuff to generators?
     for _ in range(0, rng.gen_range::<uint>(1, 4)) {
         let pos = (player_pos.0 + *rng.choose(pos_offset).unwrap(),
                    player_pos.1 + *rng.choose(pos_offset).unwrap());

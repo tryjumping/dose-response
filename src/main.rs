@@ -30,12 +30,11 @@ mod world;
 
 
 
-
-fn ctrl(key: tcod::KeyState) -> bool {
-    key.left_ctrl || key.right_ctrl
-}
-
 fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Command>) {
+    fn ctrl(key: tcod::KeyState) -> bool {
+        key.left_ctrl || key.right_ctrl
+    }
+
     // TODO: switch to DList and consume it with `mut_iter`.
     loop {
         match keys.pop_front() {

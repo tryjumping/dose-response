@@ -1,7 +1,7 @@
 use std::rand::Rng;
 use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 
-use item::Item;
+use item;
 use level::Tile;
 use monster::Kind;
 use point::Point;
@@ -47,12 +47,13 @@ pub fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Poi
     result
 }
 
-pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Item)> {
+pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, item::Kind)> {
+    use item::Kind::*;
     let mut weights = [
         Weighted{weight: 1000 , item: None},
-        Weighted{weight: 7, item: Some(Item::Dose)},
-        Weighted{weight: 3, item: Some(Item::StrongDose)},
-        Weighted{weight: 5, item: Some(Item::Food)},
+        Weighted{weight: 7, item: Some(Dose)},
+        Weighted{weight: 3, item: Some(StrongDose)},
+        Weighted{weight: 5, item: Some(Food)},
     ];
     let opts = WeightedChoice::new(weights.as_mut_slice());
     let mut result = vec![];

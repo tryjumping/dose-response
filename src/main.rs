@@ -119,8 +119,8 @@ fn process_player(state: &mut GameState) {
                         loop {
                             match state.level.pickup_item((x, y)) {
                                 Some(item) => {
-                                    use item::Item::*;
-                                    match item {
+                                    use item::Kind::*;
+                                    match item.kind {
                                         Food => state.player.inventory.push(item),
                                         Dose | StrongDose => {
                                             println!("TODO: use the dose");
@@ -134,7 +134,7 @@ fn process_player(state: &mut GameState) {
                 }
             }
             Action::Eat => {
-                if let Some(food_idx) = state.player.inventory.iter().position(|&i| i == item::Item::Food) {
+                if let Some(food_idx) = state.player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
                     state.player.inventory.remove(food_idx);
                     state.player.spend_ap(1);
                     let food_explosion_radius = 2;

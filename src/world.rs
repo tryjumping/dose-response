@@ -1,5 +1,6 @@
 use std::rand::Rng;
 
+use item::Item;
 use level::{Level, Tile};
 use monster::Monster;
 use generators::GeneratedWorld;
@@ -41,8 +42,9 @@ pub fn populate_world<R: Rng>(world_size: (int, int),
         let monster = Monster::new(kind, pos);
         monsters.push(monster);
     }
-    for &(pos, item) in items.iter() {
+    for &(pos, kind) in items.iter() {
         assert!(level.walkable(pos));
+        let item = Item::new(kind);
         level.add_item(pos, item);
     }
 }

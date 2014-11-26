@@ -77,13 +77,17 @@ fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
     level.remove_monster(monster.id(), monster);
 }
 
-fn process_player(state: &mut GameState) {
-    if !state.player.alive() {
+fn process_player(player: &mut player::Player,
+                  commands: &mut RingBuf<Command>,
+                  level: &mut level::Level,
+                  monsters: &mut Vec<monster::Monster>,
+                  command_logger: &mut game_state::CommandLogger) {
+    if !player.alive() {
         return
     }
-    if let Some(command) = state.commands.pop_front() {
-        state.command_logger.log(command);
-        let (x, y) = state.player.pos;
+    if let Some(command) = commands.pop_front() {
+        command_logger.log(command);
+        let (x, y) = player.pos;
         let action = match command {
             Command::N => Action::Move((x,     y - 1)),
             Command::S => Action::Move((x,     y + 1)),
@@ -99,29 +103,29 @@ fn process_player(state: &mut GameState) {
         };
         match action {
             Action::Move((x, y)) => {
-                let (w, h) = state.level.size();
+                let (w, h) = level.size();
                 let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
                 if within_level {
-                    if let Some(monster_id) = state.level.monster_on_pos((x, y)) {
-                        state.player.spend_ap(1);
-                        let monster = &mut state.monsters[monster_id];
+                    if let Some(monster_id) = level.monster_on_pos((x, y)) {
+                        player.spend_ap(1);
+                        let monster = &mut monsters[monster_id];
                         assert_eq!(monster.id(), monster_id);
-                        kill_monster(monster, &mut state.level);
+                        kill_monster(monster, level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
                                 println!("TODO: increase the anxiety kill counter / add one Will");
                             }
                             _ => {}
                         }
-                    } else if state.level.walkable((x, y)) {
-                        state.player.spend_ap(1);
-                        state.player.move_to((x, y));
+                    } else if level.walkable((x, y)) {
+                        player.spend_ap(1);
+                        player.move_to((x, y));
                         loop {
-                            match state.level.pickup_item((x, y)) {
+                            match level.pickup_item((x, y)) {
                                 Some(item) => {
                                     use item::Kind::*;
                                     match item.kind {
-                                        Food => state.player.inventory.push(item),
+                                        Food => player.inventory.push(item),
                                         Dose | StrongDose => {
                                             println!("TODO: use the dose");
                                         }
@@ -134,15 +138,15 @@ fn process_player(state: &mut GameState) {
                 }
             }
             Action::Eat => {
-                if let Some(food_idx) = state.player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
-                    state.player.inventory.remove(food_idx);
-                    state.player.spend_ap(1);
+                if let Some(food_idx) = player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
+                    player.inventory.remove(food_idx);
+                    player.spend_ap(1);
                     let food_explosion_radius = 2;
                     // TODO: move this to an "explode" procedure we can call elsewhere, too.
                     for expl_pos in point::points_within_radius(
-                        state.player.pos, food_explosion_radius) {
-                        if let Some(monster_id) = state.level.monster_on_pos(expl_pos) {
-                            kill_monster(&mut state.monsters[monster_id], &mut state.level);
+                        player.pos, food_explosion_radius) {
+                        if let Some(monster_id) = level.monster_on_pos(expl_pos) {
+                            kill_monster(&mut monsters[monster_id], level);
                         }
                     }
                 }
@@ -289,7 +293,11 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Process player
         match state.side {
             Side::Player => {
-                process_player(&mut state);
+                process_player(&mut state.player,
+                               &mut state.commands,
+                               &mut state.level,
+                               &mut state.monsters,
+                               &mut state.command_logger);
                 if !state.player.has_ap(1) {
                     state.side = Side::Computer;
                     for monster in state.monsters.iter_mut() {

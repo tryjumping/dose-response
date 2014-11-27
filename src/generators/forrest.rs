@@ -14,8 +14,10 @@ pub fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> V
     ];
     let opts = WeightedChoice::new(weights.as_mut_slice());
     let mut result = vec![];
-    for x in range(0, w) {
-        for y in range(0, h) {
+    // NOTE: starting with `y` seems weird but it'll generate the right pattern:
+    // start at top left corner, moving to the right
+    for y in range(0, h) {
+        for x in range(0, w) {
             // Player always starts at an empty space:
             let kind = match (x, y) == player {
                 true => TileKind::Empty,
@@ -56,22 +58,52 @@ pub fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Poi
     result
 }
 
-pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, item::Kind)> {
+pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -> Vec<(Point, item::Kind)> {
     use item::Kind::*;
-    let mut weights = [
+    let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
+    let mut initial_dose = (px + *rng.choose(pos_offset).unwrap(),
+                            py + *rng.choose(pos_offset).unwrap());
+    let mut weights_near_player = [
+        Weighted{weight: 1000 , item: None},
+        Weighted{weight: 2, item: Some(Dose)},
+        Weighted{weight: 0, item: Some(StrongDose)},
+        Weighted{weight: 20, item: Some(Food)},
+
+    ];
+    let mut weights_rest = [
         Weighted{weight: 1000 , item: None},
         Weighted{weight: 7, item: Some(Dose)},
         Weighted{weight: 3, item: Some(StrongDose)},
         Weighted{weight: 5, item: Some(Food)},
     ];
-    let opts = WeightedChoice::new(weights.as_mut_slice());
+    let gen_near_player = WeightedChoice::new(weights_near_player.as_mut_slice());
+    let gen_rest = WeightedChoice::new(weights_rest.as_mut_slice());
+
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
-        if tile.kind != TileKind::Empty {
-            continue
-        }
-        if let Some(item) = opts.ind_sample(rng) {
-            result.push((pos, item));
+        match tile.kind {
+            // Initial dose position is blocked, move it somewhere else:
+            TileKind::Tree if pos == initial_dose => {
+                initial_dose = (initial_dose.0 + 1, initial_dose.1);
+                if point::tile_distance(initial_dose, (px, py)) > 4 {
+                    initial_dose = (initial_dose.0 - 4, initial_dose.1 + 1);
+                }
+            }
+            TileKind::Tree => {
+                // Occupied tile, do nothing:
+            }
+            TileKind::Empty if pos == initial_dose => {
+                result.push((pos, Dose));
+            }
+            TileKind::Empty => {
+                let gen = match point::tile_distance(pos, (px, py)) < 6 {
+                    true => &gen_near_player,
+                    false => &gen_rest,
+                };
+                if let Some(item) = gen.ind_sample(rng) {
+                    result.push((pos, item));
+                }
+            }
         }
     }
     result
@@ -81,6 +113,6 @@ pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point,
 pub fn generate<R: Rng>(rng: &mut R, w: int, h: int, player: Point) -> GeneratedWorld {
     let map = generate_map(rng, (w, h), player);
     let monsters = generate_monsters(rng, map.as_slice(), player);
-    let items = generate_items(rng, map.as_slice());
+    let items = generate_items(rng, map.as_slice(), player);
     (map, monsters, items)
 }

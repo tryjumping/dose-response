@@ -4,7 +4,7 @@ use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 use item;
 use level::{Tile, TileKind};
 use monster::Kind;
-use point::Point;
+use point::{mod, Point};
 use generators::GeneratedWorld;
 
 pub fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> Vec<(Point, Tile)> {
@@ -27,7 +27,7 @@ pub fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> V
     result
 }
 
-pub fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Kind)> {
+pub fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) -> Vec<(Point, Kind)> {
     // 3% chance a monster gets spawned
     let monster_count = 5;
     let monster_chance  = 30;
@@ -43,6 +43,10 @@ pub fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Poi
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
         if tile.kind != TileKind::Empty {
+            continue
+        }
+        // Don't spawn any monsters in near vicinity to the player
+        if point::tile_distance(pos, player) < 6 {
             continue
         }
         if let Some(monster) = opts.ind_sample(rng) {
@@ -76,7 +80,7 @@ pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point,
 
 pub fn generate<R: Rng>(rng: &mut R, w: int, h: int, player: Point) -> GeneratedWorld {
     let map = generate_map(rng, (w, h), player);
-    let monsters = generate_monsters(rng, map.as_slice());
+    let monsters = generate_monsters(rng, map.as_slice(), player);
     let items = generate_items(rng, map.as_slice());
     (map, monsters, items)
 }

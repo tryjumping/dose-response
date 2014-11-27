@@ -7,7 +7,7 @@ use monster::Kind;
 use point::Point;
 use generators::GeneratedWorld;
 
-pub fn generate_map<R: Rng>(rng: &mut R, w: int, h: int) -> Vec<(Point, Tile)> {
+pub fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted{weight: 610, item: TileKind::Empty},
         Weighted{weight: 390, item: TileKind::Tree},
@@ -16,7 +16,12 @@ pub fn generate_map<R: Rng>(rng: &mut R, w: int, h: int) -> Vec<(Point, Tile)> {
     let mut result = vec![];
     for x in range(0, w) {
         for y in range(0, h) {
-            result.push(((x, y), Tile::new(opts.ind_sample(rng))));
+            // Player always starts at an empty space:
+            let kind = match (x, y) == player {
+                true => TileKind::Empty,
+                false => opts.ind_sample(rng),
+            };
+            result.push(((x, y), Tile::new(kind)));
         }
     }
     result
@@ -69,8 +74,8 @@ pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point,
 }
 
 
-pub fn generate<R: Rng>(rng: &mut R, w: int, h: int) -> GeneratedWorld {
-    let map = generate_map(rng, w, h);
+pub fn generate<R: Rng>(rng: &mut R, w: int, h: int, player: Point) -> GeneratedWorld {
+    let map = generate_map(rng, (w, h), player);
     let monsters = generate_monsters(rng, map.as_slice());
     let items = generate_items(rng, map.as_slice());
     (map, monsters, items)

@@ -152,12 +152,12 @@ impl GameState {
 
 fn initialise_world(game_state: &mut GameState) {
     let (width, height) = game_state.level.size();
-    world::populate_world((width, height),
-                          &mut game_state.level,
+    let generated_world = generators::forrest::generate(&mut game_state.rng,
+                                                        width, height,
+                                                        game_state.player.pos);
+    world::populate_world(&mut game_state.level,
                           &mut game_state.monsters,
-                          game_state.player.pos,
-                          &mut game_state.rng,
-                          generators::forrest::generate);
+                          generated_world);
     // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
     game_state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
     for (index, m) in game_state.monsters.iter_mut().enumerate() {

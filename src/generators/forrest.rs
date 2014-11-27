@@ -2,21 +2,21 @@ use std::rand::Rng;
 use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 
 use item;
-use level::Tile;
+use level::{Tile, TileKind};
 use monster::Kind;
 use point::Point;
 use generators::GeneratedWorld;
 
 pub fn generate_map<R: Rng>(rng: &mut R, w: int, h: int) -> Vec<(Point, Tile)> {
     let mut weights = [
-        Weighted{weight: 610, item: Tile::Empty},
-        Weighted{weight: 390, item: Tile::Tree},
+        Weighted{weight: 610, item: TileKind::Empty},
+        Weighted{weight: 390, item: TileKind::Tree},
     ];
     let opts = WeightedChoice::new(weights.as_mut_slice());
     let mut result = vec![];
     for x in range(0, w) {
         for y in range(0, h) {
-            result.push(((x, y), opts.ind_sample(rng)));
+            result.push(((x, y), Tile::new(opts.ind_sample(rng))));
         }
     }
     result
@@ -37,7 +37,7 @@ pub fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Poi
     let opts = WeightedChoice::new(weights.as_mut_slice());
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
-        if tile != Tile::Empty {
+        if tile.kind != TileKind::Empty {
             continue
         }
         if let Some(monster) = opts.ind_sample(rng) {
@@ -58,7 +58,7 @@ pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point,
     let opts = WeightedChoice::new(weights.as_mut_slice());
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
-        if tile != Tile::Empty {
+        if tile.kind != TileKind::Empty {
             continue
         }
         if let Some(item) = opts.ind_sample(rng) {

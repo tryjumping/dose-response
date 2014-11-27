@@ -1,7 +1,7 @@
 use std::rand::Rng;
 
 use item::Item;
-use level::{Level, Tile};
+use level::{Level, Tile, TileKind};
 use monster::Monster;
 use generators::GeneratedWorld;
 use point;
@@ -31,7 +31,7 @@ pub fn populate_world<R: Rng>(world_size: (int, int),
     for &(pos, item) in map.iter() {
         let tile = if pos == player_pos {
             // Player should always start on an empty tile:
-            Tile::Empty
+            Tile::new(TileKind::Empty)
         } else {
             item
         };

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::rand::Rng;
+use std::rand::{mod, Rng};
 
 use color::{mod, Color};
 use engine::Display;
@@ -9,7 +9,7 @@ use monster::Monster;
 use point::Point;
 
 
-#[deriving(PartialEq, Show)]
+#[deriving(Show)]
 pub struct Cell {
     pub tile: Tile,
     pub items: Vec<Item>,
@@ -17,20 +17,41 @@ pub struct Cell {
 
 
 #[deriving(Clone, PartialEq, Rand, Show)]
-pub enum Tile {
+pub enum TileKind {
     Empty,
     Tree,
+}
+
+#[deriving(Show)]
+pub struct Tile {
+    pub kind: TileKind,
+    fg_color: Color,
+}
+
+impl Tile {
+    pub fn new(kind: TileKind) -> Tile {
+        let color = match kind {
+            TileKind::Empty => color::empty_tile,
+            TileKind::Tree => {
+                let options = [color::tree_1, color::tree_2, color::tree_3];
+                *rand::task_rng().choose(&options).unwrap()
+            }
+        };
+        Tile {
+            kind: kind,
+            fg_color: color,
+        }
+    }
 }
 
 
 impl Render for Tile {
     fn render(&self) -> (char, Color, Color) {
-        use self::Tile::*;
+        use self::TileKind::*;
         let bg = color::background;
-        match *self {
-            Empty => ('.', color::empty_tile, bg),
-            // TODO: this should be random for different tiles
-            Tree => ('#', color::tree_1, bg),
+        match self.kind {
+            Empty => ('.', self.fg_color, bg),
+            Tree => ('#', self.fg_color, bg),
         }
     }
 }
@@ -51,7 +72,7 @@ impl Level {
             height: height,
             monsters: HashMap::new(),
             map: Vec::from_fn((width * height) as uint,
-                              |_| Cell{tile: Tile::Empty, items: vec![]}),
+                              |_| Cell{tile: Tile::new(TileKind::Empty), items: vec![]}),
         }
     }
 
@@ -94,7 +115,7 @@ impl Level {
     pub fn walkable(&self, pos: Point) -> bool {
         let (x, y) = pos;
         let within_bounds = x >= 0 && y >= 0 && x < self.width && y < self.height;
-        within_bounds && self.cell(pos).tile == Tile::Empty && self.monster_on_pos(pos).is_none()
+        within_bounds && self.cell(pos).tile.kind == TileKind::Empty && self.monster_on_pos(pos).is_none()
     }
 
     pub fn remove_monster(&mut self, monster_index: uint, monster: &Monster) {

@@ -1,5 +1,4 @@
 * Gameplay priority
-** Taking a dose should explode monsters
 ** Stun and Panic don't do anything right now
 ** Player should die on Overdose
 ** Monsters should switch back to Idle if the player is too far away

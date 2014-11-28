@@ -137,9 +137,18 @@ fn process_player(player: &mut player::Player,
                                     use item::Kind::*;
                                     match item.kind {
                                         Food => player.inventory.push(item),
-                                        Dose | StrongDose => {
+                                        // TODO: drop the dose distinction and
+                                        // merge the Dose and StrongDose arms
+                                        // here:
+                                        Dose => {
+                                            let radius = 4;
                                             player.take_effect(item.modifier);
-                                            // TODO: this should kill surrounding monsters
+                                            explode(player.pos, radius, level, monsters);
+                                        }
+                                        StrongDose => {
+                                            let radius = 6;
+                                            player.take_effect(item.modifier);
+                                            explode(player.pos, radius, level, monsters);
                                         }
                                     }
                                 }

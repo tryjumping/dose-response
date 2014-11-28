@@ -128,6 +128,7 @@ fn process_player(player: &mut player::Player,
                                         Food => player.inventory.push(item),
                                         Dose | StrongDose => {
                                             player.take_effect(item.modifier);
+                                            // TODO: this should kill surrounding monsters
                                         }
                                     }
                                 }

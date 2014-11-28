@@ -1,5 +1,5 @@
 * Gameplay priority
-** BUG: explosion (for doses) does not have the right shape/area?
+** Taking a dose should explode monsters
 ** Stun and Panic don't do anything right now
 ** Player should die on Overdose
 ** Monsters should switch back to Idle if the player is too far away
@@ -9,7 +9,6 @@
 ** Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
-** Food should give a bit of State of Mind back but never increase intoxication
 ** When the PC is drawn to an irresistible dose
 they must walk through the monsters if that's the shortest path even if it means death
 * Other gameplay ideas & plans

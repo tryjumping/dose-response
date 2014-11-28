@@ -1,3 +1,5 @@
+use std::cmp;
+
 use color::{mod, Color};
 use item::Item;
 use graphics::Render;
@@ -8,37 +10,43 @@ use point::Point;
 pub enum Modifier {
     Death,
     Attribute{will: int, state_of_mind: int},
+    Intoxication{state_of_mind: int, tolerance_increase: int},
     Panic(int),
     Stun(int),
 }
 
 pub struct Player {
-    pub pos: Point,
+    pub state_of_mind: int,
     pub will: int,
+    pub tolerance: int,
+    intoxication_threshold: int,
     pub panic: int,
     pub stun: int,
+
+    pub pos: Point,
     pub inventory: Vec<Item>,
 
     dead: bool,
 
     max_ap: int,
     ap: int,
-    pub state_of_mind: int,
 }
 
 impl Player {
 
     pub fn new(pos: Point) -> Player {
         Player {
-            pos: pos,
-            dead: false,
-            ap: 1,
-            max_ap: 1,
             state_of_mind: 20,
             will: 2,
+            tolerance: 0,
+            intoxication_threshold: 20,
             panic: 0,
             stun: 0,
+            pos: pos,
             inventory: vec![],
+            dead: false,
+            max_ap: 1,
+            ap: 1,
         }
     }
 
@@ -63,14 +71,32 @@ impl Player {
         !self.dead && self.will > 0 && self.state_of_mind > 0
     }
 
-    pub fn take_damage(&mut self, effect: Modifier) {
+    pub fn take_effect(&mut self, effect: Modifier) {
         use self::Modifier::*;
         println!("Player was affected by: {}", effect);
         match effect {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {
-                self.state_of_mind += state_of_mind;
                 self.will += will;
+                // NOTE: this is a bit complicated because we want to make sure
+                // that don't get intoxicated by this. It should be a no-op,
+                // then. But we want to get you fully satiated even if that
+                // means using only a part of the value and also, any negative
+                // effects should be used in full.
+                let to_add = if self.intoxication_threshold > self.state_of_mind {
+                    cmp::min(state_of_mind, self.intoxication_threshold - self.state_of_mind)
+                } else {
+                    0
+                };
+                if state_of_mind > 0 {
+                    self.state_of_mind += to_add;
+                } else {
+                    self.state_of_mind += state_of_mind;
+                }
+            }
+            Intoxication{state_of_mind, tolerance_increase} => {
+                self.state_of_mind += state_of_mind;
+                self.tolerance += tolerance_increase;
             }
             Panic(turns) => self.panic += turns,
             Stun(turns) => self.stun += turns,

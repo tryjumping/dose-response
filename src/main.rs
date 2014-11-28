@@ -127,7 +127,7 @@ fn process_player(player: &mut player::Player,
                                     match item.kind {
                                         Food => player.inventory.push(item),
                                         Dose | StrongDose => {
-                                            player.take_damage(item.modifier);
+                                            player.take_effect(item.modifier);
                                         }
                                     }
                                 }
@@ -141,7 +141,7 @@ fn process_player(player: &mut player::Player,
                 if let Some(food_idx) = player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
                     player.spend_ap(1);
                     let food = player.inventory.remove(food_idx).unwrap();
-                    player.take_damage(food.modifier);
+                    player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
                     // TODO: move this to an "explode" procedure we can call elsewhere, too.
                     for expl_pos in point::points_within_radius(
@@ -213,7 +213,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
             Action::Attack(target_pos, damage) => {
                 assert!(target_pos == player.pos);
                 monster.spend_ap(1);
-                player.take_damage(damage);
+                player.take_effect(damage);
                 if monster.die_after_attack {
                     kill_monster(monster, level);
                 }

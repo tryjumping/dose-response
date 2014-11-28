@@ -62,10 +62,10 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) 
 fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     use item::Kind::*;
     let modifier = match kind {
-        Dose => Modifier::Attribute{state_of_mind: 72 + rng.gen_range(-5, 6),
-                                    will: 0},
-        StrongDose => Modifier::Attribute{state_of_mind: 130 + rng.gen_range(-15, 16),
-                                          will: 0},
+        Dose => Modifier::Intoxication{state_of_mind: 72 + rng.gen_range(-5, 6),
+                                       tolerance_increase: 1},
+        StrongDose => Modifier::Intoxication{state_of_mind: 130 + rng.gen_range(-15, 16),
+                                             tolerance_increase: 2},
         Food => Modifier::Attribute{state_of_mind: 10,
                                     will: 0},
     };

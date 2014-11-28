@@ -95,7 +95,8 @@ impl Player {
                 }
             }
             Intoxication{state_of_mind, tolerance_increase} => {
-                self.state_of_mind += state_of_mind;
+                let state_of_mind_bonus = cmp::max(10, (state_of_mind - self.tolerance));
+                self.state_of_mind += state_of_mind_bonus;
                 self.tolerance += tolerance_increase;
             }
             Panic(turns) => self.panic += turns,

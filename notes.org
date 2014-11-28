@@ -1,8 +1,6 @@
 * Gameplay priority
 ** Stun and Panic don't do anything right now
-** Generate the correct starting layout
-** Doses should add different amounts of SoM bonus
-** Doses should have an explosion effect on consuming
+** Player should die on Overdose
 ** Monsters should switch back to Idle if the player is too far away
 ** Irresistible dose effect
 ** Fog of war (radius dependent on State of Mind)
@@ -75,6 +73,7 @@ should provide a visually better result (but will be harder to compute).
 ** Change player's colour on stunned/panicked
 ** Make sure we're accessible to colour blind people
 * Code cleanup & improvements
+** Refactor food and dose explosion code to a single location
 ** Update each actor in every frame
 ** Clean up the monster list / level cache?
    - was a huge source of bugs, maybe we want to tighten it up more?

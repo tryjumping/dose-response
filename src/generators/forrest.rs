@@ -1,9 +1,10 @@
 use std::rand::Rng;
 use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 
-use item;
+use item::{mod, Item};
 use level::{Tile, TileKind};
 use monster::Kind;
+use player::Modifier;
 use point::{mod, Point};
 use generators::GeneratedWorld;
 
@@ -58,7 +59,23 @@ pub fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Poi
     result
 }
 
-pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -> Vec<(Point, item::Kind)> {
+fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
+    use item::Kind::*;
+    let modifier = match kind {
+        Dose => Modifier::Attribute{state_of_mind: 72 + rng.gen_range(-5, 6),
+                                    will: 0},
+        StrongDose => Modifier::Attribute{state_of_mind: 130 + rng.gen_range(-15, 16),
+                                          will: 0},
+        Food => Modifier::Attribute{state_of_mind: 10,
+                                    will: 0},
+    };
+    Item {
+        kind: kind,
+        modifier: modifier,
+    }
+}
+
+pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -> Vec<(Point, item::Item)> {
     use item::Kind::*;
     let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
     let mut initial_dose = (px + *rng.choose(pos_offset).unwrap(),
@@ -93,15 +110,15 @@ pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Poin
                 // Occupied tile, do nothing:
             }
             TileKind::Empty if pos == initial_dose => {
-                result.push((pos, Dose));
+                result.push((pos, new_item(Dose, rng)));
             }
             TileKind::Empty => {
                 let gen = match point::tile_distance(pos, (px, py)) < 6 {
                     true => &gen_near_player,
                     false => &gen_rest,
                 };
-                if let Some(item) = gen.ind_sample(rng) {
-                    result.push((pos, item));
+                if let Some(kind) = gen.ind_sample(rng) {
+                    result.push((pos, new_item(kind, rng)));
                 }
             }
         }

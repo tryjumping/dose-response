@@ -4,6 +4,7 @@ use super::Action;
 use color::{mod, Color};
 use level::Level;
 use graphics::Render;
+use player::Modifier;
 use point::{mod, Point};
 
 
@@ -61,13 +62,14 @@ impl Monster {
         self.id = id;
     }
 
-    pub fn attack_damage(&self) -> Damage {
+    pub fn attack_damage(&self) -> Modifier {
+        use player::Modifier::*;
         match self.kind {
-            Anxiety => Damage::AttributeLoss{will: 1, state_of_mind: 0},
-            Depression => Damage::Death,
-            Hunger => Damage::AttributeLoss{will: 0, state_of_mind: 20},
-            Shadows => Damage::Panic(4),
-            Voices => Damage::Stun(4),
+            Anxiety => Attribute{will: -1, state_of_mind: 0},
+            Depression => Death,
+            Hunger => Attribute{will: 0, state_of_mind: -20},
+            Shadows => Panic(4),
+            Voices => Stun(4),
         }
     }
 
@@ -123,12 +125,4 @@ impl Render for Monster {
             Voices => ('v', color::shadows, bg),
         }
     }
-}
-
-#[deriving(PartialEq, Show)]
-pub enum Damage {
-    Death,
-    AttributeLoss{will: int, state_of_mind: int},
-    Panic(int),
-    Stun(int),
 }

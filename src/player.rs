@@ -1,9 +1,16 @@
 use color::{mod, Color};
 use item::Item;
 use graphics::Render;
-use monster::Damage;
 use point::Point;
 
+
+#[deriving(PartialEq, Show)]
+pub enum Modifier {
+    Death,
+    Attribute{will: int, state_of_mind: int},
+    Panic(int),
+    Stun(int),
+}
 
 pub struct Player {
     pub pos: Point,
@@ -56,14 +63,14 @@ impl Player {
         !self.dead && self.will > 0 && self.state_of_mind > 0
     }
 
-    pub fn take_damage(&mut self, damage: Damage) {
-        use monster::Damage::*;
-        println!("Player took damage: {}", damage);
-        match damage {
+    pub fn take_damage(&mut self, effect: Modifier) {
+        use self::Modifier::*;
+        println!("Player took damage: {}", effect);
+        match effect {
             Death => self.dead = true,
-            AttributeLoss{will, state_of_mind} => {
-                self.state_of_mind -= state_of_mind;
-                self.will -= will;
+            Attribute{will, state_of_mind} => {
+                self.state_of_mind += state_of_mind;
+                self.will += will;
             }
             Panic(turns) => self.panic += turns,
             Stun(turns) => self.stun += turns,

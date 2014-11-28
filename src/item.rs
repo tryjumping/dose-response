@@ -1,5 +1,6 @@
 use color::{mod, Color};
 use graphics::Render;
+use player::Modifier;
 
 use self::Kind::*;
 
@@ -15,15 +16,7 @@ pub enum Kind {
 #[deriving(PartialEq, Show)]
 pub struct Item {
     pub kind: Kind,
-}
-
-
-impl Item {
-    pub fn new(kind: Kind) -> Item {
-        Item{
-            kind: kind,
-        }
-    }
+    pub modifier: Modifier,
 }
 
 

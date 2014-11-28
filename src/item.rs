@@ -5,6 +5,9 @@ use player::Modifier;
 use self::Kind::*;
 
 
+// TODO: we should probably drop the distinction between a normal and a strong
+// dose on the type level. The rand gen will create them, but the actual
+// differences should be encoded within their properties.
 #[deriving(Clone, PartialEq, Rand, Show)]
 pub enum Kind {
     Dose,

@@ -77,6 +77,17 @@ fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
     level.remove_monster(monster.id(), monster);
 }
 
+fn explode(center: point::Point,
+           radius: int,
+           level: &mut level::Level,
+           monsters: &mut Vec<monster::Monster>) {
+    for pos in point::points_within_radius(center, radius) {
+        if let Some(monster_id) = level.monster_on_pos(pos) {
+            kill_monster(&mut monsters[monster_id], level);
+        }
+    }
+}
+
 fn process_player(player: &mut player::Player,
                   commands: &mut RingBuf<Command>,
                   level: &mut level::Level,
@@ -144,13 +155,7 @@ fn process_player(player: &mut player::Player,
                     let food = player.inventory.remove(food_idx).unwrap();
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
-                    // TODO: move this to an "explode" procedure we can call elsewhere, too.
-                    for expl_pos in point::points_within_radius(
-                        player.pos, food_explosion_radius) {
-                        if let Some(monster_id) = level.monster_on_pos(expl_pos) {
-                            kill_monster(&mut monsters[monster_id], level);
-                        }
-                    }
+                    explode(player.pos, food_explosion_radius, level, monsters);
                 }
             }
             Action::Attack(_, _) => {

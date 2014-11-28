@@ -127,7 +127,7 @@ fn process_player(player: &mut player::Player,
                                     match item.kind {
                                         Food => player.inventory.push(item),
                                         Dose | StrongDose => {
-                                            println!("TODO: use the dose");
+                                            player.take_damage(item.modifier);
                                         }
                                     }
                                 }
@@ -139,8 +139,9 @@ fn process_player(player: &mut player::Player,
             }
             Action::Eat => {
                 if let Some(food_idx) = player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
-                    player.inventory.remove(food_idx);
                     player.spend_ap(1);
+                    let food = player.inventory.remove(food_idx).unwrap();
+                    player.take_damage(food.modifier);
                     let food_explosion_radius = 2;
                     // TODO: move this to an "explode" procedure we can call elsewhere, too.
                     for expl_pos in point::points_within_radius(

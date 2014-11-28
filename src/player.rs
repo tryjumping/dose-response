@@ -65,7 +65,7 @@ impl Player {
 
     pub fn take_damage(&mut self, effect: Modifier) {
         use self::Modifier::*;
-        println!("Player took damage: {}", effect);
+        println!("Player was affected by: {}", effect);
         match effect {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {

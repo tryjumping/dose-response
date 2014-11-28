@@ -8,7 +8,7 @@ use player::Modifier;
 use point::{mod, Point};
 use generators::GeneratedWorld;
 
-pub fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> Vec<(Point, Tile)> {
+fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted{weight: 610, item: TileKind::Empty},
         Weighted{weight: 390, item: TileKind::Tree},
@@ -30,7 +30,7 @@ pub fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> V
     result
 }
 
-pub fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) -> Vec<(Point, Kind)> {
+fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) -> Vec<(Point, Kind)> {
     // 3% chance a monster gets spawned
     let monster_count = 5;
     let monster_chance  = 30;
@@ -75,7 +75,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     }
 }
 
-pub fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -> Vec<(Point, item::Item)> {
+fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -> Vec<(Point, item::Item)> {
     use item::Kind::*;
     let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
     let mut initial_dose = (px + *rng.choose(pos_offset).unwrap(),

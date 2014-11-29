@@ -119,6 +119,33 @@ fn process_player<R: Rng>(player: &mut player::Player,
             let new_pos = level.random_neighbour_position(
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
+        } else if let Some((dose_pos, dose)) = level.nearest_dose(player.pos, 5) {
+            let new_pos_opt = {
+                use std::cmp;
+                let (w, h) = level.size();
+                let mut path = tcod::AStarPath::new_from_callback(
+                    w, h,
+                    |&mut: _from: point::Point, to: point::Point| -> f32 {
+                        match level.walkable(to, level::Walkability::WalkthroughMonsters) {
+                            true => 1.0,
+                            false => 0.0,
+                        }
+                    },
+                    1.0);
+                path.find(player.pos, dose_pos);
+                let player_resist_radius = cmp::max(dose.irresistible - player.will, 0);
+                if path.len() <= player_resist_radius {
+                    path.walk_one_step(false)
+                } else {
+                    None
+                }
+            };
+            if let Some(new_pos) = new_pos_opt {
+                action = Action::Move(new_pos);
+            } else {
+                println!("Can't find path to irresistable dose at {} from player's position {}.",
+                         dose_pos, player.pos);
+            }
         }
         match action {
             Action::Move((x, y)) => {

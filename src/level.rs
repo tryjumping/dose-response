@@ -4,9 +4,9 @@ use std::rand::{mod, Rng};
 use color::{mod, Color};
 use engine::Display;
 use graphics::{mod, Render};
-use item::Item;
+use item::{mod, Item};
 use monster::Monster;
-use point::Point;
+use point::{mod, Point};
 
 
 #[deriving(Show)]
@@ -104,6 +104,21 @@ impl Level {
     pub fn set_monster(&mut self, pos: Point, monster_index: uint, monster: &Monster) {
         assert!(monster.position == pos);
         self.monsters.insert(pos, monster_index);
+    }
+
+    pub fn nearest_dose(&self, center: Point, radius: int) -> Option<(Point, Item)> {
+        let mut doses = vec![];
+        for pos in point::points_within_radius(center, radius) {
+            for &item in self.cell(pos).items.iter() {
+                match item.kind {
+                    item::Kind::Dose => {
+                        doses.push((pos, item));
+                    }
+                    _ => {}
+                }
+            }
+        }
+        doses.into_iter().min_by(|&(p, _)| point::tile_distance(center, p))
     }
 
     pub fn monster_on_pos(&self, pos: Point) -> Option<uint> {

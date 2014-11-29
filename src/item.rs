@@ -16,6 +16,7 @@ pub enum Kind {
 pub struct Item {
     pub kind: Kind,
     pub modifier: Modifier,
+    pub irresistible: int,
 }
 
 

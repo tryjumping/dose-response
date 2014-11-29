@@ -61,6 +61,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) 
 
 fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     use item::Kind::*;
+    let mut irresistible = 0;
     let modifier = match kind {
         Dose => {
             let mut dose_w = [
@@ -69,10 +70,11 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
             ];
             let base_strength_gen = WeightedChoice::new(dose_w.as_mut_slice());
             let base = base_strength_gen.ind_sample(rng);
-            let (strength, tolerance) = match base <= 100 {
-                true => (base + rng.gen_range(-5, 6), 1),
-                false => (base + rng.gen_range(-15, 16), 2),
+            let (strength, tolerance, r) = match base <= 100 {
+                true => (base + rng.gen_range(-5, 6), 1, 2),
+                false => (base + rng.gen_range(-15, 16), 2, 3),
             };
+            irresistible = r;
             Modifier::Intoxication{state_of_mind: strength,
                                    tolerance_increase: tolerance}
         },
@@ -82,6 +84,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     Item {
         kind: kind,
         modifier: modifier,
+        irresistible: irresistible,
     }
 }
 

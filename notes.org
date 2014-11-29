@@ -1,15 +1,14 @@
 * Gameplay priority
+** Monsters should switch back to Idle if the player is too far away
 ** Stun and Panic don't do anything right now
 ** Player should die on Overdose
-** Monsters should switch back to Idle if the player is too far away
 ** Irresistible dose effect
+  - player must walk through monsters if that's the shortest route
 ** Fog of war (radius dependent on State of Mind)
-** Colours should go wild when the player is High
 ** Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99
-** When the PC is drawn to an irresistible dose
-they must walk through the monsters if that's the shortest path even if it means death
+** Colours should go wild when the player is High
 * Other gameplay ideas & plans
 ** Depression only moves by 2 squares when following the player
 ** Gameplay beyond the first screen

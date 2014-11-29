@@ -107,6 +107,10 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -
 
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
+        // Don't create an item where the player starts:
+        if pos == (px, py) {
+            continue
+        }
         match tile.kind {
             // Initial dose position is blocked, move it somewhere else:
             TileKind::Tree if pos == initial_dose => {
@@ -116,7 +120,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -
                 }
             }
             TileKind::Tree => {
-                // Occupied tile, do nothing:
+                // Occupied tile, do nothing.
             }
             TileKind::Empty if pos == initial_dose => {
                 result.push((pos, new_item(Dose, rng)));

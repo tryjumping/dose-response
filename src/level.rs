@@ -109,6 +109,10 @@ impl Level {
     pub fn nearest_dose(&self, center: Point, radius: int) -> Option<(Point, Item)> {
         let mut doses = vec![];
         for pos in point::points_within_radius(center, radius) {
+            // Make sure we don't go out of bounds with self.cell(pos):
+            if !self.walkable(pos, Walkability::WalkthroughMonsters) {
+                continue
+            }
             for &item in self.cell(pos).items.iter() {
                 match item.kind {
                     item::Kind::Dose => {

@@ -135,20 +135,20 @@ fn process_player(player: &mut player::Player,
                             match level.pickup_item((x, y)) {
                                 Some(item) => {
                                     use item::Kind::*;
+                                    use player::Modifier::*;
                                     match item.kind {
                                         Food => player.inventory.push(item),
-                                        // TODO: drop the dose distinction and
-                                        // merge the Dose and StrongDose arms
-                                        // here:
                                         Dose => {
-                                            let radius = 4;
-                                            player.take_effect(item.modifier);
-                                            explode(player.pos, radius, level, monsters);
-                                        }
-                                        StrongDose => {
-                                            let radius = 6;
-                                            player.take_effect(item.modifier);
-                                            explode(player.pos, radius, level, monsters);
+                                            if let Intoxication{state_of_mind, ..} = item.modifier {
+                                                let radius = match state_of_mind <= 100 {
+                                                    true => 4,
+                                                    false => 6,
+                                                };
+                                                player.take_effect(item.modifier);
+                                                explode(player.pos, radius, level, monsters);
+                                            } else {
+                                                unreachable!();
+                                            }
                                         }
                                     }
                                 }

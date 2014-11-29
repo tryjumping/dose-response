@@ -1,4 +1,5 @@
 * Gameplay priority
+** Player's Will should increase when killing 10 Anxieties
 ** Stun and Panic don't do anything right now
 ** Player should die on Overdose
 ** Monsters should switch back to Idle if the player is too far away

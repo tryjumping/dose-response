@@ -62,10 +62,20 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) 
 fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     use item::Kind::*;
     let modifier = match kind {
-        Dose => Modifier::Intoxication{state_of_mind: 72 + rng.gen_range(-5, 6),
-                                       tolerance_increase: 1},
-        StrongDose => Modifier::Intoxication{state_of_mind: 130 + rng.gen_range(-15, 16),
-                                             tolerance_increase: 2},
+        Dose => {
+            let mut dose_w = [
+                Weighted{weight: 7, item: 72i},
+                Weighted{weight: 3, item: 130i}
+            ];
+            let base_strength_gen = WeightedChoice::new(dose_w.as_mut_slice());
+            let base = base_strength_gen.ind_sample(rng);
+            let (strength, tolerance) = match base <= 100 {
+                true => (base + rng.gen_range(-5, 6), 1),
+                false => (base + rng.gen_range(-15, 16), 2),
+            };
+            Modifier::Intoxication{state_of_mind: strength,
+                                   tolerance_increase: tolerance}
+        },
         Food => Modifier::Attribute{state_of_mind: 10,
                                     will: 0},
     };
@@ -75,6 +85,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     }
 }
 
+
 fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -> Vec<(Point, item::Item)> {
     use item::Kind::*;
     let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
@@ -83,14 +94,12 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -
     let mut weights_near_player = [
         Weighted{weight: 1000 , item: None},
         Weighted{weight: 2, item: Some(Dose)},
-        Weighted{weight: 0, item: Some(StrongDose)},
         Weighted{weight: 20, item: Some(Food)},
 
     ];
     let mut weights_rest = [
         Weighted{weight: 1000 , item: None},
-        Weighted{weight: 7, item: Some(Dose)},
-        Weighted{weight: 3, item: Some(StrongDose)},
+        Weighted{weight: 10, item: Some(Dose)},
         Weighted{weight: 5, item: Some(Food)},
     ];
     let gen_near_player = WeightedChoice::new(weights_near_player.as_mut_slice());

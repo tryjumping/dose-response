@@ -1,5 +1,5 @@
 * Gameplay priority
-** Monsters should switch back to Idle if the player is too far away
+** BUG: food (maybe dose too?) can appear at player init pos
 ** Stun and Panic don't do anything right now
 ** Player should die on Overdose
 ** Irresistible dose effect

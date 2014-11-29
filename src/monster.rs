@@ -9,6 +9,7 @@ use point::{mod, Point};
 
 
 use self::Kind::*;
+use self::AIState::*;
 
 
 #[deriving(PartialEq, Show)]
@@ -18,6 +19,7 @@ pub struct Monster {
     pub position: Point,
     pub dead: bool,
     pub die_after_attack: bool,
+    pub ai_state: AIState,
 
     pub max_ap: int,
     ap: int,
@@ -31,6 +33,12 @@ pub enum Kind {
     Hunger,
     Shadows,
     Voices,
+}
+
+#[deriving(PartialEq, Show)]
+pub enum AIState {
+    Idle,
+    Chasing,
 }
 
 impl Monster {
@@ -49,6 +57,7 @@ impl Monster {
             position: position,
             dead: false,
             die_after_attack: die_after_attack,
+            ai_state: Idle,
             ap: 0,
             max_ap: max_ap,
         }
@@ -73,22 +82,30 @@ impl Monster {
         }
     }
 
-    pub fn act<R: Rng>(&self, player_pos: Point, level: &Level, rng: &mut R) -> Action {
+    pub fn act<R: Rng>(&mut self, player_pos: Point, level: &Level, rng: &mut R) -> Action {
         if self.dead {
             panic!(format!("{} is dead, cannot run actions on it.", self));
         }
         let distance = point::tile_distance(self.position, player_pos);
-        // TODO: track the state of the AI (agressive/idle) and switch between
-        // them as the distance change.
-        if distance == 1 {
-            Action::Attack(player_pos, self.attack_damage())
-        } else if distance < 5 {
-            // Follow the player:
-            Action::Move(player_pos)
+        let ai_state = if distance <= 5 {
+            Chasing
         } else {
-            // Move randomly about
-            let new_pos = level.random_neighbour_position(rng, self.position);
-            Action::Move(new_pos)
+            Idle
+        };
+        self.ai_state = ai_state;
+        match self.ai_state {
+            Chasing => {
+                if distance == 1 {
+                    Action::Attack(player_pos, self.attack_damage())
+                } else {
+                    Action::Move(player_pos)
+                }
+            }
+            Idle => {
+                // Move randomly about
+                let new_pos = level.random_neighbour_position(rng, self.position);
+                Action::Move(new_pos)
+            }
         }
     }
 

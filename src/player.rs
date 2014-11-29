@@ -25,6 +25,7 @@ pub struct Player {
 
     pub pos: Point,
     pub inventory: Vec<Item>,
+    pub anxiety_counter: int,
 
     dead: bool,
 
@@ -44,6 +45,7 @@ impl Player {
             stun: 0,
             pos: pos,
             inventory: vec![],
+            anxiety_counter: 0,
             dead: false,
             max_ap: 1,
             ap: 1,

@@ -124,7 +124,14 @@ fn process_player(player: &mut player::Player,
                         kill_monster(monster, level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
-                                println!("TODO: increase the anxiety kill counter / add one Will");
+                                player.anxiety_counter += 1;
+                                if player.anxiety_counter >= 10 {
+                                    player.anxiety_counter -= 10;
+                                    player.will += 1;
+                                    if player.will > 10 {
+                                        player.will = 10;
+                                    }
+                                }
                             }
                             _ => {}
                         }

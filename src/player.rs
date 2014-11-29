@@ -72,6 +72,7 @@ impl Player {
         if self.panic > 0 {
             self.panic -= 1;
         }
+        self.state_of_mind -= 1;
         self.ap = self.max_ap;
     }
 

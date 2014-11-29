@@ -57,6 +57,12 @@ impl Render for Tile {
 }
 
 
+pub enum Walkability {
+    WalkthroughMonsters,
+    BlockingMonsters,
+}
+
+
 pub struct Level {
     width: int,
     height: int,
@@ -112,10 +118,14 @@ impl Level {
         (self.width, self.height)
     }
 
-    pub fn walkable(&self, pos: Point) -> bool {
+    pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
         let (x, y) = pos;
         let within_bounds = x >= 0 && y >= 0 && x < self.width && y < self.height;
-        within_bounds && self.cell(pos).tile.kind == TileKind::Empty && self.monster_on_pos(pos).is_none()
+        let walkable = match walkability {
+            Walkability::WalkthroughMonsters => true,
+            Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
+        };
+        within_bounds && self.cell(pos).tile.kind == TileKind::Empty && walkable
     }
 
     pub fn remove_monster(&mut self, monster_index: uint, monster: &Monster) {
@@ -141,7 +151,8 @@ impl Level {
         self.cell_mut(pos).items.pop()
     }
 
-    pub fn random_neighbour_position<T: Rng>(&self, rng: &mut T, (x, y): Point) -> Point {
+    pub fn random_neighbour_position<T: Rng>(&self, rng: &mut T, (x, y): Point,
+                                             walkability: Walkability) -> Point {
         let neighbors = [
             (x,   y-1),
             (x,   y+1),
@@ -154,7 +165,7 @@ impl Level {
         ];
         let mut walkables = vec![];
         for &pos in neighbors.iter() {
-            if self.walkable(pos) {
+            if self.walkable(pos, walkability) {
                 walkables.push(pos)
             }
         }

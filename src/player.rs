@@ -66,6 +66,12 @@ impl Player {
     }
 
     pub fn new_turn(&mut self) {
+        if self.stun > 0 {
+            self.stun -= 1;
+        }
+        if self.panic > 0 {
+            self.panic -= 1;
+        }
         self.ap = self.max_ap;
     }
 

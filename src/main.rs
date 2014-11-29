@@ -64,7 +64,7 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 }
 
 
-#[deriving(Show)]
+#[deriving(PartialEq, Show)]
 pub enum Action {
     Move((int, int)),
     Attack((int, int), player::Modifier),
@@ -88,18 +88,19 @@ fn explode(center: point::Point,
     }
 }
 
-fn process_player(player: &mut player::Player,
-                  commands: &mut RingBuf<Command>,
-                  level: &mut level::Level,
-                  monsters: &mut Vec<monster::Monster>,
-                  command_logger: &mut game_state::CommandLogger) {
+fn process_player<R: Rng>(player: &mut player::Player,
+                          commands: &mut RingBuf<Command>,
+                          level: &mut level::Level,
+                          monsters: &mut Vec<monster::Monster>,
+                          rng: &mut R,
+                          command_logger: &mut game_state::CommandLogger) {
     if !player.alive() {
         return
     }
     if let Some(command) = commands.pop_front() {
         command_logger.log(command);
         let (x, y) = player.pos;
-        let action = match command {
+        let mut action = match command {
             Command::N => Action::Move((x,     y - 1)),
             Command::S => Action::Move((x,     y + 1)),
             Command::W => Action::Move((x - 1, y    )),
@@ -112,6 +113,13 @@ fn process_player(player: &mut player::Player,
 
             Command::Eat => Action::Eat,
         };
+        if player.stun > 0 {
+            action = Action::Move(player.pos);
+        } else if player.panic > 0 {
+            let new_pos = level.random_neighbour_position(
+                rng, player.pos, level::Walkability::WalkthroughMonsters);
+            action = Action::Move(new_pos);
+        }
         match action {
             Action::Move((x, y)) => {
                 let (w, h) = level.size();
@@ -121,6 +129,7 @@ fn process_player(player: &mut player::Player,
                         player.spend_ap(1);
                         let monster = &mut monsters[monster_id];
                         assert_eq!(monster.id(), monster_id);
+                        println!("Player attacks {}", monster);
                         kill_monster(monster, level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
@@ -135,7 +144,7 @@ fn process_player(player: &mut player::Player,
                             }
                             _ => {}
                         }
-                    } else if level.walkable((x, y)) {
+                    } else if level.walkable((x, y), level::Walkability::BlockingMonsters) {
                         player.spend_ap(1);
                         player.move_to((x, y));
                         loop {
@@ -203,7 +212,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                         let mut path = tcod::AStarPath::new_from_callback(
                             w, h,
                             |&mut: _from: (int, int), to: (int, int)| -> f32 {
-                                if level.walkable(to) {
+                                if level.walkable(to, level::Walkability::BlockingMonsters) {
                                     1.0
                                 } else {
                                     0.0
@@ -320,6 +329,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                                &mut state.commands,
                                &mut state.level,
                                &mut state.monsters,
+                               &mut state.rng,
                                &mut state.command_logger);
                 if !state.player.has_ap(1) {
                     state.side = Side::Computer;

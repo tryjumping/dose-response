@@ -1,5 +1,4 @@
 * Gameplay priority
-** Stun and Panic don't do anything right now
 ** Player should die on Overdose
 ** Irresistible dose effect
   - player must walk through monsters if that's the shortest route

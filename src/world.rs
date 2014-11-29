@@ -1,4 +1,4 @@
-use level::Level;
+use level::{Level, Walkability};
 use monster::Monster;
 use generators::GeneratedWorld;
 
@@ -11,12 +11,12 @@ pub fn populate_world(level: &mut Level,
         level.set_tile(pos, item);
     }
     for &(pos, kind) in generated_monsters.iter() {
-        assert!(level.walkable(pos));
+        assert!(level.walkable(pos, Walkability::BlockingMonsters));
         let monster = Monster::new(kind, pos);
         monsters.push(monster);
     }
     for &(pos, item) in items.iter() {
-        assert!(level.walkable(pos));
+        assert!(level.walkable(pos, Walkability::BlockingMonsters));
         level.add_item(pos, item);
     }
 }

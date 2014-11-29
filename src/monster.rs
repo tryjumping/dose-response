@@ -2,7 +2,7 @@ use std::rand::Rng;
 
 use super::Action;
 use color::{mod, Color};
-use level::Level;
+use level::{Level, Walkability};
 use graphics::Render;
 use player::Modifier;
 use point::{mod, Point};
@@ -103,7 +103,8 @@ impl Monster {
             }
             Idle => {
                 // Move randomly about
-                let new_pos = level.random_neighbour_position(rng, self.position);
+                let new_pos = level.random_neighbour_position(
+                    rng, self.position, Walkability::BlockingMonsters);
                 Action::Move(new_pos)
             }
         }

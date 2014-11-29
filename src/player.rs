@@ -76,7 +76,7 @@ impl Player {
     }
 
     pub fn alive(&self) -> bool {
-        !self.dead && self.will > 0 && self.state_of_mind > 0
+        !self.dead && self.will > 0 && self.state_of_mind > 0 && self.state_of_mind < 100
     }
 
     pub fn take_effect(&mut self, effect: Modifier) {

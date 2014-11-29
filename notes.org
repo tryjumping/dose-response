@@ -1,5 +1,6 @@
 * Gameplay priority
 ** Player should die on Overdose
+** State of Mind should drop with every turn
 ** Irresistible dose effect
   - player must walk through monsters if that's the shortest route
 ** Fog of war (radius dependent on State of Mind)

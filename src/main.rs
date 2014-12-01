@@ -1,4 +1,5 @@
 #![feature(if_let, macro_rules, globs, phase, link_args, unboxed_closures, tuple_indexing)]
+#![deny(overflowing_literals)]
 
 extern crate libc;
 extern crate time;

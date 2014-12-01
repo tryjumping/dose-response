@@ -4,6 +4,7 @@ use color::{mod, Color};
 use item::Item;
 use graphics::Render;
 use point::Point;
+use ranged_int::RangedInt;
 
 
 #[deriving(PartialEq, Show)]
@@ -16,16 +17,16 @@ pub enum Modifier {
 }
 
 pub struct Player {
-    pub state_of_mind: int,
-    pub will: int,
+    pub state_of_mind: RangedInt<int>,
+    pub will: RangedInt<int>,
     pub tolerance: int,
     intoxication_threshold: int,
-    pub panic: int,
-    pub stun: int,
+    pub panic: RangedInt<int>,
+    pub stun: RangedInt<int>,
 
     pub pos: Point,
     pub inventory: Vec<Item>,
-    pub anxiety_counter: int,
+    pub anxiety_counter: RangedInt<int>,
 
     dead: bool,
 
@@ -37,15 +38,15 @@ impl Player {
 
     pub fn new(pos: Point) -> Player {
         Player {
-            state_of_mind: 20,
-            will: 2,
+            state_of_mind: RangedInt::new(20, (0, 100)),
+            will: RangedInt::new(2, (0, 10)),
             tolerance: 0,
             intoxication_threshold: 20,
-            panic: 0,
-            stun: 0,
+            panic: RangedInt::new(0, (0, 100)),
+            stun: RangedInt::new(0, (0, 100)),
             pos: pos,
             inventory: vec![],
-            anxiety_counter: 0,
+            anxiety_counter: RangedInt::new(0, (0, 10)),
             dead: false,
             max_ap: 1,
             ap: 1,
@@ -66,18 +67,14 @@ impl Player {
     }
 
     pub fn new_turn(&mut self) {
-        if self.stun > 0 {
-            self.stun -= 1;
-        }
-        if self.panic > 0 {
-            self.panic -= 1;
-        }
-        self.state_of_mind -= 1;
+        self.stun.add(-1);
+        self.panic.add(-1);
+        self.state_of_mind.add(-1);
         self.ap = self.max_ap;
     }
 
     pub fn alive(&self) -> bool {
-        !self.dead && self.will > 0 && self.state_of_mind > 0 && self.state_of_mind < 100
+        !self.dead && *self.will > 0 && *self.state_of_mind > 0 && *self.state_of_mind < 100
     }
 
     pub fn take_effect(&mut self, effect: Modifier) {
@@ -86,30 +83,34 @@ impl Player {
         match effect {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {
-                self.will += will;
+                self.will.add(will);
                 // NOTE: this is a bit complicated because we want to make sure
                 // that don't get intoxicated by this. It should be a no-op,
                 // then. But we want to get you fully satiated even if that
                 // means using only a part of the value and also, any negative
                 // effects should be used in full.
-                let to_add = if self.intoxication_threshold > self.state_of_mind {
-                    cmp::min(state_of_mind, self.intoxication_threshold - self.state_of_mind)
+                let to_add = if self.intoxication_threshold > *self.state_of_mind {
+                    cmp::min(state_of_mind, self.intoxication_threshold - *self.state_of_mind)
                 } else {
                     0
                 };
                 if state_of_mind > 0 {
-                    self.state_of_mind += to_add;
+                    self.state_of_mind.add(to_add);
                 } else {
-                    self.state_of_mind += state_of_mind;
+                    self.state_of_mind.add(state_of_mind);
                 }
             }
             Intoxication{state_of_mind, tolerance_increase} => {
                 let state_of_mind_bonus = cmp::max(10, (state_of_mind - self.tolerance));
-                self.state_of_mind += state_of_mind_bonus;
+                self.state_of_mind.add(state_of_mind_bonus);
                 self.tolerance += tolerance_increase;
             }
-            Panic(turns) => self.panic += turns,
-            Stun(turns) => self.stun += turns,
+            Panic(turns) => {
+                self.panic.add(turns);
+            }
+            Stun(turns) => {
+                self.stun.add(turns);
+            }
         }
     }
 }

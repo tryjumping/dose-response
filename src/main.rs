@@ -115,9 +115,9 @@ fn process_player<R: Rng>(player: &mut player::Player,
 
             Command::Eat => Action::Eat,
         };
-        if player.stun > 0 {
+        if *player.stun > 0 {
             action = Action::Move(player.pos);
-        } else if player.panic > 0 {
+        } else if *player.panic > 0 {
             let new_pos = level.random_neighbour_position(
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
@@ -135,7 +135,7 @@ fn process_player<R: Rng>(player: &mut player::Player,
                     },
                     1.0);
                 path.find(player.pos, dose_pos);
-                let player_resist_radius = cmp::max(dose.irresistible - player.will, 0);
+                let player_resist_radius = cmp::max(dose.irresistible - *player.will, 0);
                 if path.len() <= player_resist_radius {
                     path.walk_one_step(false)
                 } else {
@@ -162,13 +162,10 @@ fn process_player<R: Rng>(player: &mut player::Player,
                         kill_monster(monster, level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
-                                player.anxiety_counter += 1;
-                                if player.anxiety_counter >= 10 {
-                                    player.anxiety_counter -= 10;
-                                    player.will += 1;
-                                    if player.will > 10 {
-                                        player.will = 10;
-                                    }
+                                player.anxiety_counter.add(1);
+                                if *player.anxiety_counter == 10 {
+                                    player.will.add(1);
+                                    player.anxiety_counter.set(0);
                                 }
                             }
                             _ => {}
@@ -288,8 +285,8 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 fn render_gui(display: &mut engine::Display, player: &player::Player) {
     let (_w, h) = display.size();
     let attribute_line = format!("SoM: {},  Will: {},  Food: {}",
-                              player.state_of_mind,
-                              player.will,
+                              *player.state_of_mind,
+                              *player.will,
                               player.inventory.len());
     display.write_text(attribute_line.as_slice(), 0, h-1,
                        color::Color{r: 255, g: 255, b: 255},
@@ -297,14 +294,14 @@ fn render_gui(display: &mut engine::Display, player: &player::Player) {
 
     let mut status_line = String::new();
     if player.alive() {
-        if player.stun > 0 {
-            status_line.push_str(format!("Stunned({})", player.stun).as_slice());
+        if *player.stun > 0 {
+            status_line.push_str(format!("Stunned({})", *player.stun).as_slice());
         }
-        if player.panic > 0 {
+        if *player.panic > 0 {
             if status_line.len() > 0 {
                 status_line.push_str(",  ");
             }
-            status_line.push_str(format!("Panicking({})", player.panic).as_slice())
+            status_line.push_str(format!("Panicking({})", *player.panic).as_slice())
         }
     } else {
         status_line.push_str("Dead");

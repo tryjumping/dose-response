@@ -8,7 +8,7 @@ pub struct RangedInt<T: Int> {
 }
 
 impl<T: Int> RangedInt<T> {
-    pub fn new(value: T, min: T, max: T) -> RangedInt<T> {
+    pub fn new(value: T, (min, max): (T, T)) -> RangedInt<T> {
         assert!(min <= max && value >= min && value <= max);
         RangedInt {
             val: value,

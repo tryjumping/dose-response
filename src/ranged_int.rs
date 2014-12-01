@@ -1,7 +1,7 @@
 use std::num::Int;
 
 
-struct RangedInt<T: Int> {
+pub struct RangedInt<T: Int> {
     val: T,
     _min: T,
     _max: T,
@@ -9,7 +9,7 @@ struct RangedInt<T: Int> {
 
 impl<T: Int> RangedInt<T> {
     pub fn new(value: T, min: T, max: T) -> RangedInt<T> {
-        assert!(min <= max);
+        assert!(min <= max && value >= min && value <= max);
         RangedInt {
             val: value,
             _min: min,
@@ -18,7 +18,7 @@ impl<T: Int> RangedInt<T> {
     }
 
     pub fn set(&mut self, n: T) {
-        assert!(n >= self._min) && (n <= self._max);
+        assert!((n >= self._min) && (n <= self._max));
         self.val = n;
     }
 
@@ -49,9 +49,75 @@ mod test_mod {
     use super::RangedInt;
 
     #[test]
-    fn test_use_overflow() {
+    #[should_fail]
+    fn test_new_value_greater_than_max() {
+        let c = RangedInt::new(10i8, -5, 5);
+    }
+
+    #[test]
+    #[should_fail]
+    fn test_new_value_lesser_than_min() {
+        let c = RangedInt::new(-10i8, -5, 5);
+    }
+
+    #[test]
+    #[should_fail]
+    fn test_min_bound_greater_than_max() {
+        let c = RangedInt::new(0i8, 5, -5);
+    }
+
+    #[test]
+    fn test_identical_bounds() {
+        let mut c = RangedInt::new(0i8, 0, 0);
+        assert_eq!(*c, 0);
+        c.add(100);
+        assert_eq!(*c, 0);
+        c.add(-120);
+        assert_eq!(*c, 0);
+    }
+
+    #[test]
+    #[should_fail]
+    fn set_value_over_max() {
+        let mut c = RangedInt::new(0i8, -5, 5);
+        c.set(10);
+    }
+
+    #[test]
+    #[should_fail]
+    fn set_value_under_min() {
+        let mut c = RangedInt::new(0i8, -5, 5);
+        c.set(-10);
+    }
+
+
+    #[test]
+    fn set_value() {
         let mut c = RangedInt::new(0i8, -5, 5);
         assert_eq!(*c, 0);
+
+        c.set(0); assert_eq!(*c, 0);
+
+        c.set(-5); assert_eq!(*c, -5);
+        c.set(-4); assert_eq!(*c, -4);
+        c.set(-3); assert_eq!(*c, -3);
+        c.set(-2); assert_eq!(*c, -2);
+        c.set(-1); assert_eq!(*c, -1);
+
+        c.set(0); assert_eq!(*c, 0);
+
+        c.set(1); assert_eq!(*c, 1);
+        c.set(2); assert_eq!(*c, 2);
+        c.set(3); assert_eq!(*c, 3);
+        c.set(4); assert_eq!(*c, 4);
+        c.set(5); assert_eq!(*c, 5);
+    }
+
+    #[test]
+    fn test_add_overflow() {
+        let mut c = RangedInt::new(0i8, -5, 5);
+        assert_eq!(*c, 0);
+
         c.add(1);
         assert_eq!(*c, 1);
         c.add(4);

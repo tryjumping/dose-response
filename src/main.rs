@@ -27,6 +27,7 @@ mod level;
 mod monster;
 mod player;
 mod point;
+mod ranged_int;
 mod world;
 
 

@@ -5,10 +5,13 @@ all: build
 cargo-build:
 	cp lib/* $(OUT_DIR)
 
-build: $(SOURCES)
+build:
 	cargo build
 
-release: $(SOURCES)
+test:
+	cargo test
+
+release:
 	cargo build --release
 
 run:

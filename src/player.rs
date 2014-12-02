@@ -16,6 +16,33 @@ pub enum Modifier {
     Stun(int),
 }
 
+#[deriving(PartialEq, Show)]
+pub enum IntoxicationState {
+    Exhausted,
+    DeliriumTremens,
+    Withdrawal,
+    Sober,
+    High,
+    VeryHigh,
+    Overdosed,
+}
+
+impl IntoxicationState {
+    pub fn from_int(value: int) -> IntoxicationState {
+        use self::IntoxicationState::*;
+        match value {
+            val if val <= 0 => Exhausted,
+            1...5   => DeliriumTremens,
+            6...15  => Withdrawal,
+            16...20 => Sober,
+            21...80 => High,
+            81...99 => VeryHigh,
+            _ => Overdosed,
+        }
+    }
+}
+
+
 pub struct Player {
     pub state_of_mind: RangedInt<int>,
     pub will: RangedInt<int>,

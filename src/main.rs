@@ -90,6 +90,18 @@ fn explode(center: point::Point,
     }
 }
 
+fn exploration_radius(state_of_mind: int) -> int {
+    use player::IntoxicationState::*;
+    match player::IntoxicationState::from_int(state_of_mind) {
+        Exhausted | DeliriumTremens => 4,
+        Withdrawal => 5,
+        Sober => 6,
+        High => 7,
+        VeryHigh | Overdosed => 8
+    }
+}
+
+
 fn process_player<R: Rng>(player: &mut player::Player,
                           commands: &mut RingBuf<Command>,
                           level: &mut level::Level,
@@ -383,11 +395,15 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
 
 
-    state.level.render(&mut engine.display);
+    let radius = exploration_radius(*state.player.state_of_mind);
+    state.level.render(&mut engine.display, state.player.pos, radius);
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
     for monster in state.monsters.iter().filter(|m| !m.dead) {
-        graphics::draw(&mut engine.display, monster.position, monster);
+        let visible = point::distance(monster.position, state.player.pos) < (radius as f32);
+        if visible {
+            graphics::draw(&mut engine.display, monster.position, monster);
+        }
     }
     graphics::draw(&mut engine.display, state.player.pos, &state.player);
     render_gui(&mut engine.display, &state.player);

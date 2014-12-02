@@ -194,13 +194,20 @@ impl Level {
         }
     }
 
-    pub fn render(&self, display: &mut Display) {
+    pub fn render(&self, display: &mut Display, ex_center: Point, ex_radius: int) {
         let (mut x, mut y) = (0, 0);
+        // TODO: we should be able to calculate (x, y) from cell's index
         for cell in self.map.iter() {
-            graphics::draw(display, (x, y), &cell.tile);
-            for item in cell.items.iter() {
-                graphics::draw(display, (x, y), item);
+            let visible = point::distance((x, y), ex_center) < (ex_radius as f32);
+            if visible {
+                graphics::draw(display, (x, y), &cell.tile);
+                for item in cell.items.iter() {
+                    graphics::draw(display, (x, y), item);
+                }
             }
+
+            // TODO: design the loop better so this isn't necessary:
+            // NOTE: this has to run at every loop pass!
             x += 1;
             if x >= self.width {
                 x = 0;

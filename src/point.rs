@@ -22,6 +22,8 @@ pub fn distance(p1: Point, p2: Point) -> f32 {
 struct PointsWithinRadius {
     x: int,
     y: int,
+    center: Point,
+    radius: int,
     initial_x: int,
     max_x: int,
     max_y: int,
@@ -29,16 +31,22 @@ struct PointsWithinRadius {
 
 impl Iterator<Point> for PointsWithinRadius {
     fn next(&mut self) -> Option<Point> {
-        if (self.y > self.max_y) || (self.x > self.max_x) {
-            return None;
+        loop {
+            if (self.y > self.max_y) || (self.x > self.max_x) {
+                return None;
+            }
+            let current_point = (self.x, self.y);
+            self.x += 1;
+            if self.x > self.max_x {
+                self.x = self.initial_x;
+                self.y += 1;
+            }
+            if distance(current_point, self.center) < self.radius as f32 {
+                return Some(current_point)
+            } else {
+                // Keep looping for another point
+            }
         }
-        let current_point = (self.x, self.y);
-        self.x += 1;
-        if self.x > self.max_x {
-            self.x = self.initial_x;
-            self.y += 1;
-        }
-        Some(current_point)
     }
 }
 
@@ -47,6 +55,8 @@ pub fn points_within_radius(center: Point, radius: int) -> PointsWithinRadius {
     PointsWithinRadius{
         x: center_x - radius,
         y: center_y - radius,
+        center: center,
+        radius: radius,
         initial_x: center_x - radius,
         max_x: center_x + radius,
         max_y: center_y + radius,

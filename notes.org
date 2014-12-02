@@ -1,5 +1,4 @@
 * Gameplay priority
-** Fog of war (radius dependent on State of Mind)
 ** Add bonuses on superhigh
   - see entities on som >= 98
   - uncover the entire map on som == 99

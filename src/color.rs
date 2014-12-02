@@ -4,7 +4,7 @@ pub use engine::Color;
 
 
 pub static background: Color = Color{r: 0, g: 0, b: 0};
-pub static _dim_background: Color = Color{r: 30, g: 30, b: 30};
+pub static dim_background: Color = Color{r: 30, g: 30, b: 30};
 pub static anxiety: Color = Color{r: 191,g: 0,b: 0};
 pub static depression: Color = Color{r: 111,g: 63,b: 255};
 pub static hunger: Color = Color{r: 127,g: 101,b: 63};

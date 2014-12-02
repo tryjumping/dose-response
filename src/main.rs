@@ -369,6 +369,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                                &mut state.monsters,
                                &mut state.rng,
                                &mut state.command_logger);
+                state.level.explore(state.player.pos, exploration_radius(*state.player.state_of_mind));
                 if !state.player.has_ap(1) {
                     state.side = Side::Computer;
                     for monster in state.monsters.iter_mut() {

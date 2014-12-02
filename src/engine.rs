@@ -31,7 +31,7 @@ impl Display {
     }
 
     pub fn set_background(&mut self, x: int, y: int, color: Color) {
-        RootConsole.set_char_background(x, y, color, tcod::BackgroundFlag::None);
+        RootConsole.set_char_background(x, y, color, tcod::BackgroundFlag::Set);
     }
 
     pub fn size(&self) -> (int, int) {

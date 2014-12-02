@@ -13,6 +13,7 @@ use point::{mod, Point};
 pub struct Cell {
     pub tile: Tile,
     pub items: Vec<Item>,
+    pub explored: bool,
 }
 
 
@@ -78,7 +79,11 @@ impl Level {
             height: height,
             monsters: HashMap::new(),
             map: Vec::from_fn((width * height) as uint,
-                              |_| Cell{tile: Tile::new(TileKind::Empty), items: vec![]}),
+                              |_| Cell{
+                                  tile: Tile::new(TileKind::Empty),
+                                  items: vec![],
+                                  explored: false,
+                              }),
         }
     }
 
@@ -194,6 +199,14 @@ impl Level {
         }
     }
 
+    pub fn explore(&mut self, center: Point, radius: int) {
+        for (x, y) in point::points_within_radius(center, radius) {
+            if x >= 0 && y >= 0 && x < self.width && y < self.height {
+                self.cell_mut((x, y)).explored = true;
+            }
+        }
+    }
+
     pub fn render(&self, display: &mut Display, ex_center: Point, ex_radius: int) {
         for (index, cell) in self.map.iter().enumerate() {
             let (x, y) = (index as int % self.width, index as int / self.width);
@@ -203,6 +216,15 @@ impl Level {
                 for item in cell.items.iter() {
                     graphics::draw(display, (x, y), item);
                 }
+            } else if cell.explored {
+                // TODO: need to supply the dark bg here?
+                graphics::draw(display, (x, y), &cell.tile);
+                for item in cell.items.iter() {
+                    graphics::draw(display, (x, y), item);
+                }
+                display.set_background(x, y, color::dim_background);
+            } else {
+                // NOTE: don't render anything here.
             }
         }
     }

@@ -51,8 +51,7 @@ pub struct Engine {
 impl Engine {
     pub fn new(width: int, height: int,
                window_title: &str, font_path: Path) -> Engine {
-        use tcod::FontFlags::{LayoutTcod, TypeGreyscale};
-        Console::set_custom_font(font_path, &[LayoutTcod, TypeGreyscale],
+        Console::set_custom_font(font_path, tcod::FONT_LAYOUT_TCOD | tcod::FONT_TYPE_GREYSCALE,
                                  32, 8);
         let fullscreen = false;
         Console::init_root(width, height, window_title, fullscreen);
@@ -66,7 +65,7 @@ impl Engine {
         let default_fg = Color{r: 255, g: 255, b: 255};
         while !Console::window_closed() {
             loop {
-                match tcod::Console::check_for_keypress(tcod::Pressed) {
+                match tcod::Console::check_for_keypress(tcod::KEY_PRESSED) {
                     None => break,
                     Some(key) => {
                         self.keys.push_back(key);
@@ -87,7 +86,7 @@ impl Engine {
             }
             let (width, height) = self.display.size();
             RootConsole.print_ex(width-1, height-1,
-                                 tcod::BackgroundFlag::None, tcod::Right,
+                                 tcod::BackgroundFlag::None, tcod::TextAlignment::Right,
                                  format!("FPS: {}", tcod::system::get_fps()).as_slice());
             match self.display.fade {
                 Some((amount, color)) => tcod::Console::set_fade(amount, color),

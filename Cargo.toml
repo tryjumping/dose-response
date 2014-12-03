@@ -14,3 +14,9 @@ git = "https://github.com/tomassedovic/tcod-rs.git"
 
 [dependencies]
 time = "*"
+
+
+# TODO: temporarily disabling debuginfo until this is fixed:
+# https://github.com/rust-lang/rust/issues/17257
+[profile.dev]
+debug = false

@@ -11,7 +11,8 @@ use std::os;
 use std::rand::Rng;
 use std::time::Duration;
 
-use tcod::{KeyState, Printable, Special};
+use tcod::KeyState;
+use tcod::Key::{Printable, Special};
 
 use engine::{Engine, KeyCode};
 use game_state::{Command, GameState, Side};

@@ -1,4 +1,4 @@
-#![feature(if_let, macro_rules, globs, phase, link_args, unboxed_closures, tuple_indexing)]
+#![feature(macro_rules, globs, phase, link_args, unboxed_closures)]
 #![deny(overflowing_literals)]
 
 extern crate libc;

@@ -1,8 +1,6 @@
 * Notes
 ** Gameplay priority
-*** Add bonuses on superhigh
-   - see entities on som >= 98
-   - uncover the entire map on som == 99
+*** Fade to black on withdrawal
 *** Colours should go wild when the player is High
 ** Other gameplay ideas & plans
 *** Depression only moves by 2 squares when following the player

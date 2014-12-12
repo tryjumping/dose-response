@@ -42,6 +42,12 @@ impl IntoxicationState {
     }
 }
 
+#[deriving(PartialEq, Show)]
+pub enum Bonus {
+    None,
+    SeeMonstersAndItems,
+    UncoverMap,
+}
 
 pub struct Player {
     pub state_of_mind: RangedInt<int>,
@@ -54,6 +60,7 @@ pub struct Player {
     pub pos: Point,
     pub inventory: Vec<Item>,
     pub anxiety_counter: RangedInt<int>,
+    pub bonus: Bonus,
 
     dead: bool,
 
@@ -77,6 +84,7 @@ impl Player {
             dead: false,
             max_ap: 1,
             ap: 1,
+            bonus: Bonus::None,
         }
     }
 
@@ -138,6 +146,11 @@ impl Player {
             Stun(turns) => {
                 self.stun.add(turns);
             }
+        }
+        match *self.state_of_mind {
+            99 => self.bonus = Bonus::UncoverMap,
+            98 => self.bonus = Bonus::SeeMonstersAndItems,
+            _ => {}
         }
     }
 }

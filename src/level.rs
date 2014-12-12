@@ -6,6 +6,7 @@ use engine::Display;
 use graphics::{mod, Render};
 use item::{mod, Item};
 use monster::Monster;
+use player::Bonus;
 use point::{mod, Point};
 
 
@@ -207,24 +208,30 @@ impl Level {
         }
     }
 
-    pub fn render(&self, display: &mut Display, ex_center: Point, ex_radius: int) {
+    pub fn render(&self, display: &mut Display,
+                  ex_center: Point, ex_radius: int,
+                  bonus: Bonus) {
         for (index, cell) in self.map.iter().enumerate() {
             let (x, y) = (index as int % self.width, index as int / self.width);
-            let visible = point::distance((x, y), ex_center) < (ex_radius as f32);
-            if visible {
+            let in_fov = point::distance((x, y), ex_center) < (ex_radius as f32);
+
+            // Render the tile
+            if in_fov {
                 graphics::draw(display, (x, y), &cell.tile);
-                for item in cell.items.iter() {
-                    graphics::draw(display, (x, y), item);
-                }
-            } else if cell.explored {
+            } else if cell.explored || bonus == Bonus::UncoverMap {
                 // TODO: need to supply the dark bg here?
                 graphics::draw(display, (x, y), &cell.tile);
                 for item in cell.items.iter() {
                     graphics::draw(display, (x, y), item);
                 }
                 display.set_background(x, y, color::dim_background);
-            } else {
-                // NOTE: don't render anything here.
+            }
+
+            // Render the items
+            if in_fov || cell.explored || bonus == Bonus::SeeMonstersAndItems || bonus == Bonus::UncoverMap {
+                for item in cell.items.iter() {
+                    graphics::draw(display, (x, y), item);
+                }
             }
         }
     }

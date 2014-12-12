@@ -396,14 +396,14 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
 
-
+    let bonus = state.player.bonus;
     let radius = exploration_radius(*state.player.state_of_mind);
-    state.level.render(&mut engine.display, state.player.pos, radius);
+    state.level.render(&mut engine.display, state.player.pos, radius, bonus);
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
     for monster in state.monsters.iter().filter(|m| !m.dead) {
         let visible = point::distance(monster.position, state.player.pos) < (radius as f32);
-        if visible {
+        if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
             graphics::draw(&mut engine.display, monster.position, monster);
         }
     }

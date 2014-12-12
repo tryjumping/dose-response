@@ -5,14 +5,14 @@ use player::Modifier;
 use self::Kind::*;
 
 
-#[deriving(Clone, PartialEq, Rand, Show)]
+#[deriving(Clone, Copy, PartialEq, Rand, Show)]
 pub enum Kind {
     Dose,
     Food,
 }
 
 
-#[deriving(PartialEq, Show)]
+#[deriving(Copy, PartialEq, Show)]
 pub struct Item {
     pub kind: Kind,
     pub modifier: Modifier,

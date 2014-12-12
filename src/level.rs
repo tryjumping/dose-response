@@ -18,13 +18,13 @@ pub struct Cell {
 }
 
 
-#[deriving(Clone, PartialEq, Rand, Show)]
+#[deriving(Copy, Clone, PartialEq, Rand, Show)]
 pub enum TileKind {
     Empty,
     Tree,
 }
 
-#[deriving(Show)]
+#[deriving(Copy, Show)]
 pub struct Tile {
     pub kind: TileKind,
     fg_color: Color,
@@ -59,6 +59,7 @@ impl Render for Tile {
 }
 
 
+#[deriving(Copy)]
 pub enum Walkability {
     WalkthroughMonsters,
     BlockingMonsters,

@@ -26,7 +26,7 @@ pub struct Monster {
 }
 
 
-#[deriving(Clone, PartialEq, Rand, Show)]
+#[deriving(Copy, Clone, PartialEq, Rand, Show)]
 pub enum Kind {
     Anxiety,
     Depression,
@@ -35,7 +35,7 @@ pub enum Kind {
     Voices,
 }
 
-#[deriving(PartialEq, Show)]
+#[deriving(Copy, PartialEq, Show)]
 pub enum AIState {
     Idle,
     Chasing,
@@ -127,10 +127,6 @@ impl Monster {
     }
 }
 
-impl Drop for Monster {
-    // Implementing a destructor to prevent Moster from being Copy:
-    fn drop(&mut self) {}
-}
 
 impl Render for Monster {
     fn render(&self) -> (char, Color, Color) {

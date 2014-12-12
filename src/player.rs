@@ -7,7 +7,7 @@ use point::Point;
 use ranged_int::RangedInt;
 
 
-#[deriving(PartialEq, Show)]
+#[deriving(Copy, PartialEq, Show)]
 pub enum Modifier {
     Death,
     Attribute{will: int, state_of_mind: int},
@@ -16,7 +16,7 @@ pub enum Modifier {
     Stun(int),
 }
 
-#[deriving(PartialEq, Show)]
+#[deriving(Copy, PartialEq, Show)]
 pub enum IntoxicationState {
     Exhausted,
     DeliriumTremens,
@@ -42,7 +42,7 @@ impl IntoxicationState {
     }
 }
 
-#[deriving(PartialEq, Show)]
+#[deriving(Copy, PartialEq, Show)]
 pub enum Bonus {
     None,
     SeeMonstersAndItems,
@@ -153,12 +153,6 @@ impl Player {
             _ => {}
         }
     }
-}
-
-
-impl Drop for Player {
-    // Implementing Drop to prevent Player from being Copy:
-    fn drop(&mut self) {}
 }
 
 

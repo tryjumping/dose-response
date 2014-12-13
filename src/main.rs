@@ -408,6 +408,25 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
     graphics::draw(&mut engine.display, state.player.pos, &state.player);
+    if state.player.alive() {
+        use player::IntoxicationState::*;
+        let som = *state.player.state_of_mind;
+        match player::IntoxicationState::from_int(som) {
+            Exhausted => {}  // Do nothing
+            DeliriumTremens | Withdrawal => {
+                let fade = std::cmp::max((*state.player.state_of_mind as u8) * 5 + 50, 50);
+                engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
+            }
+            Sober => {}  // Do nothing
+            High | VeryHigh => {
+                // TODO: add effect for high
+                // entity_util::set_color_animation_loop(
+                //     cs, e, col::high, col::high_to, Infinite,
+                //     Duration::milliseconds(700 + (((pos.x * pos.y) % 100) as i64) * 5));
+            }
+            Overdosed => {}  // Do nothing
+        }
+    }
     render_gui(&mut engine.display, &state.player);
     Some(state)
 }

@@ -1,6 +1,5 @@
 * Notes
 ** Gameplay priority
-*** Fade to black on withdrawal
 *** Colours should go wild when the player is High
 ** Other gameplay ideas & plans
 *** Depression only moves by 2 squares when following the player

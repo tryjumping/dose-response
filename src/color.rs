@@ -19,5 +19,5 @@ pub static food: Color = Color{r: 148, g: 113, b: 0};
 pub static tree_1: Color = Color{r: 0,g: 191,b: 0};
 pub static tree_2: Color = Color{r: 0,g: 255,b: 0};
 pub static tree_3: Color = Color{r: 63,g: 255,b: 63};
-pub static _high: Color = Color{r: 58, g: 217, b: 183};
-pub static _high_to: Color = Color{r: 161, g: 39, b: 113};
+pub static high: Color = Color{r: 58, g: 217, b: 183};
+pub static high_to: Color = Color{r: 161, g: 39, b: 113};

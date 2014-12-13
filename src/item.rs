@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use color::{mod, Color};
 use graphics::Render;
 use player::Modifier;
@@ -21,7 +23,7 @@ pub struct Item {
 
 
 impl Render for Item {
-    fn render(&self) -> (char, Color, Color) {
+    fn render(&self, _dt: Duration) -> (char, Color, Color) {
         let bg = color::background;
         match self.kind {
             Dose => {

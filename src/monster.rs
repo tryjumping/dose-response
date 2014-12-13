@@ -1,4 +1,5 @@
 use std::rand::Rng;
+use std::time::Duration;
 
 use super::Action;
 use color::{mod, Color};
@@ -129,7 +130,7 @@ impl Monster {
 
 
 impl Render for Monster {
-    fn render(&self) -> (char, Color, Color) {
+    fn render(&self, _dt: Duration) -> (char, Color, Color) {
         let bg = color::background;
         match self.kind {
             Anxiety => ('a', color::anxiety, bg),

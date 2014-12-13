@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 use std::rand::{mod, Rng};
+use std::time::Duration;
 
 use color::{mod, Color};
 use engine::Display;
-use graphics::{mod, Render};
+use graphics::{mod, Animation, Render};
 use item::{mod, Item};
 use monster::Monster;
 use player::Bonus;
@@ -28,6 +29,7 @@ pub enum TileKind {
 pub struct Tile {
     pub kind: TileKind,
     fg_color: Color,
+    animation: Animation,
 }
 
 impl Tile {
@@ -42,18 +44,31 @@ impl Tile {
         Tile {
             kind: kind,
             fg_color: color,
+            animation: Animation::None,
         }
+    }
+
+    pub fn set_animation(&mut self, animation: Animation) {
+        self.animation = animation;
     }
 }
 
 
 impl Render for Tile {
-    fn render(&self) -> (char, Color, Color) {
+    fn render(&self, _dt: Duration) -> (char, Color, Color) {
         use self::TileKind::*;
+        use graphics::Animation::*;
         let bg = color::background;
-        match self.kind {
-            Empty => ('.', self.fg_color, bg),
-            Tree => ('#', self.fg_color, bg),
+        let glyph = match self.kind {
+            Empty => '.',
+            Tree => '#',
+        };
+        match self.animation {
+            None => (glyph, self.fg_color, bg),
+            ForegroundCycle{from, to, duration} => {
+                // TODO: actually animate this thing
+                (glyph, from, bg)
+            }
         }
     }
 }
@@ -209,21 +224,37 @@ impl Level {
         }
     }
 
+    pub fn iter(&self) -> Cells {
+        Cells {
+            index: 0,
+            width: self.width,
+            inner: self.map.iter(),
+        }
+    }
+
+    pub fn iter_mut(&mut self) -> CellsMut {
+        CellsMut {
+            index: 0,
+            width: self.width,
+            inner: self.map.iter_mut(),
+        }
+    }
+
     pub fn render(&self, display: &mut Display,
+                  dt: Duration,
                   ex_center: Point, ex_radius: int,
                   bonus: Bonus) {
-        for (index, cell) in self.map.iter().enumerate() {
-            let (x, y) = (index as int % self.width, index as int / self.width);
+        for ((x, y), cell) in self.iter() {
             let in_fov = point::distance((x, y), ex_center) < (ex_radius as f32);
 
             // Render the tile
             if in_fov {
-                graphics::draw(display, (x, y), &cell.tile);
+                graphics::draw(display, dt, (x, y), &cell.tile);
             } else if cell.explored || bonus == Bonus::UncoverMap {
                 // TODO: need to supply the dark bg here?
-                graphics::draw(display, (x, y), &cell.tile);
+                graphics::draw(display, dt, (x, y), &cell.tile);
                 for item in cell.items.iter() {
-                    graphics::draw(display, (x, y), item);
+                    graphics::draw(display, dt, (x, y), item);
                 }
                 display.set_background(x, y, color::dim_background);
             }
@@ -231,9 +262,47 @@ impl Level {
             // Render the items
             if in_fov || cell.explored || bonus == Bonus::SeeMonstersAndItems || bonus == Bonus::UncoverMap {
                 for item in cell.items.iter() {
-                    graphics::draw(display, (x, y), item);
+                    graphics::draw(display, dt, (x, y), item);
                 }
             }
+        }
+    }
+}
+
+pub struct CellsMut<'a> {
+    index: int,
+    width: int,
+    inner: ::std::slice::MutItems<'a, Cell>,
+}
+
+impl<'a> Iterator<(Point, &'a mut Cell)> for CellsMut<'a> {
+    fn next(&mut self) -> Option<(Point, &'a mut Cell)> {
+        let (x, y) = (self.index % self.width, self.index / self.width);
+        self.index += 1;
+        match self.inner.next() {
+            Some(cell) => {
+                Some(((x, y), cell))
+            }
+            None => None,
+        }
+    }
+}
+
+pub struct Cells<'a> {
+    index: int,
+    width: int,
+    inner: ::std::slice::Items<'a, Cell>,
+}
+
+impl<'a> Iterator<(Point, &'a Cell)> for Cells<'a> {
+    fn next(&mut self) -> Option<(Point, &'a Cell)> {
+        let (x, y) = (self.index % self.width, self.index / self.width);
+        self.index += 1;
+        match self.inner.next() {
+            Some(cell) => {
+                Some(((x, y), cell))
+            }
+            None => None,
         }
     }
 }

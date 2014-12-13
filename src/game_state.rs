@@ -15,7 +15,7 @@ use time;
 use generators;
 use level::Level;
 use monster::Monster;
-use player::Player;
+use player::{mod, Player};
 use world;
 
 
@@ -66,6 +66,7 @@ pub struct GameState {
     pub replay: bool,
     pub clock: Duration,
     pub paused: bool,
+    pub previous_frame_intoxication: player::IntoxicationState,
 }
 
 impl GameState {
@@ -90,6 +91,7 @@ impl GameState {
             replay: replay,
             clock: Duration::zero(),
             paused: false,
+            previous_frame_intoxication: player::IntoxicationState::Sober,
         }
     }
 

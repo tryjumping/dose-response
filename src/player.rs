@@ -1,4 +1,5 @@
 use std::cmp;
+use std::time::Duration;
 
 use color::{mod, Color};
 use item::Item;
@@ -157,7 +158,7 @@ impl Player {
 
 
 impl Render for Player {
-    fn render(&self) -> (char, Color, Color) {
+    fn render(&self, _dt: Duration) -> (char, Color, Color) {
         if self.alive() {
             ('@', color::player, color::background)
         } else {

@@ -396,37 +396,72 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
 
+
+    // Rendering & related code here:
+    if state.player.alive() {
+        use player::IntoxicationState::*;
+
+        let som = *state.player.state_of_mind;
+        let previous_intoxication_state = state.previous_frame_intoxication;
+        let current_intoxication_state = player::IntoxicationState::from_int(som);
+
+        if previous_intoxication_state != current_intoxication_state {
+            let was_high = match previous_intoxication_state {
+                High | VeryHigh => true,
+                _ => false,
+            };
+            let is_high = match current_intoxication_state {
+                High | VeryHigh => true,
+                _ => false,
+            };
+
+            if !was_high && is_high {
+                // Set animation on each level's tile:
+                for ((x, y), cell) in state.level.iter_mut() {
+                    let dur_ms = 700 + (((x * y) % 100) as i64) * 5;
+                    cell.tile.set_animation(graphics::Animation::ForegroundCycle{
+                        from: color::high,
+                        to: color::high_to,
+                        duration: Duration::milliseconds(dur_ms),
+                    });
+                }
+            } else if was_high && !is_high {
+                // Stop animation on the level's tiles:
+                for (_pos, cell) in state.level.iter_mut() {
+                    cell.tile.set_animation(graphics::Animation::None);
+                }
+            } else {
+                // NOTE: the animation is what it's supposed to be. Do nothing.
+            }
+
+            state.previous_frame_intoxication = current_intoxication_state;
+        }
+
+
+        // Fade when withdrawn:
+        match current_intoxication_state {
+            DeliriumTremens | Withdrawal => {
+                let fade = std::cmp::max((som as u8) * 5 + 50, 50);
+                engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
+            }
+            Exhausted | Sober | Overdosed | High | VeryHigh => {
+                // NOTE: Not withdrawn, don't fade
+            }
+        }
+    }
+
     let bonus = state.player.bonus;
     let radius = exploration_radius(*state.player.state_of_mind);
-    state.level.render(&mut engine.display, state.player.pos, radius, bonus);
+    state.level.render(&mut engine.display, dt, state.player.pos, radius, bonus);
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
     for monster in state.monsters.iter().filter(|m| !m.dead) {
         let visible = point::distance(monster.position, state.player.pos) < (radius as f32);
         if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
-            graphics::draw(&mut engine.display, monster.position, monster);
+            graphics::draw(&mut engine.display, dt, monster.position, monster);
         }
     }
-    graphics::draw(&mut engine.display, state.player.pos, &state.player);
-    if state.player.alive() {
-        use player::IntoxicationState::*;
-        let som = *state.player.state_of_mind;
-        match player::IntoxicationState::from_int(som) {
-            Exhausted => {}  // Do nothing
-            DeliriumTremens | Withdrawal => {
-                let fade = std::cmp::max((*state.player.state_of_mind as u8) * 5 + 50, 50);
-                engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
-            }
-            Sober => {}  // Do nothing
-            High | VeryHigh => {
-                // TODO: add effect for high
-                // entity_util::set_color_animation_loop(
-                //     cs, e, col::high, col::high_to, Infinite,
-                //     Duration::milliseconds(700 + (((pos.x * pos.y) % 100) as i64) * 5));
-            }
-            Overdosed => {}  // Do nothing
-        }
-    }
+    graphics::draw(&mut engine.display, dt, state.player.pos, &state.player);
     render_gui(&mut engine.display, &state.player);
     Some(state)
 }

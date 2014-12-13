@@ -23,21 +23,20 @@ pub struct Item {
 
 
 impl Render for Item {
-    fn render(&self, _dt: Duration) -> (char, Color, Color) {
-        let bg = color::background;
+    fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
         match self.kind {
             Dose => {
                 if let Modifier::Intoxication{state_of_mind, ..} = self.modifier {
                     if state_of_mind <= 100 {
-                        ('i', color::dose, bg)
+                        ('i', color::dose, None)
                     } else {
-                        ('I', color::dose_glow, bg)
+                        ('I', color::dose_glow, None)
                     }
                 } else {
                     unreachable!();
                 }
             },
-            Food => ('%', color::food, bg),
+            Food => ('%', color::food, None),
         }
     }
 }

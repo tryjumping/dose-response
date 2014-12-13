@@ -158,11 +158,11 @@ impl Player {
 
 
 impl Render for Player {
-    fn render(&self, _dt: Duration) -> (char, Color, Color) {
+    fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
         if self.alive() {
-            ('@', color::player, color::background)
+            ('@', color::player, None)
         } else {
-            ('&', color::dead_player, color::background)
+            ('&', color::dead_player, None)
         }
     }
 }

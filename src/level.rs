@@ -55,19 +55,18 @@ impl Tile {
 
 
 impl Render for Tile {
-    fn render(&self, _dt: Duration) -> (char, Color, Color) {
+    fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
         use self::TileKind::*;
         use graphics::Animation::*;
-        let bg = color::background;
         let glyph = match self.kind {
             Empty => '.',
             Tree => '#',
         };
         match self.animation {
-            None => (glyph, self.fg_color, bg),
+            None => (glyph, self.fg_color, Option::None),
             ForegroundCycle{from, to, duration} => {
                 // TODO: actually animate this thing
-                (glyph, from, bg)
+                (glyph, from, Option::None)
             }
         }
     }

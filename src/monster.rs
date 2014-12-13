@@ -130,14 +130,14 @@ impl Monster {
 
 
 impl Render for Monster {
-    fn render(&self, _dt: Duration) -> (char, Color, Color) {
+    fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
         let bg = color::background;
         match self.kind {
-            Anxiety => ('a', color::anxiety, bg),
-            Depression => ('D', color::depression, bg),
-            Hunger => ('h', color::hunger, bg),
-            Shadows => ('S', color::voices, bg),
-            Voices => ('v', color::shadows, bg),
+            Anxiety => ('a', color::anxiety, None),
+            Depression => ('D', color::depression, None),
+            Hunger => ('h', color::hunger, None),
+            Shadows => ('S', color::voices, None),
+            Voices => ('v', color::shadows, None),
         }
     }
 }

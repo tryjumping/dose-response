@@ -30,6 +30,7 @@ pub struct Tile {
     pub kind: TileKind,
     fg_color: Color,
     animation: Animation,
+    animation_state: (Duration, Color),
 }
 
 impl Tile {
@@ -45,11 +46,34 @@ impl Tile {
             kind: kind,
             fg_color: color,
             animation: Animation::None,
+            animation_state: (Duration::zero(), color),
         }
     }
 
     pub fn set_animation(&mut self, animation: Animation) {
         self.animation = animation;
+        match self.animation {
+            Animation::None => {}
+            Animation::ForegroundCycle{from, ..} => {
+                self.animation_state = (Duration::zero(), from);
+            }
+        }
+    }
+
+    pub fn update(&mut self, dt: Duration) {
+        match self.animation {
+            Animation::None => {}
+            Animation::ForegroundCycle{from, to, duration} => {
+                let (old_time, old_color) = self.animation_state;
+                let t = old_time + dt;
+                let c = Color {
+                    r: old_color.r + duration.num_milliseconds() as u8,
+                    g: old_color.g + duration.num_milliseconds() as u8,
+                    b: old_color.b + duration.num_milliseconds() as u8,
+                };
+                self.animation_state = (t, c);
+            }
+        }
     }
 }
 
@@ -64,9 +88,9 @@ impl Render for Tile {
         };
         match self.animation {
             None => (glyph, self.fg_color, Option::None),
-            ForegroundCycle{from, to, duration} => {
-                // TODO: actually animate this thing
-                (glyph, from, Option::None)
+            ForegroundCycle{..} => {
+                let (_, color) = self.animation_state;
+                (glyph, color, Option::None)
             }
         }
     }

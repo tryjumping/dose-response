@@ -397,13 +397,13 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
 
 
+    let som = *state.player.state_of_mind;
+    let previous_intoxication_state = state.previous_frame_intoxication;
+    let current_intoxication_state = player::IntoxicationState::from_int(som);
+
     // Rendering & related code here:
     if state.player.alive() {
         use player::IntoxicationState::*;
-
-        let som = *state.player.state_of_mind;
-        let previous_intoxication_state = state.previous_frame_intoxication;
-        let current_intoxication_state = player::IntoxicationState::from_int(som);
 
         if previous_intoxication_state != current_intoxication_state {
             let was_high = match previous_intoxication_state {
@@ -446,6 +446,18 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             }
             Exhausted | Sober | Overdosed | High | VeryHigh => {
                 // NOTE: Not withdrawn, don't fade
+            }
+        }
+
+        // NOTE: Update the animation state of each tile:
+        for (_, cell) in state.level.iter_mut() {
+            cell.tile.update(dt);
+        }
+    } else {
+        // Make sure we're not showing the High gfx effect when dead
+        if current_intoxication_state != previous_intoxication_state {
+            for (_pos, cell) in state.level.iter_mut() {
+                cell.tile.set_animation(graphics::Animation::None);
             }
         }
     }

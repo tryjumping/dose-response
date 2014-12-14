@@ -15,7 +15,6 @@ pub enum Animation {
     ForegroundCycle{from: Color, to: Color, duration: Duration},
 }
 
-
 pub fn draw<R: Render>(display: &mut Display, dt: Duration,
                        pos: (int, int), render: &R) {
     let (x, y) = pos;

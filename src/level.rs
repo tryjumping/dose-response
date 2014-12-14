@@ -30,7 +30,13 @@ pub struct Tile {
     pub kind: TileKind,
     fg_color: Color,
     animation: Animation,
-    animation_state: (Duration, Color),
+    animation_state: (Duration, Color, FadeDirection),
+}
+
+#[deriving(Copy, Show)]
+enum FadeDirection {
+    Forward,
+    Backward,
 }
 
 impl Tile {
@@ -46,7 +52,7 @@ impl Tile {
             kind: kind,
             fg_color: color,
             animation: Animation::None,
-            animation_state: (Duration::zero(), color),
+            animation_state: (Duration::zero(), color, FadeDirection::Forward),
         }
     }
 
@@ -55,7 +61,7 @@ impl Tile {
         match self.animation {
             Animation::None => {}
             Animation::ForegroundCycle{from, ..} => {
-                self.animation_state = (Duration::zero(), from);
+                self.animation_state = (Duration::zero(), from, FadeDirection::Forward);
             }
         }
     }
@@ -64,14 +70,24 @@ impl Tile {
         match self.animation {
             Animation::None => {}
             Animation::ForegroundCycle{from, to, duration} => {
-                let (old_time, old_color) = self.animation_state;
-                let t = old_time + dt;
-                let c = Color {
-                    r: old_color.r + duration.num_milliseconds() as u8,
-                    g: old_color.g + duration.num_milliseconds() as u8,
-                    b: old_color.b + duration.num_milliseconds() as u8,
+                let (old_time, old_color, old_direction) = self.animation_state;
+                let mut t = old_time + dt;
+                let mut direction = old_direction;
+
+                if t > duration {
+                    t = Duration::zero();
+                    direction = match direction {
+                        FadeDirection::Forward => FadeDirection::Backward,
+                        FadeDirection::Backward => FadeDirection::Forward,
+                    };
+                }
+
+                let progress = t.num_milliseconds() as f32 / duration.num_milliseconds() as f32;
+                let c = match direction {
+                    FadeDirection::Forward => graphics::fade_color(from, to, progress),
+                    FadeDirection::Backward => graphics::fade_color(to, from, progress),
                 };
-                self.animation_state = (t, c);
+                self.animation_state = (t, c, direction);
             }
         }
     }
@@ -89,7 +105,7 @@ impl Render for Tile {
         match self.animation {
             None => (glyph, self.fg_color, Option::None),
             ForegroundCycle{..} => {
-                let (_, color) = self.animation_state;
+                let (_, color, _) = self.animation_state;
                 (glyph, color, Option::None)
             }
         }

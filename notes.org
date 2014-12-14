@@ -1,6 +1,5 @@
 * Notes
 ** Gameplay priority
-*** Colours should go wild when the player is High
 ** Other gameplay ideas & plans
 *** Depression only moves by 2 squares when following the player
 *** Idle monsters select more distant destinations
@@ -66,6 +65,7 @@ should provide a visually better result (but will be harder to compute).
 *** Change player's colour on stunned/panicked
 *** Make sure we're accessible to colour blind people
 ** Code cleanup & improvements
+*** The "High" animation just kills the framerate on uncovered screen
 *** Move all rendering code to a single function that takes &mut Display and dt
 **** Level will return an iterator over immutable Cells
 **** Cells will have all fields public

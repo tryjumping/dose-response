@@ -14,7 +14,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "tcod"
 version = "0.3.0"
-source = "git+https://github.com/tomassedovic/tcod-rs.git#35a53f4758c0339ec0acae89d1757a2797ddcb74"
+source = "git+https://github.com/tomassedovic/tcod-rs.git#280ad39ba9d08bdc0dd0e030428a7d882fb45468"
 
 [[package]]
 name = "time"

@@ -70,7 +70,7 @@ impl Tile {
         match self.animation {
             Animation::None => {}
             Animation::ForegroundCycle{from, to, duration} => {
-                let (old_time, old_color, old_direction) = self.animation_state;
+                let (old_time, _color, old_direction) = self.animation_state;
                 let mut t = old_time + dt;
                 let mut direction = old_direction;
 

@@ -487,6 +487,9 @@ fn main() {
 
     let game_state = match os::args().len() {
         1 => {  // Run the game with a new seed, create the replay log
+            // TODO: directory creation is unix-specific because permissions.
+            // This should probably be taken out of GameState and moved here or
+            // to some platform-specific layer.
             GameState::new_game(width, height)
         },
         2 => {  // Replay the game from the entered log

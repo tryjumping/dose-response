@@ -2,9 +2,6 @@ SOURCES=$(wildcard src/**/*.rs src/*.rs)
 
 all: build
 
-cargo-build:
-	cp lib/* $(OUT_DIR)
-
 build:
 	cargo build
 

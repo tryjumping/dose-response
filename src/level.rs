@@ -311,7 +311,7 @@ impl Level {
 pub struct CellsMut<'a> {
     index: int,
     width: int,
-    inner: ::std::slice::MutItems<'a, Cell>,
+    inner: ::std::slice::IterMut<'a, Cell>,
 }
 
 impl<'a> Iterator<(Point, &'a mut Cell)> for CellsMut<'a> {
@@ -330,7 +330,7 @@ impl<'a> Iterator<(Point, &'a mut Cell)> for CellsMut<'a> {
 pub struct Cells<'a> {
     index: int,
     width: int,
-    inner: ::std::slice::Items<'a, Cell>,
+    inner: ::std::slice::Iter<'a, Cell>,
 }
 
 impl<'a> Iterator<(Point, &'a Cell)> for Cells<'a> {

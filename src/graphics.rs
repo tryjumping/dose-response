@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use color::{mod, Color};
-use tcod;
+use tcod_ffi;
 use engine::Display;
 
 
@@ -32,6 +32,6 @@ pub fn draw<R: Render>(display: &mut Display, dt: Duration,
 pub fn fade_color(from: Color, to: Color, progress: f32) -> Color {
     // TODO: expose this from tcod-rs
     unsafe {
-        tcod::ffi::TCOD_color_lerp(from, to, progress)
+        tcod_ffi::TCOD_color_lerp(from, to, progress)
     }
 }

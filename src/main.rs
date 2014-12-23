@@ -4,6 +4,7 @@
 extern crate libc;
 extern crate time;
 extern crate tcod;
+extern crate "tcod-sys" as tcod_ffi;
 
 
 use std::collections::RingBuf;

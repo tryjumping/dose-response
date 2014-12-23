@@ -129,14 +129,14 @@ impl GameState {
                 let contents = str::from_utf8(bin_data.slice(0, bin_data.len()));
                 let mut lines = contents.unwrap().lines();
                 match lines.next() {
-                    Some(seed_str) => match from_str(seed_str) {
+                    Some(seed_str) => match seed_str.parse() {
                         Some(parsed_seed) => seed = parsed_seed,
                         None => panic!("The seed must be a number.")
                     },
                     None => panic!("The replay file is empty."),
                 }
                 for line in lines {
-                    match from_str(line) {
+                    match line.parse() {
                         Some(command) => commands.push_back(command),
                         None => panic!("Unknown command: {}", line),
                     }

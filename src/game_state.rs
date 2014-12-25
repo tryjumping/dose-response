@@ -56,6 +56,9 @@ impl FromStr for Command {
 pub struct GameState {
     pub player: Player,
     pub monsters: Vec<Monster>,
+    // TODO: prolly refactor to a struct?
+    // Fields: position, max radius, colour, time duration
+    pub explosion_animation: Option<((int, int), int, Color, Duration)>,
     pub level: Level,
     pub display_size: (int, int),
     pub rng: IsaacRng,
@@ -82,6 +85,7 @@ impl GameState {
         GameState {
             player: Player::new((40, 25)),
             monsters: vec![],
+            explosion_animation: None,
             level: Level::new(width, height - 2),
             display_size: (width, height),
             rng: SeedableRng::from_seed(seed_arr),

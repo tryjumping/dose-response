@@ -108,6 +108,7 @@ fn process_player<R: Rng>(player: &mut player::Player,
                           commands: &mut RingBuf<Command>,
                           level: &mut level::Level,
                           monsters: &mut Vec<monster::Monster>,
+                          explosion_animation: &mut Option<((int, int), int, color::Color, Duration)>,
                           rng: &mut R,
                           command_logger: &mut game_state::CommandLogger) {
     if !player.alive() {
@@ -202,6 +203,10 @@ fn process_player<R: Rng>(player: &mut player::Player,
                                                 };
                                                 player.take_effect(item.modifier);
                                                 explode(player.pos, radius, level, monsters);
+                                                *explosion_animation = Some((player.pos,
+                                                                             radius,
+                                                                             color::explosion,
+                                                                             Duration::milliseconds(100)));
                                             } else {
                                                 unreachable!();
                                             }
@@ -221,6 +226,10 @@ fn process_player<R: Rng>(player: &mut player::Player,
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
                     explode(player.pos, food_explosion_radius, level, monsters);
+                    *explosion_animation = Some((player.pos,
+                                                 food_explosion_radius,
+                                                 color::explosion,
+                                                 Duration::milliseconds(100)));
                 }
             }
             Action::Attack(_, _) => {
@@ -375,6 +384,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                                &mut state.commands,
                                &mut state.level,
                                &mut state.monsters,
+                               &mut state.explosion_animation,
                                &mut state.rng,
                                &mut state.command_logger);
                 state.level.explore(state.player.pos, exploration_radius(*state.player.state_of_mind));
@@ -532,6 +542,19 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                     graphics::draw(&mut engine.display, dt, (x, y), item);
                 }
             }
+    }
+
+    if let Some((center, r, c, duration)) = state.explosion_animation {
+        let new_duration = duration - dt;
+        if new_duration.num_milliseconds() > 0 {
+            state.explosion_animation = Some((center, r, c, new_duration));
+            for (x, y) in point::points_within_radius(center, r) {
+                engine.display.set_background(x, y, c);
+            }
+        } else {
+            state.explosion_animation = None;
+        }
+
     }
 
     // TODO: assert no monster is on the same coords as the player

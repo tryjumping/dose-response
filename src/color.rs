@@ -15,6 +15,7 @@ pub static dead_player: Color = Color{r: 80, g: 80, b: 80};
 pub static empty_tile: Color = Color{r: 223,g: 223,b: 223};
 pub static dose: Color = Color{r: 114,g: 126,b: 255};
 pub static dose_glow: Color = Color{r: 15, g: 255, b: 243};
+pub static explosion: Color = Color{r: 15, g: 255, b: 243};
 pub static food: Color = Color{r: 148, g: 113, b: 0};
 pub static tree_1: Color = Color{r: 0,g: 191,b: 0};
 pub static tree_2: Color = Color{r: 0,g: 255,b: 0};

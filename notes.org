@@ -1,5 +1,10 @@
 * Notes
-** Gameplay priority
+** Priority
+*** Animate food & dose explosions (like in Cogmind)
+*** Uncover and unfade the screen on player death
+*** Fade out Shadows & Voices when dying after attack
+*** Display the SoM textual representation (overdosed, high, withdrawn) in the status bar
+*** Player should fade when dying
 ** Other gameplay ideas & plans
 *** Depression only moves by 2 squares when following the player
 *** Idle monsters select more distant destinations
@@ -27,20 +32,15 @@ http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#312
 **** e.g. fatfingering the arrow when the Depression is near
 *** save&exit/load game
 ** Polish (UI & stuff)
-*** Shadows & Voices should fade out when dying after attack
-*** Animate food & dose explosions (like in Cogmind)
-*** Display the SoM textual representation (overdosed, high, withdrawn) in the status bar
 *** Doses should glow
-*** Trees should vary in colours
-*** Player should fade when dying
 *** Background around a dose should glow in the Irresistible radius
-*** Uncover and unfade the screen on player death
-*** Stop the High colour animation on player death
 *** Better display the movement of D monsters:
    - they're moving too fast currently (FPS dependent)
    - we should show a path trail
    - and also slow them down (visually -- so like they move every say 200ms, not every tick)
-*** Smooth animations for the fade-out when growing Withdrawn
+*** Smooth-out animations for the fade-out when growing Withdrawn
+   - right now, they are discrete: from fade 50 to 45 in one frame
+   - better make it a fade animation of say 50ms or so
 *** Change the rate of the `High` animation based on intoxication
    (very high: fast-paced, should slow down on the way to sobriety)
 *** Better effects on player's death:

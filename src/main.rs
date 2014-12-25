@@ -81,15 +81,24 @@ fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
     level.remove_monster(monster.id(), monster);
 }
 
+// TODO: prolly refactor to a struct?
+// Fields: position, max radius, current radius, colour, elapsed time
+type ExplosionAnimation = Option<((int, int), int, int, color::Color, Duration)>;
+
 fn explode(center: point::Point,
            radius: int,
            level: &mut level::Level,
-           monsters: &mut Vec<monster::Monster>) {
+           monsters: &mut Vec<monster::Monster>) -> ExplosionAnimation {
     for pos in point::points_within_radius(center, radius) {
         if let Some(monster_id) = level.monster_on_pos(pos) {
             kill_monster(&mut monsters[monster_id], level);
         }
     }
+    Some((center,
+          radius,
+          2,  // this means it'll be visible at the first frame
+          color::explosion,
+          Duration::zero()))
 }
 
 fn exploration_radius(state_of_mind: int) -> int {
@@ -108,12 +117,13 @@ fn process_player<R: Rng>(player: &mut player::Player,
                           commands: &mut RingBuf<Command>,
                           level: &mut level::Level,
                           monsters: &mut Vec<monster::Monster>,
-                          explosion_animation: &mut Option<((int, int), int, color::Color, Duration)>,
+                          explosion_animation: &mut ExplosionAnimation,
                           rng: &mut R,
                           command_logger: &mut game_state::CommandLogger) {
     if !player.alive() {
         return
     }
+
     if let Some(command) = commands.pop_front() {
         command_logger.log(command);
         let (x, y) = player.pos;
@@ -202,11 +212,8 @@ fn process_player<R: Rng>(player: &mut player::Player,
                                                     false => 6,
                                                 };
                                                 player.take_effect(item.modifier);
-                                                explode(player.pos, radius, level, monsters);
-                                                *explosion_animation = Some((player.pos,
-                                                                             radius,
-                                                                             color::explosion,
-                                                                             Duration::milliseconds(100)));
+                                                let anim = explode(player.pos, radius, level, monsters);
+                                                *explosion_animation = anim;
                                             } else {
                                                 unreachable!();
                                             }
@@ -225,11 +232,8 @@ fn process_player<R: Rng>(player: &mut player::Player,
                     let food = player.inventory.remove(food_idx).unwrap();
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
-                    explode(player.pos, food_explosion_radius, level, monsters);
-                    *explosion_animation = Some((player.pos,
-                                                 food_explosion_radius,
-                                                 color::explosion,
-                                                 Duration::milliseconds(100)));
+                    let anim = explode(player.pos, food_explosion_radius, level, monsters);
+                    *explosion_animation = anim;
                 }
             }
             Action::Attack(_, _) => {
@@ -544,12 +548,21 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             }
     }
 
-    if let Some((center, r, c, duration)) = state.explosion_animation {
-        let new_duration = duration - dt;
-        if new_duration.num_milliseconds() > 0 {
-            state.explosion_animation = Some((center, r, c, new_duration));
+    if let Some((center, max_r, r, c, elapsed)) = state.explosion_animation {
+        let one_level_duration = Duration::milliseconds(100);
+        let mut elapsed = elapsed + dt;
+        let r = if elapsed > one_level_duration {
+            elapsed = elapsed - one_level_duration;
+            r + 1
+        } else {
+            r
+        };
+        if r <= max_r {
+            state.explosion_animation = Some((center, max_r, r, c, elapsed));
             for (x, y) in point::points_within_radius(center, r) {
-                engine.display.set_background(x, y, c);
+                if state.level.within_bounds((x, y)) {
+                    engine.display.set_background(x, y, c);
+                }
             }
         } else {
             state.explosion_animation = None;

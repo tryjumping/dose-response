@@ -196,14 +196,16 @@ impl Level {
         (self.width, self.height)
     }
 
+    pub fn within_bounds(&self, (x, y): Point) -> bool {
+        x >= 0 && y >= 0 && x < self.width && y < self.height
+    }
+
     pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
-        let (x, y) = pos;
-        let within_bounds = x >= 0 && y >= 0 && x < self.width && y < self.height;
         let walkable = match walkability {
             Walkability::WalkthroughMonsters => true,
             Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
         };
-        within_bounds && self.cell(pos).tile.kind == TileKind::Empty && walkable
+        self.within_bounds(pos) && self.cell(pos).tile.kind == TileKind::Empty && walkable
     }
 
     pub fn remove_monster(&mut self, monster_index: uint, monster: &Monster) {

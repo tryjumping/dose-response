@@ -56,9 +56,7 @@ impl FromStr for Command {
 pub struct GameState {
     pub player: Player,
     pub monsters: Vec<Monster>,
-    // TODO: prolly refactor to a struct?
-    // Fields: position, max radius, colour, time duration
-    pub explosion_animation: Option<((int, int), int, Color, Duration)>,
+    pub explosion_animation: super::ExplosionAnimation,
     pub level: Level,
     pub display_size: (int, int),
     pub rng: IsaacRng,

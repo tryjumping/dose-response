@@ -89,9 +89,13 @@ impl Engine {
                                  tcod::BackgroundFlag::None, tcod::TextAlignment::Right,
                                  format!("FPS: {}", tcod::system::get_fps()).as_slice());
             match self.display.fade {
-                Some((amount, color)) => tcod::Console::set_fade(amount, color),
-                // colour doesn't matter, value 255 means no fade:
-                None => tcod::Console::set_fade(255, Color{r: 0, g: 0, b: 0}),
+                Some((amount, color)) => {
+                    tcod::Console::set_fade(amount, color);
+                }
+                None => {
+                    // NOTE: Colour doesn't matter here, value 255 means no fade:
+                    tcod::Console::set_fade(255, Color{r: 0, g: 0, b: 0});
+                }
             }
             tcod::Console::flush();
         }

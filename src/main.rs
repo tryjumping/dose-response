@@ -362,6 +362,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
     let previous_intoxication_state = player::IntoxicationState::from_int(
         *state.player.state_of_mind);
+    let player_was_alive = state.player.alive();
+
 
     if running || paused_one_step || timed_step {
         process_keys(&mut engine.keys, &mut state.commands);
@@ -455,16 +457,57 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         for (_, cell) in state.level.iter_mut() {
             cell.tile.update(dt);
         }
-    } else {
+    } else if player_was_alive {  // NOTE: Player just died
         // Make sure we're not showing the High gfx effect when dead
         if current_intoxication_state != previous_intoxication_state {
             for (_pos, cell) in state.level.iter_mut() {
                 cell.tile.set_animation(graphics::Animation::None);
             }
         }
+        state.screen_fading = Some((color::Color{r: 255, g: 0, b: 0},
+                                    255, -3));
+    } else {
+        // NOTE: player is already dead (didn't die this frame)
     }
 
-    let bonus = state.player.bonus;
+    // TODO: the timing of this is based on the framerate. Should be time-based
+    // instead.
+    if let Some((color, val, step)) = state.screen_fading {
+        use std::num::Int;
+
+        engine.display.fade(val, color);
+
+        let checked_val = if step > 0 {
+            val.checked_add(step as u8)
+        } else {
+            val.checked_sub((-step) as u8)
+        };
+
+        match checked_val {
+            Some(new_val) => {
+                state.screen_fading = Some((color, new_val, step));
+            }
+            None => {
+                // TODO: this is an ugly stateful hack. We want some sort of
+                // animation queueing system or something.
+                if step < 0 {
+                    // TODO: we want to specify the time period when staying
+                    // within the faded state before fading back into the game.
+                    state.screen_fading = Some((color, 0, 3));
+                    state.see_entire_screen = true;
+                } else {
+                    state.screen_fading = None;
+                }
+            }
+        };
+    }
+
+    let mut bonus = state.player.bonus;
+    // TODO: setting this as a bonus is a hack. Pass it to all renderers
+    // directly instead.
+    if state.see_entire_screen {
+        bonus = player::Bonus::UncoverMap;
+    }
     let radius = exploration_radius(*state.player.state_of_mind);
     state.level.render(&mut engine.display, dt, state.player.pos, radius, bonus);
     // TODO: assert no monster is on the same coords as the player

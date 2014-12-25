@@ -1,7 +1,6 @@
 * Notes
 ** Priority
 *** Animate food & dose explosions (like in Cogmind)
-*** Uncover and unfade the screen on player death
 *** Fade out Shadows & Voices when dying after attack
 *** Display the SoM textual representation (overdosed, high, withdrawn) in the status bar
 *** Player should fade when dying
@@ -33,6 +32,10 @@ http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#312
 **** e.g. fatfingering the arrow when the Depression is near
 *** save&exit/load game
 ** Polish (UI & stuff)
+*** Different screen fadeout colours on various player deaths
+**** RED when killed by a monster
+**** BLACK when died of exaustion
+**** WHITE (slow fade, plus glitches) when overdosed
 *** Doses should glow
 *** Background around a dose should glow in the Irresistible radius
 *** Better display the movement of D monsters:

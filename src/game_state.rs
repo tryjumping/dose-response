@@ -12,6 +12,7 @@ use std::str;
 
 use time;
 
+use color::Color;
 use generators;
 use level::Level;
 use monster::Monster;
@@ -66,6 +67,8 @@ pub struct GameState {
     pub replay: bool,
     pub clock: Duration,
     pub paused: bool,
+    pub screen_fading: Option<(Color, u8, i8)>,  // target colour & current fade, direction
+    pub see_entire_screen: bool,
 }
 
 impl GameState {
@@ -90,6 +93,8 @@ impl GameState {
             replay: replay,
             clock: Duration::zero(),
             paused: false,
+            screen_fading: None,
+            see_entire_screen: false,
         }
     }
 

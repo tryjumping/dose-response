@@ -1,6 +1,5 @@
 * Notes
 ** Priority
-*** Animate food & dose explosions (like in Cogmind)
 *** Fade out Shadows & Voices when dying after attack
 *** Display the SoM textual representation (overdosed, high, withdrawn) in the status bar
 *** Player should fade when dying
@@ -8,6 +7,7 @@
     - repro: die, look at the bg colour of monsters and items
 *** Add "Uncover Screen" debug/cheat key
 ** Other gameplay ideas & plans
+*** Random chance that explosion destroys a wall, too?
 *** Depression only moves by 2 squares when following the player
 *** Idle monsters select more distant destinations
 **** This should make it seem more realistic

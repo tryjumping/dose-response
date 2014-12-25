@@ -5,6 +5,7 @@
 *** Fade out Shadows & Voices when dying after attack
 *** Display the SoM textual representation (overdosed, high, withdrawn) in the status bar
 *** Player should fade when dying
+*** Add "Uncover Screen" debug/cheat key
 ** Other gameplay ideas & plans
 *** Depression only moves by 2 squares when following the player
 *** Idle monsters select more distant destinations

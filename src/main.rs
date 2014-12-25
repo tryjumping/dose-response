@@ -359,6 +359,10 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     } else {
         false
     };
+
+    let previous_intoxication_state = player::IntoxicationState::from_int(
+        *state.player.state_of_mind);
+
     if running || paused_one_step || timed_step {
         process_keys(&mut engine.keys, &mut state.commands);
 
@@ -399,7 +403,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
 
     let som = *state.player.state_of_mind;
-    let previous_intoxication_state = state.previous_frame_intoxication;
     let current_intoxication_state = player::IntoxicationState::from_int(som);
 
     // Rendering & related code here:
@@ -434,8 +437,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             } else {
                 // NOTE: the animation is what it's supposed to be. Do nothing.
             }
-
-            state.previous_frame_intoxication = current_intoxication_state;
         }
 
 

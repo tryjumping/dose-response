@@ -509,7 +509,31 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         bonus = player::Bonus::UncoverMap;
     }
     let radius = exploration_radius(*state.player.state_of_mind);
-    state.level.render(&mut engine.display, dt, state.player.pos, radius, bonus);
+
+    // Render the level and items:
+    for ((x, y), cell) in state.level.iter() {
+            let in_fov = point::distance((x, y), state.player.pos) < (radius as f32);
+
+            // Render the tile
+            if in_fov {
+                graphics::draw(&mut engine.display, dt, (x, y), &cell.tile);
+            } else if cell.explored || bonus == player::Bonus::UncoverMap {
+                // TODO: need to supply the dark bg here?
+                graphics::draw(&mut engine.display, dt, (x, y), &cell.tile);
+                for item in cell.items.iter() {
+                    graphics::draw(&mut engine.display, dt, (x, y), item);
+                }
+                engine.display.set_background(x, y, color::dim_background);
+            }
+
+            // Render the items
+            if in_fov || cell.explored || bonus == player::Bonus::SeeMonstersAndItems || bonus == player::Bonus::UncoverMap {
+                for item in cell.items.iter() {
+                    graphics::draw(&mut engine.display, dt, (x, y), item);
+                }
+            }
+    }
+
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
     for monster in state.monsters.iter().filter(|m| !m.dead) {

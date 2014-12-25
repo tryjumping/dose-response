@@ -3,11 +3,9 @@ use std::rand::{mod, Rng};
 use std::time::Duration;
 
 use color::{mod, Color};
-use engine::Display;
 use graphics::{mod, Animation, Render};
 use item::{mod, Item};
 use monster::Monster;
-use player::Bonus;
 use point::{mod, Point};
 
 
@@ -276,34 +274,6 @@ impl Level {
             index: 0,
             width: self.width,
             inner: self.map.iter_mut(),
-        }
-    }
-
-    pub fn render(&self, display: &mut Display,
-                  dt: Duration,
-                  ex_center: Point, ex_radius: int,
-                  bonus: Bonus) {
-        for ((x, y), cell) in self.iter() {
-            let in_fov = point::distance((x, y), ex_center) < (ex_radius as f32);
-
-            // Render the tile
-            if in_fov {
-                graphics::draw(display, dt, (x, y), &cell.tile);
-            } else if cell.explored || bonus == Bonus::UncoverMap {
-                // TODO: need to supply the dark bg here?
-                graphics::draw(display, dt, (x, y), &cell.tile);
-                for item in cell.items.iter() {
-                    graphics::draw(display, dt, (x, y), item);
-                }
-                display.set_background(x, y, color::dim_background);
-            }
-
-            // Render the items
-            if in_fov || cell.explored || bonus == Bonus::SeeMonstersAndItems || bonus == Bonus::UncoverMap {
-                for item in cell.items.iter() {
-                    graphics::draw(display, dt, (x, y), item);
-                }
-            }
         }
     }
 }

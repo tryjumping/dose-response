@@ -2,7 +2,6 @@
 ** Priority
 *** Fade out Shadows & Voices when dying after attack
 *** Display the SoM textual representation (overdosed, high, withdrawn) in the status bar
-*** Player should fade when dying
 *** Fix the black background under monsters/items when uncovered map
     - repro: die, look at the bg colour of monsters and items
 *** Add "Uncover Screen" debug/cheat key
@@ -71,6 +70,9 @@ should provide a visually better result (but will be harder to compute).
 *** Change player's colour on stunned/panicked
 *** Make sure we're accessible to colour blind people
 ** Code cleanup & improvements
+*** Maybe have a notion of a Timer struct?
+    - first pass just set the time and drop to zero.
+    - no need to store (maximum, elapsed) Durations then
 *** The "High" animation just kills the framerate on uncovered screen
 *** Get rid of int/uint -- they're platform specific, just use i32 or whatever appropriate
 *** Use libtcod.cfg for config to libtcod.cfg

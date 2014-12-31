@@ -12,7 +12,6 @@ use std::str;
 
 use time;
 
-use color::Color;
 use generators;
 use level::Level;
 use monster::Monster;
@@ -53,6 +52,7 @@ impl FromStr for Command {
 }
 
 
+
 pub struct GameState {
     pub player: Player,
     pub monsters: Vec<Monster>,
@@ -68,7 +68,7 @@ pub struct GameState {
     pub replay: bool,
     pub clock: Duration,
     pub paused: bool,
-    pub screen_fading: Option<(Color, u8, i8)>,  // target colour & current fade, direction
+    pub screen_fading: Option<super::ScreenFadeAnimation>,
     pub see_entire_screen: bool,
 }
 

@@ -15,6 +15,7 @@ use std::time::Duration;
 use tcod::KeyState;
 use tcod::Key::{Printable, Special};
 
+use color::Color;
 use engine::{Engine, KeyCode};
 use game_state::{Command, GameState, Side};
 
@@ -33,6 +34,94 @@ mod ranged_int;
 mod world;
 
 
+#[deriving(Copy)]
+pub struct Timer {
+    max: Duration,
+    current: Duration,
+}
+
+impl Timer {
+    pub fn new(duration: Duration) -> Timer {
+        Timer {
+            max: duration,
+            current: duration,
+        }
+    }
+
+    pub fn update(&mut self, dt: Duration) {
+        if dt > self.current {
+            self.current = Duration::zero();
+        } else {
+            self.current = self.current - dt;
+        }
+    }
+
+    pub fn percentage_remaining(&self) -> f32 {
+        (self.current.num_milliseconds() as f32) / (self.max.num_milliseconds() as f32)
+    }
+
+    pub fn percentage_elapsed(&self) -> f32 {
+        1.0 - self.percentage_remaining()
+    }
+
+    pub fn finished(&self) -> bool {
+        self.current.is_zero()
+    }
+}
+
+#[deriving(Copy)]
+pub struct ScreenFadeAnimation {
+    pub color: Color,
+    pub fade_out_time: Duration,
+    pub wait_time: Duration,
+    pub fade_in_time: Duration,
+    pub timer: Timer,
+    pub phase: ScreenFadePhase,
+}
+
+#[deriving(Copy)]
+pub enum ScreenFadePhase {
+    FadeOut,
+    Wait,
+    FadeIn,
+    Done,
+}
+
+impl ScreenFadeAnimation {
+    pub fn new(color: Color, fade_out: Duration, wait: Duration,
+               fade_in: Duration) -> ScreenFadeAnimation {
+        ScreenFadeAnimation {
+            color: color,
+            fade_out_time: fade_out,
+            wait_time: wait,
+            fade_in_time: fade_in,
+            timer: Timer::new(fade_out),
+            phase: ScreenFadePhase::FadeOut,
+        }
+    }
+
+    pub fn update(&mut self, dt: Duration) {
+        self.timer.update(dt);
+        if self.timer.finished() {
+            match self.phase {
+                ScreenFadePhase::FadeOut => {
+                    self.timer = Timer::new(self.wait_time);
+                    self.phase = ScreenFadePhase::Wait;
+                }
+                ScreenFadePhase::Wait => {
+                    self.timer = Timer::new(self.fade_in_time);
+                    self.phase = ScreenFadePhase::FadeIn;
+                }
+                ScreenFadePhase::FadeIn => {
+                    self.phase = ScreenFadePhase::Done;
+                }
+                ScreenFadePhase::Done => {
+                    // NOTE: we're done. Nothing to do here.
+                }
+            }
+        }
+    }
+}
 
 fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Command>) {
     fn ctrl(key: tcod::KeyState) -> bool {
@@ -478,42 +567,33 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 cell.tile.set_animation(graphics::Animation::None);
             }
         }
-        state.screen_fading = Some((color::Color{r: 255, g: 0, b: 0},
-                                    255, -3));
+        state.screen_fading = Some(ScreenFadeAnimation::new(
+            color::Color{r: 255, g: 0, b: 0},
+            Duration::milliseconds(500),
+            Duration::milliseconds(200),
+            Duration::milliseconds(300)));
     } else {
         // NOTE: player is already dead (didn't die this frame)
     }
 
-    // TODO: the timing of this is based on the framerate. Should be time-based
-    // instead.
-    if let Some((color, val, step)) = state.screen_fading {
-        use std::num::Int;
-
-        engine.display.fade(val, color);
-
-        let checked_val = if step > 0 {
-            val.checked_add(step as u8)
+    if let Some(mut anim) = state.screen_fading {
+        if anim.timer.finished() {
+            state.screen_fading = None;
         } else {
-            val.checked_sub((-step) as u8)
-        };
-
-        match checked_val {
-            Some(new_val) => {
-                state.screen_fading = Some((color, new_val, step));
-            }
-            None => {
-                // TODO: this is an ugly stateful hack. We want some sort of
-                // animation queueing system or something.
-                if step < 0 {
-                    // TODO: we want to specify the time period when staying
-                    // within the faded state before fading back into the game.
-                    state.screen_fading = Some((color, 0, 3));
-                    state.see_entire_screen = true;
-                } else {
-                    state.screen_fading = None;
+            let fade_percentage = match anim.phase {
+                ScreenFadePhase::FadeOut => anim.timer.percentage_remaining(),
+                ScreenFadePhase::Wait => 0.0,
+                ScreenFadePhase::FadeIn => anim.timer.percentage_elapsed(),
+                ScreenFadePhase::Done => {
+                    // NOTE: this should have been handled by the if statement above.
+                    unreachable!();
                 }
-            }
-        };
+            };
+            let fade = (fade_percentage * 255.0) as u8;
+            engine.display.fade(fade, anim.color);
+            anim.update(dt);
+            state.screen_fading = Some(anim);
+        }
     }
 
     let mut bonus = state.player.bonus;

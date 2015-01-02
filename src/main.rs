@@ -318,7 +318,7 @@ fn process_player<R: Rng>(player: &mut player::Player,
             Action::Eat => {
                 if let Some(food_idx) = player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
                     player.spend_ap(1);
-                    let food = player.inventory.remove(food_idx).unwrap();
+                    let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
                     let anim = explode(player.pos, food_explosion_radius, level, monsters);

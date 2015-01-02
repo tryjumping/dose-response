@@ -43,7 +43,7 @@ impl Tile {
             TileKind::Empty => color::empty_tile,
             TileKind::Tree => {
                 let options = [color::tree_1, color::tree_2, color::tree_3];
-                *rand::task_rng().choose(&options).unwrap()
+                *rand::thread_rng().choose(&options).unwrap()
             }
         };
         Tile {

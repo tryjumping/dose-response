@@ -79,7 +79,7 @@ pub struct ScreenFadeAnimation {
     pub phase: ScreenFadePhase,
 }
 
-#[deriving(Copy)]
+#[deriving(Copy, PartialEq)]
 pub enum ScreenFadePhase {
     FadeOut,
     Wait,
@@ -595,7 +595,14 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 }
             };
             engine.display.fade(fade, anim.color);
+            let prev_phase = anim.phase;
             anim.update(dt);
+            let new_phase = anim.phase;
+            // TODO: this is a bit hacky, but we want to uncover the screen only
+            // after we've faded out:
+            if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
+                state.see_entire_screen = true;
+            }
             state.screen_fading = Some(anim);
         }
     }

@@ -610,26 +610,26 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
     // Render the level and items:
     for ((x, y), cell) in state.level.iter() {
-            let in_fov = point::distance((x, y), state.player.pos) < (radius as f32);
+        let in_fov = point::distance((x, y), state.player.pos) < (radius as f32);
 
-            // Render the tile
-            if in_fov {
-                graphics::draw(&mut engine.display, dt, (x, y), &cell.tile);
-            } else if cell.explored || bonus == player::Bonus::UncoverMap {
-                // TODO: need to supply the dark bg here?
-                graphics::draw(&mut engine.display, dt, (x, y), &cell.tile);
-                for item in cell.items.iter() {
-                    graphics::draw(&mut engine.display, dt, (x, y), item);
-                }
-                engine.display.set_background(x, y, color::dim_background);
+        // Render the tile
+        if in_fov {
+            graphics::draw(&mut engine.display, dt, (x, y), &cell.tile);
+        } else if cell.explored || bonus == player::Bonus::UncoverMap {
+            // TODO: need to supply the dark bg here?
+            graphics::draw(&mut engine.display, dt, (x, y), &cell.tile);
+            for item in cell.items.iter() {
+                graphics::draw(&mut engine.display, dt, (x, y), item);
             }
+            engine.display.set_background(x, y, color::dim_background);
+        }
 
-            // Render the items
-            if in_fov || cell.explored || bonus == player::Bonus::SeeMonstersAndItems || bonus == player::Bonus::UncoverMap {
-                for item in cell.items.iter() {
-                    graphics::draw(&mut engine.display, dt, (x, y), item);
-                }
+        // Render the items
+        if in_fov || cell.explored || bonus == player::Bonus::SeeMonstersAndItems || bonus == player::Bonus::UncoverMap {
+            for item in cell.items.iter() {
+                graphics::draw(&mut engine.display, dt, (x, y), item);
             }
+        }
     }
 
     if let Some((center, max_r, r, c, elapsed)) = state.explosion_animation {

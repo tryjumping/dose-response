@@ -1,7 +1,9 @@
 use std::time::Duration;
 
-use color::{mod, Color};
 use tcod_ffi;
+use libc;
+
+use color::Color;
 use engine::Display;
 
 
@@ -23,7 +25,10 @@ pub fn draw<R: Render>(display: &mut Display, dt: Duration,
     let bg = match bg_opt {
         Some(col) => col,
         // TODO: don't set the background at all if it's not passed in:
-        None => color::background,
+        None => unsafe {
+            tcod_ffi::TCOD_console_get_char_background(
+                0 as *mut libc::c_void, x as i32, y as i32)
+        }
     };
     display.draw_char(x, y, glyph, fg, bg);
 }

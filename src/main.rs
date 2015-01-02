@@ -695,5 +695,6 @@ fn main() {
     };
 
     let mut engine = Engine::new(width, height, title, font_path.clone());
+    tcod::RootConsole.set_default_background(color::background);
     engine.main_loop(game_state, update);
 }

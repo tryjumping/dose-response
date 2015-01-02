@@ -38,8 +38,11 @@ impl Display {
         (RootConsole.width(), RootConsole.height())
     }
 
-    pub fn fade(&mut self, fade_ammount: u8, color: Color) {
-        self.fade = Some((fade_ammount, color));
+    /// `fade_percentage` is from <0f32 to 100f32>.
+    /// 0% means no fade, 100% means screen is completely filled with the `color`
+    pub fn fade(&mut self, fade_percentage: f32, color: Color) {
+        let fade = (fade_percentage * 255.0) as u8;
+        self.fade = Some((fade, color));
     }
 }
 

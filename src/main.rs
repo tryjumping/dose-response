@@ -548,7 +548,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Fade when withdrawn:
         match current_intoxication_state {
             DeliriumTremens | Withdrawal => {
-                let fade = std::cmp::max((som as u8) * 5 + 50, 50);
+                // NOTE: SoM is <0, 100>, this turns it into percentage <0, 100>
+                let som_percent = (som as f32) / 100.0;
+                let mut fade = som_percent * 0.025 + 0.25;
+                if fade < 0.25 {
+                    fade = 0.25;
+                }
                 engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
             }
             Exhausted | Sober | Overdosed | High | VeryHigh => {
@@ -580,7 +585,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         if anim.timer.finished() {
             state.screen_fading = None;
         } else {
-            let fade_percentage = match anim.phase {
+            let fade = match anim.phase {
                 ScreenFadePhase::FadeOut => anim.timer.percentage_remaining(),
                 ScreenFadePhase::Wait => 0.0,
                 ScreenFadePhase::FadeIn => anim.timer.percentage_elapsed(),
@@ -589,7 +594,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                     unreachable!();
                 }
             };
-            let fade = (fade_percentage * 255.0) as u8;
             engine.display.fade(fade, anim.color);
             anim.update(dt);
             state.screen_fading = Some(anim);

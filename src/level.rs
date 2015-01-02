@@ -128,16 +128,16 @@ pub struct Level {
 impl Level {
     pub fn new(width: int, height: int) -> Level {
         assert!(width > 0 && height > 0);
+        let map_size = (width * height) as uint;
         Level {
             width: width,
             height: height,
             monsters: HashMap::new(),
-            map: Vec::from_fn((width * height) as uint,
-                              |_| Cell{
-                                  tile: Tile::new(TileKind::Empty),
-                                  items: vec![],
-                                  explored: false,
-                              }),
+            map: range(0, map_size).map(|_| Cell{
+                tile: Tile::new(TileKind::Empty),
+                items: vec![],
+                explored: false,
+            }).collect(),
         }
     }
 

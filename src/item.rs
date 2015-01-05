@@ -1,20 +1,20 @@
 use std::time::Duration;
 
-use color::{mod, Color};
+use color::{self, Color};
 use graphics::Render;
 use player::Modifier;
 
 use self::Kind::*;
 
 
-#[deriving(Clone, Copy, PartialEq, Rand, Show)]
+#[derive(Clone, Copy, PartialEq, Rand, Show)]
 pub enum Kind {
     Dose,
     Food,
 }
 
 
-#[deriving(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Show)]
 pub struct Item {
     pub kind: Kind,
     pub modifier: Modifier,

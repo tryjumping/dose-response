@@ -3,7 +3,7 @@
 use std::collections::RingBuf;
 use std::time::Duration;
 
-pub use tcod::{mod, Color, Console, RootConsole, KeyCode};
+pub use tcod::{self, Color, Console, RootConsole, KeyCode};
 
 
 pub struct Display {

@@ -1,11 +1,11 @@
 use std::rand::Rng;
 use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 
-use item::{mod, Item};
+use item::{self, Item};
 use level::{Tile, TileKind};
 use monster::Kind;
 use player::Modifier;
-use point::{mod, Point};
+use point::{self, Point};
 use generators::GeneratedWorld;
 
 fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> Vec<(Point, Tile)> {

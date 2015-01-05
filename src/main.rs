@@ -34,7 +34,7 @@ mod ranged_int;
 mod world;
 
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct Timer {
     max: Duration,
     current: Duration,
@@ -69,7 +69,7 @@ impl Timer {
     }
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct ScreenFadeAnimation {
     pub color: Color,
     pub fade_out_time: Duration,
@@ -79,7 +79,7 @@ pub struct ScreenFadeAnimation {
     pub phase: ScreenFadePhase,
 }
 
-#[deriving(Copy, PartialEq)]
+#[derive(Copy, PartialEq)]
 pub enum ScreenFadePhase {
     FadeOut,
     Wait,
@@ -157,7 +157,7 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 }
 
 
-#[deriving(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Show)]
 pub enum Action {
     Move((int, int)),
     Attack((int, int), player::Modifier),

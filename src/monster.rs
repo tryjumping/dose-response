@@ -2,18 +2,18 @@ use std::rand::Rng;
 use std::time::Duration;
 
 use super::Action;
-use color::{mod, Color};
+use color::{self, Color};
 use level::{Level, Walkability};
 use graphics::Render;
 use player::Modifier;
-use point::{mod, Point};
+use point::{self, Point};
 
 
 use self::Kind::*;
 use self::AIState::*;
 
 
-#[deriving(PartialEq, Show)]
+#[derive(PartialEq, Show)]
 pub struct Monster {
     id: uint,
     pub kind: Kind,
@@ -27,7 +27,7 @@ pub struct Monster {
 }
 
 
-#[deriving(Copy, Clone, PartialEq, Rand, Show)]
+#[derive(Copy, Clone, PartialEq, Rand, Show)]
 pub enum Kind {
     Anxiety,
     Depression,
@@ -36,7 +36,7 @@ pub enum Kind {
     Voices,
 }
 
-#[deriving(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Show)]
 pub enum AIState {
     Idle,
     Chasing,

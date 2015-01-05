@@ -19,14 +19,14 @@ use player::Player;
 use world;
 
 
-#[deriving(Copy, PartialEq, Clone, Show)]
+#[derive(Copy, PartialEq, Clone, Show)]
 pub enum Side {
     Player,
     Computer,
 }
 
 
-#[deriving(Copy, Show)]
+#[derive(Copy, Show)]
 pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
     Eat,

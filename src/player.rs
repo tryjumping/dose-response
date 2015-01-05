@@ -1,14 +1,14 @@
 use std::cmp;
 use std::time::Duration;
 
-use color::{mod, Color};
+use color::{self, Color};
 use item::Item;
 use graphics::Render;
 use point::Point;
 use ranged_int::RangedInt;
 
 
-#[deriving(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Show)]
 pub enum Modifier {
     Death,
     Attribute{will: int, state_of_mind: int},
@@ -17,7 +17,7 @@ pub enum Modifier {
     Stun(int),
 }
 
-#[deriving(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Show)]
 pub enum IntoxicationState {
     Exhausted,
     DeliriumTremens,
@@ -43,7 +43,7 @@ impl IntoxicationState {
     }
 }
 
-#[deriving(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Show)]
 pub enum Bonus {
     None,
     SeeMonstersAndItems,

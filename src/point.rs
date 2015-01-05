@@ -29,7 +29,9 @@ struct PointsWithinRadius {
     max_y: int,
 }
 
-impl Iterator<Point> for PointsWithinRadius {
+impl Iterator for PointsWithinRadius {
+    type Item = Point;
+
     fn next(&mut self) -> Option<Point> {
         loop {
             if (self.y > self.max_y) || (self.x > self.max_x) {

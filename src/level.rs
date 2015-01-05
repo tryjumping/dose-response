@@ -286,7 +286,9 @@ pub struct CellsMut<'a> {
     inner: ::std::slice::IterMut<'a, Cell>,
 }
 
-impl<'a> Iterator<(Point, &'a mut Cell)> for CellsMut<'a> {
+impl<'a> Iterator for CellsMut<'a> {
+    type Item = (Point, &'a mut Cell);
+
     fn next(&mut self) -> Option<(Point, &'a mut Cell)> {
         let (x, y) = (self.index % self.width, self.index / self.width);
         self.index += 1;
@@ -305,7 +307,9 @@ pub struct Cells<'a> {
     inner: ::std::slice::Iter<'a, Cell>,
 }
 
-impl<'a> Iterator<(Point, &'a Cell)> for Cells<'a> {
+impl<'a> Iterator for Cells<'a> {
+    type Item = (Point, &'a Cell);
+
     fn next(&mut self) -> Option<(Point, &'a Cell)> {
         let (x, y) = (self.index % self.width, self.index / self.width);
         self.index += 1;

@@ -1,4 +1,5 @@
 use std::num::Int;
+use std::ops::Deref;
 
 
 pub struct RangedInt<T: Int> {
@@ -37,7 +38,9 @@ impl<T: Int> RangedInt<T> {
     }
 }
 
-impl<T: Int> Deref<T> for RangedInt<T> {
+impl<T: Int> Deref for RangedInt<T> {
+    type Target = T;
+
     fn deref(&self) -> &T {
         &self.val
     }

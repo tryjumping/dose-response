@@ -1,4 +1,4 @@
-#![feature(macro_rules, globs, phase, link_args, unboxed_closures)]
+#![feature(macro_rules, globs, phase, link_args, unboxed_closures, associated_types)]
 #![deny(overflowing_literals)]
 
 extern crate libc;

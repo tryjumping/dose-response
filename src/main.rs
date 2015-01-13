@@ -431,6 +431,17 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     if engine.key_pressed(Special(KeyCode::Escape)) {
         return None;
     }
+    if let Some(key) = engine.keys.pop_front() {
+        if key.key == Special(KeyCode::Enter) && (key.left_alt || key.right_alt) {
+            // TODO: add fullscreen support to tcod-rs
+            unsafe {
+                let fullscreen = tcod_ffi::TCOD_console_is_fullscreen() != 0;
+                tcod_ffi::TCOD_console_set_fullscreen(!fullscreen as u8);
+            }
+        } else {
+            engine.keys.push_front(key);
+        }
+    }
     if engine.key_pressed(Special(KeyCode::F5)) {
         println!("Restarting game");
         engine.keys.clear();

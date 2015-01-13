@@ -19,7 +19,7 @@ pub enum Animation {
 }
 
 pub fn draw<R: Render>(display: &mut Display, dt: Duration,
-                       pos: (int, int), render: &R) {
+                       pos: (i32, i32), render: &R) {
     let (x, y) = pos;
     let (glyph, fg, bg_opt) = render.render(dt);
     let bg = match bg_opt {

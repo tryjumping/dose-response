@@ -2,33 +2,31 @@
 name = "dose-response"
 version = "0.1.0"
 dependencies = [
- "tcod 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tcod 0.4.2",
+ "time 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "gcc"
-version = "0.1.2"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "tcod"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+version = "0.4.2"
 dependencies = [
- "tcod-sys 1.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tcod-sys 2.0.0",
 ]
 
 [[package]]
 name = "tcod-sys"
-version = "1.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+version = "2.0.0"
 
 [[package]]
 name = "time"
-version = "0.1.11"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "gcc 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gcc 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

@@ -8,7 +8,7 @@ use player::Modifier;
 use point::{self, Point};
 use generators::GeneratedWorld;
 
-fn generate_map<R: Rng>(rng: &mut R, (w, h): (int, int), player: Point) -> Vec<(Point, Tile)> {
+fn generate_map<R: Rng>(rng: &mut R, (w, h): (i32, i32), player: Point) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted{weight: 610, item: TileKind::Empty},
         Weighted{weight: 390, item: TileKind::Tree},
@@ -65,8 +65,8 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     let modifier = match kind {
         Dose => {
             let mut dose_w = [
-                Weighted{weight: 7, item: 72i},
-                Weighted{weight: 3, item: 130i}
+                Weighted{weight: 7, item: 72},
+                Weighted{weight: 3, item: 130}
             ];
             let base_strength_gen = WeightedChoice::new(dose_w.as_mut_slice());
             let base = base_strength_gen.ind_sample(rng);
@@ -143,7 +143,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -
 }
 
 
-pub fn generate<R: Rng>(rng: &mut R, w: int, h: int, player: Point) -> GeneratedWorld {
+pub fn generate<R: Rng>(rng: &mut R, w: i32, h: i32, player: Point) -> GeneratedWorld {
     let map = generate_map(rng, (w, h), player);
     let monsters = generate_monsters(rng, map.as_slice(), player);
     let items = generate_items(rng, map.as_slice(), player);

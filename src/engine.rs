@@ -17,24 +17,24 @@ impl Display {
         }
     }
 
-    pub fn draw_char(&mut self, x: int, y: int, c: char,
+    pub fn draw_char(&mut self, x: i32, y: i32, c: char,
                      foreground: Color, background: Color) {
         self.set_background(x, y, background);
         RootConsole.put_char_ex(x, y, c, foreground, background);
     }
 
-    pub fn write_text(&mut self, text: &str, x: int, y: int,
+    pub fn write_text(&mut self, text: &str, x: i32, y: i32,
                       foreground: Color, background: Color) {
         for (i, chr) in text.char_indices() {
-            self.draw_char(x + i as int, y, chr, foreground, background);
+            self.draw_char(x + i as i32, y, chr, foreground, background);
         }
     }
 
-    pub fn set_background(&mut self, x: int, y: int, color: Color) {
+    pub fn set_background(&mut self, x: i32, y: i32, color: Color) {
         RootConsole.set_char_background(x, y, color, tcod::BackgroundFlag::Set);
     }
 
-    pub fn size(&self) -> (int, int) {
+    pub fn size(&self) -> (i32, i32) {
         (RootConsole.width(), RootConsole.height())
     }
 
@@ -52,7 +52,7 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(width: int, height: int,
+    pub fn new(width: i32, height: i32,
                window_title: &str, font_path: Path) -> Engine {
         Console::set_custom_font(font_path, tcod::FONT_LAYOUT_TCOD | tcod::FONT_TYPE_GREYSCALE,
                                  32, 8);

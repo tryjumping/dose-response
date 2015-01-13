@@ -2,10 +2,10 @@ use std::num::{Int, Float, SignedInt};
 use std::cmp::{max};
 
 
-pub type Point = (int, int);
+pub type Point = (i32, i32);
 
 
-pub fn tile_distance(p1: Point, p2: Point) -> int {
+pub fn tile_distance(p1: Point, p2: Point) -> i32 {
     let (x1, y1) = p1;
     let (x2, y2) = p2;
     max((x1 - x2).abs(), (y1 - y2).abs())
@@ -20,13 +20,13 @@ pub fn distance(p1: Point, p2: Point) -> f32 {
 }
 
 struct PointsWithinRadius {
-    x: int,
-    y: int,
+    x: i32,
+    y: i32,
     center: Point,
-    radius: int,
-    initial_x: int,
-    max_x: int,
-    max_y: int,
+    radius: i32,
+    initial_x: i32,
+    max_x: i32,
+    max_y: i32,
 }
 
 impl Iterator for PointsWithinRadius {
@@ -52,7 +52,7 @@ impl Iterator for PointsWithinRadius {
     }
 }
 
-pub fn points_within_radius(center: Point, radius: int) -> PointsWithinRadius {
+pub fn points_within_radius(center: Point, radius: i32) -> PointsWithinRadius {
     let (center_x, center_y) = center;
     PointsWithinRadius{
         x: center_x - radius,

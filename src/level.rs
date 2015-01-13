@@ -119,16 +119,16 @@ pub enum Walkability {
 
 
 pub struct Level {
-    width: int,
-    height: int,
-    pub monsters: HashMap<Point, uint>,
+    width: i32,
+    height: i32,
+    pub monsters: HashMap<Point, usize>,
     map: Vec<Cell>,
 }
 
 impl Level {
-    pub fn new(width: int, height: int) -> Level {
+    pub fn new(width: i32, height: i32) -> Level {
         assert!(width > 0 && height > 0);
-        let map_size = (width * height) as uint;
+        let map_size = (width * height) as usize;
         Level {
             width: width,
             height: height,
@@ -141,9 +141,9 @@ impl Level {
         }
     }
 
-    fn index(&self, (x, y): Point) -> uint {
+    fn index(&self, (x, y): Point) -> usize {
         assert!(x >= 0 && y >= 0 && x < self.width && y < self.height);
-        (y * self.width + x) as uint
+        (y * self.width + x) as usize
     }
 
     pub fn cell(&self, pos: Point) -> &Cell {
@@ -160,12 +160,12 @@ impl Level {
         self.cell_mut(pos).tile = tile;
     }
 
-    pub fn set_monster(&mut self, pos: Point, monster_index: uint, monster: &Monster) {
+    pub fn set_monster(&mut self, pos: Point, monster_index: usize, monster: &Monster) {
         assert!(monster.position == pos);
         self.monsters.insert(pos, monster_index);
     }
 
-    pub fn nearest_dose(&self, center: Point, radius: int) -> Option<(Point, Item)> {
+    pub fn nearest_dose(&self, center: Point, radius: i32) -> Option<(Point, Item)> {
         let mut doses = vec![];
         for pos in point::points_within_radius(center, radius) {
             // Make sure we don't go out of bounds with self.cell(pos):
@@ -184,7 +184,7 @@ impl Level {
         doses.into_iter().min_by(|&(p, _)| point::tile_distance(center, p))
     }
 
-    pub fn monster_on_pos(&self, pos: Point) -> Option<uint> {
+    pub fn monster_on_pos(&self, pos: Point) -> Option<usize> {
         self.monsters.get(&pos).map(|&ix| ix)
     }
 
@@ -192,7 +192,7 @@ impl Level {
         self.cell_mut(pos).items.push(item);
     }
 
-    pub fn size(&self) -> (int, int) {
+    pub fn size(&self) -> (i32, i32) {
         (self.width, self.height)
     }
 
@@ -208,7 +208,7 @@ impl Level {
         self.within_bounds(pos) && self.cell(pos).tile.kind == TileKind::Empty && walkable
     }
 
-    pub fn remove_monster(&mut self, monster_index: uint, monster: &Monster) {
+    pub fn remove_monster(&mut self, monster_index: usize, monster: &Monster) {
         if let Some(removed_index) = self.monsters.remove(&monster.position) {
             assert!(monster_index == removed_index,
                     "The monster ID removed from the level must be correspond to the monster");
@@ -255,7 +255,7 @@ impl Level {
         }
     }
 
-    pub fn explore(&mut self, center: Point, radius: int) {
+    pub fn explore(&mut self, center: Point, radius: i32) {
         for (x, y) in point::points_within_radius(center, radius) {
             if x >= 0 && y >= 0 && x < self.width && y < self.height {
                 self.cell_mut((x, y)).explored = true;
@@ -281,8 +281,8 @@ impl Level {
 }
 
 pub struct CellsMut<'a> {
-    index: int,
-    width: int,
+    index: i32,
+    width: i32,
     inner: ::std::slice::IterMut<'a, Cell>,
 }
 
@@ -302,8 +302,8 @@ impl<'a> Iterator for CellsMut<'a> {
 }
 
 pub struct Cells<'a> {
-    index: int,
-    width: int,
+    index: i32,
+    width: i32,
     inner: ::std::slice::Iter<'a, Cell>,
 }
 

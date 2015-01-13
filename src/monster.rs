@@ -15,15 +15,15 @@ use self::AIState::*;
 
 #[derive(PartialEq, Show)]
 pub struct Monster {
-    id: uint,
+    id: usize,
     pub kind: Kind,
     pub position: Point,
     pub dead: bool,
     pub die_after_attack: bool,
     pub ai_state: AIState,
 
-    pub max_ap: int,
-    ap: int,
+    pub max_ap: i32,
+    ap: i32,
 }
 
 
@@ -64,11 +64,11 @@ impl Monster {
         }
     }
 
-    pub fn id(&self) -> uint {
+    pub fn id(&self) -> usize {
         self.id
     }
 
-    pub unsafe fn set_id(&mut self, id: uint) {
+    pub unsafe fn set_id(&mut self, id: usize) {
         self.id = id;
     }
 
@@ -85,7 +85,7 @@ impl Monster {
 
     pub fn act<R: Rng>(&mut self, player_pos: Point, level: &Level, rng: &mut R) -> Action {
         if self.dead {
-            panic!(format!("{} is dead, cannot run actions on it.", self));
+            panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
         let distance = point::tile_distance(self.position, player_pos);
         let ai_state = if distance <= 5 {
@@ -111,15 +111,15 @@ impl Monster {
         }
     }
 
-    pub fn spend_ap(&mut self, count: int) {
+    pub fn spend_ap(&mut self, count: i32) {
         if !(count <= self.ap) {
-            println!("bad assert: {}", self);
+            println!("bad assert: {:?}", self);
         }
         assert!(count <= self.ap);
         self.ap -= count;
     }
 
-    pub fn has_ap(&self, count: int) -> bool {
+    pub fn has_ap(&self, count: i32) -> bool {
         self.ap >= count
     }
 

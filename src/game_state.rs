@@ -9,6 +9,7 @@ use std::os;
 use std::rand;
 use std::rand::{IsaacRng, SeedableRng};
 use std::str;
+use std::string::ToString;
 
 use time;
 
@@ -30,6 +31,12 @@ pub enum Side {
 pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
     Eat,
+}
+
+impl ToString for Command {
+    fn to_string(&self) -> String {
+        format!("{:?}", self)
+    }
 }
 
 
@@ -58,12 +65,12 @@ pub struct GameState {
     pub monsters: Vec<Monster>,
     pub explosion_animation: super::ExplosionAnimation,
     pub level: Level,
-    pub display_size: (int, int),
+    pub display_size: (i32, i32),
     pub rng: IsaacRng,
     pub commands: RingBuf<Command>,
     pub command_logger: CommandLogger,
     pub side: Side,
-    pub turn: int,
+    pub turn: i32,
     pub cheating: bool,
     pub replay: bool,
     pub clock: Duration,
@@ -73,7 +80,7 @@ pub struct GameState {
 }
 
 impl GameState {
-    fn new(width: int, height: int,
+    fn new(width: i32, height: i32,
            commands: RingBuf<Command>,
            log_writer: Box<Writer+'static>,
            seed: u32,
@@ -100,7 +107,7 @@ impl GameState {
         }
     }
 
-    pub fn new_game(width: int, height: int) -> GameState {
+    pub fn new_game(width: i32, height: i32) -> GameState {
         let commands = RingBuf::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
@@ -114,7 +121,7 @@ impl GameState {
         }
         let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
         let mut writer = match File::create(replay_path) {
-            Ok(f) => box f,
+            Ok(f) => Box::new(f),
             Err(msg) => panic!("Failed to create the replay file. {}", msg)
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
@@ -124,7 +131,7 @@ impl GameState {
         state
     }
 
-    pub fn replay_game(width: int, height: int) -> GameState {
+    pub fn replay_game(width: i32, height: i32) -> GameState {
         let mut commands = RingBuf::new();
         let replay_path = &Path::new(os::args()[1].as_slice());
         let mut seed: u32;
@@ -151,7 +158,7 @@ impl GameState {
                                replay_path.display(), msg)
         }
         println!("Replaying game log: '{}'", replay_path.display());
-        let mut state = GameState::new(width, height, commands, box NullWriter, seed, true, true);
+        let mut state = GameState::new(width, height, commands, Box::new(NullWriter), seed, true, true);
         initialise_world(&mut state);
         state
     }

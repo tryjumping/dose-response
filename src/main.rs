@@ -158,8 +158,8 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 
 #[derive(Copy, PartialEq, Show)]
 pub enum Action {
-    Move((int, int)),
-    Attack((int, int), player::Modifier),
+    Move((i32, i32)),
+    Attack((i32, i32), player::Modifier),
     Eat,
 }
 
@@ -171,10 +171,10 @@ fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
 
 // TODO: prolly refactor to a struct?
 // Fields: position, max radius, current radius, colour, elapsed time
-type ExplosionAnimation = Option<((int, int), int, int, color::Color, Duration)>;
+type ExplosionAnimation = Option<((i32, i32), i32, i32, color::Color, Duration)>;
 
 fn explode(center: point::Point,
-           radius: int,
+           radius: i32,
            level: &mut level::Level,
            monsters: &mut Vec<monster::Monster>) -> ExplosionAnimation {
     for pos in point::points_within_radius(center, radius) {
@@ -189,7 +189,7 @@ fn explode(center: point::Point,
           Duration::zero()))
 }
 
-fn exploration_radius(state_of_mind: int) -> int {
+fn exploration_radius(state_of_mind: i32) -> i32 {
     use player::IntoxicationState::*;
     match player::IntoxicationState::from_int(state_of_mind) {
         Exhausted | DeliriumTremens => 4,
@@ -258,7 +258,7 @@ fn process_player<R: Rng>(player: &mut player::Player,
             if let Some(new_pos) = new_pos_opt {
                 action = Action::Move(new_pos);
             } else {
-                println!("Can't find path to irresistable dose at {} from player's position {}.",
+                println!("Can't find path to irresistable dose at {:?} from player's position {:?}.",
                          dose_pos, player.pos);
             }
         }
@@ -271,7 +271,7 @@ fn process_player<R: Rng>(player: &mut player::Player,
                         player.spend_ap(1);
                         let monster = &mut monsters[monster_id];
                         assert_eq!(monster.id(), monster_id);
-                        println!("Player attacks {}", monster);
+                        println!("Player attacks {:?}", monster);
                         kill_monster(monster, level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
@@ -352,7 +352,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                     {   // Find path && walk one step:
                         let mut path = tcod::AStarPath::new_from_callback(
                             w, h,
-                            |&mut: _from: (int, int), to: (int, int)| -> f32 {
+                            |&mut: _from: (i32, i32), to: (i32, i32)| -> f32 {
                                 if level.walkable(to, level::Walkability::BlockingMonsters) {
                                     1.0
                                 } else {
@@ -371,13 +371,13 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                         if level.monster_on_pos(step).is_none() {
                             level.move_monster(monster, step);
                         } else if step == monster.position {
-                            println!("{} cannot move so it waits.", monster);
+                            println!("{:?} cannot move so it waits.", monster);
                         } else {
                             unreachable!();
                         }
                     }
                     None => {
-                        println!("{} can't find a path so it waits.", monster);
+                        println!("{:?} can't find a path so it waits.", monster);
                     }
                 }
             }

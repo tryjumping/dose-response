@@ -11,10 +11,10 @@ use ranged_int::RangedInt;
 #[derive(Copy, PartialEq, Show)]
 pub enum Modifier {
     Death,
-    Attribute{will: int, state_of_mind: int},
-    Intoxication{state_of_mind: int, tolerance_increase: int},
-    Panic(int),
-    Stun(int),
+    Attribute{will: i32, state_of_mind: i32},
+    Intoxication{state_of_mind: i32, tolerance_increase: i32},
+    Panic(i32),
+    Stun(i32),
 }
 
 #[derive(Copy, PartialEq, Show)]
@@ -29,7 +29,7 @@ pub enum IntoxicationState {
 }
 
 impl IntoxicationState {
-    pub fn from_int(value: int) -> IntoxicationState {
+    pub fn from_int(value: i32) -> IntoxicationState {
         use self::IntoxicationState::*;
         match value {
             val if val <= 0 => Exhausted,
@@ -51,22 +51,22 @@ pub enum Bonus {
 }
 
 pub struct Player {
-    pub state_of_mind: RangedInt<int>,
-    pub will: RangedInt<int>,
-    pub tolerance: int,
-    intoxication_threshold: int,
-    pub panic: RangedInt<int>,
-    pub stun: RangedInt<int>,
+    pub state_of_mind: RangedInt<i32>,
+    pub will: RangedInt<i32>,
+    pub tolerance: i32,
+    intoxication_threshold: i32,
+    pub panic: RangedInt<i32>,
+    pub stun: RangedInt<i32>,
 
     pub pos: Point,
     pub inventory: Vec<Item>,
-    pub anxiety_counter: RangedInt<int>,
+    pub anxiety_counter: RangedInt<i32>,
     pub bonus: Bonus,
 
     dead: bool,
 
-    max_ap: int,
-    ap: int,
+    max_ap: i32,
+    ap: i32,
 }
 
 impl Player {
@@ -93,12 +93,12 @@ impl Player {
         self.pos = new_position;
     }
 
-    pub fn spend_ap(&mut self, count: int) {
+    pub fn spend_ap(&mut self, count: i32) {
         assert!(count <= self.ap);
         self.ap -= count;
     }
 
-    pub fn has_ap(&self, count: int) -> bool {
+    pub fn has_ap(&self, count: i32) -> bool {
         self.ap >= count
     }
 
@@ -115,7 +115,7 @@ impl Player {
 
     pub fn take_effect(&mut self, effect: Modifier) {
         use self::Modifier::*;
-        println!("Player was affected by: {}", effect);
+        println!("Player was affected by: {:?}", effect);
         match effect {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {

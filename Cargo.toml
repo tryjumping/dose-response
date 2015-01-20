@@ -8,12 +8,16 @@ name = "dose-response"
 path = "src/main.rs"
 
 
-[dependencies.tcod]
-path = "../tcod-rs"
+# [dependencies.tcod]
+# path = "../tcod-rs"
+
+# [dependencies.tcod-sys]
+# path = "../tcod-rs/tcod-sys"
 
 [dependencies]
 time = "*"
-# tcod = "*"
+tcod = "*"
+tcod-sys = "*"
 
 
 # TODO: temporarily disabling debuginfo until this is fixed:

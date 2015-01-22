@@ -1,4 +1,5 @@
 #![deny(overflowing_literals)]
+#![allow(unstable)]
 
 extern crate libc;
 extern crate time;

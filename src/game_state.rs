@@ -138,7 +138,7 @@ impl GameState {
         match File::open(replay_path) {
             Ok(mut file) => {
                 let bin_data = file.read_to_end().unwrap();
-                let contents = str::from_utf8(bin_data.slice(0, bin_data.len()));
+                let contents = str::from_utf8(&bin_data[]);
                 let mut lines = contents.unwrap().lines();
                 match lines.next() {
                     Some(seed_str) => match seed_str.parse() {

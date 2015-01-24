@@ -705,6 +705,13 @@ fn main() {
         _ => panic!("You must pass either pass zero or one arguments."),
     };
 
+    let (screen_width, screen_height) = tcod::system::get_current_resolution();
+    println!("Current resolution: ({}, {})", screen_width, screen_height);
+    // TODO: check the screen_width/screen_height values against known
+    // (supported?) monitor resolutions. Only force fullscreen res if it's
+    // one of the known ones.
+    tcod::system::force_fullscreen_resolution(screen_width, screen_height);
+
     let mut engine = Engine::new(width, height, title, font_path.clone());
     tcod::RootConsole.set_default_background(color::background);
     engine.main_loop(game_state, update);

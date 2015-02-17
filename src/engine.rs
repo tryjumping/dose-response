@@ -90,7 +90,7 @@ impl Engine {
             let (width, height) = self.display.size();
             RootConsole.print_ex(width-1, height-1,
                                  tcod::BackgroundFlag::None, tcod::TextAlignment::Right,
-                                 format!("FPS: {}", tcod::system::get_fps()).as_slice());
+                                 &format!("FPS: {}", tcod::system::get_fps())[]);
             match self.display.fade {
                 Some((amount, color)) => {
                     tcod::Console::set_fade(amount, color);

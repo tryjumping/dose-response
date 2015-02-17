@@ -1,5 +1,6 @@
-use std::rand::Rng;
 use std::time::Duration;
+
+use rand::Rng;
 
 use super::Action;
 use color::{self, Color};
@@ -13,7 +14,7 @@ use self::Kind::*;
 use self::AIState::*;
 
 
-#[derive(PartialEq, Show)]
+#[derive(PartialEq, Debug)]
 pub struct Monster {
     id: usize,
     pub kind: Kind,
@@ -27,7 +28,7 @@ pub struct Monster {
 }
 
 
-#[derive(Copy, Clone, PartialEq, Rand, Show)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Kind {
     Anxiety,
     Depression,
@@ -36,7 +37,7 @@ pub enum Kind {
     Voices,
 }
 
-#[derive(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Debug)]
 pub enum AIState {
     Idle,
     Chasing,

@@ -1,17 +1,15 @@
 use std::collections::RingBuf;
-use std::str::FromStr;
+use std::env;
 use std::time::Duration;
-use std::io;
-use std::io::File;
-use std::io::fs::PathExtensions;
-use std::io::util::NullWriter;
-use std::os;
-use std::rand;
-use std::rand::{IsaacRng, SeedableRng};
+use std::old_io;
+use std::old_io::File;
+use std::old_io::fs::PathExtensions;
+use std::old_io::util::NullWriter;
 use std::str;
 use std::string::ToString;
 
 use time;
+use rand::{self, IsaacRng, SeedableRng};
 
 use generators;
 use level::Level;
@@ -20,14 +18,14 @@ use player::Player;
 use world;
 
 
-#[derive(Copy, PartialEq, Clone, Show)]
+#[derive(Copy, PartialEq, Clone, Debug)]
 pub enum Side {
     Player,
     Computer,
 }
 
 
-#[derive(Copy, Show)]
+#[derive(Copy, Debug)]
 pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
     Eat,
@@ -40,21 +38,19 @@ impl ToString for Command {
 }
 
 
-impl FromStr for Command {
-    fn from_str(name: &str) -> Option<Command> {
-        use self::Command::*;
-        match name {
-            "N" => Some(N),
-            "E" => Some(E),
-            "S" => Some(S),
-            "W" => Some(W),
-            "NE" => Some(NE),
-            "NW" => Some(NW),
-            "SE" => Some(SE),
-            "SW" => Some(SW),
-            "Eat" => Some(Eat),
-            _ => panic!("Unknown command: '{}'", name)
-        }
+fn command_from_str(name: &str) -> Command {
+    use self::Command::*;
+    match name {
+        "N" => N,
+        "E" => E,
+        "S" => S,
+        "W" => W,
+        "NE" => NE,
+        "NW" => NW,
+        "SE" => SE,
+        "SW" => SW,
+        "Eat" => Eat,
+        _ => panic!("Unknown command: '{}'", name)
     }
 }
 
@@ -116,8 +112,8 @@ impl GameState {
                                 (cur_time.tm_nsec / 1000000));
         let replay_dir = &Path::new("./replays/");
         if !replay_dir.exists() {
-            io::fs::mkdir_recursive(replay_dir,
-                                    io::FilePermission::from_bits(0b111101101).unwrap()).unwrap();
+            old_io::fs::mkdir_recursive(replay_dir,
+                                    old_io::FilePermission::from_bits(0b111101101).unwrap()).unwrap();
         }
         let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
         let mut writer = match File::create(replay_path) {
@@ -133,7 +129,7 @@ impl GameState {
 
     pub fn replay_game(width: i32, height: i32) -> GameState {
         let mut commands = RingBuf::new();
-        let replay_path = &Path::new(os::args()[1].as_slice());
+        let replay_path = &Path::new(env::args().nth(1).unwrap());
         let mut seed: u32;
         match File::open(replay_path) {
             Ok(mut file) => {
@@ -142,16 +138,13 @@ impl GameState {
                 let mut lines = contents.unwrap().lines();
                 match lines.next() {
                     Some(seed_str) => match seed_str.parse() {
-                        Some(parsed_seed) => seed = parsed_seed,
-                        None => panic!("The seed must be a number.")
+                        Ok(parsed_seed) => seed = parsed_seed,
+                        Err(_) => panic!("The seed must be a number.")
                     },
                     None => panic!("The replay file is empty."),
                 }
                 for line in lines {
-                    match line.parse() {
-                        Some(command) => commands.push_back(command),
-                        None => panic!("Unknown command: {}", line),
-                    }
+                    commands.push_back(command_from_str(line));
                 }
             },
             Err(msg) => panic!("Failed to read the replay file: {}. Reason: {}",

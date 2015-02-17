@@ -1,17 +1,24 @@
 #![deny(overflowing_literals)]
-#![allow(unstable)]
+#![feature(core)]
+#![feature(env)]
+#![feature(libc)]
+#![feature(io)]
+#![feature(std_misc)]
+#![feature(path)]
+
 
 extern crate libc;
+extern crate rand;
 extern crate time;
 extern crate tcod;
 extern crate "tcod-sys" as tcod_ffi;
 
 
 use std::collections::RingBuf;
-use std::os;
-use std::rand::Rng;
+use std::env;
 use std::time::Duration;
 
+use rand::Rng;
 use tcod::KeyState;
 use tcod::Key::{Printable, Special};
 
@@ -157,7 +164,7 @@ fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Comma
 }
 
 
-#[derive(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Debug)]
 pub enum Action {
     Move((i32, i32)),
     Attack((i32, i32), player::Modifier),
@@ -241,7 +248,7 @@ fn process_player<R: Rng>(player: &mut player::Player,
                 let (w, h) = level.size();
                 let mut path = tcod::AStarPath::new_from_callback(
                     w, h,
-                    |&mut: _from: point::Point, to: point::Point| -> f32 {
+                    |_from: point::Point, to: point::Point| -> f32 {
                         match level.walkable(to, level::Walkability::WalkthroughMonsters) {
                             true => 1.0,
                             false => 0.0,
@@ -353,7 +360,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                     {   // Find path && walk one step:
                         let mut path = tcod::AStarPath::new_from_callback(
                             w, h,
-                            |&mut: _from: (i32, i32), to: (i32, i32)| -> f32 {
+                            |_from: (i32, i32), to: (i32, i32)| -> f32 {
                                 if level.walkable(to, level::Walkability::BlockingMonsters) {
                                     1.0
                                 } else {
@@ -692,7 +699,7 @@ fn main() {
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 
-    let game_state = match os::args().len() {
+    let game_state = match env::args().count() {
         1 => {  // Run the game with a new seed, create the replay log
             // TODO: directory creation is unix-specific because permissions.
             // This should probably be taken out of GameState and moved here or

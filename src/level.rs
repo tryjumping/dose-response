@@ -1,6 +1,7 @@
 use std::collections::HashMap;
-use std::rand::{self, Rng};
 use std::time::Duration;
+
+use rand::{self, Rng};
 
 use color::{self, Color};
 use graphics::{self, Animation, Render};
@@ -9,7 +10,7 @@ use monster::Monster;
 use point::{self, Point};
 
 
-#[derive(Show)]
+#[derive(Debug)]
 pub struct Cell {
     pub tile: Tile,
     pub items: Vec<Item>,
@@ -17,13 +18,13 @@ pub struct Cell {
 }
 
 
-#[derive(Copy, Clone, PartialEq, Rand, Show)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum TileKind {
     Empty,
     Tree,
 }
 
-#[derive(Copy, Show)]
+#[derive(Copy, Debug)]
 pub struct Tile {
     pub kind: TileKind,
     fg_color: Color,
@@ -31,7 +32,7 @@ pub struct Tile {
     animation_state: (Duration, Color, FadeDirection),
 }
 
-#[derive(Copy, Show)]
+#[derive(Copy, Debug)]
 enum FadeDirection {
     Forward,
     Backward,

@@ -1,5 +1,5 @@
-use std::rand::Rng;
-use std::rand::distributions::{Weighted, WeightedChoice, IndependentSample};
+use rand::Rng;
+use rand::distributions::{Weighted, WeightedChoice, IndependentSample};
 
 use item::{self, Item};
 use level::{Tile, TileKind};

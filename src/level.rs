@@ -250,7 +250,7 @@ impl Level {
                 walkables.push(pos)
             }
         }
-        match rng.choose(&walkables[]) {
+        match rng.choose(&walkables) {
             Some(&random_pos) => random_pos,
             None => (x, y)  // Nowhere to go
         }

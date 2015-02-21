@@ -1,20 +1,15 @@
 #![deny(overflowing_literals)]
 #![feature(core)]
 #![feature(env)]
-#![feature(libc)]
-#![feature(io)]
 #![feature(std_misc)]
-#![feature(path)]
 
 
-extern crate libc;
 extern crate rand;
 extern crate time;
 extern crate tcod;
-extern crate "tcod-sys" as tcod_ffi;
 
 
-use std::collections::RingBuf;
+use std::collections::VecDeque;
 use std::env;
 use std::time::Duration;
 
@@ -130,7 +125,7 @@ impl ScreenFadeAnimation {
     }
 }
 
-fn process_keys(keys: &mut RingBuf<tcod::KeyState>, commands: &mut RingBuf<Command>) {
+fn process_keys(keys: &mut VecDeque<tcod::KeyState>, commands: &mut VecDeque<Command>) {
     fn ctrl(key: tcod::KeyState) -> bool {
         key.left_ctrl || key.right_ctrl
     }
@@ -210,7 +205,7 @@ fn exploration_radius(state_of_mind: i32) -> i32 {
 
 
 fn process_player<R: Rng>(player: &mut player::Player,
-                          commands: &mut RingBuf<Command>,
+                          commands: &mut VecDeque<Command>,
                           level: &mut level::Level,
                           monsters: &mut Vec<monster::Monster>,
                           explosion_animation: &mut ExplosionAnimation,
@@ -441,11 +436,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     if let Some(key) = engine.keys.pop_front() {
         if key.key == Special(KeyCode::Enter) && (key.left_alt || key.right_alt) {
-            // TODO: add fullscreen support to tcod-rs
-            unsafe {
-                let fullscreen = tcod_ffi::TCOD_console_is_fullscreen() != 0;
-                tcod_ffi::TCOD_console_set_fullscreen(!fullscreen as u8);
-            }
+            let fullscreen = tcod::Console::is_fullscreen();
+            tcod::Console::set_fullscreen(!fullscreen);
         } else {
             engine.keys.push_front(key);
         }

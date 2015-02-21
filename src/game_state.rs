@@ -1,4 +1,4 @@
-use std::collections::RingBuf;
+use std::collections::VecDeque;
 use std::env;
 use std::time::Duration;
 use std::old_io;
@@ -63,7 +63,7 @@ pub struct GameState {
     pub level: Level,
     pub display_size: (i32, i32),
     pub rng: IsaacRng,
-    pub commands: RingBuf<Command>,
+    pub commands: VecDeque<Command>,
     pub command_logger: CommandLogger,
     pub side: Side,
     pub turn: i32,
@@ -77,7 +77,7 @@ pub struct GameState {
 
 impl GameState {
     fn new(width: i32, height: i32,
-           commands: RingBuf<Command>,
+           commands: VecDeque<Command>,
            log_writer: Box<Writer+'static>,
            seed: u32,
            cheating: bool,
@@ -104,7 +104,7 @@ impl GameState {
     }
 
     pub fn new_game(width: i32, height: i32) -> GameState {
-        let commands = RingBuf::new();
+        let commands = VecDeque::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
         let timestamp = format!("{}.{:03}",
@@ -128,13 +128,13 @@ impl GameState {
     }
 
     pub fn replay_game(width: i32, height: i32) -> GameState {
-        let mut commands = RingBuf::new();
+        let mut commands = VecDeque::new();
         let replay_path = &Path::new(env::args().nth(1).unwrap());
         let mut seed: u32;
         match File::open(replay_path) {
             Ok(mut file) => {
                 let bin_data = file.read_to_end().unwrap();
-                let contents = str::from_utf8(&bin_data[]);
+                let contents = str::from_utf8(&bin_data);
                 let mut lines = contents.unwrap().lines();
                 match lines.next() {
                     Some(seed_str) => match seed_str.parse() {

@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use tcod_ffi;
-use libc;
+use tcod::RootConsole;
 
 use color::Color;
 use engine::Display;
@@ -25,18 +24,12 @@ pub fn draw<R: Render>(display: &mut Display, dt: Duration,
     let bg = match bg_opt {
         Some(col) => col,
         // TODO: don't set the background at all if it's not passed in:
-        None => unsafe {
-            tcod_ffi::TCOD_console_get_char_background(
-                0 as *mut libc::c_void, x as i32, y as i32)
-        }
+        None => RootConsole.get_char_background(x, y)
     };
     display.draw_char(x, y, glyph, fg, bg);
 }
 
 
 pub fn fade_color(from: Color, to: Color, progress: f32) -> Color {
-    // TODO: expose this from tcod-rs
-    unsafe {
-        tcod_ffi::TCOD_color_lerp(from, to, progress)
-    }
+    from.lerp(to, progress)
 }

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::collections::RingBuf;
+use std::collections::VecDeque;
 use std::time::Duration;
 
 pub use tcod::{self, Color, Console, RootConsole, KeyCode};
@@ -48,7 +48,7 @@ impl Display {
 
 pub struct Engine {
     pub display: Display,
-    pub keys: RingBuf<tcod::KeyState>,
+    pub keys: VecDeque<tcod::KeyState>,
 }
 
 impl Engine {
@@ -60,7 +60,7 @@ impl Engine {
         Console::init_root(width, height, window_title, fullscreen);
         Engine {
             display: Display::new(),
-            keys: RingBuf::new(),
+            keys: VecDeque::new(),
         }
     }
 
@@ -90,7 +90,7 @@ impl Engine {
             let (width, height) = self.display.size();
             RootConsole.print_ex(width-1, height-1,
                                  tcod::BackgroundFlag::None, tcod::TextAlignment::Right,
-                                 &format!("FPS: {}", tcod::system::get_fps())[]);
+                                 &format!("FPS: {}", tcod::system::get_fps()));
             match self.display.fade {
                 Some((amount, color)) => {
                     tcod::Console::set_fade(amount, color);

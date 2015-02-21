@@ -2,6 +2,8 @@
 #![feature(core)]
 #![feature(env)]
 #![feature(std_misc)]
+#![feature(old_path)]
+#![feature(old_io)]
 
 
 extern crate rand;

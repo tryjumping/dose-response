@@ -54,24 +54,24 @@ mod test_mod {
     #[test]
     #[should_fail]
     fn test_new_value_greater_than_max() {
-        let c = RangedInt::new(10i8, -5, 5);
+        let c = RangedInt::new(10i8, (-5, 5));
     }
 
     #[test]
     #[should_fail]
     fn test_new_value_lesser_than_min() {
-        let c = RangedInt::new(-10i8, -5, 5);
+        let c = RangedInt::new(-10i8, (-5, 5));
     }
 
     #[test]
     #[should_fail]
     fn test_min_bound_greater_than_max() {
-        let c = RangedInt::new(0i8, 5, -5);
+        let c = RangedInt::new(0i8, (5, -5));
     }
 
     #[test]
     fn test_identical_bounds() {
-        let mut c = RangedInt::new(0i8, 0, 0);
+        let mut c = RangedInt::new(0i8, (0, 0));
         assert_eq!(*c, 0);
         c.add(100);
         assert_eq!(*c, 0);
@@ -82,21 +82,21 @@ mod test_mod {
     #[test]
     #[should_fail]
     fn set_value_over_max() {
-        let mut c = RangedInt::new(0i8, -5, 5);
+        let mut c = RangedInt::new(0i8, (-5, 5));
         c.set(10);
     }
 
     #[test]
     #[should_fail]
     fn set_value_under_min() {
-        let mut c = RangedInt::new(0i8, -5, 5);
+        let mut c = RangedInt::new(0i8, (-5, 5));
         c.set(-10);
     }
 
 
     #[test]
     fn set_value() {
-        let mut c = RangedInt::new(0i8, -5, 5);
+        let mut c = RangedInt::new(0i8, (-5, 5));
         assert_eq!(*c, 0);
 
         c.set(0); assert_eq!(*c, 0);
@@ -118,7 +118,7 @@ mod test_mod {
 
     #[test]
     fn test_add_overflow() {
-        let mut c = RangedInt::new(0i8, -5, 5);
+        let mut c = RangedInt::new(0i8, (-5, 5));
         assert_eq!(*c, 0);
 
         c.add(1);

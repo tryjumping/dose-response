@@ -19,9 +19,3 @@ time = "*"
 rand = "*"
 tcod = "*"
 tcod-sys = "*"
-
-
-# TODO: temporarily disabling debuginfo until this is fixed:
-# https://github.com/rust-lang/rust/issues/17257
-[profile.dev]
-debug = false

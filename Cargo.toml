@@ -7,15 +7,8 @@ authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
 name = "dose-response"
 path = "src/main.rs"
 
-
-# [dependencies.tcod]
-# path = "../tcod-rs"
-
-# [dependencies.tcod-sys]
-# path = "../tcod-rs/tcod-sys"
-
 [dependencies]
-time = "*"
-rand = "*"
-tcod = "*"
-tcod-sys = "*"
+time = "0.1.24"
+rand = "0.3.7"
+tcod = "0.5.5"
+tcod-sys = "2.0.10"

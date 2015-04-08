@@ -17,8 +17,8 @@ fn generate_map<R: Rng>(rng: &mut R, (w, h): (i32, i32), player: Point) -> Vec<(
     let mut result = vec![];
     // NOTE: starting with `y` seems weird but it'll generate the right pattern:
     // start at top left corner, moving to the right
-    for y in range(0, h) {
-        for x in range(0, w) {
+    for y in 0..h {
+        for x in 0..w {
             // Player always starts at an empty space:
             let kind = match (x, y) == player {
                 true => TileKind::Empty,

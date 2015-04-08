@@ -1,8 +1,9 @@
 #![allow(dead_code)]
 
 use std::collections::VecDeque;
-use std::time::Duration;
+use std::path::Path;
 
+use time::Duration;
 pub use tcod::{self, Color, Console, RootConsole, KeyCode};
 
 
@@ -53,8 +54,8 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(width: i32, height: i32,
-               window_title: &str, font_path: Path) -> Engine {
-        Console::set_custom_font(font_path, tcod::FONT_LAYOUT_TCOD | tcod::FONT_TYPE_GREYSCALE,
+               window_title: &str, font_path: &Path) -> Engine {
+        Console::set_custom_font(&font_path, tcod::FONT_LAYOUT_TCOD | tcod::FONT_TYPE_GREYSCALE,
                                  32, 8);
         let fullscreen = false;
         Console::init_root(width, height, window_title, fullscreen);

@@ -14,7 +14,7 @@ pub enum Kind {
 }
 
 
-#[derive(Copy, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Item {
     pub kind: Kind,
     pub modifier: Modifier,

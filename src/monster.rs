@@ -37,7 +37,7 @@ pub enum Kind {
     Voices,
 }
 
-#[derive(Copy, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum AIState {
     Idle,
     Chasing,

@@ -11,7 +11,7 @@ pub trait Render {
 }
 
 
-#[derive(Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Animation {
     None,
     ForegroundCycle{from: Color, to: Color, duration: Duration},

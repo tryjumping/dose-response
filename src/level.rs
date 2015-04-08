@@ -24,7 +24,7 @@ pub enum TileKind {
     Tree,
 }
 
-#[derive(Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Tile {
     pub kind: TileKind,
     fg_color: Color,
@@ -32,7 +32,7 @@ pub struct Tile {
     animation_state: (Duration, Color, FadeDirection),
 }
 
-#[derive(Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 enum FadeDirection {
     Forward,
     Backward,
@@ -112,7 +112,7 @@ impl Render for Tile {
 }
 
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub enum Walkability {
     WalkthroughMonsters,
     BlockingMonsters,
@@ -134,7 +134,7 @@ impl Level {
             width: width,
             height: height,
             monsters: HashMap::new(),
-            map: range(0, map_size).map(|_| Cell{
+            map: (0..map_size).map(|_| Cell{
                 tile: Tile::new(TileKind::Empty),
                 items: vec![],
                 explored: false,

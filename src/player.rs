@@ -8,7 +8,7 @@ use point::Point;
 use ranged_int::RangedInt;
 
 
-#[derive(Copy, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Modifier {
     Death,
     Attribute{will: i32, state_of_mind: i32},
@@ -17,7 +17,7 @@ pub enum Modifier {
     Stun(i32),
 }
 
-#[derive(Copy, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum IntoxicationState {
     Exhausted,
     DeliriumTremens,
@@ -43,7 +43,7 @@ impl IntoxicationState {
     }
 }
 
-#[derive(Copy, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Bonus {
     None,
     SeeMonstersAndItems,

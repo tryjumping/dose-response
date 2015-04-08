@@ -1,14 +1,13 @@
 use std::collections::VecDeque;
 use std::env;
-use std::time::Duration;
-use std::old_io;
-use std::old_io::File;
-use std::old_io::fs::PathExtensions;
-use std::old_io::util::NullWriter;
+use std::fs::{self, File};
+use std::io::{self, Write};
+use std::path::Path;
 use std::str;
 use std::string::ToString;
 
 use time;
+use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
 use generators;
@@ -25,7 +24,7 @@ pub enum Side {
 }
 
 
-#[derive(Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Command {
     N, E, S, W, NE, NW, SE, SW,
     Eat,
@@ -55,6 +54,10 @@ fn command_from_str(name: &str) -> Command {
 }
 
 
+fn path_exists(path: &Path) -> bool {
+    ::std::fs::metadata(path).is_ok()
+}
+
 
 pub struct GameState {
     pub player: Player,
@@ -78,7 +81,7 @@ pub struct GameState {
 impl GameState {
     fn new(width: i32, height: i32,
            commands: VecDeque<Command>,
-           log_writer: Box<Writer+'static>,
+           log_writer: Box<Write+'static>,
            seed: u32,
            cheating: bool,
            replay: bool) -> GameState {
@@ -111,9 +114,8 @@ impl GameState {
                                 time::strftime("%FT%T", &cur_time).unwrap(),
                                 (cur_time.tm_nsec / 1000000));
         let replay_dir = &Path::new("./replays/");
-        if !replay_dir.exists() {
-            old_io::fs::mkdir_recursive(replay_dir,
-                                    old_io::FilePermission::from_bits(0b111101101).unwrap()).unwrap();
+        if !path_exists(replay_dir) {
+            fs::create_dir_all(replay_dir).unwrap();
         }
         let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
         let mut writer = match File::create(replay_path) {
@@ -151,7 +153,7 @@ impl GameState {
                                replay_path.display(), msg)
         }
         println!("Replaying game log: '{}'", replay_path.display());
-        let mut state = GameState::new(width, height, commands, Box::new(NullWriter), seed, true, true);
+        let mut state = GameState::new(width, height, commands, Box::new(io::sink()), seed, true, true);
         initialise_world(&mut state);
         state
     }
@@ -175,7 +177,7 @@ fn initialise_world(game_state: &mut GameState) {
 
 
 pub struct CommandLogger {
-    writer: Box<Writer+'static>,
+    writer: Box<Write+'static>,
 }
 
 impl CommandLogger {

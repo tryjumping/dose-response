@@ -12,11 +12,12 @@ extern crate tcod;
 
 use std::collections::VecDeque;
 use std::env;
-use std::time::Duration;
+use std::path::Path;
 
 use rand::Rng;
 use tcod::KeyState;
 use tcod::Key::{Printable, Special};
+use time::Duration;
 
 use color::Color;
 use engine::{Engine, KeyCode};
@@ -37,7 +38,7 @@ mod ranged_int;
 mod world;
 
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Timer {
     max: Duration,
     current: Duration,
@@ -72,7 +73,7 @@ impl Timer {
     }
 }
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct ScreenFadeAnimation {
     pub color: Color,
     pub fade_out_time: Duration,
@@ -82,7 +83,7 @@ pub struct ScreenFadeAnimation {
     pub phase: ScreenFadePhase,
 }
 
-#[derive(Copy, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum ScreenFadePhase {
     FadeOut,
     Wait,
@@ -160,7 +161,7 @@ fn process_keys(keys: &mut VecDeque<tcod::KeyState>, commands: &mut VecDeque<Com
 }
 
 
-#[derive(Copy, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Action {
     Move((i32, i32)),
     Attack((i32, i32), player::Modifier),

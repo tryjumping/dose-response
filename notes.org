@@ -18,13 +18,18 @@
 ***** Some notes on different world generation:
 http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
 **** consider restricting the possible ways to leave the map
-**** Split a large map into sections generaded from the initial seed and their positions from center:
+**** Split a large map into sections generaded from the initial seed and their positions from center
+***** My (probably fast) ad-hoc concoction:
 fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
     let high = (x as u16) as u32;
     let low = (y as u16) as u32;
     let encoded_pos = high << 16 | low;
     initial_seed ^ encoded_pos
 }
+****** fast but produces low values for low inputs
+***** Better: just feed the inputs through a hash
+***** Maybe use the integer hash function by Thomas Wang
+http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
 *** Limited map size that the player has to explore [map alternative]
 **** spanning multiple screens
 **** but not infinite

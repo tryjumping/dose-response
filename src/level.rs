@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::time::Duration;
+use time::Duration;
 
 use rand::{self, Rng};
 
@@ -182,7 +182,15 @@ impl Level {
                 }
             }
         }
-        doses.into_iter().min_by(|&(p, _)| point::tile_distance(center, p))
+        doses.pop().map(|dose| {
+            let mut result = dose;
+            for d in &doses {
+                if point::tile_distance(center, d.0) < point::tile_distance(center, result.0) {
+                    result = *d;
+                }
+            }
+            result
+        })
     }
 
     pub fn monster_on_pos(&self, pos: Point) -> Option<usize> {

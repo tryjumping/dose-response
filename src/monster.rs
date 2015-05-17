@@ -1,4 +1,4 @@
-use std::time::Duration;
+use time::Duration;
 
 use rand::Rng;
 

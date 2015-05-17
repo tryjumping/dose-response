@@ -4,16 +4,19 @@ use std::collections::VecDeque;
 use std::path::Path;
 
 use time::Duration;
-pub use tcod::{self, Color, Console, RootConsole, KeyCode};
+pub use tcod::{self, Color, Console, FontLayout, FontType, RootConsole};
+pub use tcod::input::{KeyCode, KeyState};
 
 
 pub struct Display {
+    root: RootConsole,
     fade: Option<(u8, Color)>,
 }
 
 impl Display {
-    fn new() -> Display {
+    fn new(root: RootConsole) -> Display {
         Display {
+            root: root,
             fade: None,
         }
     }
@@ -21,7 +24,7 @@ impl Display {
     pub fn draw_char(&mut self, x: i32, y: i32, c: char,
                      foreground: Color, background: Color) {
         self.set_background(x, y, background);
-        RootConsole.put_char_ex(x, y, c, foreground, background);
+        self.root.put_char_ex(x, y, c, foreground, background);
     }
 
     pub fn write_text(&mut self, text: &str, x: i32, y: i32,
@@ -32,11 +35,15 @@ impl Display {
     }
 
     pub fn set_background(&mut self, x: i32, y: i32, color: Color) {
-        RootConsole.set_char_background(x, y, color, tcod::BackgroundFlag::Set);
+        self.root.set_char_background(x, y, color, tcod::BackgroundFlag::Set);
+    }
+
+    pub fn get_background(&self, x: i32, y: i32) -> Color {
+        self.root.get_char_background(x, y)
     }
 
     pub fn size(&self) -> (i32, i32) {
-        (RootConsole.width(), RootConsole.height())
+        (self.root.width(), self.root.height())
     }
 
     /// `fade_percentage` is from <0f32 to 100f32>.
@@ -49,35 +56,38 @@ impl Display {
 
 pub struct Engine {
     pub display: Display,
-    pub keys: VecDeque<tcod::KeyState>,
+    pub keys: VecDeque<KeyState>,
 }
 
 impl Engine {
-    pub fn new(width: i32, height: i32,
+    pub fn new(width: i32, height: i32, default_background: Color,
                window_title: &str, font_path: &Path) -> Engine {
-        Console::set_custom_font(&font_path, tcod::FONT_LAYOUT_TCOD | tcod::FONT_TYPE_GREYSCALE,
-                                 32, 8);
-        let fullscreen = false;
-        Console::init_root(width, height, window_title, fullscreen);
+        let mut root = RootConsole::initializer()
+            .title(window_title)
+            .size(width, height)
+            .font(font_path, FontLayout::Tcod)
+            .font_type(FontType::Greyscale)
+            .init();
+        root.set_default_background(default_background);
         Engine {
-            display: Display::new(),
+            display: Display::new(root),
             keys: VecDeque::new(),
         }
     }
 
     pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, &mut Engine) -> Option<T>) {
         let default_fg = Color{r: 255, g: 255, b: 255};
-        while !Console::window_closed() {
+        while !self.display.root.window_closed() {
             loop {
-                match tcod::Console::check_for_keypress(tcod::KEY_PRESSED) {
+                match self.display.root.check_for_keypress(tcod::input::KEY_PRESSED) {
                     None => break,
                     Some(key) => {
                         self.keys.push_back(key);
                     }
                 }
             }
-            RootConsole.set_default_foreground(default_fg);
-            RootConsole.clear();
+            self.display.root.set_default_foreground(default_fg);
+            self.display.root.clear();
             self.display.fade = None;
 
             match update(state,
@@ -89,25 +99,25 @@ impl Engine {
                 None => break,
             }
             let (width, height) = self.display.size();
-            RootConsole.print_ex(width-1, height-1,
-                                 tcod::BackgroundFlag::None, tcod::TextAlignment::Right,
-                                 &format!("FPS: {}", tcod::system::get_fps()));
+            self.display.root.print_ex(width-1, height-1,
+                               tcod::BackgroundFlag::None, tcod::TextAlignment::Right,
+                               &format!("FPS: {}", tcod::system::get_fps()));
             match self.display.fade {
                 Some((amount, color)) => {
-                    tcod::Console::set_fade(amount, color);
+                    self.display.root.set_fade(amount, color);
                 }
                 None => {
                     // NOTE: Colour doesn't matter here, value 255 means no fade:
-                    tcod::Console::set_fade(255, Color{r: 0, g: 0, b: 0});
+                    self.display.root.set_fade(255, Color{r: 0, g: 0, b: 0});
                 }
             }
-            tcod::Console::flush();
+            self.display.root.flush();
         }
     }
 
 
     /// Return true if the given key is located anywhere in the event buffer.
-    pub fn key_pressed(&self, key_code: tcod::Key) -> bool {
+    pub fn key_pressed(&self, key_code: tcod::input::Key) -> bool {
         for &pressed_key in self.keys.iter() {
             if pressed_key.key == key_code {
                 return true;
@@ -124,7 +134,7 @@ impl Engine {
     /// Returns `true` if the key has been in the buffer.
     ///
     /// TODO: investigate using a priority queue instead.
-    pub fn read_key(&mut self, key: tcod::Key) -> bool {
+    pub fn read_key(&mut self, key: tcod::input::Key) -> bool {
         let mut len = self.keys.len();
         let mut processed = 0;
         let mut found = false;
@@ -144,4 +154,8 @@ impl Engine {
         return found;
     }
 
+    pub fn toggle_fullscreen(&mut self) {
+        let current_fullscreen_value = self.display.root.is_fullscreen();
+        self.display.root.set_fullscreen(!current_fullscreen_value);
+    }
 }

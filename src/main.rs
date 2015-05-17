@@ -1,9 +1,4 @@
 #![deny(overflowing_literals)]
-#![feature(core)]
-#![feature(std_misc)]
-#![feature(old_path)]
-#![feature(old_io)]
-
 
 extern crate rand;
 extern crate time;
@@ -15,8 +10,8 @@ use std::env;
 use std::path::Path;
 
 use rand::Rng;
-use tcod::KeyState;
-use tcod::Key::{Printable, Special};
+use tcod::input::{KeyState};
+use tcod::input::Key::{Printable, Special};
 use time::Duration;
 
 use color::Color;
@@ -127,8 +122,8 @@ impl ScreenFadeAnimation {
     }
 }
 
-fn process_keys(keys: &mut VecDeque<tcod::KeyState>, commands: &mut VecDeque<Command>) {
-    fn ctrl(key: tcod::KeyState) -> bool {
+fn process_keys(keys: &mut VecDeque<tcod::input::KeyState>, commands: &mut VecDeque<Command>) {
+    fn ctrl(key: tcod::input::KeyState) -> bool {
         key.left_ctrl || key.right_ctrl
     }
 
@@ -176,7 +171,7 @@ fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
 
 // TODO: prolly refactor to a struct?
 // Fields: position, max radius, current radius, colour, elapsed time
-type ExplosionAnimation = Option<((i32, i32), i32, i32, color::Color, Duration)>;
+pub type ExplosionAnimation = Option<((i32, i32), i32, i32, color::Color, Duration)>;
 
 fn explode(center: point::Point,
            radius: i32,
@@ -243,7 +238,7 @@ fn process_player<R: Rng>(player: &mut player::Player,
             let new_pos_opt = {
                 use std::cmp;
                 let (w, h) = level.size();
-                let mut path = tcod::AStarPath::new_from_callback(
+                let mut path = tcod::pathfinding::AStar::new_from_callback(
                     w, h,
                     |_from: point::Point, to: point::Point| -> f32 {
                         match level.walkable(to, level::Walkability::WalkthroughMonsters) {
@@ -355,7 +350,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                 } else {
                     let (w, h) = level.size();
                     {   // Find path && walk one step:
-                        let mut path = tcod::AStarPath::new_from_callback(
+                        let mut path = tcod::pathfinding::AStar::new_from_callback(
                             w, h,
                             |_from: (i32, i32), to: (i32, i32)| -> f32 {
                                 if level.walkable(to, level::Walkability::BlockingMonsters) {
@@ -408,25 +403,25 @@ fn render_gui(display: &mut engine::Display, player: &player::Player) {
                               *player.state_of_mind,
                               *player.will,
                               player.inventory.len());
-    display.write_text(attribute_line.as_slice(), 0, h-1,
+    display.write_text(&attribute_line, 0, h-1,
                        color::Color{r: 255, g: 255, b: 255},
                        color::Color{r: 0, g: 0, b: 0});
 
     let mut status_line = String::new();
     if player.alive() {
         if *player.stun > 0 {
-            status_line.push_str(format!("Stunned({})", *player.stun).as_slice());
+            status_line.push_str(&format!("Stunned({})", *player.stun));
         }
         if *player.panic > 0 {
             if status_line.len() > 0 {
                 status_line.push_str(",  ");
             }
-            status_line.push_str(format!("Panicking({})", *player.panic).as_slice())
+            status_line.push_str(&format!("Panicking({})", *player.panic))
         }
     } else {
         status_line.push_str("Dead");
     }
-    display.write_text(status_line.as_slice(), 0, h-2,
+    display.write_text(&status_line, 0, h-2,
                        color::Color{r: 255, g: 255, b: 255},
                        color::Color{r: 0, g: 0, b: 0});
 }
@@ -438,8 +433,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     if let Some(key) = engine.keys.pop_front() {
         if key.key == Special(KeyCode::Enter) && (key.left_alt || key.right_alt) {
-            let fullscreen = tcod::Console::is_fullscreen();
-            tcod::Console::set_fullscreen(!fullscreen);
+            engine.toggle_fullscreen();
         } else {
             engine.keys.push_front(key);
         }
@@ -713,7 +707,6 @@ fn main() {
     // one of the known ones.
     tcod::system::force_fullscreen_resolution(screen_width, screen_height);
 
-    let mut engine = Engine::new(width, height, title, font_path.clone());
-    tcod::RootConsole.set_default_background(color::background);
+    let mut engine = Engine::new(width, height, color::background, title, font_path.clone());
     engine.main_loop(game_state, update);
 }

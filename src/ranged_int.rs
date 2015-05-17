@@ -1,15 +1,14 @@
-use std::num::Int;
 use std::ops::Deref;
 
 
-pub struct RangedInt<T: Int> {
-    val: T,
-    _min: T,
-    _max: T,
+pub struct RangedInt {
+    val: i32,
+    _min: i32,
+    _max: i32,
 }
 
-impl<T: Int> RangedInt<T> {
-    pub fn new(value: T, (min, max): (T, T)) -> RangedInt<T> {
+impl RangedInt {
+    pub fn new(value: i32, (min, max): (i32, i32)) -> RangedInt {
         assert!(min <= max && value >= min && value <= max);
         RangedInt {
             val: value,
@@ -18,12 +17,12 @@ impl<T: Int> RangedInt<T> {
         }
     }
 
-    pub fn set(&mut self, n: T) {
+    pub fn set(&mut self, n: i32) {
         assert!((n >= self._min) && (n <= self._max));
         self.val = n;
     }
 
-    pub fn add(&mut self, n: T) -> T {
+    pub fn add(&mut self, n: i32) -> i32 {
         if let Some(v) = self.val.checked_add(n) {
             let new_val = if v > self._max {
                 self._max
@@ -38,10 +37,10 @@ impl<T: Int> RangedInt<T> {
     }
 }
 
-impl<T: Int> Deref for RangedInt<T> {
-    type Target = T;
+impl Deref for RangedInt {
+    type Target = i32;
 
-    fn deref(&self) -> &T {
+    fn deref(&self) -> &i32 {
         &self.val
     }
 }

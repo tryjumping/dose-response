@@ -1,9 +1,8 @@
 use std::collections::VecDeque;
 use std::env;
 use std::fs::{self, File};
-use std::io::{self, Write};
+use std::io::{self, BufReader, BufRead, Write};
 use std::path::Path;
-use std::str;
 use std::string::ToString;
 
 use time;
@@ -30,9 +29,20 @@ pub enum Command {
     Eat,
 }
 
-impl ToString for Command {
-    fn to_string(&self) -> String {
-        format!("{:?}", self)
+impl Command {
+    fn to_str(&self) -> &'static str {
+    use self::Command::*;
+        match *self {
+            N => "N",
+            E => "E",
+            S => "S",
+            W => "W",
+            NE => "NE",
+            NW => "NW",
+            SE => "SE",
+            SW => "SW",
+            Eat => "Eat",
+        }
     }
 }
 
@@ -81,7 +91,7 @@ pub struct GameState {
 impl GameState {
     fn new(width: i32, height: i32,
            commands: VecDeque<Command>,
-           log_writer: Box<Write+'static>,
+           log_writer: Box<Write>,
            seed: u32,
            cheating: bool,
            replay: bool) -> GameState {
@@ -123,7 +133,7 @@ impl GameState {
             Err(msg) => panic!("Failed to create the replay file. {}", msg)
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
-        writer.write_line(seed.to_string().as_slice()).unwrap();
+        write_line(&mut writer, &seed.to_string()).unwrap();
         let mut state = GameState::new(width, height, commands, writer, seed, false, false);
         initialise_world(&mut state);
         state
@@ -131,22 +141,27 @@ impl GameState {
 
     pub fn replay_game(width: i32, height: i32) -> GameState {
         let mut commands = VecDeque::new();
-        let replay_path = &Path::new(env::args().nth(1).unwrap());
+        let path_str = env::args().nth(1).unwrap();
+        let replay_path = &Path::new(&path_str);
         let mut seed: u32;
         match File::open(replay_path) {
-            Ok(mut file) => {
-                let bin_data = file.read_to_end().unwrap();
-                let contents = str::from_utf8(&bin_data);
-                let mut lines = contents.unwrap().lines();
+            Ok(file) => {
+                // let bin_data = file.read_to_string().unwrap();
+                // let contents = str::from_utf8(&bin_data);
+                // let mut lines = contents.unwrap().lines();
+                let mut lines = BufReader::new(file).lines();
                 match lines.next() {
-                    Some(seed_str) => match seed_str.parse() {
+                    Some(seed_str) => match seed_str.unwrap().parse() {
                         Ok(parsed_seed) => seed = parsed_seed,
                         Err(_) => panic!("The seed must be a number.")
                     },
                     None => panic!("The replay file is empty."),
                 }
                 for line in lines {
-                    commands.push_back(command_from_str(line));
+                    match line {
+                        Ok(line) => commands.push_back(command_from_str(&line)),
+                        Err(err) => panic!("Error reading a line from the replay file: {:?}.", err),
+                    }
                 }
             },
             Err(msg) => panic!("Failed to read the replay file: {}. Reason: {}",
@@ -176,12 +191,20 @@ fn initialise_world(game_state: &mut GameState) {
 }
 
 
+fn write_line(writer: &mut Write, text: &str) -> ::std::io::Result<usize> {
+    let bytes = text.as_bytes();
+    let result = try!(writer.write(bytes));
+    try!(writer.write(&['\n' as u8]));
+    try!(writer.flush());
+    Ok(result + 1)
+}
+
 pub struct CommandLogger {
-    writer: Box<Write+'static>,
+    writer: Box<Write>,
 }
 
 impl CommandLogger {
     pub fn log(&mut self, command: Command) {
-        self.writer.write_line(command.to_string().as_slice()).unwrap();
+        write_line(&mut self.writer, command.to_str()).unwrap();
     }
 }

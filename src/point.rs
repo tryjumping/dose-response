@@ -1,4 +1,3 @@
-use std::num::{Int, Float, SignedInt};
 use std::cmp::{max};
 
 
@@ -19,7 +18,7 @@ pub fn distance(p1: Point, p2: Point) -> f32 {
     ((a + b) as f32).sqrt()
 }
 
-struct PointsWithinRadius {
+pub struct PointsWithinRadius {
     x: i32,
     y: i32,
     center: Point,

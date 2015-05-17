@@ -1,5 +1,5 @@
 use std::cmp;
-use std::time::Duration;
+use time::Duration;
 
 use color::{self, Color};
 use item::Item;
@@ -51,16 +51,16 @@ pub enum Bonus {
 }
 
 pub struct Player {
-    pub state_of_mind: RangedInt<i32>,
-    pub will: RangedInt<i32>,
+    pub state_of_mind: RangedInt,
+    pub will: RangedInt,
     pub tolerance: i32,
     intoxication_threshold: i32,
-    pub panic: RangedInt<i32>,
-    pub stun: RangedInt<i32>,
+    pub panic: RangedInt,
+    pub stun: RangedInt,
 
     pub pos: Point,
     pub inventory: Vec<Item>,
-    pub anxiety_counter: RangedInt<i32>,
+    pub anxiety_counter: RangedInt,
     pub bonus: Bonus,
 
     dead: bool,

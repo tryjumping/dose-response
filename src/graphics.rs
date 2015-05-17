@@ -1,6 +1,4 @@
-use std::time::Duration;
-
-use tcod::RootConsole;
+use time::Duration;
 
 use color::Color;
 use engine::Display;
@@ -24,7 +22,7 @@ pub fn draw<R: Render>(display: &mut Display, dt: Duration,
     let bg = match bg_opt {
         Some(col) => col,
         // TODO: don't set the background at all if it's not passed in:
-        None => RootConsole.get_char_background(x, y)
+        None => display.get_background(x, y)
     };
     display.draw_char(x, y, glyph, fg, bg);
 }

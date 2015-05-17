@@ -13,7 +13,7 @@ fn generate_map<R: Rng>(rng: &mut R, (w, h): (i32, i32), player: Point) -> Vec<(
         Weighted{weight: 610, item: TileKind::Empty},
         Weighted{weight: 390, item: TileKind::Tree},
     ];
-    let opts = WeightedChoice::new(weights.as_mut_slice());
+    let opts = WeightedChoice::new(&mut weights);
     let mut result = vec![];
     // NOTE: starting with `y` seems weird but it'll generate the right pattern:
     // start at top left corner, moving to the right
@@ -42,7 +42,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) 
         Weighted{weight: monster_chance / monster_count, item: Some(Kind::Shadows)},
         Weighted{weight: monster_chance / monster_count, item: Some(Kind::Voices)},
     ];
-    let opts = WeightedChoice::new(weights.as_mut_slice());
+    let opts = WeightedChoice::new(&mut weights);
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
         if tile.kind != TileKind::Empty {
@@ -68,7 +68,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
                 Weighted{weight: 7, item: 72},
                 Weighted{weight: 3, item: 130}
             ];
-            let base_strength_gen = WeightedChoice::new(dose_w.as_mut_slice());
+            let base_strength_gen = WeightedChoice::new(&mut dose_w);
             let base = base_strength_gen.ind_sample(rng);
             let (strength, tolerance, r) = match base <= 100 {
                 true => (base + rng.gen_range(-5, 6), 1, 2),
@@ -105,8 +105,8 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -
         Weighted{weight: 10, item: Some(Dose)},
         Weighted{weight: 5, item: Some(Food)},
     ];
-    let gen_near_player = WeightedChoice::new(weights_near_player.as_mut_slice());
-    let gen_rest = WeightedChoice::new(weights_rest.as_mut_slice());
+    let gen_near_player = WeightedChoice::new(&mut weights_near_player);
+    let gen_rest = WeightedChoice::new(&mut weights_rest);
 
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
@@ -145,7 +145,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -
 
 pub fn generate<R: Rng>(rng: &mut R, w: i32, h: i32, player: Point) -> GeneratedWorld {
     let map = generate_map(rng, (w, h), player);
-    let monsters = generate_monsters(rng, map.as_slice(), player);
-    let items = generate_items(rng, map.as_slice(), player);
+    let monsters = generate_monsters(rng, &map, player);
+    let items = generate_items(rng, &map, player);
     (map, monsters, items)
 }

@@ -683,7 +683,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
 
 fn main() {
-    let (width, height) = (80, 50);
+    // NOTE: at our current font, the height of 43 is the maximum value for
+    // 1336x768 monitors.
+    let (width, height) = (80, 43);
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 

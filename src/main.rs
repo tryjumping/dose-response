@@ -7,6 +7,7 @@ extern crate tcod;
 
 use std::collections::VecDeque;
 use std::env;
+use std::io::Write;
 use std::path::Path;
 
 use rand::Rng;
@@ -201,19 +202,20 @@ fn exploration_radius(state_of_mind: i32) -> i32 {
 }
 
 
-fn process_player<R: Rng>(player: &mut player::Player,
-                          commands: &mut VecDeque<Command>,
-                          level: &mut level::Level,
-                          monsters: &mut Vec<monster::Monster>,
-                          explosion_animation: &mut ExplosionAnimation,
-                          rng: &mut R,
-                          command_logger: &mut game_state::CommandLogger) {
+fn process_player<R, W>(player: &mut player::Player,
+                        commands: &mut VecDeque<Command>,
+                        level: &mut level::Level,
+                        monsters: &mut Vec<monster::Monster>,
+                        explosion_animation: &mut ExplosionAnimation,
+                        rng: &mut R,
+                        command_logger: &mut W)
+    where R: Rng, W: Write {
     if !player.alive() {
         return
     }
 
     if let Some(command) = commands.pop_front() {
-        command_logger.log(command);
+        game_state::log_command(command_logger, command);
         let (x, y) = player.pos;
         let mut action = match command {
             Command::N => Action::Move((x,     y - 1)),

@@ -3,7 +3,6 @@ use std::env;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufRead, Write};
 use std::path::Path;
-use std::string::ToString;
 
 use time;
 use time::Duration;
@@ -77,7 +76,7 @@ pub struct GameState {
     pub display_size: (i32, i32),
     pub rng: IsaacRng,
     pub commands: VecDeque<Command>,
-    pub command_logger: CommandLogger,
+    pub command_logger: Box<Write>,
     pub side: Side,
     pub turn: i32,
     pub cheating: bool,
@@ -89,9 +88,9 @@ pub struct GameState {
 }
 
 impl GameState {
-    fn new(width: i32, height: i32,
+    fn new<W: Write+'static>(width: i32, height: i32,
            commands: VecDeque<Command>,
-           log_writer: Box<Write>,
+           log_writer: W,
            seed: u32,
            cheating: bool,
            replay: bool) -> GameState {
@@ -104,7 +103,7 @@ impl GameState {
             display_size: (width, height),
             rng: SeedableRng::from_seed(seed_arr),
             commands: commands,
-            command_logger: CommandLogger{writer: log_writer},
+            command_logger: Box::new(log_writer),
             side: Side::Player,
             turn: 0,
             cheating: cheating,
@@ -129,14 +128,11 @@ impl GameState {
         }
         let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
         let mut writer = match File::create(replay_path) {
-            Ok(f) => Box::new(f),
+            Ok(f) => f,
             Err(msg) => panic!("Failed to create the replay file. {}", msg)
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
-        // TODO: this is poorly structured, we should use Command::loger to
-        // write the seed, too or alternatively work with the Writer trait
-        // directly
-        writeln!(&mut writer, "{}", &seed.to_string()).unwrap();
+        log_seed(&mut writer, seed);
         let mut state = GameState::new(width, height, commands, writer, seed, false, false);
         initialise_world(&mut state);
         state
@@ -149,9 +145,6 @@ impl GameState {
         let mut seed: u32;
         match File::open(replay_path) {
             Ok(file) => {
-                // let bin_data = file.read_to_string().unwrap();
-                // let contents = str::from_utf8(&bin_data);
-                // let mut lines = contents.unwrap().lines();
                 let mut lines = BufReader::new(file).lines();
                 match lines.next() {
                     Some(seed_str) => match seed_str.unwrap().parse() {
@@ -193,12 +186,11 @@ fn initialise_world(game_state: &mut GameState) {
     }
 }
 
-pub struct CommandLogger {
-    writer: Box<Write>,
+
+pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
+    writeln!(writer, "{}", seed).unwrap();
 }
 
-impl CommandLogger {
-    pub fn log(&mut self, command: Command) {
-        writeln!(&mut self.writer, "{}", command.to_str()).unwrap();
-    }
+pub fn log_command<W: Write>(writer: &mut W, command: Command) {
+    writeln!(writer, "{}", command.to_str()).unwrap();
 }

@@ -133,6 +133,9 @@ impl GameState {
             Err(msg) => panic!("Failed to create the replay file. {}", msg)
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
+        // TODO: this is poorly structured, we should use Command::loger to
+        // write the seed, too or alternatively work with the Writer trait
+        // directly
         writeln!(&mut writer, "{}", &seed.to_string()).unwrap();
         let mut state = GameState::new(width, height, commands, writer, seed, false, false);
         initialise_world(&mut state);

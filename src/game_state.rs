@@ -22,6 +22,9 @@ pub enum Side {
 }
 
 
+// TODO: rename this to Input or something like that. This represents the raw
+// commands from the player or AI abstracted from keyboard, joystick or
+// whatever. But they shouldn't carry any context or data.
 #[derive(Copy, Clone, Debug)]
 pub enum Command {
     N, E, S, W, NE, NW, SE, SW,

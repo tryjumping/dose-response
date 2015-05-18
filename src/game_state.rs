@@ -133,7 +133,7 @@ impl GameState {
             Err(msg) => panic!("Failed to create the replay file. {}", msg)
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
-        write_line(&mut writer, &seed.to_string()).unwrap();
+        writeln!(&mut writer, "{}", &seed.to_string()).unwrap();
         let mut state = GameState::new(width, height, commands, writer, seed, false, false);
         initialise_world(&mut state);
         state
@@ -190,21 +190,12 @@ fn initialise_world(game_state: &mut GameState) {
     }
 }
 
-
-fn write_line(writer: &mut Write, text: &str) -> ::std::io::Result<usize> {
-    let bytes = text.as_bytes();
-    let result = try!(writer.write(bytes));
-    try!(writer.write(&['\n' as u8]));
-    try!(writer.flush());
-    Ok(result + 1)
-}
-
 pub struct CommandLogger {
     writer: Box<Write>,
 }
 
 impl CommandLogger {
     pub fn log(&mut self, command: Command) {
-        write_line(&mut self.writer, command.to_str()).unwrap();
+        writeln!(&mut self.writer, "{}", command.to_str()).unwrap();
     }
 }

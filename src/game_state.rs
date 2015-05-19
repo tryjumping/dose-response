@@ -102,14 +102,15 @@ impl GameState {
                              cheating: bool,
                              replay: bool) -> GameState {
         let seed_arr: &[_] = &[seed];
+        let world_centre = (world_size.0 / 2, world_size.1 / 2);
         GameState {
-            player: Player::new((40, 25)),
+            player: Player::new(world_centre),
             monsters: vec![],
             explosion_animation: None,
             level: Level::new(world_size.0, world_size.1),
             world_size: world_size,
             display_size: display_size,
-            screen_position_in_world: (world_size.0 / 2, world_size.1 / 2),
+            screen_position_in_world: world_centre,
             rng: SeedableRng::from_seed(seed_arr),
             commands: commands,
             command_logger: Box::new(log_writer),

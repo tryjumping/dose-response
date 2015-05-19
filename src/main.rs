@@ -488,6 +488,19 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                                &mut state.rng,
                                &mut state.command_logger);
                 state.level.explore(state.player.pos, exploration_radius(*state.player.state_of_mind));
+
+                // move screen if the player goes near the edge of the screen
+                let screen_left_top_corner = (state.screen_position_in_world.0 - (state.display_size.0 / 2),
+                                              state.screen_position_in_world.1 - (state.display_size.1 / 2));
+
+                let display_pos = (state.player.pos.0 - screen_left_top_corner.0,
+                                   state.player.pos.1 - screen_left_top_corner.1);
+                if display_pos.0 <= 10 || display_pos.0 >= state.display_size.0 - 10 ||
+                   display_pos.1 <= 7 || display_pos.1 >= state.display_size.1 - 7 {
+                    // change the screen centre to that of the player
+                    state.screen_position_in_world = state.player.pos;
+                }
+
                 if !state.player.has_ap(1) {
                     state.side = Side::Computer;
                     for monster in state.monsters.iter_mut() {
@@ -622,26 +635,33 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     let radius = exploration_radius(*state.player.state_of_mind);
 
+    let screen_left_top_corner = (state.screen_position_in_world.0 - (state.display_size.0 / 2),
+                                  state.screen_position_in_world.1 - (state.display_size.1 / 2));
     // Render the level and items:
-    for ((x, y), cell) in state.level.iter() {
-        let in_fov = point::distance((x, y), state.player.pos) < (radius as f32);
+    for (world_pos, cell) in state.level.iter() {
+        let in_fov = point::distance(world_pos, state.player.pos) < (radius as f32);
 
+        let display_pos = (world_pos.0 - screen_left_top_corner.0,
+                           world_pos.1 - screen_left_top_corner.1);
+        if !within_screen_bounds(display_pos, state.display_size) {
+            continue;
+        }
         // Render the tile
         if in_fov {
-            graphics::draw(&mut engine.display, dt, (x, y), &cell.tile);
+            graphics::draw(&mut engine.display, dt, display_pos, &cell.tile);
         } else if cell.explored || bonus == player::Bonus::UncoverMap {
             // TODO: need to supply the dark bg here?
-            graphics::draw(&mut engine.display, dt, (x, y), &cell.tile);
+            graphics::draw(&mut engine.display, dt, display_pos, &cell.tile);
             for item in cell.items.iter() {
-                graphics::draw(&mut engine.display, dt, (x, y), item);
+                graphics::draw(&mut engine.display, dt, display_pos, item);
             }
-            engine.display.set_background(x, y, color::dim_background);
+            engine.display.set_background(display_pos.0, display_pos.1, color::dim_background);
         }
 
         // Render the items
         if in_fov || cell.explored || bonus == player::Bonus::SeeMonstersAndItems || bonus == player::Bonus::UncoverMap {
             for item in cell.items.iter() {
-                graphics::draw(&mut engine.display, dt, (x, y), item);
+                graphics::draw(&mut engine.display, dt, display_pos, item);
             }
         }
     }
@@ -657,9 +677,13 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         };
         if r <= max_r {
             state.explosion_animation = Some((center, max_r, r, c, elapsed));
-            for (x, y) in point::points_within_radius(center, r) {
-                if state.level.within_bounds((x, y)) {
-                    engine.display.set_background(x, y, c);
+            for world_pos in point::points_within_radius(center, r) {
+                if state.level.within_bounds(world_pos) {
+                    let display_pos = (world_pos.0 - screen_left_top_corner.0,
+                                       world_pos.1 - screen_left_top_corner.1);
+                    if within_screen_bounds(display_pos, state.display_size) {
+                        engine.display.set_background(display_pos.0, display_pos.1, c);
+                    }
                 }
             }
         } else {
@@ -673,14 +697,33 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     for monster in state.monsters.iter().filter(|m| !m.dead) {
         let visible = point::distance(monster.position, state.player.pos) < (radius as f32);
         if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
-            graphics::draw(&mut engine.display, dt, monster.position, monster);
+            let world_pos = monster.position;
+            let display_pos = (world_pos.0 - screen_left_top_corner.0,
+                               world_pos.1 - screen_left_top_corner.1);
+            if within_screen_bounds(display_pos, state.display_size) {
+                graphics::draw(&mut engine.display, dt, display_pos, monster);
+            }
         }
     }
-    graphics::draw(&mut engine.display, dt, state.player.pos, &state.player);
+
+    {
+        let world_pos = state.player.pos;
+        let display_pos = (world_pos.0 - screen_left_top_corner.0,
+                           world_pos.1 - screen_left_top_corner.1);
+        if within_screen_bounds(display_pos, state.display_size) {
+            graphics::draw(&mut engine.display, dt, display_pos, &state.player);
+        }
+    }
     render_gui(&mut engine.display, &state.player);
     Some(state)
 }
 
+
+fn within_screen_bounds(p: (i32, i32), screen_dimensions: (i32, i32)) -> bool {
+    let (x, y) = p;
+    let (w, h) = screen_dimensions;
+    x >= 0 && y >= 0 && x < w && y < h
+}
 
 
 fn main() {

@@ -12,6 +12,7 @@ use generators;
 use level::Level;
 use monster::Monster;
 use player::Player;
+use point::Point;
 use world;
 
 
@@ -76,7 +77,9 @@ pub struct GameState {
     pub monsters: Vec<Monster>,
     pub explosion_animation: super::ExplosionAnimation,
     pub level: Level,
+    pub world_size: (i32, i32),
     pub display_size: (i32, i32),
+    pub screen_position_in_world: Point,
     pub rng: IsaacRng,
     pub commands: VecDeque<Command>,
     pub command_logger: Box<Write>,
@@ -91,19 +94,22 @@ pub struct GameState {
 }
 
 impl GameState {
-    fn new<W: Write+'static>(width: i32, height: i32,
-           commands: VecDeque<Command>,
-           log_writer: W,
-           seed: u32,
-           cheating: bool,
-           replay: bool) -> GameState {
+    fn new<W: Write+'static>(world_size: (i32, i32),
+                             display_size: (i32, i32),
+                             commands: VecDeque<Command>,
+                             log_writer: W,
+                             seed: u32,
+                             cheating: bool,
+                             replay: bool) -> GameState {
         let seed_arr: &[_] = &[seed];
         GameState {
             player: Player::new((40, 25)),
             monsters: vec![],
             explosion_animation: None,
-            level: Level::new(width, height - 2),
-            display_size: (width, height),
+            level: Level::new(world_size.0, world_size.1),
+            world_size: world_size,
+            display_size: display_size,
+            screen_position_in_world: (world_size.0 / 2, world_size.1 / 2),
             rng: SeedableRng::from_seed(seed_arr),
             commands: commands,
             command_logger: Box::new(log_writer),
@@ -118,7 +124,7 @@ impl GameState {
         }
     }
 
-    pub fn new_game(width: i32, height: i32) -> GameState {
+    pub fn new_game(world_size: (i32, i32), display_size: (i32, i32)) -> GameState {
         let commands = VecDeque::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
@@ -136,12 +142,12 @@ impl GameState {
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);
-        let mut state = GameState::new(width, height, commands, writer, seed, false, false);
+        let mut state = GameState::new(world_size, display_size, commands, writer, seed, false, false);
         initialise_world(&mut state);
         state
     }
 
-    pub fn replay_game(width: i32, height: i32) -> GameState {
+    pub fn replay_game(world_size: (i32, i32), display_size: (i32, i32)) -> GameState {
         let mut commands = VecDeque::new();
         let path_str = env::args().nth(1).unwrap();
         let replay_path = &Path::new(&path_str);
@@ -167,7 +173,7 @@ impl GameState {
                                replay_path.display(), msg)
         }
         println!("Replaying game log: '{}'", replay_path.display());
-        let mut state = GameState::new(width, height, commands, Box::new(io::sink()), seed, true, true);
+        let mut state = GameState::new(world_size, display_size, commands, Box::new(io::sink()), seed, true, true);
         initialise_world(&mut state);
         state
     }

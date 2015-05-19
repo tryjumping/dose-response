@@ -687,7 +687,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 fn main() {
     // NOTE: at our current font, the height of 43 is the maximum value for
     // 1336x768 monitors.
-    let (width, height) = (80, 43);
+    let (screen_width, screen_height) = (80, 43);
+    let (world_width, world_height) = (200, 200);
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 
@@ -696,21 +697,21 @@ fn main() {
             // TODO: directory creation is unix-specific because permissions.
             // This should probably be taken out of GameState and moved here or
             // to some platform-specific layer.
-            GameState::new_game(width, height)
+            GameState::new_game(world_height, world_height)
         },
         2 => {  // Replay the game from the entered log
-            GameState::replay_game(width, height)
+            GameState::replay_game(world_width, world_height)
         },
         _ => panic!("You must pass either pass zero or one arguments."),
     };
 
-    let (screen_width, screen_height) = tcod::system::get_current_resolution();
-    println!("Current resolution: ({}, {})", screen_width, screen_height);
+    let (screen_pixel_width, screen_pixel_height) = tcod::system::get_current_resolution();
+    println!("Current resolution: ({}, {})", screen_pixel_width, screen_pixel_height);
     // TODO: check the screen_width/screen_height values against known
     // (supported?) monitor resolutions. Only force fullscreen res if it's
     // one of the known ones.
-    tcod::system::force_fullscreen_resolution(screen_width, screen_height);
+    tcod::system::force_fullscreen_resolution(screen_pixel_width, screen_pixel_height);
 
-    let mut engine = Engine::new(width, height, color::background, title, font_path.clone());
+    let mut engine = Engine::new(screen_width, screen_height, color::background, title, font_path.clone());
     engine.main_loop(game_state, update);
 }

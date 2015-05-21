@@ -67,6 +67,10 @@ impl Timer {
     pub fn finished(&self) -> bool {
         self.current.is_zero()
     }
+
+    pub fn reset(&mut self) {
+        self.current = self.max;
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -448,7 +452,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     state.clock = state.clock + dt;
 
-
     if engine.key_pressed(Special(KeyCode::F6)) {
         state.cheating = !state.cheating;
         println!("Cheating set to: {}", state.cheating);
@@ -473,6 +476,16 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         *state.player.state_of_mind);
     let player_was_alive = state.player.alive();
 
+    state.pos_timer.update(dt);
+    if !state.pos_timer.finished() {
+        let (oldx, oldy) = state.old_screen_pos;
+        let (finalx, finaly) = state.new_screen_pos;
+        let percentage = state.pos_timer.percentage_elapsed();
+        let x = (((finalx - oldx) as f32) * percentage) as i32;
+        let y = (((finaly - oldy) as f32) * percentage) as i32;
+        println!("percentage: {}, old: {:?}, final: {:?}; x, y: {}, {}", percentage, (oldx, oldy), (finalx, finaly), x, y);
+        state.screen_position_in_world = (oldx + x, oldy + y);
+    }
 
     if running || paused_one_step || timed_step {
         process_keys(&mut engine.keys, &mut state.commands);
@@ -495,10 +508,20 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
                 let display_pos = (state.player.pos.0 - screen_left_top_corner.0,
                                    state.player.pos.1 - screen_left_top_corner.1);
-                if display_pos.0 <= 10 || display_pos.0 >= state.display_size.0 - 10 ||
-                   display_pos.1 <= 7 || display_pos.1 >= state.display_size.1 - 7 {
-                    // change the screen centre to that of the player
-                    state.screen_position_in_world = state.player.pos;
+                if state.pos_timer.finished() {
+                    let dur = Duration::milliseconds(400);
+                    // TODO: move the screen roughly the same distance along X and Y
+                    if display_pos.0 <= 10 || display_pos.0 >= state.display_size.0 - 10 {
+                            // change the screen centre to that of the player
+                            state.pos_timer = Timer::new(dur);
+                            state.old_screen_pos = state.screen_position_in_world;
+                            state.new_screen_pos = (state.player.pos.0, state.old_screen_pos.1);
+                    } else if display_pos.1 <= 7 || display_pos.1 >= state.display_size.1 - 7 {
+                            // change the screen centre to that of the player
+                            state.pos_timer = Timer::new(dur);
+                            state.old_screen_pos = state.screen_position_in_world;
+                            state.new_screen_pos = (state.old_screen_pos.0, state.player.pos.1);
+                    }
                 }
 
                 if !state.player.has_ap(1) {
@@ -631,6 +654,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     // TODO: setting this as a bonus is a hack. Pass it to all renderers
     // directly instead.
     if state.see_entire_screen {
+        bonus = player::Bonus::UncoverMap;
+    }
+    if state.cheating {
         bonus = player::Bonus::UncoverMap;
     }
     let radius = exploration_radius(*state.player.state_of_mind);

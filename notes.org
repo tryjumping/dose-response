@@ -31,6 +31,10 @@ changing anything else at the moment. And then play it for a while and see what 
 *** Depression only moves by 2 squares when following the player
 *** Display the player's explored area on death
 *** The food ought to save from the depression (i.e. tune the radius right)
+*** Monsters that can modify the environment
+**** unblock passages
+**** block passages
+**** teleport the player?
 *** Gameplay beyond the first screen
 **** We need a greater pressure for exploration and leaving the area.
 ***** In my current playthroughs I just never care enough to leave.

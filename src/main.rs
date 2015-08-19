@@ -775,6 +775,13 @@ fn main() {
 
     let screen_pixel_size = tcod::system::get_current_resolution();
     println!("Current resolution: {:?}", screen_pixel_size);
+    // TODO: maybe we could just query the current resolution with SDL2 and then use the value here?
+    // Question is, will that clash with the existing SDL context that libtcod sets up?
+    //
+    // TODO: Alternatively, can we use libtcod + sdl2? It doesn't seem
+    // to be in the makefiles for now, but maybe we can just enable it
+    // somehow.
+    //
     // TODO: check the screen_width/screen_height values against known
     // (supported?) monitor resolutions. Only force fullscreen res if it's
     // one of the known ones.

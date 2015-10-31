@@ -24,10 +24,24 @@ Maybe in terms of the non-curing way... I don't know. What does an addict want?
 Read through the wiki and some real stories? Despite the Marla Daniels quote,
 I'd like there to be a way to complete the game. Something that keeps you exploring.
 
-So let's start with making the world bigger then one screen without actually
+Or let's make it a survival/exploration sim. That would put a lot of the game
+into the worldgen (and systems) but it seems like it could fit this. Consider
+e.g. removing almost all monsters from an area, see how it plays.
+
+Anyway, let's start with making the world bigger then one screen without actually
 changing anything else at the moment. And then play it for a while and see what happens.
 
+
 *** Random chance that explosion destroys a wall, too?
+*** Get a small amount of "food effect" (SoM points when not high) on killing a Hunger
+**** Could encourage players to seek them out
+**** But it's obviously dangerous
+**** And it may cost you food if you overestimate (which fits fighting hunger)
+*** A high-enough Will will let you pick up & carry doses in your inventory
+**** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
+*** Consider having a sidebar UI like say in 868-HACK
+**** Would give us a decent small inventory (food & doses, maybe a few more items)
+**** Would make the actual game map more like a square
 *** Depression only moves by 2 squares when following the player
 *** Display the player's explored area on death
 *** The food ought to save from the depression (i.e. tune the radius right)
@@ -80,6 +94,11 @@ http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech
 *** Don't allow suicide (if there's a way to avoid it)
 **** e.g. fatfingering the arrow when the Depression is near
 *** save&exit/load game
+**** see how nethack does it:
+https://www.reddit.com/r/roguelikedev/comments/3jk3xm/faq_friday_20_saving/
+
+Can be something that'd work here? Read it and think on it.
+
 ** Polish (UI & stuff)
 *** Different screen fadeout colours on various player deaths
 **** RED when killed by a monster

@@ -126,6 +126,8 @@ Instead of looking at the points' coordinates, look at the actual (pixel) space
 each tile represents. The tiles are not points but squares with an area. This
 should provide a visually better result (but will be harder to compute).
 *** Pick a good colour palette
+**** https://personal.sron.nl/~pault/
+**** http://paletton.com/
 *** Add the Marla Daniels quote
    - When the game is launched and there aren't any saves, it should just jump into the play
      * (that was the genius of Braid)

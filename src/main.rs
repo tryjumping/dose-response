@@ -257,8 +257,7 @@ fn process_player<R, W>(player: &mut player::Player,
             if let Some(new_pos) = new_pos_opt {
                 action = Action::Move(new_pos);
             } else {
-                println!("Can't find path to irresistable dose at {:?} from player's position {:?}.",
-                         dose_pos, player.pos);
+                //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
             }
         }
         match action {
@@ -270,7 +269,7 @@ fn process_player<R, W>(player: &mut player::Player,
                         player.spend_ap(1);
                         let monster = &mut monsters[monster_id];
                         assert_eq!(monster.id(), monster_id);
-                        println!("Player attacks {:?}", monster);
+                        //println!("Player attacks {:?}", monster);
                         kill_monster(monster, level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
@@ -370,13 +369,13 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                         if level.monster_on_pos(step).is_none() {
                             level.move_monster(monster, step);
                         } else if step == monster.position {
-                            println!("{:?} cannot move so it waits.", monster);
+                            //println!("{:?} cannot move so it waits.", monster);
                         } else {
                             unreachable!();
                         }
                     }
                     None => {
-                        println!("{:?} can't find a path so it waits.", monster);
+                        //println!("{:?} can't find a path so it waits.", monster);
                     }
                 }
             }
@@ -438,7 +437,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
     if engine.key_pressed(KeyCode::F5) {
-        println!("Restarting game");
+        //println!("Restarting game");
         engine.keys.clear();
         let state = GameState::new_game(state.world_size, state.display_size);
         return Some(state);
@@ -447,7 +446,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
     if engine.key_pressed(KeyCode::F6) {
         state.cheating = !state.cheating;
-        println!("Cheating set to: {}", state.cheating);
+        //println!("Cheating set to: {}", state.cheating);
     }
 
     state.paused = if state.replay && engine.read_key(KeyCode::Spacebar) {
@@ -476,7 +475,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         let percentage = state.pos_timer.percentage_elapsed();
         let x = (((finalx - oldx) as f32) * percentage) as i32;
         let y = (((finaly - oldy) as f32) * percentage) as i32;
-        println!("percentage: {}, old: {:?}, final: {:?}; x, y: {}, {}", percentage, (oldx, oldy), (finalx, finaly), x, y);
+        //println!("percentage: {}, old: {:?}, final: {:?}; x, y: {}, {}", percentage, (oldx, oldy), (finalx, finaly), x, y);
         state.screen_position_in_world = (oldx + x, oldy + y);
     }
 

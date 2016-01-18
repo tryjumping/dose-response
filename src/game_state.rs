@@ -147,7 +147,7 @@ impl GameState {
             Ok(f) => f,
             Err(msg) => panic!("Failed to create the replay file. {}", msg)
         };
-        println!("Recording the gameplay to '{}'", replay_path.display());
+        // println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);
         let mut state = GameState::new(world_size, display_size, commands, writer, seed, false, false);
         initialise_world(&mut state);
@@ -179,7 +179,7 @@ impl GameState {
             Err(msg) => panic!("Failed to read the replay file: {}. Reason: {}",
                                replay_path.display(), msg)
         }
-        println!("Replaying game log: '{}'", replay_path.display());
+        // println!("Replaying game log: '{}'", replay_path.display());
         let mut state = GameState::new(world_size, display_size, commands, Box::new(io::sink()), seed, true, true);
         initialise_world(&mut state);
         state

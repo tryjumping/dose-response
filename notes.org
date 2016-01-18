@@ -100,6 +100,15 @@ https://www.reddit.com/r/roguelikedev/comments/3jk3xm/faq_friday_20_saving/
 Can be something that'd work here? Read it and think on it.
 
 ** Polish (UI & stuff)
+*** Pure terminal renderer
+**** We've already added a PoC using Rustbox
+**** TODO Refresh the screen on restart
+**** TODO Refresh the screen on motion
+**** TODO Add colours
+**** TODO Make the engines switchable (instead of running side by side)
+**** TODO Handle debug messages
+***** Write them to log or something?
+***** Or maybe just ignore that issue once the terminal is an optional thing
 *** Different screen fadeout colours on various player deaths
 **** RED when killed by a monster
 **** BLACK when died of exaustion

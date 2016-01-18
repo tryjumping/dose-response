@@ -753,6 +753,30 @@ fn main() {
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 
+    let rustbox = rustbox::RustBox::init(Default::default()).expect(
+        "Failed to initialise rustbox!");
+
+    let terminal_size = (rustbox.width() as i32, rustbox.height() as i32);
+    if (terminal_size.0 < display_size.0) || (terminal_size.1 < display_size.1) {
+        drop(rustbox);
+        println!("The terminal size is too small. Current size: {:?}, required size: {:?}",
+                 terminal_size, display_size);
+    } else {
+        rustbox.print(1, 1, rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default, "@");
+        rustbox.print(1, 2, rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
+                      &format!("rustbox display: {:?}", terminal_size));
+        rustbox.present();
+
+        loop {
+            if let Ok(rustbox::Event::KeyEvent(rustbox::Key::Char('q'))) = rustbox.poll_event(false) {
+                return;
+            } else {
+                continue;
+            }
+        }
+    }
+
+
     let game_state = match env::args().count() {
         1 => {  // Run the game with a new seed, create the replay log
             // TODO: directory creation is unix-specific because permissions.

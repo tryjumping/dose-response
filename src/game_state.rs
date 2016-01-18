@@ -158,7 +158,7 @@ impl GameState {
         let mut commands = VecDeque::new();
         let path_str = env::args().nth(1).unwrap();
         let replay_path = &Path::new(&path_str);
-        let mut seed: u32;
+        let seed: u32;
         match File::open(replay_path) {
             Ok(file) => {
                 let mut lines = BufReader::new(file).lines();

@@ -5,7 +5,7 @@ use std::path::Path;
 
 use time::Duration;
 pub use tcod::{self, Color, Console, FontLayout, FontType, RootConsole};
-pub use tcod::input::{KeyCode, KeyState};
+pub use tcod::input::{Key, KeyCode};
 
 
 pub struct Display {
@@ -56,7 +56,7 @@ impl Display {
 
 pub struct Engine {
     pub display: Display,
-    pub keys: VecDeque<KeyState>,
+    pub keys: VecDeque<Key>,
 }
 
 impl Engine {
@@ -117,9 +117,9 @@ impl Engine {
 
 
     /// Return true if the given key is located anywhere in the event buffer.
-    pub fn key_pressed(&self, key_code: tcod::input::Key) -> bool {
+    pub fn key_pressed(&self, key_code: KeyCode) -> bool {
         for &pressed_key in self.keys.iter() {
-            if pressed_key.key == key_code {
+            if pressed_key.code == key_code {
                 return true;
             }
         }
@@ -134,13 +134,13 @@ impl Engine {
     /// Returns `true` if the key has been in the buffer.
     ///
     /// TODO: investigate using a priority queue instead.
-    pub fn read_key(&mut self, key: tcod::input::Key) -> bool {
+    pub fn read_key(&mut self, key: KeyCode) -> bool {
         let mut len = self.keys.len();
         let mut processed = 0;
         let mut found = false;
         while processed < len {
             match self.keys.pop_front() {
-                Some(pressed_key) if !found && pressed_key.key == key => {
+                Some(pressed_key) if !found && pressed_key.code == key => {
                     len -= 1;
                     found = true;
                 }

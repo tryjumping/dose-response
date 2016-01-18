@@ -8,7 +8,6 @@ name = "dose-response"
 path = "src/main.rs"
 
 [dependencies]
-time = "0.1.25"
-rand = "0.3.8"
-tcod = "0.6.0"
-tcod-sys = "2.0.11"
+time = "0.1.34"
+rand = "0.3.13"
+tcod = "0.8.1"

@@ -11,8 +11,7 @@ use std::io::Write;
 use std::path::Path;
 
 use rand::Rng;
-use tcod::input::{KeyState};
-use tcod::input::Key::{Printable, Special};
+use tcod::input::Key;
 use time::Duration;
 
 use color::Color;
@@ -127,29 +126,22 @@ impl ScreenFadeAnimation {
     }
 }
 
-fn process_keys(keys: &mut VecDeque<tcod::input::KeyState>, commands: &mut VecDeque<Command>) {
-    fn ctrl(key: tcod::input::KeyState) -> bool {
-        key.left_ctrl || key.right_ctrl
-    }
-
+fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
+    use tcod::input::KeyCode::*;
     // TODO: switch to DList and consume it with `mut_iter`.
     loop {
         match keys.pop_front() {
             Some(key) => {
-                match key.key {
-                    Special(KeyCode::Up) => commands.push_back(Command::N),
-                    Special(KeyCode::Down) => commands.push_back(Command::S),
-                    Special(KeyCode::Left) => match (ctrl(key), key.shift) {
-                        (false, true) => commands.push_back(Command::NW),
-                        (true, false) => commands.push_back(Command::SW),
-                        _ => commands.push_back(Command::W),
-                    },
-                    Special(KeyCode::Right) => match (ctrl(key), key.shift) {
-                        (false, true) => commands.push_back(Command::NE),
-                        (true, false) => commands.push_back(Command::SE),
-                        _ => commands.push_back(Command::E),
-                    },
-                    Printable('e') => {
+                match key {
+                    Key { code: Up, ..} => commands.push_back(Command::N),
+                    Key { code: Down, ..} => commands.push_back(Command::S),
+                    Key { code: Left, ctrl: false, shift: true, .. } => commands.push_back(Command::NW),
+                    Key { code: Left, ctrl: true, shift: false, .. } => commands.push_back(Command::SW),
+                    Key { code: Left, .. } => commands.push_back(Command::W),
+                    Key { code: Right, ctrl: false, shift: true, .. } => commands.push_back(Command::NE),
+                    Key { code: Right, ctrl: true, shift: false, .. } => commands.push_back(Command::SE),
+                    Key { code: Right, .. } => commands.push_back(Command::E),
+                    Key { printable: 'e', .. } => {
                         commands.push_back(Command::Eat);
                     }
                     _ => (),
@@ -434,17 +426,17 @@ fn render_gui(display: &mut engine::Display, player: &player::Player) {
 
 
 fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
-    if engine.key_pressed(Special(KeyCode::Escape)) {
+    if engine.key_pressed(KeyCode::Escape) {
         return None;
     }
     if let Some(key) = engine.keys.pop_front() {
-        if key.key == Special(KeyCode::Enter) && (key.left_alt || key.right_alt) {
+        if key.code == KeyCode::Enter && (key.left_alt || key.right_alt) {
             engine.toggle_fullscreen();
         } else {
             engine.keys.push_front(key);
         }
     }
-    if engine.key_pressed(Special(KeyCode::F5)) {
+    if engine.key_pressed(KeyCode::F5) {
         println!("Restarting game");
         engine.keys.clear();
         let state = GameState::new_game(state.world_size, state.display_size);
@@ -452,19 +444,19 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     state.clock = state.clock + dt;
 
-    if engine.key_pressed(Special(KeyCode::F6)) {
+    if engine.key_pressed(KeyCode::F6) {
         state.cheating = !state.cheating;
         println!("Cheating set to: {}", state.cheating);
     }
 
-    state.paused = if state.replay && engine.read_key(Special(KeyCode::Spacebar)) {
+    state.paused = if state.replay && engine.read_key(KeyCode::Spacebar) {
         !state.paused
     } else {
         state.paused
     };
 
     let running = !state.paused && !state.replay;
-    let paused_one_step = state.paused && engine.read_key(Special(KeyCode::Right));
+    let paused_one_step = state.paused && engine.read_key(KeyCode::Right);
     let timed_step = if state.replay && !state.paused && state.clock.num_milliseconds() >= 50 {
         state.clock = Duration::zero();
         true

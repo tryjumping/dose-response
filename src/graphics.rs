@@ -29,5 +29,5 @@ pub fn draw<R: Render>(display: &mut Display, dt: Duration,
 
 
 pub fn fade_color(from: Color, to: Color, progress: f32) -> Color {
-    from.lerp(to, progress)
+    ::tcod::colors::lerp(from, to, progress)
 }

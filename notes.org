@@ -31,8 +31,11 @@ e.g. removing almost all monsters from an area, see how it plays.
 Anyway, let's start with making the world bigger then one screen without actually
 changing anything else at the moment. And then play it for a while and see what happens.
 
-
 *** Random chance that explosion destroys a wall, too?
+*** Ghost-like NPC becoming corporeal
+**** When being High, the player would see these ghost NPCs moving through the world
+**** When being sober, they'd become more and more corporeal
+**** Could point the player towards interesting places/end-game conditions, etc.
 *** Get a small amount of "food effect" (SoM points when not high) on killing a Hunger
 **** Could encourage players to seek them out
 **** But it's obviously dangerous

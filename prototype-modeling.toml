@@ -1,0 +1,97 @@
+# This is a proof of concept how we could model the existing items, monsters,
+# etc. in the game using the prototype pattern.
+#
+# It is probably not useful right now, but it might be in the future or in
+# another project.
+#
+# This would greatly simplify the game objects (they'de be just lists of
+# properties) and probably make the whole code more decoupled.
+
+[entity]
+x = 0
+y = 0
+visible = false
+
+[item]
+prototype = 'entity'
+consumable = true
+pickable = true
+
+[food]
+prototype = 'item'
+tile = '%'
+colour = 'brown'
+on-consumption = [
+  { type = 'change-attribute', attribute = 'som', value = 5, only-until = 20 },
+  { type = 'explode', radius = 2 },
+]
+
+[dose]
+prototype = 'item'
+tile = 'i'
+colour = 'blue'
+blinks = true
+on-consumption [
+  { type = 'change-attribute', attriubet = 'som', random-value = [50, 60] },
+  { type = 'explode', radius = 5 },
+]
+auto-consumed = { attribute = 'will', operator = 'less-then', value = 10 }
+
+[large-dose]
+prototype = 'dose'
+tile = 'I'
+on-consumption [
+  { type = 'change-attribute', attriubet = 'som', random-value = [70, 90] },
+  { type = 'explode', radius = 6 },
+]
+
+
+[monster]
+prototype = 'entity'
+ai = "follow"
+action_points = 1
+visible = true
+
+[depression]
+prototype = 'monster'
+tile = 'D'
+colour = 'blue'
+action_points = 2
+attack = { type = 'kill' }
+
+[hunger]
+prototype = 'monster'
+tile = 'h'
+colour = 'brown'
+ai = 'hound'
+attack = { type = 'change-attribute', attribute = 'som', value = 20 }
+
+[anxiety]
+prototype = 'monster'
+tile = 'a'
+colour = 'red'
+attack = { type = 'change-attribute', attribute = 'will', value = -1 }
+on-death { effect = 'change-attribute', attribute = 'will', value = 0.1 }
+
+[shadows]
+prototype = 'monster'
+tile = 'S'
+colour = 'gray'
+attack = { type = 'panic', turns = 3 }
+disappear-after-attack = true
+
+[voices]
+prototype = 'monster'
+tile = 'v'
+colour = 'gray'
+attack = { type = 'stun', turns = 3 }
+disappear-after-attack = true
+
+
+[player]
+prototype = 'monster'
+ai = 'player-input'
+attack = { type = 'kill' }
+will = 10
+som = 20
+

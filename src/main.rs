@@ -2,7 +2,7 @@
 
 extern crate rand;
 extern crate time;
-extern crate tcod;
+pub extern crate tcod;
 extern crate rustbox;
 
 

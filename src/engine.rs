@@ -6,38 +6,39 @@ use std::path::Path;
 use time::Duration;
 pub use tcod::{self, Color, Console, FontLayout, FontType, RootConsole};
 pub use tcod::input::{Key, KeyCode};
-use rustbox::{self, RustBox};
+// use rustbox::{self, RustBox};
 
 
 pub struct Display {
     root: RootConsole,
-    rustbox: RustBox,
+    // rustbox: RustBox,
     fade: Option<(u8, Color)>,
 }
 
 impl Display {
-    fn new(root: RootConsole, rustbox: RustBox) -> Display {
+    // fn new(root: RootConsole, rustbox: RustBox) -> Display {
+    fn new(root: RootConsole) -> Display {
         Display {
             root: root,
-            rustbox: rustbox,
+            // rustbox: rustbox,
             fade: None,
         }
     }
 
     pub fn draw_char(&mut self, x: i32, y: i32, c: char,
                      foreground: Color, background: Color) {
-        self.rustbox.print(x as usize, y as usize,
-                           rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
-                           &format!("{}", c));
+        // self.rustbox.print(x as usize, y as usize,
+        //                    rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
+        //                    &format!("{}", c));
         self.set_background(x, y, background);
         self.root.put_char_ex(x, y, c, foreground, background);
     }
 
     pub fn write_text(&mut self, text: &str, x: i32, y: i32,
                       foreground: Color, background: Color) {
-        self.rustbox.print(x as usize, y as usize,
-                           rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
-                           text);
+        // self.rustbox.print(x as usize, y as usize,
+        //                    rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
+        //                    text);
         for (i, chr) in text.char_indices() {
             self.draw_char(x + i as i32, y, chr, foreground, background);
         }
@@ -79,17 +80,18 @@ impl Engine {
             .init();
         root.set_default_background(default_background);
 
-        let rustbox = RustBox::init(Default::default()).expect(
-            "Failed to initialise rustbox!");
-        let terminal_size = (rustbox.width() as i32, rustbox.height() as i32);
-        if (terminal_size.0 < width) || (terminal_size.1 < height) {
-            drop(rustbox);
-            panic!("The terminal size is too small. Current size: {:?}, required size: {:?}",
-                     terminal_size, (width, height));
-        }
+        // let rustbox = RustBox::init(Default::default()).expect(
+        //     "Failed to initialise rustbox!");
+        // let terminal_size = (rustbox.width() as i32, rustbox.height() as i32);
+        // if (terminal_size.0 < width) || (terminal_size.1 < height) {
+        //     drop(rustbox);
+        //     panic!("The terminal size is too small. Current size: {:?}, required size: {:?}",
+        //              terminal_size, (width, height));
+        // }
 
         Engine {
-            display: Display::new(root, rustbox),
+            // display: Display::new(root, rustbox),
+            display: Display::new(root),
             keys: VecDeque::new(),
         }
     }
@@ -97,7 +99,7 @@ impl Engine {
     pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, &mut Engine) -> Option<T>) {
         let default_fg = Color{r: 255, g: 255, b: 255};
         while !self.display.root.window_closed() {
-            self.display.rustbox.present();
+            // self.display.rustbox.present();
             loop {
                 match self.display.root.check_for_keypress(tcod::input::KEY_PRESSED) {
                     None => break,

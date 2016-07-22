@@ -606,10 +606,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     } else if player_was_alive {  // NOTE: Player just died
         // Make sure we're not showing the High gfx effect when dead
-        if current_intoxication_state != previous_intoxication_state {
-            for (_pos, cell) in state.level.iter_mut() {
-                cell.tile.set_animation(graphics::Animation::None);
-            }
+        for (_pos, cell) in state.level.iter_mut() {
+            cell.tile.set_animation(graphics::Animation::None);
         }
         state.screen_fading = Some(ScreenFadeAnimation::new(
             color::Color{r: 255, g: 0, b: 0},

@@ -1,6 +1,5 @@
 * Notes
 ** Priority
-*** Drop the High graphics on death
 *** Fade out Shadows & Voices when dying after attack
     - fade to Color{r: 0, g: 0, b: 0} in 400ms
 *** Display the SoM textual representation (overdosed, high, withdrawn) in the status bar

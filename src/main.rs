@@ -401,7 +401,8 @@ fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player, dt
     let bg = color::Color{r: 0, g: 0, b: 0};
 
     let mut lines = vec![
-        format!("SoM: {}", *player.state_of_mind),
+        format!("{}", player::IntoxicationState::from_int(*player.state_of_mind)),
+        "".into(),
         format!("Will: {}", *player.will),
         format!("Food: {}", player.inventory.len()),
         "".into(),

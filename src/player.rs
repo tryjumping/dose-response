@@ -1,4 +1,5 @@
 use std::cmp;
+use std::fmt::{Display, Error, Formatter};
 use time::Duration;
 
 use color::{self, Color};
@@ -40,6 +41,22 @@ impl IntoxicationState {
             81...99 => VeryHigh,
             _ => Overdosed,
         }
+    }
+}
+
+impl Display for IntoxicationState {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        use self::IntoxicationState::*;
+        let s = match *self {
+            Exhausted => "Exhausted",
+            DeliriumTremens => "Delirium tremens",
+            Withdrawal => "Withdrawal",
+            Sober => "Sober",
+            High => "High",
+            VeryHigh => "High as a kite",
+            Overdosed => "Overdosed",
+        };
+        f.write_str(s)
     }
 }
 

@@ -395,33 +395,31 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 }
 
 
-fn render_gui(display: &mut engine::Display, player: &player::Player) {
-    let (_w, h) = display.size();
-    let attribute_line = format!("SoM: {},  Will: {},  Food: {}",
-                              *player.state_of_mind,
-                              *player.will,
-                              player.inventory.len());
-    display.write_text(&attribute_line, 0, h-1,
-                       color::Color{r: 255, g: 255, b: 255},
-                       color::Color{r: 0, g: 0, b: 0});
+fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player) {
+    let mut y = 0;
+    let fg = color::Color{r: 255, g: 255, b: 255};
+    //let bg = color::Color{r: 0, g: 0, b: 0};
+    let bg = color::Color{r: 255, g: 0, b: 255};
+    display.write_text(&format!("SoM: {}", *player.state_of_mind), x, y, fg, bg);
+    y += 1;
+    display.write_text(&format!("Will: {}", *player.will), x, y, fg, bg);
+    y += 1;
+     display.write_text(&format!("Food: {}", player.inventory.len()), x, y, fg, bg);
+    y += 1;
 
-    let mut status_line = String::new();
     if player.alive() {
         if *player.stun > 0 {
-            status_line.push_str(&format!("Stunned({})", *player.stun));
+            y += 1;
+            display.write_text(&format!("Stunned({})", *player.stun), x, y, fg, bg);
         }
         if *player.panic > 0 {
-            if status_line.len() > 0 {
-                status_line.push_str(",  ");
-            }
-            status_line.push_str(&format!("Panicking({})", *player.panic))
+            y += 1;
+            display.write_text(&format!("Panicking({})", *player.panic), x, y, fg, bg);
         }
     } else {
-        status_line.push_str("Dead");
+        y += 1;
+        display.write_text("Dead", x, y, fg, bg);
     }
-    display.write_text(&status_line, 0, h-2,
-                       color::Color{r: 255, g: 255, b: 255},
-                       color::Color{r: 0, g: 0, b: 0});
 }
 
 
@@ -439,7 +437,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     if engine.key_pressed(KeyCode::F5) {
         //println!("Restarting game");
         engine.keys.clear();
-        let state = GameState::new_game(state.world_size, state.display_size);
+        let state = GameState::new_game(state.world_size, state.map_size, state.panel_width, state.display_size);
         return Some(state);
     }
     state.clock = state.clock + dt;
@@ -653,15 +651,18 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     let radius = exploration_radius(*state.player.state_of_mind);
 
-    let screen_left_top_corner = (state.screen_position_in_world.0 - (state.display_size.0 / 2),
-                                  state.screen_position_in_world.1 - (state.display_size.1 / 2));
+    let screen_left_top_corner = (state.screen_position_in_world.0 - (state.map_size / 2),
+                                  state.screen_position_in_world.1 - (state.map_size / 2));
+
+    let map_size = state.map_size;
+    let within_map_bounds = |pos| within_screen_bounds(pos, (map_size, map_size));
     // Render the level and items:
     for (world_pos, cell) in state.level.iter() {
         let in_fov = point::distance(world_pos, state.player.pos) < (radius as f32);
 
         let display_pos = (world_pos.0 - screen_left_top_corner.0,
                            world_pos.1 - screen_left_top_corner.1);
-        if !within_screen_bounds(display_pos, state.display_size) {
+        if !within_map_bounds(display_pos) {
             continue;
         }
         // Render the tile
@@ -699,7 +700,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 if state.level.within_bounds(world_pos) {
                     let display_pos = (world_pos.0 - screen_left_top_corner.0,
                                        world_pos.1 - screen_left_top_corner.1);
-                    if within_screen_bounds(display_pos, state.display_size) {
+                    if within_map_bounds(display_pos) {
                         engine.display.set_background(display_pos.0, display_pos.1, c);
                     }
                 }
@@ -718,7 +719,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             let world_pos = monster.position;
             let display_pos = (world_pos.0 - screen_left_top_corner.0,
                                world_pos.1 - screen_left_top_corner.1);
-            if within_screen_bounds(display_pos, state.display_size) {
+            if within_map_bounds(display_pos) {
                 graphics::draw(&mut engine.display, dt, display_pos, monster);
             }
         }
@@ -728,11 +729,11 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         let world_pos = state.player.pos;
         let display_pos = (world_pos.0 - screen_left_top_corner.0,
                            world_pos.1 - screen_left_top_corner.1);
-        if within_screen_bounds(display_pos, state.display_size) {
+        if within_map_bounds(display_pos) {
             graphics::draw(&mut engine.display, dt, display_pos, &state.player);
         }
     }
-    render_gui(&mut engine.display, &state.player);
+    render_gui(state.map_size, &mut engine.display, &state.player);
     Some(state)
 }
 
@@ -747,7 +748,9 @@ fn within_screen_bounds(p: (i32, i32), screen_dimensions: (i32, i32)) -> bool {
 fn main() {
     // NOTE: at our current font, the height of 43 is the maximum value for
     // 1336x768 monitors.
-    let display_size = (80, 43);
+    let map_size = 43;
+    let panel_width = 15;
+    let display_size = (map_size + panel_width, map_size);
     let world_size = (200, 200);
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
@@ -757,10 +760,10 @@ fn main() {
             // TODO: directory creation is unix-specific because permissions.
             // This should probably be taken out of GameState and moved here or
             // to some platform-specific layer.
-            GameState::new_game(world_size, display_size)
+            GameState::new_game(world_size, map_size, panel_width, display_size)
         },
         2 => {  // Replay the game from the entered log
-            GameState::replay_game(world_size, display_size)
+            GameState::replay_game(world_size, map_size, panel_width, display_size)
         },
         _ => panic!("You must pass either pass zero or one arguments."),
     };

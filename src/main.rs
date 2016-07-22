@@ -398,7 +398,6 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player, dt: Duration, fps: i32) {
     let fg = color::Color{r: 255, g: 255, b: 255};
     // TODO: set the background colour of the panel (or the rendered map)
-    // TODO: render the frame time and FPS here instead of in engine
     let bg = color::Color{r: 0, g: 0, b: 0};
 
     let mut lines = vec![

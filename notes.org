@@ -1,8 +1,14 @@
 * Notes
 ** Priority
-*** Fade out Shadows & Voices when dying after attack
-    - fade to Color{r: 0, g: 0, b: 0} in 400ms
+*** Taking a dose must always save from Depression
+*** Eating food must always save from Derpession
 ** Other gameplay ideas & plans
+*** Get a small amount of "food effect" (SoM points when not high) on killing a Hunger
+**** Could encourage players to seek them out
+**** But it's obviously dangerous
+**** And it may cost you food if you overestimate (which fits fighting hunger)
+*** A high-enough Will will let you pick up & carry doses in your inventory
+**** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
 *** Ideas about the main scope / goals of the game
 Finding out food and collecting it is good. More items to collect? Maybe stuff
 that changes the gameplay in some way? Like the items in spelunky.
@@ -32,18 +38,7 @@ changing anything else at the moment. And then play it for a while and see what 
 **** When being High, the player would see these ghost NPCs moving through the world
 **** When being sober, they'd become more and more corporeal
 **** Could point the player towards interesting places/end-game conditions, etc.
-*** Get a small amount of "food effect" (SoM points when not high) on killing a Hunger
-**** Could encourage players to seek them out
-**** But it's obviously dangerous
-**** And it may cost you food if you overestimate (which fits fighting hunger)
-*** A high-enough Will will let you pick up & carry doses in your inventory
-**** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
-*** Consider having a sidebar UI like say in 868-HACK
-**** Would give us a decent small inventory (food & doses, maybe a few more items)
-**** Would make the actual game map more like a square
 *** Depression only moves by 2 squares when following the player
-*** Display the player's explored area on death
-*** The food ought to save from the depression (i.e. tune the radius right)
 *** Monsters that can modify the environment
 **** unblock passages
 **** block passages
@@ -77,6 +72,9 @@ http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech
 **** that would simplify our entity handling and mapgen
 **** The screen would be a view into that map
 ***** still need to figure out how to move inbetween screens
+*** More effects on High
+**** monsters get weaker (Dempression moving by one step per turn)
+**** dynamic / changing environment?
 *** End-goal
 **** Play until you die is fun while testing but we should have something to achieve
 **** Something along the lines of 12 steps?
@@ -86,9 +84,6 @@ http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech
 *** Idle monsters select more distant destinations
 **** This should make it seem more realistic
 **** No longer just moving randomly back and forth
-*** More effects on High
-**** monsters get weaker (Dempression moving by one step per turn)
-**** dynamic / changing environment?
 *** improve level generator not to create blocked entities
 *** Don't allow suicide (if there's a way to avoid it)
 **** e.g. fatfingering the arrow when the Depression is near
@@ -98,7 +93,7 @@ https://www.reddit.com/r/roguelikedev/comments/3jk3xm/faq_friday_20_saving/
 
 Can be something that'd work here? Read it and think on it.
 
-** Polish (UI & stuff)
+*** Display the player's explored area on death
 *** Pure terminal renderer
 **** We've already added a PoC using Rustbox
 **** TODO Refresh the screen on restart
@@ -108,6 +103,8 @@ Can be something that'd work here? Read it and think on it.
 **** TODO Handle debug messages
 ***** Write them to log or something?
 ***** Or maybe just ignore that issue once the terminal is an optional thing
+*** Fade out Shadows & Voices when dying after attack
+    - fade to Color{r: 0, g: 0, b: 0} in 400ms
 *** Different screen fadeout colours on various player deaths
 **** RED when killed by a monster
 **** BLACK when died of exaustion

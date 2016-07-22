@@ -395,7 +395,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 }
 
 
-fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player) {
+fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player, dt: Duration) {
     let fg = color::Color{r: 255, g: 255, b: 255};
     // TODO: set the background colour of the panel (or the rendered map)
     // TODO: render the frame time and FPS here instead of in engine
@@ -422,6 +422,9 @@ fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player) {
     for (y, line) in lines.iter().enumerate() {
         display.write_text(line, x + 1, y as i32, fg, bg);
     }
+
+    let y = display.size().1 - 3;
+    display.write_text(&format!("dt: {}ms", dt.num_milliseconds()), x + 1, y, fg, bg);
 }
 
 
@@ -735,7 +738,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             graphics::draw(&mut engine.display, dt, display_pos, &state.player);
         }
     }
-    render_gui(state.map_size, &mut engine.display, &state.player);
+    render_gui(state.map_size, &mut engine.display, &state.player, dt);
     Some(state)
 }
 

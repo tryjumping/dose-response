@@ -396,29 +396,31 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 
 
 fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player) {
-    let mut y = 0;
     let fg = color::Color{r: 255, g: 255, b: 255};
-    //let bg = color::Color{r: 0, g: 0, b: 0};
-    let bg = color::Color{r: 255, g: 0, b: 255};
-    display.write_text(&format!("SoM: {}", *player.state_of_mind), x, y, fg, bg);
-    y += 1;
-    display.write_text(&format!("Will: {}", *player.will), x, y, fg, bg);
-    y += 1;
-     display.write_text(&format!("Food: {}", player.inventory.len()), x, y, fg, bg);
-    y += 1;
+    // TODO: set the background colour of the panel (or the rendered map)
+    // TODO: render the frame time and FPS here instead of in engine
+    let bg = color::Color{r: 0, g: 0, b: 0};
+
+    let mut lines = vec![
+        format!("SoM: {}", *player.state_of_mind),
+        format!("Will: {}", *player.will),
+        format!("Food: {}", player.inventory.len()),
+        "".into(),
+    ];
 
     if player.alive() {
         if *player.stun > 0 {
-            y += 1;
-            display.write_text(&format!("Stunned({})", *player.stun), x, y, fg, bg);
+            lines.push(format!("Stunned({})", *player.stun));
         }
         if *player.panic > 0 {
-            y += 1;
-            display.write_text(&format!("Panicking({})", *player.panic), x, y, fg, bg);
+            lines.push(format!("Panicking({})", *player.panic));
         }
     } else {
-        y += 1;
-        display.write_text("Dead", x, y, fg, bg);
+        lines.push("Dead".into());
+    }
+
+    for (y, line) in lines.iter().enumerate() {
+        display.write_text(line, x + 1, y as i32, fg, bg);
     }
 }
 

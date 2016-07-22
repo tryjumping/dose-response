@@ -395,11 +395,12 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 }
 
 
-fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player, dt: Duration, fps: i32) {
+fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
     let fg = color::Color{r: 255, g: 255, b: 255};
     // TODO: set the background colour of the panel (or the rendered map)
     let bg = color::Color{r: 0, g: 0, b: 0};
 
+    let player = &state.player;
     let mut lines = vec![
         format!("{}", player::IntoxicationState::from_int(*player.state_of_mind)),
         "".into(),
@@ -407,6 +408,11 @@ fn render_gui(x: i32, display: &mut engine::Display, player: &player::Player, dt
         format!("Food: {}", player.inventory.len()),
         "".into(),
     ];
+    if state.cheating {
+        lines.push("CHEATING".into());
+        lines.push(format!("SoM: {}", *player.state_of_mind));
+        lines.push("".into());
+    }
 
     if player.alive() {
         if *player.stun > 0 {
@@ -739,7 +745,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
     let fps = engine.fps();
-    render_gui(state.map_size, &mut engine.display, &state.player, dt, fps);
+    render_gui(state.map_size, &mut engine.display, &state, dt, fps);
     Some(state)
 }
 

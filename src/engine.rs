@@ -120,10 +120,6 @@ impl Engine {
                 }
                 None => break,
             }
-            let (width, height) = self.display.size();
-            self.display.root.print_ex(width-1, height-1,
-                               tcod::BackgroundFlag::None, tcod::TextAlignment::Right,
-                               &format!("FPS: {}", tcod::system::get_fps()));
             match self.display.fade {
                 Some((amount, color)) => {
                     self.display.root.set_fade(amount, color);
@@ -137,6 +133,10 @@ impl Engine {
         }
     }
 
+
+    pub fn fps(&self) -> i32 {
+        tcod::system::get_fps()
+    }
 
     /// Return true if the given key is located anywhere in the event buffer.
     pub fn key_pressed(&self, key_code: KeyCode) -> bool {

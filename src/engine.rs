@@ -30,6 +30,10 @@ impl Display {
         // self.rustbox.print(x as usize, y as usize,
         //                    rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
         //                    &format!("{}", c));
+        assert!(x >= 0);
+        assert!(y >= 0);
+        assert!(x < self.root.width());
+        assert!(y < self.root.height());
         self.set_background(x, y, background);
         self.root.put_char_ex(x, y, c, foreground, background);
     }

@@ -761,7 +761,7 @@ fn main() {
     // NOTE: at our current font, the height of 43 is the maximum value for
     // 1336x768 monitors.
     let map_size = 43;
-    let panel_width = 15;
+    let panel_width = 20;
     let display_size = (map_size + panel_width, map_size);
     let world_size = (200, 200);
     let title = "Dose Response";

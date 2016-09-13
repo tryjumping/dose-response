@@ -1,15 +1,12 @@
-* Notes
-** Priority
-*** Taking a dose must always save from Depression
-*** Eating food must always save from Derpession
-** Other gameplay ideas & plans
-*** Get a small amount of "food effect" (SoM points when not high) on killing a Hunger
-**** Could encourage players to seek them out
-**** But it's obviously dangerous
-**** And it may cost you food if you overestimate (which fits fighting hunger)
-*** A high-enough Will will let you pick up & carry doses in your inventory
-**** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
-*** Ideas about the main scope / goals of the game
+* Taking a dose must always save from Depression
+* Eating food must always save from Derpession
+* Get a small amount of "food effect" (SoM points when not high) on killing a Hunger
+** Could encourage players to seek them out
+** But it's obviously dangerous
+** And it may cost you food if you overestimate (which fits fighting hunger)
+* A high-enough Will will let you pick up & carry doses in your inventory
+** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
+* Ideas about the main scope / goals of the game
 Finding out food and collecting it is good. More items to collect? Maybe stuff
 that changes the gameplay in some way? Like the items in spelunky.
 
@@ -33,131 +30,132 @@ e.g. removing almost all monsters from an area, see how it plays.
 Anyway, let's start with making the world bigger then one screen without actually
 changing anything else at the moment. And then play it for a while and see what happens.
 
-*** Random chance that explosion destroys a wall, too?
-*** Ghost-like NPC becoming corporeal
-**** When being High, the player would see these ghost NPCs moving through the world
-**** When being sober, they'd become more and more corporeal
-**** Could point the player towards interesting places/end-game conditions, etc.
-*** Depression only moves by 2 squares when following the player
-*** Monsters that can modify the environment
-**** unblock passages
-**** block passages
-**** teleport the player?
-*** Gameplay beyond the first screen
-**** We need a greater pressure for exploration and leaving the area.
-***** In my current playthroughs I just never care enough to leave.
-***** consider tweaking the intoxication gain and drop to create stronger pressure
-**** Add different worlds the player can go to when leaving the map
-***** this could either be completely random
-***** or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two other worlds, then three different worlds, etc.)
-***** Some notes on different world generation:
+* Random chance that explosion destroys a wall, too?
+* Ghost-like NPC becoming corporeal
+** When being High, the player would see these ghost NPCs moving through the world
+** When being sober, they'd become more and more corporeal
+** Could point the player towards interesting places/end-game conditions, etc.
+* Depression only moves by 2 squares when following the player
+* Monsters that can modify the environment
+** unblock passages
+** block passages
+** teleport the player?
+* Gameplay beyond the first screen
+** We need a greater pressure for exploration and leaving the area.
+*** In my current playthroughs I just never care enough to leave.
+*** consider tweaking the intoxication gain and drop to create stronger pressure
+** Add different worlds the player can go to when leaving the map
+*** this could either be completely random
+*** or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two other worlds, then three different worlds, etc.)
+*** Some notes on different world generation:
 http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
-**** consider restricting the possible ways to leave the map
-**** Split a large map into sections generaded from the initial seed and their positions from center
-***** My (probably fast) ad-hoc concoction:
+** consider restricting the possible ways to leave the map
+** Split a large map into sections generaded from the initial seed and their positions from center
+*** My (probably fast) ad-hoc concoction:
+#+BEGIN_SRC
 fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
     let high = (x as u16) as u32;
     let low = (y as u16) as u32;
     let encoded_pos = high << 16 | low;
     initial_seed ^ encoded_pos
 }
-****** fast but produces low values for low inputs
-***** Better: just feed the inputs through a hash
-***** Maybe use the integer hash function by Thomas Wang
-http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
-*** Limited map size that the player has to explore [map alternative]
-**** spanning multiple screens
-**** but not infinite
-**** we'd have some sort of goal to find/accomplish there
-**** that would simplify our entity handling and mapgen
-**** The screen would be a view into that map
-***** still need to figure out how to move inbetween screens
-*** More effects on High
-**** monsters get weaker (Dempression moving by one step per turn)
-**** dynamic / changing environment?
-*** End-goal
-**** Play until you die is fun while testing but we should have something to achieve
-**** Something along the lines of 12 steps?
-***** though I'm not fond of those
-***** but like some discrete steps/things to find
-***** multiple endings? Fixing your addiction being the hardest one.
-*** Idle monsters select more distant destinations
-**** This should make it seem more realistic
-**** No longer just moving randomly back and forth
-*** improve level generator not to create blocked entities
-*** Don't allow suicide (if there's a way to avoid it)
-**** e.g. fatfingering the arrow when the Depression is near
-*** save&exit/load game
-**** see how nethack does it:
-https://www.reddit.com/r/roguelikedev/comments/3jk3xm/faq_friday_20_saving/
-
-Can be something that'd work here? Read it and think on it.
-
-*** Display the player's explored area on death
-*** Pure terminal renderer
-**** We've already added a PoC using Rustbox
-**** TODO Refresh the screen on restart
-**** TODO Refresh the screen on motion
-**** TODO Add colours
-**** TODO Make the engines switchable (instead of running side by side)
-**** TODO Handle debug messages
-***** Write them to log or something?
-***** Or maybe just ignore that issue once the terminal is an optional thing
-*** Fade out Shadows & Voices when dying after attack
-    - fade to Color{r: 0, g: 0, b: 0} in 400ms
-*** Different screen fadeout colours on various player deaths
-**** RED when killed by a monster
-**** BLACK when died of exaustion
-**** WHITE (slow fade, plus glitches) when overdosed
-*** Doses should glow
-*** Background around a dose should glow in the Irresistible radius
-*** Better display the movement of D monsters:
-   - they're moving too fast currently (FPS dependent)
-   - we should show a path trail
-   - and also slow them down (visually -- so like they move every say 200ms, not every tick)
-*** Smooth-out animations for the fade-out when growing Withdrawn
-   - right now, they are discrete: from fade 50 to 45 in one frame
-   - better make it a fade animation of say 50ms or so
-*** Change the rate of the `High` animation based on intoxication
-   (very high: fast-paced, should slow down on the way to sobriety)
-*** Better effects on player's death:
-**** Fade out to red/black completely
-**** Uncover the entire map (with a reverse fade)
-     - with full colours
-     - showing player's corpse
-*** Make the graphics on Overdose death glitchy
-*** Better radious / FoV calculation
+#+END_SRC
+**** fast but produces low values for low inputs
+*** Better: just feed the inputs through a hash
+*** Maybe use the integer hash function by Thomas Wang
+*** http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
+* Limited map size that the player has to explore [map alternative]
+** spanning multiple screens
+** but not infinite
+** we'd have some sort of goal to find/accomplish there
+** that would simplify our entity handling and mapgen
+** The screen would be a view into that map
+*** still need to figure out how to move inbetween screens
+* More effects on High
+** monsters get weaker (Dempression moving by one step per turn)
+** dynamic / changing environment?
+* End-goal
+** Play until you die is fun while testing but we should have something to achieve
+** Something along the lines of 12 steps?
+*** though I'm not fond of those
+*** but like some discrete steps/things to find
+*** multiple endings? Fixing your addiction being the hardest one.
+* Idle monsters select more distant destinations
+** This should make it seem more realistic
+** No longer just moving randomly back and forth
+* improve level generator not to create blocked entities
+* Don't allow suicide (if there's a way to avoid it)
+** e.g. fatfingering the arrow when the Depression is near
+* save & exit/load game
+** see how nethack 4 does it:
+** https://www.reddit.com/r/roguelikedev/comments/3jk3xm/faq_friday_20_saving/
+** could we use something similar?
+* Display the player's explored area on death
+* Pure terminal renderer
+** We've already added a PoC using Rustbox
+** TODO Refresh the screen on restart
+** TODO Refresh the screen on motion
+** TODO Add colours
+** TODO Make the engines switchable (instead of running side by side)
+** TODO Handle debug messages
+*** Write them to log or something?
+*** Or maybe just ignore that issue once the terminal is an optional thing
+* Fade out Shadows & Voices when dying after attack
+** fade to Color{r: 0, g: 0, b: 0} in 400ms
+* Different screen fadeout colours on various player deaths
+** RED when killed by a monster
+** BLACK when died of exaustion
+** WHITE (slow fade, plus glitches) when overdosed
+* Doses should glow
+* Background around a dose should glow in the Irresistible radius
+* Better display the movement of D monsters:
+** they're moving too fast currently (FPS dependent)
+** we should show a path trail
+** and also slow them down (visually -- so like they move every say 200ms, not every tick)
+* Smooth-out animations for the fade-out when growing Withdrawn
+** right now, they are discrete: from fade 50 to 45 in one frame
+** better make it a fade animation of say 50ms or so
+* Change the rate of the `High` animation based on intoxication
+** (very high: fast-paced, should slow down on the way to sobriety)
+* Better effects on player's death:
+** Fade out to red/black completely
+** Uncover the entire map (with a reverse fade)
+*** with full colours
+*** showing player's corpse
+* Make the graphics on Overdose death glitchy
+* Better radious / FoV calculation
 Instead of looking at the points' coordinates, look at the actual (pixel) space
 each tile represents. The tiles are not points but squares with an area. This
 should provide a visually better result (but will be harder to compute).
-*** Pick a good colour palette
-**** https://personal.sron.nl/~pault/
-**** http://paletton.com/
-*** Add the Marla Daniels quote
-   - When the game is launched and there aren't any saves, it should just jump into the play
-     * (that was the genius of Braid)
-     * (we can use the unexplored area to show help/hints)
-   - Any other time, we'll show the menu with the quote & the load-game option
-   - Possibly, we may show it during player's death, if it makes sense
-*** Effects on hit/death
-    - colour fade (or something) on stun, removed will, death, etc.
-    - sound
-*** Change player's colour on stunned/panicked
-*** Make sure we're accessible to colour blind people
-** Code cleanup & improvements
-*** Maybe have a notion of a Timer struct?
-    - first pass just set the time and drop to zero.
-    - no need to store (maximum, elapsed) Durations then
-*** The "High" animation just kills the framerate on uncovered screen
-*** Use libtcod.cfg for config to libtcod.cfg
-    - that way we won't have to implement a lot of options UI
-    - http://doryen.eptalys.net/data/libtcod/doc/1.5.1/html2/parser_run.html?c=true
-    - should properly commented, suggesting available font options and such
-    - Examples:
-      - font path
-      - font size
-      - fullscreen (yes/no)
-      - key bindings
-      - colour-blind mode (yes/no)
-      - location to the replays
-      - location to the saved games?
+* Pick a good colour palette
+** https://personal.sron.nl/~pault/
+** http://paletton.com/
+* Add the Marla Daniels quote
+** When the game is launched and there aren't any saves, it should just jump into the play
+*** (that was the genius of Braid)
+*** (we can use the unexplored area to show help/hints)
+** Any other time, we'll show the menu with the quote & the load-game option
+** Possibly, we may show it during player's death, if it makes sense
+* Effects on hit/death
+** colour fade (or something) on stun, removed will, death, etc.
+** sound
+* Change player's colour on stunned/panicked
+* Make sure we're accessible to colour blind people
+* Maybe have a notion of a Timer struct?
+** first pass just set the time and drop to zero.
+** no need to store (maximum, elapsed) Durations then
+* The "High" animation just kills the framerate on uncovered screen
+* Use libtcod.cfg for config to libtcod.cfg
+** that way we won't have to implement a lot of options UI
+** http://doryen.eptalys.net/data/libtcod/doc/1.5.1/html2/parser_run.html?c=true
+** should properly commented, suggesting available font options and such
+** PROBLEM: if we ever switch to a different backend (e.g. pure glium) this will bite us...
+*** probably better to use a toml config file if anything
+** Examples:
+*** font path
+*** font size
+*** fullscreen (yes/no)
+*** key bindings
+*** colour-blind mode (yes/no)
+*** location to the replays
+*** location to the saved games?

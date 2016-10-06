@@ -1,5 +1,20 @@
 * Taking a dose must always save from Depression
 * Eating food must always save from Derpession
+* Map the "must go forward and use the dose" range directly to Will?
+** It could make the place more interesting -- having move around the place
+** It would make it clearer what happens when you gain new will
+* Effects for gaining/losing will
+** graphics (render it as a bar)
+** consider displaying the partial will
+*** say you have `Will = 5` but you've also killed three Anxieties, so your Will is more like `5.3`
+*** maybe display the equivalent of the `.3` portion as a lighter bit on the Will progress bar
+*** and as it gets closer to `1.0` its colour would get closer and closer to the "real Will colour"
+** sound
+* Consider longer-term developments of the addiction/state of mind
+** like what can you do if you put off getting doses for long
+** what happens when your tolerance builds up
+** ideally, I'd like the gameplay to change substantially as you progress based on how you play
+** also ideally with like different "gameplay curves" -- but all systems driven
 * Get a small amount of "food effect" (SoM points when not high) on killing a Hunger
 ** Could encourage players to seek them out
 ** But it's obviously dangerous

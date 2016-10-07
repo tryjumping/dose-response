@@ -1,3 +1,4 @@
+* Background around a dose should glow in the Irresistible radius
 * Map the "must go forward and use the dose" range directly to Will?
 ** It could make the place more interesting -- having move around the place
 ** Needs glowing irresistible areas
@@ -123,7 +124,6 @@ fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
 ** BLACK when died of exaustion
 ** WHITE (slow fade, plus glitches) when overdosed
 * Doses should glow
-* Background around a dose should glow in the Irresistible radius
 * Better display the movement of D monsters:
 ** they're moving too fast currently (FPS dependent)
 ** we should show a path trail

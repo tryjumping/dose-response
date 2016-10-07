@@ -7,6 +7,7 @@ extern crate rustbox;
 
 
 use std::collections::VecDeque;
+use std::cmp;
 use std::env;
 use std::io::Write;
 use std::path::Path;
@@ -235,7 +236,6 @@ fn process_player<R, W>(player: &mut player::Player,
             action = Action::Move(new_pos);
         } else if let Some((dose_pos, dose)) = level.nearest_dose(player.pos, 5) {
             let new_pos_opt = {
-                use std::cmp;
                 let (w, h) = level.size();
                 let mut path = tcod::pathfinding::AStar::new_from_callback(
                     w, h,
@@ -686,6 +686,20 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 graphics::draw(&mut engine.display, dt, display_pos, item);
             }
             engine.display.set_background(display_pos.0, display_pos.1, color::dim_background);
+        }
+
+        // Render the irresistible background of a dose
+        for item in cell.items.iter() {
+            if item.kind == item::Kind::Dose {
+                let player_resist_radius = cmp::max(item.irresistible - *state.player.will, 0);
+                for point in point::SquareArea::new(world_pos, player_resist_radius) {
+                    if point::distance(point, state.player.pos) < (radius as f32) {
+                        let x = point.0 - screen_left_top_corner.0;
+                        let y = point.1 - screen_left_top_corner.1;
+                        engine.display.set_background(x, y, color::dose_background);
+                    }
+                }
+            }
         }
 
         // Render the items

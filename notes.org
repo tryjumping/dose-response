@@ -107,6 +107,8 @@ fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
 * Display the player's explored area on death
 * Pure terminal renderer
 ** We've already added a PoC using Rustbox
+** Alternative library: Termion
+*** http://ticki.github.io/blog/making-terminal-applications-in-rust-with-termion/
 ** TODO Refresh the screen on restart
 ** TODO Refresh the screen on motion
 ** TODO Add colours

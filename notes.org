@@ -1,7 +1,6 @@
-* Taking a dose must always save from Depression
-* Eating food must always save from Derpession
 * Map the "must go forward and use the dose" range directly to Will?
 ** It could make the place more interesting -- having move around the place
+** Needs glowing irresistible areas
 ** It would make it clearer what happens when you gain new will
 * Effects for gaining/losing will
 ** graphics (render it as a bar)
@@ -174,3 +173,14 @@ should provide a visually better result (but will be harder to compute).
 *** colour-blind mode (yes/no)
 *** location to the replays
 *** location to the saved games?
+* Archive                                                           :ARCHIVE:
+** DONE Taking a dose must always save from Depression
+CLOSED: [2016-10-07 Fri 21:25]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-10-07 Fri 21:25
+:END:
+** DONE Eating food must always save from Derpession
+CLOSED: [2016-10-07 Fri 21:25]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-10-07 Fri 21:25
+:END:

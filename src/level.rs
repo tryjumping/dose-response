@@ -168,7 +168,7 @@ impl Level {
 
     pub fn nearest_dose(&self, center: Point, radius: i32) -> Option<(Point, Item)> {
         let mut doses = vec![];
-        for pos in point::points_within_radius(center, radius) {
+        for pos in point::CircularArea::new(center, radius) {
             // Make sure we don't go out of bounds with self.cell(pos):
             if !self.walkable(pos, Walkability::WalkthroughMonsters) {
                 continue
@@ -265,7 +265,7 @@ impl Level {
     }
 
     pub fn explore(&mut self, center: Point, radius: i32) {
-        for (x, y) in point::points_within_radius(center, radius) {
+        for (x, y) in point::CircularArea::new(center, radius) {
             if x >= 0 && y >= 0 && x < self.width && y < self.height {
                 self.cell_mut((x, y)).explored = true;
             }

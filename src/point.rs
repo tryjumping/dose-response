@@ -18,7 +18,7 @@ pub fn distance(p1: Point, p2: Point) -> f32 {
     ((a + b) as f32).sqrt()
 }
 
-pub struct PointsWithinRadius {
+pub struct CircularArea {
     x: i32,
     y: i32,
     center: Point,
@@ -28,7 +28,22 @@ pub struct PointsWithinRadius {
     max_y: i32,
 }
 
-impl Iterator for PointsWithinRadius {
+impl CircularArea {
+    pub fn new(center: Point, radius: i32) -> Self {
+        let (center_x, center_y) = center;
+        CircularArea {
+            x: center_x - radius,
+            y: center_y - radius,
+            center: center,
+            radius: radius,
+            initial_x: center_x - radius,
+            max_x: center_x + radius,
+            max_y: center_y + radius,
+        }
+    }
+}
+
+impl Iterator for CircularArea {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
@@ -51,25 +66,49 @@ impl Iterator for PointsWithinRadius {
     }
 }
 
-pub fn points_within_radius(center: Point, radius: i32) -> PointsWithinRadius {
-    let (center_x, center_y) = center;
-    PointsWithinRadius{
-        x: center_x - radius,
-        y: center_y - radius,
-        center: center,
-        radius: radius,
-        initial_x: center_x - radius,
-        max_x: center_x + radius,
-        max_y: center_y + radius,
+pub struct SquareArea {
+    x: i32,
+    y: i32,
+    min_x: i32,
+    max_x: i32,
+    max_y: i32,
+}
+
+impl SquareArea {
+    pub fn new(center: Point, half_side: i32) -> Self {
+        let (center_x, center_y) = center;
+        SquareArea {
+            x: center_x - half_side,
+            y: center_y - half_side,
+            min_x: center_x - half_side,
+            max_x: center_x + half_side,
+            max_y: center_y + half_side,
+        }
     }
 }
 
+impl Iterator for SquareArea {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Point> {
+        if self.y > self.max_y {
+            return None
+        }
+        let current_point = (self.x, self.y);
+        self.x += 1;
+        if self.x > self.max_x {
+            self.y += 1;
+            self.x = self.min_x;
+        }
+        return Some(current_point)
+    }
+}
 
 #[cfg(test)]
 mod test {
     use std::iter::FromIterator;
-    use std::num::Float;
-    use super::{tile_distance, distance, points_within_radius, Point};
+    use std::f32::EPSILON;
+    use super::{tile_distance, distance, Point, SquareArea};
 
     #[test]
     fn test_tile_distance() {
@@ -84,6 +123,11 @@ mod test {
         assert_eq!(tile_distance((0, 0), (1,  1)), 1);
         assert_eq!(tile_distance((0, 0), (1, -1)), 1);
 
+        assert_eq!(tile_distance((0, 0), (2, 2)), 2);
+        assert_eq!(tile_distance((0, 0), (-2, -2)), 2);
+        assert_eq!(tile_distance((0, 0), (0, 2)), 2);
+        assert_eq!(tile_distance((0, 0), (2, 0)), 2);
+
         assert_eq!(tile_distance((-3, -3), (10, 10)), 13);
         assert_eq!(tile_distance((-3, -3), (5, -2)), 8);
     }
@@ -92,71 +136,69 @@ mod test {
     fn test_euclidean_distance() {
         let actual = distance((0, 0), (0, 0));
         let expected = 0.0;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 
         let actual = distance((0, 0), (10, 10));
         let expected = 14.142136;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 
         let actual = distance((0, 0), (10, -10));
         let expected = 14.142136;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 
         let actual = distance((0, 0), (-10, 10));
         let expected = 14.142136;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 
         let actual = distance((0, 0), (10, -10));
         let expected = 14.142136;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 
         let actual = distance((0, 0), (3, 4));
         let expected = 5.0;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 
         let actual = distance((0, 0), (-3, 4));
         let expected = 5.0;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 
         let actual = distance((0, 0), (3, -4));
         let expected = 5.0;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 
         let actual = distance((0, 0), (-3, -4));
         let expected = 5.0;
-        assert!((actual - expected).abs() <= Float::epsilon());
+        assert!((actual - expected).abs() <= EPSILON);
 }
 
     #[test]
     fn test_points_within_radius_of_zero() {
-        let actual: Vec<Point> = FromIterator::from_iter(points_within_radius((3, 3), 0));
-        assert_eq!(actual.as_slice(), [(3, 3)].as_slice());
+        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((3, 3), 0));
+        assert_eq!(actual, [(3, 3)]);
     }
 
     #[test]
     fn test_points_within_radius_of_one() {
-        let actual: Vec<Point> = FromIterator::from_iter(points_within_radius((3, 3), 1));
-        let expected = [(2, 2), (3, 2), (4, 2),
-                        (2, 3), (3, 3), (4, 3),
-                        (2, 4), (3, 4), (4, 4)];
-        assert_eq!(actual.as_slice(), expected.as_slice());
+        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 1));
+        let expected = [(-1, -1), (0, -1), (1, -1),
+                        (-1,  0), (0,  0), (1,  0),
+                        (-1,  1), (0,  1), (1,  1)];
+        assert_eq!(actual, expected);
     }
 
     #[test]
     fn test_points_within_radius_of_five() {
-        use std::iter::range_inclusive;
-
-        let mut actual: Vec<Point> = FromIterator::from_iter(points_within_radius((0, 0), 5));
+        let mut actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 5));
 
         let mut expected = Vec::new();
-        for x in range_inclusive(-5, 5) {
-            for y in range_inclusive(-5, 5) {
+        for x in -5..6 {
+            for y in -5..6 {
                 expected.push((x, y));
             }
         }
         // the order is undefined so make sure we don't fail just because of ordering
         actual.sort();
         expected.sort();
-        assert!(actual.as_slice() == expected.as_slice());
+        assert_eq!(actual, expected);
     }
 }

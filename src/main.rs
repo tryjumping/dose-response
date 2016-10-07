@@ -175,7 +175,7 @@ fn explode(center: point::Point,
            radius: i32,
            level: &mut level::Level,
            monsters: &mut Vec<monster::Monster>) -> ExplosionAnimation {
-    for pos in point::points_within_radius(center, radius) {
+    for pos in point::SquareArea::new(center, radius) {
         if let Some(monster_id) = level.monster_on_pos(pos) {
             kill_monster(&mut monsters[monster_id], level);
         }
@@ -707,7 +707,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         };
         if r <= max_r {
             state.explosion_animation = Some((center, max_r, r, c, elapsed));
-            for world_pos in point::points_within_radius(center, r) {
+            for world_pos in point::SquareArea::new(center, r) {
                 if state.level.within_bounds(world_pos) {
                     let display_pos = (world_pos.0 - screen_left_top_corner.0,
                                        world_pos.1 - screen_left_top_corner.1);

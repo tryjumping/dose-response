@@ -1,4 +1,3 @@
-* Remove the duplicate coordinates projection calculation in irresistible dose
 * Map the "must go forward and use the dose" range directly to Will?
 ** It could make the place more interesting -- having move around the place
 ** Needs glowing irresistible areas
@@ -195,4 +194,9 @@ CLOSED: [2016-10-07 Fri 22:18]
 CLOSED: [2016-10-08 Sat 13:10]
 :PROPERTIES:
 :ARCHIVE_TIME: 2016-10-08 Sat 13:10
+:END:
+** DONE Remove the duplicate coordinates projection calculation in irresistible dose
+CLOSED: [2016-10-08 Sat 13:22]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-10-08 Sat 13:22
 :END:

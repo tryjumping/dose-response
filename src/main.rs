@@ -668,19 +668,22 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let screen_left_top_corner = (state.screen_position_in_world.0 - (state.map_size / 2),
                                   state.screen_position_in_world.1 - (state.map_size / 2));
 
+    let player_pos = state.player.pos;
     let map_size = state.map_size;
     let within_map_bounds = |pos| within_screen_bounds(pos, (map_size, map_size));
+    let in_fov = |pos| point::distance(pos, player_pos) < (radius as f32);
+    let screen_coords_from_world = |pos: (i32, i32)| {
+        (pos.0 - screen_left_top_corner.0, pos.1 - screen_left_top_corner.1)
+    };
+
     // Render the level and items:
     for (world_pos, cell) in state.level.iter() {
-        let in_fov = point::distance(world_pos, state.player.pos) < (radius as f32);
-
-        let display_pos = (world_pos.0 - screen_left_top_corner.0,
-                           world_pos.1 - screen_left_top_corner.1);
+        let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
             continue;
         }
         // Render the tile
-        if in_fov {
+        if in_fov(world_pos) {
             graphics::draw(&mut engine.display, dt, display_pos, &cell.tile);
         } else if cell.explored || bonus == player::Bonus::UncoverMap {
             // TODO: need to supply the dark bg here?
@@ -696,17 +699,16 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             if item.kind == item::Kind::Dose {
                 let resist_radius = player_resist_radius(item.irresistible, *state.player.will);
                 for point in point::SquareArea::new(world_pos, resist_radius) {
-                    if point::distance(point, state.player.pos) < (radius as f32) {
-                        let x = point.0 - screen_left_top_corner.0;
-                        let y = point.1 - screen_left_top_corner.1;
-                        engine.display.set_background(x, y, color::dose_background);
+                    if in_fov(point) {
+                        let screen_coords = screen_coords_from_world(point);
+                        engine.display.set_background(screen_coords.0, screen_coords.1, color::dose_background);
                     }
                 }
             }
         }
 
         // Render the items
-        if in_fov || cell.explored || bonus == player::Bonus::SeeMonstersAndItems || bonus == player::Bonus::UncoverMap {
+        if in_fov(world_pos) || cell.explored || bonus == player::Bonus::SeeMonstersAndItems || bonus == player::Bonus::UncoverMap {
             for item in cell.items.iter() {
                 graphics::draw(&mut engine.display, dt, display_pos, item);
             }

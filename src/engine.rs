@@ -25,17 +25,19 @@ impl Display {
         }
     }
 
+    pub fn within_bounds(&self, x: i32, y: i32) -> bool {
+        x >= 0 && y >= 0 && x < self.root.width() && y < self.root.height()
+    }
+
     pub fn draw_char(&mut self, x: i32, y: i32, c: char,
                      foreground: Color, background: Color) {
         // self.rustbox.print(x as usize, y as usize,
         //                    rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
         //                    &format!("{}", c));
-        assert!(x >= 0);
-        assert!(y >= 0);
-        assert!(x < self.root.width());
-        assert!(y < self.root.height());
-        self.set_background(x, y, background);
-        self.root.put_char_ex(x, y, c, foreground, background);
+        if self.within_bounds(x, y) {
+            self.set_background(x, y, background);
+            self.root.put_char_ex(x, y, c, foreground, background);
+        }
     }
 
     pub fn write_text(&mut self, text: &str, x: i32, y: i32,
@@ -49,7 +51,9 @@ impl Display {
     }
 
     pub fn set_background(&mut self, x: i32, y: i32, color: Color) {
-        self.root.set_char_background(x, y, color, tcod::BackgroundFlag::Set);
+        if self.within_bounds(x, y) {
+            self.root.set_char_background(x, y, color, tcod::BackgroundFlag::Set);
+        }
     }
 
     pub fn get_background(&self, x: i32, y: i32) -> Color {

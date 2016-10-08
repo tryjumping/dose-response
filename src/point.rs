@@ -1,22 +1,79 @@
-use std::cmp::{max};
+use std::cmp::{max, Ordering};
 
-
-pub type Point = (i32, i32);
-
-
-pub fn tile_distance(p1: Point, p2: Point) -> i32 {
-    let (x1, y1) = p1;
-    let (x2, y2) = p2;
-    max((x1 - x2).abs(), (y1 - y2).abs())
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Point {
+    pub x: i32,
+    pub y: i32,
 }
 
-pub fn distance(p1: Point, p2: Point) -> f32 {
-    let (x1, y1) = p1;
-    let (x2, y2) = p2;
-    let a = (x1 - x2).pow(2);
-    let b = (y1 - y2).pow(2);
-    ((a + b) as f32).sqrt()
+impl Point {
+    pub fn new(x: i32, y: i32) -> Self {
+        Point{x: x, y: y}
+    }
+
+    pub fn distance(&self, other: Point) -> f32 {
+        let a = (self.x - other.x).pow(2);
+        let b = (self.y - other.y).pow(2);
+        ((a + b) as f32).sqrt()
+    }
+
+    pub fn tile_distance(self, other: Point) -> i32 {
+        max((self.x - other.x).abs(), (self.y - other.y).abs())
+    }
 }
+
+impl std::fmt::Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+impl std::ops::Add for Point {
+    type Output = V2;
+
+    fn add(self, rhs: V2) -> Point {
+        Point{ x: self.x + rhs.x, y: self.y + rhs.y }
+    }
+}
+
+impl std::cmp::PartialOrd for Point {
+    fn partial_cmp(&self, other: &Point) -> Option<Ordering> {
+        if self == other {
+            Some(Ordering::Equal)
+        } else if (self.x < other.x) && (self.y < other.y) {
+            Some(Ordering::Less)
+        } else if (self.x > other.x) && (self.y > other.y) {
+            Some(Ordering::Greater)
+        } else {
+            None
+        }
+    }
+}
+
+impl std::ops::Add<(i32, i32)> for Point {
+    type Output = V2;
+
+    fn add(self, rhs: (i32, i32)) -> Point {
+        Point{ x: self.x + rhs.0, y: self.y + rhs.1 }
+    }
+}
+
+impl PartialEq<(i32, i32)> for Point {
+    fn eq(&self, other: &(i32, i32)) -> bool {
+        self == Point::new(other.0, other.1)
+    }
+}
+
+impl PartialOrd<(i32, i32)> for Point {
+    fn partial_cmp(&self, other: &(i32, i32)) -> Option<Ordering> {
+        self.partial_cmp(&Point::new(other.0, other.1))
+    }
+}
+
+pub fn point(x: i32, y: i32) -> Point {
+    Point::new(x, y)
+}
+
 
 pub struct CircularArea {
     x: i32,
@@ -108,7 +165,7 @@ impl Iterator for SquareArea {
 mod test {
     use std::iter::FromIterator;
     use std::f32::EPSILON;
-    use super::{tile_distance, distance, Point, SquareArea};
+    use super::{point, Point, SquareArea};
 
     #[test]
     fn test_tile_distance() {

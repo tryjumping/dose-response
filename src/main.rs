@@ -199,6 +199,10 @@ fn exploration_radius(state_of_mind: i32) -> i32 {
     }
 }
 
+fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
+    cmp::max(dose_irresistible_value - will, 0)
+}
+
 
 fn process_player<R, W>(player: &mut player::Player,
                         commands: &mut VecDeque<Command>,
@@ -247,8 +251,7 @@ fn process_player<R, W>(player: &mut player::Player,
                     },
                     1.0);
                 path.find(player.pos, dose_pos);
-                let player_resist_radius = cmp::max(dose.irresistible - *player.will, 0);
-                if path.len() <= player_resist_radius {
+                if path.len() <= player_resist_radius(dose.irresistible, *player.will) {
                     path.walk_one_step(false)
                 } else {
                     None
@@ -691,8 +694,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Render the irresistible background of a dose
         for item in cell.items.iter() {
             if item.kind == item::Kind::Dose {
-                let player_resist_radius = cmp::max(item.irresistible - *state.player.will, 0);
-                for point in point::SquareArea::new(world_pos, player_resist_radius) {
+                let resist_radius = player_resist_radius(item.irresistible, *state.player.will);
+                for point in point::SquareArea::new(world_pos, resist_radius) {
                     if point::distance(point, state.player.pos) < (radius as f32) {
                         let x = point.0 - screen_left_top_corner.0;
                         let y = point.1 - screen_left_top_corner.1;

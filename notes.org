@@ -1,3 +1,7 @@
+* CRASH when going somewhere left
+cargo run -- replay-2016-10-08T13\:20\:21.431
+* The screen doesn't move when going to the right edge
+** And but the world there still exist, so a Depression can kill you without you seeing it coming
 * Map the "must go forward and use the dose" range directly to Will?
 ** It could make the place more interesting -- having move around the place
 ** Needs glowing irresistible areas

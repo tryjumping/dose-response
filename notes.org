@@ -1,3 +1,8 @@
+* The FOV circle should never extend beyond the edge of the screen
+** I.e. the player should always be able to see the full extent of their field of view
+** Which means we should trigger the screen scroll before that happens
+** And to make things predictable, let's scroll precisely when the field of view would be outside
+** That way the player can learn & anticipate it instead of being surprised
 * The screen doesn't move when going to the right edge
 ** And but the world there still exist, so a Depression can kill you without you seeing it coming
 * Map the "must go forward and use the dose" range directly to Will?

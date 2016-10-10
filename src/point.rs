@@ -133,10 +133,6 @@ impl Div<i32> for Point {
     }
 }
 
-pub fn point(x: i32, y: i32) -> Point {
-    Point::new(x, y)
-}
-
 
 pub struct CircularArea {
     pos: Point,

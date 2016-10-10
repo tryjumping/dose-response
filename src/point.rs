@@ -73,16 +73,27 @@ impl Sub for Point {
 }
 
 impl PartialOrd for Point {
-    fn partial_cmp(&self, other: &Point) -> Option<Ordering> {
-        if self == other {
-            Some(Ordering::Equal)
-        } else if (self.x < other.x) && (self.y < other.y) {
-            Some(Ordering::Less)
-        } else if (self.x > other.x) && (self.y > other.y) {
-            Some(Ordering::Greater)
-        } else {
-            None
-        }
+    fn partial_cmp(&self, _other: &Point) -> Option<Ordering> {
+        // NOTE: I don't know that's the difference between this one
+        // and the more explicit fn below. So let's just crash here
+        // and see if and when we ever hit this.
+        unimplemented!();
+    }
+
+    fn lt(&self, other: &Point) -> bool {
+        self.x < other.x && self.y < other.y
+    }
+
+    fn le(&self, other: &Point) -> bool {
+        self.x <= other.x && self.y <= other.y
+    }
+
+    fn gt(&self, other: &Point) -> bool {
+        self.x > other.x && self.y > other.y
+    }
+
+    fn ge(&self, other: &Point) -> bool {
+        self.x >= other.x && self.y >= other.y
     }
 }
 
@@ -122,6 +133,26 @@ impl PartialOrd<(i32, i32)> for Point {
     fn partial_cmp(&self, other: &(i32, i32)) -> Option<Ordering> {
         let other: Point = (*other).into();
         self.partial_cmp(&other)
+    }
+
+    fn lt(&self, other: &(i32, i32)) -> bool {
+        let other: Point = (*other).into();
+        self < &other
+    }
+
+    fn le(&self, other: &(i32, i32)) -> bool {
+        let other: Point = (*other).into();
+        self <= &other
+    }
+
+    fn gt(&self, other: &(i32, i32)) -> bool {
+        let other: Point = (*other).into();
+        self > &other
+    }
+
+    fn ge(&self, other: &(i32, i32)) -> bool {
+        let other: Point = (*other).into();
+        self >= &other
     }
 }
 
@@ -216,65 +247,65 @@ impl Iterator for SquareArea {
 mod test {
     use std::iter::FromIterator;
     use std::f32::EPSILON;
-    use super::{point, Point, SquareArea};
+    use super::{Point, SquareArea};
 
     #[test]
     fn test_tile_distance() {
-        assert_eq!(point(0, 0).tile_distance((0, 0)), 0);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((0, 0)), 0);
 
-        assert_eq!(point(0, 0).tile_distance(( 1, 0)), 1);
-        assert_eq!(point(0, 0).tile_distance((-1, 0)), 1);
-        assert_eq!(point(0, 0).tile_distance(( 1, 1)), 1);
-        assert_eq!(point(0, 0).tile_distance((-1, 1)), 1);
-        assert_eq!(point(0, 0).tile_distance((0,  1)), 1);
-        assert_eq!(point(0, 0).tile_distance((0, -1)), 1);
-        assert_eq!(point(0, 0).tile_distance((1,  1)), 1);
-        assert_eq!(point(0, 0).tile_distance((1, -1)), 1);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance(( 1, 0)), 1);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((-1, 0)), 1);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance(( 1, 1)), 1);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((-1, 1)), 1);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((0,  1)), 1);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((0, -1)), 1);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((1,  1)), 1);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((1, -1)), 1);
 
-        assert_eq!(point(0, 0).tile_distance((2, 2)), 2);
-        assert_eq!(point(0, 0).tile_distance((-2, -2)), 2);
-        assert_eq!(point(0, 0).tile_distance((0, 2)), 2);
-        assert_eq!(point(0, 0).tile_distance((2, 0)), 2);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((2, 2)), 2);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((-2, -2)), 2);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((0, 2)), 2);
+        assert_eq!(Point{x: 0, y: 0}.tile_distance((2, 0)), 2);
 
-        assert_eq!(point(-3, -3).tile_distance((10, 10)), 13);
-        assert_eq!(point(-3, -3).tile_distance((5, -2)), 8);
+        assert_eq!(Point{x: -3, y: -3}.tile_distance((10, 10)), 13);
+        assert_eq!(Point{x: -3, y: -3}.tile_distance((5, -2)), 8);
     }
 
     #[test]
     fn test_euclidean_distance() {
-        let actual = point(0, 0).distance((0, 0));
+        let actual = Point{x: 0, y: 0}.distance((0, 0));
         let expected = 0.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = point(0, 0).distance((10, 10));
+        let actual = Point{x: 0, y: 0}.distance((10, 10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = point(0, 0).distance((10, -10));
+        let actual = Point{x: 0, y: 0}.distance((10, -10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = point(0, 0).distance((-10, 10));
+        let actual = Point{x: 0, y: 0}.distance((-10, 10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = point(0, 0).distance((10, -10));
+        let actual = Point{x: 0, y: 0}.distance((10, -10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = point(0, 0).distance((3, 4));
+        let actual = Point{x: 0, y: 0}.distance((3, 4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = point(0, 0).distance((-3, 4));
+        let actual = Point{x: 0, y: 0}.distance((-3, 4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = point(0, 0).distance((3, -4));
+        let actual = Point{x: 0, y: 0}.distance((3, -4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = point(0, 0).distance((-3, -4));
+        let actual = Point{x: 0, y: 0}.distance((-3, -4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 }
@@ -305,5 +336,69 @@ mod test {
             }
         }
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_point_comparison() {
+        assert!(Point::new(1, 1) > Point::new(0, 0));
+        assert!(Point::new(0, 0) < Point::new(1, 1));
+
+        assert!(Point::new(1, 1) >= Point::new(0, 0));
+        assert!(Point::new(1, 1) <= Point::new(1, 1));
+
+        assert_eq!(Point::new(1, 0) > Point::new(0, 1), false);
+        assert_eq!(Point::new(0, 1) > Point::new(1, 0), false);
+        assert_eq!(Point::new(1, 0) >= Point::new(0, 1), false);
+        assert_eq!(Point::new(0, 1) >= Point::new(1, 0), false);
+
+        assert_eq!(Point::new(1, 0) > Point::new(0, 0), false);
+        assert_eq!(Point::new(0, 1) > Point::new(0, 0), false);
+
+        assert_eq!(Point::new(1, 0) >= Point::new(0, 0), true);
+        assert_eq!(Point::new(0, 1) >= Point::new(0, 0), true);
+    }
+
+
+    #[test]
+    fn test_point_tuple_comparison() {
+        assert!(Point::new(1, 1) > (0, 0));
+        assert!(Point::new(0, 0) < (1, 1));
+
+        assert!(Point::new(1, 1) >= (0, 0));
+        assert!(Point::new(1, 1) <= (1, 1));
+
+        assert_eq!(Point::new(1, 0) > (0, 1), false);
+        assert_eq!(Point::new(0, 1) > (1, 0), false);
+        assert_eq!(Point::new(1, 0) >= (0, 1), false);
+        assert_eq!(Point::new(0, 1) >= (1, 0), false);
+
+        assert_eq!(Point::new(1, 0) > (0, 0), false);
+        assert_eq!(Point::new(0, 1) > (0, 0), false);
+
+        assert_eq!(Point::new(1, 0) >= (0, 0), true);
+        assert_eq!(Point::new(0, 1) >= (0, 0), true);
+    }
+
+    #[test]
+    fn test_point_bound_checking() {
+        let top_left_corner = Point::new(0, 0);
+        let display_size = Point::new(10, 10);
+        let within_bounds = |pos| pos >= top_left_corner && pos < display_size;
+
+        assert_eq!(within_bounds(Point::new(0, 0)), true);
+        assert_eq!(within_bounds(Point::new(1, 0)), true);
+        assert_eq!(within_bounds(Point::new(0, 1)), true);
+        assert_eq!(within_bounds(Point::new(1, 1)), true);
+        assert_eq!(within_bounds(Point::new(3, 4)), true);
+        assert_eq!(within_bounds(Point::new(9, 9)), true);
+        assert_eq!(within_bounds(Point::new(2, 9)), true);
+        assert_eq!(within_bounds(Point::new(9, 2)), true);
+
+        assert_eq!(within_bounds(Point::new(-1, 0)), false);
+        assert_eq!(within_bounds(Point::new(0, -1)), false);
+        assert_eq!(within_bounds(Point::new(-1, -1)), false);
+        assert_eq!(within_bounds(Point::new(1, 10)), false);
+        assert_eq!(within_bounds(Point::new(10, 1)), false);
+        assert_eq!(within_bounds(Point::new(10, 10)), false);
     }
 }

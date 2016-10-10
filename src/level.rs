@@ -142,7 +142,8 @@ impl Level {
     }
 
     fn index(&self, pos: Point) -> usize {
-        assert!(pos >= (0, 0) && pos < self.dimensions);
+        assert!(pos >= (0, 0));
+        assert!(pos < self.dimensions);
         (pos.y * self.dimensions.x + pos.x) as usize
     }
 

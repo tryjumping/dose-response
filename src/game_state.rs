@@ -80,7 +80,7 @@ pub struct GameState {
 
     /// The actual size of the game world in tiles. Could be infinite
     /// but we're limiting it for performance reasons for now.
-    pub world_size: (i32, i32),
+    pub world_size: Point,
 
     /// The size of the game map inside the game window. We're keeping
     /// this square so this value repesents both width and heigh.
@@ -93,7 +93,7 @@ pub struct GameState {
     /// The size of the game window in tiles. The area stuff is
     /// rendered to. NOTE: currently, the width is equal to map_size +
     /// panel_width, height is map_size.
-    pub display_size: (i32, i32),
+    pub display_size: Point,
     pub screen_position_in_world: Point,
     pub rng: IsaacRng,
     pub commands: VecDeque<Command>,
@@ -105,31 +105,31 @@ pub struct GameState {
     pub clock: Duration,
     pub pos_timer: ::Timer,
     pub paused: bool,
-    pub old_screen_pos: (i32, i32),
-    pub new_screen_pos: (i32, i32),
+    pub old_screen_pos: Point,
+    pub new_screen_pos: Point,
     pub screen_fading: Option<super::ScreenFadeAnimation>,
     pub see_entire_screen: bool,
 }
 
 impl GameState {
-    fn new<W: Write+'static>(world_size: (i32, i32),
+    fn new<W: Write+'static>(world_size: Point,
                              map_size: i32,
                              panel_width: i32,
-                             display_size: (i32, i32),
+                             display_size: Point,
                              commands: VecDeque<Command>,
                              log_writer: W,
                              seed: u32,
                              cheating: bool,
-                             replay: bool) -> GameState {
+                             replay: bool)
+                             -> GameState {
         let seed_arr: &[_] = &[seed];
-        let world_centre = (world_size.0 / 2, world_size.1 / 2);
-        assert_eq!(display_size.0, map_size + panel_width);
-        assert_eq!(display_size.1, map_size);
+        let world_centre = world_size / 2;
+        assert_eq!(display_size, (map_size + panel_width, map_size));
         GameState {
             player: Player::new(world_centre),
             monsters: vec![],
             explosion_animation: None,
-            level: Level::new(world_size.0, world_size.1),
+            level: Level::new(world_size.x, world_size.y),
             world_size: world_size,
             map_size: map_size,
             panel_width: panel_width,
@@ -144,15 +144,15 @@ impl GameState {
             replay: replay,
             clock: Duration::zero(),
             pos_timer: ::Timer::new(Duration::milliseconds(0)),
-            old_screen_pos: (0, 0),
-            new_screen_pos: (0, 0),
+            old_screen_pos: (0, 0).into(),
+            new_screen_pos: (0, 0).into(),
             paused: false,
             screen_fading: None,
             see_entire_screen: false,
         }
     }
 
-    pub fn new_game(world_size: (i32, i32), map_size: i32, panel_width: i32, display_size: (i32, i32)) -> GameState {
+    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point) -> GameState {
         let commands = VecDeque::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
@@ -175,7 +175,7 @@ impl GameState {
         state
     }
 
-    pub fn replay_game(world_size: (i32, i32), map_size: i32, panel_width: i32, display_size: (i32, i32)) -> GameState {
+    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point) -> GameState {
         let mut commands = VecDeque::new();
         let path_str = env::args().nth(1).unwrap();
         let replay_path = &Path::new(&path_str);
@@ -208,9 +208,9 @@ impl GameState {
 }
 
 fn initialise_world(game_state: &mut GameState) {
-    let (width, height) = game_state.level.size();
+    let dimensions = game_state.level.size();
     let generated_world = generators::forrest::generate(&mut game_state.rng,
-                                                        width, height,
+                                                        dimensions,
                                                         game_state.player.pos);
     world::populate_world(&mut game_state.level,
                           &mut game_state.monsters,
@@ -218,7 +218,9 @@ fn initialise_world(game_state: &mut GameState) {
     // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
     game_state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
     for (index, m) in game_state.monsters.iter_mut().enumerate() {
-        unsafe { m.set_id(index) }
+        unsafe {
+            m.set_id(index);
+        }
         game_state.level.set_monster(m.position, m.id(), m);
     }
 }

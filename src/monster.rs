@@ -7,7 +7,7 @@ use color::{self, Color};
 use level::{Level, Walkability};
 use graphics::Render;
 use player::Modifier;
-use point::{self, Point};
+use point::Point;
 
 
 use self::Kind::*;
@@ -88,7 +88,7 @@ impl Monster {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
-        let distance = point::tile_distance(self.position, player_pos);
+        let distance = self.position.tile_distance(player_pos);
         let ai_state = if distance <= 5 {
             Chasing
         } else {

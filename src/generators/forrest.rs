@@ -5,10 +5,10 @@ use item::{self, Item};
 use level::{Tile, TileKind};
 use monster::Kind;
 use player::Modifier;
-use point::{self, Point};
+use point::Point;
 use generators::GeneratedWorld;
 
-fn generate_map<R: Rng>(rng: &mut R, (w, h): (i32, i32), player: Point) -> Vec<(Point, Tile)> {
+fn generate_map<R: Rng>(rng: &mut R, map_size: Point, player_pos: Point) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted{weight: 610, item: TileKind::Empty},
         Weighted{weight: 390, item: TileKind::Tree},
@@ -17,14 +17,14 @@ fn generate_map<R: Rng>(rng: &mut R, (w, h): (i32, i32), player: Point) -> Vec<(
     let mut result = vec![];
     // NOTE: starting with `y` seems weird but it'll generate the right pattern:
     // start at top left corner, moving to the right
-    for y in 0..h {
-        for x in 0..w {
+    for y in 0..map_size.y {
+        for x in 0..map_size.x {
             // Player always starts at an empty space:
-            let kind = match (x, y) == player {
+            let kind = match player_pos == (x, y) {
                 true => TileKind::Empty,
                 false => opts.ind_sample(rng),
             };
-            result.push(((x, y), Tile::new(kind)));
+            result.push((Point::new(x, y), Tile::new(kind)));
         }
     }
     result
@@ -49,7 +49,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) 
             continue
         }
         // Don't spawn any monsters in near vicinity to the player
-        if point::tile_distance(pos, player) < 6 {
+        if player.tile_distance(pos) < 6 {
             continue
         }
         if let Some(monster) = opts.ind_sample(rng) {
@@ -89,37 +89,39 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
 }
 
 
-fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -> Vec<(Point, item::Item)> {
+fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player_pos: Point) -> Vec<(Point, item::Item)> {
     use item::Kind::*;
     let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
-    let mut initial_dose = (px + *rng.choose(pos_offset).unwrap(),
-                            py + *rng.choose(pos_offset).unwrap());
+
+    let mut initial_dose = player_pos + Point::new(*rng.choose(pos_offset).unwrap(),
+                                                   *rng.choose(pos_offset).unwrap());
     let mut weights_near_player = [
         Weighted{weight: 1000 , item: None},
         Weighted{weight: 2, item: Some(Dose)},
         Weighted{weight: 20, item: Some(Food)},
-
     ];
+
     let mut weights_rest = [
         Weighted{weight: 1000 , item: None},
         Weighted{weight: 10, item: Some(Dose)},
         Weighted{weight: 5, item: Some(Food)},
     ];
+
     let gen_near_player = WeightedChoice::new(&mut weights_near_player);
     let gen_rest = WeightedChoice::new(&mut weights_rest);
 
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
         // Don't create an item where the player starts:
-        if pos == (px, py) {
+        if pos == player_pos {
             continue
         }
         match tile.kind {
             // Initial dose position is blocked, move it somewhere else:
             TileKind::Tree if pos == initial_dose => {
-                initial_dose = (initial_dose.0 + 1, initial_dose.1);
-                if point::tile_distance(initial_dose, (px, py)) > 4 {
-                    initial_dose = (initial_dose.0 - 4, initial_dose.1 + 1);
+                initial_dose += (1, 0);
+                if player_pos.tile_distance(initial_dose) > 4 {
+                    initial_dose += (-4, 1);
                 }
             }
             TileKind::Tree => {
@@ -129,7 +131,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -
                 result.push((pos, new_item(Dose, rng)));
             }
             TileKind::Empty => {
-                let gen = match point::tile_distance(pos, (px, py)) < 6 {
+                let gen = match player_pos.tile_distance(pos) < 6 {
                     true => &gen_near_player,
                     false => &gen_rest,
                 };
@@ -143,8 +145,8 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], (px, py): Point) -
 }
 
 
-pub fn generate<R: Rng>(rng: &mut R, w: i32, h: i32, player: Point) -> GeneratedWorld {
-    let map = generate_map(rng, (w, h), player);
+pub fn generate<R: Rng>(rng: &mut R, size: Point, player: Point) -> GeneratedWorld {
+    let map = generate_map(rng, size, player);
     let monsters = generate_monsters(rng, &map, player);
     let items = generate_items(rng, &map, player);
     (map, monsters, items)

@@ -8,6 +8,8 @@ pub use tcod::{self, Color, Console, FontLayout, FontType, RootConsole};
 pub use tcod::input::{Key, KeyCode};
 // use rustbox::{self, RustBox};
 
+use point::Point;
+
 
 pub struct Display {
     root: RootConsole,
@@ -25,43 +27,44 @@ impl Display {
         }
     }
 
-    pub fn within_bounds(&self, x: i32, y: i32) -> bool {
-        x >= 0 && y >= 0 && x < self.root.width() && y < self.root.height()
+    pub fn within_bounds(&self, pos: Point) -> bool {
+        pos >= (0, 0) && pos < self.size()
     }
 
-    pub fn draw_char(&mut self, x: i32, y: i32, c: char,
+    pub fn draw_char(&mut self, pos: Point, c: char,
                      foreground: Color, background: Color) {
         // self.rustbox.print(x as usize, y as usize,
         //                    rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
         //                    &format!("{}", c));
-        if self.within_bounds(x, y) {
-            self.set_background(x, y, background);
-            self.root.put_char_ex(x, y, c, foreground, background);
+        if self.within_bounds(pos) {
+            self.set_background(pos, background);
+            self.root.put_char_ex(pos.x, pos.y, c, foreground, background);
         }
     }
 
-    pub fn write_text(&mut self, text: &str, x: i32, y: i32,
+    pub fn write_text<P: Into<Point>>(&mut self, text: &str, pos: P,
                       foreground: Color, background: Color) {
         // self.rustbox.print(x as usize, y as usize,
         //                    rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
         //                    text);
+        let pos = pos.into();
         for (i, chr) in text.char_indices() {
-            self.draw_char(x + i as i32, y, chr, foreground, background);
+            self.draw_char(pos + (i as i32, 0), chr, foreground, background);
         }
     }
 
-    pub fn set_background(&mut self, x: i32, y: i32, color: Color) {
-        if self.within_bounds(x, y) {
-            self.root.set_char_background(x, y, color, tcod::BackgroundFlag::Set);
+    pub fn set_background(&mut self, pos: Point, color: Color) {
+        if self.within_bounds(pos) {
+            self.root.set_char_background(pos.x, pos.y, color, tcod::BackgroundFlag::Set);
         }
     }
 
-    pub fn get_background(&self, x: i32, y: i32) -> Color {
-        self.root.get_char_background(x, y)
+    pub fn get_background(&self, pos: Point) -> Color {
+        self.root.get_char_background(pos.x, pos.y)
     }
 
-    pub fn size(&self) -> (i32, i32) {
-        (self.root.width(), self.root.height())
+    pub fn size(&self) -> Point {
+        (self.root.width(), self.root.height()).into()
     }
 
     /// `fade_percentage` is from <0f32 to 100f32>.
@@ -78,11 +81,11 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(width: i32, height: i32, default_background: Color,
+    pub fn new(display_size: Point, default_background: Color,
                window_title: &str, font_path: &Path) -> Engine {
         let mut root = RootConsole::initializer()
             .title(window_title)
-            .size(width, height)
+            .size(display_size.x, display_size.y)
             .font(font_path, FontLayout::Tcod)
             .font_type(FontType::Greyscale)
             .init();

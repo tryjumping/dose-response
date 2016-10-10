@@ -120,19 +120,18 @@ pub enum Walkability {
 
 
 pub struct Level {
-    width: i32,
-    height: i32,
+    dimensions: Point,
     pub monsters: HashMap<Point, usize>,
     map: Vec<Cell>,
 }
 
 impl Level {
     pub fn new(width: i32, height: i32) -> Level {
-        assert!(width > 0 && height > 0);
+        let dimensions = (width, height).into();
+        assert!(dimensions > (0, 0));
         let map_size = (width * height) as usize;
         Level {
-            width: width,
-            height: height,
+            dimensions: dimensions,
             monsters: HashMap::new(),
             map: (0..map_size).map(|_| Cell{
                 tile: Tile::new(TileKind::Empty),
@@ -142,31 +141,33 @@ impl Level {
         }
     }
 
-    fn index(&self, (x, y): Point) -> usize {
-        assert!(x >= 0 && y >= 0 && x < self.width && y < self.height);
-        (y * self.width + x) as usize
+    fn index(&self, pos: Point) -> usize {
+        assert!(pos >= (0, 0) && pos < self.dimensions);
+        (pos.y * self.dimensions.x + pos.x) as usize
     }
 
-    pub fn cell(&self, pos: Point) -> &Cell {
-        let index = self.index(pos);
+    pub fn cell<P: Into<Point>>(&self, pos: P) -> &Cell {
+        let index = self.index(pos.into());
         &self.map[index]
     }
 
-    fn cell_mut(&mut self, pos: Point) -> &mut Cell {
-        let index = self.index(pos);
+    fn cell_mut<P: Into<Point>>(&mut self, pos: P) -> &mut Cell {
+        let index = self.index(pos.into());
         &mut self.map[index]
     }
 
-    pub fn set_tile(&mut self, pos: Point, tile: Tile) {
+    pub fn set_tile<P: Into<Point>>(&mut self, pos: P, tile: Tile) {
         self.cell_mut(pos).tile = tile;
     }
 
-    pub fn set_monster(&mut self, pos: Point, monster_index: usize, monster: &Monster) {
+    pub fn set_monster<P: Into<Point>>(&mut self, pos: P, monster_index: usize, monster: &Monster) {
+        let pos = pos.into();
         assert!(monster.position == pos);
         self.monsters.insert(pos, monster_index);
     }
 
-    pub fn nearest_dose(&self, center: Point, radius: i32) -> Option<(Point, Item)> {
+    pub fn nearest_dose<P: Into<Point>>(&self, center: P, radius: i32) -> Option<(Point, Item)> {
+        let center = center.into();
         let mut doses = vec![];
         for pos in point::CircularArea::new(center, radius) {
             // Make sure we don't go out of bounds with self.cell(pos):
@@ -185,7 +186,7 @@ impl Level {
         doses.pop().map(|dose| {
             let mut result = dose;
             for d in &doses {
-                if point::tile_distance(center, d.0) < point::tile_distance(center, result.0) {
+                if center.tile_distance(d.0) < center.tile_distance(result.0) {
                     result = *d;
                 }
             }
@@ -193,23 +194,25 @@ impl Level {
         })
     }
 
-    pub fn monster_on_pos(&self, pos: Point) -> Option<usize> {
-        self.monsters.get(&pos).map(|&ix| ix)
+    pub fn monster_on_pos<P: Into<Point>>(&self, pos: P) -> Option<usize> {
+        self.monsters.get(&pos.into()).map(|&ix| ix)
     }
 
-    pub fn add_item(&mut self, pos: Point, item: Item) {
+    pub fn add_item<P: Into<Point>>(&mut self, pos: P, item: Item) {
         self.cell_mut(pos).items.push(item);
     }
 
-    pub fn size(&self) -> (i32, i32) {
-        (self.width, self.height)
+    pub fn size(&self) -> Point {
+        self.dimensions
     }
 
-    pub fn within_bounds(&self, (x, y): Point) -> bool {
-        x >= 0 && y >= 0 && x < self.width && y < self.height
+    pub fn within_bounds<P: Into<Point>>(&self, pos: P) -> bool {
+        let pos = pos.into();
+        pos >= (0, 0) && pos < self.size()
     }
 
-    pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
+    pub fn walkable<P: Into<Point>>(&self, pos: P, walkability: Walkability) -> bool {
+        let pos = pos.into();
         let walkable = match walkability {
             Walkability::WalkthroughMonsters => true,
             Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
@@ -224,9 +227,10 @@ impl Level {
         }
     }
 
-    pub fn move_monster(&mut self, monster: &mut Monster, destination: Point) {
+    pub fn move_monster<P: Into<Point>>(&mut self, monster: &mut Monster, destination: P) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
+        let destination = destination.into();
         assert!(!self.monsters.contains_key(&destination));
         if let Some(monster_index) = self.monsters.remove(&monster.position) {
             monster.position = destination;
@@ -236,38 +240,30 @@ impl Level {
         }
     }
 
-    pub fn pickup_item(&mut self, pos: Point) -> Option<Item> {
+    pub fn pickup_item<P: Into<Point>>(&mut self, pos: P) -> Option<Item> {
         self.cell_mut(pos).items.pop()
     }
 
-    pub fn random_neighbour_position<T: Rng>(&self, rng: &mut T, (x, y): Point,
+    pub fn random_neighbour_position<T: Rng, P: Into<Point>>(&self, rng: &mut T, starting_pos: P,
                                              walkability: Walkability) -> Point {
-        let neighbors = [
-            (x,   y-1),
-            (x,   y+1),
-            (x-1, y),
-            (x+1, y),
-            (x-1, y-1),
-            (x+1, y-1),
-            (x-1, y+1),
-            (x+1, y+1),
-        ];
+        let starting_pos = starting_pos.into();
         let mut walkables = vec![];
-        for &pos in neighbors.iter() {
-            if self.walkable(pos, walkability) {
+        for pos in starting_pos.square_area(1) {
+            if pos != starting_pos && self.walkable(pos, walkability) {
                 walkables.push(pos)
             }
         }
         match rng.choose(&walkables) {
             Some(&random_pos) => random_pos,
-            None => (x, y)  // Nowhere to go
+            None => starting_pos  // Nowhere to go
         }
     }
 
-    pub fn explore(&mut self, center: Point, radius: i32) {
-        for (x, y) in point::CircularArea::new(center, radius) {
-            if x >= 0 && y >= 0 && x < self.width && y < self.height {
-                self.cell_mut((x, y)).explored = true;
+    pub fn explore<P: Into<Point>>(&mut self, center: P, radius: i32) {
+        let center = center.into();
+        for pos in point::CircularArea::new(center, radius) {
+            if self.within_bounds(pos) {
+                self.cell_mut(pos).explored = true;
             }
         }
     }
@@ -275,7 +271,7 @@ impl Level {
     pub fn iter(&self) -> Cells {
         Cells {
             index: 0,
-            width: self.width,
+            width: self.dimensions.x,
             inner: self.map.iter(),
         }
     }
@@ -283,7 +279,7 @@ impl Level {
     pub fn iter_mut(&mut self) -> CellsMut {
         CellsMut {
             index: 0,
-            width: self.width,
+            width: self.dimensions.x,
             inner: self.map.iter_mut(),
         }
     }
@@ -299,11 +295,11 @@ impl<'a> Iterator for CellsMut<'a> {
     type Item = (Point, &'a mut Cell);
 
     fn next(&mut self) -> Option<(Point, &'a mut Cell)> {
-        let (x, y) = (self.index % self.width, self.index / self.width);
+        let pos = (self.index % self.width, self.index / self.width).into();
         self.index += 1;
         match self.inner.next() {
             Some(cell) => {
-                Some(((x, y), cell))
+                Some((pos, cell))
             }
             None => None,
         }
@@ -320,11 +316,11 @@ impl<'a> Iterator for Cells<'a> {
     type Item = (Point, &'a Cell);
 
     fn next(&mut self) -> Option<(Point, &'a Cell)> {
-        let (x, y) = (self.index % self.width, self.index / self.width);
+        let pos = (self.index % self.width, self.index / self.width).into();
         self.index += 1;
         match self.inner.next() {
             Some(cell) => {
-                Some(((x, y), cell))
+                Some((pos, cell))
             }
             None => None,
         }

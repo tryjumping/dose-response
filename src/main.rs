@@ -157,8 +157,8 @@ fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Action {
-    Move((i32, i32)),
-    Attack((i32, i32), player::Modifier),
+    Move(point::Point),
+    Attack(point::Point, player::Modifier),
     Eat,
 }
 
@@ -170,7 +170,7 @@ fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
 
 // TODO: prolly refactor to a struct?
 // Fields: position, max radius, current radius, colour, elapsed time
-pub type ExplosionAnimation = Option<((i32, i32), i32, i32, color::Color, Duration)>;
+pub type ExplosionAnimation = Option<(point::Point, i32, i32, color::Color, Duration)>;
 
 fn explode(center: point::Point,
            radius: i32,
@@ -218,17 +218,16 @@ fn process_player<R, W>(player: &mut player::Player,
 
     if let Some(command) = commands.pop_front() {
         game_state::log_command(command_logger, command);
-        let (x, y) = player.pos;
         let mut action = match command {
-            Command::N => Action::Move((x,     y - 1)),
-            Command::S => Action::Move((x,     y + 1)),
-            Command::W => Action::Move((x - 1, y    )),
-            Command::E => Action::Move((x + 1, y    )),
+            Command::N => Action::Move(player.pos + ( 0, -1)),
+            Command::S => Action::Move(player.pos + ( 0,  1)),
+            Command::W => Action::Move(player.pos + (-1,  0)),
+            Command::E => Action::Move(player.pos + ( 1,  0)),
 
-            Command::NW => Action::Move((x - 1, y - 1)),
-            Command::NE => Action::Move((x + 1, y - 1)),
-            Command::SW => Action::Move((x - 1, y + 1)),
-            Command::SE => Action::Move((x + 1, y + 1)),
+            Command::NW => Action::Move(player.pos + (-1, -1)),
+            Command::NE => Action::Move(player.pos + ( 1, -1)),
+            Command::SW => Action::Move(player.pos + (-1,  1)),
+            Command::SE => Action::Move(player.pos + ( 1,  1)),
 
             Command::Eat => Action::Eat,
         };
@@ -240,17 +239,17 @@ fn process_player<R, W>(player: &mut player::Player,
             action = Action::Move(new_pos);
         } else if let Some((dose_pos, dose)) = level.nearest_dose(player.pos, 5) {
             let new_pos_opt = {
-                let (w, h) = level.size();
+                let point::Point{x: w, y: h} = level.size();
                 let mut path = tcod::pathfinding::AStar::new_from_callback(
                     w, h,
-                    |_from: point::Point, to: point::Point| -> f32 {
+                    |_from, to| -> f32 {
                         match level.walkable(to, level::Walkability::WalkthroughMonsters) {
                             true => 1.0,
                             false => 0.0,
                         }
                     },
                     1.0);
-                path.find(player.pos, dose_pos);
+                path.find(player.pos.tuple(), dose_pos.tuple());
                 if path.len() <= player_resist_radius(dose.irresistible, *player.will) {
                     path.walk_one_step(false)
                 } else {
@@ -258,17 +257,15 @@ fn process_player<R, W>(player: &mut player::Player,
                 }
             };
             if let Some(new_pos) = new_pos_opt {
-                action = Action::Move(new_pos);
+                action = Action::Move(new_pos.into());
             } else {
                 //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
             }
         }
         match action {
-            Action::Move((x, y)) => {
-                let (w, h) = level.size();
-                let within_level = (x >= 0) && (y >= 0) && (x < w) && (y < h);
-                if within_level {
-                    if let Some(monster_id) = level.monster_on_pos((x, y)) {
+            Action::Move(dest) => {
+                if level.within_bounds(dest) {
+                    if let Some(monster_id) = level.monster_on_pos(dest) {
                         player.spend_ap(1);
                         let monster = &mut monsters[monster_id];
                         assert_eq!(monster.id(), monster_id);
@@ -284,11 +281,11 @@ fn process_player<R, W>(player: &mut player::Player,
                             }
                             _ => {}
                         }
-                    } else if level.walkable((x, y), level::Walkability::BlockingMonsters) {
+                    } else if level.walkable(dest, level::Walkability::BlockingMonsters) {
                         player.spend_ap(1);
-                        player.move_to((x, y));
+                        player.move_to(dest);
                         loop {
-                            match level.pickup_item((x, y)) {
+                            match level.pickup_item(dest) {
                                 Some(item) => {
                                     use item::Kind::*;
                                     use player::Modifier::*;
@@ -346,10 +343,10 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
         match action {
             Action::Move(destination) => {
                 let pos = monster.position;
-                let newpos_opt = if point::tile_distance(pos, destination) <= 1 {
+                let newpos_opt = if pos.tile_distance(destination) <= 1 {
                     Some(destination)
                 } else {
-                    let (w, h) = level.size();
+                    let point::Point{x: w, y: h} = level.size();
                     {   // Find path && walk one step:
                         let mut path = tcod::pathfinding::AStar::new_from_callback(
                             w, h,
@@ -361,9 +358,9 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                                 }
                             },
                             1.0);
-                        path.find(pos, destination);
+                        path.find(pos.tuple(), destination.tuple());
                         assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
-                        path.walk_one_step(false)
+                        path.walk_one_step(false).map(|p| p.into())
                     }
                 };
                 monster.spend_ap(1);
@@ -429,12 +426,12 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
     }
 
     for (y, line) in lines.iter().enumerate() {
-        display.write_text(line, x + 1, y as i32, fg, bg);
+        display.write_text(line, (x + 1, y as i32), fg, bg);
     }
 
-    let bottom = display.size().1 - 1;
-    display.write_text(&format!("dt: {}ms", dt.num_milliseconds()), x + 1, bottom - 1, fg, bg);
-    display.write_text(&format!("FPS: {}", fps), x + 1, bottom, fg, bg);
+    let bottom = display.size().y - 1;
+    display.write_text(&format!("dt: {}ms", dt.num_milliseconds()), (x + 1, bottom - 1), fg, bg);
+    display.write_text(&format!("FPS: {}", fps), (x + 1, bottom), fg, bg);
 
 }
 
@@ -482,15 +479,15 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         *state.player.state_of_mind);
     let player_was_alive = state.player.alive();
 
+    // Animation to re-center the screen around the player when they
+    // get too close to an edge.
     state.pos_timer.update(dt);
     if !state.pos_timer.finished() {
-        let (oldx, oldy) = state.old_screen_pos;
-        let (finalx, finaly) = state.new_screen_pos;
         let percentage = state.pos_timer.percentage_elapsed();
-        let x = (((finalx - oldx) as f32) * percentage) as i32;
-        let y = (((finaly - oldy) as f32) * percentage) as i32;
+        let x = (((state.new_screen_pos.x - state.old_screen_pos.x) as f32) * percentage) as i32;
+        let y = (((state.new_screen_pos.y - state.old_screen_pos.y) as f32) * percentage) as i32;
         //println!("percentage: {}, old: {:?}, final: {:?}; x, y: {}, {}", percentage, (oldx, oldy), (finalx, finaly), x, y);
-        state.screen_position_in_world = (oldx + x, oldy + y);
+        state.screen_position_in_world = state.old_screen_pos + (x, y);
     }
 
     if running || paused_one_step || timed_step {
@@ -509,24 +506,22 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 state.level.explore(state.player.pos, exploration_radius(*state.player.state_of_mind));
 
                 // move screen if the player goes near the edge of the screen
-                let screen_left_top_corner = (state.screen_position_in_world.0 - (state.display_size.0 / 2),
-                                              state.screen_position_in_world.1 - (state.display_size.1 / 2));
+                let screen_left_top_corner = state.screen_position_in_world - (state.display_size / 2);
 
-                let display_pos = (state.player.pos.0 - screen_left_top_corner.0,
-                                   state.player.pos.1 - screen_left_top_corner.1);
+                let display_pos = state.player.pos - screen_left_top_corner;
                 if state.pos_timer.finished() {
                     let dur = Duration::milliseconds(400);
                     // TODO: move the screen roughly the same distance along X and Y
-                    if display_pos.0 <= 10 || display_pos.0 >= state.display_size.0 - 10 {
+                    if display_pos.x <= 10 || display_pos.x >= state.display_size.x - 10 {
                             // change the screen centre to that of the player
                             state.pos_timer = Timer::new(dur);
                             state.old_screen_pos = state.screen_position_in_world;
-                            state.new_screen_pos = (state.player.pos.0, state.old_screen_pos.1);
-                    } else if display_pos.1 <= 7 || display_pos.1 >= state.display_size.1 - 7 {
+                            state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
+                    } else if display_pos.y <= 7 || display_pos.y >= state.display_size.y - 7 {
                             // change the screen centre to that of the player
                             state.pos_timer = Timer::new(dur);
                             state.old_screen_pos = state.screen_position_in_world;
-                            state.new_screen_pos = (state.old_screen_pos.0, state.player.pos.1);
+                            state.new_screen_pos = (state.old_screen_pos.x, state.player.pos.y).into();
                     }
                 }
 
@@ -575,8 +570,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
             if !was_high && is_high {
                 // Set animation on each level's tile:
-                for ((x, y), cell) in state.level.iter_mut() {
-                    let dur_ms = 700 + (((x * y) % 100) as i64) * 5;
+                for (pos, cell) in state.level.iter_mut() {
+                    let dur_ms = 700 + (((pos.x * pos.y) % 100) as i64) * 5;
                     cell.tile.set_animation(graphics::Animation::ForegroundCycle{
                         from: color::high,
                         to: color::high_to,
@@ -665,16 +660,15 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     let radius = exploration_radius(*state.player.state_of_mind);
 
-    let screen_left_top_corner = (state.screen_position_in_world.0 - (state.map_size / 2),
-                                  state.screen_position_in_world.1 - (state.map_size / 2));
+    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2, state.map_size / 2);
 
     let player_pos = state.player.pos;
+    // NOTE: map is the displayed playable area. I.e. fits the screen
+    // but doesn't include the side bar.
     let map_size = state.map_size;
-    let within_map_bounds = |pos| within_screen_bounds(pos, (map_size, map_size));
-    let in_fov = |pos| point::distance(pos, player_pos) < (radius as f32);
-    let screen_coords_from_world = |pos: (i32, i32)| {
-        (pos.0 - screen_left_top_corner.0, pos.1 - screen_left_top_corner.1)
-    };
+    let within_map_bounds = |pos| pos >= (0, 0) && pos < (map_size, map_size);
+    let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
+    let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     // Render the level and items:
     for (world_pos, cell) in state.level.iter() {
@@ -691,7 +685,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             for item in cell.items.iter() {
                 graphics::draw(&mut engine.display, dt, display_pos, item);
             }
-            engine.display.set_background(display_pos.0, display_pos.1, color::dim_background);
+            engine.display.set_background(display_pos, color::dim_background);
         }
 
         // Render the irresistible background of a dose
@@ -701,7 +695,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 for point in point::SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {
                         let screen_coords = screen_coords_from_world(point);
-                        engine.display.set_background(screen_coords.0, screen_coords.1, color::dose_background);
+                        engine.display.set_background(screen_coords, color::dose_background);
                     }
                 }
             }
@@ -728,10 +722,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             state.explosion_animation = Some((center, max_r, r, c, elapsed));
             for world_pos in point::SquareArea::new(center, r) {
                 if state.level.within_bounds(world_pos) {
-                    let display_pos = (world_pos.0 - screen_left_top_corner.0,
-                                       world_pos.1 - screen_left_top_corner.1);
+                    let display_pos = screen_coords_from_world(world_pos);
                     if within_map_bounds(display_pos) {
-                        engine.display.set_background(display_pos.0, display_pos.1, c);
+                        engine.display.set_background(display_pos, c);
                     }
                 }
             }
@@ -744,11 +737,10 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
     for monster in state.monsters.iter().filter(|m| !m.dead) {
-        let visible = point::distance(monster.position, state.player.pos) < (radius as f32);
+        let visible = monster.position.distance(state.player.pos) < (radius as f32);
         if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
             let world_pos = monster.position;
-            let display_pos = (world_pos.0 - screen_left_top_corner.0,
-                               world_pos.1 - screen_left_top_corner.1);
+            let display_pos = screen_coords_from_world(world_pos);
             if within_map_bounds(display_pos) {
                 graphics::draw(&mut engine.display, dt, display_pos, monster);
             }
@@ -757,8 +749,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
     {
         let world_pos = state.player.pos;
-        let display_pos = (world_pos.0 - screen_left_top_corner.0,
-                           world_pos.1 - screen_left_top_corner.1);
+        let display_pos = screen_coords_from_world(world_pos);
         if within_map_bounds(display_pos) {
             graphics::draw(&mut engine.display, dt, display_pos, &state.player);
         }
@@ -769,20 +760,13 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 }
 
 
-fn within_screen_bounds(p: (i32, i32), screen_dimensions: (i32, i32)) -> bool {
-    let (x, y) = p;
-    let (w, h) = screen_dimensions;
-    x >= 0 && y >= 0 && x < w && y < h
-}
-
-
 fn main() {
     // NOTE: at our current font, the height of 43 is the maximum value for
     // 1336x768 monitors.
     let map_size = 43;
     let panel_width = 20;
-    let display_size = (map_size + panel_width, map_size);
-    let world_size = (200, 200);
+    let display_size = (map_size + panel_width, map_size).into();
+    let world_size = (200, 200).into();
     let title = "Dose Response";
     let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
 
@@ -813,6 +797,6 @@ fn main() {
     // one of the known ones.
     tcod::system::force_fullscreen_resolution(screen_pixel_size.0, screen_pixel_size.1);
 
-    let mut engine = Engine::new(display_size.0, display_size.1, color::background, title, font_path.clone());
+    let mut engine = Engine::new(display_size, color::background, title, font_path.clone());
     engine.main_loop(game_state, update);
 }

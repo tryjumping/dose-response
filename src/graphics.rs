@@ -2,6 +2,7 @@ use time::Duration;
 
 use color::Color;
 use engine::Display;
+use point::Point;
 
 
 pub trait Render {
@@ -16,15 +17,14 @@ pub enum Animation {
 }
 
 pub fn draw<R: Render>(display: &mut Display, dt: Duration,
-                       pos: (i32, i32), render: &R) {
-    let (x, y) = pos;
+                       pos: Point, render: &R) {
     let (glyph, fg, bg_opt) = render.render(dt);
     let bg = match bg_opt {
         Some(col) => col,
         // TODO: don't set the background at all if it's not passed in:
-        None => display.get_background(x, y)
+        None => display.get_background(pos)
     };
-    display.draw_char(x, y, glyph, fg, bg);
+    display.draw_char(pos, glyph, fg, bg);
 }
 
 

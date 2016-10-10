@@ -1,6 +1,8 @@
 use std::cmp::{max, Ordering};
+use std::fmt::{Display, Formatter, Error};
+use std::ops::{Add, AddAssign, Div, Sub};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
@@ -11,32 +13,66 @@ impl Point {
         Point{x: x, y: y}
     }
 
-    pub fn distance(&self, other: Point) -> f32 {
+    pub fn distance<P: Into<Point>>(&self, other: P) -> f32 {
+        let other = other.into();
         let a = (self.x - other.x).pow(2);
         let b = (self.y - other.y).pow(2);
         ((a + b) as f32).sqrt()
     }
 
-    pub fn tile_distance(self, other: Point) -> i32 {
+    pub fn tile_distance<P: Into<Point>>(&self, other: P) -> i32 {
+        let other = other.into();
         max((self.x - other.x).abs(), (self.y - other.y).abs())
+    }
+
+    pub fn square_area(&self, radius: i32) -> SquareArea {
+        SquareArea::new(*self, radius)
+    }
+
+    pub fn circular_area(&self, radius: i32) -> CircularArea {
+        CircularArea::new(*self, radius)
+    }
+
+    pub fn tuple(&self) -> (i32, i32) {
+        (self.x, self.y)
     }
 }
 
-impl std::fmt::Display for Point {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+impl Into<Point> for (i32, i32) {
+    fn into(self) -> Point {
+        Point{ x: self.0, y: self.1 }
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "({}, {})", self.x, self.y)
     }
 }
 
-impl std::ops::Add for Point {
-    type Output = V2;
+impl Add for Point {
+    type Output = Self;
 
-    fn add(self, rhs: V2) -> Point {
+    fn add(self, rhs: Self) -> Self {
         Point{ x: self.x + rhs.x, y: self.y + rhs.y }
     }
 }
 
-impl std::cmp::PartialOrd for Point {
+impl AddAssign for Point {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl Sub for Point {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        self + Point::new(-rhs.x, -rhs.y)
+    }
+}
+
+impl PartialOrd for Point {
     fn partial_cmp(&self, other: &Point) -> Option<Ordering> {
         if self == other {
             Some(Ordering::Equal)
@@ -50,23 +86,50 @@ impl std::cmp::PartialOrd for Point {
     }
 }
 
-impl std::ops::Add<(i32, i32)> for Point {
-    type Output = V2;
+impl Add<(i32, i32)> for Point {
+    type Output = Self;
 
-    fn add(self, rhs: (i32, i32)) -> Point {
-        Point{ x: self.x + rhs.0, y: self.y + rhs.1 }
+    fn add(self, rhs: (i32, i32)) -> Self {
+        let rhs: Point = rhs.into();
+        self + rhs
+    }
+}
+
+impl AddAssign<(i32, i32)> for Point {
+    fn add_assign(&mut self, rhs: (i32, i32)) {
+        let rhs: Point = rhs.into();
+        *self = self.add(rhs);
+    }
+}
+
+impl Sub<(i32, i32)> for Point {
+    type Output = Self;
+
+    fn sub(self, rhs: (i32, i32)) -> Self {
+        let rhs: Point = rhs.into();
+        self - rhs
     }
 }
 
 impl PartialEq<(i32, i32)> for Point {
     fn eq(&self, other: &(i32, i32)) -> bool {
-        self == Point::new(other.0, other.1)
+        let other: Point = (*other).into();
+        self == &other
     }
 }
 
 impl PartialOrd<(i32, i32)> for Point {
     fn partial_cmp(&self, other: &(i32, i32)) -> Option<Ordering> {
-        self.partial_cmp(&Point::new(other.0, other.1))
+        let other: Point = (*other).into();
+        self.partial_cmp(&other)
+    }
+}
+
+impl Div<i32> for Point {
+    type Output = Self;
+
+    fn div(self, rhs: i32) -> Self {
+        Point::new(self.x / rhs, self.y / rhs)
     }
 }
 
@@ -76,26 +139,22 @@ pub fn point(x: i32, y: i32) -> Point {
 
 
 pub struct CircularArea {
-    x: i32,
-    y: i32,
+    pos: Point,
     center: Point,
     radius: i32,
     initial_x: i32,
-    max_x: i32,
-    max_y: i32,
+    max: Point
 }
 
 impl CircularArea {
-    pub fn new(center: Point, radius: i32) -> Self {
-        let (center_x, center_y) = center;
+    pub fn new<P: Into<Point>>(center: P, radius: i32) -> Self {
+        let center = center.into();
         CircularArea {
-            x: center_x - radius,
-            y: center_y - radius,
+            pos: center - (radius, radius),
             center: center,
             radius: radius,
-            initial_x: center_x - radius,
-            max_x: center_x + radius,
-            max_y: center_y + radius,
+            initial_x: center.x - radius,
+            max: center + (radius, radius),
         }
     }
 }
@@ -105,16 +164,16 @@ impl Iterator for CircularArea {
 
     fn next(&mut self) -> Option<Point> {
         loop {
-            if (self.y > self.max_y) || (self.x > self.max_x) {
+            if (self.pos.y > self.max.y) || (self.pos.x > self.max.x) {
                 return None;
             }
-            let current_point = (self.x, self.y);
-            self.x += 1;
-            if self.x > self.max_x {
-                self.x = self.initial_x;
-                self.y += 1;
+            let current_point = self.pos;
+            self.pos.x += 1;
+            if self.pos.x > self.max.x {
+                self.pos.x = self.initial_x;
+                self.pos.y += 1;
             }
-            if distance(current_point, self.center) < self.radius as f32 {
+            if self.center.distance(current_point) < self.radius as f32 {
                 return Some(current_point)
             } else {
                 // Keep looping for another point
@@ -124,22 +183,18 @@ impl Iterator for CircularArea {
 }
 
 pub struct SquareArea {
-    x: i32,
-    y: i32,
+    pos: Point,
     min_x: i32,
-    max_x: i32,
-    max_y: i32,
+    max: Point,
 }
 
 impl SquareArea {
-    pub fn new(center: Point, half_side: i32) -> Self {
-        let (center_x, center_y) = center;
+    pub fn new<P: Into<Point>>(center: P, half_side: i32) -> Self {
+        let center = center.into();
         SquareArea {
-            x: center_x - half_side,
-            y: center_y - half_side,
-            min_x: center_x - half_side,
-            max_x: center_x + half_side,
-            max_y: center_y + half_side,
+            pos: center - (half_side, half_side),
+            min_x: center.x - half_side,
+            max: center + (half_side, half_side),
         }
     }
 }
@@ -148,14 +203,14 @@ impl Iterator for SquareArea {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
-        if self.y > self.max_y {
+        if self.pos.y > self.max.y {
             return None
         }
-        let current_point = (self.x, self.y);
-        self.x += 1;
-        if self.x > self.max_x {
-            self.y += 1;
-            self.x = self.min_x;
+        let current_point = self.pos;
+        self.pos.x += 1;
+        if self.pos.x > self.max.x {
+            self.pos.y += 1;
+            self.pos.x = self.min_x;
         }
         return Some(current_point)
     }
@@ -169,61 +224,61 @@ mod test {
 
     #[test]
     fn test_tile_distance() {
-        assert_eq!(tile_distance((0, 0), (0, 0)), 0);
+        assert_eq!(point(0, 0).tile_distance((0, 0)), 0);
 
-        assert_eq!(tile_distance((0, 0), ( 1, 0)), 1);
-        assert_eq!(tile_distance((0, 0), (-1, 0)), 1);
-        assert_eq!(tile_distance((0, 0), ( 1, 1)), 1);
-        assert_eq!(tile_distance((0, 0), (-1, 1)), 1);
-        assert_eq!(tile_distance((0, 0), (0,  1)), 1);
-        assert_eq!(tile_distance((0, 0), (0, -1)), 1);
-        assert_eq!(tile_distance((0, 0), (1,  1)), 1);
-        assert_eq!(tile_distance((0, 0), (1, -1)), 1);
+        assert_eq!(point(0, 0).tile_distance(( 1, 0)), 1);
+        assert_eq!(point(0, 0).tile_distance((-1, 0)), 1);
+        assert_eq!(point(0, 0).tile_distance(( 1, 1)), 1);
+        assert_eq!(point(0, 0).tile_distance((-1, 1)), 1);
+        assert_eq!(point(0, 0).tile_distance((0,  1)), 1);
+        assert_eq!(point(0, 0).tile_distance((0, -1)), 1);
+        assert_eq!(point(0, 0).tile_distance((1,  1)), 1);
+        assert_eq!(point(0, 0).tile_distance((1, -1)), 1);
 
-        assert_eq!(tile_distance((0, 0), (2, 2)), 2);
-        assert_eq!(tile_distance((0, 0), (-2, -2)), 2);
-        assert_eq!(tile_distance((0, 0), (0, 2)), 2);
-        assert_eq!(tile_distance((0, 0), (2, 0)), 2);
+        assert_eq!(point(0, 0).tile_distance((2, 2)), 2);
+        assert_eq!(point(0, 0).tile_distance((-2, -2)), 2);
+        assert_eq!(point(0, 0).tile_distance((0, 2)), 2);
+        assert_eq!(point(0, 0).tile_distance((2, 0)), 2);
 
-        assert_eq!(tile_distance((-3, -3), (10, 10)), 13);
-        assert_eq!(tile_distance((-3, -3), (5, -2)), 8);
+        assert_eq!(point(-3, -3).tile_distance((10, 10)), 13);
+        assert_eq!(point(-3, -3).tile_distance((5, -2)), 8);
     }
 
     #[test]
     fn test_euclidean_distance() {
-        let actual = distance((0, 0), (0, 0));
+        let actual = point(0, 0).distance((0, 0));
         let expected = 0.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = distance((0, 0), (10, 10));
+        let actual = point(0, 0).distance((10, 10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = distance((0, 0), (10, -10));
+        let actual = point(0, 0).distance((10, -10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = distance((0, 0), (-10, 10));
+        let actual = point(0, 0).distance((-10, 10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = distance((0, 0), (10, -10));
+        let actual = point(0, 0).distance((10, -10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = distance((0, 0), (3, 4));
+        let actual = point(0, 0).distance((3, 4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = distance((0, 0), (-3, 4));
+        let actual = point(0, 0).distance((-3, 4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = distance((0, 0), (3, -4));
+        let actual = point(0, 0).distance((3, -4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = distance((0, 0), (-3, -4));
+        let actual = point(0, 0).distance((-3, -4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 }
@@ -245,17 +300,14 @@ mod test {
 
     #[test]
     fn test_points_within_radius_of_five() {
-        let mut actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 5));
+        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 5));
 
         let mut expected = Vec::new();
-        for x in -5..6 {
-            for y in -5..6 {
-                expected.push((x, y));
+        for y in -5..6 {
+            for x in -5..6 {
+                expected.push(Point{x: x, y: y});
             }
         }
-        // the order is undefined so make sure we don't fail just because of ordering
-        actual.sort();
-        expected.sort();
         assert_eq!(actual, expected);
     }
 }

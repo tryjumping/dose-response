@@ -13,6 +13,6 @@ cp -r .copy/* .
 rm -rf .copy
 git add -A
 git commit -m "Release version v${VERSION}"
-git tag "v${VERSION}"
+git tag -a -m "Release version v${VERSION}" "v${VERSION}"
 git push --follow-tags github github-release:master
 git checkout -

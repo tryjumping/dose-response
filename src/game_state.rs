@@ -156,8 +156,10 @@ impl GameState {
         let commands = VecDeque::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
+        // Timestamp in format: 2016-11-20T20-04-39.123
+        // We can't use the colons in the timestamp -- Windows don't allow them in a path.
         let timestamp = format!("{}.{:03}",
-                                time::strftime("%FT%T", &cur_time).unwrap(),
+                                time::strftime("%FT%H-%M-%S", &cur_time).unwrap(),
                                 (cur_time.tm_nsec / 1000000));
         let replay_dir = &Path::new("replays");
         assert!(replay_dir.is_relative());

@@ -3,7 +3,7 @@
 extern crate rand;
 extern crate time;
 pub extern crate tcod;
-extern crate rustbox;
+// extern crate rustbox;
 
 
 use std::collections::VecDeque;

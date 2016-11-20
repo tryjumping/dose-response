@@ -768,7 +768,8 @@ fn main() {
     let display_size = (map_size + panel_width, map_size).into();
     let world_size = (200, 200).into();
     let title = "Dose Response";
-    let font_path = Path::new("./fonts/dejavu16x16_gs_tc.png");
+    let font_dir = Path::new("fonts");
+    let font_path = font_dir.join("dejavu16x16_gs_tc.png");
 
     let game_state = match env::args().count() {
         1 => {  // Run the game with a new seed, create the replay log
@@ -797,6 +798,6 @@ fn main() {
     // one of the known ones.
     tcod::system::force_fullscreen_resolution(screen_pixel_size.0, screen_pixel_size.1);
 
-    let mut engine = Engine::new(display_size, color::background, title, font_path.clone());
+    let mut engine = Engine::new(display_size, color::background, title, &font_path);
     engine.main_loop(game_state, update);
 }

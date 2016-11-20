@@ -159,14 +159,17 @@ impl GameState {
         let timestamp = format!("{}.{:03}",
                                 time::strftime("%FT%T", &cur_time).unwrap(),
                                 (cur_time.tm_nsec / 1000000));
-        let replay_dir = &Path::new("./replays/");
+        let replay_dir = &Path::new("replays");
+        assert!(replay_dir.is_relative());
+        assert!(replay_dir.is_dir());
         if !path_exists(replay_dir) {
             fs::create_dir_all(replay_dir).unwrap();
         }
         let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
         let mut writer = match File::create(replay_path) {
             Ok(f) => f,
-            Err(msg) => panic!("Failed to create the replay file. {}", msg)
+            Err(msg) => panic!("Failed to create the replay file at '{:?}'.\nReason: '{}'.",
+                               replay_path.display(), msg),
         };
         // println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);

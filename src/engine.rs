@@ -75,6 +75,15 @@ impl Display {
     }
 }
 
+#[cfg(not(debug_assertions))]
+fn limit_fps_in_release(fps: i32) {
+    tcod::system::set_fps(fps);
+}
+
+#[cfg(debug_assertions)]
+fn limit_fps_in_release(_fps: i32) { }
+
+
 pub struct Engine {
     pub display: Display,
     pub keys: VecDeque<Key>,
@@ -90,6 +99,9 @@ impl Engine {
             .font_type(FontType::Greyscale)
             .init();
         root.set_default_background(default_background);
+
+        // Limit FPS in the release mode
+        limit_fps_in_release(60);
 
         // let rustbox = RustBox::init(Default::default()).expect(
         //     "Failed to initialise rustbox!");

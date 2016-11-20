@@ -19,3 +19,8 @@ replay:
 
 clean:
 	rm -rf target
+
+prep-release:
+	rm -rf .copy
+	mkdir -p .copy
+	cp -r Cargo.lock Cargo.toml fonts src .copy

@@ -55,6 +55,8 @@ main() {
     configure_cargo
 
     # TODO if you need to install extra stuff add it here
+    brew update || true
+    sudo apt-get install -y libsdl1.2-dev  || brew install sdl || true
 }
 
 main

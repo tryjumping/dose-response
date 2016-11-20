@@ -47,9 +47,9 @@ before_deploy:
   - mkdir staging\build
   # TODO update this part to copy the artifacts that make sense for your project
   - copy target\release\dose-response.exe staging
-  - pushd target\release\build\tcod-sys-*\out
+  - cd target\release\build\tcod-sys-*\out
   - copy * ..\..\..\..\..
-  - popd
+  - cd ..\..\..\..\..
   - xcopy fonts staging\fonts /s /e /y
   - xcopy target\release\build staging\build /s /e /y
   - xcopy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT" staging /s /e /y

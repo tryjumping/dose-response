@@ -25,6 +25,7 @@ matrix:
     - os: linux
       rust: stable
       env: TARGET=i686-unknown-linux-gnu
+      sudo: required
       addons:
         apt:
           packages: &i686_unknown_linux_gnu
@@ -46,6 +47,7 @@ matrix:
       env: TARGET=x86_64-apple-darwin
     - os: linux
       rust: stable
+      sudo: required
       env: TARGET=x86_64-unknown-linux-gnu
     - os: linux
       rust: stable

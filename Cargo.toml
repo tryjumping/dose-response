@@ -1,0 +1,14 @@
+[package]
+name = "dose-response"
+version = "0.1.0"
+authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
+
+[[bin]]
+name = "dose-response"
+path = "src/main.rs"
+
+[dependencies]
+time = "0.1.35"
+rand = "0.3.14"
+tcod = "0.10.0"
+# rustbox = "0.8.0"

@@ -135,14 +135,14 @@ fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
         match keys.pop_front() {
             Some(key) => {
                 match key {
-                    Key { code: Up, ..} => commands.push_back(Command::N),
-                    Key { code: Down, ..} => commands.push_back(Command::S),
-                    Key { code: Left, ctrl: false, shift: true, .. } => commands.push_back(Command::NW),
-                    Key { code: Left, ctrl: true, shift: false, .. } => commands.push_back(Command::SW),
-                    Key { code: Left, .. } => commands.push_back(Command::W),
-                    Key { code: Right, ctrl: false, shift: true, .. } => commands.push_back(Command::NE),
-                    Key { code: Right, ctrl: true, shift: false, .. } => commands.push_back(Command::SE),
-                    Key { code: Right, .. } => commands.push_back(Command::E),
+                    Key { code: Up, ..} | Key { code: NumPad8, .. } => commands.push_back(Command::N),
+                    Key { code: Down, ..} | Key { code: NumPad2, .. }  => commands.push_back(Command::S),
+                    Key { code: Left, ctrl: false, shift: true, .. } | Key { code: NumPad7, .. }  => commands.push_back(Command::NW),
+                    Key { code: Left, ctrl: true, shift: false, .. } | Key { code: NumPad1, .. }  => commands.push_back(Command::SW),
+                    Key { code: Left, .. } | Key { code: NumPad4, .. }  => commands.push_back(Command::W),
+                    Key { code: Right, ctrl: false, shift: true, .. } | Key { code: NumPad9, .. }  => commands.push_back(Command::NE),
+                    Key { code: Right, ctrl: true, shift: false, .. } | Key { code: NumPad3, .. }  => commands.push_back(Command::SE),
+                    Key { code: Right, .. } | Key { code: NumPad6, .. }  => commands.push_back(Command::E),
                     Key { printable: 'e', .. } => {
                         commands.push_back(Command::Eat);
                     }
@@ -437,7 +437,7 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
 
 
 fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
-    if engine.key_pressed(KeyCode::Escape) {
+    if engine.key_pressed(Key { printable: 'q', pressed: true, code: KeyCode::Char, .. Default::default() }) {
         return None;
     }
     if let Some(key) = engine.keys.pop_front() {
@@ -447,7 +447,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             engine.keys.push_front(key);
         }
     }
-    if engine.key_pressed(KeyCode::F5) {
+    if engine.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
         //println!("Restarting game");
         engine.keys.clear();
         let state = GameState::new_game(state.world_size, state.map_size, state.panel_width, state.display_size);
@@ -455,7 +455,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     state.clock = state.clock + dt;
 
-    if engine.key_pressed(KeyCode::F6) {
+    if engine.key_pressed(Key { code: KeyCode::F6, pressed: true, .. Default::default() }) {
         state.cheating = !state.cheating;
         //println!("Cheating set to: {}", state.cheating);
     }

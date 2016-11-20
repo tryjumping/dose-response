@@ -75,6 +75,15 @@ impl Display {
     }
 }
 
+#[cfg(not(debug_assertions))]
+fn limit_fps_in_release(fps: i32) {
+    tcod::system::set_fps(fps);
+}
+
+#[cfg(debug_assertions)]
+fn limit_fps_in_release(_fps: i32) { }
+
+
 pub struct Engine {
     pub display: Display,
     pub keys: VecDeque<Key>,
@@ -90,6 +99,9 @@ impl Engine {
             .font_type(FontType::Greyscale)
             .init();
         root.set_default_background(default_background);
+
+        // Limit FPS in the release mode
+        limit_fps_in_release(60);
 
         // let rustbox = RustBox::init(Default::default()).expect(
         //     "Failed to initialise rustbox!");
@@ -150,9 +162,9 @@ impl Engine {
     }
 
     /// Return true if the given key is located anywhere in the event buffer.
-    pub fn key_pressed(&self, key_code: KeyCode) -> bool {
+    pub fn key_pressed(&self, key: Key) -> bool {
         for &pressed_key in self.keys.iter() {
-            if pressed_key.code == key_code {
+            if pressed_key == key {
                 return true;
             }
         }

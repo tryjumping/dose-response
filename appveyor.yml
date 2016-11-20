@@ -43,12 +43,15 @@ before_deploy:
   # Generate artifacts for release
   - cargo build --release
   - mkdir staging
+  - mkdir staging\fonts
+  - mkdir staging\build
   # TODO update this part to copy the artifacts that make sense for your project
   - copy target\release\dose-response.exe staging
-  - xcopy fonts staging /s /e /y
-  - xcopy target\release\build staging /s /e /y
+  - xcopy fonts staging\fonts /s /e /y
+  - xcopy target\release\build staging\build /s /e /y
+  - xcopy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT" staging /s /e /y
   - cd staging
-    # release zipfile will look like 'rust-everywhere-v1.2.3-x86_64-pc-windows-msvc'
+    # release zipfile will look like 'dose-response-v1.2.3-x86_64-pc-windows-msvc'
   - 7z a ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip *
   - appveyor PushArtifact ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip
 

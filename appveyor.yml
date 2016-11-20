@@ -41,7 +41,9 @@ before_deploy:
   - cargo build --release
   - mkdir staging
   # TODO update this part to copy the artifacts that make sense for your project
-  - copy target\release\hello.exe staging
+  - copy target\release\dose-response.exe staging
+  - xcopy fonts staging /s /e /y
+  - xcopy target\release\build staging /s /e /y
   - cd staging
     # release zipfile will look like 'rust-everywhere-v1.2.3-x86_64-pc-windows-msvc'
   - 7z a ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip *

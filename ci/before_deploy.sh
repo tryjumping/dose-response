@@ -21,12 +21,12 @@ mk_tarball() {
     cp -r target/$TARGET/release/build $td
     mkdir -p $td/lib
     cp -r target/$TARGET/release/build/tcod-sys-*/out/libtcod.so* $td/lib
-    cat >$dt/run-game <<EOF
+    cat >$td/run-game <<EOF
 #!/bin/sh
 export LD_LIBRARY_PATH=lib
 ./dose-response
 EOF
-    chmod a+x $dt/run-game
+    chmod a+x $td/run-game
 
     pushd $td
 

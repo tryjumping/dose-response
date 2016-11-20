@@ -2,7 +2,7 @@
 
 set -eux
 
-VERSION=grep version Cargo.toml | awk '{gsub(/"/, "", $3); print $3}'
+VERSION=$(grep version Cargo.toml | awk '{gsub(/"/, "", $3); print $3}')
 
 rm -rf .copy
 mkdir -p .copy

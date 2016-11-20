@@ -1,9 +1,20 @@
+* Add NPCs
+** these could be "friends and family"
+** they're seen as translucent ghosts you can't interact with when High
+** but they can accompany you when sober
+*** making monsters not attack you
+*** going sober more slowly
+* Consider medication or sobriety badges
+** Instead of the 12-step bullshit
+** You could come visit these centres
+*** they'd feed you and somehow help you to combat the addiction
+*** you could get sobriety bonuses (e.g. will increase, etc.)
 * The FOV circle should never extend beyond the edge of the screen
 ** I.e. the player should always be able to see the full extent of their field of view
 ** Which means we should trigger the screen scroll before that happens
 ** And to make things predictable, let's scroll precisely when the field of view would be outside
 ** That way the player can learn & anticipate it instead of being surprised
-* The screen doesn't move when going to the right edge
+* BUG: The screen doesn't move when going to the right edge
 ** And but the world there still exist, so a Depression can kill you without you seeing it coming
 * Map the "must go forward and use the dose" range directly to Will?
 ** It could make the place more interesting -- having move around the place

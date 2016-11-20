@@ -6,12 +6,14 @@ environment:
   # TODO feel free to delete targets/channels you don't need
   matrix:
     # Stable channel
-    - TARGET: i686-pc-windows-gnu
-      CHANNEL: stable
+    # NOTE: we've disabled the gnu/mingw targets for now because the compiler
+    # isn't being installed/found. So we'll have to deal with that later.
+    # - TARGET: i686-pc-windows-gnu
+    #   CHANNEL: stable
     - TARGET: i686-pc-windows-msvc
       CHANNEL: stable
-    - TARGET: x86_64-pc-windows-gnu
-      CHANNEL: stable
+    # - TARGET: x86_64-pc-windows-gnu
+    #   CHANNEL: stable
     - TARGET: x86_64-pc-windows-msvc
       CHANNEL: stable
 
@@ -33,7 +35,8 @@ build: false
 # TODO modify this phase as you see fit
 test_script:
   - cargo build --verbose
-  - cargo run
+  # NOTE: disable cargo run. It's a GUI/GL app. Running it will fail.
+  # - cargo run
   - cargo test
 
 before_deploy:

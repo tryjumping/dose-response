@@ -162,9 +162,9 @@ impl Engine {
     }
 
     /// Return true if the given key is located anywhere in the event buffer.
-    pub fn key_pressed(&self, key_code: KeyCode) -> bool {
+    pub fn key_pressed(&self, key: Key) -> bool {
         for &pressed_key in self.keys.iter() {
-            if pressed_key.code == key_code {
+            if pressed_key == key {
                 return true;
             }
         }

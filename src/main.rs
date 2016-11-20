@@ -437,7 +437,7 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
 
 
 fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
-    if engine.key_pressed(KeyCode::Escape) {
+    if engine.key_pressed(Key { printable: 'q', pressed: true, code: KeyCode::Char, .. Default::default() }) {
         return None;
     }
     if let Some(key) = engine.keys.pop_front() {
@@ -447,7 +447,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             engine.keys.push_front(key);
         }
     }
-    if engine.key_pressed(KeyCode::F5) {
+    if engine.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
         //println!("Restarting game");
         engine.keys.clear();
         let state = GameState::new_game(state.world_size, state.map_size, state.panel_width, state.display_size);
@@ -455,7 +455,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     state.clock = state.clock + dt;
 
-    if engine.key_pressed(KeyCode::F6) {
+    if engine.key_pressed(Key { code: KeyCode::F6, pressed: true, .. Default::default() }) {
         state.cheating = !state.cheating;
         //println!("Cheating set to: {}", state.cheating);
     }

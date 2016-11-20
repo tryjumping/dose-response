@@ -19,6 +19,14 @@ mk_tarball() {
     cp target/$TARGET/release/dose-response $td
     cp -r fonts $td
     cp -r target/$TARGET/release/build $td
+    mkdir -p $td/lib
+    cp -r target/$TARGET/release/build/tcod-sys-*/out/libtcod.so* $td/lib
+    cat >$dt/run-game <<EOF
+#!/bin/sh
+export LD_LIBRARY_PATH=lib
+./dose-response
+EOF
+    chmod a+x $dt/run-game
 
     pushd $td
 

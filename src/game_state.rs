@@ -161,7 +161,6 @@ impl GameState {
                                 (cur_time.tm_nsec / 1000000));
         let replay_dir = &Path::new("replays");
         assert!(replay_dir.is_relative());
-        assert!(replay_dir.is_dir());
         if !path_exists(replay_dir) {
             fs::create_dir_all(replay_dir).unwrap();
         }

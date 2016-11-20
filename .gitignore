@@ -1,0 +1,13 @@
+*.pyc
+dist
+/replays/*
+/tcod-fps-bench-rust
+/dose-response-rust
+/lib/librtcod-*.so
+/bench/tcod-fps-bench-rust
+/bin/*
+dose-response
+/test_component_codegen
+/test_component_codegen.rs
+test-dose-response
+/target/

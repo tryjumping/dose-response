@@ -11,8 +11,8 @@ cp -r Cargo.lock Cargo.toml fonts src .copy
 git checkout github-release
 cp -r .copy/* .
 rm -rf .copy
-echo git add -A
-echo git commit -m "Release version v${VERSION}"
-echo git tag "v${VERSION}"
-echo git push --follow-tags github github-release:master
-echo git checkout -
+git add -A
+git commit -m "Release version v${VERSION}"
+git tag "v${VERSION}"
+git push --follow-tags github github-release:master
+git checkout -

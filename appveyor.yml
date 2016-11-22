@@ -8,13 +8,15 @@ environment:
     # Stable channel
     # NOTE: we've disabled the gnu/mingw targets for now because the compiler
     # isn't being installed/found. So we'll have to deal with that later.
-    # - TARGET: i686-pc-windows-gnu
-    #   CHANNEL: stable
+    - TARGET: i686-pc-windows-gnu
+      MSYS_BITS: 64
+      CHANNEL: stable
     - TARGET: i686-pc-windows-msvc
       REDIST_ARCH: x86
       CHANNEL: stable
-    # - TARGET: x86_64-pc-windows-gnu
-    #   CHANNEL: stable
+    - TARGET: x86_64-pc-windows-gnu
+      MSYS_BITS: 32
+      CHANNEL: stable
     - TARGET: x86_64-pc-windows-msvc
       REDIST_ARCH: x64
       CHANNEL: stable
@@ -25,6 +27,7 @@ install:
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
   - rustup-init.exe --default-host %TARGET% --default-toolchain %CHANNEL% -y
   - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+  - if defined MSYS_BITS set PATH=%PATH%;C:\msys64\mingw%MSYS_BITS%\bin
   - rustc -Vv
   - cargo -V
 
@@ -54,7 +57,7 @@ before_deploy:
   - cd ..\..\..\..\..\
   - xcopy fonts staging\fonts /s /e /y
   - xcopy target\release\build staging\build /s /e /y
-  - xcopy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\%REDIST_ARCH%\Microsoft.VC140.CRT" staging /s /e /y
+  - if defined REDIST_ARCH xcopy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\%REDIST_ARCH%\Microsoft.VC140.CRT" staging /s /e /y
   - cd staging
     # release zipfile will look like 'dose-response-v1.2.3-x86_64-pc-windows-msvc'
   - 7z a ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip *

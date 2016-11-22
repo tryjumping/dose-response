@@ -9,13 +9,13 @@ environment:
     # NOTE: we've disabled the gnu/mingw targets for now because the compiler
     # isn't being installed/found. So we'll have to deal with that later.
     - TARGET: i686-pc-windows-gnu
-      MSYS_BITS: 64
+      MSYS_BITS: 32
       CHANNEL: stable
     - TARGET: i686-pc-windows-msvc
       REDIST_ARCH: x86
       CHANNEL: stable
     - TARGET: x86_64-pc-windows-gnu
-      MSYS_BITS: 32
+      MSYS_BITS: 64
       CHANNEL: stable
     - TARGET: x86_64-pc-windows-msvc
       REDIST_ARCH: x64

@@ -1,9 +1,80 @@
+* Remove the `build` folder from the releases
+** Takes up a lot of space and it's entirely unnecessary
+* Victory condition: cure addiction
+** Do *something* that will cure the addiction somehow
+* Consider adding items that could reduce the dose effect
+** from strike:
+#+BEGIN_QUOTE
+Other ideas and dynamics that come to mind: antabus would contradict
+alcohol, stims vs downers, psychedelics (and a bad trip, depending on
+what you encounter while high, might lower your craving for a next
+dose but hurt your peace of mind or other stats), add paranoia and
+other stats, make the player's psychological and physiological
+conditions more detailed and readable (feels like blundering in a
+black box atm).
+#+END_QUOTE
+* Consider adding a bad trip
+** Small chance of that happening
+** But would make things actually worse for the duration of the dose
+** What would happen if you took another dose by then?
+* Victory condition: dose assencion
+** from strike:
+#+BEGIN_QUOTE
+An alternate victory condition could be "Ascension". When you combine
+all sorts of chemical fireworks flowing in your veins and brains just
+the right way and don't die in the process, you'll unlock the secrets
+of the mind and become a badass ghost! :o) Maybe there could be a
+key/enabler/artifact or more steps and hints, depending on what theme
+you wanna go with. Aliens might be interesting (like the mysterious
+complex drug is secretly an alien tech, for instance). The game might
+indicate how your body morphs funny and how you feel strange and "hear
+voices" etc., pulling you in one direction or the other. I don't think
+I can think of a third option. Except maybe if you wanted to take this
+route and make the path to ascension more complex, add distractions
+and false drugs that lure you astray and kill your brain cells, making
+it more difficult or something. Perhaps dreamy entheogens versus hard
+stims  or whatnot, I dunno. // do research to get inspiration, wiki
+and psychonaut websites are gonna be a goldmine, I'd say :p
+#+END_QUOTE
+** That's basically fantasy land so I'm not sure how I feel about this
+*** I kind of like the idea because it provides an addict victory condition
+*** Doesn't necessarily be a fantasy (consider the "golden shot" or whatever it's called)
+*** Train your will enough so you can collect doses and then down like a 100 at a same time?
+* Victory condition: stable addict
+** Train yourself enough to be able to carry doses around
+** Explore the world?
+** Maybe find something that you wouldn't be able to otherwise
+** "I've stopped smoking but I have a cigarette once a year"
+* Make the doses more interesting
+** Right now they're kind of bland: just increase SoM
+** from strike:
+#+BEGIN_QUOTE
+perhaps pick one really interesting (or invent a new hypothetical one)
+that has useable body and mind feedback for gameplay - sky's the
+limit. But a generic "something you're addicted to" is too 'meh' for a
+game. Some backstory would add a lot to the experience, too.
+#+END_QUOTE
+* Finer indicator of the state of mind
+** progress bar?
+** more textual descriptions?
+** note it may not necessarily be a linear thing forever
+* The map generation shouldn't screw you over from the beginning
+* Make the beginnings easier instead of throwing everything at you all at once
+** Start with a handful subset of monsters, maybe less spaced-out
+** Have "easy" and "hard" areas on the map but start in an easy one
+* Mouse support
+* Consider using just the cardinal movement
+** Diagonals are hard on the beginners
+** Maybe a mouse?
+* Add a tutorial or something
+** Either a help doc or a tutorial or something to help the beginners
 * Add NPCs
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
 ** but they can accompany you when sober
 *** making monsters not attack you
 *** going sober more slowly
+*** pointing towards useful/interesting things/places?
 * Consider medication or sobriety badges
 ** Instead of the 12-step bullshit
 ** You could come visit these centres

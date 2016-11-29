@@ -1,7 +1,24 @@
-* Remove the `build` folder from the releases
-** Takes up a lot of space and it's entirely unnecessary
 * Victory condition: cure addiction
 ** Do *something* that will cure the addiction somehow
+** Read up on curing addiction and see if there's any inspication
+** how about reaching max will & spending certain amount of time being sober?
+*** when you reach max Will, we'll show a progress bar towards victory
+*** going to Withdrawal or High will reset the bar
+* Finer indicator of the state of mind
+** let's split the three states (high, sober, withdrawal)
+** have a progress bar for each
+** you replenish high by doses, when it drops to zero -> withdrawal
+** you replenish sober & withdrawal with food
+** normal going to zero -> withdrawal
+** withdrawal going to zero -> death
+** withdrawal going up -> sober
+* Add NPCs
+** these could be "friends and family"
+** they're seen as translucent ghosts you can't interact with when High
+** but they can accompany you when sober
+*** making monsters not attack you
+*** going sober more slowly
+*** pointing towards useful/interesting things/places?
 * Consider adding items that could reduce the dose effect
 ** from strike:
 #+BEGIN_QUOTE
@@ -13,11 +30,20 @@ other stats, make the player's psychological and physiological
 conditions more detailed and readable (feels like blundering in a
 black box atm).
 #+END_QUOTE
+** don't need to think about this too hard for now
+** just create an item called "antidose" (yep, antidote pun)
+** read up on the stuff mentioned in the quote for inspiration
+** but initially, just disable post-high withdrawal (and maybe switch to sober immediately)
+* Spending a long time in the "normal" state can add Will
+* Remove the `build` folder from the releases
+** Takes up a lot of space and it's entirely unnecessary
+* UI: make the sidebar a different colour so it's visually distinct
 * Consider adding a bad trip
 ** Small chance of that happening
 ** But would make things actually worse for the duration of the dose
 ** What would happen if you took another dose by then?
-* Victory condition: dose assencion
+*** normal High but you risk overdosing yourself
+* Victory condition: dose ascension
 ** from strike:
 #+BEGIN_QUOTE
 An alternate victory condition could be "Ascension". When you combine
@@ -54,10 +80,6 @@ that has useable body and mind feedback for gameplay - sky's the
 limit. But a generic "something you're addicted to" is too 'meh' for a
 game. Some backstory would add a lot to the experience, too.
 #+END_QUOTE
-* Finer indicator of the state of mind
-** progress bar?
-** more textual descriptions?
-** note it may not necessarily be a linear thing forever
 * The map generation shouldn't screw you over from the beginning
 * Make the beginnings easier instead of throwing everything at you all at once
 ** Start with a handful subset of monsters, maybe less spaced-out
@@ -68,13 +90,6 @@ game. Some backstory would add a lot to the experience, too.
 ** Maybe a mouse?
 * Add a tutorial or something
 ** Either a help doc or a tutorial or something to help the beginners
-* Add NPCs
-** these could be "friends and family"
-** they're seen as translucent ghosts you can't interact with when High
-** but they can accompany you when sober
-*** making monsters not attack you
-*** going sober more slowly
-*** pointing towards useful/interesting things/places?
 * Consider medication or sobriety badges
 ** Instead of the 12-step bullshit
 ** You could come visit these centres

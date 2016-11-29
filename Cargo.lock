@@ -1,6 +1,6 @@
 [root]
 name = "dose-response"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "tcod 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",

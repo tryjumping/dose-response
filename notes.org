@@ -34,6 +34,10 @@ black box atm).
 ** just create an item called "antidose" (yep, antidote pun)
 ** read up on the stuff mentioned in the quote for inspiration
 ** but initially, just disable post-high withdrawal (and maybe switch to sober immediately)
+** there are meds that ease withdrawal effects
+*** so maybe you're still withdrawn, but the screen wouldn't go dark so much
+*** and the fov would not reduce so much
+*** and it'd take more time for you to die (or maybe you wouldn't die at all, just transition to sober)
 * Spending a long time in the "normal" state can add Will
 * Remove the `build` folder from the releases
 ** Takes up a lot of space and it's entirely unnecessary

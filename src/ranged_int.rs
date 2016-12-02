@@ -1,6 +1,7 @@
 use std::ops::Deref;
 
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct RangedInt {
     val: i32,
     _min: i32,
@@ -9,7 +10,9 @@ pub struct RangedInt {
 
 impl RangedInt {
     pub fn new(value: i32, (min, max): (i32, i32)) -> RangedInt {
-        assert!(min <= max && value >= min && value <= max);
+        assert!(min <= max);
+        assert!(value >= min);
+        assert!(value <= max);
         RangedInt {
             val: value,
             _min: min,
@@ -18,7 +21,8 @@ impl RangedInt {
     }
 
     pub fn set(&mut self, n: i32) {
-        assert!((n >= self._min) && (n <= self._max));
+        assert!(n >= self._min);
+        assert!(n <= self._max);
         self.val = n;
     }
 
@@ -34,6 +38,14 @@ impl RangedInt {
             self.val = new_val;
         }
         self.val
+    }
+}
+
+impl Add<i32> for RangedInt {
+    type Output = RangedInt;
+
+    fn add(self, rhs: i32) -> Self::Output {
+        unimplemented!()
     }
 }
 

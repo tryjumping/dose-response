@@ -1,9 +1,5 @@
-* Victory condition: cure addiction
-** Do *something* that will cure the addiction somehow
-** Read up on curing addiction and see if there's any inspication
-** how about reaching max will & spending certain amount of time being sober?
-*** when you reach max Will, we'll show a progress bar towards victory
-*** going to Withdrawal or High will reset the bar
+* BUG: The screen doesn't move when going to the right edge
+** And but the world there still exist, so a Depression can kill you without you seeing it coming
 * Finer indicator of the state of mind
 ** let's split the three states (high, sober, withdrawal)
 ** have a progress bar for each
@@ -12,6 +8,12 @@
 ** normal going to zero -> withdrawal
 ** withdrawal going to zero -> death
 ** withdrawal going up -> sober
+* Victory condition: cure addiction
+** Do *something* that will cure the addiction somehow
+** Read up on curing addiction and see if there's any inspication
+** how about reaching max will & spending certain amount of time being sober?
+*** when you reach max Will, we'll show a progress bar towards victory
+*** going to Withdrawal or High will reset the bar
 * Add NPCs
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -104,8 +106,6 @@ game. Some backstory would add a lot to the experience, too.
 ** Which means we should trigger the screen scroll before that happens
 ** And to make things predictable, let's scroll precisely when the field of view would be outside
 ** That way the player can learn & anticipate it instead of being surprised
-* BUG: The screen doesn't move when going to the right edge
-** And but the world there still exist, so a Depression can kill you without you seeing it coming
 * Map the "must go forward and use the dose" range directly to Will?
 ** It could make the place more interesting -- having move around the place
 ** Needs glowing irresistible areas

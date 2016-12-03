@@ -273,9 +273,9 @@ fn process_player<R, W>(player: &mut player::Player,
                         kill_monster(monster, level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
-                                player.anxiety_counter.add(1);
+                                player.anxiety_counter += 1;
                                 if *player.anxiety_counter == 10 {
-                                    player.will.add(1);
+                                    player.will += 1;
                                     player.anxiety_counter.set(0);
                                 }
                             }

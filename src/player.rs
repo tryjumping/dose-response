@@ -90,15 +90,15 @@ impl Player {
 
     pub fn new(pos: Point) -> Player {
         Player {
-            state_of_mind: RangedInt::new(20, (0, 100)),
-            will: RangedInt::new(2, (0, 10)),
+            state_of_mind: RangedInt::new(20, 0, 100),
+            will: RangedInt::new(2, 0, 10),
             tolerance: 0,
             intoxication_threshold: 20,
-            panic: RangedInt::new(0, (0, 100)),
-            stun: RangedInt::new(0, (0, 100)),
+            panic: RangedInt::new(0, 0, 100),
+            stun: RangedInt::new(0, 0, 100),
             pos: pos,
             inventory: vec![],
-            anxiety_counter: RangedInt::new(0, (0, 10)),
+            anxiety_counter: RangedInt::new(0, 0, 10),
             dead: false,
             max_ap: 1,
             ap: 1,
@@ -120,9 +120,9 @@ impl Player {
     }
 
     pub fn new_turn(&mut self) {
-        self.stun.add(-1);
-        self.panic.add(-1);
-        self.state_of_mind.add(-1);
+        self.stun -= 1;
+        self.panic -= 1;
+        self.state_of_mind -= 1;
         self.ap = self.max_ap;
     }
 
@@ -136,7 +136,7 @@ impl Player {
         match effect {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {
-                self.will.add(will);
+                self.will += will;
                 // NOTE: this is a bit complicated because we want to make sure
                 // that don't get intoxicated by this. It should be a no-op,
                 // then. But we want to get you fully satiated even if that
@@ -148,21 +148,21 @@ impl Player {
                     0
                 };
                 if state_of_mind > 0 {
-                    self.state_of_mind.add(to_add);
+                    self.state_of_mind += to_add;
                 } else {
-                    self.state_of_mind.add(state_of_mind);
+                    self.state_of_mind += state_of_mind;
                 }
             }
             Intoxication{state_of_mind, tolerance_increase} => {
                 let state_of_mind_bonus = cmp::max(10, (state_of_mind - self.tolerance));
-                self.state_of_mind.add(state_of_mind_bonus);
+                self.state_of_mind += state_of_mind_bonus;
                 self.tolerance += tolerance_increase;
             }
             Panic(turns) => {
-                self.panic.add(turns);
+                self.panic += turns;
             }
             Stun(turns) => {
-                self.stun.add(turns);
+                self.stun += turns;
             }
         }
         match *self.state_of_mind {

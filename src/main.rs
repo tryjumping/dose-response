@@ -188,14 +188,24 @@ fn explode(center: point::Point,
           Duration::zero()))
 }
 
-fn exploration_radius(state_of_mind: i32) -> i32 {
-    use player::IntoxicationState::*;
-    match player::IntoxicationState::from_int(state_of_mind) {
-        Exhausted | DeliriumTremens => 4,
-        Withdrawal => 5,
-        Sober => 6,
-        High => 7,
-        VeryHigh | Overdosed => 8
+fn exploration_radius(mental_state: player::Mind) -> i32 {
+    use player::Mind::*;
+    match mental_state {
+        Withdrawal(value) => {
+            if *value >= value.middle() {
+                5
+            } else {
+                4
+            }
+        }
+        Sober(_) => 6,
+        High(value) => {
+            if *value >= value.middle() {
+                8
+            } else {
+                7
+            }
+        }
     }
 }
 
@@ -401,8 +411,17 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
     let bg = color::Color{r: 0, g: 0, b: 0};
 
     let player = &state.player;
+
+    let (mind_str, mind_val_percent) = match player.mind {
+        player::Mind::Withdrawal(val) => ("Withdrawal", val.percent()),
+        player::Mind::Sober(val) => ("Sober", val.percent()),
+        player::Mind::High(val) => ("High", val.percent()),
+    };
+
     let mut lines = vec![
-        format!("{}", player::IntoxicationState::from_int(*player.state_of_mind)),
+        // TODO: render the value as a bar here
+        mind_str.into(),
+        format!("{}%", mind_val_percent * 100.0),
         "".into(),
         format!("Will: {}", *player.will),
         format!("Food: {}", player.inventory.len()),
@@ -410,7 +429,7 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
     ];
     if state.cheating {
         lines.push("CHEATING".into());
-        lines.push(format!("SoM: {}", *player.state_of_mind));
+        lines.push(format!("SoM: {:?}", player.mind));
         lines.push("".into());
     }
 
@@ -475,8 +494,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         false
     };
 
-    let previous_intoxication_state = player::IntoxicationState::from_int(
-        *state.player.state_of_mind);
+    let previous_intoxication_state = state.player.mind;
     let player_was_alive = state.player.alive();
 
     // Animation to re-center the screen around the player when they
@@ -503,7 +521,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                                &mut state.explosion_animation,
                                &mut state.rng,
                                &mut state.command_logger);
-                state.level.explore(state.player.pos, exploration_radius(*state.player.state_of_mind));
+                state.level.explore(state.player.pos, exploration_radius(state.player.mind));
 
                 // move screen if the player goes near the edge of the screen
                 let screen_left_top_corner = state.screen_position_in_world - (state.display_size / 2);
@@ -551,20 +569,17 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
 
 
-    let som = *state.player.state_of_mind;
-    let current_intoxication_state = player::IntoxicationState::from_int(som);
-
     // Rendering & related code here:
     if state.player.alive() {
-        use player::IntoxicationState::*;
+        use player::Mind::*;
 
-        if previous_intoxication_state != current_intoxication_state {
+        if previous_intoxication_state != state.player.mind {
             let was_high = match previous_intoxication_state {
-                High | VeryHigh => true,
+                High(_) => true,
                 _ => false,
             };
-            let is_high = match current_intoxication_state {
-                High | VeryHigh => true,
+            let is_high = match state.player.mind {
+                High(_) => true,
                 _ => false,
             };
 
@@ -590,17 +605,15 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
 
         // Fade when withdrawn:
-        match current_intoxication_state {
-            DeliriumTremens | Withdrawal => {
-                // NOTE: SoM is <0, 100>, this turns it into percentage <0, 100>
-                let som_percent = (som as f32) / 100.0;
-                let mut fade = som_percent * 0.025 + 0.25;
+        match state.player.mind {
+            Withdrawal(value) => {
+                let mut fade = value.percent() * 0.025 + 0.25;
                 if fade < 0.25 {
                     fade = 0.25;
                 }
                 engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
             }
-            Exhausted | Sober | Overdosed | High | VeryHigh => {
+            Sober(_) | High(_) => {
                 // NOTE: Not withdrawn, don't fade
             }
         }
@@ -658,7 +671,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     if state.cheating {
         bonus = player::Bonus::UncoverMap;
     }
-    let radius = exploration_radius(*state.player.state_of_mind);
+    let radius = exploration_radius(state.player.mind);
 
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2, state.map_size / 2);
 

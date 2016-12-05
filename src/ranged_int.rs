@@ -25,6 +25,25 @@ impl RangedInt {
         assert!(n <= self._max);
         self.val = n;
     }
+
+    pub fn min(&self) -> i32 {
+        self._min
+    }
+
+    pub fn max(&self) -> i32 {
+        self._max
+    }
+
+    pub fn middle(&self) -> i32 {
+        (self.max() - self.min()) / 2
+    }
+
+    pub fn percent(&self) -> f32 {
+        let result = self.val as f32 / (self.max() - self.min()) as f32;
+        assert!(result >= 0.0);
+        assert!(result <= 1.0);
+        result
+    }
 }
 
 impl Add<i32> for RangedInt {
@@ -214,5 +233,20 @@ mod test {
         assert_eq!(b, RangedInt::new(5, -5, 5));
         b -= MIN;
         assert_eq!(b, RangedInt::new(5, -5, 5));
+    }
+
+    #[test]
+    fn percent() {
+        assert_eq!(RangedInt::new(0, 0, 1).percent(), 0.0);
+        assert_eq!(RangedInt::new(1, 0, 1).percent(), 1.0);
+
+        assert_eq!(RangedInt::new(0, 0, 2).percent(), 0.0);
+        assert_eq!(RangedInt::new(1, 0, 2).percent(), 0.5);
+        assert_eq!(RangedInt::new(2, 0, 2).percent(), 1.0);
+
+        assert_eq!(RangedInt::new(0, 0, 10).percent(), 0.0);
+        assert_eq!(RangedInt::new(1, 0, 10).percent(), 0.1);
+        assert_eq!(RangedInt::new(9, 0, 10).percent(), 0.9);
+        assert_eq!(RangedInt::new(10, 0, 10).percent(), 1.0);
     }
 }

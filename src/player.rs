@@ -9,6 +9,11 @@ use point::Point;
 use ranged_int::RangedInt;
 
 
+const WITHDRAWAL_MAX: i32 = 15;
+const HIGH_MAX: i32 = 80;
+const SOBER_MAX: i32 = 20;
+
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Modifier {
     Death,
@@ -18,43 +23,62 @@ pub enum Modifier {
     Stun(i32),
 }
 
+// impl IntoxicationState {
+//     pub fn from_int(value: i32) -> IntoxicationState {
+//         use self::IntoxicationState::*;
+//         match value {
+//             val if val <= 0 => Exhausted,
+//             1...5   => DeliriumTremens,
+//             6...15  => Withdrawal,
+//             16...20 => Sober,
+//             21...80 => High,
+//             81...99 => VeryHigh,
+//             _ => Overdosed,
+//         }
+//     }
+// }
+
 #[derive(Copy, Clone, PartialEq, Debug)]
-pub enum IntoxicationState {
-    Exhausted,
-    DeliriumTremens,
-    Withdrawal,
-    Sober,
-    High,
-    VeryHigh,
-    Overdosed,
+pub enum Mind {
+    Withdrawal(RangedInt),
+    Sober(RangedInt),
+    High(RangedInt),
 }
 
-impl IntoxicationState {
-    pub fn from_int(value: i32) -> IntoxicationState {
-        use self::IntoxicationState::*;
-        match value {
-            val if val <= 0 => Exhausted,
-            1...5   => DeliriumTremens,
-            6...15  => Withdrawal,
-            16...20 => Sober,
-            21...80 => High,
-            81...99 => VeryHigh,
-            _ => Overdosed,
+impl Mind {
+    pub fn update(&self) -> Self {
+        use self::Mind::*;
+        match self {
+            &Withdrawal(value) => {
+                Withdrawal(value - 1)
+            }
+            &Sober(value) => {
+                let new_value = value - 1;
+                if *new_value == new_value.min() {
+                    Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX))
+                } else {
+                    Sober(new_value)
+                }
+            }
+            &High(value) => {
+                let new_value = value - 1;
+                if *new_value == new_value.min() {
+                    Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX))
+                } else {
+                    High(new_value)
+                }
+            }
         }
     }
 }
 
-impl Display for IntoxicationState {
+impl Display for Mind {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-        use self::IntoxicationState::*;
+        use self::Mind::*;
         let s = match *self {
-            Exhausted => "Exhausted",
-            DeliriumTremens => "Delirium tremens",
-            Withdrawal => "Withdrawal",
-            Sober => "Sober",
-            High => "High",
-            VeryHigh => "High as a kite",
-            Overdosed => "Overdosed",
+            Withdrawal(_) => "Withdrawal",
+            Sober(_) => "Sober",
+            High(_) => "High",
         };
         f.write_str(s)
     }
@@ -68,10 +92,9 @@ pub enum Bonus {
 }
 
 pub struct Player {
-    pub state_of_mind: RangedInt,
+    pub mind: Mind,
     pub will: RangedInt,
     pub tolerance: i32,
-    intoxication_threshold: i32,
     pub panic: RangedInt,
     pub stun: RangedInt,
 
@@ -90,10 +113,9 @@ impl Player {
 
     pub fn new(pos: Point) -> Player {
         Player {
-            state_of_mind: RangedInt::new(20, 0, 100),
+            mind: Mind::Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX)),
             will: RangedInt::new(2, 0, 10),
             tolerance: 0,
-            intoxication_threshold: 20,
             panic: RangedInt::new(0, 0, 100),
             stun: RangedInt::new(0, 0, 100),
             pos: pos,
@@ -122,12 +144,17 @@ impl Player {
     pub fn new_turn(&mut self) {
         self.stun -= 1;
         self.panic -= 1;
-        self.state_of_mind -= 1;
+        self.mind.update();
         self.ap = self.max_ap;
     }
 
     pub fn alive(&self) -> bool {
-        !self.dead && *self.will > 0 && *self.state_of_mind > 0 && *self.state_of_mind < 100
+        let dead_mind = match self.mind {
+            Mind::Withdrawal(val) if *val <= val.min() => true,  // Exhausted
+            Mind::High(val) if *val >= val.max() => true,  // Overdosed
+            _ => false,
+        };
+        !self.dead && *self.will > 0 && !dead_mind
     }
 
     pub fn take_effect(&mut self, effect: Modifier) {
@@ -137,25 +164,41 @@ impl Player {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {
                 self.will += will;
-                // NOTE: this is a bit complicated because we want to make sure
-                // that don't get intoxicated by this. It should be a no-op,
-                // then. But we want to get you fully satiated even if that
-                // means using only a part of the value and also, any negative
-                // effects should be used in full.
-                let to_add = if self.intoxication_threshold > *self.state_of_mind {
-                    cmp::min(state_of_mind, self.intoxication_threshold - *self.state_of_mind)
-                } else {
-                    0
+                self.mind = match self.mind {
+                    Mind::Withdrawal(val) => {
+                        let new_val = val + state_of_mind;
+                        if *new_val == new_val.max() {
+                            Mind::Sober(RangedInt::new(val.max() - *val + state_of_mind, 0, SOBER_MAX))
+                        } else {
+                            Mind::Withdrawal(new_val)
+                        }
+                    }
+                    Mind::Sober(val) => Mind::Sober(val + state_of_mind),
+                    Mind::High(val) => Mind::High(val),
                 };
-                if state_of_mind > 0 {
-                    self.state_of_mind += to_add;
-                } else {
-                    self.state_of_mind += state_of_mind;
-                }
             }
             Intoxication{state_of_mind, tolerance_increase} => {
                 let state_of_mind_bonus = cmp::max(10, (state_of_mind - self.tolerance));
-                self.state_of_mind += state_of_mind_bonus;
+                self.mind = match self.mind {
+                    Mind::Withdrawal(val) => {
+                        let intoxication_gain = *val + state_of_mind_bonus - val.max();
+                        if intoxication_gain <= 0 {
+                            Mind::Withdrawal(val + state_of_mind_bonus)
+                        } else if intoxication_gain <= SOBER_MAX{
+                            Mind::Sober(RangedInt::new(intoxication_gain, 0, SOBER_MAX))
+                        } else {
+                            Mind::High(RangedInt::new(intoxication_gain - SOBER_MAX, 0, HIGH_MAX))
+                        }
+                    }
+                    Mind::Sober(val) => {
+                        if state_of_mind_bonus > val.max() - *val {
+                            Mind::High(RangedInt::new(state_of_mind_bonus + *val - val.max(), 0, HIGH_MAX))
+                        } else {
+                            Mind::Sober(val + state_of_mind_bonus)
+                        }
+                    }
+                    Mind::High(val) => Mind::High(val + state_of_mind_bonus),
+                };
                 self.tolerance += tolerance_increase;
             }
             Panic(turns) => {
@@ -165,9 +208,9 @@ impl Player {
                 self.stun += turns;
             }
         }
-        match *self.state_of_mind {
-            99 => self.bonus = Bonus::UncoverMap,
-            98 => self.bonus = Bonus::SeeMonstersAndItems,
+        match self.mind {
+            Mind::High(val) if *val == val.max() - 1 => self.bonus = Bonus::UncoverMap,
+            Mind::High(val) if *val == val.max() - 2 => self.bonus = Bonus::SeeMonstersAndItems,
             _ => {}
         }
     }

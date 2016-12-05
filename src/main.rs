@@ -447,7 +447,16 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
         display.write_text(line, (x + 1, y as i32), fg, bg);
     }
 
-    display.progress_bar(mind_val_percent, (x + 1, 4), width - 2,
+    let max_val = match player.mind {
+        player::Mind::Withdrawal(val) => val.max(),
+        player::Mind::Sober(val) => val.max(),
+        player::Mind::High(val) => val.max(),
+    };
+    let mut bar_width = width - 2;
+    if max_val < bar_width {
+        bar_width = max_val;
+    }
+    display.progress_bar(mind_val_percent, (x + 1, 1), bar_width,
                          color::Color{r: 0, g: 255, b: 0}, color::Color{r: 20, g: 133, b: 20});
 
     let bottom = display.size().y - 1;

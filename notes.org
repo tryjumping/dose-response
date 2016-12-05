@@ -1,14 +1,6 @@
 * BUG: Crash on overdose
 * BUG: The screen doesn't move when going to the right edge
 ** And but the world there still exist, so a Depression can kill you without you seeing it coming
-* Finer indicator of the state of mind
-** let's split the three states (high, sober, withdrawal)
-** have a progress bar for each
-** you replenish high by doses, when it drops to zero -> withdrawal
-** you replenish sober & withdrawal with food
-** normal going to zero -> withdrawal
-** withdrawal going to zero -> death
-** withdrawal going up -> sober
 * Victory condition: cure addiction
 ** Do *something* that will cure the addiction somehow
 ** Read up on curing addiction and see if there's any inspication
@@ -315,3 +307,15 @@ CLOSED: [2016-10-08 Sat 14:29]
 :ARCHIVE_TIME: 2016-10-08 Sat 14:29
 :END:
 cargo run -- replay-2016-10-08T13\:20\:21.431
+** DONE Finer indicator of the state of mind
+CLOSED: [2016-12-05 Mon 22:25]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-05 Mon 22:25
+:END:
+*** let's split the three states (high, sober, withdrawal)
+*** have a progress bar for each
+*** you replenish high by doses, when it drops to zero -> withdrawal
+*** you replenish sober & withdrawal with food
+*** normal going to zero -> withdrawal
+*** withdrawal going to zero -> death
+*** withdrawal going up -> sober

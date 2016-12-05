@@ -11,10 +11,15 @@ pub struct RangedInt {
 impl RangedInt {
     pub fn new(value: i32, min: i32, max: i32) -> RangedInt {
         assert!(min <= max);
-        assert!(value >= min);
-        assert!(value <= max);
+        let val = if value < min {
+            min
+        } else if value > max {
+            max
+        } else {
+            value
+        };
         RangedInt {
-            val: value,
+            val: val,
             _min: min,
             _max: max,
         }
@@ -118,21 +123,10 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn below_minimum_negative() {
-        RangedInt::new(-1, 0, 1);
-    }
-
-    #[test]
-    #[should_panic]
-    fn below_minimum_positive() {
-        RangedInt::new(5, 10, 20);
-    }
-
-    #[test]
-    #[should_panic]
-    fn above_maximum_positive() {
-        RangedInt::new(10, 1, 2);
+    fn new_outside_range() {
+        assert_eq!(RangedInt::new(-1, 0, 1), RangedInt::new(0, 0, 1));
+        assert_eq!(RangedInt::new(5, 10, 20), RangedInt::new(10, 10, 20));
+        assert_eq!(RangedInt::new(10, 1, 2), RangedInt::new(2, 1, 2));
     }
 
     #[test]

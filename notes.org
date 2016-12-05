@@ -7,7 +7,6 @@
 ** Log a github issue
 ** Fix upstream
 ** Remove the dimensions - (1, 1) workaround in engine.rs
-* BUG: Crash on overdose
 * BUG: The screen doesn't move when going to the right edge
 ** And but the world there still exist, so a Depression can kill you without you seeing it coming
 * Victory condition: cure addiction
@@ -331,4 +330,9 @@ CLOSED: [2016-12-05 Mon 22:25]
 CLOSED: [2016-12-05 Mon 23:32]
 :PROPERTIES:
 :ARCHIVE_TIME: 2016-12-05 Mon 23:32
+:END:
+** DONE BUG: Crash on overdose
+CLOSED: [2016-12-06 Tue 00:27]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-06 Tue 00:27
 :END:

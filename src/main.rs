@@ -419,8 +419,8 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
     };
 
     let mut lines = vec![
-        // TODO: render the value as a bar here
         mind_str.into(),
+        // TODO: render the value as a bar here
         format!("{}%", mind_val_percent * 100.0),
         "".into(),
         format!("Will: {}", *player.will),

@@ -23,21 +23,6 @@ pub enum Modifier {
     Stun(i32),
 }
 
-// impl IntoxicationState {
-//     pub fn from_int(value: i32) -> IntoxicationState {
-//         use self::IntoxicationState::*;
-//         match value {
-//             val if val <= 0 => Exhausted,
-//             1...5   => DeliriumTremens,
-//             6...15  => Withdrawal,
-//             16...20 => Sober,
-//             21...80 => High,
-//             81...99 => VeryHigh,
-//             _ => Overdosed,
-//         }
-//     }
-// }
-
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Mind {
     Withdrawal(RangedInt),
@@ -48,11 +33,11 @@ pub enum Mind {
 impl Mind {
     pub fn update(&self) -> Self {
         use self::Mind::*;
-        match self {
-            &Withdrawal(value) => {
+        match *self {
+            Withdrawal(value) => {
                 Withdrawal(value - 1)
             }
-            &Sober(value) => {
+            Sober(value) => {
                 let new_value = value - 1;
                 if *new_value == new_value.min() {
                     Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX))
@@ -60,7 +45,7 @@ impl Mind {
                     Sober(new_value)
                 }
             }
-            &High(value) => {
+            High(value) => {
                 let new_value = value - 1;
                 if *new_value == new_value.min() {
                     Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX))
@@ -144,7 +129,7 @@ impl Player {
     pub fn new_turn(&mut self) {
         self.stun -= 1;
         self.panic -= 1;
-        self.mind.update();
+        self.mind = self.mind.update();
         self.ap = self.max_ap;
     }
 

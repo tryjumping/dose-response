@@ -53,6 +53,28 @@ impl Display {
         }
     }
 
+    pub fn progress_bar<P: Into<Point>>(&mut self, percentage: f32, pos: P, width: i32,
+                                        foreground: Color, background: Color)
+    {
+        assert!(percentage >= 0.0);
+        assert!(percentage <= 1.0);
+        let pos = pos.into();
+        for x_increment in 0..width {
+            let x_percent = x_increment as f32 / width as f32;
+            // TODO: max is not a full bar
+            let color = if percentage == 1.0 {
+                foreground
+            } else if percentage == 0.0 {
+                background
+            } else if   x_percent >= percentage {
+                background
+            } else {
+                foreground
+            };
+            self.draw_char(pos + (x_increment, 0), ' ', color, color);
+        }
+    }
+
     pub fn set_background(&mut self, pos: Point, color: Color) {
         if self.within_bounds(pos) {
             self.root.set_char_background(pos.x, pos.y, color, tcod::BackgroundFlag::Set);

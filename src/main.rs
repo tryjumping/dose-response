@@ -405,7 +405,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 }
 
 
-fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
+fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
     let fg = color::Color{r: 255, g: 255, b: 255};
     // TODO: set the background colour of the panel (or the rendered map)
     let bg = color::Color{r: 0, g: 0, b: 0};
@@ -420,8 +420,7 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
 
     let mut lines = vec![
         mind_str.into(),
-        // TODO: render the value as a bar here
-        format!("{}%", mind_val_percent * 100.0),
+        "".into(), // NOTE: placeholder for the Mind state percentage bar
         "".into(),
         format!("Will: {}", *player.will),
         format!("Food: {}", player.inventory.len()),
@@ -447,6 +446,9 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
     for (y, line) in lines.iter().enumerate() {
         display.write_text(line, (x + 1, y as i32), fg, bg);
     }
+
+    display.progress_bar(mind_val_percent, (x + 1, 4), width - 2,
+                         color::Color{r: 0, g: 255, b: 0}, color::Color{r: 20, g: 133, b: 20});
 
     let bottom = display.size().y - 1;
     display.write_text(&format!("dt: {}ms", dt.num_milliseconds()), (x + 1, bottom - 1), fg, bg);
@@ -768,7 +770,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
     let fps = engine.fps();
-    render_gui(state.map_size, &mut engine.display, &state, dt, fps);
+    render_gui(state.map_size, state.panel_width, &mut engine.display, &state, dt, fps);
     Some(state)
 }
 

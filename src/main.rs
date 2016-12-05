@@ -609,10 +609,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Fade when withdrawn:
         match state.player.mind {
             Withdrawal(value) => {
-                let mut fade = value.percent() * 0.025 + 0.25;
-                if fade < 0.25 {
-                    fade = 0.25;
-                }
+                let fade = value.percent() * 0.6 + 0.2;
                 engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
             }
             Sober(_) | High(_) => {

@@ -92,6 +92,13 @@ impl Display {
     /// `fade_percentage` is from <0f32 to 100f32>.
     /// 0% means no fade, 100% means screen is completely filled with the `color`
     pub fn fade(&mut self, fade_percentage: f32, color: Color) {
+        let fade_percentage = if fade_percentage < 0.0 {
+            0.0
+        } else if fade_percentage > 1.0 {
+            1.0
+        } else {
+            fade_percentage
+        };
         let fade = (fade_percentage * 255.0) as u8;
         self.fade = Some((fade, color));
     }

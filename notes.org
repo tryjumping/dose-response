@@ -1,3 +1,4 @@
+* BUG: Crash on overdose
 * BUG: The screen doesn't move when going to the right edge
 ** And but the world there still exist, so a Depression can kill you without you seeing it coming
 * Finer indicator of the state of mind

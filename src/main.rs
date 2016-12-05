@@ -3,6 +3,7 @@
 extern crate rand;
 extern crate time;
 pub extern crate tcod;
+extern crate tcod_sys;
 // extern crate rustbox;
 
 
@@ -408,7 +409,11 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
     let fg = color::gui_text;
     // TODO: set the background colour of the panel (or the rendered map)
-    let bg = color::background;
+    let bg = color::dim_background;
+    {
+        let height = display.size().y;
+        display.clear_rect((x, 0), (width, height), bg);
+    }
 
     let player = &state.player;
 

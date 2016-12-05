@@ -3,6 +3,8 @@
 use std::collections::VecDeque;
 use std::path::Path;
 
+use tcod_sys;
+
 use time::Duration;
 pub use tcod::{self, Color, Console, FontLayout, FontType, RootConsole};
 pub use tcod::input::{Key, KeyCode};
@@ -83,6 +85,23 @@ impl Display {
 
     pub fn get_background(&self, pos: Point) -> Color {
         self.root.get_char_background(pos.x, pos.y)
+    }
+
+    pub fn clear_rect<P: Into<Point>, Q: Into<Point>>(&mut self, start: P, dimensions: Q, background: Color) {
+        let original_background = unsafe {
+            let c = tcod_sys::TCOD_console_get_default_background(::std::ptr::null_mut());
+            Color{r: c.r, g: c.g, b: c.b}
+        };
+        self.root.set_default_background(background);
+        let start = start.into();
+        // TODO: this seems to be an invalid assert in tcod. We should
+        // be able to specify the full width & height here, but it
+        // crashes.
+        let dimensions = dimensions.into() - (1, 1);
+        self.root.rect(start.x, start.y, dimensions.x, dimensions.y, true,
+                       tcod::BackgroundFlag::Set);
+        self.root.set_default_background(original_background);
+
     }
 
     pub fn size(&self) -> Point {

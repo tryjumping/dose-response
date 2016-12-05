@@ -36,7 +36,6 @@ black box atm).
 * Spending a long time in the "normal" state can add Will
 * Remove the `build` folder from the releases
 ** Takes up a lot of space and it's entirely unnecessary
-* UI: make the sidebar a different colour so it's visually distinct
 * Consider adding a bad trip
 ** Small chance of that happening
 ** But would make things actually worse for the duration of the dose
@@ -319,3 +318,8 @@ CLOSED: [2016-12-05 Mon 22:25]
 *** normal going to zero -> withdrawal
 *** withdrawal going to zero -> death
 *** withdrawal going up -> sober
+** DONE UI: make the sidebar a different colour so it's visually distinct
+CLOSED: [2016-12-05 Mon 23:32]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-05 Mon 23:32
+:END:

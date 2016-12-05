@@ -406,9 +406,9 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
 
 
 fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
-    let fg = color::Color{r: 255, g: 255, b: 255};
+    let fg = color::gui_text;
     // TODO: set the background colour of the panel (or the rendered map)
-    let bg = color::Color{r: 0, g: 0, b: 0};
+    let bg = color::background;
 
     let player = &state.player;
 
@@ -457,7 +457,7 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
         bar_width = max_val;
     }
     display.progress_bar(mind_val_percent, (x + 1, 1), bar_width,
-                         color::Color{r: 0, g: 255, b: 0}, color::Color{r: 20, g: 133, b: 20});
+                         color::gui_progress_bar_fg, color::gui_progress_bar_bg);
 
     let bottom = display.size().y - 1;
     display.write_text(&format!("dt: {}ms", dt.num_milliseconds()), (x + 1, bottom - 1), fg, bg);
@@ -636,7 +636,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             cell.tile.set_animation(graphics::Animation::None);
         }
         state.screen_fading = Some(ScreenFadeAnimation::new(
-            color::Color{r: 255, g: 0, b: 0},
+            color::death_animation,
             Duration::milliseconds(500),
             Duration::milliseconds(200),
             Duration::milliseconds(300)));

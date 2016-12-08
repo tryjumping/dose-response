@@ -543,10 +543,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 // move screen if the player goes near the edge of the screen
                 let map_size = point::Point::new(state.map_size, state.map_size);
                 let screen_left_top_corner = state.screen_position_in_world - (map_size / 2);
-                println!("display size: {:?}", map_size);
 
                 let display_pos = state.player.pos - screen_left_top_corner;
-                println!("screen_pos: {:?}, corner: {:?}, display_pos: {:?}", state.screen_position_in_world, screen_left_top_corner, display_pos);
                 if state.pos_timer.finished() {
                     let dur = Duration::milliseconds(400);
                     // TODO: move the screen roughly the same distance along X and Y

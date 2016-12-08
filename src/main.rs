@@ -537,21 +537,25 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                                &mut state.explosion_animation,
                                &mut state.rng,
                                &mut state.command_logger);
-                state.level.explore(state.player.pos, exploration_radius(state.player.mind));
+                let exploration_radius = exploration_radius(state.player.mind);
+                state.level.explore(state.player.pos, exploration_radius);
 
                 // move screen if the player goes near the edge of the screen
-                let screen_left_top_corner = state.screen_position_in_world - (state.display_size / 2);
+                let map_size = point::Point::new(state.map_size, state.map_size);
+                let screen_left_top_corner = state.screen_position_in_world - (map_size / 2);
+                println!("display size: {:?}", map_size);
 
                 let display_pos = state.player.pos - screen_left_top_corner;
+                println!("screen_pos: {:?}, corner: {:?}, display_pos: {:?}", state.screen_position_in_world, screen_left_top_corner, display_pos);
                 if state.pos_timer.finished() {
                     let dur = Duration::milliseconds(400);
                     // TODO: move the screen roughly the same distance along X and Y
-                    if display_pos.x <= 10 || display_pos.x >= state.display_size.x - 10 {
+                    if display_pos.x < exploration_radius || display_pos.x >= map_size.x - exploration_radius {
                             // change the screen centre to that of the player
                             state.pos_timer = Timer::new(dur);
                             state.old_screen_pos = state.screen_position_in_world;
                             state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
-                    } else if display_pos.y <= 7 || display_pos.y >= state.display_size.y - 7 {
+                    } else if display_pos.y < exploration_radius || display_pos.y >= map_size.y - exploration_radius {
                             // change the screen centre to that of the player
                             state.pos_timer = Timer::new(dur);
                             state.old_screen_pos = state.screen_position_in_world;

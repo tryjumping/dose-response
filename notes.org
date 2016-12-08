@@ -7,14 +7,14 @@
 ** Log a github issue
 ** Fix upstream
 ** Remove the dimensions - (1, 1) workaround in engine.rs
-* BUG: The screen doesn't move when going to the right edge
-** And but the world there still exist, so a Depression can kill you without you seeing it coming
 * Victory condition: cure addiction
 ** Do *something* that will cure the addiction somehow
 ** Read up on curing addiction and see if there's any inspication
 ** how about reaching max will & spending certain amount of time being sober?
 *** when you reach max Will, we'll show a progress bar towards victory
 *** going to Withdrawal or High will reset the bar
+* A high-enough Will will let you pick up & carry doses in your inventory
+** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
 * Add NPCs
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -101,11 +101,6 @@ game. Some backstory would add a lot to the experience, too.
 ** You could come visit these centres
 *** they'd feed you and somehow help you to combat the addiction
 *** you could get sobriety bonuses (e.g. will increase, etc.)
-* The FOV circle should never extend beyond the edge of the screen
-** I.e. the player should always be able to see the full extent of their field of view
-** Which means we should trigger the screen scroll before that happens
-** And to make things predictable, let's scroll precisely when the field of view would be outside
-** That way the player can learn & anticipate it instead of being surprised
 * Map the "must go forward and use the dose" range directly to Will?
 ** It could make the place more interesting -- having move around the place
 ** Needs glowing irresistible areas
@@ -126,8 +121,6 @@ game. Some backstory would add a lot to the experience, too.
 ** Could encourage players to seek them out
 ** But it's obviously dangerous
 ** And it may cost you food if you overestimate (which fits fighting hunger)
-* A high-enough Will will let you pick up & carry doses in your inventory
-** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
 * Ideas about the main scope / goals of the game
 Finding out food and collecting it is good. More items to collect? Maybe stuff
 that changes the gameplay in some way? Like the items in spelunky.
@@ -336,3 +329,18 @@ CLOSED: [2016-12-06 Tue 00:27]
 :PROPERTIES:
 :ARCHIVE_TIME: 2016-12-06 Tue 00:27
 :END:
+** DONE BUG: The screen doesn't move when going to the right edge
+CLOSED: [2016-12-08 Thu 20:31]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-08 Thu 20:31
+:END:
+*** And but the world there still exist, so a Depression can kill you without you seeing it coming
+** DONE The FOV circle should never extend beyond the edge of the screen
+CLOSED: [2016-12-08 Thu 20:31]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-08 Thu 20:32
+:END:
+*** I.e. the player should always be able to see the full extent of their field of view
+*** Which means we should trigger the screen scroll before that happens
+*** And to make things predictable, let's scroll precisely when the field of view would be outside
+*** That way the player can learn & anticipate it instead of being surprised

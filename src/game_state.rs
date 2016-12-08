@@ -28,8 +28,10 @@ pub enum Side {
 // whatever. But they shouldn't carry any context or data.
 #[derive(Copy, Clone, Debug)]
 pub enum Command {
-    N, E, S, W, NE, NW, SE, SW,
+    N, E, S, W,
+    NE, NW, SE, SW,
     Eat,
+    Use,
 }
 
 impl Command {
@@ -45,6 +47,7 @@ impl Command {
             SE => "SE",
             SW => "SW",
             Eat => "Eat",
+            Use => "Use",
         }
     }
 }
@@ -62,6 +65,7 @@ fn command_from_str(name: &str) -> Command {
         "SE" => SE,
         "SW" => SW,
         "Eat" => Eat,
+        "Use" => Use,
         _ => panic!("Unknown command: '{}'", name)
     }
 }

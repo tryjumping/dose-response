@@ -144,8 +144,11 @@ fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
                     Key { code: Right, ctrl: false, shift: true, .. } | Key { code: NumPad9, .. }  => commands.push_back(Command::NE),
                     Key { code: Right, ctrl: true, shift: false, .. } | Key { code: NumPad3, .. }  => commands.push_back(Command::SE),
                     Key { code: Right, .. } | Key { code: NumPad6, .. }  => commands.push_back(Command::E),
-                    Key { printable: 'e', .. } => {
+                    Key { printable: 'e', .. } | Key { printable: '1', .. } => {
                         commands.push_back(Command::Eat);
+                    }
+                    Key { printable: '2', ..} => {
+                        commands.push_back(Command::Use);
                     }
                     _ => (),
                 }
@@ -161,12 +164,30 @@ pub enum Action {
     Move(point::Point),
     Attack(point::Point, player::Modifier),
     Eat,
+    Use,
 }
 
 
 fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
     monster.dead = true;
     level.remove_monster(monster.id(), monster);
+}
+
+fn use_dose(player: &mut player::Player, level: &mut level::Level,
+            explosion_animation: &mut ExplosionAnimation,
+            monsters: &mut [monster::Monster], item: item::Item) {
+    use player::Modifier::*;
+    if let Intoxication{state_of_mind, ..} = item.modifier {
+        let radius = match state_of_mind <= 100 {
+            true => 4,
+            false => 6,
+        };
+        player.take_effect(item.modifier);
+        let anim = explode(player.pos, radius, level, monsters);
+        *explosion_animation = anim;
+    } else {
+        unreachable!();
+    }
 }
 
 // TODO: prolly refactor to a struct?
@@ -176,7 +197,7 @@ pub type ExplosionAnimation = Option<(point::Point, i32, i32, color::Color, Dura
 fn explode(center: point::Point,
            radius: i32,
            level: &mut level::Level,
-           monsters: &mut Vec<monster::Monster>) -> ExplosionAnimation {
+           monsters: &mut [monster::Monster]) -> ExplosionAnimation {
     for pos in point::SquareArea::new(center, radius) {
         if let Some(monster_id) = level.monster_on_pos(pos) {
             kill_monster(&mut monsters[monster_id], level);
@@ -241,6 +262,7 @@ fn process_player<R, W>(player: &mut player::Player,
             Command::SE => Action::Move(player.pos + ( 1,  1)),
 
             Command::Eat => Action::Eat,
+            Command::Use => Action::Use,
         };
         if *player.stun > 0 {
             action = Action::Move(player.pos);
@@ -299,20 +321,13 @@ fn process_player<R, W>(player: &mut player::Player,
                             match level.pickup_item(dest) {
                                 Some(item) => {
                                     use item::Kind::*;
-                                    use player::Modifier::*;
                                     match item.kind {
                                         Food => player.inventory.push(item),
                                         Dose => {
-                                            if let Intoxication{state_of_mind, ..} = item.modifier {
-                                                let radius = match state_of_mind <= 100 {
-                                                    true => 4,
-                                                    false => 6,
-                                                };
-                                                player.take_effect(item.modifier);
-                                                let anim = explode(player.pos, radius, level, monsters);
-                                                *explosion_animation = anim;
+                                            if *player.will == player.will.max() {
+                                                player.inventory.push(item);
                                             } else {
-                                                unreachable!();
+                                                use_dose(player, level, explosion_animation, monsters, item);
                                             }
                                         }
                                     }
@@ -331,6 +346,13 @@ fn process_player<R, W>(player: &mut player::Player,
                     let food_explosion_radius = 2;
                     let anim = explode(player.pos, food_explosion_radius, level, monsters);
                     *explosion_animation = anim;
+                }
+            }
+            Action::Use => {
+                if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::Dose) {
+                    player.spend_ap(1);
+                    let dose = player.inventory.remove(dose_index);
+                    use_dose(player, level, explosion_animation, monsters, dose);
                 }
             }
             Action::Attack(_, _) => {
@@ -401,6 +423,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
             }
 
             Action::Eat => unreachable!(),
+            Action::Use => unreachable!(),
         }
     }
 }
@@ -428,9 +451,23 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
         "".into(), // NOTE: placeholder for the Mind state percentage bar
         "".into(),
         format!("Will: {}", *player.will),
-        format!("Food: {}", player.inventory.len()),
-        "".into(),
     ];
+
+    if player.inventory.len() > 0 {
+        lines.push("Inventory:".into());
+        let food_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Food).count();
+        if food_amount > 0 {
+            lines.push(format!("[1] Food: {}", food_amount));
+        }
+        // TODO: distinguish between large doses and small doses
+        let dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Dose).count();
+        if dose_amount > 0 {
+            lines.push(format!("[2] Dose: {}", dose_amount));
+        }
+    }
+
+    lines.push("".into());
+
     if state.cheating {
         lines.push("CHEATING".into());
         lines.push(format!("SoM: {:?}", player.mind));
@@ -718,7 +755,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
         // Render the irresistible background of a dose
         for item in cell.items.iter() {
-            if item.kind == item::Kind::Dose {
+            if item.kind == item::Kind::Dose && *state.player.will < state.player.will.max() {
                 let resist_radius = player_resist_radius(item.irresistible, *state.player.will);
                 for point in point::SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {

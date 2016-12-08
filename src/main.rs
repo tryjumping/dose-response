@@ -298,6 +298,15 @@ fn process_player<R, W>(player: &mut player::Player,
                 //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
             }
         }
+        // NOTE: If we picked up doses on max Will and then lost it,
+        // take them all turn by turn undonditionally:
+        if *player.will < player.will.max() {
+            if player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose).is_some() {
+                action = Action::Use(item::Kind::StrongDose);
+            } else if player.inventory.iter().position(|&i| i.kind == item::Kind::Dose).is_some() {
+                action = Action::Use(item::Kind::Dose);
+            }
+        }
         match action {
             Action::Move(dest) => {
                 if level.within_bounds(dest) {

@@ -13,10 +13,6 @@
 ** how about reaching max will & spending certain amount of time being sober?
 *** when you reach max Will, we'll show a progress bar towards victory
 *** going to Withdrawal or High will reset the bar
-* A high-enough Will will let you pick up & carry doses in your inventory
-** DONE Differentiate between normal and strong doses
-CLOSED: [2016-12-08 Thu 23:53]
-** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
 * Add NPCs
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -346,3 +342,12 @@ CLOSED: [2016-12-08 Thu 20:31]
 *** Which means we should trigger the screen scroll before that happens
 *** And to make things predictable, let's scroll precisely when the field of view would be outside
 *** That way the player can learn & anticipate it instead of being surprised
+** DONE A high-enough Will will let you pick up & carry doses in your inventory
+CLOSED: [2016-12-09 Fri 00:20]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-09 Fri 00:20
+:END:
+*** DONE Differentiate between normal and strong doses
+CLOSED: [2016-12-08 Thu 23:53]
+*** DONE But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
+CLOSED: [2016-12-09 Fri 00:20]

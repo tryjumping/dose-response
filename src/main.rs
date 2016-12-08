@@ -145,10 +145,13 @@ fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
                     Key { code: Right, ctrl: true, shift: false, .. } | Key { code: NumPad3, .. }  => commands.push_back(Command::SE),
                     Key { code: Right, .. } | Key { code: NumPad6, .. }  => commands.push_back(Command::E),
                     Key { printable: 'e', .. } | Key { printable: '1', .. } => {
-                        commands.push_back(Command::Eat);
+                        commands.push_back(Command::UseFood);
                     }
                     Key { printable: '2', ..} => {
-                        commands.push_back(Command::Use);
+                        commands.push_back(Command::UseDose);
+                    }
+                    Key { printable: '3', ..} => {
+                        commands.push_back(Command::UseStrongDose);
                     }
                     _ => (),
                 }
@@ -163,8 +166,7 @@ fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
 pub enum Action {
     Move(point::Point),
     Attack(point::Point, player::Modifier),
-    Eat,
-    Use,
+    Use(item::Kind),
 }
 
 
@@ -261,8 +263,9 @@ fn process_player<R, W>(player: &mut player::Player,
             Command::SW => Action::Move(player.pos + (-1,  1)),
             Command::SE => Action::Move(player.pos + ( 1,  1)),
 
-            Command::Eat => Action::Eat,
-            Command::Use => Action::Use,
+            Command::UseFood => Action::Use(item::Kind::Food),
+            Command::UseDose => Action::Use(item::Kind::Dose),
+            Command::UseStrongDose => Action::Use(item::Kind::StrongDose),
         };
         if *player.stun > 0 {
             action = Action::Move(player.pos);
@@ -323,7 +326,7 @@ fn process_player<R, W>(player: &mut player::Player,
                                     use item::Kind::*;
                                     match item.kind {
                                         Food => player.inventory.push(item),
-                                        Dose => {
+                                        Dose | StrongDose => {
                                             if *player.will == player.will.max() {
                                                 player.inventory.push(item);
                                             } else {
@@ -338,7 +341,7 @@ fn process_player<R, W>(player: &mut player::Player,
                     }
                 }
             }
-            Action::Eat => {
+            Action::Use(item::Kind::Food) => {
                 if let Some(food_idx) = player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
                     player.spend_ap(1);
                     let food = player.inventory.remove(food_idx);
@@ -348,8 +351,15 @@ fn process_player<R, W>(player: &mut player::Player,
                     *explosion_animation = anim;
                 }
             }
-            Action::Use => {
+            Action::Use(item::Kind::Dose) => {
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::Dose) {
+                    player.spend_ap(1);
+                    let dose = player.inventory.remove(dose_index);
+                    use_dose(player, level, explosion_animation, monsters, dose);
+                }
+            }
+            Action::Use(item::Kind::StrongDose) => {
+                if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
                     use_dose(player, level, explosion_animation, monsters, dose);
@@ -422,8 +432,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                 }
             }
 
-            Action::Eat => unreachable!(),
-            Action::Use => unreachable!(),
+            Action::Use(_) => unreachable!(),
         }
     }
 }
@@ -459,10 +468,15 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
         if food_amount > 0 {
             lines.push(format!("[1] Food: {}", food_amount));
         }
-        // TODO: distinguish between large doses and small doses
+
         let dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Dose).count();
         if dose_amount > 0 {
             lines.push(format!("[2] Dose: {}", dose_amount));
+        }
+
+        let strong_dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::StrongDose).count();
+        if strong_dose_amount > 0 {
+            lines.push(format!("[3] Strong Dose: {}", strong_dose_amount));
         }
     }
 

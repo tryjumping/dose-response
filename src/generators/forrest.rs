@@ -64,20 +64,21 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     let mut irresistible = 0;
     let modifier = match kind {
         Dose => {
-            let mut dose_w = [
-                Weighted{weight: 7, item: 72},
-                Weighted{weight: 3, item: 130}
-            ];
-            let base_strength_gen = WeightedChoice::new(&mut dose_w);
-            let base = base_strength_gen.ind_sample(rng);
-            let (strength, tolerance, r) = match base <= 100 {
-                true => (base + rng.gen_range(-5, 6), 1, 2),
-                false => (base + rng.gen_range(-15, 16), 2, 3),
-            };
-            irresistible = r;
-            Modifier::Intoxication{state_of_mind: strength,
-                                   tolerance_increase: tolerance}
-        },
+            irresistible = 2;
+            let base = 72;
+            Modifier::Intoxication{
+                state_of_mind: base + rng.gen_range(-5, 6),
+                tolerance_increase: 1,
+            }
+        }
+        StrongDose => {
+            irresistible = 3;
+            let base = 130;
+            Modifier::Intoxication{
+                state_of_mind: base + rng.gen_range(-15, 16),
+                tolerance_increase: 2,
+            }
+        }
         Food => Modifier::Attribute{state_of_mind: 10,
                                     will: 0},
     };
@@ -103,7 +104,8 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player_pos: Point)
 
     let mut weights_rest = [
         Weighted{weight: 1000 , item: None},
-        Weighted{weight: 10, item: Some(Dose)},
+        Weighted{weight: 7, item: Some(Dose)},
+        Weighted{weight: 3, item: Some(StrongDose)},
         Weighted{weight: 5, item: Some(Food)},
     ];
 

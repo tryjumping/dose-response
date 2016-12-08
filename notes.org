@@ -14,6 +14,8 @@
 *** when you reach max Will, we'll show a progress bar towards victory
 *** going to Withdrawal or High will reset the bar
 * A high-enough Will will let you pick up & carry doses in your inventory
+** DONE Differentiate between normal and strong doses
+CLOSED: [2016-12-08 Thu 23:53]
 ** But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
 * Add NPCs
 ** these could be "friends and family"

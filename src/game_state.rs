@@ -30,8 +30,9 @@ pub enum Side {
 pub enum Command {
     N, E, S, W,
     NE, NW, SE, SW,
-    Eat,
-    Use,
+    UseFood,
+    UseDose,
+    UseStrongDose,
 }
 
 impl Command {
@@ -46,8 +47,9 @@ impl Command {
             NW => "NW",
             SE => "SE",
             SW => "SW",
-            Eat => "Eat",
-            Use => "Use",
+            UseFood => "UseFood",
+            UseDose => "UseDose",
+            UseStrongDose => "UseStrongDose",
         }
     }
 }
@@ -64,8 +66,9 @@ fn command_from_str(name: &str) -> Command {
         "NW" => NW,
         "SE" => SE,
         "SW" => SW,
-        "Eat" => Eat,
-        "Use" => Use,
+        "UseFood" => UseFood,
+        "UseDose" => UseDose,
+        "UseStrongDose" => UseStrongDose,
         _ => panic!("Unknown command: '{}'", name)
     }
 }

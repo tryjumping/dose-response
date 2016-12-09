@@ -499,6 +499,10 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
         lines.push("".into());
     }
 
+    if state.side == Side::Victory {
+        lines.push(format!("VICTORY!"));
+    }
+
     if player.alive() {
         if *player.stun > 0 {
             lines.push(format!("Stunned({})", *player.stun));
@@ -608,6 +612,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 if spent_ap_this_turn && !is_high && *state.player.will == state.player.will.max() {
                     state.player.sobriety_counter += 1;
                 }
+                if *state.player.sobriety_counter == state.player.sobriety_counter.max() {
+                    state.side = Side::Victory;
+                }
                 let exploration_radius = exploration_radius(state.player.mind);
                 state.level.explore(state.player.pos, exploration_radius);
 
@@ -640,6 +647,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 }
             }
             Side::Computer => {}
+            Side::Victory => {}
         }
 
         assert!(state.monsters.iter().enumerate().all(|(index, monster)| index == monster.id()),
@@ -654,6 +662,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                     state.player.new_turn();
                 }
             }
+            Side::Victory => {}
         }
     }
 

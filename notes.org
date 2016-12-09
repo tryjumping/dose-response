@@ -7,12 +7,6 @@
 ** Log a github issue
 ** Fix upstream
 ** Remove the dimensions - (1, 1) workaround in engine.rs
-* Victory condition: cure addiction
-** Do *something* that will cure the addiction somehow
-** Read up on curing addiction and see if there's any inspication
-** how about reaching max will & spending certain amount of time being sober?
-*** when you reach max Will, we'll show a progress bar towards victory
-*** going to Withdrawal or High will reset the bar
 * Add NPCs
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -351,3 +345,13 @@ CLOSED: [2016-12-09 Fri 00:20]
 CLOSED: [2016-12-08 Thu 23:53]
 *** DONE But if it drops below that limit and you're carrying, you'll automatically consume a dose every turn, which will likely kill you.
 CLOSED: [2016-12-09 Fri 00:20]
+** DONE Victory condition: cure addiction
+CLOSED: [2016-12-09 Fri 21:53]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-09 Fri 21:53
+:END:
+*** Do *something* that will cure the addiction somehow
+*** Read up on curing addiction and see if there's any inspication
+*** how about reaching max will & spending certain amount of time being sober?
+**** when you reach max Will, we'll show a progress bar towards victory
+**** going to Withdrawal or High will reset the bar

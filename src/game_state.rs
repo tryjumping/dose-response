@@ -16,10 +16,14 @@ use point::Point;
 use world;
 
 
+// TODO: Rename this to `GameState` and the existing `GameState` to
+// `Game`? It's no longer just who's side it is but also: did the
+// player won? Lost?
 #[derive(Copy, PartialEq, Clone, Debug)]
 pub enum Side {
     Player,
     Computer,
+    Victory,
 }
 
 

@@ -87,6 +87,8 @@ pub struct Player {
     pub inventory: Vec<Item>,
     pub anxiety_counter: RangedInt,
     pub bonus: Bonus,
+    /// How many turns after max Will to achieve victory
+    pub sobriety_counter: RangedInt,
 
     dead: bool,
 
@@ -110,11 +112,16 @@ impl Player {
             max_ap: 1,
             ap: 1,
             bonus: Bonus::None,
+            sobriety_counter: RangedInt::new(0, 0, 100),
         }
     }
 
     pub fn move_to(&mut self, new_position: Point) {
         self.pos = new_position;
+    }
+
+    pub fn ap(&self) -> i32 {
+        self.ap
     }
 
     pub fn spend_ap(&mut self, count: i32) {
@@ -149,6 +156,10 @@ impl Player {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {
                 self.will += will;
+                if *self.will < self.will.max() {
+                    let sobriety_min = self.sobriety_counter.min();
+                    self.sobriety_counter.set(sobriety_min);
+                }
                 self.mind = match self.mind {
                     Mind::Withdrawal(val) => {
                         let new_val = val + state_of_mind;
@@ -185,6 +196,8 @@ impl Player {
                     Mind::High(val) => Mind::High(val + state_of_mind_bonus),
                 };
                 self.tolerance += tolerance_increase;
+                let sobriety_min = self.sobriety_counter.min();
+                self.sobriety_counter.set(sobriety_min);
             }
             Panic(turns) => {
                 self.panic += turns;

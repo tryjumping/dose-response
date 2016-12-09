@@ -490,6 +490,10 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
 
     lines.push("".into());
 
+    if *player.will == player.will.max() {
+        lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()));
+    }
+
     if state.cheating {
         lines.push("CHEATING".into());
         lines.push("".into());
@@ -588,6 +592,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Process player
         match state.side {
             Side::Player => {
+                let previous_action_points = state.player.ap();
                 process_player(&mut state.player,
                                &mut state.commands,
                                &mut state.level,
@@ -595,6 +600,14 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                                &mut state.explosion_animation,
                                &mut state.rng,
                                &mut state.command_logger);
+                let spent_ap_this_turn = previous_action_points > state.player.ap();
+                let is_high = match state.player.mind {
+                    player::Mind::High(_) => true,
+                    _ => false,
+                };
+                if spent_ap_this_turn && !is_high && *state.player.will == state.player.will.max() {
+                    state.player.sobriety_counter += 1;
+                }
                 let exploration_radius = exploration_radius(state.player.mind);
                 state.level.explore(state.player.pos, exploration_radius);
 

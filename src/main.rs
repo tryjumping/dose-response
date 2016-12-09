@@ -492,7 +492,6 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
 
     if state.cheating {
         lines.push("CHEATING".into());
-        lines.push(format!("SoM: {:?}", player.mind));
         lines.push("".into());
     }
 

@@ -177,10 +177,10 @@ impl Level {
             }
             for &item in self.cell(pos).items.iter() {
                 match item.kind {
-                    item::Kind::Dose => {
+                    item::Kind::Dose | item::Kind::StrongDose => {
                         doses.push((pos, item));
                     }
-                    _ => {}
+                    item::Kind::Food => {},
                 }
             }
         }

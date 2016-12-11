@@ -798,7 +798,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
         // Render the irresistible background of a dose
         for item in cell.items.iter() {
-            if item.kind == item::Kind::Dose && *state.player.will < state.player.will.max() {
+            use item::Kind::*;
+            let is_dose = match item.kind {
+                Dose | StrongDose => true,
+                Food => false,
+            };
+            if is_dose && *state.player.will < state.player.will.max() {
                 let resist_radius = player_resist_radius(item.irresistible, *state.player.will);
                 for point in point::SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {

@@ -7,7 +7,6 @@
 ** Log a github issue
 ** Fix upstream
 ** Remove the dimensions - (1, 1) workaround in engine.rs
-* BUG: Large doses have no irresistible area
 * BUG: the screen sometimes scrolls earlier than it should
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
 * Reduce the max Will to 5
@@ -373,3 +372,8 @@ CLOSED: [2016-12-09 Fri 21:53]
 *** how about reaching max will & spending certain amount of time being sober?
 **** when you reach max Will, we'll show a progress bar towards victory
 **** going to Withdrawal or High will reset the bar
+** DONE BUG: Large doses have no irresistible area
+CLOSED: [2016-12-11 Sun 17:36]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-11 Sun 17:37
+:END:

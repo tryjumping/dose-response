@@ -7,6 +7,10 @@
 ** Log a github issue
 ** Fix upstream
 ** Remove the dimensions - (1, 1) workaround in engine.rs
+* Code improvement: helper functions to RangedInt
+** is_max(&self) -> bool
+** set_to_min(&mut self)
+** set_to_max(&mut self) -- are we actually using this one??
 * BUG: Hunger is harmless while High
 * BUG: the screen sometimes scrolls earlier than it should
 ** I've noticed this with horizontal scrolls, but it may be vertical too?

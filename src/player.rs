@@ -9,6 +9,8 @@ use point::Point;
 use ranged_int::RangedInt;
 
 
+const WILL_MAX: i32 = 5;
+const ANXIETIES_PER_WILL: i32 = 7;
 const WITHDRAWAL_MAX: i32 = 15;
 const HIGH_MAX: i32 = 80;
 const SOBER_MAX: i32 = 20;
@@ -101,13 +103,13 @@ impl Player {
     pub fn new(pos: Point) -> Player {
         Player {
             mind: Mind::Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX)),
-            will: RangedInt::new(2, 0, 10),
+            will: RangedInt::new(2, 0, WILL_MAX),
             tolerance: 0,
             panic: RangedInt::new(0, 0, 100),
             stun: RangedInt::new(0, 0, 100),
             pos: pos,
             inventory: vec![],
-            anxiety_counter: RangedInt::new(0, 0, 10),
+            anxiety_counter: RangedInt::new(0, 0, ANXIETIES_PER_WILL),
             dead: false,
             max_ap: 1,
             ap: 1,

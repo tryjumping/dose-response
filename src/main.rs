@@ -319,7 +319,7 @@ fn process_player<R, W>(player: &mut player::Player,
                         match monster.kind {
                             monster::Kind::Anxiety => {
                                 player.anxiety_counter += 1;
-                                if *player.anxiety_counter == 10 {
+                                if *player.anxiety_counter == player.anxiety_counter.max() {
                                     player.will += 1;
                                     player.anxiety_counter.set(0);
                                 }

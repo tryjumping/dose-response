@@ -12,9 +12,6 @@
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
 * Idea: track the continuous High
 ** think of something that would make the player want to not break the cycle
-* Reduce the max Will to 5
-** We'll have to re-balance everything ultimately anyway
-** But given the content in the game right now, 5 is much more likely to get you anywhere
 * Slightly increase the normal dose frequency?
 ** We'll have to re-balance everything ultimately anyway
 ** But maybe having more doses would be a nice way to prevent early deaths and show tolerance increase
@@ -380,3 +377,9 @@ CLOSED: [2016-12-11 Sun 17:36]
 :PROPERTIES:
 :ARCHIVE_TIME: 2016-12-11 Sun 17:37
 :END:
+** Reduce the max Will to 5
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-11 Sun 21:18
+:END:
+*** We'll have to re-balance everything ultimately anyway
+*** But given the content in the game right now, 5 is much more likely to get you anywhere

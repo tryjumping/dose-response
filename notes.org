@@ -12,9 +12,6 @@
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
 * Idea: track the continuous High
 ** think of something that would make the player want to not break the cycle
-* Slightly increase the normal dose frequency?
-** We'll have to re-balance everything ultimately anyway
-** But maybe having more doses would be a nice way to prevent early deaths and show tolerance increase
 * Add a new type of dose with different effects?
 ** it would show as a different letter
 ** with a different colour (red?)
@@ -383,3 +380,10 @@ CLOSED: [2016-12-11 Sun 17:36]
 :END:
 *** We'll have to re-balance everything ultimately anyway
 *** But given the content in the game right now, 5 is much more likely to get you anywhere
+** DONE Slightly increase the normal dose frequency?
+CLOSED: [2016-12-11 Sun 21:19]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-11 Sun 21:19
+:END:
+*** We'll have to re-balance everything ultimately anyway
+*** But maybe having more doses would be a nice way to prevent early deaths and show tolerance increase

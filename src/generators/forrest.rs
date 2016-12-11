@@ -104,7 +104,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player_pos: Point)
 
     let mut weights_rest = [
         Weighted{weight: 1000 , item: None},
-        Weighted{weight: 7, item: Some(Dose)},
+        Weighted{weight: 12, item: Some(Dose)},
         Weighted{weight: 3, item: Some(StrongDose)},
         Weighted{weight: 5, item: Some(Food)},
     ];

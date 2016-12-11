@@ -7,6 +7,24 @@
 ** Log a github issue
 ** Fix upstream
 ** Remove the dimensions - (1, 1) workaround in engine.rs
+* BUG: Large doses have no irresistible area
+* BUG: the screen sometimes scrolls earlier than it should
+** I've noticed this with horizontal scrolls, but it may be vertical too?
+* Reduce the max Will to 5
+** We'll have to re-balance everything ultimately anyway
+** But given the content in the game right now, 5 is much more likely to get you anywhere
+* Slightly increase the normal dose frequency?
+** We'll have to re-balance everything ultimately anyway
+** But maybe having more doses would be a nice way to prevent early deaths and show tolerance increase
+* Add a new type of dose with different effects?
+** it would show as a different letter
+** with a different colour (red?)
+** it's own tolerance
+** different effect on consumption (not explosion)
+*** how about shooting rays in cardinal / diagonal directions?
+*** could be two versions of the "same type" just like normal/strong dose now
+*** the rays would destroy everything in their path -- including walls
+*** the characters would be `+` and `x` for cardinal and diagonal rays
 * Add NPCs
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High

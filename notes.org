@@ -7,8 +7,11 @@
 ** Log a github issue
 ** Fix upstream
 ** Remove the dimensions - (1, 1) workaround in engine.rs
+* BUG: Hunger is harmless while High
 * BUG: the screen sometimes scrolls earlier than it should
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
+* Idea: track the continuous High
+** think of something that would make the player want to not break the cycle
 * Reduce the max Will to 5
 ** We'll have to re-balance everything ultimately anyway
 ** But given the content in the game right now, 5 is much more likely to get you anywhere

@@ -3,7 +3,6 @@
 extern crate rand;
 extern crate time;
 pub extern crate tcod;
-extern crate tcod_sys;
 // extern crate rustbox;
 
 

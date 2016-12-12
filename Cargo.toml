@@ -10,6 +10,5 @@ path = "src/main.rs"
 [dependencies]
 time = "0.1.35"
 rand = "0.3.14"
-tcod = "0.10.0"
-tcod-sys = "^4.0.1"
+tcod = { git = "https://github.com/tomassedovic/tcod-rs" }
 # rustbox = "0.8.0"

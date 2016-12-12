@@ -1,12 +1,3 @@
-* tcod-rs missing get_default_background color:
-** Log a github issue
-** Fix upstream
-** Remove the tcod_sys unsafe workaround in engine.rs
-* tcod-rs wrong asserts in console::root::rect
-** Unable to fill the last column and row because of an incorrect assert
-** Log a github issue
-** Fix upstream
-** Remove the dimensions - (1, 1) workaround in engine.rs
 * Code improvement: helper functions to RangedInt
 ** is_max(&self) -> bool
 ** set_to_min(&mut self)
@@ -402,3 +393,24 @@ CLOSED: [2016-12-11 Sun 21:19]
 :END:
 *** We'll have to re-balance everything ultimately anyway
 *** But maybe having more doses would be a nice way to prevent early deaths and show tolerance increase
+** DONE tcod-rs wrong asserts in console::root::rect
+CLOSED: [2016-12-12 Mon 23:04]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-12 Mon 23:04
+:END:
+*** Unable to fill the last column and row because of an incorrect assert
+*** Log a github issue
+*** DONE Fix upstream
+CLOSED: [2016-12-12 Mon 23:04]
+*** DONE Remove the dimensions - (1, 1) workaround in engine.rs
+CLOSED: [2016-12-12 Mon 23:04]
+** DONE tcod-rs missing get_default_background color:
+CLOSED: [2016-12-12 Mon 23:04]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-12 Mon 23:04
+:END:
+*** Log a github issue
+*** DONE Fix upstream
+CLOSED: [2016-12-12 Mon 23:04]
+*** DONE Remove the tcod_sys unsafe workaround in engine.rs
+CLOSED: [2016-12-12 Mon 23:04]

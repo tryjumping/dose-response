@@ -26,6 +26,7 @@
 **** This is hard to discover so I'm not keen
 *** Give the player a goal they can achieve only while sober
 **** Say talking to a family NPC
+**** Show an arrow to the NPC?
 * Add a new type of dose with different effects?
 ** it would show as a different letter
 ** with a different colour (red?)

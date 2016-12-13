@@ -1,4 +1,3 @@
-* BUG: Hunger is harmless while High
 * Code improvement: helper functions to RangedInt
 ** is_max(&self) -> bool
 ** set_to_min(&mut self)
@@ -419,3 +418,8 @@ CLOSED: [2016-12-12 Mon 23:04]
 CLOSED: [2016-12-12 Mon 23:04]
 *** DONE Remove the tcod_sys unsafe workaround in engine.rs
 CLOSED: [2016-12-12 Mon 23:04]
+** DONE BUG: Hunger is harmless while High
+CLOSED: [2016-12-13 Tue 16:34]
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-13 Tue 16:34
+:END:

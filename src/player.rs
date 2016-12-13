@@ -19,6 +19,11 @@ const SOBER_MAX: i32 = 20;
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Modifier {
     Death,
+    // TODO: probably rename `state_of_mind` to something like hunger
+    // or satiation or maybe split it in two. It's a bit confusing now
+    // since the two users of this are the Food item (which never
+    // increases past Sober) and Hunger (which is only negative and
+    // works even when high).
     Attribute{will: i32, state_of_mind: i32},
     Intoxication{state_of_mind: i32, tolerance_increase: i32},
     Panic(i32),
@@ -153,7 +158,6 @@ impl Player {
 
     pub fn take_effect(&mut self, effect: Modifier) {
         use self::Modifier::*;
-        //println!("Player was affected by: {:?}", effect);
         match effect {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {
@@ -172,7 +176,19 @@ impl Player {
                         }
                     }
                     Mind::Sober(val) => Mind::Sober(val + state_of_mind),
-                    Mind::High(val) => Mind::High(val),
+                    Mind::High(val) => {
+                        // NOTE: Food and Hunger are the only users of
+                        // the attribute modifier so far.
+                        //
+                        // For hunger, we want it to go down even
+                        // while High but it should not increase the
+                        // intoxication value.
+                        if state_of_mind > 0 {
+                            Mind::High(val)
+                        } else {
+                            Mind::High(val + state_of_mind)
+                        }
+                    }
                 };
             }
             Intoxication{state_of_mind, tolerance_increase} => {

@@ -3,6 +3,9 @@
 * Idea: track the continuous High
 ** think of something that would make the player want to not break the cycle
 * Idea: when there's no dose in sight and you're withdrawn, point in a general direction
+** But only when you have no doses and no food
+** I.e. this is to stop you from being completely fucked
+** Because right now in that state you just have to wander randomly and hope
 * Make the map "infinitely large"
 ** We have an artificial limit on the map size now
 ** Basically because of performance issues

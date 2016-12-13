@@ -8,6 +8,11 @@
 * Idea: track the continuous High
 ** think of something that would make the player want to not break the cycle
 * Idea: when there's no dose in sight and you're withdrawn, point in a general direction
+* Make the map "infinitely large"
+** We have an artificial limit on the map size now
+** Basically because of performance issues
+** I've frequently bumped into the end of the map
+** So let's fix the performance and make the map big enough size
 * Gameplay: need to keep moving while waiting on the victory counter
 ** Right now, the best strategy is to dance around a save spot, doing nothing
 ** We need to force the player to keep moving

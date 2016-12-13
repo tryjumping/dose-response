@@ -25,10 +25,15 @@ impl RangedInt {
         }
     }
 
-    pub fn set(&mut self, n: i32) {
-        assert!(n >= self._min);
-        assert!(n <= self._max);
-        self.val = n;
+    // NOTE: this is no longer being used -- lets just comment it out for now
+    // pub fn set(&mut self, n: i32) {
+    //     assert!(n >= self._min);
+    //     assert!(n <= self._max);
+    //     self.val = n;
+    // }
+
+    pub fn set_to_min(&mut self) {
+        self.val = self._min
     }
 
     pub fn min(&self) -> i32 {
@@ -37,6 +42,14 @@ impl RangedInt {
 
     pub fn max(&self) -> i32 {
         self._max
+    }
+
+    pub fn is_min(&self) -> bool {
+        self.val == self._min
+    }
+
+    pub fn is_max(&self) -> bool {
+        self.val == self._max
     }
 
     pub fn middle(&self) -> i32 {

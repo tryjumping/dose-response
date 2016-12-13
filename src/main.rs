@@ -299,7 +299,7 @@ fn process_player<R, W>(player: &mut player::Player,
         }
         // NOTE: If we picked up doses on max Will and then lost it,
         // take them all turn by turn undonditionally:
-        if *player.will < player.will.max() {
+        if !player.will.is_max() {
             if player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose).is_some() {
                 action = Action::Use(item::Kind::StrongDose);
             } else if player.inventory.iter().position(|&i| i.kind == item::Kind::Dose).is_some() {
@@ -318,9 +318,9 @@ fn process_player<R, W>(player: &mut player::Player,
                         match monster.kind {
                             monster::Kind::Anxiety => {
                                 player.anxiety_counter += 1;
-                                if *player.anxiety_counter == player.anxiety_counter.max() {
+                                if player.anxiety_counter.is_max() {
                                     player.will += 1;
-                                    player.anxiety_counter.set(0);
+                                    player.anxiety_counter.set_to_min();
                                 }
                             }
                             _ => {}
@@ -335,7 +335,7 @@ fn process_player<R, W>(player: &mut player::Player,
                                     match item.kind {
                                         Food => player.inventory.push(item),
                                         Dose | StrongDose => {
-                                            if *player.will == player.will.max() {
+                                            if player.will.is_max() {
                                                 player.inventory.push(item);
                                             } else {
                                                 use_dose(player, level, explosion_animation, monsters, item);
@@ -489,7 +489,7 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
 
     lines.push("".into());
 
-    if *player.will == player.will.max() {
+    if player.will.is_max() {
         lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()));
     }
 
@@ -608,10 +608,10 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                     player::Mind::High(_) => true,
                     _ => false,
                 };
-                if spent_ap_this_turn && !is_high && *state.player.will == state.player.will.max() {
+                if spent_ap_this_turn && !is_high && state.player.will.is_max() {
                     state.player.sobriety_counter += 1;
                 }
-                if *state.player.sobriety_counter == state.player.sobriety_counter.max() {
+                if state.player.sobriety_counter.is_max() {
                     state.side = Side::Victory;
                 }
                 let exploration_radius = exploration_radius(state.player.mind);
@@ -802,7 +802,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 Dose | StrongDose => true,
                 Food => false,
             };
-            if is_dose && *state.player.will < state.player.will.max() {
+            if is_dose && !state.player.will.is_max() {
                 let resist_radius = player_resist_radius(item.irresistible, *state.player.will);
                 for point in point::SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {

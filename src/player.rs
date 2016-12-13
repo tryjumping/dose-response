@@ -46,7 +46,7 @@ impl Mind {
             }
             Sober(value) => {
                 let new_value = value - 1;
-                if *new_value == new_value.min() {
+                if new_value.is_min() {
                     Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX))
                 } else {
                     Sober(new_value)
@@ -54,7 +54,7 @@ impl Mind {
             }
             High(value) => {
                 let new_value = value - 1;
-                if *new_value == new_value.min() {
+                if new_value.is_min() {
                     Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX))
                 } else {
                     High(new_value)
@@ -149,8 +149,8 @@ impl Player {
 
     pub fn alive(&self) -> bool {
         let dead_mind = match self.mind {
-            Mind::Withdrawal(val) if *val <= val.min() => true,  // Exhausted
-            Mind::High(val) if *val >= val.max() => true,  // Overdosed
+            Mind::Withdrawal(val) if val.is_min() => true,  // Exhausted
+            Mind::High(val) if val.is_max() => true,  // Overdosed
             _ => false,
         };
         !self.dead && *self.will > 0 && !dead_mind
@@ -162,14 +162,13 @@ impl Player {
             Death => self.dead = true,
             Attribute{will, state_of_mind} => {
                 self.will += will;
-                if *self.will < self.will.max() {
-                    let sobriety_min = self.sobriety_counter.min();
-                    self.sobriety_counter.set(sobriety_min);
+                if !self.will.is_max() {
+                    self.sobriety_counter.set_to_min();
                 }
                 self.mind = match self.mind {
                     Mind::Withdrawal(val) => {
                         let new_val = val + state_of_mind;
-                        if *new_val == new_val.max() {
+                        if new_val.is_max() {
                             Mind::Sober(RangedInt::new(val.max() - *val + state_of_mind, 0, SOBER_MAX))
                         } else {
                             Mind::Withdrawal(new_val)
@@ -214,8 +213,7 @@ impl Player {
                     Mind::High(val) => Mind::High(val + state_of_mind_bonus),
                 };
                 self.tolerance += tolerance_increase;
-                let sobriety_min = self.sobriety_counter.min();
-                self.sobriety_counter.set(sobriety_min);
+                self.sobriety_counter.set_to_min();
             }
             Panic(turns) => {
                 self.panic += turns;

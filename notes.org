@@ -8,6 +8,10 @@
 ** But only when you have no doses and no food
 ** I.e. this is to stop you from being completely fucked
 ** Because right now in that state you just have to wander randomly and hope
+* Show the anxiety counter in the UI
+** This will make it clearer to figure out that you want to keep hunting the Wills
+** We can start by showing will with a decimal counter
+** Or a "next will" progress bar
 * Make the map "infinitely large"
 ** We have an artificial limit on the map size now
 ** Basically because of performance issues

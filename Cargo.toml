@@ -1,6 +1,6 @@
 [package]
 name = "dose-response"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
 
 [[bin]]

@@ -16,10 +16,14 @@ use point::Point;
 use world;
 
 
+// TODO: Rename this to `GameState` and the existing `GameState` to
+// `Game`? It's no longer just who's side it is but also: did the
+// player won? Lost?
 #[derive(Copy, PartialEq, Clone, Debug)]
 pub enum Side {
     Player,
     Computer,
+    Victory,
 }
 
 
@@ -28,8 +32,11 @@ pub enum Side {
 // whatever. But they shouldn't carry any context or data.
 #[derive(Copy, Clone, Debug)]
 pub enum Command {
-    N, E, S, W, NE, NW, SE, SW,
-    Eat,
+    N, E, S, W,
+    NE, NW, SE, SW,
+    UseFood,
+    UseDose,
+    UseStrongDose,
 }
 
 impl Command {
@@ -44,7 +51,9 @@ impl Command {
             NW => "NW",
             SE => "SE",
             SW => "SW",
-            Eat => "Eat",
+            UseFood => "UseFood",
+            UseDose => "UseDose",
+            UseStrongDose => "UseStrongDose",
         }
     }
 }
@@ -61,7 +70,9 @@ fn command_from_str(name: &str) -> Command {
         "NW" => NW,
         "SE" => SE,
         "SW" => SW,
-        "Eat" => Eat,
+        "UseFood" => UseFood,
+        "UseDose" => UseDose,
+        "UseStrongDose" => UseStrongDose,
         _ => panic!("Unknown command: '{}'", name)
     }
 }

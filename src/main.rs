@@ -143,8 +143,14 @@ fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
                     Key { code: Right, ctrl: false, shift: true, .. } | Key { code: NumPad9, .. }  => commands.push_back(Command::NE),
                     Key { code: Right, ctrl: true, shift: false, .. } | Key { code: NumPad3, .. }  => commands.push_back(Command::SE),
                     Key { code: Right, .. } | Key { code: NumPad6, .. }  => commands.push_back(Command::E),
-                    Key { printable: 'e', .. } => {
-                        commands.push_back(Command::Eat);
+                    Key { printable: 'e', .. } | Key { printable: '1', .. } => {
+                        commands.push_back(Command::UseFood);
+                    }
+                    Key { printable: '2', ..} => {
+                        commands.push_back(Command::UseDose);
+                    }
+                    Key { printable: '3', ..} => {
+                        commands.push_back(Command::UseStrongDose);
                     }
                     _ => (),
                 }
@@ -159,13 +165,30 @@ fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
 pub enum Action {
     Move(point::Point),
     Attack(point::Point, player::Modifier),
-    Eat,
+    Use(item::Kind),
 }
 
 
 fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
     monster.dead = true;
     level.remove_monster(monster.id(), monster);
+}
+
+fn use_dose(player: &mut player::Player, level: &mut level::Level,
+            explosion_animation: &mut ExplosionAnimation,
+            monsters: &mut [monster::Monster], item: item::Item) {
+    use player::Modifier::*;
+    if let Intoxication{state_of_mind, ..} = item.modifier {
+        let radius = match state_of_mind <= 100 {
+            true => 4,
+            false => 6,
+        };
+        player.take_effect(item.modifier);
+        let anim = explode(player.pos, radius, level, monsters);
+        *explosion_animation = anim;
+    } else {
+        unreachable!();
+    }
 }
 
 // TODO: prolly refactor to a struct?
@@ -175,7 +198,7 @@ pub type ExplosionAnimation = Option<(point::Point, i32, i32, color::Color, Dura
 fn explode(center: point::Point,
            radius: i32,
            level: &mut level::Level,
-           monsters: &mut Vec<monster::Monster>) -> ExplosionAnimation {
+           monsters: &mut [monster::Monster]) -> ExplosionAnimation {
     for pos in point::SquareArea::new(center, radius) {
         if let Some(monster_id) = level.monster_on_pos(pos) {
             kill_monster(&mut monsters[monster_id], level);
@@ -188,14 +211,24 @@ fn explode(center: point::Point,
           Duration::zero()))
 }
 
-fn exploration_radius(state_of_mind: i32) -> i32 {
-    use player::IntoxicationState::*;
-    match player::IntoxicationState::from_int(state_of_mind) {
-        Exhausted | DeliriumTremens => 4,
-        Withdrawal => 5,
-        Sober => 6,
-        High => 7,
-        VeryHigh | Overdosed => 8
+fn exploration_radius(mental_state: player::Mind) -> i32 {
+    use player::Mind::*;
+    match mental_state {
+        Withdrawal(value) => {
+            if *value >= value.middle() {
+                5
+            } else {
+                4
+            }
+        }
+        Sober(_) => 6,
+        High(value) => {
+            if *value >= value.middle() {
+                8
+            } else {
+                7
+            }
+        }
     }
 }
 
@@ -229,7 +262,9 @@ fn process_player<R, W>(player: &mut player::Player,
             Command::SW => Action::Move(player.pos + (-1,  1)),
             Command::SE => Action::Move(player.pos + ( 1,  1)),
 
-            Command::Eat => Action::Eat,
+            Command::UseFood => Action::Use(item::Kind::Food),
+            Command::UseDose => Action::Use(item::Kind::Dose),
+            Command::UseStrongDose => Action::Use(item::Kind::StrongDose),
         };
         if *player.stun > 0 {
             action = Action::Move(player.pos);
@@ -262,6 +297,15 @@ fn process_player<R, W>(player: &mut player::Player,
                 //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
             }
         }
+        // NOTE: If we picked up doses on max Will and then lost it,
+        // take them all turn by turn undonditionally:
+        if !player.will.is_max() {
+            if player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose).is_some() {
+                action = Action::Use(item::Kind::StrongDose);
+            } else if player.inventory.iter().position(|&i| i.kind == item::Kind::Dose).is_some() {
+                action = Action::Use(item::Kind::Dose);
+            }
+        }
         match action {
             Action::Move(dest) => {
                 if level.within_bounds(dest) {
@@ -273,10 +317,10 @@ fn process_player<R, W>(player: &mut player::Player,
                         kill_monster(monster, level);
                         match monster.kind {
                             monster::Kind::Anxiety => {
-                                player.anxiety_counter.add(1);
-                                if *player.anxiety_counter == 10 {
-                                    player.will.add(1);
-                                    player.anxiety_counter.set(0);
+                                player.anxiety_counter += 1;
+                                if player.anxiety_counter.is_max() {
+                                    player.will += 1;
+                                    player.anxiety_counter.set_to_min();
                                 }
                             }
                             _ => {}
@@ -288,20 +332,13 @@ fn process_player<R, W>(player: &mut player::Player,
                             match level.pickup_item(dest) {
                                 Some(item) => {
                                     use item::Kind::*;
-                                    use player::Modifier::*;
                                     match item.kind {
                                         Food => player.inventory.push(item),
-                                        Dose => {
-                                            if let Intoxication{state_of_mind, ..} = item.modifier {
-                                                let radius = match state_of_mind <= 100 {
-                                                    true => 4,
-                                                    false => 6,
-                                                };
-                                                player.take_effect(item.modifier);
-                                                let anim = explode(player.pos, radius, level, monsters);
-                                                *explosion_animation = anim;
+                                        Dose | StrongDose => {
+                                            if player.will.is_max() {
+                                                player.inventory.push(item);
                                             } else {
-                                                unreachable!();
+                                                use_dose(player, level, explosion_animation, monsters, item);
                                             }
                                         }
                                     }
@@ -312,7 +349,7 @@ fn process_player<R, W>(player: &mut player::Player,
                     }
                 }
             }
-            Action::Eat => {
+            Action::Use(item::Kind::Food) => {
                 if let Some(food_idx) = player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
                     player.spend_ap(1);
                     let food = player.inventory.remove(food_idx);
@@ -320,6 +357,20 @@ fn process_player<R, W>(player: &mut player::Player,
                     let food_explosion_radius = 2;
                     let anim = explode(player.pos, food_explosion_radius, level, monsters);
                     *explosion_animation = anim;
+                }
+            }
+            Action::Use(item::Kind::Dose) => {
+                if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::Dose) {
+                    player.spend_ap(1);
+                    let dose = player.inventory.remove(dose_index);
+                    use_dose(player, level, explosion_animation, monsters, dose);
+                }
+            }
+            Action::Use(item::Kind::StrongDose) => {
+                if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose) {
+                    player.spend_ap(1);
+                    let dose = player.inventory.remove(dose_index);
+                    use_dose(player, level, explosion_animation, monsters, dose);
                 }
             }
             Action::Attack(_, _) => {
@@ -389,29 +440,66 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                 }
             }
 
-            Action::Eat => unreachable!(),
+            Action::Use(_) => unreachable!(),
         }
     }
 }
 
 
-fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
-    let fg = color::Color{r: 255, g: 255, b: 255};
-    // TODO: set the background colour of the panel (or the rendered map)
-    let bg = color::Color{r: 0, g: 0, b: 0};
+fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
+    let fg = color::gui_text;
+    let bg = color::dim_background;
+    {
+        let height = display.size().y;
+        display.clear_rect((x, 0), (width, height), bg);
+    }
 
     let player = &state.player;
+
+    let (mind_str, mind_val_percent) = match player.mind {
+        player::Mind::Withdrawal(val) => ("Withdrawal", val.percent()),
+        player::Mind::Sober(val) => ("Sober", val.percent()),
+        player::Mind::High(val) => ("High", val.percent()),
+    };
+
     let mut lines = vec![
-        format!("{}", player::IntoxicationState::from_int(*player.state_of_mind)),
+        mind_str.into(),
+        "".into(), // NOTE: placeholder for the Mind state percentage bar
         "".into(),
         format!("Will: {}", *player.will),
-        format!("Food: {}", player.inventory.len()),
-        "".into(),
     ];
+
+    if player.inventory.len() > 0 {
+        lines.push("Inventory:".into());
+        let food_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Food).count();
+        if food_amount > 0 {
+            lines.push(format!("[1] Food: {}", food_amount));
+        }
+
+        let dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Dose).count();
+        if dose_amount > 0 {
+            lines.push(format!("[2] Dose: {}", dose_amount));
+        }
+
+        let strong_dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::StrongDose).count();
+        if strong_dose_amount > 0 {
+            lines.push(format!("[3] Strong Dose: {}", strong_dose_amount));
+        }
+    }
+
+    lines.push("".into());
+
+    if player.will.is_max() {
+        lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()));
+    }
+
     if state.cheating {
         lines.push("CHEATING".into());
-        lines.push(format!("SoM: {}", *player.state_of_mind));
         lines.push("".into());
+    }
+
+    if state.side == Side::Victory {
+        lines.push(format!("VICTORY!"));
     }
 
     if player.alive() {
@@ -428,6 +516,18 @@ fn render_gui(x: i32, display: &mut engine::Display, state: &GameState, dt: Dura
     for (y, line) in lines.iter().enumerate() {
         display.write_text(line, (x + 1, y as i32), fg, bg);
     }
+
+    let max_val = match player.mind {
+        player::Mind::Withdrawal(val) => val.max(),
+        player::Mind::Sober(val) => val.max(),
+        player::Mind::High(val) => val.max(),
+    };
+    let mut bar_width = width - 2;
+    if max_val < bar_width {
+        bar_width = max_val;
+    }
+    display.progress_bar(mind_val_percent, (x + 1, 1), bar_width,
+                         color::gui_progress_bar_fg, color::gui_progress_bar_bg);
 
     let bottom = display.size().y - 1;
     display.write_text(&format!("dt: {}ms", dt.num_milliseconds()), (x + 1, bottom - 1), fg, bg);
@@ -475,8 +575,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         false
     };
 
-    let previous_intoxication_state = player::IntoxicationState::from_int(
-        *state.player.state_of_mind);
+    let previous_intoxication_state = state.player.mind;
     let player_was_alive = state.player.alive();
 
     // Animation to re-center the screen around the player when they
@@ -496,6 +595,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Process player
         match state.side {
             Side::Player => {
+                let previous_action_points = state.player.ap();
                 process_player(&mut state.player,
                                &mut state.commands,
                                &mut state.level,
@@ -503,21 +603,34 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                                &mut state.explosion_animation,
                                &mut state.rng,
                                &mut state.command_logger);
-                state.level.explore(state.player.pos, exploration_radius(*state.player.state_of_mind));
+                let spent_ap_this_turn = previous_action_points > state.player.ap();
+                let is_high = match state.player.mind {
+                    player::Mind::High(_) => true,
+                    _ => false,
+                };
+                if spent_ap_this_turn && !is_high && state.player.will.is_max() {
+                    state.player.sobriety_counter += 1;
+                }
+                if state.player.sobriety_counter.is_max() {
+                    state.side = Side::Victory;
+                }
+                let exploration_radius = exploration_radius(state.player.mind);
+                state.level.explore(state.player.pos, exploration_radius);
 
                 // move screen if the player goes near the edge of the screen
-                let screen_left_top_corner = state.screen_position_in_world - (state.display_size / 2);
+                let map_size = point::Point::new(state.map_size, state.map_size);
+                let screen_left_top_corner = state.screen_position_in_world - (map_size / 2);
 
                 let display_pos = state.player.pos - screen_left_top_corner;
                 if state.pos_timer.finished() {
                     let dur = Duration::milliseconds(400);
                     // TODO: move the screen roughly the same distance along X and Y
-                    if display_pos.x <= 10 || display_pos.x >= state.display_size.x - 10 {
+                    if display_pos.x < exploration_radius || display_pos.x >= map_size.x - exploration_radius {
                             // change the screen centre to that of the player
                             state.pos_timer = Timer::new(dur);
                             state.old_screen_pos = state.screen_position_in_world;
                             state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
-                    } else if display_pos.y <= 7 || display_pos.y >= state.display_size.y - 7 {
+                    } else if display_pos.y < exploration_radius || display_pos.y >= map_size.y - exploration_radius {
                             // change the screen centre to that of the player
                             state.pos_timer = Timer::new(dur);
                             state.old_screen_pos = state.screen_position_in_world;
@@ -533,6 +646,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 }
             }
             Side::Computer => {}
+            Side::Victory => {}
         }
 
         assert!(state.monsters.iter().enumerate().all(|(index, monster)| index == monster.id()),
@@ -547,24 +661,22 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                     state.player.new_turn();
                 }
             }
+            Side::Victory => {}
         }
     }
 
 
-    let som = *state.player.state_of_mind;
-    let current_intoxication_state = player::IntoxicationState::from_int(som);
-
     // Rendering & related code here:
     if state.player.alive() {
-        use player::IntoxicationState::*;
+        use player::Mind::*;
 
-        if previous_intoxication_state != current_intoxication_state {
+        if previous_intoxication_state != state.player.mind {
             let was_high = match previous_intoxication_state {
-                High | VeryHigh => true,
+                High(_) => true,
                 _ => false,
             };
-            let is_high = match current_intoxication_state {
-                High | VeryHigh => true,
+            let is_high = match state.player.mind {
+                High(_) => true,
                 _ => false,
             };
 
@@ -590,17 +702,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
 
         // Fade when withdrawn:
-        match current_intoxication_state {
-            DeliriumTremens | Withdrawal => {
-                // NOTE: SoM is <0, 100>, this turns it into percentage <0, 100>
-                let som_percent = (som as f32) / 100.0;
-                let mut fade = som_percent * 0.025 + 0.25;
-                if fade < 0.25 {
-                    fade = 0.25;
-                }
+        match state.player.mind {
+            Withdrawal(value) => {
+                let fade = value.percent() * 0.6 + 0.2;
                 engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
             }
-            Exhausted | Sober | Overdosed | High | VeryHigh => {
+            Sober(_) | High(_) => {
                 // NOTE: Not withdrawn, don't fade
             }
         }
@@ -615,7 +722,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             cell.tile.set_animation(graphics::Animation::None);
         }
         state.screen_fading = Some(ScreenFadeAnimation::new(
-            color::Color{r: 255, g: 0, b: 0},
+            color::death_animation,
             Duration::milliseconds(500),
             Duration::milliseconds(200),
             Duration::milliseconds(300)));
@@ -658,7 +765,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     if state.cheating {
         bonus = player::Bonus::UncoverMap;
     }
-    let radius = exploration_radius(*state.player.state_of_mind);
+    let radius = exploration_radius(state.player.mind);
 
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2, state.map_size / 2);
 
@@ -690,7 +797,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
         // Render the irresistible background of a dose
         for item in cell.items.iter() {
-            if item.kind == item::Kind::Dose {
+            use item::Kind::*;
+            let is_dose = match item.kind {
+                Dose | StrongDose => true,
+                Food => false,
+            };
+            if is_dose && !state.player.will.is_max() {
                 let resist_radius = player_resist_radius(item.irresistible, *state.player.will);
                 for point in point::SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {
@@ -755,7 +867,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
     let fps = engine.fps();
-    render_gui(state.map_size, &mut engine.display, &state, dt, fps);
+    render_gui(state.map_size, state.panel_width, &mut engine.display, &state, dt, fps);
     Some(state)
 }
 

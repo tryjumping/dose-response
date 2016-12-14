@@ -1,5 +1,7 @@
 * BUG: the screen sometimes scrolls earlier than it should
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
+* Picking small doses should be possible earlier than the large ones
+** Right now they're all only pickable at the highest Will
 * Idea: track the continuous High
 ** think of something that would make the player want to not break the cycle
 * Idea: when there's no dose in sight and you're withdrawn, point in a general direction

@@ -6,7 +6,7 @@ VERSION=$(grep version Cargo.toml | awk '{gsub(/"/, "", $3); print $3}')
 
 rm -rf .copy
 mkdir -p .copy
-cp -r Cargo.lock Cargo.toml fonts src .copy
+cp -r Cargo.lock Cargo.toml fonts src screenshots .copy
 
 git checkout github-release
 cp -r .copy/* .

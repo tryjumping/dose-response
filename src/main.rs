@@ -6,7 +6,7 @@ pub extern crate tcod;
 // extern crate rustbox;
 
 
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::cmp;
 use std::env;
 use std::io::Write;
@@ -240,7 +240,7 @@ fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 
 fn process_player<R, W>(player: &mut player::Player,
                         commands: &mut VecDeque<Command>,
-                        level: &mut level::Level,
+                        world: &mut HashMap<point::Point, world::Chunk>,
                         monsters: &mut Vec<monster::Monster>,
                         explosion_animation: &mut ExplosionAnimation,
                         rng: &mut R,
@@ -577,7 +577,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 let previous_action_points = state.player.ap();
                 process_player(&mut state.player,
                                &mut state.commands,
-                               &mut state.level,
+                               &mut state.world,
                                &mut state.monsters,
                                &mut state.explosion_animation,
                                &mut state.rng,
@@ -857,7 +857,7 @@ fn main() {
     let map_size = 43;
     let panel_width = 20;
     let display_size = (map_size + panel_width, map_size).into();
-    let world_size = (200, 200).into();
+    let world_size = (map_size, map_size).into();
     let title = "Dose Response";
     let font_dir = Path::new("fonts");
     let font_path = font_dir.join("dejavu16x16_gs_tc.png");

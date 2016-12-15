@@ -2,6 +2,13 @@ use level::{Level, Walkability};
 use monster::Monster;
 use generators::GeneratedWorld;
 
+use rand::IsaacRng;
+
+pub struct Chunk {
+    pub rng: IsaacRng,
+    pub level: Level,
+}
+
 
 pub fn populate_world(level: &mut Level,
                       monsters: &mut Vec<Monster>,

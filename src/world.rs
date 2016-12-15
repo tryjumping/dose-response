@@ -1,8 +1,10 @@
 use level::{Level, Walkability};
+use item::Item;
+use point::Point;
 use monster::Monster;
 use generators::GeneratedWorld;
 
-use rand::IsaacRng;
+use rand::{IsaacRng, Rng};
 
 pub struct Chunk {
     pub rng: IsaacRng,
@@ -27,3 +29,12 @@ pub fn populate_world(level: &mut Level,
         level.add_item(pos, item);
     }
 }
+
+pub fn random_neighbour_position<R: Rng>(rng: R, pos: Point, walkability: Walkability) -> Point {
+    unimplemented!()
+}
+
+pub fn nearest_dose(pos: Point, radius: i32) -> Option<(Point, Item)> {
+    unimplemented!()
+}
+

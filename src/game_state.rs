@@ -292,7 +292,7 @@ fn initialise_world(state: &mut GameState) {
         }
         let chunk_pos = chunk_from_world_pos(m.position);
         match state.world.entry(chunk_pos) {
-            Occupied(chunk) => chunk.get_mut().level.set_monster(m.position, m.id(), m),
+            Occupied(mut chunk) => chunk.get_mut().level.set_monster(m.position, m.id(), m),
             Vacant(_) => unreachable!()  // All monsters should belong to a chunk
         }
     }

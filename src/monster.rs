@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use time::Duration;
 
 use rand::Rng;
@@ -8,7 +9,7 @@ use level::{Level, Walkability};
 use graphics::Render;
 use player::Modifier;
 use point::Point;
-
+use world::{self, Chunk};
 
 use self::Kind::*;
 use self::AIState::*;
@@ -84,7 +85,7 @@ impl Monster {
         }
     }
 
-    pub fn act<R: Rng>(&mut self, player_pos: Point, level: &Level, rng: &mut R) -> Action {
+    pub fn act<R: Rng>(&mut self, player_pos: Point, level: &HashMap<Point, Chunk>, rng: &mut R) -> Action {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
@@ -105,7 +106,7 @@ impl Monster {
             }
             Idle => {
                 // Move randomly about
-                let new_pos = level.random_neighbour_position(
+                let new_pos = world::random_neighbour_position(
                     rng, self.position, Walkability::BlockingMonsters);
                 Action::Move(new_pos)
             }

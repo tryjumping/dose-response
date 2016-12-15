@@ -249,7 +249,8 @@ fn process_player<R, W>(player: &mut player::Player,
     if !player.alive() {
         return
     }
-
+    // TODO: get the chunk the player is in!
+    let level: &mut level::Level = unimplemented!();
     if let Some(command) = commands.pop_front() {
         game_state::log_command(command_logger, command);
         let mut action = match command {
@@ -270,7 +271,7 @@ fn process_player<R, W>(player: &mut player::Player,
         if *player.stun > 0 {
             action = Action::Move(player.pos);
         } else if *player.panic > 0 {
-            let new_pos = level.random_neighbour_position(
+            let new_pos = world::random_neighbour_position(
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
         } else if let Some((dose_pos, dose)) = level.nearest_dose(player.pos, 5) {
@@ -341,6 +342,9 @@ fn process_player<R, W>(player: &mut player::Player,
                             }
                         }
                     }
+                } else {
+                    // TODO: Walk to the neighbouring chunk!
+                    unimplemented!()
                 }
             }
             Action::Use(item::Kind::Food) => {
@@ -376,15 +380,17 @@ fn process_player<R, W>(player: &mut player::Player,
 
 
 fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
-                            level: &mut level::Level,
+                            world: &mut HashMap<point::Point, world::Chunk>,
                             player: &mut player::Player,
                             rng: &mut R) {
     if !player.alive() {
         return
     }
+    // TODO: get monster's chunk here
+    let level: &mut level::Level = unreachable!();
 
     for monster in monsters.iter_mut().filter(|m| !m.dead && m.has_ap(1)) {
-        let action = monster.act(player.pos, level, rng);
+        let action = monster.act(player.pos, world, rng);
         match action {
             Action::Move(destination) => {
                 let pos = monster.position;
@@ -594,7 +600,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                     state.side = Side::Victory;
                 }
                 let exploration_radius = exploration_radius(state.player.mind);
-                state.level.explore(state.player.pos, exploration_radius);
+                let level: &mut level::Level = unimplemented!();
+                level.explore(state.player.pos, exploration_radius);
 
                 // move screen if the player goes near the edge of the screen
                 let map_size = point::Point::new(state.map_size, state.map_size);
@@ -634,7 +641,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         match state.side {
             Side::Player => {}
             Side::Computer => {
-                process_monsters(&mut state.monsters, &mut state.level, &mut state.player, &mut state.rng);
+                process_monsters(&mut state.monsters, &mut state.world, &mut state.player, &mut state.rng);
                 if state.monsters.iter().filter(|m| !m.dead).all(|m| !m.has_ap(1)) {
                     state.side = Side::Player;
                     state.player.new_turn();
@@ -644,6 +651,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
 
+    let level: &mut level::Level = unreachable!();
 
     // Rendering & related code here:
     if state.player.alive() {
@@ -661,7 +669,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
             if !was_high && is_high {
                 // Set animation on each level's tile:
-                for (pos, cell) in state.level.iter_mut() {
+                for (pos, cell) in level.iter_mut() {
                     let dur_ms = 700 + (((pos.x * pos.y) % 100) as i64) * 5;
                     cell.tile.set_animation(graphics::Animation::ForegroundCycle{
                         from: color::high,
@@ -671,7 +679,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 }
             } else if was_high && !is_high {
                 // Stop animation on the level's tiles:
-                for (_pos, cell) in state.level.iter_mut() {
+                for (_pos, cell) in level.iter_mut() {
                     cell.tile.set_animation(graphics::Animation::None);
                 }
             } else {
@@ -692,12 +700,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
 
         // NOTE: Update the animation state of each tile:
-        for (_, cell) in state.level.iter_mut() {
+        for (_, cell) in level.iter_mut() {
             cell.tile.update(dt);
         }
     } else if player_was_alive {  // NOTE: Player just died
         // Make sure we're not showing the High gfx effect when dead
-        for (_pos, cell) in state.level.iter_mut() {
+        for (_pos, cell) in level.iter_mut() {
             cell.tile.set_animation(graphics::Animation::None);
         }
         state.screen_fading = Some(ScreenFadeAnimation::new(
@@ -757,7 +765,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     // Render the level and items:
-    for (world_pos, cell) in state.level.iter() {
+    for (world_pos, cell) in level.iter() {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
             continue;
@@ -812,7 +820,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         if r <= max_r {
             state.explosion_animation = Some((center, max_r, r, c, elapsed));
             for world_pos in point::SquareArea::new(center, r) {
-                if state.level.within_bounds(world_pos) {
+                if level.within_bounds(world_pos) {
                     let display_pos = screen_coords_from_world(world_pos);
                     if within_map_bounds(display_pos) {
                         engine.display.set_background(display_pos, c);

@@ -29,6 +29,7 @@ mod graphics;
 mod item;
 mod level;
 mod monster;
+mod pathfinding;
 mod player;
 mod point;
 mod ranged_int;
@@ -273,26 +274,16 @@ fn process_player<R, W>(player: &mut player::Player,
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
         } else if let Some((dose_pos, dose)) = level.nearest_dose(player.pos, 5) {
-            let new_pos_opt = {
-                let point::Point{x: w, y: h} = level.size();
-                let mut path = tcod::pathfinding::AStar::new_from_callback(
-                    w, h,
-                    |_from, to| -> f32 {
-                        match level.walkable(to, level::Walkability::WalkthroughMonsters) {
-                            true => 1.0,
-                            false => 0.0,
-                        }
-                    },
-                    1.0);
-                path.find(player.pos.tuple(), dose_pos.tuple());
-                if path.len() <= player_resist_radius(dose.irresistible, *player.will) {
-                    path.walk_one_step(false)
-                } else {
-                    None
-                }
-            };
-            if let Some(new_pos) = new_pos_opt {
-                action = Action::Move(new_pos.into());
+            // TODO: think about caching the discovered path or partial path-finding??
+            // match level.walkable(to, level::Walkability::WalkthroughMonsters) {
+            let mut path = pathfinding::Path::find(player.pos, dose_pos, level);
+            // NOTE: returns an iterator of Point
+
+            // NOTE: we could add a `path.exists()` helper for
+            // non-destructive testing, but otherwise, a no path found
+            // means we'll give an empty iterator.
+            if let Some(new_pos) = path.next() {
+                action = Action::Move(new_pos);
             } else {
                 //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
             }
@@ -397,22 +388,10 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                 let newpos_opt = if pos.tile_distance(destination) <= 1 {
                     Some(destination)
                 } else {
-                    let point::Point{x: w, y: h} = level.size();
-                    {   // Find path && walk one step:
-                        let mut path = tcod::pathfinding::AStar::new_from_callback(
-                            w, h,
-                            |_from: (i32, i32), to: (i32, i32)| -> f32 {
-                                if level.walkable(to, level::Walkability::BlockingMonsters) {
-                                    1.0
-                                } else {
-                                    0.0
-                                }
-                            },
-                            1.0);
-                        path.find(pos.tuple(), destination.tuple());
-                        assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
-                        path.walk_one_step(false).map(|p| p.into())
-                    }
+                    //             if level.walkable(to, level::Walkability::BlockingMonsters) {
+                    let mut path = pathfinding::Path::find(pos, destination, level);
+                    assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
+                    path.next()
                 };
                 monster.spend_ap(1);
                 match newpos_opt {

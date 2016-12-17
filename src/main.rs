@@ -273,7 +273,7 @@ fn process_player<R, W>(player: &mut player::Player,
             let new_pos = level.random_neighbour_position(
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
-        } else if let Some((dose_pos, dose)) = level.nearest_dose(player.pos, 5) {
+        } else if let Some((dose_pos, _dose)) = level.nearest_dose(player.pos, 5) {
             // TODO: think about caching the discovered path or partial path-finding??
             // match level.walkable(to, level::Walkability::WalkthroughMonsters) {
             let mut path = pathfinding::Path::find(player.pos, dose_pos, level);

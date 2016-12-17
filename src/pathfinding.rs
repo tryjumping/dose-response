@@ -1,17 +1,14 @@
-use std::collections::HashMap;
-
-use monster::Monster;
 use point::Point;
 use level::Level;
 
 pub struct Path;
 
 impl Path {
-    pub fn find(from: Point, to: Point, level: &Level) -> Path {
+    pub fn find(_from: Point, _to: Point, _level: &Level) -> Path {
         unimplemented!()
     }
 
-    pub fn find_test(from: Point, to: Point, walkability_map: &Vec<bool>) -> Path {
+    pub fn find_test(_from: Point, _to: Point, _walkability_map: &Vec<bool>) -> Path {
         unimplemented!()
     }
 

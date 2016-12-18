@@ -275,8 +275,8 @@ fn process_player<R, W>(player: &mut player::Player,
             action = Action::Move(new_pos);
         } else if let Some((dose_pos, _dose)) = level.nearest_dose(player.pos, 5) {
             // TODO: think about caching the discovered path or partial path-finding??
-            // match level.walkable(to, level::Walkability::WalkthroughMonsters) {
-            let mut path = pathfinding::Path::find(player.pos, dose_pos, level);
+            let mut path = pathfinding::Path::find(player.pos, dose_pos, level,
+                                                   level::Walkability::WalkthroughMonsters);
             // NOTE: returns an iterator of Point
 
             // NOTE: we could add a `path.exists()` helper for
@@ -388,8 +388,8 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                 let newpos_opt = if pos.tile_distance(destination) <= 1 {
                     Some(destination)
                 } else {
-                    //             if level.walkable(to, level::Walkability::BlockingMonsters) {
-                    let mut path = pathfinding::Path::find(pos, destination, level);
+                    let mut path = pathfinding::Path::find(
+                        pos, destination, level, level::Walkability::BlockingMonsters);
                     assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
                     path.next()
                 };

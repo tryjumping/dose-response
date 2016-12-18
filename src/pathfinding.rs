@@ -3,7 +3,7 @@ use std::collections::{BinaryHeap, HashMap};
 use std::f32;
 
 use point::Point;
-use level::Level;
+use level::{Level, Walkability};
 
 #[derive(Debug)]
 pub struct Path {
@@ -11,18 +11,11 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn find(_from: Point, _to: Point, _level: &Level) -> Self {
-        unimplemented!()
-    }
-
-    pub fn find_test(from: Point, to: Point, walkability_map: &Vec<bool>, map_width: usize) -> Self {
-        let map_height = walkability_map.len() / map_width;
-        assert_eq!(map_width * map_height, walkability_map.len());
+    pub fn find(from: Point, to: Point, level: &Level, walkability: Walkability) -> Self {
         let neighbors = |current: Point| {
             assert!(current.x >= 0);
             assert!(current.y >= 0);
-            assert!(current.x < map_width as i32);
-            assert!(current.y < map_height as i32);
+            assert!(level.within_bounds(current));
             let dp: [Point; 9] = [
                 (-1, -1).into(),
                 (-1,  0).into(),
@@ -37,11 +30,8 @@ impl Path {
             dp.clone()
                 .iter()
                 .map(|&d| current + d)
-                .filter(|&point| {
-                    point >= (0, 0) &&
-                        point < (map_width as i32, map_height as i32) &&
-                        walkability_map[point.y as usize * map_width + point.x as usize]
-                })
+                .filter(|&point|
+                        level.within_bounds(point) && level.walkable(point, walkability))
                 .collect::<Vec<_>>()
         };
 
@@ -161,6 +151,7 @@ impl PartialOrd for State {
 mod test {
     use super::Path;
     use point::Point;
+    use level::{Level, Walkability};
 
     #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     enum Piece {
@@ -170,30 +161,28 @@ mod test {
         Destination,
     }
 
-    #[derive(Debug)]
     struct Board {
         start: Point,
         destination: Point,
-        board: Vec<Piece>,
-        width: usize,
+        level: Level,
     }
 
     fn make_board(text: &str) -> Board {
         use self::Piece::*;
-        let mut result = Board {
-            start: Point{x: -1, y: -1},
-            destination: Point{x: -1, y: -1},
-            width: 0,
-            board: vec![]
-        };
+        use level::{Tile, TileKind};
+        let mut start = Point{x: -1, y: -1};
+        let mut destination = Point{x: -1, y: -1};
+        let mut map_width = 0;
         let mut x = 0;
         let mut y = 0;
+
+        let mut walkability_map = vec![];
         for c in text.chars() {
             if c == '\n' {
-                if result.width == 0 {
-                    result.width = x;
+                if map_width == 0 {
+                    map_width = x;
                 } else {
-                    assert_eq!(result.width, x);
+                    assert_eq!(map_width, x);
                 }
                 x = 0;
                 y += 1;
@@ -207,25 +196,39 @@ mod test {
                 'x' => Blocked,
                 _   => unreachable!(),
             };
-            result.board.push(piece);
+            walkability_map.push(piece);
             if piece == Start {
-                assert_eq!(Point{x: -1, y: -1}, result.start);
-                result.start = Point { x: x as i32, y: y as i32 };
+                assert_eq!(Point{x: -1, y: -1}, start);
+                start = Point { x: x as i32, y: y as i32 };
             }
             if piece == Destination {
-                assert_eq!(Point{x: -1, y: -1}, result.destination);
-                result.destination = Point { x: x as i32, y: y as i32 };
+                assert_eq!(Point{x: -1, y: -1}, destination);
+                destination = Point { x: x as i32, y: y as i32 };
             }
             x += 1;
         }
-        assert!(result.start != Point { x: -1, y: -1});
-        assert!(result.destination != Point { x: -1, y: -1});
-        result
-    }
+        assert!(start != Point { x: -1, y: -1});
+        assert!(destination != Point { x: -1, y: -1});
 
-    fn find_path(board: &Board) -> Path {
-        let world = board.board.iter().map(|&piece| piece != Piece::Blocked).collect();
-        Path::find_test(board.start, board.destination, &world, board.width)
+        let map_height = walkability_map.len() / map_width;
+        assert_eq!(map_width * map_height, walkability_map.len());
+        let mut level = Level::new(map_width as i32, map_height as i32);
+
+        for x in 0..map_width {
+            for y in 0..map_height {
+                let tile_kind = match walkability_map[y * map_width + x] {
+                    Empty | Start | Destination  => TileKind::Empty,
+                    Blocked => TileKind::Tree,
+                };
+                level.set_tile(Point{ x: x as i32, y: y as i32 }, Tile::new(tile_kind));
+            }
+        }
+
+        Board {
+            start: start,
+            destination: destination,
+            level: level,
+        }
     }
 
     #[test]
@@ -236,7 +239,8 @@ mod test {
 ...........
 ...........
 ");
-        let path: Path = find_path(&board);
+        let path: Path = Path::find(board.start, board.destination, &board.level,
+                   Walkability::WalkthroughMonsters);
         assert_eq!(7, path.len());
         let expected = [(2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)].iter()
             .cloned().map(Into::into).collect::<Vec<Point>>();
@@ -251,7 +255,8 @@ s..........
 ..*........
 ...d.......
 ");
-        let path: Path = find_path(&board);
+        let path: Path = Path::find(board.start, board.destination, &board.level,
+                   Walkability::WalkthroughMonsters);
         assert_eq!(3, path.len());
         let expected = [(1, 1), (2, 2), (3, 3)].iter()
             .cloned().map(Into::into).collect::<Vec<Point>>();
@@ -266,7 +271,8 @@ s..........
 ....x......
 ....x......
 ");
-        let path: Path = find_path(&board);
+        let path: Path = Path::find(board.start, board.destination, &board.level,
+                   Walkability::WalkthroughMonsters);
         assert_eq!(0, path.len());
     }
 
@@ -278,7 +284,8 @@ s..........
 ..*.x......
 ...*****d..
 ");
-        let path: Path = find_path(&board);
+        let path: Path = Path::find(board.start, board.destination, &board.level,
+                   Walkability::WalkthroughMonsters);
         assert_eq!(7, path.len());
         let expected = [(2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)].iter()
             .cloned().map(Into::into).collect::<Vec<Point>>();
@@ -294,7 +301,8 @@ s..........
 ..*xxxx*...
 ...****....
 ");
-        let path: Path = find_path(&board);
+        let path: Path = Path::find(board.start, board.destination, &board.level,
+                   Walkability::WalkthroughMonsters);
         assert_eq!(9, path.len());
         let expected = [(2, 2), (2, 3), (3, 4), (4, 4), (5, 4), (6, 4), (7, 3), (7, 2), (7, 1)].iter()
             .cloned().map(Into::into).collect::<Vec<Point>>();

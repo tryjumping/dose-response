@@ -1,3 +1,7 @@
+* High score for the number of doses collected                         :idea:
+** Would be a cool incentive for the end game
+** The players might even consider prolonging it
+** While obviously carrying danger because of the loss of Will and Depressions
 * The screen sometimes scrolls earlier than it should                   :bug:
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
 * Picking small doses should be possible earlier than the large ones   :idea:

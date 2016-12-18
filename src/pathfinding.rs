@@ -1,4 +1,4 @@
-use std::cmp::{self, Ordering};
+use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 use std::usize;
 
@@ -52,8 +52,7 @@ impl Path {
         };
 
         let heuristic = |destination: Point, next: Point| -> usize {
-            cmp::max((destination.x - next.x).abs(), (destination.y - next.y).abs()) as usize
-            //((destination.x - next.x).abs() + (destination.y - next.y).abs()) as usize
+            ((destination.x - next.x).abs() + (destination.y - next.y).abs()) as usize
         };
 
         let mut frontier = BinaryHeap::new();

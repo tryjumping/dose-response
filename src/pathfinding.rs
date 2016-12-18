@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::cmp::{self, Ordering};
 use std::collections::{BinaryHeap, HashMap};
 use std::usize;
 
@@ -15,24 +15,53 @@ impl Path {
         unimplemented!()
     }
 
-    pub fn find_test(from: Point, to: Point, walkability_map: &Vec<bool>) -> Self {
-        let neighbors = |_current| -> Vec<Point> {
-            unimplemented!()
+    pub fn find_test(from: Point, to: Point, walkability_map: &Vec<bool>, map_width: usize) -> Self {
+        let map_height = walkability_map.len() / map_width;
+        assert_eq!(map_width * map_height, walkability_map.len());
+        let neighbors = |current: Point| {
+            assert!(current.x >= 0);
+            assert!(current.y >= 0);
+            assert!(current.x < map_width as i32);
+            assert!(current.y < map_height as i32);
+            let dp: [Point; 9] = [
+                (-1, -1).into(),
+                (-1,  0).into(),
+                (-1,  1).into(),
+                ( 0, -1).into(),
+                ( 0,  0).into(),
+                ( 0,  1).into(),
+                ( 1, -1).into(),
+                ( 1,  0).into(),
+                ( 1,  1).into(),
+            ];
+            dp.clone()
+                .iter()
+                .map(|&d| current + d)
+                .filter(|&point| {
+                    point >= (0, 0) &&
+                        point < (map_width as i32, map_height as i32) &&
+                        walkability_map[point.y as usize * map_width + point.x as usize]
+                })
+                .collect::<Vec<_>>()
         };
 
-        let cost = |_current, _next| -> usize {
-            unimplemented!()
+        let cost = |current: Point, next: Point| -> usize {
+            assert!((current.x - next.x).abs() <= 1);
+            assert!((current.y - next.y).abs() <= 1);
+            1
         };
 
-        let heuristic = |_destination, _next| -> usize {
-            unimplemented!()
+        let heuristic = |destination: Point, next: Point| -> usize {
+            cmp::max((destination.x - next.x).abs(), (destination.y - next.y).abs()) as usize
+            //((destination.x - next.x).abs() + (destination.y - next.y).abs()) as usize
         };
 
         let mut frontier = BinaryHeap::new();
         frontier.push(State { position: from, cost: 0 });
-        let mut path = vec![from];
+        let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();
 
+        came_from.insert(from, None);
         cost_so_far.insert(from, 0);
 
         while let Some(current) = frontier.pop() {
@@ -40,17 +69,41 @@ impl Path {
                 break
             }
 
-            for &next in neighbors(current).iter() {
-                let new_cost = cost_so_far[&current.position] + cost(current, next);
+            for &next in neighbors(current.position).iter() {
+                let new_cost = cost_so_far[&current.position] + cost(current.position, next);
                 let val = cost_so_far.entry(next).or_insert(usize::MAX);
                 if new_cost < *val {
                     *val = new_cost;
                     let priority = new_cost + heuristic(to, next);
                     frontier.push(State { position: next, cost: priority });
-                    path.push(next);
+                    came_from.insert(next, Some(current.position));
                 }
             }
         }
+
+        let path = {
+            let mut current = to;
+            let mut path_buffer = vec![current];
+            while current != from {
+                match came_from.get(&current) {
+                    Some(&Some(new_current)) => {
+                        current = new_current;
+                        if current != from {
+                            path_buffer.push(current);
+                        }
+                    }
+                    Some(&None) => panic!(
+                        "Every point except for the initial one (`from`) one should be some."),
+                    None => {
+                        path_buffer = vec![];
+                        break
+                    },
+                }
+            }
+            path_buffer
+        };
+
+        assert_eq!(None, path.iter().find(|&&p| p == from));
 
         Path {
             path: path,
@@ -161,7 +214,7 @@ mod test {
 
     fn find_path(board: &Board) -> Path {
         let world = board.board.iter().map(|&piece| piece != Piece::Blocked).collect();
-        Path::find_test(board.start, board.destination, &world)
+        Path::find_test(board.start, board.destination, &world, board.width)
     }
 
     #[test]
@@ -173,9 +226,10 @@ mod test {
 ...........
 ");
         let path: Path = find_path(&board);
-        println!("{:?}", path);
         assert_eq!(7, path.len());
-        //assert_eq!(board.path, path.collect::<Vec<_>>());
+        let expected = [(2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)].iter()
+            .cloned().map(Into::into).collect::<Vec<Point>>();
+        assert_eq!(expected, path.collect::<Vec<_>>());
     }
 
     #[test]
@@ -188,7 +242,9 @@ s..........
 ");
         let path: Path = find_path(&board);
         assert_eq!(3, path.len());
-        //assert_eq!(board.path, path.collect::<Vec<_>>());
+        let expected = [(1, 1), (2, 2), (3, 3)].iter()
+            .cloned().map(Into::into).collect::<Vec<Point>>();
+        assert_eq!(expected, path.collect::<Vec<_>>());
     }
 
     #[test]
@@ -201,7 +257,6 @@ s..........
 ");
         let path: Path = find_path(&board);
         assert_eq!(0, path.len());
-        //assert_eq!(board.path, path.collect::<Vec<_>>());
     }
 
     #[test]
@@ -214,7 +269,9 @@ s..........
 ");
         let path: Path = find_path(&board);
         assert_eq!(7, path.len());
-        //assert_eq!(board.path, path.collect::<Vec<_>>());
+        let expected = [(2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)].iter()
+            .cloned().map(Into::into).collect::<Vec<Point>>();
+        assert_eq!(expected, path.collect::<Vec<_>>());
     }
 
     #[test]
@@ -228,6 +285,8 @@ s..........
 ");
         let path: Path = find_path(&board);
         assert_eq!(9, path.len());
-        //assert_eq!(board.path, path.collect::<Vec<_>>());
+        let expected = [(2, 2), (2, 3), (3, 4), (4, 4), (5, 4), (6, 4), (7, 3), (7, 2), (7, 1)].iter()
+            .cloned().map(Into::into).collect::<Vec<Point>>();
+        assert_eq!(expected, path.collect::<Vec<_>>());
     }
 }

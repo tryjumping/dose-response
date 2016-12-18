@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
-use std::usize;
+use std::f32;
 
 use point::Point;
 use level::Level;
@@ -45,23 +45,23 @@ impl Path {
                 .collect::<Vec<_>>()
         };
 
-        let cost = |current: Point, next: Point| -> usize {
+        let cost = |current: Point, next: Point| -> f32 {
             assert!((current.x - next.x).abs() <= 1);
             assert!((current.y - next.y).abs() <= 1);
-            1
+            1.0
         };
 
-        let heuristic = |destination: Point, next: Point| -> usize {
-            ((destination.x - next.x).abs() + (destination.y - next.y).abs()) as usize
+        let heuristic = |destination: Point, next: Point| -> f32 {
+            ((destination.x - next.x).abs() + (destination.y - next.y).abs()) as f32
         };
 
         let mut frontier = BinaryHeap::new();
-        frontier.push(State { position: from, cost: 0 });
+        frontier.push(State { position: from, cost: 0.0 });
         let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();
 
         came_from.insert(from, None);
-        cost_so_far.insert(from, 0);
+        cost_so_far.insert(from, 0.0);
 
         while let Some(current) = frontier.pop() {
             if current.position == to {
@@ -70,7 +70,7 @@ impl Path {
 
             for &next in neighbors(current.position).iter() {
                 let new_cost = cost_so_far[&current.position] + cost(current.position, next);
-                let val = cost_so_far.entry(next).or_insert(usize::MAX);
+                let val = cost_so_far.entry(next).or_insert(f32::MAX);
                 if new_cost < *val {
                     *val = new_cost;
                     let priority = new_cost + heuristic(to, next);
@@ -124,15 +124,27 @@ impl Iterator for Path {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 struct State {
-    cost: usize,
+    cost: f32,
     position: Point,
 }
 
+impl Eq for State {}
+
 impl Ord for State {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.cost.cmp(&self.cost)
+        assert!(self.cost.is_finite());
+        assert!(other.cost.is_finite());
+        if other.cost > self.cost {
+            Ordering::Greater
+        } else if other.cost < self.cost {
+            Ordering::Less
+        } else if other.cost == self.cost {
+            Ordering::Equal
+        } else {
+            unreachable!()
+        }
     }
 }
 

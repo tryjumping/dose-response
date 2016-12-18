@@ -153,14 +153,6 @@ mod test {
     use point::Point;
     use level::{Level, Walkability};
 
-    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-    enum Piece {
-        Start,
-        Empty,
-        Blocked,
-        Destination,
-    }
-
     struct Board {
         start: Point,
         destination: Point,
@@ -168,61 +160,52 @@ mod test {
     }
 
     fn make_board(text: &str) -> Board {
-        use self::Piece::*;
-        use level::{Tile, TileKind};
+        use level::Tile;
+        use level::TileKind::{Empty, Tree};
         let mut start = Point{x: -1, y: -1};
         let mut destination = Point{x: -1, y: -1};
-        let mut map_width = 0;
         let mut x = 0;
         let mut y = 0;
 
-        let mut walkability_map = vec![];
-        for c in text.chars() {
-            if c == '\n' {
-                if map_width == 0 {
-                    map_width = x;
-                } else {
-                    assert_eq!(map_width, x);
+        let lines = text.split('\n').filter(|l| l.len() > 0).collect::<Vec<_>>();
+        let height = lines.len();
+        assert!(height > 0);
+        let width = lines[0].len();
+        assert!(width > 0);
+        assert!(lines.iter().all(|line| line.chars().count() == width));
+
+        let mut level = Level::new(width as i32, height as i32);
+
+        for line in lines {
+            for c in line.chars() {
+                if c == 's' {
+                    assert_eq!(Point{x: -1, y: -1}, start);
+                    start = Point { x: x as i32, y: y as i32 };
                 }
-                x = 0;
-                y += 1;
-                continue
-            }
-            let piece = match c {
-                '.' => Empty,
-                '*' => Empty,
-                's' => Start,
-                'd' => Destination,
-                'x' => Blocked,
-                _   => unreachable!(),
-            };
-            walkability_map.push(piece);
-            if piece == Start {
-                assert_eq!(Point{x: -1, y: -1}, start);
-                start = Point { x: x as i32, y: y as i32 };
-            }
-            if piece == Destination {
-                assert_eq!(Point{x: -1, y: -1}, destination);
-                destination = Point { x: x as i32, y: y as i32 };
-            }
-            x += 1;
-        }
-        assert!(start != Point { x: -1, y: -1});
-        assert!(destination != Point { x: -1, y: -1});
 
-        let map_height = walkability_map.len() / map_width;
-        assert_eq!(map_width * map_height, walkability_map.len());
-        let mut level = Level::new(map_width as i32, map_height as i32);
+                if c == 'd' {
+                    assert_eq!(Point{x: -1, y: -1}, destination);
+                    destination = Point { x: x as i32, y: y as i32 };
+                }
 
-        for x in 0..map_width {
-            for y in 0..map_height {
-                let tile_kind = match walkability_map[y * map_width + x] {
-                    Empty | Start | Destination  => TileKind::Empty,
-                    Blocked => TileKind::Tree,
+                let tile_kind = match c {
+                    '.' => Empty,
+                    '*' => Empty,
+                    's' => Empty,
+                    'd' => Empty,
+                    'x' => Tree,
+                    _   => unreachable!(),
                 };
                 level.set_tile(Point{ x: x as i32, y: y as i32 }, Tile::new(tile_kind));
+
+                x += 1;
             }
+            y += 1;
+            x = 0;
         }
+
+        assert!(start != Point { x: -1, y: -1});
+        assert!(destination != Point { x: -1, y: -1});
 
         Board {
             start: start,
@@ -233,7 +216,7 @@ mod test {
 
     #[test]
     fn test_straight_path() {
-        let board = make_board("\
+        let board = make_board("
 ...........
 .s******d..
 ...........
@@ -249,7 +232,7 @@ mod test {
 
     #[test]
     fn test_diagonal_path() {
-        let board = make_board("\
+        let board = make_board("
 s..........
 .*.........
 ..*........
@@ -265,7 +248,7 @@ s..........
 
     #[test]
     fn test_no_path() {
-        let board = make_board("\
+        let board = make_board("
 ....x......
 .s..x...d..
 ....x......
@@ -278,7 +261,7 @@ s..........
 
     #[test]
     fn test_line_obstacle() {
-        let board = make_board("\
+        let board = make_board("
 ....x......
 .s..x......
 ..*.x......
@@ -294,7 +277,7 @@ s..........
 
     #[test]
     fn test_concave_obstacle() {
-        let board = make_board("\
+        let board = make_board("
 ......x....
 .s....xd...
 ..*...x*...

@@ -37,4 +37,3 @@ pub fn random_neighbour_position<R: Rng>(rng: R, pos: Point, walkability: Walkab
 pub fn nearest_dose(pos: Point, radius: i32) -> Option<(Point, Item)> {
     unimplemented!()
 }
-

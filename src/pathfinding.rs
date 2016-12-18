@@ -12,6 +12,10 @@ pub struct Path {
 
 impl Path {
     pub fn find(from: Point, to: Point, level: &Level, walkability: Walkability) -> Self {
+        if from == to {
+            return Path { path: vec![] };
+        }
+
         let neighbors = |current: Point| {
             assert!(current.x >= 0);
             assert!(current.y >= 0);
@@ -162,8 +166,8 @@ mod test {
     fn make_board(text: &str) -> Board {
         use level::Tile;
         use level::TileKind::{Empty, Tree};
-        let mut start = Point{x: -1, y: -1};
-        let mut destination = Point{x: -1, y: -1};
+        let mut start = Point{x: 0, y: 0};
+        let mut destination = Point{x: 0, y: 0};
         let mut x = 0;
         let mut y = 0;
 
@@ -179,12 +183,10 @@ mod test {
         for line in lines {
             for c in line.chars() {
                 if c == 's' {
-                    assert_eq!(Point{x: -1, y: -1}, start);
                     start = Point { x: x as i32, y: y as i32 };
                 }
 
                 if c == 'd' {
-                    assert_eq!(Point{x: -1, y: -1}, destination);
                     destination = Point { x: x as i32, y: y as i32 };
                 }
 
@@ -212,6 +214,38 @@ mod test {
             destination: destination,
             level: level,
         }
+    }
+
+    #[test]
+    fn test_neighbor() {
+        let board = make_board("
+...........
+.sd........
+...........
+...........
+");
+        let path: Path = Path::find(board.start, board.destination, &board.level,
+                   Walkability::WalkthroughMonsters);
+        assert_eq!(1, path.len());
+        let expected = [(2, 1)].iter()
+            .cloned().map(Into::into).collect::<Vec<Point>>();
+        assert_eq!(expected, path.collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn test_start_and_destination_identical() {
+        let mut board = make_board("
+...........
+.s.........
+...........
+...........
+");
+        board.destination = board.start;
+        let path: Path = Path::find(board.start, board.destination, &board.level,
+                   Walkability::WalkthroughMonsters);
+        assert_eq!(0, path.len());
+        let expected: Vec<Point> = vec![];
+        assert_eq!(expected, path.collect::<Vec<_>>());
     }
 
     #[test]

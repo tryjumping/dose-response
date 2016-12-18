@@ -273,16 +273,19 @@ fn process_player<R, W>(player: &mut player::Player,
             let new_pos = level.random_neighbour_position(
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
-        } else if let Some((dose_pos, _dose)) = level.nearest_dose(player.pos, 5) {
+        } else if let Some((dose_pos, dose)) = level.nearest_dose(player.pos, 5) {
             // TODO: think about caching the discovered path or partial path-finding??
             let mut path = pathfinding::Path::find(player.pos, dose_pos, level,
                                                    level::Walkability::WalkthroughMonsters);
-            // NOTE: returns an iterator of Point
 
-            // NOTE: we could add a `path.exists()` helper for
-            // non-destructive testing, but otherwise, a no path found
-            // means we'll give an empty iterator.
-            if let Some(new_pos) = path.next() {
+            let resist_radius = player_resist_radius(dose.irresistible, *player.will) as usize;
+            let new_pos_opt = if path.len() <= resist_radius {
+                path.next()
+            } else {
+                None
+            };
+
+            if let Some(new_pos) = new_pos_opt {
                 action = Action::Move(new_pos);
             } else {
                 //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
@@ -385,12 +388,9 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
         match action {
             Action::Move(destination) => {
                 let pos = monster.position;
-                let newpos_opt = if pos.tile_distance(destination) <= 1 {
-                    Some(destination)
-                } else {
+                let newpos_opt = {
                     let mut path = pathfinding::Path::find(
                         pos, destination, level, level::Walkability::BlockingMonsters);
-                    assert!(path.len() != 1, "The path shouldn't be trivial. We already handled that.");
                     path.next()
                 };
                 monster.spend_ap(1);

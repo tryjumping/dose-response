@@ -1,4 +1,4 @@
-use std::collections::{VecDeque, HashMap};
+use std::collections::VecDeque;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::env;
 use std::fs::{self, File};
@@ -100,7 +100,7 @@ pub struct GameState {
     /// but we're limiting it for performance reasons for now.
     pub world_size: Point,
     pub chunk_size: i32,
-    pub world: HashMap<Point, Chunk>,
+    pub world: world::World,
 
     /// The size of the game map inside the game window. We're keeping
     /// this square so this value repesents both width and heigh.
@@ -152,7 +152,7 @@ impl GameState {
             explosion_animation: None,
             chunk_size: 32,
             world_size: world_size,
-            world: HashMap::new(),
+            world: world::World::new(),
             map_size: map_size,
             panel_width: panel_width,
             display_size: display_size,
@@ -236,66 +236,23 @@ impl GameState {
 
 fn initialise_world(state: &mut GameState) {
     assert!(state.map_size >= state.chunk_size);
-    let map_dimensions: Point = (state.map_size, state.map_size).into();
-    let left_top_corner = state.screen_position_in_world - map_dimensions / 2;
-    // NOTE: The world goes from (0, 0) onwards. So `x / chunk_size`
-    // gives you the horizontal coordinate of the chunk containing
-    // your `x`.
-    let min_x_chunk = left_top_corner.x / state.chunk_size;
-    let x_cells_to_fill = left_top_corner.x - min_x_chunk + state.map_size;
-    let x_chunks = if x_cells_to_fill % state.chunk_size == 0 {
-        x_cells_to_fill / state.chunk_size
-    } else {
-        x_cells_to_fill / state.chunk_size + 1
-    };
 
-    let min_y_chunk = left_top_corner.y / state.chunk_size;
-    let y_cells_to_fill = left_top_corner.y - min_y_chunk + state.map_size;
-    let y_chunks = if y_cells_to_fill % state.chunk_size == 0 {
-        y_cells_to_fill / state.chunk_size
-    } else {
-        y_cells_to_fill / state.chunk_size + 1
-    };
-
-    let min_chunk_pos = Point::new(min_x_chunk, min_y_chunk);
-
-    for x_chunk_increment in 0..x_chunks {
-        for y_chunk_increment in 0..y_chunks {
-            let chunk_pos = min_chunk_pos + (x_chunk_increment, y_chunk_increment);
-            assert!(chunk_pos.x >= 0);
-            assert!(chunk_pos.y >= 0);
-
-            let chunk_seed: &[_] = &[state.seed, chunk_pos.x as u32, chunk_pos.y as u32];
-            let mut chunk = Chunk {
-                rng: SeedableRng::from_seed(chunk_seed),
-                level: Level::new(state.chunk_size, state.chunk_size),
-            };
-
-            let generated_level = generators::forrest::generate(&mut chunk.rng,
-                                                                chunk.level.size(),
-                                                                state.player.pos);
-            world::populate_world(&mut chunk.level,
-                                  &mut state.monsters,
-                                  generated_level);
-
-            state.world.insert(chunk_pos, chunk);
-        }
-    }
 
     // TODO: Can we keep monsters in a global list or do we have to partition them as well?
     // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
-    state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
-    for (index, m) in state.monsters.iter_mut().enumerate() {
-        // TODO: UGH. Just use an indexed entity store that pops these up.
-        unsafe {
-            m.set_id(index);
-        }
-        let chunk_pos = chunk_from_world_pos(m.position);
-        match state.world.entry(chunk_pos) {
-            Occupied(mut chunk) => chunk.get_mut().level.set_monster(m.position, m.id(), m),
-            Vacant(_) => unreachable!()  // All monsters should belong to a chunk
-        }
-    }
+    // state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
+    // for (index, m) in state.monsters.iter_mut().enumerate() {
+    //     // TODO: UGH. Just use an indexed entity store that pops these up.
+    //     unsafe {
+    //         m.set_id(index);
+    //     }
+    //     let chunk_pos = chunk_from_world_pos(m.position);
+    //     match state.world.entry(chunk_pos) {
+    //         Occupied(mut chunk) => chunk.get_mut().level.set_monster(m.position, m.id(), m),
+    //         Vacant(_) => unreachable!()  // All monsters should belong to a chunk
+    //     }
+    // }
+    unimplemented!()
 }
 
 

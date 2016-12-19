@@ -240,7 +240,7 @@ fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 
 fn process_player<R, W>(player: &mut player::Player,
                         commands: &mut VecDeque<Command>,
-                        world: &mut HashMap<point::Point, world::Chunk>,
+                        world: &mut world::World,
                         monsters: &mut Vec<monster::Monster>,
                         explosion_animation: &mut ExplosionAnimation,
                         rng: &mut R,
@@ -380,7 +380,7 @@ fn process_player<R, W>(player: &mut player::Player,
 
 
 fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
-                            world: &mut HashMap<point::Point, world::Chunk>,
+                            world: &mut world::World,
                             player: &mut player::Player,
                             rng: &mut R) {
     if !player.alive() {

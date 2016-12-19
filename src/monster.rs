@@ -9,7 +9,7 @@ use level::{Level, Walkability};
 use graphics::Render;
 use player::Modifier;
 use point::Point;
-use world::{self, Chunk};
+use world::{self, Chunk, World};
 
 use self::Kind::*;
 use self::AIState::*;
@@ -85,7 +85,7 @@ impl Monster {
         }
     }
 
-    pub fn act<R: Rng>(&mut self, player_pos: Point, level: &HashMap<Point, Chunk>, rng: &mut R) -> Action {
+    pub fn act<R: Rng>(&mut self, player_pos: Point, world: &World, rng: &mut R) -> Action {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }

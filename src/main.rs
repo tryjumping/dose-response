@@ -6,7 +6,7 @@ pub extern crate tcod;
 // extern crate rustbox;
 
 
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 use std::cmp;
 use std::env;
 use std::io::Write;
@@ -170,12 +170,12 @@ pub enum Action {
 }
 
 
-fn kill_monster(monster: &mut monster::Monster, level: &mut level::Level) {
+fn kill_monster(monster: &mut monster::Monster, world: &mut world::World) {
     monster.dead = true;
-    level.remove_monster(monster.id(), monster);
+    world.remove_monster(monster.id(), monster);
 }
 
-fn use_dose(player: &mut player::Player, level: &mut level::Level,
+fn use_dose(player: &mut player::Player, world: &mut world::World,
             explosion_animation: &mut ExplosionAnimation,
             monsters: &mut [monster::Monster], item: item::Item) {
     use player::Modifier::*;
@@ -185,7 +185,7 @@ fn use_dose(player: &mut player::Player, level: &mut level::Level,
             false => 6,
         };
         player.take_effect(item.modifier);
-        let anim = explode(player.pos, radius, level, monsters);
+        let anim = explode(player.pos, radius, world, monsters);
         *explosion_animation = anim;
     } else {
         unreachable!();
@@ -198,11 +198,11 @@ pub type ExplosionAnimation = Option<(point::Point, i32, i32, color::Color, Dura
 
 fn explode(center: point::Point,
            radius: i32,
-           level: &mut level::Level,
+           world: &mut world::World,
            monsters: &mut [monster::Monster]) -> ExplosionAnimation {
     for pos in point::SquareArea::new(center, radius) {
-        if let Some(monster_id) = level.monster_on_pos(pos) {
-            kill_monster(&mut monsters[monster_id], level);
+        if let Some(monster_id) = world.monster_on_pos(pos) {
+            kill_monster(&mut monsters[monster_id], world);
         }
     }
     Some((center,
@@ -250,7 +250,6 @@ fn process_player<R, W>(player: &mut player::Player,
         return
     }
     // TODO: get the chunk the player is in!
-    let level: &mut level::Level = unimplemented!();
     if let Some(command) = commands.pop_front() {
         game_state::log_command(command_logger, command);
         let mut action = match command {
@@ -274,9 +273,9 @@ fn process_player<R, W>(player: &mut player::Player,
             let new_pos = world::random_neighbour_position(
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
-        } else if let Some((dose_pos, dose)) = level.nearest_dose(player.pos, 5) {
+        } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
             // TODO: think about caching the discovered path or partial path-finding??
-            let mut path = pathfinding::Path::find(player.pos, dose_pos, level,
+            let mut path = pathfinding::Path::find(player.pos, dose_pos, world,
                                                    level::Walkability::WalkthroughMonsters);
 
             let resist_radius = player_resist_radius(dose.irresistible, *player.will) as usize;
@@ -303,13 +302,13 @@ fn process_player<R, W>(player: &mut player::Player,
         }
         match action {
             Action::Move(dest) => {
-                if level.within_bounds(dest) {
-                    if let Some(monster_id) = level.monster_on_pos(dest) {
+                if world.within_bounds(dest) {
+                    if let Some(monster_id) = world.monster_on_pos(dest) {
                         player.spend_ap(1);
                         let monster = &mut monsters[monster_id];
                         assert_eq!(monster.id(), monster_id);
                         //println!("Player attacks {:?}", monster);
-                        kill_monster(monster, level);
+                        kill_monster(monster, world);
                         match monster.kind {
                             monster::Kind::Anxiety => {
                                 player.anxiety_counter += 1;
@@ -320,11 +319,11 @@ fn process_player<R, W>(player: &mut player::Player,
                             }
                             _ => {}
                         }
-                    } else if level.walkable(dest, level::Walkability::BlockingMonsters) {
+                    } else if world.walkable(dest, level::Walkability::BlockingMonsters) {
                         player.spend_ap(1);
                         player.move_to(dest);
                         loop {
-                            match level.pickup_item(dest) {
+                            match world.pickup_item(dest) {
                                 Some(item) => {
                                     use item::Kind::*;
                                     match item.kind {
@@ -333,7 +332,7 @@ fn process_player<R, W>(player: &mut player::Player,
                                             if player.will.is_max() {
                                                 player.inventory.push(item);
                                             } else {
-                                                use_dose(player, level, explosion_animation, monsters, item);
+                                                use_dose(player, world, explosion_animation, monsters, item);
                                             }
                                         }
                                     }
@@ -353,7 +352,7 @@ fn process_player<R, W>(player: &mut player::Player,
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
-                    let anim = explode(player.pos, food_explosion_radius, level, monsters);
+                    let anim = explode(player.pos, food_explosion_radius, world, monsters);
                     *explosion_animation = anim;
                 }
             }
@@ -361,14 +360,14 @@ fn process_player<R, W>(player: &mut player::Player,
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::Dose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, level, explosion_animation, monsters, dose);
+                    use_dose(player, world, explosion_animation, monsters, dose);
                 }
             }
             Action::Use(item::Kind::StrongDose) => {
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, level, explosion_animation, monsters, dose);
+                    use_dose(player, world, explosion_animation, monsters, dose);
                 }
             }
             Action::Attack(_, _) => {
@@ -386,9 +385,6 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
     if !player.alive() {
         return
     }
-    // TODO: get monster's chunk here
-    let level: &mut level::Level = unreachable!();
-
     for monster in monsters.iter_mut().filter(|m| !m.dead && m.has_ap(1)) {
         let action = monster.act(player.pos, world, rng);
         match action {
@@ -396,14 +392,14 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                 let pos = monster.position;
                 let newpos_opt = {
                     let mut path = pathfinding::Path::find(
-                        pos, destination, level, level::Walkability::BlockingMonsters);
+                        pos, destination, world, level::Walkability::BlockingMonsters);
                     path.next()
                 };
                 monster.spend_ap(1);
                 match newpos_opt {
                     Some(step) => {
-                        if level.monster_on_pos(step).is_none() {
-                            level.move_monster(monster, step);
+                        if world.monster_on_pos(step).is_none() {
+                            world.move_monster(monster, step);
                         } else if step == monster.position {
                             //println!("{:?} cannot move so it waits.", monster);
                         } else {
@@ -421,7 +417,7 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                 monster.spend_ap(1);
                 player.take_effect(damage);
                 if monster.die_after_attack {
-                    kill_monster(monster, level);
+                    kill_monster(monster, world);
                 }
             }
 
@@ -600,8 +596,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                     state.side = Side::Victory;
                 }
                 let exploration_radius = exploration_radius(state.player.mind);
-                let level: &mut level::Level = unimplemented!();
-                level.explore(state.player.pos, exploration_radius);
+                state.world.explore(state.player.pos, exploration_radius);
 
                 // move screen if the player goes near the edge of the screen
                 let map_size = point::Point::new(state.map_size, state.map_size);
@@ -651,8 +646,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
 
-    let level: &mut level::Level = unreachable!();
-
     // Rendering & related code here:
     if state.player.alive() {
         use player::Mind::*;
@@ -669,7 +662,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
             if !was_high && is_high {
                 // Set animation on each level's tile:
-                for (pos, cell) in level.iter_mut() {
+                for (pos, cell) in state.world.iter_mut() {
                     let dur_ms = 700 + (((pos.x * pos.y) % 100) as i64) * 5;
                     cell.tile.set_animation(graphics::Animation::ForegroundCycle{
                         from: color::high,
@@ -679,7 +672,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 }
             } else if was_high && !is_high {
                 // Stop animation on the level's tiles:
-                for (_pos, cell) in level.iter_mut() {
+                for (_pos, cell) in state.world.iter_mut() {
                     cell.tile.set_animation(graphics::Animation::None);
                 }
             } else {
@@ -700,12 +693,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
 
         // NOTE: Update the animation state of each tile:
-        for (_, cell) in level.iter_mut() {
+        for (_, cell) in state.world.iter_mut() {
             cell.tile.update(dt);
         }
     } else if player_was_alive {  // NOTE: Player just died
         // Make sure we're not showing the High gfx effect when dead
-        for (_pos, cell) in level.iter_mut() {
+        for (_pos, cell) in state.world.iter_mut() {
             cell.tile.set_animation(graphics::Animation::None);
         }
         state.screen_fading = Some(ScreenFadeAnimation::new(
@@ -765,7 +758,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     // Render the level and items:
-    for (world_pos, cell) in level.iter() {
+    for (world_pos, cell) in state.world.iter() {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
             continue;
@@ -820,7 +813,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         if r <= max_r {
             state.explosion_animation = Some((center, max_r, r, c, elapsed));
             for world_pos in point::SquareArea::new(center, r) {
-                if level.within_bounds(world_pos) {
+                if state.world.within_bounds(world_pos) {
                     let display_pos = screen_coords_from_world(world_pos);
                     if within_map_bounds(display_pos) {
                         engine.display.set_background(display_pos, c);

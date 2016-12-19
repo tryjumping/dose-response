@@ -10,7 +10,6 @@ use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
 use generators;
-use level::Level;
 use monster::Monster;
 use player::Player;
 use point::Point;

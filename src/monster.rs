@@ -5,7 +5,7 @@ use rand::Rng;
 
 use super::Action;
 use color::{self, Color};
-use level::{Level, Walkability};
+use level::Walkability;
 use graphics::Render;
 use player::Modifier;
 use point::Point;

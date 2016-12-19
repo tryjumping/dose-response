@@ -1,4 +1,4 @@
-use level::{Level, Walkability};
+use level::{self, Level, Walkability, Tile};
 use item::Item;
 use point::Point;
 use monster::Monster;
@@ -67,24 +67,72 @@ impl World {
         // }
         unimplemented!()
     }
+
+    pub fn within_bounds(&self, pos: Point) -> bool {
+        unimplemented!()
+    }
+
+    pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
+        unimplemented!()
+    }
+
+    pub fn set_tile(&mut self, pos: Point, tile: Tile) {
+        unimplemented!()
+    }
+
+    pub fn add_item(&mut self, pos: Point, item: Item) {
+        unimplemented!()
+    }
+
+    pub fn remove_monster(&mut self, id: usize, monster: &mut Monster) {
+        unimplemented!()
+    }
+
+    pub fn monster_on_pos(&self, pos: Point) -> Option<usize> {
+        unimplemented!()
+    }
+
+    pub fn pickup_item(&mut self, pos: Point) -> Option<Item> {
+        unimplemented!()
+    }
+
+    pub fn move_monster(&mut self, monster: &mut Monster, dest: Point) {
+        unimplemented!()
+    }
+
+    pub fn explore(&mut self, pos: Point, radius: i32) {
+        unimplemented!()
+    }
+
+    pub fn nearest_dose(&self, pos: Point, radius: i32) -> Option<(Point, Item)> {
+        unimplemented!()
+    }
+
+    pub fn iter(&self) -> level::Cells {
+        unimplemented!()
+    }
+
+    pub fn iter_mut(&mut self) -> level::CellsMut {
+        unimplemented!()
+    }
 }
 
 
-pub fn populate_world(level: &mut Level,
+pub fn populate_world(world: &mut World,
                       monsters: &mut Vec<Monster>,
                       generated_world: GeneratedWorld) {
     let (map, generated_monsters, items) = generated_world;
     for &(pos, item) in map.iter() {
-        level.set_tile(pos, item);
+        world.set_tile(pos, item);
     }
     for &(pos, kind) in generated_monsters.iter() {
-        assert!(level.walkable(pos, Walkability::BlockingMonsters));
+        assert!(world.walkable(pos, Walkability::BlockingMonsters));
         let monster = Monster::new(kind, pos);
         monsters.push(monster);
     }
     for &(pos, item) in items.iter() {
-        assert!(level.walkable(pos, Walkability::BlockingMonsters));
-        level.add_item(pos, item);
+        assert!(world.walkable(pos, Walkability::BlockingMonsters));
+        world.add_item(pos, item);
     }
 }
 

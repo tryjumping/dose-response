@@ -3,7 +3,8 @@ use std::collections::{BinaryHeap, HashMap};
 use std::f32;
 
 use point::Point;
-use level::{Level, Walkability};
+use world::World;
+use level::Walkability;
 
 #[derive(Debug)]
 pub struct Path {
@@ -11,7 +12,7 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn find(from: Point, to: Point, level: &Level, walkability: Walkability) -> Self {
+    pub fn find(from: Point, to: Point, world: &World, walkability: Walkability) -> Self {
         if from == to {
             return Path { path: vec![] };
         }
@@ -19,7 +20,7 @@ impl Path {
         let neighbors = |current: Point| {
             assert!(current.x >= 0);
             assert!(current.y >= 0);
-            assert!(level.within_bounds(current));
+            assert!(world.within_bounds(current));
             let dp: [Point; 9] = [
                 (-1, -1).into(),
                 (-1,  0).into(),
@@ -35,7 +36,7 @@ impl Path {
                 .iter()
                 .map(|&d| current + d)
                 .filter(|&point|
-                        level.within_bounds(point) && level.walkable(point, walkability))
+                        world.within_bounds(point) && world.walkable(point, walkability))
                 .collect::<Vec<_>>()
         };
 

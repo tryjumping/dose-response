@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use level::{self, Cell, Level, Walkability, Tile, TileKind};
 use item::Item;
 use point::Point;
@@ -6,7 +8,7 @@ use generators::GeneratedWorld;
 
 use rand::{IsaacRng, Rng};
 
-pub struct Chunk {
+struct Chunk {
     pub rng: IsaacRng,
     pub level: Level,
 }
@@ -14,6 +16,7 @@ pub struct Chunk {
 
 pub struct World {
     max_size: i32,
+    chunks: HashMap<Point, Chunk>,
 }
 
 impl World {
@@ -85,8 +88,18 @@ impl World {
         unimplemented!()
     }
 
-    fn cell(&self, pos: Point) -> &Cell {
+    fn chunk_pos_from_cell_pos(&self, pos: Point) -> Point {
         unimplemented!()
+    }
+
+    fn cell(&mut self, pos: Point) -> &Cell {
+        let chunk_pos = self.chunk_pos_from_cell_pos(pos);
+        let chunk = self.chunks.entry(chunk_pos).or_insert_with(
+            || unimplemented!());
+        // NOTE: the positions within a chunk/level start from zero so
+        // we need to de-offset them with the chunk position.
+        let level_position = chunk_pos - pos;
+        chunk.level.cell(level_position)
     }
 
     fn cell_mut(&self, pos: Point) -> &mut Cell {
@@ -111,7 +124,7 @@ impl World {
     /// Points outside of the World are not walkable. The
     /// `walkability` option controls can influence the logic: are
     /// monster treated as blocking or not?
-    pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
+    pub fn walkable(&mut self, pos: Point, walkability: Walkability) -> bool {
         let walkable = match walkability {
             Walkability::WalkthroughMonsters => true,
             Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),

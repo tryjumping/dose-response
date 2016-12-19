@@ -303,6 +303,7 @@ fn process_player<R, W>(player: &mut player::Player,
         match action {
             Action::Move(dest) => {
                 if world.within_bounds(dest) {
+                    let dest_walkable = world.walkable(dest, level::Walkability::BlockingMonsters);
                     if let Some(monster_id) = world.monster_on_pos(dest) {
                         player.spend_ap(1);
                         let monster = &mut monsters[monster_id];
@@ -319,7 +320,7 @@ fn process_player<R, W>(player: &mut player::Player,
                             }
                             _ => {}
                         }
-                    } else if world.walkable(dest, level::Walkability::BlockingMonsters) {
+                    } else if dest_walkable {
                         player.spend_ap(1);
                         player.move_to(dest);
                         loop {

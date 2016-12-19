@@ -12,12 +12,12 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn find(from: Point, to: Point, world: &World, walkability: Walkability) -> Self {
+    pub fn find(from: Point, to: Point, world: &mut World, walkability: Walkability) -> Self {
         if from == to {
             return Path { path: vec![] };
         }
 
-        let neighbors = |current: Point| {
+        let mut neighbors = |current: Point| {
             assert!(current.x >= 0);
             assert!(current.y >= 0);
             assert!(world.within_bounds(current));

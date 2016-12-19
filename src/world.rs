@@ -67,6 +67,21 @@ impl World {
         //         state.world.insert(chunk_pos, chunk);
         //     }
         // }
+
+        // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
+        // state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
+        // for (index, m) in state.monsters.iter_mut().enumerate() {
+        //     // TODO: UGH. Just use an indexed entity store that pops these up.
+        //     unsafe {
+        //         m.set_id(index);
+        //     }
+        //     let chunk_pos = chunk_from_world_pos(m.position);
+        //     match state.world.entry(chunk_pos) {
+        //         Occupied(mut chunk) => chunk.get_mut().level.set_monster(m.position, m.id(), m),
+        //         Vacant(_) => unreachable!()  // All monsters should belong to a chunk
+        //     }
+        // }
+
         unimplemented!()
     }
 
@@ -150,6 +165,13 @@ impl World {
     }
 
     pub fn nearest_dose(&self, pos: Point, radius: i32) -> Option<(Point, Item)> {
+        unimplemented!()
+    }
+
+    pub fn random_neighbour_position<T: Rng>(&self, rng: &mut T,
+                                             starting_pos: Point,
+                                             walkability: Walkability) -> Point
+    {
         unimplemented!()
     }
 

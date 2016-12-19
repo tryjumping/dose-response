@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::env;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufRead, Write};
@@ -9,11 +8,10 @@ use time;
 use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
-use generators;
 use monster::Monster;
 use player::Player;
 use point::Point;
-use world::{self, Chunk};
+use world::World;
 
 
 // TODO: Rename this to `GameState` and the existing `GameState` to
@@ -83,13 +81,6 @@ fn path_exists(path: &Path) -> bool {
     ::std::fs::metadata(path).is_ok()
 }
 
-/// Return the world position of the chunk which contains the point
-/// passed in.
-fn chunk_from_world_pos<P: Into<Point>>(world_pos: P) -> Point {
-    unimplemented!()
-}
-
-
 pub struct GameState {
     pub player: Player,
     pub monsters: Vec<Monster>,
@@ -99,7 +90,7 @@ pub struct GameState {
     /// but we're limiting it for performance reasons for now.
     pub world_size: Point,
     pub chunk_size: i32,
-    pub world: world::World,
+    pub world: World,
 
     /// The size of the game map inside the game window. We're keeping
     /// this square so this value repesents both width and heigh.
@@ -151,7 +142,7 @@ impl GameState {
             explosion_animation: None,
             chunk_size: 32,
             world_size: world_size,
-            world: world::World::new(),
+            world: World::new(),
             map_size: map_size,
             panel_width: panel_width,
             display_size: display_size,
@@ -238,19 +229,6 @@ fn initialise_world(state: &mut GameState) {
 
 
     // TODO: Can we keep monsters in a global list or do we have to partition them as well?
-    // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
-    // state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
-    // for (index, m) in state.monsters.iter_mut().enumerate() {
-    //     // TODO: UGH. Just use an indexed entity store that pops these up.
-    //     unsafe {
-    //         m.set_id(index);
-    //     }
-    //     let chunk_pos = chunk_from_world_pos(m.position);
-    //     match state.world.entry(chunk_pos) {
-    //         Occupied(mut chunk) => chunk.get_mut().level.set_monster(m.position, m.id(), m),
-    //         Vacant(_) => unreachable!()  // All monsters should belong to a chunk
-    //     }
-    // }
     unimplemented!()
 }
 

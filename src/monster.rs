@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use time::Duration;
 
 use rand::Rng;
@@ -9,7 +8,7 @@ use level::Walkability;
 use graphics::Render;
 use player::Modifier;
 use point::Point;
-use world::{self, Chunk, World};
+use world::World;
 
 use self::Kind::*;
 use self::AIState::*;
@@ -106,7 +105,7 @@ impl Monster {
             }
             Idle => {
                 // Move randomly about
-                let new_pos = world::random_neighbour_position(
+                let new_pos = world.random_neighbour_position(
                     rng, self.position, Walkability::BlockingMonsters);
                 Action::Move(new_pos)
             }

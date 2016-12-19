@@ -152,7 +152,7 @@ impl Level {
         &self.map[index]
     }
 
-    fn cell_mut<P: Into<Point>>(&mut self, pos: P) -> &mut Cell {
+    pub fn cell_mut<P: Into<Point>>(&mut self, pos: P) -> &mut Cell {
         let index = self.index(pos.into());
         &mut self.map[index]
     }

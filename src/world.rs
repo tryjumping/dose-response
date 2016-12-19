@@ -88,22 +88,32 @@ impl World {
         unimplemented!()
     }
 
-    fn chunk_pos_from_cell_pos(&self, pos: Point) -> Point {
+    fn chunk_pos_from_world_pos(&self, pos: Point) -> Point {
         unimplemented!()
     }
 
+    fn chunk(&mut self, pos: Point) -> &mut Chunk {
+        // TODO: generate the chunk if it doesn't exist
+        self.chunks.entry(pos).or_insert_with(
+            || unimplemented!())
+    }
+
     fn cell(&mut self, pos: Point) -> &Cell {
-        let chunk_pos = self.chunk_pos_from_cell_pos(pos);
-        let chunk = self.chunks.entry(chunk_pos).or_insert_with(
-            || unimplemented!());
+        let chunk_pos = self.chunk_pos_from_world_pos(pos);
+        let chunk = self.chunk(chunk_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
         let level_position = chunk_pos - pos;
         chunk.level.cell(level_position)
     }
 
-    fn cell_mut(&self, pos: Point) -> &mut Cell {
-        unimplemented!()
+    fn cell_mut(&mut self, pos: Point) -> &mut Cell {
+        let chunk_pos = self.chunk_pos_from_world_pos(pos);
+        let chunk = self.chunk(chunk_pos);
+        // NOTE: the positions within a chunk/level start from zero so
+        // we need to de-offset them with the chunk position.
+        let level_position = chunk_pos - pos;
+        chunk.level.cell_mut(level_position)
     }
 
     /// Check whether the given position is within the bounds of the World.

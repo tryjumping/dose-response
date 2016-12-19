@@ -123,8 +123,14 @@ impl World {
         }
     }
 
+    /// Pick up the top `Item` stacked on the tile. If the position is
+    /// not withing bounds, nothing happens.
     pub fn pickup_item(&mut self, pos: Point) -> Option<Item> {
-        unimplemented!()
+        if self.within_bounds(pos) {
+            self.cell_mut(pos).items.pop()
+        } else {
+            None
+        }
     }
 
     pub fn monster_on_pos(&self, pos: Point) -> Option<usize> {

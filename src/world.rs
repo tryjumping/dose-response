@@ -70,7 +70,11 @@ impl World {
         unimplemented!()
     }
 
-    fn cell(&self, pos: Point) -> Cell {
+    fn cell(&self, pos: Point) -> &Cell {
+        unimplemented!()
+    }
+
+    fn cell_mut(&self, pos: Point) -> &mut Cell {
         unimplemented!()
     }
 
@@ -92,7 +96,7 @@ impl World {
     }
 
     pub fn set_tile(&mut self, pos: Point, tile: Tile) {
-        unimplemented!()
+        self.cell_mut(pos).tile = tile;
     }
 
     pub fn add_item(&mut self, pos: Point, item: Item) {

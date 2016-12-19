@@ -1,4 +1,4 @@
-use level::{self, Level, Walkability, Tile};
+use level::{self, Cell, Level, Walkability, Tile, TileKind};
 use item::Item;
 use point::Point;
 use monster::Monster;
@@ -12,7 +12,9 @@ pub struct Chunk {
 }
 
 
-pub struct World;
+pub struct World {
+    max_size: i32,
+}
 
 impl World {
     pub fn new() -> Self {
@@ -68,12 +70,25 @@ impl World {
         unimplemented!()
     }
 
-    pub fn within_bounds(&self, pos: Point) -> bool {
+    fn cell(&self, pos: Point) -> Cell {
         unimplemented!()
     }
 
+    pub fn within_bounds(&self, pos: Point) -> bool {
+        pos.x < self.max_size &&
+            pos.x > -self.max_size &&
+            pos.y < self.max_size &&
+            pos.y > -self.max_size
+    }
+
     pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
-        unimplemented!()
+        let walkable = match walkability {
+            Walkability::WalkthroughMonsters => true,
+            Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
+        };
+        self.within_bounds(pos) &&
+            self.cell(pos).tile.kind == TileKind::Empty &&
+            walkable
     }
 
     pub fn set_tile(&mut self, pos: Point, tile: Tile) {

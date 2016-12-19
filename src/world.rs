@@ -123,7 +123,7 @@ impl World {
         }
     }
 
-    pub fn remove_monster(&mut self, id: usize, monster: &mut Monster) {
+    pub fn pickup_item(&mut self, pos: Point) -> Option<Item> {
         unimplemented!()
     }
 
@@ -131,11 +131,11 @@ impl World {
         unimplemented!()
     }
 
-    pub fn pickup_item(&mut self, pos: Point) -> Option<Item> {
+    pub fn move_monster(&mut self, monster: &mut Monster, dest: Point) {
         unimplemented!()
     }
 
-    pub fn move_monster(&mut self, monster: &mut Monster, dest: Point) {
+    pub fn remove_monster(&mut self, id: usize, monster: &mut Monster) {
         unimplemented!()
     }
 

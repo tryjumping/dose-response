@@ -171,7 +171,7 @@ impl World {
         }
     }
 
-    pub fn monster_on_pos(&self, pos: Point) -> Option<usize> {
+    pub fn monster_on_pos(&mut self, pos: Point) -> Option<usize> {
         unimplemented!()
     }
 
@@ -187,18 +187,18 @@ impl World {
         unimplemented!()
     }
 
-    pub fn nearest_dose(&self, pos: Point, radius: i32) -> Option<(Point, Item)> {
+    pub fn nearest_dose(&mut self, pos: Point, radius: i32) -> Option<(Point, Item)> {
         unimplemented!()
     }
 
-    pub fn random_neighbour_position<T: Rng>(&self, rng: &mut T,
+    pub fn random_neighbour_position<T: Rng>(&mut self, rng: &mut T,
                                              starting_pos: Point,
                                              walkability: Walkability) -> Point
     {
         unimplemented!()
     }
 
-    pub fn iter(&self) -> level::Cells {
+    pub fn iter(&mut self) -> level::Cells {
         unimplemented!()
     }
 

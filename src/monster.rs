@@ -84,7 +84,7 @@ impl Monster {
         }
     }
 
-    pub fn act<R: Rng>(&mut self, player_pos: Point, world: &World, rng: &mut R) -> Action {
+    pub fn act<R: Rng>(&mut self, player_pos: Point, world: &mut World, rng: &mut R) -> Action {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }

@@ -15,6 +15,7 @@ struct Chunk {
 
 
 pub struct World {
+    seed: u32,
     max_size: i32,
     chunks: HashMap<Point, Chunk>,
 }

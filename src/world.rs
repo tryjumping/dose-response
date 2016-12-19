@@ -78,6 +78,11 @@ impl World {
         unimplemented!()
     }
 
+    /// Check whether the given position is within the bounds of the World.
+    ///
+    /// While the world should be "technically infinite", we well have
+    /// some sort of upper limit on the positions it's able to
+    /// support.
     pub fn within_bounds(&self, pos: Point) -> bool {
         pos.x < self.max_size &&
             pos.x > -self.max_size &&
@@ -85,6 +90,12 @@ impl World {
             pos.y > -self.max_size
     }
 
+
+    /// Check whether the given position is walkable.
+    ///
+    /// Points outside of the World are not walkable. The
+    /// `walkability` option controls can influence the logic: are
+    /// monster treated as blocking or not?
     pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
         let walkable = match walkability {
             Walkability::WalkthroughMonsters => true,
@@ -95,8 +106,12 @@ impl World {
             walkable
     }
 
+    /// Change the tile on the given position. If the position is not
+    /// within bounds, nothing happens.
     pub fn set_tile(&mut self, pos: Point, tile: Tile) {
-        self.cell_mut(pos).tile = tile;
+        if self.within_bounds(pos) {
+            self.cell_mut(pos).tile = tile;
+        }
     }
 
     pub fn add_item(&mut self, pos: Point, item: Item) {

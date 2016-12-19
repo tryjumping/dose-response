@@ -114,8 +114,13 @@ impl World {
         }
     }
 
+    /// Put an item on the tile at the given position. There can be
+    /// multiple items on one tile. If the position is not within
+    /// bounds, nothing happens.
     pub fn add_item(&mut self, pos: Point, item: Item) {
-        unimplemented!()
+        if self.within_bounds(pos) {
+            self.cell_mut(pos).items.push(item);
+        }
     }
 
     pub fn remove_monster(&mut self, id: usize, monster: &mut Monster) {

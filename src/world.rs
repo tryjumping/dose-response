@@ -4,17 +4,41 @@ use level::{self, Cell, Level, Walkability, Tile, TileKind};
 use item::Item;
 use point::Point;
 use monster::Monster;
-use generators::GeneratedWorld;
+use generators::{self, GeneratedWorld};
 
-use rand::{IsaacRng, Rng};
+use rand::{IsaacRng, Rng, SeedableRng};
 
 struct Chunk {
     position: Point,
     pub rng: IsaacRng,
     pub level: Level,
+    monsters: Vec<Monster>,
 }
 
-#[derive(PartialEq, Eq, Hash)]
+impl Chunk {
+    fn new(world_seed: u32, position: ChunkPosition, size: i32, player_position: Point) -> Self {
+        let pos = position.position;
+        // NOTE: `x` and `y` overflow on negative values here, but all
+        // we care about is having a distinct value for each position
+        // so our seeds don't repeat. So this is fine here.
+        let chunk_seed: &[_] = &[world_seed, pos.x as u32, pos.y as u32];
+
+        let mut chunk = Chunk {
+            position: pos,
+            rng: SeedableRng::from_seed(chunk_seed),
+            level: Level::new(size, size),
+            monsters: vec![],
+        };
+
+        let mut generated_data = generators::forrest::generate(&mut chunk.rng, chunk.level.size(), player_position);
+
+        populate_chunk(&mut chunk, generated_data);
+
+        chunk
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 struct ChunkPosition {
     position: Point,
 }
@@ -22,76 +46,13 @@ struct ChunkPosition {
 
 pub struct World {
     seed: u32,
-    max_size: i32,
+    max_half_size: i32,
+    chunk_size: i32,
     chunks: HashMap<ChunkPosition, Chunk>,
 }
 
 impl World {
     pub fn new() -> Self {
-        unimplemented!()
-    }
-
-    fn generate_chunk(&mut self, pos: Point) {
-        // let map_dimensions: Point = (state.map_size, state.map_size).into();
-        // let left_top_corner = state.screen_position_in_world - map_dimensions / 2;
-        // // NOTE: The world goes from (0, 0) onwards. So `x / chunk_size`
-        // // gives you the horizontal coordinate of the chunk containing
-        // // your `x`.
-        // let min_x_chunk = left_top_corner.x / state.chunk_size;
-        // let x_cells_to_fill = left_top_corner.x - min_x_chunk + state.map_size;
-        // let x_chunks = if x_cells_to_fill % state.chunk_size == 0 {
-        //     x_cells_to_fill / state.chunk_size
-        // } else {
-        //     x_cells_to_fill / state.chunk_size + 1
-        // };
-
-        // let min_y_chunk = left_top_corner.y / state.chunk_size;
-        // let y_cells_to_fill = left_top_corner.y - min_y_chunk + state.map_size;
-        // let y_chunks = if y_cells_to_fill % state.chunk_size == 0 {
-        //     y_cells_to_fill / state.chunk_size
-        // } else {
-        //     y_cells_to_fill / state.chunk_size + 1
-        // };
-
-        // let min_chunk_pos = Point::new(min_x_chunk, min_y_chunk);
-
-        // for x_chunk_increment in 0..x_chunks {
-        //     for y_chunk_increment in 0..y_chunks {
-        //         let chunk_pos = min_chunk_pos + (x_chunk_increment, y_chunk_increment);
-        //         assert!(chunk_pos.x >= 0);
-        //         assert!(chunk_pos.y >= 0);
-
-        //         let chunk_seed: &[_] = &[state.seed, chunk_pos.x as u32, chunk_pos.y as u32];
-        //         let mut chunk = Chunk {
-        //             rng: SeedableRng::from_seed(chunk_seed),
-        //             level: Level::new(state.chunk_size, state.chunk_size),
-        //         };
-
-        //         let generated_level = generators::forrest::generate(&mut chunk.rng,
-        //                                                             chunk.level.size(),
-        //                                                             state.player.pos);
-        //         world::populate_world(&mut chunk.level,
-        //                               &mut state.monsters,
-        //                               generated_level);
-
-        //         state.world.insert(chunk_pos, chunk);
-        //     }
-        // }
-
-        // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
-        // state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
-        // for (index, m) in state.monsters.iter_mut().enumerate() {
-        //     // TODO: UGH. Just use an indexed entity store that pops these up.
-        //     unsafe {
-        //         m.set_id(index);
-        //     }
-        //     let chunk_pos = chunk_from_world_pos(m.position);
-        //     match state.world.entry(chunk_pos) {
-        //         Occupied(mut chunk) => chunk.get_mut().level.set_monster(m.position, m.id(), m),
-        //         Vacant(_) => unreachable!()  // All monsters should belong to a chunk
-        //     }
-        // }
-
         unimplemented!()
     }
 
@@ -106,9 +67,12 @@ impl World {
     fn chunk(&mut self, pos: Point) -> &mut Chunk {
         let chunk_position = self.chunk_pos_from_world_pos(pos);
 
-        // TODO: generate the chunk if it doesn't exist
+        let seed = self.seed;
+        let chunk_size = self.chunk_size;
+        // TODO: figure out how to generate the starting chunks so the
+        // player has some doses and food and no monsters.
         self.chunks.entry(chunk_position).or_insert_with(
-            || unimplemented!())
+            || Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()))
     }
 
     fn cell(&mut self, pos: Point) -> &Cell {
@@ -133,10 +97,10 @@ impl World {
     /// some sort of upper limit on the positions it's able to
     /// support.
     pub fn within_bounds(&self, pos: Point) -> bool {
-        pos.x < self.max_size &&
-            pos.x > -self.max_size &&
-            pos.y < self.max_size &&
-            pos.y > -self.max_size
+        pos.x < self.max_half_size &&
+            pos.x > -self.max_half_size &&
+            pos.y < self.max_half_size &&
+            pos.y > -self.max_half_size
     }
 
 
@@ -219,21 +183,20 @@ impl World {
 }
 
 
-pub fn populate_world(world: &mut World,
-                      monsters: &mut Vec<Monster>,
+fn populate_chunk(chunk: &mut Chunk,
                       generated_world: GeneratedWorld) {
     let (map, generated_monsters, items) = generated_world;
     for &(pos, item) in map.iter() {
-        world.set_tile(pos, item);
+        chunk.level.set_tile(pos, item);
     }
     for &(pos, kind) in generated_monsters.iter() {
-        assert!(world.walkable(pos, Walkability::BlockingMonsters));
+        assert!(chunk.level.walkable(pos, Walkability::BlockingMonsters));
         let monster = Monster::new(kind, pos);
-        monsters.push(monster);
+        chunk.monsters.push(monster);
     }
     for &(pos, item) in items.iter() {
-        assert!(world.walkable(pos, Walkability::BlockingMonsters));
-        world.add_item(pos, item);
+        assert!(chunk.level.walkable(pos, Walkability::BlockingMonsters));
+        chunk.level.add_item(pos, item);
     }
 }
 

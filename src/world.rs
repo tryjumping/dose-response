@@ -9,21 +9,25 @@ use generators::GeneratedWorld;
 use rand::{IsaacRng, Rng};
 
 struct Chunk {
+    position: Point,
     pub rng: IsaacRng,
     pub level: Level,
+}
+
+#[derive(PartialEq, Eq, Hash)]
+struct ChunkPosition {
+    position: Point,
 }
 
 
 pub struct World {
     seed: u32,
     max_size: i32,
-    chunks: HashMap<Point, Chunk>,
+    chunks: HashMap<ChunkPosition, Chunk>,
 }
 
 impl World {
     pub fn new() -> Self {
-        unimplemented!()
-    }
 
     fn generate_chunk(&mut self, pos: Point) {
         // let map_dimensions: Point = (state.map_size, state.map_size).into();
@@ -89,31 +93,35 @@ impl World {
         unimplemented!()
     }
 
-    fn chunk_pos_from_world_pos(&self, pos: Point) -> Point {
+    /// Return the ChunkPosition for a given point within the chunk.
+    fn chunk_pos_from_world_pos(&self, pos: Point) -> ChunkPosition {
         unimplemented!()
     }
 
+    /// Get the chunk at the given world position. This means it
+    /// doesn't have to match chunk's internal position -- any point
+    /// within that Chunk will do.
     fn chunk(&mut self, pos: Point) -> &mut Chunk {
+        let chunk_position = self.chunk_pos_from_world_pos(pos);
+
         // TODO: generate the chunk if it doesn't exist
-        self.chunks.entry(pos).or_insert_with(
+        self.chunks.entry(chunk_position).or_insert_with(
             || unimplemented!())
     }
 
     fn cell(&mut self, pos: Point) -> &Cell {
-        let chunk_pos = self.chunk_pos_from_world_pos(pos);
-        let chunk = self.chunk(chunk_pos);
+        let chunk = self.chunk(pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
-        let level_position = chunk_pos - pos;
+        let level_position = chunk.position - pos;
         chunk.level.cell(level_position)
     }
 
     fn cell_mut(&mut self, pos: Point) -> &mut Cell {
-        let chunk_pos = self.chunk_pos_from_world_pos(pos);
-        let chunk = self.chunk(chunk_pos);
+        let chunk = self.chunk(pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
-        let level_position = chunk_pos - pos;
+        let level_position = chunk.position - pos;
         chunk.level.cell_mut(level_position)
     }
 

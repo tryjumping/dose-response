@@ -274,24 +274,24 @@ fn process_player<R, W>(player: &mut player::Player,
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
-            // TODO: think about caching the discovered path or partial path-finding??
-
-            // NOTE: we're running path-finding even on doses that are
-            // too far given the resist radius here!
-            let mut path = pathfinding::Path::find(player.pos, dose_pos, world,
-                                                   level::Walkability::WalkthroughMonsters);
-
             let resist_radius = player_resist_radius(dose.irresistible, *player.will) as usize;
-            let new_pos_opt = if path.len() <= resist_radius {
-                path.next()
-            } else {
-                None
-            };
+            if player.pos.tile_distance(dose_pos) <= resist_radius as i32 {
+                // TODO: think about caching the discovered path or partial path-finding??
+                let mut path = pathfinding::Path::find(player.pos, dose_pos, world,
+                                                       level::Walkability::WalkthroughMonsters);
 
-            if let Some(new_pos) = new_pos_opt {
-                action = Action::Move(new_pos);
-            } else {
-                //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
+                let new_pos_opt = if path.len() <= resist_radius {
+                    path.next()
+                } else {
+                    None
+                };
+
+                if let Some(new_pos) = new_pos_opt {
+                    action = Action::Move(new_pos);
+                } else {
+                    //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
+                }
+
             }
         }
         // NOTE: If we picked up doses on max Will and then lost it,

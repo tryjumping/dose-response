@@ -455,3 +455,9 @@ CLOSED: [2016-12-14 Wed 13:48]
 **** though I'm not fond of those
 **** but like some discrete steps/things to find
 **** multiple endings? Fixing your addiction being the hardest one.
+** Overdose doesn't seem to be having any effect                       :bug:
+:PROPERTIES:
+:ARCHIVE_TIME: 2016-12-30 Fri 19:00
+:END:
+*** When debugging, `player.alive()` is clearly false on overdose
+*** But the GUI nor the game seem to pick up on it

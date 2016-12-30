@@ -641,7 +641,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             Side::Player => {}
             Side::Computer => {
                 process_monsters(&mut state.monsters, &mut state.world, &mut state.player, &mut state.rng);
-                if state.monsters.iter().filter(|m| !m.dead).all(|m| !m.has_ap(1)) {
+                if state.monsters.iter().filter(|m| !m.dead).all(|m| !m.has_ap(1))
+                    && state.player.alive() {
                     state.side = Side::Player;
                     state.player.new_turn();
                 }

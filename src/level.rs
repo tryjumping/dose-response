@@ -245,21 +245,6 @@ impl Level {
         self.cell_mut(pos).items.pop()
     }
 
-    pub fn random_neighbour_position<T: Rng, P: Into<Point>>(&self, rng: &mut T, starting_pos: P,
-                                             walkability: Walkability) -> Point {
-        let starting_pos = starting_pos.into();
-        let mut walkables = vec![];
-        for pos in starting_pos.square_area(1) {
-            if pos != starting_pos && self.walkable(pos, walkability) {
-                walkables.push(pos)
-            }
-        }
-        match rng.choose(&walkables) {
-            Some(&random_pos) => random_pos,
-            None => starting_pos  // Nowhere to go
-        }
-    }
-
     pub fn iter(&self) -> Cells {
         Cells {
             index: 0,

@@ -204,11 +204,23 @@ impl World {
         unimplemented!()
     }
 
+    /// Return a random walkable position next to the given point.
+    ///
+    /// If there is no such position available, return `starting_pos`.
     pub fn random_neighbour_position<T: Rng>(&mut self, rng: &mut T,
                                              starting_pos: Point,
                                              walkability: Walkability) -> Point
     {
-        unimplemented!()
+        let mut walkables = vec![];
+        for pos in starting_pos.square_area(1) {
+            if pos != starting_pos && self.walkable(pos, walkability) {
+                walkables.push(pos)
+            }
+        }
+        match rng.choose(&walkables) {
+            Some(&random_pos) => random_pos,
+            None => starting_pos  // Nowhere to go
+        }
     }
 
     pub fn iter(&mut self) -> level::Cells {

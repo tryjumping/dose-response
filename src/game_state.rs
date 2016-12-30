@@ -134,7 +134,7 @@ impl GameState {
                              replay: bool)
                              -> GameState {
         let seed_arr: &[_] = &[seed];
-        let world_centre = world_size / 2;
+        let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
         GameState {

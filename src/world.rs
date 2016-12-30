@@ -129,7 +129,7 @@ impl World {
         let chunk = self.chunk(pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
-        let level_position = chunk.position - pos;
+        let level_position = pos - chunk.position;
         chunk.level.cell(level_position)
     }
 
@@ -137,7 +137,7 @@ impl World {
         let chunk = self.chunk(pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
-        let level_position = chunk.position - pos;
+        let level_position = pos - chunk.position;
         chunk.level.cell_mut(level_position)
     }
 

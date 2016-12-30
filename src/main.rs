@@ -275,6 +275,9 @@ fn process_player<R, W>(player: &mut player::Player,
             action = Action::Move(new_pos);
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
             // TODO: think about caching the discovered path or partial path-finding??
+
+            // NOTE: we're running path-finding even on doses that are
+            // too far given the resist radius here!
             let mut path = pathfinding::Path::find(player.pos, dose_pos, world,
                                                    level::Walkability::WalkthroughMonsters);
 
@@ -302,6 +305,7 @@ fn process_player<R, W>(player: &mut player::Player,
         }
         match action {
             Action::Move(dest) => {
+                println!("{:?}, {}", dest, world.within_bounds(dest));
                 if world.within_bounds(dest) {
                     let dest_walkable = world.walkable(dest, level::Walkability::BlockingMonsters);
                     if let Some(monster_id) = world.monster_on_pos(dest) {

@@ -141,10 +141,12 @@ impl Player {
     }
 
     pub fn new_turn(&mut self) {
-        self.stun -= 1;
-        self.panic -= 1;
-        self.mind = self.mind.update();
-        self.ap = self.max_ap;
+        if self.alive() {
+            self.stun -= 1;
+            self.panic -= 1;
+            self.mind = self.mind.update();
+            self.ap = self.max_ap;
+        }
     }
 
     pub fn alive(&self) -> bool {

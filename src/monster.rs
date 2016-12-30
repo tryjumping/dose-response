@@ -125,7 +125,9 @@ impl Monster {
     }
 
     pub fn new_turn(&mut self) {
-        self.ap = self.max_ap;
+        if !self.dead {
+            self.ap = self.max_ap;
+        }
     }
 }
 

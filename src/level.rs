@@ -5,9 +5,9 @@ use rand::{self, Rng};
 
 use color::{self, Color};
 use graphics::{self, Animation, Render};
-use item::{self, Item};
+use item::Item;
 use monster::Monster;
-use point::{self, Point};
+use point::Point;
 
 
 #[derive(Debug)]
@@ -165,34 +165,6 @@ impl Level {
         let pos = pos.into();
         assert!(monster.position == pos);
         self.monsters.insert(pos, monster_index);
-    }
-
-    pub fn nearest_dose<P: Into<Point>>(&self, center: P, radius: i32) -> Option<(Point, Item)> {
-        let center = center.into();
-        let mut doses = vec![];
-        for pos in point::CircularArea::new(center, radius) {
-            // Make sure we don't go out of bounds with self.cell(pos):
-            if !self.walkable(pos, Walkability::WalkthroughMonsters) {
-                continue
-            }
-            for &item in self.cell(pos).items.iter() {
-                match item.kind {
-                    item::Kind::Dose | item::Kind::StrongDose => {
-                        doses.push((pos, item));
-                    }
-                    item::Kind::Food => {},
-                }
-            }
-        }
-        doses.pop().map(|dose| {
-            let mut result = dose;
-            for d in &doses {
-                if center.tile_distance(d.0) < center.tile_distance(result.0) {
-                    result = *d;
-                }
-            }
-            result
-        })
     }
 
     pub fn monster_on_pos<P: Into<Point>>(&self, pos: P) -> Option<usize> {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use level::{self, Cell, Level, Walkability, Tile, TileKind};
-use item::Item;
+use item::{self, Item};
 use point::{Point, CircularArea};
 use monster::Monster;
 use generators::{self, GeneratedWorld};
@@ -198,10 +198,33 @@ impl World {
         }
     }
 
-    pub fn nearest_dose(&mut self, pos: Point, radius: i32) -> Option<(Point, Item)> {
-        // TODO: This needs to potentially examine more than one chunk
-        // to catch all cells within a radius!
-        unimplemented!()
+    /// Get a dose within the given radius that's nearest to the specified point.
+    pub fn nearest_dose(&mut self, centre: Point, radius: i32) -> Option<(Point, Item)> {
+        let mut doses = vec![];
+        for pos in CircularArea::new(centre, radius) {
+            // Make sure we don't go out of bounds with self.cell(pos):
+            if !self.walkable(pos, Walkability::WalkthroughMonsters) {
+                continue
+            }
+            for &item in self.cell(pos).items.iter() {
+                match item.kind {
+                    item::Kind::Dose | item::Kind::StrongDose => {
+                        doses.push((pos, item));
+                    }
+                    item::Kind::Food => {},
+                }
+            }
+        }
+
+        doses.pop().map(|dose| {
+            let mut result = dose;
+            for d in &doses {
+                if centre.tile_distance(d.0) < centre.tile_distance(result.0) {
+                    result = *d;
+                }
+            }
+            result
+        })
     }
 
     /// Return a random walkable position next to the given point.

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use level::{Cell, Level, Walkability, Tile, TileKind};
+use level::{Cell, Level, Walkability, TileKind};
 use item::{self, Item};
 use point::{Point, CircularArea};
 use monster::Monster;
@@ -140,23 +140,6 @@ impl World {
         self.within_bounds(pos) &&
             self.cell(pos).tile.kind == TileKind::Empty &&
             walkable
-    }
-
-    /// Change the tile on the given position. If the position is not
-    /// within bounds, nothing happens.
-    pub fn set_tile(&mut self, pos: Point, tile: Tile) {
-        if self.within_bounds(pos) {
-            self.cell_mut(pos).tile = tile;
-        }
-    }
-
-    /// Put an item on the tile at the given position. There can be
-    /// multiple items on one tile. If the position is not within
-    /// bounds, nothing happens.
-    pub fn add_item(&mut self, pos: Point, item: Item) {
-        if self.within_bounds(pos) {
-            self.cell_mut(pos).items.push(item);
-        }
     }
 
     /// Pick up the top `Item` stacked on the tile. If the position is

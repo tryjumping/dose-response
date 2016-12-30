@@ -80,8 +80,26 @@ impl World {
     }
 
     /// Return the ChunkPosition for a given point within the chunk.
-    fn chunk_pos_from_world_pos(&self, _pos: Point) -> ChunkPosition {
-        unimplemented!()
+    ///
+    /// Chunks have equal width and height and can have negative
+    /// positions. There is a chunk at `(0, 0)` and then at
+    /// `(-chunk_size, 0)`, `(chunk_size, 0)` and so on.
+    fn chunk_pos_from_world_pos(&self, pos: Point) -> ChunkPosition {
+        let chunk_pos = |num: i32| {
+            let size = self.chunk_size;
+            if num >= 0 {
+                (num / size) * size
+            } else {
+                (-(((-num - 1) / size) + 1)) * size
+            }
+        };
+
+        ChunkPosition {
+            position: Point {
+                x: chunk_pos(pos.x),
+                y: chunk_pos(pos.y),
+            }
+        }
     }
 
     /// Get the chunk at the given world position. This means it

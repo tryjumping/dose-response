@@ -35,10 +35,28 @@ impl Chunk {
 
         let mut generated_data = generators::forrest::generate(&mut chunk.rng, chunk.level.size(), player_position);
 
-        populate_chunk(&mut chunk, generated_data);
+        chunk.populate(generated_data);
 
         chunk
     }
+
+
+    fn populate(&mut self, generated_world: GeneratedWorld) {
+        let (map, generated_monsters, items) = generated_world;
+        for &(pos, item) in map.iter() {
+            self.level.set_tile(pos, item);
+        }
+        for &(pos, kind) in generated_monsters.iter() {
+            assert!(self.level.walkable(pos, Walkability::BlockingMonsters));
+            let monster = Monster::new(kind, pos);
+            self.monsters.push(monster);
+        }
+        for &(pos, item) in items.iter() {
+            assert!(self.level.walkable(pos, Walkability::BlockingMonsters));
+            self.level.add_item(pos, item);
+        }
+    }
+
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -252,23 +270,5 @@ impl World {
 
     pub fn iter_mut(&mut self) -> level::CellsMut {
         unimplemented!()
-    }
-}
-
-
-fn populate_chunk(chunk: &mut Chunk,
-                      generated_world: GeneratedWorld) {
-    let (map, generated_monsters, items) = generated_world;
-    for &(pos, item) in map.iter() {
-        chunk.level.set_tile(pos, item);
-    }
-    for &(pos, kind) in generated_monsters.iter() {
-        assert!(chunk.level.walkable(pos, Walkability::BlockingMonsters));
-        let monster = Monster::new(kind, pos);
-        chunk.monsters.push(monster);
-    }
-    for &(pos, item) in items.iter() {
-        assert!(chunk.level.walkable(pos, Walkability::BlockingMonsters));
-        chunk.level.add_item(pos, item);
     }
 }

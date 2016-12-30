@@ -662,6 +662,27 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             };
 
             if !was_high && is_high {
+
+                // TODO: we will have to handle animations
+                // differently, I think. The problem is that we used
+                // to set the animation state to every cell and then
+                // update evey cell.
+                //
+                // But with the chunked approach, this no longer makes
+                // sense: what happens when we move the screen to a
+                // new chunk that hadn't even existed when we set the
+                // High animations?
+                //
+                // So instead, let's handle animations in the render
+                // loop completely. If we're high, each cell's colour
+                // will be changed based on a pure time + position
+                // formula. And for individual cell animations (say
+                // the glowing doses or monster fadeouts), we could
+                // set an `animation` property to contain the start
+                // time and the type of the animation. And again, just
+                // use a pure colour function processing to handle the
+                // rest.
+
                 // Set animation on each level's tile:
                 for (pos, cell) in state.world.iter_mut() {
                     let dur_ms = 700 + (((pos.x * pos.y) % 100) as i64) * 5;
@@ -759,10 +780,13 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     // Render the level and items:
-    for (world_pos, cell) in state.world.iter() {
+    let map_dims = (state.map_size, state.map_size).into();
+    let player_will_is_max = state.player.will.is_max();
+    let player_will = *state.player.will;
+        state.world.with_cells(screen_left_top_corner, map_dims, |world_pos, cell| {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
-            continue;
+            return;
         }
         // Render the tile
         if in_fov(world_pos) {
@@ -783,8 +807,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 Dose | StrongDose => true,
                 Food => false,
             };
-            if is_dose && !state.player.will.is_max() {
-                let resist_radius = player_resist_radius(item.irresistible, *state.player.will);
+            if is_dose && !player_will_is_max {
+                let resist_radius = player_resist_radius(item.irresistible, player_will);
                 for point in point::SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {
                         let screen_coords = screen_coords_from_world(point);
@@ -800,7 +824,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 graphics::draw(&mut engine.display, dt, display_pos, item);
             }
         }
-    }
+    });
 
     if let Some((center, max_r, r, c, elapsed)) = state.explosion_animation {
         let one_level_duration = Duration::milliseconds(100);

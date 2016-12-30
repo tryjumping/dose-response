@@ -213,10 +213,6 @@ impl Level {
         }
     }
 
-    pub fn pickup_item<P: Into<Point>>(&mut self, pos: P) -> Option<Item> {
-        self.cell_mut(pos).items.pop()
-    }
-
     pub fn iter(&self) -> Cells {
         Cells {
             index: 0,
@@ -225,34 +221,6 @@ impl Level {
         }
     }
 
-    pub fn iter_mut(&mut self) -> CellsMut {
-        CellsMut {
-            index: 0,
-            width: self.dimensions.x,
-            inner: self.map.iter_mut(),
-        }
-    }
-}
-
-pub struct CellsMut<'a> {
-    index: i32,
-    width: i32,
-    inner: ::std::slice::IterMut<'a, Cell>,
-}
-
-impl<'a> Iterator for CellsMut<'a> {
-    type Item = (Point, &'a mut Cell);
-
-    fn next(&mut self) -> Option<(Point, &'a mut Cell)> {
-        let pos = (self.index % self.width, self.index / self.width).into();
-        self.index += 1;
-        match self.inner.next() {
-            Some(cell) => {
-                Some((pos, cell))
-            }
-            None => None,
-        }
-    }
 }
 
 pub struct Cells<'a> {

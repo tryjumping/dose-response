@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use level::{self, Cell, Level, Walkability, Tile, TileKind};
+use level::{Cell, Level, Walkability, Tile, TileKind};
 use item::{self, Item};
 use point::{Point, CircularArea};
 use monster::Monster;
@@ -33,9 +33,11 @@ impl Chunk {
             monsters: vec![],
         };
 
-        let mut generated_data = generators::forrest::generate(&mut chunk.rng, chunk.level.size(), player_position);
+        let generated_data = generators::forrest::generate(&mut chunk.rng, chunk.level.size(), player_position);
 
         chunk.populate(generated_data);
+
+        // TODO: set the monsters to the level and fix their IDs here.
 
         chunk
     }
@@ -78,7 +80,7 @@ impl World {
     }
 
     /// Return the ChunkPosition for a given point within the chunk.
-    fn chunk_pos_from_world_pos(&self, pos: Point) -> ChunkPosition {
+    fn chunk_pos_from_world_pos(&self, _pos: Point) -> ChunkPosition {
         unimplemented!()
     }
 
@@ -264,11 +266,57 @@ impl World {
         }
     }
 
-    pub fn iter(&mut self) -> level::Cells {
-        unimplemented!()
+    /// Return an iterator over `Cell` that covers a rectangular shape
+    /// specified by the top-left (inclusive) point and the dimensions
+    /// (width, height) of the rectangle.
+    ///
+    /// The iteration order is not specified.
+    pub fn with_cells<F>(&mut self, top_left: Point, dimensions: Point, mut callback: F)
+        where F: FnMut(Point, &Cell)
+    {
+        assert!(dimensions.x >= 0);
+        assert!(dimensions.y >= 0);
+        let bottom_right = top_left + dimensions;
+
+        let chunk_size = self.chunk_size;
+        let mut chunk_pos = self.chunk_pos_from_world_pos(top_left).position;
+        let starter_chunk_x = chunk_pos.x;
+
+        while chunk_pos.y < bottom_right.y {
+            while chunk_pos.x < bottom_right.x {
+                let chunk = self.chunk(chunk_pos);
+                for (cell_level_pos, cell) in chunk.level.iter() {
+                    let cell_world_pos = cell_level_pos + chunk_pos;
+                    if cell_world_pos >= top_left && cell_world_pos <= bottom_right {
+                        callback(cell_world_pos, cell);
+                    }
+                }
+                chunk_pos.x += chunk_size;
+            }
+            chunk_pos.y += chunk_size;
+            chunk_pos.x = starter_chunk_x;
+        }
     }
 
-    pub fn iter_mut(&mut self) -> level::CellsMut {
-        unimplemented!()
+    pub fn iter_mut(&mut self) -> CellsMut {
+        // NOTE: this is used to update the animation of each cell
+        // NOTE: it's now a no-op because we need to rethink this approach somewhat.
+        CellsMut {
+            phantom: ::std::marker::PhantomData
+        }
+    }
+
+}
+
+pub struct CellsMut<'a> {
+    phantom: ::std::marker::PhantomData<&'a mut Cell>,
+}
+
+
+impl<'a> Iterator for CellsMut<'a> {
+    type Item = (Point, &'a mut Cell);
+
+    fn next(&mut self) -> Option<(Point, &'a mut Cell)> {
+        None
     }
 }

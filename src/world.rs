@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use level::{self, Cell, Level, Walkability, Tile, TileKind};
 use item::Item;
-use point::Point;
+use point::{Point, CircularArea};
 use monster::Monster;
 use generators::{self, GeneratedWorld};
 
@@ -189,8 +189,13 @@ impl World {
         self.chunk(monster.position).level.remove_monster(id, monster)
     }
 
-    pub fn explore(&mut self, pos: Point, radius: i32) {
-        unimplemented!()
+    /// Set cells within the given radius as explored.
+    pub fn explore(&mut self, centre: Point, radius: i32) {
+        for pos in CircularArea::new(centre, radius) {
+            if self.within_bounds(pos) {
+                self.cell_mut(pos).explored = true;
+            }
+        }
     }
 
     pub fn nearest_dose(&mut self, pos: Point, radius: i32) -> Option<(Point, Item)> {

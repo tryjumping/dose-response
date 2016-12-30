@@ -260,15 +260,6 @@ impl Level {
         }
     }
 
-    pub fn explore<P: Into<Point>>(&mut self, center: P, radius: i32) {
-        let center = center.into();
-        for pos in point::CircularArea::new(center, radius) {
-            if self.within_bounds(pos) {
-                self.cell_mut(pos).explored = true;
-            }
-        }
-    }
-
     pub fn iter(&self) -> Cells {
         Cells {
             index: 0,

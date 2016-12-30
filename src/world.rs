@@ -249,11 +249,3 @@ fn populate_chunk(chunk: &mut Chunk,
         chunk.level.add_item(pos, item);
     }
 }
-
-pub fn random_neighbour_position<R: Rng>(rng: R, pos: Point, walkability: Walkability) -> Point {
-    unimplemented!()
-}
-
-pub fn nearest_dose(pos: Point, radius: i32) -> Option<(Point, Item)> {
-    unimplemented!()
-}

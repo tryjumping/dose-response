@@ -270,7 +270,7 @@ fn process_player<R, W>(player: &mut player::Player,
         if *player.stun > 0 {
             action = Action::Move(player.pos);
         } else if *player.panic > 0 {
-            let new_pos = world::random_neighbour_position(
+            let new_pos = world.random_neighbour_position(
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {

@@ -161,7 +161,24 @@ impl World {
     }
 
     pub fn move_monster(&mut self, monster: &mut Monster, dest: Point) {
-        unimplemented!()
+        let monster_chunk_pos = self.chunk_pos_from_world_pos(monster.position);
+        let destination_chunk_pos = self.chunk_pos_from_world_pos(dest);
+        if monster_chunk_pos == destination_chunk_pos {
+            self.chunk(monster.position).level.move_monster(monster, dest);
+        } else {
+            // TODO: the monster needs to move to a different chunk!
+
+            // TODO: we'll need to remove the monster from the
+            // chunk.monsters list which could interfere with the
+            // indices, which could be a problem.
+            //
+            // Plus, taking a pointer to the monster will cause a
+            // problem here -- since the monster in the destination
+            // chunk will literally be a different monster. So either
+            // we do maintain the global list of all monsters, or have
+            // to rework this logic.
+            unimplemented!()
+        }
     }
 
     pub fn remove_monster(&mut self, id: usize, monster: &mut Monster) {

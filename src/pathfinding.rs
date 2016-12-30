@@ -18,8 +18,6 @@ impl Path {
         }
 
         let mut neighbors = |current: Point| {
-            assert!(current.x >= 0);
-            assert!(current.y >= 0);
             assert!(world.within_bounds(current));
             let dp: [Point; 9] = [
                 (-1, -1).into(),

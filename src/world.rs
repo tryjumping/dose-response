@@ -181,8 +181,12 @@ impl World {
         }
     }
 
+    /// Remove the given monster from the world.
     pub fn remove_monster(&mut self, id: usize, monster: &mut Monster) {
-        unimplemented!()
+        // TODO: This is problematic -- we shouldn't be passing a
+        // mutable pointer here. Ideally, the monster should no longer
+        // be available if removed or we should return it.
+        self.chunk(monster.position).level.remove_monster(id, monster)
     }
 
     pub fn explore(&mut self, pos: Point, radius: i32) {

@@ -23,6 +23,9 @@ impl Chunk {
         // so our seeds don't repeat. So this is fine here.
         let chunk_seed: &[_] = &[world_seed, pos.x as u32, pos.y as u32];
 
+        // TODO: Monsters in different chunks will now have identical
+        // IDs. We need to investigate whether that's a problem.
+
         let mut chunk = Chunk {
             position: pos,
             rng: SeedableRng::from_seed(chunk_seed),
@@ -146,8 +149,15 @@ impl World {
         }
     }
 
+    /// If there's a monster at the given tile, return its ID.
+    ///
+    /// Returns `None` if there is no monster or if `pos` is out of bounds.
     pub fn monster_on_pos(&mut self, pos: Point) -> Option<usize> {
-        unimplemented!()
+        if self.within_bounds(pos) {
+            self.chunk(pos).level.monster_on_pos(pos)
+        } else {
+            None
+        }
     }
 
     pub fn move_monster(&mut self, monster: &mut Monster, dest: Point) {
@@ -163,6 +173,8 @@ impl World {
     }
 
     pub fn nearest_dose(&mut self, pos: Point, radius: i32) -> Option<(Point, Item)> {
+        // TODO: This needs to potentially examine more than one chunk
+        // to catch all cells within a radius!
         unimplemented!()
     }
 

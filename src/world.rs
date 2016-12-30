@@ -75,8 +75,17 @@ pub struct World {
 }
 
 impl World {
-    pub fn new() -> Self {
-        unimplemented!()
+    pub fn new(seed: u32, dimension: i32, chunk_size: i32) -> Self {
+        assert!(dimension > 0);
+        assert!(chunk_size > 0);
+        assert_eq!(dimension % 2, 0);
+        assert_eq!(dimension % chunk_size, 0);
+        World {
+            seed: seed,
+            max_half_size: dimension / 2,
+            chunk_size: chunk_size,
+            chunks: HashMap::new(),
+        }
     }
 
     /// Return the ChunkPosition for a given point within the chunk.

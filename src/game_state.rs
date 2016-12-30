@@ -135,6 +135,7 @@ impl GameState {
                              -> GameState {
         let seed_arr: &[_] = &[seed];
         let world_centre = world_size / 2;
+        assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
         GameState {
             player: Player::new(world_centre),
@@ -142,7 +143,7 @@ impl GameState {
             explosion_animation: None,
             chunk_size: 32,
             world_size: world_size,
-            world: World::new(),
+            world: World::new(seed, world_size.x, 32),
             map_size: map_size,
             panel_width: panel_width,
             display_size: display_size,
@@ -187,9 +188,7 @@ impl GameState {
         };
         // println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);
-        let mut state = GameState::new(world_size, map_size, panel_width, display_size, commands, writer, seed, false, false);
-        initialise_world(&mut state);
-        state
+        GameState::new(world_size, map_size, panel_width, display_size, commands, writer, seed, false, false)
     }
 
     pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point) -> GameState {
@@ -218,18 +217,8 @@ impl GameState {
                                replay_path.display(), msg)
         }
         // println!("Replaying game log: '{}'", replay_path.display());
-        let mut state = GameState::new(world_size, map_size, panel_width, display_size, commands, Box::new(io::sink()), seed, true, true);
-        initialise_world(&mut state);
-        state
+        GameState::new(world_size, map_size, panel_width, display_size, commands, Box::new(io::sink()), seed, true, true)
     }
-}
-
-fn initialise_world(state: &mut GameState) {
-    assert!(state.map_size >= state.chunk_size);
-
-
-    // TODO: Can we keep monsters in a global list or do we have to partition them as well?
-    unimplemented!()
 }
 
 

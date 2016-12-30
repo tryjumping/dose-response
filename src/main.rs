@@ -883,7 +883,8 @@ fn main() {
     let map_size = 43;
     let panel_width = 20;
     let display_size = (map_size + panel_width, map_size).into();
-    let world_size = (map_size, map_size).into();
+    // NOTE: 2 ^ 30
+    let world_size = (1_073_741_824, 1_073_741_824).into();
     let title = "Dose Response";
     let font_dir = Path::new("fonts");
     let font_path = font_dir.join("dejavu16x16_gs_tc.png");

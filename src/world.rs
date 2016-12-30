@@ -28,6 +28,8 @@ pub struct World {
 
 impl World {
     pub fn new() -> Self {
+        unimplemented!()
+    }
 
     fn generate_chunk(&mut self, pos: Point) {
         // let map_dimensions: Point = (state.map_size, state.map_size).into();

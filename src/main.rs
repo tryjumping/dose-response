@@ -170,14 +170,16 @@ pub enum Action {
 }
 
 
-fn kill_monster(monster: &mut monster::Monster, world: &mut world::World) {
-    monster.dead = true;
-    world.remove_monster(monster.id(), monster);
+fn kill_monster(monster_position: point::Point, world: &mut world::World) {
+    if let Some(monster) = world.monster_on_pos(monster_position) {
+        monster.dead = true;
+    }
+    world.remove_monster(monster_position);
 }
 
 fn use_dose(player: &mut player::Player, world: &mut world::World,
             explosion_animation: &mut ExplosionAnimation,
-            monsters: &mut [monster::Monster], item: item::Item) {
+            item: item::Item) {
     use player::Modifier::*;
     if let Intoxication{state_of_mind, ..} = item.modifier {
         let radius = match state_of_mind <= 100 {
@@ -185,7 +187,7 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
             false => 6,
         };
         player.take_effect(item.modifier);
-        let anim = explode(player.pos, radius, world, monsters);
+        let anim = explode(player.pos, radius, world);
         *explosion_animation = anim;
     } else {
         unreachable!();
@@ -198,12 +200,9 @@ pub type ExplosionAnimation = Option<(point::Point, i32, i32, color::Color, Dura
 
 fn explode(center: point::Point,
            radius: i32,
-           world: &mut world::World,
-           monsters: &mut [monster::Monster]) -> ExplosionAnimation {
+           world: &mut world::World) -> ExplosionAnimation {
     for pos in point::SquareArea::new(center, radius) {
-        if let Some(monster_id) = world.monster_on_pos(pos) {
-            kill_monster(&mut monsters[monster_id], world);
-        }
+        kill_monster(pos, world);
     }
     Some((center,
           radius,
@@ -241,7 +240,6 @@ fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 fn process_player<R, W>(player: &mut player::Player,
                         commands: &mut VecDeque<Command>,
                         world: &mut world::World,
-                        monsters: &mut Vec<monster::Monster>,
                         explosion_animation: &mut ExplosionAnimation,
                         rng: &mut R,
                         command_logger: &mut W)
@@ -307,22 +305,23 @@ fn process_player<R, W>(player: &mut player::Player,
             Action::Move(dest) => {
                 if world.within_bounds(dest) {
                     let dest_walkable = world.walkable(dest, level::Walkability::BlockingMonsters);
-                    if let Some(monster_id) = world.monster_on_pos(dest) {
+                    let bumping_into_monster = world.monster_on_pos(dest).is_some();
+                    if bumping_into_monster {
                         player.spend_ap(1);
-                        let monster = &mut monsters[monster_id];
-                        assert_eq!(monster.id(), monster_id);
                         //println!("Player attacks {:?}", monster);
-                        kill_monster(monster, world);
-                        match monster.kind {
-                            monster::Kind::Anxiety => {
-                                player.anxiety_counter += 1;
-                                if player.anxiety_counter.is_max() {
-                                    player.will += 1;
-                                    player.anxiety_counter.set_to_min();
+                        if let Some(monster) = world.monster_on_pos(dest) {
+                            match monster.kind {
+                                monster::Kind::Anxiety => {
+                                    player.anxiety_counter += 1;
+                                    if player.anxiety_counter.is_max() {
+                                        player.will += 1;
+                                        player.anxiety_counter.set_to_min();
+                                    }
                                 }
+                                _ => {}
                             }
-                            _ => {}
                         }
+                        kill_monster(dest, world);
                     } else if dest_walkable {
                         player.spend_ap(1);
                         player.move_to(dest);
@@ -336,7 +335,7 @@ fn process_player<R, W>(player: &mut player::Player,
                                             if player.will.is_max() {
                                                 player.inventory.push(item);
                                             } else {
-                                                use_dose(player, world, explosion_animation, monsters, item);
+                                                use_dose(player, world, explosion_animation, item);
                                             }
                                         }
                                     }
@@ -356,7 +355,7 @@ fn process_player<R, W>(player: &mut player::Player,
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
-                    let anim = explode(player.pos, food_explosion_radius, world, monsters);
+                    let anim = explode(player.pos, food_explosion_radius, world);
                     *explosion_animation = anim;
                 }
             }
@@ -364,14 +363,14 @@ fn process_player<R, W>(player: &mut player::Player,
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::Dose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, world, explosion_animation, monsters, dose);
+                    use_dose(player, world, explosion_animation, dose);
                 }
             }
             Action::Use(item::Kind::StrongDose) => {
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, world, explosion_animation, monsters, dose);
+                    use_dose(player, world, explosion_animation, dose);
                 }
             }
             Action::Attack(_, _) => {
@@ -382,38 +381,38 @@ fn process_player<R, W>(player: &mut player::Player,
 }
 
 
-fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
-                            world: &mut world::World,
+fn process_monsters<R: Rng>(world: &mut world::World,
                             player: &mut player::Player,
+                            screen_top_left_corner: point::Point,
+                            map_dimensions: point::Point,
                             rng: &mut R) {
     if !player.alive() {
         return
     }
-    for monster in monsters.iter_mut().filter(|m| !m.dead && m.has_ap(1)) {
-        let action = monster.act(player.pos, world, rng);
+    // NOTE: one quarter of the map area should be a decent overestimate
+    let monster_count_estimate = map_dimensions.x * map_dimensions.y / 4;
+    assert!(monster_count_estimate > 0);
+    let mut monster_positions_to_process = VecDeque::with_capacity(monster_count_estimate as usize);
+    monster_positions_to_process.extend(
+        world.monster_positions(
+            screen_top_left_corner - (10, 10),
+            screen_top_left_corner + map_dimensions + (10, 10)));
+
+    while let Some(pos) = monster_positions_to_process.pop_front() {
+        let monster_readonly = world.monster_on_pos(pos).expect("Monster should exist on this position").clone();
+        let (ai, action) = {
+            let (ai, action) = monster_readonly.act(player.pos, world, rng);
+            if let Some(monster) = world.monster_on_pos(pos) {
+                monster.ai_state = ai;
+            }
+        };
+
         match action {
             Action::Move(destination) => {
-                let pos = monster.position;
-                let newpos_opt = {
-                    let mut path = pathfinding::Path::find(
-                        pos, destination, world, level::Walkability::BlockingMonsters);
-                    path.next()
-                };
-                monster.spend_ap(1);
-                match newpos_opt {
-                    Some(step) => {
-                        if world.monster_on_pos(step).is_none() {
-                            world.move_monster(monster, step);
-                        } else if step == monster.position {
-                            //println!("{:?} cannot move so it waits.", monster);
-                        } else {
-                            unreachable!();
-                        }
-                    }
-                    None => {
-                        //println!("{:?} can't find a path so it waits.", monster);
-                    }
-                }
+                let pos = monster_readonly.position;
+                // NOTE: the pathfinding has already happened so this should always be a neighbouring tile
+                assert!(pos.tile_distance(destination) <= 1);
+                world.move_monster(monster, destination);
             }
 
             Action::Attack(target_pos, damage) => {
@@ -421,12 +420,15 @@ fn process_monsters<R: Rng>(monsters: &mut Vec<monster::Monster>,
                 monster.spend_ap(1);
                 player.take_effect(damage);
                 if monster.die_after_attack {
-                    kill_monster(monster, world);
+                    kill_monster(monster.position, world);
                 }
             }
 
             Action::Use(_) => unreachable!(),
         }
+
+
+        // TODO: if the monster still has action points, push its new position to the back of the queue
     }
 }
 
@@ -574,8 +576,14 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         state.screen_position_in_world = state.old_screen_pos + (x, y);
     }
 
+    let map_dimensions = (state.map_size, state.map_size).into();
+
     if running || paused_one_step || timed_step {
         process_keys(&mut engine.keys, &mut state.commands);
+
+        // move screen if the player goes near the edge of the screen
+        let map_size = point::Point::new(state.map_size, state.map_size);
+        let screen_left_top_corner = state.screen_position_in_world - (map_size / 2);
 
         // Process player
         match state.side {
@@ -584,7 +592,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 process_player(&mut state.player,
                                &mut state.commands,
                                &mut state.world,
-                               &mut state.monsters,
                                &mut state.explosion_animation,
                                &mut state.rng,
                                &mut state.command_logger);
@@ -602,9 +609,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 let exploration_radius = exploration_radius(state.player.mind);
                 state.world.explore(state.player.pos, exploration_radius);
 
-                // move screen if the player goes near the edge of the screen
-                let map_size = point::Point::new(state.map_size, state.map_size);
-                let screen_left_top_corner = state.screen_position_in_world - (map_size / 2);
 
                 let display_pos = state.player.pos - screen_left_top_corner;
                 if state.pos_timer.finished() {
@@ -625,7 +629,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
                 if !state.player.has_ap(1) {
                     state.side = Side::Computer;
-                    for monster in state.monsters.iter_mut() {
+                    for monster in state.world.monsters(screen_left_top_corner, map_dimensions) {
                         monster.new_turn();
                     }
                 }
@@ -634,14 +638,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             Side::Victory => {}
         }
 
-        assert!(state.monsters.iter().enumerate().all(|(index, monster)| index == monster.id()),
-                "Monster.id must always be equal to its index in state.monsters.");
         // Process monsters
         match state.side {
             Side::Player => {}
             Side::Computer => {
-                process_monsters(&mut state.monsters, &mut state.world, &mut state.player, &mut state.rng);
-                if state.monsters.iter().filter(|m| !m.dead).all(|m| !m.has_ap(1)) {
+                process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, map_dimensions, &mut state.rng);
+                if state.world.monsters(screen_left_top_corner, map_dimensions).filter(|m| !m.dead).all(|m| !m.has_ap(1)) {
                     state.side = Side::Player;
                     state.player.new_turn();
                 }
@@ -783,10 +785,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     // Render the level and items:
-    let map_dims = (state.map_size, state.map_size).into();
     let player_will_is_max = state.player.will.is_max();
     let player_will = *state.player.will;
-        state.world.with_cells(screen_left_top_corner, map_dims, |world_pos, cell| {
+        state.world.with_cells(screen_left_top_corner, map_dimensions, |world_pos, cell| {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
             return;
@@ -856,7 +857,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
     // TODO: assert no monster is on the same coords as the player
     // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
-    for monster in state.monsters.iter().filter(|m| !m.dead) {
+    for monster in state.world.monsters(screen_left_top_corner, map_dimensions).filter(|m| !m.dead) {
         let visible = monster.position.distance(state.player.pos) < (radius as f32);
         if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
             let world_pos = monster.position;

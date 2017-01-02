@@ -6,6 +6,7 @@ use super::Action;
 use color::{self, Color};
 use level::Walkability;
 use graphics::Render;
+use pathfinding::Path;
 use player::Modifier;
 use point::Point;
 use world::World;
@@ -14,9 +15,8 @@ use self::Kind::*;
 use self::AIState::*;
 
 
-#[derive(PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Monster {
-    id: usize,
     pub kind: Kind,
     pub position: Point,
     pub dead: bool,
@@ -54,7 +54,6 @@ impl Monster {
             Anxiety | Hunger | Shadows | Voices => 1,
         };
         Monster {
-            id: 0,
             kind: kind,
             position: position,
             dead: false,
@@ -63,14 +62,6 @@ impl Monster {
             ap: 0,
             max_ap: max_ap,
         }
-    }
-
-    pub fn id(&self) -> usize {
-        self.id
-    }
-
-    pub unsafe fn set_id(&mut self, id: usize) {
-        self.id = id;
     }
 
     pub fn attack_damage(&self) -> Modifier {
@@ -84,7 +75,7 @@ impl Monster {
         }
     }
 
-    pub fn act<R: Rng>(&mut self, player_pos: Point, world: &mut World, rng: &mut R) -> Action {
+    pub fn act<R: Rng>(&self, player_pos: Point, world: &mut World, rng: &mut R) -> (AIState, Action) {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
@@ -94,22 +85,25 @@ impl Monster {
         } else {
             Idle
         };
-        self.ai_state = ai_state;
-        match self.ai_state {
+
+        let random_neighbouring_pos = world.random_neighbour_position(
+            rng, self.position, Walkability::BlockingMonsters);
+        let action = match self.ai_state {
             Chasing => {
                 if distance == 1 {
                     Action::Attack(player_pos, self.attack_damage())
                 } else {
-                    Action::Move(player_pos)
+                    let mut path = Path::find(
+                        self.position, player_pos, world, Walkability::BlockingMonsters);
+                    Action::Move(path.next().unwrap_or_default(random_neighbouring_pos))
                 }
             }
             Idle => {
                 // Move randomly about
-                let new_pos = world.random_neighbour_position(
-                    rng, self.position, Walkability::BlockingMonsters);
-                Action::Move(new_pos)
+                Action::Move(random_neighbouring_pos)
             }
-        }
+        };
+        (ai_state, action)
     }
 
     pub fn spend_ap(&mut self, count: i32) {

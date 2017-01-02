@@ -193,13 +193,6 @@ impl Level {
         self.within_bounds(pos) && self.cell(pos).tile.kind == TileKind::Empty && walkable
     }
 
-    pub fn remove_monster(&mut self, monster_index: usize, monster: &Monster) {
-        if let Some(removed_index) = self.monsters.remove(&monster.position) {
-            assert!(monster_index == removed_index,
-                    "The monster ID removed from the level must be correspond to the monster");
-        }
-    }
-
     pub fn move_monster<P: Into<Point>>(&mut self, monster: &mut Monster, destination: P) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:

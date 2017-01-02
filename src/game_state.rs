@@ -83,7 +83,6 @@ fn path_exists(path: &Path) -> bool {
 
 pub struct GameState {
     pub player: Player,
-    pub monsters: Vec<Monster>,
     pub explosion_animation: super::ExplosionAnimation,
 
     /// The actual size of the game world in tiles. Could be infinite
@@ -139,7 +138,6 @@ impl GameState {
         assert_eq!(display_size, (map_size + panel_width, map_size));
         GameState {
             player: Player::new(world_centre),
-            monsters: vec![],
             explosion_animation: None,
             chunk_size: 32,
             world_size: world_size,

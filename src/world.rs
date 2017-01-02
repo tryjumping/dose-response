@@ -182,19 +182,24 @@ impl World {
     /// If there's a monster at the given tile, return its ID.
     ///
     /// Returns `None` if there is no monster or if `pos` is out of bounds.
-    pub fn monster_on_pos(&mut self, pos: Point) -> Option<usize> {
+    pub fn monster_on_pos(&mut self, pos: Point) -> Option<&mut Monster> {
         if self.within_bounds(pos) {
-            self.chunk(pos).level.monster_on_pos(pos)
+            let chunk = self.chunk(pos);
+            chunk.level.monster_on_pos(pos).and_then(
+                move |monster_index| Some(&mut chunk.monsters[monster_index]))
         } else {
             None
         }
     }
 
-    pub fn move_monster(&mut self, monster: &mut Monster, dest: Point) {
+    /// Move the monster from one place in the world to the destination.
+    /// If the paths are identical, nothing happens.
+    /// Panics if the destination is out of bounds or already occupied.
+    pub fn move_monster(&mut self, monster: &mut Monster, destination: Point) {
         let monster_chunk_pos = self.chunk_pos_from_world_pos(monster.position);
-        let destination_chunk_pos = self.chunk_pos_from_world_pos(dest);
+        let destination_chunk_pos = self.chunk_pos_from_world_pos(destination);
         if monster_chunk_pos == destination_chunk_pos {
-            self.chunk(monster.position).level.move_monster(monster, dest);
+            self.chunk(monster.position).level.move_monster(monster, destination);
         } else {
             // TODO: the monster needs to move to a different chunk!
 
@@ -211,12 +216,15 @@ impl World {
         }
     }
 
-    /// Remove the given monster from the world.
-    pub fn remove_monster(&mut self, id: usize, monster: &mut Monster) {
+    /// Remove the monster at the given position (if there is any
+    /// there) from the world.
+    pub fn remove_monster(&mut self, pos: Point) {
         // TODO: This is problematic -- we shouldn't be passing a
         // mutable pointer here. Ideally, the monster should no longer
         // be available if removed or we should return it.
-        self.chunk(monster.position).level.remove_monster(id, monster)
+        let chunk = self.chunk(pos);
+        let level_position = pos - chunk.position;
+        chunk.level.monsters.remove(&level_position);
     }
 
     /// Set cells within the given radius as explored.
@@ -316,6 +324,10 @@ impl World {
         }
     }
 
+    pub fn monster_positions(&mut self, top_left: Point, dimensions: Point) -> MonsterPositions {
+        unimplemented!()
+    }
+
 }
 
 pub struct CellsMut<'a> {
@@ -328,5 +340,28 @@ impl<'a> Iterator for CellsMut<'a> {
 
     fn next(&mut self) -> Option<(Point, &'a mut Cell)> {
         None
+    }
+}
+
+pub struct Monsters<'a> {
+    phantom: ::std::marker::PhantomData<&'a mut Monster>,
+}
+
+impl<'a> Iterator for Monsters<'a> {
+    type Item = &'a mut Monster;
+
+    fn next(&mut self) -> Option<&'a mut Monster> {
+        unimplemented!()
+    }
+
+}
+
+pub struct MonsterPositions;
+
+impl Iterator for MonsterPositions {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Point> {
+        unimplemented!()
     }
 }

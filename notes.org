@@ -1,3 +1,78 @@
+* Handle the monsters issue                                            :code:
+Before the new World order, all the monsters were held in a single Vec
+that was separate from the level, but the Level had a map of Position
+-> Monster ID.
+
+That way, we could mutably iterate over the monsters for their AI
+routines while being able to look at the surrounding area including
+monsters that would block movement/pathfinding, etc.
+
+Right now, the monsters are stored within each World Chunk though.
+
+That means to iterate over the monsters, we need to borrow the whole
+World mutably, which precludes looking at the level or surrounding
+chunks.
+
+Requirement:
+
+1. A monster sees the player nearby in another chunk
+2. It finds a path (not trampling over other monsters) towards the player
+3. It walks the path step by step
+4. It hits the player
+5. After the attack, it disappears
+
+
+Rough code outline:
+
+For each monster visible area + 10 tiles:
+    - run monster AI:
+      - check distance to player
+      - howl
+      - find path towards the player
+    - do the action AI decided (walk, attack, wait)
+      (needs to happen before we process the next monster)
+      (may involve moving to another chunk)
+
+- We want to chunkify the monsters and items and everything else, too
+
+
+let monster_positions = world.monster_positions_within_area(left_top - 10, bottom_right + 10).collect();
+for pos in monster_positions {
+    let (ai, action) = {
+        let monster = world.monster_on_pos(pos).clone();  // NOTE: this frees the world borrow
+        monster.act(player_pos, world, rng)  // NOTE: this is read-only action so the clone is all right
+    };
+
+    // TODO: assign the AI state here!
+    // TODO: process the action here!
+}
+
+
+Potential solutions:
+
+1. Iterate internally, process monsters with a callback
+
+We do this for the rendering currently.
+
+2. Process monsters immutably, return a list of actions to be performed later.
+
+This is the general idea in gamedev, but would the fact that the world
+needs to be mutable interfere here?
+
+Also, one monster's movement can block another one following it. So we
+should probably process the monsters one by one.
+
+3. Analogous to what we do now: keep monsters separately, update the
+   world when their position changes
+
+This will require making the Monsters vector availeble to World for
+writing or for the chunks to be created explicitly (so we can add the
+newly-generated monsters to the main Vec).
+
+
+* The Hunger no longer howls to attract nearby hungers                  :bug:
+** I like that feature and it's disappearance is an omission
+** If we do want to remove it, it should be after testing
 * High score for the number of doses collected                         :idea:
 ** Would be a cool incentive for the end game
 ** The players might even consider prolonging it

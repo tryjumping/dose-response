@@ -195,11 +195,14 @@ impl World {
     /// Move the monster from one place in the world to the destination.
     /// If the paths are identical, nothing happens.
     /// Panics if the destination is out of bounds or already occupied.
-    pub fn move_monster(&mut self, monster: &mut Monster, destination: Point) {
-        let monster_chunk_pos = self.chunk_pos_from_world_pos(monster.position);
+    pub fn move_monster(&mut self, monster_position: Point, destination: Point) {
+        let monster_chunk_pos = self.chunk_pos_from_world_pos(monster_position);
         let destination_chunk_pos = self.chunk_pos_from_world_pos(destination);
         if monster_chunk_pos == destination_chunk_pos {
-            self.chunk(monster.position).level.move_monster(monster, destination);
+            if let Some(monster) = self.monster_on_pos(monster_position) {
+                monster.position = destination;
+            }
+            self.chunk(monster_position).level.move_monster(monster_position, destination);
         } else {
             // TODO: the monster needs to move to a different chunk!
 

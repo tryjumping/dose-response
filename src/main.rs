@@ -412,7 +412,7 @@ fn process_monsters<R: Rng>(world: &mut world::World,
                 let pos = monster_readonly.position;
                 // NOTE: the pathfinding has already happened so this should always be a neighbouring tile
                 assert!(pos.tile_distance(destination) <= 1);
-                world.move_monster(monster, destination);
+                world.move_monster(pos, destination);
             }
 
             Action::Attack(target_pos, damage) => {

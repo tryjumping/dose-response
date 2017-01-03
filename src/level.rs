@@ -193,13 +193,12 @@ impl Level {
         self.within_bounds(pos) && self.cell(pos).tile.kind == TileKind::Empty && walkable
     }
 
-    pub fn move_monster<P: Into<Point>>(&mut self, monster: &mut Monster, destination: P) {
+    pub fn move_monster<P: Into<Point>>(&mut self, monster_position: Point, destination: P) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
         let destination = destination.into();
         assert!(!self.monsters.contains_key(&destination));
-        if let Some(monster_index) = self.monsters.remove(&monster.position) {
-            monster.position = destination;
+        if let Some(monster_index) = self.monsters.remove(&monster_position) {
             self.monsters.insert(destination, monster_index);
         } else {
             panic!("Moving a monster that doesn't exist");

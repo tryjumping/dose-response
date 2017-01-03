@@ -400,11 +400,12 @@ fn process_monsters<R: Rng>(world: &mut world::World,
 
     while let Some(pos) = monster_positions_to_process.pop_front() {
         let monster_readonly = world.monster_on_pos(pos).expect("Monster should exist on this position").clone();
-        let (ai, action) = {
+        let action = {
             let (ai, action) = monster_readonly.act(player.pos, world, rng);
             if let Some(monster) = world.monster_on_pos(pos) {
                 monster.ai_state = ai;
             }
+            action
         };
 
         match action {
@@ -417,10 +418,12 @@ fn process_monsters<R: Rng>(world: &mut world::World,
 
             Action::Attack(target_pos, damage) => {
                 assert!(target_pos == player.pos);
-                monster.spend_ap(1);
+                if let Some(monster) = world.monster_on_pos(monster_readonly.position) {
+                    monster.spend_ap(1);
+                }
                 player.take_effect(damage);
-                if monster.die_after_attack {
-                    kill_monster(monster.position, world);
+                if monster_readonly.die_after_attack {
+                    kill_monster(monster_readonly.position, world);
                 }
             }
 

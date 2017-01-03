@@ -95,7 +95,7 @@ impl Monster {
                 } else {
                     let mut path = Path::find(
                         self.position, player_pos, world, Walkability::BlockingMonsters);
-                    Action::Move(path.next().unwrap_or_default(random_neighbouring_pos))
+                    Action::Move(path.next().unwrap_or(random_neighbouring_pos))
                 }
             }
             Idle => {

@@ -398,6 +398,12 @@ fn process_monsters<R: Rng>(world: &mut world::World,
             screen_top_left_corner - (10, 10),
             screen_top_left_corner + map_dimensions + (10, 10)));
 
+    for &pos in monster_positions_to_process.iter() {
+        if let Some(monster) = world.monster_on_pos(pos) {
+            monster.new_turn();
+        }
+    }
+
     while let Some(pos) = monster_positions_to_process.pop_front() {
         let monster_readonly = world.monster_on_pos(pos).expect("Monster should exist on this position").clone();
         let action = {
@@ -588,71 +594,56 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         let map_size = point::Point::new(state.map_size, state.map_size);
         let screen_left_top_corner = state.screen_position_in_world - (map_size / 2);
 
-        // Process player
-        match state.side {
-            Side::Player => {
-                let previous_action_points = state.player.ap();
-                process_player(&mut state.player,
-                               &mut state.commands,
-                               &mut state.world,
-                               &mut state.explosion_animation,
-                               &mut state.rng,
-                               &mut state.command_logger);
-                let spent_ap_this_turn = previous_action_points > state.player.ap();
-                let is_high = match state.player.mind {
-                    player::Mind::High(_) => true,
-                    _ => false,
-                };
-                if spent_ap_this_turn && !is_high && state.player.will.is_max() {
-                    state.player.sobriety_counter += 1;
-                }
-                if state.player.sobriety_counter.is_max() {
-                    state.side = Side::Victory;
-                }
-                let exploration_radius = exploration_radius(state.player.mind);
-                state.world.explore(state.player.pos, exploration_radius);
+        if state.side != Side::Victory {
+            // NOTE: Process player
+            let previous_action_points = state.player.ap();
+            process_player(&mut state.player,
+                           &mut state.commands,
+                           &mut state.world,
+                           &mut state.explosion_animation,
+                           &mut state.rng,
+                           &mut state.command_logger);
 
-
-                let display_pos = state.player.pos - screen_left_top_corner;
-                if state.pos_timer.finished() {
-                    let dur = Duration::milliseconds(400);
-                    // TODO: move the screen roughly the same distance along X and Y
-                    if display_pos.x < exploration_radius || display_pos.x >= map_size.x - exploration_radius {
-                            // change the screen centre to that of the player
-                            state.pos_timer = Timer::new(dur);
-                            state.old_screen_pos = state.screen_position_in_world;
-                            state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
-                    } else if display_pos.y < exploration_radius || display_pos.y >= map_size.y - exploration_radius {
-                            // change the screen centre to that of the player
-                            state.pos_timer = Timer::new(dur);
-                            state.old_screen_pos = state.screen_position_in_world;
-                            state.new_screen_pos = (state.old_screen_pos.x, state.player.pos.y).into();
-                    }
-                }
-
-                if !state.player.has_ap(1) {
-                    state.side = Side::Computer;
-                    for monster in state.world.monsters(screen_left_top_corner, map_dimensions) {
-                        monster.new_turn();
-                    }
-                }
+            let spent_ap_this_turn = previous_action_points > state.player.ap();
+            let is_high = match state.player.mind {
+                player::Mind::High(_) => true,
+                _ => false,
+            };
+            if spent_ap_this_turn && !is_high && state.player.will.is_max() {
+                state.player.sobriety_counter += 1;
             }
-            Side::Computer => {}
-            Side::Victory => {}
-        }
+            if state.player.sobriety_counter.is_max() {
+                state.side = Side::Victory;
+            }
+            let exploration_radius = exploration_radius(state.player.mind);
+            state.world.explore(state.player.pos, exploration_radius);
 
-        // Process monsters
-        match state.side {
-            Side::Player => {}
-            Side::Computer => {
+            // NOTE: Process monsters
+            if state.player.ap() <= 0 {
                 process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, map_dimensions, &mut state.rng);
-                if state.world.monsters(screen_left_top_corner, map_dimensions).filter(|m| !m.dead).all(|m| !m.has_ap(1)) {
-                    state.side = Side::Player;
-                    state.player.new_turn();
+                state.player.new_turn();
+            }
+
+            // NOTE: re-centre the display if the player reached the end of the screen
+            let display_pos = state.player.pos - screen_left_top_corner;
+            if state.pos_timer.finished() {
+                let dur = Duration::milliseconds(400);
+                // TODO: move the screen roughly the same distance along X and Y
+                if display_pos.x < exploration_radius || display_pos.x >= map_size.x - exploration_radius {
+                    // change the screen centre to that of the player
+                    state.pos_timer = Timer::new(dur);
+                    state.old_screen_pos = state.screen_position_in_world;
+                    state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
+                } else if display_pos.y < exploration_radius || display_pos.y >= map_size.y - exploration_radius {
+                    // change the screen centre to that of the player
+                    state.pos_timer = Timer::new(dur);
+                    state.old_screen_pos = state.screen_position_in_world;
+                    state.new_screen_pos = (state.old_screen_pos.x, state.player.pos.y).into();
                 }
             }
-            Side::Victory => {}
+
         }
+
     }
 
     // Rendering & related code here:

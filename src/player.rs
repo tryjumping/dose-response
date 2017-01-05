@@ -99,6 +99,7 @@ pub struct Player {
 
     dead: bool,
 
+    // TODO: Use a RangedInt here?
     max_ap: i32,
     ap: i32,
 }

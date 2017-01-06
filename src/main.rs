@@ -849,15 +849,15 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
     }
 
-    // TODO: assert no monster is on the same coords as the player
-    // assert!(pos != self.player().coordinates(), "Monster can't be on the same cell as player.");
-    for monster in state.world.monsters(screen_left_top_corner, map_dimensions).filter(|m| !m.dead) {
-        let visible = monster.position.distance(state.player.pos) < (radius as f32);
-        if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
-            let world_pos = monster.position;
-            let display_pos = screen_coords_from_world(world_pos);
-            if within_map_bounds(display_pos) {
-                graphics::draw(&mut engine.display, dt, display_pos, monster);
+    for monster_pos in state.world.monster_positions(screen_left_top_corner, screen_left_top_corner + map_dimensions) {
+        if let Some(monster) = state.world.monster_on_pos(monster_pos) {
+            let visible = monster.position.distance(state.player.pos) < (radius as f32);
+            if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
+                let world_pos = monster.position;
+                let display_pos = screen_coords_from_world(world_pos);
+                if within_map_bounds(display_pos) {
+                    graphics::draw(&mut engine.display, dt, display_pos, monster);
+                }
             }
         }
     }

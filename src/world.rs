@@ -220,19 +220,26 @@ impl World {
             let level_monster_pos = chunk.level_position(monster_position);
             let level_destination_pos = chunk.level_position(destination);
             chunk.level.move_monster(level_monster_pos, level_destination_pos);
-        } else {
-            // TODO: the monster needs to move to a different chunk!
-
-            // TODO: we'll need to remove the monster from the
-            // chunk.monsters list which could interfere with the
-            // indices, which could be a problem.
+        } else {  // Need to move the monster to another chunk NOTE:
+            // We're not removing the monster from the
+            // `chunk.monsters` vec in order not to mess up with the
+            // indices there.
             //
-            // Plus, taking a pointer to the monster will cause a
-            // problem here -- since the monster in the destination
-            // chunk will literally be a different monster. So either
-            // we do maintain the global list of all monsters, or have
-            // to rework this logic.
-            unimplemented!()
+            // Instead, we make it dead here (without any of the
+            // normal connotations) and just remove it from the level.
+            let new_monster = {
+                let monster = self.monster_on_pos(monster_position)
+                    .expect("Trying to move a monster, but there's nothing there.");
+                let result = monster.clone();
+                monster.dead = true;
+                result
+            };
+            self.remove_monster(monster_position);
+            let destination_chunk = self.chunk(destination);
+            let new_monster_index = destination_chunk.monsters.len();
+            destination_chunk.monsters.push(new_monster);
+            let destination_level_position = destination_chunk.level_position(destination);
+            destination_chunk.level.set_monster(destination_level_position, new_monster_index);
         }
     }
 

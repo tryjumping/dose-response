@@ -377,6 +377,7 @@ fn process_player<R, W>(player: &mut player::Player,
                 unreachable!();
             }
         }
+        assert!(!player.has_ap(1));
     }
 }
 
@@ -404,30 +405,29 @@ fn process_monsters<R: Rng>(world: &mut world::World,
         }
     }
 
-    while let Some(pos) = monster_positions_to_process.pop_front() {
-        let monster_readonly = world.monster_on_pos(pos).expect("Monster should exist on this position").clone();
+    while let Some(mut monster_position) = monster_positions_to_process.pop_front() {
+        let monster_readonly = world.monster_on_pos(monster_position).expect("Monster should exist on this position").clone();
         let action = {
             let (ai, action) = monster_readonly.act(player.pos, world, rng);
-            if let Some(monster) = world.monster_on_pos(pos) {
+            if let Some(monster) = world.monster_on_pos(monster_position) {
                 monster.ai_state = ai;
+                monster.spend_ap(1);
             }
             action
         };
 
         match action {
             Action::Move(destination) => {
-                assert_eq!(pos, monster_readonly.position);
+                assert_eq!(monster_position, monster_readonly.position);
                 let pos = monster_readonly.position;
                 // NOTE: the pathfinding has already happened so this should always be a neighbouring tile
                 assert!(pos.tile_distance(destination) <= 1);
                 world.move_monster(pos, destination);
+                monster_position = destination;
             }
 
             Action::Attack(target_pos, damage) => {
                 assert!(target_pos == player.pos);
-                if let Some(monster) = world.monster_on_pos(monster_readonly.position) {
-                    monster.spend_ap(1);
-                }
                 player.take_effect(damage);
                 if monster_readonly.die_after_attack {
                     kill_monster(monster_readonly.position, world);
@@ -437,8 +437,10 @@ fn process_monsters<R: Rng>(world: &mut world::World,
             Action::Use(_) => unreachable!(),
         }
 
+        if world.monster_on_pos(monster_position).map_or(false, |m| m.has_ap(1)) {
+            monster_positions_to_process.push_back(monster_position);
+        }
 
-        // TODO: if the monster still has action points, push its new position to the back of the queue
     }
 }
 

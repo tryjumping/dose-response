@@ -115,7 +115,7 @@ impl Monster {
     }
 
     pub fn has_ap(&self, count: i32) -> bool {
-        self.ap >= count
+        !self.dead && self.ap >= count
     }
 
     pub fn new_turn(&mut self) {

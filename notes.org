@@ -1,4 +1,3 @@
-* The Depression only moves by one space                                :bug:
 * The intoxication animation is no longer visible                       :bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission
@@ -540,3 +539,8 @@ should probably process the monsters one by one.
 This will require making the Monsters vector availeble to World for
 writing or for the chunks to be created explicitly (so we can add the
 newly-generated monsters to the main Vec).
+** DONE The Depression only moves by one space                         :bug:
+CLOSED: [2017-01-06 Fri 22:43]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-01-06 Fri 22:43
+:END:

@@ -6,7 +6,6 @@ use rand::{self, Rng};
 use color::{self, Color};
 use graphics::{self, Animation, Render};
 use item::Item;
-use monster::Monster;
 use point;
 
 

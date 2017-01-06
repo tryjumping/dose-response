@@ -396,7 +396,7 @@ fn process_monsters<R: Rng>(world: &mut world::World,
     monster_positions_to_process.extend(
         world.monster_positions(
             screen_top_left_corner - (10, 10),
-            screen_top_left_corner + map_dimensions + (10, 10)));
+            map_dimensions + (10, 10)));
 
     for &pos in monster_positions_to_process.iter() {
         if let Some(monster) = world.monster_on_pos(pos) {
@@ -849,7 +849,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
     }
 
-    for monster_pos in state.world.monster_positions(screen_left_top_corner, screen_left_top_corner + map_dimensions) {
+    for monster_pos in state.world.monster_positions(screen_left_top_corner, map_dimensions) {
         if let Some(monster) = state.world.monster_on_pos(monster_pos) {
             let visible = monster.position.distance(state.player.pos) < (radius as f32);
             if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {

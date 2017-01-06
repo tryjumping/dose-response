@@ -8,7 +8,6 @@ use time;
 use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
-use monster::Monster;
 use player::Player;
 use point::Point;
 use world::World;

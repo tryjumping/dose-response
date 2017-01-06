@@ -328,7 +328,32 @@ impl World {
     }
 
     pub fn monster_positions(&mut self, top_left: Point, dimensions: Point) -> MonsterPositions {
-        unimplemented!()
+        assert!(dimensions.x >= 0);
+        assert!(dimensions.y >= 0);
+
+        // TODO: we should be able to produce an iterator here instead.
+        let mut result = vec![];
+
+        let bottom_right = top_left + dimensions;
+
+        let chunk_size = self.chunk_size;
+        let mut chunk_pos = self.chunk_pos_from_world_pos(top_left).position;
+        let starter_chunk_x = chunk_pos.x;
+
+        while chunk_pos.y < bottom_right.y {
+            while chunk_pos.x < bottom_right.x {
+                let chunk = self.chunk(chunk_pos);
+                result.extend(chunk.monsters.iter().map(|m| m.position));
+                chunk_pos.x += chunk_size;
+            }
+            chunk_pos.y += chunk_size;
+            chunk_pos.x = starter_chunk_x;
+        }
+
+        MonsterPositions {
+            positions: result,
+            next_index: 0,
+        }
     }
 
 }
@@ -346,25 +371,17 @@ impl<'a> Iterator for CellsMut<'a> {
     }
 }
 
-pub struct Monsters<'a> {
-    phantom: ::std::marker::PhantomData<&'a mut Monster>,
+pub struct MonsterPositions {
+    positions: Vec<Point>,
+    next_index: usize,
 }
-
-impl<'a> Iterator for Monsters<'a> {
-    type Item = &'a mut Monster;
-
-    fn next(&mut self) -> Option<&'a mut Monster> {
-        unimplemented!()
-    }
-
-}
-
-pub struct MonsterPositions;
 
 impl Iterator for MonsterPositions {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
-        unimplemented!()
+        let index = self.next_index;
+        self.next_index += 1;
+        self.positions.get(index).cloned()
     }
 }

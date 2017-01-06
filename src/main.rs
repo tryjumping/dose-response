@@ -405,7 +405,6 @@ fn process_monsters<R: Rng>(world: &mut world::World,
     }
 
     while let Some(pos) = monster_positions_to_process.pop_front() {
-        println!("Processing monster on position: {:?}", pos);
         let monster_readonly = world.monster_on_pos(pos).expect("Monster should exist on this position").clone();
         let action = {
             let (ai, action) = monster_readonly.act(player.pos, world, rng);
@@ -417,6 +416,7 @@ fn process_monsters<R: Rng>(world: &mut world::World,
 
         match action {
             Action::Move(destination) => {
+                assert_eq!(pos, monster_readonly.position);
                 let pos = monster_readonly.position;
                 // NOTE: the pathfinding has already happened so this should always be a neighbouring tile
                 assert!(pos.tile_distance(destination) <= 1);

@@ -210,7 +210,11 @@ impl World {
     /// If the paths are identical, nothing happens.
     /// Panics if the destination is out of bounds or already occupied.
     pub fn move_monster(&mut self, monster_position: Point, destination: Point) {
-        assert!(self.walkable(destination, Walkability::BlockingMonsters));
+        if monster_position == destination {
+            return;
+        }
+        assert!(self.walkable(destination, Walkability::BlockingMonsters),
+                "Moster at {:?} cannot move to {:?} because it's occupied.", monster_position, destination);
         let monster_chunk_pos = self.chunk_pos_from_world_pos(monster_position);
         let destination_chunk_pos = self.chunk_pos_from_world_pos(destination);
         if monster_chunk_pos == destination_chunk_pos {
@@ -228,19 +232,26 @@ impl World {
             //
             // Instead, we make it dead here (without any of the
             // normal connotations) and just remove it from the level.
-            let new_monster = {
+            let mut new_monster = {
                 let monster = self.monster_on_pos(monster_position)
                     .expect("Trying to move a monster, but there's nothing there.");
                 let result = monster.clone();
                 monster.dead = true;
                 result
             };
-            self.remove_monster(monster_position);
-            let destination_chunk = self.chunk(destination);
-            let new_monster_index = destination_chunk.monsters.len();
-            destination_chunk.monsters.push(new_monster);
-            let destination_level_position = destination_chunk.level_position(destination);
-            destination_chunk.level.set_monster(destination_level_position, new_monster_index);
+
+            {
+                self.remove_monster(monster_position);
+                assert!(self.walkable(monster_position, Walkability::BlockingMonsters));
+                new_monster.position = destination;
+                let destination_chunk = self.chunk(destination);
+                let new_monster_index = destination_chunk.monsters.len();
+                destination_chunk.monsters.push(new_monster);
+                let destination_level_position = destination_chunk.level_position(destination);
+                destination_chunk.level.set_monster(destination_level_position, new_monster_index);
+            }
+
+            assert!(!self.walkable(destination, Walkability::BlockingMonsters));
         }
     }
 
@@ -368,7 +379,7 @@ impl World {
         while chunk_pos.y < bottom_right.y {
             while chunk_pos.x < bottom_right.x {
                 let chunk = self.chunk(chunk_pos);
-                result.extend(chunk.monsters.iter().map(|m| m.position));
+                result.extend(chunk.monsters.iter().filter(|m| !m.dead).map(|m| m.position));
                 chunk_pos.x += chunk_size;
             }
             chunk_pos.y += chunk_size;

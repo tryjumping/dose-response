@@ -212,12 +212,15 @@ impl Level {
     pub fn move_monster(&mut self, monster_position: LevelPosition, destination: LevelPosition) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
-        let destination = destination.into();
-        assert!(!self.monsters.contains_key(&destination));
-        if let Some(monster_index) = self.monsters.remove(&monster_position) {
-            self.monsters.insert(destination, monster_index);
+        if self.monsters.contains_key(&destination) {
+            panic!("Trying to move monster from {:?} to {:?}, but that's already occupied.",
+                   monster_position, destination);
         } else {
-            panic!("Moving a monster that doesn't exist");
+            if let Some(monster_index) = self.monsters.remove(&monster_position) {
+                self.monsters.insert(destination, monster_index);
+            } else {
+                panic!("Moving a monster that doesn't exist");
+            }
         }
     }
 

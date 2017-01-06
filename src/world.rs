@@ -210,6 +210,7 @@ impl World {
     /// If the paths are identical, nothing happens.
     /// Panics if the destination is out of bounds or already occupied.
     pub fn move_monster(&mut self, monster_position: Point, destination: Point) {
+        assert!(self.walkable(destination, Walkability::BlockingMonsters));
         let monster_chunk_pos = self.chunk_pos_from_world_pos(monster_position);
         let destination_chunk_pos = self.chunk_pos_from_world_pos(destination);
         if monster_chunk_pos == destination_chunk_pos {

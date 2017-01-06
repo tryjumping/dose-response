@@ -161,14 +161,12 @@ impl Level {
         self.cell_mut(pos).tile = tile;
     }
 
-    pub fn set_monster<P: Into<Point>>(&mut self, pos: P, monster_index: usize, monster: &Monster) {
-        let pos = pos.into();
-        assert!(monster.position == pos);
-        self.monsters.insert(pos, monster_index);
+    pub fn set_monster(&mut self, monster: &Monster, monster_index: usize) {
+        self.monsters.insert(monster.position, monster_index);
     }
 
-    pub fn monster_on_pos<P: Into<Point>>(&self, pos: P) -> Option<usize> {
-        self.monsters.get(&pos.into()).map(|&ix| ix)
+    pub fn monster_on_pos(&self, pos: Point) -> Option<usize> {
+        self.monsters.get(&pos.into()).cloned()
     }
 
     pub fn add_item<P: Into<Point>>(&mut self, pos: P, item: Item) {

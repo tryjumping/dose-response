@@ -37,7 +37,12 @@ impl Chunk {
 
         chunk.populate(generated_data);
 
-        // TODO: set the monsters to the level and fix their IDs here.
+        // NOTE: Each level contains a map of monsters on its cells.
+        // Make sure we populate it here.
+        for (index, monster) in chunk.monsters.iter().enumerate() {
+            chunk.level.set_monster(monster, index);
+            assert_eq!(chunk.level.monster_on_pos(monster.position), Some(index));
+        }
 
         chunk
     }

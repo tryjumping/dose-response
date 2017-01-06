@@ -1,3 +1,4 @@
+* The initial player's area is no longer safer + food and doses         :bug:
 * The intoxication animation is no longer visible                       :bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission

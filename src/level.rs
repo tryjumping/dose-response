@@ -7,7 +7,20 @@ use color::{self, Color};
 use graphics::{self, Animation, Render};
 use item::Item;
 use monster::Monster;
-use point::Point;
+use point;
+
+
+/// Position within a level. Ensured to be always within bounds.
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct LevelPosition {
+    pos: point::Point,
+}
+
+impl Into<point::Point> for LevelPosition {
+    fn into(self) -> point::Point {
+        self.pos
+    }
+}
 
 
 #[derive(Debug)]
@@ -120,8 +133,8 @@ pub enum Walkability {
 
 
 pub struct Level {
-    dimensions: Point,
-    pub monsters: HashMap<Point, usize>,
+    dimensions: point::Point,
+    pub monsters: HashMap<LevelPosition, usize>,
     map: Vec<Cell>,
 }
 
@@ -141,57 +154,62 @@ impl Level {
         }
     }
 
-    fn index(&self, pos: Point) -> usize {
-        assert!(pos >= (0, 0));
-        assert!(pos < self.dimensions);
-        (pos.y * self.dimensions.x + pos.x) as usize
+    /// Convert a bare Point into LevelPosition. Panics when the point
+    /// is not inside the level.
+    pub fn level_position(&self, pos: point::Point) -> LevelPosition {
+        assert!(pos.x >= 0);
+        assert!(pos.y >= 0);
+        assert!(pos.x < self.dimensions.x);
+        assert!(pos.y < self.dimensions.y);
+        LevelPosition {
+            pos: pos
+        }
     }
 
-    pub fn cell<P: Into<Point>>(&self, pos: P) -> &Cell {
+    fn index(&self, pos: LevelPosition) -> usize {
+        (pos.pos.y * self.dimensions.x + pos.pos.x) as usize
+    }
+
+    pub fn cell(&self, pos: LevelPosition) -> &Cell {
         let index = self.index(pos.into());
         &self.map[index]
     }
 
-    pub fn cell_mut<P: Into<Point>>(&mut self, pos: P) -> &mut Cell {
+    pub fn cell_mut(&mut self, pos: LevelPosition) -> &mut Cell {
         let index = self.index(pos.into());
         &mut self.map[index]
     }
 
-    pub fn set_tile<P: Into<Point>>(&mut self, pos: P, tile: Tile) {
+    pub fn set_tile(&mut self, pos: LevelPosition, tile: Tile) {
         self.cell_mut(pos).tile = tile;
     }
 
-    pub fn set_monster(&mut self, monster: &Monster, monster_index: usize) {
-        self.monsters.insert(monster.position, monster_index);
+    pub fn set_monster(&mut self, monster_position: LevelPosition, monster_index: usize) {
+        self.monsters.insert(monster_position, monster_index);
     }
 
-    pub fn monster_on_pos(&self, pos: Point) -> Option<usize> {
+    pub fn monster_on_pos(&self, pos: LevelPosition) -> Option<usize> {
         self.monsters.get(&pos.into()).cloned()
     }
 
-    pub fn add_item<P: Into<Point>>(&mut self, pos: P, item: Item) {
+    pub fn add_item(&mut self, pos: LevelPosition, item: Item) {
         self.cell_mut(pos).items.push(item);
     }
 
-    pub fn size(&self) -> Point {
+    pub fn size(&self) -> point::Point {
         self.dimensions
     }
 
-    pub fn within_bounds<P: Into<Point>>(&self, pos: P) -> bool {
-        let pos = pos.into();
-        pos >= (0, 0) && pos < self.size()
-    }
-
-    pub fn walkable<P: Into<Point>>(&self, pos: P, walkability: Walkability) -> bool {
+    pub fn walkable(&self, pos: LevelPosition, walkability: Walkability) -> bool {
         let pos = pos.into();
         let walkable = match walkability {
             Walkability::WalkthroughMonsters => true,
             Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
         };
-        self.within_bounds(pos) && self.cell(pos).tile.kind == TileKind::Empty && walkable
+        self.cell(pos).tile.kind == TileKind::Empty && walkable
     }
 
-    pub fn move_monster<P: Into<Point>>(&mut self, monster_position: Point, destination: P) {
+    pub fn move_monster(&mut self, monster_position: LevelPosition, destination: LevelPosition) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
         let destination = destination.into();
@@ -220,14 +238,15 @@ pub struct Cells<'a> {
 }
 
 impl<'a> Iterator for Cells<'a> {
-    type Item = (Point, &'a Cell);
+    type Item = (LevelPosition, &'a Cell);
 
-    fn next(&mut self) -> Option<(Point, &'a Cell)> {
+    fn next(&mut self) -> Option<(LevelPosition, &'a Cell)> {
         let pos = (self.index % self.width, self.index / self.width).into();
+        let level_position = LevelPosition { pos: pos };
         self.index += 1;
         match self.inner.next() {
             Some(cell) => {
-                Some((pos, cell))
+                Some((level_position, cell))
             }
             None => None,
         }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use level::{Cell, Level, Walkability, TileKind};
+use level::{self, Cell, Level, Walkability, TileKind};
 use item::{self, Item};
 use point::{Point, CircularArea};
 use monster::Monster;
@@ -37,13 +37,6 @@ impl Chunk {
 
         chunk.populate(generated_data);
 
-        // NOTE: Each level contains a map of monsters on its cells.
-        // Make sure we populate it here.
-        for (index, monster) in chunk.monsters.iter().enumerate() {
-            chunk.level.set_monster(monster, index);
-            assert_eq!(chunk.level.monster_on_pos(monster.position), Some(index));
-        }
-
         chunk
     }
 
@@ -51,17 +44,31 @@ impl Chunk {
     fn populate(&mut self, generated_world: GeneratedWorld) {
         let (map, generated_monsters, items) = generated_world;
         for &(pos, item) in map.iter() {
+            let pos = self.level.level_position(pos);
             self.level.set_tile(pos, item);
         }
-        for &(pos, kind) in generated_monsters.iter() {
+        for (index, &(pos, kind)) in generated_monsters.iter().enumerate() {
+            let pos = self.level.level_position(pos);
             assert!(self.level.walkable(pos, Walkability::BlockingMonsters));
-            let monster = Monster::new(kind, pos);
+            let monster_world_position = self.world_position(pos);
+            let monster = Monster::new(kind, monster_world_position);
             self.monsters.push(monster);
+            self.level.set_monster(pos, index);
         }
         for &(pos, item) in items.iter() {
+            let pos = self.level.level_position(pos);
             assert!(self.level.walkable(pos, Walkability::BlockingMonsters));
             self.level.add_item(pos, item);
         }
+    }
+
+    pub fn level_position(&self, world_position: Point) -> level::LevelPosition {
+        self.level.level_position(world_position - self.position)
+    }
+
+    pub fn world_position(&self, level_position: level::LevelPosition) -> Point {
+        let level_position: Point = level_position.into();
+        self.position + level_position
     }
 
 }
@@ -130,19 +137,19 @@ impl World {
             || Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()))
     }
 
-    fn cell(&mut self, pos: Point) -> &Cell {
-        let chunk = self.chunk(pos);
+    fn cell(&mut self, world_pos: Point) -> &Cell {
+        let chunk = self.chunk(world_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
-        let level_position = pos - chunk.position;
+        let level_position = chunk.level_position(world_pos);
         chunk.level.cell(level_position)
     }
 
-    fn cell_mut(&mut self, pos: Point) -> &mut Cell {
-        let chunk = self.chunk(pos);
+    fn cell_mut(&mut self, world_pos: Point) -> &mut Cell {
+        let chunk = self.chunk(world_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
-        let level_position = pos - chunk.position;
+        let level_position = chunk.level_position(world_pos);
         chunk.level.cell_mut(level_position)
     }
 
@@ -187,10 +194,11 @@ impl World {
     /// If there's a monster at the given tile, return its ID.
     ///
     /// Returns `None` if there is no monster or if `pos` is out of bounds.
-    pub fn monster_on_pos(&mut self, pos: Point) -> Option<&mut Monster> {
-        if self.within_bounds(pos) {
-            let chunk = self.chunk(pos);
-            chunk.level.monster_on_pos(pos).and_then(
+    pub fn monster_on_pos(&mut self, world_pos: Point) -> Option<&mut Monster> {
+        if self.within_bounds(world_pos) {
+            let chunk = self.chunk(world_pos);
+            let level_position = chunk.level_position(world_pos);
+            chunk.level.monster_on_pos(level_position).and_then(
                 move |monster_index| Some(&mut chunk.monsters[monster_index]))
         } else {
             None
@@ -207,7 +215,10 @@ impl World {
             if let Some(monster) = self.monster_on_pos(monster_position) {
                 monster.position = destination;
             }
-            self.chunk(monster_position).level.move_monster(monster_position, destination);
+            let chunk = self.chunk(monster_position);
+            let level_monster_pos = chunk.level_position(monster_position);
+            let level_destination_pos = chunk.level_position(destination);
+            chunk.level.move_monster(level_monster_pos, level_destination_pos);
         } else {
             // TODO: the monster needs to move to a different chunk!
 
@@ -231,7 +242,7 @@ impl World {
         // mutable pointer here. Ideally, the monster should no longer
         // be available if removed or we should return it.
         let chunk = self.chunk(pos);
-        let level_position = pos - chunk.position;
+        let level_position = chunk.level_position(pos);
         chunk.level.monsters.remove(&level_position);
     }
 
@@ -312,7 +323,7 @@ impl World {
             while chunk_pos.x < bottom_right.x {
                 let chunk = self.chunk(chunk_pos);
                 for (cell_level_pos, cell) in chunk.level.iter() {
-                    let cell_world_pos = cell_level_pos + chunk_pos;
+                    let cell_world_pos = chunk.world_position(cell_level_pos);
                     if cell_world_pos >= top_left && cell_world_pos <= bottom_right {
                         callback(cell_world_pos, cell);
                     }

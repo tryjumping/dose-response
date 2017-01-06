@@ -54,10 +54,11 @@ impl Chunk {
             let monster = Monster::new(kind, monster_world_position);
             self.monsters.push(monster);
             self.level.set_monster(pos, index);
+            assert!(!self.level.walkable(pos, Walkability::BlockingMonsters));
         }
         for &(pos, item) in items.iter() {
             let pos = self.level.level_position(pos);
-            assert!(self.level.walkable(pos, Walkability::BlockingMonsters));
+            assert!(self.level.walkable(pos, Walkability::WalkthroughMonsters));
             self.level.add_item(pos, item);
         }
     }

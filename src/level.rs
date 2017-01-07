@@ -39,7 +39,7 @@ pub enum TileKind {
 #[derive(Copy, Clone, Debug)]
 pub struct Tile {
     pub kind: TileKind,
-    fg_color: Color,
+    pub fg_color: Color,
     animation: Animation,
     animation_state: (Duration, Color, FadeDirection),
 }

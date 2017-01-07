@@ -355,14 +355,6 @@ impl World {
         }
     }
 
-    pub fn iter_mut(&mut self) -> CellsMut {
-        // NOTE: this is used to update the animation of each cell
-        // NOTE: it's now a no-op because we need to rethink this approach somewhat.
-        CellsMut {
-            phantom: ::std::marker::PhantomData
-        }
-    }
-
     pub fn monster_positions(&mut self, top_left: Point, dimensions: Point) -> MonsterPositions {
         assert!(dimensions.x >= 0);
         assert!(dimensions.y >= 0);

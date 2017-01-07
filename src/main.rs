@@ -652,58 +652,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     if state.player.alive() {
         use player::Mind::*;
 
-        if previous_intoxication_state != state.player.mind {
-            let was_high = match previous_intoxication_state {
-                High(_) => true,
-                _ => false,
-            };
-            let is_high = match state.player.mind {
-                High(_) => true,
-                _ => false,
-            };
-
-            if !was_high && is_high {
-
-                // TODO: we will have to handle animations
-                // differently, I think. The problem is that we used
-                // to set the animation state to every cell and then
-                // update evey cell.
-                //
-                // But with the chunked approach, this no longer makes
-                // sense: what happens when we move the screen to a
-                // new chunk that hadn't even existed when we set the
-                // High animations?
-                //
-                // So instead, let's handle animations in the render
-                // loop completely. If we're high, each cell's colour
-                // will be changed based on a pure time + position
-                // formula. And for individual cell animations (say
-                // the glowing doses or monster fadeouts), we could
-                // set an `animation` property to contain the start
-                // time and the type of the animation. And again, just
-                // use a pure colour function processing to handle the
-                // rest.
-
-                // Set animation on each level's tile:
-                for (pos, cell) in state.world.iter_mut() {
-                    let dur_ms = 700 + (((pos.x * pos.y) % 100) as i64) * 5;
-                    cell.tile.set_animation(graphics::Animation::ForegroundCycle{
-                        from: color::high,
-                        to: color::high_to,
-                        duration: Duration::milliseconds(dur_ms),
-                    });
-                }
-            } else if was_high && !is_high {
-                // Stop animation on the level's tiles:
-                for (_pos, cell) in state.world.iter_mut() {
-                    cell.tile.set_animation(graphics::Animation::None);
-                }
-            } else {
-                // NOTE: the animation is what it's supposed to be. Do nothing.
-            }
-        }
-
-
         // Fade when withdrawn:
         match state.player.mind {
             Withdrawal(value) => {
@@ -714,16 +662,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 // NOTE: Not withdrawn, don't fade
             }
         }
-
-        // NOTE: Update the animation state of each tile:
-        for (_, cell) in state.world.iter_mut() {
-            cell.tile.update(dt);
-        }
     } else if player_was_alive {  // NOTE: Player just died
         // Make sure we're not showing the High gfx effect when dead
-        for (_pos, cell) in state.world.iter_mut() {
-            cell.tile.set_animation(graphics::Animation::None);
-        }
         state.screen_fading = Some(ScreenFadeAnimation::new(
             color::death_animation,
             Duration::milliseconds(500),
@@ -780,6 +720,14 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
+    let total_time_ms = state.clock.num_milliseconds();
+    let world_size = state.world_size;
+
+    let is_high = match state.player.mind {
+        player::Mind::High(_) => true,
+        _ => false,
+    };
+
     // Render the level and items:
     let player_will_is_max = state.player.will.is_max();
     let player_will = *state.player.will;
@@ -788,12 +736,30 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         if !within_map_bounds(display_pos) {
             return;
         }
+
         // Render the tile
+        let mut rendered_tile = cell.tile;
+
+        if is_high {
+            // let pos_x: i64 = (world_pos.x + world_size.x) as i64;
+            // let pos_y: i64 = (world_pos.y + world_size.y) as i64;
+            let pos_x: i64 = display_pos.x as i64;
+            let pos_y: i64 = display_pos.y as i64;
+            assert!(pos_x >= 0);
+            assert!(pos_y >= 0);
+            let half_cycle_ms = 700 + ((pos_x * pos_y) % 100) * 5;
+            let progress_ms = total_time_ms % half_cycle_ms;
+            let progress = progress_ms as f32 / half_cycle_ms as f32;
+
+            rendered_tile.fg_color = graphics::fade_color(
+                color::high, color::high_to, progress);
+        }
+
         if in_fov(world_pos) {
-            graphics::draw(&mut engine.display, dt, display_pos, &cell.tile);
+            graphics::draw(&mut engine.display, dt, display_pos, &rendered_tile);
         } else if cell.explored || bonus == player::Bonus::UncoverMap {
             // TODO: need to supply the dark bg here?
-            graphics::draw(&mut engine.display, dt, display_pos, &cell.tile);
+            graphics::draw(&mut engine.display, dt, display_pos, &rendered_tile);
             for item in cell.items.iter() {
                 graphics::draw(&mut engine.display, dt, display_pos, item);
             }

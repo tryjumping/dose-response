@@ -244,7 +244,7 @@ fn process_player<R, W>(player: &mut player::Player,
                         rng: &mut R,
                         command_logger: &mut W)
     where R: Rng, W: Write {
-    if !player.alive() {
+    if !player.alive() || !player.has_ap(1) {
         return
     }
     // TODO: get the chunk the player is in!
@@ -377,7 +377,6 @@ fn process_player<R, W>(player: &mut player::Player,
                 unreachable!();
             }
         }
-        assert!(!player.has_ap(1));
     }
 }
 

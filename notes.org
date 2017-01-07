@@ -1,5 +1,4 @@
 * The initial player's area is no longer safer + food and doses         :bug:
-* The intoxication animation is no longer visible                       :bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission
 ** If we do want to remove it, it should be after testing
@@ -544,4 +543,9 @@ newly-generated monsters to the main Vec).
 CLOSED: [2017-01-06 Fri 22:43]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-01-06 Fri 22:43
+:END:
+** DONE The intoxication animation is no longer visible                :bug:
+CLOSED: [2017-01-07 Sat 23:16]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-01-07 Sat 23:16
 :END:

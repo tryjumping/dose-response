@@ -741,18 +741,22 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         let mut rendered_tile = cell.tile;
 
         if is_high {
-            // let pos_x: i64 = (world_pos.x + world_size.x) as i64;
-            // let pos_y: i64 = (world_pos.y + world_size.y) as i64;
-            let pos_x: i64 = display_pos.x as i64;
-            let pos_y: i64 = display_pos.y as i64;
+            let pos_x: i64 = (world_pos.x + world_size.x) as i64;
+            let pos_y: i64 = (world_pos.y + world_size.y) as i64;
             assert!(pos_x >= 0);
             assert!(pos_y >= 0);
             let half_cycle_ms = 700 + ((pos_x * pos_y) % 100) * 5;
             let progress_ms = total_time_ms % half_cycle_ms;
+            let forwards = (total_time_ms / half_cycle_ms) % 2 == 0;
             let progress = progress_ms as f32 / half_cycle_ms as f32;
+            assert!(progress >= 0.0);
+            assert!(progress <= 1.0);
 
-            rendered_tile.fg_color = graphics::fade_color(
-                color::high, color::high_to, progress);
+            rendered_tile.fg_color = if forwards {
+                graphics::fade_color(color::high, color::high_to, progress)
+            } else {
+                graphics::fade_color(color::high_to, color::high, progress)
+            };
         }
 
         if in_fov(world_pos) {

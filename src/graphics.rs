@@ -9,13 +9,6 @@ pub trait Render {
     fn render(&self, dt: Duration) -> (char, Color, Option<Color>);
 }
 
-
-#[derive(Copy, Clone, Debug)]
-pub enum Animation {
-    None,
-    ForegroundCycle{from: Color, to: Color, duration: Duration},
-}
-
 pub fn draw<R: Render>(display: &mut Display, dt: Duration,
                        pos: Point, render: &R) {
     let (glyph, fg, bg_opt) = render.render(dt);

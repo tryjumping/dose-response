@@ -386,18 +386,6 @@ impl World {
 
 }
 
-pub struct CellsMut<'a> {
-    phantom: ::std::marker::PhantomData<&'a mut Cell>,
-}
-
-
-impl<'a> Iterator for CellsMut<'a> {
-    type Item = (Point, &'a mut Cell);
-
-    fn next(&mut self) -> Option<(Point, &'a mut Cell)> {
-        None
-    }
-}
 
 pub struct MonsterPositions {
     positions: Vec<Point>,

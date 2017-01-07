@@ -19,7 +19,6 @@ use world::World;
 #[derive(Copy, PartialEq, Clone, Debug)]
 pub enum Side {
     Player,
-    Computer,
     Victory,
 }
 

@@ -4,7 +4,7 @@ use time::Duration;
 use rand::{self, Rng};
 
 use color::{self, Color};
-use graphics::{self, Animation, Render};
+use graphics::Render;
 use item::Item;
 use point;
 
@@ -40,14 +40,6 @@ pub enum TileKind {
 pub struct Tile {
     pub kind: TileKind,
     pub fg_color: Color,
-    animation: Animation,
-    animation_state: (Duration, Color, FadeDirection),
-}
-
-#[derive(Copy, Clone, Debug)]
-enum FadeDirection {
-    Forward,
-    Backward,
 }
 
 impl Tile {
@@ -62,64 +54,20 @@ impl Tile {
         Tile {
             kind: kind,
             fg_color: color,
-            animation: Animation::None,
-            animation_state: (Duration::zero(), color, FadeDirection::Forward),
         }
     }
 
-    pub fn set_animation(&mut self, animation: Animation) {
-        self.animation = animation;
-        match self.animation {
-            Animation::None => {}
-            Animation::ForegroundCycle{from, ..} => {
-                self.animation_state = (Duration::zero(), from, FadeDirection::Forward);
-            }
-        }
-    }
-
-    pub fn update(&mut self, dt: Duration) {
-        match self.animation {
-            Animation::None => {}
-            Animation::ForegroundCycle{from, to, duration} => {
-                let (old_time, _color, old_direction) = self.animation_state;
-                let mut t = old_time + dt;
-                let mut direction = old_direction;
-
-                if t > duration {
-                    t = Duration::zero();
-                    direction = match direction {
-                        FadeDirection::Forward => FadeDirection::Backward,
-                        FadeDirection::Backward => FadeDirection::Forward,
-                    };
-                }
-
-                let progress = t.num_milliseconds() as f32 / duration.num_milliseconds() as f32;
-                let c = match direction {
-                    FadeDirection::Forward => graphics::fade_color(from, to, progress),
-                    FadeDirection::Backward => graphics::fade_color(to, from, progress),
-                };
-                self.animation_state = (t, c, direction);
-            }
-        }
-    }
 }
 
 
 impl Render for Tile {
     fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
         use self::TileKind::*;
-        use graphics::Animation::*;
         let glyph = match self.kind {
             Empty => '.',
             Tree => '#',
         };
-        match self.animation {
-            None => (glyph, self.fg_color, Option::None),
-            ForegroundCycle{..} => {
-                let (_, color, _) = self.animation_state;
-                (glyph, color, Option::None)
-            }
-        }
+        (glyph, self.fg_color, Option::None)
     }
 }
 

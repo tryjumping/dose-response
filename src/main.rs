@@ -573,7 +573,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         false
     };
 
-    let previous_intoxication_state = state.player.mind;
     let player_was_alive = state.player.alive();
 
     // Animation to re-center the screen around the player when they

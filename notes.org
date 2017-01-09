@@ -1,3 +1,5 @@
+* The player can start surrounded by hunger monsters and dead           :bug:
+* The player can start within an irresistible dose's reach              :bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission
 ** If we do want to remove it, it should be after testing

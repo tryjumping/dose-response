@@ -11,6 +11,7 @@
 ** Right now they're all only pickable at the highest Will
 * Track the continuous High                                            :idea:
 ** think of something that would make the player want to not break the cycle
+** Show at the end of the game screen
 * When there's no dose in sight and you're withdrawn, point in a general direction :idea:
 ** But only when you have no doses and no food
 ** I.e. this is to stop you from being completely fucked

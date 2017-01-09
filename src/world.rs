@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use level::{self, Cell, Level, Walkability, TileKind};
 use item::{self, Item};
+use player;
 use point::{Point, CircularArea};
 use monster::Monster;
 use generators::{self, GeneratedWorld};
@@ -88,16 +89,110 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(seed: u32, dimension: i32, chunk_size: i32) -> Self {
+    pub fn new(seed: u32, dimension: i32, chunk_size: i32, initial_player_position: Point) -> Self {
         assert!(dimension > 0);
         assert!(chunk_size > 0);
         assert_eq!(dimension % 2, 0);
         assert_eq!(dimension % chunk_size, 0);
-        World {
+
+        let mut world = World {
             seed: seed,
             max_half_size: dimension / 2,
             chunk_size: chunk_size,
             chunks: HashMap::new(),
+        };
+
+        // TODO: I don't think this code belongs in World. Move it
+        // into the level generators or osmething?
+        world.prepare_initial_playing_area(initial_player_position);
+        world
+    }
+
+    /// Remove some of the monsters from player's initial vicinity,
+    /// place some food nearby and a dose in sight.
+    fn prepare_initial_playing_area(&mut self, initial_player_position: Point) {
+        let initial_area_size = 15;
+        let top_left_corner = initial_player_position - (initial_area_size, initial_area_size);
+        let bottom_right_corner = initial_player_position + (initial_area_size, initial_area_size);
+        for x in top_left_corner.x..bottom_right_corner.x {
+            for y in top_left_corner.y..bottom_right_corner.y {
+                let pos = (x, y).into();
+                let remove_monster = self.monster_on_pos(pos).map_or(false, |m| {
+                    use monster::Kind::*;
+                    match m.kind {
+                        Hunger | Shadows | Voices => false,
+                        Anxiety | Depression => true,
+                    }
+                });
+                if remove_monster {
+                    self.remove_monster(pos)
+                }
+            }
+        }
+
+        // TODO: generate the initial dose and food positions with a RNG.
+        let random_position_offsets = [
+            Point{ x: -4, y: -1},
+            Point{ x: 0, y: -1},
+            Point{ x: 1, y: 2},
+            Point{ x: 2, y: -1},
+            Point{ x: 1, y: -2},
+            Point{ x: 3, y: -4},
+            Point{ x: -2, y: 3},
+            Point{ x: 2, y: -1},
+            Point{ x: -1, y: 0},
+            Point{ x: 2, y: -4},
+            Point{ x: -2, y: 0},
+            Point{ x: 2, y: 2},
+            Point{ x: 4, y: 1},
+            Point{ x: 3, y: -1},
+            Point{ x: 3, y: -1},
+            Point{ x: -2, y: -4},
+            Point{ x: -3, y: 3},
+            Point{ x: -3, y: 4},
+            Point{ x: 2, y: 0},
+            Point{ x: -1, y: 3},
+        ];
+        let mut rng = random_position_offsets.iter().cycle().skip(self.seed as usize % random_position_offsets.len());
+
+        for &offset in &mut rng {
+            let pos = initial_player_position + offset;
+            let walkable = self.walkable(pos, Walkability::WalkthroughMonsters);
+            if walkable {
+                let dose = Item {
+                    kind: item::Kind::Dose,
+                    modifier: player::Modifier::Intoxication {
+                        state_of_mind: 78,
+                        tolerance_increase: 1,
+                    },
+                    irresistible: 2,
+                };
+                let chunk = self.chunk(pos);
+                let level_position = chunk.level_position(pos);
+                chunk.level.add_item(level_position, dose);
+                break;
+            }
+        }
+
+        for &offset in &mut rng {
+            let pos = initial_player_position + offset;
+            let walkable = self.walkable(pos, Walkability::WalkthroughMonsters);
+            if walkable {
+                let food = Item {
+                    kind: item::Kind::Food,
+                    modifier: player::Modifier::Attribute{
+                        state_of_mind: 10,
+                        will: 0,
+                    },
+                    irresistible: 0,
+                };
+                let chunk = self.chunk(pos);
+                let level_position = chunk.level_position(pos);
+                if chunk.level.cell(level_position).items.is_empty() {
+                    chunk.level.add_item(level_position, food);
+                    break;
+                }
+            }
         }
     }
 

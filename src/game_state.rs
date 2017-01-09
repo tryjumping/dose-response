@@ -134,12 +134,13 @@ impl GameState {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
+        let player_position = world_centre;
         GameState {
-            player: Player::new(world_centre),
+            player: Player::new(player_position),
             explosion_animation: None,
             chunk_size: 32,
             world_size: world_size,
-            world: World::new(seed, world_size.x, 32),
+            world: World::new(seed, world_size.x, 32, player_position),
             map_size: map_size,
             panel_width: panel_width,
             display_size: display_size,

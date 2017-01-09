@@ -556,3 +556,10 @@ CLOSED: [2017-01-09 Mon 19:58]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-01-09 Mon 19:58
 :END:
+** DONE CRASH                                                          :bug:
+CLOSED: [2017-01-09 Mon 20:15]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-01-09 Mon 20:15
+:END:
+*** cargo run -- replays/replay-2017-01-09T20-08-08.261
+*** 'Monster should exist on this position'

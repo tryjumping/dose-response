@@ -353,12 +353,14 @@ impl World {
     /// Remove the monster at the given position (if there is any
     /// there) from the world.
     pub fn remove_monster(&mut self, pos: Point) {
-        // TODO: This is problematic -- we shouldn't be passing a
-        // mutable pointer here. Ideally, the monster should no longer
-        // be available if removed or we should return it.
         let chunk = self.chunk(pos);
         let level_position = chunk.level_position(pos);
-        chunk.level.monsters.remove(&level_position);
+        let index = chunk.level.monsters.remove(&level_position);
+        // TODO: we should figure out a better way of removing
+        // monsters from the map.
+        if let Some(index) = index {
+            chunk.monsters[index].dead = true;
+        }
     }
 
     /// Set cells within the given radius as explored.

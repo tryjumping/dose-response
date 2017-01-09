@@ -19,6 +19,9 @@ fn generate_map<R: Rng>(rng: &mut R, map_size: Point, player_pos: Point) -> Vec<
     // start at top left corner, moving to the right
     for y in 0..map_size.y {
         for x in 0..map_size.x {
+            // TODO: due to coordinate conversion, this is wrong for
+            // every chunk but the one the player is in.
+            //
             // Player always starts at an empty space:
             let kind = match player_pos == (x, y) {
                 true => TileKind::Empty,
@@ -30,7 +33,7 @@ fn generate_map<R: Rng>(rng: &mut R, map_size: Point, player_pos: Point) -> Vec<
     result
 }
 
-fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) -> Vec<(Point, Kind)> {
+fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Kind)> {
     // 3% chance a monster gets spawned
     let monster_count = 5;
     let monster_chance  = 30;
@@ -46,10 +49,6 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player: Point) 
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
         if tile.kind != TileKind::Empty {
-            continue
-        }
-        // Don't spawn any monsters in near vicinity to the player
-        if player.tile_distance(pos) < 6 {
             continue
         }
         if let Some(monster) = opts.ind_sample(rng) {
@@ -90,54 +89,26 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
 }
 
 
-fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player_pos: Point) -> Vec<(Point, item::Item)> {
+fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, item::Item)> {
     use item::Kind::*;
-    let pos_offset = &[-4, -3, -2, -1, 1, 2, 3, 4];
 
-    let mut initial_dose = player_pos + Point::new(*rng.choose(pos_offset).unwrap(),
-                                                   *rng.choose(pos_offset).unwrap());
-    let mut weights_near_player = [
-        Weighted{weight: 1000 , item: None},
-        Weighted{weight: 2, item: Some(Dose)},
-        Weighted{weight: 20, item: Some(Food)},
-    ];
-
-    let mut weights_rest = [
+    let mut weights = [
         Weighted{weight: 1000 , item: None},
         Weighted{weight: 12, item: Some(Dose)},
         Weighted{weight: 3, item: Some(StrongDose)},
         Weighted{weight: 5, item: Some(Food)},
     ];
 
-    let gen_near_player = WeightedChoice::new(&mut weights_near_player);
-    let gen_rest = WeightedChoice::new(&mut weights_rest);
+    let generator = WeightedChoice::new(&mut weights);
 
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
-        // Don't create an item where the player starts:
-        if pos == player_pos {
-            continue
-        }
         match tile.kind {
-            // Initial dose position is blocked, move it somewhere else:
-            TileKind::Tree if pos == initial_dose => {
-                initial_dose += (1, 0);
-                if player_pos.tile_distance(initial_dose) > 4 {
-                    initial_dose += (-4, 1);
-                }
-            }
             TileKind::Tree => {
                 // Occupied tile, do nothing.
             }
-            TileKind::Empty if pos == initial_dose => {
-                result.push((pos, new_item(Dose, rng)));
-            }
             TileKind::Empty => {
-                let gen = match player_pos.tile_distance(pos) < 6 {
-                    true => &gen_near_player,
-                    false => &gen_rest,
-                };
-                if let Some(kind) = gen.ind_sample(rng) {
+                if let Some(kind) = generator.ind_sample(rng) {
                     result.push((pos, new_item(kind, rng)));
                 }
             }
@@ -149,7 +120,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)], player_pos: Point)
 
 pub fn generate<R: Rng>(rng: &mut R, size: Point, player: Point) -> GeneratedWorld {
     let map = generate_map(rng, size, player);
-    let monsters = generate_monsters(rng, &map, player);
-    let items = generate_items(rng, &map, player);
+    let monsters = generate_monsters(rng, &map);
+    let items = generate_items(rng, &map);
     (map, monsters, items)
 }

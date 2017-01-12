@@ -9,7 +9,7 @@
 ** While obviously carrying danger because of the loss of Will and Depressions
 * The screen sometimes scrolls earlier than it should                   :bug:
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
-* Picking small doses should be possible earlier than the large ones   :idea:
+* Carrying small doses in inventory should be possible earlier than the large ones :idea:
 ** Right now they're all only pickable at the highest Will
 * Track the continuous High                                            :idea:
 ** think of something that would make the player want to not break the cycle
@@ -22,11 +22,6 @@
 ** This will make it clearer to figure out that you want to keep hunting the Wills
 ** We can start by showing will with a decimal counter
 ** Or a "next will" progress bar
-* Make the map "infinitely large" :code:idea:
-** We have an artificial limit on the map size now
-** Basically because of performance issues
-** I've frequently bumped into the end of the map
-** So let's fix the performance and make the map big enough size
 * Need to keep moving while waiting on the victory counter           :design:
 ** Right now, the best strategy is to dance around a save spot, doing nothing
 ** We need to force the player to keep moving
@@ -563,3 +558,12 @@ CLOSED: [2017-01-09 Mon 20:15]
 :END:
 *** cargo run -- replays/replay-2017-01-09T20-08-08.261
 *** 'Monster should exist on this position'
+** DONE Make the map "infinitely large"                          :code:idea:
+CLOSED: [2017-01-12 Thu 11:20]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-01-12 Thu 11:20
+:END:
+*** We have an artificial limit on the map size now
+*** Basically because of performance issues
+*** I've frequently bumped into the end of the map
+*** So let's fix the performance and make the map big enough size

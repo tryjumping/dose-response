@@ -8,9 +8,10 @@ use time;
 use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
-use animation::Explosion;
+use animation::{Explosion, ScreenFade};
 use player::Player;
 use point::Point;
+use timer::Timer;
 use world::World;
 
 
@@ -82,7 +83,7 @@ fn path_exists(path: &Path) -> bool {
 
 pub struct GameState {
     pub player: Player,
-    pub explosion_animation: Explosion,
+    pub explosion_animation: Option<Explosion>,
 
     /// The actual size of the game world in tiles. Could be infinite
     /// but we're limiting it for performance reasons for now.
@@ -112,11 +113,11 @@ pub struct GameState {
     pub cheating: bool,
     pub replay: bool,
     pub clock: Duration,
-    pub pos_timer: ::Timer,
+    pub pos_timer: Timer,
     pub paused: bool,
     pub old_screen_pos: Point,
     pub new_screen_pos: Point,
-    pub screen_fading: Option<super::ScreenFadeAnimation>,
+    pub screen_fading: Option<ScreenFade>,
     pub see_entire_screen: bool,
 }
 
@@ -155,7 +156,7 @@ impl GameState {
             cheating: cheating,
             replay: replay,
             clock: Duration::zero(),
-            pos_timer: ::Timer::new(Duration::milliseconds(0)),
+            pos_timer: Timer::new(Duration::milliseconds(0)),
             old_screen_pos: (0, 0).into(),
             new_screen_pos: (0, 0).into(),
             paused: false,

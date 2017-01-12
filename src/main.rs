@@ -16,7 +16,6 @@ use rand::Rng;
 use tcod::input::Key;
 use time::Duration;
 
-use color::Color;
 use engine::{Engine, KeyCode};
 use game_state::{Command, GameState, Side};
 
@@ -34,101 +33,10 @@ mod pathfinding;
 mod player;
 mod point;
 mod ranged_int;
+mod timer;
 mod world;
 
 
-#[derive(Copy, Clone)]
-pub struct Timer {
-    max: Duration,
-    current: Duration,
-}
-
-impl Timer {
-    pub fn new(duration: Duration) -> Timer {
-        Timer {
-            max: duration,
-            current: duration,
-        }
-    }
-
-    pub fn update(&mut self, dt: Duration) {
-        if dt > self.current {
-            self.current = Duration::zero();
-        } else {
-            self.current = self.current - dt;
-        }
-    }
-
-    pub fn percentage_remaining(&self) -> f32 {
-        (self.current.num_milliseconds() as f32) / (self.max.num_milliseconds() as f32)
-    }
-
-    pub fn percentage_elapsed(&self) -> f32 {
-        1.0 - self.percentage_remaining()
-    }
-
-    pub fn finished(&self) -> bool {
-        self.current.is_zero()
-    }
-
-    pub fn reset(&mut self) {
-        self.current = self.max;
-    }
-}
-
-#[derive(Copy, Clone)]
-pub struct ScreenFadeAnimation {
-    pub color: Color,
-    pub fade_out_time: Duration,
-    pub wait_time: Duration,
-    pub fade_in_time: Duration,
-    pub timer: Timer,
-    pub phase: ScreenFadePhase,
-}
-
-#[derive(Copy, Clone, PartialEq)]
-pub enum ScreenFadePhase {
-    FadeOut,
-    Wait,
-    FadeIn,
-    Done,
-}
-
-impl ScreenFadeAnimation {
-    pub fn new(color: Color, fade_out: Duration, wait: Duration,
-               fade_in: Duration) -> ScreenFadeAnimation {
-        ScreenFadeAnimation {
-            color: color,
-            fade_out_time: fade_out,
-            wait_time: wait,
-            fade_in_time: fade_in,
-            timer: Timer::new(fade_out),
-            phase: ScreenFadePhase::FadeOut,
-        }
-    }
-
-    pub fn update(&mut self, dt: Duration) {
-        self.timer.update(dt);
-        if self.timer.finished() {
-            match self.phase {
-                ScreenFadePhase::FadeOut => {
-                    self.timer = Timer::new(self.wait_time);
-                    self.phase = ScreenFadePhase::Wait;
-                }
-                ScreenFadePhase::Wait => {
-                    self.timer = Timer::new(self.fade_in_time);
-                    self.phase = ScreenFadePhase::FadeIn;
-                }
-                ScreenFadePhase::FadeIn => {
-                    self.phase = ScreenFadePhase::Done;
-                }
-                ScreenFadePhase::Done => {
-                    // NOTE: we're done. Nothing to do here.
-                }
-            }
-        }
-    }
-}
 
 fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
     use tcod::input::KeyCode::*;
@@ -179,7 +87,7 @@ fn kill_monster(monster_position: point::Point, world: &mut world::World) {
 }
 
 fn use_dose(player: &mut player::Player, world: &mut world::World,
-            explosion_animation: &mut animation::Explosion,
+            explosion_animation: &mut Option<animation::Explosion>,
             item: item::Item) {
     use player::Modifier::*;
     if let Intoxication{state_of_mind, ..} = item.modifier {
@@ -188,8 +96,7 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
             false => 6,
         };
         player.take_effect(item.modifier);
-        let anim = explode(player.pos, radius, world);
-        *explosion_animation = anim;
+        *explosion_animation = Some(explode(player.pos, radius, world));
     } else {
         unreachable!();
     }
@@ -201,11 +108,13 @@ fn explode(center: point::Point,
     for pos in point::SquareArea::new(center, radius) {
         kill_monster(pos, world);
     }
-    Some((center,
-          radius,
-          2,  // this means it'll be visible at the first frame
-          color::explosion,
-          Duration::zero()))
+    animation::Explosion {
+        center: center,
+        max_radius: radius,
+        current_radius: 2,  // this means it'll be visible at the first frame
+        color: color::explosion,
+        elapsed_time: Duration::zero()
+    }
 }
 
 fn exploration_radius(mental_state: player::Mind) -> i32 {
@@ -262,7 +171,7 @@ fn process_player(state: &mut game_state::GameState) {
 fn process_player_action<R, W>(player: &mut player::Player,
                                commands: &mut VecDeque<Command>,
                                world: &mut world::World,
-                               explosion_animation: &mut animation::Explosion,
+                               explosion_animation: &mut Option<animation::Explosion>,
                                rng: &mut R,
                                command_logger: &mut W)
     where R: Rng, W: Write {
@@ -382,8 +291,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
-                    let anim = explode(player.pos, food_explosion_radius, world);
-                    *explosion_animation = anim;
+                    *explosion_animation = Some(explode(player.pos, food_explosion_radius, world));
                 }
             }
 
@@ -643,12 +551,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // TODO: move the screen roughly the same distance along X and Y
         if display_pos.x < exploration_radius || display_pos.x >= state.map_size.x - exploration_radius {
             // change the screen centre to that of the player
-            state.pos_timer = Timer::new(dur);
+            state.pos_timer = timer::Timer::new(dur);
             state.old_screen_pos = state.screen_position_in_world;
             state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
         } else if display_pos.y < exploration_radius || display_pos.y >= state.map_size.y - exploration_radius {
             // change the screen centre to that of the player
-            state.pos_timer = Timer::new(dur);
+            state.pos_timer = timer::Timer::new(dur);
             state.old_screen_pos = state.screen_position_in_world;
             state.new_screen_pos = (state.old_screen_pos.x, state.player.pos.y).into();
         } else {
@@ -672,7 +580,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             }
         }
     } else if player_was_alive {  // NOTE: Player just died
-        state.screen_fading = Some(ScreenFadeAnimation::new(
+        state.screen_fading = Some(animation::ScreenFade::new(
             color::death_animation,
             Duration::milliseconds(500),
             Duration::milliseconds(200),
@@ -685,6 +593,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         if anim.timer.finished() {
             state.screen_fading = None;
         } else {
+            use animation::ScreenFadePhase;
             let fade = match anim.phase {
                 ScreenFadePhase::FadeOut => anim.timer.percentage_remaining(),
                 ScreenFadePhase::Wait => 0.0,
@@ -790,25 +699,25 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     });
 
-    if let Some((center, max_r, r, c, elapsed)) = state.explosion_animation {
+    if let Some(mut anim) = state.explosion_animation {
         let one_level_duration = Duration::milliseconds(100);
-        let mut elapsed = elapsed + dt;
-        let r = if elapsed > one_level_duration {
-            elapsed = elapsed - one_level_duration;
-            r + 1
+        anim.elapsed_time = anim.elapsed_time + dt;
+        anim.current_radius = if anim.elapsed_time > one_level_duration {
+            anim.elapsed_time = anim.elapsed_time - one_level_duration;
+            anim.current_radius + 1
         } else {
-            r
+            anim.current_radius
         };
-        if r <= max_r {
-            state.explosion_animation = Some((center, max_r, r, c, elapsed));
-            for world_pos in point::SquareArea::new(center, r) {
+        if anim.current_radius <= anim.max_radius {
+            for world_pos in point::SquareArea::new(anim.center, anim.current_radius) {
                 if state.world.within_bounds(world_pos) {
                     let display_pos = screen_coords_from_world(world_pos);
                     if within_map_bounds(display_pos) {
-                        engine.display.set_background(display_pos, c);
+                        engine.display.set_background(display_pos, anim.color);
                     }
                 }
             }
+            state.explosion_animation = Some(anim);
         } else {
             state.explosion_animation = None;
         }

@@ -237,7 +237,32 @@ fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 }
 
 
-fn process_player<R, W>(player: &mut player::Player,
+fn process_player(state: &mut game_state::GameState) {
+    let previous_action_points = state.player.ap();
+
+    process_player_action(&mut state.player,
+                          &mut state.commands,
+                          &mut state.world,
+                          &mut state.explosion_animation,
+                          &mut state.rng,
+                          &mut state.command_logger);
+
+    let spent_ap_this_turn = previous_action_points > state.player.ap();
+
+    // Increase the sobriety counter if the player behaved themself.
+    if spent_ap_this_turn && !state.player.mind.is_high() && state.player.will.is_max() {
+        state.player.sobriety_counter += 1;
+    }
+
+    // NOTE: The player has stayed sober long enough. Victory! \o/
+    if state.player.sobriety_counter.is_max() {
+        state.side = Side::Victory;
+    }
+
+    state.world.explore(state.player.pos, exploration_radius(state.player.mind));
+}
+
+fn process_player_action<R, W>(player: &mut player::Player,
                         commands: &mut VecDeque<Command>,
                         world: &mut world::World,
                         explosion_animation: &mut ExplosionAnimation,
@@ -597,28 +622,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
         if state.side != Side::Victory {
             // NOTE: Process player
-            let previous_action_points = state.player.ap();
-            process_player(&mut state.player,
-                           &mut state.commands,
-                           &mut state.world,
-                           &mut state.explosion_animation,
-                           &mut state.rng,
-                           &mut state.command_logger);
-
-            let spent_ap_this_turn = previous_action_points > state.player.ap();
-
-            // Increase the sobriety counter if the player behaved themself.
-            if spent_ap_this_turn && !state.player.mind.is_high() && state.player.will.is_max() {
-                state.player.sobriety_counter += 1;
-            }
-
-            // NOTE: The player has stayed sober long enough. Victory! \o/
-            if state.player.sobriety_counter.is_max() {
-                state.side = Side::Victory;
-            }
-
-            let exploration_radius = exploration_radius(state.player.mind);
-            state.world.explore(state.player.pos, exploration_radius);
+            process_player(&mut state);
 
             // NOTE: Process monsters
             if state.player.ap() <= 0 {
@@ -627,9 +631,10 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             }
 
             // NOTE: re-centre the display if the player reached the end of the screen
-            let display_pos = state.player.pos - screen_left_top_corner;
             if state.pos_timer.finished() {
+                let display_pos = state.player.pos - screen_left_top_corner;
                 let dur = Duration::milliseconds(400);
+                let exploration_radius = exploration_radius(state.player.mind);
                 // TODO: move the screen roughly the same distance along X and Y
                 if display_pos.x < exploration_radius || display_pos.x >= state.map_size.x - exploration_radius {
                     // change the screen centre to that of the player

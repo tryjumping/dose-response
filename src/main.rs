@@ -263,16 +263,16 @@ fn process_player(state: &mut game_state::GameState) {
 }
 
 fn process_player_action<R, W>(player: &mut player::Player,
-                        commands: &mut VecDeque<Command>,
-                        world: &mut world::World,
-                        explosion_animation: &mut ExplosionAnimation,
-                        rng: &mut R,
-                        command_logger: &mut W)
+                               commands: &mut VecDeque<Command>,
+                               world: &mut world::World,
+                               explosion_animation: &mut ExplosionAnimation,
+                               rng: &mut R,
+                               command_logger: &mut W)
     where R: Rng, W: Write {
     if !player.alive() || !player.has_ap(1) {
         return
     }
-    // TODO: get the chunk the player is in!
+
     if let Some(command) = commands.pop_front() {
         game_state::log_command(command_logger, command);
         let mut action = match command {
@@ -290,12 +290,14 @@ fn process_player_action<R, W>(player: &mut player::Player,
             Command::UseDose => Action::Use(item::Kind::Dose),
             Command::UseStrongDose => Action::Use(item::Kind::StrongDose),
         };
+
         if *player.stun > 0 {
             action = Action::Move(player.pos);
         } else if *player.panic > 0 {
             let new_pos = world.random_neighbour_position(
                 rng, player.pos, level::Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
+
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
             let resist_radius = player_resist_radius(dose.irresistible, *player.will) as usize;
             if player.pos.tile_distance(dose_pos) <= resist_radius as i32 {
@@ -314,9 +316,9 @@ fn process_player_action<R, W>(player: &mut player::Player,
                 } else {
                     //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
                 }
-
             }
         }
+
         // NOTE: If we picked up doses on max Will and then lost it,
         // take them all turn by turn undonditionally:
         if !player.will.is_max() {
@@ -326,6 +328,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                 action = Action::Use(item::Kind::Dose);
             }
         }
+
         match action {
             Action::Move(dest) => {
                 if world.within_bounds(dest) {
@@ -347,6 +350,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                             }
                         }
                         kill_monster(dest, world);
+
                     } else if dest_walkable {
                         player.spend_ap(1);
                         player.move_to(dest);
@@ -374,6 +378,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                     unimplemented!()
                 }
             }
+
             Action::Use(item::Kind::Food) => {
                 if let Some(food_idx) = player.inventory.iter().position(|&i| i.kind == item::Kind::Food) {
                     player.spend_ap(1);
@@ -384,6 +389,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                     *explosion_animation = anim;
                 }
             }
+
             Action::Use(item::Kind::Dose) => {
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::Dose) {
                     player.spend_ap(1);
@@ -391,6 +397,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                     use_dose(player, world, explosion_animation, dose);
                 }
             }
+
             Action::Use(item::Kind::StrongDose) => {
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose) {
                     player.spend_ap(1);
@@ -398,6 +405,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                     use_dose(player, world, explosion_animation, dose);
                 }
             }
+
             Action::Attack(_, _) => {
                 unreachable!();
             }

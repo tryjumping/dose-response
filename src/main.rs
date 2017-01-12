@@ -477,7 +477,7 @@ fn process_monsters<R: Rng>(world: &mut world::World,
 }
 
 
-fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
+fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
     let fg = color::gui_text;
     let bg = color::dim_background;
     {
@@ -839,7 +839,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
     let fps = engine.fps();
-    render_gui(state.map_size.x, state.panel_width, &mut engine.display, &state, dt, fps);
+    render_panel(state.map_size.x, state.panel_width, &mut engine.display, &state, dt, fps);
     Some(state)
 }
 

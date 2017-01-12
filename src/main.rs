@@ -561,7 +561,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     // Rendering & related code here:
     if state.player.alive() {
         use player::Mind::*;
-
         // Fade when withdrawn:
         match state.player.mind {
             Withdrawal(value) => {
@@ -573,6 +572,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 // NOTE: Not withdrawn, don't fade
             }
         }
+
     } else if player_was_alive {  // NOTE: Player just died
         state.screen_fading = Some(animation::ScreenFade::new(
             color::death_animation,
@@ -583,6 +583,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // NOTE: player is already dead (didn't die this frame)
     }
 
+    // NOTE: render the screen fading animation on death
     if let Some(mut anim) = state.screen_fading {
         if anim.timer.finished() {
             state.screen_fading = None;
@@ -630,13 +631,14 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let total_time_ms = state.clock.num_milliseconds();
     let world_size = state.world_size;
 
-    // Render the level and items:
     let player_will_is_max = state.player.will.is_max();
     let player_will = *state.player.will;
     // NOTE: this is here to appease the borrow checker. If we
     // borrowed the state here as immutable, we wouln't need it.
     let is_high = state.player.mind.is_high();
+    let is_alive = state.player.alive();
 
+    // NOTE: render the cells on the map. That means the world geometry and items.
     state.world.with_cells(screen_left_top_corner, map_size, |world_pos, cell| {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
@@ -646,7 +648,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Render the tile
         let mut rendered_tile = cell.tile;
 
-        if is_high {
+        if is_alive && is_high {
             let pos_x: i64 = (world_pos.x + world_size.x) as i64;
             let pos_y: i64 = (world_pos.y + world_size.y) as i64;
             assert!(pos_x >= 0);
@@ -693,6 +695,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     });
 
+    // NOTE: render the dose/food explosion animations
     if let Some(mut anim) = state.explosion_animation {
         anim.update(dt);
         if anim.timer.finished() {
@@ -710,6 +713,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
 
+    // NOTE: render monsters
     for monster_pos in state.world.monster_positions(screen_left_top_corner, state.map_size) {
         if let Some(monster) = state.world.monster_on_pos(monster_pos) {
             let visible = monster.position.distance(state.player.pos) < (radius as f32);
@@ -723,6 +727,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
 
+    // NOTE: render the player
     {
         let world_pos = state.player.pos;
         let display_pos = screen_coords_from_world(world_pos);
@@ -730,6 +735,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             graphics::draw(&mut engine.display, dt, display_pos, &state.player);
         }
     }
+
     let fps = engine.fps();
     render_panel(state.map_size.x, state.panel_width, &mut engine.display, &state, dt, fps);
     Some(state)

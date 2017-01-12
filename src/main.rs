@@ -635,8 +635,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let player_will = *state.player.will;
     // NOTE: this is here to appease the borrow checker. If we
     // borrowed the state here as immutable, we wouln't need it.
-    let is_high = state.player.mind.is_high();
-    let is_alive = state.player.alive();
+    let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
     // NOTE: render the cells on the map. That means the world geometry and items.
     state.world.with_cells(screen_left_top_corner, map_size, |world_pos, cell| {
@@ -648,7 +647,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Render the tile
         let mut rendered_tile = cell.tile;
 
-        if is_alive && is_high {
+        if show_intoxication_effect {
+            // TODO: try to move this calculation of this loop and see
+            // what it does to our speed.
             let pos_x: i64 = (world_pos.x + world_size.x) as i64;
             let pos_y: i64 = (world_pos.y + world_size.y) as i64;
             assert!(pos_x >= 0);
@@ -672,6 +673,8 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         } else if cell.explored || bonus == player::Bonus::UncoverMap {
             graphics::draw(&mut engine.display, dt, display_pos, &rendered_tile);
             engine.display.set_background(display_pos, color::dim_background);
+        } else {
+            // It's not visible. Do nothing.
         }
 
         // Render the irresistible background of a dose

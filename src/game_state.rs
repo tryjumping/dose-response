@@ -92,7 +92,7 @@ pub struct GameState {
     /// The size of the game map inside the game window. We're keeping
     /// this square so this value repesents both width and heigh.
     /// It's a window into the game world that is actually rendered.
-    pub map_size: i32,
+    pub map_size: Point,
 
     /// The width of the in-game status panel.
     pub panel_width: i32,
@@ -141,7 +141,7 @@ impl GameState {
             chunk_size: 32,
             world_size: world_size,
             world: World::new(seed, world_size.x, 32, player_position),
-            map_size: map_size,
+            map_size: (map_size, map_size).into(),
             panel_width: panel_width,
             display_size: display_size,
             screen_position_in_world: world_centre,

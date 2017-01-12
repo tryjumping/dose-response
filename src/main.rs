@@ -545,7 +545,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     // Restart the game on F5
     if engine.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
         engine.keys.clear();
-        let state = GameState::new_game(state.world_size, state.map_size, state.panel_width, state.display_size);
+        let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width, state.display_size);
         return Some(state);
     }
 
@@ -588,9 +588,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
 
 
-    let map_dimensions = (state.map_size, state.map_size).into();
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
+    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
 
     if running || paused_one_step || timed_step {
         process_keys(&mut engine.keys, &mut state.commands);
@@ -624,11 +624,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             let exploration_radius = exploration_radius(state.player.mind);
             state.world.explore(state.player.pos, exploration_radius);
 
-            let screen_left_top_corner = state.screen_position_in_world - (map_dimensions / 2);
-
             // NOTE: Process monsters
             if state.player.ap() <= 0 {
-                process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, map_dimensions, &mut state.rng);
+                process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, state.map_size, &mut state.rng);
                 state.player.new_turn();
             }
 
@@ -637,12 +635,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             if state.pos_timer.finished() {
                 let dur = Duration::milliseconds(400);
                 // TODO: move the screen roughly the same distance along X and Y
-                if display_pos.x < exploration_radius || display_pos.x >= map_dimensions.x - exploration_radius {
+                if display_pos.x < exploration_radius || display_pos.x >= state.map_size.x - exploration_radius {
                     // change the screen centre to that of the player
                     state.pos_timer = Timer::new(dur);
                     state.old_screen_pos = state.screen_position_in_world;
                     state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
-                } else if display_pos.y < exploration_radius || display_pos.y >= map_dimensions.y - exploration_radius {
+                } else if display_pos.y < exploration_radius || display_pos.y >= state.map_size.y - exploration_radius {
                     // change the screen centre to that of the player
                     state.pos_timer = Timer::new(dur);
                     state.old_screen_pos = state.screen_position_in_world;
@@ -716,13 +714,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     }
     let radius = exploration_radius(state.player.mind);
 
-    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2, state.map_size / 2);
-
-    let player_pos = state.player.pos;
-    // NOTE: map is the displayed playable area. I.e. fits the screen
-    // but doesn't include the side bar.
     let map_size = state.map_size;
-    let within_map_bounds = |pos| pos >= (0, 0) && pos < (map_size, map_size);
+    let within_map_bounds = |pos| pos >= (0, 0) && pos < map_size;
+    let player_pos = state.player.pos;
     let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
@@ -737,7 +731,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     // Render the level and items:
     let player_will_is_max = state.player.will.is_max();
     let player_will = *state.player.will;
-        state.world.with_cells(screen_left_top_corner, map_dimensions, |world_pos, cell| {
+        state.world.with_cells(screen_left_top_corner, map_size, |world_pos, cell| {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
             return;
@@ -827,7 +821,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
     }
 
-    for monster_pos in state.world.monster_positions(screen_left_top_corner, map_dimensions) {
+    for monster_pos in state.world.monster_positions(screen_left_top_corner, state.map_size) {
         if let Some(monster) = state.world.monster_on_pos(monster_pos) {
             let visible = monster.position.distance(state.player.pos) < (radius as f32);
             if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
@@ -848,7 +842,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         }
     }
     let fps = engine.fps();
-    render_gui(state.map_size, state.panel_width, &mut engine.display, &state, dt, fps);
+    render_gui(state.map_size.x, state.panel_width, &mut engine.display, &state, dt, fps);
     Some(state)
 }
 

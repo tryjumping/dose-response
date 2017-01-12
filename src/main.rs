@@ -535,9 +535,21 @@ fn render_gui(x: i32, width: i32, display: &mut engine::Display, state: &GameSta
 
 
 fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
+    state.clock = state.clock + dt;
+
+    // Quit the game when Q is pressed
     if engine.key_pressed(Key { printable: 'q', pressed: true, code: KeyCode::Char, .. Default::default() }) {
         return None;
     }
+
+    // Restart the game on F5
+    if engine.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
+        engine.keys.clear();
+        let state = GameState::new_game(state.world_size, state.map_size, state.panel_width, state.display_size);
+        return Some(state);
+    }
+
+    // Full screen on Alt-Enter
     if let Some(key) = engine.keys.pop_front() {
         if key.code == KeyCode::Enter && (key.left_alt || key.right_alt) {
             engine.toggle_fullscreen();
@@ -545,17 +557,10 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             engine.keys.push_front(key);
         }
     }
-    if engine.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
-        //println!("Restarting game");
-        engine.keys.clear();
-        let state = GameState::new_game(state.world_size, state.map_size, state.panel_width, state.display_size);
-        return Some(state);
-    }
-    state.clock = state.clock + dt;
 
+    // Uncover map
     if engine.key_pressed(Key { code: KeyCode::F6, pressed: true, .. Default::default() }) {
         state.cheating = !state.cheating;
-        //println!("Cheating set to: {}", state.cheating);
     }
 
     state.paused = if state.replay && engine.read_key(KeyCode::Spacebar) {
@@ -564,7 +569,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         state.paused
     };
 
-    let running = !state.paused && !state.replay;
     let paused_one_step = state.paused && engine.read_key(KeyCode::Right);
     let timed_step = if state.replay && !state.paused && state.clock.num_milliseconds() >= 50 {
         state.clock = Duration::zero();
@@ -573,8 +577,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         false
     };
 
-    let player_was_alive = state.player.alive();
-
     // Animation to re-center the screen around the player when they
     // get too close to an edge.
     state.pos_timer.update(dt);
@@ -582,18 +584,16 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         let percentage = state.pos_timer.percentage_elapsed();
         let x = (((state.new_screen_pos.x - state.old_screen_pos.x) as f32) * percentage) as i32;
         let y = (((state.new_screen_pos.y - state.old_screen_pos.y) as f32) * percentage) as i32;
-        //println!("percentage: {}, old: {:?}, final: {:?}; x, y: {}, {}", percentage, (oldx, oldy), (finalx, finaly), x, y);
         state.screen_position_in_world = state.old_screen_pos + (x, y);
     }
 
+
     let map_dimensions = (state.map_size, state.map_size).into();
+    let player_was_alive = state.player.alive();
+    let running = !state.paused && !state.replay;
 
     if running || paused_one_step || timed_step {
         process_keys(&mut engine.keys, &mut state.commands);
-
-        // move screen if the player goes near the edge of the screen
-        let map_size = point::Point::new(state.map_size, state.map_size);
-        let screen_left_top_corner = state.screen_position_in_world - (map_size / 2);
 
         if state.side != Side::Victory {
             // NOTE: Process player
@@ -610,14 +610,21 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 player::Mind::High(_) => true,
                 _ => false,
             };
+
+            // Increase the sobriety counter if the player behaved themself.
             if spent_ap_this_turn && !is_high && state.player.will.is_max() {
                 state.player.sobriety_counter += 1;
             }
+
+            // NOTE: The player has stayed sober long enough. Victory! \o/
             if state.player.sobriety_counter.is_max() {
                 state.side = Side::Victory;
             }
+
             let exploration_radius = exploration_radius(state.player.mind);
             state.world.explore(state.player.pos, exploration_radius);
+
+            let screen_left_top_corner = state.screen_position_in_world - (map_dimensions / 2);
 
             // NOTE: Process monsters
             if state.player.ap() <= 0 {
@@ -630,12 +637,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             if state.pos_timer.finished() {
                 let dur = Duration::milliseconds(400);
                 // TODO: move the screen roughly the same distance along X and Y
-                if display_pos.x < exploration_radius || display_pos.x >= map_size.x - exploration_radius {
+                if display_pos.x < exploration_radius || display_pos.x >= map_dimensions.x - exploration_radius {
                     // change the screen centre to that of the player
                     state.pos_timer = Timer::new(dur);
                     state.old_screen_pos = state.screen_position_in_world;
                     state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
-                } else if display_pos.y < exploration_radius || display_pos.y >= map_size.y - exploration_radius {
+                } else if display_pos.y < exploration_radius || display_pos.y >= map_dimensions.y - exploration_radius {
                     // change the screen centre to that of the player
                     state.pos_timer = Timer::new(dur);
                     state.old_screen_pos = state.screen_position_in_world;

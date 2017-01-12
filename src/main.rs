@@ -617,40 +617,38 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let running = !state.paused && !state.replay;
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
 
-    if running || paused_one_step || timed_step {
+    if running || paused_one_step || timed_step && state.side != Side::Victory{
         process_keys(&mut engine.keys, &mut state.commands);
 
-        if state.side != Side::Victory {
-            // NOTE: Process player
-            process_player(&mut state);
+        // NOTE: Process player
+        process_player(&mut state);
 
-            // NOTE: Process monsters
-            if state.player.ap() <= 0 {
-                process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, state.map_size, &mut state.rng);
-                state.player.new_turn();
-            }
-
-            // NOTE: re-centre the display if the player reached the end of the screen
-            if state.pos_timer.finished() {
-                let display_pos = state.player.pos - screen_left_top_corner;
-                let dur = Duration::milliseconds(400);
-                let exploration_radius = exploration_radius(state.player.mind);
-                // TODO: move the screen roughly the same distance along X and Y
-                if display_pos.x < exploration_radius || display_pos.x >= state.map_size.x - exploration_radius {
-                    // change the screen centre to that of the player
-                    state.pos_timer = Timer::new(dur);
-                    state.old_screen_pos = state.screen_position_in_world;
-                    state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
-                } else if display_pos.y < exploration_radius || display_pos.y >= state.map_size.y - exploration_radius {
-                    // change the screen centre to that of the player
-                    state.pos_timer = Timer::new(dur);
-                    state.old_screen_pos = state.screen_position_in_world;
-                    state.new_screen_pos = (state.old_screen_pos.x, state.player.pos.y).into();
-                }
-            }
-
+        // NOTE: Process monsters
+        if state.player.ap() <= 0 {
+            process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, state.map_size, &mut state.rng);
+            state.player.new_turn();
         }
+    }
 
+    // NOTE: re-centre the display if the player reached the end of the screen
+    if state.pos_timer.finished() {
+        let display_pos = state.player.pos - screen_left_top_corner;
+        let dur = Duration::milliseconds(400);
+        let exploration_radius = exploration_radius(state.player.mind);
+        // TODO: move the screen roughly the same distance along X and Y
+        if display_pos.x < exploration_radius || display_pos.x >= state.map_size.x - exploration_radius {
+            // change the screen centre to that of the player
+            state.pos_timer = Timer::new(dur);
+            state.old_screen_pos = state.screen_position_in_world;
+            state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
+        } else if display_pos.y < exploration_radius || display_pos.y >= state.map_size.y - exploration_radius {
+            // change the screen centre to that of the player
+            state.pos_timer = Timer::new(dur);
+            state.old_screen_pos = state.screen_position_in_world;
+            state.new_screen_pos = (state.old_screen_pos.x, state.player.pos.y).into();
+        } else {
+            // Do nothing
+        }
     }
 
     // Rendering & related code here:

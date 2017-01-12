@@ -731,7 +731,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     // Render the level and items:
     let player_will_is_max = state.player.will.is_max();
     let player_will = *state.player.will;
-        state.world.with_cells(screen_left_top_corner, map_size, |world_pos, cell| {
+    state.world.with_cells(screen_left_top_corner, map_size, |world_pos, cell| {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
             return;

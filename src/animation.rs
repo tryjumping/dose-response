@@ -5,18 +5,45 @@ use timer::Timer;
 use time::Duration;
 
 
-// TODO: we should take care of updating the animation here and have
-// the caller just get the results.
+#[derive(Debug)]
 pub struct Explosion {
     pub center: Point,
     pub max_radius: i32,
     pub current_radius: i32,
     pub color: Color,
-    pub elapsed_time: Duration,
+    pub wave_count: i32,
+    pub timer: Timer,
+}
+
+impl Explosion {
+    pub fn new(center: Point, max_radius: i32, initial_radius: i32, color: Color) -> Self {
+        assert!(initial_radius <= max_radius);
+        let wave_count = max_radius - initial_radius;
+        let wave_duration = Duration::milliseconds(100);
+        Explosion {
+            center: center,
+            max_radius: max_radius,
+            current_radius: initial_radius,
+            color: color,
+            wave_count: wave_count,
+            timer: Timer::new(wave_duration * wave_count),
+        }
+    }
+
+    pub fn update(&mut self, dt: Duration) {
+        if self.timer.finished() {
+            // do nothing
+        } else {
+            self.timer.update(dt);
+            let single_wave_percentage = 1.0 / (self.wave_count as f32);
+            self.current_radius = (self.timer.percentage_elapsed() / single_wave_percentage) as i32;
+        }
+    }
+
 }
 
 
-#[derive(Copy, Clone)]
+#[derive(Debug)]
 pub struct ScreenFade {
     pub color: Color,
     pub fade_out_time: Duration,
@@ -26,7 +53,7 @@ pub struct ScreenFade {
     pub phase: ScreenFadePhase,
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ScreenFadePhase {
     FadeOut,
     Wait,

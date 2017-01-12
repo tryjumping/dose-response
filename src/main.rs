@@ -108,13 +108,7 @@ fn explode(center: point::Point,
     for pos in point::SquareArea::new(center, radius) {
         kill_monster(pos, world);
     }
-    animation::Explosion {
-        center: center,
-        max_radius: radius,
-        current_radius: 2,  // this means it'll be visible at the first frame
-        color: color::explosion,
-        elapsed_time: Duration::zero()
-    }
+    animation::Explosion::new(center, radius, 2, color::explosion)
 }
 
 fn exploration_radius(mental_state: player::Mind) -> i32 {
@@ -700,15 +694,10 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     });
 
     if let Some(mut anim) = state.explosion_animation {
-        let one_level_duration = Duration::milliseconds(100);
-        anim.elapsed_time = anim.elapsed_time + dt;
-        anim.current_radius = if anim.elapsed_time > one_level_duration {
-            anim.elapsed_time = anim.elapsed_time - one_level_duration;
-            anim.current_radius + 1
+        anim.update(dt);
+        if anim.timer.finished() {
+            state.explosion_animation = None;
         } else {
-            anim.current_radius
-        };
-        if anim.current_radius <= anim.max_radius {
             for world_pos in point::SquareArea::new(anim.center, anim.current_radius) {
                 if state.world.within_bounds(world_pos) {
                     let display_pos = screen_coords_from_world(world_pos);
@@ -718,10 +707,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                 }
             }
             state.explosion_animation = Some(anim);
-        } else {
-            state.explosion_animation = None;
         }
-
     }
 
     for monster_pos in state.world.monster_positions(screen_left_top_corner, state.map_size) {

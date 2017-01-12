@@ -1,7 +1,7 @@
 use time::Duration;
 
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Timer {
     max: Duration,
     current: Duration,

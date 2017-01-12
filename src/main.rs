@@ -606,13 +606,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
                            &mut state.command_logger);
 
             let spent_ap_this_turn = previous_action_points > state.player.ap();
-            let is_high = match state.player.mind {
-                player::Mind::High(_) => true,
-                _ => false,
-            };
 
             // Increase the sobriety counter if the player behaved themself.
-            if spent_ap_this_turn && !is_high && state.player.will.is_max() {
+            if spent_ap_this_turn && !state.player.mind.is_high() && state.player.will.is_max() {
                 state.player.sobriety_counter += 1;
             }
 
@@ -723,14 +719,13 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
     let total_time_ms = state.clock.num_milliseconds();
     let world_size = state.world_size;
 
-    let is_high = match state.player.mind {
-        player::Mind::High(_) => true,
-        _ => false,
-    };
-
     // Render the level and items:
     let player_will_is_max = state.player.will.is_max();
     let player_will = *state.player.will;
+    // NOTE: this is here to appease the borrow checker. If we
+    // borrowed the state here as immutable, we wouln't need it.
+    let is_high = state.player.mind.is_high();
+
     state.world.with_cells(screen_left_top_corner, map_size, |world_pos, cell| {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
@@ -772,12 +767,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
 
         // Render the irresistible background of a dose
         for item in cell.items.iter() {
-            use item::Kind::*;
-            let is_dose = match item.kind {
-                Dose | StrongDose => true,
-                Food => false,
-            };
-            if is_dose && !player_will_is_max {
+            if item.is_dose() && !player_will_is_max {
                 let resist_radius = player_resist_radius(item.irresistible, player_will);
                 for point in point::SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {

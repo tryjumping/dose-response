@@ -62,6 +62,14 @@ impl Mind {
             }
         }
     }
+
+    pub fn is_high(&self) -> bool {
+        match self {
+            &Mind::High(_) => true,
+            _ => false,
+        }
+    }
+
 }
 
 impl Display for Mind {

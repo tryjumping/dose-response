@@ -14,12 +14,21 @@ pub enum Kind {
     StrongDose,
 }
 
-
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Item {
     pub kind: Kind,
     pub modifier: Modifier,
     pub irresistible: i32,
+}
+
+impl Item {
+    pub fn is_dose(&self) -> bool {
+        match self.kind {
+            Kind::Dose => true,
+            Kind::StrongDose => true,
+            Food => false,
+        }
+    }
 }
 
 

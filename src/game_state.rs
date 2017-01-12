@@ -8,6 +8,7 @@ use time;
 use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
+use animation::Explosion;
 use player::Player;
 use point::Point;
 use world::World;
@@ -81,7 +82,7 @@ fn path_exists(path: &Path) -> bool {
 
 pub struct GameState {
     pub player: Player,
-    pub explosion_animation: super::ExplosionAnimation,
+    pub explosion_animation: Explosion,
 
     /// The actual size of the game world in tiles. Could be infinite
     /// but we're limiting it for performance reasons for now.

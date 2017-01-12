@@ -21,6 +21,7 @@ use engine::{Engine, KeyCode};
 use game_state::{Command, GameState, Side};
 
 
+mod animation;
 mod color;
 mod engine;
 mod game_state;
@@ -178,7 +179,7 @@ fn kill_monster(monster_position: point::Point, world: &mut world::World) {
 }
 
 fn use_dose(player: &mut player::Player, world: &mut world::World,
-            explosion_animation: &mut ExplosionAnimation,
+            explosion_animation: &mut animation::Explosion,
             item: item::Item) {
     use player::Modifier::*;
     if let Intoxication{state_of_mind, ..} = item.modifier {
@@ -194,13 +195,9 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
     }
 }
 
-// TODO: prolly refactor to a struct?
-// Fields: position, max radius, current radius, colour, elapsed time
-pub type ExplosionAnimation = Option<(point::Point, i32, i32, color::Color, Duration)>;
-
 fn explode(center: point::Point,
            radius: i32,
-           world: &mut world::World) -> ExplosionAnimation {
+           world: &mut world::World) -> animation::Explosion {
     for pos in point::SquareArea::new(center, radius) {
         kill_monster(pos, world);
     }
@@ -265,7 +262,7 @@ fn process_player(state: &mut game_state::GameState) {
 fn process_player_action<R, W>(player: &mut player::Player,
                                commands: &mut VecDeque<Command>,
                                world: &mut world::World,
-                               explosion_animation: &mut ExplosionAnimation,
+                               explosion_animation: &mut animation::Explosion,
                                rng: &mut R,
                                command_logger: &mut W)
     where R: Rng, W: Write {

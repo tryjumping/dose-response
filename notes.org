@@ -1,3 +1,8 @@
+* Intoxication animation should not be visible on death                 :bug:
+* Add vi-keys                                                       :feature:
+** h/j/k/l mean left/down/up/right
+** y/u mean top-left/top-right
+** n/m mean bottom-left/bottom-right
 * The player can start surrounded by hunger monsters and dead           :bug:
 * The player can start within an irresistible dose's reach              :bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:

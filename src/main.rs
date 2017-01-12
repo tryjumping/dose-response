@@ -757,11 +757,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         if in_fov(world_pos) {
             graphics::draw(&mut engine.display, dt, display_pos, &rendered_tile);
         } else if cell.explored || bonus == player::Bonus::UncoverMap {
-            // TODO: need to supply the dark bg here?
             graphics::draw(&mut engine.display, dt, display_pos, &rendered_tile);
-            for item in cell.items.iter() {
-                graphics::draw(&mut engine.display, dt, display_pos, item);
-            }
             engine.display.set_background(display_pos, color::dim_background);
         }
 

@@ -666,6 +666,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
         // Fade when withdrawn:
         match state.player.mind {
             Withdrawal(value) => {
+                // TODO: animate the fade from the previous value?
                 let fade = value.percent() * 0.6 + 0.2;
                 engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
             }
@@ -674,7 +675,6 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Op
             }
         }
     } else if player_was_alive {  // NOTE: Player just died
-        // Make sure we're not showing the High gfx effect when dead
         state.screen_fading = Some(ScreenFadeAnimation::new(
             color::death_animation,
             Duration::milliseconds(500),

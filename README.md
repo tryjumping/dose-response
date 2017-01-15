@@ -8,6 +8,12 @@ Requirements
 * Rust compiler (nightly)
 
 
+Dependencies
+------------
+
+    dnf install SDL-devel libX11-devel
+
+
 Building from the source
 ------------------------
 

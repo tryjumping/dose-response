@@ -1,3 +1,7 @@
+* Depression sometimes doesn't follow the player                        :bug:
+** Sometimes I see it (and it should see me) and it just stands there
+** I'm guessing it's something to do with the world chunks
+*** Could be pathfinding, too but I don't remember it being a problem before the chunks
 * The player can start surrounded by hunger monsters and dead           :bug:
 * The player can start within an irresistible dose's reach              :bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:

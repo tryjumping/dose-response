@@ -45,14 +45,37 @@ fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
         match keys.pop_front() {
             Some(key) => {
                 match key {
-                    Key { code: Up, ..} | Key { code: NumPad8, .. } => commands.push_back(Command::N),
-                    Key { code: Down, ..} | Key { code: NumPad2, .. }  => commands.push_back(Command::S),
-                    Key { code: Left, ctrl: false, shift: true, .. } | Key { code: NumPad7, .. }  => commands.push_back(Command::NW),
-                    Key { code: Left, ctrl: true, shift: false, .. } | Key { code: NumPad1, .. }  => commands.push_back(Command::SW),
-                    Key { code: Left, .. } | Key { code: NumPad4, .. }  => commands.push_back(Command::W),
-                    Key { code: Right, ctrl: false, shift: true, .. } | Key { code: NumPad9, .. }  => commands.push_back(Command::NE),
-                    Key { code: Right, ctrl: true, shift: false, .. } | Key { code: NumPad3, .. }  => commands.push_back(Command::SE),
-                    Key { code: Right, .. } | Key { code: NumPad6, .. }  => commands.push_back(Command::E),
+                    // Numpad (8246 for cardinal and 7193 for diagonal movement)
+                    Key { code: NumPad8, .. } => commands.push_back(Command::N),
+                    Key { code: NumPad2, .. } => commands.push_back(Command::S),
+                    Key { code: NumPad4, .. } => commands.push_back(Command::W),
+                    Key { code: NumPad6, .. } => commands.push_back(Command::E),
+                    Key { code: NumPad7, .. } => commands.push_back(Command::NW),
+                    Key { code: NumPad1, .. } => commands.push_back(Command::SW),
+                    Key { code: NumPad9, .. } => commands.push_back(Command::NE),
+                    Key { code: NumPad3, .. } => commands.push_back(Command::SE),
+
+                    // NotEye (arrow keys plus Ctrl and Shift modifiers for horizontal movement)
+                    Key { code: Up, ..}      => commands.push_back(Command::N),
+                    Key { code: Down, ..}    => commands.push_back(Command::S),
+                    Key { code: Left, ctrl: false, shift: true, .. }   => commands.push_back(Command::NW),
+                    Key { code: Left, ctrl: true, shift: false, .. }   => commands.push_back(Command::SW),
+                    Key { code: Left, .. }   => commands.push_back(Command::W),
+                    Key { code: Right, ctrl: false, shift: true, .. }  => commands.push_back(Command::NE),
+                    Key { code: Right, ctrl: true, shift: false, .. }  => commands.push_back(Command::SE),
+                    Key { code: Right, .. }  => commands.push_back(Command::E),
+
+                    // Vi keys (hjkl for cardinal and yunm for diagonal movement)
+                    Key { printable: 'k', .. } => commands.push_back(Command::N),
+                    Key { printable: 'j', .. }  => commands.push_back(Command::S),
+                    Key { printable: 'h', .. }  => commands.push_back(Command::W),
+                    Key { printable: 'l', .. }  => commands.push_back(Command::E),
+                    Key { printable: 'y', .. }  => commands.push_back(Command::NW),
+                    Key { printable: 'n', .. }  => commands.push_back(Command::SW),
+                    Key { printable: 'u', .. }  => commands.push_back(Command::NE),
+                    Key { printable: 'm', .. }  => commands.push_back(Command::SE),
+
+                    // Non-movement commands
                     Key { printable: 'e', .. } | Key { printable: '1', .. } => {
                         commands.push_back(Command::UseFood);
                     }

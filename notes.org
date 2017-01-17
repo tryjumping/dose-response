@@ -1,3 +1,6 @@
+* The game hangs in some circumstances for some reason                  :bug:
+** replay: BUG-hang.txt
+** not sure why yet, but when it runs, it needs to be `kill -9`d
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
 ** I'm guessing it's something to do with the world chunks

@@ -80,7 +80,9 @@ impl Monster {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
         let distance = self.position.tile_distance(player_pos);
-        let ai_state = if distance <= 5 {
+        // TODO: the original value was 5. This is to test monster
+        // behaviour but we have a crash repro with 15.
+        let ai_state = if distance <= 15 {
             Chasing
         } else {
             Idle

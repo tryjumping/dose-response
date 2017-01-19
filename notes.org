@@ -1,6 +1,3 @@
-* The game hangs in some circumstances for some reason                  :bug:
-** replay: BUG-hang.txt
-** not sure why yet, but when it runs, it needs to be `kill -9`d
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
 ** I'm guessing it's something to do with the world chunks
@@ -587,3 +584,12 @@ CLOSED: [2017-01-17 Tue 00:01]
 *** h/j/k/l mean left/down/up/right
 *** y/u mean top-left/top-right
 *** n/m mean bottom-left/bottom-right
+** DONE The game hangs in some circumstances for some reason           :bug:
+CLOSED: [2017-01-19 Thu 21:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-01-19 Thu 21:57
+:END:
+*** replay: BUG-hang.txt
+*** not sure why yet, but when it runs, it needs to be `kill -9`d
+*** When the path to the target is blocked, the algorithm tries to explore the entire world.
+*** Fixed by setting an upper limit to the amount of calculations it does.

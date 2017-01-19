@@ -56,12 +56,23 @@ impl Path {
         came_from.insert(from, None);
         cost_so_far.insert(from, 0.0);
 
+        // NOTE: the map is effectively infinite. We need to limit the
+        // calculations or the algorithm will try to explore the
+        // entire world before it decides that no path exists.
+        let calculation_limit = 50;
+        let mut calculation_steps = 0;
+
         while let Some(current) = frontier.pop() {
             if current.position == to {
                 break
             }
-
-            for &next in neighbors(current.position).iter() {
+            if calculation_steps >= calculation_limit {
+                break
+            } else {
+                calculation_steps += 1;
+            }
+            let neigh = neighbors(current.position);
+            for &next in neigh.iter() {
                 let new_cost = cost_so_far[&current.position] + cost(current.position, next);
                 let val = cost_so_far.entry(next).or_insert(f32::MAX);
                 if new_cost < *val {
@@ -71,6 +82,12 @@ impl Path {
                     came_from.insert(next, Some(current.position));
                 }
             }
+        }
+
+        if calculation_steps >= calculation_limit {
+            println!("Pathfinding calculation exceeded the limit.");
+        } else {
+            println!("Pathfinding finished in {} calculation steps.", calculation_steps);
         }
 
         let path = {
@@ -96,7 +113,6 @@ impl Path {
         };
 
         assert_eq!(None, path.iter().find(|&&p| p == from));
-
         Path {
             path: path,
         }
@@ -117,7 +133,7 @@ impl Iterator for Path {
     }
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 struct State {
     cost: f32,
     position: Point,

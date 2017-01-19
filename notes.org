@@ -2,6 +2,10 @@
 ** Sometimes I see it (and it should see me) and it just stands there
 ** I'm guessing it's something to do with the world chunks
 *** Could be pathfinding, too but I don't remember it being a problem before the chunks
+** Actually, it looks like it's just the depression moving there and back
+** And we see it because the visibility limit can be greater
+** So really, the monsters should all just set a more distant target and follow it
+** Instead of moving randomly
 * The player can start surrounded by hunger monsters and dead           :bug:
 * The player can start within an irresistible dose's reach              :bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:

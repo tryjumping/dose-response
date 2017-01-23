@@ -16,7 +16,7 @@ use rand::Rng;
 use tcod::input::Key;
 use time::Duration;
 
-use engine::{Engine, KeyCode};
+use engine::{Draw, Engine, KeyCode};
 use game_state::{Command, GameState, Side};
 
 
@@ -489,7 +489,7 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
 }
 
 
-fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine) -> Option<GameState> {
+fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, draw_calls: &mut Vec<Draw>) -> Option<GameState> {
     state.clock = state.clock + dt;
 
     // Quit the game when Q is pressed

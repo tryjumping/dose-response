@@ -173,8 +173,9 @@ impl Engine {
         }
     }
 
-    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, &mut Engine) -> Option<T>) {
+    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, &mut Engine, drawcalls: &mut Vec<Draw>) -> Option<T>) {
         let default_fg = Color{r: 255, g: 255, b: 255};
+        let mut drawcalls = Vec::with_capacity(8192);
         while !self.display.root.window_closed() {
             // self.display.rustbox.present();
             loop {
@@ -188,15 +189,23 @@ impl Engine {
             self.display.root.set_default_foreground(default_fg);
             self.display.root.clear();
             self.display.fade = None;
+            drawcalls.clear();
 
             match update(state,
                          Duration::microseconds((tcod::system::get_last_frame_length() * 1_000_000.0) as i64),
-                         self) {
+                         self,
+                         &mut drawcalls) {
                 Some(new_state) => {
                     state = new_state;
                 }
                 None => break,
             }
+
+            for drawcall in &drawcalls {
+                // TODO: draw the call
+            }
+
+            // TODO: remove this
             match self.display.fade {
                 Some((amount, color)) => {
                     self.display.root.set_fade(amount, color);

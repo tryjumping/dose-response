@@ -11,6 +11,17 @@ pub use tcod::input::{Key, KeyCode};
 use point::Point;
 
 
+#[derive(Debug, Copy, Clone)]
+pub enum Draw<'a> {
+    Char(Point, char),
+    Text(Point, &'a str),
+    Foreground(Point, Color),
+    Background(Point, Color),
+    Rectangle(Point, Color),
+    Fade(f32, Color),
+}
+
+
 pub struct Display {
     root: RootConsole,
     // rustbox: RustBox,

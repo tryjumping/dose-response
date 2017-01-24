@@ -1,7 +1,7 @@
 use time::Duration;
 
 use color::Color;
-use engine::Display;
+use engine::{Display, Draw};
 use point::Point;
 
 
@@ -9,15 +9,15 @@ pub trait Render {
     fn render(&self, dt: Duration) -> (char, Color, Option<Color>);
 }
 
-pub fn draw<R: Render>(display: &mut Display, dt: Duration,
+pub fn draw<R: Render>(display: &mut Display, drawcalls: &mut Vec<Draw>, dt: Duration,
                        pos: Point, render: &R) {
+    use engine::Draw::*;
     let (glyph, fg, bg_opt) = render.render(dt);
-    let bg = match bg_opt {
-        Some(col) => col,
-        // TODO: don't set the background at all if it's not passed in:
-        None => display.get_background(pos)
-    };
-    display.draw_char(pos, glyph, fg, bg);
+    drawcalls.push(Char(pos, glyph));
+    drawcalls.push(Foreground(pos, fg));
+    if let Some(background) = bg_opt {
+        drawcalls.push(Background(pos, background));
+    }
 }
 
 

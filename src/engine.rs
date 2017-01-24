@@ -49,7 +49,7 @@ impl Display {
         //                    &format!("{}", c));
         if self.within_bounds(pos) {
             self.set_background(pos, background);
-            self.root.put_char_ex(pos.x, pos.y, c, foreground, background);
+            //self.root.put_char_ex(pos.x, pos.y, c, foreground, background);
         }
     }
 
@@ -202,7 +202,14 @@ impl Engine {
             }
 
             for drawcall in &drawcalls {
-                // TODO: draw the call
+                match drawcall {
+                    &Draw::Char(pos, chr) => {
+                        if self.display.within_bounds(pos) {
+                            self.display.root.set_char(pos.x, pos.y, chr);
+                        }
+                    }
+                    _ => {},
+                }
             }
 
             // TODO: remove this

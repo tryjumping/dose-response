@@ -489,7 +489,7 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
 }
 
 
-fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, draw_calls: &mut Vec<Draw>) -> Option<GameState> {
+fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawcalls: &mut Vec<Draw>) -> Option<GameState> {
     state.clock = state.clock + dt;
 
     // Quit the game when Q is pressed
@@ -692,9 +692,9 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, draw_
         }
 
         if in_fov(world_pos) {
-            graphics::draw(&mut engine.display, dt, display_pos, &rendered_tile);
+            graphics::draw(&mut engine.display, drawcalls, dt, display_pos, &rendered_tile);
         } else if cell.explored || bonus == player::Bonus::UncoverMap {
-            graphics::draw(&mut engine.display, dt, display_pos, &rendered_tile);
+            graphics::draw(&mut engine.display, drawcalls, dt, display_pos, &rendered_tile);
             engine.display.set_background(display_pos, color::dim_background);
         } else {
             // It's not visible. Do nothing.
@@ -716,7 +716,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, draw_
         // Render the items
         if in_fov(world_pos) || cell.explored || bonus == player::Bonus::SeeMonstersAndItems || bonus == player::Bonus::UncoverMap {
             for item in cell.items.iter() {
-                graphics::draw(&mut engine.display, dt, display_pos, item);
+                graphics::draw(&mut engine.display, drawcalls, dt, display_pos, item);
             }
         }
     });
@@ -747,7 +747,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, draw_
                 let world_pos = monster.position;
                 let display_pos = screen_coords_from_world(world_pos);
                 if within_map_bounds(display_pos) {
-                    graphics::draw(&mut engine.display, dt, display_pos, monster);
+                    graphics::draw(&mut engine.display, drawcalls, dt, display_pos, monster);
                 }
             }
         }
@@ -758,7 +758,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, draw_
         let world_pos = state.player.pos;
         let display_pos = screen_coords_from_world(world_pos);
         if within_map_bounds(display_pos) {
-            graphics::draw(&mut engine.display, dt, display_pos, &state.player);
+            graphics::draw(&mut engine.display, drawcalls, dt, display_pos, &state.player);
         }
     }
 

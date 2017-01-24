@@ -13,8 +13,7 @@ pub fn draw<R: Render>(display: &mut Display, drawcalls: &mut Vec<Draw>, dt: Dur
                        pos: Point, render: &R) {
     use engine::Draw::*;
     let (glyph, fg, bg_opt) = render.render(dt);
-    drawcalls.push(Char(pos, glyph));
-    drawcalls.push(Foreground(pos, fg));
+    drawcalls.push(Char(pos, glyph, fg));
     if let Some(background) = bg_opt {
         drawcalls.push(Background(pos, background));
     }

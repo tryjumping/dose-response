@@ -13,9 +13,8 @@ use point::Point;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Draw<'a> {
-    Char(Point, char),
+    Char(Point, char, Color),
     Text(Point, &'a str),
-    Foreground(Point, Color),
     Background(Point, Color),
     Rectangle(Point, Color),
     Fade(f32, Color),
@@ -203,9 +202,10 @@ impl Engine {
 
             for drawcall in &drawcalls {
                 match drawcall {
-                    &Draw::Char(pos, chr) => {
+                    &Draw::Char(pos, chr, foreground) => {
                         if self.display.within_bounds(pos) {
                             self.display.root.set_char(pos.x, pos.y, chr);
+                            self.display.root.set_char_foreground(pos.x, pos.y, foreground);
                         }
                     }
                     _ => {},

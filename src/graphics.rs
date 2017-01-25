@@ -1,7 +1,7 @@
 use time::Duration;
 
 use color::Color;
-use engine::{Display, Draw};
+use engine::Draw;
 use point::Point;
 
 
@@ -9,8 +9,7 @@ pub trait Render {
     fn render(&self, dt: Duration) -> (char, Color, Option<Color>);
 }
 
-pub fn draw<R: Render>(display: &mut Display, drawcalls: &mut Vec<Draw>, dt: Duration,
-                       pos: Point, render: &R) {
+pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>, dt: Duration, pos: Point, render: &R) {
     use engine::Draw::*;
     let (glyph, fg, bg_opt) = render.render(dt);
     drawcalls.push(Char(pos, glyph, fg));

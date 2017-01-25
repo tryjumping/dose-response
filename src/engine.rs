@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::path::Path;
 
@@ -11,10 +12,10 @@ pub use tcod::input::{Key, KeyCode};
 use point::Point;
 
 
-#[derive(Debug, Copy, Clone)]
-pub enum Draw<'a> {
+#[derive(Debug, Clone)]
+pub enum Draw {
     Char(Point, char, Color),
-    Text(Point, &'a str),
+    Text(Point, Cow<'static, str>, Color),
     Background(Point, Color),
     Rectangle(Point, Color),
     Fade(f32, Color),
@@ -41,28 +42,6 @@ impl Display {
         pos >= (0, 0) && pos < self.size()
     }
 
-    pub fn draw_char(&mut self, pos: Point, c: char,
-                     foreground: Color, background: Color) {
-        // self.rustbox.print(x as usize, y as usize,
-        //                    rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
-        //                    &format!("{}", c));
-        if self.within_bounds(pos) {
-            self.set_background(pos, background);
-            //self.root.put_char_ex(pos.x, pos.y, c, foreground, background);
-        }
-    }
-
-    pub fn write_text<P: Into<Point>>(&mut self, text: &str, pos: P,
-                      foreground: Color, background: Color) {
-        // self.rustbox.print(x as usize, y as usize,
-        //                    rustbox::RB_NORMAL, rustbox::Color::White, rustbox::Color::Default,
-        //                    text);
-        let pos = pos.into();
-        for (i, chr) in text.char_indices() {
-            self.draw_char(pos + (i as i32, 0), chr, foreground, background);
-        }
-    }
-
     pub fn progress_bar<P: Into<Point>>(&mut self, percentage: f32, pos: P, width: i32,
                                         foreground: Color, background: Color)
     {
@@ -81,14 +60,9 @@ impl Display {
             } else {
                 foreground
             };
-            self.draw_char(pos + (x_increment, 0), ' ', color, color);
+            //self.draw_char(pos + (x_increment, 0), ' ', color, color);
         }
-    }
-
-    pub fn set_background(&mut self, pos: Point, color: Color) {
-        if self.within_bounds(pos) {
-            self.root.set_char_background(pos.x, pos.y, color, tcod::BackgroundFlag::Set);
-        }
+        unimplemented!()
     }
 
     pub fn get_background(&self, pos: Point) -> Color {
@@ -202,10 +176,28 @@ impl Engine {
 
             for drawcall in &drawcalls {
                 match drawcall {
-                    &Draw::Char(pos, chr, foreground) => {
+                    &Draw::Char(pos, chr, foreground_color) => {
                         if self.display.within_bounds(pos) {
                             self.display.root.set_char(pos.x, pos.y, chr);
-                            self.display.root.set_char_foreground(pos.x, pos.y, foreground);
+                            self.display.root.set_char_foreground(pos.x, pos.y, foreground_color);
+                        }
+                    }
+
+                    &Draw::Text(start_pos, ref text, color) => {
+                        for (i, chr) in text.char_indices() {
+                            let pos = start_pos + (i as i32, 0);
+                            if self.display.within_bounds(pos) {
+                                self.display.root.set_char(pos.x, pos.y, chr);
+                                self.display.root.set_char_foreground(pos.x, pos.y, color);
+                            }
+                        }
+                    }
+
+                    &Draw::Background(pos, background_color) => {
+                        if self.display.within_bounds(pos) {
+                            self.display.root.set_char_background(pos.x, pos.y,
+                                                                  background_color,
+                                                                  tcod::BackgroundFlag::Set);
                         }
                     }
                     _ => {},

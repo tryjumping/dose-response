@@ -6,6 +6,7 @@ pub extern crate tcod;
 // extern crate rustbox;
 
 
+use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::cmp;
 use std::env;
@@ -399,7 +400,8 @@ fn process_monsters<R: Rng>(world: &mut world::World,
 }
 
 
-fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameState, dt: Duration, fps: i32) {
+fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameState,
+                dt: Duration, drawcalls: &mut Vec<Draw>, fps: i32) {
     let fg = color::gui_text;
     let bg = color::dim_background;
     {
@@ -415,35 +417,35 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
         player::Mind::High(val) => ("High", val.percent()),
     };
 
-    let mut lines = vec![
+    let mut lines: Vec<Cow<'static, str>> = vec![
         mind_str.into(),
         "".into(), // NOTE: placeholder for the Mind state percentage bar
         "".into(),
-        format!("Will: {}", *player.will),
+        format!("Will: {}", *player.will).into(),
     ];
 
     if player.inventory.len() > 0 {
         lines.push("Inventory:".into());
         let food_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Food).count();
         if food_amount > 0 {
-            lines.push(format!("[1] Food: {}", food_amount));
+            lines.push(format!("[1] Food: {}", food_amount).into());
         }
 
         let dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Dose).count();
         if dose_amount > 0 {
-            lines.push(format!("[2] Dose: {}", dose_amount));
+            lines.push(format!("[2] Dose: {}", dose_amount).into());
         }
 
         let strong_dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::StrongDose).count();
         if strong_dose_amount > 0 {
-            lines.push(format!("[3] Strong Dose: {}", strong_dose_amount));
+            lines.push(format!("[3] Strong Dose: {}", strong_dose_amount).into());
         }
     }
 
     lines.push("".into());
 
     if player.will.is_max() {
-        lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()));
+        lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()).into());
     }
 
     if state.cheating {
@@ -452,22 +454,22 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
     }
 
     if state.side == Side::Victory {
-        lines.push(format!("VICTORY!"));
+        lines.push(format!("VICTORY!").into());
     }
 
     if player.alive() {
         if *player.stun > 0 {
-            lines.push(format!("Stunned({})", *player.stun));
+            lines.push(format!("Stunned({})", *player.stun).into());
         }
         if *player.panic > 0 {
-            lines.push(format!("Panicking({})", *player.panic));
+            lines.push(format!("Panicking({})", *player.panic).into());
         }
     } else {
         lines.push("Dead".into());
     }
 
-    for (y, line) in lines.iter().enumerate() {
-        display.write_text(line, (x + 1, y as i32), fg, bg);
+    for (y, line) in lines.into_iter().enumerate() {
+        drawcalls.push(Draw::Text(point::Point{x: x + 1, y: y as i32}, line.into(), fg));
     }
 
     let max_val = match player.mind {
@@ -483,8 +485,9 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
                          color::gui_progress_bar_fg, color::gui_progress_bar_bg);
 
     let bottom = display.size().y - 1;
-    display.write_text(&format!("dt: {}ms", dt.num_milliseconds()), (x + 1, bottom - 1), fg, bg);
-    display.write_text(&format!("FPS: {}", fps), (x + 1, bottom), fg, bg);
+    drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom - 1},
+                              format!("dt: {}ms", dt.num_milliseconds()).into(), fg));
+    drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom}, format!("FPS: {}", fps).into(), fg));
 
 }
 
@@ -692,10 +695,10 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
         }
 
         if in_fov(world_pos) {
-            graphics::draw(&mut engine.display, drawcalls, dt, display_pos, &rendered_tile);
+            graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
         } else if cell.explored || bonus == player::Bonus::UncoverMap {
-            graphics::draw(&mut engine.display, drawcalls, dt, display_pos, &rendered_tile);
-            engine.display.set_background(display_pos, color::dim_background);
+            graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
+            drawcalls.push(Draw::Background(display_pos, color::dim_background));
         } else {
             // It's not visible. Do nothing.
         }
@@ -707,7 +710,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
                 for point in point::SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {
                         let screen_coords = screen_coords_from_world(point);
-                        engine.display.set_background(screen_coords, color::dose_background);
+                        drawcalls.push(Draw::Background(screen_coords, color::dose_background));
                     }
                 }
             }
@@ -716,7 +719,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
         // Render the items
         if in_fov(world_pos) || cell.explored || bonus == player::Bonus::SeeMonstersAndItems || bonus == player::Bonus::UncoverMap {
             for item in cell.items.iter() {
-                graphics::draw(&mut engine.display, drawcalls, dt, display_pos, item);
+                graphics::draw(drawcalls, dt, display_pos, item);
             }
         }
     });
@@ -730,9 +733,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
             for world_pos in point::SquareArea::new(anim.center, anim.current_radius) {
                 if state.world.within_bounds(world_pos) {
                     let display_pos = screen_coords_from_world(world_pos);
-                    if within_map_bounds(display_pos) {
-                        engine.display.set_background(display_pos, anim.color);
-                    }
+                        drawcalls.push(Draw::Background(display_pos, anim.color));
                 }
             }
             state.explosion_animation = Some(anim);
@@ -747,7 +748,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
                 let world_pos = monster.position;
                 let display_pos = screen_coords_from_world(world_pos);
                 if within_map_bounds(display_pos) {
-                    graphics::draw(&mut engine.display, drawcalls, dt, display_pos, monster);
+                    graphics::draw(drawcalls, dt, display_pos, monster);
                 }
             }
         }
@@ -758,12 +759,12 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
         let world_pos = state.player.pos;
         let display_pos = screen_coords_from_world(world_pos);
         if within_map_bounds(display_pos) {
-            graphics::draw(&mut engine.display, drawcalls, dt, display_pos, &state.player);
+            graphics::draw(drawcalls, dt, display_pos, &state.player);
         }
     }
 
     let fps = engine.fps();
-    render_panel(state.map_size.x, state.panel_width, &mut engine.display, &state, dt, fps);
+    render_panel(state.map_size.x, state.panel_width, &mut engine.display, &state, dt, drawcalls, fps);
     Some(state)
 }
 

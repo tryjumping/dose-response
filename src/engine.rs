@@ -42,10 +42,6 @@ impl Display {
         pos >= (0, 0) && pos < self.size()
     }
 
-    pub fn get_background(&self, pos: Point) -> Color {
-        self.root.get_char_background(pos.x, pos.y)
-    }
-
     pub fn size(&self) -> Point {
         (self.root.width(), self.root.height()).into()
     }

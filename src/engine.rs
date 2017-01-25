@@ -20,32 +20,6 @@ pub enum Draw {
 }
 
 
-pub struct Display {
-    root: RootConsole,
-    // rustbox: RustBox,
-    fade: Option<(u8, Color)>,
-}
-
-impl Display {
-    // fn new(root: RootConsole, rustbox: RustBox) -> Display {
-    fn new(root: RootConsole) -> Display {
-        Display {
-            root: root,
-            // rustbox: rustbox,
-            fade: None,
-        }
-    }
-
-    pub fn within_bounds(&self, pos: Point) -> bool {
-        pos >= (0, 0) && pos < self.size()
-    }
-
-    pub fn size(&self) -> Point {
-        (self.root.width(), self.root.height()).into()
-    }
-
-}
-
 #[cfg(not(debug_assertions))]
 fn limit_fps_in_release(fps: i32) {
     tcod::system::set_fps(fps);
@@ -56,7 +30,7 @@ fn limit_fps_in_release(_fps: i32) { }
 
 
 pub struct Engine {
-    pub display: Display,
+    root: RootConsole,
     pub keys: VecDeque<Key>,
 }
 
@@ -85,31 +59,32 @@ impl Engine {
 
         Engine {
             // display: Display::new(root, rustbox),
-            display: Display::new(root),
+            root: root,
             keys: VecDeque::new(),
         }
     }
 
-    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, &mut Engine, drawcalls: &mut Vec<Draw>) -> Option<T>) {
+    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, size: Point, &mut Engine, drawcalls: &mut Vec<Draw>) -> Option<T>) {
         let default_fg = Color{r: 255, g: 255, b: 255};
         let mut drawcalls = Vec::with_capacity(8192);
-        while !self.display.root.window_closed() {
+        let display_size = Point {x: self.root.width(), y: self.root.height()};
+        while !self.root.window_closed() {
             // self.display.rustbox.present();
             loop {
-                match self.display.root.check_for_keypress(tcod::input::KEY_PRESSED) {
+                match self.root.check_for_keypress(tcod::input::KEY_PRESSED) {
                     None => break,
                     Some(key) => {
                         self.keys.push_back(key);
                     }
                 }
             }
-            self.display.root.set_default_foreground(default_fg);
-            self.display.root.clear();
-            self.display.fade = None;
+            self.root.set_default_foreground(default_fg);
+            self.root.clear();
             drawcalls.clear();
 
             match update(state,
                          Duration::microseconds((tcod::system::get_last_frame_length() * 1_000_000.0) as i64),
+                         display_size,
                          self,
                          &mut drawcalls) {
                 Some(new_state) => {
@@ -121,44 +96,44 @@ impl Engine {
             // NOTE: reset the fade value. Fade in tcod is stateful,
             // so if we don't do this, it will stay there even if it's
             // no longer set.
-            self.display.root.set_fade(255, Color{r: 0, g: 0, b: 0});
+            self.root.set_fade(255, Color{r: 0, g: 0, b: 0});
 
             for drawcall in &drawcalls {
                 match drawcall {
                     &Draw::Char(pos, chr, foreground_color) => {
-                        if self.display.within_bounds(pos) {
-                            self.display.root.set_char(pos.x, pos.y, chr);
-                            self.display.root.set_char_foreground(pos.x, pos.y, foreground_color);
+                        if self.within_bounds(pos) {
+                            self.root.set_char(pos.x, pos.y, chr);
+                            self.root.set_char_foreground(pos.x, pos.y, foreground_color);
                         }
                     }
 
                     &Draw::Text(start_pos, ref text, color) => {
                         for (i, chr) in text.char_indices() {
                             let pos = start_pos + (i as i32, 0);
-                            if self.display.within_bounds(pos) {
-                                self.display.root.set_char(pos.x, pos.y, chr);
-                                self.display.root.set_char_foreground(pos.x, pos.y, color);
+                            if self.within_bounds(pos) {
+                                self.root.set_char(pos.x, pos.y, chr);
+                                self.root.set_char_foreground(pos.x, pos.y, color);
                             }
                         }
                     }
 
                     &Draw::Background(pos, background_color) => {
-                        if self.display.within_bounds(pos) {
-                            self.display.root.set_char_background(pos.x, pos.y,
+                        if self.within_bounds(pos) {
+                            self.root.set_char_background(pos.x, pos.y,
                                                                   background_color,
                                                                   tcod::BackgroundFlag::Set);
                         }
                     }
 
                     &Draw::Rectangle(top_left, dimensions, background) => {
-                        let original_background = self.display.root.get_default_background();
-                        self.display.root.set_default_background(background);
+                        let original_background = self.root.get_default_background();
+                        self.root.set_default_background(background);
                         // TODO: this seems to be an invalid assert in tcod. We should
                         // be able to specify the full width & height here, but it
                         // crashes.
-                        self.display.root.rect(top_left.x, top_left.y, dimensions.x, dimensions.y, true,
+                        self.root.rect(top_left.x, top_left.y, dimensions.x, dimensions.y, true,
                                        tcod::BackgroundFlag::Set);
-                        self.display.root.set_default_background(original_background);
+                        self.root.set_default_background(original_background);
                     }
 
                     &Draw::Fade(fade_percentage, color) => {
@@ -170,15 +145,19 @@ impl Engine {
                             fade_percentage
                         };
                         let fade = (fade_percentage * 255.0) as u8;
-                        self.display.root.set_fade(fade, color);
+                        self.root.set_fade(fade, color);
                     },
                 }
             }
 
-            self.display.root.flush();
+            self.root.flush();
         }
     }
 
+    pub fn within_bounds(&self, pos: Point) -> bool {
+        let size = Point {x: self.root.width(), y: self.root.height()};
+        pos >= (0, 0) && pos < size
+    }
 
     pub fn fps(&self) -> i32 {
         tcod::system::get_fps()
@@ -223,7 +202,7 @@ impl Engine {
     }
 
     pub fn toggle_fullscreen(&mut self) {
-        let current_fullscreen_value = self.display.root.is_fullscreen();
-        self.display.root.set_fullscreen(!current_fullscreen_value);
+        let current_fullscreen_value = self.root.is_fullscreen();
+        self.root.set_fullscreen(!current_fullscreen_value);
     }
 }

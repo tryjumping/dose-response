@@ -400,13 +400,13 @@ fn process_monsters<R: Rng>(world: &mut world::World,
 }
 
 
-fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameState,
+fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameState,
                 dt: Duration, drawcalls: &mut Vec<Draw>, fps: i32) {
     let fg = color::gui_text;
     let bg = color::dim_background;
 
     {
-        let height = display.size().y;
+        let height = display_size.y;
         drawcalls.push(
             Draw::Rectangle(point::Point{x: x, y: 0}, point::Point{x: width, y: height}, bg));
     }
@@ -487,7 +487,7 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
     graphics::progress_bar(drawcalls, mind_val_percent, (x + 1, 1).into(), bar_width,
                            color::gui_progress_bar_fg, color::gui_progress_bar_bg);
 
-    let bottom = display.size().y - 1;
+    let bottom = display_size.y - 1;
     drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom - 1},
                               format!("dt: {}ms", dt.num_milliseconds()).into(), fg));
     drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom}, format!("FPS: {}", fps).into(), fg));
@@ -495,7 +495,7 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
 }
 
 
-fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawcalls: &mut Vec<Draw>) -> Option<GameState> {
+fn update(mut state: GameState, dt: Duration, display_size: point::Point, engine: &mut engine::Engine, drawcalls: &mut Vec<Draw>) -> Option<GameState> {
     state.clock = state.clock + dt;
 
     // Quit the game when Q is pressed
@@ -767,7 +767,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
     }
 
     let fps = engine.fps();
-    render_panel(state.map_size.x, state.panel_width, &mut engine.display, &state, dt, drawcalls, fps);
+    render_panel(state.map_size.x, state.panel_width, display_size, &state, dt, drawcalls, fps);
     Some(state)
 }
 

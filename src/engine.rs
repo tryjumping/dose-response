@@ -17,7 +17,7 @@ pub enum Draw {
     Char(Point, char, Color),
     Text(Point, Cow<'static, str>, Color),
     Background(Point, Color),
-    Rectangle(Point, Color),
+    Rectangle(Point, Point, Color),
     Fade(f32, Color),
 }
 
@@ -44,20 +44,6 @@ impl Display {
 
     pub fn get_background(&self, pos: Point) -> Color {
         self.root.get_char_background(pos.x, pos.y)
-    }
-
-    pub fn clear_rect<P: Into<Point>, Q: Into<Point>>(&mut self, start: P, dimensions: Q, background: Color) {
-        let original_background = self.root.get_default_background();
-        self.root.set_default_background(background);
-        let start = start.into();
-        // TODO: this seems to be an invalid assert in tcod. We should
-        // be able to specify the full width & height here, but it
-        // crashes.
-        let dimensions = dimensions.into();
-        self.root.rect(start.x, start.y, dimensions.x, dimensions.y, true,
-                       tcod::BackgroundFlag::Set);
-        self.root.set_default_background(original_background);
-
     }
 
     pub fn size(&self) -> Point {
@@ -177,6 +163,18 @@ impl Engine {
                                                                   tcod::BackgroundFlag::Set);
                         }
                     }
+
+                    &Draw::Rectangle(top_left, dimensions, background) => {
+                        let original_background = self.display.root.get_default_background();
+                        self.display.root.set_default_background(background);
+                        // TODO: this seems to be an invalid assert in tcod. We should
+                        // be able to specify the full width & height here, but it
+                        // crashes.
+                        self.display.root.rect(top_left.x, top_left.y, dimensions.x, dimensions.y, true,
+                                       tcod::BackgroundFlag::Set);
+                        self.display.root.set_default_background(original_background);
+                    }
+
                     _ => {},
                 }
             }

@@ -404,9 +404,11 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
                 dt: Duration, drawcalls: &mut Vec<Draw>, fps: i32) {
     let fg = color::gui_text;
     let bg = color::dim_background;
+
     {
         let height = display.size().y;
-        display.clear_rect((x, 0), (width, height), bg);
+        drawcalls.push(
+            Draw::Rectangle(point::Point{x: x, y: 0}, point::Point{x: width, y: height}, bg));
     }
 
     let player = &state.player;

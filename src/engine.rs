@@ -44,19 +44,6 @@ impl Display {
         (self.root.width(), self.root.height()).into()
     }
 
-    /// `fade_percentage` is from <0f32 to 100f32>.
-    /// 0% means no fade, 100% means screen is completely filled with the `color`
-    pub fn fade(&mut self, fade_percentage: f32, color: Color) {
-        let fade_percentage = if fade_percentage < 0.0 {
-            0.0
-        } else if fade_percentage > 1.0 {
-            1.0
-        } else {
-            fade_percentage
-        };
-        let fade = (fade_percentage * 255.0) as u8;
-        self.fade = Some((fade, color));
-    }
 }
 
 #[cfg(not(debug_assertions))]
@@ -131,6 +118,11 @@ impl Engine {
                 None => break,
             }
 
+            // NOTE: reset the fade value. Fade in tcod is stateful,
+            // so if we don't do this, it will stay there even if it's
+            // no longer set.
+            self.display.root.set_fade(255, Color{r: 0, g: 0, b: 0});
+
             for drawcall in &drawcalls {
                 match drawcall {
                     &Draw::Char(pos, chr, foreground_color) => {
@@ -169,20 +161,20 @@ impl Engine {
                         self.display.root.set_default_background(original_background);
                     }
 
-                    _ => {},
+                    &Draw::Fade(fade_percentage, color) => {
+                        let fade_percentage = if fade_percentage < 0.0 {
+                            0.0
+                        } else if fade_percentage > 1.0 {
+                            1.0
+                        } else {
+                            fade_percentage
+                        };
+                        let fade = (fade_percentage * 255.0) as u8;
+                        self.display.root.set_fade(fade, color);
+                    },
                 }
             }
 
-            // TODO: remove this
-            match self.display.fade {
-                Some((amount, color)) => {
-                    self.display.root.set_fade(amount, color);
-                }
-                None => {
-                    // NOTE: Colour doesn't matter here, value 255 means no fade:
-                    self.display.root.set_fade(255, Color{r: 0, g: 0, b: 0});
-                }
-            }
             self.display.root.flush();
         }
     }

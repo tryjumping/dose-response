@@ -595,7 +595,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
             Withdrawal(value) => {
                 // TODO: animate the fade from the previous value?
                 let fade = value.percent() * 0.6 + 0.2;
-                engine.display.fade(fade , color::Color{r: 0, g: 0, b: 0});
+                drawcalls.push(Draw::Fade(fade , color::Color{r: 0, g: 0, b: 0}));
             }
             Sober(_) | High(_) => {
                 // NOTE: Not withdrawn, don't fade
@@ -627,7 +627,7 @@ fn update(mut state: GameState, dt: Duration, engine: &mut engine::Engine, drawc
                     unreachable!();
                 }
             };
-            engine.display.fade(fade, anim.color);
+            drawcalls.push(Draw::Fade(fade, anim.color));
             let prev_phase = anim.phase;
             anim.update(dt);
             let new_phase = anim.phase;

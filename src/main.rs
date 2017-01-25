@@ -481,8 +481,9 @@ fn render_panel(x: i32, width: i32, display: &mut engine::Display, state: &GameS
     if max_val < bar_width {
         bar_width = max_val;
     }
-    display.progress_bar(mind_val_percent, (x + 1, 1), bar_width,
-                         color::gui_progress_bar_fg, color::gui_progress_bar_bg);
+
+    graphics::progress_bar(drawcalls, mind_val_percent, (x + 1, 1).into(), bar_width,
+                           color::gui_progress_bar_fg, color::gui_progress_bar_bg);
 
     let bottom = display.size().y - 1;
     drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom - 1},

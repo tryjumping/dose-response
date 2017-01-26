@@ -26,6 +26,11 @@
 ** But only when you have no doses and no food
 ** I.e. this is to stop you from being completely fucked
 ** Because right now in that state you just have to wander randomly and hope
+* Distribute the doses based on a pattern                              :idea:
+** First I thought just put them across some jagged lines the player can follow
+** But how about doing a tree-like or better yet (since we're 2D) neuron-like structure?
+** It would give some structure to the map, the centres would have interesting clusters
+** And if the player ever figures it out, might be cool
 * Show the anxiety counter in the UI :idea:
 ** This will make it clearer to figure out that you want to keep hunting the Wills
 ** We can start by showing will with a decimal counter

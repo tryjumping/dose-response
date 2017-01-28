@@ -513,14 +513,15 @@ fn update(mut state: GameState, dt: Duration, display_size: point::Point, fps: i
     }
 
     // Full screen on Alt-Enter
+    // TODO: enable this back again!
     // TODO: this looks like it should have been peek or key_pressed???
-    if let Some(key) = state.keys.keys.pop_front() {
-        if key.code == KeyCode::Enter && (key.left_alt || key.right_alt) {
-            engine.toggle_fullscreen();
-        } else {
-            state.keys.keys.push_front(key);
-        }
-    }
+    // if let Some(key) = state.keys.keys.pop_front() {
+    //     if key.code == KeyCode::Enter && (key.left_alt || key.right_alt) {
+    //         engine.toggle_fullscreen();
+    //     } else {
+    //         state.keys.keys.push_front(key);
+    //     }
+    // }
 
     // Uncover map
     if state.keys.key_pressed(Key { code: KeyCode::F6, pressed: true, .. Default::default() }) {

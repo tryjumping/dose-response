@@ -35,6 +35,10 @@
 ** This will make it clearer to figure out that you want to keep hunting the Wills
 ** We can start by showing will with a decimal counter
 ** Or a "next will" progress bar
+* Add fullscreen on pressing Alt + Enter                            :ui:code:
+** We used to have it but had to disable it during the multiple backends work
+** How do we set it? It's not a draw call per se
+** Maybe have another vec for "engine commands"? What else would we do there though?
 * Need to keep moving while waiting on the victory counter           :design:
 ** Right now, the best strategy is to dance around a save spot, doing nothing
 ** We need to force the player to keep moving

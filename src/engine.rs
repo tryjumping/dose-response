@@ -65,7 +65,7 @@ impl Engine {
         let default_fg = Color{r: 255, g: 255, b: 255};
         let mut drawcalls = Vec::with_capacity(8192);
         let display_size = Point {x: self.root.width(), y: self.root.height()};
-        let keys = vec![];
+        let mut keys = vec![];
         while !self.root.window_closed() {
             // self.display.rustbox.present();
             keys.clear();
@@ -159,8 +159,9 @@ impl Engine {
         pos >= (0, 0) && pos < size
     }
 
-    pub fn toggle_fullscreen(&mut self) {
+    fn _toggle_fullscreen(&mut self) {
         let current_fullscreen_value = self.root.is_fullscreen();
         self.root.set_fullscreen(!current_fullscreen_value);
     }
+
 }

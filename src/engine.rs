@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::collections::VecDeque;
 use std::path::Path;
 
 use time::Duration;
@@ -31,7 +30,6 @@ fn limit_fps_in_release(_fps: i32) { }
 
 pub struct Engine {
     root: RootConsole,
-    pub keys: VecDeque<Key>,
 }
 
 impl Engine {
@@ -60,21 +58,22 @@ impl Engine {
         Engine {
             // display: Display::new(root, rustbox),
             root: root,
-            keys: VecDeque::new(),
         }
     }
 
-    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, size: Point, &mut Engine, drawcalls: &mut Vec<Draw>) -> Option<T>) {
+    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, size: Point, fps: i32, keys: &[Key], drawcalls: &mut Vec<Draw>) -> Option<T>) {
         let default_fg = Color{r: 255, g: 255, b: 255};
         let mut drawcalls = Vec::with_capacity(8192);
         let display_size = Point {x: self.root.width(), y: self.root.height()};
+        let keys = vec![];
         while !self.root.window_closed() {
             // self.display.rustbox.present();
+            keys.clear();
             loop {
                 match self.root.check_for_keypress(tcod::input::KEY_PRESSED) {
                     None => break,
                     Some(key) => {
-                        self.keys.push_back(key);
+                        keys.push(key);
                     }
                 }
             }
@@ -85,7 +84,8 @@ impl Engine {
             match update(state,
                          Duration::microseconds((tcod::system::get_last_frame_length() * 1_000_000.0) as i64),
                          display_size,
-                         self,
+                         tcod::system::get_fps(),
+                         &keys,
                          &mut drawcalls) {
                 Some(new_state) => {
                     state = new_state;
@@ -157,48 +157,6 @@ impl Engine {
     pub fn within_bounds(&self, pos: Point) -> bool {
         let size = Point {x: self.root.width(), y: self.root.height()};
         pos >= (0, 0) && pos < size
-    }
-
-    pub fn fps(&self) -> i32 {
-        tcod::system::get_fps()
-    }
-
-    /// Return true if the given key is located anywhere in the event buffer.
-    pub fn key_pressed(&self, key: Key) -> bool {
-        for &pressed_key in self.keys.iter() {
-            if pressed_key == key {
-                return true;
-            }
-        }
-        false
-    }
-
-    /// Consumes the first occurence of the given key in the buffer.
-    ///
-    /// This is useful when we have a multiple keys in the queue but we want to
-    /// check for a presence of a key which should be processed immediately.
-    ///
-    /// Returns `true` if the key has been in the buffer.
-    ///
-    /// TODO: investigate using a priority queue instead.
-    pub fn read_key(&mut self, key: KeyCode) -> bool {
-        let mut len = self.keys.len();
-        let mut processed = 0;
-        let mut found = false;
-        while processed < len {
-            match self.keys.pop_front() {
-                Some(pressed_key) if !found && pressed_key.code == key => {
-                    len -= 1;
-                    found = true;
-                }
-                Some(pressed_key) => {
-                    self.keys.push_back(pressed_key);
-                }
-                None => return false
-            }
-            processed += 1;
-        }
-        return found;
     }
 
     pub fn toggle_fullscreen(&mut self) {

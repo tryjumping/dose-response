@@ -9,6 +9,7 @@ use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
 use animation::{Explosion, ScreenFade};
+use keys::Keys;
 use player::Player;
 use point::Point;
 use timer::Timer;
@@ -106,6 +107,7 @@ pub struct GameState {
     pub screen_position_in_world: Point,
     pub seed: u32,
     pub rng: IsaacRng,
+    pub keys: Keys,
     pub commands: VecDeque<Command>,
     pub command_logger: Box<Write>,
     pub side: Side,
@@ -149,6 +151,7 @@ impl GameState {
             screen_position_in_world: world_centre,
             seed: seed,
             rng: SeedableRng::from_seed(seed_arr),
+            keys: Keys::new(),
             commands: commands,
             command_logger: Box::new(log_writer),
             side: Side::Player,

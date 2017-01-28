@@ -28,6 +28,7 @@ mod game_state;
 mod generators;
 mod graphics;
 mod item;
+mod keys;
 mod level;
 mod monster;
 mod pathfinding;
@@ -494,43 +495,45 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
 
 }
 
-
-fn update(mut state: GameState, dt: Duration, display_size: point::Point, engine: &mut engine::Engine, drawcalls: &mut Vec<Draw>) -> Option<GameState> {
+fn update(mut state: GameState, dt: Duration, display_size: point::Point, fps: i32, new_keys: &[Key], drawcalls: &mut Vec<Draw>) -> Option<GameState> {
     state.clock = state.clock + dt;
 
+    state.keys.keys.extend(new_keys.iter());
+
     // Quit the game when Q is pressed
-    if engine.key_pressed(Key { printable: 'q', pressed: true, code: KeyCode::Char, .. Default::default() }) {
+    if state.keys.key_pressed(Key { printable: 'q', pressed: true, code: KeyCode::Char, .. Default::default() }) {
         return None;
     }
 
     // Restart the game on F5
-    if engine.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
-        engine.keys.clear();
+    if state.keys.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
+        state.keys.keys.clear();
         let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width, state.display_size);
         return Some(state);
     }
 
     // Full screen on Alt-Enter
-    if let Some(key) = engine.keys.pop_front() {
+    // TODO: this looks like it should have been peek or key_pressed???
+    if let Some(key) = state.keys.keys.pop_front() {
         if key.code == KeyCode::Enter && (key.left_alt || key.right_alt) {
             engine.toggle_fullscreen();
         } else {
-            engine.keys.push_front(key);
+            state.keys.keys.push_front(key);
         }
     }
 
     // Uncover map
-    if engine.key_pressed(Key { code: KeyCode::F6, pressed: true, .. Default::default() }) {
+    if state.keys.key_pressed(Key { code: KeyCode::F6, pressed: true, .. Default::default() }) {
         state.cheating = !state.cheating;
     }
 
-    state.paused = if state.replay && engine.read_key(KeyCode::Spacebar) {
+    state.paused = if state.replay && state.keys.read_key(KeyCode::Spacebar) {
         !state.paused
     } else {
         state.paused
     };
 
-    let paused_one_step = state.paused && engine.read_key(KeyCode::Right);
+    let paused_one_step = state.paused && state.keys.read_key(KeyCode::Right);
     let timed_step = if state.replay && !state.paused && state.clock.num_milliseconds() >= 50 {
         state.clock = Duration::zero();
         true
@@ -554,7 +557,7 @@ fn update(mut state: GameState, dt: Duration, display_size: point::Point, engine
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
 
     if running || paused_one_step || timed_step && state.side != Side::Victory{
-        process_keys(&mut engine.keys, &mut state.commands);
+        process_keys(&mut state.keys.keys, &mut state.commands);
 
         // NOTE: Process player
         process_player(&mut state);
@@ -766,7 +769,6 @@ fn update(mut state: GameState, dt: Duration, display_size: point::Point, engine
         }
     }
 
-    let fps = engine.fps();
     render_panel(state.map_size.x, state.panel_width, display_size, &state, dt, drawcalls, fps);
     Some(state)
 }

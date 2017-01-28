@@ -17,7 +17,7 @@ use rand::Rng;
 use tcod::input::Key;
 use time::Duration;
 
-use engine::{Draw, Engine, KeyCode};
+use engine::{Draw, Engine, KeyCode, Settings};
 use game_state::{Command, GameState, Side};
 
 
@@ -495,10 +495,19 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
 
 }
 
-fn update(mut state: GameState, dt: Duration, display_size: point::Point, fps: i32, new_keys: &[Key], drawcalls: &mut Vec<Draw>) -> Option<GameState> {
+fn update(mut state: GameState,
+          dt: Duration,
+          display_size:
+          point::Point,
+          fps: i32,
+          new_keys: &[Key],
+          mut settings: Settings,
+          drawcalls: &mut Vec<Draw>)
+          -> Option<(Settings, GameState)>
+{
     state.clock = state.clock + dt;
 
-    state.keys.keys.extend(new_keys.iter());
+    state.keys.keys.extend(new_keys);
 
     // Quit the game when Q is pressed
     if state.keys.key_pressed(Key { printable: 'q', pressed: true, code: KeyCode::Char, .. Default::default() }) {
@@ -509,19 +518,13 @@ fn update(mut state: GameState, dt: Duration, display_size: point::Point, fps: i
     if state.keys.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
         state.keys.keys.clear();
         let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width, state.display_size);
-        return Some(state);
+        return Some((settings, state));
     }
 
     // Full screen on Alt-Enter
-    // TODO: enable this back again!
-    // TODO: this looks like it should have been peek or key_pressed???
-    // if let Some(key) = state.keys.keys.pop_front() {
-    //     if key.code == KeyCode::Enter && (key.left_alt || key.right_alt) {
-    //         engine.toggle_fullscreen();
-    //     } else {
-    //         state.keys.keys.push_front(key);
-    //     }
-    // }
+    if state.keys.key_pressed(Key { code: KeyCode::Enter, pressed: true, alt: true, .. Default::default()}) {
+        settings.fullscreen = !settings.fullscreen;
+    }
 
     // Uncover map
     if state.keys.key_pressed(Key { code: KeyCode::F6, pressed: true, .. Default::default() }) {
@@ -771,7 +774,7 @@ fn update(mut state: GameState, dt: Duration, display_size: point::Point, fps: i
     }
 
     render_panel(state.map_size.x, state.panel_width, display_size, &state, dt, drawcalls, fps);
-    Some(state)
+    Some((settings, state))
 }
 
 

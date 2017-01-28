@@ -19,6 +19,15 @@ pub enum Draw {
 }
 
 
+/// Settings the engine needs to carry.
+///
+/// Things such as the fullscreen/windowed display, font size, font
+/// type, etc.
+#[derive(Debug, Clone, Copy)]
+pub struct Settings {
+    pub fullscreen: bool,
+}
+
 #[cfg(not(debug_assertions))]
 fn limit_fps_in_release(fps: i32) {
     tcod::system::set_fps(fps);
@@ -30,6 +39,7 @@ fn limit_fps_in_release(_fps: i32) { }
 
 pub struct Engine {
     root: RootConsole,
+    settings: Settings,
 }
 
 impl Engine {
@@ -58,10 +68,22 @@ impl Engine {
         Engine {
             // display: Display::new(root, rustbox),
             root: root,
+            settings: Settings {
+                fullscreen: false,
+            },
         }
     }
 
-    pub fn main_loop<T>(&mut self, mut state: T, update: fn(T, dt: Duration, size: Point, fps: i32, keys: &[Key], drawcalls: &mut Vec<Draw>) -> Option<T>) {
+    pub fn main_loop<T>(&mut self, mut state: T,
+                        update: fn(T,
+                                   dt: Duration,
+                                   size: Point,
+                                   fps: i32,
+                                   keys: &[Key],
+                                   settings: Settings,
+                                   drawcalls: &mut Vec<Draw>)
+                                   -> Option<(Settings, T)>)
+    {
         let default_fg = Color{r: 255, g: 255, b: 255};
         let mut drawcalls = Vec::with_capacity(8192);
         let display_size = Point {x: self.root.width(), y: self.root.height()};
@@ -86,9 +108,14 @@ impl Engine {
                          display_size,
                          tcod::system::get_fps(),
                          &keys,
+                         self.settings,
                          &mut drawcalls) {
-                Some(new_state) => {
+                Some((new_settings, new_state)) => {
                     state = new_state;
+                    if self.settings.fullscreen != new_settings.fullscreen {
+                        self.root.set_fullscreen(new_settings.fullscreen);
+                    }
+                    self.settings = new_settings;
                 }
                 None => break,
             }
@@ -157,11 +184,6 @@ impl Engine {
     pub fn within_bounds(&self, pos: Point) -> bool {
         let size = Point {x: self.root.width(), y: self.root.height()};
         pos >= (0, 0) && pos < size
-    }
-
-    fn _toggle_fullscreen(&mut self) {
-        let current_fullscreen_value = self.root.is_fullscreen();
-        self.root.set_fullscreen(!current_fullscreen_value);
     }
 
 }

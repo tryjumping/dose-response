@@ -45,6 +45,8 @@ pub fn lerp(from: f32, to: f32, t: f32) -> f32 {
 }
 
 pub fn fade_color(from: Color, to: Color, progress: f32) -> Color {
+    debug_assert!(progress >= 0.0);
+    debug_assert!(progress <= 1.0);
     Color {
         r: lerp(from.r as f32, to.r as f32, progress) as u8,
         g: lerp(from.g as f32, to.g as f32, progress) as u8,

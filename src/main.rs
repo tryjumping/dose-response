@@ -2,6 +2,7 @@
 
 extern crate rand;
 extern crate time;
+extern crate piston_window;
 pub extern crate tcod;
 // extern crate rustbox;
 

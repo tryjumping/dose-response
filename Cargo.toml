@@ -12,3 +12,4 @@ time = "0.1.35"
 rand = "0.3.14"
 tcod = { git = "https://github.com/tomassedovic/tcod-rs" }
 # rustbox = "0.8.0"
+piston_window = "0.63.0"

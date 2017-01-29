@@ -1,7 +1,11 @@
 #![allow(non_upper_case_globals)]
 
-pub use engine::Color;
-
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
 
 pub static background: Color = Color{r: 0, g: 0, b: 0};
 pub static dim_background: Color = Color{r: 30, g: 30, b: 30};

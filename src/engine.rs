@@ -2,11 +2,12 @@ use std::borrow::Cow;
 use std::path::Path;
 
 use time::Duration;
-pub use tcod::{self, Color, Console, FontLayout, FontType, RootConsole};
+use tcod::{self, Console, FontLayout, FontType, RootConsole};
 use tcod::input::Key as TcodKey;
 use tcod::input::KeyCode as TcodCode;
 // use rustbox::{self, RustBox};
 
+use color::Color;
 use keys::{Key, KeyCode};
 use point::Point;
 
@@ -99,6 +100,17 @@ fn key_from_tcod(tcod_key: TcodKey) -> Option<Key> {
 }
 
 
+impl Into<tcod::Color> for Color {
+    fn into(self) -> tcod::Color {
+        tcod::Color {
+            r: self.r,
+            g: self.g,
+            b: self.b,
+        }
+    }
+}
+
+
 #[derive(Debug, Clone)]
 pub enum Draw {
     Char(Point, char, Color),
@@ -141,7 +153,7 @@ impl Engine {
             .font(font_path, FontLayout::Tcod)
             .font_type(FontType::Greyscale)
             .init();
-        root.set_default_background(default_background);
+        root.set_default_background(default_background.into());
 
         // Limit FPS in the release mode
         limit_fps_in_release(60);
@@ -192,7 +204,7 @@ impl Engine {
                     }
                 }
             }
-            self.root.set_default_foreground(default_fg);
+            self.root.set_default_foreground(default_fg.into());
             self.root.clear();
             drawcalls.clear();
 
@@ -216,14 +228,14 @@ impl Engine {
             // NOTE: reset the fade value. Fade in tcod is stateful,
             // so if we don't do this, it will stay there even if it's
             // no longer set.
-            self.root.set_fade(255, Color{r: 0, g: 0, b: 0});
+            self.root.set_fade(255, tcod::Color{r: 0, g: 0, b: 0});
 
             for drawcall in &drawcalls {
                 match drawcall {
                     &Draw::Char(pos, chr, foreground_color) => {
                         if self.within_bounds(pos) {
                             self.root.set_char(pos.x, pos.y, chr);
-                            self.root.set_char_foreground(pos.x, pos.y, foreground_color);
+                            self.root.set_char_foreground(pos.x, pos.y, foreground_color.into());
                         }
                     }
 
@@ -232,7 +244,7 @@ impl Engine {
                             let pos = start_pos + (i as i32, 0);
                             if self.within_bounds(pos) {
                                 self.root.set_char(pos.x, pos.y, chr);
-                                self.root.set_char_foreground(pos.x, pos.y, color);
+                                self.root.set_char_foreground(pos.x, pos.y, color.into());
                             }
                         }
                     }
@@ -240,14 +252,14 @@ impl Engine {
                     &Draw::Background(pos, background_color) => {
                         if self.within_bounds(pos) {
                             self.root.set_char_background(pos.x, pos.y,
-                                                                  background_color,
+                                                                  background_color.into(),
                                                                   tcod::BackgroundFlag::Set);
                         }
                     }
 
                     &Draw::Rectangle(top_left, dimensions, background) => {
                         let original_background = self.root.get_default_background();
-                        self.root.set_default_background(background);
+                        self.root.set_default_background(background.into());
                         // TODO: this seems to be an invalid assert in tcod. We should
                         // be able to specify the full width & height here, but it
                         // crashes.
@@ -265,7 +277,7 @@ impl Engine {
                             fade_percentage
                         };
                         let fade = (fade_percentage * 255.0) as u8;
-                        self.root.set_fade(fade, color);
+                        self.root.set_fade(fade, color.into());
                     },
                 }
             }

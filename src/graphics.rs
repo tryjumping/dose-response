@@ -40,6 +40,14 @@ pub fn progress_bar(drawcalls: &mut Vec<Draw>, percentage: f32, pos: Point, widt
 }
 
 
+pub fn lerp(from: f32, to: f32, t: f32) -> f32 {
+    (1.0 - t) * from + t * to
+}
+
 pub fn fade_color(from: Color, to: Color, progress: f32) -> Color {
-    ::tcod::colors::lerp(from, to, progress)
+    Color {
+        r: lerp(from.r as f32, to.r as f32, progress) as u8,
+        g: lerp(from.g as f32, to.g as f32, progress) as u8,
+        b: lerp(from.b as f32, to.b as f32, progress) as u8,
+    }
 }

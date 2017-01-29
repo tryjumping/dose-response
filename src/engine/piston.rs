@@ -32,6 +32,10 @@ pub fn main_loop<T>(display_size: Point,
         .build()
         .unwrap();
 
+    let tileset = Texture::from_path(
+        &mut window.factory, font_path, Flip::None, &TextureSettings::new()).expect(
+        &format!("Could not load the font map at: '{}'", font_path.display()));
+
     while let Some(event) = window.next() {
         // http://docs.piston.rs/piston_window/input/enum.Event.html
         match event {
@@ -47,6 +51,12 @@ pub fn main_loop<T>(display_size: Point,
             Input::Render(_render_args) => {
                 window.draw_2d(&event, |c, g| {
                     clear(from_color(default_background), g);
+
+
+                    // TODO: try to render a couple of glyphs at
+                    // different colours and backgrounds. We need to
+                    // figure out how that's going to look before we
+                    // do anything else.
                 });
             }
 

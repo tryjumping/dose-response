@@ -10,7 +10,7 @@ use piston_window::{PistonWindow, WindowSettings, Transformed, Glyphs};
 use piston_window::{Input, Button, MouseButton, Motion};
 use piston_window::Key as PistonKey;
 use piston_window::{Texture, Flip, TextureSettings};
-use piston_window::{clear, text, image};
+use piston_window::{clear, text, image, rectangle};
 
 
 fn from_color(color: Color) -> [f32; 4] {
@@ -52,11 +52,29 @@ pub fn main_loop<T>(display_size: Point,
                 window.draw_2d(&event, |c, g| {
                     clear(from_color(default_background), g);
 
+                    rectangle([0.0, 1.0, 0.0, 1.0],
+                              [0.0, 0.0, 16.0, 16.0],
+                              c.transform,
+                              g,
+                    );
 
-                    // TODO: try to render a couple of glyphs at
-                    // different colours and backgrounds. We need to
-                    // figure out how that's going to look before we
-                    // do anything else.
+                    rectangle([0.0, 1.0, 0.0, 1.0],
+                              [32.0, 32.0, 16.0, 16.0],
+                              c.transform,
+                              g,
+                    );
+
+                    // TODO: this isn't getting blended!
+                    // It's because our source images don't set transparent colors.
+                    image::Image::new_color([1.0, 0.0, 1.0, 1.0])
+                        .src_rect([0.0, 48.0, 16.0, 16.0])
+                        .rect([0.0, 0.0, 16.0, 16.0])
+                        .draw(&tileset, &c.draw_state, c.transform, g);
+
+                    image::Image::new_color([0.0, 0.0, 1.0, 1.0])
+                        .src_rect([16.0, 48.0, 16.0, 16.0])
+                        .rect([16.0, 0.0, 16.0, 16.0])
+                        .draw(&tileset, &c.draw_state, c.transform, g);
                 });
             }
 

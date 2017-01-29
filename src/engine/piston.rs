@@ -13,6 +13,11 @@ use piston_window::{Texture, Flip, TextureSettings};
 use piston_window::{clear, text, image};
 
 
+fn from_color(color: Color) -> [f32; 4] {
+    [color.r as f32 / 255.0, color.g as f32 / 255.0, color.b as f32 / 255.0, 1.0]
+}
+
+
 pub fn main_loop<T>(display_size: Point,
                     default_background: Color,
                     window_title: &str,
@@ -24,8 +29,6 @@ pub fn main_loop<T>(display_size: Point,
     let (screen_width, screen_height) = (1024, 768);
     let mut window: PistonWindow = WindowSettings::new(window_title,
                                                        (screen_width, screen_height))
-        // TODO: remove this
-        .exit_on_esc(true)
         .build()
         .unwrap();
 
@@ -40,9 +43,11 @@ pub fn main_loop<T>(display_size: Point,
                 break;
             }
 
-            Input::Render(render_args) => {
-                // RenderArgs{ext_dt, width, height, draw_width, draw_height}
-                let _render_args = render_args;
+            // RenderArgs{ext_dt, width, height, draw_width, draw_height}
+            Input::Render(_render_args) => {
+                window.draw_2d(&event, |c, g| {
+                    clear(from_color(default_background), g);
+                });
             }
 
             _ => {}

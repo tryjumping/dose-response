@@ -16,7 +16,7 @@ use std::path::Path;
 use rand::Rng;
 use time::Duration;
 
-use engine::{Draw, Engine, Settings};
+use engine::{Draw, Settings};
 use game_state::{Command, GameState, Side};
 use keys::{Key, KeyCode};
 
@@ -810,6 +810,6 @@ fn main() {
     // one of the known ones.
     tcod::system::force_fullscreen_resolution(screen_pixel_size.0, screen_pixel_size.1);
 
-    let mut engine = Engine::new(display_size, color::background, title, &font_path);
+    let mut engine = engine::tcod::Engine::new(display_size, color::background, title, &font_path);
     engine.main_loop(game_state, update);
 }

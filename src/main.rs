@@ -14,11 +14,11 @@ use std::io::Write;
 use std::path::Path;
 
 use rand::Rng;
-use tcod::input::Key;
 use time::Duration;
 
-use engine::{Draw, Engine, KeyCode, Settings};
+use engine::{Draw, Engine, Settings};
 use game_state::{Command, GameState, Side};
+use keys::{Key, KeyCode};
 
 
 mod animation;
@@ -40,57 +40,51 @@ mod world;
 
 
 
-fn process_keys(keys: &mut VecDeque<Key>, commands: &mut VecDeque<Command>) {
-    use tcod::input::KeyCode::*;
-    // TODO: switch to DList and consume it with `mut_iter`.
-    loop {
-        match keys.pop_front() {
-            Some(key) => {
-                match key {
-                    // Numpad (8246 for cardinal and 7193 for diagonal movement)
-                    Key { code: NumPad8, .. } => commands.push_back(Command::N),
-                    Key { code: NumPad2, .. } => commands.push_back(Command::S),
-                    Key { code: NumPad4, .. } => commands.push_back(Command::W),
-                    Key { code: NumPad6, .. } => commands.push_back(Command::E),
-                    Key { code: NumPad7, .. } => commands.push_back(Command::NW),
-                    Key { code: NumPad1, .. } => commands.push_back(Command::SW),
-                    Key { code: NumPad9, .. } => commands.push_back(Command::NE),
-                    Key { code: NumPad3, .. } => commands.push_back(Command::SE),
+fn process_keys(keys: &mut keys::Keys, commands: &mut VecDeque<Command>) {
+    use keys::KeyCode::*;
+    while let Some(key) = keys.get() {
+        match key {
+            // Numpad (8246 for cardinal and 7193 for diagonal movement)
+            Key { code: NumPad8, .. } => commands.push_back(Command::N),
+            Key { code: NumPad2, .. } => commands.push_back(Command::S),
+            Key { code: NumPad4, .. } => commands.push_back(Command::W),
+            Key { code: NumPad6, .. } => commands.push_back(Command::E),
+            Key { code: NumPad7, .. } => commands.push_back(Command::NW),
+            Key { code: NumPad1, .. } => commands.push_back(Command::SW),
+            Key { code: NumPad9, .. } => commands.push_back(Command::NE),
+            Key { code: NumPad3, .. } => commands.push_back(Command::SE),
 
-                    // NotEye (arrow keys plus Ctrl and Shift modifiers for horizontal movement)
-                    Key { code: Up, ..}      => commands.push_back(Command::N),
-                    Key { code: Down, ..}    => commands.push_back(Command::S),
-                    Key { code: Left, ctrl: false, shift: true, .. }   => commands.push_back(Command::NW),
-                    Key { code: Left, ctrl: true, shift: false, .. }   => commands.push_back(Command::SW),
-                    Key { code: Left, .. }   => commands.push_back(Command::W),
-                    Key { code: Right, ctrl: false, shift: true, .. }  => commands.push_back(Command::NE),
-                    Key { code: Right, ctrl: true, shift: false, .. }  => commands.push_back(Command::SE),
-                    Key { code: Right, .. }  => commands.push_back(Command::E),
+            // NotEye (arrow keys plus Ctrl and Shift modifiers for horizontal movement)
+            Key { code: Up, ..}      => commands.push_back(Command::N),
+            Key { code: Down, ..}    => commands.push_back(Command::S),
+            Key { code: Left, ctrl: false, shift: true, .. }   => commands.push_back(Command::NW),
+            Key { code: Left, ctrl: true, shift: false, .. }   => commands.push_back(Command::SW),
+            Key { code: Left, .. }   => commands.push_back(Command::W),
+            Key { code: Right, ctrl: false, shift: true, .. }  => commands.push_back(Command::NE),
+            Key { code: Right, ctrl: true, shift: false, .. }  => commands.push_back(Command::SE),
+            Key { code: Right, .. }  => commands.push_back(Command::E),
 
-                    // Vi keys (hjkl for cardinal and yunm for diagonal movement)
-                    Key { printable: 'k', .. } => commands.push_back(Command::N),
-                    Key { printable: 'j', .. }  => commands.push_back(Command::S),
-                    Key { printable: 'h', .. }  => commands.push_back(Command::W),
-                    Key { printable: 'l', .. }  => commands.push_back(Command::E),
-                    Key { printable: 'y', .. }  => commands.push_back(Command::NW),
-                    Key { printable: 'n', .. }  => commands.push_back(Command::SW),
-                    Key { printable: 'u', .. }  => commands.push_back(Command::NE),
-                    Key { printable: 'm', .. }  => commands.push_back(Command::SE),
+            // Vi keys (hjkl for cardinal and yunm for diagonal movement)
+            Key { code: K, .. } => commands.push_back(Command::N),
+            Key { code: J, .. }  => commands.push_back(Command::S),
+            Key { code: H, .. }  => commands.push_back(Command::W),
+            Key { code: L, .. }  => commands.push_back(Command::E),
+            Key { code: Y, .. }  => commands.push_back(Command::NW),
+            Key { code: N, .. }  => commands.push_back(Command::SW),
+            Key { code: U, .. }  => commands.push_back(Command::NE),
+            Key { code: M, .. }  => commands.push_back(Command::SE),
 
-                    // Non-movement commands
-                    Key { printable: 'e', .. } | Key { printable: '1', .. } => {
-                        commands.push_back(Command::UseFood);
-                    }
-                    Key { printable: '2', ..} => {
-                        commands.push_back(Command::UseDose);
-                    }
-                    Key { printable: '3', ..} => {
-                        commands.push_back(Command::UseStrongDose);
-                    }
-                    _ => (),
-                }
-            },
-            None => break,
+            // Non-movement commands
+            Key { code: E, .. } | Key { code: D1, .. } => {
+                commands.push_back(Command::UseFood);
+            }
+            Key { code: D2, ..} => {
+                commands.push_back(Command::UseDose);
+            }
+            Key { code: D3, ..} => {
+                commands.push_back(Command::UseStrongDose);
+            }
+            _ => (),
         }
     }
 }
@@ -507,37 +501,36 @@ fn update(mut state: GameState,
 {
     state.clock = state.clock + dt;
 
-    state.keys.keys.extend(new_keys);
+    state.keys.extend(new_keys.iter().cloned());
 
     // Quit the game when Q is pressed
-    if state.keys.key_pressed(Key { printable: 'q', pressed: true, code: KeyCode::Char, .. Default::default() }) {
+    if state.keys.matches_code(KeyCode::Q) {
         return None;
     }
 
     // Restart the game on F5
-    if state.keys.key_pressed(Key { code: KeyCode::F5, pressed: true, .. Default::default() }) {
-        state.keys.keys.clear();
+    if state.keys.matches_code(KeyCode::F5) {
         let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width, state.display_size);
         return Some((settings, state));
     }
 
     // Full screen on Alt-Enter
-    if state.keys.key_pressed(Key { code: KeyCode::Enter, pressed: true, alt: true, .. Default::default()}) {
+    if state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
         settings.fullscreen = !settings.fullscreen;
     }
 
     // Uncover map
-    if state.keys.key_pressed(Key { code: KeyCode::F6, pressed: true, .. Default::default() }) {
+    if state.keys.matches_code(KeyCode::F6) {
         state.cheating = !state.cheating;
     }
 
-    state.paused = if state.replay && state.keys.read_key(KeyCode::Spacebar) {
+    state.paused = if state.replay && state.keys.matches_code(KeyCode::Spacebar) {
         !state.paused
     } else {
         state.paused
     };
 
-    let paused_one_step = state.paused && state.keys.read_key(KeyCode::Right);
+    let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
     let timed_step = if state.replay && !state.paused && state.clock.num_milliseconds() >= 50 {
         state.clock = Duration::zero();
         true
@@ -561,7 +554,7 @@ fn update(mut state: GameState,
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
 
     if running || paused_one_step || timed_step && state.side != Side::Victory{
-        process_keys(&mut state.keys.keys, &mut state.commands);
+        process_keys(&mut state.keys, &mut state.commands);
 
         // NOTE: Process player
         process_player(&mut state);

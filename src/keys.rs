@@ -1,13 +1,33 @@
 use std::collections::VecDeque;
+use std::iter::IntoIterator;
 
-use engine::{Key, KeyCode};
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct Key {
+    pub code: KeyCode,
+    pub alt: bool,
+    pub ctrl: bool,
+    pub shift: bool,
+}
+
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum KeyCode {
+    D1, D2, D3, D4, D5, D6, D7, D8, D9, D0,
+    A, B, C, D, E, F, G, H, I, J, K, L, M,
+    N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
+    NumPad0, NumPad1, NumPad2, NumPad3, NumPad4,
+    NumPad5, NumPad6, NumPad7, NumPad8, NumPad9,
+    F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
+    Left, Right, Up, Down,
+    Enter, Spacebar,
+}
 
 
 #[derive(Debug)]
 pub struct Keys {
-    pub keys: VecDeque<Key>,
+    keys: VecDeque<Key>,
 }
-
 
 
 impl Keys {
@@ -18,31 +38,25 @@ impl Keys {
         }
     }
 
-    /// Return true if the given key is located anywhere in the event buffer.
-    pub fn key_pressed(&self, key: Key) -> bool {
-        for &pressed_key in self.keys.iter() {
-            if pressed_key == key {
-                return true;
-            }
-        }
-        false
+    /// Pop the `Key` from the beginning of the queue.
+    pub fn get(&mut self) -> Option<Key> {
+        self.keys.pop_front()
     }
 
-    /// Consumes the first occurence of the given key in the buffer.
+    /// Return true if any key matches the `predicate`.
     ///
-    /// This is useful when we have a multiple keys in the queue but we want to
-    /// check for a presence of a key which should be processed immediately.
-    ///
-    /// Returns `true` if the key has been in the buffer.
-    ///
-    /// TODO: investigate using a priority queue instead.
-    pub fn read_key(&mut self, key: KeyCode) -> bool {
+    /// The keys will be checked in order they came in and the first
+    /// one that matches will be taken out of the queue.
+    pub fn matches<F>(&mut self, predicate: F) -> bool
+        where F: Fn(Key) -> bool
+    {
+
         let mut len = self.keys.len();
         let mut processed = 0;
         let mut found = false;
         while processed < len {
             match self.keys.pop_front() {
-                Some(pressed_key) if !found && pressed_key.code == key => {
+                Some(pressed_key) if !found && predicate(pressed_key) => {
                     len -= 1;
                     found = true;
                 }
@@ -54,6 +68,18 @@ impl Keys {
             processed += 1;
         }
         return found;
+
     }
 
+    /// Return true if any key has the specified key code.
+    ///
+    /// The keys will be checked in order they came in and the first
+    /// one that matches will be taken out of the queue.
+    pub fn matches_code(&mut self, key_code: KeyCode) -> bool {
+        self.matches(|k| k.code == key_code)
+    }
+
+    pub fn extend<T: IntoIterator<Item=Key>>(&mut self, iterator: T) {
+        self.keys.extend(iterator)
+    }
 }

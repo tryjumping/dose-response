@@ -3,10 +3,19 @@ use std::path::Path;
 
 use time::Duration;
 pub use tcod::{self, Color, Console, FontLayout, FontType, RootConsole};
-pub use tcod::input::{Key, KeyCode};
+use tcod::input::Key as TcodKey;
+use tcod::input::KeyCode as TcodCode;
 // use rustbox::{self, RustBox};
 
+use keys::{Key, KeyCode};
 use point::Point;
+
+
+impl Into<Key> for TcodKey {
+    fn into(self) -> Key {
+        unimplemented!()
+    }
+}
 
 
 #[derive(Debug, Clone)]
@@ -95,7 +104,7 @@ impl Engine {
                 match self.root.check_for_keypress(tcod::input::KEY_PRESSED) {
                     None => break,
                     Some(key) => {
-                        keys.push(key);
+                        keys.push(key.into());
                     }
                 }
             }

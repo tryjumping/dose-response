@@ -20,7 +20,7 @@ pub enum KeyCode {
     NumPad5, NumPad6, NumPad7, NumPad8, NumPad9,
     F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
     Left, Right, Up, Down,
-    Enter, Spacebar,
+    Enter, Space, Esc,
 }
 
 

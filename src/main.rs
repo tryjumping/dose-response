@@ -524,7 +524,7 @@ fn update(mut state: GameState,
         state.cheating = !state.cheating;
     }
 
-    state.paused = if state.replay && state.keys.matches_code(KeyCode::Spacebar) {
+    state.paused = if state.replay && state.keys.matches_code(KeyCode::Space) {
         !state.paused
     } else {
         state.paused

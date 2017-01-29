@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 
+use time::Duration;
+
 use color::Color;
+use keys::Key;
 use point::Point;
 
 
@@ -27,3 +30,13 @@ pub enum Draw {
 pub struct Settings {
     pub fullscreen: bool,
 }
+
+
+pub type UpdateFn<T> = fn(T,
+                       dt: Duration,
+                       size: Point,
+                       fps: i32,
+                       keys: &[Key],
+                       settings: Settings,
+                       drawcalls: &mut Vec<Draw>)
+                       -> Option<(Settings, T)>;

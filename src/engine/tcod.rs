@@ -6,7 +6,7 @@ use tcod::input::Key as TcodKey;
 use tcod::input::KeyCode as TcodCode;
 
 use color::Color;
-use engine::{Settings, Draw};
+use engine::{Draw, UpdateFn, Settings};
 use keys::{Key, KeyCode};
 use point::Point;
 
@@ -146,16 +146,7 @@ impl Engine {
         }
     }
 
-    pub fn main_loop<T>(&mut self, mut state: T,
-                        update: fn(T,
-                                   dt: Duration,
-                                   size: Point,
-                                   fps: i32,
-                                   keys: &[Key],
-                                   settings: Settings,
-                                   drawcalls: &mut Vec<Draw>)
-                                   -> Option<(Settings, T)>)
-    {
+    pub fn main_loop<T>(&mut self, mut state: T, update: UpdateFn<T>) {
         let default_fg = Color{r: 255, g: 255, b: 255};
         let mut drawcalls = Vec::with_capacity(8192);
         let display_size = Point {x: self.root.width(), y: self.root.height()};

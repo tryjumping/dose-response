@@ -5,6 +5,7 @@ use point::Point;
 
 
 pub mod tcod;
+pub mod rustbox;
 
 
 #[derive(Debug, Clone)]

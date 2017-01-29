@@ -4,7 +4,6 @@ use time::Duration;
 use tcod::{self, Console, FontLayout, FontType, RootConsole};
 use tcod::input::Key as TcodKey;
 use tcod::input::KeyCode as TcodCode;
-// use rustbox::{self, RustBox};
 
 use color::Color;
 use engine::{Settings, Draw};
@@ -138,17 +137,8 @@ impl Engine {
         // Limit FPS in the release mode
         limit_fps_in_release(60);
 
-        // let rustbox = RustBox::init(Default::default()).expect(
-        //     "Failed to initialise rustbox!");
-        // let terminal_size = (rustbox.width() as i32, rustbox.height() as i32);
-        // if (terminal_size.0 < width) || (terminal_size.1 < height) {
-        //     drop(rustbox);
-        //     panic!("The terminal size is too small. Current size: {:?}, required size: {:?}",
-        //              terminal_size, (width, height));
-        // }
 
         Engine {
-            // display: Display::new(root, rustbox),
             root: root,
             settings: Settings {
                 fullscreen: false,
@@ -171,7 +161,6 @@ impl Engine {
         let display_size = Point {x: self.root.width(), y: self.root.height()};
         let mut keys = vec![];
         while !self.root.window_closed() {
-            // self.display.rustbox.present();
             keys.clear();
             loop {
                 match self.root.check_for_keypress(tcod::input::KEY_PRESSED) {

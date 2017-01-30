@@ -263,6 +263,7 @@ pub fn main_loop<T>(display_size: Point,
                     },
                     None => break,
                 };
+                // println!("drawcalls: {}", drawcalls.len());
                 keys.clear();
             }
 
@@ -343,6 +344,26 @@ pub fn main_loop<T>(display_size: Point,
                     //     })
                     //     .collect::<Vec<_>>();
 
+                    // NOTE: we're drawing a bunch of letters on the
+                    // same place, this doesn't seem to affect the
+                    // speed (or slowness) at all. So the only thing
+                    // that I can see to make this faster is to reduce
+                    // the number of drawcalls.
+
+                    // {
+                    //     let fg_col = from_color_with_alpha(Color {r: 255, g: 255, b: 255}, alpha);
+                    //     let source_rectangle = source_rectangle_from_char('A', tilesize);
+                    //     for _ in 0..1024 {
+                    //     let pos = Point{x: 1 as i32, y: 1};
+                    //     let rect = [pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                    //                 tilesize, tilesize];
+                    //         image::Image::new_color(fg_col)
+                    //             .src_rect(source_rectangle)
+                    //             .rect(rect)
+                    //             .draw(&tileset, &c.draw_state, c.transform, g);
+                    //     }
+                    // }
+
                     for drawcall in &drawcalls {
                         match drawcall {
                             &Draw::Char(pos, chr, foreground_color) => {
@@ -390,6 +411,7 @@ pub fn main_loop<T>(display_size: Point,
                             }
                         }
                     }
+
                 });
             }
 

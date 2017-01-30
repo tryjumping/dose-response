@@ -39,7 +39,14 @@ pub fn main_loop<T>(display_size: Point,
     let tileset = Texture::from_path(
         &mut window.factory, font_path, Flip::None, &TextureSettings::new()).expect(
         &format!("Could not load the font map at: '{}'", font_path.display()));
+    let tilesize = 16.0;  // TODO: don't hardcode this value -- calculate it from the tilemap.
 
+
+    let mut settings = Settings {
+        fullscreen: false,
+    };
+    let mut drawcalls = Vec::with_capacity(8192);
+    let mut keys = vec![];
     let mut alpha = 1.0;
     let fade_color = [1.0, 0.0, 1.0, 1.0];
 
@@ -47,13 +54,20 @@ pub fn main_loop<T>(display_size: Point,
         // http://docs.piston.rs/piston_window/input/enum.Event.html
         match event {
             Input::Update(update_args) => {
-                let dt = update_args.dt;
-                println!("{:?}", dt);
-                if alpha <= 0.0 {
-                    alpha = 0.0;
-                } else {
-                    alpha -= dt as f32;
-                }
+                drawcalls.clear();
+                match update(state,
+                             Duration::microseconds((update_args.dt * 1_000_000.0) as i64),
+                             display_size,
+                             1, // TODO: FPS
+                             &keys,
+                             settings,
+                             &mut drawcalls) {
+                    Some((new_settings, new_state)) => {
+                        state = new_state;
+                        settings = new_settings;
+                    },
+                    None => break,
+                };
             }
 
             Input::Release(Button::Keyboard(PistonKey::Q)) => {
@@ -75,26 +89,41 @@ pub fn main_loop<T>(display_size: Point,
                               g);
 
                     rectangle([0.0, 1.0, 0.0, alpha],
-                              [0.0, 0.0, 16.0, 16.0],
+                              [0.0, 0.0, tilesize, tilesize],
                               c.transform,
                               g);
 
                     rectangle([0.0, 1.0, 0.0, alpha],
-                              [32.0, 32.0, 16.0, 16.0],
+                              [32.0, 32.0, tilesize, tilesize],
                               c.transform,
                               g);
 
-                    // TODO: this isn't getting blended!
-                    // It's because our source images don't set transparent colors.
                     image::Image::new_color([1.0, 0.0, 1.0, alpha])
-                        .src_rect([0.0, 48.0, 16.0, 16.0])
-                        .rect([0.0, 0.0, 16.0, 16.0])
+                        .src_rect([0.0, 48.0, tilesize, tilesize])
+                        .rect([0.0, 0.0, tilesize, tilesize])
                         .draw(&tileset, &c.draw_state, c.transform, g);
 
                     image::Image::new_color([0.0, 0.0, 1.0, alpha])
-                        .src_rect([16.0, 48.0, 16.0, 16.0])
-                        .rect([16.0, 0.0, 16.0, 16.0])
+                        .src_rect([16.0, 48.0, tilesize, tilesize])
+                        .rect([16.0, 0.0, tilesize, tilesize])
                         .draw(&tileset, &c.draw_state, c.transform, g);
+
+
+                    for drawcall in &drawcalls {
+                        match drawcall {
+                            &Draw::Char(pos, chr, foreground_color) => {
+                                // TODO: get the correct character mapping here!
+                                image::Image::new_color(
+                                    from_color_with_alpha(foreground_color, alpha))
+                                    .src_rect([0.0, 48.0, tilesize, tilesize])
+                                    .rect([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                                           tilesize, tilesize])
+                                    .draw(&tileset, &c.draw_state, c.transform, g);
+                            }
+
+                            &Draw::Background(..) | &Draw::Text(..) | &Draw::Rectangle(..) | &Draw::Fade(..) => {}
+                        }
+                    }
                 });
             }
 

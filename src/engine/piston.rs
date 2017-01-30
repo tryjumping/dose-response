@@ -266,41 +266,41 @@ pub fn main_loop<T>(display_size: Point,
                 keys.clear();
             }
 
-            Input::Release(Button::Keyboard(PistonKey::LCtrl)) => {
+            Input::Press(Button::Keyboard(PistonKey::LCtrl)) => {
                 lctrl_pressed = true;
             }
-            Input::Release(Button::Keyboard(PistonKey::RCtrl)) => {
+            Input::Press(Button::Keyboard(PistonKey::RCtrl)) => {
                 rctrl_pressed = true;
             }
-            Input::Release(Button::Keyboard(PistonKey::LAlt)) => {
+            Input::Press(Button::Keyboard(PistonKey::LAlt)) => {
                 lalt_pressed = true;
             }
-            Input::Release(Button::Keyboard(PistonKey::RAlt)) => {
+            Input::Press(Button::Keyboard(PistonKey::RAlt)) => {
                 ralt_pressed = true;
             }
-            Input::Release(Button::Keyboard(PistonKey::LShift)) => {
+            Input::Press(Button::Keyboard(PistonKey::LShift)) => {
                 lshift_pressed = true;
             }
-            Input::Release(Button::Keyboard(PistonKey::RShift)) => {
+            Input::Press(Button::Keyboard(PistonKey::RShift)) => {
                 rshift_pressed = true;
             }
 
-            Input::Press(Button::Keyboard(PistonKey::LCtrl)) => {
+            Input::Release(Button::Keyboard(PistonKey::LCtrl)) => {
                 lctrl_pressed = false;
             }
-            Input::Press(Button::Keyboard(PistonKey::RCtrl)) => {
+            Input::Release(Button::Keyboard(PistonKey::RCtrl)) => {
                 rctrl_pressed = false;
             }
-            Input::Press(Button::Keyboard(PistonKey::LAlt)) => {
+            Input::Release(Button::Keyboard(PistonKey::LAlt)) => {
                 lalt_pressed = false;
             }
-            Input::Press(Button::Keyboard(PistonKey::RAlt)) => {
+            Input::Release(Button::Keyboard(PistonKey::RAlt)) => {
                 ralt_pressed = false;
             }
-            Input::Press(Button::Keyboard(PistonKey::LShift)) => {
+            Input::Release(Button::Keyboard(PistonKey::LShift)) => {
                 lshift_pressed = false;
             }
-            Input::Press(Button::Keyboard(PistonKey::RShift)) => {
+            Input::Release(Button::Keyboard(PistonKey::RShift)) => {
                 rshift_pressed = false;
             }
 
@@ -328,6 +328,20 @@ pub fn main_loop<T>(display_size: Point,
                                render_args.draw_height as f64],
                               c.transform,
                               g);
+
+
+                    // NOTE: tried this -- using `draw_many` to speed
+                    // things up but it didn't seem to help :-(
+                    // let charimages = drawcalls.iter()
+                    //     .filter_map(|dc| match dc {
+                    //         &Draw::Char(pos, chr, foreground_color) => {
+                    //             Some(([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                    //                    tilesize, tilesize],
+                    //                   source_rectangle_from_char(chr, tilesize)))
+                    //         }
+                    //         _ => None,
+                    //     })
+                    //     .collect::<Vec<_>>();
 
                     for drawcall in &drawcalls {
                         match drawcall {

@@ -17,8 +17,118 @@ fn from_color(color: Color) -> [f32; 4] {
     from_color_with_alpha(color, 1.0)
 }
 
+
 fn from_color_with_alpha(color: Color, alpha: f32) -> [f32; 4] {
     [color.r as f32 / 255.0, color.g as f32 / 255.0, color.b as f32 / 255.0, alpha]
+}
+
+
+fn source_rectangle_from_char(chr: char, tilesize: f64) -> [f64; 4] {
+    let (x, y) = match chr {
+        ' ' => (0, 0),
+        '!' => (1, 0),
+        '"' => (2, 0),
+        '#' => (3, 0),
+        '$' => (4, 0),
+        '%' => (5, 0),
+        '&' => (6, 0),
+        '\'' => (7, 0),
+        '(' => (8, 0),
+        ')' => (9, 0),
+        '*' => (10, 0),
+        '+' => (11, 0),
+        ',' => (12, 0),
+        '-' => (13, 0),
+        '.' => (14, 0),
+        '/' => (15, 0),
+        '0' => (16, 0),
+        '1' => (17, 0),
+        '2' => (18, 0),
+        '3' => (19, 0),
+        '4' => (20, 0),
+        '5' => (21, 0),
+        '6' => (22, 0),
+        '7' => (23, 0),
+        '8' => (24, 0),
+        '9' => (25, 0),
+        ':' => (26, 0),
+        ';' => (27, 0),
+        '<' => (28, 0),
+        '=' => (29, 0),
+        '>' => (30, 0),
+        '?' => (31, 0),
+
+        '@' => (0, 1),
+        '[' => (1, 1),
+        '\\' => (2, 1),
+        ']' => (3, 1),
+        '^' => (4, 1),
+        '_' => (5, 1),
+        '`' => (6, 1),
+        '{' => (7, 1),
+        '|' => (8, 1),
+        '}' => (9, 1),
+        '~' => (10, 1),
+
+        // TODO: the graphical characters
+
+        'A' => (0, 3),
+        'B' => (1, 3),
+        'C' => (2, 3),
+        'D' => (3, 3),
+        'E' => (4, 3),
+        'F' => (5, 3),
+        'G' => (6, 3),
+        'H' => (7, 3),
+        'I' => (8, 3),
+        'J' => (9, 3),
+        'K' => (10, 3),
+        'L' => (11, 3),
+        'M' => (12, 3),
+        'N' => (13, 3),
+        'O' => (14, 3),
+        'P' => (15, 3),
+        'Q' => (16, 3),
+        'R' => (17, 3),
+        'S' => (18, 3),
+        'T' => (19, 3),
+        'U' => (20, 3),
+        'V' => (21, 3),
+        'W' => (22, 3),
+        'X' => (23, 3),
+        'Y' => (24, 3),
+        'Z' => (25, 3),
+
+        'a' => (0, 4),
+        'b' => (1, 4),
+        'c' => (2, 4),
+        'd' => (3, 4),
+        'e' => (4, 4),
+        'f' => (5, 4),
+        'g' => (6, 4),
+        'h' => (7, 4),
+        'i' => (8, 4),
+        'j' => (9, 4),
+        'k' => (10, 4),
+        'l' => (11, 4),
+        'm' => (12, 4),
+        'n' => (13, 4),
+        'o' => (14, 4),
+        'p' => (15, 4),
+        'q' => (16, 4),
+        'r' => (17, 4),
+        's' => (18, 4),
+        't' => (19, 4),
+        'u' => (20, 4),
+        'v' => (21, 4),
+        'w' => (22, 4),
+        'x' => (23, 4),
+        'y' => (24, 4),
+        'z' => (25, 4),
+
+        _ => (0, 0),
+    };
+    [x as f64 * tilesize, y as f64 * tilesize, tilesize, tilesize]
 }
 
 
@@ -112,10 +222,10 @@ pub fn main_loop<T>(display_size: Point,
                     for drawcall in &drawcalls {
                         match drawcall {
                             &Draw::Char(pos, chr, foreground_color) => {
-                                // TODO: get the correct character mapping here!
+                                let source_rectangle = source_rectangle_from_char(chr, tilesize);
                                 image::Image::new_color(
                                     from_color_with_alpha(foreground_color, alpha))
-                                    .src_rect([0.0, 48.0, tilesize, tilesize])
+                                    .src_rect(source_rectangle)
                                     .rect([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
                                            tilesize, tilesize])
                                     .draw(&tileset, &c.draw_state, c.transform, g);

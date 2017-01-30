@@ -199,6 +199,14 @@ impl Engine {
                         }
                     }
 
+                    &Draw::Background(pos, background_color) => {
+                        if self.within_bounds(pos) {
+                            self.root.set_char_background(pos.x, pos.y,
+                                                                  background_color.into(),
+                                                                  tcod::BackgroundFlag::Set);
+                        }
+                    }
+
                     &Draw::Text(start_pos, ref text, color) => {
                         for (i, chr) in text.char_indices() {
                             let pos = start_pos + (i as i32, 0);
@@ -206,14 +214,6 @@ impl Engine {
                                 self.root.set_char(pos.x, pos.y, chr);
                                 self.root.set_char_foreground(pos.x, pos.y, color.into());
                             }
-                        }
-                    }
-
-                    &Draw::Background(pos, background_color) => {
-                        if self.within_bounds(pos) {
-                            self.root.set_char_background(pos.x, pos.y,
-                                                                  background_color.into(),
-                                                                  tcod::BackgroundFlag::Set);
                         }
                     }
 

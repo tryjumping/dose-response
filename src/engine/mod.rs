@@ -15,8 +15,8 @@ pub mod tcod;
 #[derive(Debug, Clone)]
 pub enum Draw {
     Char(Point, char, Color),
-    Text(Point, Cow<'static, str>, Color),
     Background(Point, Color),
+    Text(Point, Cow<'static, str>, Color),
     Rectangle(Point, Point, Color),
     Fade(f32, Color),
 }

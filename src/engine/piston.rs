@@ -139,8 +139,9 @@ pub fn main_loop<T>(display_size: Point,
                     mut state: T,
                     update: UpdateFn<T>)
 {
-    // TODO remove this
-    let (screen_width, screen_height) = (1024, 768);
+    let tilesize = 16.0;  // TODO: don't hardcode this value -- calculate it from the tilemap.
+    let (screen_width, screen_height) = (display_size.x as u32 * tilesize as u32,
+                                         display_size.y as u32 * tilesize as u32);
     let mut window: PistonWindow = WindowSettings::new(window_title,
                                                        (screen_width, screen_height))
         .build()
@@ -149,7 +150,6 @@ pub fn main_loop<T>(display_size: Point,
     let tileset = Texture::from_path(
         &mut window.factory, font_path, Flip::None, &TextureSettings::new()).expect(
         &format!("Could not load the font map at: '{}'", font_path.display()));
-    let tilesize = 16.0;  // TODO: don't hardcode this value -- calculate it from the tilemap.
 
 
     let mut settings = Settings {
@@ -198,27 +198,6 @@ pub fn main_loop<T>(display_size: Point,
                               c.transform,
                               g);
 
-                    rectangle([0.0, 1.0, 0.0, alpha],
-                              [0.0, 0.0, tilesize, tilesize],
-                              c.transform,
-                              g);
-
-                    rectangle([0.0, 1.0, 0.0, alpha],
-                              [32.0, 32.0, tilesize, tilesize],
-                              c.transform,
-                              g);
-
-                    image::Image::new_color([1.0, 0.0, 1.0, alpha])
-                        .src_rect([0.0, 48.0, tilesize, tilesize])
-                        .rect([0.0, 0.0, tilesize, tilesize])
-                        .draw(&tileset, &c.draw_state, c.transform, g);
-
-                    image::Image::new_color([0.0, 0.0, 1.0, alpha])
-                        .src_rect([16.0, 48.0, tilesize, tilesize])
-                        .rect([16.0, 0.0, tilesize, tilesize])
-                        .draw(&tileset, &c.draw_state, c.transform, g);
-
-
                     for drawcall in &drawcalls {
                         match drawcall {
                             &Draw::Char(pos, chr, foreground_color) => {
@@ -231,7 +210,39 @@ pub fn main_loop<T>(display_size: Point,
                                     .draw(&tileset, &c.draw_state, c.transform, g);
                             }
 
-                            &Draw::Background(..) | &Draw::Text(..) | &Draw::Rectangle(..) | &Draw::Fade(..) => {}
+                            &Draw::Background(pos, background_color) => {
+                                rectangle(from_color_with_alpha(background_color, alpha),
+                                          [pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                                           tilesize, tilesize],
+                                          c.transform,
+                                          g);
+                            }
+
+                            &Draw::Text(start_pos, ref text, color) => {
+                                for (i, chr) in text.char_indices() {
+                                    let pos = start_pos + (i as i32, 0);
+                                    let source_rectangle = source_rectangle_from_char(chr, tilesize);
+                                    image::Image::new_color(
+                                        from_color_with_alpha(color, alpha))
+                                        .src_rect(source_rectangle)
+                                        .rect([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                                               tilesize, tilesize])
+                                        .draw(&tileset, &c.draw_state, c.transform, g);
+                                }
+                            }
+
+                            &Draw::Rectangle(top_left, dimensions, color) => {
+                                rectangle(from_color_with_alpha(color, alpha),
+                                          [top_left.x as f64 * tilesize,
+                                           top_left.y as f64 * tilesize,
+                                           (top_left.x + dimensions.x) as f64 * tilesize,
+                                           (top_left.y + dimensions.y) as f64 * tilesize],
+                                          c.transform,
+                                          g);
+                            }
+
+                            &Draw::Fade(..) => {
+                            }
                         }
                     }
                 });

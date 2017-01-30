@@ -399,6 +399,7 @@ pub fn main_loop<T>(display_size: Point,
                     }
                 }
 
+                // NOTE: in debug mode, this is slowing things down a lot.
                 for drawcall in &drawcalls {
                     match drawcall {
                         &Draw::Char(pos, chr, foreground_color) => {
@@ -455,6 +456,7 @@ pub fn main_loop<T>(display_size: Point,
                 }
 
 
+                // NOTE: in debug mode, this is slowing things down a lot.
                 surface_texture.update(&mut window.encoder, &surface);
 
                 window.draw_2d(&event, |c, g| {

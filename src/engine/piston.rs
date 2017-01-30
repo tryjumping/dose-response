@@ -371,11 +371,11 @@ pub fn main_loop<T>(display_size: Point,
                                        dst_x: u32, dst_y: u32,
                                        destination: &mut J,
                                        tilesize: u32,
-                                       color: Color)
+                                       color: Color,
+                                       alpha: u8)
                         where I: GenericImage<Pixel=image::Rgba<u8>>,
                               J: GenericImage<Pixel=image::Rgba<u8>>,
                     {
-                        let color_pixel = Rgba { data: [color.r, color.g, color.b, 255] };
                         for x in 0..tilesize {
                             for y in 0..tilesize {
                                 let pixel = source.get_pixel(src_x + x, src_y + y).to_rgba();
@@ -384,7 +384,7 @@ pub fn main_loop<T>(display_size: Point,
                                         ((color.r as f32 / 255.0) * (pixel.data[0] as f32 / 255.0) * 255.0) as u8,
                                         ((color.g as f32 / 255.0) * (pixel.data[1] as f32 / 255.0) * 255.0) as u8,
                                         ((color.b as f32 / 255.0) * (pixel.data[2] as f32 / 255.0) * 255.0) as u8,
-                                        pixel.data[3],
+                                        ((alpha as f32 / 255.0) * (pixel.data[3] as f32 / 255.0) * 255.0) as u8,
                                     ]
                                 };
                                 destination.put_pixel(dst_x + x, dst_y + y, result);
@@ -424,7 +424,8 @@ pub fn main_loop<T>(display_size: Point,
                                           pos.x as u32 * tilesize, pos.y as u32 * tilesize,
                                           &mut surface,
                                           tilesize,
-                                          foreground_color);
+                                          foreground_color,
+                                          alpha);
                             }
 
                             &Draw::Background(pos, background_color) => {
@@ -441,7 +442,8 @@ pub fn main_loop<T>(display_size: Point,
                                               pos.x as u32 * tilesize, pos.y as u32 * tilesize,
                                               &mut surface,
                                               tilesize,
-                                              color);
+                                              color,
+                                              alpha);
                                 }
                             }
 

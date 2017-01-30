@@ -132,6 +132,84 @@ fn source_rectangle_from_char(chr: char, tilesize: f64) -> [f64; 4] {
 }
 
 
+fn keycode_from_piston(piston_code: PistonKey) -> Option<KeyCode> {
+    match piston_code {
+        PistonKey::Return => Some(KeyCode::Enter),
+        PistonKey::Escape => Some(KeyCode::Esc),
+        PistonKey::Space => Some(KeyCode::Space),
+
+        PistonKey::D0 => Some(KeyCode::D0),
+        PistonKey::D1 => Some(KeyCode::D1),
+        PistonKey::D2 => Some(KeyCode::D2),
+        PistonKey::D3 => Some(KeyCode::D3),
+        PistonKey::D4 => Some(KeyCode::D4),
+        PistonKey::D5 => Some(KeyCode::D5),
+        PistonKey::D6 => Some(KeyCode::D6),
+        PistonKey::D7 => Some(KeyCode::D7),
+        PistonKey::D8 => Some(KeyCode::D8),
+        PistonKey::D9 => Some(KeyCode::D9),
+
+        PistonKey::A => Some(KeyCode::A),
+        PistonKey::B => Some(KeyCode::B),
+        PistonKey::C => Some(KeyCode::C),
+        PistonKey::D => Some(KeyCode::D),
+        PistonKey::E => Some(KeyCode::E),
+        PistonKey::F => Some(KeyCode::F),
+        PistonKey::G => Some(KeyCode::G),
+        PistonKey::H => Some(KeyCode::H),
+        PistonKey::I => Some(KeyCode::I),
+        PistonKey::J => Some(KeyCode::J),
+        PistonKey::K => Some(KeyCode::K),
+        PistonKey::L => Some(KeyCode::L),
+        PistonKey::M => Some(KeyCode::M),
+        PistonKey::N => Some(KeyCode::N),
+        PistonKey::O => Some(KeyCode::O),
+        PistonKey::P => Some(KeyCode::P),
+        PistonKey::Q => Some(KeyCode::Q),
+        PistonKey::R => Some(KeyCode::R),
+        PistonKey::S => Some(KeyCode::S),
+        PistonKey::T => Some(KeyCode::T),
+        PistonKey::U => Some(KeyCode::U),
+        PistonKey::V => Some(KeyCode::V),
+        PistonKey::W => Some(KeyCode::W),
+        PistonKey::X => Some(KeyCode::X),
+        PistonKey::Y => Some(KeyCode::Y),
+        PistonKey::Z => Some(KeyCode::Z),
+
+        PistonKey::F1 => Some(KeyCode::F1),
+        PistonKey::F2 => Some(KeyCode::F2),
+        PistonKey::F3 => Some(KeyCode::F3),
+        PistonKey::F4 => Some(KeyCode::F4),
+        PistonKey::F5 => Some(KeyCode::F5),
+        PistonKey::F6 => Some(KeyCode::F6),
+        PistonKey::F7 => Some(KeyCode::F7),
+        PistonKey::F8 => Some(KeyCode::F8),
+        PistonKey::F9 => Some(KeyCode::F9),
+        PistonKey::F10 => Some(KeyCode::F10),
+        PistonKey::F11 => Some(KeyCode::F11),
+        PistonKey::F12 => Some(KeyCode::F12),
+
+        PistonKey::Right => Some(KeyCode::Right),
+        PistonKey::Left => Some(KeyCode::Left),
+        PistonKey::Down => Some(KeyCode::Down),
+        PistonKey::Up => Some(KeyCode::Up),
+
+        PistonKey::NumPad1 => Some(KeyCode::NumPad1),
+        PistonKey::NumPad2 => Some(KeyCode::NumPad2),
+        PistonKey::NumPad3 => Some(KeyCode::NumPad3),
+        PistonKey::NumPad4 => Some(KeyCode::NumPad4),
+        PistonKey::NumPad5 => Some(KeyCode::NumPad5),
+        PistonKey::NumPad6 => Some(KeyCode::NumPad6),
+        PistonKey::NumPad7 => Some(KeyCode::NumPad7),
+        PistonKey::NumPad8 => Some(KeyCode::NumPad8),
+        PistonKey::NumPad9 => Some(KeyCode::NumPad9),
+        PistonKey::NumPad0 => Some(KeyCode::NumPad0),
+
+        _ => None,
+    }
+}
+
+
 pub fn main_loop<T>(display_size: Point,
                     default_background: Color,
                     window_title: &str,
@@ -156,6 +234,13 @@ pub fn main_loop<T>(display_size: Point,
         fullscreen: false,
     };
     let mut drawcalls = Vec::with_capacity(8192);
+    let mut lctrl_pressed = false;
+    let mut rctrl_pressed = false;
+    let mut lalt_pressed = false;
+    let mut ralt_pressed = false;
+    let mut lshift_pressed = false;
+    let mut rshift_pressed = false;
+
     let mut keys = vec![];
     let mut alpha = 1.0;
     let fade_color = [1.0, 0.0, 1.0, 1.0];
@@ -178,15 +263,61 @@ pub fn main_loop<T>(display_size: Point,
                     },
                     None => break,
                 };
+                keys.clear();
             }
 
-            Input::Release(Button::Keyboard(PistonKey::Q)) => {
-                break;
+            Input::Release(Button::Keyboard(PistonKey::LCtrl)) => {
+                lctrl_pressed = true;
+            }
+            Input::Release(Button::Keyboard(PistonKey::RCtrl)) => {
+                rctrl_pressed = true;
+            }
+            Input::Release(Button::Keyboard(PistonKey::LAlt)) => {
+                lalt_pressed = true;
+            }
+            Input::Release(Button::Keyboard(PistonKey::RAlt)) => {
+                ralt_pressed = true;
+            }
+            Input::Release(Button::Keyboard(PistonKey::LShift)) => {
+                lshift_pressed = true;
+            }
+            Input::Release(Button::Keyboard(PistonKey::RShift)) => {
+                rshift_pressed = true;
+            }
+
+            Input::Press(Button::Keyboard(PistonKey::LCtrl)) => {
+                lctrl_pressed = false;
+            }
+            Input::Press(Button::Keyboard(PistonKey::RCtrl)) => {
+                rctrl_pressed = false;
+            }
+            Input::Press(Button::Keyboard(PistonKey::LAlt)) => {
+                lalt_pressed = false;
+            }
+            Input::Press(Button::Keyboard(PistonKey::RAlt)) => {
+                ralt_pressed = false;
+            }
+            Input::Press(Button::Keyboard(PistonKey::LShift)) => {
+                lshift_pressed = false;
+            }
+            Input::Press(Button::Keyboard(PistonKey::RShift)) => {
+                rshift_pressed = false;
+            }
+
+            Input::Release(Button::Keyboard(key_code)) => {
+                if let Some(code) = keycode_from_piston(key_code) {
+                    keys.push(Key {
+                        code: code,
+                        alt: lalt_pressed || ralt_pressed,
+                        ctrl: lctrl_pressed || rctrl_pressed,
+                        shift: lshift_pressed || rshift_pressed,
+                    });
+                }
             }
 
             // RenderArgs{ext_dt, width, height, draw_width, draw_height}
             Input::Render(render_args) => {
-                println!("ext_dt: {:?}", render_args.ext_dt);
+                //println!("ext_dt: {:?}", render_args.ext_dt);
                 window.draw_2d(&event, |c, g| {
                     clear(fade_color, g);
 

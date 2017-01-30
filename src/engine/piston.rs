@@ -10,7 +10,9 @@ use piston_window::{PistonWindow, WindowSettings, Transformed, Glyphs};
 use piston_window::{Input, Button, MouseButton, Motion};
 use piston_window::Key as PistonKey;
 use piston_window::{Texture, Flip, TextureSettings};
-use piston_window::{clear, text, image, rectangle};
+use piston_window::{clear, text, rectangle};
+use piston_window::image::Image;
+use image::{self, Rgba, Pixel};
 
 
 fn from_color(color: Color) -> [f32; 4] {
@@ -23,7 +25,7 @@ fn from_color_with_alpha(color: Color, alpha: f32) -> [f32; 4] {
 }
 
 
-fn source_rectangle_from_char(chr: char, tilesize: f64) -> [f64; 4] {
+fn texture_coords_from_char(chr: char, tilesize: u32) -> (u32, u32) {
     let (x, y) = match chr {
         ' ' => (0, 0),
         '!' => (1, 0),
@@ -128,7 +130,7 @@ fn source_rectangle_from_char(chr: char, tilesize: f64) -> [f64; 4] {
 
         _ => (0, 0),
     };
-    [x as f64 * tilesize, y as f64 * tilesize, tilesize, tilesize]
+    (x * tilesize, y * tilesize)
 }
 
 
@@ -217,7 +219,7 @@ pub fn main_loop<T>(display_size: Point,
                     mut state: T,
                     update: UpdateFn<T>)
 {
-    let tilesize = 16.0;  // TODO: don't hardcode this value -- calculate it from the tilemap.
+    let tilesize = 16;  // TODO: don't hardcode this value -- calculate it from the tilemap.
     let (screen_width, screen_height) = (display_size.x as u32 * tilesize as u32,
                                          display_size.y as u32 * tilesize as u32);
     let mut window: PistonWindow = WindowSettings::new(window_title,
@@ -228,7 +230,10 @@ pub fn main_loop<T>(display_size: Point,
     let tileset = Texture::from_path(
         &mut window.factory, font_path, Flip::None, &TextureSettings::new()).expect(
         &format!("Could not load the font map at: '{}'", font_path.display()));
+    let mut tileimage = image::open(font_path).unwrap();
 
+
+    let mut factory = window.factory.clone();
 
     let mut settings = Settings {
         fullscreen: false,
@@ -242,7 +247,7 @@ pub fn main_loop<T>(display_size: Point,
     let mut rshift_pressed = false;
 
     let mut keys = vec![];
-    let mut alpha = 1.0;
+    let mut alpha = 255;
     let fade_color = [1.0, 0.0, 1.0, 1.0];
 
     while let Some(event) = window.next() {
@@ -305,7 +310,7 @@ pub fn main_loop<T>(display_size: Point,
                 rshift_pressed = false;
             }
 
-            Input::Release(Button::Keyboard(key_code)) => {
+            Input::Press(Button::Keyboard(key_code)) => {
                 if let Some(code) = keycode_from_piston(key_code) {
                     keys.push(Key {
                         code: code,
@@ -318,17 +323,165 @@ pub fn main_loop<T>(display_size: Point,
 
             // RenderArgs{ext_dt, width, height, draw_width, draw_height}
             Input::Render(render_args) => {
+                use image::GenericImage;
                 //println!("ext_dt: {:?}", render_args.ext_dt);
                 window.draw_2d(&event, |c, g| {
                     clear(fade_color, g);
 
                     // NOTE: Render the default background
-                    rectangle(from_color_with_alpha(default_background, alpha),
+                    rectangle(from_color_with_alpha(default_background, alpha as f32 / 255.0),
                               [0.0, 0.0,
                                render_args.draw_width as f64,
                                render_args.draw_height as f64],
                               c.transform,
                               g);
+
+
+                    let mut surface = image::ImageBuffer::new(render_args.draw_width, render_args.draw_height);
+
+
+                    //surface.put_pixel(0, 0, image::Rgba{ data: [255, 255, 255, 255] });
+
+                    // We don't want to set this up tbh
+                    // for pixel in surface.pixels_mut() {
+                    //     *pixel = image::Rgba{
+                    //         data: [
+                    //             default_background.r,
+                    //             default_background.g,
+                    //             default_background.b,
+                    //             (alpha * 255.0) as u8
+                    //         ],
+                    //     };
+                    // }
+
+
+                    fn blit_char<I, J>(src_x: u32, src_y: u32,
+                                       source: &I,
+                                       dst_x: u32, dst_y: u32,
+                                       destination: &mut J,
+                                       tilesize: u32,
+                                       color: Color)
+                        where I: GenericImage<Pixel=image::Rgba<u8>>,
+                              J: GenericImage<Pixel=image::Rgba<u8>>,
+                    {
+                        let color_pixel = Rgba { data: [color.r, color.g, color.b, 255] };
+                        for x in 0..tilesize {
+                            for y in 0..tilesize {
+                                let pixel = source.get_pixel(src_x + x, src_y + y).to_rgba();
+                                let result = Rgba {
+                                    data: [
+                                        ((color.r as f32 / 255.0) * (pixel.data[0] as f32 / 255.0) * 255.0) as u8,
+                                        ((color.g as f32 / 255.0) * (pixel.data[1] as f32 / 255.0) * 255.0) as u8,
+                                        ((color.b as f32 / 255.0) * (pixel.data[2] as f32 / 255.0) * 255.0) as u8,
+                                        pixel.data[3],
+                                    ]
+                                };
+                                destination.put_pixel(dst_x + x, dst_y + y, result);
+                            }
+                        }
+                    }
+
+                    fn draw_rect<I>(src_x: u32, src_y: u32,
+                                    destination: &mut I,
+                                    tilesize: u32,
+                                    color: Color,
+                                    alpha: u8)
+                        where I: GenericImage<Pixel=image::Rgba<u8>>,
+                    {
+                        let pixel = Rgba {
+                            data: [
+                                color.r,
+                                color.g,
+                                color.b,
+                                alpha,
+                            ]
+                        };
+                        for x in 0..tilesize {
+                            for y in 0..tilesize {
+                                destination.put_pixel(src_x + x, src_y + y, pixel);
+                            }
+                        }
+                    }
+
+
+                    for drawcall in &drawcalls {
+                        match drawcall {
+                            &Draw::Char(pos, chr, foreground_color) => {
+                                let source_rectangle = texture_coords_from_char(chr, tilesize);
+                                blit_char(source_rectangle.0, source_rectangle.1,
+                                          &tileimage,
+                                          pos.x as u32 * tilesize, pos.y as u32 * tilesize,
+                                          &mut surface,
+                                          tilesize,
+                                          foreground_color);
+                            }
+
+                            &Draw::Background(pos, background_color) => {
+                                draw_rect(pos.x as u32 * tilesize, pos.y as u32 * tilesize,
+                                          &mut surface, tilesize, background_color, alpha);
+                            }
+
+                            &Draw::Text(start_pos, ref text, color) => {
+                                for (i, chr) in text.char_indices() {
+                                    let pos = start_pos + (i as i32, 0);
+                                    let source_rectangle = texture_coords_from_char(chr, tilesize);
+                                    blit_char(source_rectangle.0, source_rectangle.1,
+                                              &tileimage,
+                                              pos.x as u32 * tilesize, pos.y as u32 * tilesize,
+                                              &mut surface,
+                                              tilesize,
+                                              color);
+                                }
+                            }
+
+                            &Draw::Rectangle(top_left, dimensions, color) => {
+                                let pixel = Rgba {
+                                    data: [
+                                        color.r,
+                                        color.g,
+                                        color.b,
+                                        alpha,
+                                    ]
+                                };
+                                for x in 0..(dimensions.x as u32 * tilesize) {
+                                    for y in 0..(dimensions.y as u32 * tilesize) {
+                                        surface.put_pixel(top_left.x as u32 * tilesize + x,
+                                                          top_left.y as u32 * tilesize + y,
+                                                          pixel);
+                                    }
+                                }
+                            }
+
+                            &Draw::Fade(..) => {
+                            }
+                        }
+                    }
+
+                    // for x in 0..(0+16) {
+                    //     for y in 48..(48+32) {
+                    //         let pixel = tileimage.get_pixel(x, y);
+                    //         surface.put_pixel(x, y, pixel);
+                    //     }
+                    // }
+
+                    // for pixel in tileimage.sub_image(0, 48, 16, 32).pixels() {
+                    //     surface.put_pixel(pixel)
+                    // }
+
+
+                    //surface.copy_from(&tileimage.sub_image(0, 48, 16, 32), 0, 0);
+
+
+                    let surface_texture = Texture::from_image(&mut factory, &surface, &TextureSettings::new()).unwrap();
+
+
+                    // Image::new_color(
+                    //     from_color_with_alpha(foreground_color, alpha))
+                    //     .src_rect(source_rectangle)
+                    //     .rect([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                    //            tilesize, tilesize])
+                    //     .draw(&tileset, &c.draw_state, c.transform, g);
+
 
 
                     // NOTE: tried this -- using `draw_many` to speed
@@ -364,53 +517,56 @@ pub fn main_loop<T>(display_size: Point,
                     //     }
                     // }
 
-                    for drawcall in &drawcalls {
-                        match drawcall {
-                            &Draw::Char(pos, chr, foreground_color) => {
-                                let source_rectangle = source_rectangle_from_char(chr, tilesize);
-                                image::Image::new_color(
-                                    from_color_with_alpha(foreground_color, alpha))
-                                    .src_rect(source_rectangle)
-                                    .rect([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
-                                           tilesize, tilesize])
-                                    .draw(&tileset, &c.draw_state, c.transform, g);
-                            }
+                    // for drawcall in &drawcalls {
+                    //     match drawcall {
+                    //         &Draw::Char(pos, chr, foreground_color) => {
+                    //             let source_rectangle = source_rectangle_from_char(chr, tilesize);
+                    //             Image::new_color(
+                    //                 from_color_with_alpha(foreground_color, alpha))
+                    //                 .src_rect(source_rectangle)
+                    //                 .rect([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                    //                        tilesize, tilesize])
+                    //                 .draw(&tileset, &c.draw_state, c.transform, g);
+                    //         }
 
-                            &Draw::Background(pos, background_color) => {
-                                rectangle(from_color_with_alpha(background_color, alpha),
-                                          [pos.x as f64 * tilesize, pos.y as f64 * tilesize,
-                                           tilesize, tilesize],
-                                          c.transform,
-                                          g);
-                            }
+                    //         &Draw::Background(pos, background_color) => {
+                    //             rectangle(from_color_with_alpha(background_color, alpha),
+                    //                       [pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                    //                        tilesize, tilesize],
+                    //                       c.transform,
+                    //                       g);
+                    //         }
 
-                            &Draw::Text(start_pos, ref text, color) => {
-                                for (i, chr) in text.char_indices() {
-                                    let pos = start_pos + (i as i32, 0);
-                                    let source_rectangle = source_rectangle_from_char(chr, tilesize);
-                                    image::Image::new_color(
-                                        from_color_with_alpha(color, alpha))
-                                        .src_rect(source_rectangle)
-                                        .rect([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
-                                               tilesize, tilesize])
-                                        .draw(&tileset, &c.draw_state, c.transform, g);
-                                }
-                            }
+                    //         &Draw::Text(start_pos, ref text, color) => {
+                    //             for (i, chr) in text.char_indices() {
+                    //                 let pos = start_pos + (i as i32, 0);
+                    //                 let source_rectangle = source_rectangle_from_char(chr, tilesize);
+                    //                 Image::new_color(
+                    //                     from_color_with_alpha(color, alpha))
+                    //                     .src_rect(source_rectangle)
+                    //                     .rect([pos.x as f64 * tilesize, pos.y as f64 * tilesize,
+                    //                            tilesize, tilesize])
+                    //                     .draw(&tileset, &c.draw_state, c.transform, g);
+                    //             }
+                    //         }
 
-                            &Draw::Rectangle(top_left, dimensions, color) => {
-                                rectangle(from_color_with_alpha(color, alpha),
-                                          [top_left.x as f64 * tilesize,
-                                           top_left.y as f64 * tilesize,
-                                           (top_left.x + dimensions.x) as f64 * tilesize,
-                                           (top_left.y + dimensions.y) as f64 * tilesize],
-                                          c.transform,
-                                          g);
-                            }
+                    //         &Draw::Rectangle(top_left, dimensions, color) => {
+                    //             rectangle(from_color_with_alpha(color, alpha),
+                    //                       [top_left.x as f64 * tilesize,
+                    //                        top_left.y as f64 * tilesize,
+                    //                        (top_left.x + dimensions.x) as f64 * tilesize,
+                    //                        (top_left.y + dimensions.y) as f64 * tilesize],
+                    //                       c.transform,
+                    //                       g);
+                    //         }
 
-                            &Draw::Fade(..) => {
-                            }
-                        }
-                    }
+                    //         &Draw::Fade(..) => {
+                    //         }
+                    //     }
+                    // }
+
+
+                    ::piston_window::image(&surface_texture, c.transform, g);
 
                 });
             }

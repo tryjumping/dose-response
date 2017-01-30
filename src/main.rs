@@ -3,6 +3,7 @@
 extern crate rand;
 extern crate time;
 extern crate piston_window;
+extern crate image;
 pub extern crate tcod;
 // extern crate rustbox;
 

@@ -14,7 +14,11 @@ use piston_window::{clear, text, image, rectangle};
 
 
 fn from_color(color: Color) -> [f32; 4] {
-    [color.r as f32 / 255.0, color.g as f32 / 255.0, color.b as f32 / 255.0, 1.0]
+    from_color_with_alpha(color, 1.0)
+}
+
+fn from_color_with_alpha(color: Color, alpha: f32) -> [f32; 4] {
+    [color.r as f32 / 255.0, color.g as f32 / 255.0, color.b as f32 / 255.0, alpha]
 }
 
 
@@ -36,11 +40,20 @@ pub fn main_loop<T>(display_size: Point,
         &mut window.factory, font_path, Flip::None, &TextureSettings::new()).expect(
         &format!("Could not load the font map at: '{}'", font_path.display()));
 
+    let mut alpha = 1.0;
+    let fade_color = [1.0, 0.0, 1.0, 1.0];
+
     while let Some(event) = window.next() {
         // http://docs.piston.rs/piston_window/input/enum.Event.html
         match event {
             Input::Update(update_args) => {
                 let dt = update_args.dt;
+                println!("{:?}", dt);
+                if alpha <= 0.0 {
+                    alpha = 0.0;
+                } else {
+                    alpha -= dt as f32;
+                }
             }
 
             Input::Release(Button::Keyboard(PistonKey::Q)) => {
@@ -48,30 +61,37 @@ pub fn main_loop<T>(display_size: Point,
             }
 
             // RenderArgs{ext_dt, width, height, draw_width, draw_height}
-            Input::Render(_render_args) => {
+            Input::Render(render_args) => {
+                println!("ext_dt: {:?}", render_args.ext_dt);
                 window.draw_2d(&event, |c, g| {
-                    clear(from_color(default_background), g);
+                    clear(fade_color, g);
 
-                    rectangle([0.0, 1.0, 0.0, 1.0],
+                    // NOTE: Render the default background
+                    rectangle(from_color_with_alpha(default_background, alpha),
+                              [0.0, 0.0,
+                               render_args.draw_width as f64,
+                               render_args.draw_height as f64],
+                              c.transform,
+                              g);
+
+                    rectangle([0.0, 1.0, 0.0, alpha],
                               [0.0, 0.0, 16.0, 16.0],
                               c.transform,
-                              g,
-                    );
+                              g);
 
-                    rectangle([0.0, 1.0, 0.0, 1.0],
+                    rectangle([0.0, 1.0, 0.0, alpha],
                               [32.0, 32.0, 16.0, 16.0],
                               c.transform,
-                              g,
-                    );
+                              g);
 
                     // TODO: this isn't getting blended!
                     // It's because our source images don't set transparent colors.
-                    image::Image::new_color([1.0, 0.0, 1.0, 1.0])
+                    image::Image::new_color([1.0, 0.0, 1.0, alpha])
                         .src_rect([0.0, 48.0, 16.0, 16.0])
                         .rect([0.0, 0.0, 16.0, 16.0])
                         .draw(&tileset, &c.draw_state, c.transform, g);
 
-                    image::Image::new_color([0.0, 0.0, 1.0, 1.0])
+                    image::Image::new_color([0.0, 0.0, 1.0, alpha])
                         .src_rect([16.0, 48.0, 16.0, 16.0])
                         .rect([16.0, 0.0, 16.0, 16.0])
                         .draw(&tileset, &c.draw_state, c.transform, g);

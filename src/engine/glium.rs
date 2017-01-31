@@ -75,19 +75,52 @@ pub fn main_loop<T>(display_size: Point,
         glium::texture::SrgbTexture2d::new(&display, image).unwrap()
     };
 
+    let (tex_width_px, tex_height_px) = texture.dimensions();
+    let texture_tile_count_x = tex_width_px as f32 / tilesize as f32;
+    let texture_tile_count_y = tex_height_px as f32 / tilesize as f32;
+
+
+    let uniforms = uniform! {
+        tex: &texture,
+        world_dimensions: [display_size.x as f32, display_size.y as f32],
+        texture_gl_dimensions: [texture_tile_count_x, texture_tile_count_y],
+    };
+
 
     // Main loop
 
+    let mut vertices: Vec<Vertex> = vec![];
     let mut previous_frame_time = PreciseTime::now();
 
     loop {
         let now = PreciseTime::now();
         let dt = previous_frame_time.to(now);
         previous_frame_time = now;
+        vertices.clear();
+
+        println!("{:?}", dt);
         //self.world.update(dt, &self.key_events);
 
 
-        // listing the events produced by the window and waiting to be received
+        // Process drawcalls
+        let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
+
+
+        // Render
+        let mut target = display.draw();
+        target.clear_color(1.0, 0.0, 1.0, 1.0);
+        target.draw(&vertex_buffer,
+                    &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+                    &program,
+                    &uniforms,
+                    &DrawParameters {
+                        blend: glium::Blend::alpha_blending(),
+                        .. Default::default()
+                    }).unwrap();
+        target.finish().unwrap();
+
+
+        // Process events
         for ev in display.poll_events() {
             match ev {
                 Event::Closed => return,   // the window has been closed by the user

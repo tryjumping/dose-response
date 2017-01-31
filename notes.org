@@ -1,3 +1,8 @@
+* The colours in the glium backend look washed compared to tcod/piston  :bug:
+* The glium backend blends dots (empty space) with whatever else is there :bug:
+* The glium backend doesn't pass FPS to the update function             :bug:
+* Fade and Rectangle are not implemented for the glium backend          :bug:
+* The explosion animation shows lower reach than it actually has        :bug:
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
 ** I'm guessing it's something to do with the world chunks

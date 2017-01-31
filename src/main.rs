@@ -536,7 +536,7 @@ fn update(mut state: GameState,
 
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
     let timed_step = if state.replay && !state.paused && state.clock.num_milliseconds() >= 50 {
-        state.clock = Duration::zero();
+        //state.clock = Duration::zero();
         true
     } else {
         false
@@ -620,6 +620,7 @@ fn update(mut state: GameState,
     if let Some(mut anim) = state.screen_fading {
         if anim.timer.finished() {
             state.screen_fading = None;
+            println!("Game real time: {:?}", state.clock);
         } else {
             use animation::ScreenFadePhase;
             let fade = match anim.phase {

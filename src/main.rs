@@ -1,5 +1,7 @@
 #![deny(overflowing_literals)]
 
+#[macro_use]
+extern crate glium;
 extern crate rand;
 extern crate time;
 extern crate piston_window;
@@ -816,6 +818,9 @@ fn main() {
     // let mut engine = engine::tcod::Engine::new(display_size, color::background, title, &font_path);
     // engine.main_loop(game_state, update);
 
-    engine::piston::main_loop(display_size, color::background, title, &font_path,
-                              game_state, update);
+    // engine::piston::main_loop(display_size, color::background, title, &font_path,
+    //                           game_state, update);
+
+    engine::glium::main_loop(display_size, color::background, title, &font_path,
+                             game_state, update);
 }

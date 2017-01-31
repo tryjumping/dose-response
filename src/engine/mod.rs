@@ -7,6 +7,7 @@ use keys::Key;
 use point::Point;
 
 
+pub mod glium;
 pub mod piston;
 pub mod rustbox;
 pub mod tcod;

@@ -299,7 +299,6 @@ pub fn main_loop<T>(display_size: Point,
         let dt = previous_frame_time.to(now);
         previous_frame_time = now;
 
-        println!("{:?}", dt);
         drawcalls.clear();
         match update(state,
                      dt,
@@ -377,6 +376,29 @@ pub fn main_loop<T>(display_size: Point,
                 &Draw::Text(start_pos, ref text, color) => {
                     for (i, chr) in text.char_indices() {
                         let pos = start_pos + (i as i32, 0);
+                        let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
+                        let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                        let color = gl_color(color, alpha);
+
+                        vertices.push(Vertex { tile_position: [pos_x,   pos_y],
+                                               tilemap_index:  [tilemap_x, tilemap_y],
+                                               color: color  });
+                        vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
+                                               tilemap_index:  [tilemap_x + 1.0, tilemap_y],
+                                               color: color });
+                        vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
+                                               tilemap_index:  [tilemap_x, tilemap_y + 1.0],
+                                               color: color });
+
+                        vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
+                                               tilemap_index:  [tilemap_x + 1.0, tilemap_y],
+                                               color: color });
+                        vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
+                                               tilemap_index:  [tilemap_x, tilemap_y + 1.0],
+                                               color: color });
+                        vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y + 1.0],
+                                               tilemap_index:  [tilemap_x + 1.0, tilemap_y + 1.0],
+                                               color: color });
                     }
                 }
 

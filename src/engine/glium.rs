@@ -16,7 +16,7 @@ use point::Point;
 
 
 fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
-    [color.r as f32, color.g as f32, color.b as f32, alpha]
+    [color.r as f32 / 255.0, color.g as f32 / 255.0, color.b as f32 / 255.0, alpha]
 }
 
 

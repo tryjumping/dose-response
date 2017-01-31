@@ -317,6 +317,31 @@ pub fn main_loop<T>(display_size: Point,
 
         // Process drawcalls
         vertices.clear();
+                drawcalls.sort_by(|a, b| {
+                    use std::cmp::Ordering::*;
+                    use engine::Draw::*;
+
+                    match (a, b) {
+                        (&Char(..), &Char(..)) => Equal,
+                        (&Background(..), &Background(..)) => Equal,
+                        (&Text(..), &Text(..)) => Equal,
+                        (&Rectangle(..), &Rectangle(..)) => Equal,
+                        (&Fade(..), &Fade(..)) => Equal,
+
+                        (&Fade(..), _) => Less,
+                        (_, &Fade(..)) => Greater,
+
+                        (&Background(..), &Char(..)) => Less,
+                        (&Background(..), &Text(..)) => Less,
+                        (&Background(..), &Rectangle(..)) => Less,
+
+                        (&Char(..), &Background(..)) => Greater,
+                        (&Text(..), &Background(..)) => Greater,
+                        (&Rectangle(..), &Background(..)) => Greater,
+
+                        _ => Equal,
+                    }
+                });
         for drawcall in &drawcalls {
             match drawcall {
                 &Draw::Char(pos, chr, foreground_color) => {

@@ -15,6 +15,119 @@ use keys::{Key, KeyCode};
 use point::Point;
 
 
+fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
+    [color.r as f32, color.g as f32, color.b as f32, alpha]
+}
+
+
+fn texture_coords_from_char(chr: char) -> (f32, f32) {
+    let (x, y) = match chr {
+        ' ' => (0, 0),
+        '!' => (1, 0),
+        '"' => (2, 0),
+        '#' => (3, 0),
+        '$' => (4, 0),
+        '%' => (5, 0),
+        '&' => (6, 0),
+        '\'' => (7, 0),
+        '(' => (8, 0),
+        ')' => (9, 0),
+        '*' => (10, 0),
+        '+' => (11, 0),
+        ',' => (12, 0),
+        '-' => (13, 0),
+        '.' => (14, 0),
+        '/' => (15, 0),
+        '0' => (16, 0),
+        '1' => (17, 0),
+        '2' => (18, 0),
+        '3' => (19, 0),
+        '4' => (20, 0),
+        '5' => (21, 0),
+        '6' => (22, 0),
+        '7' => (23, 0),
+        '8' => (24, 0),
+        '9' => (25, 0),
+        ':' => (26, 0),
+        ';' => (27, 0),
+        '<' => (28, 0),
+        '=' => (29, 0),
+        '>' => (30, 0),
+        '?' => (31, 0),
+
+        '@' => (0, 1),
+        '[' => (1, 1),
+        '\\' => (2, 1),
+        ']' => (3, 1),
+        '^' => (4, 1),
+        '_' => (5, 1),
+        '`' => (6, 1),
+        '{' => (7, 1),
+        '|' => (8, 1),
+        '}' => (9, 1),
+        '~' => (10, 1),
+
+        // TODO: the graphical characters
+
+        'A' => (0, 3),
+        'B' => (1, 3),
+        'C' => (2, 3),
+        'D' => (3, 3),
+        'E' => (4, 3),
+        'F' => (5, 3),
+        'G' => (6, 3),
+        'H' => (7, 3),
+        'I' => (8, 3),
+        'J' => (9, 3),
+        'K' => (10, 3),
+        'L' => (11, 3),
+        'M' => (12, 3),
+        'N' => (13, 3),
+        'O' => (14, 3),
+        'P' => (15, 3),
+        'Q' => (16, 3),
+        'R' => (17, 3),
+        'S' => (18, 3),
+        'T' => (19, 3),
+        'U' => (20, 3),
+        'V' => (21, 3),
+        'W' => (22, 3),
+        'X' => (23, 3),
+        'Y' => (24, 3),
+        'Z' => (25, 3),
+
+        'a' => (0, 4),
+        'b' => (1, 4),
+        'c' => (2, 4),
+        'd' => (3, 4),
+        'e' => (4, 4),
+        'f' => (5, 4),
+        'g' => (6, 4),
+        'h' => (7, 4),
+        'i' => (8, 4),
+        'j' => (9, 4),
+        'k' => (10, 4),
+        'l' => (11, 4),
+        'm' => (12, 4),
+        'n' => (13, 4),
+        'o' => (14, 4),
+        'p' => (15, 4),
+        'q' => (16, 4),
+        'r' => (17, 4),
+        's' => (18, 4),
+        't' => (19, 4),
+        'u' => (20, 4),
+        'v' => (21, 4),
+        'w' => (22, 4),
+        'x' => (23, 4),
+        'y' => (24, 4),
+        'z' => (25, 4),
+
+        _ => (0, 0),
+    };
+    (x as f32, y as f32)
+}
+
 
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
@@ -33,7 +146,7 @@ struct Vertex {
 
     /// Colour of the glyph. The glyphs are greyscale, so this is how
     /// we set the final colour.
-    color: [f32; 3],
+    color: [f32; 4],
 }
 
 implement_vertex!(Vertex, tile_position, tilemap_index, color);
@@ -83,26 +196,91 @@ pub fn main_loop<T>(display_size: Point,
     let uniforms = uniform! {
         tex: &texture,
         world_dimensions: [display_size.x as f32, display_size.y as f32],
-        texture_gl_dimensions: [texture_tile_count_x, texture_tile_count_y],
+        texture_gl_dimensions: [1.0 / texture_tile_count_x, 1.0 / texture_tile_count_y],
     };
 
 
     // Main loop
 
-    let mut vertices: Vec<Vertex> = vec![];
+    let mut settings = Settings {
+        fullscreen: false,
+    };
+    let mut drawcalls = Vec::with_capacity(4000);
+    let mut vertices = Vec::with_capacity(drawcalls.len() * 6);
+    let mut keys = vec![];
+    let mut alpha = 1.0;
     let mut previous_frame_time = PreciseTime::now();
 
     loop {
         let now = PreciseTime::now();
         let dt = previous_frame_time.to(now);
         previous_frame_time = now;
-        vertices.clear();
 
         println!("{:?}", dt);
-        //self.world.update(dt, &self.key_events);
-
+        drawcalls.clear();
+        match update(state,
+                     dt,
+                     display_size,
+                     1,  // TODO: FPS
+                     &keys,
+                     settings,
+                     &mut drawcalls) {
+            Some((new_settings, new_state)) => {
+                state = new_state;
+                settings = new_settings;
+            },
+            None => break,
+        };
+        keys.clear();
 
         // Process drawcalls
+        vertices.clear();
+        for drawcall in &drawcalls {
+            match drawcall {
+                &Draw::Char(pos, chr, foreground_color) => {
+                    let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
+                    let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                    let color = gl_color(foreground_color, alpha);
+
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y],
+                                           tilemap_index:  [tilemap_x, tilemap_y],
+                                           color: color  });
+                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
+                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y],
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
+                                           tilemap_index:  [tilemap_x, tilemap_y + 1.0],
+                                           color: color });
+
+                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
+                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y],
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
+                                           tilemap_index:  [tilemap_x, tilemap_y + 1.0],
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y + 1.0],
+                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y + 1.0],
+                                           color: color });
+
+                }
+
+                &Draw::Background(pos, background_color) => {
+                }
+
+                &Draw::Text(start_pos, ref text, color) => {
+                    for (i, chr) in text.char_indices() {
+                        let pos = start_pos + (i as i32, 0);
+                    }
+                }
+
+                &Draw::Rectangle(top_left, dimensions, color) => {
+                }
+
+                &Draw::Fade(..) => {
+                }
+            }
+        }
+
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
 
 

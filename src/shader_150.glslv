@@ -4,10 +4,10 @@ uniform vec2 world_dimensions;
 
 in vec2 tile_position;
 in vec2 tilemap_index;
-in vec3 color;
+in vec4 color;
 
 out vec2 v_tilemap_index;
-out vec3 v_color;
+out vec4 v_color;
 
 void main() {
     v_tilemap_index = tilemap_index;

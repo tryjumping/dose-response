@@ -1,4 +1,3 @@
-* The colours in the glium backend look washed compared to tcod/piston  :bug:
 * The glium backend blends dots (empty space) with whatever else is there :bug:
 * The glium backend doesn't pass FPS to the update function             :bug:
 * Fade and Rectangle are not implemented for the glium backend          :bug:
@@ -615,3 +614,8 @@ CLOSED: [2017-01-28 So 15:55]
 *** We used to have it but had to disable it during the multiple backends work
 *** How do we set it? It's not a draw call per se
 *** Maybe have another vec for "engine commands"? What else would we do there though?
+** DONE The colours in the glium backend look washed compared to tcod/piston :bug:
+CLOSED: [2017-02-01 St 08:46]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-01 St 08:46
+:END:

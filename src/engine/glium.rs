@@ -249,11 +249,13 @@ pub fn main_loop<T>(display_size: Point,
         .build_glium()
         .expect("dose response ERROR: Could not create the window.");
 
-    let program = glium::Program::from_source(
-        &display,
-        include_str!("../shader_150.glslv"),
-        include_str!("../shader_150.glslf"),
-        None).unwrap();
+    let program = program!(&display,
+                           150 => {
+                               outputs_srgb: true,
+                               vertex: include_str!("../shader_150.glslv"),
+                               fragment: include_str!("../shader_150.glslf")
+                           }
+        ).unwrap();
 
     let texture = {
         let image = image::open(font_path).unwrap().to_rgba();
@@ -268,7 +270,6 @@ pub fn main_loop<T>(display_size: Point,
     let (tex_width_px, tex_height_px) = texture.dimensions();
     let texture_tile_count_x = tex_width_px as f32 / tilesize as f32;
     let texture_tile_count_y = tex_height_px as f32 / tilesize as f32;
-
 
     let uniforms = uniform! {
         tex: &texture,
@@ -342,6 +343,7 @@ pub fn main_loop<T>(display_size: Point,
                         _ => Equal,
                     }
                 });
+
         for drawcall in &drawcalls {
             match drawcall {
                 &Draw::Char(pos, chr, foreground_color) => {
@@ -440,8 +442,8 @@ pub fn main_loop<T>(display_size: Point,
 
         // Render
         let mut target = display.draw();
-        //target.clear_color(1.0, 0.0, 1.0, 1.0);
-        target.clear_color(0.0, 0.0, 0.0, 1.0);
+        target.clear_color_srgb(1.0, 0.0, 1.0, 1.0);
+        //target.clear_color_srgb(0.0, 0.0, 0.0, 1.0);
         target.draw(&vertex_buffer,
                     &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
                     &program,

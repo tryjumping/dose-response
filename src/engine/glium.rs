@@ -292,7 +292,7 @@ pub fn main_loop<T>(display_size: Point,
     let mut rshift_pressed = false;
     let mut vertices = Vec::with_capacity(drawcalls.len() * 6);
     let mut keys = vec![];
-    let mut alpha = 1.0;
+    let alpha = 1.0;  // We're not using alpha at all for now, but it's passed everywhere.
     let mut previous_frame_time = PreciseTime::now();
 
     loop {
@@ -330,8 +330,8 @@ pub fn main_loop<T>(display_size: Point,
                         (&Rectangle(..), &Rectangle(..)) => Equal,
                         (&Fade(..), &Fade(..)) => Equal,
 
-                        (&Fade(..), _) => Less,
-                        (_, &Fade(..)) => Greater,
+                        (&Fade(..), _) => Greater,
+                        (_, &Fade(..)) => Less,
 
                         (&Background(..), &Char(..)) => Less,
                         (&Char(..), &Background(..)) => Greater,
@@ -452,7 +452,35 @@ pub fn main_loop<T>(display_size: Point,
                                            color: color });
                 }
 
-                &Draw::Fade(..) => {
+                &Draw::Fade(fade, color) => {
+                    assert!(fade >= 0.0);
+                    assert!(fade <= 1.0);
+
+                    let (pos_x, pos_y) = (0.0, 0.0);
+                    let (dim_x, dim_y) = (display_size.x as f32, display_size.y as f32);
+                    let tilemap_index = [0.0, 5.0];
+                    let color = gl_color(color, 1.0 - fade);
+
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color  });
+                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + dim_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+
+                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + dim_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y + dim_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+
                 }
             }
         }
@@ -463,7 +491,6 @@ pub fn main_loop<T>(display_size: Point,
         // Render
         let mut target = display.draw();
         target.clear_color_srgb(1.0, 0.0, 1.0, 1.0);
-        //target.clear_color_srgb(0.0, 0.0, 0.0, 1.0);
         target.draw(&vertex_buffer,
                     &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
                     &program,

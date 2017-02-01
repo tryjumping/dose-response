@@ -1,5 +1,5 @@
 use std::path::Path;
-use time::{Duration, PreciseTime};
+use time::PreciseTime;
 
 use glium::{self, DisplayBuild, Surface};
 use glium::draw_parameters::DrawParameters;
@@ -7,7 +7,6 @@ use glium::glutin::{Event, WindowBuilder};
 use glium::glutin::ElementState as PressState;
 use glium::glutin::VirtualKeyCode as BackendKey;
 use image;
-use image::GenericImage;
 
 use color::Color;
 use engine::{Draw, UpdateFn, Settings};

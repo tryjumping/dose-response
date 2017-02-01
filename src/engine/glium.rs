@@ -336,9 +336,6 @@ pub fn main_loop<T>(display_size: Point,
                         (&Background(..), &Char(..)) => Less,
                         (&Char(..), &Background(..)) => Greater,
 
-                        (&Background(..), &Text(..)) => Less,
-                        (&Text(..), &Background(..)) => Greater,
-
                         _ => Equal,
                     }
                 });

@@ -11,5 +11,9 @@ in vec4 v_color;
 out vec4 color;
 
 void main() {
+  if (v_tilemap_index == vec2(0.0, 5.0)) {
+	color = v_color;
+  } else {
     color = texture(tex, v_tilemap_index * texture_gl_dimensions) * v_color;
+  }
 }

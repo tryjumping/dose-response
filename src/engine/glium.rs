@@ -301,6 +301,7 @@ pub fn main_loop<T>(display_size: Point,
         previous_frame_time = now;
 
         drawcalls.clear();
+        drawcalls.push(Draw::Rectangle(Point {x: 0, y: 0}, display_size, default_background));
         match update(state,
                      dt,
                      display_size,
@@ -375,27 +376,27 @@ pub fn main_loop<T>(display_size: Point,
 
                 &Draw::Background(pos, background_color) => {
                     let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
-                    let (tilemap_x, tilemap_y) = (0.0, 5.0);
+                    let tilemap_index = [0.0, 5.0];
                     let color = gl_color(background_color, alpha);
 
                     vertices.push(Vertex { tile_position: [pos_x,   pos_y],
-                                           tilemap_index:  [tilemap_x, tilemap_y],
+                                           tilemap_index:  tilemap_index,
                                            color: color  });
                     vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
-                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y],
+                                           tilemap_index:  tilemap_index,
                                            color: color });
                     vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
-                                           tilemap_index:  [tilemap_x, tilemap_y + 1.0],
+                                           tilemap_index:  tilemap_index,
                                            color: color });
 
                     vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
-                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y],
+                                           tilemap_index:  tilemap_index,
                                            color: color });
                     vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
-                                           tilemap_index:  [tilemap_x, tilemap_y + 1.0],
+                                           tilemap_index:  tilemap_index,
                                            color: color });
                     vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y + 1.0],
-                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y + 1.0],
+                                           tilemap_index:  tilemap_index,
                                            color: color });
 
                 }
@@ -430,6 +431,30 @@ pub fn main_loop<T>(display_size: Point,
                 }
 
                 &Draw::Rectangle(top_left, dimensions, color) => {
+                    let (pos_x, pos_y) = (top_left.x as f32, top_left.y as f32);
+                    let (dim_x, dim_y) = (dimensions.x as f32, dimensions.y as f32);
+                    let tilemap_index = [0.0, 5.0];
+                    let color = gl_color(color, alpha);
+
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color  });
+                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + dim_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+
+                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + dim_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
+                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y + dim_y],
+                                           tilemap_index:  tilemap_index,
+                                           color: color });
                 }
 
                 &Draw::Fade(..) => {

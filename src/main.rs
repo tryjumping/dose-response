@@ -1,5 +1,6 @@
 #![deny(overflowing_literals)]
 
+extern crate clap;
 #[macro_use]
 extern crate glium;
 extern crate rand;
@@ -13,7 +14,6 @@ pub extern crate tcod;
 use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::cmp;
-use std::env;
 use std::io::Write;
 use std::path::Path;
 
@@ -777,6 +777,8 @@ fn update(mut state: GameState,
 
 
 fn main() {
+    use clap::{Arg, ArgGroup, App};
+
     // NOTE: at our current font, the height of 43 is the maximum value for
     // 1336x768 monitors.
     let map_size = 43;
@@ -788,40 +790,50 @@ fn main() {
     let font_dir = Path::new("fonts");
     let font_path = font_dir.join("dejavu16x16_gs_tc.png");
 
-    let game_state = match env::args().count() {
-        1 => {  // Run the game with a new seed, create the replay log
-            // TODO: directory creation is unix-specific because permissions.
-            // This should probably be taken out of GameState and moved here or
-            // to some platform-specific layer.
-            GameState::new_game(world_size, map_size, panel_width, display_size)
-        },
-        2 => {  // Replay the game from the entered log
-            GameState::replay_game(world_size, map_size, panel_width, display_size)
-        },
-        _ => panic!("You must pass either pass zero or one arguments."),
+    let matches = App::new(title)
+        .author("Tomas Sedovic <tomas@sedovic.cz>")
+        .about("Roguelike game about addiction")
+        .arg(Arg::with_name("tcod")
+             .long("tcod")
+             .help("Use the libtcod rendering backend"))
+        .arg(Arg::with_name("piston")
+             .long("piston")
+             .help("Use the Piston rendering backend"))
+        .arg(Arg::with_name("glium")
+             .long("glium")
+             .help("Use the Glium (OpenGL) rendering backend"))
+        .arg(Arg::with_name("rustbox")
+             .long("rustbox")
+             .help("Use the Rustbox (terminal-only) rendering backend"))
+        .group(ArgGroup::with_name("graphics")
+               .args(&["tcod", "piston", "glium", "rustbox"]))
+        .arg(Arg::with_name("replay")
+             .value_name("FILE")
+             .help("Replay this file instead of starting and playing a new game")
+             .takes_value(true))
+        .get_matches();
+
+    let game_state = if let Some(replay) = matches.value_of("replay") {
+        let replay_path = Path::new(replay);
+        GameState::replay_game(world_size, map_size, panel_width, display_size, &replay_path)
+    } else {
+        GameState::new_game(world_size, map_size, panel_width, display_size)
     };
 
-    // TODO: add an option to switch between the backends!
-    // let screen_pixel_size = tcod::system::get_current_resolution();
-    // println!("Current resolution: {:?}", screen_pixel_size);
-    // // TODO: maybe we could just query the current resolution with SDL2 and then use the value here?
-    // // Question is, will that clash with the existing SDL context that libtcod sets up?
-    // //
-    // // TODO: Alternatively, can we use libtcod + sdl2? It doesn't seem
-    // // to be in the makefiles for now, but maybe we can just enable it
-    // // somehow.
-    // //
-    // // TODO: check the screen_width/screen_height values against known
-    // // (supported?) monitor resolutions. Only force fullscreen res if it's
-    // // one of the known ones.
-    // tcod::system::force_fullscreen_resolution(screen_pixel_size.0, screen_pixel_size.1);
+    if matches.is_present("tcod") {
+        println!("Using the libtcod backend.");
+        let mut engine = engine::tcod::Engine::new(display_size, color::background, title, &font_path);
+        engine.main_loop(game_state, update);
+    } else if matches.is_present("piston") {
+        println!("Using the piston backend.");
+        engine::piston::main_loop(display_size, color::background, title, &font_path,
+                                  game_state, update);
+    } else if matches.is_present("rustbox") {
+        println!("Using the rustbox backend.\n  TODO: this is not implemented yet.");
+    } else {
+        println!("Using the default backend: glium");
+        engine::glium::main_loop(display_size, color::background, title, &font_path,
+                                 game_state, update);
+    }
 
-    // let mut engine = engine::tcod::Engine::new(display_size, color::background, title, &font_path);
-    // engine.main_loop(game_state, update);
-
-    // engine::piston::main_loop(display_size, color::background, title, &font_path,
-    //                           game_state, update);
-
-    engine::glium::main_loop(display_size, color::background, title, &font_path,
-                             game_state, update);
 }

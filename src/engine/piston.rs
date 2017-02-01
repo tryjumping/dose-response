@@ -6,18 +6,12 @@ use engine::{Draw, UpdateFn, Settings};
 use keys::{Key, KeyCode};
 use point::Point;
 
-use piston_window::{PistonWindow, WindowSettings, Transformed, Glyphs};
-use piston_window::{Input, Button, MouseButton, Motion};
+use piston_window::{PistonWindow, WindowSettings};
+use piston_window::{Input, Button};
 use piston_window::Key as PistonKey;
-use piston_window::{Texture, Flip, TextureSettings};
-use piston_window::{clear, text, rectangle};
-use piston_window::image::Image;
+use piston_window::{Texture, TextureSettings};
+use piston_window::{clear, rectangle};
 use image::{self, Rgba, Pixel};
-
-
-fn from_color(color: Color) -> [f32; 4] {
-    from_color_with_alpha(color, 1.0)
-}
 
 
 fn from_color_with_alpha(color: Color, alpha: f32) -> [f32; 4] {
@@ -227,7 +221,7 @@ pub fn main_loop<T>(display_size: Point,
         .build()
         .unwrap();
 
-    let mut tileimage = image::open(font_path).expect(
+    let tileimage = image::open(font_path).expect(
         &format!("Could not load the font map at: '{}'", font_path.display()));
     let mut surface = image::ImageBuffer::new(screen_width, screen_height);
     let mut surface_texture = Texture::from_image(&mut window.factory, &surface, &TextureSettings::new()).unwrap();
@@ -246,7 +240,7 @@ pub fn main_loop<T>(display_size: Point,
     let mut rshift_pressed = false;
 
     let mut keys = vec![];
-    let mut alpha = 255;
+    let alpha = 255;
     let fade_color = [1.0, 0.0, 1.0, 1.0];
 
     while let Some(event) = window.next() {
@@ -457,7 +451,7 @@ pub fn main_loop<T>(display_size: Point,
 
 
                 // NOTE: in debug mode, this is slowing things down a lot.
-                surface_texture.update(&mut window.encoder, &surface);
+                surface_texture.update(&mut window.encoder, &surface).unwrap();
 
                 window.draw_2d(&event, |c, g| {
                     clear(fade_color, g);

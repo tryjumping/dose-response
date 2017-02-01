@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::env;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufRead, Write};
 use std::path::Path;
@@ -193,10 +192,8 @@ impl GameState {
         GameState::new(world_size, map_size, panel_width, display_size, commands, writer, seed, false, false)
     }
 
-    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point) -> GameState {
+    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path) -> GameState {
         let mut commands = VecDeque::new();
-        let path_str = env::args().nth(1).unwrap();
-        let replay_path = &Path::new(&path_str);
         let seed: u32;
         match File::open(replay_path) {
             Ok(file) => {

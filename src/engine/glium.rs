@@ -334,12 +334,10 @@ pub fn main_loop<T>(display_size: Point,
                         (_, &Fade(..)) => Greater,
 
                         (&Background(..), &Char(..)) => Less,
-                        (&Background(..), &Text(..)) => Less,
-                        (&Background(..), &Rectangle(..)) => Less,
-
                         (&Char(..), &Background(..)) => Greater,
+
+                        (&Background(..), &Text(..)) => Less,
                         (&Text(..), &Background(..)) => Greater,
-                        (&Rectangle(..), &Background(..)) => Greater,
 
                         _ => Equal,
                     }

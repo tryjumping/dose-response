@@ -1,7 +1,11 @@
 * The glium backend blends dots (empty space) with whatever else is there :bug:
 * The glium backend doesn't pass FPS to the update function             :bug:
-* Fade and Rectangle are not implemented for the glium backend          :bug:
-* The explosion animation shows lower reach than it actually has        :bug:
+* Compile the rendering backends conditionally                         :code:
+** Use cargo features to select which backends (tcod, rustbox, glium, piston) to even compile
+** Would make things easier for clone/cargo run and distribution
+** Glium is going to be the default
+** In the end, I'll probably ditch everything else, but it'll be useful for comparison for now
+* The explosion animation shows lower area than it actually has         :bug:
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
 ** I'm guessing it's something to do with the world chunks
@@ -618,4 +622,9 @@ CLOSED: [2017-01-28 So 15:55]
 CLOSED: [2017-02-01 St 08:46]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-02-01 St 08:46
+:END:
+** DONE Fade and Rectangle are not implemented for the glium backend   :bug:
+CLOSED: [2017-02-01 St 21:02]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-01 St 21:02
 :END:

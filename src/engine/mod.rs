@@ -7,10 +7,17 @@ use keys::Key;
 use point::Point;
 
 
+#[cfg(feature = "opengl")]
 pub mod glium;
+
+#[cfg(feature = "piston")]
 pub mod piston;
-pub mod rustbox;
+
+#[cfg(feature = "libtcod")]
 pub mod tcod;
+
+#[cfg(feature = "terminal")]
+pub mod rustbox;
 
 
 #[derive(Debug, Clone)]

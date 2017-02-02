@@ -1,14 +1,23 @@
 #![deny(overflowing_literals)]
 
 extern crate clap;
-#[macro_use]
-extern crate glium;
 extern crate rand;
 extern crate time;
+
+#[macro_use]
+extern crate glium;
+
+#[cfg(feature = "piston")]
 extern crate piston_window;
+
+#[cfg(any(feature = "piston", feature = "opengl"))]
 extern crate image;
+
+#[cfg(feature = "libtcod")]
 pub extern crate tcod;
-// extern crate rustbox;
+
+#[cfg(feature = "terminal")]
+extern crate rustbox;
 
 
 use std::borrow::Cow;
@@ -779,7 +788,73 @@ fn update(mut state: GameState,
 fn main() {
     use clap::{Arg, ArgGroup, App};
 
-    // NOTE: at our current font, the height of 43 is the maximum value for
+    #[cfg(feature = "libtcod")]
+    fn run_libtcod(display_size: point::Point, default_background: color::Color,
+                   window_title: &str, font_path: &Path,
+                   state: game_state::GameState) {
+        println!("Using the libtcod backend.");
+        let mut engine = engine::tcod::Engine::new(display_size, default_background, window_title, &font_path);
+        engine.main_loop(state, update);
+    }
+    #[cfg(not(feature = "libtcod"))]
+    fn run_libtcod(_display_size: point::Point, _default_background: color::Color,
+                   _window_title: &str, _font_path: &Path) {
+        println!("The \"libtcod\" feature was not compiled in.");
+    }
+
+    #[cfg(feature = "piston")]
+    fn run_piston(display_size: point::Point,
+                  default_background: color::Color,
+                  window_title: &str,
+                  font_path: &Path,
+                  state: game_state::GameState,
+                  update: engine::UpdateFn<game_state::GameState>) {
+        println!("Using the piston backend.");
+        engine::piston::main_loop(display_size, default_background, window_title, &font_path,
+                                  state, update);
+    }
+    #[cfg(not(feature = "piston"))]
+    fn run_piston(_display_size: point::Point,
+                  _default_background: color::Color,
+                  _window_title: &str,
+                  _font_path: &Path,
+                  _state: game_state::GameState,
+                  _update: engine::UpdateFn<game_state::GameState>) {
+        println!("The \"piston\" feature was not compiled in.");
+    }
+
+    #[cfg(feature = "terminal")]
+    fn run_terminal() {
+        println!("Using the rustbox backend.\n  TODO: this is not implemented yet.");
+    }
+    #[cfg(not(feature = "terminal"))]
+    fn run_terminal() {
+        println!("The \"terminal\" feature was not compiled in.");
+    }
+
+    #[cfg(feature = "opengl")]
+    fn run_opengl(display_size: point::Point,
+                  default_background: color::Color,
+                  window_title: &str,
+                  font_path: &Path,
+                  state: GameState,
+                  update: engine::UpdateFn<GameState>) {
+        println!("Using the default backend: opengl");
+        engine::glium::main_loop(display_size, default_background, window_title, &font_path,
+                                 state, update);
+    }
+    #[cfg(not(feature = "opengl"))]
+    fn run_opengl(_display_size: point::Point,
+                  _default_background: color::Color,
+                  _window_title: &str,
+                  _font_path: &Path,
+                  _state: GameState,
+                  _update: engine::UpdateFn<GameState>) {
+        println!("The \"opengl\" feature was not compiled in.");
+    }
+
+
+    // Note: at our current font, the height of 43 is the maximum value for
     // 1336x768 monitors.
     let map_size = 43;
     let panel_width = 20;
@@ -793,24 +868,24 @@ fn main() {
     let matches = App::new(title)
         .author("Tomas Sedovic <tomas@sedovic.cz>")
         .about("Roguelike game about addiction")
-        .arg(Arg::with_name("tcod")
-             .long("tcod")
-             .help("Use the libtcod rendering backend"))
-        .arg(Arg::with_name("piston")
-             .long("piston")
-             .help("Use the Piston rendering backend"))
-        .arg(Arg::with_name("glium")
-             .long("glium")
-             .help("Use the Glium (OpenGL) rendering backend"))
-        .arg(Arg::with_name("rustbox")
-             .long("rustbox")
-             .help("Use the Rustbox (terminal-only) rendering backend"))
-        .group(ArgGroup::with_name("graphics")
-               .args(&["tcod", "piston", "glium", "rustbox"]))
         .arg(Arg::with_name("replay")
              .value_name("FILE")
              .help("Replay this file instead of starting and playing a new game")
              .takes_value(true))
+        .arg(Arg::with_name("libtcod")
+             .long("libtcod")
+             .help("Use the libtcod rendering backend"))
+        .arg(Arg::with_name("piston")
+             .long("piston")
+             .help("Use the Piston rendering backend"))
+        .arg(Arg::with_name("opengl")
+             .long("opengl")
+             .help("Use the Glium (OpenGL) rendering backend"))
+        .arg(Arg::with_name("terminal")
+             .long("terminal")
+             .help("Use the Rustbox (terminal-only) rendering backend"))
+        .group(ArgGroup::with_name("graphics")
+               .args(&["libtcod", "piston", "opengl", "terminal"]))
         .get_matches();
 
     let game_state = if let Some(replay) = matches.value_of("replay") {
@@ -820,20 +895,17 @@ fn main() {
         GameState::new_game(world_size, map_size, panel_width, display_size)
     };
 
-    if matches.is_present("tcod") {
-        println!("Using the libtcod backend.");
-        let mut engine = engine::tcod::Engine::new(display_size, color::background, title, &font_path);
-        engine.main_loop(game_state, update);
-    } else if matches.is_present("piston") {
-        println!("Using the piston backend.");
-        engine::piston::main_loop(display_size, color::background, title, &font_path,
-                                  game_state, update);
-    } else if matches.is_present("rustbox") {
-        println!("Using the rustbox backend.\n  TODO: this is not implemented yet.");
+    if  matches.is_present("libtcod") {
+        run_libtcod(display_size, color::background, title, &font_path, game_state);
+    }
+    else if matches.is_present("piston") {
+        run_piston(display_size, color::background, title, &font_path,
+                   game_state, update);
+    } else if matches.is_present("terminal") {
+        run_terminal();
     } else {
-        println!("Using the default backend: glium");
-        engine::glium::main_loop(display_size, color::background, title, &font_path,
-                                 game_state, update);
+        run_opengl(display_size, color::background, title, &font_path,
+                   game_state, update);
     }
 
 }

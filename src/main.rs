@@ -798,7 +798,8 @@ fn main() {
     }
     #[cfg(not(feature = "libtcod"))]
     fn run_libtcod(_display_size: point::Point, _default_background: color::Color,
-                   _window_title: &str, _font_path: &Path) {
+                   _window_title: &str, _font_path: &Path,
+                   _state: game_state::GameState) {
         println!("The \"libtcod\" feature was not compiled in.");
     }
 

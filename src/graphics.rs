@@ -12,10 +12,10 @@ pub trait Render {
 pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>, dt: Duration, pos: Point, render: &R) {
     use engine::Draw::*;
     let (glyph, fg, bg_opt) = render.render(dt);
-    drawcalls.push(Char(pos, glyph, fg));
     if let Some(background) = bg_opt {
         drawcalls.push(Background(pos, background));
     }
+    drawcalls.push(Char(pos, glyph, fg));
 }
 
 

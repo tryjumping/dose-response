@@ -14,6 +14,19 @@ use keys::{Key, KeyCode};
 use point::Point;
 
 
+// NOTE: This is designed specifically to deduplicated characters on
+// the same position (using Vec::dedup). So the only thing considered
+// equal are characters with the same pos value.
+impl PartialEq for Draw {
+    fn eq(&self, other: &Self) -> bool {
+        use engine::Draw::*;
+        match (self, other) {
+            (&Char(p1, ..), &Char(p2, ..)) => p1 == p2,
+            _ => false,
+        }
+    }
+}
+
 fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
     [color.r as f32 / 255.0, color.g as f32 / 255.0, color.b as f32 / 255.0, alpha]
 }
@@ -318,26 +331,48 @@ pub fn main_loop<T>(display_size: Point,
 
         // Process drawcalls
         vertices.clear();
-                drawcalls.sort_by(|a, b| {
-                    use std::cmp::Ordering::*;
-                    use engine::Draw::*;
+        // NOTE: The first item is inserted by the engine, so keep it here
+        drawcalls[1..].sort_by(|a, b| {
+            use std::cmp::Ordering::*;
+            use engine::Draw::*;
 
-                    match (a, b) {
-                        (&Char(..), &Char(..)) => Equal,
-                        (&Background(..), &Background(..)) => Equal,
-                        (&Text(..), &Text(..)) => Equal,
-                        (&Rectangle(..), &Rectangle(..)) => Equal,
-                        (&Fade(..), &Fade(..)) => Equal,
-
-                        (&Fade(..), _) => Greater,
-                        (_, &Fade(..)) => Less,
-
-                        (&Background(..), &Char(..)) => Less,
-                        (&Char(..), &Background(..)) => Greater,
-
-                        _ => Equal,
+            match (a, b) {
+                (&Char(p1, ..), &Char (p2, ..)) => {
+                    let x_ordering = p1.x.cmp(&p2.x);
+                    if x_ordering == Equal {
+                        p1.y.cmp(&p2.y)
+                    } else {
+                        x_ordering
                     }
-                });
+                },
+
+                (&Background(..), &Background(..)) => Equal,
+                (&Text(..), &Text(..)) => Equal,
+                (&Rectangle(..), &Rectangle(..)) => Equal,
+                (&Fade(..), &Fade(..)) => Equal,
+
+                (&Fade(..), _) => Greater,
+                (_, &Fade(..)) => Less,
+
+                (&Background(..), &Char(..)) => Less,
+                (&Char(..), &Background(..)) => Greater,
+
+                (&Background(..), &Text(..)) => Less,
+                (&Text(..), &Background(..)) => Greater,
+
+                (&Background(..), &Rectangle(..)) => Less,
+                (&Rectangle(..), &Background(..)) => Greater,
+
+                _ => Equal,
+            }
+        });
+
+        // Remove duplicate background and foreground tiles. I.e. for
+        // any given point, only the last specified drawcall of the
+        // same kind will remain.
+        drawcalls.reverse();
+        drawcalls.dedup();
+        drawcalls.reverse();
 
         for drawcall in &drawcalls {
             match drawcall {

@@ -9,6 +9,7 @@ use time::Duration;
 pub struct Explosion {
     pub center: Point,
     pub max_radius: i32,
+    pub initial_radius: i32,
     pub current_radius: i32,
     pub color: Color,
     pub wave_count: i32,
@@ -18,11 +19,13 @@ pub struct Explosion {
 impl Explosion {
     pub fn new(center: Point, max_radius: i32, initial_radius: i32, color: Color) -> Self {
         assert!(initial_radius <= max_radius);
-        let wave_count = max_radius - initial_radius;
+        // Count the initial wave plus the rest that makes the difference
+        let wave_count = max_radius - initial_radius + 1;
         let wave_duration = Duration::milliseconds(100);
         Explosion {
             center: center,
             max_radius: max_radius,
+            initial_radius: initial_radius,
             current_radius: initial_radius,
             color: color,
             wave_count: wave_count,
@@ -36,7 +39,10 @@ impl Explosion {
         } else {
             self.timer.update(dt);
             let single_wave_percentage = 1.0 / (self.wave_count as f32);
-            self.current_radius = (self.timer.percentage_elapsed() / single_wave_percentage) as i32;
+            self.current_radius = self.initial_radius + (self.timer.percentage_elapsed() / single_wave_percentage) as i32;
+            if self.current_radius > self.max_radius {
+                self.current_radius = self.max_radius;
+            }
         }
     }
 

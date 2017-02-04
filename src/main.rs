@@ -567,8 +567,9 @@ fn update(mut state: GameState,
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+    let no_animations = state.explosion_animation.is_none();
 
-    if running || paused_one_step || timed_step && state.side != Side::Victory{
+    if running || paused_one_step || timed_step && state.side != Side::Victory && no_animations {
         process_keys(&mut state.keys, &mut state.commands);
 
         // NOTE: Process player

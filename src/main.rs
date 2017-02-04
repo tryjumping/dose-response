@@ -514,6 +514,7 @@ fn update(mut state: GameState,
           -> Option<(Settings, GameState)>
 {
     state.clock = state.clock + dt;
+    state.replay_step = state.replay_step + dt;
 
     state.keys.extend(new_keys.iter().cloned());
 
@@ -545,8 +546,8 @@ fn update(mut state: GameState,
     };
 
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
-    let timed_step = if state.replay && !state.paused && state.clock.num_milliseconds() >= 50 {
-        //state.clock = Duration::zero();
+    let timed_step = if state.replay && !state.paused && state.replay_step.num_milliseconds() >= 50 {
+        state.replay_step = Duration::zero();
         true
     } else {
         false

@@ -1,5 +1,5 @@
 use std::path::Path;
-use time::PreciseTime;
+use time::{Duration, PreciseTime};
 
 use glium::{self, DisplayBuild, Surface};
 use glium::draw_parameters::DrawParameters;
@@ -306,18 +306,30 @@ pub fn main_loop<T>(display_size: Point,
     let mut keys = vec![];
     let alpha = 1.0;  // We're not using alpha at all for now, but it's passed everywhere.
     let mut previous_frame_time = PreciseTime::now();
+    let mut fps_clock = Duration::milliseconds(0);
+    let mut frame_counter = 0;
+    let mut fps = 1;
 
     loop {
         let now = PreciseTime::now();
         let dt = previous_frame_time.to(now);
         previous_frame_time = now;
 
+        // Calculate FPS
+        fps_clock = fps_clock + dt;
+        frame_counter += 1;
+        if fps_clock.num_milliseconds() > 1000 {
+            fps = frame_counter;
+            frame_counter = 1;
+            fps_clock = Duration::milliseconds(0);
+        }
+
         drawcalls.clear();
         drawcalls.push(Draw::Rectangle(Point {x: 0, y: 0}, display_size, default_background));
         match update(state,
                      dt,
                      display_size,
-                     1,  // TODO: FPS
+                     fps,
                      &keys,
                      settings,
                      &mut drawcalls) {

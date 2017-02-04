@@ -1,4 +1,5 @@
-* The glium backend doesn't pass FPS to the update function             :bug:
+* The SoM bar is no longer visible                                      :bug:
+** Did we miss that with the latest reordering?
 * The explosion animation shows lower area than it actually has         :bug:
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
@@ -635,4 +636,9 @@ CLOSED: [2017-02-02 Čt 18:41]
 CLOSED: [2017-02-03 Pá 16:30]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-02-03 Pá 16:30
+:END:
+** DONE The glium backend doesn't pass FPS to the update function      :bug:
+CLOSED: [2017-02-04 So 18:18]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-04 So 18:19
 :END:

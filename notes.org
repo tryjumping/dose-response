@@ -1,5 +1,3 @@
-* The SoM bar is no longer visible                                      :bug:
-** Did we miss that with the latest reordering?
 * The explosion animation shows lower area than it actually has         :bug:
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
@@ -642,3 +640,9 @@ CLOSED: [2017-02-04 So 18:18]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-02-04 So 18:19
 :END:
+** DONE The SoM bar is no longer visible                               :bug:
+CLOSED: [2017-02-04 So 18:54]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-04 So 18:54
+:END:
+*** Did we miss that with the latest reordering?

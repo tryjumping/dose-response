@@ -6,7 +6,6 @@ use super::Action;
 use color::{self, Color};
 use level::Walkability;
 use graphics::Render;
-use pathfinding::Path;
 use player::Modifier;
 use point::Point;
 use world::World;
@@ -86,21 +85,30 @@ impl Monster {
             Idle
         };
 
-        let random_neighbouring_pos = world.random_neighbour_position(
-            rng, self.position, Walkability::BlockingMonsters);
         let action = match self.ai_state {
             Chasing => {
                 if distance == 1 {
                     Action::Attack(player_pos, self.attack_damage())
                 } else {
-                    let mut path = Path::find(
-                        self.position, player_pos, world, Walkability::BlockingMonsters);
-                    Action::Move(path.next().unwrap_or(random_neighbouring_pos))
+                    Action::Move(player_pos)
                 }
             }
             Idle => {
                 // Move randomly about
-                Action::Move(random_neighbouring_pos)
+                let mut destination = world.random_neighbour_position(
+                    rng, self.position, Walkability::BlockingMonsters);
+
+                for _ in 0..10 {
+                    let x = rng.gen_range(-8, 9);
+                    let y = rng.gen_range(-8, 9);
+                    let candidate = self.position + (x, y);
+                    if x.abs() > 2 && y.abs() > 2 &&
+                        world.walkable(candidate, Walkability::WalkthroughMonsters) {
+                        destination = candidate;
+                        break;
+                    }
+                };
+                Action::Move(destination)
             }
         };
         (ai_state, action)

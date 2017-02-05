@@ -17,6 +17,10 @@ impl Path {
             return Path { path: vec![] };
         }
 
+        if from.tile_distance(to) == 1 {
+            return Path { path: vec![to] };
+        }
+
         let mut neighbors = |current: Point| {
             assert!(world.within_bounds(current));
             let dp: [Point; 9] = [

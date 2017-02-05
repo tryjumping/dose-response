@@ -384,10 +384,12 @@ fn process_monsters<R: Rng>(world: &mut world::World,
             Action::Move(destination) => {
                 assert_eq!(monster_position, monster_readonly.position);
                 let pos = monster_readonly.position;
-                // NOTE: the pathfinding has already happened so this should always be a neighbouring tile
-                assert!(pos.tile_distance(destination) <= 1);
-                world.move_monster(pos, destination);
-                monster_position = destination;
+                let mut path = pathfinding::Path::find(
+                    pos, destination, world, level::Walkability::BlockingMonsters);
+                // TODO: cache the path-finding result
+                let newpos = path.next().unwrap_or(pos);
+                world.move_monster(pos, newpos);
+                monster_position = newpos;
             }
 
             Action::Attack(target_pos, damage) => {

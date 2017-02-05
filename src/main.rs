@@ -533,6 +533,12 @@ fn update(mut state: GameState,
 
     // Quit the game when Q is pressed
     if state.keys.matches_code(KeyCode::Q) {
+        println!("Slowest update durations: {:?}\n\nSlowest drawcall durations: {:?}",
+                 state.stats.longest_update_durations().iter().map(|dur| dur.num_microseconds().unwrap_or(std::i64::MAX)).map(|us| us as f32 / 1000.0).collect::<Vec<_>>(),
+                 state.stats.longest_drawcall_durations().iter().map(|dur| dur.num_microseconds().unwrap_or(std::i64::MAX)).map(|us| us as f32 / 1000.0).collect::<Vec<_>>());
+        println!("\nMean update duration: {} ms\nMean drawcall duration: {} ms",
+                 state.stats.mean_update(),
+                 state.stats.mean_drawcalls());
         return None;
     }
 

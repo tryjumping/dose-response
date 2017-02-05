@@ -12,8 +12,8 @@ pub struct FrameStats {
 pub struct Stats {
     size: usize,
     frame_stats: VecDeque<FrameStats>,
-    longest_update: Duration,
-    longest_drawcalls: Duration,
+    longest_updates: Vec<Duration>,
+    longest_drawcalls: Vec<Duration>,
 }
 
 impl Stats {
@@ -21,8 +21,8 @@ impl Stats {
         Stats {
             size: size,
             frame_stats: VecDeque::with_capacity(size),
-            longest_update: Duration::seconds(0),
-            longest_drawcalls: Duration::seconds(0),
+            longest_updates: Vec::with_capacity(100),
+            longest_drawcalls: Vec::with_capacity(100),
         }
     }
 
@@ -31,12 +31,26 @@ impl Stats {
             self.frame_stats.pop_front();
         }
 
-        if frame_stats.update > self.longest_update {
-            self.longest_update = frame_stats.update;
+        self.longest_updates.sort();
+        if self.longest_updates.capacity() == self.longest_updates.len() {
+            // Since the vec is sorted, this is the lowest value:
+            if self.longest_updates[0] < frame_stats.update {
+                self.longest_updates[0] = frame_stats.update
+            }
+        } else {
+            self.longest_updates.push(frame_stats.update);
         }
-        if frame_stats.drawcalls > self.longest_drawcalls {
-            self.longest_drawcalls = frame_stats.drawcalls;
+
+        self.longest_drawcalls.sort();
+        if self.longest_drawcalls.capacity() == self.longest_drawcalls.len() {
+            // Since the vec is sorted, this is the lowest value:
+            if self.longest_drawcalls[0] < frame_stats.drawcalls {
+                self.longest_drawcalls[0] = frame_stats.drawcalls
+            }
+        } else {
+            self.longest_drawcalls.push(frame_stats.drawcalls);
         }
+
         self.frame_stats.push_back(frame_stats);
     }
 
@@ -54,12 +68,33 @@ impl Stats {
     }
 
     pub fn longest_update(&self) -> Duration {
-        self.longest_update
+        self.longest_updates.last().cloned().unwrap_or(Duration::seconds(0))
     }
 
     pub fn longest_drawcalls(&self) -> Duration {
-        self.longest_drawcalls
+        self.longest_drawcalls.last().cloned().unwrap_or(Duration::seconds(0))
     }
+
+    pub fn mean_update(&self) -> f32 {
+        self.frame_stats.iter()
+            .map(|fs| fs.update.num_milliseconds() as f32)
+            .fold(0.0, |acc, dur| acc + dur) / (self.frame_stats.len() as f32)
+    }
+
+    pub fn mean_drawcalls(&self) -> f32 {
+        self.frame_stats.iter()
+            .map(|fs| fs.drawcalls.num_milliseconds() as f32)
+            .fold(0.0, |acc, dur| acc + dur) / (self.frame_stats.len() as f32)
+    }
+
+    pub fn longest_update_durations(&self) -> &[Duration] {
+        &self.longest_updates
+    }
+
+    pub fn longest_drawcall_durations(&self) -> &[Duration] {
+        &self.longest_drawcalls
+    }
+
 }
 
 pub struct FrameStatsIterator<'a> {

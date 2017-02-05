@@ -1,4 +1,4 @@
-use time::Duration;
+use time::{Duration, PreciseTime};
 
 
 #[derive(Copy, Clone, Debug)]
@@ -35,4 +35,20 @@ impl Timer {
         self.current.is_zero()
     }
 
+}
+
+pub struct Stopwatch {
+    start: PreciseTime,
+}
+
+impl Stopwatch {
+    pub fn start() -> Self {
+        Stopwatch {
+            start: PreciseTime::now(),
+        }
+    }
+
+    pub fn finish(self) -> Duration {
+        self.start.to(PreciseTime::now())
+    }
 }

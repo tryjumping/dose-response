@@ -3,6 +3,7 @@ use std::fs::{self, File};
 use std::io::{self, BufReader, BufRead, Write};
 use std::path::Path;
 
+use stats::Stats;
 use time;
 use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
@@ -115,6 +116,7 @@ pub struct GameState {
     pub replay: bool,
     pub clock: Duration,
     pub replay_step: Duration,
+    pub stats: Stats,
     pub pos_timer: Timer,
     pub paused: bool,
     pub old_screen_pos: Point,
@@ -160,6 +162,7 @@ impl GameState {
             replay: replay,
             clock: Duration::zero(),
             replay_step: Duration::zero(),
+            stats: Stats::new(6000),  // about a minute and a half at 60 FPS
             pos_timer: Timer::new(Duration::milliseconds(0)),
             old_screen_pos: (0, 0).into(),
             new_screen_pos: (0, 0).into(),

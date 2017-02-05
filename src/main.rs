@@ -48,6 +48,7 @@ mod pathfinding;
 mod player;
 mod point;
 mod ranged_int;
+mod stats;
 mod timer;
 mod world;
 
@@ -478,6 +479,17 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
         lines.push("Dead".into());
     }
 
+    lines.push("Time stats:".into());
+    for frame_stat in state.stats.last_frames(25) {
+        lines.push(format!("upd: {}, dc: {}",
+                           frame_stat.update.num_milliseconds(),
+                           frame_stat.drawcalls.num_milliseconds()).into());
+    }
+    lines.push(format!("longest upd: {}",
+                       state.stats.longest_update().num_milliseconds()).into());
+    lines.push(format!("longest dc: {}",
+                       state.stats.longest_drawcalls().num_milliseconds()).into());
+
     for (y, line) in lines.into_iter().enumerate() {
         drawcalls.push(Draw::Text(point::Point{x: x + 1, y: y as i32}, line.into(), fg));
     }
@@ -513,6 +525,7 @@ fn update(mut state: GameState,
           drawcalls: &mut Vec<Draw>)
           -> Option<(Settings, GameState)>
 {
+    let update_stopwatch = timer::Stopwatch::start();
     state.clock = state.clock + dt;
     state.replay_step = state.replay_step + dt;
 
@@ -581,6 +594,9 @@ fn update(mut state: GameState,
             state.player.new_turn();
         }
     }
+
+    let update_duration = update_stopwatch.finish();
+    let drawcall_stopwatch = timer::Stopwatch::start();
 
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
@@ -784,6 +800,11 @@ fn update(mut state: GameState,
     }
 
     render_panel(state.map_size.x, state.panel_width, display_size, &state, dt, drawcalls, fps);
+    let drawcall_duration = drawcall_stopwatch.finish();
+    state.stats.push(stats::FrameStats {
+        update: update_duration,
+        drawcalls: drawcall_duration,
+    });
     Some((settings, state))
 }
 

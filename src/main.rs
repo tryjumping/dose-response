@@ -515,6 +515,15 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
 
 }
 
+fn show_exit_stats(stats: &stats::Stats) {
+    println!("Slowest update durations: {:?}\n\nSlowest drawcall durations: {:?}",
+             stats.longest_update_durations().iter().map(|dur| dur.num_microseconds().unwrap_or(std::i64::MAX)).map(|us| us as f32 / 1000.0).collect::<Vec<_>>(),
+             stats.longest_drawcall_durations().iter().map(|dur| dur.num_microseconds().unwrap_or(std::i64::MAX)).map(|us| us as f32 / 1000.0).collect::<Vec<_>>());
+    println!("\nMean update duration: {} ms\nMean drawcall duration: {} ms",
+             stats.mean_update(),
+             stats.mean_drawcalls());
+}
+
 fn update(mut state: GameState,
           dt: Duration,
           display_size:
@@ -531,14 +540,11 @@ fn update(mut state: GameState,
 
     state.keys.extend(new_keys.iter().cloned());
 
-    // Quit the game when Q is pressed
-    if state.keys.matches_code(KeyCode::Q) {
-        println!("Slowest update durations: {:?}\n\nSlowest drawcall durations: {:?}",
-                 state.stats.longest_update_durations().iter().map(|dur| dur.num_microseconds().unwrap_or(std::i64::MAX)).map(|us| us as f32 / 1000.0).collect::<Vec<_>>(),
-                 state.stats.longest_drawcall_durations().iter().map(|dur| dur.num_microseconds().unwrap_or(std::i64::MAX)).map(|us| us as f32 / 1000.0).collect::<Vec<_>>());
-        println!("\nMean update duration: {} ms\nMean drawcall duration: {} ms",
-                 state.stats.mean_update(),
-                 state.stats.mean_drawcalls());
+    // Quit the game when Q is pressed or on replay and requested
+    if state.keys.matches_code(KeyCode::Q) ||
+        (state.replay && state.replay_exit_after && (state.commands.is_empty() || (!state.player.alive() && state.screen_fading.is_none())))
+    {
+        show_exit_stats(&state.stats);
         return None;
     }
 
@@ -904,7 +910,11 @@ fn main() {
              .help("Replay this file instead of starting and playing a new game")
              .takes_value(true))
         .arg(Arg::with_name("replay-full-speed")
+             .help("Don't slow the replay down (useful for getting accurate measurements)")
              .long("replay-full-speed"))
+        .arg(Arg::with_name("replay-exit-after")
+             .help("Exit after the replay has finished")
+             .long("replay-exit-after"))
         .arg(Arg::with_name("libtcod")
              .long("libtcod")
              .help("Use the libtcod rendering backend"))
@@ -924,10 +934,15 @@ fn main() {
     let game_state = if let Some(replay) = matches.value_of("replay") {
         let replay_path = Path::new(replay);
         GameState::replay_game(world_size, map_size, panel_width, display_size,
-                               &replay_path, matches.is_present("replay-full-speed"))
+                               &replay_path,
+                               matches.is_present("replay-full-speed"),
+                               matches.is_present("replay-exit-after"))
     } else {
         if matches.is_present("replay-full-speed") {
             panic!("The `full-replay-speed` option can only be used if the replay log is passed.");
+        }
+        if matches.is_present("replay-exit-after") {
+            panic!("The `replay-exit-after` option can only be used if the replay log is passed.");
         }
         GameState::new_game(world_size, map_size, panel_width, display_size)
     };

@@ -115,6 +115,7 @@ pub struct GameState {
     pub cheating: bool,
     pub replay: bool,
     pub replay_full_speed: bool,
+    pub replay_exit_after: bool,
     pub clock: Duration,
     pub replay_step: Duration,
     pub stats: Stats,
@@ -136,7 +137,8 @@ impl GameState {
                              seed: u32,
                              cheating: bool,
                              replay: bool,
-                             replay_full_speed: bool)
+                             replay_full_speed: bool,
+                             replay_exit_after: bool)
                              -> GameState {
         let seed_arr: &[_] = &[seed];
         let world_centre = (0, 0).into();
@@ -163,6 +165,7 @@ impl GameState {
             cheating: cheating,
             replay: replay,
             replay_full_speed: replay_full_speed,
+            replay_exit_after: replay_exit_after,
             clock: Duration::zero(),
             replay_step: Duration::zero(),
             stats: Stats::new(6000),  // about a minute and a half at 60 FPS
@@ -198,10 +201,10 @@ impl GameState {
         // println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);
         GameState::new(world_size, map_size, panel_width, display_size, commands, writer,
-                       seed, false, false, false)
+                       seed, false, false, false, false)
     }
 
-    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, replay_full_speed: bool) -> GameState {
+    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, replay_full_speed: bool, replay_exit_after: bool) -> GameState {
         let mut commands = VecDeque::new();
         let seed: u32;
         match File::open(replay_path) {
@@ -226,7 +229,7 @@ impl GameState {
         }
         // println!("Replaying game log: '{}'", replay_path.display());
         GameState::new(world_size, map_size, panel_width, display_size, commands,
-                       Box::new(io::sink()), seed, true, true, replay_full_speed)
+                       Box::new(io::sink()), seed, true, true, replay_full_speed, replay_exit_after)
     }
 }
 

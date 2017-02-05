@@ -386,11 +386,15 @@ fn process_monsters<R: Rng>(world: &mut world::World,
 
                 let pos = monster_readonly.position;
 
+                let path_changed = monster_readonly.path.last()
+                    .map(|&cached_destination| cached_destination != destination)
+                    .unwrap_or(true);
+
                 // NOTE: we keep a cache of any previously calculated
                 // path in `monster.path`. If the precalculated path
                 // is blocked or there is none, calculate a new one
                 // and cache it. Otherwise, just walk it.
-                let (newpos, newpath) = if monster_readonly.path.is_empty() || !world.walkable(monster_readonly.path[0], level::Walkability::BlockingMonsters) {
+                let (newpos, newpath) = if monster_readonly.path.is_empty() || path_changed || !world.walkable(monster_readonly.path[0], level::Walkability::BlockingMonsters) {
                     // Calculate a new path or recalculate the existing one.
                     let mut path = pathfinding::Path::find(
                         pos, destination, world, level::Walkability::BlockingMonsters);

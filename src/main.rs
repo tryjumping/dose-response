@@ -383,12 +383,29 @@ fn process_monsters<R: Rng>(world: &mut world::World,
         match action {
             Action::Move(destination) => {
                 assert_eq!(monster_position, monster_readonly.position);
+
                 let pos = monster_readonly.position;
-                let mut path = pathfinding::Path::find(
-                    pos, destination, world, level::Walkability::BlockingMonsters);
-                // TODO: cache the path-finding result
-                let newpos = path.next().unwrap_or(pos);
+
+                // NOTE: we keep a cache of any previously calculated
+                // path in `monster.path`. If the precalculated path
+                // is blocked or there is none, calculate a new one
+                // and cache it. Otherwise, just walk it.
+                let (newpos, newpath) = if monster_readonly.path.is_empty() || !world.walkable(monster_readonly.path[0], level::Walkability::BlockingMonsters) {
+                    // Calculate a new path or recalculate the existing one.
+                    let mut path = pathfinding::Path::find(
+                        pos, destination, world, level::Walkability::BlockingMonsters);
+                    let newpos = path.next().unwrap_or(pos);
+                    // Cache the path-finding result
+                    let newpath = path.collect::<Vec<_>>();
+                    (newpos, newpath)
+                } else {
+                    (monster_readonly.path[0], monster_readonly.path[1..].into())
+                };
+
                 world.move_monster(pos, newpos);
+                if let Some(monster) = world.monster_on_pos(newpos) {
+                    monster.path = newpath;
+                }
                 monster_position = newpos;
             }
 

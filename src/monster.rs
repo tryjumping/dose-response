@@ -21,6 +21,7 @@ pub struct Monster {
     pub dead: bool,
     pub die_after_attack: bool,
     pub ai_state: AIState,
+    pub path: Vec<Point>,
 
     pub max_ap: i32,
     ap: i32,
@@ -60,6 +61,7 @@ impl Monster {
             ai_state: Idle,
             ap: 0,
             max_ap: max_ap,
+            path: vec![],
         }
     }
 

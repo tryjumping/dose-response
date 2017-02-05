@@ -1,3 +1,6 @@
+* Replays are sometimes broken                                          :bug:
+** I don't know why but sometimes the replay functionality is broken
+** so the playback behaves differently from the original play
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
 ** I'm guessing it's something to do with the world chunks

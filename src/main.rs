@@ -565,7 +565,7 @@ fn update(mut state: GameState,
     };
 
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
-    let timed_step = if state.replay && !state.paused && state.replay_step.num_milliseconds() >= 50 {
+    let timed_step = if state.replay && !state.paused && (state.replay_step.num_milliseconds() >= 50 || state.replay_full_speed) {
         state.replay_step = Duration::zero();
         true
     } else {
@@ -903,6 +903,8 @@ fn main() {
              .value_name("FILE")
              .help("Replay this file instead of starting and playing a new game")
              .takes_value(true))
+        .arg(Arg::with_name("replay-full-speed")
+             .long("replay-full-speed"))
         .arg(Arg::with_name("libtcod")
              .long("libtcod")
              .help("Use the libtcod rendering backend"))
@@ -921,8 +923,12 @@ fn main() {
 
     let game_state = if let Some(replay) = matches.value_of("replay") {
         let replay_path = Path::new(replay);
-        GameState::replay_game(world_size, map_size, panel_width, display_size, &replay_path)
+        GameState::replay_game(world_size, map_size, panel_width, display_size,
+                               &replay_path, matches.is_present("replay-full-speed"))
     } else {
+        if matches.is_present("replay-full-speed") {
+            panic!("The `full-replay-speed` option can only be used if the replay log is passed.");
+        }
         GameState::new_game(world_size, map_size, panel_width, display_size)
     };
 

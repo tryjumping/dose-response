@@ -88,11 +88,11 @@ impl Path {
             }
         }
 
-        if calculation_steps >= calculation_limit {
-            println!("Pathfinding calculation exceeded the limit.");
-        } else {
-            println!("Pathfinding finished in {} calculation steps.", calculation_steps);
-        }
+        // if calculation_steps >= calculation_limit {
+        //     println!("Pathfinding calculation exceeded the limit.");
+        // } else {
+        //     println!("Pathfinding finished in {} calculation steps.", calculation_steps);
+        // }
 
         let path = {
             let mut current = to;

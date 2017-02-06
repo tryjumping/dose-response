@@ -216,6 +216,7 @@ impl GameState {
     }
 
     pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, replay_full_speed: bool, replay_exit_after: bool) -> GameState {
+        use serde_json;
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();
         let seed: u32;
@@ -229,13 +230,25 @@ impl GameState {
                     },
                     None => panic!("The replay file is empty."),
                 }
-                for line in lines {
-                    // TODO: read the verifications
-                    match line {
-                        Ok(line) => commands.push_back(command_from_str(&line)),
-                        Err(err) => panic!("Error reading a line from the replay file: {:?}.", err),
+
+                loop {
+                    match lines.next() {
+                        Some(Ok(line)) => commands.push_back(command_from_str(&line)),
+                        Some(Err(err)) => panic!("Error reading a line from the replay file: {:?}.", err),
+                        None => break,
+                    }
+
+                    match lines.next() {
+                        Some(Ok(line)) => {
+                            let verification = serde_json::from_str(&line).expect(
+                                &format!("Could not deserialise the verification: '{}'", line));
+                            verifications.push_back(verification);
+                        },
+                        Some(Err(err)) => panic!("Error reading a verification from the replay log: {:?}.", err),
+                        None => panic!("There is no verification following a command in the log"),
                     }
                 }
+
             },
             Err(msg) => panic!("Failed to read the replay file: {}. Reason: {}",
                                replay_path.display(), msg)

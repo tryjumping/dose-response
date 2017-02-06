@@ -1,6 +1,3 @@
-* Replays are sometimes broken                                          :bug:
-** I don't know why but sometimes the replay functionality is broken
-** so the playback behaves differently from the original play
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
 ** I'm guessing it's something to do with the world chunks
@@ -664,3 +661,10 @@ CLOSED: [2017-02-05 Ne 16:20]
 CLOSED: [2017-02-05 Ne 15:26]
 *** DONE keep track of wider variety of the worst time offenders
 CLOSED: [2017-02-05 Ne 15:26]
+** DONE Replays are sometimes broken                                   :bug:
+CLOSED: [2017-02-06 Po 21:12]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-06 Po 21:12
+:END:
+*** I don't know why but sometimes the replay functionality is broken
+*** so the playback behaves differently from the original play

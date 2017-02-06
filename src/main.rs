@@ -619,8 +619,18 @@ fn update(mut state: GameState,
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
-    let no_animations = state.explosion_animation.is_none();
     let mut spent_turn = false;
+
+    // NOTE: this isn't just cosmetic. If the screen re-center
+    // animation happens on replay, the world chunks are generated at
+    // the wrong time, which would be except that includes the
+    // monsters and that leads to a discrepancy between the actual
+    // gameplay and replay.
+    //
+    // Until we find a better fix, we'll just have to block command
+    // processing whenever any animation is playing.
+    let no_animations = state.explosion_animation.is_none() && state.pos_timer.finished();
+
 
     if running || paused_one_step || timed_step && state.side != Side::Victory && no_animations {
         process_keys(&mut state.keys, &mut state.commands);

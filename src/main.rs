@@ -641,7 +641,7 @@ fn update(mut state: GameState,
         process_player(&mut state);
 
         // NOTE: Process monsters
-        if state.player.ap() <= 0 {
+        if state.player.ap() <= 0 && state.explosion_animation.is_none() {
             process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, state.map_size, &mut state.rng);
             state.player.new_turn();
         }

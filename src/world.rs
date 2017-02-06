@@ -481,6 +481,9 @@ impl World {
         }
     }
 
+    pub fn chunks(&self) -> Vec<Point> {
+        self.chunks.keys().map(|chunk_pos| chunk_pos.position).collect()
+    }
 }
 
 

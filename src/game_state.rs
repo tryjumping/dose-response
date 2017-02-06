@@ -82,6 +82,12 @@ fn path_exists(path: &Path) -> bool {
     ::std::fs::metadata(path).is_ok()
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct Verification {
+    pub turn: i32,
+    pub chunk_count: usize,
+}
+
 pub struct GameState {
     pub player: Player,
     pub explosion_animation: Option<Explosion>,
@@ -109,6 +115,7 @@ pub struct GameState {
     pub rng: IsaacRng,
     pub keys: Keys,
     pub commands: VecDeque<Command>,
+    pub verifications: VecDeque<Verification>,
     pub command_logger: Box<Write>,
     pub side: Side,
     pub turn: i32,
@@ -133,6 +140,7 @@ impl GameState {
                              panel_width: i32,
                              display_size: Point,
                              commands: VecDeque<Command>,
+                             verifications: VecDeque<Verification>,
                              log_writer: W,
                              seed: u32,
                              cheating: bool,
@@ -159,6 +167,7 @@ impl GameState {
             rng: SeedableRng::from_seed(seed_arr),
             keys: Keys::new(),
             commands: commands,
+            verifications: verifications,
             command_logger: Box::new(log_writer),
             side: Side::Player,
             turn: 0,
@@ -180,6 +189,7 @@ impl GameState {
 
     pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point) -> GameState {
         let commands = VecDeque::new();
+        let verifications = VecDeque::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
         // Timestamp in format: 2016-11-20T20-04-39.123
@@ -200,12 +210,14 @@ impl GameState {
         };
         // println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);
-        GameState::new(world_size, map_size, panel_width, display_size, commands, writer,
+        GameState::new(world_size, map_size, panel_width, display_size, commands,
+                       verifications, writer,
                        seed, false, false, false, false)
     }
 
     pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, replay_full_speed: bool, replay_exit_after: bool) -> GameState {
         let mut commands = VecDeque::new();
+        let mut verifications = VecDeque::new();
         let seed: u32;
         match File::open(replay_path) {
             Ok(file) => {
@@ -218,6 +230,7 @@ impl GameState {
                     None => panic!("The replay file is empty."),
                 }
                 for line in lines {
+                    // TODO: read the verifications
                     match line {
                         Ok(line) => commands.push_back(command_from_str(&line)),
                         Err(err) => panic!("Error reading a line from the replay file: {:?}.", err),
@@ -229,6 +242,7 @@ impl GameState {
         }
         // println!("Replaying game log: '{}'", replay_path.display());
         GameState::new(world_size, map_size, panel_width, display_size, commands,
+                       verifications,
                        Box::new(io::sink()), seed, true, true, replay_full_speed, replay_exit_after)
     }
 }
@@ -240,4 +254,8 @@ pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
     writeln!(writer, "{}", command.to_str()).unwrap();
+}
+
+pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {
+    unimplemented!()
 }

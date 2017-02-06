@@ -616,9 +616,12 @@ fn update(mut state: GameState,
     let running = !state.paused && !state.replay;
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
     let no_animations = state.explosion_animation.is_none();
+    let mut spent_turn = false;
 
     if running || paused_one_step || timed_step && state.side != Side::Victory && no_animations {
         process_keys(&mut state.keys, &mut state.commands);
+
+        let command_count = state.commands.len();
 
         // NOTE: Process player
         process_player(&mut state);
@@ -627,6 +630,25 @@ fn update(mut state: GameState,
         if state.player.ap() <= 0 {
             process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, state.map_size, &mut state.rng);
             state.player.new_turn();
+        }
+
+        spent_turn = command_count > state.commands.len();
+    }
+
+    if spent_turn {
+        state.turn += 1;
+        // TODO: we can sort the chunks and compare directly at some point.
+        let chunks = state.world.chunks();
+        let actual_state_verification = game_state::Verification {
+            turn: state.turn,
+            chunk_count: chunks.len(),
+        };
+        if state.replay {
+            let expected = state.verifications.pop_front().expect(
+                &format!("No verification present for turn {}.", state.turn));
+            assert_eq!(expected, actual_state_verification);
+        } else {
+            game_state::log_verification(&mut state.command_logger, actual_state_verification);
         }
     }
 

@@ -638,6 +638,8 @@ fn update(mut state: GameState,
     if spent_turn {
         state.turn += 1;
         // TODO: we can sort the chunks and compare directly at some point.
+        // TODO: also, player position, etc.
+        // TODO: go through game_state and log anything that's not too expensive
         let chunks = state.world.chunks();
         let actual_state_verification = game_state::Verification {
             turn: state.turn,

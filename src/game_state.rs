@@ -82,7 +82,7 @@ fn path_exists(path: &Path) -> bool {
     ::std::fs::metadata(path).is_ok()
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Verification {
     pub turn: i32,
     pub chunk_count: usize,
@@ -257,5 +257,9 @@ pub fn log_command<W: Write>(writer: &mut W, command: Command) {
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {
-    unimplemented!()
+    use serde_json;
+    let json = serde_json::to_string(&verification).expect(
+        &format!("Could not serialise {:?} to json.", verification));
+    writeln!(writer, "{}", json).expect(
+        &format!("Could not write the verification: '{}' to the replay log.", json));
 }

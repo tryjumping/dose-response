@@ -657,7 +657,6 @@ fn update(mut state: GameState,
             turn: state.turn,
             chunk_count: chunks.len(),
             player_pos: state.player.pos,
-            screen_position_in_world: state.screen_position_in_world,
         };
         if state.replay {
             let expected = state.verifications.pop_front().expect(

@@ -87,7 +87,6 @@ pub struct Verification {
     pub turn: i32,
     pub chunk_count: usize,
     pub player_pos: Point,
-    pub screen_position_in_world: Point,
 }
 
 pub struct GameState {

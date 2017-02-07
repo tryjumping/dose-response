@@ -1,3 +1,7 @@
+* The monster's path is recalculated every turn                         :bug:
+** With the path visualisation, it's clearly visible now
+** Every turn, the monster choses a random path and recalculates
+** Thus, making their movement basically equally random as before only much slower ffs
 * Depression sometimes doesn't follow the player                        :bug:
 ** Sometimes I see it (and it should see me) and it just stands there
 ** I'm guessing it's something to do with the world chunks

@@ -404,7 +404,7 @@ fn process_monsters<R: Rng>(world: &mut world::World,
                         pos, destination, world, level::Walkability::BlockingMonsters);
                     let newpos = path.next().unwrap_or(pos);
                     // Cache the path-finding result
-                    let newpath = path.collect::<Vec<_>>();
+                    let newpath = path.collect();
                     (newpos, newpath)
                 } else {
                     (monster_readonly.path[0], monster_readonly.path[1..].into())

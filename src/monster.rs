@@ -98,19 +98,24 @@ impl Monster {
                 }
             }
             Idle => {
-                // Move randomly about
-                let mut destination = world.random_neighbour_position(
-                    rng, self.position, Walkability::BlockingMonsters);
+                let destination = if self.path.is_empty() {
+                    // Move randomly about
+                    let mut destination = world.random_neighbour_position(
+                        rng, self.position, Walkability::BlockingMonsters);
 
-                for _ in 0..10 {
-                    let x = rng.gen_range(-8, 9);
-                    let y = rng.gen_range(-8, 9);
-                    let candidate = self.position + (x, y);
-                    if x.abs() > 2 && y.abs() > 2 &&
-                        world.walkable(candidate, Walkability::WalkthroughMonsters) {
-                        destination = candidate;
-                        break;
-                    }
+                    for _ in 0..10 {
+                        let x = rng.gen_range(-8, 9);
+                        let y = rng.gen_range(-8, 9);
+                        let candidate = self.position + (x, y);
+                        if x.abs() > 2 && y.abs() > 2 &&
+                            world.walkable(candidate, Walkability::WalkthroughMonsters) {
+                                destination = candidate;
+                                break;
+                            }
+                    };
+                    destination
+                } else {  // We already have a path, just set the same destination:
+                    *self.path.last().unwrap()
                 };
                 Action::Move(destination)
             }

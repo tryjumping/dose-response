@@ -246,7 +246,7 @@ impl GameState {
                             verifications.push_back(verification);
                         },
                         Some(Err(err)) => panic!("Error reading a verification from the replay log: {:?}.", err),
-                        None => panic!("There is no verification following a command in the log"),
+                        None => break,
                     }
                 }
 

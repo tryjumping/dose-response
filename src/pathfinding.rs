@@ -17,6 +17,10 @@ impl Path {
             return Path { path: vec![] };
         }
 
+        if !world.walkable(to, walkability) {
+            return Path { path: vec![] };
+        }
+
         if from.tile_distance(to) == 1 {
             return Path { path: vec![to] };
         }

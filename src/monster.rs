@@ -22,6 +22,7 @@ pub struct Monster {
     pub die_after_attack: bool,
     pub ai_state: AIState,
     pub path: Vec<Point>,
+    pub trail: Option<Point>,
 
     pub max_ap: i32,
     ap: i32,
@@ -62,6 +63,7 @@ impl Monster {
             ap: 0,
             max_ap: max_ap,
             path: vec![],
+            trail: None,
         }
     }
 
@@ -131,6 +133,7 @@ impl Monster {
     pub fn new_turn(&mut self) {
         if !self.dead {
             self.ap = self.max_ap;
+            self.trail = None;
         }
     }
 }

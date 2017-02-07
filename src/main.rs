@@ -413,6 +413,9 @@ fn process_monsters<R: Rng>(world: &mut world::World,
                 world.move_monster(pos, newpos);
                 if let Some(monster) = world.monster_on_pos(newpos) {
                     monster.path = newpath;
+                    if monster.has_ap(1) {
+                        monster.trail = Some(newpos);
+                    }
                 }
                 monster_position = newpos;
             }
@@ -855,6 +858,18 @@ fn update(mut state: GameState,
             if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {
                 let world_pos = monster.position;
                 let display_pos = screen_coords_from_world(world_pos);
+                if let Some(trail_pos) = monster.trail {
+                    if state.cheating {
+                        let trail_pos = screen_coords_from_world(trail_pos);
+                        use graphics::Render;
+                        if within_map_bounds(trail_pos) {
+                            let (glyph, color, _) = monster.render(dt);
+                            // TODO: show a fading animation of the trail colour
+                            let color = color::Color {r: color.r - 55, g: color.g - 55, b: color.b - 55};
+                            drawcalls.push(Draw::Char(trail_pos, glyph, color));
+                        }
+                    }
+                }
                 if within_map_bounds(display_pos) {
                     graphics::draw(drawcalls, dt, display_pos, monster);
                 }

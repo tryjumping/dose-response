@@ -144,7 +144,7 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
 fn explode(center: point::Point,
            radius: i32,
            world: &mut world::World) -> Box<AreaOfEffect> {
-    let animation = animation::Explosion::new(center, radius, 2, color::explosion);
+    let animation = animation::SquareExplosion::new(center, radius, 2, color::explosion);
     for pos in animation.covered_tiles() {
         kill_monster(pos, world);
     }

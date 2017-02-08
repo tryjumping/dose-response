@@ -12,7 +12,7 @@ pub trait AreaOfEffect {
 }
 
 #[derive(Debug)]
-pub struct Explosion {
+pub struct SquareExplosion {
     pub center: Point,
     pub max_radius: i32,
     pub initial_radius: i32,
@@ -22,13 +22,13 @@ pub struct Explosion {
     pub timer: Timer,
 }
 
-impl Explosion {
+impl SquareExplosion {
     pub fn new(center: Point, max_radius: i32, initial_radius: i32, color: Color) -> Self {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
         let wave_count = max_radius - initial_radius + 1;
         let wave_duration = Duration::milliseconds(100);
-        Explosion {
+        SquareExplosion {
             center: center,
             max_radius: max_radius,
             initial_radius: initial_radius,
@@ -41,7 +41,7 @@ impl Explosion {
 
 }
 
-impl AreaOfEffect for Explosion {
+impl AreaOfEffect for SquareExplosion {
     fn update(&mut self, dt: Duration) {
         if self.timer.finished() {
             // do nothing

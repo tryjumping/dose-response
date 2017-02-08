@@ -191,6 +191,18 @@ fn process_player(state: &mut game_state::GameState) {
         state.player.sobriety_counter += 1;
     }
 
+    // Set the longest high streak
+    if spent_ap_this_turn {
+        if state.player.mind.is_high() {
+            state.player.current_high_streak += 1;
+            if state.player.current_high_streak > state.player.longest_high_streak {
+                state.player.longest_high_streak = state.player.current_high_streak;
+            }
+        } else {
+            state.player.current_high_streak = 0;
+        }
+    }
+
     // NOTE: The player has stayed sober long enough. Victory! \o/
     if state.player.sobriety_counter.is_max() {
         state.side = Side::Victory;
@@ -898,8 +910,6 @@ fn update(mut state: GameState,
     render_panel(state.map_size.x, state.panel_width, display_size, &state, dt, drawcalls, fps);
 
     if state.endgame_screen {
-        let turns_text = format!("Turns: {}", state.turn);
-
         let doses_in_inventory = state.player.inventory.iter()
             .filter(|item| {
                 use item::Kind::*;
@@ -909,9 +919,10 @@ fn update(mut state: GameState,
                 }
             })
             .count();
-        let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
 
-        let high_streak_text = format!("Longest High streak: {} turns", "TODO");
+        let turns_text = format!("Turns: {}", state.turn);
+        let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
+        let high_streak_text = format!("Longest High streak: {} turns", state.player.longest_high_streak);
 
         let longest_text = [&turns_text, &carrying_doses_text, &high_streak_text].iter()
             .map(|s| s.chars().count())

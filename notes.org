@@ -1,8 +1,10 @@
-* High score for the number of doses collected                         :idea:
+* DONE High score for the number of doses collected                    :idea:
+CLOSED: [2017-02-08 St 16:19]
 ** Would be a cool incentive for the end game
 ** The players might even consider prolonging it
 ** While obviously carrying danger because of the loss of Will and Depressions
-* Track the continuous High                                            :idea:
+* DONE Track the continuous High                                       :idea:
+CLOSED: [2017-02-08 St 16:19]
 ** think of something that would make the player want to not break the cycle
 ** Show at the end of the game screen
 * The player can start surrounded by hunger monsters and dead           :bug:

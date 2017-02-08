@@ -128,6 +128,7 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
             explosion_animation: &mut Option<Box<AreaOfEffect>>,
             item: item::Item) {
     use player::Modifier::*;
+    use item::Kind::*;
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication{state_of_mind, ..} = item.modifier {
         let radius = match state_of_mind <= 100 {
@@ -135,16 +136,30 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
             false => 6,
         };
         player.take_effect(item.modifier);
-        *explosion_animation = Some(explode(player.pos, radius, world));
+        *explosion_animation = match item.kind {
+            Dose | StrongDose => Some(explode_square(player.pos, radius, world)),
+            CardinalDose => Some(explode_cross(player.pos, radius, world)),
+            Food => unreachable!(),
+        };
     } else {
         unreachable!();
     }
 }
 
-fn explode(center: point::Point,
-           radius: i32,
-           world: &mut world::World) -> Box<AreaOfEffect> {
+fn explode_square(center: point::Point,
+                  radius: i32,
+                  world: &mut world::World) -> Box<AreaOfEffect> {
     let animation = animation::SquareExplosion::new(center, radius, 2, color::explosion);
+    for pos in animation.covered_tiles() {
+        kill_monster(pos, world);
+    }
+    Box::new(animation)
+}
+
+fn explode_cross(center: point::Point,
+                 radius: i32,
+                 world: &mut world::World) -> Box<AreaOfEffect> {
+    let animation = animation::CardinalExplosion::new(center, radius, 2, color::shattering_explosion);
     for pos in animation.covered_tiles() {
         kill_monster(pos, world);
     }
@@ -337,7 +352,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
-                    *explosion_animation = Some(explode(player.pos, food_explosion_radius, world));
+                    *explosion_animation = Some(explode_square(player.pos, food_explosion_radius, world));
                 }
             }
 

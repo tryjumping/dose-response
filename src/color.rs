@@ -26,6 +26,7 @@ pub static dose_glow: Color = Color{r: 15, g: 255, b: 243};
 pub static shattering_dose: Color = Color{r: 15, g: 255, b: 243};
 pub static dose_background: Color = Color{r: 0, g: 64, b: 64};
 pub static explosion: Color = Color{r: 15, g: 255, b: 243};
+pub static shattering_explosion: Color = Color{r: 191, g: 0, b: 0};
 pub static food: Color = Color{r: 148, g: 113, b: 0};
 pub static tree_1: Color = Color{r: 0, g: 191, b: 0};
 pub static tree_2: Color = Color{r: 0, g: 255, b: 0};

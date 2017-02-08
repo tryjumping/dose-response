@@ -162,6 +162,11 @@ fn explode_cross(center: point::Point,
     let animation = animation::CardinalExplosion::new(center, radius, 2, color::shattering_explosion);
     for pos in animation.covered_tiles() {
         kill_monster(pos, world);
+        // NOTE: destroy the level environment, too
+        // TODO: this should probably be a property of the dose regardless of the animation
+        let cell =  world.cell_mut(pos);
+        cell.tile.kind = level::TileKind::Empty;
+        cell.items.clear();
     }
     Box::new(animation)
 }

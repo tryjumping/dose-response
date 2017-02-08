@@ -241,7 +241,7 @@ impl World {
         chunk.level.cell(level_position)
     }
 
-    fn cell_mut(&mut self, world_pos: Point) -> &mut Cell {
+    pub fn cell_mut(&mut self, world_pos: Point) -> &mut Cell {
         let chunk = self.chunk(world_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.

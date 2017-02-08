@@ -742,7 +742,7 @@ fn update(mut state: GameState,
             // TODO: this is a bit hacky, but we want to uncover the screen only
             // after we've faded out:
             if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
-                state.see_entire_screen = true;
+                state.endgame_screen = true;
             }
             state.screen_fading = Some(anim);
         }
@@ -751,7 +751,7 @@ fn update(mut state: GameState,
     let mut bonus = state.player.bonus;
     // TODO: setting this as a bonus is a hack. Pass it to all renderers
     // directly instead.
-    if state.see_entire_screen {
+    if state.endgame_screen {
         bonus = player::Bonus::UncoverMap;
     }
     if state.cheating {
@@ -896,6 +896,59 @@ fn update(mut state: GameState,
     }
 
     render_panel(state.map_size.x, state.panel_width, display_size, &state, dt, drawcalls, fps);
+
+    if state.endgame_screen {
+        let turns_text = format!("Turns: {}", state.turn);
+
+        let doses_in_inventory = state.player.inventory.iter()
+            .filter(|item| {
+                use item::Kind::*;
+                match item.kind {
+                    Dose | StrongDose => true,
+                    Food => false,
+                }
+            })
+            .count();
+        let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
+
+        let high_streak_text = format!("Longest High streak: {} turns", "TODO");
+
+        let longest_text = [&turns_text, &carrying_doses_text, &high_streak_text].iter()
+            .map(|s| s.chars().count())
+            .max()
+            .unwrap() as i32;
+        let lines_count = 3;
+
+        let rect_dimensions = point::Point {
+            // NOTE: 1 tile padding, which is why we have the `+ 2`.
+            x: longest_text + 2,
+            // NOTE: each line has an empty line below so we just have `+ 1` for the top padding.
+            y: lines_count * 2 + 1,
+        };
+        let rect_start = point::Point {
+            x: (state.display_size.x - rect_dimensions.x) / 2,
+            y: 7,
+        };
+
+        drawcalls.push(
+            Draw::Rectangle(rect_start,
+                            rect_dimensions,
+                            color::background));
+
+        drawcalls.push(
+            Draw::Text(rect_start + (1, 1),
+                       turns_text.into(),
+                       color::gui_text));
+        drawcalls.push(
+            Draw::Text(rect_start + (1, 3),
+                       carrying_doses_text.into(),
+                       color::gui_text));
+        drawcalls.push(
+            Draw::Text(rect_start + (1, 5),
+                       high_streak_text.into(),
+                       color::gui_text));
+    }
+
     let drawcall_duration = drawcall_stopwatch.finish();
     state.stats.push(stats::FrameStats {
         update: update_duration,

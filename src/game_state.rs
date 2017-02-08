@@ -132,7 +132,10 @@ pub struct GameState {
     pub old_screen_pos: Point,
     pub new_screen_pos: Point,
     pub screen_fading: Option<ScreenFade>,
-    pub see_entire_screen: bool,
+
+    /// Whether the game is over (one way or another) and we should
+    /// show the endgame screen -- uncovered map, the score, etc.
+    pub endgame_screen: bool,
 }
 
 impl GameState {
@@ -184,7 +187,7 @@ impl GameState {
             new_screen_pos: (0, 0).into(),
             paused: false,
             screen_fading: None,
-            see_entire_screen: false,
+            endgame_screen: false,
         }
     }
 

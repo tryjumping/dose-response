@@ -930,21 +930,25 @@ fn update(mut state: GameState,
             y: 7,
         };
 
+        fn centered_text_pos(container_width: i32, text: &str) -> i32 {
+            (container_width - text.chars().count() as i32) / 2
+        }
+
         drawcalls.push(
             Draw::Rectangle(rect_start,
                             rect_dimensions,
                             color::background));
 
         drawcalls.push(
-            Draw::Text(rect_start + (1, 1),
+            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &turns_text), 1),
                        turns_text.into(),
                        color::gui_text));
         drawcalls.push(
-            Draw::Text(rect_start + (1, 3),
+            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &carrying_doses_text), 3),
                        carrying_doses_text.into(),
                        color::gui_text));
         drawcalls.push(
-            Draw::Text(rect_start + (1, 5),
+            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &high_streak_text), 5),
                        high_streak_text.into(),
                        color::gui_text));
     }

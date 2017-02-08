@@ -1,40 +1,32 @@
-* Depression sometimes doesn't follow the player                        :bug:
-** Sometimes I see it (and it should see me) and it just stands there
-** I'm guessing it's something to do with the world chunks
-*** Could be pathfinding, too but I don't remember it being a problem before the chunks
-** Actually, it looks like it's just the depression moving there and back
-** And we see it because the visibility limit can be greater
-** So really, the monsters should all just set a more distant target and follow it
-** Instead of moving randomly
+* High score for the number of doses collected                         :idea:
+** Would be a cool incentive for the end game
+** The players might even consider prolonging it
+** While obviously carrying danger because of the loss of Will and Depressions
+* Track the continuous High                                            :idea:
+** think of something that would make the player want to not break the cycle
+** Show at the end of the game screen
 * The player can start surrounded by hunger monsters and dead           :bug:
 * The player can start within an irresistible dose's reach              :bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission
 ** If we do want to remove it, it should be after testing
-* High score for the number of doses collected                         :idea:
-** Would be a cool incentive for the end game
-** The players might even consider prolonging it
-** While obviously carrying danger because of the loss of Will and Depressions
 * The screen sometimes scrolls earlier than it should                   :bug:
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
 * Carrying small doses in inventory should be possible earlier than the large ones :idea:
 ** Right now they're all only pickable at the highest Will
-* Track the continuous High                                            :idea:
-** think of something that would make the player want to not break the cycle
-** Show at the end of the game screen
 * When there's no dose in sight and you're withdrawn, point in a general direction :idea:
 ** But only when you have no doses and no food
 ** I.e. this is to stop you from being completely fucked
 ** Because right now in that state you just have to wander randomly and hope
+* Show the anxiety counter in the UI :idea:
+** This will make it clearer to figure out that you want to keep hunting the Wills
+** We can start by showing will with a decimal counter
+** Or a "next will" progress bar
 * Distribute the doses based on a pattern                              :idea:
 ** First I thought just put them across some jagged lines the player can follow
 ** But how about doing a tree-like or better yet (since we're 2D) neuron-like structure?
 ** It would give some structure to the map, the centres would have interesting clusters
 ** And if the player ever figures it out, might be cool
-* Show the anxiety counter in the UI :idea:
-** This will make it clearer to figure out that you want to keep hunting the Wills
-** We can start by showing will with a decimal counter
-** Or a "next will" progress bar
 * Need to keep moving while waiting on the victory counter           :design:
 ** Right now, the best strategy is to dance around a save spot, doing nothing
 ** We need to force the player to keep moving
@@ -676,3 +668,15 @@ CLOSED: [2017-02-07 Út 19:39]
 *** With the path visualisation, it's clearly visible now
 *** Every turn, the monster choses a random path and recalculates
 *** Thus, making their movement basically equally random as before only much slower ffs
+** DONE Depression sometimes doesn't follow the player                 :bug:
+CLOSED: [2017-02-07 Út 20:29]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-07 Út 20:29
+:END:
+*** Sometimes I see it (and it should see me) and it just stands there
+*** I'm guessing it's something to do with the world chunks
+**** Could be pathfinding, too but I don't remember it being a problem before the chunks
+*** Actually, it looks like it's just the depression moving there and back
+*** And we see it because the visibility limit can be greater
+*** So really, the monsters should all just set a more distant target and follow it
+*** Instead of moving randomly

@@ -309,7 +309,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                                     use item::Kind::*;
                                     match item.kind {
                                         Food => player.inventory.push(item),
-                                        Dose | StrongDose => {
+                                        Dose | StrongDose | CardinalDose => {
                                             if player.will.is_max() {
                                                 player.inventory.push(item);
                                             } else {
@@ -348,6 +348,14 @@ fn process_player_action<R, W>(player: &mut player::Player,
 
             Action::Use(item::Kind::StrongDose) => {
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose) {
+                    player.spend_ap(1);
+                    let dose = player.inventory.remove(dose_index);
+                    use_dose(player, world, explosion_animation, dose);
+                }
+            }
+
+            Action::Use(item::Kind::CardinalDose) => {
+                if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::CardinalDose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
                     use_dose(player, world, explosion_animation, dose);
@@ -914,7 +922,7 @@ fn update(mut state: GameState,
             .filter(|item| {
                 use item::Kind::*;
                 match item.kind {
-                    Dose | StrongDose => true,
+                    Dose | StrongDose | CardinalDose => true,
                     Food => false,
                 }
             })

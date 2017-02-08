@@ -12,6 +12,7 @@ pub enum Kind {
     Food,
     Dose,
     StrongDose,
+    CardinalDose,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -24,8 +25,7 @@ pub struct Item {
 impl Item {
     pub fn is_dose(&self) -> bool {
         match self.kind {
-            Kind::Dose => true,
-            Kind::StrongDose => true,
+            Dose | StrongDose | CardinalDose => true,
             Food => false,
         }
     }
@@ -38,6 +38,7 @@ impl Render for Item {
             Food => ('%', color::food, None),
             Dose => ('i', color::dose, None),
             StrongDose => ('I', color::dose_glow, None),
+            CardinalDose => ('+', color::shattering_dose, None),
         }
     }
 }

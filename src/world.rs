@@ -381,11 +381,12 @@ impl World {
                 continue
             }
             for &item in self.cell(pos).items.iter() {
+                use item::Kind::*;
                 match item.kind {
-                    item::Kind::Dose | item::Kind::StrongDose => {
+                    Dose | StrongDose | CardinalDose => {
                         doses.push((pos, item));
                     }
-                    item::Kind::Food => {},
+                    Food => {},
                 }
             }
         }

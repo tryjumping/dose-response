@@ -75,6 +75,14 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
             let base = 130;
             Modifier::Intoxication{
                 state_of_mind: base + rng.gen_range(-15, 16),
+                tolerance_increase: 3,
+            }
+        }
+        CardinalDose => {
+            irresistible = 2;
+            let base = 95;
+            Modifier::Intoxication {
+                state_of_mind: base + rng.gen_range(-10, 11),
                 tolerance_increase: 2,
             }
         }
@@ -94,8 +102,9 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, ite
 
     let mut weights = [
         Weighted{weight: 1000 , item: None},
-        Weighted{weight: 12, item: Some(Dose)},
+        Weighted{weight: 8, item: Some(Dose)},
         Weighted{weight: 3, item: Some(StrongDose)},
+        Weighted{weight: 4, item: Some(CardinalDose)},
         Weighted{weight: 5, item: Some(Food)},
     ];
 

@@ -1,14 +1,22 @@
-* DONE High score for the number of doses collected                    :idea:
-CLOSED: [2017-02-08 St 16:19]
-** Would be a cool incentive for the end game
-** The players might even consider prolonging it
-** While obviously carrying danger because of the loss of Will and Depressions
-* DONE Track the continuous High                                       :idea:
-CLOSED: [2017-02-08 St 16:19]
-** think of something that would make the player want to not break the cycle
-** Show at the end of the game screen
-* The player can start surrounded by hunger monsters and dead           :bug:
-* The player can start within an irresistible dose's reach              :bug:
+* Add a new type of dose with different effects :idea:
+** it would show as a different letter
+** with a different colour (red?)
+** it's own tolerance
+** different effect on consumption (not explosion)
+*** how about shooting rays in cardinal / diagonal directions?
+*** could be two versions of the "same type" just like normal/strong dose now
+*** the rays would destroy everything in their path -- including walls
+*** the characters would be `+` and `x` for cardinal and diagonal rays
+* The player can start surrounded by hunger monsters and dead    :mapgen:bug:
+* The player can start within an irresistible dose's reach       :mapgen:bug:
+* Add NPCs                                                             :idea:
+** these could be "friends and family"
+** they're seen as translucent ghosts you can't interact with when High
+** but they can accompany you when sober
+*** making monsters not attack you
+*** going sober more slowly
+*** pointing towards useful/interesting things/places?
+** Could point the player towards interesting places/end-game conditions, etc.
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission
 ** If we do want to remove it, it should be after testing
@@ -20,11 +28,11 @@ CLOSED: [2017-02-08 St 16:19]
 ** But only when you have no doses and no food
 ** I.e. this is to stop you from being completely fucked
 ** Because right now in that state you just have to wander randomly and hope
-* Show the anxiety counter in the UI :idea:
+* Show the anxiety counter in the UI                                :ui:idea:
 ** This will make it clearer to figure out that you want to keep hunting the Wills
 ** We can start by showing will with a decimal counter
 ** Or a "next will" progress bar
-* Distribute the doses based on a pattern                              :idea:
+* Distribute the doses based on a pattern                       :mapgen:idea:
 ** First I thought just put them across some jagged lines the player can follow
 ** But how about doing a tree-like or better yet (since we're 2D) neuron-like structure?
 ** It would give some structure to the map, the centres would have interesting clusters
@@ -39,22 +47,6 @@ CLOSED: [2017-02-08 St 16:19]
 *** Give the player a goal they can achieve only while sober
 **** Say talking to a family NPC
 **** Show an arrow to the NPC?
-* Add a new type of dose with different effects :idea:
-** it would show as a different letter
-** with a different colour (red?)
-** it's own tolerance
-** different effect on consumption (not explosion)
-*** how about shooting rays in cardinal / diagonal directions?
-*** could be two versions of the "same type" just like normal/strong dose now
-*** the rays would destroy everything in their path -- including walls
-*** the characters would be `+` and `x` for cardinal and diagonal rays
-* Add NPCs :idea:
-** these could be "friends and family"
-** they're seen as translucent ghosts you can't interact with when High
-** but they can accompany you when sober
-*** making monsters not attack you
-*** going sober more slowly
-*** pointing towards useful/interesting things/places?
 * Items that could reduce the dose effect                              :idea:
 ** from strike:
 #+BEGIN_QUOTE
@@ -75,14 +67,14 @@ black box atm).
 *** and the fov would not reduce so much
 *** and it'd take more time for you to die (or maybe you wouldn't die at all, just transition to sober)
 * Spending a long time in the "normal" state can add Will :idea:
-* Remove the `build` folder from the releases :bug:
+* Remove the `build` folder from the releases                           :bug:
 ** Takes up a lot of space and it's entirely unnecessary
-* Adding a bad trip :idea:
+* Adding a bad trip                                                    :idea:
 ** Small chance of that happening
 ** But would make things actually worse for the duration of the dose
 ** What would happen if you took another dose by then?
 *** normal High but you risk overdosing yourself
-* Victory condition: dose ascension :idea:
+* Victory condition: dose ascension                                    :idea:
 ** from strike:
 #+BEGIN_QUOTE
 An alternate victory condition could be "Ascension". When you combine
@@ -105,12 +97,12 @@ and psychonaut websites are gonna be a goldmine, I'd say :p
 *** I kind of like the idea because it provides an addict victory condition
 *** Doesn't necessarily be a fantasy (consider the "golden shot" or whatever it's called)
 *** Train your will enough so you can collect doses and then down like a 100 at a same time?
-* Victory condition: stable addict :idea:
+* Victory condition: stable addict                                     :idea:
 ** Train yourself enough to be able to carry doses around
 ** Explore the world?
 ** Maybe find something that you wouldn't be able to otherwise
 ** "I've stopped smoking but I have a cigarette once a year"
-* Make the doses more interesting :design:
+* Make the doses more interesting                                    :design:
 ** Right now they're kind of bland: just increase SoM
 ** from strike:
 #+BEGIN_QUOTE
@@ -119,26 +111,28 @@ that has useable body and mind feedback for gameplay - sky's the
 limit. But a generic "something you're addicted to" is too 'meh' for a
 game. Some backstory would add a lot to the experience, too.
 #+END_QUOTE
-* The map generation shouldn't screw you over from the beginning :bug:
+* The map generation shouldn't screw you over from the beginning  :mapgen:bug:
 * Make the beginnings easier instead of throwing everything at you all at once :idea:
 ** Start with a handful subset of monsters, maybe less spaced-out
 ** Have "easy" and "hard" areas on the map but start in an easy one
-* Mouse support :idea:
-* Consider using just the cardinal movement :idea:
+* Mouse support                                                        :idea:
+** Click on an inventory item to use it
+** Click on a path to step one way towards it?
+* Consider using just the cardinal movement                            :idea:
 ** Diagonals are hard on the beginners
 ** Maybe a mouse?
-* Add a tutorial or something :idea:
+* Add a tutorial or something                                          :idea:
 ** Either a help doc or a tutorial or something to help the beginners
-* Medication or sobriety badges :idea:
+* Medication or sobriety badges                                        :idea:
 ** Instead of the 12-step bullshit
 ** You could come visit these centres
 *** they'd feed you and somehow help you to combat the addiction
 *** you could get sobriety bonuses (e.g. will increase, etc.)
-* Map the "must go forward and use the dose" range directly to Will? :idea:
+* Map the "must go forward and use the dose" range directly to Will?   :idea:
 ** It could make the place more interesting -- having move around the place
 ** Needs glowing irresistible areas
 ** It would make it clearer what happens when you gain new will
-* Effects for gaining/losing will :ui:
+* Effects for gaining/losing will                                        :ui:
 ** graphics (render it as a bar)
 ** consider displaying the partial will
 *** say you have `Will = 5` but you've also killed three Anxieties, so your Will is more like `5.3`
@@ -154,7 +148,7 @@ game. Some backstory would add a lot to the experience, too.
 ** Could encourage players to seek them out
 ** But it's obviously dangerous
 ** And it may cost you food if you overestimate (which fits fighting hunger)
-* Ideas about the main scope / goals of the game :design:
+* Ideas about the main scope / goals of the game                     :design:
 Finding out food and collecting it is good. More items to collect? Maybe stuff
 that changes the gameplay in some way? Like the items in spelunky.
 
@@ -178,16 +172,10 @@ e.g. removing almost all monsters from an area, see how it plays.
 Anyway, let's start with making the world bigger then one screen without actually
 changing anything else at the moment. And then play it for a while and see what happens.
 
-* Random chance that explosion destroys a wall, too?
-** I think this is superseded by the horizontal/diagonal ray doses
-* Ghost-like NPC becoming corporeal :idea:
-** When being High, the player would see these ghost NPCs moving through the world
-** When being sober, they'd become more and more corporeal
-** Could point the player towards interesting places/end-game conditions, etc.
-* Depression only moves by 2 squares when following the player :idea:
+* Depression only moves by 2 squares when following the player         :idea:
 ** When idle, it would only have 1 action point
 ** This ties into a more general idea of idle monsters and more complex AI
-* Monsters that can modify the environment :idea:
+* Monsters that can modify the environment                             :idea:
 ** unblock passages
 ** block passages
 ** teleport the player?
@@ -215,30 +203,20 @@ fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
 *** Better: just feed the inputs through a hash
 *** Maybe use the integer hash function by Thomas Wang
 *** http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
-* Limited map size that the player has to explore [map alternative]
-** spanning multiple screens
-** but not infinite
-** we'd have some sort of goal to find/accomplish there
-** that would simplify our entity handling and mapgen
-** The screen would be a view into that map
-*** still need to figure out how to move inbetween screens
-* More effects on High :idea:
+* More effects on High                                                 :idea:
 ** monsters get weaker (Dempression moving by one step per turn)
 ** dynamic / changing environment?
-* Idle monsters select more distant destinations :idea:
-** This should make it seem more realistic
-** No longer just moving randomly back and forth
-* improve level generator not to create blocked entities
-** Actually, with the wall-destroying ray-based doses, we can just keep it in
-** The player would look for means of destroying the wall if it had food/dose/anxiety in
-* Don't allow suicide (if there's a way to avoid it) :ui:
+* Don't allow suicide (if there's a way to avoid it)                     :ui:
 ** e.g. fatfingering the arrow when the Depression is near
-* save & exit/load game :ui:
+* save & exit/load game                                                  :ui:
 ** see how nethack 4 does it:
 ** https://www.reddit.com/r/roguelikedev/comments/3jk3xm/faq_friday_20_saving/
 ** could we use something similar?
-* Display the player's explored area on death :ui:
-* Pure terminal renderer :ui:
+* Display the player's explored area on death                            :ui:
+** As in, how many tiles they've explored
+** Might be a bit tricky to calculate
+** But it's another neat potential score thingy
+* Pure terminal renderer                                                 :ui:
 ** We've already added a PoC using Rustbox
 ** Alternative library: Termion
 *** http://ticki.github.io/blog/making-terminal-applications-in-rust-with-termion/
@@ -249,56 +227,60 @@ fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
 ** TODO Handle debug messages
 *** Write them to log or something?
 *** Or maybe just ignore that issue once the terminal is an optional thing
-* Fade out Shadows & Voices when dying after attack :ui:
+* Fade out Shadows & Voices when dying after attack                      :ui:
 ** fade to Color{r: 0, g: 0, b: 0} in 400ms
-* Different screen fadeout colours on various player deaths :ui:
+* Different screen fadeout colours on various player deaths              :ui:
 ** RED when killed by a monster
 ** BLACK when died of exaustion
 ** WHITE (slow fade, plus glitches) when overdosed
-* Doses should show a glowing animation :ui:
+* Doses should show a glowing animation                                  :ui:
 ** i.e. moving between two corolurs
-* Better display the movement of D monsters :ui:
+* Better display the movement of D monsters                              :ui:
 ** they're moving too fast currently (FPS dependent)
 ** we should show a path trail
 ** and also slow them down (visually -- so like they move every say 200ms, not every tick)
-* Smooth-out animations for the fade-out when growing Withdrawn :ui:
+** this works now in the cheat mode but it's ugly
+** we'll probably need to fade the "trail" out or something
+* Smooth-out animations for the fade-out when growing Withdrawn          :ui:
 ** right now, they are discrete: from fade 50 to 45 in one frame
 ** better make it a fade animation of say 50ms or so
-* Change the rate of the `High` animation based on intoxication :ui:
+* Change the rate of the `High` animation based on intoxication          :ui:
 ** (very high: fast-paced, should slow down on the way to sobriety)
-* Better effects on player's death :ui:
-** Fade out to red/black completely
-** Uncover the entire map (with a reverse fade)
-*** with full colours
-*** showing player's corpse
-* Make the graphics on Overdose death glitchy :ui:
-* Better radious / FoV calculation :idea:
+* Make the graphics on Overdose death glitchy                            :ui:
+* Better radious / FoV calculation                                     :code:
 Instead of looking at the points' coordinates, look at the actual (pixel) space
 each tile represents. The tiles are not points but squares with an area. This
 should provide a visually better result (but will be harder to compute).
-* Pick a good colour palette :ui:
-** https://personal.sron.nl/~pault/
-** http://paletton.com/
-* Add the Marla Daniels quote :ui:
+* Pick a good colour palette                                             :ui:
+** Fun16 by DawnBringer
+*** http://pixeljoint.com/pixelart/95350.htm
+** DB32 by DawnBringer
+*** http://pixeljoint.com/forum/forum_posts.asp?TID=16247
+** Arne's 16-bit palette:
+*** http://androidarts.com/palette/16pal.htm
+** Paul Tol's palette for colour blind people
+*** https://personal.sron.nl/~pault/
+** A colour wheel for generating palettes
+*** http://paletton.com/
+* Add the Marla Daniels quote                                            :ui:
 ** When the game is launched and there aren't any saves, it should just jump into the play
 *** (that was the genius of Braid)
 *** (we can use the unexplored area to show help/hints)
 ** Any other time, we'll show the menu with the quote & the load-game option
 ** Possibly, we may show it during player's death, if it makes sense
-* Effects on hit/death :ui:
+* Effects when being hit/death                                           :ui:
 ** colour fade (or something) on stun, removed will, death, etc.
 ** sound
-* Change player's colour on stunned/panicked :ui:
-* Make sure we're accessible to colour blind people :ui:
-* Maybe have a notion of a Timer struct? :code:
-** first pass just set the time and drop to zero.
-** no need to store (maximum, elapsed) Durations then
-* The "High" animation just kills the framerate on uncovered screen :code:
-* Use a config file :code:
+* Change player's colour on stunned/panicked                             :ui:
+* Make sure we're accessible to colour blind people                      :ui:
+** Means a terminal mode
+** Make sure the cursor always stays at the player character's position
+* Use a config file                                                    :code:
 ** The game's configuration will be portable and relatively easy to modify
 ** We could use libtcod's config
-*** not portable if we ever switch to other backengs (like glium)
 *** http://doryen.eptalys.net/data/libtcod/doc/1.5.1/html2/parser_run.html?c=true
+*** not portable if we ever switch to other backengs (like glium)
+**** which we did
 ** Probably something like TOML instead
 *** Has a solid Rust implementation (because Cargo)
 *** Supports comments
@@ -682,3 +664,73 @@ CLOSED: [2017-02-07 Út 20:29]
 *** And we see it because the visibility limit can be greater
 *** So really, the monsters should all just set a more distant target and follow it
 *** Instead of moving randomly
+** DONE High score for the number of doses collected                  :idea:
+CLOSED: [2017-02-08 St 16:19]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:23
+:END:
+*** Would be a cool incentive for the end game
+*** The players might even consider prolonging it
+*** While obviously carrying danger because of the loss of Will and Depressions
+** DONE Track the continuous High                                     :idea:
+CLOSED: [2017-02-08 St 16:19]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:23
+:END:
+*** think of something that would make the player want to not break the cycle
+*** Show at the end of the game screen
+** Random chance that explosion destroys a wall, too?
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:28
+:END:
+*** I think this is superseded by the horizontal/diagonal ray doses
+** Ghost-like NPC becoming corporeal                                  :idea:
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:29
+:END:
+*** When being High, the player would see these ghost NPCs moving through the world
+*** When being sober, they'd become more and more corporeal
+*** Could point the player towards interesting places/end-game conditions, etc.
+** Limited map size that the player has to explore [map alternative]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:30
+:END:
+*** spanning multiple screens
+*** but not infinite
+*** we'd have some sort of goal to find/accomplish there
+*** that would simplify our entity handling and mapgen
+*** The screen would be a view into that map
+**** still need to figure out how to move inbetween screens
+** DONE Idle monsters select more distant destinations                :idea:
+CLOSED: [2017-02-08 St 16:30]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:30
+:END:
+*** This should make it seem more realistic
+*** No longer just moving randomly back and forth
+** improve level generator not to create blocked entities
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:30
+:END:
+*** Actually, with the wall-destroying ray-based doses, we can just keep it in
+*** The player would look for means of destroying the wall if it had food/dose/anxiety in
+** DONE Better effects on player's death                                :ui:
+CLOSED: [2017-02-08 St 16:32]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:32
+:END:
+*** Fade out to red/black completely
+*** Uncover the entire map (with a reverse fade)
+**** with full colours
+**** showing player's corpse
+** DONE Maybe have a notion of a Timer struct?                        :code:
+CLOSED: [2017-02-08 St 16:41]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:41
+:END:
+*** first pass just set the time and drop to zero.
+*** no need to store (maximum, elapsed) Durations then
+** The "High" animation just kills the framerate on uncovered screen  :code:
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 16:41
+:END:

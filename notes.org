@@ -1,12 +1,15 @@
-* Add a new type of dose with different effects :idea:
-** it would show as a different letter
-** with a different colour (red?)
-** it's own tolerance
-** different effect on consumption (not explosion)
-*** how about shooting rays in cardinal / diagonal directions?
-*** could be two versions of the "same type" just like normal/strong dose now
-*** the rays would destroy everything in their path -- including walls
-*** the characters would be `+` and `x` for cardinal and diagonal rays
+* Add a Diagonal Shattering Dose                                       :idea:
+** Similar to the CardinalDose its explosion destroys everything in its path
+** But the explosion moves in the diagonal lines
+* Give the Shattering Doses a secondary "blue destruction" area        :idea:
+** So their red beams shatter everything they touch
+** But how about we give additional area that only destroys monsters like the normal doses
+*** it could be say the immediate tiles next to the explosion centre (i.e. radius 1)
+*** or like secondary beams next to the primary red ones
+*** or both?
+* Make the shattering doses' irresistible area different               :idea:
+** They have basically the same area as the small doses right now
+** It would be really neat if they were something inbetween
 * The player can start surrounded by hunger monsters and dead    :mapgen:bug:
 * The player can start within an irresistible dose's reach       :mapgen:bug:
 * Add NPCs                                                             :idea:
@@ -734,3 +737,17 @@ CLOSED: [2017-02-08 St 16:41]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-02-08 St 16:41
 :END:
+** DONE Add a new type of dose with different effects                 :idea:
+CLOSED: [2017-02-08 St 21:41]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-08 St 21:41
+:END:
+*** it would show as a different letter
+*** with a different colour (red?)
+*** it's own tolerance
+*** different effect on consumption (not explosion)
+**** how about shooting rays in cardinal / diagonal directions?
+**** could be two versions of the "same type" just like normal/strong dose now
+**** the rays would destroy everything in their path -- including walls
+**** the characters would be `+` and `x` for cardinal and diagonal rays
+*** Implemented the `+` dose, adding the other one as a separate item

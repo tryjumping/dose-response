@@ -33,6 +33,7 @@ use std::path::Path;
 use rand::Rng;
 use time::Duration;
 
+use animation::AreaOfEffect;
 use engine::{Draw, Settings};
 use game_state::{Command, GameState, Side};
 use keys::{Key, KeyCode};
@@ -124,9 +125,10 @@ fn kill_monster(monster_position: point::Point, world: &mut world::World) {
 }
 
 fn use_dose(player: &mut player::Player, world: &mut world::World,
-            explosion_animation: &mut Option<animation::Explosion>,
+            explosion_animation: &mut Option<Box<AreaOfEffect>>,
             item: item::Item) {
     use player::Modifier::*;
+    // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication{state_of_mind, ..} = item.modifier {
         let radius = match state_of_mind <= 100 {
             true => 4,
@@ -141,11 +143,12 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
 
 fn explode(center: point::Point,
            radius: i32,
-           world: &mut world::World) -> animation::Explosion {
-    for pos in point::SquareArea::new(center, radius) {
+           world: &mut world::World) -> Box<AreaOfEffect> {
+    let animation = animation::Explosion::new(center, radius, 2, color::explosion);
+    for pos in animation.covered_tiles() {
         kill_monster(pos, world);
     }
-    animation::Explosion::new(center, radius, 2, color::explosion)
+    Box::new(animation)
 }
 
 fn exploration_radius(mental_state: player::Mind) -> i32 {
@@ -214,7 +217,7 @@ fn process_player(state: &mut game_state::GameState) {
 fn process_player_action<R, W>(player: &mut player::Player,
                                commands: &mut VecDeque<Command>,
                                world: &mut world::World,
-                               explosion_animation: &mut Option<animation::Explosion>,
+                               explosion_animation: &mut Option<Box<AreaOfEffect>>,
                                rng: &mut R,
                                command_logger: &mut W)
     where R: Rng, W: Write {
@@ -858,15 +861,12 @@ fn update(mut state: GameState,
     // NOTE: render the dose/food explosion animations
     if let Some(mut anim) = state.explosion_animation {
         anim.update(dt);
-        if anim.timer.finished() {
+        if anim.finished() {
             state.explosion_animation = None;
         } else {
-            for world_pos in point::SquareArea::new(anim.center, anim.current_radius) {
-                if state.world.within_bounds(world_pos) {
-                    let display_pos = screen_coords_from_world(world_pos);
-                        drawcalls.push(Draw::Background(display_pos, anim.color));
-                }
-            }
+            drawcalls.extend(anim.render().map(|(world_pos, color)| {
+                Draw::Background(screen_coords_from_world(world_pos), color)
+            }));
             state.explosion_animation = Some(anim);
         }
     }

@@ -1,9 +1,15 @@
 use color::Color;
-use point::Point;
+use point::{Point, SquareArea};
 use timer::Timer;
 
 use time::Duration;
 
+pub trait AreaOfEffect {
+    fn update(&mut self, dt: Duration);
+    fn finished(&self) -> bool;
+    fn covered_tiles(&self) -> Box<Iterator<Item=Point>>;
+    fn render(&self) -> Box<Iterator<Item=(Point, Color)>>;
+}
 
 #[derive(Debug)]
 pub struct Explosion {
@@ -33,7 +39,10 @@ impl Explosion {
         }
     }
 
-    pub fn update(&mut self, dt: Duration) {
+}
+
+impl AreaOfEffect for Explosion {
+    fn update(&mut self, dt: Duration) {
         if self.timer.finished() {
             // do nothing
         } else {
@@ -46,7 +55,23 @@ impl Explosion {
         }
     }
 
+    fn finished(&self) -> bool {
+        self.timer.finished()
+    }
+
+    fn covered_tiles(&self) -> Box<Iterator<Item=Point>> {
+        Box::new(SquareArea::new(self.center, self.max_radius))
+    }
+
+    fn render(&self) -> Box<Iterator<Item=(Point, Color)>> {
+        let color = self.color;
+        Box::new(
+            SquareArea::new(self.center, self.current_radius)
+                .map(move |pos| (pos, color)))
+    }
+
 }
+
 
 
 #[derive(Debug)]

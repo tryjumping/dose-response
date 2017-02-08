@@ -8,7 +8,7 @@ use time;
 use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
-use animation::{Explosion, ScreenFade};
+use animation::{AreaOfEffect, ScreenFade};
 use keys::Keys;
 use player::Player;
 use point::Point;
@@ -91,7 +91,7 @@ pub struct Verification {
 
 pub struct GameState {
     pub player: Player,
-    pub explosion_animation: Option<Explosion>,
+    pub explosion_animation: Option<Box<AreaOfEffect>>,
 
     /// The actual size of the game world in tiles. Could be infinite
     /// but we're limiting it for performance reasons for now.

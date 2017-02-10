@@ -2,6 +2,8 @@ extern crate rusttype;
 extern crate image;
 
 use std::env;
+use std::io::Write;
+use std::fs::File;
 use std::path::Path;
 
 use rusttype::{FontCollection, Scale, point, PositionedGlyph};
@@ -35,15 +37,35 @@ fn main() {
     // let offset = point(0.0, v_metrics.ascent);
     // let glyphs: Vec<PositionedGlyph> = font.layout("RustType", scale, offset).collect();
 
-    // TODO: think about centering each character?
-    let text = "@.+x# RustType";
-    let glyphs: Vec<PositionedGlyph> = font.glyphs_for(text.chars())
+    // Lookup table for the printable ASCII chars (32 to 126)
+    let lookup_table = (32u8..127)
         .enumerate()
-        .map(|(index, glyph)| glyph.scaled(scale)
+        .map(|(index, ascii_code)| (index, ascii_code as char))
+        .collect::<Vec<_>>();
+
+    let mut lookup_table_fn_definition = String::new();
+
+    lookup_table_fn_definition.push_str(
+        "fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n");
+    lookup_table_fn_definition.push_str(
+        "match chr {\n");
+    for &(index, chr) in &lookup_table {
+        lookup_table_fn_definition.push_str(
+            &format!("  {:?} => Some(({}, 0)),\n", chr, index));
+    }
+    lookup_table_fn_definition.push_str("_ => None,\n}\n}\n");
+
+    let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs")).unwrap();
+    lt_file.write_all(lookup_table_fn_definition.as_bytes()).unwrap();
+
+
+    // TODO: center the characters horizontaly
+    let glyphs: Vec<PositionedGlyph> = lookup_table.iter()
+        .map(|&(index, chr)| font.glyph(chr).unwrap().scaled(scale)
              .positioned(point(height * index as f32, v_metrics.ascent)))
         .collect();
 
-    let width = pixel_height * text.chars().count();
+    let width = pixel_height * glyphs.iter().count();
 
     // TODO: when rendering a layd out text:
     // Find the most visually pleasing width to display
@@ -73,7 +95,7 @@ fn main() {
         }
     }
 
-    if let Err(e) = fontmap.save(out_dir.join("out.png")) {
+    if let Err(e) = fontmap.save(out_dir.join("font.png")) {
         println!("Error while saving the font map: '{}'", e);
     }
 

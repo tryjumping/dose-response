@@ -48,3 +48,8 @@ pub type UpdateFn<T> = fn(T,
                        settings: Settings,
                        drawcalls: &mut Vec<Draw>)
                        -> Option<(Settings, T)>;
+
+
+// NOTE:
+// fn texture_coords_from_char(chr: char) -> Option<(i32, i32)>
+include!(concat!(env!("OUT_DIR"), "/glyph_lookup_table.rs"));

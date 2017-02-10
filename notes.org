@@ -1,17 +1,11 @@
 * Add a Diagonal Shattering Dose                                       :idea:
 ** Similar to the CardinalDose its explosion destroys everything in its path
 ** But the explosion moves in the diagonal lines
-* Give the Shattering Doses a secondary "blue destruction" area        :idea:
-** So their red beams shatter everything they touch
-** But how about we give additional area that only destroys monsters like the normal doses
-*** it could be say the immediate tiles next to the explosion centre (i.e. radius 1)
-*** or like secondary beams next to the primary red ones
-*** or both?
 * Make the shattering doses' irresistible area different               :idea:
 ** They have basically the same area as the small doses right now
 ** It would be really neat if they were something inbetween
-* The player can start surrounded by hunger monsters and dead    :mapgen:bug:
-* The player can start within an irresistible dose's reach       :mapgen:bug:
+* Carrying small doses in inventory should be possible earlier than the large ones :idea:
+** Right now they're all only pickable at the highest Will
 * Add NPCs                                                             :idea:
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -20,26 +14,13 @@
 *** going sober more slowly
 *** pointing towards useful/interesting things/places?
 ** Could point the player towards interesting places/end-game conditions, etc.
+* The player can start surrounded by hunger monsters and dead    :mapgen:bug:
+* The player can start within an irresistible dose's reach       :mapgen:bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission
 ** If we do want to remove it, it should be after testing
 * The screen sometimes scrolls earlier than it should                   :bug:
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
-* Carrying small doses in inventory should be possible earlier than the large ones :idea:
-** Right now they're all only pickable at the highest Will
-* When there's no dose in sight and you're withdrawn, point in a general direction :idea:
-** But only when you have no doses and no food
-** I.e. this is to stop you from being completely fucked
-** Because right now in that state you just have to wander randomly and hope
-* Show the anxiety counter in the UI                                :ui:idea:
-** This will make it clearer to figure out that you want to keep hunting the Wills
-** We can start by showing will with a decimal counter
-** Or a "next will" progress bar
-* Distribute the doses based on a pattern                       :mapgen:idea:
-** First I thought just put them across some jagged lines the player can follow
-** But how about doing a tree-like or better yet (since we're 2D) neuron-like structure?
-** It would give some structure to the map, the centres would have interesting clusters
-** And if the player ever figures it out, might be cool
 * Need to keep moving while waiting on the victory counter           :design:
 ** Right now, the best strategy is to dance around a save spot, doing nothing
 ** We need to force the player to keep moving
@@ -50,6 +31,25 @@
 *** Give the player a goal they can achieve only while sober
 **** Say talking to a family NPC
 **** Show an arrow to the NPC?
+* Show the anxiety counter in the UI                                :ui:idea:
+** This will make it clearer to figure out that you want to keep hunting the Wills
+** We can start by showing will with a decimal counter
+** Or a "next will" progress bar
+* Give the Shattering Doses a secondary "blue destruction" area        :idea:
+** So their red beams shatter everything they touch
+** But how about we give additional area that only destroys monsters like the normal doses
+*** it could be say the immediate tiles next to the explosion centre (i.e. radius 1)
+*** or like secondary beams next to the primary red ones
+*** or both?
+* When there's no dose in sight and you're withdrawn, point in a general direction :idea:
+** But only when you have no doses and no food
+** I.e. this is to stop you from being completely fucked
+** Because right now in that state you just have to wander randomly and hope
+* Distribute the doses based on a pattern                       :mapgen:idea:
+** First I thought just put them across some jagged lines the player can follow
+** But how about doing a tree-like or better yet (since we're 2D) neuron-like structure?
+** It would give some structure to the map, the centres would have interesting clusters
+** And if the player ever figures it out, might be cool
 * Items that could reduce the dose effect                              :idea:
 ** from strike:
 #+BEGIN_QUOTE

@@ -1079,8 +1079,7 @@ fn main() {
     // NOTE: 2 ^ 30
     let world_size = (1_073_741_824, 1_073_741_824).into();
     let title = "Dose Response";
-    let font_dir = Path::new("fonts");
-    let font_path = font_dir.join("dejavu16x16_gs_tc.png");
+    let font_path = Path::new(concat!(env!("OUT_DIR"), "/out.png"));
 
     let matches = App::new(title)
         .author("Tomas Sedovic <tomas@sedovic.cz>")

@@ -2,6 +2,7 @@
 name = "dose-response"
 version = "0.3.0"
 authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
+build = "build.rs"
 
 [[bin]]
 name = "dose-response"
@@ -20,6 +21,11 @@ rustbox = { version = "0.9.0", optional = true }
 piston_window = { version = "0.63.0", optional = true }
 image = { version = "0.12.2", optional = true }
 glium = { version = "0.16.0", optional = true }
+
+
+[build-dependencies]
+rusttype = "0.2.1"
+image = "0.12.2"
 
 
 [features]

@@ -500,6 +500,16 @@ pub fn main_loop<T>(display_size: Point,
                         });
                     }
                 }
+
+                Event::Focused(false) | Event::Suspended(false) => {
+                    lctrl_pressed = false;
+                    rctrl_pressed = false;
+                    lalt_pressed = false;
+                    ralt_pressed = false;
+                    lshift_pressed = false;
+                    rshift_pressed = false;
+                }
+
                 _ => ()
             }
         }

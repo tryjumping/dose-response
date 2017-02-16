@@ -4,6 +4,19 @@
 * Make the shattering doses' irresistible area different               :idea:
 ** They have basically the same area as the small doses right now
 ** It would be really neat if they were something inbetween
+* Special "gun" equipment                                              :idea:
+** changes the movement behaviour:
+When there is a monster in the direction of the movement (within 4
+tiles), shoot a ray that kills all monsters in its path instead of
+moving in that direction.
+** infinite "ammo"
+** can't be unequipped/dropped
+** relatively rare (think jetpack in spelunky)
+** takes 1 action point
+* Special "pickaxe" equipment                                          :idea:
+** can't be unequipped/dropped
+** bumping into a solid/blocking tile (i.e. "tree") destroys it
+** takes 1 action point
 * Carrying small doses in inventory should be possible earlier than the large ones :idea:
 ** Right now they're all only pickable at the highest Will
 * Add NPCs                                                             :idea:

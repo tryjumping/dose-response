@@ -2,9 +2,6 @@
 ** basically like with food/normal doses but only 1 tile around the dose
 ** That means that the immediate vicinity of the dose is always protected
 ** but the main effect is still the cardinal/diagonal tendrils of shattering
-* Make the shattering doses' irresistible area different               :idea:
-** They have basically the same area as the small doses right now
-** It would be really neat if they were something inbetween
 * Show stats only while cheating                                         :ui:
 ** that means the FPS, dt and the recent frame durations
 ** useful for when we're recording things
@@ -790,3 +787,10 @@ CLOSED: [2017-02-16 Čt 17:02]
 :END:
 *** Similar to the CardinalDose its explosion destroys everything in its path
 *** But the explosion moves in the diagonal lines
+** DONE Make the shattering doses' irresistible area different        :idea:
+CLOSED: [2017-02-16 Čt 19:27]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-16 Čt 19:27
+:END:
+*** They have basically the same area as the small doses right now
+*** It would be really neat if they were something inbetween

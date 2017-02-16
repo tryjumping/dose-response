@@ -71,7 +71,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
             }
         }
         StrongDose => {
-            irresistible = 3;
+            irresistible = 4;
             let base = 130;
             Modifier::Intoxication{
                 state_of_mind: base + rng.gen_range(-15, 16),
@@ -79,7 +79,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
             }
         }
         CardinalDose => {
-            irresistible = 2;
+            irresistible = 3;
             let base = 95;
             Modifier::Intoxication {
                 state_of_mind: base + rng.gen_range(-10, 11),
@@ -87,7 +87,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
             }
         }
         DiagonalDose => {
-            irresistible = 2;
+            irresistible = 3;
             let base = 95;
             Modifier::Intoxication {
                 state_of_mind: base + rng.gen_range(-10, 11),

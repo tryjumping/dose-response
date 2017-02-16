@@ -9,6 +9,11 @@
 ** that means the FPS, dt and the recent frame durations
 ** useful for when we're recording things
 ** eventually we may want to have stats and cheating as separate things, but this will do for now
+* Rework the animation system                                          :code:
+** Right now it's a bunch of boxed traits and we have to match on dose type
+** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct
+** We could also support multiple animations, which would let us compose a cross animation by:
+*** square explosion of 1 diagonal area + 2 (or 4) horizontal animation lines
 * Display next actions in the game over menu                             :ui:
 ** "Press [F5] to start a new game"
 ** "Press [Q] to quit"

@@ -142,9 +142,13 @@ fn use_dose(player: &mut player::Player,
             Dose | StrongDose =>
                 Box::new(animation::SquareExplosion::new(player.pos, radius, 2, color::explosion)),
             CardinalDose =>
-                Box::new(animation::CardinalExplosion::new(player.pos, radius, 2, color::shattering_explosion)),
+                Box::new(
+                    animation::CardinalExplosion::new(
+                        player.pos, radius, 2, color::explosion, color::shattering_explosion)),
             DiagonalDose =>
-                Box::new(animation::DiagonalExplosion::new(player.pos, radius, 2, color::shattering_explosion)),
+                Box::new(
+                    animation::DiagonalExplosion::new(
+                        player.pos, radius, 2, color::explosion, color::shattering_explosion)),
             Food => unreachable!(),
 
         };

@@ -78,17 +78,19 @@ impl AreaOfEffect for SquareExplosion {
 
 #[derive(Debug)]
 pub struct CardinalExplosion {
-    pub center: Point,
-    pub max_radius: i32,
-    pub initial_radius: i32,
-    pub current_radius: i32,
-    pub color: Color,
-    pub wave_count: i32,
-    pub timer: Timer,
+    center: Point,
+    max_radius: i32,
+    initial_radius: i32,
+    current_radius: i32,
+    kill_color: Color,
+    shatter_color: Color,
+    wave_count: i32,
+    timer: Timer,
 }
 
 impl CardinalExplosion {
-    pub fn new(center: Point, max_radius: i32, initial_radius: i32, color: Color) -> Self {
+    pub fn new(center: Point, max_radius: i32, initial_radius: i32,
+               kill_color: Color, shatter_color: Color) -> Self {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
         let wave_count = max_radius - initial_radius + 1;
@@ -98,7 +100,8 @@ impl CardinalExplosion {
             max_radius: max_radius,
             initial_radius: initial_radius,
             current_radius: initial_radius,
-            color: color,
+            kill_color: kill_color,
+            shatter_color: shatter_color,
             wave_count: wave_count,
             timer: Timer::new(wave_duration * wave_count),
         }
@@ -124,9 +127,14 @@ impl AreaOfEffect for CardinalExplosion {
     }
 
     fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>> {
-        let color = self.color;
-        let iter = CrossIterator::new(self.center, self.current_radius);
-        Box::new(iter.map(move |pos| (pos, color, KILL & SHATTER)))
+        let kill_color = self.kill_color;
+        let killzone_area = SquareArea::new(self.center, 1)
+            .map(move |pos| (pos, kill_color, KILL));
+
+        let shatter_color = self.shatter_color;
+        let shatter_area = CrossIterator::new(self.center, self.current_radius)
+            .map(move |pos| (pos, shatter_color, KILL & SHATTER));
+        Box::new(killzone_area.chain(shatter_area))
     }
 
 }
@@ -189,17 +197,19 @@ impl Iterator for CrossIterator {
 
 #[derive(Debug)]
 pub struct DiagonalExplosion {
-    pub center: Point,
-    pub max_radius: i32,
-    pub initial_radius: i32,
-    pub current_radius: i32,
-    pub color: Color,
-    pub wave_count: i32,
-    pub timer: Timer,
+    center: Point,
+    max_radius: i32,
+    initial_radius: i32,
+    current_radius: i32,
+    kill_color: Color,
+    shatter_color: Color,
+    wave_count: i32,
+    timer: Timer,
 }
 
 impl DiagonalExplosion {
-    pub fn new(center: Point, max_radius: i32, initial_radius: i32, color: Color) -> Self {
+    pub fn new(center: Point, max_radius: i32, initial_radius: i32,
+               kill_color: Color, shatter_color: Color) -> Self {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
         let wave_count = max_radius - initial_radius + 1;
@@ -209,7 +219,8 @@ impl DiagonalExplosion {
             max_radius: max_radius,
             initial_radius: initial_radius,
             current_radius: initial_radius,
-            color: color,
+            kill_color: kill_color,
+            shatter_color: shatter_color,
             wave_count: wave_count,
             timer: Timer::new(wave_duration * wave_count),
         }
@@ -235,9 +246,14 @@ impl AreaOfEffect for DiagonalExplosion {
     }
 
     fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>> {
-        let color = self.color;
-        let iter = XIterator::new(self.center, self.current_radius);
-        Box::new(iter.map(move |pos| (pos, color, KILL & SHATTER)))
+        let kill_color = self.kill_color;
+        let killzone_area = SquareArea::new(self.center, 1)
+            .map(move |pos| (pos, kill_color, KILL));
+
+        let shatter_color = self.shatter_color;
+        let shatter_area = XIterator::new(self.center, self.current_radius)
+            .map(move |pos| (pos, shatter_color, KILL & SHATTER));
+        Box::new(killzone_area.chain(shatter_area))
     }
 
 }

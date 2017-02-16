@@ -1,9 +1,20 @@
 * Add a Diagonal Shattering Dose                                       :idea:
 ** Similar to the CardinalDose its explosion destroys everything in its path
 ** But the explosion moves in the diagonal lines
+* Create a 1-tile radius of monster killing AoE for shattering doses
+** basically like with food/normal doses but only 1 tile around the dose
+** That means that the immediate vicinity of the dose is always protected
+** but the main effect is still the cardinal/diagonal tendrils of shattering
 * Make the shattering doses' irresistible area different               :idea:
 ** They have basically the same area as the small doses right now
 ** It would be really neat if they were something inbetween
+* Show stats only while cheating                                         :ui:
+** that means the FPS, dt and the recent frame durations
+** useful for when we're recording things
+** eventually we may want to have stats and cheating as separate things, but this will do for now
+* Display next actions in the game over menu                             :ui:
+** "Press [F5] to start a new game"
+** "Press [Q] to quit"
 * Special "gun" equipment                                              :idea:
 ** changes the movement behaviour:
 When there is a monster in the direction of the movement (within 4
@@ -48,6 +59,8 @@ moving in that direction.
 ** This will make it clearer to figure out that you want to keep hunting the Wills
 ** We can start by showing will with a decimal counter
 ** Or a "next will" progress bar
+* Select the final font / fonts                                          :ui:
+** http://programmingfonts.org/list
 * Give the Shattering Doses a secondary "blue destruction" area        :idea:
 ** So their red beams shatter everything they touch
 ** But how about we give additional area that only destroys monsters like the normal doses
@@ -310,6 +323,10 @@ should provide a visually better result (but will be harder to compute).
 *** colour-blind mode (yes/no)
 *** location to the replays
 *** location to the saved games?
+* Notes on screen recording
+** Use Kazam
+** Make sure the FPS are set to 60
+** It makes smooth clean .mp4 videos with no warnings from MPV during playback
 * Archive                                                           :ARCHIVE:
 ** DONE Taking a dose must always save from Depression
 CLOSED: [2016-10-07 Fri 21:25]

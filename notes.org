@@ -27,6 +27,10 @@ moving in that direction.
 ** can't be unequipped/dropped
 ** bumping into a solid/blocking tile (i.e. "tree") destroys it
 ** takes 1 action point
+* Irresistible doses don't always atract                           :bug:idea:
+** Seems that when there is a normal dose in the irresistible area we can break free
+** I'll need to test the exact parameters of this
+** But maybe we'll want to keep it there as an "easter egg rule"?
 * Carrying small doses in inventory should be possible earlier than the large ones :idea:
 ** Right now they're all only pickable at the highest Will
 * Add NPCs                                                             :idea:

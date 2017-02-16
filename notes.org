@@ -42,6 +42,9 @@ moving in that direction.
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission
 ** If we do want to remove it, it should be after testing
+* Dismiss the "you diead" screen when pressing Spacebar                  :ui:
+** So the player can see the full map
+** cycle the map and game over screen by pressing the key
 * The screen sometimes scrolls earlier than it should                   :bug:
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
 * Need to keep moving while waiting on the victory counter           :design:
@@ -244,6 +247,8 @@ fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
 ** As in, how many tiles they've explored
 ** Might be a bit tricky to calculate
 ** But it's another neat potential score thingy
+** Isn't this more or less the same thing as the number of turns?
+*** Not really -- this penalizes staying on the same place too long
 * Pure terminal renderer                                                 :ui:
 ** We've already added a PoC using Rustbox
 ** Alternative library: Termion

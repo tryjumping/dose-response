@@ -7,9 +7,16 @@ use time::Duration;
 pub trait AreaOfEffect {
     fn update(&mut self, dt: Duration);
     fn finished(&self) -> bool;
-    fn covered_tiles(&self) -> Box<Iterator<Item=Point>>;
-    fn render(&self) -> Box<Iterator<Item=(Point, Color)>>;
+    fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>>;
 }
+
+bitflags! {
+    pub flags TileEffect: u32 {
+        const KILL =    1,
+        const SHATTER = 2,
+    }
+}
+
 
 #[derive(Debug)]
 pub struct SquareExplosion {
@@ -59,15 +66,11 @@ impl AreaOfEffect for SquareExplosion {
         self.timer.finished()
     }
 
-    fn covered_tiles(&self) -> Box<Iterator<Item=Point>> {
-        Box::new(SquareArea::new(self.center, self.max_radius))
-    }
-
-    fn render(&self) -> Box<Iterator<Item=(Point, Color)>> {
+    fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>> {
         let color = self.color;
         Box::new(
             SquareArea::new(self.center, self.current_radius)
-                .map(move |pos| (pos, color)))
+                .map(move |pos| (pos, color, KILL)))
     }
 
 }
@@ -120,15 +123,12 @@ impl AreaOfEffect for CardinalExplosion {
         self.timer.finished()
     }
 
-    fn covered_tiles(&self) -> Box<Iterator<Item=Point>> {
-        Box::new(CrossIterator::new(self.center, self.max_radius))
-    }
-
-    fn render(&self) -> Box<Iterator<Item=(Point, Color)>> {
+    fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>> {
         let color = self.color;
         let iter = CrossIterator::new(self.center, self.current_radius);
-        Box::new(iter.map(move |pos| (pos, color)))
+        Box::new(iter.map(move |pos| (pos, color, KILL & SHATTER)))
     }
+
 }
 
 
@@ -234,17 +234,13 @@ impl AreaOfEffect for DiagonalExplosion {
         self.timer.finished()
     }
 
-    fn covered_tiles(&self) -> Box<Iterator<Item=Point>> {
-        Box::new(XIterator::new(self.center, self.max_radius))
-    }
-
-    fn render(&self) -> Box<Iterator<Item=(Point, Color)>> {
+    fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>> {
         let color = self.color;
         let iter = XIterator::new(self.center, self.current_radius);
-        Box::new(iter.map(move |pos| (pos, color)))
+        Box::new(iter.map(move |pos| (pos, color, KILL & SHATTER)))
     }
-}
 
+}
 
 
 #[derive(Debug)]

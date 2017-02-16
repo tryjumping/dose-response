@@ -1,5 +1,7 @@
 #![deny(overflowing_literals)]
 
+#[macro_use]
+extern crate bitflags;
 extern crate clap;
 extern crate rand;
 extern crate time;
@@ -124,7 +126,7 @@ fn kill_monster(monster_position: point::Point, world: &mut world::World) {
     world.remove_monster(monster_position);
 }
 
-fn use_dose(player: &mut player::Player, world: &mut world::World,
+fn use_dose(player: &mut player::Player,
             explosion_animation: &mut Option<Box<AreaOfEffect>>,
             item: item::Item) {
     use player::Modifier::*;
@@ -136,55 +138,20 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
             false => 6,
         };
         player.take_effect(item.modifier);
-        *explosion_animation = match item.kind {
-            Dose | StrongDose => Some(explode_square(player.pos, radius, world)),
-            CardinalDose => Some(explode_cross(player.pos, radius, world)),
-            DiagonalDose => Some(explode_diagonal(player.pos, radius, world)),
+        let animation: Box<AreaOfEffect> = match item.kind {
+            Dose | StrongDose =>
+                Box::new(animation::SquareExplosion::new(player.pos, radius, 2, color::explosion)),
+            CardinalDose =>
+                Box::new(animation::CardinalExplosion::new(player.pos, radius, 2, color::shattering_explosion)),
+            DiagonalDose =>
+                Box::new(animation::DiagonalExplosion::new(player.pos, radius, 2, color::shattering_explosion)),
             Food => unreachable!(),
+
         };
+        *explosion_animation = Some(animation);
     } else {
         unreachable!();
     }
-}
-
-fn explode_square(center: point::Point,
-                  radius: i32,
-                  world: &mut world::World) -> Box<AreaOfEffect> {
-    let animation = animation::SquareExplosion::new(center, radius, 2, color::explosion);
-    for pos in animation.covered_tiles() {
-        kill_monster(pos, world);
-    }
-    Box::new(animation)
-}
-
-fn explode_cross(center: point::Point,
-                 radius: i32,
-                 world: &mut world::World) -> Box<AreaOfEffect> {
-    let animation = animation::CardinalExplosion::new(center, radius, 2, color::shattering_explosion);
-    for pos in animation.covered_tiles() {
-        kill_monster(pos, world);
-        // NOTE: destroy the level environment, too
-        // TODO: this should probably be a property of the dose regardless of the animation
-        let cell =  world.cell_mut(pos);
-        cell.tile.kind = level::TileKind::Empty;
-        cell.items.clear();
-    }
-    Box::new(animation)
-}
-
-fn explode_diagonal(center: point::Point,
-                 radius: i32,
-                 world: &mut world::World) -> Box<AreaOfEffect> {
-    let animation = animation::DiagonalExplosion::new(center, radius, 2, color::shattering_explosion);
-    for pos in animation.covered_tiles() {
-        kill_monster(pos, world);
-        // NOTE: destroy the level environment, too
-        // TODO: this should probably be a property of the dose regardless of the animation
-        let cell =  world.cell_mut(pos);
-        cell.tile.kind = level::TileKind::Empty;
-        cell.items.clear();
-    }
-    Box::new(animation)
 }
 
 fn exploration_radius(mental_state: player::Mind) -> i32 {
@@ -352,7 +319,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                                             if player.will.is_max() {
                                                 player.inventory.push(item);
                                             } else {
-                                                use_dose(player, world, explosion_animation, item);
+                                                use_dose(player, explosion_animation, item);
                                             }
                                         }
                                     }
@@ -373,7 +340,8 @@ fn process_player_action<R, W>(player: &mut player::Player,
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
-                    *explosion_animation = Some(explode_square(player.pos, food_explosion_radius, world));
+                    let animation = animation::SquareExplosion::new(player.pos, food_explosion_radius, 1, color::explosion);
+                    *explosion_animation = Some(Box::new(animation));
                 }
             }
 
@@ -381,7 +349,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::Dose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, world, explosion_animation, dose);
+                    use_dose(player, explosion_animation, dose);
                 }
             }
 
@@ -389,7 +357,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, world, explosion_animation, dose);
+                    use_dose(player, explosion_animation, dose);
                 }
             }
 
@@ -397,7 +365,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::CardinalDose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, world, explosion_animation, dose);
+                    use_dose(player, explosion_animation, dose);
                 }
             }
 
@@ -405,7 +373,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::DiagonalDose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, world, explosion_animation, dose);
+                    use_dose(player, explosion_animation, dose);
                 }
             }
 
@@ -719,6 +687,20 @@ fn update(mut state: GameState,
         spent_turn = command_count > state.commands.len();
     }
 
+    // Run the dose explosion effect here:
+    if let Some(ref anim) = state.explosion_animation {
+        for (pos, _, effect) in anim.tiles() {
+            if effect.contains(animation::KILL) {
+                kill_monster(pos, &mut state.world);
+            }
+            if effect.contains(animation::SHATTER) {
+                let cell =  state.world.cell_mut(pos);
+                cell.tile.kind = level::TileKind::Empty;
+                cell.items.clear();
+            }
+        }
+    }
+
     if spent_turn {
         state.turn += 1;
         // TODO: we can sort the chunks and compare directly at some point.
@@ -908,7 +890,7 @@ fn update(mut state: GameState,
         if anim.finished() {
             state.explosion_animation = None;
         } else {
-            drawcalls.extend(anim.render().map(|(world_pos, color)| {
+            drawcalls.extend(anim.tiles().map(|(world_pos, color, _)| {
                 Draw::Background(screen_coords_from_world(world_pos), color)
             }));
             state.explosion_animation = Some(anim);

@@ -139,6 +139,7 @@ fn use_dose(player: &mut player::Player, world: &mut world::World,
         *explosion_animation = match item.kind {
             Dose | StrongDose => Some(explode_square(player.pos, radius, world)),
             CardinalDose => Some(explode_cross(player.pos, radius, world)),
+            DiagonalDose => Some(explode_diagonal(player.pos, radius, world)),
             Food => unreachable!(),
         };
     } else {
@@ -160,6 +161,21 @@ fn explode_cross(center: point::Point,
                  radius: i32,
                  world: &mut world::World) -> Box<AreaOfEffect> {
     let animation = animation::CardinalExplosion::new(center, radius, 2, color::shattering_explosion);
+    for pos in animation.covered_tiles() {
+        kill_monster(pos, world);
+        // NOTE: destroy the level environment, too
+        // TODO: this should probably be a property of the dose regardless of the animation
+        let cell =  world.cell_mut(pos);
+        cell.tile.kind = level::TileKind::Empty;
+        cell.items.clear();
+    }
+    Box::new(animation)
+}
+
+fn explode_diagonal(center: point::Point,
+                 radius: i32,
+                 world: &mut world::World) -> Box<AreaOfEffect> {
+    let animation = animation::DiagonalExplosion::new(center, radius, 2, color::shattering_explosion);
     for pos in animation.covered_tiles() {
         kill_monster(pos, world);
         // NOTE: destroy the level environment, too
@@ -332,7 +348,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                                     use item::Kind::*;
                                     match item.kind {
                                         Food => player.inventory.push(item),
-                                        Dose | StrongDose | CardinalDose => {
+                                        Dose | StrongDose | CardinalDose | DiagonalDose => {
                                             if player.will.is_max() {
                                                 player.inventory.push(item);
                                             } else {
@@ -379,6 +395,14 @@ fn process_player_action<R, W>(player: &mut player::Player,
 
             Action::Use(item::Kind::CardinalDose) => {
                 if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::CardinalDose) {
+                    player.spend_ap(1);
+                    let dose = player.inventory.remove(dose_index);
+                    use_dose(player, world, explosion_animation, dose);
+                }
+            }
+
+            Action::Use(item::Kind::DiagonalDose) => {
+                if let Some(dose_index) = player.inventory.iter().position(|&i| i.kind == item::Kind::DiagonalDose) {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
                     use_dose(player, world, explosion_animation, dose);
@@ -939,13 +963,7 @@ fn update(mut state: GameState,
 
     if state.endgame_screen {
         let doses_in_inventory = state.player.inventory.iter()
-            .filter(|item| {
-                use item::Kind::*;
-                match item.kind {
-                    Dose | StrongDose | CardinalDose => true,
-                    Food => false,
-                }
-            })
+            .filter(|item| item.is_dose())
             .count();
 
         let turns_text = format!("Turns: {}", state.turn);

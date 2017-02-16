@@ -380,15 +380,9 @@ impl World {
             if !self.walkable(pos, Walkability::WalkthroughMonsters) {
                 continue
             }
-            for &item in self.cell(pos).items.iter() {
-                use item::Kind::*;
-                match item.kind {
-                    Dose | StrongDose | CardinalDose => {
-                        doses.push((pos, item));
-                    }
-                    Food => {},
-                }
-            }
+            doses.extend(self.cell(pos).items.iter()
+                         .filter(|i| i.is_dose())
+                         .map(|&item| (pos, item)));
         }
 
         doses.pop().map(|dose| {

@@ -186,6 +186,124 @@ impl Iterator for CrossIterator {
 }
 
 
+
+#[derive(Debug)]
+pub struct DiagonalExplosion {
+    pub center: Point,
+    pub max_radius: i32,
+    pub initial_radius: i32,
+    pub current_radius: i32,
+    pub color: Color,
+    pub wave_count: i32,
+    pub timer: Timer,
+}
+
+impl DiagonalExplosion {
+    pub fn new(center: Point, max_radius: i32, initial_radius: i32, color: Color) -> Self {
+        assert!(initial_radius <= max_radius);
+        // Count the initial wave plus the rest that makes the difference
+        let wave_count = max_radius - initial_radius + 1;
+        let wave_duration = Duration::milliseconds(100);
+        DiagonalExplosion {
+            center: center,
+            max_radius: max_radius,
+            initial_radius: initial_radius,
+            current_radius: initial_radius,
+            color: color,
+            wave_count: wave_count,
+            timer: Timer::new(wave_duration * wave_count),
+        }
+    }
+}
+
+impl AreaOfEffect for DiagonalExplosion {
+    fn update(&mut self, dt: Duration) {
+        if self.timer.finished() {
+            // do nothing
+        } else {
+            self.timer.update(dt);
+            let single_wave_percentage = 1.0 / (self.wave_count as f32);
+            self.current_radius = self.initial_radius + (self.timer.percentage_elapsed() / single_wave_percentage) as i32;
+            if self.current_radius > self.max_radius {
+                self.current_radius = self.max_radius;
+            }
+        }
+    }
+
+    fn finished(&self) -> bool {
+        self.timer.finished()
+    }
+
+    fn covered_tiles(&self) -> Box<Iterator<Item=Point>> {
+        Box::new(XIterator::new(self.center, self.max_radius))
+    }
+
+    fn render(&self) -> Box<Iterator<Item=(Point, Color)>> {
+        let color = self.color;
+        let iter = XIterator::new(self.center, self.current_radius);
+        Box::new(iter.map(move |pos| (pos, color)))
+    }
+}
+
+
+
+#[derive(Debug)]
+pub struct XIterator {
+    center: Point,
+    range: i32,
+    x_offset: i32,
+    y_offset: i32,
+    horizontal: bool,
+    vertical: bool,
+}
+
+impl XIterator {
+    pub fn new(center: Point, range: i32) -> Self {
+        assert!(range >= 0);
+        XIterator {
+            center: center,
+            range: range,
+            x_offset: -range,
+            y_offset: -range,
+            horizontal: true,
+            vertical: false,
+        }
+    }
+}
+
+impl Iterator for XIterator {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Point> {
+        // TODO: simplify the code. This is basically just copied from
+        // CrossIterator and the names could be better plus I don't
+        // think we need all the fields.
+        if self.horizontal {
+            let x_offset = self.x_offset;
+            if x_offset <= self.range {
+                self.x_offset += 1;
+                return Some(self.center + (x_offset, -x_offset));
+            } else {
+                self.horizontal = false;
+                self.vertical = true;
+            }
+        }
+
+        if self.vertical {
+            let y_offset = self.y_offset;
+            if y_offset <= self.range {
+                self.y_offset += 1;
+                return Some(self.center + (y_offset, y_offset));
+            } else {
+                self.vertical = false;
+            }
+        }
+
+        None
+    }
+}
+
+
 #[derive(Debug)]
 pub struct ScreenFade {
     pub color: Color,

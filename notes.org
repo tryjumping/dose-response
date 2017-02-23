@@ -1,7 +1,3 @@
-* Show stats only while cheating                                         :ui:
-** that means the FPS, dt and the recent frame durations
-** useful for when we're recording things
-** eventually we may want to have stats and cheating as separate things, but this will do for now
 * Rework the animation system                                          :code:
 ** Right now it's a bunch of boxed traits and we have to match on dose type
 ** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct
@@ -327,7 +323,7 @@ should provide a visually better result (but will be harder to compute).
 *** colour-blind mode (yes/no)
 *** location to the replays
 *** location to the saved games?
-* Notes on screen recording
+* Notes on screen casts/recording
 ** Use Kazam
 ** Make sure the FPS are set to 60
 ** It makes smooth clean .mp4 videos with no warnings from MPV during playback
@@ -807,3 +803,11 @@ CLOSED: [2017-02-16 Čt 22:38]
 *** basically like with food/normal doses but only 1 tile around the dose
 *** That means that the immediate vicinity of the dose is always protected
 *** but the main effect is still the cardinal/diagonal tendrils of shattering
+** DONE Show stats only while cheating                                  :ui:
+CLOSED: [2017-02-23 Thu 18:11]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-02-23 Thu 18:12
+:END:
+*** that means the FPS, dt and the recent frame durations
+*** useful for when we're recording things
+*** eventually we may want to have stats and cheating as separate things, but this will do for now

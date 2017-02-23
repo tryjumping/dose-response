@@ -548,16 +548,19 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
         lines.push("Dead".into());
     }
 
-    lines.push("Time stats:".into());
-    for frame_stat in state.stats.last_frames(25) {
-        lines.push(format!("upd: {}, dc: {}",
-                           frame_stat.update.num_milliseconds(),
-                           frame_stat.drawcalls.num_milliseconds()).into());
+    if state.cheating {
+        lines.push("Time stats:".into());
+        for frame_stat in state.stats.last_frames(25) {
+            lines.push(format!("upd: {}, dc: {}",
+                               frame_stat.update.num_milliseconds(),
+                               frame_stat.drawcalls.num_milliseconds()).into());
+        }
+        lines.push(format!("longest upd: {}",
+                           state.stats.longest_update().num_milliseconds()).into());
+        lines.push(format!("longest dc: {}",
+                           state.stats.longest_drawcalls().num_milliseconds()).into());
     }
-    lines.push(format!("longest upd: {}",
-                       state.stats.longest_update().num_milliseconds()).into());
-    lines.push(format!("longest dc: {}",
-                       state.stats.longest_drawcalls().num_milliseconds()).into());
+
 
     for (y, line) in lines.into_iter().enumerate() {
         drawcalls.push(Draw::Text(point::Point{x: x + 1, y: y as i32}, line.into(), fg));
@@ -578,9 +581,12 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
                            color::gui_progress_bar_bg);
 
     let bottom = display_size.y - 1;
-    drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom - 1},
-                              format!("dt: {}ms", dt.num_milliseconds()).into(), fg));
-    drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom}, format!("FPS: {}", fps).into(), fg));
+
+    if state.cheating {
+        drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom - 1},
+                                  format!("dt: {}ms", dt.num_milliseconds()).into(), fg));
+        drawcalls.push(Draw::Text(point::Point{x: x + 1, y: bottom}, format!("FPS: {}", fps).into(), fg));
+    }
 
 }
 

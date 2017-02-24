@@ -1,4 +1,3 @@
-use std::path::Path;
 use time::{Duration, PreciseTime};
 
 use glium::{self, DisplayBuild, Surface};
@@ -141,7 +140,6 @@ implement_vertex!(Vertex, tile_position, tilemap_index, color);
 pub fn main_loop<T>(display_size: Point,
                     default_background: Color,
                     window_title: &str,
-                    font_path: &Path,
                     mut state: T,
                     update: UpdateFn<T>)
 {
@@ -167,7 +165,9 @@ pub fn main_loop<T>(display_size: Point,
         ).unwrap();
 
     let texture = {
-        let image = image::open(font_path).unwrap().to_rgba();
+        use std::io::Cursor;
+        let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
+        let image = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
         let (w, h) = image.dimensions();
         assert_eq!(w % tilesize, 0);
         assert_eq!(h % tilesize, 0);

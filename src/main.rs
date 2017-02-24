@@ -1063,18 +1063,16 @@ fn main() {
     fn run_opengl(display_size: point::Point,
                   default_background: color::Color,
                   window_title: &str,
-                  font_path: &Path,
                   state: GameState,
                   update: engine::UpdateFn<GameState>) {
         println!("Using the default backend: opengl");
-        engine::glium::main_loop(display_size, default_background, window_title, &font_path,
+        engine::glium::main_loop(display_size, default_background, window_title,
                                  state, update);
     }
     #[cfg(not(feature = "opengl"))]
     fn run_opengl(_display_size: point::Point,
                   _default_background: color::Color,
                   _window_title: &str,
-                  _font_path: &Path,
                   _state: GameState,
                   _update: engine::UpdateFn<GameState>) {
         println!("The \"opengl\" feature was not compiled in.");
@@ -1089,8 +1087,6 @@ fn main() {
     // NOTE: 2 ^ 30
     let world_size = (1_073_741_824, 1_073_741_824).into();
     let title = "Dose Response";
-    // TODO: this makes the release nonportable because it's a hardcoded absolute path
-    let font_path = Path::new(concat!(env!("OUT_DIR"), "/font.png"));
 
     let matches = App::new(title)
         .author("Tomas Sedovic <tomas@sedovic.cz>")
@@ -1138,16 +1134,15 @@ fn main() {
     };
 
     if  matches.is_present("libtcod") {
-        run_libtcod(display_size, color::background, title, &font_path, game_state);
+        run_libtcod(display_size, color::background, title, &Path::new(""), game_state);
     }
     else if matches.is_present("piston") {
-        run_piston(display_size, color::background, title, &font_path,
+        run_piston(display_size, color::background, title, &Path::new(""),
                    game_state, update);
     } else if matches.is_present("terminal") {
         run_terminal();
     } else {
-        run_opengl(display_size, color::background, title, &font_path,
-                   game_state, update);
+        run_opengl(display_size, color::background, title, game_state, update);
     }
 
 }

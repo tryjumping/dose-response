@@ -1089,6 +1089,7 @@ fn main() {
     // NOTE: 2 ^ 30
     let world_size = (1_073_741_824, 1_073_741_824).into();
     let title = "Dose Response";
+    // TODO: this makes the release nonportable because it's a hardcoded absolute path
     let font_path = Path::new(concat!(env!("OUT_DIR"), "/font.png"));
 
     let matches = App::new(title)

@@ -18,15 +18,6 @@ mk_tarball() {
     # NOTE All Cargo build artifacts will be under the 'target/$TARGET/{debug,release}'
     cp target/$TARGET/release/dose-response $td
     cp -r fonts $td
-    cp -r target/$TARGET/release/build $td
-    mkdir -p $td/lib
-    cp -r target/$TARGET/release/build/tcod-sys-*/out/libtcod.so* $td/lib
-    cat >$td/run-game <<EOF
-#!/bin/sh
-export LD_LIBRARY_PATH=lib
-./dose-response
-EOF
-    chmod a+x $td/run-game
 
     pushd $td
 

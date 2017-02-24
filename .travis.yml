@@ -33,17 +33,17 @@ matrix:
     #       packages: &i686_unknown_linux_gnu
     #         # Cross compiler and cross compiled C libraries
     #         - gcc-multilib
-    # - os: linux
-    #   rust: stable
-    #   env: TARGET=i686-unknown-linux-musl
-    #   dist: trusty
-    #   sudo: required
-    #   addons:
-    #     apt:
-    #       packages: &musl_packages
-    #       - musl
-    #       - musl-dev
-    #       - musl-tools
+    - os: linux
+      rust: stable
+      env: TARGET=i686-unknown-linux-musl
+      dist: trusty
+      sudo: required
+      addons:
+        apt:
+          packages: &musl_packages
+          - musl
+          - musl-dev
+          - musl-tools
     - os: osx
       rust: stable
       env: TARGET=x86_64-apple-darwin

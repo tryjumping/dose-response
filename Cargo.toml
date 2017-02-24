@@ -2,6 +2,7 @@
 name = "dose-response"
 version = "0.3.0"
 authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
+license = "GPL-3.0"
 build = "build.rs"
 
 [[bin]]

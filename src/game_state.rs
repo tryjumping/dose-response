@@ -1,19 +1,19 @@
 use std::collections::VecDeque;
-use std::env;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufRead, Write};
 use std::path::Path;
 
+use stats::Stats;
 use time;
 use time::Duration;
 use rand::{self, IsaacRng, SeedableRng};
 
-use generators;
-use level::Level;
-use monster::Monster;
+use animation::{AreaOfEffect, ScreenFade};
+use keys::Keys;
 use player::Player;
 use point::Point;
-use world;
+use timer::Timer;
+use world::World;
 
 
 // TODO: Rename this to `GameState` and the existing `GameState` to
@@ -22,7 +22,6 @@ use world;
 #[derive(Copy, PartialEq, Clone, Debug)]
 pub enum Side {
     Player,
-    Computer,
     Victory,
 }
 
@@ -78,25 +77,32 @@ fn command_from_str(name: &str) -> Command {
 }
 
 
+// TODO: remove when this exists in the stable standard library (it prolly does now)
 fn path_exists(path: &Path) -> bool {
     ::std::fs::metadata(path).is_ok()
 }
 
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Verification {
+    pub turn: i32,
+    pub chunk_count: usize,
+    pub player_pos: Point,
+}
 
 pub struct GameState {
     pub player: Player,
-    pub monsters: Vec<Monster>,
-    pub explosion_animation: super::ExplosionAnimation,
-    pub level: Level,
+    pub explosion_animation: Option<Box<AreaOfEffect>>,
 
     /// The actual size of the game world in tiles. Could be infinite
     /// but we're limiting it for performance reasons for now.
     pub world_size: Point,
+    pub chunk_size: i32,
+    pub world: World,
 
     /// The size of the game map inside the game window. We're keeping
     /// this square so this value repesents both width and heigh.
     /// It's a window into the game world that is actually rendered.
-    pub map_size: i32,
+    pub map_size: Point,
 
     /// The width of the in-game status panel.
     pub panel_width: i32,
@@ -106,20 +112,30 @@ pub struct GameState {
     /// panel_width, height is map_size.
     pub display_size: Point,
     pub screen_position_in_world: Point,
+    pub seed: u32,
     pub rng: IsaacRng,
+    pub keys: Keys,
     pub commands: VecDeque<Command>,
+    pub verifications: VecDeque<Verification>,
     pub command_logger: Box<Write>,
     pub side: Side,
     pub turn: i32,
     pub cheating: bool,
     pub replay: bool,
+    pub replay_full_speed: bool,
+    pub replay_exit_after: bool,
     pub clock: Duration,
-    pub pos_timer: ::Timer,
+    pub replay_step: Duration,
+    pub stats: Stats,
+    pub pos_timer: Timer,
     pub paused: bool,
     pub old_screen_pos: Point,
     pub new_screen_pos: Point,
-    pub screen_fading: Option<super::ScreenFadeAnimation>,
-    pub see_entire_screen: bool,
+    pub screen_fading: Option<ScreenFade>,
+
+    /// Whether the game is over (one way or another) and we should
+    /// show the endgame screen -- uncovered map, the score, etc.
+    pub endgame_screen: bool,
 }
 
 impl GameState {
@@ -128,43 +144,56 @@ impl GameState {
                              panel_width: i32,
                              display_size: Point,
                              commands: VecDeque<Command>,
+                             verifications: VecDeque<Verification>,
                              log_writer: W,
                              seed: u32,
                              cheating: bool,
-                             replay: bool)
+                             replay: bool,
+                             replay_full_speed: bool,
+                             replay_exit_after: bool)
                              -> GameState {
         let seed_arr: &[_] = &[seed];
-        let world_centre = world_size / 2;
+        let world_centre = (0, 0).into();
+        assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
+        let player_position = world_centre;
         GameState {
-            player: Player::new(world_centre),
-            monsters: vec![],
+            player: Player::new(player_position),
             explosion_animation: None,
-            level: Level::new(world_size.x, world_size.y),
+            chunk_size: 32,
             world_size: world_size,
-            map_size: map_size,
+            world: World::new(seed, world_size.x, 32, player_position),
+            map_size: (map_size, map_size).into(),
             panel_width: panel_width,
             display_size: display_size,
             screen_position_in_world: world_centre,
+            seed: seed,
             rng: SeedableRng::from_seed(seed_arr),
+            keys: Keys::new(),
             commands: commands,
+            verifications: verifications,
             command_logger: Box::new(log_writer),
             side: Side::Player,
             turn: 0,
             cheating: cheating,
             replay: replay,
+            replay_full_speed: replay_full_speed,
+            replay_exit_after: replay_exit_after,
             clock: Duration::zero(),
-            pos_timer: ::Timer::new(Duration::milliseconds(0)),
+            replay_step: Duration::zero(),
+            stats: Stats::new(6000),  // about a minute and a half at 60 FPS
+            pos_timer: Timer::new(Duration::milliseconds(0)),
             old_screen_pos: (0, 0).into(),
             new_screen_pos: (0, 0).into(),
             paused: false,
             screen_fading: None,
-            see_entire_screen: false,
+            endgame_screen: false,
         }
     }
 
     pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point) -> GameState {
         let commands = VecDeque::new();
+        let verifications = VecDeque::new();
         let seed = rand::random::<u32>();
         let cur_time = time::now();
         // Timestamp in format: 2016-11-20T20-04-39.123
@@ -185,15 +214,15 @@ impl GameState {
         };
         // println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);
-        let mut state = GameState::new(world_size, map_size, panel_width, display_size, commands, writer, seed, false, false);
-        initialise_world(&mut state);
-        state
+        GameState::new(world_size, map_size, panel_width, display_size, commands,
+                       verifications, writer,
+                       seed, false, false, false, false)
     }
 
-    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point) -> GameState {
+    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, replay_full_speed: bool, replay_exit_after: bool) -> GameState {
+        use serde_json;
         let mut commands = VecDeque::new();
-        let path_str = env::args().nth(1).unwrap();
-        let replay_path = &Path::new(&path_str);
+        let mut verifications = VecDeque::new();
         let seed: u32;
         match File::open(replay_path) {
             Ok(file) => {
@@ -205,38 +234,33 @@ impl GameState {
                     },
                     None => panic!("The replay file is empty."),
                 }
-                for line in lines {
-                    match line {
-                        Ok(line) => commands.push_back(command_from_str(&line)),
-                        Err(err) => panic!("Error reading a line from the replay file: {:?}.", err),
+
+                loop {
+                    match lines.next() {
+                        Some(Ok(line)) => commands.push_back(command_from_str(&line)),
+                        Some(Err(err)) => panic!("Error reading a line from the replay file: {:?}.", err),
+                        None => break,
+                    }
+
+                    match lines.next() {
+                        Some(Ok(line)) => {
+                            let verification = serde_json::from_str(&line).expect(
+                                &format!("Could not deserialise the verification: '{}'", line));
+                            verifications.push_back(verification);
+                        },
+                        Some(Err(err)) => panic!("Error reading a verification from the replay log: {:?}.", err),
+                        None => break,
                     }
                 }
+
             },
             Err(msg) => panic!("Failed to read the replay file: {}. Reason: {}",
                                replay_path.display(), msg)
         }
         // println!("Replaying game log: '{}'", replay_path.display());
-        let mut state = GameState::new(world_size, map_size, panel_width, display_size, commands, Box::new(io::sink()), seed, true, true);
-        initialise_world(&mut state);
-        state
-    }
-}
-
-fn initialise_world(game_state: &mut GameState) {
-    let dimensions = game_state.level.size();
-    let generated_world = generators::forrest::generate(&mut game_state.rng,
-                                                        dimensions,
-                                                        game_state.player.pos);
-    world::populate_world(&mut game_state.level,
-                          &mut game_state.monsters,
-                          generated_world);
-    // Sort monsters by their APs, set their IDs to equal their indexes in state.monsters:
-    game_state.monsters.sort_by(|a, b| b.max_ap.cmp(&a.max_ap));
-    for (index, m) in game_state.monsters.iter_mut().enumerate() {
-        unsafe {
-            m.set_id(index);
-        }
-        game_state.level.set_monster(m.position, m.id(), m);
+        GameState::new(world_size, map_size, panel_width, display_size, commands,
+                       verifications,
+                       Box::new(io::sink()), seed, true, true, replay_full_speed, replay_exit_after)
     }
 }
 
@@ -247,4 +271,12 @@ pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
     writeln!(writer, "{}", command.to_str()).unwrap();
+}
+
+pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {
+    use serde_json;
+    let json = serde_json::to_string(&verification).expect(
+        &format!("Could not serialise {:?} to json.", verification));
+    writeln!(writer, "{}", json).expect(
+        &format!("Could not write the verification: '{}' to the replay log.", json));
 }

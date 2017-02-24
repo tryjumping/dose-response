@@ -2,7 +2,7 @@ use std::cmp::{max, Ordering};
 use std::fmt::{Display, Formatter, Error};
 use std::ops::{Add, AddAssign, Div, Sub};
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Point {
     pub x: i32,
     pub y: i32,

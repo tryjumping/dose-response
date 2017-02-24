@@ -1,7 +1,11 @@
 #![allow(non_upper_case_globals)]
 
-pub use engine::Color;
-
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
 
 pub static background: Color = Color{r: 0, g: 0, b: 0};
 pub static dim_background: Color = Color{r: 30, g: 30, b: 30};
@@ -19,8 +23,10 @@ pub static dead_player: Color = Color{r: 80, g: 80, b: 80};
 pub static empty_tile: Color = Color{r: 223, g: 223, b: 223};
 pub static dose: Color = Color{r: 114, g: 126, b: 255};
 pub static dose_glow: Color = Color{r: 15, g: 255, b: 243};
+pub static shattering_dose: Color = Color{r: 15, g: 255, b: 243};
 pub static dose_background: Color = Color{r: 0, g: 64, b: 64};
 pub static explosion: Color = Color{r: 15, g: 255, b: 243};
+pub static shattering_explosion: Color = Color{r: 191, g: 0, b: 0};
 pub static food: Color = Color{r: 148, g: 113, b: 0};
 pub static tree_1: Color = Color{r: 0, g: 191, b: 0};
 pub static tree_2: Color = Color{r: 0, g: 255, b: 0};

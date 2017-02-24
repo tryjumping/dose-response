@@ -4,24 +4,25 @@ use rand::Rng;
 
 use super::Action;
 use color::{self, Color};
-use level::{Level, Walkability};
+use level::Walkability;
 use graphics::Render;
 use player::Modifier;
 use point::Point;
-
+use world::World;
 
 use self::Kind::*;
 use self::AIState::*;
 
 
-#[derive(PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Monster {
-    id: usize,
     pub kind: Kind,
     pub position: Point,
     pub dead: bool,
     pub die_after_attack: bool,
     pub ai_state: AIState,
+    pub path: Vec<Point>,
+    pub trail: Option<Point>,
 
     pub max_ap: i32,
     ap: i32,
@@ -54,7 +55,6 @@ impl Monster {
             Anxiety | Hunger | Shadows | Voices => 1,
         };
         Monster {
-            id: 0,
             kind: kind,
             position: position,
             dead: false,
@@ -62,15 +62,9 @@ impl Monster {
             ai_state: Idle,
             ap: 0,
             max_ap: max_ap,
+            path: vec![],
+            trail: None,
         }
-    }
-
-    pub fn id(&self) -> usize {
-        self.id
-    }
-
-    pub unsafe fn set_id(&mut self, id: usize) {
-        self.id = id;
     }
 
     pub fn attack_damage(&self) -> Modifier {
@@ -84,7 +78,7 @@ impl Monster {
         }
     }
 
-    pub fn act<R: Rng>(&mut self, player_pos: Point, level: &Level, rng: &mut R) -> Action {
+    pub fn act<R: Rng>(&self, player_pos: Point, world: &mut World, rng: &mut R) -> (AIState, Action) {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
@@ -94,8 +88,8 @@ impl Monster {
         } else {
             Idle
         };
-        self.ai_state = ai_state;
-        match self.ai_state {
+
+        let action = match self.ai_state {
             Chasing => {
                 if distance == 1 {
                     Action::Attack(player_pos, self.attack_damage())
@@ -104,12 +98,29 @@ impl Monster {
                 }
             }
             Idle => {
-                // Move randomly about
-                let new_pos = level.random_neighbour_position(
-                    rng, self.position, Walkability::BlockingMonsters);
-                Action::Move(new_pos)
+                let destination = if self.path.is_empty() {
+                    // Move randomly about
+                    let mut destination = world.random_neighbour_position(
+                        rng, self.position, Walkability::BlockingMonsters);
+
+                    for _ in 0..10 {
+                        let x = rng.gen_range(-8, 9);
+                        let y = rng.gen_range(-8, 9);
+                        let candidate = self.position + (x, y);
+                        if x.abs() > 2 && y.abs() > 2 &&
+                            world.walkable(candidate, Walkability::WalkthroughMonsters) {
+                                destination = candidate;
+                                break;
+                            }
+                    };
+                    destination
+                } else {  // We already have a path, just set the same destination:
+                    *self.path.last().unwrap()
+                };
+                Action::Move(destination)
             }
-        }
+        };
+        (ai_state, action)
     }
 
     pub fn spend_ap(&mut self, count: i32) {
@@ -121,11 +132,14 @@ impl Monster {
     }
 
     pub fn has_ap(&self, count: i32) -> bool {
-        self.ap >= count
+        !self.dead && self.ap >= count
     }
 
     pub fn new_turn(&mut self) {
-        self.ap = self.max_ap;
+        if !self.dead {
+            self.ap = self.max_ap;
+            self.trail = None;
+        }
     }
 }
 

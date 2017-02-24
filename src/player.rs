@@ -62,6 +62,14 @@ impl Mind {
             }
         }
     }
+
+    pub fn is_high(&self) -> bool {
+        match self {
+            &Mind::High(_) => true,
+            _ => false,
+        }
+    }
+
 }
 
 impl Display for Mind {
@@ -96,9 +104,12 @@ pub struct Player {
     pub bonus: Bonus,
     /// How many turns after max Will to achieve victory
     pub sobriety_counter: RangedInt,
+    pub current_high_streak: i32,
+    pub longest_high_streak: i32,
 
     dead: bool,
 
+    // TODO: Use a RangedInt here?
     max_ap: i32,
     ap: i32,
 }
@@ -120,6 +131,8 @@ impl Player {
             ap: 1,
             bonus: Bonus::None,
             sobriety_counter: RangedInt::new(0, 0, 100),
+            current_high_streak: 0,
+            longest_high_streak: 0,
         }
     }
 
@@ -141,10 +154,12 @@ impl Player {
     }
 
     pub fn new_turn(&mut self) {
-        self.stun -= 1;
-        self.panic -= 1;
-        self.mind = self.mind.update();
-        self.ap = self.max_ap;
+        if self.alive() {
+            self.stun -= 1;
+            self.panic -= 1;
+            self.mind = self.mind.update();
+            self.ap = self.max_ap;
+        }
     }
 
     pub fn alive(&self) -> bool {

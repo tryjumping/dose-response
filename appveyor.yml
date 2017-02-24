@@ -42,7 +42,7 @@ test_script:
   - cargo build --verbose
   # NOTE: disable cargo run. It's a GUI/GL app. Running it will fail.
   # - cargo run
-  - cargo test
+  #- cargo test
 
 before_deploy:
   # Generate artifacts for release

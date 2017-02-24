@@ -30,7 +30,7 @@ run_test_suite() {
     # NOTE: disable cargo run because it's a GUI/GL app that will fail to create
     # the window etc.
     # cargo run --target $TARGET
-    cargo test --target $TARGET
+    # cargo test --target $TARGET
 
     # sanity check the file type
     file target/$TARGET/debug/dose-response

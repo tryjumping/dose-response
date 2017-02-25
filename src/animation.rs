@@ -133,7 +133,7 @@ impl AreaOfEffect for CardinalExplosion {
 
         let shatter_color = self.shatter_color;
         let shatter_area = CrossIterator::new(self.center, self.current_radius)
-            .map(move |pos| (pos, shatter_color, KILL & SHATTER));
+            .map(move |pos| (pos, shatter_color, KILL | SHATTER));
         Box::new(killzone_area.chain(shatter_area))
     }
 
@@ -252,7 +252,7 @@ impl AreaOfEffect for DiagonalExplosion {
 
         let shatter_color = self.shatter_color;
         let shatter_area = XIterator::new(self.center, self.current_radius)
-            .map(move |pos| (pos, shatter_color, KILL & SHATTER));
+            .map(move |pos| (pos, shatter_color, KILL | SHATTER));
         Box::new(killzone_area.chain(shatter_area))
     }
 

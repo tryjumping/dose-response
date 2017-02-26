@@ -1,3 +1,23 @@
+* Make a new release
+** DONE verify the musl builds
+CLOSED: [2017-02-25 Sat 13:19]
+*** broken -- the glium window doesn't seem to work?
+** DONE verify the windows builds
+CLOSED: [2017-02-25 Sat 13:19]
+** DONE verify the linux builds
+CLOSED: [2017-02-25 Sat 13:25]
+** DONE ask Martin about the windows builds
+CLOSED: [2017-02-26 Sun 09:49]
+*** minwg fine
+*** msvc nope
+** DONE remove the "fonts" folder from the ci build  systems
+CLOSED: [2017-02-25 Sat 13:25]
+** DONE kick-off build 0.4.0 (with the font/image fix)
+CLOSED: [2017-02-25 Sat 13:25]
+** DONE write release notes
+CLOSED: [2017-02-26 Sun 10:45]
+** record a let's play
+** publish on the website & blog
 * Rework the animation system                                          :code:
 ** Right now it's a bunch of boxed traits and we have to match on dose type
 ** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct

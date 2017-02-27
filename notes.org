@@ -1,3 +1,14 @@
+* Don't show the console on Windows                                      :ui:
+** When run in the GUI mode (the default) we should not show the console window
+** looks like we need to pass `-mwindow` to GCC
+** https://users.rust-lang.org/t/solved-rust-project-how-build-like-gcc-mwindow/5168
+* Test the OSX build
+** rope someone into trying it out:
+*** does it crash?
+*** does it respond to keyboard events?
+*** do the animations run smoothly?
+*** does it show a separate console window like the Windows build?
+** alternatively: buy a mac /o\
 * Make a new release
 ** DONE verify the musl builds
 CLOSED: [2017-02-25 Sat 13:19]
@@ -17,7 +28,8 @@ CLOSED: [2017-02-25 Sat 13:25]
 ** DONE write release notes
 CLOSED: [2017-02-26 Sun 10:45]
 ** record a let's play
-** publish on the website & blog
+** DONE publish on the website & blog
+CLOSED: [2017-02-27 Mon 20:29]
 * Rework the animation system                                          :code:
 ** Right now it's a bunch of boxed traits and we have to match on dose type
 ** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct

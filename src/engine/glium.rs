@@ -12,6 +12,7 @@ use engine::{Draw, UpdateFn, Settings};
 use keys::{Key, KeyCode};
 use point::Point;
 
+use self::vertex::Vertex;
 
 // NOTE: This is designed specifically to deduplicated characters on
 // the same position (using Vec::dedup). So the only thing considered
@@ -114,27 +115,29 @@ fn texture_coords_from_char(chr: char) -> (f32, f32) {
 }
 
 
-#[derive(Copy, Clone, Debug)]
-struct Vertex {
-    /// Position in the tile coordinates.
-    ///
-    /// Note that this doesn't have to be an integer, so you can
-    /// implement smooth positioning by using a fractional value.
-    tile_position: [f32; 2],
+#[allow(unsafe_code)]
+mod vertex {
+    #[derive(Copy, Clone, Debug)]
+    pub struct Vertex {
+        /// Position in the tile coordinates.
+        ///
+        /// Note that this doesn't have to be an integer, so you can
+        /// implement smooth positioning by using a fractional value.
+        pub tile_position: [f32; 2],
 
-    /// Index into the texture map. [0, 0] is the top-left corner, the
-    /// map's width and height depends on the number of textures in it.
-    ///
-    /// If a map has 16 textures in a 4x4 square, the top-left index
-    /// is [0, 0] and the bottom-right is [3, 3].
-    tilemap_index: [f32; 2],
+        /// Index into the texture map. [0, 0] is the top-left corner, the
+        /// map's width and height depends on the number of textures in it.
+        ///
+        /// If a map has 16 textures in a 4x4 square, the top-left index
+        /// is [0, 0] and the bottom-right is [3, 3].
+        pub tilemap_index: [f32; 2],
 
-    /// Colour of the glyph. The glyphs are greyscale, so this is how
-    /// we set the final colour.
-    color: [f32; 4],
+        /// Colour of the glyph. The glyphs are greyscale, so this is how
+        /// we set the final colour.
+        pub color: [f32; 4],
+    }
+    implement_vertex!(Vertex, tile_position, tilemap_index, color);
 }
-
-implement_vertex!(Vertex, tile_position, tilemap_index, color);
 
 
 pub fn main_loop<T>(display_size: Point,

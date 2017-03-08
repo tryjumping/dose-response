@@ -1,4 +1,4 @@
-#![deny(overflowing_literals)]
+#![deny(overflowing_literals, unsafe_code)]
 
 #[macro_use]
 extern crate bitflags;

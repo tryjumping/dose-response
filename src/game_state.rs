@@ -35,6 +35,8 @@ pub enum Command {
     NE, NW, SE, SW,
     UseFood,
     UseDose,
+    UseCardinalDose,
+    UseDiagonalDose,
     UseStrongDose,
 }
 
@@ -52,6 +54,8 @@ impl Command {
             SW => "SW",
             UseFood => "UseFood",
             UseDose => "UseDose",
+            UseCardinalDose => "UseCardinalDose",
+            UseDiagonalDose => "UseDiagonalDose",
             UseStrongDose => "UseStrongDose",
         }
     }

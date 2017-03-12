@@ -1,5 +1,3 @@
-* Shattering doses don't appear in the inventory                     :bug:ui:
-** Make sure that every new item forces us to handle the inventory list
 * Show main keyboard controls                                            :ui:
 ** Similar to Braid though I don't think we can be as subtle with it
 ** Show a little square for each key that does a movement
@@ -862,3 +860,9 @@ CLOSED: [2017-03-12 Sun 15:47]
 **** does it show a separate console window like the Windows build?
 *** alternatively: buy a mac /o\
 *** Honza said it worked fine. Thanks, Honza!
+** DONE Shattering doses don't appear in the inventory              :bug:ui:
+CLOSED: [2017-03-12 Sun 18:35]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-03-12 Sun 18:35
+:END:
+*** Make sure that every new item forces us to handle the inventory list

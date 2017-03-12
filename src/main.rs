@@ -105,8 +105,55 @@ fn process_keys(keys: &mut keys::Keys, commands: &mut VecDeque<Command>) {
             Key { code: D3, ..} => {
                 commands.push_back(Command::UseStrongDose);
             }
-            _ => (),
+            _ => match inventory_commands(key) {
+                Some(command) => commands.push_back(command),
+                None => (),
+            },
         }
+    }
+}
+
+fn inventory_commands(key: Key) -> Option<Command> {
+    use keys::KeyCode::*;
+    use item::Kind;
+
+    for kind in Kind::iter() {
+        let num_key = match inventory_key(kind) {
+            1 => D1,
+            2 => D2,
+            3 => D3,
+            4 => D4,
+            5 => D5,
+            6 => D6,
+            7 => D7,
+            8 => D8,
+            9 => D9,
+            _ => unreachable!("There should only even be 9 item kinds at most."),
+        };
+
+        if key.code == num_key {
+            let command = match kind {
+                Kind::Food => Command::UseFood,
+                Kind::Dose => Command::UseDose,
+                Kind::CardinalDose => Command::UseCardinalDose,
+                Kind::DiagonalDose => Command::UseDiagonalDose,
+                Kind::StrongDose => Command::UseStrongDose,
+            };
+            return Some(command);
+        }
+    }
+    None
+}
+
+
+fn inventory_key(kind: item::Kind) -> u8 {
+    use item::Kind::*;
+    match kind {
+        Food => 1,
+        Dose => 2,
+        CardinalDose => 3,
+        DiagonalDose => 4,
+        StrongDose => 5,
     }
 }
 
@@ -247,6 +294,8 @@ fn process_player_action<R, W>(player: &mut player::Player,
 
             Command::UseFood => Action::Use(item::Kind::Food),
             Command::UseDose => Action::Use(item::Kind::Dose),
+            Command::UseCardinalDose => Action::Use(item::Kind::CardinalDose),
+            Command::UseDiagonalDose => Action::Use(item::Kind::DiagonalDose),
             Command::UseStrongDose => Action::Use(item::Kind::StrongDose),
         };
 
@@ -505,20 +554,19 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
     ];
 
     if player.inventory.len() > 0 {
+        lines.push("".into());
         lines.push("Inventory:".into());
-        let food_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Food).count();
-        if food_amount > 0 {
-            lines.push(format!("[1] Food: {}", food_amount).into());
+
+        let mut item_counts = std::collections::HashMap::new();
+        for item in player.inventory.iter() {
+            let count = item_counts.entry(item.kind).or_insert(0);
+            *count += 1;
         }
 
-        let dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::Dose).count();
-        if dose_amount > 0 {
-            lines.push(format!("[2] Dose: {}", dose_amount).into());
-        }
-
-        let strong_dose_amount = player.inventory.iter().filter(|i| i.kind == item::Kind::StrongDose).count();
-        if strong_dose_amount > 0 {
-            lines.push(format!("[3] Strong Dose: {}", strong_dose_amount).into());
+        for kind in item::Kind::iter() {
+            if let Some(count) = item_counts.get(&kind) {
+                lines.push(format!("[{}] {:?}: {}", inventory_key(kind), kind, count).into());
+            }
         }
     }
 

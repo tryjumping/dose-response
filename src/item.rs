@@ -7,13 +7,41 @@ use player::Modifier;
 use self::Kind::*;
 
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Eq, Hash)]
 pub enum Kind {
     Food,
     Dose,
     StrongDose,
     CardinalDose,
     DiagonalDose,
+}
+
+impl Kind {
+    pub fn iter() -> KindIterator {
+        KindIterator{ current: Some(self::Kind::Food) }
+    }
+}
+
+pub struct KindIterator{
+    current: Option<Kind>,
+}
+
+impl Iterator for KindIterator {
+    type Item = Kind;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        use self::Kind::*;
+        let current = self.current;
+        self.current = match current {
+            Some(Food) => Some(Dose),
+            Some(Dose) => Some(StrongDose),
+            Some(StrongDose) => Some(CardinalDose),
+            Some(CardinalDose) => Some(DiagonalDose),
+            Some(DiagonalDose) => None,
+            None => None,
+        };
+        current
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]

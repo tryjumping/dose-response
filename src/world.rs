@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use level::{self, Cell, Level, Walkability, TileKind};
 use item::{self, Item};
 use player;
-use point::{Point, CircularArea};
+use point::{Point, CircularArea, SquareArea};
 use monster::Monster;
 use generators::{self, GeneratedWorld};
 
@@ -404,7 +404,7 @@ impl World {
                                              walkability: Walkability) -> Point
     {
         let mut walkables = vec![];
-        for pos in starting_pos.square_area(1) {
+        for pos in SquareArea::new(starting_pos, 2) {
             if pos != starting_pos && self.walkable(pos, walkability) {
                 walkables.push(pos)
             }

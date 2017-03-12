@@ -31,8 +31,6 @@ moving in that direction.
 ** Seems that when there is a normal dose in the irresistible area we can break free
 ** I'll need to test the exact parameters of this
 ** But maybe we'll want to keep it there as an "easter egg rule"?
-* Carrying small doses in inventory should be possible earlier than the large ones :idea:
-** Right now they're all only pickable at the highest Will
 * Add NPCs                                                             :idea:
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -866,3 +864,9 @@ CLOSED: [2017-03-12 Sun 18:35]
 :ARCHIVE_TIME: 2017-03-12 Sun 18:35
 :END:
 *** Make sure that every new item forces us to handle the inventory list
+** DONE Carrying small doses in inventory should be possible earlier than the large ones :idea:
+CLOSED: [2017-03-12 Sun 20:52]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-03-12 Sun 20:52
+:END:
+*** Right now they're all only pickable at the highest Will

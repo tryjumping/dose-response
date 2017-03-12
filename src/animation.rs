@@ -69,7 +69,7 @@ impl AreaOfEffect for SquareExplosion {
     fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>> {
         let color = self.color;
         Box::new(
-            SquareArea::new(self.center, self.current_radius)
+            SquareArea::new(self.center, self.current_radius + 1)
                 .map(move |pos| (pos, color, KILL)))
     }
 
@@ -128,7 +128,7 @@ impl AreaOfEffect for CardinalExplosion {
 
     fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>> {
         let kill_color = self.kill_color;
-        let killzone_area = SquareArea::new(self.center, 1)
+        let killzone_area = SquareArea::new(self.center, 2)
             .map(move |pos| (pos, kill_color, KILL));
 
         let shatter_color = self.shatter_color;
@@ -247,7 +247,7 @@ impl AreaOfEffect for DiagonalExplosion {
 
     fn tiles(&self) -> Box<Iterator<Item=(Point, Color, TileEffect)>> {
         let kill_color = self.kill_color;
-        let killzone_area = SquareArea::new(self.center, 1)
+        let killzone_area = SquareArea::new(self.center, 2)
             .map(move |pos| (pos, kill_color, KILL));
 
         let shatter_color = self.shatter_color;

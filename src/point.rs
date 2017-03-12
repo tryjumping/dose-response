@@ -25,10 +25,6 @@ impl Point {
         max((self.x - other.x).abs(), (self.y - other.y).abs())
     }
 
-    pub fn square_area(&self, radius: i32) -> SquareArea {
-        SquareArea::new(*self, radius)
-    }
-
     pub fn circular_area(&self, radius: i32) -> CircularArea {
         CircularArea::new(*self, radius)
     }
@@ -209,16 +205,22 @@ impl Iterator for CircularArea {
     }
 }
 
+/// A square area defined by its "half_side" or radius.
+/// A half_side of 0 means no points. Radius of 1 means the centre point.
+/// Radius of 2 means a square of 9 points, and so on.
 pub struct SquareArea {
     pos: Point,
     min_x: i32,
     max: Point,
+    radius: i32,
 }
 
 impl SquareArea {
-    pub fn new<P: Into<Point>>(center: P, half_side: i32) -> Self {
+    pub fn new<P: Into<Point>>(center: P, radius: i32) -> Self {
         let center = center.into();
+        let half_side = radius - 1;
         SquareArea {
+            radius: radius,
             pos: center - (half_side, half_side),
             min_x: center.x - half_side,
             max: center + (half_side, half_side),
@@ -230,6 +232,10 @@ impl Iterator for SquareArea {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
+        if self.radius == 0 {
+            return None
+        }
+
         if self.pos.y > self.max.y {
             return None
         }

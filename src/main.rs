@@ -227,7 +227,7 @@ fn exploration_radius(mental_state: player::Mind) -> i32 {
 }
 
 fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
-    cmp::max(dose_irresistible_value - will, 0)
+    cmp::max(dose_irresistible_value + 1 - will, 0)
 }
 
 
@@ -308,7 +308,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
 
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
             let resist_radius = player_resist_radius(dose.irresistible, *player.will) as usize;
-            if player.pos.tile_distance(dose_pos) <= resist_radius as i32 {
+            if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
                 // TODO: think about caching the discovered path or partial path-finding??
                 let mut path = pathfinding::Path::find(player.pos, dose_pos, world,
                                                        level::Walkability::WalkthroughMonsters);
@@ -327,12 +327,13 @@ fn process_player_action<R, W>(player: &mut player::Player,
             }
         }
 
-        // NOTE: If we picked up doses on max Will and then lost it,
-        // take them all turn by turn undonditionally:
-        if !player.will.is_max() {
-            if let Some(kind) = player.inventory.iter().find(|i| i.is_dose()).map(|i| i.kind) {
-                action = Action::Use(kind);
-            }
+        // NOTE: If we have doses in the inventory that we wouldn't be
+        // able to pick up anymore, use them up one by one each turn:
+        let carried_irresistible_dose = player.inventory.iter()
+            .find(|i| i.is_dose() && player_resist_radius(i.irresistible, *player.will) > 0)
+            .map(|i| i.kind);
+        if let Some(kind) = carried_irresistible_dose {
+            action = Action::Use(kind);
         }
 
         match action {
@@ -367,7 +368,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                                     match item.kind {
                                         Food => player.inventory.push(item),
                                         Dose | StrongDose | CardinalDose | DiagonalDose => {
-                                            if player.will.is_max() {
+                                            if player_resist_radius(item.irresistible, *player.will) == 0 {
                                                 player.inventory.push(item);
                                             } else {
                                                 use_dose(player, explosion_animation, item);

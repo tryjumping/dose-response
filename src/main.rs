@@ -330,10 +330,8 @@ fn process_player_action<R, W>(player: &mut player::Player,
         // NOTE: If we picked up doses on max Will and then lost it,
         // take them all turn by turn undonditionally:
         if !player.will.is_max() {
-            if player.inventory.iter().position(|&i| i.kind == item::Kind::StrongDose).is_some() {
-                action = Action::Use(item::Kind::StrongDose);
-            } else if player.inventory.iter().position(|&i| i.kind == item::Kind::Dose).is_some() {
-                action = Action::Use(item::Kind::Dose);
+            if let Some(kind) = player.inventory.iter().find(|i| i.is_dose()).map(|i| i.kind) {
+                action = Action::Use(kind);
             }
         }
 

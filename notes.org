@@ -1,35 +1,13 @@
-* Don't show the console on Windows                                      :ui:
-** When run in the GUI mode (the default) we should not show the console window
-** looks like we need to pass `-mwindow` to GCC
-** https://users.rust-lang.org/t/solved-rust-project-how-build-like-gcc-mwindow/5168
-* Test the OSX build
-** rope someone into trying it out:
-*** does it crash?
-*** does it respond to keyboard events?
-*** do the animations run smoothly?
-*** does it show a separate console window like the Windows build?
-** alternatively: buy a mac /o\
-* Make a new release
-** DONE verify the musl builds
-CLOSED: [2017-02-25 Sat 13:19]
-*** broken -- the glium window doesn't seem to work?
-** DONE verify the windows builds
-CLOSED: [2017-02-25 Sat 13:19]
-** DONE verify the linux builds
-CLOSED: [2017-02-25 Sat 13:25]
-** DONE ask Martin about the windows builds
-CLOSED: [2017-02-26 Sun 09:49]
-*** minwg fine
-*** msvc nope
-** DONE remove the "fonts" folder from the ci build  systems
-CLOSED: [2017-02-25 Sat 13:25]
-** DONE kick-off build 0.4.0 (with the font/image fix)
-CLOSED: [2017-02-25 Sat 13:25]
-** DONE write release notes
-CLOSED: [2017-02-26 Sun 10:45]
-** record a let's play
-** DONE publish on the website & blog
-CLOSED: [2017-02-27 Mon 20:29]
+* Shattering doses don't appear in the inventory                     :bug:ui:
+** Make sure that every new item forces us to handle the inventory list
+* Show main keyboard controls                                            :ui:
+** Similar to Braid though I don't think we can be as subtle with it
+** Show a little square for each key that does a movement
+** In the 8 movement directions, close to the window screen
+* Victory doesn't stop the gameplay & show the end game screen          :bug:
+* Record a let's play
+** would be nice to show the game in action
+** people can watch it and see whether it's interesting for them
 * Rework the animation system                                          :code:
 ** Right now it's a bunch of boxed traits and we have to match on dose type
 ** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct
@@ -65,6 +43,10 @@ moving in that direction.
 *** going sober more slowly
 *** pointing towards useful/interesting things/places?
 ** Could point the player towards interesting places/end-game conditions, etc.
+* Don't show the console on Windows                                      :ui:
+** When run in the GUI mode (the default) we should not show the console window
+** looks like we need to pass `-mwindow` to GCC
+** https://users.rust-lang.org/t/solved-rust-project-how-build-like-gcc-mwindow/5168
 * The player can start surrounded by hunger monsters and dead    :mapgen:bug:
 * The player can start within an irresistible dose's reach       :mapgen:bug:
 * The Hunger no longer howls to attract nearby hungers                  :bug:
@@ -843,3 +825,40 @@ CLOSED: [2017-02-23 Thu 18:11]
 *** that means the FPS, dt and the recent frame durations
 *** useful for when we're recording things
 *** eventually we may want to have stats and cheating as separate things, but this will do for now
+** DONE Make a new release
+CLOSED: [2017-03-12 Sun 15:47]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-03-12 Sun 15:47
+:END:
+*** DONE verify the muslbuilds
+CLOSED: [2017-02-25 Sat 13:19]
+**** broken -- the glium window doesn't seem to work?
+*** DONE verify the windows builds
+CLOSED: [2017-02-25 Sat 13:19]
+*** DONE verify the linux builds
+CLOSED: [2017-02-25 Sat 13:25]
+*** DONE ask Martin about the windows builds
+CLOSED: [2017-02-26 Sun 09:49]
+**** minwg fine
+**** msvc nope
+*** DONE remove the "fonts" folder from the ci build  systems
+CLOSED: [2017-02-25 Sat 13:25]
+*** DONE kick-off build 0.4.0 (with the font/image fix)
+CLOSED: [2017-02-25 Sat 13:25]
+*** DONE write release notes
+CLOSED: [2017-02-26 Sun 10:45]
+*** record a let's play
+*** DONE publish on the website & blog
+CLOSED: [2017-02-27 Mon 20:29]
+** DONE Test the OSX build
+CLOSED: [2017-03-12 Sun 15:47]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-03-12 Sun 15:47
+:END:
+*** rope someone into trying it out:
+**** does it crash?
+**** does it respond to keyboard events?
+**** do the animations run smoothly?
+**** does it show a separate console window like the Windows build?
+*** alternatively: buy a mac /o\
+*** Honza said it worked fine. Thanks, Honza!

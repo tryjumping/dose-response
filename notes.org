@@ -49,6 +49,8 @@ moving in that direction.
 * The Hunger no longer howls to attract nearby hungers                  :bug:
 ** I like that feature and it's disappearance is an omission
 ** If we do want to remove it, it should be after testing
+* Show the reason for the player's death on the score screen             :ui:
+** Why did they die? Depression? Exhaustion? No Will? Overdose?
 * Don't show the console on Windows                                      :ui:
 ** When run in the GUI mode (the default) we should not show the console window
 ** looks like we need to pass `-mwindow` to GCC

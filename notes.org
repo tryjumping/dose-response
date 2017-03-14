@@ -51,6 +51,9 @@ moving in that direction.
 ** When run in the GUI mode (the default) we should not show the console window
 ** looks like we need to pass `-mwindow` to GCC
 ** https://users.rust-lang.org/t/solved-rust-project-how-build-like-gcc-mwindow/5168
+* Add an icon to the generated executable on Windows
+** window execs can have an icon embedded
+** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
 * The player can start surrounded by hunger monsters and dead    :mapgen:bug:
 * The player can start within an irresistible dose's reach       :mapgen:bug:
 * Rework the animation system                                          :code:

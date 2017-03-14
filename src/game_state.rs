@@ -140,6 +140,8 @@ pub struct GameState {
     /// Whether the game is over (one way or another) and we should
     /// show the endgame screen -- uncovered map, the score, etc.
     pub endgame_screen: bool,
+
+    pub show_keboard_movement_hints: bool,
 }
 
 impl GameState {
@@ -192,6 +194,7 @@ impl GameState {
             paused: false,
             screen_fading: None,
             endgame_screen: false,
+            show_keboard_movement_hints: true,
         }
     }
 

@@ -637,6 +637,123 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
 
 }
 
+fn render_controls_help(map_size: point::Point, drawcalls: &mut Vec<Draw>) {
+    fn rect_dim(lines: &[&str]) -> (i32, i32) {
+        (lines.iter().map(|l| l.len() as i32).max().unwrap(), lines.len() as i32)
+    }
+
+    fn draw_rect(lines: &[&'static str], start: point::Point, w: i32, h: i32,
+                 drawcalls: &mut Vec<Draw>) {
+        drawcalls.push(Draw::Rectangle(start,
+                                       point::Point::new(w, h),
+                                       color::dim_background));
+        for (index, &line) in lines.iter().enumerate() {
+            drawcalls.push(Draw::Text(start + point::Point::new(0, index as i32 ),
+                                      line.into(),
+                                      color::gui_text));
+        }
+    };
+
+    let padding = 3;
+
+    let lines = [
+        "Up",
+        "Num 8",
+        "or: K",
+    ];
+    let (width, height) = rect_dim(&lines);
+    let start = point::Point {
+        x: (map_size.x - width) / 2,
+        y: padding,
+    };
+    draw_rect(&lines, start, width, height, drawcalls);
+
+    let lines = [
+        "Down",
+        "Num 2",
+        "or: J",
+    ];
+    let (width, height) = rect_dim(&lines);
+    let start = point::Point {
+        x: (map_size.x - width) / 2,
+        y: map_size.y - height - padding,
+    };
+    draw_rect(&lines, start, width, height, drawcalls);
+
+    let lines = [
+        "Left",
+        "Num 4",
+        "or: H",
+    ];
+    let (width, height) = rect_dim(&lines);
+    let start = point::Point {
+        x: padding,
+        y: (map_size.y - height) / 2,
+    };
+    draw_rect(&lines, start, width, height, drawcalls);
+
+    let lines = [
+        "Right",
+        "Num 6",
+        "or: L",
+    ];
+    let (width, height) = rect_dim(&lines);
+    let start = point::Point {
+        x: map_size.x - width - padding,
+        y: (map_size.y - height) / 2,
+    };
+    draw_rect(&lines, start, width, height, drawcalls);
+
+    let lines = [
+        "Shift+Right",
+        "Num 7",
+        "or: Y",
+    ];
+    let (width, height) = rect_dim(&lines);
+    let start = point::Point {
+        x: padding,
+        y: padding,
+    };
+    draw_rect(&lines, start, width, height, drawcalls);
+
+    let lines = [
+        "Shift+Right",
+        "Num 9",
+        "or: U",
+    ];
+    let (width, height) = rect_dim(&lines);
+    let start = point::Point {
+        x: map_size.x - width - padding,
+        y: padding,
+    };
+    draw_rect(&lines, start, width, height, drawcalls);
+
+    let lines = [
+        "Ctrl+Left",
+        "Num 1",
+        "or: N",
+    ];
+    let (width, height) = rect_dim(&lines);
+    let start = point::Point {
+        x: padding,
+        y: map_size.y - height - padding,
+    };
+    draw_rect(&lines, start, width, height, drawcalls);
+
+    let lines = [
+        "Ctrl+Right",
+        "Num 3",
+        "or: M",
+    ];
+    let (width, height) = rect_dim(&lines);
+    let start = point::Point {
+        x: map_size.x - width - padding,
+        y: map_size.y - height - padding,
+    };
+    draw_rect(&lines, start, width, height, drawcalls);
+
+}
+
 fn show_exit_stats(stats: &stats::Stats) {
     println!("Slowest update durations: {:?}\n\nSlowest drawcall durations: {:?}",
              stats.longest_update_durations().iter().map(|dur| dur.num_microseconds().unwrap_or(std::i64::MAX)).map(|us| us as f32 / 1000.0).collect::<Vec<_>>(),
@@ -880,6 +997,19 @@ fn update(mut state: GameState,
     // borrowed the state here as immutable, we wouln't need it.
     let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
+
+    // Hide the keyboard movement hints if the player gets too close
+    {
+        let player_screen_pos = screen_coords_from_world(state.player.pos);
+        let d = 15;
+        if player_screen_pos.x < d || player_screen_pos.y < d ||
+            map_size.x - player_screen_pos.x < d || map_size.y - player_screen_pos.y < d
+        {
+            state.show_keboard_movement_hints = false;
+        }
+    }
+
+
     // NOTE: render the cells on the map. That means the world geometry and items.
     state.world.with_cells(screen_left_top_corner, map_size, |world_pos, cell| {
         let display_pos = screen_coords_from_world(world_pos);
@@ -999,6 +1129,9 @@ fn update(mut state: GameState,
     }
 
     render_panel(state.map_size.x, state.panel_width, display_size, &state, dt, drawcalls, fps);
+    if state.show_keboard_movement_hints {
+        render_controls_help(state.map_size, drawcalls);
+    }
 
     if state.endgame_screen {
         let doses_in_inventory = state.player.inventory.iter()

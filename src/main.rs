@@ -879,10 +879,21 @@ fn update(mut state: GameState,
         state.turn += 1;
         // TODO: we can sort the chunks and compare directly at some point.
         let chunks = state.world.chunks();
+        let mut monsters = vec![];
+        for &chunk_pos in &chunks {
+            for monster in state.world.chunk(chunk_pos).monsters().iter() {
+                if !monster.dead {
+                    monsters.push((monster.position, chunk_pos, monster.kind));
+                }
+            }
+        }
+        monsters.sort_by_key(|&(monster_pos, _chunk_pos, kind)| (monster_pos.x, monster_pos.y, kind));
+
         let actual_state_verification = game_state::Verification {
             turn: state.turn,
             chunk_count: chunks.len(),
             player_pos: state.player.pos,
+            monsters: monsters,
         };
         if state.replay {
             let expected = state.verifications.pop_front().expect(

@@ -10,6 +10,7 @@ use rand::{self, IsaacRng, SeedableRng};
 
 use animation::{AreaOfEffect, ScreenFade};
 use keys::Keys;
+use monster;
 use player::Player;
 use point::Point;
 use timer::Timer;
@@ -51,6 +52,7 @@ pub struct Verification {
     pub turn: i32,
     pub chunk_count: usize,
     pub player_pos: Point,
+    pub monsters: Vec<(Point, Point, monster::Kind)>,
 }
 
 pub struct GameState {

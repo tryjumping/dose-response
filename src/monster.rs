@@ -29,7 +29,7 @@ pub struct Monster {
 }
 
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Kind {
     Anxiety,
     Depression,

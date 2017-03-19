@@ -9,7 +9,7 @@ use generators::{self, GeneratedWorld};
 
 use rand::{IsaacRng, Rng, SeedableRng};
 
-struct Chunk {
+pub struct Chunk {
     position: Point,
     pub rng: IsaacRng,
     pub level: Level,
@@ -71,6 +71,10 @@ impl Chunk {
     pub fn world_position(&self, level_position: level::LevelPosition) -> Point {
         let level_position: Point = level_position.into();
         self.position + level_position
+    }
+
+    pub fn monsters(&self) -> &Vec<Monster> {
+        &self.monsters
     }
 
 }
@@ -222,7 +226,7 @@ impl World {
     /// Get the chunk at the given world position. This means it
     /// doesn't have to match chunk's internal position -- any point
     /// within that Chunk will do.
-    fn chunk(&mut self, pos: Point) -> &mut Chunk {
+    pub fn chunk(&mut self, pos: Point) -> &mut Chunk {
         let chunk_position = self.chunk_pos_from_world_pos(pos);
 
         let seed = self.seed;

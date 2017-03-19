@@ -1278,12 +1278,13 @@ fn main() {
     }
 
     #[cfg(feature = "remote")]
-    fn run_remote(_display_size: point::Point,
-                  _default_background: color::Color,
-                  _window_title: &str,
-                  _state: GameState,
-                  _update: engine::UpdateFn<GameState>) {
-        unimplemented!()
+    fn run_remote(display_size: point::Point,
+                  default_background: color::Color,
+                  window_title: &str,
+                  state: GameState,
+                  update: engine::UpdateFn<GameState>) {
+        engine::remote::main_loop(display_size, default_background, window_title,
+                                  state, update);
     }
     #[cfg(not(feature = "remote"))]
     fn run_remote(_display_size: point::Point,

@@ -19,6 +19,9 @@ pub mod tcod;
 #[cfg(feature = "terminal")]
 pub mod rustbox;
 
+#[cfg(feature = "remote")]
+pub mod remote;
+
 
 #[derive(Debug, Clone)]
 pub enum Draw {

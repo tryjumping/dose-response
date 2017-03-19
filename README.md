@@ -6,6 +6,21 @@ A roguelike game where you play an addict. It's far from finished and
 you probably don't want to look at the code.
 
 
+Headless / Remote-controlled Mode
+---------------------------------
+
+Dose Response can be controlled remotely via ZeroMQ. This is mostly
+for testing and it's disabled by default.
+
+To compile it in you need to have zeromq-devel (or equivalent) installed.
+
+Build it with:
+
+    cargo build --features=remote
+
+And then pass `--remote` to the `dose-response` executable.
+
+
 License
 -------
 

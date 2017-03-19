@@ -1277,6 +1277,22 @@ fn main() {
         println!("The \"opengl\" feature was not compiled in.");
     }
 
+    #[cfg(feature = "remote")]
+    fn run_remote(_display_size: point::Point,
+                  _default_background: color::Color,
+                  _window_title: &str,
+                  _state: GameState,
+                  _update: engine::UpdateFn<GameState>) {
+        unimplemented!()
+    }
+    #[cfg(not(feature = "remote"))]
+    fn run_remote(_display_size: point::Point,
+                  _default_background: color::Color,
+                  _window_title: &str,
+                  _state: GameState,
+                  _update: engine::UpdateFn<GameState>) {
+        println!("The \"remote\" feature was not compiled in.");
+    }
 
     // Note: at our current font, the height of 43 is the maximum value for
     // 1336x768 monitors.
@@ -1344,7 +1360,7 @@ fn main() {
     } else if matches.is_present("terminal") {
         run_terminal();
     } else if matches.is_present("remote") {
-        unimplemented!();
+        run_remote(display_size, color::background, title, game_state, update);
     } else {
         run_opengl(display_size, color::background, title, game_state, update);
     }

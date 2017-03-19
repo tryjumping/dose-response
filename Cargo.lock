@@ -15,6 +15,7 @@ dependencies = [
  "serde_json 0.9.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "tcod 0.10.0 (git+https://github.com/tomassedovic/tcod-rs)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -276,6 +277,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num-traits 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "error-chain"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "fnv"
@@ -551,6 +557,16 @@ dependencies = [
  "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "metadeps"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "error-chain 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1096,6 +1112,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "unicode-segmentation"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1236,6 +1257,25 @@ dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
+[[package]]
+name = "zmq"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq-sys 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "zmq-sys"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
+ "metadeps 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
 [metadata]
 "checksum adler32 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "57be033eb4100070a93a9400a725839cda9c415244f808b0357e72b9e003d5ba"
 "checksum android_glue 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7e2b80445d331077679dfc6f3014f3e9ab7083e588423d35041d3fc017198189"
@@ -1272,6 +1312,7 @@ dependencies = [
 "checksum dtoa 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "80c8b71fd71146990a9742fc06dcbbde19161a267e0ad4e572c35162f4578c90"
 "checksum dwmapi-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "07c4c7cc7b396419bc0a4d90371d0cee16cb5053b53647d287c0b728000c41fe"
 "checksum enum_primitive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "be4551092f4d519593039259a9ed8daedf0da12e5109c5280338073eaeb81180"
+"checksum error-chain 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)" = "318cb3c71ee4cdea69fdc9e15c173b245ed6063e1709029e8fd32525a881120f"
 "checksum fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6cc484842f1e2884faf56f529f960cc12ad8c71ce96cc7abba0a067c98fee344"
 "checksum fs2 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "bcd414e5a1a979b931bb92f41b7a54106d3f6d2e6c253e9ce943b7cd468251ef"
 "checksum gag 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "c606f5c0da18075916377e73de8aec7c140e1b6110a3cf26ae1f47873529b47e"
@@ -1305,6 +1346,7 @@ dependencies = [
 "checksum lzw 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7d947cbb889ed21c2a84be6ffbaebf5b4e0f4340638cba0444907e38b56be084"
 "checksum malloc_buf 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)" = "62bb907fe88d54d8d9ce32a3cceab4218ed2f6b7d35617cafe9adf84e43919cb"
 "checksum memmap 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "69253224aa10070855ea8fe9dbe94a03fc2b1d7930bb340c9e586a7513716fea"
+"checksum metadeps 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "829fffe7ea1d747e23f64be972991bc516b2f1ac2ae4a3b33d8bea150c410151"
 "checksum nodrop 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "0dbbadd3f4c98dea0bd3d9b4be4c0cdaf1ab57035cb2e41fce3983db5add7cc5"
 "checksum num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)" = "bde7c03b09e7c6a301ee81f6ddf66d7a28ec305699e3d3b056d2fc56470e3120"
 "checksum num-bigint 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)" = "88b14378471f7c2adc5262f05b4701ef53e8da376453a8d8fee48e51db745e49"
@@ -1370,6 +1412,7 @@ dependencies = [
 "checksum term_size 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "71662702fe5cd2cf95edd4ad655eea42f24a87a0e44059cbaa4e55260b7bc331"
 "checksum termbox-sys 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)" = "e32daa27881ea4b2ef36e4972d6cdefb241c19ac48d318381b688d1a631b8760"
 "checksum time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)" = "211b63c112206356ef1ff9b19355f43740fc3f85960c598a93d3a3d3ba7beade"
+"checksum toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
 "checksum unicode-segmentation 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7baebdc1df1363fa66161fca2fe047e4f4209011cc7e045948298996afdf85df"
 "checksum unicode-width 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "bf3a113775714a22dcb774d8ea3655c53a32debae63a063acc00a91cc586245f"
 "checksum unicode-xid 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)" = "8c1f860d7d29cf02cb2f3f359fd35991af3d30bac52c57d265a3c461074cb4dc"
@@ -1386,3 +1429,5 @@ dependencies = [
 "checksum winit 0.5.10 (registry+https://github.com/rust-lang/crates.io-index)" = "c7f78711af1aa814473a886a67eb582f4b16225b9e3e899672559309829f1e04"
 "checksum x11-dl 2.12.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bf1f9986368c9bbdd8191a783a7ceb42e0c9c6d3348616c873f829b3288a139c"
 "checksum xml-rs 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "f2b15eed12692bd59d15e98ee7f8dc8408465b992d8ddb4d1672c24865132ec7"
+"checksum zmq 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)" = "9623581b345b8a85fb72cae9b2cb67116d73ccb141e6c02f689e311962b74f9c"
+"checksum zmq-sys 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ecf3aafc58984279d9b8f776703ef569d32ae386353192a267cd6e711da70dde"

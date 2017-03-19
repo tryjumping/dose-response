@@ -36,7 +36,7 @@ impl ZeroMQ {
 
     fn send_display(&self, display: &Display) -> Result<(), Box<Error>> {
         let message = serde_json::to_string(display)?;
-        self.socket.send_str(&message, 0)?;
+        self.socket.send(message.as_bytes(), 0)?;
 
         Ok(())
     }

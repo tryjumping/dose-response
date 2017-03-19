@@ -26,12 +26,25 @@ impl ZeroMQ {
         })
     }
 
-    fn try_read_key(&self) -> Result<Option<Key>, Box<Error>> {
-        // TODO: don't block here
-        let key_data = self.socket.recv_bytes(0).map(|bytes| String::from_utf8(bytes))??;
-        let key = serde_json::from_str(&key_data)?;
+    fn wait_for_handshake(&self) -> Result<(), Box<Error>> {
+        let handshake = self.socket.recv_bytes(0).map(|bytes| String::from_utf8(bytes))??;
+        if handshake == "READY" {
+            self.socket.send("READY".as_bytes(), 0)?;
+            Ok(())
+        } else {
+            Err("Unknown handshake message.".into())
+        }
+    }
 
-        Ok(Some(key))
+    fn try_read_key(&self) -> Result<Option<Key>, Box<Error>> {
+        let poll_status = self.socket.poll(zmq::POLLIN, 0)?;
+        if poll_status == 0 {
+            Ok(None)
+        } else {
+            let key_data = self.socket.recv_bytes(0).map(|bytes| String::from_utf8(bytes))??;
+            let key = serde_json::from_str(&key_data)?;
+            Ok(Some(key))
+        }
     }
 
     fn send_display(&self, display: &Display) -> Result<(), Box<Error>> {
@@ -82,6 +95,8 @@ pub fn main_loop<T>(display_size: Point,
         Err(err) => panic!("Could not create a ZeroMQ socket: {:?}", err),
     };
 
+    ipc.wait_for_handshake().expect("ERROR: unexpected handshake");
+
     let settings = Settings {
         fullscreen: false,
     };
@@ -122,10 +137,10 @@ pub fn main_loop<T>(display_size: Point,
                         &Draw::Fade(_fade, _color) => {}
                     }
                 }
-                match ipc.send_display(&display) {
-                    Ok(()) => {},
-                    Err(err) => panic!("Error sending the display over: {:?}", err),
-                };
+                // NOTE: if the client is sleeping, this will fail but
+                // we don't mind. We ran the update, that's all we
+                // wanted to do.
+                let _ = ipc.send_display(&display);
             },
             None => {
                 // TODO: send a QUIT message here

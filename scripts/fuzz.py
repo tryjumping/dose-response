@@ -37,9 +37,8 @@ if __name__ == '__main__':
     socket.connect("ipc:///tmp/dose-response.ipc")
 
     print "Sending handshake"
-    #socket.send("READY")
-    #handshake = socket.recv()
-    handshake = "READY"  # TODO: re-establish the handshake?
+    socket.send("READY")
+    handshake = socket.recv()
 
     if handshake == "READY":
         print "Connected to the server"
@@ -62,7 +61,9 @@ if __name__ == '__main__':
             read_list, write_list, error_list = zmq.select([socket], [socket], [socket], timeout=3)
             if read_list:
                 message = read_list[0].recv()
-                print("Received reply: {}".format(message))
+                # print("Received reply: {}".format(message))
+                print("Received reply")
+                time.sleep(0.3)
             else:
                 print("ERROR: Timed out waiting for a response")
                 break

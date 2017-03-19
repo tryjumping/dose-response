@@ -29,7 +29,7 @@ pub enum Side {
 // TODO: rename this to Input or something like that. This represents the raw
 // commands from the player or AI abstracted from keyboard, joystick or
 // whatever. But they shouldn't carry any context or data.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Command {
     N, E, S, W,
     NE, NW, SE, SW,
@@ -38,46 +38,6 @@ pub enum Command {
     UseCardinalDose,
     UseDiagonalDose,
     UseStrongDose,
-}
-
-impl Command {
-    fn to_str(&self) -> &'static str {
-    use self::Command::*;
-        match *self {
-            N => "N",
-            E => "E",
-            S => "S",
-            W => "W",
-            NE => "NE",
-            NW => "NW",
-            SE => "SE",
-            SW => "SW",
-            UseFood => "UseFood",
-            UseDose => "UseDose",
-            UseCardinalDose => "UseCardinalDose",
-            UseDiagonalDose => "UseDiagonalDose",
-            UseStrongDose => "UseStrongDose",
-        }
-    }
-}
-
-
-fn command_from_str(name: &str) -> Command {
-    use self::Command::*;
-    match name {
-        "N" => N,
-        "E" => E,
-        "S" => S,
-        "W" => W,
-        "NE" => NE,
-        "NW" => NW,
-        "SE" => SE,
-        "SW" => SW,
-        "UseFood" => UseFood,
-        "UseDose" => UseDose,
-        "UseStrongDose" => UseStrongDose,
-        _ => panic!("Unknown command: '{}'", name)
-    }
 }
 
 
@@ -244,7 +204,8 @@ impl GameState {
 
                 loop {
                     match lines.next() {
-                        Some(Ok(line)) => commands.push_back(command_from_str(&line)),
+                        Some(Ok(line)) => commands.push_back(serde_json::from_str(&line).expect(
+                            &format!("Could not load the command: '{}'", line))),
                         Some(Err(err)) => panic!("Error reading a line from the replay file: {:?}.", err),
                         None => break,
                     }
@@ -277,7 +238,10 @@ pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
 }
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
-    writeln!(writer, "{}", command.to_str()).unwrap();
+    use serde_json;
+    let json_command = serde_json::to_string(&command).expect(
+    &format!("Could not serialise {:?} to json.", command));
+    writeln!(writer, "{}", json_command).unwrap();
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {

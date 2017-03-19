@@ -26,16 +26,6 @@ impl ZeroMQ {
         })
     }
 
-    fn wait_for_handshake(&self) -> Result<(), Box<Error>> {
-        let handshake = self.socket.recv_bytes(0).map(|bytes| String::from_utf8(bytes))??;
-        if handshake == "READY" {
-            self.socket.send("READY".as_bytes(), 0)?;
-            Ok(())
-        } else {
-            Err("Unknown handshake message.".into())
-        }
-    }
-
     fn try_read_key(&self) -> Result<Option<Key>, Box<Error>> {
         let poll_status = self.socket.poll(zmq::POLLIN, 0)?;
         if poll_status == 0 {
@@ -94,8 +84,6 @@ pub fn main_loop<T>(display_size: Point,
         Ok(ipc) => ipc,
         Err(err) => panic!("Could not create a ZeroMQ socket: {:?}", err),
     };
-
-    ipc.wait_for_handshake().expect("ERROR: unexpected handshake");
 
     let settings = Settings {
         fullscreen: false,

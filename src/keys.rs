@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use std::iter::IntoIterator;
 
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Key {
     pub code: KeyCode,
     pub alt: bool,
@@ -11,7 +11,7 @@ pub struct Key {
 }
 
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum KeyCode {
     D1, D2, D3, D4, D5, D6, D7, D8, D9, D0,
     A, B, C, D, E, F, G, H, I, J, K, L, M,

@@ -25,6 +25,9 @@ pub extern crate tcod;
 #[cfg(feature = "terminal")]
 extern crate rustbox;
 
+#[cfg(feature = "remote")]
+extern crate zmq;
+
 
 use std::borrow::Cow;
 use std::collections::VecDeque;

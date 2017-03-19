@@ -888,6 +888,14 @@ fn update(mut state: GameState,
             let expected = state.verifications.pop_front().expect(
                 &format!("No verification present for turn {}.", state.turn));
             assert_eq!(expected, actual_state_verification);
+
+            if player_was_alive && !state.player.alive() {
+                if !state.commands.is_empty() {
+                    panic!("Game quit too early -- there are still {} commands queued up.",
+                           state.commands.len());
+                }
+            }
+
         } else {
             game_state::log_verification(&mut state.command_logger, actual_state_verification);
         }

@@ -4,6 +4,7 @@ version = "0.4.2"
 authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
 license = "GPL-3.0"
 build = "build.rs"
+exclude = ["scripts/*", "replays/*", "screenshots/*"]
 
 [[bin]]
 name = "dose-response"

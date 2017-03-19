@@ -1312,8 +1312,11 @@ fn main() {
         .arg(Arg::with_name("terminal")
              .long("terminal")
              .help("Use the Rustbox (terminal-only) rendering backend"))
+        .arg(Arg::with_name("remote")
+             .long("remote")
+             .help("Don't create a game window. The input and output is controled via ZeroMQ."))
         .group(ArgGroup::with_name("graphics")
-               .args(&["libtcod", "piston", "opengl", "terminal"]))
+               .args(&["libtcod", "piston", "opengl", "terminal", "remote"]))
         .get_matches();
 
     let game_state = if let Some(replay) = matches.value_of("replay") {
@@ -1340,6 +1343,8 @@ fn main() {
                    game_state, update);
     } else if matches.is_present("terminal") {
         run_terminal();
+    } else if matches.is_present("remote") {
+        unimplemented!();
     } else {
         run_opengl(display_size, color::background, title, game_state, update);
     }

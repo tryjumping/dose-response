@@ -1,3 +1,9 @@
+* Verify we've used all commands in the replay log
+** See log replay-2017-03-19T12-09-42.307
+** It ends way to soon
+* Verify the monster positions in the replay log
+** See log replay-2017-03-19T12-09-42.307
+** It ends way to soon
 * Replay de-sync again                                                  :bug:
 ** replay-2017-03-15T08-45-06.733
 ** write a "fuzzer" for replay synchronisation issues

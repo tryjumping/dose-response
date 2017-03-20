@@ -784,7 +784,8 @@ fn update(mut state: GameState,
 
     // Quit the game when Q is pressed or on replay and requested
     if state.keys.matches_code(KeyCode::Q) ||
-        (state.replay && state.replay_exit_after && (state.commands.is_empty() || (!state.player.alive() && state.screen_fading.is_none())))
+        (!state.player.alive() && state.exit_after) ||
+        (state.replay && state.exit_after && (state.commands.is_empty() || (!state.player.alive() && state.screen_fading.is_none())))
     {
         show_exit_stats(&state.stats);
         return None;
@@ -792,7 +793,7 @@ fn update(mut state: GameState,
 
     // Restart the game on F5
     if state.keys.matches_code(KeyCode::F5) {
-        let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width, state.display_size);
+        let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width, state.display_size, false);
         return Some((settings, state));
     }
 
@@ -1307,6 +1308,9 @@ fn main() {
     let world_size = (1_073_741_824, 1_073_741_824).into();
     let title = "Dose Response";
 
+    // TODO: --invincible
+    // TODO: --replay-file-path
+
     let matches = App::new(title)
         .author("Tomas Sedovic <tomas@sedovic.cz>")
         .about("Roguelike game about addiction")
@@ -1317,9 +1321,9 @@ fn main() {
         .arg(Arg::with_name("replay-full-speed")
              .help("Don't slow the replay down (useful for getting accurate measurements)")
              .long("replay-full-speed"))
-        .arg(Arg::with_name("replay-exit-after")
-             .help("Exit after the replay has finished")
-             .long("replay-exit-after"))
+        .arg(Arg::with_name("exit-after")
+             .help("Exit after the game or replay has finished")
+             .long("exit-after"))
         .arg(Arg::with_name("libtcod")
              .long("libtcod")
              .help("Use the libtcod rendering backend"))
@@ -1344,15 +1348,12 @@ fn main() {
         GameState::replay_game(world_size, map_size, panel_width, display_size,
                                &replay_path,
                                matches.is_present("replay-full-speed"),
-                               matches.is_present("replay-exit-after"))
+                               matches.is_present("exit-after"))
     } else {
         if matches.is_present("replay-full-speed") {
             panic!("The `full-replay-speed` option can only be used if the replay log is passed.");
         }
-        if matches.is_present("replay-exit-after") {
-            panic!("The `replay-exit-after` option can only be used if the replay log is passed.");
-        }
-        GameState::new_game(world_size, map_size, panel_width, display_size)
+        GameState::new_game(world_size, map_size, panel_width, display_size, matches.is_present("exit-after"))
     };
 
     if  matches.is_present("libtcod") {

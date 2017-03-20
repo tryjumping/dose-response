@@ -89,7 +89,7 @@ pub struct GameState {
     pub cheating: bool,
     pub replay: bool,
     pub replay_full_speed: bool,
-    pub replay_exit_after: bool,
+    pub exit_after: bool,
     pub clock: Duration,
     pub replay_step: Duration,
     pub stats: Stats,
@@ -118,7 +118,7 @@ impl GameState {
                              cheating: bool,
                              replay: bool,
                              replay_full_speed: bool,
-                             replay_exit_after: bool)
+                             exit_after: bool)
                              -> GameState {
         let seed_arr: &[_] = &[seed];
         let world_centre = (0, 0).into();
@@ -146,7 +146,7 @@ impl GameState {
             cheating: cheating,
             replay: replay,
             replay_full_speed: replay_full_speed,
-            replay_exit_after: replay_exit_after,
+            exit_after: exit_after,
             clock: Duration::zero(),
             replay_step: Duration::zero(),
             stats: Stats::new(6000),  // about a minute and a half at 60 FPS
@@ -160,7 +160,7 @@ impl GameState {
         }
     }
 
-    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point) -> GameState {
+    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, exit_after: bool) -> GameState {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
         let seed = rand::random::<u32>();
@@ -185,10 +185,10 @@ impl GameState {
         log_seed(&mut writer, seed);
         GameState::new(world_size, map_size, panel_width, display_size, commands,
                        verifications, writer,
-                       seed, false, false, false, false)
+                       seed, false, false, false, exit_after)
     }
 
-    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, replay_full_speed: bool, replay_exit_after: bool) -> GameState {
+    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, replay_full_speed: bool, exit_after: bool) -> GameState {
         use serde_json;
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();
@@ -230,7 +230,7 @@ impl GameState {
         // println!("Replaying game log: '{}'", replay_path.display());
         GameState::new(world_size, map_size, panel_width, display_size, commands,
                        verifications,
-                       Box::new(io::sink()), seed, true, true, replay_full_speed, replay_exit_after)
+                       Box::new(io::sink()), seed, true, true, replay_full_speed, exit_after)
     }
 }
 

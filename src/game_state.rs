@@ -128,6 +128,7 @@ impl GameState {
                              log_writer: W,
                              seed: u32,
                              cheating: bool,
+                             invincible: bool,
                              replay: bool,
                              replay_full_speed: bool,
                              exit_after: bool)
@@ -138,7 +139,7 @@ impl GameState {
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
         GameState {
-            player: Player::new(player_position),
+            player: Player::new(player_position, invincible),
             explosion_animation: None,
             chunk_size: 32,
             world_size: world_size,
@@ -172,7 +173,7 @@ impl GameState {
         }
     }
 
-    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, exit_after: bool, replay_path: &Path) -> GameState {
+    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, exit_after: bool, replay_path: &Path, invincible: bool) -> GameState {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
         let seed = rand::random::<u32>();
@@ -183,12 +184,15 @@ impl GameState {
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);
+        let cheating = false;
+        let replay = false;
+        let replay_full_speed = false;
         GameState::new(world_size, map_size, panel_width, display_size, commands,
                        verifications, writer,
-                       seed, false, false, false, exit_after)
+                       seed, cheating, invincible, replay, replay_full_speed, exit_after)
     }
 
-    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, replay_full_speed: bool, exit_after: bool) -> GameState {
+    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, invincible: bool, replay_full_speed: bool, exit_after: bool) -> GameState {
         use serde_json;
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();
@@ -227,10 +231,13 @@ impl GameState {
             Err(msg) => panic!("Failed to read the replay file: {}. Reason: {}",
                                replay_path.display(), msg)
         }
-        // println!("Replaying game log: '{}'", replay_path.display());
+        println!("Replaying game log: '{}'", replay_path.display());
+        let cheating = true;
+        let invincible = invincible;
+        let replay = true;
         GameState::new(world_size, map_size, panel_width, display_size, commands,
                        verifications,
-                       Box::new(io::sink()), seed, true, true, replay_full_speed, exit_after)
+                       Box::new(io::sink()), seed, cheating, invincible, replay, replay_full_speed, exit_after)
     }
 }
 

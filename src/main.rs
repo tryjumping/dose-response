@@ -794,8 +794,9 @@ fn update(mut state: GameState,
     // Restart the game on F5
     if state.keys.matches_code(KeyCode::F5) {
         let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width,
-                                        state.display_size, false,
-                                        &game_state::generate_replay_path());
+                                        state.display_size, state.exit_after,
+                                        &game_state::generate_replay_path(),
+                                        state.player.invincible);
         return Some((settings, state));
     }
 
@@ -1310,8 +1311,6 @@ fn main() {
     let world_size = (1_073_741_824, 1_073_741_824).into();
     let title = "Dose Response";
 
-    // TODO: --invincible
-
     let matches = App::new(title)
         .author("Tomas Sedovic <tomas@sedovic.cz>")
         .about("Roguelike game about addiction")
@@ -1330,6 +1329,9 @@ fn main() {
         .arg(Arg::with_name("exit-after")
              .help("Exit after the game or replay has finished")
              .long("exit-after"))
+        .arg(Arg::with_name("invincible")
+             .help("Makes the player character invincible. They do not die.")
+             .long("invincible"))
         .arg(Arg::with_name("libtcod")
              .long("libtcod")
              .help("Use the libtcod rendering backend"))
@@ -1356,6 +1358,7 @@ fn main() {
         let replay_path = Path::new(replay);
         GameState::replay_game(world_size, map_size, panel_width, display_size,
                                &replay_path,
+                               matches.is_present("invincible"),
                                matches.is_present("replay-full-speed"),
                                matches.is_present("exit-after"))
     } else {
@@ -1366,7 +1369,7 @@ fn main() {
             Some(file) => Path::new(file).into(),
             None => game_state::generate_replay_path(),
         };
-        GameState::new_game(world_size, map_size, panel_width, display_size, matches.is_present("exit-after"), &replay_file)
+        GameState::new_game(world_size, map_size, panel_width, display_size, matches.is_present("exit-after"), &replay_file, matches.is_present("invincible"))
     };
 
     if  matches.is_present("libtcod") {

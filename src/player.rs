@@ -108,6 +108,7 @@ pub struct Player {
     pub longest_high_streak: i32,
 
     dead: bool,
+    pub invincible: bool,
 
     // TODO: Use a RangedInt here?
     max_ap: i32,
@@ -116,7 +117,7 @@ pub struct Player {
 
 impl Player {
 
-    pub fn new(pos: Point) -> Player {
+    pub fn new(pos: Point, invincible: bool) -> Player {
         Player {
             mind: Mind::Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX)),
             will: RangedInt::new(2, 0, WILL_MAX),
@@ -127,6 +128,7 @@ impl Player {
             inventory: vec![],
             anxiety_counter: RangedInt::new(0, 0, ANXIETIES_PER_WILL),
             dead: false,
+            invincible: invincible,
             max_ap: 1,
             ap: 1,
             bonus: Bonus::None,
@@ -168,7 +170,7 @@ impl Player {
             Mind::High(val) if val.is_max() => true,  // Overdosed
             _ => false,
         };
-        !self.dead && *self.will > 0 && !dead_mind
+        self.invincible || !self.dead && *self.will > 0 && !dead_mind
     }
 
     pub fn take_effect(&mut self, effect: Modifier) {

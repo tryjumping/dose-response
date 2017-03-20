@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufRead, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use stats::Stats;
 use time;
@@ -42,10 +42,22 @@ pub enum Command {
 }
 
 
-// TODO: remove when this exists in the stable standard library (it prolly does now)
-fn path_exists(path: &Path) -> bool {
-    ::std::fs::metadata(path).is_ok()
+pub fn generate_replay_path() -> PathBuf {
+    let cur_time = time::now();
+    // Timestamp in format: 2016-11-20T20-04-39.123
+    // We can't use the colons in the timestamp -- Windows don't allow them in a path.
+    let timestamp = format!("{}.{:03}",
+                            time::strftime("%FT%H-%M-%S", &cur_time).unwrap(),
+                            (cur_time.tm_nsec / 1000000));
+    let replay_dir = &Path::new("replays");
+    assert!(replay_dir.is_relative());
+    if !replay_dir.exists() {
+        fs::create_dir_all(replay_dir).unwrap();
+    }
+    let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
+    replay_path.into()
 }
+
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Verification {
@@ -160,28 +172,16 @@ impl GameState {
         }
     }
 
-    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, exit_after: bool) -> GameState {
+    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, exit_after: bool, replay_path: &Path) -> GameState {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
         let seed = rand::random::<u32>();
-        let cur_time = time::now();
-        // Timestamp in format: 2016-11-20T20-04-39.123
-        // We can't use the colons in the timestamp -- Windows don't allow them in a path.
-        let timestamp = format!("{}.{:03}",
-                                time::strftime("%FT%H-%M-%S", &cur_time).unwrap(),
-                                (cur_time.tm_nsec / 1000000));
-        let replay_dir = &Path::new("replays");
-        assert!(replay_dir.is_relative());
-        if !path_exists(replay_dir) {
-            fs::create_dir_all(replay_dir).unwrap();
-        }
-        let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
         let mut writer = match File::create(replay_path) {
             Ok(f) => f,
             Err(msg) => panic!("Failed to create the replay file at '{:?}'.\nReason: '{}'.",
                                replay_path.display(), msg),
         };
-        // println!("Recording the gameplay to '{}'", replay_path.display());
+        println!("Recording the gameplay to '{}'", replay_path.display());
         log_seed(&mut writer, seed);
         GameState::new(world_size, map_size, panel_width, display_size, commands,
                        verifications, writer,

@@ -793,7 +793,9 @@ fn update(mut state: GameState,
 
     // Restart the game on F5
     if state.keys.matches_code(KeyCode::F5) {
-        let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width, state.display_size, false);
+        let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width,
+                                        state.display_size, false,
+                                        &game_state::generate_replay_path());
         return Some((settings, state));
     }
 
@@ -1309,7 +1311,6 @@ fn main() {
     let title = "Dose Response";
 
     // TODO: --invincible
-    // TODO: --replay-file-path
 
     let matches = App::new(title)
         .author("Tomas Sedovic <tomas@sedovic.cz>")
@@ -1321,6 +1322,11 @@ fn main() {
         .arg(Arg::with_name("replay-full-speed")
              .help("Don't slow the replay down (useful for getting accurate measurements)")
              .long("replay-full-speed"))
+        .arg(Arg::with_name("replay-file")
+             .help("Path where to store the replay log.")
+             .long("replay-file")
+             .value_name("FILE")
+             .takes_value(true))
         .arg(Arg::with_name("exit-after")
              .help("Exit after the game or replay has finished")
              .long("exit-after"))
@@ -1344,6 +1350,9 @@ fn main() {
         .get_matches();
 
     let game_state = if let Some(replay) = matches.value_of("replay") {
+        if matches.is_present("replay-file") {
+            panic!("The `replay-file` option can only be used during regular game, not replay.");
+        }
         let replay_path = Path::new(replay);
         GameState::replay_game(world_size, map_size, panel_width, display_size,
                                &replay_path,
@@ -1353,7 +1362,11 @@ fn main() {
         if matches.is_present("replay-full-speed") {
             panic!("The `full-replay-speed` option can only be used if the replay log is passed.");
         }
-        GameState::new_game(world_size, map_size, panel_width, display_size, matches.is_present("exit-after"))
+        let replay_file = match matches.value_of("replay-file") {
+            Some(file) => Path::new(file).into(),
+            None => game_state::generate_replay_path(),
+        };
+        GameState::new_game(world_size, map_size, panel_width, display_size, matches.is_present("exit-after"), &replay_file)
     };
 
     if  matches.is_present("libtcod") {

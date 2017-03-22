@@ -77,11 +77,9 @@ def surroundings_from_message(message):
 
 
 def next_command(previous_command, display):
-    all_directions = 'NW N NE W E SW S SE'.split()
+    directions = 'NW N NE W E SW S SE'.split()
     if not display or not previous_command:
-        return random.choice(all_directions)
-    if random.random() <= 0.07:
-        return 'Quit'
+        return random.choice(directions)
 
     # Always go for food
     food_directions = [direction for direction, tile in display.items()
@@ -94,12 +92,31 @@ def next_command(previous_command, display):
     if dose_directions:
         return random.choice(dose_directions)
 
+    # Try to go in the previous direction
+    if previous_command in directions and random.random() <= 0.75:
+        if display[previous_command] in ('empty', 'monster'):
+            return previous_command
+        adjacent_directions = {
+            'NW': ['N', 'W'],
+            'N':  ['NE', 'NW'],
+            'NE': ['N', 'E'],
+            'W':  ['NW', 'SW'],
+            'E':  ['NE', 'SE'],
+            'SW': ['S', 'W'],
+            'S':  ['SE', 'SW'],
+            'SE': ['S', 'E'],
+        }
+        directions = [direction for direction in adjacent_directions
+                      if display[direction] in ('empty', 'monster')]
+        if directions:
+            return random.choice(directions)
+
     walkable_directions = [direction for direction, tile in display.items()
                            if tile in ('empty', 'monster')]
     if walkable_directions:
         return random.choice(walkable_directions)
 
-    return random.choice(all_directions)
+    return random.choice(directions)
 
 
 def key_from_command(command):
@@ -135,11 +152,19 @@ if __name__ == '__main__':
 
     print "Connected to the server"
 
+    turns = 0
+    max_turns = 200 + random.randint(10, 200)
+
     previous_command = None
     display = None
 
     while True:
-        command = next_command(previous_command, display)
+        turns += 1
+
+        if turns > max_turns:
+            command = 'Quit'
+        else:
+            command = next_command(previous_command, display)
         key = key_from_command(command)
         previous_command = command
 
@@ -158,10 +183,7 @@ if __name__ == '__main__':
         read_list, write_list, error_list = zmq.select([socket], [socket], [socket], timeout=3)
         if read_list:
             message = read_list[0].recv()
-            # print("Received reply: {}".format(message))
-            print("Received reply")
             display = surroundings_from_message(json.loads(message))
-            print display
             time.sleep(0.3)
         else:
             print("ERROR: Timed out waiting for a response")

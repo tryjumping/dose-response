@@ -151,11 +151,11 @@ def run_game():
     context = zmq.Context()
 
     # Socket to talk to server
-    print("Connecting to hello world server...")
+    print("Connecting to the game...")
     socket = context.socket(zmq.REQ)
     socket.connect("ipc:///tmp/dose-response.ipc")
 
-    print "Connected to the server"
+    print "... connected."
 
     turns = 0
     max_turns = 200 + random.randint(10, 200)
@@ -173,7 +173,7 @@ def run_game():
         key = key_from_command(command)
         previous_command = command
 
-        print "Sending command: {}, key: {}".format(command, key)
+        # print "Sending command: {}, key: {}".format(command, key)
         read_list, write_list, error_list = zmq.select([socket], [socket], [socket])
         if write_list:
             message = json.dumps(key)
@@ -194,11 +194,17 @@ def run_game():
             print("ERROR: Timed out waiting for a response")
             break
 
+    print "Closing the connection"
     socket.close()
     context.term()
 
 
 def test_run():
+    print "Building dose-response"
+    rc = subprocess.call(['cargo', 'build', '--features=remote'])
+    if rc != 0:
+        print "Error building dose-response"
+        return 'UNEXPECTED'
     replay_file = tempfile.NamedTemporaryFile(delete=False)
     replay_file.close()  # We won't write anything, the game will
     print "Running the game with a replay destination: {}".format(
@@ -211,13 +217,13 @@ def test_run():
     time.sleep(1)
 
     if game.poll() is None:
-        print "Sending commands to the game"
+        print "Sending commands"
         run_game()
     else:
         print "ERROR: game ended prematurely."
         print "stdout: {}".format(game.stdout.read())
         print "stderr: {}".format(game.stderr.read())
-        return
+        return 'UNEXPECTED'
 
     print "The game ended, getting its status"
     time.sleep(1)
@@ -230,7 +236,7 @@ def test_run():
         print "Dose response finished with return code: {}".format(rc)
         print "stdout: {}".format(game.stdout.read())
         print "stderr: {}".format(game.stderr.read())
-        return
+        return 'UNEXPECTED'
 
     replay_command = ['cargo', 'run', '--features=remote', '--',
                       '--remote', '--exit-after', '--invincible',
@@ -240,6 +246,8 @@ def test_run():
     rc = game.wait()
     if rc == 0:
         print "Replay finished successfully. No need to store it."
+        os.unlink(replay_file.name)
+        return 'SUCCESS'
     else:
         # We got a bug / replay failure
         target_dir = os.path.join(os.curdir, 'replays', 'bugs')
@@ -249,8 +257,22 @@ def test_run():
         if not os.path.isdir(target_dir):
             os.mkdir(target_dir)
         shutil.copyfile(replay_file.name, bug_path)
-    os.unlink(replay_file.name)
+        os.unlink(replay_file.name)
+        return 'FAILURE'
 
 
 if __name__ == '__main__':
-    test_run()
+    results = {
+        'SUCCESS': 0,
+        'FAILURE': 0,
+        'UNEXPECTED': 0,
+    }
+
+    for i in range(20):
+        print "Running test number {}".format(i)
+        result = test_run()
+        results[result] += 1
+        print
+
+    print "All tests finished. Results:"
+    print results

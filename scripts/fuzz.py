@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
 
+import datetime
 import json
+import os
 import random
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import zmq
 
@@ -142,7 +146,8 @@ def key_from_command(command):
 # Headless replay:
 # cargo run --features="remote opengl" -- --invincible ~/tmp/replay.txt --exit-after --remote
 
-if __name__ == '__main__':
+
+def run_game():
     context = zmq.Context()
 
     # Socket to talk to server
@@ -191,3 +196,61 @@ if __name__ == '__main__':
 
     socket.close()
     context.term()
+
+
+def test_run():
+    replay_file = tempfile.NamedTemporaryFile(delete=False)
+    replay_file.close()  # We won't write anything, the game will
+    print "Running the game with a replay destination: {}".format(
+        replay_file.name)
+    game_command = ['cargo', 'run', '--features=remote', '--',
+                    '--remote', '--exit-after', '--invincible',
+                    '--replay-file', replay_file.name]
+    game = subprocess.Popen(game_command,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    time.sleep(1)
+
+    if game.poll() is None:
+        print "Sending commands to the game"
+        run_game()
+    else:
+        print "ERROR: game ended prematurely."
+        print "stdout: {}".format(game.stdout.read())
+        print "stderr: {}".format(game.stderr.read())
+        return
+
+    print "The game ended, getting its status"
+    time.sleep(1)
+    rc = game.poll()
+    if rc is None:
+        game.kill()  # The game was still running, kill it
+    elif rc == 0:
+        print "Starting the replay"
+    else:
+        print "Dose response finished with return code: {}".format(rc)
+        print "stdout: {}".format(game.stdout.read())
+        print "stderr: {}".format(game.stderr.read())
+        return
+
+    replay_command = ['cargo', 'run', '--features=remote', '--',
+                      '--remote', '--exit-after', '--invincible',
+                      replay_file.name]
+    game = subprocess.Popen(replay_command,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    rc = game.wait()
+    if rc == 0:
+        print "Replay finished successfully. No need to store it."
+    else:
+        # We got a bug / replay failure
+        target_dir = os.path.join(os.curdir, 'replays', 'bugs')
+        now = datetime.datetime.now()
+        bug_path = os.path.join(target_dir, now.strftime('%Y-%m-%dT%H-%M-%S'))
+        print "Recording crash to: {}".format(bug_path)
+        if not os.path.isdir(target_dir):
+            os.mkdir(target_dir)
+        shutil.copyfile(replay_file.name, bug_path)
+    os.unlink(replay_file.name)
+
+
+if __name__ == '__main__':
+    test_run()

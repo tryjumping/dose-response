@@ -25,6 +25,8 @@
 ** consider a setting for custom replay speed
 *** instead of `--replay-at-full-speed` we'd specify a value in secs
 *** we could re-run the replay at multiple speeds to check
+** Disable the validations in the release build
+*** they're taking too much space
 * Victory doesn't stop the gameplay & show the end game screen          :bug:
 ** Oh and actually, we should display the Victory screen just like the game over one
 ** with the score and everything

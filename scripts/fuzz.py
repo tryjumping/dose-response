@@ -153,6 +153,8 @@ def run_game():
     # Socket to talk to server
     print("Connecting to the game...")
     socket = context.socket(zmq.REQ)
+    # Make sure the socket termination doesn't hang waiting for unsent data:
+    socket.linger = 250
     socket.connect("ipc:///tmp/dose-response.ipc")
 
     print "... connected."

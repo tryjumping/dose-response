@@ -896,7 +896,7 @@ fn update(mut state: GameState,
         }
         monsters.sort_by_key(|&(monster_pos, _chunk_pos, kind)| (monster_pos.x, monster_pos.y, kind));
 
-        let actual_state_verification = game_state::Verification {
+        let actual = game_state::Verification {
             turn: state.turn,
             chunk_count: chunks.len(),
             player_pos: state.player.pos,
@@ -905,7 +905,21 @@ fn update(mut state: GameState,
         if state.replay {
             let expected = state.verifications.pop_front().expect(
                 &format!("No verification present for turn {}.", state.turn));
-            assert_eq!(expected, actual_state_verification);
+            if expected.turn != actual.turn {
+                println!("Expected turns: {}, actual: {}", expected.turn, actual.turn);
+            }
+            if expected.chunk_count != actual.chunk_count {
+                println!("Expected chunks: {}, actual: {}",
+                         expected.chunk_count, actual.chunk_count);
+            }
+            if expected.player_pos != actual.player_pos {
+                println!("Expected player position: {}, actual: {}",
+                         expected.player_pos, actual.player_pos);
+            }
+            if expected.monsters != actual.monsters {
+                println!("TODO: The monsters validation failed.");
+            }
+            assert!(expected == actual, "Validation failed!");
 
             if player_was_alive && !state.player.alive() {
                 if !state.commands.is_empty() {
@@ -915,7 +929,7 @@ fn update(mut state: GameState,
             }
 
         } else {
-            game_state::log_verification(&mut state.command_logger, actual_state_verification);
+            game_state::log_verification(&mut state.command_logger, actual);
         }
     }
 

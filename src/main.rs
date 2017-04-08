@@ -30,7 +30,7 @@ extern crate zmq;
 
 
 use std::borrow::Cow;
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::cmp;
 use std::io::Write;
 use std::path::Path;
@@ -559,7 +559,7 @@ fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameStat
         lines.push("".into());
         lines.push("Inventory:".into());
 
-        let mut item_counts = std::collections::HashMap::new();
+        let mut item_counts = HashMap::new();
         for item in player.inventory.iter() {
             let count = item_counts.entry(item.kind).or_insert(0);
             *count += 1;
@@ -916,8 +916,41 @@ fn update(mut state: GameState,
                 println!("Expected player position: {}, actual: {}",
                          expected.player_pos, actual.player_pos);
             }
+            if expected.monsters.len() != actual.monsters.len() {
+                println!("Expected monster count: {}, actual: {}",
+                         expected.monsters.len(), actual.monsters.len());
+            }
             if expected.monsters != actual.monsters {
-                println!("TODO: The monsters validation failed.");
+                let expected_monsters: HashMap<point::Point, (point::Point, monster::Kind)> =
+                    std::iter::FromIterator::from_iter(
+                        expected.monsters.iter()
+                            .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
+                let actual_monsters: HashMap<point::Point, (point::Point, monster::Kind)> =
+                    std::iter::FromIterator::from_iter(
+                        actual.monsters.iter()
+                            .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
+
+                for (pos, expected) in &expected_monsters {
+                    match actual_monsters.get(pos) {
+                        Some(actual) => {
+                            if expected != actual {
+                                println!("Monster at {} differ. Expected: {:?}, actual: {:?}",
+                                         pos, expected, actual);
+                            }
+                        }
+                        None => {
+                            println!("Monster expected at {}: {:?}, but it's not there.",
+                                     pos, expected);
+                        }
+                    }
+                }
+
+                for (pos, actual) in &actual_monsters {
+                    if expected_monsters.get(pos).is_none() {
+                        println!("There is an unexpected monster at: {}: {:?}.",
+                                 pos, actual);
+                    }
+                }
             }
             assert!(expected == actual, "Validation failed!");
 

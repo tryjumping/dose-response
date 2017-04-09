@@ -264,17 +264,22 @@ def test_run():
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        test_count = int(sys.argv[1])
+    else:
+        test_count = 20
+
     results = {
         'SUCCESS': 0,
         'FAILURE': 0,
         'UNEXPECTED': 0,
     }
 
-    for i in range(20):
+    for i in range(test_count):
         print "Running test number {}".format(i)
         result = test_run()
         results[result] += 1
         print
 
-    print "All tests finished. Results:"
+    print "All {} tests finished. Results:".format(test_count)
     print results

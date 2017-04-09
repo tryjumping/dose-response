@@ -275,11 +275,19 @@ if __name__ == '__main__':
         'UNEXPECTED': 0,
     }
 
-    for i in range(test_count):
-        print "Running test number {}".format(i)
-        result = test_run()
-        results[result] += 1
-        print
+    try:
+        for i in range(test_count):
+            print "Running test number {}".format(i + 1)
+            result = test_run()
+            results[result] += 1
+            print "\n\nAll {} tests finished.".format(test_count)
+    except KeyboardInterrupt:
+        print "\n\n{} out of {} tests finished.".format(i, test_count)
 
-    print "All {} tests finished. Results:".format(test_count)
-    print results
+    print "Results:\n{}".format(results)
+
+    if results['SUCCESS'] == test_count:
+        return_code = 0
+    else:
+        return_code = 1
+    sys.exit(return_code)

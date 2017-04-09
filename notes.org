@@ -1,35 +1,11 @@
-* Verify the monster positions in the replay log
-** See log replay-2017-03-19T12-09-42.307
-** It ends way to soon
-* Replay de-sync again                                                  :bug:
-** replay-2017-03-15T08-45-06.733
-** write a "fuzzer" for replay synchronisation issues
-** now's a good time because we clearly have a bug
-** ideally, the fuzzer should just generate random inputs without much thought
-** so let's add an invincibility mode so we can just keep going
-** `make fuzz`
-*** generate an inputs file
-**** needs random human-like delays!
-*** run the replay
-*** check the return code
-*** log whether replay succeeded or failed
-** we'll need to have a way to drive the first playthrough
-*** can't generate the replay log directly because it has the verification code
-** consider an option to specify the replay path
-*** would probably make the runner easier
-** consider writing a headless mode
-*** we have the pluggable renderer stuff in, this should just be no-op
-*** means we can run it on a server
-*** or in the background
-*** or multiple runs in parallel
-** consider a setting for custom replay speed
-*** instead of `--replay-at-full-speed` we'd specify a value in secs
-*** we could re-run the replay at multiple speeds to check
-** Disable the validations in the release build
-*** they're taking too much space
+* Disable the validations in the release build                         :code:
+** they're taking too much space
 * Victory doesn't stop the gameplay & show the end game screen          :bug:
 ** Oh and actually, we should display the Victory screen just like the game over one
 ** with the score and everything
+** But it seems to work fine during the replay
+* There seems to be an edge to the world                                :bug:
+** When I played the game, the right-hand side didn't seem to generate new chunks
 * Make sure doses' Mind effect doesn't eat into the withdrawn/sober counter
 I have a sneaking suspicion that taking a dose while withdrawn/sober
 will actually use it's intoxication value to go over the non-high
@@ -927,3 +903,41 @@ CLOSED: [2017-03-19 Sun 12:52]
 :END:
 *** See log replay-2017-03-19T12-09-42.307
 *** It ends way to soon
+** DONE Verify the monster positions in the replay log
+CLOSED: [2017-04-09 Sun 12:34]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-09 Sun 12:35
+:END:
+*** See log replay-2017-03-19T12-09-42.307
+*** It ends way to soon
+*** We've added monster verification to the replay
+** DONE Replay de-sync again                                           :bug:
+CLOSED: [2017-04-09 Sun 12:34]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-09 Sun 12:35
+:END:
+*** replay-2017-03-15T08-45-06.733
+*** write a "fuzzer" for replay synchronisation issues
+*** now's a good time because we clearly have a bug
+*** ideally, the fuzzer should just generate random inputs without much thought
+*** so let's add an invincibility mode so we can just keep going
+*** `make fuzz`
+**** generate an inputs file
+***** needs random human-like delays!
+**** run the replay
+**** check the return code
+**** log whether replay succeeded or failed
+*** we'll need to have a way to drive the first playthrough
+**** can't generate the replay log directly because it has the verification code
+*** consider an option to specify the replay path
+**** would probably make the runner easier
+*** consider writing a headless mode
+**** we have the pluggable renderer stuff in, this should just be no-op
+**** means we can run it on a server
+**** or in the background
+**** or multiple runs in parallel
+*** consider a setting for custom replay speed
+**** instead of `--replay-at-full-speed` we'd specify a value in secs
+**** we could re-run the replay at multiple speeds to check
+*** It was the chunks and monster processing depending on the screen
+**** All game logic should be display-independent now

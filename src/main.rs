@@ -442,20 +442,16 @@ fn process_player_action<R, W>(player: &mut player::Player,
 
 fn process_monsters<R: Rng>(world: &mut world::World,
                             player: &mut player::Player,
-                            screen_top_left_corner: point::Point,
-                            map_dimensions: point::Point,
+                            (top_left_corner, dimensions): (point::Point, point::Point),
                             rng: &mut R) {
     if !player.alive() {
         return
     }
     // NOTE: one quarter of the map area should be a decent overestimate
-    let monster_count_estimate = map_dimensions.x * map_dimensions.y / 4;
+    let monster_count_estimate = dimensions.x * dimensions.y / 4;
     assert!(monster_count_estimate > 0);
     let mut monster_positions_to_process = VecDeque::with_capacity(monster_count_estimate as usize);
-    monster_positions_to_process.extend(
-        world.monster_positions(
-            screen_top_left_corner - (10, 10),
-            map_dimensions + (10, 10)));
+    monster_positions_to_process.extend(world.monster_positions(top_left_corner, dimensions));
 
     for &pos in monster_positions_to_process.iter() {
         if let Some(monster) = world.monster_on_pos(pos) {
@@ -849,7 +845,7 @@ fn update(mut state: GameState,
     // Until we find a better fix, we'll just have to block command
     // processing whenever any animation is playing.
     let no_animations = state.explosion_animation.is_none() && state.pos_timer.finished();
-
+    let simulation_area = (state.player.pos - state.map_size, state.map_size + state.map_size);
 
     if running || paused_one_step || timed_step && state.side != Side::Victory && no_animations {
         process_keys(&mut state.keys, &mut state.commands);
@@ -861,11 +857,22 @@ fn update(mut state: GameState,
 
         // NOTE: Process monsters
         if state.player.ap() <= 0 && state.explosion_animation.is_none() {
-            process_monsters(&mut state.world, &mut state.player, screen_left_top_corner, state.map_size, &mut state.rng);
+            process_monsters(&mut state.world, &mut state.player, simulation_area, &mut state.rng);
             state.player.new_turn();
         }
 
         spent_turn = command_count > state.commands.len();
+    }
+
+    // NOTE: Load up new chunks if necessary
+    if spent_turn {
+        let top_left_corner = simulation_area.0;
+        let dimensions = simulation_area.1;
+        for x in top_left_corner.x..dimensions.x {
+            for y in top_left_corner.y..dimensions.y {
+                state.world.ensure_chunk_at_pos((x, y).into());
+            }
+        }
     }
 
     // Run the dose explosion effect here:
@@ -875,20 +882,22 @@ fn update(mut state: GameState,
                 kill_monster(pos, &mut state.world);
             }
             if effect.contains(animation::SHATTER) {
-                let cell =  state.world.cell_mut(pos);
-                cell.tile.kind = level::TileKind::Empty;
-                cell.items.clear();
+                if let Some(cell) = state.world.cell_mut(pos) {
+                    cell.tile.kind = level::TileKind::Empty;
+                    cell.items.clear();
+                }
             }
         }
     }
 
+    // Log or check verifications
     if spent_turn {
         state.turn += 1;
         // TODO: we can sort the chunks and compare directly at some point.
         let chunks = state.world.chunks();
         let mut monsters = vec![];
         for &chunk_pos in &chunks {
-            for monster in state.world.chunk(chunk_pos).monsters().iter() {
+            for monster in state.world.chunk(chunk_pos).unwrap().monsters().iter() {
                 if !monster.dead {
                     monsters.push((monster.position, chunk_pos, monster.kind));
                 }

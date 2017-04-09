@@ -118,6 +118,14 @@ impl World {
         let initial_area_size = 15;
         let top_left_corner = initial_player_position - (initial_area_size, initial_area_size);
         let bottom_right_corner = initial_player_position + (initial_area_size, initial_area_size);
+
+        for x in top_left_corner.x..bottom_right_corner.x {
+            for y in top_left_corner.y..bottom_right_corner.y {
+                let pos = (x, y).into();
+                self.ensure_chunk_at_pos(pos);
+            }
+        }
+
         for x in top_left_corner.x..bottom_right_corner.x {
             for y in top_left_corner.y..bottom_right_corner.y {
                 let pos = (x, y).into();
@@ -171,9 +179,10 @@ impl World {
                     },
                     irresistible: 2,
                 };
-                let chunk = self.chunk(pos);
-                let level_position = chunk.level_position(pos);
-                chunk.level.add_item(level_position, dose);
+                if let Some(chunk) = self.chunk(pos) {
+                    let level_position = chunk.level_position(pos);
+                    chunk.level.add_item(level_position, dose);
+                }
                 break;
             }
         }
@@ -190,12 +199,13 @@ impl World {
                     },
                     irresistible: 0,
                 };
-                let chunk = self.chunk(pos);
-                let level_position = chunk.level_position(pos);
-                if chunk.level.cell(level_position).items.is_empty() {
-                    chunk.level.add_item(level_position, food);
-                    break;
+                if let Some(chunk) = self.chunk(pos) {
+                    let level_position = chunk.level_position(pos);
+                    if chunk.level.cell(level_position).items.is_empty() {
+                        chunk.level.add_item(level_position, food);
+                    }
                 }
+                break;
             }
         }
     }
@@ -226,7 +236,12 @@ impl World {
     /// Get the chunk at the given world position. This means it
     /// doesn't have to match chunk's internal position -- any point
     /// within that Chunk will do.
-    pub fn chunk(&mut self, pos: Point) -> &mut Chunk {
+    pub fn chunk(&mut self, pos: Point) -> Option<&mut Chunk> {
+        let chunk_position = self.chunk_pos_from_world_pos(pos);
+        self.chunks.get_mut(&chunk_position)
+    }
+
+    pub fn ensure_chunk_at_pos(&mut self, pos: Point) {
         let chunk_position = self.chunk_pos_from_world_pos(pos);
 
         let seed = self.seed;
@@ -234,23 +249,27 @@ impl World {
         // TODO: figure out how to generate the starting chunks so the
         // player has some doses and food and no monsters.
         self.chunks.entry(chunk_position).or_insert_with(
-            || Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()))
+            || Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()));
     }
 
-    fn cell(&mut self, world_pos: Point) -> &Cell {
+    fn cell(&mut self, world_pos: Point) -> Option<&Cell> {
         let chunk = self.chunk(world_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
-        let level_position = chunk.level_position(world_pos);
-        chunk.level.cell(level_position)
+        chunk.map(|chunk| {
+            let level_position = chunk.level_position(world_pos);
+            chunk.level.cell(level_position)
+        })
     }
 
-    pub fn cell_mut(&mut self, world_pos: Point) -> &mut Cell {
+    pub fn cell_mut(&mut self, world_pos: Point) -> Option<&mut Cell> {
         let chunk = self.chunk(world_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
-        let level_position = chunk.level_position(world_pos);
-        chunk.level.cell_mut(level_position)
+        chunk.map(|chunk| {
+            let level_position = chunk.level_position(world_pos);
+            chunk.level.cell_mut(level_position)
+        })
     }
 
     /// Check whether the given position is within the bounds of the World.
@@ -277,7 +296,7 @@ impl World {
             Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
         };
         self.within_bounds(pos) &&
-            self.cell(pos).tile.kind == TileKind::Empty &&
+            self.cell(pos).map_or(false, |cell| cell.tile.kind == TileKind::Empty) &&
             walkable
     }
 
@@ -285,7 +304,7 @@ impl World {
     /// not withing bounds, nothing happens.
     pub fn pickup_item(&mut self, pos: Point) -> Option<Item> {
         if self.within_bounds(pos) {
-            self.cell_mut(pos).items.pop()
+            self.cell_mut(pos).and_then(|cell| cell.items.pop())
         } else {
             None
         }
@@ -296,10 +315,13 @@ impl World {
     /// Returns `None` if there is no monster or if `pos` is out of bounds.
     pub fn monster_on_pos(&mut self, world_pos: Point) -> Option<&mut Monster> {
         if self.within_bounds(world_pos) {
-            let chunk = self.chunk(world_pos);
-            let level_position = chunk.level_position(world_pos);
-            chunk.level.monster_on_pos(level_position).and_then(
-                move |monster_index| Some(&mut chunk.monsters[monster_index]))
+            if let Some(chunk) = self.chunk(world_pos) {
+                let level_position = chunk.level_position(world_pos);
+                chunk.level.monster_on_pos(level_position).and_then(
+                    move |monster_index| Some(&mut chunk.monsters[monster_index]))
+            } else {
+                None
+            }
         } else {
             None
         }
@@ -320,12 +342,13 @@ impl World {
             if let Some(monster) = self.monster_on_pos(monster_position) {
                 monster.position = destination;
             }
-            let chunk = self.chunk(monster_position);
+            let chunk = self.chunk(monster_position).expect(
+                &format!("Chunk with monster {:?} doesn't exist.", monster_position));
             let level_monster_pos = chunk.level_position(monster_position);
             let level_destination_pos = chunk.level_position(destination);
             chunk.level.move_monster(level_monster_pos, level_destination_pos);
-        } else {  // Need to move the monster to another chunk NOTE:
-            // We're not removing the monster from the
+        } else {  // Need to move the monster to another chunk
+            //NOTE: We're not removing the monster from the
             // `chunk.monsters` vec in order not to mess up with the
             // indices there.
             //
@@ -343,7 +366,8 @@ impl World {
                 self.remove_monster(monster_position);
                 assert!(self.walkable(monster_position, Walkability::BlockingMonsters));
                 new_monster.position = destination;
-                let destination_chunk = self.chunk(destination);
+                let destination_chunk = self.chunk(destination).expect(
+                    &format!("Destination chunk at {:?} doesn't exist.", destination));
                 let new_monster_index = destination_chunk.monsters.len();
                 destination_chunk.monsters.push(new_monster);
                 let destination_level_position = destination_chunk.level_position(destination);
@@ -357,13 +381,14 @@ impl World {
     /// Remove the monster at the given position (if there is any
     /// there) from the world.
     pub fn remove_monster(&mut self, pos: Point) {
-        let chunk = self.chunk(pos);
-        let level_position = chunk.level_position(pos);
-        let index = chunk.level.monsters.remove(&level_position);
-        // TODO: we should figure out a better way of removing
-        // monsters from the map.
-        if let Some(index) = index {
-            chunk.monsters[index].dead = true;
+        if let Some(chunk) = self.chunk(pos) {
+            let level_position = chunk.level_position(pos);
+            let index = chunk.level.monsters.remove(&level_position);
+            // TODO: we should figure out a better way of removing
+            // monsters from the map.
+            if let Some(index) = index {
+                chunk.monsters[index].dead = true;
+            }
         }
     }
 
@@ -371,7 +396,9 @@ impl World {
     pub fn explore(&mut self, centre: Point, radius: i32) {
         for pos in CircularArea::new(centre, radius) {
             if self.within_bounds(pos) {
-                self.cell_mut(pos).explored = true;
+                if let Some(cell) = self.cell_mut(pos) {
+                    cell.explored = true;
+                }
             }
         }
     }
@@ -384,7 +411,8 @@ impl World {
             if !self.walkable(pos, Walkability::WalkthroughMonsters) {
                 continue
             }
-            doses.extend(self.cell(pos).items.iter()
+            doses.extend(self.cell(pos)
+                         .map_or(vec![].iter(), |cell| cell.items.iter())
                          .filter(|i| i.is_dose())
                          .map(|&item| (pos, item)));
         }
@@ -437,11 +465,12 @@ impl World {
 
         while chunk_pos.y < bottom_right.y {
             while chunk_pos.x < bottom_right.x {
-                let chunk = self.chunk(chunk_pos);
-                for (cell_level_pos, cell) in chunk.level.iter() {
-                    let cell_world_pos = chunk.world_position(cell_level_pos);
-                    if cell_world_pos >= top_left && cell_world_pos <= bottom_right {
-                        callback(cell_world_pos, cell);
+                if let Some(chunk) = self.chunk(chunk_pos) {
+                    for (cell_level_pos, cell) in chunk.level.iter() {
+                        let cell_world_pos = chunk.world_position(cell_level_pos);
+                        if cell_world_pos >= top_left && cell_world_pos <= bottom_right {
+                            callback(cell_world_pos, cell);
+                        }
                     }
                 }
                 chunk_pos.x += chunk_size;
@@ -466,8 +495,9 @@ impl World {
 
         while chunk_pos.y < bottom_right.y {
             while chunk_pos.x < bottom_right.x {
-                let chunk = self.chunk(chunk_pos);
-                result.extend(chunk.monsters.iter().filter(|m| !m.dead).map(|m| m.position));
+                if let Some(chunk) = self.chunk(chunk_pos) {
+                    result.extend(chunk.monsters.iter().filter(|m| !m.dead).map(|m| m.position));
+                }
                 chunk_pos.x += chunk_size;
             }
             chunk_pos.y += chunk_size;

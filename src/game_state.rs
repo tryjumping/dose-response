@@ -210,19 +210,17 @@ impl GameState {
 
                 loop {
                     match lines.next() {
-                        Some(Ok(line)) => commands.push_back(serde_json::from_str(&line).expect(
-                            &format!("Could not load the command: '{}'", line))),
-                        Some(Err(err)) => panic!("Error reading a line from the replay file: {:?}.", err),
-                        None => break,
-                    }
-
-                    match lines.next() {
                         Some(Ok(line)) => {
-                            let verification = serde_json::from_str(&line).expect(
-                                &format!("Could not deserialise the verification: '{}'", line));
-                            verifications.push_back(verification);
+                            let command = serde_json::from_str(&line);
+                            if let Ok(command) = command {
+                                commands.push_back(command);
+                            } else {
+                                let verification = serde_json::from_str(&line).expect(
+                                    &format!("Couldn't load the command or verification: '{}'.", line));
+                                verifications.push_back(verification);
+                            }
                         },
-                        Some(Err(err)) => panic!("Error reading a verification from the replay log: {:?}.", err),
+                        Some(Err(err)) => panic!("Error reading a line from the replay file: {:?}.", err),
                         None => break,
                     }
                 }

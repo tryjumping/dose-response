@@ -1,5 +1,3 @@
-* TODO Disable the validations in the release build                    :code:
-** they're taking too much space
 * Victory doesn't stop the gameplay & show the end game screen          :bug:
 ** Oh and actually, we should display the Victory screen just like the game over one
 ** with the score and everything
@@ -941,3 +939,9 @@ CLOSED: [2017-04-09 Sun 12:34]
 **** we could re-run the replay at multiple speeds to check
 *** It was the chunks and monster processing depending on the screen
 **** All game logic should be display-independent now
+** DONE Disable the validations in the release build                  :code:
+CLOSED: [2017-04-09 Sun 13:44]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-09 Sun 13:44
+:END:
+*** they're taking too much space

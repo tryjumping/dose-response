@@ -944,20 +944,29 @@ fn update(mut state: GameState,
 
     // Log or check verifications
     if spent_turn {
-        let actual = state.verification();
         if state.replay {
-            let expected = state.verifications.pop_front().expect(
-                &format!("No verification present for turn {}.", state.turn));
-            verify_states(expected, actual);
+            if let Some(expected) = state.verifications.pop_front() {
+                let actual = state.verification();
+                verify_states(expected, actual);
 
-            if player_was_alive && !state.player.alive() {
-                if !state.commands.is_empty() {
-                    panic!("Game quit too early -- there are still {} commands queued up.",
-                           state.commands.len());
+                if player_was_alive && !state.player.alive() {
+                    if !state.commands.is_empty() {
+                        panic!("Game quit too early -- there are still {} commands queued up.",
+                               state.commands.len());
+                    }
                 }
+            } else {
+                // NOTE: no verifications were loaded. Probably
+                // replaying a release build.
             }
+        } else if cfg!(debug_assertions) {
+            // We're in the debug build, log the verification
+            let verification = state.verification();
+            game_state::log_verification(&mut state.command_logger, verification);
         } else {
-            game_state::log_verification(&mut state.command_logger, actual);
+            // NOTE: We're in the release build, *DON'T* log the
+            // verification. They take up insane amounts of disk
+            // space!
         }
     }
 

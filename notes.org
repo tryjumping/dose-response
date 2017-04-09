@@ -1,4 +1,4 @@
-* Disable the validations in the release build                         :code:
+* TODO Disable the validations in the release build                    :code:
 ** they're taking too much space
 * Victory doesn't stop the gameplay & show the end game screen          :bug:
 ** Oh and actually, we should display the Victory screen just like the game over one

@@ -179,7 +179,7 @@ impl World {
                     },
                     irresistible: 2,
                 };
-                if let Some(chunk) = self.chunk(pos) {
+                if let Some(chunk) = self.chunk_mut(pos) {
                     let level_position = chunk.level_position(pos);
                     chunk.level.add_item(level_position, dose);
                 }
@@ -199,7 +199,7 @@ impl World {
                     },
                     irresistible: 0,
                 };
-                if let Some(chunk) = self.chunk(pos) {
+                if let Some(chunk) = self.chunk_mut(pos) {
                     let level_position = chunk.level_position(pos);
                     if chunk.level.cell(level_position).items.is_empty() {
                         chunk.level.add_item(level_position, food);
@@ -236,7 +236,15 @@ impl World {
     /// Get the chunk at the given world position. This means it
     /// doesn't have to match chunk's internal position -- any point
     /// within that Chunk will do.
-    pub fn chunk(&mut self, pos: Point) -> Option<&mut Chunk> {
+    pub fn chunk(&self, pos: Point) -> Option<&Chunk> {
+        let chunk_position = self.chunk_pos_from_world_pos(pos);
+        self.chunks.get(&chunk_position)
+    }
+
+    /// Get the mutable chunk at the given world position. This means
+    /// it doesn't have to match chunk's internal position -- any
+    /// point within that Chunk will do.
+    pub fn chunk_mut(&mut self, pos: Point) -> Option<&mut Chunk> {
         let chunk_position = self.chunk_pos_from_world_pos(pos);
         self.chunks.get_mut(&chunk_position)
     }
@@ -263,7 +271,7 @@ impl World {
     }
 
     pub fn cell_mut(&mut self, world_pos: Point) -> Option<&mut Cell> {
-        let chunk = self.chunk(world_pos);
+        let chunk = self.chunk_mut(world_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
         chunk.map(|chunk| {
@@ -315,7 +323,7 @@ impl World {
     /// Returns `None` if there is no monster or if `pos` is out of bounds.
     pub fn monster_on_pos(&mut self, world_pos: Point) -> Option<&mut Monster> {
         if self.within_bounds(world_pos) {
-            if let Some(chunk) = self.chunk(world_pos) {
+            if let Some(chunk) = self.chunk_mut(world_pos) {
                 let level_position = chunk.level_position(world_pos);
                 chunk.level.monster_on_pos(level_position).and_then(
                     move |monster_index| Some(&mut chunk.monsters[monster_index]))
@@ -342,7 +350,7 @@ impl World {
             if let Some(monster) = self.monster_on_pos(monster_position) {
                 monster.position = destination;
             }
-            let chunk = self.chunk(monster_position).expect(
+            let chunk = self.chunk_mut(monster_position).expect(
                 &format!("Chunk with monster {:?} doesn't exist.", monster_position));
             let level_monster_pos = chunk.level_position(monster_position);
             let level_destination_pos = chunk.level_position(destination);
@@ -366,7 +374,7 @@ impl World {
                 self.remove_monster(monster_position);
                 assert!(self.walkable(monster_position, Walkability::BlockingMonsters));
                 new_monster.position = destination;
-                let destination_chunk = self.chunk(destination).expect(
+                let destination_chunk = self.chunk_mut(destination).expect(
                     &format!("Destination chunk at {:?} doesn't exist.", destination));
                 let new_monster_index = destination_chunk.monsters.len();
                 destination_chunk.monsters.push(new_monster);
@@ -381,7 +389,7 @@ impl World {
     /// Remove the monster at the given position (if there is any
     /// there) from the world.
     pub fn remove_monster(&mut self, pos: Point) {
-        if let Some(chunk) = self.chunk(pos) {
+        if let Some(chunk) = self.chunk_mut(pos) {
             let level_position = chunk.level_position(pos);
             let index = chunk.level.monsters.remove(&level_position);
             // TODO: we should figure out a better way of removing

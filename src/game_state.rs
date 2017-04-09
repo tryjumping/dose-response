@@ -239,6 +239,27 @@ impl GameState {
                        verifications,
                        Box::new(io::sink()), seed, cheating, invincible, replay, replay_full_speed, exit_after)
     }
+
+    pub fn verification(&self) -> Verification {
+        // TODO: we can sort the chunks and compare directly at some point.
+        let chunks = self.world.chunks();
+        let mut monsters = vec![];
+        for &chunk_pos in &chunks {
+            for monster in self.world.chunk(chunk_pos).unwrap().monsters().iter() {
+                if !monster.dead {
+                    monsters.push((monster.position, chunk_pos, monster.kind));
+                }
+            }
+        }
+        monsters.sort_by_key(|&(monster_pos, _chunk_pos, kind)| (monster_pos.x, monster_pos.y, kind));
+
+        Verification {
+            turn: self.turn,
+            chunk_count: chunks.len(),
+            player_pos: self.player.pos,
+            monsters: monsters,
+        }
+    }
 }
 
 

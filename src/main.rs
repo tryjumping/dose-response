@@ -762,6 +762,54 @@ fn show_exit_stats(stats: &stats::Stats) {
              stats.mean_drawcalls());
 }
 
+fn verify_states(expected: game_state::Verification, actual: game_state::Verification) {
+    if expected.chunk_count != actual.chunk_count {
+        println!("Expected chunks: {}, actual: {}",
+                 expected.chunk_count, actual.chunk_count);
+    }
+    if expected.player_pos != actual.player_pos {
+        println!("Expected player position: {}, actual: {}",
+                 expected.player_pos, actual.player_pos);
+    }
+    if expected.monsters.len() != actual.monsters.len() {
+        println!("Expected monster count: {}, actual: {}",
+                 expected.monsters.len(), actual.monsters.len());
+    }
+    if expected.monsters != actual.monsters {
+        let expected_monsters: HashMap<point::Point, (point::Point, monster::Kind)> =
+            std::iter::FromIterator::from_iter(
+                expected.monsters.iter()
+                    .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
+        let actual_monsters: HashMap<point::Point, (point::Point, monster::Kind)> =
+            std::iter::FromIterator::from_iter(
+                actual.monsters.iter()
+                    .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
+
+        for (pos, expected) in &expected_monsters {
+            match actual_monsters.get(pos) {
+                Some(actual) => {
+                    if expected != actual {
+                        println!("Monster at {} differ. Expected: {:?}, actual: {:?}",
+                                 pos, expected, actual);
+                    }
+                }
+                None => {
+                    println!("Monster expected at {}: {:?}, but it's not there.",
+                             pos, expected);
+                }
+            }
+        }
+
+        for (pos, actual) in &actual_monsters {
+            if expected_monsters.get(pos).is_none() {
+                println!("There is an unexpected monster at: {}: {:?}.",
+                         pos, actual);
+            }
+        }
+    }
+    assert!(expected == actual, "Validation failed!");
+}
+
 fn update(mut state: GameState,
           dt: Duration,
           display_size:
@@ -864,6 +912,10 @@ fn update(mut state: GameState,
         spent_turn = command_count > state.commands.len();
     }
 
+    if spent_turn {
+        state.turn += 1;
+    }
+
     // NOTE: Load up new chunks if necessary
     if spent_turn {
         let top_left_corner = simulation_area.0;
@@ -892,76 +944,11 @@ fn update(mut state: GameState,
 
     // Log or check verifications
     if spent_turn {
-        state.turn += 1;
-        // TODO: we can sort the chunks and compare directly at some point.
-        let chunks = state.world.chunks();
-        let mut monsters = vec![];
-        for &chunk_pos in &chunks {
-            for monster in state.world.chunk(chunk_pos).unwrap().monsters().iter() {
-                if !monster.dead {
-                    monsters.push((monster.position, chunk_pos, monster.kind));
-                }
-            }
-        }
-        monsters.sort_by_key(|&(monster_pos, _chunk_pos, kind)| (monster_pos.x, monster_pos.y, kind));
-
-        let actual = game_state::Verification {
-            turn: state.turn,
-            chunk_count: chunks.len(),
-            player_pos: state.player.pos,
-            monsters: monsters,
-        };
+        let actual = state.verification();
         if state.replay {
             let expected = state.verifications.pop_front().expect(
                 &format!("No verification present for turn {}.", state.turn));
-            if expected.turn != actual.turn {
-                println!("Expected turns: {}, actual: {}", expected.turn, actual.turn);
-            }
-            if expected.chunk_count != actual.chunk_count {
-                println!("Expected chunks: {}, actual: {}",
-                         expected.chunk_count, actual.chunk_count);
-            }
-            if expected.player_pos != actual.player_pos {
-                println!("Expected player position: {}, actual: {}",
-                         expected.player_pos, actual.player_pos);
-            }
-            if expected.monsters.len() != actual.monsters.len() {
-                println!("Expected monster count: {}, actual: {}",
-                         expected.monsters.len(), actual.monsters.len());
-            }
-            if expected.monsters != actual.monsters {
-                let expected_monsters: HashMap<point::Point, (point::Point, monster::Kind)> =
-                    std::iter::FromIterator::from_iter(
-                        expected.monsters.iter()
-                            .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
-                let actual_monsters: HashMap<point::Point, (point::Point, monster::Kind)> =
-                    std::iter::FromIterator::from_iter(
-                        actual.monsters.iter()
-                            .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
-
-                for (pos, expected) in &expected_monsters {
-                    match actual_monsters.get(pos) {
-                        Some(actual) => {
-                            if expected != actual {
-                                println!("Monster at {} differ. Expected: {:?}, actual: {:?}",
-                                         pos, expected, actual);
-                            }
-                        }
-                        None => {
-                            println!("Monster expected at {}: {:?}, but it's not there.",
-                                     pos, expected);
-                        }
-                    }
-                }
-
-                for (pos, actual) in &actual_monsters {
-                    if expected_monsters.get(pos).is_none() {
-                        println!("There is an unexpected monster at: {}: {:?}.",
-                                 pos, actual);
-                    }
-                }
-            }
-            assert!(expected == actual, "Validation failed!");
+            verify_states(expected, actual);
 
             if player_was_alive && !state.player.alive() {
                 if !state.commands.is_empty() {
@@ -969,7 +956,6 @@ fn update(mut state: GameState,
                            state.commands.len());
                 }
             }
-
         } else {
             game_state::log_verification(&mut state.command_logger, actual);
         }

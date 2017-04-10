@@ -2,7 +2,7 @@ use time::Duration;
 
 use rand::Rng;
 
-use super::Action;
+use game::Action;
 use color::{self, Color};
 use level::Walkability;
 use graphics::Render;

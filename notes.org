@@ -2,8 +2,6 @@
 ** Oh and actually, we should display the Victory screen just like the game over one
 ** with the score and everything
 ** But it seems to work fine during the replay
-* There seems to be an edge to the world                                :bug:
-** When I played the game, the right-hand side didn't seem to generate new chunks
 * Make sure doses' Mind effect doesn't eat into the withdrawn/sober counter
 I have a sneaking suspicion that taking a dose while withdrawn/sober
 will actually use it's intoxication value to go over the non-high
@@ -954,3 +952,9 @@ CLOSED: [2017-04-09 Sun 13:44]
 :ARCHIVE_TIME: 2017-04-09 Sun 13:44
 :END:
 *** they're taking too much space
+** DONE There seems to be an edge to the world                         :bug:
+CLOSED: [2017-04-10 Mon 13:24]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-10 Mon 13:24
+:END:
+*** When I played the game, the right-hand side didn't seem to generate new chunks

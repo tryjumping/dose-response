@@ -4,6 +4,7 @@ use level::{self, Cell, Level, Walkability, TileKind};
 use item::{self, Item};
 use player;
 use point::{Point, CircularArea, SquareArea};
+use rect::Rectangle;
 use monster::Monster;
 use generators::{self, GeneratedWorld};
 
@@ -460,23 +461,19 @@ impl World {
     /// (width, height) of the rectangle.
     ///
     /// The iteration order is not specified.
-    pub fn with_cells<F>(&mut self, top_left: Point, dimensions: Point, mut callback: F)
+    pub fn with_cells<F>(&mut self, area: Rectangle, mut callback: F)
         where F: FnMut(Point, &Cell)
     {
-        assert!(dimensions.x >= 0);
-        assert!(dimensions.y >= 0);
-        let bottom_right = top_left + dimensions;
-
         let chunk_size = self.chunk_size;
-        let mut chunk_pos = self.chunk_pos_from_world_pos(top_left).position;
+        let mut chunk_pos = self.chunk_pos_from_world_pos(area.top_left()).position;
         let starter_chunk_x = chunk_pos.x;
 
-        while chunk_pos.y < bottom_right.y {
-            while chunk_pos.x < bottom_right.x {
+        while chunk_pos.y < area.bottom_right().y {
+            while chunk_pos.x < area.bottom_right().x {
                 if let Some(chunk) = self.chunk(chunk_pos) {
                     for (cell_level_pos, cell) in chunk.level.iter() {
                         let cell_world_pos = chunk.world_position(cell_level_pos);
-                        if cell_world_pos >= top_left && cell_world_pos <= bottom_right {
+                        if cell_world_pos >= area.top_left() && cell_world_pos <= area.bottom_right() {
                             callback(cell_world_pos, cell);
                         }
                     }
@@ -488,21 +485,16 @@ impl World {
         }
     }
 
-    pub fn monster_positions(&mut self, top_left: Point, dimensions: Point) -> MonsterPositions {
-        assert!(dimensions.x >= 0);
-        assert!(dimensions.y >= 0);
-
+    pub fn monster_positions(&mut self, area: Rectangle) -> MonsterPositions {
         // TODO: we should be able to produce an iterator here instead.
         let mut result = vec![];
 
-        let bottom_right = top_left + dimensions;
-
         let chunk_size = self.chunk_size;
-        let mut chunk_pos = self.chunk_pos_from_world_pos(top_left).position;
+        let mut chunk_pos = self.chunk_pos_from_world_pos(area.top_left()).position;
         let starter_chunk_x = chunk_pos.x;
 
-        while chunk_pos.y < bottom_right.y {
-            while chunk_pos.x < bottom_right.x {
+        while chunk_pos.y < area.bottom_right().y {
+            while chunk_pos.x < area.bottom_right().x {
                 if let Some(chunk) = self.chunk(chunk_pos) {
                     result.extend(chunk.monsters.iter().filter(|m| !m.dead).map(|m| m.position));
                 }

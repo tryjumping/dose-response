@@ -58,6 +58,7 @@ mod pathfinding;
 mod player;
 mod point;
 mod ranged_int;
+mod rect;
 mod stats;
 mod timer;
 mod world;
@@ -442,16 +443,16 @@ fn process_player_action<R, W>(player: &mut player::Player,
 
 fn process_monsters<R: Rng>(world: &mut world::World,
                             player: &mut player::Player,
-                            (top_left_corner, dimensions): (point::Point, point::Point),
+                            area: rect::Rectangle,
                             rng: &mut R) {
     if !player.alive() {
         return
     }
     // NOTE: one quarter of the map area should be a decent overestimate
-    let monster_count_estimate = dimensions.x * dimensions.y / 4;
+    let monster_count_estimate = area.dimensions().x * area.dimensions().y / 4;
     assert!(monster_count_estimate > 0);
     let mut monster_positions_to_process = VecDeque::with_capacity(monster_count_estimate as usize);
-    monster_positions_to_process.extend(world.monster_positions(top_left_corner, dimensions));
+    monster_positions_to_process.extend(world.monster_positions(area));
 
     for &pos in monster_positions_to_process.iter() {
         if let Some(monster) = world.monster_on_pos(pos) {
@@ -893,7 +894,7 @@ fn update(mut state: GameState,
     // Until we find a better fix, we'll just have to block command
     // processing whenever any animation is playing.
     let no_animations = state.explosion_animation.is_none() && state.pos_timer.finished();
-    let simulation_area = (state.player.pos - state.map_size, state.map_size + state.map_size);
+    let simulation_area = rect::Rectangle::center(state.player.pos, state.map_size);
 
     if running || paused_one_step || timed_step && state.side != Side::Victory && no_animations {
         process_keys(&mut state.keys, &mut state.commands);
@@ -918,12 +919,8 @@ fn update(mut state: GameState,
 
     // NOTE: Load up new chunks if necessary
     if spent_turn {
-        let top_left_corner = simulation_area.0;
-        let dimensions = simulation_area.1;
-        for x in top_left_corner.x..dimensions.x {
-            for y in top_left_corner.y..dimensions.y {
-                state.world.ensure_chunk_at_pos((x, y).into());
-            }
+        for pos in simulation_area.points() {
+            state.world.ensure_chunk_at_pos(pos);
         }
     }
 
@@ -1088,7 +1085,7 @@ fn update(mut state: GameState,
 
 
     // NOTE: render the cells on the map. That means the world geometry and items.
-    state.world.with_cells(screen_left_top_corner, map_size, |world_pos, cell| {
+    state.world.with_cells(simulation_area, |world_pos, cell| {
         let display_pos = screen_coords_from_world(world_pos);
         if !within_map_bounds(display_pos) {
             return;
@@ -1162,7 +1159,7 @@ fn update(mut state: GameState,
     }
 
     // NOTE: render monsters
-    for monster_pos in state.world.monster_positions(screen_left_top_corner, state.map_size) {
+    for monster_pos in state.world.monster_positions(simulation_area) {
         if let Some(monster) = state.world.monster_on_pos(monster_pos) {
             let visible = monster.position.distance(state.player.pos) < (radius as f32);
             if visible || bonus == player::Bonus::UncoverMap || bonus == player::Bonus::SeeMonstersAndItems {

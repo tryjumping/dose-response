@@ -41,7 +41,7 @@ use time::Duration;
 use animation::AreaOfEffect;
 use engine::{Draw, Settings};
 use keys::{Key, KeyCode};
-use state::{Command, GameState, Side};
+use state::{Command, State, Side};
 
 
 mod animation;
@@ -235,7 +235,7 @@ fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 }
 
 
-fn process_player(state: &mut GameState) {
+fn process_player(state: &mut State) {
     let previous_action_points = state.player.ap();
 
     process_player_action(&mut state.player,
@@ -527,7 +527,7 @@ fn process_monsters<R: Rng>(world: &mut world::World,
 }
 
 
-fn render_panel(x: i32, width: i32, display_size: point::Point, state: &GameState,
+fn render_panel(x: i32, width: i32, display_size: point::Point, state: &State,
                 dt: Duration, drawcalls: &mut Vec<Draw>, fps: i32) {
     let fg = color::gui_text;
     let bg = color::dim_background;
@@ -812,7 +812,7 @@ fn verify_states(expected: state::Verification, actual: state::Verification) {
     assert!(expected == actual, "Validation failed!");
 }
 
-fn update(mut state: GameState,
+fn update(mut state: State,
           dt: Duration,
           display_size:
           point::Point,
@@ -820,7 +820,7 @@ fn update(mut state: GameState,
           new_keys: &[Key],
           mut settings: Settings,
           drawcalls: &mut Vec<Draw>)
-          -> Option<(Settings, GameState)>
+          -> Option<(Settings, State)>
 {
     let update_stopwatch = timer::Stopwatch::start();
     state.clock = state.clock + dt;
@@ -839,7 +839,7 @@ fn update(mut state: GameState,
 
     // Restart the game on F5
     if state.keys.matches_code(KeyCode::F5) {
-        let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width,
+        let state = State::new_game(state.world_size, state.map_size.x, state.panel_width,
                                         state.display_size, state.exit_after,
                                         &state::generate_replay_path(),
                                         state.player.invincible);
@@ -1272,7 +1272,7 @@ fn main() {
     #[cfg(feature = "libtcod")]
     fn run_libtcod(display_size: point::Point, default_background: color::Color,
                    window_title: &str, font_path: &Path,
-                   state: GameState) {
+                   state: State) {
         println!("Using the libtcod backend.");
         let mut engine = engine::tcod::Engine::new(display_size, default_background, window_title, &font_path);
         engine.main_loop(state, update);
@@ -1280,7 +1280,7 @@ fn main() {
     #[cfg(not(feature = "libtcod"))]
     fn run_libtcod(_display_size: point::Point, _default_background: color::Color,
                    _window_title: &str, _font_path: &Path,
-                   _state: GameState) {
+                   _state: State) {
         println!("The \"libtcod\" feature was not compiled in.");
     }
 
@@ -1289,8 +1289,8 @@ fn main() {
                   default_background: color::Color,
                   window_title: &str,
                   font_path: &Path,
-                  state: GameState,
-                  update: engine::UpdateFn<GameState>) {
+                  state: State,
+                  update: engine::UpdateFn<State>) {
         println!("Using the piston backend.");
         engine::piston::main_loop(display_size, default_background, window_title, &font_path,
                                   state, update);
@@ -1300,8 +1300,8 @@ fn main() {
                   _default_background: color::Color,
                   _window_title: &str,
                   _font_path: &Path,
-                  _state: GameState,
-                  _update: engine::UpdateFn<GameState>) {
+                  _state: State,
+                  _update: engine::UpdateFn<State>) {
         println!("The \"piston\" feature was not compiled in.");
     }
 
@@ -1318,8 +1318,8 @@ fn main() {
     fn run_opengl(display_size: point::Point,
                   default_background: color::Color,
                   window_title: &str,
-                  state: GameState,
-                  update: engine::UpdateFn<GameState>) {
+                  state: State,
+                  update: engine::UpdateFn<State>) {
         println!("Using the default backend: opengl");
         engine::glium::main_loop(display_size, default_background, window_title,
                                  state, update);
@@ -1328,8 +1328,8 @@ fn main() {
     fn run_opengl(_display_size: point::Point,
                   _default_background: color::Color,
                   _window_title: &str,
-                  _state: GameState,
-                  _update: engine::UpdateFn<GameState>) {
+                  _state: State,
+                  _update: engine::UpdateFn<State>) {
         println!("The \"opengl\" feature was not compiled in.");
     }
 
@@ -1337,8 +1337,8 @@ fn main() {
     fn run_remote(display_size: point::Point,
                   default_background: color::Color,
                   window_title: &str,
-                  state: GameState,
-                  update: engine::UpdateFn<GameState>) {
+                  state: State,
+                  update: engine::UpdateFn<State>) {
         engine::remote::main_loop(display_size, default_background, window_title,
                                   state, update);
     }
@@ -1346,8 +1346,8 @@ fn main() {
     fn run_remote(_display_size: point::Point,
                   _default_background: color::Color,
                   _window_title: &str,
-                  _state: GameState,
-                  _update: engine::UpdateFn<GameState>) {
+                  _state: State,
+                  _update: engine::UpdateFn<State>) {
         println!("The \"remote\" feature was not compiled in.");
     }
 
@@ -1405,7 +1405,7 @@ fn main() {
             panic!("The `replay-file` option can only be used during regular game, not replay.");
         }
         let replay_path = Path::new(replay);
-        GameState::replay_game(world_size, map_size, panel_width, display_size,
+        State::replay_game(world_size, map_size, panel_width, display_size,
                                &replay_path,
                                matches.is_present("invincible"),
                                matches.is_present("replay-full-speed"),
@@ -1418,7 +1418,7 @@ fn main() {
             Some(file) => Path::new(file).into(),
             None => state::generate_replay_path(),
         };
-        GameState::new_game(world_size, map_size, panel_width, display_size, matches.is_present("exit-after"), &replay_file, matches.is_present("invincible"))
+        State::new_game(world_size, map_size, panel_width, display_size, matches.is_present("exit-after"), &replay_file, matches.is_present("invincible"))
     };
 
     if  matches.is_present("libtcod") {

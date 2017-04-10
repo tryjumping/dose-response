@@ -67,7 +67,7 @@ pub struct Verification {
     pub monsters: Vec<(Point, Point, monster::Kind)>,
 }
 
-pub struct GameState {
+pub struct State {
     pub player: Player,
     pub explosion_animation: Option<Box<AreaOfEffect>>,
 
@@ -118,7 +118,7 @@ pub struct GameState {
     pub show_keboard_movement_hints: bool,
 }
 
-impl GameState {
+impl State {
     fn new<W: Write+'static>(world_size: Point,
                              map_size: i32,
                              panel_width: i32,
@@ -132,13 +132,13 @@ impl GameState {
                              replay: bool,
                              replay_full_speed: bool,
                              exit_after: bool)
-                             -> GameState {
+                             -> State {
         let seed_arr: &[_] = &[seed];
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
-        GameState {
+        State {
             player: Player::new(player_position, invincible),
             explosion_animation: None,
             chunk_size: 32,
@@ -173,7 +173,7 @@ impl GameState {
         }
     }
 
-    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, exit_after: bool, replay_path: &Path, invincible: bool) -> GameState {
+    pub fn new_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, exit_after: bool, replay_path: &Path, invincible: bool) -> State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
         let seed = rand::random::<u32>();
@@ -187,12 +187,12 @@ impl GameState {
         let cheating = false;
         let replay = false;
         let replay_full_speed = false;
-        GameState::new(world_size, map_size, panel_width, display_size, commands,
+        State::new(world_size, map_size, panel_width, display_size, commands,
                        verifications, writer,
                        seed, cheating, invincible, replay, replay_full_speed, exit_after)
     }
 
-    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, invincible: bool, replay_full_speed: bool, exit_after: bool) -> GameState {
+    pub fn replay_game(world_size: Point, map_size: i32, panel_width: i32, display_size: Point, replay_path: &Path, invincible: bool, replay_full_speed: bool, exit_after: bool) -> State {
         use serde_json;
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();
@@ -233,7 +233,7 @@ impl GameState {
         let cheating = true;
         let invincible = invincible;
         let replay = true;
-        GameState::new(world_size, map_size, panel_width, display_size, commands,
+        State::new(world_size, map_size, panel_width, display_size, commands,
                        verifications,
                        Box::new(io::sink()), seed, cheating, invincible, replay, replay_full_speed, exit_after)
     }

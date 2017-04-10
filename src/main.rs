@@ -267,6 +267,7 @@ fn process_player(state: &mut game_state::GameState) {
     // NOTE: The player has stayed sober long enough. Victory! \o/
     if state.player.sobriety_counter.is_max() {
         state.side = Side::Victory;
+        state.endgame_screen = true;
     }
 
     state.world.explore(state.player.pos, exploration_radius(state.player.mind));
@@ -896,7 +897,7 @@ fn update(mut state: GameState,
     let no_animations = state.explosion_animation.is_none() && state.pos_timer.finished();
     let simulation_area = rect::Rectangle::center(state.player.pos, state.map_size);
 
-    if running || paused_one_step || timed_step && state.side != Side::Victory && no_animations {
+    if (running || paused_one_step || timed_step) && state.side != Side::Victory && no_animations {
         process_keys(&mut state.keys, &mut state.commands);
 
         let command_count = state.commands.len();

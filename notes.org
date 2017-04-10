@@ -17,6 +17,11 @@ consumable at the beginning of the game.
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
+* Make game procesing turn-dependent, not realtime                     :code:
+** The replay desync showed us that the processing and rendering are all over the place
+** We need to separate the state modification to when a player did something
+** And rendering which should be completely immutable
+** I guess it's time for the split of the `update` function
 * Display next actions in the game over menu                             :ui:
 ** "Press [F5] to start a new game"
 ** "Press [Q] to quit"
@@ -91,6 +96,10 @@ moving in that direction.
 *** it could be say the immediate tiles next to the explosion centre (i.e. radius 1)
 *** or like secondary beams next to the primary red ones
 *** or both?
+* Investigate adding sound to the game                                 :code:
+** Not sure about ambient music, but sound effects might be neat
+** We can look at rodio
+*** https://crates.io/crates/rodio
 * When there's no dose in sight and you're withdrawn, point in a general direction :idea:
 ** But only when you have no doses and no food
 ** I.e. this is to stop you from being completely fucked

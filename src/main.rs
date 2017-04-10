@@ -40,14 +40,13 @@ use time::Duration;
 
 use animation::AreaOfEffect;
 use engine::{Draw, Settings};
-use game_state::{Command, GameState, Side};
 use keys::{Key, KeyCode};
+use state::{Command, GameState, Side};
 
 
 mod animation;
 mod color;
 mod engine;
-mod game_state;
 mod generators;
 mod graphics;
 mod item;
@@ -59,6 +58,7 @@ mod player;
 mod point;
 mod ranged_int;
 mod rect;
+mod state;
 mod stats;
 mod timer;
 mod world;
@@ -235,7 +235,7 @@ fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 }
 
 
-fn process_player(state: &mut game_state::GameState) {
+fn process_player(state: &mut GameState) {
     let previous_action_points = state.player.ap();
 
     process_player_action(&mut state.player,
@@ -285,7 +285,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
     }
 
     if let Some(command) = commands.pop_front() {
-        game_state::log_command(command_logger, command);
+        state::log_command(command_logger, command);
         let mut action = match command {
             Command::N => Action::Move(player.pos + ( 0, -1)),
             Command::S => Action::Move(player.pos + ( 0,  1)),
@@ -764,7 +764,7 @@ fn show_exit_stats(stats: &stats::Stats) {
              stats.mean_drawcalls());
 }
 
-fn verify_states(expected: game_state::Verification, actual: game_state::Verification) {
+fn verify_states(expected: state::Verification, actual: state::Verification) {
     if expected.chunk_count != actual.chunk_count {
         println!("Expected chunks: {}, actual: {}",
                  expected.chunk_count, actual.chunk_count);
@@ -841,7 +841,7 @@ fn update(mut state: GameState,
     if state.keys.matches_code(KeyCode::F5) {
         let state = GameState::new_game(state.world_size, state.map_size.x, state.panel_width,
                                         state.display_size, state.exit_after,
-                                        &game_state::generate_replay_path(),
+                                        &state::generate_replay_path(),
                                         state.player.invincible);
         return Some((settings, state));
     }
@@ -960,7 +960,7 @@ fn update(mut state: GameState,
         } else if cfg!(debug_assertions) {
             // We're in the debug build, log the verification
             let verification = state.verification();
-            game_state::log_verification(&mut state.command_logger, verification);
+            state::log_verification(&mut state.command_logger, verification);
         } else {
             // NOTE: We're in the release build, *DON'T* log the
             // verification. They take up insane amounts of disk
@@ -1272,7 +1272,7 @@ fn main() {
     #[cfg(feature = "libtcod")]
     fn run_libtcod(display_size: point::Point, default_background: color::Color,
                    window_title: &str, font_path: &Path,
-                   state: game_state::GameState) {
+                   state: GameState) {
         println!("Using the libtcod backend.");
         let mut engine = engine::tcod::Engine::new(display_size, default_background, window_title, &font_path);
         engine.main_loop(state, update);
@@ -1280,7 +1280,7 @@ fn main() {
     #[cfg(not(feature = "libtcod"))]
     fn run_libtcod(_display_size: point::Point, _default_background: color::Color,
                    _window_title: &str, _font_path: &Path,
-                   _state: game_state::GameState) {
+                   _state: GameState) {
         println!("The \"libtcod\" feature was not compiled in.");
     }
 
@@ -1289,8 +1289,8 @@ fn main() {
                   default_background: color::Color,
                   window_title: &str,
                   font_path: &Path,
-                  state: game_state::GameState,
-                  update: engine::UpdateFn<game_state::GameState>) {
+                  state: GameState,
+                  update: engine::UpdateFn<GameState>) {
         println!("Using the piston backend.");
         engine::piston::main_loop(display_size, default_background, window_title, &font_path,
                                   state, update);
@@ -1300,8 +1300,8 @@ fn main() {
                   _default_background: color::Color,
                   _window_title: &str,
                   _font_path: &Path,
-                  _state: game_state::GameState,
-                  _update: engine::UpdateFn<game_state::GameState>) {
+                  _state: GameState,
+                  _update: engine::UpdateFn<GameState>) {
         println!("The \"piston\" feature was not compiled in.");
     }
 
@@ -1400,7 +1400,7 @@ fn main() {
                .args(&["libtcod", "piston", "opengl", "terminal", "remote"]))
         .get_matches();
 
-    let game_state = if let Some(replay) = matches.value_of("replay") {
+    let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
             panic!("The `replay-file` option can only be used during regular game, not replay.");
         }
@@ -1416,23 +1416,23 @@ fn main() {
         }
         let replay_file = match matches.value_of("replay-file") {
             Some(file) => Path::new(file).into(),
-            None => game_state::generate_replay_path(),
+            None => state::generate_replay_path(),
         };
         GameState::new_game(world_size, map_size, panel_width, display_size, matches.is_present("exit-after"), &replay_file, matches.is_present("invincible"))
     };
 
     if  matches.is_present("libtcod") {
-        run_libtcod(display_size, color::background, title, &Path::new(""), game_state);
+        run_libtcod(display_size, color::background, title, &Path::new(""), state);
     }
     else if matches.is_present("piston") {
         run_piston(display_size, color::background, title, &Path::new(""),
-                   game_state, update);
+                   state, update);
     } else if matches.is_present("terminal") {
         run_terminal();
     } else if matches.is_present("remote") {
-        run_remote(display_size, color::background, title, game_state, update);
+        run_remote(display_size, color::background, title, state, update);
     } else {
-        run_opengl(display_size, color::background, title, game_state, update);
+        run_opengl(display_size, color::background, title, state, update);
     }
 
 }

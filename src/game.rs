@@ -10,6 +10,7 @@ use time::Duration;
 
 use animation::{self, AreaOfEffect};
 use color;
+use formula;
 use engine::{Draw, Settings};
 use graphics;
 use item;
@@ -20,6 +21,7 @@ use pathfinding;
 use player::{self, Bonus, Mind};
 use point::{Point, SquareArea};
 use rect::Rectangle;
+use render;
 use state::{self, Command, Side, State};
 use stats::{Stats, FrameStats};
 use timer::{Stopwatch, Timer};
@@ -36,8 +38,7 @@ pub enum Action {
 
 pub fn update(mut state: State,
               dt: Duration,
-              display_size:
-              Point,
+              display_size: Point,
               fps: i32,
               new_keys: &[Key],
               mut settings: Settings,
@@ -105,7 +106,6 @@ pub fn update(mut state: State,
 
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
-    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
     let mut spent_turn = false;
 
     // NOTE: this isn't just cosmetic. If the screen re-center
@@ -190,14 +190,35 @@ pub fn update(mut state: State,
         }
     }
 
+    // Set the fadeout animation on death
+    if player_was_alive && !state.player.alive() {  // NOTE: Player just died
+        state.screen_fading = Some(animation::ScreenFade::new(
+            color::death_animation,
+            Duration::milliseconds(500),
+            Duration::milliseconds(200),
+            Duration::milliseconds(300)));
+    }
+
     let update_duration = update_stopwatch.finish();
     let drawcall_stopwatch = Stopwatch::start();
+    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+    let screen_coords_from_world = |pos| pos - screen_left_top_corner;
+
+    // NOTE: update the dose/food explosion animations
+    state.explosion_animation = state.explosion_animation.and_then(|mut animation| {
+        animation.update(dt);
+        if animation.finished() {
+            None
+        } else {
+            Some(animation)
+        }
+    });
 
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
         let display_pos = state.player.pos - screen_left_top_corner;
         let dur = Duration::milliseconds(400);
-        let exploration_radius = exploration_radius(state.player.mind);
+        let exploration_radius = formula::exploration_radius(state.player.mind);
         // TODO: move the screen roughly the same distance along X and Y
         if display_pos.x < exploration_radius || display_pos.x >= state.map_size.x - exploration_radius {
             // change the screen centre to that of the player
@@ -214,48 +235,13 @@ pub fn update(mut state: State,
         }
     }
 
-    // Rendering & related code here:
-    if state.player.alive() {
-        use player::Mind::*;
-        // Fade when withdrawn:
-        match state.player.mind {
-            Withdrawal(value) => {
-                // TODO: animate the fade from the previous value?
-                let fade = value.percent() * 0.6 + 0.2;
-                drawcalls.push(Draw::Fade(fade , color::Color{r: 0, g: 0, b: 0}));
-            }
-            Sober(_) | High(_) => {
-                // NOTE: Not withdrawn, don't fade
-            }
-        }
-
-    } else if player_was_alive {  // NOTE: Player just died
-        state.screen_fading = Some(animation::ScreenFade::new(
-            color::death_animation,
-            Duration::milliseconds(500),
-            Duration::milliseconds(200),
-            Duration::milliseconds(300)));
-    } else {
-        // NOTE: player is already dead (didn't die this frame)
-    }
-
-    // NOTE: render the screen fading animation on death
+    // NOTE: process the screen fading animation on death
     if let Some(mut anim) = state.screen_fading {
         if anim.timer.finished() {
             state.screen_fading = None;
             println!("Game real time: {:?}", state.clock);
         } else {
             use animation::ScreenFadePhase;
-            let fade = match anim.phase {
-                ScreenFadePhase::FadeOut => anim.timer.percentage_remaining(),
-                ScreenFadePhase::Wait => 0.0,
-                ScreenFadePhase::FadeIn => anim.timer.percentage_elapsed(),
-                ScreenFadePhase::Done => {
-                    // NOTE: this should have been handled by the if statement above.
-                    unreachable!();
-                }
-            };
-            drawcalls.push(Draw::Fade(fade, anim.color));
             let prev_phase = anim.phase;
             anim.update(dt);
             let new_phase = anim.phase;
@@ -268,216 +254,18 @@ pub fn update(mut state: State,
         }
     }
 
-    let mut bonus = state.player.bonus;
-    // TODO: setting this as a bonus is a hack. Pass it to all renderers
-    // directly instead.
-    if state.endgame_screen {
-        bonus = Bonus::UncoverMap;
-    }
-    if state.cheating {
-        bonus = Bonus::UncoverMap;
-    }
-    let radius = exploration_radius(state.player.mind);
-
-    let map_size = state.map_size;
-    let within_map_bounds = |pos| pos >= (0, 0) && pos < map_size;
-    let player_pos = state.player.pos;
-    let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
-    let screen_coords_from_world = |pos| pos - screen_left_top_corner;
-
-    let total_time_ms = state.clock.num_milliseconds();
-    let world_size = state.world_size;
-
-    let player_will_is_max = state.player.will.is_max();
-    let player_will = *state.player.will;
-    // NOTE: this is here to appease the borrow checker. If we
-    // borrowed the state here as immutable, we wouln't need it.
-    let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
-
-
     // Hide the keyboard movement hints if the player gets too close
     {
         let player_screen_pos = screen_coords_from_world(state.player.pos);
         let d = 15;
         if player_screen_pos.x < d || player_screen_pos.y < d ||
-            map_size.x - player_screen_pos.x < d || map_size.y - player_screen_pos.y < d
+            state.map_size.x - player_screen_pos.x < d || state.map_size.y - player_screen_pos.y < d
         {
             state.show_keboard_movement_hints = false;
         }
     }
 
-
-    // NOTE: render the cells on the map. That means the world geometry and items.
-    state.world.with_cells(simulation_area, |world_pos, cell| {
-        let display_pos = screen_coords_from_world(world_pos);
-        if !within_map_bounds(display_pos) {
-            return;
-        }
-
-        // Render the tile
-        let mut rendered_tile = cell.tile;
-
-        if show_intoxication_effect {
-            // TODO: try to move this calculation of this loop and see
-            // what it does to our speed.
-            let pos_x: i64 = (world_pos.x + world_size.x) as i64;
-            let pos_y: i64 = (world_pos.y + world_size.y) as i64;
-            assert!(pos_x >= 0);
-            assert!(pos_y >= 0);
-            let half_cycle_ms = 700 + ((pos_x * pos_y) % 100) * 5;
-            let progress_ms = total_time_ms % half_cycle_ms;
-            let forwards = (total_time_ms / half_cycle_ms) % 2 == 0;
-            let progress = progress_ms as f32 / half_cycle_ms as f32;
-            assert!(progress >= 0.0);
-            assert!(progress <= 1.0);
-
-            rendered_tile.fg_color = if forwards {
-                graphics::fade_color(color::high, color::high_to, progress)
-            } else {
-                graphics::fade_color(color::high_to, color::high, progress)
-            };
-        }
-
-        if in_fov(world_pos) {
-            graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
-        } else if cell.explored || bonus == Bonus::UncoverMap {
-            graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
-            drawcalls.push(Draw::Background(display_pos, color::dim_background));
-        } else {
-            // It's not visible. Do nothing.
-        }
-
-        // Render the irresistible background of a dose
-        for item in cell.items.iter() {
-            if item.is_dose() && !player_will_is_max {
-                let resist_radius = player_resist_radius(item.irresistible, player_will);
-                for point in SquareArea::new(world_pos, resist_radius) {
-                    if in_fov(point) {
-                        let screen_coords = screen_coords_from_world(point);
-                        drawcalls.push(Draw::Background(screen_coords, color::dose_background));
-                    }
-                }
-            }
-        }
-
-        // Render the items
-        if in_fov(world_pos) || cell.explored || bonus == Bonus::SeeMonstersAndItems || bonus == Bonus::UncoverMap {
-            for item in cell.items.iter() {
-                graphics::draw(drawcalls, dt, display_pos, item);
-            }
-        }
-    });
-
-    // NOTE: render the dose/food explosion animations
-    if let Some(mut anim) = state.explosion_animation {
-        anim.update(dt);
-        if anim.finished() {
-            state.explosion_animation = None;
-        } else {
-            drawcalls.extend(anim.tiles().map(|(world_pos, color, _)| {
-                Draw::Background(screen_coords_from_world(world_pos), color)
-            }));
-            state.explosion_animation = Some(anim);
-        }
-    }
-
-    // NOTE: render monsters
-    for monster_pos in state.world.monster_positions(simulation_area) {
-        if let Some(monster) = state.world.monster_on_pos(monster_pos) {
-            let visible = monster.position.distance(state.player.pos) < (radius as f32);
-            if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems {
-                use graphics::Render;
-                let world_pos = monster.position;
-                let display_pos = screen_coords_from_world(world_pos);
-                if let Some(trail_pos) = monster.trail {
-                    if state.cheating {
-                        let trail_pos = screen_coords_from_world(trail_pos);
-                        if within_map_bounds(trail_pos) {
-                            let (glyph, color, _) = monster.render(dt);
-                            // TODO: show a fading animation of the trail colour
-                            let color = color::Color {r: color.r - 55, g: color.g - 55, b: color.b - 55};
-                            drawcalls.push(Draw::Char(trail_pos, glyph, color));
-                        }
-                    }
-                }
-
-                if state.cheating {
-                    for &point in &monster.path {
-                        let path_pos = screen_coords_from_world(point);
-                        let (_, color, _) = monster.render(dt);
-                        drawcalls.push(Draw::Background(path_pos, color));
-                    }
-                }
-
-                if within_map_bounds(display_pos) {
-                    graphics::draw(drawcalls, dt, display_pos, monster);
-                }
-            }
-        }
-    }
-
-    // NOTE: render the player
-    {
-        let world_pos = state.player.pos;
-        let display_pos = screen_coords_from_world(world_pos);
-        if within_map_bounds(display_pos) {
-            graphics::draw(drawcalls, dt, display_pos, &state.player);
-        }
-    }
-
-    render_panel(state.map_size.x, state.panel_width, display_size, &state, dt, drawcalls, fps);
-    if state.show_keboard_movement_hints {
-        render_controls_help(state.map_size, drawcalls);
-    }
-
-    if state.endgame_screen {
-        let doses_in_inventory = state.player.inventory.iter()
-            .filter(|item| item.is_dose())
-            .count();
-
-        let turns_text = format!("Turns: {}", state.turn);
-        let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
-        let high_streak_text = format!("Longest High streak: {} turns", state.player.longest_high_streak);
-
-        let longest_text = [&turns_text, &carrying_doses_text, &high_streak_text].iter()
-            .map(|s| s.chars().count())
-            .max()
-            .unwrap() as i32;
-        let lines_count = 3;
-
-        let rect_dimensions = Point {
-            // NOTE: 1 tile padding, which is why we have the `+ 2`.
-            x: longest_text + 2,
-            // NOTE: each line has an empty line below so we just have `+ 1` for the top padding.
-            y: lines_count * 2 + 1,
-        };
-        let rect_start = Point {
-            x: (state.display_size.x - rect_dimensions.x) / 2,
-            y: 7,
-        };
-
-        fn centered_text_pos(container_width: i32, text: &str) -> i32 {
-            (container_width - text.chars().count() as i32) / 2
-        }
-
-        drawcalls.push(
-            Draw::Rectangle(rect_start,
-                            rect_dimensions,
-                            color::background));
-
-        drawcalls.push(
-            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &turns_text), 1),
-                       turns_text.into(),
-                       color::gui_text));
-        drawcalls.push(
-            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &carrying_doses_text), 3),
-                       carrying_doses_text.into(),
-                       color::gui_text));
-        drawcalls.push(
-            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &high_streak_text), 5),
-                       high_streak_text.into(),
-                       color::gui_text));
-    }
+    render::render_game(&state, dt, fps, drawcalls);
 
     let drawcall_duration = drawcall_stopwatch.finish();
     state.stats.push(FrameStats {
@@ -486,55 +274,6 @@ pub fn update(mut state: State,
     });
     Some((settings, state))
 }
-
-fn verify_states(expected: state::Verification, actual: state::Verification) {
-    if expected.chunk_count != actual.chunk_count {
-        println!("Expected chunks: {}, actual: {}",
-                 expected.chunk_count, actual.chunk_count);
-    }
-    if expected.player_pos != actual.player_pos {
-        println!("Expected player position: {}, actual: {}",
-                 expected.player_pos, actual.player_pos);
-    }
-    if expected.monsters.len() != actual.monsters.len() {
-        println!("Expected monster count: {}, actual: {}",
-                 expected.monsters.len(), actual.monsters.len());
-    }
-    if expected.monsters != actual.monsters {
-        let expected_monsters: HashMap<Point, (Point, monster::Kind)> =
-            FromIterator::from_iter(
-                expected.monsters.iter()
-                    .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
-        let actual_monsters: HashMap<Point, (Point, monster::Kind)> =
-            FromIterator::from_iter(
-                actual.monsters.iter()
-                    .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
-
-        for (pos, expected) in &expected_monsters {
-            match actual_monsters.get(pos) {
-                Some(actual) => {
-                    if expected != actual {
-                        println!("Monster at {} differ. Expected: {:?}, actual: {:?}",
-                                 pos, expected, actual);
-                    }
-                }
-                None => {
-                    println!("Monster expected at {}: {:?}, but it's not there.",
-                             pos, expected);
-                }
-            }
-        }
-
-        for (pos, actual) in &actual_monsters {
-            if expected_monsters.get(pos).is_none() {
-                println!("There is an unexpected monster at: {}: {:?}.",
-                         pos, actual);
-            }
-        }
-    }
-    assert!(expected == actual, "Validation failed!");
-}
-
 fn process_monsters<R: Rng>(world: &mut World,
                             player: &mut player::Player,
                             area: Rectangle,
@@ -659,7 +398,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
             action = Action::Move(new_pos);
 
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
-            let resist_radius = player_resist_radius(dose.irresistible, *player.will) as usize;
+            let resist_radius = formula::player_resist_radius(dose.irresistible, *player.will) as usize;
             if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
                 // TODO: think about caching the discovered path or partial path-finding??
                 let mut path = pathfinding::Path::find(player.pos, dose_pos, world,
@@ -682,7 +421,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
         // NOTE: If we have doses in the inventory that we wouldn't be
         // able to pick up anymore, use them up one by one each turn:
         let carried_irresistible_dose = player.inventory.iter()
-            .find(|i| i.is_dose() && player_resist_radius(i.irresistible, *player.will) > 0)
+            .find(|i| i.is_dose() && formula::player_resist_radius(i.irresistible, *player.will) > 0)
             .map(|i| i.kind);
         if let Some(kind) = carried_irresistible_dose {
             action = Action::Use(kind);
@@ -720,7 +459,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                                     match item.kind {
                                         Food => player.inventory.push(item),
                                         Dose | StrongDose | CardinalDose | DiagonalDose => {
-                                            if player_resist_radius(item.irresistible, *player.will) == 0 {
+                                            if formula::player_resist_radius(item.irresistible, *player.will) == 0 {
                                                 player.inventory.push(item);
                                             } else {
                                                 use_dose(player, explosion_animation, item);
@@ -823,7 +562,7 @@ fn process_player(state: &mut State) {
         state.endgame_screen = true;
     }
 
-    state.world.explore(state.player.pos, exploration_radius(state.player.mind));
+    state.world.explore(state.player.pos, formula::exploration_radius(state.player.mind));
 }
 
 
@@ -912,7 +651,7 @@ fn inventory_commands(key: Key) -> Option<Command> {
 }
 
 
-fn inventory_key(kind: item::Kind) -> u8 {
+pub fn inventory_key(kind: item::Kind) -> u8 {
     use item::Kind::*;
     match kind {
         Food => 1,
@@ -963,31 +702,6 @@ fn use_dose(player: &mut player::Player,
     }
 }
 
-fn exploration_radius(mental_state: player::Mind) -> i32 {
-    use player::Mind::*;
-    match mental_state {
-        Withdrawal(value) => {
-            if *value >= value.middle() {
-                5
-            } else {
-                4
-            }
-        }
-        Sober(_) => 6,
-        High(value) => {
-            if *value >= value.middle() {
-                8
-            } else {
-                7
-            }
-        }
-    }
-}
-
-fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
-    cmp::max(dose_irresistible_value + 1 - will, 0)
-}
-
 
 fn show_exit_stats(stats: &Stats) {
     println!("Slowest update durations: {:?}\n\nSlowest drawcall durations: {:?}",
@@ -999,230 +713,50 @@ fn show_exit_stats(stats: &Stats) {
 }
 
 
-fn render_panel(x: i32, width: i32, display_size: Point, state: &State,
-                dt: Duration, drawcalls: &mut Vec<Draw>, fps: i32) {
-    let fg = color::gui_text;
-    let bg = color::dim_background;
-
-    {
-        let height = display_size.y;
-        drawcalls.push(
-            Draw::Rectangle(Point{x: x, y: 0}, Point{x: width, y: height}, bg));
+fn verify_states(expected: state::Verification, actual: state::Verification) {
+    if expected.chunk_count != actual.chunk_count {
+        println!("Expected chunks: {}, actual: {}",
+                 expected.chunk_count, actual.chunk_count);
     }
+    if expected.player_pos != actual.player_pos {
+        println!("Expected player position: {}, actual: {}",
+                 expected.player_pos, actual.player_pos);
+    }
+    if expected.monsters.len() != actual.monsters.len() {
+        println!("Expected monster count: {}, actual: {}",
+                 expected.monsters.len(), actual.monsters.len());
+    }
+    if expected.monsters != actual.monsters {
+        let expected_monsters: HashMap<Point, (Point, monster::Kind)> =
+            FromIterator::from_iter(
+                expected.monsters.iter()
+                    .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
+        let actual_monsters: HashMap<Point, (Point, monster::Kind)> =
+            FromIterator::from_iter(
+                actual.monsters.iter()
+                    .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))));
 
-    let player = &state.player;
-
-    let (mind_str, mind_val_percent) = match player.mind {
-        Mind::Withdrawal(val) => ("Withdrawal", val.percent()),
-        Mind::Sober(val) => ("Sober", val.percent()),
-        Mind::High(val) => ("High", val.percent()),
-    };
-
-    let mut lines: Vec<Cow<'static, str>> = vec![
-        mind_str.into(),
-        "".into(), // NOTE: placeholder for the Mind state percentage bar
-        "".into(),
-        format!("Will: {}", *player.will).into(),
-    ];
-
-    if player.inventory.len() > 0 {
-        lines.push("".into());
-        lines.push("Inventory:".into());
-
-        let mut item_counts = HashMap::new();
-        for item in player.inventory.iter() {
-            let count = item_counts.entry(item.kind).or_insert(0);
-            *count += 1;
+        for (pos, expected) in &expected_monsters {
+            match actual_monsters.get(pos) {
+                Some(actual) => {
+                    if expected != actual {
+                        println!("Monster at {} differ. Expected: {:?}, actual: {:?}",
+                                 pos, expected, actual);
+                    }
+                }
+                None => {
+                    println!("Monster expected at {}: {:?}, but it's not there.",
+                             pos, expected);
+                }
+            }
         }
 
-        for kind in item::Kind::iter() {
-            if let Some(count) = item_counts.get(&kind) {
-                lines.push(format!("[{}] {:?}: {}", inventory_key(kind), kind, count).into());
+        for (pos, actual) in &actual_monsters {
+            if expected_monsters.get(pos).is_none() {
+                println!("There is an unexpected monster at: {}: {:?}.",
+                         pos, actual);
             }
         }
     }
-
-    lines.push("".into());
-
-    if player.will.is_max() {
-        lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()).into());
-    }
-
-    if state.cheating {
-        lines.push("CHEATING".into());
-        lines.push("".into());
-    }
-
-    if state.side == Side::Victory {
-        lines.push(format!("VICTORY!").into());
-    }
-
-    if player.alive() {
-        if *player.stun > 0 {
-            lines.push(format!("Stunned({})", *player.stun).into());
-        }
-        if *player.panic > 0 {
-            lines.push(format!("Panicking({})", *player.panic).into());
-        }
-    } else {
-        lines.push("Dead".into());
-    }
-
-    if state.cheating {
-        lines.push("Time stats:".into());
-        for frame_stat in state.stats.last_frames(25) {
-            lines.push(format!("upd: {}, dc: {}",
-                               frame_stat.update.num_milliseconds(),
-                               frame_stat.drawcalls.num_milliseconds()).into());
-        }
-        lines.push(format!("longest upd: {}",
-                           state.stats.longest_update().num_milliseconds()).into());
-        lines.push(format!("longest dc: {}",
-                           state.stats.longest_drawcalls().num_milliseconds()).into());
-    }
-
-
-    for (y, line) in lines.into_iter().enumerate() {
-        drawcalls.push(Draw::Text(Point{x: x + 1, y: y as i32}, line.into(), fg));
-    }
-
-    let max_val = match player.mind {
-        Mind::Withdrawal(val) => val.max(),
-        Mind::Sober(val) => val.max(),
-        Mind::High(val) => val.max(),
-    };
-    let mut bar_width = width - 2;
-    if max_val < bar_width {
-        bar_width = max_val;
-    }
-
-    graphics::progress_bar(drawcalls, mind_val_percent, (x + 1, 1).into(), bar_width,
-                           color::gui_progress_bar_fg,
-                           color::gui_progress_bar_bg);
-
-    let bottom = display_size.y - 1;
-
-    if state.cheating {
-        drawcalls.push(Draw::Text(Point{x: x + 1, y: bottom - 1},
-                                  format!("dt: {}ms", dt.num_milliseconds()).into(), fg));
-        drawcalls.push(Draw::Text(Point{x: x + 1, y: bottom}, format!("FPS: {}", fps).into(), fg));
-    }
-
-}
-
-fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
-    fn rect_dim(lines: &[&str]) -> (i32, i32) {
-        (lines.iter().map(|l| l.len() as i32).max().unwrap(), lines.len() as i32)
-    }
-
-    fn draw_rect(lines: &[&'static str], start: Point, w: i32, h: i32,
-                 drawcalls: &mut Vec<Draw>) {
-        drawcalls.push(Draw::Rectangle(start,
-                                       Point::new(w, h),
-                                       color::dim_background));
-        for (index, &line) in lines.iter().enumerate() {
-            drawcalls.push(Draw::Text(start + Point::new(0, index as i32 ),
-                                      line.into(),
-                                      color::gui_text));
-        }
-    };
-
-    let padding = 3;
-
-    let lines = [
-        "Up",
-        "Num 8",
-        "or: K",
-    ];
-    let (width, height) = rect_dim(&lines);
-    let start = Point {
-        x: (map_size.x - width) / 2,
-        y: padding,
-    };
-    draw_rect(&lines, start, width, height, drawcalls);
-
-    let lines = [
-        "Down",
-        "Num 2",
-        "or: J",
-    ];
-    let (width, height) = rect_dim(&lines);
-    let start = Point {
-        x: (map_size.x - width) / 2,
-        y: map_size.y - height - padding,
-    };
-    draw_rect(&lines, start, width, height, drawcalls);
-
-    let lines = [
-        "Left",
-        "Num 4",
-        "or: H",
-    ];
-    let (width, height) = rect_dim(&lines);
-    let start = Point {
-        x: padding,
-        y: (map_size.y - height) / 2,
-    };
-    draw_rect(&lines, start, width, height, drawcalls);
-
-    let lines = [
-        "Right",
-        "Num 6",
-        "or: L",
-    ];
-    let (width, height) = rect_dim(&lines);
-    let start = Point {
-        x: map_size.x - width - padding,
-        y: (map_size.y - height) / 2,
-    };
-    draw_rect(&lines, start, width, height, drawcalls);
-
-    let lines = [
-        "Shift+Right",
-        "Num 7",
-        "or: Y",
-    ];
-    let (width, height) = rect_dim(&lines);
-    let start = Point {
-        x: padding,
-        y: padding,
-    };
-    draw_rect(&lines, start, width, height, drawcalls);
-
-    let lines = [
-        "Shift+Right",
-        "Num 9",
-        "or: U",
-    ];
-    let (width, height) = rect_dim(&lines);
-    let start = Point {
-        x: map_size.x - width - padding,
-        y: padding,
-    };
-    draw_rect(&lines, start, width, height, drawcalls);
-
-    let lines = [
-        "Ctrl+Left",
-        "Num 1",
-        "or: N",
-    ];
-    let (width, height) = rect_dim(&lines);
-    let start = Point {
-        x: padding,
-        y: map_size.y - height - padding,
-    };
-    draw_rect(&lines, start, width, height, drawcalls);
-
-    let lines = [
-        "Ctrl+Right",
-        "Num 3",
-        "or: M",
-    ];
-    let (width, height) = rect_dim(&lines);
-    let start = Point {
-        x: map_size.x - width - padding,
-        y: map_size.y - height - padding,
-    };
-    draw_rect(&lines, start, width, height, drawcalls);
-
+    assert!(expected == actual, "Validation failed!");
 }

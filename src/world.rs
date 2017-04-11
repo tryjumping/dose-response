@@ -461,7 +461,7 @@ impl World {
     /// (width, height) of the rectangle.
     ///
     /// The iteration order is not specified.
-    pub fn with_cells<F>(&mut self, area: Rectangle, mut callback: F)
+    pub fn with_cells<F>(&self, area: Rectangle, mut callback: F)
         where F: FnMut(Point, &Cell)
     {
         let chunk_size = self.chunk_size;
@@ -485,7 +485,7 @@ impl World {
         }
     }
 
-    pub fn monster_positions(&mut self, area: Rectangle) -> MonsterPositions {
+    pub fn monster_positions(&self, area: Rectangle) -> MonsterPositions {
         // TODO: we should be able to produce an iterator here instead.
         let mut result = vec![];
 

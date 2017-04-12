@@ -336,6 +336,17 @@ impl World {
         }
     }
 
+    /// Returns an iterator of all monsters within the given area.
+    pub fn monsters(&self, area: Rectangle) -> Monsters {
+        Monsters {
+            world: self,
+            area: area,
+            chunk: None,
+            next_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
+            next_monster_index: 0,
+        }
+    }
+
     /// Move the monster from one place in the world to the destination.
     /// If the paths are identical, nothing happens.
     /// Panics if the destination is out of bounds or already occupied.
@@ -528,5 +539,55 @@ impl Iterator for MonsterPositions {
         let index = self.next_index;
         self.next_index += 1;
         self.positions.get(index).cloned()
+    }
+}
+
+pub struct Monsters<'a> {
+    world: &'a World,
+    area: Rectangle,
+    chunk: Option<&'a Chunk>,
+    next_chunk_pos: Point,
+    next_monster_index: usize,
+}
+
+impl<'a> Iterator for Monsters<'a> {
+    type Item = &'a Monster;
+
+    fn next(&mut self) -> Option<&'a Monster> {
+        let chunk_size = self.world.chunk_size;
+        let area = self.area;
+        let calculate_next_chunk_pos = |pos: Point| {
+            let result = pos + (chunk_size, 0);
+            if result.x <= area.bottom_right.x {
+                result
+            } else {
+                Point {
+                    x: area.top_left.x,
+                    y: result.y + chunk_size,
+                }
+            }
+        };
+
+        while self.chunk.map_or(0, |chunk| chunk.monsters.len()) == 0 &&
+            self.next_chunk_pos.y <= self.area.bottom_right.y
+        {
+            self.chunk = self.world.chunk(self.next_chunk_pos);
+            self.next_chunk_pos = calculate_next_chunk_pos(self.next_chunk_pos);
+        }
+
+        if self.chunk.is_none() {
+            return None
+        };
+
+        // TODO: Don't return monsters that are outside of `gself.area`
+        let monster = self.chunk.and_then(|chunk| chunk.monsters.get(self.next_monster_index));
+
+        self.next_monster_index += 1;
+        if self.next_monster_index >= self.chunk.map_or(0, |chunk| chunk.monsters.len()) {
+            self.next_monster_index = 0;
+            self.chunk = None;
+        }
+
+        monster
     }
 }

@@ -144,44 +144,40 @@ pub fn render_game(state: &State,
     }
 
     // NOTE: render monsters
-    for monster_pos in state.world.monster_positions(display_area) {
-        if let Some(monster) = state.world.monster_on_pos(monster_pos) {
-            let visible = monster.position.distance(state.player.pos) < (radius as f32);
-            if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems {
-                use graphics::Render;
-                let world_pos = monster.position;
-                let display_pos = screen_coords_from_world(world_pos);
-                if let Some(trail_pos) = monster.trail {
-                    if state.cheating {
-                        let trail_pos = screen_coords_from_world(trail_pos);
-                        if within_map_bounds(trail_pos) {
-                            let (glyph, color, _) = monster.render(dt);
-                            // TODO: show a fading animation of the trail colour
-                            let color = color::Color {r: color.r - 55, g: color.g - 55, b: color.b - 55};
-                            drawcalls.push(Draw::Char(trail_pos, glyph, color));
-                        }
-                    }
-                }
-
+    for monster in state.world.monsters(display_area).filter(|monster| !monster.dead) {
+        let visible = monster.position.distance(state.player.pos) < (radius as f32);
+        if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems {
+            use graphics::Render;
+            let display_pos = screen_coords_from_world(monster.position);
+            if let Some(trail_pos) = monster.trail {
                 if state.cheating {
-                    for &point in &monster.path {
-                        let path_pos = screen_coords_from_world(point);
-                        let (_, color, _) = monster.render(dt);
-                        drawcalls.push(Draw::Background(path_pos, color));
+                    let trail_pos = screen_coords_from_world(trail_pos);
+                    if within_map_bounds(trail_pos) {
+                        let (glyph, color, _) = monster.render(dt);
+                        // TODO: show a fading animation of the trail colour
+                        let color = color::Color {r: color.r - 55, g: color.g - 55, b: color.b - 55};
+                        drawcalls.push(Draw::Char(trail_pos, glyph, color));
                     }
                 }
+            }
 
-                if within_map_bounds(display_pos) {
-                    graphics::draw(drawcalls, dt, display_pos, monster);
+            if state.cheating {
+                for &point in &monster.path {
+                    let path_pos = screen_coords_from_world(point);
+                    let (_, color, _) = monster.render(dt);
+                    drawcalls.push(Draw::Background(path_pos, color));
                 }
+            }
+
+            if within_map_bounds(display_pos) {
+                graphics::draw(drawcalls, dt, display_pos, monster);
             }
         }
     }
 
     // NOTE: render the player
     {
-        let world_pos = state.player.pos;
-        let display_pos = screen_coords_from_world(world_pos);
+        let display_pos = screen_coords_from_world(state.player.pos);
         if within_map_bounds(display_pos) {
             graphics::draw(drawcalls, dt, display_pos, &state.player);
         }

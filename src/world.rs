@@ -507,7 +507,9 @@ impl World {
         while chunk_pos.y < area.bottom_right().y {
             while chunk_pos.x < area.bottom_right().x {
                 if let Some(chunk) = self.chunk(chunk_pos) {
-                    result.extend(chunk.monsters.iter().filter(|m| !m.dead).map(|m| m.position));
+                    result.extend(chunk.monsters.iter()
+                                  .filter(|m| !m.dead && area.contains(m.position))
+                                  .map(|m| m.position));
                 }
                 chunk_pos.x += chunk_size;
             }
@@ -568,26 +570,26 @@ impl<'a> Iterator for Monsters<'a> {
             }
         };
 
-        while self.chunk.map_or(0, |chunk| chunk.monsters.len()) == 0 &&
-            self.next_chunk_pos.y <= self.area.bottom_right.y
+        while self.next_chunk_pos.y <= self.area.bottom_right.y
         {
-            self.chunk = self.world.chunk(self.next_chunk_pos);
+            if self.chunk.is_none() {
+                self.chunk = self.world.chunk(self.next_chunk_pos);
+            }
+            if let Some(chunk) = self.chunk {
+                while self.next_monster_index < chunk.monsters.len() {
+                    let monster = &chunk.monsters[self.next_monster_index];
+                    self.next_monster_index += 1;
+                    if self.area.contains(monster.position) {
+                        return Some(monster);
+                    }
+                }
+
+                self.next_monster_index = 0;
+            }
+            self.chunk = None;
             self.next_chunk_pos = calculate_next_chunk_pos(self.next_chunk_pos);
         }
 
-        if self.chunk.is_none() {
-            return None
-        };
-
-        // TODO: Don't return monsters that are outside of `gself.area`
-        let monster = self.chunk.and_then(|chunk| chunk.monsters.get(self.next_monster_index));
-
-        self.next_monster_index += 1;
-        if self.next_monster_index >= self.chunk.map_or(0, |chunk| chunk.monsters.len()) {
-            self.next_monster_index = 0;
-            self.chunk = None;
-        }
-
-        monster
+        None
     }
 }

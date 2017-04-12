@@ -34,6 +34,13 @@ impl Rectangle {
         self.bottom_right
     }
 
+    /// Returns `true` if the point is within the areas specified by
+    /// the rectangle. The mach is inclusive, so a `Rectangle`
+    /// contains its `top_left` and `bottom_right` corners.
+    pub fn contains(self, point: Point) -> bool {
+        point >= self.top_left && point <= self.bottom_right
+    }
+
     pub fn points(self) -> RectangleIterator {
         RectangleIterator {
             rect: self,

@@ -1,6 +1,4 @@
-use std::borrow::Cow;
 use std::collections::{HashMap, VecDeque};
-use std::cmp;
 use std::io::Write;
 use std::i64;
 use std::iter::FromIterator;
@@ -12,14 +10,13 @@ use animation::{self, AreaOfEffect};
 use color;
 use formula;
 use engine::{Draw, Settings};
-use graphics;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::{TileKind, Walkability};
 use monster;
 use pathfinding;
-use player::{self, Bonus, Mind};
-use point::{Point, SquareArea};
+use player;
+use point::Point;
 use rect::Rectangle;
 use render;
 use state::{self, Command, Side, State};
@@ -38,7 +35,7 @@ pub enum Action {
 
 pub fn update(mut state: State,
               dt: Duration,
-              display_size: Point,
+              _display_size: Point,
               fps: i32,
               new_keys: &[Key],
               mut settings: Settings,

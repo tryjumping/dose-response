@@ -3,7 +3,6 @@ use std::collections::HashMap;
 
 use time::Duration;
 
-use animation;
 use color::{self, Color};
 use engine::Draw;
 use formula;

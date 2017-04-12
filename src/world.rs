@@ -503,20 +503,6 @@ impl World {
 }
 
 
-pub struct MonsterPositions {
-    positions: Vec<Point>,
-    next_index: usize,
-}
-
-impl Iterator for MonsterPositions {
-    type Item = Point;
-
-    fn next(&mut self) -> Option<Point> {
-        let index = self.next_index;
-        self.next_index += 1;
-        self.positions.get(index).cloned()
-    }
-}
 
 pub struct Monsters<'a> {
     world: &'a World,

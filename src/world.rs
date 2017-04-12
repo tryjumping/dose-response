@@ -343,6 +343,7 @@ impl World {
             area: area,
             chunk: None,
             next_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
+            first_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
             next_monster_index: 0,
         }
     }
@@ -504,8 +505,8 @@ impl World {
         let mut chunk_pos = self.chunk_pos_from_world_pos(area.top_left()).position;
         let starter_chunk_x = chunk_pos.x;
 
-        while chunk_pos.y < area.bottom_right().y {
-            while chunk_pos.x < area.bottom_right().x {
+        while chunk_pos.y <= area.bottom_right().y {
+            while chunk_pos.x <= area.bottom_right().x {
                 if let Some(chunk) = self.chunk(chunk_pos) {
                     result.extend(chunk.monsters.iter()
                                   .filter(|m| !m.dead && area.contains(m.position))
@@ -548,6 +549,7 @@ pub struct Monsters<'a> {
     world: &'a World,
     area: Rectangle,
     chunk: Option<&'a Chunk>,
+    first_chunk_pos: Point,
     next_chunk_pos: Point,
     next_monster_index: usize,
 }
@@ -558,13 +560,14 @@ impl<'a> Iterator for Monsters<'a> {
     fn next(&mut self) -> Option<&'a Monster> {
         let chunk_size = self.world.chunk_size;
         let area = self.area;
+        let first_chunk_pos_x = self.first_chunk_pos.x;
         let calculate_next_chunk_pos = |pos: Point| {
             let result = pos + (chunk_size, 0);
             if result.x <= area.bottom_right.x {
                 result
             } else {
                 Point {
-                    x: area.top_left.x,
+                    x: first_chunk_pos_x,
                     y: result.y + chunk_size,
                 }
             }

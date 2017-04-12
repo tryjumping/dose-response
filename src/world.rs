@@ -497,33 +497,6 @@ impl World {
         }
     }
 
-    pub fn monster_positions(&self, area: Rectangle) -> MonsterPositions {
-        // TODO: we should be able to produce an iterator here instead.
-        let mut result = vec![];
-
-        let chunk_size = self.chunk_size;
-        let mut chunk_pos = self.chunk_pos_from_world_pos(area.top_left()).position;
-        let starter_chunk_x = chunk_pos.x;
-
-        while chunk_pos.y <= area.bottom_right().y {
-            while chunk_pos.x <= area.bottom_right().x {
-                if let Some(chunk) = self.chunk(chunk_pos) {
-                    result.extend(chunk.monsters.iter()
-                                  .filter(|m| !m.dead && area.contains(m.position))
-                                  .map(|m| m.position));
-                }
-                chunk_pos.x += chunk_size;
-            }
-            chunk_pos.y += chunk_size;
-            chunk_pos.x = starter_chunk_x;
-        }
-
-        MonsterPositions {
-            positions: result,
-            next_index: 0,
-        }
-    }
-
     pub fn chunks(&self) -> Vec<Point> {
         self.chunks.keys().map(|chunk_pos| chunk_pos.position).collect()
     }

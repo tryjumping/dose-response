@@ -265,10 +265,6 @@ pub fn update(mut state: State,
         }
     }
 
-    let monster_positions = state.world.monster_positions(simulation_area).collect::<Vec<_>>();
-    let alive_monsters = state.world.monsters(simulation_area).filter(|m| !m.dead).map(|m| m.position).collect::<Vec<_>>();
-    assert_eq!(monster_positions.len(), alive_monsters.len());
-
     render::render_game(&state, dt, fps, drawcalls);
 
     let drawcall_duration = drawcall_stopwatch.finish();
@@ -289,7 +285,7 @@ fn process_monsters<R: Rng>(world: &mut World,
     let monster_count_estimate = area.dimensions().x * area.dimensions().y / 4;
     assert!(monster_count_estimate > 0);
     let mut monster_positions_to_process = VecDeque::with_capacity(monster_count_estimate as usize);
-    monster_positions_to_process.extend(world.monster_positions(area));
+    monster_positions_to_process.extend(world.monsters(area).map(|m| m.position));
 
     for &pos in monster_positions_to_process.iter() {
         if let Some(monster) = world.monster_on_pos(pos) {

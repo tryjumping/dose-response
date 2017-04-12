@@ -280,7 +280,7 @@ if __name__ == '__main__':
             print "Running test number {}".format(i + 1)
             result = test_run()
             results[result] += 1
-            print "\n\nAll {} tests finished.".format(test_count)
+        print "\n\nAll {} tests finished.".format(test_count)
     except KeyboardInterrupt:
         print "\n\n{} out of {} tests finished.".format(i, test_count)
 

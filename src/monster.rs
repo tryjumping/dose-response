@@ -141,6 +141,10 @@ impl Monster {
             self.trail = None;
         }
     }
+
+    pub fn alive(&self) -> bool {
+        !self.dead
+    }
 }
 
 

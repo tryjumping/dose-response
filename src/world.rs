@@ -74,10 +74,33 @@ impl Chunk {
         self.position + level_position
     }
 
-    pub fn monsters(&self) -> &Vec<Monster> {
-        &self.monsters
+    pub fn cells(&self) -> ChunkCells {
+        ChunkCells {
+            chunk_position: self.position,
+            cells: self.level.iter(),
+        }
     }
 
+    pub fn monsters(&self) -> ::std::slice::Iter<Monster> {
+        self.monsters.iter()
+    }
+
+}
+
+pub struct ChunkCells<'a> {
+    chunk_position: Point,
+    cells: level::Cells<'a>,
+}
+
+impl<'a> Iterator for ChunkCells<'a> {
+    type Item = (Point, &'a Cell);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.cells.next().map(|(level_pos, cell)| {
+            let offset: Point = level_pos.into();
+            (self.chunk_position + offset, cell)
+        })
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -336,18 +359,6 @@ impl World {
         }
     }
 
-    /// Returns an iterator of all monsters within the given area.
-    pub fn monsters(&self, area: Rectangle) -> Monsters {
-        Monsters {
-            world: self,
-            area: area,
-            chunk: None,
-            next_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
-            first_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
-            next_monster_index: 0,
-        }
-    }
-
     /// Move the monster from one place in the world to the destination.
     /// If the paths are identical, nothing happens.
     /// Panics if the destination is out of bounds or already occupied.
@@ -468,55 +479,32 @@ impl World {
         }
     }
 
-    /// Return an iterator over `Cell` that covers a rectangular shape
-    /// specified by the top-left (inclusive) point and the dimensions
-    /// (width, height) of the rectangle.
-    ///
-    /// The iteration order is not specified.
-    pub fn with_cells<F>(&self, area: Rectangle, mut callback: F)
-        where F: FnMut(Point, &Cell)
-    {
-        let chunk_size = self.chunk_size;
-        let mut chunk_pos = self.chunk_pos_from_world_pos(area.top_left()).position;
-        let starter_chunk_x = chunk_pos.x;
-
-        while chunk_pos.y < area.bottom_right().y {
-            while chunk_pos.x < area.bottom_right().x {
-                if let Some(chunk) = self.chunk(chunk_pos) {
-                    for (cell_level_pos, cell) in chunk.level.iter() {
-                        let cell_world_pos = chunk.world_position(cell_level_pos);
-                        if cell_world_pos >= area.top_left() && cell_world_pos <= area.bottom_right() {
-                            callback(cell_world_pos, cell);
-                        }
-                    }
-                }
-                chunk_pos.x += chunk_size;
-            }
-            chunk_pos.y += chunk_size;
-            chunk_pos.x = starter_chunk_x;
+    pub fn chunks(&self, area: Rectangle) -> Chunks {
+        Chunks {
+            world: self,
+            area: area,
+            next_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
+            first_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
         }
     }
 
-    pub fn chunks(&self) -> Vec<Point> {
+    pub fn positions_of_all_chunks(&self) -> Vec<Point> {
         self.chunks.keys().map(|chunk_pos| chunk_pos.position).collect()
     }
 }
 
 
-
-pub struct Monsters<'a> {
+pub struct Chunks<'a> {
     world: &'a World,
     area: Rectangle,
-    chunk: Option<&'a Chunk>,
     first_chunk_pos: Point,
     next_chunk_pos: Point,
-    next_monster_index: usize,
 }
 
-impl<'a> Iterator for Monsters<'a> {
-    type Item = &'a Monster;
+impl<'a> Iterator for Chunks<'a> {
+    type Item = &'a Chunk;
 
-    fn next(&mut self) -> Option<&'a Monster> {
+    fn next(&mut self) -> Option<Self::Item> {
         let chunk_size = self.world.chunk_size;
         let area = self.area;
         let first_chunk_pos_x = self.first_chunk_pos.x;
@@ -534,22 +522,11 @@ impl<'a> Iterator for Monsters<'a> {
 
         while self.next_chunk_pos.y <= self.area.bottom_right.y
         {
-            if self.chunk.is_none() {
-                self.chunk = self.world.chunk(self.next_chunk_pos);
-            }
-            if let Some(chunk) = self.chunk {
-                while self.next_monster_index < chunk.monsters.len() {
-                    let monster = &chunk.monsters[self.next_monster_index];
-                    self.next_monster_index += 1;
-                    if self.area.contains(monster.position) {
-                        return Some(monster);
-                    }
-                }
-
-                self.next_monster_index = 0;
-            }
-            self.chunk = None;
+            let chunk = self.world.chunk(self.next_chunk_pos);
             self.next_chunk_pos = calculate_next_chunk_pos(self.next_chunk_pos);
+            if chunk.is_some() {
+                return chunk
+            }
         }
 
         None

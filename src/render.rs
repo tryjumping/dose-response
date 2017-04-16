@@ -13,6 +13,7 @@ use point::{Point, SquareArea};
 use player::{Bonus, Mind};
 use rect::Rectangle;
 use state::{Side, State};
+use world::Chunk;
 
 
 pub fn render_game(state: &State,
@@ -76,11 +77,11 @@ pub fn render_game(state: &State,
 
 
     // NOTE: render the cells on the map. That means the world geometry and items.
-    state.world.with_cells(display_area, |world_pos, cell| {
+    for (world_pos, cell) in state.world.chunks(display_area)
+        .flat_map(Chunk::cells)
+        .filter(|&(pos, _)| display_area.contains(pos))
+    {
         let display_pos = screen_coords_from_world(world_pos);
-        if !within_map_bounds(display_pos) {
-            return;
-        }
 
         // Render the tile
         let mut rendered_tile = cell.tile;
@@ -134,7 +135,7 @@ pub fn render_game(state: &State,
                 graphics::draw(drawcalls, dt, display_pos, item);
             }
         }
-    });
+    }
 
     if let Some(ref animation) = state.explosion_animation {
         drawcalls.extend(animation.tiles().map(|(world_pos, color, _)| {
@@ -143,7 +144,10 @@ pub fn render_game(state: &State,
     }
 
     // NOTE: render monsters
-    for monster in state.world.monsters(display_area).filter(|monster| !monster.dead) {
+    for monster in state.world.chunks(display_area)
+        .flat_map(Chunk::monsters)
+        .filter(|m| m.alive() && display_area.contains(m.position))
+    {
         let visible = monster.position.distance(state.player.pos) < (radius as f32);
         if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems {
             use graphics::Render;

@@ -240,10 +240,10 @@ impl State {
 
     pub fn verification(&self) -> Verification {
         // TODO: we can sort the chunks and compare directly at some point.
-        let chunks = self.world.chunks();
+        let chunks = self.world.positions_of_all_chunks();
         let mut monsters = vec![];
         for &chunk_pos in &chunks {
-            for monster in self.world.chunk(chunk_pos).unwrap().monsters().iter() {
+            for monster in self.world.chunk(chunk_pos).unwrap().monsters() {
                 if !monster.dead {
                     monsters.push((monster.position, chunk_pos, monster.kind));
                 }

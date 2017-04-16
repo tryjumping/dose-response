@@ -22,7 +22,7 @@ use render;
 use state::{self, Command, Side, State};
 use stats::{Stats, FrameStats};
 use timer::{Stopwatch, Timer};
-use world::World;
+use world::{World, Chunk};
 
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -271,6 +271,8 @@ pub fn update(mut state: State,
     });
     Some((settings, state))
 }
+
+
 fn process_monsters<R: Rng>(world: &mut World,
                             player: &mut player::Player,
                             area: Rectangle,
@@ -282,7 +284,11 @@ fn process_monsters<R: Rng>(world: &mut World,
     let monster_count_estimate = area.dimensions().x * area.dimensions().y / 4;
     assert!(monster_count_estimate > 0);
     let mut monster_positions_to_process = VecDeque::with_capacity(monster_count_estimate as usize);
-    monster_positions_to_process.extend(world.monsters(area).map(|m| m.position));
+    monster_positions_to_process.extend(
+        world.chunks(area)
+            .flat_map(Chunk::monsters)
+            .filter(|m| m.alive() && area.contains(m.position))
+            .map(|m| m.position));
 
     for &pos in monster_positions_to_process.iter() {
         if let Some(monster) = world.monster_on_pos(pos) {

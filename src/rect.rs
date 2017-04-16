@@ -26,14 +26,6 @@ impl Rectangle {
         self.bottom_right - self.top_left
     }
 
-    pub fn top_left(self) -> Point {
-        self.top_left
-    }
-
-    pub fn bottom_right(self) -> Point {
-        self.bottom_right
-    }
-
     /// Returns `true` if the point is within the areas specified by
     /// the rectangle. The mach is inclusive, so a `Rectangle`
     /// contains its `top_left` and `bottom_right` corners.

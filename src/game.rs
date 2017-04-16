@@ -532,8 +532,7 @@ fn process_player_action<R, W>(
                         }
                     }
                 } else {
-                    // TODO: Walk to the neighbouring chunk!
-                    unimplemented!()
+                    // NOTE: we bumped into a wall, don't do anything
                 }
             }
 

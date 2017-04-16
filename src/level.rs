@@ -165,7 +165,8 @@ impl Level {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
         if self.monsters.contains_key(&destination) {
-            panic!("Trying to move monster from {:?} to {:?}, but that's already occupied.",
+            panic!("Trying to move monster from {:?} to {:?}, but that's \
+                    already occupied.",
                    monster_position,
                    destination);
         } else {

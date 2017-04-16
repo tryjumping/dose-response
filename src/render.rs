@@ -79,7 +79,7 @@ pub fn render_game(state: &State,
 
 
 
-    // NOTE: render the cells on the map. That means the world geometry and items.
+    // NOTE: render the cells on the map. That means world geometry and items.
     for (world_pos, cell) in
         state
             .world
@@ -153,7 +153,8 @@ pub fn render_game(state: &State,
         drawcalls.extend(animation
                              .tiles()
                              .map(|(world_pos, color, _)| {
-                                      Draw::Background(screen_coords_from_world(world_pos), color)
+                                      Draw::Background(
+                                     screen_coords_from_world(world_pos), color)
                                   }));
     }
 
@@ -249,7 +250,8 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     let rect_dimensions = Point {
         // NOTE: 1 tile padding, which is why we have the `+ 2`.
         x: longest_text + 2,
-        // NOTE: each line has an empty line below so we just have `+ 1` for the top padding.
+        // NOTE: each line has an empty line below so we just have `+
+        // 1` for the top padding.
         y: lines_count * 2 + 1,
     };
     let rect_start = Point {

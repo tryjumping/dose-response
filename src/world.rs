@@ -427,7 +427,8 @@ impl World {
             // normal connotations) and just remove it from the level.
             let mut new_monster = {
                 let monster = self.monster_on_pos(monster_position)
-                    .expect("Trying to move a monster, but there's nothing there.");
+                    .expect(
+                        "Trying to move a monster, but there's nothing there.");
                 let result = monster.clone();
                 monster.dead = true;
                 result
@@ -479,7 +480,8 @@ impl World {
         }
     }
 
-    /// Get a dose within the given radius that's nearest to the specified point.
+    /// Get a dose within the given radius that's nearest to the
+    /// specified point.
     pub fn nearest_dose(&mut self,
                         centre: Point,
                         radius: i32)

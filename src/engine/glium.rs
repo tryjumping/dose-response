@@ -148,7 +148,8 @@ pub fn main_loop<T>(display_size: Point,
                     window_title: &str,
                     mut state: T,
                     update: UpdateFn<T>) {
-    let tilesize = 16; // TODO: don't hardcode this value -- calculate it from the tilemap.
+    // TODO: don't hardcode this value -- calculate it from the tilemap.
+    let tilesize = 16;
     let (screen_width, screen_height) =
         (display_size.x as u32 * tilesize as u32,
          display_size.y as u32 * tilesize as u32);
@@ -193,7 +194,8 @@ pub fn main_loop<T>(display_size: Point,
     let uniforms = uniform! {
         tex: &texture,
         world_dimensions: [display_size.x as f32, display_size.y as f32],
-        texture_gl_dimensions: [1.0 / texture_tile_count_x, 1.0 / texture_tile_count_y],
+        texture_gl_dimensions: [1.0 / texture_tile_count_x,
+                                1.0 / texture_tile_count_y],
     };
 
 
@@ -209,7 +211,8 @@ pub fn main_loop<T>(display_size: Point,
     let mut rshift_pressed = false;
     let mut vertices = Vec::with_capacity(drawcalls.len() * 6);
     let mut keys = vec![];
-    let alpha = 1.0; // We're not using alpha at all for now, but it's passed everywhere.
+    // We're not using alpha at all for now, but it's passed everywhere.
+    let alpha = 1.0;
     let mut previous_frame_time = PreciseTime::now();
     let mut fps_clock = Duration::milliseconds(0);
     let mut frame_counter = 0;
@@ -523,7 +526,8 @@ pub fn main_loop<T>(display_size: Point,
         target.clear_color_srgb(1.0, 0.0, 1.0, 1.0);
         target
             .draw(&vertex_buffer,
-                  &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+                  &glium::index::NoIndices(
+                      glium::index::PrimitiveType::TrianglesList),
                   &program,
                   &uniforms,
                   &DrawParameters {
@@ -537,7 +541,7 @@ pub fn main_loop<T>(display_size: Point,
         // Process events
         for ev in display.poll_events() {
             match ev {
-                Event::Closed => return,   // the window has been closed by the user
+                Event::Closed => return,
 
                 Event::KeyboardInput(PressState::Pressed,
                                      _,

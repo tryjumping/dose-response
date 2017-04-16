@@ -177,9 +177,9 @@ impl Engine {
             drawcalls.clear();
 
             match update(state,
-                         Duration::microseconds((tcod::system::get_last_frame_length() *
-                                                 1_000_000.0) as
-                                                i64),
+                         Duration::microseconds(
+                             (tcod::system::get_last_frame_length() *
+                              1_000_000.0) as i64),
                          display_size,
                          tcod::system::get_fps(),
                          &keys,
@@ -239,9 +239,9 @@ impl Engine {
                         let original_background = self.root
                             .get_default_background();
                         self.root.set_default_background(background.into());
-                        // TODO: this seems to be an invalid assert in tcod. We should
-                        // be able to specify the full width & height here, but it
-                        // crashes.
+                        // TODO: this seems to be an invalid assert in
+                        // tcod. We should be able to specify the full
+                        // width & height here, but it crashes.
                         self.root
                             .rect(top_left.x,
                                   top_left.y,

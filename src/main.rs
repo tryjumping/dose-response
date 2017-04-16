@@ -105,7 +105,8 @@ fn run_piston(_display_size: point::Point,
 
 #[cfg(feature = "terminal")]
 fn run_terminal() {
-    println!("Using the rustbox backend.\n  TODO: this is not implemented yet.");
+    println!("Using the rustbox backend.\n  "
+             "TODO: this is not implemented yet.");
 }
 
 #[cfg(not(feature = "terminal"))]
@@ -176,10 +177,12 @@ fn main() {
         .about("Roguelike game about addiction")
         .arg(Arg::with_name("replay")
              .value_name("FILE")
-             .help("Replay this file instead of starting and playing a new game")
+             .help("Replay this file instead of starting and playing a new \
+                    game")
              .takes_value(true))
         .arg(Arg::with_name("replay-full-speed")
-             .help("Don't slow the replay down (useful for getting accurate measurements)")
+             .help("Don't slow the replay down (useful for getting accurate \
+                    measurements)")
              .long("replay-full-speed"))
         .arg(Arg::with_name("replay-file")
              .help("Path where to store the replay log.")
@@ -206,14 +209,16 @@ fn main() {
              .help("Use the Rustbox (terminal-only) rendering backend"))
         .arg(Arg::with_name("remote")
              .long("remote")
-             .help("Don't create a game window. The input and output is controled via ZeroMQ."))
+             .help("Don't create a game window. The input and output is \
+                    controled via ZeroMQ."))
         .group(ArgGroup::with_name("graphics")
                .args(&["libtcod", "piston", "opengl", "terminal", "remote"]))
         .get_matches();
 
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
-            panic!("The `replay-file` option can only be used during regular game, not replay.");
+            panic!("The `replay-file` option can only be used during regular \
+                    game, not replay.");
         }
         let replay_path = Path::new(replay);
         State::replay_game(world_size,
@@ -226,7 +231,8 @@ fn main() {
                            matches.is_present("exit-after"))
     } else {
         if matches.is_present("replay-full-speed") {
-            panic!("The `full-replay-speed` option can only be used if the replay log is passed.");
+            panic!("The `full-replay-speed` option can only be used if the \
+                    replay log is passed.");
         }
         let replay_file = match matches.value_of("replay-file") {
             Some(file) => Path::new(file).into(),

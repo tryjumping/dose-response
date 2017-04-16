@@ -214,7 +214,8 @@ pub fn main_loop<T>(display_size: Point,
                     font_path: &Path,
                     mut state: T,
                     update: UpdateFn<T>) {
-    let tilesize = 16; // TODO: don't hardcode this value -- calculate it from the tilemap.
+    // TODO: don't hardcode this value -- calculate it from the tilemap.
+    let tilesize = 16;
     let (screen_width, screen_height) =
         (display_size.x as u32 * tilesize as u32,
          display_size.y as u32 * tilesize as u32);
@@ -223,8 +224,9 @@ pub fn main_loop<T>(display_size: Point,
             .build()
             .unwrap();
 
-    let tileimage = image::open(font_path).expect(&format!("Could not load the font map at: '{}'",
-                                                           font_path.display()));
+    let tileimage = image::open(font_path).expect(
+        &format!("Could not load the font map at: '{}'",
+                 font_path.display()));
     let mut surface = image::ImageBuffer::new(screen_width, screen_height);
     let mut surface_texture = Texture::from_image(&mut window.factory,
                                                   &surface,

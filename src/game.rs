@@ -181,7 +181,8 @@ pub fn update(mut state: State,
 
                 if player_was_alive && !state.player.alive() {
                     if !state.commands.is_empty() {
-                        panic!("Game quit too early -- there are still {} commands queued up.",
+                        panic!("Game quit too early -- there are still {} \
+                                commands queued up.",
                                state.commands.len());
                     }
                 }
@@ -355,23 +356,24 @@ fn process_monsters<R: Rng>(world: &mut World,
                 // path in `monster.path`. If the precalculated path
                 // is blocked or there is none, calculate a new one
                 // and cache it. Otherwise, just walk it.
-                let (newpos, newpath) =
-                    if monster_readonly.path.is_empty() || path_changed ||
-                       !world.walkable(monster_readonly.path[0],
-                                       Walkability::BlockingMonsters) {
-                        // Calculate a new path or recalculate the existing one.
-                        let mut path = pathfinding::Path::find(pos,
-                                                           destination,
-                                                           world,
-                                                           Walkability::BlockingMonsters);
-                        let newpos = path.next().unwrap_or(pos);
-                        // Cache the path-finding result
-                        let newpath = path.collect();
-                        (newpos, newpath)
-                    } else {
-                        (monster_readonly.path[0],
-                         monster_readonly.path[1..].into())
-                    };
+                let (newpos, newpath) = if
+                    monster_readonly.path.is_empty() || path_changed ||
+                    !world.walkable(monster_readonly.path[0],
+                                    Walkability::BlockingMonsters) {
+                    // Calculate a new path or recalculate the existing one.
+                    let mut path =
+                        pathfinding::Path::find(pos,
+                                                destination,
+                                                world,
+                                                Walkability::BlockingMonsters);
+                    let newpos = path.next().unwrap_or(pos);
+                    // Cache the path-finding result
+                    let newpath = path.collect();
+                    (newpos, newpath)
+                } else {
+                    (monster_readonly.path[0],
+                     monster_readonly.path[1..].into())
+                };
 
                 world.move_monster(pos, newpos);
                 if let Some(monster) = world.monster_on_pos(newpos) {
@@ -404,12 +406,13 @@ fn process_monsters<R: Rng>(world: &mut World,
 }
 
 
-fn process_player_action<R, W>(player: &mut player::Player,
-                               commands: &mut VecDeque<Command>,
-                               world: &mut World,
-                               explosion_animation: &mut Option<Box<AreaOfEffect>>,
-                               rng: &mut R,
-                               command_logger: &mut W)
+fn process_player_action<R, W>(
+    player: &mut player::Player,
+    commands: &mut VecDeque<Command>,
+    world: &mut World,
+    explosion_animation: &mut Option<Box<AreaOfEffect>>,
+    rng: &mut R,
+    command_logger: &mut W)
     where R: Rng,
           W: Write
 {
@@ -441,7 +444,8 @@ fn process_player_action<R, W>(player: &mut player::Player,
             action = Action::Move(player.pos);
         } else if *player.panic > 0 {
             let new_pos =
-                world.random_neighbour_position(rng, player.pos, Walkability::WalkthroughMonsters);
+                world.random_neighbour_position(
+                    rng, player.pos, Walkability::WalkthroughMonsters);
             action = Action::Move(new_pos);
 
         } else if let Some((dose_pos, dose)) =
@@ -451,7 +455,6 @@ fn process_player_action<R, W>(player: &mut player::Player,
                                               *player.will) as
                 usize;
             if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
-                // TODO: think about caching the discovered path or partial path-finding??
                 let mut path =
                     pathfinding::Path::find(player.pos,
                                             dose_pos,
@@ -467,7 +470,7 @@ fn process_player_action<R, W>(player: &mut player::Player,
                 if let Some(new_pos) = new_pos_opt {
                     action = Action::Move(new_pos);
                 } else {
-                    //println!("Can't find path to irresistable dose at {:?} from player's position {:?}.", dose_pos, player.pos);
+                    // NOTE: no path leading to the irresistable dose
                 }
             }
         }
@@ -490,49 +493,41 @@ fn process_player_action<R, W>(player: &mut player::Player,
 
         match action {
             Action::Move(dest) => {
-                if world.within_bounds(dest) {
-                    let dest_walkable =
-                        world.walkable(dest, Walkability::BlockingMonsters);
-                    let bumping_into_monster =
-                        world.monster_on_pos(dest).is_some();
-                    if bumping_into_monster {
-                        player.spend_ap(1);
-                        //println!("Player attacks {:?}", monster);
-                        if let Some(monster) = world.monster_on_pos(dest) {
-                            match monster.kind {
-                                monster::Kind::Anxiety => {
-                                    player.anxiety_counter += 1;
-                                    if player.anxiety_counter.is_max() {
-                                        player.will += 1;
-                                        player.anxiety_counter.set_to_min();
-                                    }
+                let dest_walkable =
+                    world.walkable(dest, Walkability::BlockingMonsters);
+                let bumping_into_monster = world.monster_on_pos(dest).is_some();
+                if bumping_into_monster {
+                    player.spend_ap(1);
+                    //println!("Player attacks {:?}", monster);
+                    if let Some(monster) = world.monster_on_pos(dest) {
+                        match monster.kind {
+                            monster::Kind::Anxiety => {
+                                player.anxiety_counter += 1;
+                                if player.anxiety_counter.is_max() {
+                                    player.will += 1;
+                                    player.anxiety_counter.set_to_min();
                                 }
-                                _ => {}
                             }
+                            _ => {}
                         }
-                        kill_monster(dest, world);
+                    }
+                    kill_monster(dest, world);
 
-                    } else if dest_walkable {
-                        player.spend_ap(1);
-                        player.move_to(dest);
-                        loop {
-                            match world.pickup_item(dest) {
-                                Some(item) => {
-                                    use item::Kind::*;
-                                    match item.kind {
-                                        Food => player.inventory.push(item),
-                                        Dose | StrongDose | CardinalDose | DiagonalDose => {
-                                            if formula::player_resist_radius(item.irresistible,
-                                                                             *player.will) ==
-                                               0 {
-                                                player.inventory.push(item);
-                                            } else {
-                                                use_dose(player, explosion_animation, item);
-                                            }
-                                        }
-                                    }
+                } else if dest_walkable {
+                    player.spend_ap(1);
+                    player.move_to(dest);
+                    while let Some(item) = world.pickup_item(dest) {
+                        use item::Kind::*;
+                        match item.kind {
+                            Food => player.inventory.push(item),
+                            Dose | StrongDose | CardinalDose | DiagonalDose => {
+                                if formula::player_resist_radius(
+                                    item.irresistible, *player.will) == 0 {
+                                    player.inventory.push(item);
+                                } else {
+                                    use_dose(
+                                        player, explosion_animation, item);
                                 }
-                                None => break,
                             }
                         }
                     }
@@ -675,7 +670,8 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
             Key { code: NumPad9, .. } => commands.push_back(Command::NE),
             Key { code: NumPad3, .. } => commands.push_back(Command::SE),
 
-            // NotEye (arrow keys plus Ctrl and Shift modifiers for horizontal movement)
+            // NotEye (arrow keys plus Ctrl and Shift modifiers for
+            // horizontal movement)
             Key { code: Up, .. } => commands.push_back(Command::N),
             Key { code: Down, .. } => commands.push_back(Command::S),
             Key {
@@ -751,7 +747,8 @@ fn inventory_commands(key: Key) -> Option<Command> {
             7 => D7,
             8 => D8,
             9 => D9,
-            _ => unreachable!("There should only even be 9 item kinds at most."),
+            _ => unreachable!(
+                "There should only ever be 9 item kinds at most."),
         };
 
         if key.code == num_key {
@@ -808,18 +805,20 @@ fn use_dose(player: &mut player::Player,
                                                          color::explosion))
             }
             CardinalDose => {
-                Box::new(animation::CardinalExplosion::new(player.pos,
-                                                           radius,
-                                                           2,
-                                                           color::explosion,
-                                                           color::shattering_explosion))
+                Box::new(animation::CardinalExplosion::new(
+                    player.pos,
+                    radius,
+                    2,
+                    color::explosion,
+                    color::shattering_explosion))
             }
             DiagonalDose => {
-                Box::new(animation::DiagonalExplosion::new(player.pos,
-                                                           radius,
-                                                           2,
-                                                           color::explosion,
-                                                           color::shattering_explosion))
+                Box::new(animation::DiagonalExplosion::new(
+                    player.pos,
+                    radius,
+                    2,
+                    color::explosion,
+                    color::shattering_explosion))
             }
             Food => unreachable!(),
 
@@ -832,7 +831,8 @@ fn use_dose(player: &mut player::Player,
 
 
 fn show_exit_stats(stats: &Stats) {
-    println!("Slowest update durations: {:?}\n\nSlowest drawcall durations: {:?}",
+    println!("Slowest update durations: {:?}\n\nSlowest drawcall \
+              durations: {:?}",
              stats
                  .longest_update_durations()
                  .iter()
@@ -891,14 +891,16 @@ fn verify_states(expected: state::Verification, actual: state::Verification) {
             match actual_monsters.get(pos) {
                 Some(actual) => {
                     if expected != actual {
-                        println!("Monster at {} differ. Expected: {:?}, actual: {:?}",
+                        println!("Monster at {} differ. Expected: {:?}, \
+                                  actual: {:?}",
                                  pos,
                                  expected,
                                  actual);
                     }
                 }
                 None => {
-                    println!("Monster expected at {}: {:?}, but it's not there.",
+                    println!("Monster expected at {}: {:?}, but it's not \
+                              there.",
                              pos,
                              expected);
                 }

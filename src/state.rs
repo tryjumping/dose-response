@@ -50,8 +50,8 @@ pub enum Command {
 
 pub fn generate_replay_path() -> PathBuf {
     let cur_time = time::now();
-    // Timestamp in format: 2016-11-20T20-04-39.123
-    // We can't use the colons in the timestamp -- Windows don't allow them in a path.
+    // Timestamp in format: 2016-11-20T20-04-39.123. We can't use the
+    // colons in the timestamp -- Windows don't allow them in a path.
     let timestamp = format!("{}.{:03}",
                             time::strftime("%FT%H-%M-%S", &cur_time).unwrap(),
                             (cur_time.tm_nsec / 1000000));
@@ -193,7 +193,8 @@ impl State {
         let mut writer = match File::create(replay_path) {
             Ok(f) => f,
             Err(msg) => {
-                panic!("Failed to create the replay file at '{:?}'.\nReason: '{}'.",
+                panic!("Failed to create the replay file at '{:?}'.
+Reason: '{}'.",
                        replay_path.display(),
                        msg)
             }
@@ -251,13 +252,16 @@ impl State {
                             if let Ok(command) = command {
                                 commands.push_back(command);
                             } else {
-                                let verification = serde_json::from_str(&line).expect(
-                                    &format!("Couldn't load the command or verification: '{}'.", line));
+                                let verification = serde_json::from_str(&line)
+                                    .expect(
+                                        &format!("Couldn't load the command or \
+                                                  verification: '{}'.", line));
                                 verifications.push_back(verification);
                             }
                         }
                         Some(Err(err)) => {
-                            panic!("Error reading a line from the replay file: {:?}.",
+                            panic!("Error reading a line from the replay \
+                                    file: {:?}.",
                                    err)
                         }
                         None => break,
@@ -321,15 +325,18 @@ pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
     use serde_json;
-    let json_command = serde_json::to_string(&command).expect(&format!("Could not serialise {:?} to json.",
-                                                                       command));
+    let json_command = serde_json::to_string(&command).expect(
+        &format!("Could not serialise {:?} to json.",
+                 command));
     writeln!(writer, "{}", json_command).unwrap();
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {
     use serde_json;
-    let json = serde_json::to_string(&verification).expect(&format!("Could not serialise {:?} to json.",
-                                                                    verification));
+    let json = serde_json::to_string(&verification).expect(
+        &format!("Could not serialise {:?} to json.",
+                 verification));
     writeln!(writer, "{}", json).expect(
-        &format!("Could not write the verification: '{}' to the replay log.", json));
+        &format!("Could not write the verification: '{}' to the replay log.",
+                 json));
 }

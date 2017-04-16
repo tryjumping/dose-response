@@ -29,7 +29,8 @@ pub struct Monster {
 }
 
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord,
+         Serialize, Deserialize)]
 pub enum Kind {
     Anxiety,
     Depression,
@@ -101,9 +102,10 @@ impl Monster {
                 let destination = if self.path.is_empty() {
                     // Move randomly about
                     let mut destination =
-                        world.random_neighbour_position(rng,
-                                                        self.position,
-                                                        Walkability::BlockingMonsters);
+                        world.random_neighbour_position(
+                            rng,
+                            self.position,
+                            Walkability::BlockingMonsters);
 
                     for _ in 0..10 {
                         let x = rng.gen_range(-8, 9);

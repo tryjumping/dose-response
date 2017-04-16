@@ -98,12 +98,6 @@ impl Path {
             }
         }
 
-        // if calculation_steps >= calculation_limit {
-        //     println!("Pathfinding calculation exceeded the limit.");
-        // } else {
-        //     println!("Pathfinding finished in {} calculation steps.", calculation_steps);
-        // }
-
         let path = {
             let mut current = to;
             let mut path_buffer = vec![current];
@@ -115,7 +109,10 @@ impl Path {
                             path_buffer.push(current);
                         }
                     }
-                    Some(&None) => panic!("Every point except for the initial one (`from`) one should be some."),
+                    Some(&None) => {
+                        panic!("Every point except for the initial \
+                                           one (`from`) one should be some.")
+                    }
                     None => {
                         path_buffer = vec![];
                         break;

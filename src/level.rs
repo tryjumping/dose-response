@@ -51,10 +51,7 @@ impl Tile {
                 *rand::thread_rng().choose(&options).unwrap()
             }
         };
-        Tile {
-            kind: kind,
-            fg_color: color,
-        }
+        Tile { kind: kind, fg_color: color }
     }
 }
 
@@ -132,7 +129,9 @@ impl Level {
         self.cell_mut(pos).tile = tile;
     }
 
-    pub fn set_monster(&mut self, monster_position: LevelPosition, monster_index: usize) {
+    pub fn set_monster(&mut self,
+                       monster_position: LevelPosition,
+                       monster_index: usize) {
         self.monsters.insert(monster_position, monster_index);
     }
 
@@ -148,7 +147,10 @@ impl Level {
         self.dimensions
     }
 
-    pub fn walkable(&self, pos: LevelPosition, walkability: Walkability) -> bool {
+    pub fn walkable(&self,
+                    pos: LevelPosition,
+                    walkability: Walkability)
+                    -> bool {
         let pos = pos.into();
         let walkable = match walkability {
             Walkability::WalkthroughMonsters => true,
@@ -157,7 +159,9 @@ impl Level {
         self.cell(pos).tile.kind == TileKind::Empty && walkable
     }
 
-    pub fn move_monster(&mut self, monster_position: LevelPosition, destination: LevelPosition) {
+    pub fn move_monster(&mut self,
+                        monster_position: LevelPosition,
+                        destination: LevelPosition) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:
         if self.monsters.contains_key(&destination) {
@@ -165,7 +169,8 @@ impl Level {
                    monster_position,
                    destination);
         } else {
-            if let Some(monster_index) = self.monsters.remove(&monster_position) {
+            if let Some(monster_index) =
+                self.monsters.remove(&monster_position) {
                 self.monsters.insert(destination, monster_index);
             } else {
                 panic!("Moving a monster that doesn't exist");

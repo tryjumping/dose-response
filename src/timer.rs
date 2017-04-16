@@ -24,7 +24,8 @@ impl Timer {
     }
 
     pub fn percentage_remaining(&self) -> f32 {
-        (self.current.num_milliseconds() as f32) / (self.max.num_milliseconds() as f32)
+        (self.current.num_milliseconds() as f32) /
+        (self.max.num_milliseconds() as f32)
     }
 
     pub fn percentage_elapsed(&self) -> f32 {

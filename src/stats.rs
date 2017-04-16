@@ -85,14 +85,16 @@ impl Stats {
         self.frame_stats
             .iter()
             .map(|fs| fs.update.num_milliseconds() as f32)
-            .fold(0.0, |acc, dur| acc + dur) / (self.frame_stats.len() as f32)
+            .fold(0.0, |acc, dur| acc + dur) /
+        (self.frame_stats.len() as f32)
     }
 
     pub fn mean_drawcalls(&self) -> f32 {
         self.frame_stats
             .iter()
             .map(|fs| fs.drawcalls.num_milliseconds() as f32)
-            .fold(0.0, |acc, dur| acc + dur) / (self.frame_stats.len() as f32)
+            .fold(0.0, |acc, dur| acc + dur) /
+        (self.frame_stats.len() as f32)
     }
 
     pub fn longest_update_durations(&self) -> &[Duration] {

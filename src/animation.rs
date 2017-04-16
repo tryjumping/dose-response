@@ -30,7 +30,11 @@ pub struct SquareExplosion {
 }
 
 impl SquareExplosion {
-    pub fn new(center: Point, max_radius: i32, initial_radius: i32, color: Color) -> Self {
+    pub fn new(center: Point,
+               max_radius: i32,
+               initial_radius: i32,
+               color: Color)
+               -> Self {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
         let wave_count = max_radius - initial_radius + 1;
@@ -55,7 +59,9 @@ impl AreaOfEffect for SquareExplosion {
             self.timer.update(dt);
             let single_wave_percentage = 1.0 / (self.wave_count as f32);
             self.current_radius = self.initial_radius +
-                                  (self.timer.percentage_elapsed() / single_wave_percentage) as i32;
+                                  (self.timer.percentage_elapsed() /
+                                   single_wave_percentage) as
+                                  i32;
             if self.current_radius > self.max_radius {
                 self.current_radius = self.max_radius;
             }
@@ -68,9 +74,8 @@ impl AreaOfEffect for SquareExplosion {
 
     fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>> {
         let color = self.color;
-        Box::new(SquareArea::new(self.center, self.current_radius + 1).map(move |pos| {
-                                                                               (pos, color, KILL)
-                                                                           }))
+        Box::new(SquareArea::new(self.center, self.current_radius + 1)
+                     .map(move |pos| (pos, color, KILL)))
     }
 }
 
@@ -119,7 +124,9 @@ impl AreaOfEffect for CardinalExplosion {
             self.timer.update(dt);
             let single_wave_percentage = 1.0 / (self.wave_count as f32);
             self.current_radius = self.initial_radius +
-                                  (self.timer.percentage_elapsed() / single_wave_percentage) as i32;
+                                  (self.timer.percentage_elapsed() /
+                                   single_wave_percentage) as
+                                  i32;
             if self.current_radius > self.max_radius {
                 self.current_radius = self.max_radius;
             }
@@ -132,11 +139,13 @@ impl AreaOfEffect for CardinalExplosion {
 
     fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>> {
         let kill_color = self.kill_color;
-        let killzone_area = SquareArea::new(self.center, 2).map(move |pos| (pos, kill_color, KILL));
+        let killzone_area = SquareArea::new(self.center, 2)
+            .map(move |pos| (pos, kill_color, KILL));
 
         let shatter_color = self.shatter_color;
-        let shatter_area = CrossIterator::new(self.center, self.current_radius)
-            .map(move |pos| (pos, shatter_color, KILL | SHATTER));
+        let shatter_area =
+            CrossIterator::new(self.center, self.current_radius)
+                .map(move |pos| (pos, shatter_color, KILL | SHATTER));
         Box::new(killzone_area.chain(shatter_area))
     }
 }
@@ -241,7 +250,9 @@ impl AreaOfEffect for DiagonalExplosion {
             self.timer.update(dt);
             let single_wave_percentage = 1.0 / (self.wave_count as f32);
             self.current_radius = self.initial_radius +
-                                  (self.timer.percentage_elapsed() / single_wave_percentage) as i32;
+                                  (self.timer.percentage_elapsed() /
+                                   single_wave_percentage) as
+                                  i32;
             if self.current_radius > self.max_radius {
                 self.current_radius = self.max_radius;
             }
@@ -254,15 +265,13 @@ impl AreaOfEffect for DiagonalExplosion {
 
     fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>> {
         let kill_color = self.kill_color;
-        let killzone_area = SquareArea::new(self.center, 2).map(move |pos| (pos, kill_color, KILL));
+        let killzone_area = SquareArea::new(self.center, 2)
+            .map(move |pos| (pos, kill_color, KILL));
 
         let shatter_color = self.shatter_color;
         let shatter_area =
-            XIterator::new(self.center, self.current_radius).map(move |pos| {
-                                                                     (pos,
-                                                                      shatter_color,
-                                                                      KILL | SHATTER)
-                                                                 });
+            XIterator::new(self.center, self.current_radius)
+                .map(move |pos| (pos, shatter_color, KILL | SHATTER));
         Box::new(killzone_area.chain(shatter_area))
     }
 }
@@ -344,7 +353,11 @@ pub enum ScreenFadePhase {
 }
 
 impl ScreenFade {
-    pub fn new(color: Color, fade_out: Duration, wait: Duration, fade_in: Duration) -> Self {
+    pub fn new(color: Color,
+               fade_out: Duration,
+               wait: Duration,
+               fade_in: Duration)
+               -> Self {
         ScreenFade {
             color: color,
             fade_out_time: fade_out,

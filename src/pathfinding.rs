@@ -12,7 +12,11 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn find(from: Point, to: Point, world: &mut World, walkability: Walkability) -> Self {
+    pub fn find(from: Point,
+                to: Point,
+                world: &mut World,
+                walkability: Walkability)
+                -> Self {
         if from == to {
             return Path { path: vec![] };
         }
@@ -39,7 +43,10 @@ impl Path {
             dp.clone()
                 .iter()
                 .map(|&d| current + d)
-                .filter(|&point| world.within_bounds(point) && world.walkable(point, walkability))
+                .filter(|&point| {
+                            world.within_bounds(point) &&
+                            world.walkable(point, walkability)
+                        })
                 .collect::<Vec<_>>()
         };
 
@@ -50,14 +57,12 @@ impl Path {
         };
 
         let heuristic = |destination: Point, next: Point| -> f32 {
-            ((destination.x - next.x).abs() + (destination.y - next.y).abs()) as f32
+            ((destination.x - next.x).abs() +
+             (destination.y - next.y).abs()) as f32
         };
 
         let mut frontier = BinaryHeap::new();
-        frontier.push(State {
-                          position: from,
-                          cost: 0.0,
-                      });
+        frontier.push(State { position: from, cost: 0.0 });
         let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();
 
@@ -81,15 +86,13 @@ impl Path {
             }
             let neigh = neighbors(current.position);
             for &next in neigh.iter() {
-                let new_cost = cost_so_far[&current.position] + cost(current.position, next);
+                let new_cost = cost_so_far[&current.position] +
+                               cost(current.position, next);
                 let val = cost_so_far.entry(next).or_insert(f32::MAX);
                 if new_cost < *val {
                     *val = new_cost;
                     let priority = new_cost + heuristic(to, next);
-                    frontier.push(State {
-                                      position: next,
-                                      cost: priority,
-                                  });
+                    frontier.push(State { position: next, cost: priority });
                     came_from.insert(next, Some(current.position));
                 }
             }
@@ -208,17 +211,11 @@ mod test {
         for line in lines {
             for c in line.chars() {
                 if c == 's' {
-                    start = Point {
-                        x: x as i32,
-                        y: y as i32,
-                    };
+                    start = Point { x: x as i32, y: y as i32 };
                 }
 
                 if c == 'd' {
-                    destination = Point {
-                        x: x as i32,
-                        y: y as i32,
-                    };
+                    destination = Point { x: x as i32, y: y as i32 };
                 }
 
                 let tile_kind = match c {
@@ -229,10 +226,7 @@ mod test {
                     'x' => Tree,
                     _ => unreachable!(),
                 };
-                level.set_tile(Point {
-                                   x: x as i32,
-                                   y: y as i32,
-                               },
+                level.set_tile(Point { x: x as i32, y: y as i32 },
                                Tile::new(tile_kind));
 
                 x += 1;
@@ -382,11 +376,12 @@ s..........
                                     &board.level,
                                     Walkability::WalkthroughMonsters);
         assert_eq!(9, path.len());
-        let expected = [(2, 2), (2, 3), (3, 4), (4, 4), (5, 4), (6, 4), (7, 3), (7, 2), (7, 1)]
-            .iter()
-            .cloned()
-            .map(Into::into)
-            .collect::<Vec<Point>>();
+        let expected = [(2, 2), (2, 3), (3, 4), (4, 4), (5, 4), (6, 4),
+                        (7, 3), (7, 2), (7, 1)]
+                .iter()
+                .cloned()
+                .map(Into::into)
+                .collect::<Vec<Point>>();
         assert_eq!(expected, path.collect::<Vec<_>>());
     }
 }

@@ -61,8 +61,10 @@ fn run_libtcod(display_size: point::Point,
                font_path: &Path,
                state: State) {
     println!("Using the libtcod backend.");
-    let mut engine =
-        engine::tcod::Engine::new(display_size, default_background, window_title, &font_path);
+    let mut engine = engine::tcod::Engine::new(display_size,
+                                               default_background,
+                                               window_title,
+                                               &font_path);
     engine.main_loop(state, update);
 }
 

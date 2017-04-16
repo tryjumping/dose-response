@@ -18,11 +18,7 @@ impl RangedInt {
         } else {
             value
         };
-        RangedInt {
-            val: val,
-            _min: min,
-            _max: max,
-        }
+        RangedInt { val: val, _min: min, _max: max }
     }
 
     // NOTE: this is no longer being used -- lets just comment it out for now
@@ -179,7 +175,8 @@ mod test {
         assert_eq!(RangedInt::new(1, -5, 5) - (-4), RangedInt::new(5, -5, 5));
         assert_eq!(RangedInt::new(1, -5, 5) - (-5), RangedInt::new(5, -5, 5));
         assert_eq!(RangedInt::new(1, -5, 5) - (-6), RangedInt::new(5, -5, 5));
-        assert_eq!(RangedInt::new(1, -5, 5) - (-2938), RangedInt::new(5, -5, 5));
+        assert_eq!(RangedInt::new(1, -5, 5) - (-2938),
+                   RangedInt::new(5, -5, 5));
         assert_eq!(RangedInt::new(1, -5, 5) - MIN, RangedInt::new(5, -5, 5));
     }
 

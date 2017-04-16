@@ -18,7 +18,11 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    fn new(world_seed: u32, position: ChunkPosition, size: i32, player_position: Point) -> Self {
+    fn new(world_seed: u32,
+           position: ChunkPosition,
+           size: i32,
+           player_position: Point)
+           -> Self {
         let pos = position.position;
         // NOTE: `x` and `y` overflow on negative values here, but all
         // we care about is having a distinct value for each position
@@ -35,8 +39,9 @@ impl Chunk {
             monsters: vec![],
         };
 
-        let generated_data =
-            generators::forrest::generate(&mut chunk.rng, chunk.level.size(), player_position);
+        let generated_data = generators::forrest::generate(&mut chunk.rng,
+                                                           chunk.level.size(),
+                                                           player_position);
 
         chunk.populate(generated_data);
 
@@ -67,11 +72,15 @@ impl Chunk {
         }
     }
 
-    pub fn level_position(&self, world_position: Point) -> level::LevelPosition {
+    pub fn level_position(&self,
+                          world_position: Point)
+                          -> level::LevelPosition {
         self.level.level_position(world_position - self.position)
     }
 
-    pub fn world_position(&self, level_position: level::LevelPosition) -> Point {
+    pub fn world_position(&self,
+                          level_position: level::LevelPosition)
+                          -> Point {
         let level_position: Point = level_position.into();
         self.position + level_position
     }
@@ -120,7 +129,11 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(seed: u32, dimension: i32, chunk_size: i32, initial_player_position: Point) -> Self {
+    pub fn new(seed: u32,
+               dimension: i32,
+               chunk_size: i32,
+               initial_player_position: Point)
+               -> Self {
         assert!(dimension > 0);
         assert!(chunk_size > 0);
         assert_eq!(dimension % 2, 0);
@@ -141,10 +154,13 @@ impl World {
 
     /// Remove some of the monsters from player's initial vicinity,
     /// place some food nearby and a dose in sight.
-    fn prepare_initial_playing_area(&mut self, initial_player_position: Point) {
+    fn prepare_initial_playing_area(&mut self,
+                                    initial_player_position: Point) {
         let initial_area_size = 15;
-        let top_left_corner = initial_player_position - (initial_area_size, initial_area_size);
-        let bottom_right_corner = initial_player_position + (initial_area_size, initial_area_size);
+        let top_left_corner = initial_player_position -
+                              (initial_area_size, initial_area_size);
+        let bottom_right_corner = initial_player_position +
+                                  (initial_area_size, initial_area_size);
 
         for x in top_left_corner.x..bottom_right_corner.x {
             for y in top_left_corner.y..bottom_right_corner.y {
@@ -191,10 +207,11 @@ impl World {
                                        Point { x: -3, y: 4 },
                                        Point { x: 2, y: 0 },
                                        Point { x: -1, y: 3 }];
-        let mut rng = random_position_offsets
-            .iter()
-            .cycle()
-            .skip(self.seed as usize % random_position_offsets.len());
+        let mut rng =
+            random_position_offsets
+                .iter()
+                .cycle()
+                .skip(self.seed as usize % random_position_offsets.len());
 
         for &offset in &mut rng {
             let pos = initial_player_position + offset;
@@ -287,7 +304,12 @@ impl World {
         // player has some doses and food and no monsters.
         self.chunks
             .entry(chunk_position)
-            .or_insert_with(|| Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()));
+            .or_insert_with(|| {
+                                Chunk::new(seed,
+                                           chunk_position,
+                                           chunk_size,
+                                           (0, 0).into())
+                            });
     }
 
     fn cell(&mut self, world_pos: Point) -> Option<&Cell> {
@@ -316,8 +338,8 @@ impl World {
     /// some sort of upper limit on the positions it's able to
     /// support.
     pub fn within_bounds(&self, pos: Point) -> bool {
-        pos.x < self.max_half_size && pos.x > -self.max_half_size && pos.y < self.max_half_size &&
-        pos.y > -self.max_half_size
+        pos.x < self.max_half_size && pos.x > -self.max_half_size &&
+        pos.y < self.max_half_size && pos.y > -self.max_half_size
     }
 
 
@@ -333,7 +355,8 @@ impl World {
         };
         self.within_bounds(pos) &&
         self.cell(pos)
-            .map_or(false, |cell| cell.tile.kind == TileKind::Empty) && walkable
+            .map_or(false, |cell| cell.tile.kind == TileKind::Empty) &&
+        walkable
     }
 
     /// Pick up the top `Item` stacked on the tile. If the position is
@@ -356,7 +379,9 @@ impl World {
                 chunk
                     .level
                     .monster_on_pos(level_position)
-                    .and_then(move |monster_index| Some(&mut chunk.monsters[monster_index]))
+                    .and_then(move |monster_index| {
+                                  Some(&mut chunk.monsters[monster_index])
+                              })
             } else {
                 None
             }
@@ -368,7 +393,9 @@ impl World {
     /// Move the monster from one place in the world to the destination.
     /// If the paths are identical, nothing happens.
     /// Panics if the destination is out of bounds or already occupied.
-    pub fn move_monster(&mut self, monster_position: Point, destination: Point) {
+    pub fn move_monster(&mut self,
+                        monster_position: Point,
+                        destination: Point) {
         if monster_position == destination {
             return;
         }
@@ -382,9 +409,9 @@ impl World {
             if let Some(monster) = self.monster_on_pos(monster_position) {
                 monster.position = destination;
             }
-            let chunk =
-                self.chunk_mut(monster_position)
-                    .expect(&format!("Chunk with monster {:?} doesn't exist.", monster_position));
+            let chunk = self.chunk_mut(monster_position)
+                .expect(&format!("Chunk with monster {:?} doesn't exist.",
+                                 monster_position));
             let level_monster_pos = chunk.level_position(monster_position);
             let level_destination_pos = chunk.level_position(destination);
             chunk
@@ -408,14 +435,16 @@ impl World {
 
             {
                 self.remove_monster(monster_position);
-                assert!(self.walkable(monster_position, Walkability::BlockingMonsters));
+                assert!(self.walkable(monster_position,
+                                      Walkability::BlockingMonsters));
                 new_monster.position = destination;
-                let destination_chunk =
-                    self.chunk_mut(destination)
-                        .expect(&format!("Destination chunk at {:?} doesn't exist.", destination));
+                let destination_chunk = self.chunk_mut(destination)
+                    .expect(&format!("Destination chunk at {:?} doesn't exist.",
+                                     destination));
                 let new_monster_index = destination_chunk.monsters.len();
                 destination_chunk.monsters.push(new_monster);
-                let destination_level_position = destination_chunk.level_position(destination);
+                let destination_level_position =
+                    destination_chunk.level_position(destination);
                 destination_chunk
                     .level
                     .set_monster(destination_level_position, new_monster_index);
@@ -451,7 +480,10 @@ impl World {
     }
 
     /// Get a dose within the given radius that's nearest to the specified point.
-    pub fn nearest_dose(&mut self, centre: Point, radius: i32) -> Option<(Point, Item)> {
+    pub fn nearest_dose(&mut self,
+                        centre: Point,
+                        radius: i32)
+                        -> Option<(Point, Item)> {
         let mut doses = vec![];
         for pos in CircularArea::new(centre, radius) {
             // Make sure we don't go out of bounds with self.cell(pos):
@@ -459,7 +491,8 @@ impl World {
                 continue;
             }
             doses.extend(self.cell(pos)
-                             .map_or(vec![].iter(), |cell| cell.items.iter())
+                             .map_or(vec![].iter(),
+                                     |cell| cell.items.iter())
                              .filter(|i| i.is_dose())
                              .map(|&item| (pos, item)));
         }
@@ -469,7 +502,8 @@ impl World {
             .map(|dose| {
                 let mut result = dose;
                 for d in &doses {
-                    if centre.tile_distance(d.0) < centre.tile_distance(result.0) {
+                    if centre.tile_distance(d.0) <
+                       centre.tile_distance(result.0) {
                         result = *d;
                     }
                 }
@@ -501,8 +535,10 @@ impl World {
         Chunks {
             world: self,
             area: area,
-            next_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
-            first_chunk_pos: self.chunk_pos_from_world_pos(area.top_left).position,
+            next_chunk_pos:
+                self.chunk_pos_from_world_pos(area.top_left).position,
+            first_chunk_pos:
+                self.chunk_pos_from_world_pos(area.top_left).position,
         }
     }
 

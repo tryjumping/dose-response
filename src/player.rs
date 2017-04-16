@@ -48,7 +48,9 @@ impl Mind {
             Sober(value) => {
                 let new_value = value - 1;
                 if new_value.is_min() {
-                    Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX))
+                    Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
+                                              0,
+                                              WITHDRAWAL_MAX))
                 } else {
                     Sober(new_value)
                 }
@@ -56,7 +58,9 @@ impl Mind {
             High(value) => {
                 let new_value = value - 1;
                 if new_value.is_min() {
-                    Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX))
+                    Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
+                                              0,
+                                              WITHDRAWAL_MAX))
                 } else {
                     High(new_value)
                 }
@@ -118,7 +122,9 @@ pub struct Player {
 impl Player {
     pub fn new(pos: Point, invincible: bool) -> Player {
         Player {
-            mind: Mind::Withdrawal(RangedInt::new(WITHDRAWAL_MAX, 0, WITHDRAWAL_MAX)),
+            mind: Mind::Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
+                                                  0,
+                                                  WITHDRAWAL_MAX)),
             will: RangedInt::new(2, 0, WILL_MAX),
             tolerance: 0,
             panic: RangedInt::new(0, 0, 100),
@@ -176,10 +182,7 @@ impl Player {
         use self::Modifier::*;
         match effect {
             Death => self.dead = true,
-            Attribute {
-                will,
-                state_of_mind,
-            } => {
+            Attribute { will, state_of_mind } => {
                 self.will += will;
                 if !self.will.is_max() {
                     self.sobriety_counter.set_to_min();
@@ -188,7 +191,8 @@ impl Player {
                     Mind::Withdrawal(val) => {
                         let new_val = val + state_of_mind;
                         if new_val.is_max() {
-                            Mind::Sober(RangedInt::new(val.max() - *val + state_of_mind,
+                            Mind::Sober(RangedInt::new(val.max() - *val +
+                                                       state_of_mind,
                                                        0,
                                                        SOBER_MAX))
                         } else {
@@ -215,21 +219,30 @@ impl Player {
                 state_of_mind,
                 tolerance_increase,
             } => {
-                let state_of_mind_bonus = cmp::max(10, (state_of_mind - self.tolerance));
+                let state_of_mind_bonus =
+                    cmp::max(10, (state_of_mind - self.tolerance));
                 self.mind = match self.mind {
                     Mind::Withdrawal(val) => {
-                        let intoxication_gain = *val + state_of_mind_bonus - val.max();
+                        let intoxication_gain = *val + state_of_mind_bonus -
+                                                val.max();
                         if intoxication_gain <= 0 {
                             Mind::Withdrawal(val + state_of_mind_bonus)
                         } else if intoxication_gain <= SOBER_MAX {
-                            Mind::Sober(RangedInt::new(intoxication_gain, 0, SOBER_MAX))
+                            Mind::Sober(RangedInt::new(intoxication_gain,
+                                                       0,
+                                                       SOBER_MAX))
                         } else {
-                            Mind::High(RangedInt::new(intoxication_gain - SOBER_MAX, 0, HIGH_MAX))
+                            Mind::High(RangedInt::new(intoxication_gain -
+                                                      SOBER_MAX,
+                                                      0,
+                                                      HIGH_MAX))
                         }
                     }
                     Mind::Sober(val) => {
                         if state_of_mind_bonus > val.max() - *val {
-                            Mind::High(RangedInt::new(state_of_mind_bonus + *val - val.max(),
+                            Mind::High(RangedInt::new(state_of_mind_bonus +
+                                                      *val -
+                                                      val.max(),
                                                       0,
                                                       HIGH_MAX))
                         } else {
@@ -249,8 +262,12 @@ impl Player {
             }
         }
         match self.mind {
-            Mind::High(val) if *val == val.max() - 1 => self.bonus = Bonus::UncoverMap,
-            Mind::High(val) if *val == val.max() - 2 => self.bonus = Bonus::SeeMonstersAndItems,
+            Mind::High(val) if *val == val.max() - 1 => {
+                self.bonus = Bonus::UncoverMap
+            }
+            Mind::High(val) if *val == val.max() - 2 => {
+                self.bonus = Bonus::SeeMonstersAndItems
+            }
             _ => {}
         }
     }

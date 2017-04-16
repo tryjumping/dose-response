@@ -53,7 +53,8 @@ fn main() {
     }
     lookup_table_fn_definition.push_str("_ => None,\n}\n}\n");
 
-    let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs")).unwrap();
+    let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs"))
+        .unwrap();
     lt_file
         .write_all(lookup_table_fn_definition.as_bytes())
         .unwrap();
@@ -66,7 +67,8 @@ fn main() {
                  font.glyph(chr)
                      .unwrap()
                      .scaled(scale)
-                     .positioned(point(height * index as f32, v_metrics.ascent))
+                     .positioned(point(height * index as f32,
+                                       v_metrics.ascent))
              })
         .collect();
 

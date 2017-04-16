@@ -149,17 +149,19 @@ pub fn main_loop<T>(display_size: Point,
                     mut state: T,
                     update: UpdateFn<T>) {
     let tilesize = 16; // TODO: don't hardcode this value -- calculate it from the tilemap.
-    let (screen_width, screen_height) = (display_size.x as u32 * tilesize as u32,
-                                         display_size.y as u32 * tilesize as u32);
+    let (screen_width, screen_height) =
+        (display_size.x as u32 * tilesize as u32,
+         display_size.y as u32 * tilesize as u32);
 
     // GL setup
 
-    let display = WindowBuilder::new()
-        .with_vsync()
-        .with_title(window_title)
-        .with_dimensions(screen_width, screen_height)
-        .build_glium()
-        .expect("dose response ERROR: Could not create the window.");
+    let display =
+        WindowBuilder::new()
+            .with_vsync()
+            .with_title(window_title)
+            .with_dimensions(screen_width, screen_height)
+            .build_glium()
+            .expect("dose response ERROR: Could not create the window.");
 
     let program = program!(&display,
                            150 => {
@@ -179,7 +181,8 @@ pub fn main_loop<T>(display_size: Point,
         let (w, h) = image.dimensions();
         assert_eq!(w % tilesize, 0);
         assert_eq!(h % tilesize, 0);
-        let image = glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), (w, h));
+        let image =
+            glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), (w, h));
         glium::texture::SrgbTexture2d::new(&display, image).unwrap()
     };
 
@@ -227,7 +230,9 @@ pub fn main_loop<T>(display_size: Point,
         }
 
         drawcalls.clear();
-        drawcalls.push(Draw::Rectangle(Point { x: 0, y: 0 }, display_size, default_background));
+        drawcalls.push(Draw::Rectangle(Point { x: 0, y: 0 },
+                                       display_size,
+                                       default_background));
         match update(state,
                      dt,
                      display_size,
@@ -302,28 +307,33 @@ pub fn main_loop<T>(display_size: Point,
                                   });
                     vertices.push(Vertex {
                                       tile_position: [pos_x + 1.0, pos_y],
-                                      tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                      tilemap_index: [tilemap_x + 1.0,
+                                                      tilemap_y],
                                       color: color,
                                   });
                     vertices.push(Vertex {
                                       tile_position: [pos_x, pos_y + 1.0],
-                                      tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                      tilemap_index: [tilemap_x,
+                                                      tilemap_y + 1.0],
                                       color: color,
                                   });
 
                     vertices.push(Vertex {
                                       tile_position: [pos_x + 1.0, pos_y],
-                                      tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                      tilemap_index: [tilemap_x + 1.0,
+                                                      tilemap_y],
                                       color: color,
                                   });
                     vertices.push(Vertex {
                                       tile_position: [pos_x, pos_y + 1.0],
-                                      tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                      tilemap_index: [tilemap_x,
+                                                      tilemap_y + 1.0],
                                       color: color,
                                   });
                     vertices.push(Vertex {
                                       tile_position: [pos_x + 1.0, pos_y + 1.0],
-                                      tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                                      tilemap_index: [tilemap_x + 1.0,
+                                                      tilemap_y + 1.0],
                                       color: color,
                                   });
 
@@ -372,7 +382,8 @@ pub fn main_loop<T>(display_size: Point,
                     for (i, chr) in text.char_indices() {
                         let pos = start_pos + (i as i32, 0);
                         let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
-                        let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                        let (tilemap_x, tilemap_y) =
+                            texture_coords_from_char(chr);
                         let color = gl_color(color, alpha);
 
                         vertices.push(Vertex {
@@ -382,28 +393,34 @@ pub fn main_loop<T>(display_size: Point,
                                       });
                         vertices.push(Vertex {
                                           tile_position: [pos_x + 1.0, pos_y],
-                                          tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                          tilemap_index: [tilemap_x + 1.0,
+                                                          tilemap_y],
                                           color: color,
                                       });
                         vertices.push(Vertex {
                                           tile_position: [pos_x, pos_y + 1.0],
-                                          tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                          tilemap_index: [tilemap_x,
+                                                          tilemap_y + 1.0],
                                           color: color,
                                       });
 
                         vertices.push(Vertex {
                                           tile_position: [pos_x + 1.0, pos_y],
-                                          tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                          tilemap_index: [tilemap_x + 1.0,
+                                                          tilemap_y],
                                           color: color,
                                       });
                         vertices.push(Vertex {
                                           tile_position: [pos_x, pos_y + 1.0],
-                                          tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                          tilemap_index: [tilemap_x,
+                                                          tilemap_y + 1.0],
                                           color: color,
                                       });
                         vertices.push(Vertex {
-                                          tile_position: [pos_x + 1.0, pos_y + 1.0],
-                                          tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                                          tile_position: [pos_x + 1.0,
+                                                          pos_y + 1.0],
+                                          tilemap_index: [tilemap_x + 1.0,
+                                                          tilemap_y + 1.0],
                                           color: color,
                                       });
                     }
@@ -411,7 +428,8 @@ pub fn main_loop<T>(display_size: Point,
 
                 &Draw::Rectangle(top_left, dimensions, color) => {
                     let (pos_x, pos_y) = (top_left.x as f32, top_left.y as f32);
-                    let (dim_x, dim_y) = (dimensions.x as f32, dimensions.y as f32);
+                    let (dim_x, dim_y) = (dimensions.x as f32,
+                                          dimensions.y as f32);
                     let tilemap_index = [0.0, 5.0];
                     let color = gl_color(color, alpha);
 
@@ -442,7 +460,8 @@ pub fn main_loop<T>(display_size: Point,
                                       color: color,
                                   });
                     vertices.push(Vertex {
-                                      tile_position: [pos_x + dim_x, pos_y + dim_y],
+                                      tile_position: [pos_x + dim_x,
+                                                      pos_y + dim_y],
                                       tilemap_index: tilemap_index,
                                       color: color,
                                   });
@@ -453,7 +472,8 @@ pub fn main_loop<T>(display_size: Point,
                     assert!(fade <= 1.0);
 
                     let (pos_x, pos_y) = (0.0, 0.0);
-                    let (dim_x, dim_y) = (display_size.x as f32, display_size.y as f32);
+                    let (dim_x, dim_y) = (display_size.x as f32,
+                                          display_size.y as f32);
                     let tilemap_index = [0.0, 5.0];
                     let color = gl_color(color, 1.0 - fade);
 
@@ -484,7 +504,8 @@ pub fn main_loop<T>(display_size: Point,
                                       color: color,
                                   });
                     vertices.push(Vertex {
-                                      tile_position: [pos_x + dim_x, pos_y + dim_y],
+                                      tile_position: [pos_x + dim_x,
+                                                      pos_y + dim_y],
                                       tilemap_index: tilemap_index,
                                       color: color,
                                   });
@@ -493,7 +514,8 @@ pub fn main_loop<T>(display_size: Point,
             }
         }
 
-        let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
+        let vertex_buffer = glium::VertexBuffer::new(&display, &vertices)
+            .unwrap();
 
 
         // Render
@@ -517,45 +539,71 @@ pub fn main_loop<T>(display_size: Point,
             match ev {
                 Event::Closed => return,   // the window has been closed by the user
 
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::LControl)) => {
+                Event::KeyboardInput(PressState::Pressed,
+                                     _,
+                                     Some(BackendKey::LControl)) => {
                     lctrl_pressed = true;
                 }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::RControl)) => {
+                Event::KeyboardInput(PressState::Pressed,
+                                     _,
+                                     Some(BackendKey::RControl)) => {
                     rctrl_pressed = true;
                 }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::LAlt)) => {
+                Event::KeyboardInput(PressState::Pressed,
+                                     _,
+                                     Some(BackendKey::LAlt)) => {
                     lalt_pressed = true;
                 }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::RAlt)) => {
+                Event::KeyboardInput(PressState::Pressed,
+                                     _,
+                                     Some(BackendKey::RAlt)) => {
                     ralt_pressed = true;
                 }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::LShift)) => {
+                Event::KeyboardInput(PressState::Pressed,
+                                     _,
+                                     Some(BackendKey::LShift)) => {
                     lshift_pressed = true;
                 }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::RShift)) => {
+                Event::KeyboardInput(PressState::Pressed,
+                                     _,
+                                     Some(BackendKey::RShift)) => {
                     rshift_pressed = true;
                 }
 
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::LControl)) => {
+                Event::KeyboardInput(PressState::Released,
+                                     _,
+                                     Some(BackendKey::LControl)) => {
                     lctrl_pressed = false;
                 }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::RControl)) => {
+                Event::KeyboardInput(PressState::Released,
+                                     _,
+                                     Some(BackendKey::RControl)) => {
                     rctrl_pressed = false;
                 }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::LAlt)) => {
+                Event::KeyboardInput(PressState::Released,
+                                     _,
+                                     Some(BackendKey::LAlt)) => {
                     lalt_pressed = false;
                 }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::RAlt)) => {
+                Event::KeyboardInput(PressState::Released,
+                                     _,
+                                     Some(BackendKey::RAlt)) => {
                     ralt_pressed = false;
                 }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::LShift)) => {
+                Event::KeyboardInput(PressState::Released,
+                                     _,
+                                     Some(BackendKey::LShift)) => {
                     lshift_pressed = false;
                 }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::RShift)) => {
+                Event::KeyboardInput(PressState::Released,
+                                     _,
+                                     Some(BackendKey::RShift)) => {
                     rshift_pressed = false;
                 }
 
-                Event::KeyboardInput(PressState::Pressed, _, Some(key_code)) => {
+                Event::KeyboardInput(PressState::Pressed,
+                                     _,
+                                     Some(key_code)) => {
                     //self.key_events.push((code, press_state));
                     if let Some(code) = key_code_from_backend(key_code) {
                         keys.push(Key {

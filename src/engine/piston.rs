@@ -215,17 +215,21 @@ pub fn main_loop<T>(display_size: Point,
                     mut state: T,
                     update: UpdateFn<T>) {
     let tilesize = 16; // TODO: don't hardcode this value -- calculate it from the tilemap.
-    let (screen_width, screen_height) = (display_size.x as u32 * tilesize as u32,
-                                         display_size.y as u32 * tilesize as u32);
-    let mut window: PistonWindow = WindowSettings::new(window_title, (screen_width, screen_height))
-        .build()
-        .unwrap();
+    let (screen_width, screen_height) =
+        (display_size.x as u32 * tilesize as u32,
+         display_size.y as u32 * tilesize as u32);
+    let mut window: PistonWindow =
+        WindowSettings::new(window_title, (screen_width, screen_height))
+            .build()
+            .unwrap();
 
     let tileimage = image::open(font_path).expect(&format!("Could not load the font map at: '{}'",
                                                            font_path.display()));
     let mut surface = image::ImageBuffer::new(screen_width, screen_height);
-    let mut surface_texture =
-        Texture::from_image(&mut window.factory, &surface, &TextureSettings::new()).unwrap();
+    let mut surface_texture = Texture::from_image(&mut window.factory,
+                                                  &surface,
+                                                  &TextureSettings::new())
+            .unwrap();
 
     //let mut factory = window.factory.clone();
 
@@ -248,7 +252,9 @@ pub fn main_loop<T>(display_size: Point,
             Input::Update(update_args) => {
                 drawcalls.clear();
                 match update(state,
-                             Duration::microseconds((update_args.dt * 1_000_000.0) as i64),
+                             Duration::microseconds((update_args.dt *
+                                                     1_000_000.0) as
+                                                    i64),
                              display_size,
                              1, // TODO: FPS
                              &keys,
@@ -358,16 +364,26 @@ pub fn main_loop<T>(display_size: Point,
                 {
                     for x in 0..tilesize {
                         for y in 0..tilesize {
-                            let pixel = source.get_pixel(src_x + x, src_y + y).to_rgba();
+                            let pixel = source
+                                .get_pixel(src_x + x, src_y + y)
+                                .to_rgba();
                             let result = Rgba {
-                                data: [((color.r as f32 / 255.0) * (pixel.data[0] as f32 / 255.0) *
-                                        255.0) as u8,
-                                       ((color.g as f32 / 255.0) * (pixel.data[1] as f32 / 255.0) *
-                                        255.0) as u8,
-                                       ((color.b as f32 / 255.0) * (pixel.data[2] as f32 / 255.0) *
-                                        255.0) as u8,
-                                       ((alpha as f32 / 255.0) * (pixel.data[3] as f32 / 255.0) *
-                                        255.0) as u8],
+                                data: [((color.r as f32 / 255.0) *
+                                        (pixel.data[0] as f32 / 255.0) *
+                                        255.0) as
+                                       u8,
+                                       ((color.g as f32 / 255.0) *
+                                        (pixel.data[1] as f32 / 255.0) *
+                                        255.0) as
+                                       u8,
+                                       ((color.b as f32 / 255.0) *
+                                        (pixel.data[2] as f32 / 255.0) *
+                                        255.0) as
+                                       u8,
+                                       ((alpha as f32 / 255.0) *
+                                        (pixel.data[3] as f32 / 255.0) *
+                                        255.0) as
+                                       u8],
                             };
                             destination.put_pixel(dst_x + x, dst_y + y, result);
                         }
@@ -382,7 +398,8 @@ pub fn main_loop<T>(display_size: Point,
                                 alpha: u8)
                     where I: GenericImage<Pixel = image::Rgba<u8>>
                 {
-                    let pixel = Rgba { data: [color.r, color.g, color.b, alpha] };
+                    let pixel =
+                        Rgba { data: [color.r, color.g, color.b, alpha] };
                     for x in 0..tilesize {
                         for y in 0..tilesize {
                             destination.put_pixel(src_x + x, src_y + y, pixel);
@@ -394,7 +411,8 @@ pub fn main_loop<T>(display_size: Point,
                 for drawcall in &drawcalls {
                     match drawcall {
                         &Draw::Char(pos, chr, foreground_color) => {
-                            let source_rectangle = texture_coords_from_char(chr, tilesize);
+                            let source_rectangle =
+                                texture_coords_from_char(chr, tilesize);
                             blit_char(source_rectangle.0,
                                       source_rectangle.1,
                                       &tileimage,
@@ -418,7 +436,8 @@ pub fn main_loop<T>(display_size: Point,
                         &Draw::Text(start_pos, ref text, color) => {
                             for (i, chr) in text.char_indices() {
                                 let pos = start_pos + (i as i32, 0);
-                                let source_rectangle = texture_coords_from_char(chr, tilesize);
+                                let source_rectangle =
+                                    texture_coords_from_char(chr, tilesize);
                                 blit_char(source_rectangle.0,
                                           source_rectangle.1,
                                           &tileimage,
@@ -432,11 +451,17 @@ pub fn main_loop<T>(display_size: Point,
                         }
 
                         &Draw::Rectangle(top_left, dimensions, color) => {
-                            let pixel = Rgba { data: [color.r, color.g, color.b, alpha] };
+                            let pixel = Rgba {
+                                data: [color.r, color.g, color.b, alpha],
+                            };
                             for x in 0..(dimensions.x as u32 * tilesize) {
                                 for y in 0..(dimensions.y as u32 * tilesize) {
-                                    surface.put_pixel(top_left.x as u32 * tilesize + x,
-                                                      top_left.y as u32 * tilesize + y,
+                                    surface.put_pixel(top_left.x as u32 *
+                                                      tilesize +
+                                                      x,
+                                                      top_left.y as u32 *
+                                                      tilesize +
+                                                      y,
                                                       pixel);
                                 }
                             }
@@ -456,7 +481,8 @@ pub fn main_loop<T>(display_size: Point,
                     clear(fade_color, g);
 
                     // NOTE: Render the default background
-                    rectangle(from_color_with_alpha(default_background, alpha as f32 / 255.0),
+                    rectangle(from_color_with_alpha(default_background,
+                                                    alpha as f32 / 255.0),
                               [0.0,
                                0.0,
                                render_args.draw_width as f64,

@@ -70,19 +70,9 @@ impl Monster {
     pub fn attack_damage(&self) -> Modifier {
         use player::Modifier::*;
         match self.kind {
-            Anxiety => {
-                Attribute {
-                    will: -1,
-                    state_of_mind: 0,
-                }
-            }
+            Anxiety => Attribute { will: -1, state_of_mind: 0 },
             Depression => Death,
-            Hunger => {
-                Attribute {
-                    will: 0,
-                    state_of_mind: -20,
-                }
-            }
+            Hunger => Attribute { will: 0, state_of_mind: -20 },
             Shadows => Panic(4),
             Voices => Stun(4),
         }
@@ -120,7 +110,8 @@ impl Monster {
                         let y = rng.gen_range(-8, 9);
                         let candidate = self.position + (x, y);
                         if x.abs() > 2 && y.abs() > 2 &&
-                           world.walkable(candidate, Walkability::WalkthroughMonsters) {
+                           world.walkable(candidate,
+                                          Walkability::WalkthroughMonsters) {
                             destination = candidate;
                             break;
                         }

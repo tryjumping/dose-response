@@ -9,7 +9,10 @@ pub trait Render {
     fn render(&self, dt: Duration) -> (char, Color, Option<Color>);
 }
 
-pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>, dt: Duration, pos: Point, render: &R) {
+pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>,
+                       dt: Duration,
+                       pos: Point,
+                       render: &R) {
     use engine::Draw::*;
     let (glyph, fg, bg_opt) = render.render(dt);
     if let Some(background) = bg_opt {
@@ -34,10 +37,7 @@ pub fn progress_bar(drawcalls: &mut Vec<Draw>,
         highlighted_width = width;
     }
     drawcalls.push(Draw::Rectangle(pos,
-                                   Point {
-                                       x: highlighted_width,
-                                       y: 1,
-                                   },
+                                   Point { x: highlighted_width, y: 1 },
                                    foreground));
     drawcalls.push(Draw::Rectangle(pos + (highlighted_width, 0),
                                    Point {

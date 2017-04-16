@@ -257,7 +257,8 @@ impl State {
                             }
                         }
                         Some(Err(err)) => {
-                            panic!("Error reading a line from the replay file: {:?}.", err)
+                            panic!("Error reading a line from the replay file: {:?}.",
+                                   err)
                         }
                         None => break,
                     }

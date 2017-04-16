@@ -152,11 +152,7 @@ impl Engine {
     }
 
     pub fn main_loop<T>(&mut self, mut state: T, update: UpdateFn<T>) {
-        let default_fg = Color {
-            r: 255,
-            g: 255,
-            b: 255,
-        };
+        let default_fg = Color { r: 255, g: 255, b: 255 };
         let mut drawcalls = Vec::with_capacity(8192);
         let display_size = Point {
             x: self.root.width(),
@@ -210,7 +206,9 @@ impl Engine {
                         if self.within_bounds(pos) {
                             self.root.set_char(pos.x, pos.y, chr);
                             self.root
-                                .set_char_foreground(pos.x, pos.y, foreground_color.into());
+                                .set_char_foreground(pos.x,
+                                                     pos.y,
+                                                     foreground_color.into());
                         }
                     }
 
@@ -229,13 +227,17 @@ impl Engine {
                             let pos = start_pos + (i as i32, 0);
                             if self.within_bounds(pos) {
                                 self.root.set_char(pos.x, pos.y, chr);
-                                self.root.set_char_foreground(pos.x, pos.y, color.into());
+                                self.root
+                                    .set_char_foreground(pos.x,
+                                                         pos.y,
+                                                         color.into());
                             }
                         }
                     }
 
                     &Draw::Rectangle(top_left, dimensions, background) => {
-                        let original_background = self.root.get_default_background();
+                        let original_background = self.root
+                            .get_default_background();
                         self.root.set_default_background(background.into());
                         // TODO: this seems to be an invalid assert in tcod. We should
                         // be able to specify the full width & height here, but it

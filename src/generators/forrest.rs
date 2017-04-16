@@ -89,7 +89,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     let modifier = match kind {
         Dose => {
             irresistible = 2;
-            let base = 72;
+            let base = 70;
             Modifier::Intoxication {
                 state_of_mind: base + rng.gen_range(-5, 6),
                 tolerance_increase: 1,

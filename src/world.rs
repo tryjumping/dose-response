@@ -220,7 +220,7 @@ impl World {
                 let dose = Item {
                     kind: item::Kind::Dose,
                     modifier: player::Modifier::Intoxication {
-                        state_of_mind: 78,
+                        state_of_mind: 70,
                         tolerance_increase: 1,
                     },
                     irresistible: 2,

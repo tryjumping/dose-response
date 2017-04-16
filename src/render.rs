@@ -16,10 +16,7 @@ use state::{Side, State};
 use world::Chunk;
 
 
-pub fn render_game(state: &State,
-                   dt: Duration,
-                   fps: i32,
-                   drawcalls: &mut Vec<Draw>) {
+pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) {
     if state.player.alive() {
         use player::Mind::*;
         // Fade when withdrawn:
@@ -27,7 +24,7 @@ pub fn render_game(state: &State,
             Withdrawal(value) => {
                 // TODO: animate the fade from the previous value?
                 let fade = value.percent() * 0.6 + 0.2;
-                drawcalls.push(Draw::Fade(fade , Color{r: 0, g: 0, b: 0}));
+                drawcalls.push(Draw::Fade(fade, Color { r: 0, g: 0, b: 0 }));
             }
             Sober(_) | High(_) => {
                 // NOTE: Not withdrawn, don't fade
@@ -77,10 +74,12 @@ pub fn render_game(state: &State,
 
 
     // NOTE: render the cells on the map. That means the world geometry and items.
-    for (world_pos, cell) in state.world.chunks(display_area)
-        .flat_map(Chunk::cells)
-        .filter(|&(pos, _)| display_area.contains(pos))
-    {
+    for (world_pos, cell) in
+        state
+            .world
+            .chunks(display_area)
+            .flat_map(Chunk::cells)
+            .filter(|&(pos, _)| display_area.contains(pos)) {
         let display_pos = screen_coords_from_world(world_pos);
 
         // Render the tile
@@ -130,7 +129,8 @@ pub fn render_game(state: &State,
         }
 
         // Render the items
-        if in_fov(world_pos) || cell.explored || bonus == Bonus::SeeMonstersAndItems || bonus == Bonus::UncoverMap {
+        if in_fov(world_pos) || cell.explored || bonus == Bonus::SeeMonstersAndItems ||
+           bonus == Bonus::UncoverMap {
             for item in cell.items.iter() {
                 graphics::draw(drawcalls, dt, display_pos, item);
             }
@@ -138,16 +138,19 @@ pub fn render_game(state: &State,
     }
 
     if let Some(ref animation) = state.explosion_animation {
-        drawcalls.extend(animation.tiles().map(|(world_pos, color, _)| {
-            Draw::Background(screen_coords_from_world(world_pos), color)
-        }));
+        drawcalls.extend(animation
+                             .tiles()
+                             .map(|(world_pos, color, _)| {
+                                      Draw::Background(screen_coords_from_world(world_pos), color)
+                                  }));
     }
 
     // NOTE: render monsters
-    for monster in state.world.chunks(display_area)
-        .flat_map(Chunk::monsters)
-        .filter(|m| m.alive() && display_area.contains(m.position))
-    {
+    for monster in state
+            .world
+            .chunks(display_area)
+            .flat_map(Chunk::monsters)
+            .filter(|m| m.alive() && display_area.contains(m.position)) {
         let visible = monster.position.distance(state.player.pos) < (radius as f32);
         if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems {
             use graphics::Render;
@@ -158,7 +161,11 @@ pub fn render_game(state: &State,
                     if within_map_bounds(trail_pos) {
                         let (glyph, color, _) = monster.render(dt);
                         // TODO: show a fading animation of the trail colour
-                        let color = color::Color {r: color.r - 55, g: color.g - 55, b: color.b - 55};
+                        let color = color::Color {
+                            r: color.r - 55,
+                            g: color.g - 55,
+                            b: color.b - 55,
+                        };
                         drawcalls.push(Draw::Char(trail_pos, glyph, color));
                     }
                 }
@@ -186,7 +193,13 @@ pub fn render_game(state: &State,
         }
     }
 
-    render_panel(state.map_size.x, state.panel_width, state.display_size, &state, dt, drawcalls, fps);
+    render_panel(state.map_size.x,
+                 state.panel_width,
+                 state.display_size,
+                 &state,
+                 dt,
+                 drawcalls,
+                 fps);
     if state.show_keboard_movement_hints {
         render_controls_help(state.map_size, drawcalls);
     }
@@ -198,64 +211,74 @@ pub fn render_game(state: &State,
 
 
 fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
-        let doses_in_inventory = state.player.inventory.iter()
-            .filter(|item| item.is_dose())
-            .count();
+    let doses_in_inventory = state
+        .player
+        .inventory
+        .iter()
+        .filter(|item| item.is_dose())
+        .count();
 
-        let turns_text = format!("Turns: {}", state.turn);
-        let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
-        let high_streak_text = format!("Longest High streak: {} turns", state.player.longest_high_streak);
+    let turns_text = format!("Turns: {}", state.turn);
+    let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
+    let high_streak_text = format!("Longest High streak: {} turns",
+                                   state.player.longest_high_streak);
 
-        let longest_text = [&turns_text, &carrying_doses_text, &high_streak_text].iter()
-            .map(|s| s.chars().count())
-            .max()
-            .unwrap() as i32;
-        let lines_count = 3;
+    let longest_text = [&turns_text, &carrying_doses_text, &high_streak_text]
+        .iter()
+        .map(|s| s.chars().count())
+        .max()
+        .unwrap() as i32;
+    let lines_count = 3;
 
-        let rect_dimensions = Point {
-            // NOTE: 1 tile padding, which is why we have the `+ 2`.
-            x: longest_text + 2,
-            // NOTE: each line has an empty line below so we just have `+ 1` for the top padding.
-            y: lines_count * 2 + 1,
-        };
-        let rect_start = Point {
-            x: (state.display_size.x - rect_dimensions.x) / 2,
-            y: 7,
-        };
+    let rect_dimensions = Point {
+        // NOTE: 1 tile padding, which is why we have the `+ 2`.
+        x: longest_text + 2,
+        // NOTE: each line has an empty line below so we just have `+ 1` for the top padding.
+        y: lines_count * 2 + 1,
+    };
+    let rect_start = Point {
+        x: (state.display_size.x - rect_dimensions.x) / 2,
+        y: 7,
+    };
 
-        fn centered_text_pos(container_width: i32, text: &str) -> i32 {
-            (container_width - text.chars().count() as i32) / 2
-        }
+    fn centered_text_pos(container_width: i32, text: &str) -> i32 {
+        (container_width - text.chars().count() as i32) / 2
+    }
 
-        drawcalls.push(
-            Draw::Rectangle(rect_start,
-                            rect_dimensions,
-                            color::background));
+    drawcalls.push(Draw::Rectangle(rect_start, rect_dimensions, color::background));
 
-        drawcalls.push(
-            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &turns_text), 1),
-                       turns_text.into(),
-                       color::gui_text));
-        drawcalls.push(
-            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &carrying_doses_text), 3),
-                       carrying_doses_text.into(),
-                       color::gui_text));
-        drawcalls.push(
-            Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &high_streak_text), 5),
-                       high_streak_text.into(),
-                       color::gui_text));
+    drawcalls.push(Draw::Text(rect_start + (centered_text_pos(rect_dimensions.x, &turns_text), 1),
+                              turns_text.into(),
+                              color::gui_text));
+    drawcalls.push(Draw::Text(rect_start +
+                              (centered_text_pos(rect_dimensions.x, &carrying_doses_text), 3),
+                              carrying_doses_text.into(),
+                              color::gui_text));
+    drawcalls.push(Draw::Text(rect_start +
+                              (centered_text_pos(rect_dimensions.x, &high_streak_text), 5),
+                              high_streak_text.into(),
+                              color::gui_text));
 }
 
 
-fn render_panel(x: i32, width: i32, display_size: Point, state: &State,
-                dt: Duration, drawcalls: &mut Vec<Draw>, fps: i32) {
+fn render_panel(x: i32,
+                width: i32,
+                display_size: Point,
+                state: &State,
+                dt: Duration,
+                drawcalls: &mut Vec<Draw>,
+                fps: i32) {
     let fg = color::gui_text;
     let bg = color::dim_background;
 
     {
         let height = display_size.y;
-        drawcalls.push(
-            Draw::Rectangle(Point{x: x, y: 0}, Point{x: width, y: height}, bg));
+        drawcalls.push(Draw::Rectangle(Point { x: x, y: 0 },
+                                       Point {
+                                           x: width,
+                                           y: height,
+                                       },
+                                       bg));
     }
 
     let player = &state.player;
@@ -266,12 +289,10 @@ fn render_panel(x: i32, width: i32, display_size: Point, state: &State,
         Mind::High(val) => ("High", val.percent()),
     };
 
-    let mut lines: Vec<Cow<'static, str>> = vec![
-        mind_str.into(),
-        "".into(), // NOTE: placeholder for the Mind state percentage bar
-        "".into(),
-        format!("Will: {}", *player.will).into(),
-    ];
+    let mut lines: Vec<Cow<'static, str>> = vec![mind_str.into(),
+                                                 "".into(), // NOTE: placeholder for the Mind state percentage bar
+                                                 "".into(),
+                                                 format!("Will: {}", *player.will).into()];
 
     if player.inventory.len() > 0 {
         lines.push("".into());
@@ -321,17 +342,25 @@ fn render_panel(x: i32, width: i32, display_size: Point, state: &State,
         for frame_stat in state.stats.last_frames(25) {
             lines.push(format!("upd: {}, dc: {}",
                                frame_stat.update.num_milliseconds(),
-                               frame_stat.drawcalls.num_milliseconds()).into());
+                               frame_stat.drawcalls.num_milliseconds())
+                               .into());
         }
         lines.push(format!("longest upd: {}",
-                           state.stats.longest_update().num_milliseconds()).into());
+                           state.stats.longest_update().num_milliseconds())
+                           .into());
         lines.push(format!("longest dc: {}",
-                           state.stats.longest_drawcalls().num_milliseconds()).into());
+                           state.stats.longest_drawcalls().num_milliseconds())
+                           .into());
     }
 
 
     for (y, line) in lines.into_iter().enumerate() {
-        drawcalls.push(Draw::Text(Point{x: x + 1, y: y as i32}, line.into(), fg));
+        drawcalls.push(Draw::Text(Point {
+                                      x: x + 1,
+                                      y: y as i32,
+                                  },
+                                  line.into(),
+                                  fg));
     }
 
     let max_val = match player.mind {
@@ -344,16 +373,28 @@ fn render_panel(x: i32, width: i32, display_size: Point, state: &State,
         bar_width = max_val;
     }
 
-    graphics::progress_bar(drawcalls, mind_val_percent, (x + 1, 1).into(), bar_width,
+    graphics::progress_bar(drawcalls,
+                           mind_val_percent,
+                           (x + 1, 1).into(),
+                           bar_width,
                            color::gui_progress_bar_fg,
                            color::gui_progress_bar_bg);
 
     let bottom = display_size.y - 1;
 
     if state.cheating {
-        drawcalls.push(Draw::Text(Point{x: x + 1, y: bottom - 1},
-                                  format!("dt: {}ms", dt.num_milliseconds()).into(), fg));
-        drawcalls.push(Draw::Text(Point{x: x + 1, y: bottom}, format!("FPS: {}", fps).into(), fg));
+        drawcalls.push(Draw::Text(Point {
+                                      x: x + 1,
+                                      y: bottom - 1,
+                                  },
+                                  format!("dt: {}ms", dt.num_milliseconds()).into(),
+                                  fg));
+        drawcalls.push(Draw::Text(Point {
+                                      x: x + 1,
+                                      y: bottom,
+                                  },
+                                  format!("FPS: {}", fps).into(),
+                                  fg));
     }
 
 }
@@ -363,13 +404,10 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
         (lines.iter().map(|l| l.len() as i32).max().unwrap(), lines.len() as i32)
     }
 
-    fn draw_rect(lines: &[&'static str], start: Point, w: i32, h: i32,
-                 drawcalls: &mut Vec<Draw>) {
-        drawcalls.push(Draw::Rectangle(start,
-                                       Point::new(w, h),
-                                       color::dim_background));
+    fn draw_rect(lines: &[&'static str], start: Point, w: i32, h: i32, drawcalls: &mut Vec<Draw>) {
+        drawcalls.push(Draw::Rectangle(start, Point::new(w, h), color::dim_background));
         for (index, &line) in lines.iter().enumerate() {
-            drawcalls.push(Draw::Text(start + Point::new(0, index as i32 ),
+            drawcalls.push(Draw::Text(start + Point::new(0, index as i32),
                                       line.into(),
                                       color::gui_text));
         }
@@ -377,11 +415,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
 
     let padding = 3;
 
-    let lines = [
-        "Up",
-        "Num 8",
-        "or: K",
-    ];
+    let lines = ["Up", "Num 8", "or: K"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: (map_size.x - width) / 2,
@@ -389,11 +423,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = [
-        "Down",
-        "Num 2",
-        "or: J",
-    ];
+    let lines = ["Down", "Num 2", "or: J"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: (map_size.x - width) / 2,
@@ -401,11 +431,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = [
-        "Left",
-        "Num 4",
-        "or: H",
-    ];
+    let lines = ["Left", "Num 4", "or: H"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: padding,
@@ -413,11 +439,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = [
-        "Right",
-        "Num 6",
-        "or: L",
-    ];
+    let lines = ["Right", "Num 6", "or: L"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: map_size.x - width - padding,
@@ -425,11 +447,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = [
-        "Shift+Right",
-        "Num 7",
-        "or: Y",
-    ];
+    let lines = ["Shift+Right", "Num 7", "or: Y"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: padding,
@@ -437,11 +455,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = [
-        "Shift+Right",
-        "Num 9",
-        "or: U",
-    ];
+    let lines = ["Shift+Right", "Num 9", "or: U"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: map_size.x - width - padding,
@@ -449,11 +463,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = [
-        "Ctrl+Left",
-        "Num 1",
-        "or: N",
-    ];
+    let lines = ["Ctrl+Left", "Num 1", "or: N"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: padding,
@@ -461,11 +471,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = [
-        "Ctrl+Right",
-        "Num 3",
-        "or: M",
-    ];
+    let lines = ["Ctrl+Right", "Num 3", "or: M"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: map_size.x - width - padding,

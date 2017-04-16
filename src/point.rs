@@ -10,7 +10,7 @@ pub struct Point {
 
 impl Point {
     pub fn new(x: i32, y: i32) -> Self {
-        Point{x: x, y: y}
+        Point { x: x, y: y }
     }
 
     pub fn distance<P: Into<Point>>(&self, other: P) -> f32 {
@@ -36,7 +36,10 @@ impl Point {
 
 impl Into<Point> for (i32, i32) {
     fn into(self) -> Point {
-        Point{ x: self.0, y: self.1 }
+        Point {
+            x: self.0,
+            y: self.1,
+        }
     }
 }
 
@@ -50,7 +53,10 @@ impl Add for Point {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        Point{ x: self.x + rhs.x, y: self.y + rhs.y }
+        Point {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
     }
 }
 
@@ -166,7 +172,7 @@ pub struct CircularArea {
     center: Point,
     radius: i32,
     initial_x: i32,
-    max: Point
+    max: Point,
 }
 
 impl CircularArea {
@@ -197,7 +203,7 @@ impl Iterator for CircularArea {
                 self.pos.y += 1;
             }
             if self.center.distance(current_point) < self.radius as f32 {
-                return Some(current_point)
+                return Some(current_point);
             } else {
                 // Keep looping for another point
             }
@@ -233,11 +239,11 @@ impl Iterator for SquareArea {
 
     fn next(&mut self) -> Option<Point> {
         if self.radius == 0 {
-            return None
+            return None;
         }
 
         if self.pos.y > self.max.y {
-            return None
+            return None;
         }
         let current_point = self.pos;
         self.pos.x += 1;
@@ -245,7 +251,7 @@ impl Iterator for SquareArea {
             self.pos.y += 1;
             self.pos.x = self.min_x;
         }
-        return Some(current_point)
+        return Some(current_point);
     }
 }
 
@@ -257,64 +263,64 @@ mod test {
 
     #[test]
     fn test_tile_distance() {
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((0, 0)), 0);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((0, 0)), 0);
 
-        assert_eq!(Point{x: 0, y: 0}.tile_distance(( 1, 0)), 1);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((-1, 0)), 1);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance(( 1, 1)), 1);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((-1, 1)), 1);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((0,  1)), 1);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((0, -1)), 1);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((1,  1)), 1);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((1, -1)), 1);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((1, 0)), 1);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((-1, 0)), 1);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((1, 1)), 1);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((-1, 1)), 1);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((0, 1)), 1);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((0, -1)), 1);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((1, 1)), 1);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((1, -1)), 1);
 
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((2, 2)), 2);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((-2, -2)), 2);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((0, 2)), 2);
-        assert_eq!(Point{x: 0, y: 0}.tile_distance((2, 0)), 2);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((2, 2)), 2);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((-2, -2)), 2);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((0, 2)), 2);
+        assert_eq!(Point { x: 0, y: 0 }.tile_distance((2, 0)), 2);
 
-        assert_eq!(Point{x: -3, y: -3}.tile_distance((10, 10)), 13);
-        assert_eq!(Point{x: -3, y: -3}.tile_distance((5, -2)), 8);
+        assert_eq!(Point { x: -3, y: -3 }.tile_distance((10, 10)), 13);
+        assert_eq!(Point { x: -3, y: -3 }.tile_distance((5, -2)), 8);
     }
 
     #[test]
     fn test_euclidean_distance() {
-        let actual = Point{x: 0, y: 0}.distance((0, 0));
+        let actual = Point { x: 0, y: 0 }.distance((0, 0));
         let expected = 0.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = Point{x: 0, y: 0}.distance((10, 10));
+        let actual = Point { x: 0, y: 0 }.distance((10, 10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = Point{x: 0, y: 0}.distance((10, -10));
+        let actual = Point { x: 0, y: 0 }.distance((10, -10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = Point{x: 0, y: 0}.distance((-10, 10));
+        let actual = Point { x: 0, y: 0 }.distance((-10, 10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = Point{x: 0, y: 0}.distance((10, -10));
+        let actual = Point { x: 0, y: 0 }.distance((10, -10));
         let expected = 14.142136;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = Point{x: 0, y: 0}.distance((3, 4));
+        let actual = Point { x: 0, y: 0 }.distance((3, 4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = Point{x: 0, y: 0}.distance((-3, 4));
+        let actual = Point { x: 0, y: 0 }.distance((-3, 4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = Point{x: 0, y: 0}.distance((3, -4));
+        let actual = Point { x: 0, y: 0 }.distance((3, -4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
 
-        let actual = Point{x: 0, y: 0}.distance((-3, -4));
+        let actual = Point { x: 0, y: 0 }.distance((-3, -4));
         let expected = 5.0;
         assert!((actual - expected).abs() <= EPSILON);
-}
+    }
 
     #[test]
     fn test_points_within_radius_of_zero() {
@@ -325,9 +331,8 @@ mod test {
     #[test]
     fn test_points_within_radius_of_one() {
         let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 1));
-        let expected = [(-1, -1), (0, -1), (1, -1),
-                        (-1,  0), (0,  0), (1,  0),
-                        (-1,  1), (0,  1), (1,  1)];
+        let expected = [(-1, -1), (0, -1), (1, -1), (-1, 0), (0, 0), (1, 0), (-1, 1), (0, 1),
+                        (1, 1)];
         assert_eq!(actual, expected);
     }
 
@@ -338,7 +343,7 @@ mod test {
         let mut expected = Vec::new();
         for y in -5..6 {
             for x in -5..6 {
-                expected.push(Point{x: x, y: y});
+                expected.push(Point { x: x, y: y });
             }
         }
         assert_eq!(actual, expected);

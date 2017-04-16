@@ -1,4 +1,5 @@
 #![allow(non_upper_case_globals)]
+#![cfg_attr(rustfmt, rustfmt_skip)]
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Color {

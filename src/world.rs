@@ -35,7 +35,8 @@ impl Chunk {
             monsters: vec![],
         };
 
-        let generated_data = generators::forrest::generate(&mut chunk.rng, chunk.level.size(), player_position);
+        let generated_data =
+            generators::forrest::generate(&mut chunk.rng, chunk.level.size(), player_position);
 
         chunk.populate(generated_data);
 
@@ -60,7 +61,8 @@ impl Chunk {
         }
         for &(pos, item) in items.iter() {
             let pos = self.level.level_position(pos);
-            assert!(self.level.walkable(pos, Walkability::WalkthroughMonsters));
+            assert!(self.level
+                        .walkable(pos, Walkability::WalkthroughMonsters));
             self.level.add_item(pos, item);
         }
     }
@@ -84,7 +86,6 @@ impl Chunk {
     pub fn monsters(&self) -> ::std::slice::Iter<Monster> {
         self.monsters.iter()
     }
-
 }
 
 pub struct ChunkCells<'a> {
@@ -96,10 +97,12 @@ impl<'a> Iterator for ChunkCells<'a> {
     type Item = (Point, &'a Cell);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.cells.next().map(|(level_pos, cell)| {
-            let offset: Point = level_pos.into();
-            (self.chunk_position + offset, cell)
-        })
+        self.cells
+            .next()
+            .map(|(level_pos, cell)| {
+                     let offset: Point = level_pos.into();
+                     (self.chunk_position + offset, cell)
+                 })
     }
 }
 
@@ -153,13 +156,14 @@ impl World {
         for x in top_left_corner.x..bottom_right_corner.x {
             for y in top_left_corner.y..bottom_right_corner.y {
                 let pos = (x, y).into();
-                let remove_monster = self.monster_on_pos(pos).map_or(false, |m| {
-                    use monster::Kind::*;
-                    match m.kind {
-                        Hunger | Shadows | Voices => false,
-                        Anxiety | Depression => true,
-                    }
-                });
+                let remove_monster = self.monster_on_pos(pos)
+                    .map_or(false, |m| {
+                        use monster::Kind::*;
+                        match m.kind {
+                            Hunger | Shadows | Voices => false,
+                            Anxiety | Depression => true,
+                        }
+                    });
                 if remove_monster {
                     self.remove_monster(pos)
                 }
@@ -167,29 +171,30 @@ impl World {
         }
 
         // TODO: generate the initial dose and food positions with a RNG.
-        let random_position_offsets = [
-            Point{ x: -4, y: -1},
-            Point{ x: 0, y: -1},
-            Point{ x: 1, y: 2},
-            Point{ x: 2, y: -1},
-            Point{ x: 1, y: -2},
-            Point{ x: 3, y: -4},
-            Point{ x: -2, y: 3},
-            Point{ x: 2, y: -1},
-            Point{ x: -1, y: 0},
-            Point{ x: 2, y: -4},
-            Point{ x: -2, y: 0},
-            Point{ x: 2, y: 2},
-            Point{ x: 4, y: 1},
-            Point{ x: 3, y: -1},
-            Point{ x: 3, y: -1},
-            Point{ x: -2, y: -4},
-            Point{ x: -3, y: 3},
-            Point{ x: -3, y: 4},
-            Point{ x: 2, y: 0},
-            Point{ x: -1, y: 3},
-        ];
-        let mut rng = random_position_offsets.iter().cycle().skip(self.seed as usize % random_position_offsets.len());
+        let random_position_offsets = [Point { x: -4, y: -1 },
+                                       Point { x: 0, y: -1 },
+                                       Point { x: 1, y: 2 },
+                                       Point { x: 2, y: -1 },
+                                       Point { x: 1, y: -2 },
+                                       Point { x: 3, y: -4 },
+                                       Point { x: -2, y: 3 },
+                                       Point { x: 2, y: -1 },
+                                       Point { x: -1, y: 0 },
+                                       Point { x: 2, y: -4 },
+                                       Point { x: -2, y: 0 },
+                                       Point { x: 2, y: 2 },
+                                       Point { x: 4, y: 1 },
+                                       Point { x: 3, y: -1 },
+                                       Point { x: 3, y: -1 },
+                                       Point { x: -2, y: -4 },
+                                       Point { x: -3, y: 3 },
+                                       Point { x: -3, y: 4 },
+                                       Point { x: 2, y: 0 },
+                                       Point { x: -1, y: 3 }];
+        let mut rng = random_position_offsets
+            .iter()
+            .cycle()
+            .skip(self.seed as usize % random_position_offsets.len());
 
         for &offset in &mut rng {
             let pos = initial_player_position + offset;
@@ -217,7 +222,7 @@ impl World {
             if walkable {
                 let food = Item {
                     kind: item::Kind::Food,
-                    modifier: player::Modifier::Attribute{
+                    modifier: player::Modifier::Attribute {
                         state_of_mind: 10,
                         will: 0,
                     },
@@ -253,7 +258,7 @@ impl World {
             position: Point {
                 x: chunk_pos(pos.x),
                 y: chunk_pos(pos.y),
-            }
+            },
         }
     }
 
@@ -280,8 +285,9 @@ impl World {
         let chunk_size = self.chunk_size;
         // TODO: figure out how to generate the starting chunks so the
         // player has some doses and food and no monsters.
-        self.chunks.entry(chunk_position).or_insert_with(
-            || Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()));
+        self.chunks
+            .entry(chunk_position)
+            .or_insert_with(|| Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()));
     }
 
     fn cell(&mut self, world_pos: Point) -> Option<&Cell> {
@@ -289,9 +295,9 @@ impl World {
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
         chunk.map(|chunk| {
-            let level_position = chunk.level_position(world_pos);
-            chunk.level.cell(level_position)
-        })
+                      let level_position = chunk.level_position(world_pos);
+                      chunk.level.cell(level_position)
+                  })
     }
 
     pub fn cell_mut(&mut self, world_pos: Point) -> Option<&mut Cell> {
@@ -299,9 +305,9 @@ impl World {
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
         chunk.map(|chunk| {
-            let level_position = chunk.level_position(world_pos);
-            chunk.level.cell_mut(level_position)
-        })
+                      let level_position = chunk.level_position(world_pos);
+                      chunk.level.cell_mut(level_position)
+                  })
     }
 
     /// Check whether the given position is within the bounds of the World.
@@ -310,10 +316,8 @@ impl World {
     /// some sort of upper limit on the positions it's able to
     /// support.
     pub fn within_bounds(&self, pos: Point) -> bool {
-        pos.x < self.max_half_size &&
-            pos.x > -self.max_half_size &&
-            pos.y < self.max_half_size &&
-            pos.y > -self.max_half_size
+        pos.x < self.max_half_size && pos.x > -self.max_half_size && pos.y < self.max_half_size &&
+        pos.y > -self.max_half_size
     }
 
 
@@ -328,8 +332,8 @@ impl World {
             Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
         };
         self.within_bounds(pos) &&
-            self.cell(pos).map_or(false, |cell| cell.tile.kind == TileKind::Empty) &&
-            walkable
+        self.cell(pos)
+            .map_or(false, |cell| cell.tile.kind == TileKind::Empty) && walkable
     }
 
     /// Pick up the top `Item` stacked on the tile. If the position is
@@ -349,8 +353,10 @@ impl World {
         if self.within_bounds(world_pos) {
             if let Some(chunk) = self.chunk_mut(world_pos) {
                 let level_position = chunk.level_position(world_pos);
-                chunk.level.monster_on_pos(level_position).and_then(
-                    move |monster_index| Some(&mut chunk.monsters[monster_index]))
+                chunk
+                    .level
+                    .monster_on_pos(level_position)
+                    .and_then(move |monster_index| Some(&mut chunk.monsters[monster_index]))
             } else {
                 None
             }
@@ -367,19 +373,25 @@ impl World {
             return;
         }
         assert!(self.walkable(destination, Walkability::BlockingMonsters),
-                "Moster at {:?} cannot move to {:?} because it's occupied.", monster_position, destination);
+                "Moster at {:?} cannot move to {:?} because it's occupied.",
+                monster_position,
+                destination);
         let monster_chunk_pos = self.chunk_pos_from_world_pos(monster_position);
         let destination_chunk_pos = self.chunk_pos_from_world_pos(destination);
         if monster_chunk_pos == destination_chunk_pos {
             if let Some(monster) = self.monster_on_pos(monster_position) {
                 monster.position = destination;
             }
-            let chunk = self.chunk_mut(monster_position).expect(
-                &format!("Chunk with monster {:?} doesn't exist.", monster_position));
+            let chunk =
+                self.chunk_mut(monster_position)
+                    .expect(&format!("Chunk with monster {:?} doesn't exist.", monster_position));
             let level_monster_pos = chunk.level_position(monster_position);
             let level_destination_pos = chunk.level_position(destination);
-            chunk.level.move_monster(level_monster_pos, level_destination_pos);
-        } else {  // Need to move the monster to another chunk
+            chunk
+                .level
+                .move_monster(level_monster_pos, level_destination_pos);
+        } else {
+            // Need to move the monster to another chunk
             //NOTE: We're not removing the monster from the
             // `chunk.monsters` vec in order not to mess up with the
             // indices there.
@@ -398,12 +410,15 @@ impl World {
                 self.remove_monster(monster_position);
                 assert!(self.walkable(monster_position, Walkability::BlockingMonsters));
                 new_monster.position = destination;
-                let destination_chunk = self.chunk_mut(destination).expect(
-                    &format!("Destination chunk at {:?} doesn't exist.", destination));
+                let destination_chunk =
+                    self.chunk_mut(destination)
+                        .expect(&format!("Destination chunk at {:?} doesn't exist.", destination));
                 let new_monster_index = destination_chunk.monsters.len();
                 destination_chunk.monsters.push(new_monster);
                 let destination_level_position = destination_chunk.level_position(destination);
-                destination_chunk.level.set_monster(destination_level_position, new_monster_index);
+                destination_chunk
+                    .level
+                    .set_monster(destination_level_position, new_monster_index);
             }
 
             assert!(!self.walkable(destination, Walkability::BlockingMonsters));
@@ -441,32 +456,35 @@ impl World {
         for pos in CircularArea::new(centre, radius) {
             // Make sure we don't go out of bounds with self.cell(pos):
             if !self.walkable(pos, Walkability::WalkthroughMonsters) {
-                continue
+                continue;
             }
             doses.extend(self.cell(pos)
-                         .map_or(vec![].iter(), |cell| cell.items.iter())
-                         .filter(|i| i.is_dose())
-                         .map(|&item| (pos, item)));
+                             .map_or(vec![].iter(), |cell| cell.items.iter())
+                             .filter(|i| i.is_dose())
+                             .map(|&item| (pos, item)));
         }
 
-        doses.pop().map(|dose| {
-            let mut result = dose;
-            for d in &doses {
-                if centre.tile_distance(d.0) < centre.tile_distance(result.0) {
-                    result = *d;
+        doses
+            .pop()
+            .map(|dose| {
+                let mut result = dose;
+                for d in &doses {
+                    if centre.tile_distance(d.0) < centre.tile_distance(result.0) {
+                        result = *d;
+                    }
                 }
-            }
-            result
-        })
+                result
+            })
     }
 
     /// Return a random walkable position next to the given point.
     ///
     /// If there is no such position available, return `starting_pos`.
-    pub fn random_neighbour_position<T: Rng>(&mut self, rng: &mut T,
+    pub fn random_neighbour_position<T: Rng>(&mut self,
+                                             rng: &mut T,
                                              starting_pos: Point,
-                                             walkability: Walkability) -> Point
-    {
+                                             walkability: Walkability)
+                                             -> Point {
         let mut walkables = vec![];
         for pos in SquareArea::new(starting_pos, 2) {
             if pos != starting_pos && self.walkable(pos, walkability) {
@@ -475,7 +493,7 @@ impl World {
         }
         match rng.choose(&walkables) {
             Some(&random_pos) => random_pos,
-            None => starting_pos  // Nowhere to go
+            None => starting_pos,  // Nowhere to go
         }
     }
 
@@ -489,7 +507,10 @@ impl World {
     }
 
     pub fn positions_of_all_chunks(&self) -> Vec<Point> {
-        self.chunks.keys().map(|chunk_pos| chunk_pos.position).collect()
+        self.chunks
+            .keys()
+            .map(|chunk_pos| chunk_pos.position)
+            .collect()
     }
 }
 
@@ -520,12 +541,11 @@ impl<'a> Iterator for Chunks<'a> {
             }
         };
 
-        while self.next_chunk_pos.y <= self.area.bottom_right.y
-        {
+        while self.next_chunk_pos.y <= self.area.bottom_right.y {
             let chunk = self.world.chunk(self.next_chunk_pos);
             self.next_chunk_pos = calculate_next_chunk_pos(self.next_chunk_pos);
             if chunk.is_some() {
-                return chunk
+                return chunk;
             }
         }
 

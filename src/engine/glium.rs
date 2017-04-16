@@ -28,7 +28,10 @@ impl PartialEq for Draw {
 }
 
 fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
-    [color.r as f32 / 255.0, color.g as f32 / 255.0, color.b as f32 / 255.0, alpha]
+    [color.r as f32 / 255.0,
+     color.g as f32 / 255.0,
+     color.b as f32 / 255.0,
+     alpha]
 }
 
 
@@ -144,9 +147,8 @@ pub fn main_loop<T>(display_size: Point,
                     default_background: Color,
                     window_title: &str,
                     mut state: T,
-                    update: UpdateFn<T>)
-{
-    let tilesize = 16;  // TODO: don't hardcode this value -- calculate it from the tilemap.
+                    update: UpdateFn<T>) {
+    let tilesize = 16; // TODO: don't hardcode this value -- calculate it from the tilemap.
     let (screen_width, screen_height) = (display_size.x as u32 * tilesize as u32,
                                          display_size.y as u32 * tilesize as u32);
 
@@ -165,17 +167,19 @@ pub fn main_loop<T>(display_size: Point,
                                vertex: include_str!("../shader_150.glslv"),
                                fragment: include_str!("../shader_150.glslf")
                            }
-        ).unwrap();
+        )
+            .unwrap();
 
     let texture = {
         use std::io::Cursor;
         let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
-        let image = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
+        let image = image::load(Cursor::new(data), image::PNG)
+            .unwrap()
+            .to_rgba();
         let (w, h) = image.dimensions();
         assert_eq!(w % tilesize, 0);
         assert_eq!(h % tilesize, 0);
-        let image = glium::texture::RawImage2d::from_raw_rgba(
-            image.into_raw(), (w, h));
+        let image = glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), (w, h));
         glium::texture::SrgbTexture2d::new(&display, image).unwrap()
     };
 
@@ -192,9 +196,7 @@ pub fn main_loop<T>(display_size: Point,
 
     // Main loop
 
-    let mut settings = Settings {
-        fullscreen: false,
-    };
+    let mut settings = Settings { fullscreen: false };
     let mut drawcalls = Vec::with_capacity(4000);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
@@ -204,7 +206,7 @@ pub fn main_loop<T>(display_size: Point,
     let mut rshift_pressed = false;
     let mut vertices = Vec::with_capacity(drawcalls.len() * 6);
     let mut keys = vec![];
-    let alpha = 1.0;  // We're not using alpha at all for now, but it's passed everywhere.
+    let alpha = 1.0; // We're not using alpha at all for now, but it's passed everywhere.
     let mut previous_frame_time = PreciseTime::now();
     let mut fps_clock = Duration::milliseconds(0);
     let mut frame_counter = 0;
@@ -225,7 +227,7 @@ pub fn main_loop<T>(display_size: Point,
         }
 
         drawcalls.clear();
-        drawcalls.push(Draw::Rectangle(Point {x: 0, y: 0}, display_size, default_background));
+        drawcalls.push(Draw::Rectangle(Point { x: 0, y: 0 }, display_size, default_background));
         match update(state,
                      dt,
                      display_size,
@@ -236,7 +238,7 @@ pub fn main_loop<T>(display_size: Point,
             Some((new_settings, new_state)) => {
                 state = new_state;
                 settings = new_settings;
-            },
+            }
             None => break,
         };
         keys.clear();
@@ -249,14 +251,14 @@ pub fn main_loop<T>(display_size: Point,
             use engine::Draw::*;
 
             match (a, b) {
-                (&Char(p1, ..), &Char (p2, ..)) => {
+                (&Char(p1, ..), &Char(p2, ..)) => {
                     let x_ordering = p1.x.cmp(&p2.x);
                     if x_ordering == Equal {
                         p1.y.cmp(&p2.y)
                     } else {
                         x_ordering
                     }
-                },
+                }
 
                 (&Background(..), &Background(..)) => Equal,
                 (&Text(..), &Text(..)) => Equal,
@@ -293,25 +295,37 @@ pub fn main_loop<T>(display_size: Point,
                     let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
                     let color = gl_color(foreground_color, alpha);
 
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y],
-                                           tilemap_index:  [tilemap_x, tilemap_y],
-                                           color: color  });
-                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
-                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y],
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
-                                           tilemap_index:  [tilemap_x, tilemap_y + 1.0],
-                                           color: color });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y],
+                                      tilemap_index: [tilemap_x, tilemap_y],
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + 1.0, pos_y],
+                                      tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y + 1.0],
+                                      tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                      color: color,
+                                  });
 
-                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
-                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y],
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
-                                           tilemap_index:  [tilemap_x, tilemap_y + 1.0],
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y + 1.0],
-                                           tilemap_index:  [tilemap_x + 1.0, tilemap_y + 1.0],
-                                           color: color });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + 1.0, pos_y],
+                                      tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y + 1.0],
+                                      tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + 1.0, pos_y + 1.0],
+                                      tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                                      color: color,
+                                  });
 
                 }
 
@@ -320,25 +334,37 @@ pub fn main_loop<T>(display_size: Point,
                     let tilemap_index = [0.0, 5.0];
                     let color = gl_color(background_color, alpha);
 
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color  });
-                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + 1.0, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y + 1.0],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
 
-                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y + 1.0],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + 1.0, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y + 1.0],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + 1.0, pos_y + 1.0],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
 
                 }
 
@@ -349,25 +375,37 @@ pub fn main_loop<T>(display_size: Point,
                         let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
                         let color = gl_color(color, alpha);
 
-                        vertices.push(Vertex { tile_position: [pos_x,   pos_y],
-                                               tilemap_index:  [tilemap_x, tilemap_y],
-                                               color: color  });
-                        vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
-                                               tilemap_index:  [tilemap_x + 1.0, tilemap_y],
-                                               color: color });
-                        vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
-                                               tilemap_index:  [tilemap_x, tilemap_y + 1.0],
-                                               color: color });
+                        vertices.push(Vertex {
+                                          tile_position: [pos_x, pos_y],
+                                          tilemap_index: [tilemap_x, tilemap_y],
+                                          color: color,
+                                      });
+                        vertices.push(Vertex {
+                                          tile_position: [pos_x + 1.0, pos_y],
+                                          tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                          color: color,
+                                      });
+                        vertices.push(Vertex {
+                                          tile_position: [pos_x, pos_y + 1.0],
+                                          tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                          color: color,
+                                      });
 
-                        vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y],
-                                               tilemap_index:  [tilemap_x + 1.0, tilemap_y],
-                                               color: color });
-                        vertices.push(Vertex { tile_position: [pos_x,   pos_y + 1.0],
-                                               tilemap_index:  [tilemap_x, tilemap_y + 1.0],
-                                               color: color });
-                        vertices.push(Vertex { tile_position: [pos_x + 1.0,   pos_y + 1.0],
-                                               tilemap_index:  [tilemap_x + 1.0, tilemap_y + 1.0],
-                                               color: color });
+                        vertices.push(Vertex {
+                                          tile_position: [pos_x + 1.0, pos_y],
+                                          tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                          color: color,
+                                      });
+                        vertices.push(Vertex {
+                                          tile_position: [pos_x, pos_y + 1.0],
+                                          tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                          color: color,
+                                      });
+                        vertices.push(Vertex {
+                                          tile_position: [pos_x + 1.0, pos_y + 1.0],
+                                          tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                                          color: color,
+                                      });
                     }
                 }
 
@@ -377,25 +415,37 @@ pub fn main_loop<T>(display_size: Point,
                     let tilemap_index = [0.0, 5.0];
                     let color = gl_color(color, alpha);
 
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color  });
-                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + dim_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + dim_x, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y + dim_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
 
-                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + dim_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y + dim_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + dim_x, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y + dim_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + dim_x, pos_y + dim_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
                 }
 
                 &Draw::Fade(fade, color) => {
@@ -407,25 +457,37 @@ pub fn main_loop<T>(display_size: Point,
                     let tilemap_index = [0.0, 5.0];
                     let color = gl_color(color, 1.0 - fade);
 
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color  });
-                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + dim_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + dim_x, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y + dim_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
 
-                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x,   pos_y + dim_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
-                    vertices.push(Vertex { tile_position: [pos_x + dim_x,   pos_y + dim_y],
-                                           tilemap_index:  tilemap_index,
-                                           color: color });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + dim_x, pos_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x, pos_y + dim_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
+                    vertices.push(Vertex {
+                                      tile_position: [pos_x + dim_x, pos_y + dim_y],
+                                      tilemap_index: tilemap_index,
+                                      color: color,
+                                  });
 
                 }
             }
@@ -437,14 +499,16 @@ pub fn main_loop<T>(display_size: Point,
         // Render
         let mut target = display.draw();
         target.clear_color_srgb(1.0, 0.0, 1.0, 1.0);
-        target.draw(&vertex_buffer,
-                    &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-                    &program,
-                    &uniforms,
-                    &DrawParameters {
-                        blend: glium::Blend::alpha_blending(),
-                        .. Default::default()
-                    }).unwrap();
+        target
+            .draw(&vertex_buffer,
+                  &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+                  &program,
+                  &uniforms,
+                  &DrawParameters {
+                       blend: glium::Blend::alpha_blending(),
+                       ..Default::default()
+                   })
+            .unwrap();
         target.finish().unwrap();
 
 
@@ -452,7 +516,6 @@ pub fn main_loop<T>(display_size: Point,
         for ev in display.poll_events() {
             match ev {
                 Event::Closed => return,   // the window has been closed by the user
-
 
                 Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::LControl)) => {
                     lctrl_pressed = true;
@@ -496,15 +559,16 @@ pub fn main_loop<T>(display_size: Point,
                     //self.key_events.push((code, press_state));
                     if let Some(code) = key_code_from_backend(key_code) {
                         keys.push(Key {
-                            code: code,
-                            alt: lalt_pressed || ralt_pressed,
-                            ctrl: lctrl_pressed || rctrl_pressed,
-                            shift: lshift_pressed || rshift_pressed,
-                        });
+                                      code: code,
+                                      alt: lalt_pressed || ralt_pressed,
+                                      ctrl: lctrl_pressed || rctrl_pressed,
+                                      shift: lshift_pressed || rshift_pressed,
+                                  });
                     }
                 }
 
-                Event::Focused(false) | Event::Suspended(false) => {
+                Event::Focused(false) |
+                Event::Suspended(false) => {
                     lctrl_pressed = false;
                     rctrl_pressed = false;
                     lalt_pressed = false;
@@ -513,7 +577,7 @@ pub fn main_loop<T>(display_size: Point,
                     rshift_pressed = false;
                 }
 
-                _ => ()
+                _ => (),
             }
         }
 

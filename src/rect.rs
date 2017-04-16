@@ -8,7 +8,6 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
-
     /// Create a new rectangle defined by its middle point and
     /// (half-width, half-height).
     ///
@@ -47,7 +46,7 @@ pub struct RectangleIterator {
 }
 
 impl Iterator for RectangleIterator {
-    type Item=Point;
+    type Item = Point;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.current.y > self.rect.bottom_right.y {
@@ -55,7 +54,10 @@ impl Iterator for RectangleIterator {
         } else {
             let result = self.current;
             if self.current.x == self.rect.bottom_right.x {
-                self.current = Point { x: self.rect.top_left.x, y: self.current.y + 1};
+                self.current = Point {
+                    x: self.rect.top_left.x,
+                    y: self.current.y + 1,
+                };
             } else {
                 self.current += (1, 0);
             }

@@ -47,22 +47,27 @@ fn main() {
 
     lookup_table_fn_definition.push_str(
         "fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n");
-    lookup_table_fn_definition.push_str(
-        "match chr {\n");
+    lookup_table_fn_definition.push_str("match chr {\n");
     for &(index, chr) in &lookup_table {
-        lookup_table_fn_definition.push_str(
-            &format!("  {:?} => Some(({}, 0)),\n", chr, index));
+        lookup_table_fn_definition.push_str(&format!("  {:?} => Some(({}, 0)),\n", chr, index));
     }
     lookup_table_fn_definition.push_str("_ => None,\n}\n}\n");
 
     let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs")).unwrap();
-    lt_file.write_all(lookup_table_fn_definition.as_bytes()).unwrap();
+    lt_file
+        .write_all(lookup_table_fn_definition.as_bytes())
+        .unwrap();
 
 
     // TODO: center the characters horizontaly
-    let glyphs: Vec<PositionedGlyph> = lookup_table.iter()
-        .map(|&(index, chr)| font.glyph(chr).unwrap().scaled(scale)
-             .positioned(point(height * index as f32, v_metrics.ascent)))
+    let glyphs: Vec<PositionedGlyph> = lookup_table
+        .iter()
+        .map(|&(index, chr)| {
+                 font.glyph(chr)
+                     .unwrap()
+                     .scaled(scale)
+                     .positioned(point(height * index as f32, v_metrics.ascent))
+             })
         .collect();
 
     let width = pixel_height * glyphs.iter().count();
@@ -88,9 +93,7 @@ fn main() {
                 // There's still a possibility that the glyph clips the boundaries of the bitmap
                 if x >= 0 && x < width as i32 && y >= 0 && y < pixel_height as i32 {
                     let alpha = (v * 255.0) as u8;
-                    let pixel = Rgba {
-                        data: [255, 255, 255, alpha]
-                    };
+                    let pixel = Rgba { data: [255, 255, 255, alpha] };
                     fontmap.put_pixel(x as u32, y as u32, pixel);
                 }
             })

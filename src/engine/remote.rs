@@ -21,9 +21,7 @@ impl ZeroMQ {
         let socket = ctx.socket(zmq::REP)?;
         socket.bind(connection)?;
 
-        Ok(ZeroMQ {
-            socket: socket,
-        })
+        Ok(ZeroMQ { socket: socket })
     }
 
     fn try_read_key(&self) -> Result<Option<Key>, Box<Error>> {
@@ -31,7 +29,9 @@ impl ZeroMQ {
         if poll_status == 0 {
             Ok(None)
         } else {
-            let key_data = self.socket.recv_bytes(0).map(|bytes| String::from_utf8(bytes))??;
+            let key_data = self.socket
+                .recv_bytes(0)
+                .map(|bytes| String::from_utf8(bytes))??;
             let key = serde_json::from_str(&key_data)?;
             Ok(Some(key))
         }
@@ -78,16 +78,13 @@ pub fn main_loop<T>(display_size: Point,
                     _default_background: Color,
                     _window_title: &str,
                     mut state: T,
-                    update: UpdateFn<T>)
-{
+                    update: UpdateFn<T>) {
     let ipc = match ZeroMQ::new("ipc:///tmp/dose-response.ipc") {
         Ok(ipc) => ipc,
         Err(err) => panic!("Could not create a ZeroMQ socket: {:?}", err),
     };
 
-    let settings = Settings {
-        fullscreen: false,
-    };
+    let settings = Settings { fullscreen: false };
     let mut keys = vec![];
     let mut drawcalls = Vec::with_capacity(4000);
     let mut display = Display::new(display_size.x, display_size.y);
@@ -101,7 +98,7 @@ pub fn main_loop<T>(display_size: Point,
             Ok(Some(key)) => {
                 keys.push(key);
             }
-            Ok(None) => {},
+            Ok(None) => {}
             Err(err) => panic!("Error reading a key {:?}", err),
         };
 
@@ -129,11 +126,11 @@ pub fn main_loop<T>(display_size: Point,
                 // we don't mind. We ran the update, that's all we
                 // wanted to do.
                 let _ = ipc.send_display(&display);
-            },
+            }
             None => {
                 // TODO: send a QUIT message here
-                break
-            },
+                break;
+            }
         };
 
         thread::sleep(Duration::milliseconds(16).to_std().unwrap());

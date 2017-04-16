@@ -6,21 +6,9 @@ use player;
 pub fn exploration_radius(mental_state: player::Mind) -> i32 {
     use player::Mind::*;
     match mental_state {
-        Withdrawal(value) => {
-            if *value >= value.middle() {
-                5
-            } else {
-                4
-            }
-        }
+        Withdrawal(value) => if *value >= value.middle() { 5 } else { 4 },
         Sober(_) => 6,
-        High(value) => {
-            if *value >= value.middle() {
-                8
-            } else {
-                7
-            }
-        }
+        High(value) => if *value >= value.middle() { 8 } else { 7 },
     }
 }
 

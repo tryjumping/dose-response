@@ -34,7 +34,6 @@ impl Timer {
     pub fn finished(&self) -> bool {
         self.current.is_zero()
     }
-
 }
 
 pub struct Stopwatch {
@@ -43,9 +42,7 @@ pub struct Stopwatch {
 
 impl Stopwatch {
     pub fn start() -> Self {
-        Stopwatch {
-            start: PreciseTime::now(),
-        }
+        Stopwatch { start: PreciseTime::now() }
     }
 
     pub fn finish(self) -> Duration {

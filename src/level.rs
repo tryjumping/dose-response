@@ -56,7 +56,6 @@ impl Tile {
             fg_color: color,
         }
     }
-
 }
 
 
@@ -93,11 +92,15 @@ impl Level {
         Level {
             dimensions: dimensions,
             monsters: HashMap::new(),
-            map: (0..map_size).map(|_| Cell{
-                tile: Tile::new(TileKind::Empty),
-                items: vec![],
-                explored: false,
-            }).collect(),
+            map: (0..map_size)
+                .map(|_| {
+                         Cell {
+                             tile: Tile::new(TileKind::Empty),
+                             items: vec![],
+                             explored: false,
+                         }
+                     })
+                .collect(),
         }
     }
 
@@ -108,9 +111,7 @@ impl Level {
         assert!(pos.y >= 0);
         assert!(pos.x < self.dimensions.x);
         assert!(pos.y < self.dimensions.y);
-        LevelPosition {
-            pos: pos
-        }
+        LevelPosition { pos: pos }
     }
 
     fn index(&self, pos: LevelPosition) -> usize {
@@ -161,7 +162,8 @@ impl Level {
         // is already occupied:
         if self.monsters.contains_key(&destination) {
             panic!("Trying to move monster from {:?} to {:?}, but that's already occupied.",
-                   monster_position, destination);
+                   monster_position,
+                   destination);
         } else {
             if let Some(monster_index) = self.monsters.remove(&monster_position) {
                 self.monsters.insert(destination, monster_index);
@@ -178,7 +180,6 @@ impl Level {
             inner: self.map.iter(),
         }
     }
-
 }
 
 pub struct Cells<'a> {
@@ -195,9 +196,7 @@ impl<'a> Iterator for Cells<'a> {
         let level_position = LevelPosition { pos: pos };
         self.index += 1;
         match self.inner.next() {
-            Some(cell) => {
-                Some((level_position, cell))
-            }
+            Some(cell) => Some((level_position, cell)),
             None => None,
         }
     }

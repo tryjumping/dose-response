@@ -44,13 +44,13 @@ pub struct Settings {
 
 
 pub type UpdateFn<T> = fn(T,
-                       dt: Duration,
-                       size: Point,
-                       fps: i32,
-                       keys: &[Key],
-                       settings: Settings,
-                       drawcalls: &mut Vec<Draw>)
-                       -> Option<(Settings, T)>;
+                          dt: Duration,
+                          size: Point,
+                          fps: i32,
+                          keys: &[Key],
+                          settings: Settings,
+                          drawcalls: &mut Vec<Draw>)
+                          -> Option<(Settings, T)>;
 
 
 // NOTE:

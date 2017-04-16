@@ -70,24 +70,34 @@ impl Monster {
     pub fn attack_damage(&self) -> Modifier {
         use player::Modifier::*;
         match self.kind {
-            Anxiety => Attribute{will: -1, state_of_mind: 0},
+            Anxiety => {
+                Attribute {
+                    will: -1,
+                    state_of_mind: 0,
+                }
+            }
             Depression => Death,
-            Hunger => Attribute{will: 0, state_of_mind: -20},
+            Hunger => {
+                Attribute {
+                    will: 0,
+                    state_of_mind: -20,
+                }
+            }
             Shadows => Panic(4),
             Voices => Stun(4),
         }
     }
 
-    pub fn act<R: Rng>(&self, player_pos: Point, world: &mut World, rng: &mut R) -> (AIState, Action) {
+    pub fn act<R: Rng>(&self,
+                       player_pos: Point,
+                       world: &mut World,
+                       rng: &mut R)
+                       -> (AIState, Action) {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
         let distance = self.position.tile_distance(player_pos);
-        let ai_state = if distance <= 5 {
-            Chasing
-        } else {
-            Idle
-        };
+        let ai_state = if distance <= 5 { Chasing } else { Idle };
 
         let action = match self.ai_state {
             Chasing => {
@@ -100,21 +110,24 @@ impl Monster {
             Idle => {
                 let destination = if self.path.is_empty() {
                     // Move randomly about
-                    let mut destination = world.random_neighbour_position(
-                        rng, self.position, Walkability::BlockingMonsters);
+                    let mut destination =
+                        world.random_neighbour_position(rng,
+                                                        self.position,
+                                                        Walkability::BlockingMonsters);
 
                     for _ in 0..10 {
                         let x = rng.gen_range(-8, 9);
                         let y = rng.gen_range(-8, 9);
                         let candidate = self.position + (x, y);
                         if x.abs() > 2 && y.abs() > 2 &&
-                            world.walkable(candidate, Walkability::WalkthroughMonsters) {
-                                destination = candidate;
-                                break;
-                            }
-                    };
+                           world.walkable(candidate, Walkability::WalkthroughMonsters) {
+                            destination = candidate;
+                            break;
+                        }
+                    }
                     destination
-                } else {  // We already have a path, just set the same destination:
+                } else {
+                    // We already have a path, just set the same destination:
                     *self.path.last().unwrap()
                 };
                 Action::Move(destination)

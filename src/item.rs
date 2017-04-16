@@ -18,11 +18,11 @@ pub enum Kind {
 
 impl Kind {
     pub fn iter() -> KindIterator {
-        KindIterator{ current: Some(self::Kind::Food) }
+        KindIterator { current: Some(self::Kind::Food) }
     }
 }
 
-pub struct KindIterator{
+pub struct KindIterator {
     current: Option<Kind>,
 }
 

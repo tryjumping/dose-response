@@ -158,7 +158,8 @@ mod test {
         assert_eq!(RangedInt::new(1, -5, 5) + (-5), RangedInt::new(-4, -5, 5));
         assert_eq!(RangedInt::new(1, -5, 5) + (-6), RangedInt::new(-5, -5, 5));
         assert_eq!(RangedInt::new(1, -5, 5) + (-7), RangedInt::new(-5, -5, 5));
-        assert_eq!(RangedInt::new(1, -5, 5) + (-9328), RangedInt::new(-5, -5, 5));
+        assert_eq!(RangedInt::new(1, -5, 5) + (-9328),
+                   RangedInt::new(-5, -5, 5));
         assert_eq!(RangedInt::new(1, -5, 5) + MIN, RangedInt::new(-5, -5, 5));
     }
 

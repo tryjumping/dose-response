@@ -68,21 +68,29 @@ impl Stats {
     }
 
     pub fn longest_update(&self) -> Duration {
-        self.longest_updates.last().cloned().unwrap_or(Duration::seconds(0))
+        self.longest_updates
+            .last()
+            .cloned()
+            .unwrap_or(Duration::seconds(0))
     }
 
     pub fn longest_drawcalls(&self) -> Duration {
-        self.longest_drawcalls.last().cloned().unwrap_or(Duration::seconds(0))
+        self.longest_drawcalls
+            .last()
+            .cloned()
+            .unwrap_or(Duration::seconds(0))
     }
 
     pub fn mean_update(&self) -> f32 {
-        self.frame_stats.iter()
+        self.frame_stats
+            .iter()
             .map(|fs| fs.update.num_milliseconds() as f32)
             .fold(0.0, |acc, dur| acc + dur) / (self.frame_stats.len() as f32)
     }
 
     pub fn mean_drawcalls(&self) -> f32 {
-        self.frame_stats.iter()
+        self.frame_stats
+            .iter()
             .map(|fs| fs.drawcalls.num_milliseconds() as f32)
             .fold(0.0, |acc, dur| acc + dur) / (self.frame_stats.len() as f32)
     }
@@ -94,13 +102,12 @@ impl Stats {
     pub fn longest_drawcall_durations(&self) -> &[Duration] {
         &self.longest_drawcalls
     }
-
 }
 
 pub struct FrameStatsIterator<'a> {
     frame_stats: &'a VecDeque<FrameStats>,
-    count: usize,  // starts at zero, goes up until size-1
-    size: usize,  // the final number of items the iterator produces
+    count: usize, // starts at zero, goes up until size-1
+    size: usize, // the final number of items the iterator produces
 }
 
 impl<'a> Iterator for FrameStatsIterator<'a> {

@@ -1,19 +1,12 @@
-use std::cmp;
 use std::fmt::{Display, Error, Formatter};
 use time::Duration;
 
 use color::{self, Color};
 use item::Item;
+use formula::{self, ANXIETIES_PER_WILL, SOBER_MAX, WILL_MAX, WITHDRAWAL_MAX};
 use graphics::Render;
 use point::Point;
 use ranged_int::RangedInt;
-
-
-const WILL_MAX: i32 = 5;
-const ANXIETIES_PER_WILL: i32 = 7;
-const WITHDRAWAL_MAX: i32 = 15;
-const HIGH_MAX: i32 = 80;
-const SOBER_MAX: i32 = 20;
 
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -219,38 +212,9 @@ impl Player {
                 state_of_mind,
                 tolerance_increase,
             } => {
-                let state_of_mind_bonus =
-                    cmp::max(10, (state_of_mind - self.tolerance));
-                self.mind = match self.mind {
-                    Mind::Withdrawal(val) => {
-                        let intoxication_gain = *val + state_of_mind_bonus -
-                                                val.max();
-                        if intoxication_gain <= 0 {
-                            Mind::Withdrawal(val + state_of_mind_bonus)
-                        } else if intoxication_gain <= SOBER_MAX {
-                            Mind::Sober(RangedInt::new(intoxication_gain,
-                                                       0,
-                                                       SOBER_MAX))
-                        } else {
-                            Mind::High(RangedInt::new(intoxication_gain -
-                                                      SOBER_MAX,
-                                                      0,
-                                                      HIGH_MAX))
-                        }
-                    }
-                    Mind::Sober(val) => {
-                        if state_of_mind_bonus > val.max() - *val {
-                            Mind::High(RangedInt::new(state_of_mind_bonus +
-                                                      *val -
-                                                      val.max(),
-                                                      0,
-                                                      HIGH_MAX))
-                        } else {
-                            Mind::Sober(val + state_of_mind_bonus)
-                        }
-                    }
-                    Mind::High(val) => Mind::High(val + state_of_mind_bonus),
-                };
+                self.mind = formula::intoxicate(self.mind,
+                                                self.tolerance,
+                                                state_of_mind);
                 self.tolerance += tolerance_increase;
                 self.sobriety_counter.set_to_min();
             }

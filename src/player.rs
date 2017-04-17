@@ -3,7 +3,8 @@ use time::Duration;
 
 use color::{self, Color};
 use item::Item;
-use formula::{self, ANXIETIES_PER_WILL, SOBER_MAX, WILL_MAX, WITHDRAWAL_MAX};
+use formula::{self, ANXIETIES_PER_WILL, SOBER_MAX, WILL_MAX, WILL_MIN,
+              WITHDRAWAL_MAX};
 use graphics::Render;
 use point::Point;
 use ranged_int::RangedInt;
@@ -118,7 +119,7 @@ impl Player {
             mind: Mind::Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
                                                   0,
                                                   WITHDRAWAL_MAX)),
-            will: RangedInt::new(2, 0, WILL_MAX),
+            will: RangedInt::new(2, WILL_MIN, WILL_MAX),
             tolerance: 0,
             panic: RangedInt::new(0, 0, 100),
             stun: RangedInt::new(0, 0, 100),
@@ -180,33 +181,7 @@ impl Player {
                 if !self.will.is_max() {
                     self.sobriety_counter.set_to_min();
                 }
-                self.mind = match self.mind {
-                    Mind::Withdrawal(val) => {
-                        let new_val = val + state_of_mind;
-                        if new_val.is_max() {
-                            Mind::Sober(RangedInt::new(val.max() - *val +
-                                                       state_of_mind,
-                                                       0,
-                                                       SOBER_MAX))
-                        } else {
-                            Mind::Withdrawal(new_val)
-                        }
-                    }
-                    Mind::Sober(val) => Mind::Sober(val + state_of_mind),
-                    Mind::High(val) => {
-                        // NOTE: Food and Hunger are the only users of
-                        // the attribute modifier so far.
-                        //
-                        // For hunger, we want it to go down even
-                        // while High but it should not increase the
-                        // intoxication value.
-                        if state_of_mind > 0 {
-                            Mind::High(val)
-                        } else {
-                            Mind::High(val + state_of_mind)
-                        }
-                    }
-                };
+                self.mind = formula::process_hunger(self.mind, state_of_mind);
             }
             Intoxication {
                 state_of_mind,
@@ -225,6 +200,7 @@ impl Player {
                 self.stun += turns;
             }
         }
+
         match self.mind {
             Mind::High(val) if *val == val.max() - 1 => {
                 self.bonus = Bonus::UncoverMap

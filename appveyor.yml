@@ -68,9 +68,5 @@ branches:
     - /^v\d+\.\d+\.\d+.*$/
     - master
 
-notifications:
-  - provider: Email
-    on_build_success: false
-
 # disable automatic builds
 build: false

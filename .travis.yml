@@ -83,7 +83,3 @@ branches:
     # release tags
     - /^v\d+\.\d+\.\d+.*$/
     - master
-
-notifications:
-  email:
-    on_success: never

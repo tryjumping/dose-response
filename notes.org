@@ -1,11 +1,6 @@
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
-* Make game procesing turn-dependent, not realtime                     :code:
-** The replay desync showed us that the processing and rendering are all over the place
-** We need to separate the state modification to when a player did something
-** And rendering which should be completely immutable
-** I guess it's time for the split of the `update` function
 * Display next actions in the game over menu                             :ui:
 ** "Press [F5] to start a new game"
 ** "Press [Q] to quit"
@@ -966,3 +961,12 @@ to use the shattering doses earlier than they should.
 
 In addition, we should make sure that the shattering doses can't be
 consumable at the beginning of the game.
+** DONE Make game procesing turn-dependent, not realtime              :code:
+CLOSED: [2017-04-17 Mon 19:11]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-17 Mon 19:11
+:END:
+*** The replay desync showed us that the processing and rendering are all over the place
+*** We need to separate the state modification to when a player did something
+*** And rendering which should be completely immutable
+*** I guess it's time for the split of the `update` function

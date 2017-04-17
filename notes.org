@@ -4,6 +4,7 @@
 * Display next actions in the game over menu                             :ui:
 ** "Press [F5] to start a new game"
 ** "Press [Q] to quit"
+* Move all game formulas and numbers to the `formula` module           :code:
 * Special "gun" equipment                                              :idea:
 ** changes the movement behaviour:
 When there is a monster in the direction of the movement (within 4

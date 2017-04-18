@@ -35,33 +35,6 @@ pub enum Mind {
 }
 
 impl Mind {
-    pub fn update(&self) -> Self {
-        use self::Mind::*;
-        match *self {
-            Withdrawal(value) => Withdrawal(value - 1),
-            Sober(value) => {
-                let new_value = value - 1;
-                if new_value.is_min() {
-                    Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
-                                              WITHDRAWAL_MIN,
-                                              WITHDRAWAL_MAX))
-                } else {
-                    Sober(new_value)
-                }
-            }
-            High(value) => {
-                let new_value = value - 1;
-                if new_value.is_min() {
-                    Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
-                                              WITHDRAWAL_MIN,
-                                              WITHDRAWAL_MAX))
-                } else {
-                    High(new_value)
-                }
-            }
-        }
-    }
-
     pub fn is_high(&self) -> bool {
         match self {
             &Mind::High(_) => true,
@@ -158,7 +131,7 @@ impl Player {
         if self.alive() {
             self.stun -= 1;
             self.panic -= 1;
-            self.mind = self.mind.update();
+            self.mind = formula::mind_take_turn(self.mind);
             self.ap = self.max_ap;
         }
     }

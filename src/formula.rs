@@ -31,6 +31,34 @@ pub fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 }
 
 
+pub fn mind_take_turn(mind: Mind) -> Mind {
+    use self::Mind::*;
+    match mind {
+        Withdrawal(value) => Withdrawal(value - 1),
+        Sober(value) => {
+            let new_value = value - 1;
+            if new_value.is_min() {
+                Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
+                                          WITHDRAWAL_MIN,
+                                          WITHDRAWAL_MAX))
+            } else {
+                Sober(new_value)
+            }
+        }
+        High(value) => {
+            let new_value = value - 1;
+            if new_value.is_min() {
+                Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
+                                          WITHDRAWAL_MIN,
+                                          WITHDRAWAL_MAX))
+            } else {
+                High(new_value)
+            }
+        }
+    }
+}
+
+
 /// Update the `Mind` when eating food or being hit by the Hunger
 /// monster.
 pub fn process_hunger(mind: Mind, amount: i32) -> Mind {

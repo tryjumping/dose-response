@@ -3,7 +3,7 @@ use time::Duration;
 
 use color::{self, Color};
 use item::Item;
-use formula::{self, ANXIETIES_PER_WILL, SOBER_MAX, WILL_MAX, WILL_MIN,
+use formula::{self, ANXIETIES_PER_WILL, WILL_MAX, WILL_MIN, WITHDRAWAL_MIN,
               WITHDRAWAL_MAX};
 use graphics::Render;
 use point::Point;
@@ -43,7 +43,7 @@ impl Mind {
                 let new_value = value - 1;
                 if new_value.is_min() {
                     Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
-                                              0,
+                                              WITHDRAWAL_MIN,
                                               WITHDRAWAL_MAX))
                 } else {
                     Sober(new_value)
@@ -53,7 +53,7 @@ impl Mind {
                 let new_value = value - 1;
                 if new_value.is_min() {
                     Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
-                                              0,
+                                              WITHDRAWAL_MIN,
                                               WITHDRAWAL_MAX))
                 } else {
                     High(new_value)
@@ -117,7 +117,7 @@ impl Player {
     pub fn new(pos: Point, invincible: bool) -> Player {
         Player {
             mind: Mind::Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
-                                                  0,
+                                                  WITHDRAWAL_MIN,
                                                   WITHDRAWAL_MAX)),
             will: RangedInt::new(2, WILL_MIN, WILL_MAX),
             tolerance: 0,

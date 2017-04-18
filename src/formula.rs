@@ -14,6 +14,9 @@ pub const SOBER_MIN: i32 = 0;
 pub const SOBER_MAX: i32 = 20;
 pub const HIGH_MIN: i32 = 0;
 pub const HIGH_MAX: i32 = 80;
+pub const SOBRIETY_COUNTER_MAX: i32 = 100;
+pub const PANIC_TURNS_MAX: i32 = 10;
+pub const STUN_TURNS_MAX: i32 = 10;
 
 
 pub fn exploration_radius(mental_state: Mind) -> i32 {

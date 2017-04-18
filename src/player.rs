@@ -3,8 +3,8 @@ use time::Duration;
 
 use color::{self, Color};
 use item::Item;
-use formula::{self, ANXIETIES_PER_WILL, WILL_MAX, WILL_MIN, WITHDRAWAL_MIN,
-              WITHDRAWAL_MAX};
+use formula::{self, ANXIETIES_PER_WILL, WILL_MAX, WILL_MIN,
+              SOBRIETY_COUNTER_MAX, WITHDRAWAL_MIN, WITHDRAWAL_MAX};
 use graphics::Render;
 use point::Point;
 use ranged_int::RangedInt;
@@ -94,8 +94,8 @@ impl Player {
                                                   WITHDRAWAL_MAX)),
             will: RangedInt::new(2, WILL_MIN, WILL_MAX),
             tolerance: 0,
-            panic: RangedInt::new(0, 0, 100),
-            stun: RangedInt::new(0, 0, 100),
+            panic: RangedInt::new(0, 0, formula::PANIC_TURNS_MAX),
+            stun: RangedInt::new(0, 0, formula::STUN_TURNS_MAX),
             pos: pos,
             inventory: vec![],
             anxiety_counter: RangedInt::new(0, 0, ANXIETIES_PER_WILL),
@@ -104,7 +104,7 @@ impl Player {
             max_ap: 1,
             ap: 1,
             bonus: Bonus::None,
-            sobriety_counter: RangedInt::new(0, 0, 100),
+            sobriety_counter: RangedInt::new(0, 0, SOBRIETY_COUNTER_MAX),
             current_high_streak: 0,
             longest_high_streak: 0,
         }

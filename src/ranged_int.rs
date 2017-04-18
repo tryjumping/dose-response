@@ -1,59 +1,63 @@
+use std::cmp;
 use std::ops::{Add, AddAssign, Deref, Sub, SubAssign};
+
+
+// TODO: Basically the reason we do this instead of `std::ops::Range`
+// is that Range is non-copy. I'd also prefer to use the inclusive
+// range, but that's not stabilised yet.
+//
+// So: if `std::ops::Range` ever gets `Copy`, use it instead. It will
+// let us do `min..max+1` or `min...max` in the `formulas` module.
+//
+// NOTE: looking at the previous discussions, the std policy is to not
+// implement Copy for iterators (and range is an iterator), because it
+// can easily create footguns (you "move" an iterator, then call iter
+// on the original nad it works but from the initial state). So we're
+// probably stuck with this instead of the nicer syntax. Oh well.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct InclusiveRange(pub i32, pub i32);
 
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Ranged {
     val: i32,
-    _min: i32,
-    _max: i32,
+    range: InclusiveRange,
 }
 
 impl Ranged {
-    pub fn new(value: i32, min: i32, max: i32) -> Self {
-        assert!(min <= max);
-        let val = if value < min {
-            min
-        } else if value > max {
-            max
-        } else {
-            value
-        };
-        Ranged { val: val, _min: min, _max: max }
+    pub fn new(value: i32, range: InclusiveRange) -> Self {
+        assert!(range.0 <= range.1);
+        let value = cmp::max(value, range.0);
+        let value = cmp::min(value, range.1);
+        Ranged { val: value, range: range }
     }
 
-    pub fn new_min(min: i32, max: i32) -> Self {
-        Self::new(min, min, max)
+    pub fn new_min(range: InclusiveRange) -> Self {
+        Self::new(range.0, range)
     }
 
-    pub fn new_max(min: i32, max: i32) -> Self {
-        Self::new(max, min, max)
+    pub fn new_max(range: InclusiveRange) -> Self {
+        Self::new(range.1, range)
     }
-
-    // NOTE: this is no longer being used -- lets just comment it out for now
-    // pub fn set(&mut self, n: i32) {
-    //     assert!(n >= self._min);
-    //     assert!(n <= self._max);
-    //     self.val = n;
-    // }
 
     pub fn set_to_min(&mut self) {
-        self.val = self._min
+        self.val = self.min()
     }
 
     pub fn min(&self) -> i32 {
-        self._min
+        self.range.0
     }
 
     pub fn max(&self) -> i32 {
-        self._max
+        self.range.1
     }
 
     pub fn is_min(&self) -> bool {
-        self.val == self._min
+        self.val == self.min()
     }
 
     pub fn is_max(&self) -> bool {
-        self.val == self._max
+        self.val == self.max()
     }
 
     pub fn middle(&self) -> i32 {
@@ -74,20 +78,20 @@ impl Add<i32> for Ranged {
     fn add(self, other: i32) -> Self::Output {
         match self.val.checked_add(other) {
             Some(v) => {
-                let new_val = if v > self._max {
-                    self._max
-                } else if v < self._min {
-                    self._min
+                let new_val = if v > self.max() {
+                    self.max()
+                } else if v < self.min() {
+                    self.min()
                 } else {
                     v
                 };
-                Ranged::new(new_val, self._min, self._max)
+                Ranged::new(new_val, self.range)
             }
             None => {
                 if other > 0 {
-                    Ranged::new(self._max, self._min, self._max)
+                    Ranged::new_max(self.range)
                 } else {
-                    Ranged::new(self._min, self._min, self._max)
+                    Ranged::new_min(self.range)
                 }
             }
         }
@@ -106,7 +110,7 @@ impl Sub<i32> for Ranged {
     fn sub(self, other: i32) -> Self::Output {
         let (negated_val, overflowed) = other.overflowing_neg();
         if overflowed {
-            Ranged::new(self._max, self._min, self._max)
+            Ranged::new_max(self.range)
         } else {
             self + negated_val
         }

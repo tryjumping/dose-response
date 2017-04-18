@@ -4,12 +4,6 @@
 * Display next actions in the game over menu                             :ui:
 ** "Press [F5] to start a new game"
 ** "Press [Q] to quit"
-* Move all game formulas and numbers to the `formula` module           :code:
-* Replace the _MIN/_MAX values with a range                            :code:
-** Problem: std::ops::Range is non-copy so we can't really use it in constants
-** But we could create `struct InclusiveRange(u32, u32)` + Into<Range>
-** And have RangeInt take Into<Range>
-** If/when the inclusive range gets stabilised + Copy we can use `min...max`
 * Special "gun" equipment                                              :idea:
 ** changes the movement behaviour:
 When there is a monster in the direction of the movement (within 4
@@ -978,3 +972,17 @@ CLOSED: [2017-04-17 Mon 19:11]
 *** We need to separate the state modification to when a player did something
 *** And rendering which should be completely immutable
 *** I guess it's time for the split of the `update` function
+** DONE Replace the _MIN/_MAX values with a range                     :code:
+CLOSED: [2017-04-18 Tue 13:41]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-18 Tue 13:41
+:END:
+*** Problem: std::ops::Range is non-copy so we can't really use it in constants
+*** But we could create `struct InclusiveRange(u32, u32)` + Into<Range>
+*** And have RangeInt take Into<Range>
+*** If/when the inclusive range gets stabilised + Copy we can use `min...max`
+** DONE Move all game formulas and numbers to the `formula` module    :code:
+CLOSED: [2017-04-18 Tue 13:41]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-18 Tue 13:41
+:END:

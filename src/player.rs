@@ -3,8 +3,7 @@ use time::Duration;
 
 use color::{self, Color};
 use item::Item;
-use formula::{self, ANXIETIES_PER_WILL, WILL_MAX, WILL_MIN,
-              SOBRIETY_COUNTER_MAX, WITHDRAWAL_MIN, WITHDRAWAL_MAX};
+use formula::{self, ANXIETIES_PER_WILL, WILL, SOBRIETY_COUNTER, WITHDRAWAL};
 use graphics::Render;
 use point::Point;
 use ranged_int::Ranged;
@@ -89,21 +88,20 @@ pub struct Player {
 impl Player {
     pub fn new(pos: Point, invincible: bool) -> Player {
         Player {
-            mind: Mind::Withdrawal(Ranged::new_max(WITHDRAWAL_MIN,
-                                                   WITHDRAWAL_MAX)),
-            will: Ranged::new(2, WILL_MIN, WILL_MAX),
+            mind: Mind::Withdrawal(Ranged::new_max(WITHDRAWAL)),
+            will: Ranged::new(2, WILL),
             tolerance: 0,
-            panic: Ranged::new_min(0, formula::PANIC_TURNS_MAX),
-            stun: Ranged::new_min(0, formula::STUN_TURNS_MAX),
+            panic: Ranged::new_min(formula::PANIC_TURNS),
+            stun: Ranged::new_min(formula::STUN_TURNS),
             pos: pos,
             inventory: vec![],
-            anxiety_counter: Ranged::new_min(0, ANXIETIES_PER_WILL),
+            anxiety_counter: Ranged::new_min(ANXIETIES_PER_WILL),
             dead: false,
             invincible: invincible,
             max_ap: 1,
             ap: 1,
             bonus: Bonus::None,
-            sobriety_counter: Ranged::new_min(0, SOBRIETY_COUNTER_MAX),
+            sobriety_counter: Ranged::new_min(SOBRIETY_COUNTER),
             current_high_streak: 0,
             longest_high_streak: 0,
         }

@@ -1,22 +1,18 @@
 use std::cmp;
 
 use player::{Bonus, Mind};
-use ranged_int::Ranged;
+use ranged_int::{InclusiveRange, Ranged};
 
 
-pub const ANXIETIES_PER_WILL: i32 = 7;
+pub const ANXIETIES_PER_WILL: InclusiveRange = InclusiveRange(0, 7);
 
-pub const WILL_MIN: i32 = 0;
-pub const WILL_MAX: i32 = 5;
-pub const WITHDRAWAL_MIN: i32 = 0;
-pub const WITHDRAWAL_MAX: i32 = 15;
-pub const SOBER_MIN: i32 = 0;
-pub const SOBER_MAX: i32 = 20;
-pub const HIGH_MIN: i32 = 0;
-pub const HIGH_MAX: i32 = 80;
-pub const SOBRIETY_COUNTER_MAX: i32 = 100;
-pub const PANIC_TURNS_MAX: i32 = 10;
-pub const STUN_TURNS_MAX: i32 = 10;
+pub const WILL: InclusiveRange = InclusiveRange(0, 5);
+pub const WITHDRAWAL: InclusiveRange = InclusiveRange(0, 15);
+pub const SOBER: InclusiveRange = InclusiveRange(0, 20);
+pub const HIGH: InclusiveRange = InclusiveRange(0, 80);
+pub const SOBRIETY_COUNTER: InclusiveRange = InclusiveRange(0, 100);
+pub const PANIC_TURNS: InclusiveRange = InclusiveRange(0, 10);
+pub const STUN_TURNS: InclusiveRange = InclusiveRange(0, 10);
 
 
 pub fn exploration_radius(mental_state: Mind) -> i32 {
@@ -41,7 +37,7 @@ pub fn mind_take_turn(mind: Mind) -> Mind {
         Sober(value) => {
             let new_value = value - 1;
             if new_value.is_min() {
-                Withdrawal(Ranged::new_max(WITHDRAWAL_MIN, WITHDRAWAL_MAX))
+                Withdrawal(Ranged::new_max(WITHDRAWAL))
             } else {
                 Sober(new_value)
             }
@@ -49,7 +45,7 @@ pub fn mind_take_turn(mind: Mind) -> Mind {
         High(value) => {
             let new_value = value - 1;
             if new_value.is_min() {
-                Withdrawal(Ranged::new_max(WITHDRAWAL_MIN, WITHDRAWAL_MAX))
+                Withdrawal(Ranged::new_max(WITHDRAWAL))
             } else {
                 High(new_value)
             }
@@ -64,7 +60,7 @@ pub fn process_hunger(mind: Mind, amount: i32) -> Mind {
     match mind {
         Mind::Withdrawal(val) => {
             if (*val + amount) > val.max() {
-                let new_val = Ranged::new_min(SOBER_MIN, SOBER_MAX);
+                let new_val = Ranged::new_min(SOBER);
                 Mind::Sober(new_val + (val.max() - *val + amount))
             } else {
                 Mind::Withdrawal(val + amount)
@@ -75,7 +71,7 @@ pub fn process_hunger(mind: Mind, amount: i32) -> Mind {
             if (*val + amount) >= val.min() {
                 Mind::Sober(val + amount)
             } else {
-                let new_val = Ranged::new_max(WITHDRAWAL_MIN, WITHDRAWAL_MAX);
+                let new_val = Ranged::new_max(WITHDRAWAL);
                 let amount = val.min() - *val + amount;
                 Mind::Withdrawal(new_val + amount)
             }
@@ -103,9 +99,7 @@ pub fn intoxicate(mind: Mind, tolerance: i32, expected_increment: i32) -> Mind {
     // withdrawn/sober states.
     match mind {
         Mind::Withdrawal(_) |
-        Mind::Sober(_) => {
-            Mind::High(Ranged::new(increment, HIGH_MIN, HIGH_MAX))
-        }
+        Mind::Sober(_) => Mind::High(Ranged::new(increment, HIGH)),
         Mind::High(val) => Mind::High(val + increment),
     }
 }

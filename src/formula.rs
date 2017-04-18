@@ -1,7 +1,7 @@
 use std::cmp;
 
 use player::{Bonus, Mind};
-use ranged_int::RangedInt;
+use ranged_int::Ranged;
 
 
 pub const ANXIETIES_PER_WILL: i32 = 7;
@@ -41,9 +41,7 @@ pub fn mind_take_turn(mind: Mind) -> Mind {
         Sober(value) => {
             let new_value = value - 1;
             if new_value.is_min() {
-                Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
-                                          WITHDRAWAL_MIN,
-                                          WITHDRAWAL_MAX))
+                Withdrawal(Ranged::new_max(WITHDRAWAL_MIN, WITHDRAWAL_MAX))
             } else {
                 Sober(new_value)
             }
@@ -51,9 +49,7 @@ pub fn mind_take_turn(mind: Mind) -> Mind {
         High(value) => {
             let new_value = value - 1;
             if new_value.is_min() {
-                Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
-                                          WITHDRAWAL_MIN,
-                                          WITHDRAWAL_MAX))
+                Withdrawal(Ranged::new_max(WITHDRAWAL_MIN, WITHDRAWAL_MAX))
             } else {
                 High(new_value)
             }
@@ -68,7 +64,7 @@ pub fn process_hunger(mind: Mind, amount: i32) -> Mind {
     match mind {
         Mind::Withdrawal(val) => {
             if (*val + amount) > val.max() {
-                let new_val = RangedInt::new(SOBER_MIN, SOBER_MIN, SOBER_MAX);
+                let new_val = Ranged::new_min(SOBER_MIN, SOBER_MAX);
                 Mind::Sober(new_val + (val.max() - *val + amount))
             } else {
                 Mind::Withdrawal(val + amount)
@@ -79,9 +75,7 @@ pub fn process_hunger(mind: Mind, amount: i32) -> Mind {
             if (*val + amount) >= val.min() {
                 Mind::Sober(val + amount)
             } else {
-                let new_val = RangedInt::new(WITHDRAWAL_MAX,
-                                             WITHDRAWAL_MIN,
-                                             WITHDRAWAL_MAX);
+                let new_val = Ranged::new_max(WITHDRAWAL_MIN, WITHDRAWAL_MAX);
                 let amount = val.min() - *val + amount;
                 Mind::Withdrawal(new_val + amount)
             }
@@ -110,7 +104,7 @@ pub fn intoxicate(mind: Mind, tolerance: i32, expected_increment: i32) -> Mind {
     match mind {
         Mind::Withdrawal(_) |
         Mind::Sober(_) => {
-            Mind::High(RangedInt::new(increment, HIGH_MIN, HIGH_MAX))
+            Mind::High(Ranged::new(increment, HIGH_MIN, HIGH_MAX))
         }
         Mind::High(val) => Mind::High(val + increment),
     }

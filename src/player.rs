@@ -7,7 +7,7 @@ use formula::{self, ANXIETIES_PER_WILL, WILL_MAX, WILL_MIN,
               SOBRIETY_COUNTER_MAX, WITHDRAWAL_MIN, WITHDRAWAL_MAX};
 use graphics::Render;
 use point::Point;
-use ranged_int::RangedInt;
+use ranged_int::Ranged;
 
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -29,9 +29,9 @@ pub enum Modifier {
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Mind {
-    Withdrawal(RangedInt),
-    Sober(RangedInt),
-    High(RangedInt),
+    Withdrawal(Ranged),
+    Sober(Ranged),
+    High(Ranged),
 }
 
 impl Mind {
@@ -64,24 +64,24 @@ pub enum Bonus {
 
 pub struct Player {
     pub mind: Mind,
-    pub will: RangedInt,
+    pub will: Ranged,
     pub tolerance: i32,
-    pub panic: RangedInt,
-    pub stun: RangedInt,
+    pub panic: Ranged,
+    pub stun: Ranged,
 
     pub pos: Point,
     pub inventory: Vec<Item>,
-    pub anxiety_counter: RangedInt,
+    pub anxiety_counter: Ranged,
     pub bonus: Bonus,
     /// How many turns after max Will to achieve victory
-    pub sobriety_counter: RangedInt,
+    pub sobriety_counter: Ranged,
     pub current_high_streak: i32,
     pub longest_high_streak: i32,
 
     dead: bool,
     pub invincible: bool,
 
-    // TODO: Use a RangedInt here?
+    // TODO: Use a Ranged here?
     max_ap: i32,
     ap: i32,
 }
@@ -89,22 +89,21 @@ pub struct Player {
 impl Player {
     pub fn new(pos: Point, invincible: bool) -> Player {
         Player {
-            mind: Mind::Withdrawal(RangedInt::new(WITHDRAWAL_MAX,
-                                                  WITHDRAWAL_MIN,
-                                                  WITHDRAWAL_MAX)),
-            will: RangedInt::new(2, WILL_MIN, WILL_MAX),
+            mind: Mind::Withdrawal(Ranged::new_max(WITHDRAWAL_MIN,
+                                                   WITHDRAWAL_MAX)),
+            will: Ranged::new(2, WILL_MIN, WILL_MAX),
             tolerance: 0,
-            panic: RangedInt::new(0, 0, formula::PANIC_TURNS_MAX),
-            stun: RangedInt::new(0, 0, formula::STUN_TURNS_MAX),
+            panic: Ranged::new_min(0, formula::PANIC_TURNS_MAX),
+            stun: Ranged::new_min(0, formula::STUN_TURNS_MAX),
             pos: pos,
             inventory: vec![],
-            anxiety_counter: RangedInt::new(0, 0, ANXIETIES_PER_WILL),
+            anxiety_counter: Ranged::new_min(0, ANXIETIES_PER_WILL),
             dead: false,
             invincible: invincible,
             max_ap: 1,
             ap: 1,
             bonus: Bonus::None,
-            sobriety_counter: RangedInt::new(0, 0, SOBRIETY_COUNTER_MAX),
+            sobriety_counter: Ranged::new_min(0, SOBRIETY_COUNTER_MAX),
             current_high_streak: 0,
             longest_high_streak: 0,
         }

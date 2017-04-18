@@ -5,6 +5,11 @@
 ** "Press [F5] to start a new game"
 ** "Press [Q] to quit"
 * Move all game formulas and numbers to the `formula` module           :code:
+* Replace the _MIN/_MAX values with a range                            :code:
+** Problem: std::ops::Range is non-copy so we can't really use it in constants
+** But we could create `struct InclusiveRange(u32, u32)` + Into<Range>
+** And have RangeInt take Into<Range>
+** If/when the inclusive range gets stabilised + Copy we can use `min...max`
 * Special "gun" equipment                                              :idea:
 ** changes the movement behaviour:
 When there is a monster in the direction of the movement (within 4

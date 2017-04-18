@@ -1,6 +1,6 @@
 use std::cmp;
 
-use player::Mind;
+use player::{Bonus, Mind};
 use ranged_int::RangedInt;
 
 
@@ -82,5 +82,16 @@ pub fn intoxicate(mind: Mind, tolerance: i32, expected_increment: i32) -> Mind {
             Mind::High(RangedInt::new(increment, HIGH_MIN, HIGH_MAX))
         }
         Mind::High(val) => Mind::High(val + increment),
+    }
+}
+
+
+pub fn mind_bonus(mind: Mind) -> Option<Bonus> {
+    match mind {
+        Mind::High(val) if *val == val.max() - 1 => Some(Bonus::UncoverMap),
+        Mind::High(val) if *val == val.max() - 2 => {
+            Some(Bonus::SeeMonstersAndItems)
+        }
+        _ => None,
     }
 }

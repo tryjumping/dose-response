@@ -201,14 +201,11 @@ impl Player {
             }
         }
 
-        match self.mind {
-            Mind::High(val) if *val == val.max() - 1 => {
-                self.bonus = Bonus::UncoverMap
-            }
-            Mind::High(val) if *val == val.max() - 2 => {
-                self.bonus = Bonus::SeeMonstersAndItems
-            }
-            _ => {}
+        if let Some(bonus) = formula::mind_bonus(self.mind) {
+            // TODO: this could disable the stronger bonus if you
+            // first got UncoverMap and after that
+            // SeeMonstersAndItems. We need to fix that.
+            self.bonus = bonus;
         }
     }
 }

@@ -4,6 +4,7 @@ use level::{self, Cell, Level, Walkability, TileKind};
 use item::{self, Item};
 use player;
 use point::{Point, CircularArea, SquareArea};
+use ranged_int::InclusiveRange;
 use rect::Rectangle;
 use monster::Monster;
 use generators::{self, GeneratedWorld};
@@ -531,6 +532,25 @@ impl World {
             Some(&random_pos) => random_pos,
             None => starting_pos,  // Nowhere to go
         }
+    }
+
+    pub fn random_position_in_range<T: Rng>(&mut self,
+                                            rng: &mut T,
+                                            starting_position: Point,
+                                            range: InclusiveRange,
+                                            max_tries: u32,
+                                            walkability: Walkability)
+                                            -> Option<Point> {
+        for _ in 0..max_tries {
+            let offset = Point::new(rng.gen_range(-range.1, range.1 + 1),
+                                    rng.gen_range(-range.1, range.1 + 1));
+            let candidate = starting_position + offset;
+            if offset.x.abs() > range.0 && offset.y.abs() > range.0 &&
+               self.walkable(candidate, walkability) {
+                return Some(candidate);
+            }
+        }
+        None
     }
 
     pub fn chunks(&self, area: Rectangle) -> Chunks {

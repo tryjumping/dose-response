@@ -14,6 +14,8 @@ pub const SOBRIETY_COUNTER: InclusiveRange = InclusiveRange(0, 100);
 pub const PANIC_TURNS: InclusiveRange = InclusiveRange(0, 10);
 pub const STUN_TURNS: InclusiveRange = InclusiveRange(0, 10);
 
+pub const CHASING_DISTANCE: i32 = 5;
+
 
 pub fn exploration_radius(mental_state: Mind) -> i32 {
     use player::Mind::*;

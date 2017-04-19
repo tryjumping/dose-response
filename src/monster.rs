@@ -2,12 +2,14 @@ use time::Duration;
 
 use rand::Rng;
 
-use game::Action;
 use color::{self, Color};
-use level::Walkability;
+use formula;
+use game::Action;
 use graphics::Render;
+use level::Walkability;
 use player::Modifier;
 use point::Point;
+use ranged_int::InclusiveRange;
 use world::World;
 
 use self::Kind::*;
@@ -88,7 +90,11 @@ impl Monster {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
         let distance = self.position.tile_distance(player_pos);
-        let ai_state = if distance <= 5 { Chasing } else { Idle };
+        let ai_state = if distance <= formula::CHASING_DISTANCE {
+            Chasing
+        } else {
+            Idle
+        };
 
         let action = match self.ai_state {
             Chasing => {
@@ -101,24 +107,19 @@ impl Monster {
             Idle => {
                 let destination = if self.path.is_empty() {
                     // Move randomly about
-                    let mut destination =
-                        world.random_neighbour_position(
+                    world
+                        .random_position_in_range(
                             rng,
                             self.position,
-                            Walkability::BlockingMonsters);
-
-                    for _ in 0..10 {
-                        let x = rng.gen_range(-8, 9);
-                        let y = rng.gen_range(-8, 9);
-                        let candidate = self.position + (x, y);
-                        if x.abs() > 2 && y.abs() > 2 &&
-                           world.walkable(candidate,
-                                          Walkability::WalkthroughMonsters) {
-                            destination = candidate;
-                            break;
-                        }
-                    }
-                    destination
+                            InclusiveRange(2, 8),
+                            10,
+                            Walkability::WalkthroughMonsters)
+                        .unwrap_or_else(|| {
+                            world.random_neighbour_position(
+                                rng,
+                                self.position,
+                                Walkability::BlockingMonsters)
+                        })
                 } else {
                     // We already have a path, just set the same destination:
                     *self.path.last().unwrap()

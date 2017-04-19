@@ -1,3 +1,10 @@
+* The Hunger no longer howls to attract nearby hungers                  :bug:
+** I like that feature and it's disappearance is an omission
+** If we do want to remove it, it should be after testing
+* Add no-op NPCs provisionally?
+** I don't have a solid gameplay system yet but I'd like to add them in
+** We need to support more than one AI for this (NPCs are not hostile)
+** Maybe rename "monster" to "mob" or "npc" everywhere?
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -18,9 +25,7 @@ moving in that direction.
 ** Seems that when there is a normal dose in the irresistible area we can break free
 ** I'll need to test the exact parameters of this
 ** But maybe we'll want to keep it there as an "easter egg rule"?
-* Add no-op NPCs provisionally?
-** I don't have a solid gameplay system yet but I'd like to add them in
-* Add NPCs                                                             :idea:
+* Interactive NPCs                                                     :idea:
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
 ** but they can accompany you when sober
@@ -28,9 +33,6 @@ moving in that direction.
 *** going sober more slowly
 *** pointing towards useful/interesting things/places?
 ** Could point the player towards interesting places/end-game conditions, etc.
-* The Hunger no longer howls to attract nearby hungers                  :bug:
-** I like that feature and it's disappearance is an omission
-** If we do want to remove it, it should be after testing
 * Show the reason for the player's death on the score screen             :ui:
 ** Why did they die? Depression? Exhaustion? No Will? Overdose?
 * Don't show the console on Windows                                      :ui:

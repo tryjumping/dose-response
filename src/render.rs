@@ -238,14 +238,17 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
     let high_streak_text = format!("Longest High streak: {} turns",
                                    state.player.longest_high_streak);
+    let keyboard_text = "[F5] New Game    [Q] Quit";
 
-    let longest_text =
-        [&turns_text, &carrying_doses_text, &high_streak_text]
+    let longest_text = [&turns_text,
+                        &carrying_doses_text,
+                        &high_streak_text,
+                        keyboard_text]
             .iter()
             .map(|s| s.chars().count())
             .max()
             .unwrap() as i32;
-    let lines_count = 3;
+    let lines_count = 5;
 
     let rect_dimensions = Point {
         // NOTE: 1 tile padding, which is why we have the `+ 2`.
@@ -284,6 +287,12 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
                                                  &high_streak_text),
                                5),
                               high_streak_text.into(),
+                              color::gui_text));
+    drawcalls.push(Draw::Text(rect_start +
+                              (centered_text_pos(rect_dimensions.x,
+                                                 &keyboard_text),
+                               9),
+                              keyboard_text.into(),
                               color::gui_text));
 }
 

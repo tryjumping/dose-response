@@ -1,9 +1,6 @@
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
-* Display next actions in the game over menu                             :ui:
-** "Press [F5] to start a new game"
-** "Press [Q] to quit"
 * Special "gun" equipment                                              :idea:
 ** changes the movement behaviour:
 When there is a monster in the direction of the movement (within 4
@@ -986,3 +983,10 @@ CLOSED: [2017-04-18 Tue 13:41]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-04-18 Tue 13:41
 :END:
+** DONE Display next actions in the game over menu                      :ui:
+CLOSED: [2017-04-19 Wed 10:50]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-19 Wed 10:50
+:END:
+*** "Press [F5] to start a new game"
+*** "Press [Q] to quit"

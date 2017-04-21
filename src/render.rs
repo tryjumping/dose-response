@@ -1,7 +1,4 @@
-use std::borrow::Cow;
-use std::collections::HashMap;
 
-use time::Duration;
 
 use color::{self, Color};
 use engine::Draw;
@@ -10,10 +7,14 @@ use game;
 use graphics;
 use item;
 use monster;
-use point::{Point, SquareArea};
 use player::{Bonus, Mind};
+use point::{Point, SquareArea};
 use rect::Rectangle;
 use state::{Side, State};
+use std::borrow::Cow;
+use std::collections::HashMap;
+
+use time::Duration;
 use world::Chunk;
 
 
@@ -238,10 +239,12 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
                                    state.player.longest_high_streak);
     let keyboard_text = "[F5] New Game    [Q] Quit";
 
-    let longest_text = [&turns_text,
-                        &carrying_doses_text,
-                        &high_streak_text,
-                        keyboard_text]
+    let longest_text = [
+        &turns_text,
+        &carrying_doses_text,
+        &high_streak_text,
+        keyboard_text,
+    ]
             .iter()
             .map(|s| s.chars().count())
             .max()
@@ -321,10 +324,12 @@ fn render_panel(x: i32,
     };
 
     let mut lines: Vec<Cow<'static, str>> =
-        vec![mind_str.into(),
-             "".into(), // NOTE: placeholder for the Mind state percentage bar
-             "".into(),
-             format!("Will: {}", *player.will).into()];
+        vec![
+            mind_str.into(),
+            "".into(), // NOTE: placeholder for the Mind state percentage bar
+            "".into(),
+            format!("Will: {}", *player.will).into(),
+        ];
 
     if player.inventory.len() > 0 {
         lines.push("".into());

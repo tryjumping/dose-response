@@ -1,6 +1,4 @@
-use time::Duration;
-
-use rand::Rng;
+use self::Kind::*;
 
 use ai::{self, AIState, Behavior};
 use color::{self, Color};
@@ -8,9 +6,10 @@ use game::Action;
 use graphics::Render;
 use player::Modifier;
 use point::Point;
-use world::World;
 
-use self::Kind::*;
+use rand::Rng;
+use time::Duration;
+use world::World;
 
 
 #[derive(Clone, PartialEq, Debug)]
@@ -114,7 +113,7 @@ impl Monster {
 
     pub fn spend_ap(&mut self, count: i32) {
         if !(count <= self.ap) {
-            //println!("bad assert: {:?}", self);
+            // println!("bad assert: {:?}", self);
         }
         assert!(count <= self.ap);
         self.ap -= count;

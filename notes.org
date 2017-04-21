@@ -1,7 +1,3 @@
-* TODO Add no-op NPCs provisionally?
-** I don't have a solid gameplay system yet but I'd like to add them in
-** We need to support more than one AI for this (NPCs are not hostile)
-** Maybe rename "monster" to "mob" or "npc" everywhere?
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -996,3 +992,11 @@ CLOSED: [2017-04-21 Fri 17:46]
 :END:
 *** I like that feature and it's disappearance is an omission
 *** If we do want to remove it, it should be after testing
+** DONE Add no-op NPCs provisionally?
+CLOSED: [2017-04-21 Fri 19:48]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-21 Fri 19:48
+:END:
+*** I don't have a solid gameplay system yet but I'd like to add them in
+*** We need to support more than one AI for this (NPCs are not hostile)
+*** Maybe rename "monster" to "mob" or "npc" everywhere?

@@ -178,7 +178,7 @@ impl World {
                         use monster::Kind::*;
                         match m.kind {
                             Hunger | Shadows | Voices => false,
-                            Anxiety | Depression => true,
+                            Anxiety | Depression | Npc => true,
                         }
                     });
                 if remove_monster {

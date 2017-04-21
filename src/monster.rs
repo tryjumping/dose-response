@@ -2,18 +2,15 @@ use time::Duration;
 
 use rand::Rng;
 
+use ai::{self, AIState, Behavior};
 use color::{self, Color};
-use formula;
 use game::Action;
 use graphics::Render;
-use level::Walkability;
 use player::Modifier;
 use point::Point;
-use ranged_int::InclusiveRange;
 use world::World;
 
 use self::Kind::*;
-use self::AIState::*;
 
 
 #[derive(Clone, PartialEq, Debug)]
@@ -22,6 +19,7 @@ pub struct Monster {
     pub position: Point,
     pub dead: bool,
     pub die_after_attack: bool,
+    pub behavior: Behavior,
     pub ai_state: AIState,
     pub path: Vec<Point>,
     pub trail: Option<Point>,
@@ -39,30 +37,35 @@ pub enum Kind {
     Hunger,
     Shadows,
     Voices,
-}
-
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub enum AIState {
-    Idle,
-    Chasing,
+    Npc,
 }
 
 impl Monster {
     pub fn new(kind: Kind, position: Point) -> Monster {
         let die_after_attack = match kind {
             Shadows | Voices => true,
-            Anxiety | Depression | Hunger => false,
+            Anxiety | Depression | Hunger | Npc => false,
         };
         let max_ap = match kind {
             Depression => 2,
-            Anxiety | Hunger | Shadows | Voices => 1,
+            Anxiety | Hunger | Shadows | Voices | Npc => 1,
+        };
+        let behavior = match kind {
+            Depression => Behavior::LoneAttacker,
+            Anxiety => Behavior::LoneAttacker,
+            Hunger => Behavior::LoneAttacker,
+            //Hunger => Behavior::PackAttacker,
+            Shadows => Behavior::LoneAttacker,
+            Voices => Behavior::LoneAttacker,
+            Npc => Behavior::Friendly,
         };
         Monster {
             kind: kind,
             position: position,
             dead: false,
             die_after_attack: die_after_attack,
-            ai_state: Idle,
+            behavior: behavior,
+            ai_state: AIState::Idle,
             ap: 0,
             max_ap: max_ap,
             path: vec![],
@@ -78,6 +81,7 @@ impl Monster {
             Hunger => Attribute { will: 0, state_of_mind: -20 },
             Shadows => Panic(4),
             Voices => Stun(4),
+            Npc => Attribute { will: 0, state_of_mind: 0},  // NOTE: no-op
         }
     }
 
@@ -89,42 +93,15 @@ impl Monster {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
-        let distance = self.position.tile_distance(player_pos);
-        let ai_state = if distance <= formula::CHASING_DISTANCE {
-            Chasing
-        } else {
-            Idle
-        };
-
-        let action = match self.ai_state {
-            Chasing => {
-                if distance == 1 {
-                    Action::Attack(player_pos, self.attack_damage())
-                } else {
-                    Action::Move(player_pos)
-                }
+        let (ai_state, action) = match self.behavior {
+            Behavior::LoneAttacker => {
+                ai::lone_attacker_act(self, player_pos, world, rng)
             }
-            Idle => {
-                let destination = if self.path.is_empty() {
-                    // Move randomly about
-                    world
-                        .random_position_in_range(
-                            rng,
-                            self.position,
-                            InclusiveRange(2, 8),
-                            10,
-                            Walkability::WalkthroughMonsters)
-                        .unwrap_or_else(|| {
-                            world.random_neighbour_position(
-                                rng,
-                                self.position,
-                                Walkability::BlockingMonsters)
-                        })
-                } else {
-                    // We already have a path, just set the same destination:
-                    *self.path.last().unwrap()
-                };
-                Action::Move(destination)
+            Behavior::PackAttacker => {
+                unreachable!()
+            }
+            Behavior::Friendly => {
+                unreachable!()
             }
         };
         (ai_state, action)
@@ -163,6 +140,7 @@ impl Render for Monster {
             Hunger => ('h', color::hunger, None),
             Shadows => ('S', color::voices, None),
             Voices => ('v', color::shadows, None),
+            Npc => ('@', color::npc, None),
         }
     }
 }

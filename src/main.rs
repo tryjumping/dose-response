@@ -31,6 +31,7 @@ extern crate zmq;
 use std::path::Path;
 use state::State;
 
+mod ai;
 mod animation;
 mod color;
 mod engine;

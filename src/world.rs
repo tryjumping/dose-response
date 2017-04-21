@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use level::{self, Cell, Level, Walkability, TileKind};
+use level::{self, Cell, Level, Walkability};
 use item::{self, Item};
 use player;
 use point::{Point, CircularArea, SquareArea};

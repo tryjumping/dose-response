@@ -100,12 +100,17 @@ pub fn pack_attacker_act<R: Rng>(actor: &Monster,
 }
 
 
-pub fn friendly_act<R: Rng>(_actor: &Monster,
-                            _player_position: Point,
-                            _world: &mut World,
-                            _rng: &mut R)
+pub fn friendly_act<R: Rng>(actor: &Monster,
+                            player_position: Point,
+                            world: &mut World,
+                            rng: &mut R)
                             -> (AIState, Action) {
-    unreachable!()
+    let mut destination = idle_destination(actor, world, rng);
+    if destination == player_position {
+        destination = actor.position;
+    }
+    let action = Action::Move(destination);
+    (actor.ai_state, action)
 }
 
 

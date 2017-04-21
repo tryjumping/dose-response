@@ -1,4 +1,4 @@
-* Add no-op NPCs provisionally?
+* TODO Add no-op NPCs provisionally?
 ** I don't have a solid gameplay system yet but I'd like to add them in
 ** We need to support more than one AI for this (NPCs are not hostile)
 ** Maybe rename "monster" to "mob" or "npc" everywhere?

@@ -69,6 +69,10 @@ fn generate_monsters<R: Rng>(rng: &mut R,
                        Weighted {
                            weight: monster_chance / monster_count,
                            item: Some(Kind::Voices),
+                       },
+                       Weighted {
+                           weight: 1,
+                           item: Some(Kind::Npc),
                        }];
     let opts = WeightedChoice::new(&mut weights);
     let mut result = vec![];

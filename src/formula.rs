@@ -15,6 +15,7 @@ pub const PANIC_TURNS: InclusiveRange = InclusiveRange(0, 10);
 pub const STUN_TURNS: InclusiveRange = InclusiveRange(0, 10);
 
 pub const CHASING_DISTANCE: i32 = 5;
+pub const HOWLING_DISTANCE: i32 = 15;
 
 
 pub fn exploration_radius(mental_state: Mind) -> i32 {

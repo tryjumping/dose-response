@@ -9,6 +9,7 @@ use formula;
 use game;
 use graphics;
 use item;
+use monster;
 use point::{Point, SquareArea};
 use player::{Bonus, Mind};
 use rect::Rectangle;
@@ -191,7 +192,12 @@ pub fn render_game(state: &State,
                 }
             }
 
-            graphics::draw(drawcalls, dt, display_pos, monster);
+            let (glyph, mut color, _) = monster.render(dt);
+            if monster.kind == monster::Kind::Npc &&
+               state.player.mind.is_high() {
+                color = color::npc_dim;
+            }
+            drawcalls.push(Draw::Char(display_pos, glyph, color))
         }
     }
 

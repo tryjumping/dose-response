@@ -19,6 +19,7 @@ pub static hunger: Color = Color { r: 127, g: 101, b: 63 };
 pub static voices: Color = Color { r: 95, g: 95, b: 95 };
 pub static shadows: Color = Color { r: 95, g: 95, b: 95 };
 pub static npc: Color = Color { r: 193, g: 193, b: 68 };
+pub static npc_dim: Color = Color { r: 95, g: 95, b: 95 };
 pub static player: Color = Color { r: 255, g: 255, b: 255 };
 pub static dead_player: Color = Color { r: 80, g: 80, b: 80 };
 pub static empty_tile: Color = Color { r: 223, g: 223, b: 223 };

@@ -490,8 +490,8 @@ fn process_player_action<R, W>(
                 if bumping_into_monster {
                     player.spend_ap(1);
                     //println!("Player attacks {:?}", monster);
-                    if let Some(monster) = world.monster_on_pos(dest) {
-                        match monster.kind {
+                    if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
+                        match kind {
                             monster::Kind::Anxiety => {
                                 player.anxiety_counter += 1;
                                 if player.anxiety_counter.is_max() {
@@ -501,8 +501,8 @@ fn process_player_action<R, W>(
                             }
                             _ => {}
                         }
+                        kill_monster(dest, world);
                     }
-                    kill_monster(dest, world);
 
                 } else if dest_walkable {
                     player.spend_ap(1);
@@ -769,10 +769,17 @@ pub fn inventory_key(kind: item::Kind) -> u8 {
 
 
 fn kill_monster(monster_position: Point, world: &mut World) {
-    if let Some(monster) = world.monster_on_pos(monster_position) {
-        monster.dead = true;
+    let invincible = world
+        .monster_on_pos(monster_position)
+        .map_or(false, |m| m.invincible);
+    if invincible {
+        // It's invincible: no-op
+    } else {
+        if let Some(monster) = world.monster_on_pos(monster_position) {
+            monster.dead = true;
+        }
+        world.remove_monster(monster_position);
     }
-    world.remove_monster(monster_position);
 }
 
 fn use_dose(player: &mut player::Player,

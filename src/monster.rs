@@ -19,6 +19,7 @@ pub struct Monster {
     pub position: Point,
     pub dead: bool,
     pub die_after_attack: bool,
+    pub invincible: bool,
     pub behavior: Behavior,
     pub ai_state: AIState,
     pub path: Vec<Point>,
@@ -58,11 +59,16 @@ impl Monster {
             Voices => Behavior::LoneAttacker,
             Npc => Behavior::Friendly,
         };
+        let invincible = match kind {
+            Npc => true,
+            _ => false,
+        };
         Monster {
             kind: kind,
             position: position,
             dead: false,
             die_after_attack: die_after_attack,
+            invincible: invincible,
             behavior: behavior,
             ai_state: AIState::Idle,
             ap: 0,

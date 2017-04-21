@@ -57,8 +57,6 @@ pub fn render_game(state: &State,
     }
     let radius = formula::exploration_radius(state.player.mind);
 
-    let map_size = state.map_size;
-    let within_map_bounds = |pos| pos >= (0, 0) && pos < map_size;
     let player_pos = state.player.pos;
     let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
     let screen_left_top_corner = state.screen_position_in_world -
@@ -174,16 +172,14 @@ pub fn render_game(state: &State,
             if let Some(trail_pos) = monster.trail {
                 if state.cheating {
                     let trail_pos = screen_coords_from_world(trail_pos);
-                    if within_map_bounds(trail_pos) {
-                        let (glyph, color, _) = monster.render(dt);
-                        // TODO: show a fading animation of the trail colour
-                        let color = color::Color {
-                            r: color.r - 55,
-                            g: color.g - 55,
-                            b: color.b - 55,
-                        };
-                        drawcalls.push(Draw::Char(trail_pos, glyph, color));
-                    }
+                    let (glyph, color, _) = monster.render(dt);
+                    // TODO: show a fading animation of the trail colour
+                    let color = color::Color {
+                        r: color.r - 55,
+                        g: color.g - 55,
+                        b: color.b - 55,
+                    };
+                    drawcalls.push(Draw::Char(trail_pos, glyph, color));
                 }
             }
 
@@ -195,18 +191,14 @@ pub fn render_game(state: &State,
                 }
             }
 
-            if within_map_bounds(display_pos) {
-                graphics::draw(drawcalls, dt, display_pos, monster);
-            }
+            graphics::draw(drawcalls, dt, display_pos, monster);
         }
     }
 
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
-        if within_map_bounds(display_pos) {
-            graphics::draw(drawcalls, dt, display_pos, &state.player);
-        }
+        graphics::draw(drawcalls, dt, display_pos, &state.player);
     }
 
     render_panel(state.map_size.x,

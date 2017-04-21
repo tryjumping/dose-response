@@ -97,8 +97,12 @@ impl Monster {
             Behavior::LoneAttacker => {
                 ai::lone_attacker_act(self, player_pos, world, rng)
             }
-            Behavior::PackAttacker => unreachable!(),
-            Behavior::Friendly => unreachable!(),
+            Behavior::PackAttacker => {
+                ai::pack_attacker_act(self, player_pos, world, rng)
+            }
+            Behavior::Friendly => {
+                ai::friendly_act(self, player_pos, world, rng)
+            }
         };
         (ai_state, action)
     }

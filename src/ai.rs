@@ -68,3 +68,21 @@ pub fn lone_attacker_act<R: Rng>(actor: &Monster,
     };
     (ai_state, action)
 }
+
+
+pub fn pack_attacker_act<R: Rng>(_actor: &Monster,
+                                 _player_position: Point,
+                                 _world: &mut World,
+                                 _rng: &mut R)
+                                 -> (AIState, Action) {
+    unreachable!()
+}
+
+
+pub fn friendly_act<R: Rng>(_actor: &Monster,
+                            _player_position: Point,
+                            _world: &mut World,
+                            _rng: &mut R)
+                            -> (AIState, Action) {
+    unreachable!()
+}

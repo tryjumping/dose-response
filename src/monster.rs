@@ -53,8 +53,7 @@ impl Monster {
         let behavior = match kind {
             Depression => Behavior::LoneAttacker,
             Anxiety => Behavior::LoneAttacker,
-            Hunger => Behavior::LoneAttacker,
-            //Hunger => Behavior::PackAttacker,
+            Hunger => Behavior::PackAttacker,
             Shadows => Behavior::LoneAttacker,
             Voices => Behavior::LoneAttacker,
             Npc => Behavior::Friendly,

@@ -39,35 +39,12 @@ pub fn lone_attacker_act<R: Rng>(actor: &Monster,
     };
 
     let action = match ai_state {
-        AIState::Chasing => {
-            if distance == 1 {
-                Action::Attack(player_position, actor.attack_damage())
-            } else {
-                Action::Move(player_position)
-            }
-        }
+        AIState::Chasing => chasing_action(actor, player_position),
         AIState::Idle => {
-            let destination = if actor.path.is_empty() {
-                // Move randomly about
-                world
-                    .random_position_in_range(rng,
-                                              actor.position,
-                                              InclusiveRange(2, 8),
-                                              10,
-                                              Walkability::WalkthroughMonsters)
-                    .unwrap_or_else(|| {
-                                        world.random_neighbour_position(
-                            rng,
-                            actor.position,
-                            Walkability::BlockingMonsters)
-                                    })
-            } else {
-                // We already have a path, just set the same destination:
-                *actor.path.last().unwrap()
-            };
+            let destination = idle_destination(actor, world, rng);
             Action::Move(destination)
         }
-        AIState::CheckingOut(destination) => Action::Move(destination)
+        AIState::CheckingOut(destination) => Action::Move(destination),
     };
     (ai_state, action)
 }
@@ -78,13 +55,8 @@ pub fn pack_attacker_act<R: Rng>(actor: &Monster,
                                  world: &mut World,
                                  rng: &mut R)
                                  -> (AIState, Action) {
-    // if seeing player: howl, start chasing
-    // if within howling range: start chasing
-
-
-
-    let distance = actor.position.tile_distance(player_position);
-    let ai_state = if distance <= formula::CHASING_DISTANCE {
+    let player_distance = actor.position.tile_distance(player_position);
+    let ai_state = if player_distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
     } else if actor.ai_state == AIState::Chasing {
         AIState::Idle
@@ -97,15 +69,15 @@ pub fn pack_attacker_act<R: Rng>(actor: &Monster,
             let howling_area = Rectangle::center(actor.position,
                                                  (formula::HOWLING_DISTANCE,
                                                   formula::HOWLING_DISTANCE)
-                                                 .into());
+                                                         .into());
             let howlees = world
                 .chunks(howling_area)
                 .flat_map(Chunk::monsters)
                 .filter(|m| m.alive() && howling_area.contains(m.position))
                 .filter(|m| {
-                    m.behavior == Behavior::PackAttacker &&
-                        m.position != actor.position
-                })
+                            m.behavior == Behavior::PackAttacker &&
+                            m.position != actor.position
+                        })
                 .map(|m| m.position)
                 .collect::<Vec<_>>();
 
@@ -115,37 +87,14 @@ pub fn pack_attacker_act<R: Rng>(actor: &Monster,
                 }
             }
 
-            if distance == 1 {
-                Action::Attack(player_position, actor.attack_damage())
-            } else {
-                Action::Move(player_position)
-            }
+            chasing_action(actor, player_position)
         }
 
         AIState::Idle => {
-            let destination = if actor.path.is_empty() {
-                // Move randomly about
-                world
-                    .random_position_in_range(rng,
-                                              actor.position,
-                                              InclusiveRange(2, 8),
-                                              10,
-                                              Walkability::WalkthroughMonsters)
-                    .unwrap_or_else(|| {
-                                        world.random_neighbour_position(
-                            rng,
-                            actor.position,
-                            Walkability::BlockingMonsters)
-                                    })
-            } else {
-                // We already have a path, just set the same destination:
-                *actor.path.last().unwrap()
-            };
+            let destination = idle_destination(actor, world, rng);
             Action::Move(destination)
         }
-        AIState::CheckingOut(destination) => {
-            Action::Move(destination)
-        }
+        AIState::CheckingOut(destination) => Action::Move(destination),
     };
     (ai_state, action)
 }
@@ -157,4 +106,37 @@ pub fn friendly_act<R: Rng>(_actor: &Monster,
                             _rng: &mut R)
                             -> (AIState, Action) {
     unreachable!()
+}
+
+
+fn idle_destination<R: Rng>(actor: &Monster,
+                            world: &World,
+                            rng: &mut R)
+                            -> Point {
+    if actor.path.is_empty() {
+        // Move randomly about
+        world
+            .random_position_in_range(rng,
+                                      actor.position,
+                                      InclusiveRange(2, 8),
+                                      10,
+                                      Walkability::WalkthroughMonsters)
+            .unwrap_or_else(|| {
+                                world.random_neighbour_position(
+                    rng,
+                    actor.position,
+                    Walkability::BlockingMonsters)
+                            })
+    } else {
+        // We already have a path, just set the same destination:
+        *actor.path.last().unwrap()
+    }
+}
+
+fn chasing_action(actor: &Monster, target_position: Point) -> Action {
+    if actor.position.tile_distance(target_position) == 1 {
+        Action::Attack(target_position, actor.attack_damage())
+    } else {
+        Action::Move(target_position)
+    }
 }

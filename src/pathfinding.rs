@@ -29,7 +29,7 @@ impl Path {
             return Path { path: vec![to] };
         }
 
-        let mut neighbors = |current: Point| {
+        let neighbors = |current: Point| {
             assert!(world.within_bounds(current));
             let dp: [Point; 9] = [(-1, -1).into(),
                                   (-1, 0).into(),

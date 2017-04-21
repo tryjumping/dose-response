@@ -313,7 +313,7 @@ impl World {
                             });
     }
 
-    fn cell(&mut self, world_pos: Point) -> Option<&Cell> {
+    fn cell(&self, world_pos: Point) -> Option<&Cell> {
         let chunk = self.chunk(world_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
@@ -349,15 +349,14 @@ impl World {
     /// Points outside of the World are not walkable. The
     /// `walkability` option controls can influence the logic: are
     /// monster treated as blocking or not?
-    pub fn walkable(&mut self, pos: Point, walkability: Walkability) -> bool {
-        let walkable = match walkability {
-            Walkability::WalkthroughMonsters => true,
-            Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
-        };
-        self.within_bounds(pos) &&
-        self.cell(pos)
-            .map_or(false, |cell| cell.tile.kind == TileKind::Empty) &&
-        walkable
+    pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
+        let level_cell_walkable = self.chunk(pos)
+            .map(|chunk| {
+                     let level_position = chunk.level_position(pos);
+                     chunk.level.walkable(level_position, walkability)
+                 })
+            .unwrap_or(false);
+        self.within_bounds(pos) && level_cell_walkable
     }
 
     /// Pick up the top `Item` stacked on the tile. If the position is
@@ -517,7 +516,7 @@ impl World {
     /// Return a random walkable position next to the given point.
     ///
     /// If there is no such position available, return `starting_pos`.
-    pub fn random_neighbour_position<T: Rng>(&mut self,
+    pub fn random_neighbour_position<T: Rng>(&self,
                                              rng: &mut T,
                                              starting_pos: Point,
                                              walkability: Walkability)
@@ -534,7 +533,7 @@ impl World {
         }
     }
 
-    pub fn random_position_in_range<T: Rng>(&mut self,
+    pub fn random_position_in_range<T: Rng>(&self,
                                             rng: &mut T,
                                             starting_position: Point,
                                             range: InclusiveRange,

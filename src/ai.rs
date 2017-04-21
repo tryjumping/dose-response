@@ -27,8 +27,8 @@ pub enum AIState {
 pub fn lone_attacker_act<R: Rng>(actor: &Monster,
                                  player_position: Point,
                                  world: &mut World,
-                                 rng: &mut R) -> (AIState, Action)
-{
+                                 rng: &mut R)
+                                 -> (AIState, Action) {
     let distance = actor.position.tile_distance(player_position);
     let ai_state = if distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
@@ -48,18 +48,17 @@ pub fn lone_attacker_act<R: Rng>(actor: &Monster,
             let destination = if actor.path.is_empty() {
                 // Move randomly about
                 world
-                    .random_position_in_range(
-                        rng,
-                        actor.position,
-                        InclusiveRange(2, 8),
-                        10,
-                        Walkability::WalkthroughMonsters)
+                    .random_position_in_range(rng,
+                                              actor.position,
+                                              InclusiveRange(2, 8),
+                                              10,
+                                              Walkability::WalkthroughMonsters)
                     .unwrap_or_else(|| {
-                        world.random_neighbour_position(
+                                        world.random_neighbour_position(
                             rng,
                             actor.position,
                             Walkability::BlockingMonsters)
-                    })
+                                    })
             } else {
                 // We already have a path, just set the same destination:
                 *actor.path.last().unwrap()

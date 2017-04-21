@@ -81,7 +81,7 @@ impl Monster {
             Hunger => Attribute { will: 0, state_of_mind: -20 },
             Shadows => Panic(4),
             Voices => Stun(4),
-            Npc => Attribute { will: 0, state_of_mind: 0},  // NOTE: no-op
+            Npc => Attribute { will: 0, state_of_mind: 0 },  // NOTE: no-op
         }
     }
 
@@ -97,12 +97,8 @@ impl Monster {
             Behavior::LoneAttacker => {
                 ai::lone_attacker_act(self, player_pos, world, rng)
             }
-            Behavior::PackAttacker => {
-                unreachable!()
-            }
-            Behavior::Friendly => {
-                unreachable!()
-            }
+            Behavior::PackAttacker => unreachable!(),
+            Behavior::Friendly => unreachable!(),
         };
         (ai_state, action)
     }

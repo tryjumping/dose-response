@@ -1,6 +1,4 @@
-* The player can start within an irresistible dose's reach       :mapgen:bug:
-* The map generation shouldn't screw you over from the beginning  :mapgen:bug:
-* Show the reason for the player's death on the score screen             :ui:
+* Show the reason for the player's death/victory on the score screen     :ui:
 ** Why did they die? Depression? Exhaustion? No Will? Overdose?
 * Record a let's play
 ** would be nice to show the game in action
@@ -1007,4 +1005,14 @@ CLOSED: [2017-04-23 Sun 11:15]
 CLOSED: [2017-04-23 Sun 11:14]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-04-23 Sun 11:15
+:END:
+** DONE The player can start within an irresistible dose's reach :mapgen:bug:
+CLOSED: [2017-04-23 Sun 12:40]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-23 Sun 12:41
+:END:
+** DONE The map generation shouldn't screw you over from the beginning :mapgen:bug:
+CLOSED: [2017-04-23 Sun 12:40]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-23 Sun 12:41
 :END:

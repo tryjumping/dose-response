@@ -152,14 +152,15 @@ impl World {
 
         // TODO: I don't think this code belongs in World. Move it
         // into the level generators or osmething?
-        world.prepare_initial_playing_area(initial_player_position);
+        world.prepare_initial_playing_area(initial_player_position, rng);
         world
     }
 
     /// Remove some of the monsters from player's initial vicinity,
     /// place some food nearby and a dose in sight.
-    fn prepare_initial_playing_area(&mut self,
-                                    initial_player_position: Point) {
+    fn prepare_initial_playing_area<R: Rng>(&mut self,
+                                            initial_player_position: Point,
+                                            rng: &mut R) {
         assert!(formula::INITIAL_SAFE_RADIUS <= formula::INITIAL_EASY_RADIUS);
 
 
@@ -175,6 +176,7 @@ impl World {
             self.ensure_chunk_at_pos(pos);
         }
 
+        // Remove monsters from the starting area
         for pos in easy_area.points() {
             let remove_monster = self.monster_on_pos(pos)
                 .map_or(false, |m| {
@@ -190,39 +192,42 @@ impl World {
             }
         }
 
-        // TODO: generate the initial dose and food positions with a RNG.
-        let random_position_offsets = [
-            Point { x: -4, y: -1 },
-            Point { x: 0, y: -1 },
-            Point { x: 1, y: 2 },
-            Point { x: 2, y: -1 },
-            Point { x: 1, y: -2 },
-            Point { x: 3, y: -4 },
-            Point { x: -2, y: 3 },
-            Point { x: 2, y: -1 },
-            Point { x: -1, y: 0 },
-            Point { x: 2, y: -4 },
-            Point { x: -2, y: 0 },
-            Point { x: 2, y: 2 },
-            Point { x: 4, y: 1 },
-            Point { x: 3, y: -1 },
-            Point { x: 3, y: -1 },
-            Point { x: -2, y: -4 },
-            Point { x: -3, y: 3 },
-            Point { x: -3, y: 4 },
-            Point { x: 2, y: 0 },
-            Point { x: -1, y: 3 },
-        ];
-        let mut rng =
-            random_position_offsets
-                .iter()
-                .cycle()
-                .skip(self.seed as usize % random_position_offsets.len());
+        // Remove strong doses from the starting area
+        let no_lethal_dose_area =
+            Rectangle::center(initial_player_position,
+                              Point::from_i32(formula::NO_LETHAL_DOSE_RADIUS));
 
-        for &offset in &mut rng {
+        for pos in no_lethal_dose_area.points() {
+            if let Some(cell) = self.cell_mut(pos) {
+                for index in (0..cell.items.len()).rev() {
+                    use item::Kind::*;
+                    let lethal_dose = match cell.items[index].kind {
+                        Food | Dose => false,
+                        StrongDose | CardinalDose | DiagonalDose => true,
+                    };
+                    if lethal_dose {
+                        cell.items.remove(index);
+                    }
+                }
+            }
+        }
+
+        // Remove anything on the player's position
+        if let Some(cell) = self.cell_mut(initial_player_position) {
+            cell.items.clear();
+        }
+
+        // Generate a usable dose nearby, give up after 50 attempts
+        for _ in 0..50 {
+            let offset = Point {
+                x: rng.gen_range(-3, 4),
+                y: rng.gen_range(-3, 4),
+            };
+            if offset == (0, 0) {
+                break;
+            }
             let pos = initial_player_position + offset;
-            let walkable = self.walkable(pos, Walkability::WalkthroughMonsters);
-            if walkable {
+            if self.walkable(pos, Walkability::WalkthroughMonsters) {
                 let dose = Item {
                     kind: item::Kind::Dose,
                     modifier: player::Modifier::Intoxication {
@@ -239,10 +244,15 @@ impl World {
             }
         }
 
-        for &offset in &mut rng {
+        // Generate food near the starting area, bail after 50 attempts
+        let mut amount_of_food_to_generate = rng.gen_range(1, 4);
+        for _ in 0..50 {
+            let offset = Point {
+                x: rng.gen_range(-5, 6),
+                y: rng.gen_range(-5, 6),
+            };
             let pos = initial_player_position + offset;
-            let walkable = self.walkable(pos, Walkability::WalkthroughMonsters);
-            if walkable {
+            if self.walkable(pos, Walkability::WalkthroughMonsters) {
                 let food = Item {
                     kind: item::Kind::Food,
                     modifier: player::Modifier::Attribute {
@@ -255,11 +265,16 @@ impl World {
                     let level_position = chunk.level_position(pos);
                     if chunk.level.cell(level_position).items.is_empty() {
                         chunk.level.add_item(level_position, food);
+                        amount_of_food_to_generate -= 1;
                     }
                 }
-                break;
+
+                if amount_of_food_to_generate <= 0 {
+                    break;
+                }
             }
         }
+
     }
 
     /// Return the ChunkPosition for a given point within the chunk.

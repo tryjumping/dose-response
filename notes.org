@@ -1,5 +1,9 @@
 * Show the reason for the player's death/victory on the score screen     :ui:
 ** Why did they die? Depression? Exhaustion? No Will? Overdose?
+* Different screen fadeout colours on various player deaths              :ui:
+** RED when killed by a monster
+** BLACK when died of exaustion
+** WHITE (slow fade, plus glitches) when overdosed
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -16,10 +20,6 @@ moving in that direction.
 ** can't be unequipped/dropped
 ** bumping into a solid/blocking tile (i.e. "tree") destroys it
 ** takes 1 action point
-* Irresistible doses don't always atract                           :bug:idea:
-** Seems that when there is a normal dose in the irresistible area we can break free
-** I'll need to test the exact parameters of this
-** But maybe we'll want to keep it there as an "easter egg rule"?
 * Interactive NPCs                                                     :idea:
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -28,10 +28,21 @@ moving in that direction.
 *** going sober more slowly
 *** pointing towards useful/interesting things/places?
 ** Could point the player towards interesting places/end-game conditions, etc.
+* Make the NPCs "angry" when you "hit" them                            :idea:
+** Right now, nothing happens when you bump into them
+** So instead, let's make them faded like when you get High for a few turns
+* NPCs are able to be on the same tile as the player                    :bug:
+* Dismiss the "you diead" screen when pressing Spacebar                  :ui:
+** So the player can see the full map
+** cycle the map and game over screen by pressing the key
 * Don't show the console on Windows                                      :ui:
 ** When run in the GUI mode (the default) we should not show the console window
 ** looks like we need to pass `-mwindow` to GCC
 ** https://users.rust-lang.org/t/solved-rust-project-how-build-like-gcc-mwindow/5168
+* Irresistible doses don't always atract                           :bug:idea:
+** Seems that when there is a normal dose in the irresistible area we can break free
+** I'll need to test the exact parameters of this
+** But maybe we'll want to keep it there as an "easter egg rule"?
 * Add an icon to the generated executable on Windows
 ** window execs can have an icon embedded
 ** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
@@ -40,9 +51,6 @@ moving in that direction.
 ** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct
 ** We could also support multiple animations, which would let us compose a cross animation by:
 *** square explosion of 1 diagonal area + 2 (or 4) horizontal animation lines
-* Dismiss the "you diead" screen when pressing Spacebar                  :ui:
-** So the player can see the full map
-** cycle the map and game over screen by pressing the key
 * The screen sometimes scrolls earlier than it should                   :bug:
 ** I've noticed this with horizontal scrolls, but it may be vertical too?
 * Need to keep moving while waiting on the victory counter           :design:
@@ -56,17 +64,11 @@ moving in that direction.
 **** Say talking to a family NPC
 **** Show an arrow to the NPC?
 * Show the anxiety counter in the UI                                :ui:idea:
-** This will make it clearer to figure out that you want to keep hunting the Wills
+** this will make it clearer to figure out that you want to keep hunting the Wills
 ** We can start by showing will with a decimal counter
 ** Or a "next will" progress bar
 * Select the final font / fonts                                          :ui:
 ** http://programmingfonts.org/list
-* Give the Shattering Doses a secondary "blue destruction" area        :idea:
-** So their red beams shatter everything they touch
-** But how about we give additional area that only destroys monsters like the normal doses
-*** it could be say the immediate tiles next to the explosion centre (i.e. radius 1)
-*** or like secondary beams next to the primary red ones
-*** or both?
 * Investigate adding sound to the game                                 :code:
 ** Not sure about ambient music, but sound effects might be neat
 ** We can look at rodio
@@ -100,8 +102,6 @@ black box atm).
 *** and the fov would not reduce so much
 *** and it'd take more time for you to die (or maybe you wouldn't die at all, just transition to sober)
 * Spending a long time in the "normal" state can add Will :idea:
-* Remove the `build` folder from the releases                           :bug:
-** Takes up a lot of space and it's entirely unnecessary
 * Adding a bad trip                                                    :idea:
 ** Small chance of that happening
 ** But would make things actually worse for the duration of the dose
@@ -157,10 +157,6 @@ game. Some backstory would add a lot to the experience, too.
 ** You could come visit these centres
 *** they'd feed you and somehow help you to combat the addiction
 *** you could get sobriety bonuses (e.g. will increase, etc.)
-* Map the "must go forward and use the dose" range directly to Will?   :idea:
-** It could make the place more interesting -- having move around the place
-** Needs glowing irresistible areas
-** It would make it clearer what happens when you gain new will
 * Effects for gaining/losing will                                        :ui:
 ** graphics (render it as a bar)
 ** consider displaying the partial will
@@ -260,10 +256,6 @@ fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
 *** Or maybe just ignore that issue once the terminal is an optional thing
 * Fade out Shadows & Voices when dying after attack                      :ui:
 ** fade to Color{r: 0, g: 0, b: 0} in 400ms
-* Different screen fadeout colours on various player deaths              :ui:
-** RED when killed by a monster
-** BLACK when died of exaustion
-** WHITE (slow fade, plus glitches) when overdosed
 * Doses should show a glowing animation                                  :ui:
 ** i.e. moving between two corolurs
 * Better display the movement of D monsters                              :ui:
@@ -1016,3 +1008,27 @@ CLOSED: [2017-04-23 Sun 12:40]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-04-23 Sun 12:41
 :END:
+** DONE Give the Shattering Doses a secondary "blue destruction" area :idea:
+CLOSED: [2017-04-23 Sun 12:55]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-23 Sun 12:56
+:END:
+*** So their red beams shatter everything they touch
+*** But how about we give additional area that only destroys monsters like the normal doses
+**** it could be say the immediate tiles next to the explosion centre (i.e. radius 1)
+**** or like secondary beams next to the primary red ones
+**** or both?
+** DONE Remove the `build` folder from the releases                    :bug:
+CLOSED: [2017-04-23 Sun 12:56]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-23 Sun 12:56
+:END:
+*** Takes up a lot of space and it's entirely unnecessary
+** DONE Map the "must go forward and use the dose" range directly to Will? :idea:
+CLOSED: [2017-04-23 Sun 12:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-23 Sun 12:57
+:END:
+*** It could make the place more interesting -- having move around the place
+*** Needs glowing irresistible areas
+*** It would make it clearer what happens when you gain new will

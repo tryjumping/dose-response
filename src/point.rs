@@ -1,5 +1,5 @@
-use std::cmp::{max, Ordering};
-use std::fmt::{Display, Formatter, Error};
+use std::cmp::{Ordering, max};
+use std::fmt::{Display, Error, Formatter};
 use std::ops::{Add, AddAssign, Div, Sub};
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -11,6 +11,10 @@ pub struct Point {
 impl Point {
     pub fn new(x: i32, y: i32) -> Self {
         Point { x: x, y: y }
+    }
+
+    pub fn from_i32(x: i32) -> Self {
+        Point::new(x, x)
     }
 
     pub fn distance<P: Into<Point>>(&self, other: P) -> f32 {
@@ -254,9 +258,9 @@ impl Iterator for SquareArea {
 
 #[cfg(test)]
 mod test {
-    use std::iter::FromIterator;
-    use std::f32::EPSILON;
     use super::{Point, SquareArea};
+    use std::f32::EPSILON;
+    use std::iter::FromIterator;
 
     #[test]
     fn test_tile_distance() {
@@ -330,8 +334,17 @@ mod test {
     fn test_points_within_radius_of_one() {
         let actual: Vec<Point> =
             FromIterator::from_iter(SquareArea::new((0, 0), 1));
-        let expected = [(-1, -1), (0, -1), (1, -1), (-1, 0), (0, 0), (1, 0),
-                        (-1, 1), (0, 1), (1, 1)];
+        let expected = [
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (-1, 0),
+            (0, 0),
+            (1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1),
+        ];
         assert_eq!(actual, expected);
     }
 

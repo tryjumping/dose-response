@@ -1,10 +1,11 @@
-use rand::Rng;
+
 
 use formula;
 use game::Action;
-use monster::Monster;
 use level::Walkability;
+use monster::Monster;
 use point::Point;
+use rand::Rng;
 use ranged_int::InclusiveRange;
 use rect::Rectangle;
 use world::{Chunk, World};
@@ -66,10 +67,9 @@ pub fn pack_attacker_act<R: Rng>(actor: &Monster,
 
     let action = match ai_state {
         AIState::Chasing => {
-            let howling_area = Rectangle::center(actor.position,
-                                                 (formula::HOWLING_DISTANCE,
-                                                  formula::HOWLING_DISTANCE)
-                                                         .into());
+            let howling_area =
+                Rectangle::center(actor.position,
+                                  Point::from_i32(formula::HOWLING_DISTANCE));
             let howlees = world
                 .chunks(howling_area)
                 .flat_map(Chunk::monsters)

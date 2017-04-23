@@ -1,18 +1,19 @@
-use std::collections::VecDeque;
-use std::fs::{self, File};
-use std::io::{self, BufReader, BufRead, Write};
-use std::path::{Path, PathBuf};
 
-use stats::Stats;
-use time;
-use time::Duration;
-use rand::{self, IsaacRng, SeedableRng};
 
 use animation::{AreaOfEffect, ScreenFade};
 use keys::Keys;
 use monster;
 use player::Player;
 use point::Point;
+use rand::{self, IsaacRng, SeedableRng};
+
+use stats::Stats;
+use std::collections::VecDeque;
+use std::fs::{self, File};
+use std::io::{self, BufRead, BufReader, Write};
+use std::path::{Path, PathBuf};
+use time;
+use time::Duration;
 use timer::Timer;
 use world::World;
 
@@ -144,18 +145,22 @@ impl State {
         assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
+        let mut rng: IsaacRng = SeedableRng::from_seed(seed_arr);
+        let world =
+            World::new(&mut rng, seed, world_size.x, 32, player_position);
+
         State {
             player: Player::new(player_position, invincible),
             explosion_animation: None,
             chunk_size: 32,
             world_size: world_size,
-            world: World::new(seed, world_size.x, 32, player_position),
+            world: world,
             map_size: (map_size, map_size).into(),
             panel_width: panel_width,
             display_size: display_size,
             screen_position_in_world: world_centre,
             seed: seed,
-            rng: SeedableRng::from_seed(seed_arr),
+            rng: rng,
             keys: Keys::new(),
             commands: commands,
             verifications: verifications,
@@ -253,9 +258,10 @@ Reason: '{}'.",
                                 commands.push_back(command);
                             } else {
                                 let verification = serde_json::from_str(&line)
-                                    .expect(
-                                        &format!("Couldn't load the command or \
-                                                  verification: '{}'.", line));
+                                    .expect(&format!("Couldn't load the \
+                                                      command or \
+                                                      verification: '{}'.",
+                                                     line));
                                 verifications.push_back(verification);
                             }
                         }
@@ -325,18 +331,23 @@ pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
     use serde_json;
-    let json_command = serde_json::to_string(&command).expect(
-        &format!("Could not serialise {:?} to json.",
-                 command));
+    let json_command =
+        serde_json::to_string(&command).expect(&format!("Could not \
+                                                         serialise {:?} to \
+                                                         json.",
+                                                        command));
     writeln!(writer, "{}", json_command).unwrap();
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {
     use serde_json;
-    let json = serde_json::to_string(&verification).expect(
-        &format!("Could not serialise {:?} to json.",
-                 verification));
-    writeln!(writer, "{}", json).expect(
-        &format!("Could not write the verification: '{}' to the replay log.",
-                 json));
+    let json =
+        serde_json::to_string(&verification).expect(&format!("Could not \
+                                                              serialise \
+                                                              {:?} to json.",
+                                                             verification));
+    writeln!(writer, "{}", json).expect(&format!("Could not write the \
+                                                  verification: '{}' to the \
+                                                  replay log.",
+                                                 json));
 }

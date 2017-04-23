@@ -1,15 +1,17 @@
-use std::collections::HashMap;
 
-use level::{self, Cell, Level, Walkability};
-use item::{self, Item};
-use player;
-use point::{Point, CircularArea, SquareArea};
-use ranged_int::InclusiveRange;
-use rect::Rectangle;
-use monster::Monster;
+
+use formula;
 use generators::{self, GeneratedWorld};
+use item::{self, Item};
+use level::{self, Cell, Level, Walkability};
+use monster::Monster;
+use player;
+use point::{CircularArea, Point, SquareArea};
 
 use rand::{IsaacRng, Rng, SeedableRng};
+use ranged_int::InclusiveRange;
+use rect::Rectangle;
+use std::collections::HashMap;
 
 pub struct Chunk {
     position: Point,
@@ -130,11 +132,12 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(seed: u32,
-               dimension: i32,
-               chunk_size: i32,
-               initial_player_position: Point)
-               -> Self {
+    pub fn new<R: Rng>(rng: &mut R,
+                       seed: u32,
+                       dimension: i32,
+                       chunk_size: i32,
+                       initial_player_position: Point)
+                       -> Self {
         assert!(dimension > 0);
         assert!(chunk_size > 0);
         assert_eq!(dimension % 2, 0);
@@ -157,57 +160,59 @@ impl World {
     /// place some food nearby and a dose in sight.
     fn prepare_initial_playing_area(&mut self,
                                     initial_player_position: Point) {
-        let initial_area_size = 15;
-        let top_left_corner = initial_player_position -
-                              (initial_area_size, initial_area_size);
-        let bottom_right_corner = initial_player_position +
-                                  (initial_area_size, initial_area_size);
+        assert!(formula::INITIAL_SAFE_RADIUS <= formula::INITIAL_EASY_RADIUS);
 
-        for x in top_left_corner.x..bottom_right_corner.x {
-            for y in top_left_corner.y..bottom_right_corner.y {
-                let pos = (x, y).into();
-                self.ensure_chunk_at_pos(pos);
-            }
+
+        let safe_area =
+            Rectangle::center(initial_player_position,
+                              Point::from_i32(formula::INITIAL_SAFE_RADIUS));
+
+        let easy_area =
+            Rectangle::center(initial_player_position,
+                              Point::from_i32(formula::INITIAL_EASY_RADIUS));
+
+        for pos in easy_area.points() {
+            self.ensure_chunk_at_pos(pos);
         }
 
-        for x in top_left_corner.x..bottom_right_corner.x {
-            for y in top_left_corner.y..bottom_right_corner.y {
-                let pos = (x, y).into();
-                let remove_monster = self.monster_on_pos(pos)
-                    .map_or(false, |m| {
-                        use monster::Kind::*;
-                        match m.kind {
-                            Hunger | Shadows | Voices => false,
-                            Anxiety | Depression | Npc => true,
-                        }
-                    });
-                if remove_monster {
-                    self.remove_monster(pos)
-                }
+        for pos in easy_area.points() {
+            let remove_monster = self.monster_on_pos(pos)
+                .map_or(false, |m| {
+                    use monster::Kind::*;
+                    let easy_monster = match m.kind {
+                        Shadows | Voices => false,
+                        Hunger | Anxiety | Depression | Npc => true,
+                    };
+                    safe_area.contains(pos) || easy_monster
+                });
+            if remove_monster {
+                self.remove_monster(pos)
             }
         }
 
         // TODO: generate the initial dose and food positions with a RNG.
-        let random_position_offsets = [Point { x: -4, y: -1 },
-                                       Point { x: 0, y: -1 },
-                                       Point { x: 1, y: 2 },
-                                       Point { x: 2, y: -1 },
-                                       Point { x: 1, y: -2 },
-                                       Point { x: 3, y: -4 },
-                                       Point { x: -2, y: 3 },
-                                       Point { x: 2, y: -1 },
-                                       Point { x: -1, y: 0 },
-                                       Point { x: 2, y: -4 },
-                                       Point { x: -2, y: 0 },
-                                       Point { x: 2, y: 2 },
-                                       Point { x: 4, y: 1 },
-                                       Point { x: 3, y: -1 },
-                                       Point { x: 3, y: -1 },
-                                       Point { x: -2, y: -4 },
-                                       Point { x: -3, y: 3 },
-                                       Point { x: -3, y: 4 },
-                                       Point { x: 2, y: 0 },
-                                       Point { x: -1, y: 3 }];
+        let random_position_offsets = [
+            Point { x: -4, y: -1 },
+            Point { x: 0, y: -1 },
+            Point { x: 1, y: 2 },
+            Point { x: 2, y: -1 },
+            Point { x: 1, y: -2 },
+            Point { x: 3, y: -4 },
+            Point { x: -2, y: 3 },
+            Point { x: 2, y: -1 },
+            Point { x: -1, y: 0 },
+            Point { x: 2, y: -4 },
+            Point { x: -2, y: 0 },
+            Point { x: 2, y: 2 },
+            Point { x: 4, y: 1 },
+            Point { x: 3, y: -1 },
+            Point { x: 3, y: -1 },
+            Point { x: -2, y: -4 },
+            Point { x: -3, y: 3 },
+            Point { x: -3, y: 4 },
+            Point { x: 2, y: 0 },
+            Point { x: -1, y: 3 },
+        ];
         let mut rng =
             random_position_offsets
                 .iter()
@@ -419,7 +424,7 @@ impl World {
                 .move_monster(level_monster_pos, level_destination_pos);
         } else {
             // Need to move the monster to another chunk
-            //NOTE: We're not removing the monster from the
+            // NOTE: We're not removing the monster from the
             // `chunk.monsters` vec in order not to mess up with the
             // indices there.
             //
@@ -427,8 +432,8 @@ impl World {
             // normal connotations) and just remove it from the level.
             let mut new_monster = {
                 let monster = self.monster_on_pos(monster_position)
-                    .expect(
-                        "Trying to move a monster, but there's nothing there.");
+                    .expect("Trying to move a monster, but there's nothing \
+                             there.");
                 let result = monster.clone();
                 monster.dead = true;
                 result
@@ -440,7 +445,8 @@ impl World {
                                       Walkability::BlockingMonsters));
                 new_monster.position = destination;
                 let destination_chunk = self.chunk_mut(destination)
-                    .expect(&format!("Destination chunk at {:?} doesn't exist.",
+                    .expect(&format!("Destination chunk at {:?} doesn't \
+                                      exist.",
                                      destination));
                 let new_monster_index = destination_chunk.monsters.len();
                 destination_chunk.monsters.push(new_monster);

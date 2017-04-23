@@ -1,3 +1,7 @@
+* The player can start within an irresistible dose's reach       :mapgen:bug:
+* The map generation shouldn't screw you over from the beginning  :mapgen:bug:
+* Show the reason for the player's death on the score screen             :ui:
+** Why did they die? Depression? Exhaustion? No Will? Overdose?
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -26,8 +30,6 @@ moving in that direction.
 *** going sober more slowly
 *** pointing towards useful/interesting things/places?
 ** Could point the player towards interesting places/end-game conditions, etc.
-* Show the reason for the player's death on the score screen             :ui:
-** Why did they die? Depression? Exhaustion? No Will? Overdose?
 * Don't show the console on Windows                                      :ui:
 ** When run in the GUI mode (the default) we should not show the console window
 ** looks like we need to pass `-mwindow` to GCC
@@ -35,8 +37,6 @@ moving in that direction.
 * Add an icon to the generated executable on Windows
 ** window execs can have an icon embedded
 ** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
-* The player can start surrounded by hunger monsters and dead    :mapgen:bug:
-* The player can start within an irresistible dose's reach       :mapgen:bug:
 * Rework the animation system                                          :code:
 ** Right now it's a bunch of boxed traits and we have to match on dose type
 ** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct
@@ -146,10 +146,6 @@ that has useable body and mind feedback for gameplay - sky's the
 limit. But a generic "something you're addicted to" is too 'meh' for a
 game. Some backstory would add a lot to the experience, too.
 #+END_QUOTE
-* The map generation shouldn't screw you over from the beginning  :mapgen:bug:
-* Make the beginnings easier instead of throwing everything at you all at once :idea:
-** Start with a handful subset of monsters, maybe less spaced-out
-** Have "easy" and "hard" areas on the map but start in an easy one
 * Mouse support                                                        :idea:
 ** Click on an inventory item to use it
 ** Click on a path to step one way towards it?
@@ -1000,3 +996,15 @@ CLOSED: [2017-04-21 Fri 19:48]
 *** I don't have a solid gameplay system yet but I'd like to add them in
 *** We need to support more than one AI for this (NPCs are not hostile)
 *** Maybe rename "monster" to "mob" or "npc" everywhere?
+** DONE Make the beginnings easier instead of throwing everything at you all at once :idea:
+CLOSED: [2017-04-23 Sun 11:15]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-23 Sun 11:15
+:END:
+*** Start with a handful subset of monsters, maybe less spaced-out
+*** Have "easy" and "hard" areas on the map but start in an easy one
+** DONE The player can start surrounded by hunger monsters and dead :mapgen:bug:
+CLOSED: [2017-04-23 Sun 11:14]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-23 Sun 11:15
+:END:

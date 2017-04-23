@@ -4,6 +4,9 @@ use player::{Bonus, Mind};
 use ranged_int::{InclusiveRange, Ranged};
 
 
+pub const INITIAL_SAFE_RADIUS: i32 = 25;
+pub const INITIAL_EASY_RADIUS: i32 = 40;
+
 pub const ANXIETIES_PER_WILL: InclusiveRange = InclusiveRange(0, 7);
 
 pub const WILL: InclusiveRange = InclusiveRange(0, 5);

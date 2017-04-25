@@ -1,14 +1,15 @@
+
+
+use color::Color;
+use engine::{Draw, Settings, UpdateFn};
+use keys::Key;
+use point::Point;
+use serde_json;
 use std::error::Error;
 use std::thread;
 use time::Duration;
 
-use color::Color;
-use engine::{Draw, UpdateFn, Settings};
-use keys::Key;
-use point::Point;
-
 use zmq;
-use serde_json;
 
 
 struct ZeroMQ {

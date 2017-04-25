@@ -153,9 +153,8 @@ pub fn render_game(state: &State,
         drawcalls.extend(animation
                              .tiles()
                              .map(|(world_pos, color, _)| {
-                                      Draw::Background(
-                                     screen_coords_from_world(world_pos), color)
-                                  }));
+            Draw::Background(screen_coords_from_world(world_pos), color)
+        }));
     }
 
     // NOTE: render monsters

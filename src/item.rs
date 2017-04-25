@@ -1,10 +1,11 @@
-use time::Duration;
+
+
+use self::Kind::*;
 
 use color::{self, Color};
 use graphics::Render;
 use player::Modifier;
-
-use self::Kind::*;
+use time::Duration;
 
 
 #[derive(Clone, Copy, PartialEq, Debug, Eq, Hash)]

@@ -1,14 +1,15 @@
-use std::path::Path;
 
-use time::Duration;
+
+use color::Color;
+use engine::{Draw, Settings, UpdateFn};
+use keys::{Key, KeyCode};
+use point::Point;
+use std::path::Path;
 use tcod::{self, Console, FontLayout, FontType, RootConsole};
 use tcod::input::Key as TcodKey;
 use tcod::input::KeyCode as TcodCode;
 
-use color::Color;
-use engine::{Draw, UpdateFn, Settings};
-use keys::{Key, KeyCode};
-use point::Point;
+use time::Duration;
 
 fn key_from_tcod(tcod_key: TcodKey) -> Option<Key> {
     let key_code = match tcod_key.code {
@@ -92,13 +93,13 @@ fn key_from_tcod(tcod_key: TcodKey) -> Option<Key> {
     };
 
     key_code.map(|code| {
-                     Key {
-                         code: code,
-                         alt: tcod_key.alt,
-                         ctrl: tcod_key.ctrl,
-                         shift: tcod_key.shift,
-                     }
-                 })
+        Key {
+            code: code,
+            alt: tcod_key.alt,
+            ctrl: tcod_key.ctrl,
+            shift: tcod_key.shift,
+        }
+    })
 }
 
 

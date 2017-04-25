@@ -1,8 +1,9 @@
-use time::Duration;
+
 
 use color::Color;
 use engine::Draw;
 use point::Point;
+use time::Duration;
 
 
 pub trait Render {

@@ -1,15 +1,9 @@
-use std::collections::{HashMap, VecDeque};
-use std::io::Write;
-use std::i64;
-use std::iter::FromIterator;
 
-use rand::Rng;
-use time::Duration;
 
 use animation::{self, AreaOfEffect};
 use color;
-use formula;
 use engine::{Draw, Settings};
+use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::{TileKind, Walkability};
@@ -17,12 +11,19 @@ use monster;
 use pathfinding;
 use player;
 use point::Point;
+
+use rand::Rng;
 use rect::Rectangle;
 use render;
 use state::{self, Command, Side, State};
-use stats::{Stats, FrameStats};
+use stats::{FrameStats, Stats};
+use std::collections::{HashMap, VecDeque};
+use std::i64;
+use std::io::Write;
+use std::iter::FromIterator;
+use time::Duration;
 use timer::{Stopwatch, Timer};
-use world::{World, Chunk};
+use world::{Chunk, World};
 
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -212,13 +213,13 @@ pub fn update(mut state: State,
     state.explosion_animation = state
         .explosion_animation
         .and_then(|mut animation| {
-                      animation.update(dt);
-                      if animation.finished() {
-                          None
-                      } else {
-                          Some(animation)
-                      }
-                  });
+            animation.update(dt);
+            if animation.finished() {
+                None
+            } else {
+                Some(animation)
+            }
+        });
 
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
@@ -301,12 +302,13 @@ fn process_monsters<R: Rng>(world: &mut World,
     assert!(monster_count_estimate > 0);
     let mut monster_positions_to_process =
         VecDeque::with_capacity(monster_count_estimate as usize);
-    monster_positions_to_process
-        .extend(world
-                    .chunks(area)
-                    .flat_map(Chunk::monsters)
-                    .filter(|m| m.alive() && area.contains(m.position))
-                    .map(|m| m.position));
+    monster_positions_to_process.extend(world
+                                            .chunks(area)
+                                            .flat_map(Chunk::monsters)
+                                            .filter(|m| {
+        m.alive() && area.contains(m.position)
+    })
+                                            .map(|m| m.position));
 
     for &pos in monster_positions_to_process.iter() {
         if let Some(monster) = world.monster_on_pos(pos) {
@@ -339,8 +341,8 @@ fn process_monsters<R: Rng>(world: &mut World,
                     .path
                     .last()
                     .map(|&cached_destination| {
-                             cached_destination != destination
-                         })
+                        cached_destination != destination
+                    })
                     .unwrap_or(true);
 
                 // NOTE: we keep a cache of any previously calculated
@@ -472,11 +474,9 @@ fn process_player_action<R, W>(
             .inventory
             .iter()
             .find(|i| {
-                      i.is_dose() &&
-                      formula::player_resist_radius(i.irresistible,
-                                                    *player.will) >
-                      0
-                  })
+                i.is_dose() &&
+                formula::player_resist_radius(i.irresistible, *player.will) > 0
+            })
             .map(|i| i.kind);
         if let Some(kind) = carried_irresistible_dose {
             action = Action::Use(kind);
@@ -489,8 +489,10 @@ fn process_player_action<R, W>(
                 let bumping_into_monster = world.monster_on_pos(dest).is_some();
                 if bumping_into_monster {
                     player.spend_ap(1);
-                    //println!("Player attacks {:?}", monster);
-                    if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
+                    // println!("Player attacks {:?}", monster);
+                    if let Some(kind) = world.monster_on_pos(dest).map(|m| {
+                        m.kind
+                    }) {
                         match kind {
                             monster::Kind::Anxiety => {
                                 player.anxiety_counter += 1;
@@ -737,8 +739,7 @@ fn inventory_commands(key: Key) -> Option<Command> {
             7 => D7,
             8 => D8,
             9 => D9,
-            _ => unreachable!(
-                "There should only ever be 9 item kinds at most."),
+            _ => unreachable!("There should only ever be 9 item kinds at most."),
         };
 
         if key.code == num_key {
@@ -872,8 +873,8 @@ fn verify_states(expected: state::Verification, actual: state::Verification) {
                                         .map(|&(pos,
                                                 chunk_pos,
                                                 monster)| {
-                                                 (pos, (chunk_pos, monster))
-                                             }));
+                (pos, (chunk_pos, monster))
+            }));
         let actual_monsters: HashMap<Point, (Point, monster::Kind)> =
             FromIterator::from_iter(actual
                                         .monsters
@@ -881,8 +882,8 @@ fn verify_states(expected: state::Verification, actual: state::Verification) {
                                         .map(|&(pos,
                                                 chunk_pos,
                                                 monster)| {
-                                                 (pos, (chunk_pos, monster))
-                                             }));
+                (pos, (chunk_pos, monster))
+            }));
 
         for (pos, expected) in &expected_monsters {
             match actual_monsters.get(pos) {

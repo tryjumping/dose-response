@@ -1,4 +1,9 @@
-use time::{Duration, PreciseTime};
+
+
+use self::vertex::Vertex;
+
+use color::Color;
+use engine::{Draw, Settings, UpdateFn};
 
 use glium::{self, DisplayBuild, Surface};
 use glium::draw_parameters::DrawParameters;
@@ -6,13 +11,9 @@ use glium::glutin::{Event, WindowBuilder};
 use glium::glutin::ElementState as PressState;
 use glium::glutin::VirtualKeyCode as BackendKey;
 use image;
-
-use color::Color;
-use engine::{Draw, UpdateFn, Settings};
 use keys::{Key, KeyCode};
 use point::Point;
-
-use self::vertex::Vertex;
+use time::{Duration, PreciseTime};
 
 // NOTE: This is designed specifically to deduplicated characters on
 // the same position (using Vec::dedup). So the only thing considered
@@ -28,10 +29,12 @@ impl PartialEq for Draw {
 }
 
 fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
-    [color.r as f32 / 255.0,
-     color.g as f32 / 255.0,
-     color.b as f32 / 255.0,
-     alpha]
+    [
+        color.r as f32 / 255.0,
+        color.g as f32 / 255.0,
+        color.b as f32 / 255.0,
+        alpha,
+    ]
 }
 
 
@@ -310,33 +313,43 @@ pub fn main_loop<T>(display_size: Point,
                                   });
                     vertices.push(Vertex {
                                       tile_position: [pos_x + 1.0, pos_y],
-                                      tilemap_index: [tilemap_x + 1.0,
-                                                      tilemap_y],
+                                      tilemap_index: [
+                        tilemap_x + 1.0,
+                        tilemap_y,
+                    ],
                                       color: color,
                                   });
                     vertices.push(Vertex {
                                       tile_position: [pos_x, pos_y + 1.0],
-                                      tilemap_index: [tilemap_x,
-                                                      tilemap_y + 1.0],
+                                      tilemap_index: [
+                        tilemap_x,
+                        tilemap_y + 1.0,
+                    ],
                                       color: color,
                                   });
 
                     vertices.push(Vertex {
                                       tile_position: [pos_x + 1.0, pos_y],
-                                      tilemap_index: [tilemap_x + 1.0,
-                                                      tilemap_y],
+                                      tilemap_index: [
+                        tilemap_x + 1.0,
+                        tilemap_y,
+                    ],
                                       color: color,
                                   });
                     vertices.push(Vertex {
                                       tile_position: [pos_x, pos_y + 1.0],
-                                      tilemap_index: [tilemap_x,
-                                                      tilemap_y + 1.0],
+                                      tilemap_index: [
+                        tilemap_x,
+                        tilemap_y + 1.0,
+                    ],
                                       color: color,
                                   });
                     vertices.push(Vertex {
                                       tile_position: [pos_x + 1.0, pos_y + 1.0],
-                                      tilemap_index: [tilemap_x + 1.0,
-                                                      tilemap_y + 1.0],
+                                      tilemap_index: [
+                        tilemap_x + 1.0,
+                        tilemap_y + 1.0,
+                    ],
                                       color: color,
                                   });
 
@@ -396,34 +409,46 @@ pub fn main_loop<T>(display_size: Point,
                                       });
                         vertices.push(Vertex {
                                           tile_position: [pos_x + 1.0, pos_y],
-                                          tilemap_index: [tilemap_x + 1.0,
-                                                          tilemap_y],
+                                          tilemap_index: [
+                            tilemap_x + 1.0,
+                            tilemap_y,
+                        ],
                                           color: color,
                                       });
                         vertices.push(Vertex {
                                           tile_position: [pos_x, pos_y + 1.0],
-                                          tilemap_index: [tilemap_x,
-                                                          tilemap_y + 1.0],
+                                          tilemap_index: [
+                            tilemap_x,
+                            tilemap_y + 1.0,
+                        ],
                                           color: color,
                                       });
 
                         vertices.push(Vertex {
                                           tile_position: [pos_x + 1.0, pos_y],
-                                          tilemap_index: [tilemap_x + 1.0,
-                                                          tilemap_y],
+                                          tilemap_index: [
+                            tilemap_x + 1.0,
+                            tilemap_y,
+                        ],
                                           color: color,
                                       });
                         vertices.push(Vertex {
                                           tile_position: [pos_x, pos_y + 1.0],
-                                          tilemap_index: [tilemap_x,
-                                                          tilemap_y + 1.0],
+                                          tilemap_index: [
+                            tilemap_x,
+                            tilemap_y + 1.0,
+                        ],
                                           color: color,
                                       });
                         vertices.push(Vertex {
-                                          tile_position: [pos_x + 1.0,
-                                                          pos_y + 1.0],
-                                          tilemap_index: [tilemap_x + 1.0,
-                                                          tilemap_y + 1.0],
+                                          tile_position: [
+                            pos_x + 1.0,
+                            pos_y + 1.0,
+                        ],
+                                          tilemap_index: [
+                            tilemap_x + 1.0,
+                            tilemap_y + 1.0,
+                        ],
                                           color: color,
                                       });
                     }
@@ -463,8 +488,10 @@ pub fn main_loop<T>(display_size: Point,
                                       color: color,
                                   });
                     vertices.push(Vertex {
-                                      tile_position: [pos_x + dim_x,
-                                                      pos_y + dim_y],
+                                      tile_position: [
+                        pos_x + dim_x,
+                        pos_y + dim_y,
+                    ],
                                       tilemap_index: tilemap_index,
                                       color: color,
                                   });
@@ -507,8 +534,10 @@ pub fn main_loop<T>(display_size: Point,
                                       color: color,
                                   });
                     vertices.push(Vertex {
-                                      tile_position: [pos_x + dim_x,
-                                                      pos_y + dim_y],
+                                      tile_position: [
+                        pos_x + dim_x,
+                        pos_y + dim_y,
+                    ],
                                       tilemap_index: tilemap_index,
                                       color: color,
                                   });
@@ -608,7 +637,7 @@ pub fn main_loop<T>(display_size: Point,
                 Event::KeyboardInput(PressState::Pressed,
                                      _,
                                      Some(key_code)) => {
-                    //self.key_events.push((code, press_state));
+                    // self.key_events.push((code, press_state));
                     if let Some(code) = key_code_from_backend(key_code) {
                         keys.push(Key {
                                       code: code,

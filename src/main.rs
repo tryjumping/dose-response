@@ -28,8 +28,8 @@ extern crate rustbox;
 #[cfg(feature = "remote")]
 extern crate zmq;
 
-use std::path::Path;
 use state::State;
+use std::path::Path;
 
 mod ai;
 mod animation;
@@ -162,7 +162,7 @@ fn run_remote(_display_size: point::Point,
 
 
 fn main() {
-    use clap::{Arg, ArgGroup, App};
+    use clap::{App, Arg, ArgGroup};
 
     // NOTE: at our current font, the height of 43 is the maximum
     // value for 1336x768 monitors.

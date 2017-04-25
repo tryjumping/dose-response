@@ -1,24 +1,26 @@
+use color::Color;
+use engine::{Draw, Settings, UpdateFn};
+use image::{self, Pixel, Rgba};
+use keys::{Key, KeyCode};
+use piston_window::{Button, Input};
+
+use piston_window::{PistonWindow, WindowSettings};
+use piston_window::{Texture, TextureSettings};
+use piston_window::{clear, rectangle};
+use piston_window::Key as PistonKey;
+use point::Point;
 use std::path::Path;
 
 use time::Duration;
-use color::Color;
-use engine::{Draw, UpdateFn, Settings};
-use keys::{Key, KeyCode};
-use point::Point;
-
-use piston_window::{PistonWindow, WindowSettings};
-use piston_window::{Input, Button};
-use piston_window::Key as PistonKey;
-use piston_window::{Texture, TextureSettings};
-use piston_window::{clear, rectangle};
-use image::{self, Rgba, Pixel};
 
 
 fn from_color_with_alpha(color: Color, alpha: f32) -> [f32; 4] {
-    [color.r as f32 / 255.0,
-     color.g as f32 / 255.0,
-     color.b as f32 / 255.0,
-     alpha]
+    [
+        color.r as f32 / 255.0,
+        color.g as f32 / 255.0,
+        color.b as f32 / 255.0,
+        alpha,
+    ]
 }
 
 
@@ -233,7 +235,7 @@ pub fn main_loop<T>(display_size: Point,
                                                   &TextureSettings::new())
             .unwrap();
 
-    //let mut factory = window.factory.clone();
+    // let mut factory = window.factory.clone();
 
     let mut settings = Settings { fullscreen: false };
     let mut drawcalls = Vec::with_capacity(8192);
@@ -350,7 +352,7 @@ pub fn main_loop<T>(display_size: Point,
             // RenderArgs{ext_dt, width, height, draw_width, draw_height}
             Input::Render(render_args) => {
                 use image::GenericImage;
-                //println!("ext_dt: {:?}", render_args.ext_dt);
+                // println!("ext_dt: {:?}", render_args.ext_dt);
 
                 fn blit_char<I, J>(src_x: u32,
                                    src_y: u32,
@@ -370,22 +372,24 @@ pub fn main_loop<T>(display_size: Point,
                                 .get_pixel(src_x + x, src_y + y)
                                 .to_rgba();
                             let result = Rgba {
-                                data: [((color.r as f32 / 255.0) *
-                                        (pixel.data[0] as f32 / 255.0) *
-                                        255.0) as
-                                       u8,
-                                       ((color.g as f32 / 255.0) *
-                                        (pixel.data[1] as f32 / 255.0) *
-                                        255.0) as
-                                       u8,
-                                       ((color.b as f32 / 255.0) *
-                                        (pixel.data[2] as f32 / 255.0) *
-                                        255.0) as
-                                       u8,
-                                       ((alpha as f32 / 255.0) *
-                                        (pixel.data[3] as f32 / 255.0) *
-                                        255.0) as
-                                       u8],
+                                data: [
+                                    ((color.r as f32 / 255.0) *
+                                     (pixel.data[0] as f32 / 255.0) *
+                                     255.0) as
+                                    u8,
+                                    ((color.g as f32 / 255.0) *
+                                     (pixel.data[1] as f32 / 255.0) *
+                                     255.0) as
+                                    u8,
+                                    ((color.b as f32 / 255.0) *
+                                     (pixel.data[2] as f32 / 255.0) *
+                                     255.0) as
+                                    u8,
+                                    ((alpha as f32 / 255.0) *
+                                     (pixel.data[3] as f32 / 255.0) *
+                                     255.0) as
+                                    u8,
+                                ],
                             };
                             destination.put_pixel(dst_x + x, dst_y + y, result);
                         }
@@ -485,10 +489,12 @@ pub fn main_loop<T>(display_size: Point,
                     // NOTE: Render the default background
                     rectangle(from_color_with_alpha(default_background,
                                                     alpha as f32 / 255.0),
-                              [0.0,
-                               0.0,
-                               render_args.draw_width as f64,
-                               render_args.draw_height as f64],
+                              [
+                        0.0,
+                        0.0,
+                        render_args.draw_width as f64,
+                        render_args.draw_height as f64,
+                    ],
                               c.transform,
                               g);
 

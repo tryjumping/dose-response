@@ -1,12 +1,13 @@
-use std::fmt::{Display, Error, Formatter};
-use time::Duration;
+
 
 use color::{self, Color};
-use item::Item;
-use formula::{self, ANXIETIES_PER_WILL, WILL, SOBRIETY_COUNTER, WITHDRAWAL};
+use formula::{self, ANXIETIES_PER_WILL, SOBRIETY_COUNTER, WILL, WITHDRAWAL};
 use graphics::Render;
+use item::Item;
 use point::Point;
 use ranged_int::Ranged;
+use std::fmt::{Display, Error, Formatter};
+use time::Duration;
 
 
 #[derive(Copy, Clone, PartialEq, Debug)]

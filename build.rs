@@ -1,13 +1,13 @@
 extern crate rusttype;
 extern crate image;
 
-use std::env;
-use std::io::Write;
-use std::fs::File;
-use std::path::Path;
-
-use rusttype::{FontCollection, Scale, point, PositionedGlyph};
 use image::{Rgba, RgbaImage};
+
+use rusttype::{FontCollection, PositionedGlyph, Scale, point};
+use std::env;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 
 fn main() {
 
@@ -69,12 +69,11 @@ fn main() {
     let glyphs: Vec<PositionedGlyph> = lookup_table
         .iter()
         .map(|&(index, chr)| {
-                 font.glyph(chr)
-                     .unwrap()
-                     .scaled(scale)
-                     .positioned(point(height * index as f32,
-                                       v_metrics.ascent))
-             })
+            font.glyph(chr)
+                .unwrap()
+                .scaled(scale)
+                .positioned(point(height * index as f32, v_metrics.ascent))
+        })
         .collect();
 
     let width = pixel_height * glyphs.iter().count();

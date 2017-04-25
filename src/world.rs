@@ -112,9 +112,9 @@ impl<'a> Iterator for ChunkCells<'a> {
         self.cells
             .next()
             .map(|(level_pos, cell)| {
-                     let offset: Point = level_pos.into();
-                     (self.chunk_position + offset, cell)
-                 })
+                let offset: Point = level_pos.into();
+                (self.chunk_position + offset, cell)
+            })
     }
 }
 
@@ -326,11 +326,8 @@ impl World {
         self.chunks
             .entry(chunk_position)
             .or_insert_with(|| {
-                                Chunk::new(seed,
-                                           chunk_position,
-                                           chunk_size,
-                                           (0, 0).into())
-                            });
+                Chunk::new(seed, chunk_position, chunk_size, (0, 0).into())
+            });
     }
 
     fn cell(&self, world_pos: Point) -> Option<&Cell> {
@@ -338,9 +335,9 @@ impl World {
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
         chunk.map(|chunk| {
-                      let level_position = chunk.level_position(world_pos);
-                      chunk.level.cell(level_position)
-                  })
+            let level_position = chunk.level_position(world_pos);
+            chunk.level.cell(level_position)
+        })
     }
 
     pub fn cell_mut(&mut self, world_pos: Point) -> Option<&mut Cell> {
@@ -348,9 +345,9 @@ impl World {
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
         chunk.map(|chunk| {
-                      let level_position = chunk.level_position(world_pos);
-                      chunk.level.cell_mut(level_position)
-                  })
+            let level_position = chunk.level_position(world_pos);
+            chunk.level.cell_mut(level_position)
+        })
     }
 
     /// Check whether the given position is within the bounds of the World.
@@ -372,9 +369,9 @@ impl World {
     pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
         let level_cell_walkable = self.chunk(pos)
             .map(|chunk| {
-                     let level_position = chunk.level_position(pos);
-                     chunk.level.walkable(level_position, walkability)
-                 })
+                let level_position = chunk.level_position(pos);
+                chunk.level.walkable(level_position, walkability)
+            })
             .unwrap_or(false);
         self.within_bounds(pos) && level_cell_walkable
     }
@@ -400,8 +397,8 @@ impl World {
                     .level
                     .monster_on_pos(level_position)
                     .and_then(move |monster_index| {
-                                  Some(&mut chunk.monsters[monster_index])
-                              })
+                        Some(&mut chunk.monsters[monster_index])
+                    })
             } else {
                 None
             }

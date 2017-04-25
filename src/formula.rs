@@ -1,7 +1,8 @@
-use std::cmp;
+
 
 use player::{Bonus, Mind};
 use ranged_int::{InclusiveRange, Ranged};
+use std::cmp;
 
 
 pub const INITIAL_SAFE_RADIUS: i32 = 25;

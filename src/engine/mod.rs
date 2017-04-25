@@ -1,10 +1,11 @@
-use std::borrow::Cow;
 
-use time::Duration;
 
 use color::Color;
 use keys::Key;
 use point::Point;
+use std::borrow::Cow;
+
+use time::Duration;
 
 
 #[cfg(feature = "opengl")]

@@ -75,9 +75,9 @@ pub fn pack_attacker_act<R: Rng>(actor: &Monster,
                 .flat_map(Chunk::monsters)
                 .filter(|m| m.alive() && howling_area.contains(m.position))
                 .filter(|m| {
-                            m.behavior == Behavior::PackAttacker &&
-                            m.position != actor.position
-                        })
+                    m.behavior == Behavior::PackAttacker &&
+                    m.position != actor.position
+                })
                 .map(|m| m.position)
                 .collect::<Vec<_>>();
 
@@ -127,11 +127,10 @@ fn idle_destination<R: Rng>(actor: &Monster,
                                       10,
                                       Walkability::WalkthroughMonsters)
             .unwrap_or_else(|| {
-                                world.random_neighbour_position(
-                    rng,
-                    actor.position,
-                    Walkability::BlockingMonsters)
-                            })
+                world.random_neighbour_position(rng,
+                                                actor.position,
+                                                Walkability::BlockingMonsters)
+            })
     } else {
         // We already have a path, just set the same destination:
         *actor.path.last().unwrap()

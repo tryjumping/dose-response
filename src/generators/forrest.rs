@@ -1,25 +1,27 @@
-use rand::Rng;
-use rand::distributions::{Weighted, WeightedChoice, IndependentSample};
+use generators::GeneratedWorld;
 
 use item::{self, Item};
 use level::{Tile, TileKind};
 use monster::Kind;
 use player::Modifier;
 use point::Point;
-use generators::GeneratedWorld;
+use rand::Rng;
+use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
 fn generate_map<R: Rng>(rng: &mut R,
                         map_size: Point,
                         player_pos: Point)
                         -> Vec<(Point, Tile)> {
-    let mut weights = [Weighted {
-                           weight: 610,
-                           item: TileKind::Empty,
-                       },
-                       Weighted {
-                           weight: 390,
-                           item: TileKind::Tree,
-                       }];
+    let mut weights = [
+        Weighted {
+            weight: 610,
+            item: TileKind::Empty,
+        },
+        Weighted {
+            weight: 390,
+            item: TileKind::Tree,
+        },
+    ];
     let opts = WeightedChoice::new(&mut weights);
     let mut result = vec![];
     // NOTE: starting with `y` seems weird but it'll generate the right pattern:
@@ -46,34 +48,36 @@ fn generate_monsters<R: Rng>(rng: &mut R,
     // 3% chance a monster gets spawned
     let monster_count = 5;
     let monster_chance = 30;
-    let mut weights = [Weighted {
-                           weight: 1000 - monster_chance,
-                           item: None,
-                       },
-                       Weighted {
-                           weight: monster_chance / monster_count,
-                           item: Some(Kind::Anxiety),
-                       },
-                       Weighted {
-                           weight: monster_chance / monster_count,
-                           item: Some(Kind::Depression),
-                       },
-                       Weighted {
-                           weight: monster_chance / monster_count,
-                           item: Some(Kind::Hunger),
-                       },
-                       Weighted {
-                           weight: monster_chance / monster_count,
-                           item: Some(Kind::Shadows),
-                       },
-                       Weighted {
-                           weight: monster_chance / monster_count,
-                           item: Some(Kind::Voices),
-                       },
-                       Weighted {
-                           weight: 1,
-                           item: Some(Kind::Npc),
-                       }];
+    let mut weights = [
+        Weighted {
+            weight: 1000 - monster_chance,
+            item: None,
+        },
+        Weighted {
+            weight: monster_chance / monster_count,
+            item: Some(Kind::Anxiety),
+        },
+        Weighted {
+            weight: monster_chance / monster_count,
+            item: Some(Kind::Depression),
+        },
+        Weighted {
+            weight: monster_chance / monster_count,
+            item: Some(Kind::Hunger),
+        },
+        Weighted {
+            weight: monster_chance / monster_count,
+            item: Some(Kind::Shadows),
+        },
+        Weighted {
+            weight: monster_chance / monster_count,
+            item: Some(Kind::Voices),
+        },
+        Weighted {
+            weight: 1,
+            item: Some(Kind::Npc),
+        },
+    ];
     let opts = WeightedChoice::new(&mut weights);
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
@@ -138,21 +142,23 @@ fn generate_items<R: Rng>(rng: &mut R,
                           -> Vec<(Point, item::Item)> {
     use item::Kind::*;
 
-    let mut weights = [Weighted { weight: 1000, item: None },
-                       Weighted { weight: 8, item: Some(Dose) },
-                       Weighted {
-                           weight: 3,
-                           item: Some(StrongDose),
-                       },
-                       Weighted {
-                           weight: 2,
-                           item: Some(CardinalDose),
-                       },
-                       Weighted {
-                           weight: 2,
-                           item: Some(DiagonalDose),
-                       },
-                       Weighted { weight: 5, item: Some(Food) }];
+    let mut weights = [
+        Weighted { weight: 1000, item: None },
+        Weighted { weight: 8, item: Some(Dose) },
+        Weighted {
+            weight: 3,
+            item: Some(StrongDose),
+        },
+        Weighted {
+            weight: 2,
+            item: Some(CardinalDose),
+        },
+        Weighted {
+            weight: 2,
+            item: Some(DiagonalDose),
+        },
+        Weighted { weight: 5, item: Some(Food) },
+    ];
 
     let generator = WeightedChoice::new(&mut weights);
 

@@ -1,10 +1,10 @@
+use level::Walkability;
+
+use point::Point;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 use std::f32;
-
-use point::Point;
 use world::World;
-use level::Walkability;
 
 #[derive(Debug)]
 pub struct Path {
@@ -31,22 +31,24 @@ impl Path {
 
         let neighbors = |current: Point| {
             assert!(world.within_bounds(current));
-            let dp: [Point; 9] = [(-1, -1).into(),
-                                  (-1, 0).into(),
-                                  (-1, 1).into(),
-                                  (0, -1).into(),
-                                  (0, 0).into(),
-                                  (0, 1).into(),
-                                  (1, -1).into(),
-                                  (1, 0).into(),
-                                  (1, 1).into()];
+            let dp: [Point; 9] = [
+                (-1, -1).into(),
+                (-1, 0).into(),
+                (-1, 1).into(),
+                (0, -1).into(),
+                (0, 0).into(),
+                (0, 1).into(),
+                (1, -1).into(),
+                (1, 0).into(),
+                (1, 1).into(),
+            ];
             dp.clone()
                 .iter()
                 .map(|&d| current + d)
                 .filter(|&point| {
-                            world.within_bounds(point) &&
-                            world.walkable(point, walkability)
-                        })
+                    world.within_bounds(point) &&
+                    world.walkable(point, walkability)
+                })
                 .collect::<Vec<_>>()
         };
 
@@ -177,8 +179,8 @@ impl PartialOrd for State {
 #[cfg(test)]
 mod test {
     use super::Path;
-    use point::Point;
     use level::{Level, Walkability};
+    use point::Point;
 
     struct Board {
         start: Point,
@@ -373,8 +375,17 @@ s..........
                                     &board.level,
                                     Walkability::WalkthroughMonsters);
         assert_eq!(9, path.len());
-        let expected = [(2, 2), (2, 3), (3, 4), (4, 4), (5, 4), (6, 4),
-                        (7, 3), (7, 2), (7, 1)]
+        let expected = [
+            (2, 2),
+            (2, 3),
+            (3, 4),
+            (4, 4),
+            (5, 4),
+            (6, 4),
+            (7, 3),
+            (7, 2),
+            (7, 1),
+        ]
                 .iter()
                 .cloned()
                 .map(Into::into)

@@ -1,12 +1,13 @@
-use std::collections::HashMap;
-use time::Duration;
 
-use rand::{self, Rng};
 
 use color::{self, Color};
 use graphics::Render;
 use item::Item;
 use point;
+
+use rand::{self, Rng};
+use std::collections::HashMap;
+use time::Duration;
 
 
 /// Position within a level. Ensured to be always within bounds.
@@ -91,12 +92,12 @@ impl Level {
             monsters: HashMap::new(),
             map: (0..map_size)
                 .map(|_| {
-                         Cell {
-                             tile: Tile::new(TileKind::Empty),
-                             items: vec![],
-                             explored: false,
-                         }
-                     })
+                    Cell {
+                        tile: Tile::new(TileKind::Empty),
+                        items: vec![],
+                        explored: false,
+                    }
+                })
                 .collect(),
         }
     }

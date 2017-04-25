@@ -1,8 +1,8 @@
 use color::Color;
 use point::{Point, SquareArea};
-use timer::Timer;
 
 use time::Duration;
+use timer::Timer;
 
 pub trait AreaOfEffect {
     fn update(&mut self, dt: Duration);
@@ -139,8 +139,9 @@ impl AreaOfEffect for CardinalExplosion {
 
     fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>> {
         let kill_color = self.kill_color;
-        let killzone_area = SquareArea::new(self.center, 2)
-            .map(move |pos| (pos, kill_color, KILL));
+        let killzone_area = SquareArea::new(self.center, 2).map(move |pos| {
+            (pos, kill_color, KILL)
+        });
 
         let shatter_color = self.shatter_color;
         let shatter_area =
@@ -265,13 +266,15 @@ impl AreaOfEffect for DiagonalExplosion {
 
     fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>> {
         let kill_color = self.kill_color;
-        let killzone_area = SquareArea::new(self.center, 2)
-            .map(move |pos| (pos, kill_color, KILL));
+        let killzone_area = SquareArea::new(self.center, 2).map(move |pos| {
+            (pos, kill_color, KILL)
+        });
 
         let shatter_color = self.shatter_color;
         let shatter_area =
-            XIterator::new(self.center, self.current_radius)
-                .map(move |pos| (pos, shatter_color, KILL | SHATTER));
+            XIterator::new(self.center, self.current_radius).map(move |pos| {
+                (pos, shatter_color, KILL | SHATTER)
+            });
         Box::new(killzone_area.chain(shatter_area))
     }
 }

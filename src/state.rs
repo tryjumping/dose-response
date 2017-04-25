@@ -312,8 +312,8 @@ Reason: '{}'.",
             }
         }
         monsters.sort_by_key(|&(monster_pos, _chunk_pos, kind)| {
-                                 (monster_pos.x, monster_pos.y, kind)
-                             });
+            (monster_pos.x, monster_pos.y, kind)
+        });
 
         Verification {
             turn: self.turn,
@@ -331,11 +331,11 @@ pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
     use serde_json;
-    let json_command =
-        serde_json::to_string(&command).expect(&format!("Could not \
+    let json_command = serde_json::to_string(&command)
+        .expect(&format!("Could not \
                                                          serialise {:?} to \
                                                          json.",
-                                                        command));
+                         command));
     writeln!(writer, "{}", json_command).unwrap();
 }
 

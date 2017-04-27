@@ -22,7 +22,7 @@ looking for the next fix.
 - When winning the game, show the endgame screen
 
 
-## [v0.4.2] - 2017-03-18
+## [0.4.2] - 2017-03-18
 
 - The shattering doses actually show up in the inventory
 - Weaker doses can be picked up earlier than on maximum Will
@@ -30,12 +30,12 @@ looking for the next fix.
   close to them so as not to interfere)
 
 
-## [v0.4.1] - 2017-02-26
+## [0.4.1] - 2017-02-26
 
 - Made the shattering doses destroy the environment
 
 
-## [v0.4.0] - 2017-02-25
+## [0.4.0] - 2017-02-25
 
 - The game world is now effectively infinite
 - Added "vi keys": you can use h/j/k/l to move left/up/down/right and
@@ -49,7 +49,7 @@ looking for the next fix.
   walls
 
 
-## [v0.3.0] - 2016-12-14
+## [0.3.0] - 2016-12-14
 
 - The game can be won now (see Spoilers for more details)
 - You can pick doses up and carry them your inventory when your will
@@ -75,3 +75,9 @@ To win the game, you must defeat enough a monsters to increase your
 Will to the maximum value (5). You need to defeat 7 as to increase the
 Will by one point. Once you're there, you need to last for 100 turns
 without getting high, losing will or (of course) dying.
+
+
+[Unreleased]: https://github.com/tomassedovic/dose-response/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/tomassedovic/dose-response/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/tomassedovic/dose-response/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/tomassedovic/dose-response/compare/v0.3.0...v0.4.0

@@ -15,7 +15,7 @@ use point::Point;
 use rand::Rng;
 use rect::Rectangle;
 use render;
-use state::{self, Command, Side, State};
+use state::{self, Command, EndgameReason, EndgameScreen, Side, State};
 use stats::{FrameStats, Stats};
 use std::collections::{HashMap, VecDeque};
 use std::i64;
@@ -260,7 +260,13 @@ pub fn update(mut state: State,
             // after we've faded out:
             if (prev_phase != new_phase) &&
                prev_phase == ScreenFadePhase::FadeOut {
-                state.endgame_screen = true;
+                // TODO: fill this with the real values
+                state.endgame_screen = Some(EndgameScreen {
+                                                visible: true,
+                                                reason:
+                                                    EndgameReason::Exhausted,
+                                                cause: None,
+                                            });
             }
             state.screen_fading = Some(anim);
         }
@@ -638,7 +644,11 @@ fn process_player(state: &mut State) {
     // NOTE: The player has stayed sober long enough. Victory! \o/
     if state.player.sobriety_counter.is_max() {
         state.side = Side::Victory;
-        state.endgame_screen = true;
+        state.endgame_screen = Some(EndgameScreen {
+                                        visible: true,
+                                        reason: EndgameReason::Victory,
+                                        cause: None,
+                                    });
     }
 
     state

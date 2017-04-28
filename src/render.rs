@@ -6,11 +6,11 @@ use formula;
 use game;
 use graphics;
 use item;
-use monster;
+use monster::{self, Monster};
 use player::{Bonus, Mind};
 use point::{Point, SquareArea};
 use rect::Rectangle;
-use state::{Side, State};
+use state::{EndgameReason, Side, State};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -51,7 +51,7 @@ pub fn render_game(state: &State,
     let mut bonus = state.player.bonus;
     // TODO: setting this as a bonus is a hack. Pass it to all renderers
     // directly instead.
-    if state.endgame_screen {
+    if state.endgame_screen.is_some() {
         bonus = Bonus::UncoverMap;
     }
     if state.cheating {
@@ -218,13 +218,46 @@ pub fn render_game(state: &State,
         render_controls_help(state.map_size, drawcalls);
     }
 
-    if state.endgame_screen {
-        render_endgame_screen(state, drawcalls);
+    if let Some(ref screen) = state.endgame_screen {
+        if screen.visible {
+            render_endgame_screen(state,
+                                  drawcalls,
+                                  screen.reason,
+                                  screen.cause.as_ref());
+        }
     }
 }
 
 
-fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
+fn render_endgame_screen(state: &State,
+                         drawcalls: &mut Vec<Draw>,
+                         reason: EndgameReason,
+                         cause: Option<&Monster>) {
+    use self::EndgameReason::*;
+    let endgame_reason = if state.side == Side::Victory {
+        // TODO: remove Side entirely for now.
+        assert_eq!(reason, Victory);
+        "You won!"
+    } else {
+        "You lost:"
+    };
+
+    let endgame_description = match (reason, cause) {
+        (Exhausted, None) => "Exhausted".into(),
+        (Exhausted, Some(monster)) => {
+            format!("Exhausted because of {}", monster.glyph())
+        }
+        (LostWill, Some(monster)) => {
+            format!("Lost all Will due to {}", monster.glyph())
+        }
+        (LostWill, None) => unreachable!(),
+        (Overdosed, None) => "Overdosed".into(),
+        (Overdosed, Some(_)) => unreachable!(),
+        (Killed, Some(monster)) => format!("Defeated by {}", monster.glyph()),
+        (Killed, None) => unreachable!(),
+        (Victory, _) => "".into(),
+    };
+
     let doses_in_inventory = state
         .player
         .inventory
@@ -239,6 +272,8 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     let keyboard_text = "[F5] New Game    [Q] Quit";
 
     let longest_text = [
+        endgame_reason,
+        &endgame_description,
         &turns_text,
         &carrying_doses_text,
         &high_streak_text,
@@ -248,7 +283,7 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             .map(|s| s.chars().count())
             .max()
             .unwrap() as i32;
-    let lines_count = 5;
+    let lines_count = 7;
 
     let rect_dimensions = Point {
         // NOTE: 1 tile padding, which is why we have the `+ 2`.
@@ -272,26 +307,40 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     drawcalls.push(Draw::Text(rect_start +
                               (centered_text_pos(rect_dimensions.x,
-                                                 &turns_text),
+                                                 &endgame_reason),
                                1),
+                              endgame_reason.into(),
+                              color::gui_text));
+
+    drawcalls.push(Draw::Text(rect_start +
+                              (centered_text_pos(rect_dimensions.x,
+                                                 &endgame_description),
+                               2),
+                              endgame_description.into(),
+                              color::gui_text));
+
+    drawcalls.push(Draw::Text(rect_start +
+                              (centered_text_pos(rect_dimensions.x,
+                                                 &turns_text),
+                               5),
                               turns_text.into(),
                               color::gui_text));
     drawcalls.push(Draw::Text(rect_start +
                               (centered_text_pos(rect_dimensions.x,
                                                  &carrying_doses_text),
-                               3),
+                               7),
                               carrying_doses_text.into(),
                               color::gui_text));
     drawcalls.push(Draw::Text(rect_start +
                               (centered_text_pos(rect_dimensions.x,
                                                  &high_streak_text),
-                               5),
+                               9),
                               high_streak_text.into(),
                               color::gui_text));
     drawcalls.push(Draw::Text(rect_start +
                               (centered_text_pos(rect_dimensions.x,
                                                  &keyboard_text),
-                               9),
+                               13),
                               keyboard_text.into(),
                               color::gui_text));
 }
@@ -361,10 +410,6 @@ fn render_panel(x: i32,
     if state.cheating {
         lines.push("CHEATING".into());
         lines.push("".into());
-    }
-
-    if state.side == Side::Victory {
-        lines.push(format!("VICTORY!").into());
     }
 
     if player.alive() {

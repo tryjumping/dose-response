@@ -133,18 +133,30 @@ impl Monster {
     pub fn alive(&self) -> bool {
         !self.dead
     }
+
+    pub fn glyph(&self) -> char {
+        match self.kind {
+            Anxiety => 'a',
+            Depression => 'D',
+            Hunger => 'h',
+            Shadows => 'S',
+            Voices => 'v',
+            Npc => '@',
+        }
+    }
 }
 
 
 impl Render for Monster {
     fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
+        let glyph = self.glyph();
         match self.kind {
-            Anxiety => ('a', color::anxiety, None),
-            Depression => ('D', color::depression, None),
-            Hunger => ('h', color::hunger, None),
-            Shadows => ('S', color::voices, None),
-            Voices => ('v', color::shadows, None),
-            Npc => ('@', color::npc, None),
+            Anxiety => (glyph, color::anxiety, None),
+            Depression => (glyph, color::depression, None),
+            Hunger => (glyph, color::hunger, None),
+            Shadows => (glyph, color::voices, None),
+            Voices => (glyph, color::shadows, None),
+            Npc => (glyph, color::npc, None),
         }
     }
 }

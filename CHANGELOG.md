@@ -6,6 +6,8 @@ looking for the next fix.
 
 ## [Unreleased]
 
+## [0.4.3] - 2017-04-28
+
 - Make sure the player is not immediately surrounded by monsters
 - Ditto for being in the range of an irresistible dose
 - Introduce monsters gradually. At first, only the `S` and `v` will
@@ -20,6 +22,8 @@ looking for the next fix.
   whether or how *sober* or *exhausted* you are makes no effect while
   using)
 - When winning the game, show the endgame screen
+- The endgame screens shows why the player lost t
+- The Windows version no longer shows the command line console
 
 
 ## [0.4.2] - 2017-03-18
@@ -77,7 +81,8 @@ Will by one point. Once you're there, you need to last for 100 turns
 without getting high, losing will or (of course) dying.
 
 
-[Unreleased]: https://github.com/tomassedovic/dose-response/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/tomassedovic/dose-response/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/tomassedovic/dose-response/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/tomassedovic/dose-response/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/tomassedovic/dose-response/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/tomassedovic/dose-response/compare/v0.3.0...v0.4.0

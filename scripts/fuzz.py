@@ -252,6 +252,9 @@ def test_run():
         return 'SUCCESS'
     else:
         # We got a bug / replay failure
+        print "Return code: {}".format(rc)
+        print "stdout: {}".format(game.stdout.read())
+        print "stderr: {}".format(game.stderr.read())
         target_dir = os.path.join(os.curdir, 'replays', 'bugs')
         now = datetime.datetime.now()
         bug_path = os.path.join(target_dir, now.strftime('%Y-%m-%dT%H-%M-%S'))

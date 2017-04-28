@@ -64,7 +64,9 @@ impl Display {
     }
 
     fn set(&mut self, pos: Point, chr: char) {
-        self.cells[(pos.y * self.width + pos.x) as usize] = chr;
+        if pos.x >= 0 && pos.x < self.width && pos.y >= 0 && pos.y < self.height {
+            self.cells[(pos.y * self.width + pos.x) as usize] = chr;
+        }
     }
 
     fn clear(&mut self) {

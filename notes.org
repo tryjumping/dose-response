@@ -39,6 +39,8 @@ moving in that direction.
 ** When run in the GUI mode (the default) we should not show the console window
 ** looks like we need to pass `-mwindow` to GCC
 ** https://users.rust-lang.org/t/solved-rust-project-how-build-like-gcc-mwindow/5168
+** Created a commit that should do it
+*** The build passed but it's not been tested yet
 * Irresistible doses don't always atract                           :bug:idea:
 ** Seems that when there is a normal dose in the irresistible area we can break free
 ** I'll need to test the exact parameters of this

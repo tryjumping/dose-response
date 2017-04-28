@@ -6,11 +6,11 @@ use formula;
 use game;
 use graphics;
 use item;
-use monster::{self, Monster};
-use player::{Bonus, Mind};
+use monster;
+use player::{Bonus, CauseOfDeath, Mind};
 use point::{Point, SquareArea};
 use rect::Rectangle;
-use state::{EndgameReason, Side, State};
+use state::{Side, State};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -51,7 +51,7 @@ pub fn render_game(state: &State,
     let mut bonus = state.player.bonus;
     // TODO: setting this as a bonus is a hack. Pass it to all renderers
     // directly instead.
-    if state.endgame_screen.is_some() {
+    if state.endgame_screen_visible {
         bonus = Bonus::UncoverMap;
     }
     if state.cheating {
@@ -218,44 +218,39 @@ pub fn render_game(state: &State,
         render_controls_help(state.map_size, drawcalls);
     }
 
-    if let Some(ref screen) = state.endgame_screen {
-        if screen.visible {
-            render_endgame_screen(state,
-                                  drawcalls,
-                                  screen.reason,
-                                  screen.cause.as_ref());
-        }
+    if state.endgame_screen_visible {
+        render_endgame_screen(state, drawcalls);
     }
 }
 
 
-fn render_endgame_screen(state: &State,
-                         drawcalls: &mut Vec<Draw>,
-                         reason: EndgameReason,
-                         cause: Option<&Monster>) {
-    use self::EndgameReason::*;
-    let endgame_reason = if state.side == Side::Victory {
+fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
+    use self::CauseOfDeath::*;
+    let cause_of_death = formula::cause_of_death(&state.player);
+    let endgame_reason_text = if state.side == Side::Victory {
         // TODO: remove Side entirely for now.
-        assert_eq!(reason, Victory);
+        assert!(state.player.alive());
+        assert!(cause_of_death.is_none());
         "You won!"
     } else {
         "You lost:"
     };
 
-    let endgame_description = match (reason, cause) {
-        (Exhausted, None) => "Exhausted".into(),
-        (Exhausted, Some(monster)) => {
+    let perpetrator = state.player.perpetrator.as_ref();
+
+    let endgame_description = match (cause_of_death, perpetrator) {
+        (Some(Exhausted), None) => "Exhausted".into(),
+        (Some(Exhausted), Some(monster)) => {
             format!("Exhausted because of {}", monster.glyph())
         }
-        (LostWill, Some(monster)) => {
+        (Some(Overdosed), _) => "Overdosed".into(),
+        (Some(LostWill), Some(monster)) => {
             format!("Lost all Will due to {}", monster.glyph())
         }
-        (LostWill, None) => unreachable!(),
-        (Overdosed, None) => "Overdosed".into(),
-        (Overdosed, Some(_)) => unreachable!(),
-        (Killed, Some(monster)) => format!("Defeated by {}", monster.glyph()),
-        (Killed, None) => unreachable!(),
-        (Victory, _) => "".into(),
+        (Some(LostWill), None) => unreachable!(),
+        (Some(Killed), Some(monster)) => format!("Defeated by {}", monster.glyph()),
+        (Some(Killed), None) => unreachable!(),
+        (None, _) => "".into(),  // Victory
     };
 
     let doses_in_inventory = state
@@ -272,7 +267,7 @@ fn render_endgame_screen(state: &State,
     let keyboard_text = "[F5] New Game    [Q] Quit";
 
     let longest_text = [
-        endgame_reason,
+        endgame_reason_text,
         &endgame_description,
         &turns_text,
         &carrying_doses_text,
@@ -307,9 +302,9 @@ fn render_endgame_screen(state: &State,
 
     drawcalls.push(Draw::Text(rect_start +
                               (centered_text_pos(rect_dimensions.x,
-                                                 &endgame_reason),
+                                                 &endgame_reason_text),
                                1),
-                              endgame_reason.into(),
+                              endgame_reason_text.into(),
                               color::gui_text));
 
     drawcalls.push(Draw::Text(rect_start +

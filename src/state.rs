@@ -2,7 +2,7 @@
 
 use animation::{AreaOfEffect, ScreenFade};
 use keys::Keys;
-use monster::{self, Monster};
+use monster;
 use player::Player;
 use point::Point;
 use rand::{self, IsaacRng, SeedableRng};
@@ -27,22 +27,6 @@ pub enum Side {
     Victory,
 }
 
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum EndgameReason {
-    Exhausted,
-    LostWill,
-    Overdosed,
-    Killed,
-    Victory,
-}
-
-#[derive(Debug)]
-pub struct EndgameScreen {
-     pub visible: bool,
-     pub reason: EndgameReason,
-     pub cause: Option<Monster>,
-}
 
 
 // TODO: rename this to Input or something like that. This represents the raw
@@ -137,7 +121,7 @@ pub struct State {
 
     /// Whether the game is over (one way or another) and we should
     /// show the endgame screen -- uncovered map, the score, etc.
-    pub endgame_screen: Option<EndgameScreen>,
+    pub endgame_screen_visible: bool,
 
     pub show_keboard_movement_hints: bool,
 }
@@ -196,7 +180,7 @@ impl State {
             new_screen_pos: (0, 0).into(),
             paused: false,
             screen_fading: None,
-            endgame_screen: None,
+            endgame_screen_visible: false,
             show_keboard_movement_hints: true,
         }
     }

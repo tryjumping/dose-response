@@ -1,5 +1,3 @@
-* Show the reason for the player's death/victory on the score screen     :ui:
-** Why did they die? Depression? Exhaustion? No Will? Overdose?
 * Different screen fadeout colours on various player deaths              :ui:
 ** RED when killed by a monster
 ** BLACK when died of exaustion
@@ -1042,3 +1040,9 @@ CLOSED: [2017-04-28 Fri 09:46]
 *** new in Rust 1.17
 *** lets you use `Point {x, y}` instead of `Point {x: x, y: y}`
 *** QUESTION: can it work on partial values? E.g. `Point {x, y: 5}` ??
+** DONE Show the reason for the player's death/victory on the score screen :ui:
+CLOSED: [2017-04-28 Fri 16:48]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-28 Fri 16:48
+:END:
+*** Why did they die? Depression? Exhaustion? No Will? Overdose?

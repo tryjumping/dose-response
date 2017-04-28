@@ -4,6 +4,7 @@ use color::{self, Color};
 use formula::{self, ANXIETIES_PER_WILL, SOBRIETY_COUNTER, WILL, WITHDRAWAL};
 use graphics::Render;
 use item::Item;
+use monster::Monster;
 use point::Point;
 use ranged_int::Ranged;
 use std::fmt::{Display, Error, Formatter};
@@ -62,6 +63,14 @@ pub enum Bonus {
     UncoverMap,
 }
 
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub enum CauseOfDeath {
+    Exhausted,
+    Overdosed,
+    LostWill,
+    Killed,
+}
+
 pub struct Player {
     pub mind: Mind,
     pub will: Ranged,
@@ -78,8 +87,9 @@ pub struct Player {
     pub current_high_streak: i32,
     pub longest_high_streak: i32,
 
-    dead: bool,
+    pub dead: bool,
     pub invincible: bool,
+    pub perpetrator: Option<Monster>,
 
     // TODO: Use a Ranged here?
     max_ap: i32,
@@ -99,6 +109,7 @@ impl Player {
             anxiety_counter: Ranged::new_min(ANXIETIES_PER_WILL),
             dead: false,
             invincible,
+            perpetrator: None,
             max_ap: 1,
             ap: 1,
             bonus: Bonus::None,
@@ -135,12 +146,7 @@ impl Player {
     }
 
     pub fn alive(&self) -> bool {
-        let dead_mind = match self.mind {
-            Mind::Withdrawal(val) if val.is_min() => true,  // Exhausted
-            Mind::High(val) if val.is_max() => true,  // Overdosed
-            _ => false,
-        };
-        self.invincible || !self.dead && *self.will > 0 && !dead_mind
+        self.invincible || formula::cause_of_death(self).is_none()
     }
 
     pub fn take_effect(&mut self, effect: Modifier) {

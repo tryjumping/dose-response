@@ -1,6 +1,4 @@
-
-
-use player::{Bonus, Mind};
+use player::{Bonus, CauseOfDeath, Mind, Player};
 use ranged_int::{InclusiveRange, Ranged};
 use std::cmp;
 
@@ -121,4 +119,23 @@ pub fn mind_bonus(mind: Mind) -> Option<Bonus> {
         }
         _ => None,
     }
+}
+
+pub fn cause_of_death(player: &Player) -> Option<CauseOfDeath> {
+    use self::CauseOfDeath::*;
+    match player.mind {
+        Mind::Withdrawal(val) if val.is_min() => return Some(Exhausted),
+        Mind::High(val) if val.is_max() => return Some(Overdosed),
+        _ => {}
+    }
+
+    if player.will.is_min() {
+        return Some(LostWill);
+    }
+
+    if player.dead {
+        return Some(Killed);
+    }
+
+    None
 }

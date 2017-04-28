@@ -144,9 +144,9 @@ impl World {
         assert_eq!(dimension % chunk_size, 0);
 
         let mut world = World {
-            seed: seed,
+            seed,
             max_half_size: dimension / 2,
-            chunk_size: chunk_size,
+            chunk_size,
             chunks: HashMap::new(),
         };
 
@@ -573,7 +573,7 @@ impl World {
     pub fn chunks(&self, area: Rectangle) -> Chunks {
         Chunks {
             world: self,
-            area: area,
+            area,
             next_chunk_pos:
                 self.chunk_pos_from_world_pos(area.top_left).position,
             first_chunk_pos:

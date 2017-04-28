@@ -52,7 +52,7 @@ impl Tile {
                 *rand::thread_rng().choose(&options).unwrap()
             }
         };
-        Tile { kind: kind, fg_color: color }
+        Tile { kind, fg_color: color }
     }
 }
 
@@ -88,7 +88,7 @@ impl Level {
         assert!(dimensions > (0, 0));
         let map_size = (width * height) as usize;
         Level {
-            dimensions: dimensions,
+            dimensions,
             monsters: HashMap::new(),
             map: (0..map_size)
                 .map(|_| {

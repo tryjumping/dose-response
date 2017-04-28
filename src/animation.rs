@@ -40,12 +40,12 @@ impl SquareExplosion {
         let wave_count = max_radius - initial_radius + 1;
         let wave_duration = Duration::milliseconds(100);
         SquareExplosion {
-            center: center,
-            max_radius: max_radius,
-            initial_radius: initial_radius,
+            center,
+            max_radius,
+            initial_radius,
             current_radius: initial_radius,
-            color: color,
-            wave_count: wave_count,
+            color,
+            wave_count,
             timer: Timer::new(wave_duration * wave_count),
         }
     }
@@ -104,13 +104,13 @@ impl CardinalExplosion {
         let wave_count = max_radius - initial_radius + 1;
         let wave_duration = Duration::milliseconds(100);
         CardinalExplosion {
-            center: center,
-            max_radius: max_radius,
-            initial_radius: initial_radius,
+            center,
+            max_radius,
+            initial_radius,
             current_radius: initial_radius,
-            kill_color: kill_color,
-            shatter_color: shatter_color,
-            wave_count: wave_count,
+            kill_color,
+            shatter_color,
+            wave_count,
             timer: Timer::new(wave_duration * wave_count),
         }
     }
@@ -166,8 +166,8 @@ impl CrossIterator {
     pub fn new(center: Point, range: i32) -> Self {
         assert!(range >= 0);
         CrossIterator {
-            center: center,
-            range: range,
+            center,
+            range,
             x_offset: -range,
             y_offset: -range,
             horizontal: true,
@@ -231,13 +231,13 @@ impl DiagonalExplosion {
         let wave_count = max_radius - initial_radius + 1;
         let wave_duration = Duration::milliseconds(100);
         DiagonalExplosion {
-            center: center,
-            max_radius: max_radius,
-            initial_radius: initial_radius,
+            center,
+            max_radius,
+            initial_radius,
             current_radius: initial_radius,
-            kill_color: kill_color,
-            shatter_color: shatter_color,
-            wave_count: wave_count,
+            kill_color,
+            shatter_color,
+            wave_count,
             timer: Timer::new(wave_duration * wave_count),
         }
     }
@@ -294,8 +294,8 @@ impl XIterator {
     pub fn new(center: Point, range: i32) -> Self {
         assert!(range >= 0);
         XIterator {
-            center: center,
-            range: range,
+            center,
+            range,
             x_offset: -range,
             y_offset: -range,
             horizontal: true,
@@ -362,7 +362,7 @@ impl ScreenFade {
                fade_in: Duration)
                -> Self {
         ScreenFade {
-            color: color,
+            color,
             fade_out_time: fade_out,
             wait_time: wait,
             fade_in_time: fade_in,

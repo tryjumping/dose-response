@@ -19,7 +19,7 @@ pub struct Stats {
 impl Stats {
     pub fn new(size: usize) -> Self {
         Stats {
-            size: size,
+            size,
             frame_stats: VecDeque::with_capacity(size),
             longest_updates: Vec::with_capacity(100),
             longest_drawcalls: Vec::with_capacity(100),
@@ -63,7 +63,7 @@ impl Stats {
         FrameStatsIterator {
             frame_stats: &self.frame_stats,
             count: 0,
-            size: size,
+            size,
         }
     }
 

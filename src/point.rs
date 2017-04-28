@@ -10,7 +10,7 @@ pub struct Point {
 
 impl Point {
     pub fn new(x: i32, y: i32) -> Self {
-        Point { x: x, y: y }
+        Point { x, y }
     }
 
     pub fn from_i32(x: i32) -> Self {
@@ -227,7 +227,7 @@ impl SquareArea {
         let center = center.into();
         let half_side = radius - 1;
         SquareArea {
-            radius: radius,
+            radius,
             pos: center - (half_side, half_side),
             min_x: center.x - half_side,
             max: center + (half_side, half_side),

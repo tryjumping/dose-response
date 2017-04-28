@@ -1032,3 +1032,11 @@ CLOSED: [2017-04-23 Sun 12:57]
 *** It could make the place more interesting -- having move around the place
 *** Needs glowing irresistible areas
 *** It would make it clearer what happens when you gain new will
+** DONE Look at using the struct shorthand syntax                     :code:
+CLOSED: [2017-04-28 Fri 09:46]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-28 Fri 09:46
+:END:
+*** new in Rust 1.17
+*** lets you use `Point {x, y}` instead of `Point {x: x, y: y}`
+*** QUESTION: can it work on partial values? E.g. `Point {x, y: 5}` ??

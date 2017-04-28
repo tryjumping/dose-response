@@ -63,15 +63,15 @@ impl Monster {
             _ => false,
         };
         Monster {
-            kind: kind,
-            position: position,
+            kind,
+            position,
             dead: false,
-            die_after_attack: die_after_attack,
-            invincible: invincible,
-            behavior: behavior,
+            die_after_attack,
+            invincible,
+            behavior,
             ai_state: AIState::Idle,
             ap: 0,
-            max_ap: max_ap,
+            max_ap,
             path: vec![],
             trail: None,
         }

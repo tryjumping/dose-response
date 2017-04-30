@@ -1,6 +1,11 @@
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
+* Have Anxieties be able to destroy the terrain                        :idea:
+** I'd love to have a monster that does that
+** And Anxiety is already red (the colour of the shattering explosion)
+** Breaking a wall should take one turn so it's twice as slow as empty terrain
+** And then we'd just give the same ability to the player with the "pickaxe"
 * Special "gun" equipment                                              :idea:
 ** changes the movement behaviour:
 When there is a monster in the direction of the movement (within 4

@@ -195,12 +195,30 @@ pub fn update(mut state: State,
 
     // Set the fadeout animation on death
     if player_was_alive && !state.player.alive() {
-        // NOTE: Player just died
+        use player::CauseOfDeath::*;
+        let cause_of_death = formula::cause_of_death(&state.player);
+        let fade_color = match cause_of_death {
+            Some(Exhausted) => color::exhaustion_animation,
+            Some(Overdosed) => color::overdose_animation,
+            Some(_) => color::death_animation,
+            None => {
+                // NOTE: this shouldn't happen (there should always be
+                // a cause of death) but if it deas, we won't crash
+                color::death_animation
+            }
+        };
+        let fade = formula::mind_fade_value(state.player.mind);
+        let (fade_percentage, fade_duration) = if fade > 0.0 {
+            (1.0 - fade, 2500)
+        } else {
+            (0.0, 500)
+        };
         state.screen_fading =
-            Some(animation::ScreenFade::new(color::death_animation,
-                                            Duration::milliseconds(500),
+            Some(animation::ScreenFade::new(fade_color,
+                                            Duration::milliseconds(fade_duration),
                                             Duration::milliseconds(200),
-                                            Duration::milliseconds(300)));
+                                            Duration::milliseconds(300),
+                                            fade_percentage));
     }
 
     let update_duration = update_stopwatch.finish();
@@ -260,7 +278,7 @@ pub fn update(mut state: State,
             // after we've faded out:
             if (prev_phase != new_phase) &&
                prev_phase == ScreenFadePhase::FadeOut {
-                   state.endgame_screen_visible = true;
+                state.endgame_screen_visible = true;
             }
             state.screen_fading = Some(anim);
         }

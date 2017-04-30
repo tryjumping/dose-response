@@ -359,14 +359,15 @@ impl ScreenFade {
     pub fn new(color: Color,
                fade_out: Duration,
                wait: Duration,
-               fade_in: Duration)
+               fade_in: Duration,
+               fade_percentage: f32)
                -> Self {
         ScreenFade {
             color,
             fade_out_time: fade_out,
             wait_time: wait,
             fade_in_time: fade_in,
-            timer: Timer::new(fade_out),
+            timer: Timer::new_elapsed(fade_out, fade_percentage),
             phase: ScreenFadePhase::FadeOut,
         }
     }

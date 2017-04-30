@@ -1,7 +1,3 @@
-* Different screen fadeout colours on various player deaths              :ui:
-** RED when killed by a monster
-** BLACK when died of exaustion
-** WHITE (slow fade, plus glitches) when overdosed
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -1064,3 +1060,11 @@ CLOSED: [2017-04-30 Sun 17:58]
 *** Add the screenshot to the github release
 *** Update the aimlesslygoingforward project page
 *** Write a blog post
+** DONE Different screen fadeout colours on various player deaths       :ui:
+CLOSED: [2017-04-30 Sun 22:47]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-04-30 Sun 22:47
+:END:
+*** RED when killed by a monster
+*** BLACK when died of exaustion
+*** WHITE (slow fade, plus glitches) when overdosed

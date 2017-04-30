@@ -23,17 +23,10 @@ pub fn render_game(state: &State,
                    fps: i32,
                    drawcalls: &mut Vec<Draw>) {
     if state.player.alive() {
-        use player::Mind::*;
-        // Fade when withdrawn:
-        match state.player.mind {
-            Withdrawal(value) => {
-                // TODO: animate the fade from the previous value?
-                let fade = value.percent() * 0.6 + 0.2;
-                drawcalls.push(Draw::Fade(fade, Color { r: 0, g: 0, b: 0 }));
-            }
-            Sober(_) | High(_) => {
-                // NOTE: Not withdrawn, don't fade
-            }
+        let fade = formula::mind_fade_value(state.player.mind);
+        if fade > 0.0 {
+            // TODO: animate the fade from the previous value?
+            drawcalls.push(Draw::Fade(fade, Color { r: 0, g: 0, b: 0 }));
         }
     }
 

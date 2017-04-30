@@ -8,11 +8,22 @@ pub struct Timer {
 }
 
 impl Timer {
-    pub fn new(duration: Duration) -> Timer {
+    pub fn new(duration: Duration) -> Self {
         Timer {
             max: duration,
             current: duration,
         }
+    }
+
+    pub fn new_elapsed(duration: Duration, elapsed_percent: f32) -> Self {
+        assert!(elapsed_percent >= 0.0);
+        assert!(elapsed_percent <= 1.0);
+        let mut timer = Timer::new(duration);
+        let current_ms = duration.num_milliseconds() as f32 *
+                         (1.0 - elapsed_percent);
+        timer.current = Duration::milliseconds(current_ms as i64);
+
+        timer
     }
 
     pub fn update(&mut self, dt: Duration) {

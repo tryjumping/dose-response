@@ -386,7 +386,8 @@ fn process_monsters<R: Rng>(world: &mut World,
                 }
                 if !player.alive() {
                     player.perpetrator = Some(monster_readonly.clone());
-                    return;  // The player's dead, no need to process other monsters
+                    // The player's dead, no need to process other monsters
+                    return;
                 }
             }
 

@@ -63,6 +63,10 @@ moving in that direction.
 *** Give the player a goal they can achieve only while sober
 **** Say talking to a family NPC
 **** Show an arrow to the NPC?
+* Change the High colours/effect
+** Using the same colour as the doses makes them easy to miss
+** Consider adding some orange or whatnot instead
+** some inspiration: http://www.printmag.com/design-inspiration/acid-aesthetic-history-of-psychedelic-design/
 * Show the anxiety counter in the UI                                :ui:idea:
 ** this will make it clearer to figure out that you want to keep hunting the Wills
 ** We can start by showing will with a decimal counter

@@ -1,6 +1,38 @@
+* Tentative roadmap to 1.0.0
+** NPCs
+** Different colour for doses and High effect
+** Monsters and player able to shatter walls
+** Ending: finding a special NPC who gets generate after max Will
+** World generation
+** Reasonable AI
+*** monsters farther away should not freak out when another monster is in the way
+** More balanced gameplay
+** Save/load game
+** Nice colours
+** Non-square fonts for text
+** Fullscreen
+** Icon for the executable
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
+* Make it more obvious when the player would overdose :design:ui:
+** https://www.reddit.com/r/roguelikedev/comments/686dey/sharing_saturday_152/dgwl1go/
+** see alphabetr's comment in that thread
+** we could show the likelihood that a dose would result in overdose
+** should add it to the how-to-play readme (and on the website)
+** mention it in the let's play
+** there's already an association between the white colour and overdose
+*** let's use it
+*** say when you stand next to a dose, it will blink between it's colour and white
+*** and the rate of blinking will identify the likelihood that the dose will kill you
+* Interactive NPCs                                                     :idea:
+** these could be "friends and family"
+** they're seen as translucent ghosts you can't interact with when High
+** but they can accompany you when sober
+*** making monsters not attack you
+*** going sober more slowly
+*** pointing towards useful/interesting things/places?
+** Could point the player towards interesting places/end-game conditions, etc.
 * Have Anxieties be able to destroy the terrain                        :idea:
 ** I'd love to have a monster that does that
 ** And Anxiety is already red (the colour of the shattering explosion)
@@ -19,14 +51,6 @@ moving in that direction.
 ** can't be unequipped/dropped
 ** bumping into a solid/blocking tile (i.e. "tree") destroys it
 ** takes 1 action point
-* Interactive NPCs                                                     :idea:
-** these could be "friends and family"
-** they're seen as translucent ghosts you can't interact with when High
-** but they can accompany you when sober
-*** making monsters not attack you
-*** going sober more slowly
-*** pointing towards useful/interesting things/places?
-** Could point the player towards interesting places/end-game conditions, etc.
 * Make the NPCs "angry" when you "hit" them                            :idea:
 ** Right now, nothing happens when you bump into them
 ** So instead, let's make them faded like when you get High for a few turns

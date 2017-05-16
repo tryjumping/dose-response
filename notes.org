@@ -29,10 +29,18 @@
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
 ** but they can accompany you when sober
+** some ideas
 *** making monsters not attack you
 *** going sober more slowly
 *** pointing towards useful/interesting things/places?
-** Could point the player towards interesting places/end-game conditions, etc.
+*** give the player a monster-related ability when in range?
+**** a red NPC would double the anxiety
+**** blue NPC would give the player 2 action points (like depression)
+**** brown NPC would reduce the sober & withdrawal curves...
+*** Could point the player towards interesting places/end-game conditions, etc.
+** When accompanying the player, they'd get targeted & attacked by monsters
+*** after being hit a few times, they'd fade out and run away
+** Can they fight back?
 * Have Anxieties be able to destroy the terrain                        :idea:
 ** I'd love to have a monster that does that
 ** And Anxiety is already red (the colour of the shattering explosion)

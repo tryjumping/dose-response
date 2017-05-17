@@ -1,14 +1,15 @@
 * Tentative roadmap to 1.0.0
 ** NPCs
-** Different colour for doses and High effect
 ** Monsters and player able to shatter walls
-** Ending: finding a special NPC who gets generate after max Will
+** Ending: finding a special NPC who gets generated after max Will
 ** World generation
 ** Reasonable AI
-*** monsters farther away should not freak out when another monster is in the way
+*** monsters further away should not freak out when another monster is in the way
 ** More balanced gameplay
 ** Save/load game
 ** Nice colours
+*** good colour palette
+*** distinct colours (so they're visible while High, too)
 ** Non-square fonts for text
 ** Fullscreen
 ** Icon for the executable
@@ -25,6 +26,58 @@
 *** let's use it
 *** say when you stand next to a dose, it will blink between it's colour and white
 *** and the rate of blinking will identify the likelihood that the dose will kill you
+* Switch to `impl Iterator`                                            :code:
+** This will set us simplify the world iteration code so much
+** Example from the Rust playpen that works on nightly:
+#+BEGIN_SRC Rust
+#![feature(conservative_impl_trait)]
+
+#[derive(Clone, Debug)]
+struct Cell {
+    num: i32,
+}
+
+#[derive(Debug)]
+struct Chunk {
+    cells: Vec<Cell>,
+}
+
+#[derive(Debug)]
+struct World {
+    chunks: Vec<Chunk>,
+}
+
+impl World {
+    fn cells<'a>(&'a self) -> impl Iterator<Item=(usize, &'a Cell)> {
+        self.chunks.iter().flat_map(|chunk| chunk.cells.iter()).enumerate()
+    }
+
+    fn cells_mut<'a>(&'a mut self) -> impl Iterator<Item=(usize, &'a mut Cell)> {
+        self.chunks.iter_mut().flat_map(|chunk| chunk.cells.iter_mut()).enumerate()
+    }
+
+}
+
+
+fn main() {
+    let mut world = World {
+        chunks: vec![
+            Chunk{ cells: vec![Cell{num: 1}, Cell{num: 2}, Cell{num: 3}]},
+            Chunk{ cells: vec![Cell{num: 21}, Cell{num: 22}, Cell{num: 23}]},
+            Chunk{ cells: vec![Cell{num: 31}, Cell{num: 32}, Cell{num: 33}]},
+        ]
+    };
+
+    for (id, cell) in world.cells_mut() {
+        if id % 3 == 0 {
+            cell.num = 255;
+        }
+    }
+
+    let cells = world.cells().collect::<Vec<_>>();
+    println!("Cells: {:?}", cells);
+}
+#+END_SRC
 * Interactive NPCs                                                     :idea:
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -100,6 +153,7 @@ moving in that direction.
 ** Or a "next will" progress bar
 * Select the final font / fonts                                          :ui:
 ** http://programmingfonts.org/list
+** FYI Hero Trap uses "Dejavu Sans, monospace" and it looks pretty neat
 * Investigate adding sound to the game                                 :code:
 ** Not sure about ambient music, but sound effects might be neat
 ** We can look at rodio

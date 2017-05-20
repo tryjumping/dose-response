@@ -13,6 +13,32 @@
 ** Non-square fonts for text
 ** Fullscreen
 ** Icon for the executable
+* Interactive NPCs                                                     :idea:
+** these could be "friends and family"
+** they're seen as translucent ghosts you can't interact with when High
+** but they can accompany you when sober
+** They have a set amount of "HP"
+*** When hit by a monster (any monster) it goes down
+*** each HP changes a colour -- fades closer to translucent grey
+** monsters only target them when accompanying you
+** you bump to accompany an NPC
+** they have an area of an effect
+** most NPCs follow you, but some need you to follow them
+*** they're weaker so you need to protect them
+*** not offering any bonus
+*** but will lead you to useful areas
+** some ideas
+*** making monsters not attack you
+*** going sober more slowly
+*** pointing towards useful/interesting things/places?
+*** give the player a monster-related ability when in range?
+**** a red NPC would double the anxiety
+**** blue NPC would give the player 2 action points (like depression)
+**** brown NPC would reduce the sober & withdrawal curves...
+*** Could point the player towards interesting places/end-game conditions, etc.
+** When accompanying the player, they'd get targeted & attacked by monsters
+*** after being hit a few times, they'd fade out and run away
+** Can they fight back?
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -78,22 +104,6 @@ fn main() {
     println!("Cells: {:?}", cells);
 }
 #+END_SRC
-* Interactive NPCs                                                     :idea:
-** these could be "friends and family"
-** they're seen as translucent ghosts you can't interact with when High
-** but they can accompany you when sober
-** some ideas
-*** making monsters not attack you
-*** going sober more slowly
-*** pointing towards useful/interesting things/places?
-*** give the player a monster-related ability when in range?
-**** a red NPC would double the anxiety
-**** blue NPC would give the player 2 action points (like depression)
-**** brown NPC would reduce the sober & withdrawal curves...
-*** Could point the player towards interesting places/end-game conditions, etc.
-** When accompanying the player, they'd get targeted & attacked by monsters
-*** after being hit a few times, they'd fade out and run away
-** Can they fight back?
 * Have Anxieties be able to destroy the terrain                        :idea:
 ** I'd love to have a monster that does that
 ** And Anxiety is already red (the colour of the shattering explosion)

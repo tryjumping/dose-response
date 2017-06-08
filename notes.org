@@ -13,7 +13,6 @@
 ** Non-square fonts for text
 ** Fullscreen
 ** Icon for the executable
-* NPCs are able to be on the same tile as the player                    :bug:
 * Interactive NPCs                                                     :idea:
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -1169,3 +1168,8 @@ CLOSED: [2017-04-30 Sun 22:47]
 *** RED when killed by a monster
 *** BLACK when died of exaustion
 *** WHITE (slow fade, plus glitches) when overdosed
+** DONE NPCs are able to be on the same tile as the player             :bug:
+CLOSED: [2017-06-08 Thu 21:00]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-06-08 Thu 21:00
+:END:

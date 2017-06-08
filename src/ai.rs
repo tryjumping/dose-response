@@ -1,5 +1,3 @@
-
-
 use formula;
 use game::Action;
 use monster::Monster;
@@ -111,8 +109,11 @@ pub fn friendly_act<R: Rng>(
 }
 
 
-fn idle_destination<R: Rng>(actor: &Monster, world: &World, rng: &mut R, player_position: Point) -> Point {
-    use blocker::{WALL, MONSTER};
+fn idle_destination<R: Rng>(actor: &Monster,
+                            world: &World,
+                            rng: &mut R,
+                            player_position: Point)
+                            -> Point {
     if actor.path.is_empty() {
         // Move randomly about
         world
@@ -121,7 +122,7 @@ fn idle_destination<R: Rng>(actor: &Monster, world: &World, rng: &mut R, player_
                 actor.position,
                 InclusiveRange(2, 8),
                 10,
-                WALL,
+                actor.blockers,
                 player_position,
             )
             .unwrap_or_else(
@@ -129,7 +130,7 @@ fn idle_destination<R: Rng>(actor: &Monster, world: &World, rng: &mut R, player_
                     world.random_neighbour_position(
                         rng,
                         actor.position,
-                        WALL | MONSTER,
+                        actor.blockers,
                         player_position,
                     )
                 }

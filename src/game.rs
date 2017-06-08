@@ -366,14 +366,14 @@ fn process_monsters<R: Rng>(
                 // and cache it. Otherwise, just walk it.
                 let (newpos, newpath) =
                     if monster_readonly.path.is_empty() || path_changed ||
-                        !world.walkable(monster_readonly.path[0], blocker::WALL | blocker::MONSTER, player.pos)
+                        !world.walkable(monster_readonly.path[0], monster_readonly.blockers, player.pos)
                     {
                         // Calculate a new path or recalculate the existing one.
                         let mut path = pathfinding::Path::find(
                             pos,
                             destination,
                             world,
-                            blocker::WALL | blocker::MONSTER,
+                            monster_readonly.blockers,
                             player.pos,
                         );
                         let newpos = path.next().unwrap_or(pos);

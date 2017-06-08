@@ -1,6 +1,7 @@
 use self::Kind::*;
 
 use ai::{self, AIState, Behavior};
+use blocker::{self, Blocker};
 use color::{self, Color};
 use game::Action;
 use graphics::Render;
@@ -21,6 +22,7 @@ pub struct Monster {
     pub invincible: bool,
     pub behavior: Behavior,
     pub ai_state: AIState,
+    pub blockers: Blocker,
     pub path: Vec<Point>,
     pub trail: Option<Point>,
 
@@ -61,6 +63,11 @@ impl Monster {
             Npc => true,
             _ => false,
         };
+        // NOTE: NPCs can't walk into the player, monsters can
+        let blockers = match kind {
+            Npc => blocker::PLAYER | blocker::WALL | blocker::MONSTER,
+            _   => blocker::WALL | blocker::MONSTER,
+        };
         Monster {
             kind,
             position,
@@ -71,6 +78,7 @@ impl Monster {
             ai_state: AIState::Idle,
             ap: 0,
             max_ap,
+            blockers,
             path: vec![],
             trail: None,
         }

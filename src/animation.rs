@@ -11,9 +11,9 @@ pub trait AreaOfEffect {
 }
 
 bitflags! {
-    pub flags TileEffect: u32 {
-        const KILL =    1,
-        const SHATTER = 2,
+    pub struct TileEffect: u32 {
+        const KILL    = 0b00000001;
+        const SHATTER = 0b00000010;
     }
 }
 

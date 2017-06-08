@@ -1,5 +1,4 @@
-
-
+use blocker;
 use color::{self, Color};
 use graphics::Render;
 use item::Item;
@@ -72,21 +71,6 @@ impl Render for Tile {
 }
 
 
-#[derive(Copy, Clone)]
-pub enum Walkability {
-    WalkthroughMonsters,
-    BlockingMonsters,
-}
-
-bitflags! {
-    /// Flag to indicate features that block pathfinding/walking.
-    pub struct Blocker: u32 {
-        const WALL    = 0b00000001;
-        const MONSTER = 0b00000010;
-        const PLAYER  = 0b00000100;
-    }
-}
-
 pub struct Level {
     dimensions: point::Point,
     pub monsters: HashMap<LevelPosition, usize>,
@@ -157,13 +141,15 @@ impl Level {
         self.dimensions
     }
 
-    pub fn walkable(&self, pos: LevelPosition, walkability: Walkability) -> bool {
+    pub fn walkable(&self, pos: LevelPosition, blockers: blocker::Blocker) -> bool {
+        use blocker::{PLAYER, WALL, MONSTER};
+        use self::TileKind::Empty;
+        // We don't have the player's position here so we can't check that here.
+        assert!(!blockers.contains(PLAYER));
         let pos = pos.into();
-        let walkable = match walkability {
-            Walkability::WalkthroughMonsters => true,
-            Walkability::BlockingMonsters => self.monster_on_pos(pos).is_none(),
-        };
-        self.cell(pos).tile.kind == TileKind::Empty && walkable
+        let blocked_by_wall = blockers.contains(WALL) && self.cell(pos).tile.kind != Empty;
+        let blocked_by_monster = blockers.contains(MONSTER) && self.monster_on_pos(pos).is_some();
+        !(blocked_by_wall || blocked_by_monster)
     }
 
     pub fn move_monster(&mut self, monster_position: LevelPosition, destination: LevelPosition) {

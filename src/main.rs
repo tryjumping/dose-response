@@ -33,6 +33,7 @@ use std::path::Path;
 
 mod ai;
 mod animation;
+mod blocker;
 mod color;
 mod engine;
 mod formula;

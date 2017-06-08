@@ -1,9 +1,8 @@
-
-
+use blocker::{self, Blocker};
 use formula;
 use generators::{self, GeneratedWorld};
 use item::{self, Item};
-use level::{self, Cell, Level, Walkability};
+use level::{self, Cell, Level};
 use monster::Monster;
 use player;
 use point::{CircularArea, Point, SquareArea};
@@ -55,16 +54,16 @@ impl Chunk {
         }
         for (index, &(pos, kind)) in generated_monsters.iter().enumerate() {
             let pos = self.level.level_position(pos);
-            assert!(self.level.walkable(pos, Walkability::BlockingMonsters));
+            assert!(self.level.walkable(pos, blocker::WALL | blocker::MONSTER));
             let monster_world_position = self.world_position(pos);
             let monster = Monster::new(kind, monster_world_position);
             self.monsters.push(monster);
             self.level.set_monster(pos, index);
-            assert!(!self.level.walkable(pos, Walkability::BlockingMonsters));
+            assert!(!self.level.walkable(pos, blocker::WALL | blocker::MONSTER));
         }
         for &(pos, item) in items.iter() {
             let pos = self.level.level_position(pos);
-            assert!(self.level.walkable(pos, Walkability::WalkthroughMonsters));
+            assert!(self.level.walkable(pos, blocker::WALL));
             self.level.add_item(pos, item);
         }
     }
@@ -220,7 +219,7 @@ impl World {
                 break;
             }
             let pos = initial_player_position + offset;
-            if self.walkable(pos, Walkability::WalkthroughMonsters) {
+            if self.walkable(pos, blocker::WALL, initial_player_position) {
                 let dose = Item {
                     kind: item::Kind::Dose,
                     modifier: player::Modifier::Intoxication {
@@ -245,7 +244,7 @@ impl World {
                 y: rng.gen_range(-5, 6),
             };
             let pos = initial_player_position + offset;
-            if self.walkable(pos, Walkability::WalkthroughMonsters) {
+            if self.walkable(pos, blocker::WALL, initial_player_position) {
                 let food = Item {
                     kind: item::Kind::Food,
                     modifier: player::Modifier::Attribute {
@@ -355,14 +354,18 @@ impl World {
     /// Check whether the given position is walkable.
     ///
     /// Points outside of the World are not walkable. The
-    /// `walkability` option controls can influence the logic: are
+    /// `blockers` option controls can influence the logic: are
     /// monster treated as blocking or not?
-    pub fn walkable(&self, pos: Point, walkability: Walkability) -> bool {
+    pub fn walkable(&self, pos: Point, blockers: Blocker, player_pos: Point) -> bool {
+        use blocker::PLAYER;
         let level_cell_walkable = self.chunk(pos)
-            .map(|chunk| {
-                let level_position = chunk.level_position(pos);
-                chunk.level.walkable(level_position, walkability)
-            })
+            .map(
+                |chunk| {
+                    let blocks_player = blockers.contains(PLAYER) && pos == player_pos;
+                    let level_position = chunk.level_position(pos);
+                    chunk.level.walkable(level_position, blockers - PLAYER) && !blocks_player
+                }
+            )
             .unwrap_or(false);
         self.within_bounds(pos) && level_cell_walkable
     }
@@ -398,12 +401,14 @@ impl World {
     /// Move the monster from one place in the world to the destination.
     /// If the paths are identical, nothing happens.
     /// Panics if the destination is out of bounds or already occupied.
-    pub fn move_monster(&mut self, monster_position: Point, destination: Point) {
+    pub fn move_monster(&mut self, monster_position: Point, destination: Point, player_position: Point) {
+        use blocker::{PLAYER, MONSTER, WALL};
         if monster_position == destination {
             return;
         }
+        let blocker = PLAYER | MONSTER | WALL;
         assert!(
-            self.walkable(destination, Walkability::BlockingMonsters),
+            self.walkable(destination, blocker, player_position),
             "Moster at {:?} cannot move to {:?} because it's occupied.",
             monster_position,
             destination
@@ -444,10 +449,7 @@ impl World {
 
             {
                 self.remove_monster(monster_position);
-                assert!(self.walkable(
-                    monster_position,
-                    Walkability::BlockingMonsters,
-                ));
+                assert!(self.walkable(monster_position, blocker, player_position));
                 new_monster.position = destination;
                 let destination_chunk = self.chunk_mut(destination).expect(&format!(
                     "Destination chunk at {:?} doesn't \
@@ -463,7 +465,7 @@ impl World {
                 );
             }
 
-            assert!(!self.walkable(destination, Walkability::BlockingMonsters));
+            assert!(!self.walkable(destination, MONSTER, player_position));
         }
     }
 
@@ -498,7 +500,8 @@ impl World {
         let mut doses = vec![];
         for pos in CircularArea::new(centre, radius) {
             // Make sure we don't go out of bounds with self.cell(pos):
-            if !self.walkable(pos, Walkability::WalkthroughMonsters) {
+            // NOTE: We're not checking for the player's position here so we'll just supply a dummy value.
+            if !self.walkable(pos, blocker::WALL, Point::new(0, 0)) {
                 continue;
             }
             doses.extend(
@@ -527,11 +530,12 @@ impl World {
         &self,
         rng: &mut T,
         starting_pos: Point,
-        walkability: Walkability,
+        blockers: Blocker,
+        player_position: Point,
     ) -> Point {
         let mut walkables = vec![];
         for pos in SquareArea::new(starting_pos, 2) {
-            if pos != starting_pos && self.walkable(pos, walkability) {
+            if pos != starting_pos && self.walkable(pos, blockers, player_position) {
                 walkables.push(pos)
             }
         }
@@ -547,7 +551,8 @@ impl World {
         starting_position: Point,
         range: InclusiveRange,
         max_tries: u32,
-        walkability: Walkability,
+        blockers: Blocker,
+        player_position: Point,
     ) -> Option<Point> {
         for _ in 0..max_tries {
             let offset = Point::new(
@@ -556,7 +561,7 @@ impl World {
             );
             let candidate = starting_position + offset;
             if offset.x.abs() > range.0 && offset.y.abs() > range.0 &&
-                self.walkable(candidate, walkability)
+                self.walkable(candidate, blockers, player_position)
             {
                 return Some(candidate);
             }

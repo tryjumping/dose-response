@@ -1,5 +1,4 @@
-use level::Walkability;
-
+use blocker;
 use point::Point;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
@@ -12,12 +11,16 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn find(from: Point, to: Point, world: &mut World, walkability: Walkability) -> Self {
+    pub fn find(from: Point,
+                to: Point,
+                world: &mut World,
+                blockers: blocker::Blocker,
+                player_position: Point) -> Self {
         if from == to {
             return Path { path: vec![] };
         }
 
-        if !world.walkable(to, walkability) {
+        if !world.walkable(to, blockers, player_position) {
             return Path { path: vec![] };
         }
 
@@ -41,9 +44,7 @@ impl Path {
             dp.clone()
                 .iter()
                 .map(|&d| current + d)
-                .filter(|&point| {
-                    world.within_bounds(point) && world.walkable(point, walkability)
-                })
+                .filter(|&point| world.within_bounds(point) && world.walkable(point, blockers, player_position))
                 .collect::<Vec<_>>()
         };
 

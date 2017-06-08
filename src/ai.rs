@@ -2,7 +2,6 @@
 
 use formula;
 use game::Action;
-use level::Walkability;
 use monster::Monster;
 use point::Point;
 use rand::Rng;
@@ -43,7 +42,7 @@ pub fn lone_attacker_act<R: Rng>(
     let action = match ai_state {
         AIState::Chasing => chasing_action(actor, player_position),
         AIState::Idle => {
-            let destination = idle_destination(actor, world, rng);
+            let destination = idle_destination(actor, world, rng, player_position);
             Action::Move(destination)
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
@@ -91,7 +90,7 @@ pub fn pack_attacker_act<R: Rng>(
         }
 
         AIState::Idle => {
-            let destination = idle_destination(actor, world, rng);
+            let destination = idle_destination(actor, world, rng, player_position);
             Action::Move(destination)
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
@@ -106,16 +105,14 @@ pub fn friendly_act<R: Rng>(
     world: &mut World,
     rng: &mut R,
 ) -> (AIState, Action) {
-    let mut destination = idle_destination(actor, world, rng);
-    if destination == player_position {
-        destination = actor.position;
-    }
+    let destination = idle_destination(actor, world, rng, player_position);
     let action = Action::Move(destination);
     (actor.ai_state, action)
 }
 
 
-fn idle_destination<R: Rng>(actor: &Monster, world: &World, rng: &mut R) -> Point {
+fn idle_destination<R: Rng>(actor: &Monster, world: &World, rng: &mut R, player_position: Point) -> Point {
+    use blocker::{WALL, MONSTER};
     if actor.path.is_empty() {
         // Move randomly about
         world
@@ -124,11 +121,19 @@ fn idle_destination<R: Rng>(actor: &Monster, world: &World, rng: &mut R) -> Poin
                 actor.position,
                 InclusiveRange(2, 8),
                 10,
-                Walkability::WalkthroughMonsters,
+                WALL,
+                player_position,
             )
-            .unwrap_or_else(|| {
-                world.random_neighbour_position(rng, actor.position, Walkability::BlockingMonsters)
-            })
+            .unwrap_or_else(
+                || {
+                    world.random_neighbour_position(
+                        rng,
+                        actor.position,
+                        WALL | MONSTER,
+                        player_position,
+                    )
+                }
+            )
     } else {
         // We already have a path, just set the same destination:
         *actor.path.last().unwrap()

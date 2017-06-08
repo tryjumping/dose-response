@@ -13,6 +13,7 @@
 ** Non-square fonts for text
 ** Fullscreen
 ** Icon for the executable
+* NPCs are able to be on the same tile as the player                    :bug:
 * Interactive NPCs                                                     :idea:
 ** these could be "friends and family"
 ** they're seen as translucent ghosts you can't interact with when High
@@ -125,7 +126,6 @@ moving in that direction.
 * Make the NPCs "angry" when you "hit" them                            :idea:
 ** Right now, nothing happens when you bump into them
 ** So instead, let's make them faded like when you get High for a few turns
-* NPCs are able to be on the same tile as the player                    :bug:
 * Dismiss the "you diead" screen when pressing Spacebar                  :ui:
 ** So the player can see the full map
 ** cycle the map and game over screen by pressing the key

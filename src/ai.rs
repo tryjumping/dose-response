@@ -109,11 +109,12 @@ pub fn friendly_act<R: Rng>(
 }
 
 
-fn idle_destination<R: Rng>(actor: &Monster,
-                            world: &World,
-                            rng: &mut R,
-                            player_position: Point)
-                            -> Point {
+fn idle_destination<R: Rng>(
+    actor: &Monster,
+    world: &World,
+    rng: &mut R,
+    player_position: Point,
+) -> Point {
     if actor.path.is_empty() {
         // Move randomly about
         world
@@ -125,16 +126,14 @@ fn idle_destination<R: Rng>(actor: &Monster,
                 actor.blockers,
                 player_position,
             )
-            .unwrap_or_else(
-                || {
-                    world.random_neighbour_position(
-                        rng,
-                        actor.position,
-                        actor.blockers,
-                        player_position,
-                    )
-                }
-            )
+            .unwrap_or_else(|| {
+                world.random_neighbour_position(
+                    rng,
+                    actor.position,
+                    actor.blockers,
+                    player_position,
+                )
+            })
     } else {
         // We already have a path, just set the same destination:
         *actor.path.last().unwrap()

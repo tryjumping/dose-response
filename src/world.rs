@@ -359,13 +359,11 @@ impl World {
     pub fn walkable(&self, pos: Point, blockers: Blocker, player_pos: Point) -> bool {
         use blocker::PLAYER;
         let level_cell_walkable = self.chunk(pos)
-            .map(
-                |chunk| {
-                    let blocks_player = blockers.contains(PLAYER) && pos == player_pos;
-                    let level_position = chunk.level_position(pos);
-                    chunk.level.walkable(level_position, blockers - PLAYER) && !blocks_player
-                }
-            )
+            .map(|chunk| {
+                let blocks_player = blockers.contains(PLAYER) && pos == player_pos;
+                let level_position = chunk.level_position(pos);
+                chunk.level.walkable(level_position, blockers - PLAYER) && !blocks_player
+            })
             .unwrap_or(false);
         self.within_bounds(pos) && level_cell_walkable
     }
@@ -401,7 +399,12 @@ impl World {
     /// Move the monster from one place in the world to the destination.
     /// If the paths are identical, nothing happens.
     /// Panics if the destination is out of bounds or already occupied.
-    pub fn move_monster(&mut self, monster_position: Point, destination: Point, player_position: Point) {
+    pub fn move_monster(
+        &mut self,
+        monster_position: Point,
+        destination: Point,
+        player_position: Point,
+    ) {
         use blocker::{PLAYER, MONSTER, WALL};
         if monster_position == destination {
             return;
@@ -500,7 +503,8 @@ impl World {
         let mut doses = vec![];
         for pos in CircularArea::new(centre, radius) {
             // Make sure we don't go out of bounds with self.cell(pos):
-            // NOTE: We're not checking for the player's position here so we'll just supply a dummy value.
+            // NOTE: We're not checking for the player's position here so we'll just supply a
+            // dummy value.
             if !self.walkable(pos, blocker::WALL, Point::new(0, 0)) {
                 continue;
             }

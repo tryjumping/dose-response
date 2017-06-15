@@ -364,25 +364,28 @@ fn process_monsters<R: Rng>(
                 // path in `monster.path`. If the precalculated path
                 // is blocked or there is none, calculate a new one
                 // and cache it. Otherwise, just walk it.
-                let (newpos, newpath) =
-                    if monster_readonly.path.is_empty() || path_changed ||
-                        !world.walkable(monster_readonly.path[0], monster_readonly.blockers, player.pos)
-                    {
-                        // Calculate a new path or recalculate the existing one.
-                        let mut path = pathfinding::Path::find(
-                            pos,
-                            destination,
-                            world,
-                            monster_readonly.blockers,
-                            player.pos,
-                        );
-                        let newpos = path.next().unwrap_or(pos);
-                        // Cache the path-finding result
-                        let newpath = path.collect();
-                        (newpos, newpath)
-                    } else {
-                        (monster_readonly.path[0], monster_readonly.path[1..].into())
-                    };
+                let (newpos, newpath) = if monster_readonly.path.is_empty() || path_changed ||
+                    !world.walkable(
+                        monster_readonly.path[0],
+                        monster_readonly.blockers,
+                        player.pos,
+                    )
+                {
+                    // Calculate a new path or recalculate the existing one.
+                    let mut path = pathfinding::Path::find(
+                        pos,
+                        destination,
+                        world,
+                        monster_readonly.blockers,
+                        player.pos,
+                    );
+                    let newpos = path.next().unwrap_or(pos);
+                    // Cache the path-finding result
+                    let newpath = path.collect();
+                    (newpos, newpath)
+                } else {
+                    (monster_readonly.path[0], monster_readonly.path[1..].into())
+                };
 
                 world.move_monster(pos, newpos, player.pos);
                 if let Some(monster) = world.monster_on_pos(newpos) {
@@ -468,13 +471,8 @@ fn process_player_action<R, W>(
             let resist_radius = formula::player_resist_radius(dose.irresistible, *player.will) as
                 usize;
             if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
-                let mut path = pathfinding::Path::find(
-                    player.pos,
-                    dose_pos,
-                    world,
-                    blocker::WALL,
-                    player.pos,
-                );
+                let mut path =
+                    pathfinding::Path::find(player.pos, dose_pos, world, blocker::WALL, player.pos);
 
                 let new_pos_opt = if path.len() <= resist_radius {
                     path.next()
@@ -505,7 +503,8 @@ fn process_player_action<R, W>(
 
         match action {
             Action::Move(dest) => {
-                let dest_walkable = world.walkable(dest, blocker::WALL | blocker::MONSTER, player.pos);
+                let dest_walkable =
+                    world.walkable(dest, blocker::WALL | blocker::MONSTER, player.pos);
                 let bumping_into_monster = world.monster_on_pos(dest).is_some();
                 if bumping_into_monster {
                     player.spend_ap(1);

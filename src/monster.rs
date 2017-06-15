@@ -66,7 +66,7 @@ impl Monster {
         // NOTE: NPCs can't walk into the player, monsters can
         let blockers = match kind {
             Npc => blocker::PLAYER | blocker::WALL | blocker::MONSTER,
-            _   => blocker::WALL | blocker::MONSTER,
+            _ => blocker::WALL | blocker::MONSTER,
         };
         Monster {
             kind,

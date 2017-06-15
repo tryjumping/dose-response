@@ -11,11 +11,13 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn find(from: Point,
-                to: Point,
-                world: &mut World,
-                blockers: blocker::Blocker,
-                player_position: Point) -> Self {
+    pub fn find(
+        from: Point,
+        to: Point,
+        world: &mut World,
+        blockers: blocker::Blocker,
+        player_position: Point,
+    ) -> Self {
         if from == to {
             return Path { path: vec![] };
         }
@@ -44,7 +46,9 @@ impl Path {
             dp.clone()
                 .iter()
                 .map(|&d| current + d)
-                .filter(|&point| world.within_bounds(point) && world.walkable(point, blockers, player_position))
+                .filter(|&point| {
+                    world.within_bounds(point) && world.walkable(point, blockers, player_position)
+                })
                 .collect::<Vec<_>>()
         };
 

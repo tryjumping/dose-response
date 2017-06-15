@@ -12,11 +12,7 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn find(from: Point,
-                to: Point,
-                world: &mut World,
-                walkability: Walkability)
-                -> Self {
+    pub fn find(from: Point, to: Point, world: &mut World, walkability: Walkability) -> Self {
         if from == to {
             return Path { path: vec![] };
         }
@@ -46,8 +42,7 @@ impl Path {
                 .iter()
                 .map(|&d| current + d)
                 .filter(|&point| {
-                    world.within_bounds(point) &&
-                    world.walkable(point, walkability)
+                    world.within_bounds(point) && world.walkable(point, walkability)
                 })
                 .collect::<Vec<_>>()
         };
@@ -59,12 +54,14 @@ impl Path {
         };
 
         let heuristic = |destination: Point, next: Point| -> f32 {
-            ((destination.x - next.x).abs() +
-             (destination.y - next.y).abs()) as f32
+            ((destination.x - next.x).abs() + (destination.y - next.y).abs()) as f32
         };
 
         let mut frontier = BinaryHeap::new();
-        frontier.push(State { position: from, cost: 0.0 });
+        frontier.push(State {
+            position: from,
+            cost: 0.0,
+        });
         let mut came_from = HashMap::new();
         let mut cost_so_far = HashMap::new();
 
@@ -88,13 +85,15 @@ impl Path {
             }
             let neigh = neighbors(current.position);
             for &next in neigh.iter() {
-                let new_cost = cost_so_far[&current.position] +
-                               cost(current.position, next);
+                let new_cost = cost_so_far[&current.position] + cost(current.position, next);
                 let val = cost_so_far.entry(next).or_insert(f32::MAX);
                 if new_cost < *val {
                     *val = new_cost;
                     let priority = new_cost + heuristic(to, next);
-                    frontier.push(State { position: next, cost: priority });
+                    frontier.push(State {
+                        position: next,
+                        cost: priority,
+                    });
                     came_from.insert(next, Some(current.position));
                 }
             }
@@ -112,8 +111,10 @@ impl Path {
                         }
                     }
                     Some(&None) => {
-                        panic!("Every point except for the initial \
-                                           one (`from`) one should be some.")
+                        panic!(
+                            "Every point except for the initial \
+                                           one (`from`) one should be some."
+                        )
                     }
                     None => {
                         path_buffer = vec![];
@@ -196,9 +197,7 @@ mod test {
         let mut x = 0;
         let mut y = 0;
 
-        let lines = text.split('\n')
-            .filter(|l| l.len() > 0)
-            .collect::<Vec<_>>();
+        let lines = text.split('\n').filter(|l| l.len() > 0).collect::<Vec<_>>();
         let height = lines.len();
         assert!(height > 0);
         let width = lines[0].len();
@@ -210,11 +209,17 @@ mod test {
         for line in lines {
             for c in line.chars() {
                 if c == 's' {
-                    start = Point { x: x as i32, y: y as i32 };
+                    start = Point {
+                        x: x as i32,
+                        y: y as i32,
+                    };
                 }
 
                 if c == 'd' {
-                    destination = Point { x: x as i32, y: y as i32 };
+                    destination = Point {
+                        x: x as i32,
+                        y: y as i32,
+                    };
                 }
 
                 let tile_kind = match c {
@@ -225,8 +230,13 @@ mod test {
                     'x' => Tree,
                     _ => unreachable!(),
                 };
-                level.set_tile(Point { x: x as i32, y: y as i32 },
-                               Tile::new(tile_kind));
+                level.set_tile(
+                    Point {
+                        x: x as i32,
+                        y: y as i32,
+                    },
+                    Tile::new(tile_kind),
+                );
 
                 x += 1;
             }
@@ -246,16 +256,20 @@ mod test {
 
     #[test]
     fn test_neighbor() {
-        let board = make_board("
+        let board = make_board(
+            "
 ...........
 .sd........
 ...........
 ...........
-");
-        let path: Path = Path::find(board.start,
-                                    board.destination,
-                                    &board.level,
-                                    Walkability::WalkthroughMonsters);
+",
+        );
+        let path: Path = Path::find(
+            board.start,
+            board.destination,
+            &board.level,
+            Walkability::WalkthroughMonsters,
+        );
         assert_eq!(1, path.len());
         let expected = [(2, 1)]
             .iter()
@@ -267,17 +281,21 @@ mod test {
 
     #[test]
     fn test_start_and_destination_identical() {
-        let mut board = make_board("
+        let mut board = make_board(
+            "
 ...........
 .s.........
 ...........
 ...........
-");
+",
+        );
         board.destination = board.start;
-        let path: Path = Path::find(board.start,
-                                    board.destination,
-                                    &board.level,
-                                    Walkability::WalkthroughMonsters);
+        let path: Path = Path::find(
+            board.start,
+            board.destination,
+            &board.level,
+            Walkability::WalkthroughMonsters,
+        );
         assert_eq!(0, path.len());
         let expected: Vec<Point> = vec![];
         assert_eq!(expected, path.collect::<Vec<_>>());
@@ -285,16 +303,20 @@ mod test {
 
     #[test]
     fn test_straight_path() {
-        let board = make_board("
+        let board = make_board(
+            "
 ...........
 .s******d..
 ...........
 ...........
-");
-        let path: Path = Path::find(board.start,
-                                    board.destination,
-                                    &board.level,
-                                    Walkability::WalkthroughMonsters);
+",
+        );
+        let path: Path = Path::find(
+            board.start,
+            board.destination,
+            &board.level,
+            Walkability::WalkthroughMonsters,
+        );
         assert_eq!(7, path.len());
         let expected = [(2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)]
             .iter()
@@ -306,16 +328,20 @@ mod test {
 
     #[test]
     fn test_diagonal_path() {
-        let board = make_board("
+        let board = make_board(
+            "
 s..........
 .*.........
 ..*........
 ...d.......
-");
-        let path: Path = Path::find(board.start,
-                                    board.destination,
-                                    &board.level,
-                                    Walkability::WalkthroughMonsters);
+",
+        );
+        let path: Path = Path::find(
+            board.start,
+            board.destination,
+            &board.level,
+            Walkability::WalkthroughMonsters,
+        );
         assert_eq!(3, path.len());
         let expected = [(1, 1), (2, 2), (3, 3)]
             .iter()
@@ -327,31 +353,39 @@ s..........
 
     #[test]
     fn test_no_path() {
-        let board = make_board("
+        let board = make_board(
+            "
 ....x......
 .s..x...d..
 ....x......
 ....x......
-");
-        let path: Path = Path::find(board.start,
-                                    board.destination,
-                                    &board.level,
-                                    Walkability::WalkthroughMonsters);
+",
+        );
+        let path: Path = Path::find(
+            board.start,
+            board.destination,
+            &board.level,
+            Walkability::WalkthroughMonsters,
+        );
         assert_eq!(0, path.len());
     }
 
     #[test]
     fn test_line_obstacle() {
-        let board = make_board("
+        let board = make_board(
+            "
 ....x......
 .s..x......
 ..*.x......
 ...*****d..
-");
-        let path: Path = Path::find(board.start,
-                                    board.destination,
-                                    &board.level,
-                                    Walkability::WalkthroughMonsters);
+",
+        );
+        let path: Path = Path::find(
+            board.start,
+            board.destination,
+            &board.level,
+            Walkability::WalkthroughMonsters,
+        );
         assert_eq!(7, path.len());
         let expected = [(2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
             .iter()
@@ -363,17 +397,21 @@ s..........
 
     #[test]
     fn test_concave_obstacle() {
-        let board = make_board("
+        let board = make_board(
+            "
 ......x....
 .s....xd...
 ..*...x*...
 ..*xxxx*...
 ...****....
-");
-        let path: Path = Path::find(board.start,
-                                    board.destination,
-                                    &board.level,
-                                    Walkability::WalkthroughMonsters);
+",
+        );
+        let path: Path = Path::find(
+            board.start,
+            board.destination,
+            &board.level,
+            Walkability::WalkthroughMonsters,
+        );
         assert_eq!(9, path.len());
         let expected = [
             (2, 2),
@@ -385,11 +423,10 @@ s..........
             (7, 3),
             (7, 2),
             (7, 1),
-        ]
-                .iter()
-                .cloned()
-                .map(Into::into)
-                .collect::<Vec<Point>>();
+        ].iter()
+            .cloned()
+            .map(Into::into)
+            .collect::<Vec<Point>>();
         assert_eq!(expected, path.collect::<Vec<_>>());
     }
 }

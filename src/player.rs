@@ -153,7 +153,10 @@ impl Player {
         use self::Modifier::*;
         match effect {
             Death => self.dead = true,
-            Attribute { will, state_of_mind } => {
+            Attribute {
+                will,
+                state_of_mind,
+            } => {
                 self.will += will;
                 if !self.will.is_max() {
                     self.sobriety_counter.set_to_min();
@@ -164,9 +167,7 @@ impl Player {
                 state_of_mind,
                 tolerance_increase,
             } => {
-                self.mind = formula::intoxicate(self.mind,
-                                                self.tolerance,
-                                                state_of_mind);
+                self.mind = formula::intoxicate(self.mind, self.tolerance, state_of_mind);
                 self.tolerance += tolerance_increase;
                 self.sobriety_counter.set_to_min();
             }

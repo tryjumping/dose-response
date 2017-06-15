@@ -27,11 +27,12 @@ pub enum AIState {
 }
 
 
-pub fn lone_attacker_act<R: Rng>(actor: &Monster,
-                                 player_position: Point,
-                                 world: &mut World,
-                                 rng: &mut R)
-                                 -> (AIState, Action) {
+pub fn lone_attacker_act<R: Rng>(
+    actor: &Monster,
+    player_position: Point,
+    world: &mut World,
+    rng: &mut R,
+) -> (AIState, Action) {
     let distance = actor.position.tile_distance(player_position);
     let ai_state = if distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
@@ -51,11 +52,12 @@ pub fn lone_attacker_act<R: Rng>(actor: &Monster,
 }
 
 
-pub fn pack_attacker_act<R: Rng>(actor: &Monster,
-                                 player_position: Point,
-                                 world: &mut World,
-                                 rng: &mut R)
-                                 -> (AIState, Action) {
+pub fn pack_attacker_act<R: Rng>(
+    actor: &Monster,
+    player_position: Point,
+    world: &mut World,
+    rng: &mut R,
+) -> (AIState, Action) {
     let player_distance = actor.position.tile_distance(player_position);
     let ai_state = if player_distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
@@ -68,15 +70,13 @@ pub fn pack_attacker_act<R: Rng>(actor: &Monster,
     let action = match ai_state {
         AIState::Chasing => {
             let howling_area =
-                Rectangle::center(actor.position,
-                                  Point::from_i32(formula::HOWLING_DISTANCE));
+                Rectangle::center(actor.position, Point::from_i32(formula::HOWLING_DISTANCE));
             let howlees = world
                 .chunks(howling_area)
                 .flat_map(Chunk::monsters)
                 .filter(|m| m.alive() && howling_area.contains(m.position))
                 .filter(|m| {
-                    m.behavior == Behavior::PackAttacker &&
-                    m.position != actor.position
+                    m.behavior == Behavior::PackAttacker && m.position != actor.position
                 })
                 .map(|m| m.position)
                 .collect::<Vec<_>>();
@@ -100,11 +100,12 @@ pub fn pack_attacker_act<R: Rng>(actor: &Monster,
 }
 
 
-pub fn friendly_act<R: Rng>(actor: &Monster,
-                            player_position: Point,
-                            world: &mut World,
-                            rng: &mut R)
-                            -> (AIState, Action) {
+pub fn friendly_act<R: Rng>(
+    actor: &Monster,
+    player_position: Point,
+    world: &mut World,
+    rng: &mut R,
+) -> (AIState, Action) {
     let mut destination = idle_destination(actor, world, rng);
     if destination == player_position {
         destination = actor.position;
@@ -114,22 +115,19 @@ pub fn friendly_act<R: Rng>(actor: &Monster,
 }
 
 
-fn idle_destination<R: Rng>(actor: &Monster,
-                            world: &World,
-                            rng: &mut R)
-                            -> Point {
+fn idle_destination<R: Rng>(actor: &Monster, world: &World, rng: &mut R) -> Point {
     if actor.path.is_empty() {
         // Move randomly about
         world
-            .random_position_in_range(rng,
-                                      actor.position,
-                                      InclusiveRange(2, 8),
-                                      10,
-                                      Walkability::WalkthroughMonsters)
+            .random_position_in_range(
+                rng,
+                actor.position,
+                InclusiveRange(2, 8),
+                10,
+                Walkability::WalkthroughMonsters,
+            )
             .unwrap_or_else(|| {
-                world.random_neighbour_position(rng,
-                                                actor.position,
-                                                Walkability::BlockingMonsters)
+                world.random_neighbour_position(rng, actor.position, Walkability::BlockingMonsters)
             })
     } else {
         // We already have a path, just set the same destination:

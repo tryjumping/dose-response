@@ -8,10 +8,7 @@ use point::Point;
 use rand::Rng;
 use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
-fn generate_map<R: Rng>(rng: &mut R,
-                        map_size: Point,
-                        player_pos: Point)
-                        -> Vec<(Point, Tile)> {
+fn generate_map<R: Rng>(rng: &mut R, map_size: Point, player_pos: Point) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted {
             weight: 610,
@@ -42,9 +39,7 @@ fn generate_map<R: Rng>(rng: &mut R,
     result
 }
 
-fn generate_monsters<R: Rng>(rng: &mut R,
-                             map: &[(Point, Tile)])
-                             -> Vec<(Point, Kind)> {
+fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Kind)> {
     // 3% chance a monster gets spawned
     let monster_count = 5;
     let monster_chance = 30;
@@ -127,7 +122,10 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
                 tolerance_increase: 2,
             }
         }
-        Food => Modifier::Attribute { state_of_mind: 10, will: 0 },
+        Food => Modifier::Attribute {
+            state_of_mind: 10,
+            will: 0,
+        },
     };
     Item {
         kind: kind,
@@ -137,14 +135,18 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
 }
 
 
-fn generate_items<R: Rng>(rng: &mut R,
-                          map: &[(Point, Tile)])
-                          -> Vec<(Point, item::Item)> {
+fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, item::Item)> {
     use item::Kind::*;
 
     let mut weights = [
-        Weighted { weight: 1000, item: None },
-        Weighted { weight: 8, item: Some(Dose) },
+        Weighted {
+            weight: 1000,
+            item: None,
+        },
+        Weighted {
+            weight: 8,
+            item: Some(Dose),
+        },
         Weighted {
             weight: 3,
             item: Some(StrongDose),
@@ -157,7 +159,10 @@ fn generate_items<R: Rng>(rng: &mut R,
             weight: 2,
             item: Some(DiagonalDose),
         },
-        Weighted { weight: 5, item: Some(Food) },
+        Weighted {
+            weight: 5,
+            item: Some(Food),
+        },
     ];
 
     let generator = WeightedChoice::new(&mut weights);
@@ -179,10 +184,7 @@ fn generate_items<R: Rng>(rng: &mut R,
 }
 
 
-pub fn generate<R: Rng>(rng: &mut R,
-                        size: Point,
-                        player: Point)
-                        -> GeneratedWorld {
+pub fn generate<R: Rng>(rng: &mut R, size: Point, player: Point) -> GeneratedWorld {
     let map = generate_map(rng, size, player);
     let monsters = generate_monsters(rng, &map);
     let items = generate_items(rng, &map);

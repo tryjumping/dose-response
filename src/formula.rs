@@ -114,9 +114,7 @@ pub fn intoxicate(mind: Mind, tolerance: i32, expected_increment: i32) -> Mind {
 pub fn mind_bonus(mind: Mind) -> Option<Bonus> {
     match mind {
         Mind::High(val) if *val == val.max() - 1 => Some(Bonus::UncoverMap),
-        Mind::High(val) if *val == val.max() - 2 => {
-            Some(Bonus::SeeMonstersAndItems)
-        }
+        Mind::High(val) if *val == val.max() - 2 => Some(Bonus::SeeMonstersAndItems),
         _ => None,
     }
 }
@@ -142,13 +140,9 @@ pub fn cause_of_death(player: &Player) -> Option<CauseOfDeath> {
 
 
 pub fn mind_fade_value(mind: Mind) -> f32 {
-        use player::Mind::*;
-        match mind {
-            Withdrawal(value) => {
-                value.percent() * 0.6 + 0.2
-            }
-            Sober(_) | High(_) => {
-                0.0
-            }
-        }
+    use player::Mind::*;
+    match mind {
+        Withdrawal(value) => value.percent() * 0.6 + 0.2,
+        Sober(_) | High(_) => 0.0,
+    }
 }

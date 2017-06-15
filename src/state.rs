@@ -54,9 +54,11 @@ pub fn generate_replay_path() -> PathBuf {
     let cur_time = time::now();
     // Timestamp in format: 2016-11-20T20-04-39.123. We can't use the
     // colons in the timestamp -- Windows don't allow them in a path.
-    let timestamp = format!("{}.{:03}",
-                            time::strftime("%FT%H-%M-%S", &cur_time).unwrap(),
-                            (cur_time.tm_nsec / 1000000));
+    let timestamp = format!(
+        "{}.{:03}",
+        time::strftime("%FT%H-%M-%S", &cur_time).unwrap(),
+        (cur_time.tm_nsec / 1000000)
+    );
     let replay_dir = &Path::new("replays");
     assert!(replay_dir.is_relative());
     if !replay_dir.exists() {
@@ -127,28 +129,28 @@ pub struct State {
 }
 
 impl State {
-    fn new<W: Write + 'static>(world_size: Point,
-                               map_size: i32,
-                               panel_width: i32,
-                               display_size: Point,
-                               commands: VecDeque<Command>,
-                               verifications: VecDeque<Verification>,
-                               log_writer: W,
-                               seed: u32,
-                               cheating: bool,
-                               invincible: bool,
-                               replay: bool,
-                               replay_full_speed: bool,
-                               exit_after: bool)
-                               -> State {
+    fn new<W: Write + 'static>(
+        world_size: Point,
+        map_size: i32,
+        panel_width: i32,
+        display_size: Point,
+        commands: VecDeque<Command>,
+        verifications: VecDeque<Verification>,
+        log_writer: W,
+        seed: u32,
+        cheating: bool,
+        invincible: bool,
+        replay: bool,
+        replay_full_speed: bool,
+        exit_after: bool,
+    ) -> State {
         let seed_arr: &[_] = &[seed];
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
         let mut rng: IsaacRng = SeedableRng::from_seed(seed_arr);
-        let world =
-            World::new(&mut rng, seed, world_size.x, 32, player_position);
+        let world = World::new(&mut rng, seed, world_size.x, 32, player_position);
 
         State {
             player: Player::new(player_position, invincible),
@@ -185,24 +187,27 @@ impl State {
         }
     }
 
-    pub fn new_game(world_size: Point,
-                    map_size: i32,
-                    panel_width: i32,
-                    display_size: Point,
-                    exit_after: bool,
-                    replay_path: &Path,
-                    invincible: bool)
-                    -> State {
+    pub fn new_game(
+        world_size: Point,
+        map_size: i32,
+        panel_width: i32,
+        display_size: Point,
+        exit_after: bool,
+        replay_path: &Path,
+        invincible: bool,
+    ) -> State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
         let seed = rand::random::<u32>();
         let mut writer = match File::create(replay_path) {
             Ok(f) => f,
             Err(msg) => {
-                panic!("Failed to create the replay file at '{:?}'.
+                panic!(
+                    "Failed to create the replay file at '{:?}'.
 Reason: '{}'.",
-                       replay_path.display(),
-                       msg)
+                    replay_path.display(),
+                    msg
+                )
             }
         };
         println!("Recording the gameplay to '{}'", replay_path.display());
@@ -210,30 +215,33 @@ Reason: '{}'.",
         let cheating = false;
         let replay = false;
         let replay_full_speed = false;
-        State::new(world_size,
-                   map_size,
-                   panel_width,
-                   display_size,
-                   commands,
-                   verifications,
-                   writer,
-                   seed,
-                   cheating,
-                   invincible,
-                   replay,
-                   replay_full_speed,
-                   exit_after)
+        State::new(
+            world_size,
+            map_size,
+            panel_width,
+            display_size,
+            commands,
+            verifications,
+            writer,
+            seed,
+            cheating,
+            invincible,
+            replay,
+            replay_full_speed,
+            exit_after,
+        )
     }
 
-    pub fn replay_game(world_size: Point,
-                       map_size: i32,
-                       panel_width: i32,
-                       display_size: Point,
-                       replay_path: &Path,
-                       invincible: bool,
-                       replay_full_speed: bool,
-                       exit_after: bool)
-                       -> State {
+    pub fn replay_game(
+        world_size: Point,
+        map_size: i32,
+        panel_width: i32,
+        display_size: Point,
+        replay_path: &Path,
+        invincible: bool,
+        replay_full_speed: bool,
+        exit_after: bool,
+    ) -> State {
         use serde_json;
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();
@@ -258,18 +266,21 @@ Reason: '{}'.",
                             if let Ok(command) = command {
                                 commands.push_back(command);
                             } else {
-                                let verification = serde_json::from_str(&line)
-                                    .expect(&format!("Couldn't load the \
+                                let verification = serde_json::from_str(&line).expect(&format!(
+                                    "Couldn't load the \
                                                       command or \
                                                       verification: '{}'.",
-                                                     line));
+                                    line
+                                ));
                                 verifications.push_back(verification);
                             }
                         }
                         Some(Err(err)) => {
-                            panic!("Error reading a line from the replay \
+                            panic!(
+                                "Error reading a line from the replay \
                                     file: {:?}.",
-                                   err)
+                                err
+                            )
                         }
                         None => break,
                     }
@@ -277,28 +288,32 @@ Reason: '{}'.",
 
             }
             Err(msg) => {
-                panic!("Failed to read the replay file: {}. Reason: {}",
-                       replay_path.display(),
-                       msg)
+                panic!(
+                    "Failed to read the replay file: {}. Reason: {}",
+                    replay_path.display(),
+                    msg
+                )
             }
         }
         println!("Replaying game log: '{}'", replay_path.display());
         let cheating = true;
         let invincible = invincible;
         let replay = true;
-        State::new(world_size,
-                   map_size,
-                   panel_width,
-                   display_size,
-                   commands,
-                   verifications,
-                   Box::new(io::sink()),
-                   seed,
-                   cheating,
-                   invincible,
-                   replay,
-                   replay_full_speed,
-                   exit_after)
+        State::new(
+            world_size,
+            map_size,
+            panel_width,
+            display_size,
+            commands,
+            verifications,
+            Box::new(io::sink()),
+            seed,
+            cheating,
+            invincible,
+            replay,
+            replay_full_speed,
+            exit_after,
+        )
     }
 
     pub fn verification(&self) -> Verification {
@@ -332,23 +347,27 @@ pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
     use serde_json;
-    let json_command = serde_json::to_string(&command)
-        .expect(&format!("Could not \
+    let json_command = serde_json::to_string(&command).expect(&format!(
+        "Could not \
                                                          serialise {:?} to \
                                                          json.",
-                         command));
+        command
+    ));
     writeln!(writer, "{}", json_command).unwrap();
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {
     use serde_json;
-    let json =
-        serde_json::to_string(&verification).expect(&format!("Could not \
+    let json = serde_json::to_string(&verification).expect(&format!(
+        "Could not \
                                                               serialise \
                                                               {:?} to json.",
-                                                             verification));
-    writeln!(writer, "{}", json).expect(&format!("Could not write the \
+        verification
+    ));
+    writeln!(writer, "{}", json).expect(&format!(
+        "Could not write the \
                                                   verification: '{}' to the \
                                                   replay log.",
-                                                 json));
+        json
+    ));
 }

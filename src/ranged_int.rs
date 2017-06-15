@@ -29,7 +29,10 @@ impl Ranged {
         assert!(range.0 <= range.1);
         let value = cmp::max(value, range.0);
         let value = cmp::min(value, range.1);
-        Ranged { val: value, range: range }
+        Ranged {
+            val: value,
+            range: range,
+        }
     }
 
     pub fn new_min(range: InclusiveRange) -> Self {

@@ -102,7 +102,8 @@ impl Keys {
     /// The keys will be checked in order they came in and the first
     /// one that matches will be taken out of the queue.
     pub fn matches<F>(&mut self, predicate: F) -> bool
-        where F: Fn(Key) -> bool
+    where
+        F: Fn(Key) -> bool,
     {
 
         let mut len = self.keys.len();

@@ -29,8 +29,7 @@ pub struct Monster {
 }
 
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord,
-         Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Kind {
     Anxiety,
     Depression,
@@ -80,33 +79,37 @@ impl Monster {
     pub fn attack_damage(&self) -> Modifier {
         use player::Modifier::*;
         match self.kind {
-            Anxiety => Attribute { will: -1, state_of_mind: 0 },
+            Anxiety => Attribute {
+                will: -1,
+                state_of_mind: 0,
+            },
             Depression => Death,
-            Hunger => Attribute { will: 0, state_of_mind: -20 },
+            Hunger => Attribute {
+                will: 0,
+                state_of_mind: -20,
+            },
             Shadows => Panic(4),
             Voices => Stun(4),
-            Npc => Attribute { will: 0, state_of_mind: 0 },  // NOTE: no-op
+            Npc => Attribute {
+                will: 0,
+                state_of_mind: 0,
+            },  // NOTE: no-op
         }
     }
 
-    pub fn act<R: Rng>(&self,
-                       player_pos: Point,
-                       world: &mut World,
-                       rng: &mut R)
-                       -> (AIState, Action) {
+    pub fn act<R: Rng>(
+        &self,
+        player_pos: Point,
+        world: &mut World,
+        rng: &mut R,
+    ) -> (AIState, Action) {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
         let (ai_state, action) = match self.behavior {
-            Behavior::LoneAttacker => {
-                ai::lone_attacker_act(self, player_pos, world, rng)
-            }
-            Behavior::PackAttacker => {
-                ai::pack_attacker_act(self, player_pos, world, rng)
-            }
-            Behavior::Friendly => {
-                ai::friendly_act(self, player_pos, world, rng)
-            }
+            Behavior::LoneAttacker => ai::lone_attacker_act(self, player_pos, world, rng),
+            Behavior::PackAttacker => ai::pack_attacker_act(self, player_pos, world, rng),
+            Behavior::Friendly => ai::friendly_act(self, player_pos, world, rng),
         };
         (ai_state, action)
     }

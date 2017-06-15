@@ -129,11 +129,12 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(display_size: Point,
-               default_background: Color,
-               window_title: &str,
-               font_path: &Path)
-               -> Engine {
+    pub fn new(
+        display_size: Point,
+        default_background: Color,
+        window_title: &str,
+        font_path: &Path,
+    ) -> Engine {
         let mut root = RootConsole::initializer()
             .title(window_title)
             .size(display_size.x, display_size.y)
@@ -153,7 +154,11 @@ impl Engine {
     }
 
     pub fn main_loop<T>(&mut self, mut state: T, update: UpdateFn<T>) {
-        let default_fg = Color { r: 255, g: 255, b: 255 };
+        let default_fg = Color {
+            r: 255,
+            g: 255,
+            b: 255,
+        };
         let mut drawcalls = Vec::with_capacity(8192);
         let display_size = Point {
             x: self.root.width(),
@@ -177,15 +182,17 @@ impl Engine {
             self.root.clear();
             drawcalls.clear();
 
-            match update(state,
-                         Duration::microseconds(
-                             (tcod::system::get_last_frame_length() *
-                              1_000_000.0) as i64),
-                         display_size,
-                         tcod::system::get_fps(),
-                         &keys,
-                         self.settings,
-                         &mut drawcalls) {
+            match update(
+                state,
+                Duration::microseconds(
+                    (tcod::system::get_last_frame_length() * 1_000_000.0) as i64,
+                ),
+                display_size,
+                tcod::system::get_fps(),
+                &keys,
+                self.settings,
+                &mut drawcalls,
+            ) {
                 Some((new_settings, new_state)) => {
                     state = new_state;
                     if self.settings.fullscreen != new_settings.fullscreen {
@@ -206,20 +213,22 @@ impl Engine {
                     &Draw::Char(pos, chr, foreground_color) => {
                         if self.within_bounds(pos) {
                             self.root.set_char(pos.x, pos.y, chr);
-                            self.root
-                                .set_char_foreground(pos.x,
-                                                     pos.y,
-                                                     foreground_color.into());
+                            self.root.set_char_foreground(
+                                pos.x,
+                                pos.y,
+                                foreground_color.into(),
+                            );
                         }
                     }
 
                     &Draw::Background(pos, background_color) => {
                         if self.within_bounds(pos) {
-                            self.root
-                                .set_char_background(pos.x,
-                                                     pos.y,
-                                                     background_color.into(),
-                                                     tcod::BackgroundFlag::Set);
+                            self.root.set_char_background(
+                                pos.x,
+                                pos.y,
+                                background_color.into(),
+                                tcod::BackgroundFlag::Set,
+                            );
                         }
                     }
 
@@ -228,28 +237,25 @@ impl Engine {
                             let pos = start_pos + (i as i32, 0);
                             if self.within_bounds(pos) {
                                 self.root.set_char(pos.x, pos.y, chr);
-                                self.root
-                                    .set_char_foreground(pos.x,
-                                                         pos.y,
-                                                         color.into());
+                                self.root.set_char_foreground(pos.x, pos.y, color.into());
                             }
                         }
                     }
 
                     &Draw::Rectangle(top_left, dimensions, background) => {
-                        let original_background = self.root
-                            .get_default_background();
+                        let original_background = self.root.get_default_background();
                         self.root.set_default_background(background.into());
                         // TODO: this seems to be an invalid assert in
                         // tcod. We should be able to specify the full
                         // width & height here, but it crashes.
-                        self.root
-                            .rect(top_left.x,
-                                  top_left.y,
-                                  dimensions.x,
-                                  dimensions.y,
-                                  true,
-                                  tcod::BackgroundFlag::Set);
+                        self.root.rect(
+                            top_left.x,
+                            top_left.y,
+                            dimensions.x,
+                            dimensions.y,
+                            true,
+                            tcod::BackgroundFlag::Set,
+                        );
                         self.root.set_default_background(original_background);
                     }
 

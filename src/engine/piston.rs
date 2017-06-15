@@ -210,30 +210,31 @@ fn keycode_from_piston(piston_code: PistonKey) -> Option<KeyCode> {
 }
 
 
-pub fn main_loop<T>(display_size: Point,
-                    default_background: Color,
-                    window_title: &str,
-                    font_path: &Path,
-                    mut state: T,
-                    update: UpdateFn<T>) {
+pub fn main_loop<T>(
+    display_size: Point,
+    default_background: Color,
+    window_title: &str,
+    font_path: &Path,
+    mut state: T,
+    update: UpdateFn<T>,
+) {
     // TODO: don't hardcode this value -- calculate it from the tilemap.
     let tilesize = 16;
-    let (screen_width, screen_height) =
-        (display_size.x as u32 * tilesize as u32,
-         display_size.y as u32 * tilesize as u32);
-    let mut window: PistonWindow =
-        WindowSettings::new(window_title, (screen_width, screen_height))
-            .build()
-            .unwrap();
+    let (screen_width, screen_height) = (
+        display_size.x as u32 * tilesize as u32,
+        display_size.y as u32 * tilesize as u32,
+    );
+    let mut window: PistonWindow = WindowSettings::new(window_title, (screen_width, screen_height))
+        .build()
+        .unwrap();
 
-    let tileimage = image::open(font_path).expect(
-        &format!("Could not load the font map at: '{}'",
-                 font_path.display()));
+    let tileimage = image::open(font_path).expect(&format!(
+        "Could not load the font map at: '{}'",
+        font_path.display()
+    ));
     let mut surface = image::ImageBuffer::new(screen_width, screen_height);
-    let mut surface_texture = Texture::from_image(&mut window.factory,
-                                                  &surface,
-                                                  &TextureSettings::new())
-            .unwrap();
+    let mut surface_texture =
+        Texture::from_image(&mut window.factory, &surface, &TextureSettings::new()).unwrap();
 
     // let mut factory = window.factory.clone();
 
@@ -255,15 +256,15 @@ pub fn main_loop<T>(display_size: Point,
         match event {
             Input::Update(update_args) => {
                 drawcalls.clear();
-                match update(state,
-                             Duration::microseconds((update_args.dt *
-                                                     1_000_000.0) as
-                                                    i64),
-                             display_size,
-                             1, // TODO: FPS
-                             &keys,
-                             settings,
-                             &mut drawcalls) {
+                match update(
+                    state,
+                    Duration::microseconds((update_args.dt * 1_000_000.0) as i64),
+                    display_size,
+                    1, // TODO: FPS
+                    &keys,
+                    settings,
+                    &mut drawcalls,
+                ) {
                     Some((new_settings, new_state)) => {
                         state = new_state;
                         settings = new_settings;
@@ -341,11 +342,11 @@ pub fn main_loop<T>(display_size: Point,
             Input::Press(Button::Keyboard(key_code)) => {
                 if let Some(code) = keycode_from_piston(key_code) {
                     keys.push(Key {
-                                  code: code,
-                                  alt: lalt_pressed || ralt_pressed,
-                                  ctrl: lctrl_pressed || rctrl_pressed,
-                                  shift: lshift_pressed || rshift_pressed,
-                              });
+                        code: code,
+                        alt: lalt_pressed || ralt_pressed,
+                        ctrl: lctrl_pressed || rctrl_pressed,
+                        shift: lshift_pressed || rshift_pressed,
+                    });
                 }
             }
 
@@ -354,41 +355,33 @@ pub fn main_loop<T>(display_size: Point,
                 use image::GenericImage;
                 // println!("ext_dt: {:?}", render_args.ext_dt);
 
-                fn blit_char<I, J>(src_x: u32,
-                                   src_y: u32,
-                                   source: &I,
-                                   dst_x: u32,
-                                   dst_y: u32,
-                                   destination: &mut J,
-                                   tilesize: u32,
-                                   color: Color,
-                                   alpha: u8)
-                    where I: GenericImage<Pixel = image::Rgba<u8>>,
-                          J: GenericImage<Pixel = image::Rgba<u8>>
+                fn blit_char<I, J>(
+                    src_x: u32,
+                    src_y: u32,
+                    source: &I,
+                    dst_x: u32,
+                    dst_y: u32,
+                    destination: &mut J,
+                    tilesize: u32,
+                    color: Color,
+                    alpha: u8,
+                ) where
+                    I: GenericImage<Pixel = image::Rgba<u8>>,
+                    J: GenericImage<Pixel = image::Rgba<u8>>,
                 {
                     for x in 0..tilesize {
                         for y in 0..tilesize {
-                            let pixel = source
-                                .get_pixel(src_x + x, src_y + y)
-                                .to_rgba();
+                            let pixel = source.get_pixel(src_x + x, src_y + y).to_rgba();
                             let result = Rgba {
                                 data: [
-                                    ((color.r as f32 / 255.0) *
-                                     (pixel.data[0] as f32 / 255.0) *
-                                     255.0) as
-                                    u8,
-                                    ((color.g as f32 / 255.0) *
-                                     (pixel.data[1] as f32 / 255.0) *
-                                     255.0) as
-                                    u8,
-                                    ((color.b as f32 / 255.0) *
-                                     (pixel.data[2] as f32 / 255.0) *
-                                     255.0) as
-                                    u8,
-                                    ((alpha as f32 / 255.0) *
-                                     (pixel.data[3] as f32 / 255.0) *
-                                     255.0) as
-                                    u8,
+                                    ((color.r as f32 / 255.0) * (pixel.data[0] as f32 / 255.0) *
+                                         255.0) as u8,
+                                    ((color.g as f32 / 255.0) * (pixel.data[1] as f32 / 255.0) *
+                                         255.0) as u8,
+                                    ((color.b as f32 / 255.0) * (pixel.data[2] as f32 / 255.0) *
+                                         255.0) as u8,
+                                    ((alpha as f32 / 255.0) * (pixel.data[3] as f32 / 255.0) *
+                                         255.0) as u8,
                                 ],
                             };
                             destination.put_pixel(dst_x + x, dst_y + y, result);
@@ -396,16 +389,17 @@ pub fn main_loop<T>(display_size: Point,
                     }
                 }
 
-                fn draw_rect<I>(src_x: u32,
-                                src_y: u32,
-                                destination: &mut I,
-                                tilesize: u32,
-                                color: Color,
-                                alpha: u8)
-                    where I: GenericImage<Pixel = image::Rgba<u8>>
+                fn draw_rect<I>(
+                    src_x: u32,
+                    src_y: u32,
+                    destination: &mut I,
+                    tilesize: u32,
+                    color: Color,
+                    alpha: u8,
+                ) where
+                    I: GenericImage<Pixel = image::Rgba<u8>>,
                 {
-                    let pixel =
-                        Rgba { data: [color.r, color.g, color.b, alpha] };
+                    let pixel = Rgba { data: [color.r, color.g, color.b, alpha] };
                     for x in 0..tilesize {
                         for y in 0..tilesize {
                             destination.put_pixel(src_x + x, src_y + y, pixel);
@@ -417,58 +411,58 @@ pub fn main_loop<T>(display_size: Point,
                 for drawcall in &drawcalls {
                     match drawcall {
                         &Draw::Char(pos, chr, foreground_color) => {
-                            let source_rectangle =
-                                texture_coords_from_char(chr, tilesize);
-                            blit_char(source_rectangle.0,
-                                      source_rectangle.1,
-                                      &tileimage,
-                                      pos.x as u32 * tilesize,
-                                      pos.y as u32 * tilesize,
-                                      &mut surface,
-                                      tilesize,
-                                      foreground_color,
-                                      alpha);
+                            let source_rectangle = texture_coords_from_char(chr, tilesize);
+                            blit_char(
+                                source_rectangle.0,
+                                source_rectangle.1,
+                                &tileimage,
+                                pos.x as u32 * tilesize,
+                                pos.y as u32 * tilesize,
+                                &mut surface,
+                                tilesize,
+                                foreground_color,
+                                alpha,
+                            );
                         }
 
                         &Draw::Background(pos, background_color) => {
-                            draw_rect(pos.x as u32 * tilesize,
-                                      pos.y as u32 * tilesize,
-                                      &mut surface,
-                                      tilesize,
-                                      background_color,
-                                      alpha);
+                            draw_rect(
+                                pos.x as u32 * tilesize,
+                                pos.y as u32 * tilesize,
+                                &mut surface,
+                                tilesize,
+                                background_color,
+                                alpha,
+                            );
                         }
 
                         &Draw::Text(start_pos, ref text, color) => {
                             for (i, chr) in text.char_indices() {
                                 let pos = start_pos + (i as i32, 0);
-                                let source_rectangle =
-                                    texture_coords_from_char(chr, tilesize);
-                                blit_char(source_rectangle.0,
-                                          source_rectangle.1,
-                                          &tileimage,
-                                          pos.x as u32 * tilesize,
-                                          pos.y as u32 * tilesize,
-                                          &mut surface,
-                                          tilesize,
-                                          color,
-                                          alpha);
+                                let source_rectangle = texture_coords_from_char(chr, tilesize);
+                                blit_char(
+                                    source_rectangle.0,
+                                    source_rectangle.1,
+                                    &tileimage,
+                                    pos.x as u32 * tilesize,
+                                    pos.y as u32 * tilesize,
+                                    &mut surface,
+                                    tilesize,
+                                    color,
+                                    alpha,
+                                );
                             }
                         }
 
                         &Draw::Rectangle(top_left, dimensions, color) => {
-                            let pixel = Rgba {
-                                data: [color.r, color.g, color.b, alpha],
-                            };
+                            let pixel = Rgba { data: [color.r, color.g, color.b, alpha] };
                             for x in 0..(dimensions.x as u32 * tilesize) {
                                 for y in 0..(dimensions.y as u32 * tilesize) {
-                                    surface.put_pixel(top_left.x as u32 *
-                                                      tilesize +
-                                                      x,
-                                                      top_left.y as u32 *
-                                                      tilesize +
-                                                      y,
-                                                      pixel);
+                                    surface.put_pixel(
+                                        top_left.x as u32 * tilesize + x,
+                                        top_left.y as u32 * tilesize + y,
+                                        pixel,
+                                    );
                                 }
                             }
                         }
@@ -487,16 +481,17 @@ pub fn main_loop<T>(display_size: Point,
                     clear(fade_color, g);
 
                     // NOTE: Render the default background
-                    rectangle(from_color_with_alpha(default_background,
-                                                    alpha as f32 / 255.0),
-                              [
-                        0.0,
-                        0.0,
-                        render_args.draw_width as f64,
-                        render_args.draw_height as f64,
-                    ],
-                              c.transform,
-                              g);
+                    rectangle(
+                        from_color_with_alpha(default_background, alpha as f32 / 255.0),
+                        [
+                            0.0,
+                            0.0,
+                            render_args.draw_width as f64,
+                            render_args.draw_height as f64,
+                        ],
+                        c.transform,
+                        g,
+                    );
 
                     ::piston_window::image(&surface_texture, c.transform, g);
 

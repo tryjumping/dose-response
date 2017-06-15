@@ -40,7 +40,10 @@ impl Point {
 
 impl Into<Point> for (i32, i32) {
     fn into(self) -> Point {
-        Point { x: self.0, y: self.1 }
+        Point {
+            x: self.0,
+            y: self.1,
+        }
     }
 }
 
@@ -325,15 +328,13 @@ mod test {
 
     #[test]
     fn test_points_within_radius_of_zero() {
-        let actual: Vec<Point> =
-            FromIterator::from_iter(SquareArea::new((3, 3), 0));
+        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((3, 3), 0));
         assert_eq!(actual, [(3, 3)]);
     }
 
     #[test]
     fn test_points_within_radius_of_one() {
-        let actual: Vec<Point> =
-            FromIterator::from_iter(SquareArea::new((0, 0), 1));
+        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 1));
         let expected = [
             (-1, -1),
             (0, -1),
@@ -350,8 +351,7 @@ mod test {
 
     #[test]
     fn test_points_within_radius_of_five() {
-        let actual: Vec<Point> =
-            FromIterator::from_iter(SquareArea::new((0, 0), 5));
+        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 5));
 
         let mut expected = Vec::new();
         for y in -5..6 {

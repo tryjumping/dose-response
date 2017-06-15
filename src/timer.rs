@@ -19,8 +19,7 @@ impl Timer {
         assert!(elapsed_percent >= 0.0);
         assert!(elapsed_percent <= 1.0);
         let mut timer = Timer::new(duration);
-        let current_ms = duration.num_milliseconds() as f32 *
-                         (1.0 - elapsed_percent);
+        let current_ms = duration.num_milliseconds() as f32 * (1.0 - elapsed_percent);
         timer.current = Duration::milliseconds(current_ms as i64);
 
         timer
@@ -35,8 +34,7 @@ impl Timer {
     }
 
     pub fn percentage_remaining(&self) -> f32 {
-        (self.current.num_milliseconds() as f32) /
-        (self.max.num_milliseconds() as f32)
+        (self.current.num_milliseconds() as f32) / (self.max.num_milliseconds() as f32)
     }
 
     pub fn percentage_elapsed(&self) -> f32 {

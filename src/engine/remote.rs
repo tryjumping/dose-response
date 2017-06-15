@@ -30,9 +30,9 @@ impl ZeroMQ {
         if poll_status == 0 {
             Ok(None)
         } else {
-            let key_data = self.socket
-                .recv_bytes(0)
-                .map(|bytes| String::from_utf8(bytes))??;
+            let key_data = self.socket.recv_bytes(0).map(
+                |bytes| String::from_utf8(bytes),
+            )??;
             let key = serde_json::from_str(&key_data)?;
             Ok(Some(key))
         }
@@ -77,11 +77,13 @@ impl Display {
 }
 
 
-pub fn main_loop<T>(display_size: Point,
-                    _default_background: Color,
-                    _window_title: &str,
-                    mut state: T,
-                    update: UpdateFn<T>) {
+pub fn main_loop<T>(
+    display_size: Point,
+    _default_background: Color,
+    _window_title: &str,
+    mut state: T,
+    update: UpdateFn<T>,
+) {
     let ipc = match ZeroMQ::new("ipc:///tmp/dose-response.ipc") {
         Ok(ipc) => ipc,
         Err(err) => panic!("Could not create a ZeroMQ socket: {:?}", err),
@@ -105,13 +107,15 @@ pub fn main_loop<T>(display_size: Point,
             Err(err) => panic!("Error reading a key {:?}", err),
         };
 
-        match update(state,
-                     Duration::milliseconds(16),
-                     display_size,
-                     60,
-                     &keys,
-                     settings,
-                     &mut drawcalls) {
+        match update(
+            state,
+            Duration::milliseconds(16),
+            display_size,
+            60,
+            &keys,
+            settings,
+            &mut drawcalls,
+        ) {
             Some((_new_settings, new_state)) => {
                 state = new_state;
                 for drawcall in &drawcalls {

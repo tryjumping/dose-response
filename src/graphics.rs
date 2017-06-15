@@ -10,10 +10,7 @@ pub trait Render {
     fn render(&self, dt: Duration) -> (char, Color, Option<Color>);
 }
 
-pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>,
-                       dt: Duration,
-                       pos: Point,
-                       render: &R) {
+pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>, dt: Duration, pos: Point, render: &R) {
     use engine::Draw::*;
     let (glyph, fg, bg_opt) = render.render(dt);
     if let Some(background) = bg_opt {
@@ -23,12 +20,14 @@ pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>,
 }
 
 
-pub fn progress_bar(drawcalls: &mut Vec<Draw>,
-                    percentage: f32,
-                    pos: Point,
-                    width: i32,
-                    foreground: Color,
-                    background: Color) {
+pub fn progress_bar(
+    drawcalls: &mut Vec<Draw>,
+    percentage: f32,
+    pos: Point,
+    width: i32,
+    foreground: Color,
+    background: Color,
+) {
     assert!(percentage >= 0.0);
     assert!(percentage <= 1.0);
     let mut highlighted_width = (width as f32 * percentage) as i32;
@@ -37,15 +36,22 @@ pub fn progress_bar(drawcalls: &mut Vec<Draw>,
     } else if percentage == 1.0 {
         highlighted_width = width;
     }
-    drawcalls.push(Draw::Rectangle(pos,
-                                   Point { x: highlighted_width, y: 1 },
-                                   foreground));
-    drawcalls.push(Draw::Rectangle(pos + (highlighted_width, 0),
-                                   Point {
-                                       x: width - highlighted_width,
-                                       y: 1,
-                                   },
-                                   background));
+    drawcalls.push(Draw::Rectangle(
+        pos,
+        Point {
+            x: highlighted_width,
+            y: 1,
+        },
+        foreground,
+    ));
+    drawcalls.push(Draw::Rectangle(
+        pos + (highlighted_width, 0),
+        Point {
+            x: width - highlighted_width,
+            y: 1,
+        },
+        background,
+    ));
 }
 
 

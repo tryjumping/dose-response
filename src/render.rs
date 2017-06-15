@@ -18,10 +18,7 @@ use time::Duration;
 use world::Chunk;
 
 
-pub fn render_game(state: &State,
-                   dt: Duration,
-                   fps: i32,
-                   drawcalls: &mut Vec<Draw>) {
+pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) {
     if state.player.alive() {
         let fade = formula::mind_fade_value(state.player.mind);
         if fade > 0.0 {
@@ -54,10 +51,8 @@ pub fn render_game(state: &State,
 
     let player_pos = state.player.pos;
     let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
-    let screen_left_top_corner = state.screen_position_in_world -
-                                 (state.map_size / 2);
-    let display_area = Rectangle::center(state.screen_position_in_world,
-                                         state.map_size / 2);
+    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+    let display_area = Rectangle::center(state.screen_position_in_world, state.map_size / 2);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     let total_time_ms = state.clock.num_milliseconds();
@@ -67,8 +62,7 @@ pub fn render_game(state: &State,
     let player_will = *state.player.will;
     // NOTE: this is here to appease the borrow checker. If we
     // borrowed the state here as immutable, we wouln't need it.
-    let show_intoxication_effect = state.player.alive() &&
-                                   state.player.mind.is_high();
+    let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
 
 
@@ -78,7 +72,8 @@ pub fn render_game(state: &State,
             .world
             .chunks(display_area)
             .flat_map(Chunk::cells)
-            .filter(|&(pos, _)| display_area.contains(pos)) {
+            .filter(|&(pos, _)| display_area.contains(pos))
+    {
         let display_pos = screen_coords_from_world(world_pos);
 
         // Render the tile
@@ -109,8 +104,7 @@ pub fn render_game(state: &State,
             graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
         } else if cell.explored || bonus == Bonus::UncoverMap {
             graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
-            drawcalls.push(Draw::Background(display_pos,
-                                            color::dim_background));
+            drawcalls.push(Draw::Background(display_pos, color::dim_background));
         } else {
             // It's not visible. Do nothing.
         }
@@ -118,24 +112,20 @@ pub fn render_game(state: &State,
         // Render the irresistible background of a dose
         for item in cell.items.iter() {
             if item.is_dose() && !player_will_is_max {
-                let resist_radius =
-                    formula::player_resist_radius(item.irresistible,
-                                                  player_will);
+                let resist_radius = formula::player_resist_radius(item.irresistible, player_will);
                 for point in SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) {
                         let screen_coords = screen_coords_from_world(point);
-                        drawcalls
-                            .push(Draw::Background(screen_coords,
-                                                   color::dose_background));
+                        drawcalls.push(Draw::Background(screen_coords, color::dose_background));
                     }
                 }
             }
         }
 
         // Render the items
-        if in_fov(world_pos) || cell.explored ||
-           bonus == Bonus::SeeMonstersAndItems ||
-           bonus == Bonus::UncoverMap {
+        if in_fov(world_pos) || cell.explored || bonus == Bonus::SeeMonstersAndItems ||
+            bonus == Bonus::UncoverMap
+        {
             for item in cell.items.iter() {
                 graphics::draw(drawcalls, dt, display_pos, item);
             }
@@ -143,24 +133,20 @@ pub fn render_game(state: &State,
     }
 
     if let Some(ref animation) = state.explosion_animation {
-        drawcalls.extend(animation
-                             .tiles()
-                             .map(|(world_pos, color, _)| {
+        drawcalls.extend(animation.tiles().map(|(world_pos, color, _)| {
             Draw::Background(screen_coords_from_world(world_pos), color)
         }));
     }
 
     // NOTE: render monsters
-    for monster in
-        state
-            .world
-            .chunks(display_area)
-            .flat_map(Chunk::monsters)
-            .filter(|m| m.alive() && display_area.contains(m.position)) {
-        let visible = monster.position.distance(state.player.pos) <
-                      (radius as f32);
-        if visible || bonus == Bonus::UncoverMap ||
-           bonus == Bonus::SeeMonstersAndItems {
+    for monster in state
+        .world
+        .chunks(display_area)
+        .flat_map(Chunk::monsters)
+        .filter(|m| m.alive() && display_area.contains(m.position))
+    {
+        let visible = monster.position.distance(state.player.pos) < (radius as f32);
+        if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems {
             use graphics::Render;
             let display_pos = screen_coords_from_world(monster.position);
             if let Some(trail_pos) = monster.trail {
@@ -186,8 +172,7 @@ pub fn render_game(state: &State,
             }
 
             let (glyph, mut color, _) = monster.render(dt);
-            if monster.kind == monster::Kind::Npc &&
-               state.player.mind.is_high() {
+            if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
                 color = color::npc_dim;
             }
             drawcalls.push(Draw::Char(display_pos, glyph, color))
@@ -200,13 +185,15 @@ pub fn render_game(state: &State,
         graphics::draw(drawcalls, dt, display_pos, &state.player);
     }
 
-    render_panel(state.map_size.x,
-                 state.panel_width,
-                 state.display_size,
-                 &state,
-                 dt,
-                 drawcalls,
-                 fps);
+    render_panel(
+        state.map_size.x,
+        state.panel_width,
+        state.display_size,
+        &state,
+        dt,
+        drawcalls,
+        fps,
+    );
     if state.show_keboard_movement_hints {
         render_controls_help(state.map_size, drawcalls);
     }
@@ -233,13 +220,9 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     let endgame_description = match (cause_of_death, perpetrator) {
         (Some(Exhausted), None) => "Exhausted".into(),
-        (Some(Exhausted), Some(monster)) => {
-            format!("Exhausted because of {}", monster.glyph())
-        }
+        (Some(Exhausted), Some(monster)) => format!("Exhausted because of {}", monster.glyph()),
         (Some(Overdosed), _) => "Overdosed".into(),
-        (Some(LostWill), Some(monster)) => {
-            format!("Lost all Will due to {}", monster.glyph())
-        }
+        (Some(LostWill), Some(monster)) => format!("Lost all Will due to {}", monster.glyph()),
         (Some(LostWill), None) => unreachable!(),
         (Some(Killed), Some(monster)) => format!("Defeated by {}", monster.glyph()),
         (Some(Killed), None) => unreachable!(),
@@ -255,8 +238,10 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     let turns_text = format!("Turns: {}", state.turn);
     let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
-    let high_streak_text = format!("Longest High streak: {} turns",
-                                   state.player.longest_high_streak);
+    let high_streak_text = format!(
+        "Longest High streak: {} turns",
+        state.player.longest_high_streak
+    );
     let keyboard_text = "[F5] New Game    [Q] Quit";
 
     let longest_text = [
@@ -266,11 +251,10 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         &carrying_doses_text,
         &high_streak_text,
         keyboard_text,
-    ]
-            .iter()
-            .map(|s| s.chars().count())
-            .max()
-            .unwrap() as i32;
+    ].iter()
+        .map(|s| s.chars().count())
+        .max()
+        .unwrap() as i32;
     let lines_count = 7;
 
     let rect_dimensions = Point {
@@ -289,66 +273,99 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         (container_width - text.chars().count() as i32) / 2
     }
 
-    drawcalls.push(Draw::Rectangle(rect_start,
-                                   rect_dimensions,
-                                   color::background));
+    drawcalls.push(Draw::Rectangle(
+        rect_start,
+        rect_dimensions,
+        color::background,
+    ));
 
-    drawcalls.push(Draw::Text(rect_start +
-                              (centered_text_pos(rect_dimensions.x,
-                                                 &endgame_reason_text),
-                               1),
-                              endgame_reason_text.into(),
-                              color::gui_text));
+    drawcalls.push(Draw::Text(
+        rect_start +
+            (
+                centered_text_pos(
+                    rect_dimensions.x,
+                    &endgame_reason_text,
+                ),
+                1,
+            ),
+        endgame_reason_text.into(),
+        color::gui_text,
+    ));
 
-    drawcalls.push(Draw::Text(rect_start +
-                              (centered_text_pos(rect_dimensions.x,
-                                                 &endgame_description),
-                               2),
-                              endgame_description.into(),
-                              color::gui_text));
+    drawcalls.push(Draw::Text(
+        rect_start +
+            (
+                centered_text_pos(
+                    rect_dimensions.x,
+                    &endgame_description,
+                ),
+                2,
+            ),
+        endgame_description.into(),
+        color::gui_text,
+    ));
 
-    drawcalls.push(Draw::Text(rect_start +
-                              (centered_text_pos(rect_dimensions.x,
-                                                 &turns_text),
-                               5),
-                              turns_text.into(),
-                              color::gui_text));
-    drawcalls.push(Draw::Text(rect_start +
-                              (centered_text_pos(rect_dimensions.x,
-                                                 &carrying_doses_text),
-                               7),
-                              carrying_doses_text.into(),
-                              color::gui_text));
-    drawcalls.push(Draw::Text(rect_start +
-                              (centered_text_pos(rect_dimensions.x,
-                                                 &high_streak_text),
-                               9),
-                              high_streak_text.into(),
-                              color::gui_text));
-    drawcalls.push(Draw::Text(rect_start +
-                              (centered_text_pos(rect_dimensions.x,
-                                                 &keyboard_text),
-                               13),
-                              keyboard_text.into(),
-                              color::gui_text));
+    drawcalls.push(Draw::Text(
+        rect_start +
+            (centered_text_pos(rect_dimensions.x, &turns_text), 5),
+        turns_text.into(),
+        color::gui_text,
+    ));
+    drawcalls.push(Draw::Text(
+        rect_start +
+            (
+                centered_text_pos(
+                    rect_dimensions.x,
+                    &carrying_doses_text,
+                ),
+                7,
+            ),
+        carrying_doses_text.into(),
+        color::gui_text,
+    ));
+    drawcalls.push(Draw::Text(
+        rect_start +
+            (
+                centered_text_pos(rect_dimensions.x, &high_streak_text),
+                9,
+            ),
+        high_streak_text.into(),
+        color::gui_text,
+    ));
+    drawcalls.push(Draw::Text(
+        rect_start +
+            (
+                centered_text_pos(rect_dimensions.x, &keyboard_text),
+                13,
+            ),
+        keyboard_text.into(),
+        color::gui_text,
+    ));
 }
 
 
-fn render_panel(x: i32,
-                width: i32,
-                display_size: Point,
-                state: &State,
-                dt: Duration,
-                drawcalls: &mut Vec<Draw>,
-                fps: i32) {
+fn render_panel(
+    x: i32,
+    width: i32,
+    display_size: Point,
+    state: &State,
+    dt: Duration,
+    drawcalls: &mut Vec<Draw>,
+    fps: i32,
+) {
     let fg = color::gui_text;
     let bg = color::dim_background;
 
     {
         let height = display_size.y;
-        drawcalls.push(Draw::Rectangle(Point { x: x, y: 0 },
-                                       Point { x: width, y: height },
-                                       bg));
+        drawcalls.push(Draw::Rectangle(
+            Point { x: x, y: 0 },
+            Point {
+                x: width,
+                y: height,
+            },
+            bg,
+        ));
     }
 
     let player = &state.player;
@@ -359,13 +376,12 @@ fn render_panel(x: i32,
         Mind::High(val) => ("High", val.percent()),
     };
 
-    let mut lines: Vec<Cow<'static, str>> =
-        vec![
-            mind_str.into(),
-            "".into(), // NOTE: placeholder for the Mind state percentage bar
-            "".into(),
-            format!("Will: {}", *player.will).into(),
-        ];
+    let mut lines: Vec<Cow<'static, str>> = vec![
+        mind_str.into(),
+        "".into(), // NOTE: placeholder for the Mind state percentage bar
+        "".into(),
+        format!("Will: {}", *player.will).into(),
+    ];
 
     if player.inventory.len() > 0 {
         lines.push("".into());
@@ -379,11 +395,9 @@ fn render_panel(x: i32,
 
         for kind in item::Kind::iter() {
             if let Some(count) = item_counts.get(&kind) {
-                lines.push(format!("[{}] {:?}: {}",
-                                   game::inventory_key(kind),
-                                   kind,
-                                   count)
-                                   .into());
+                lines.push(
+                    format!("[{}] {:?}: {}", game::inventory_key(kind), kind, count).into(),
+                );
             }
         }
     }
@@ -391,8 +405,9 @@ fn render_panel(x: i32,
     lines.push("".into());
 
     if player.will.is_max() {
-        lines.push(format!("Sobriety: {}", player.sobriety_counter.percent())
-                       .into());
+        lines.push(
+            format!("Sobriety: {}", player.sobriety_counter.percent()).into(),
+        );
     }
 
     if state.cheating {
@@ -414,24 +429,38 @@ fn render_panel(x: i32,
     if state.cheating {
         lines.push("Time stats:".into());
         for frame_stat in state.stats.last_frames(25) {
-            lines.push(format!("upd: {}, dc: {}",
-                               frame_stat.update.num_milliseconds(),
-                               frame_stat.drawcalls.num_milliseconds())
-                               .into());
+            lines.push(
+                format!(
+                    "upd: {}, dc: {}",
+                    frame_stat.update.num_milliseconds(),
+                    frame_stat.drawcalls.num_milliseconds()
+                ).into(),
+            );
         }
-        lines.push(format!("longest upd: {}",
-                           state.stats.longest_update().num_milliseconds())
-                           .into());
-        lines.push(format!("longest dc: {}",
-                           state.stats.longest_drawcalls().num_milliseconds())
-                           .into());
+        lines.push(
+            format!(
+                "longest upd: {}",
+                state.stats.longest_update().num_milliseconds()
+            ).into(),
+        );
+        lines.push(
+            format!(
+                "longest dc: {}",
+                state.stats.longest_drawcalls().num_milliseconds()
+            ).into(),
+        );
     }
 
 
     for (y, line) in lines.into_iter().enumerate() {
-        drawcalls.push(Draw::Text(Point { x: x + 1, y: y as i32 },
-                                  line.into(),
-                                  fg));
+        drawcalls.push(Draw::Text(
+            Point {
+                x: x + 1,
+                y: y as i32,
+            },
+            line.into(),
+            fg,
+        ));
     }
 
     let max_val = match player.mind {
@@ -444,45 +473,58 @@ fn render_panel(x: i32,
         bar_width = max_val;
     }
 
-    graphics::progress_bar(drawcalls,
-                           mind_val_percent,
-                           (x + 1, 1).into(),
-                           bar_width,
-                           color::gui_progress_bar_fg,
-                           color::gui_progress_bar_bg);
+    graphics::progress_bar(
+        drawcalls,
+        mind_val_percent,
+        (x + 1, 1).into(),
+        bar_width,
+        color::gui_progress_bar_fg,
+        color::gui_progress_bar_bg,
+    );
 
     let bottom = display_size.y - 1;
 
     if state.cheating {
-        drawcalls.push(Draw::Text(Point { x: x + 1, y: bottom - 1 },
-                                  format!("dt: {}ms", dt.num_milliseconds())
-                                      .into(),
-                                  fg));
-        drawcalls.push(Draw::Text(Point { x: x + 1, y: bottom },
-                                  format!("FPS: {}", fps).into(),
-                                  fg));
+        drawcalls.push(Draw::Text(
+            Point {
+                x: x + 1,
+                y: bottom - 1,
+            },
+            format!("dt: {}ms", dt.num_milliseconds()).into(),
+            fg,
+        ));
+        drawcalls.push(Draw::Text(
+            Point {
+                x: x + 1,
+                y: bottom,
+            },
+            format!("FPS: {}", fps).into(),
+            fg,
+        ));
     }
 
 }
 
 fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     fn rect_dim(lines: &[&str]) -> (i32, i32) {
-        (lines.iter().map(|l| l.len() as i32).max().unwrap(),
-         lines.len() as i32)
+        (
+            lines.iter().map(|l| l.len() as i32).max().unwrap(),
+            lines.len() as i32,
+        )
     }
 
-    fn draw_rect(lines: &[&'static str],
-                 start: Point,
-                 w: i32,
-                 h: i32,
-                 drawcalls: &mut Vec<Draw>) {
-        drawcalls.push(Draw::Rectangle(start,
-                                       Point::new(w, h),
-                                       color::dim_background));
+    fn draw_rect(lines: &[&'static str], start: Point, w: i32, h: i32, drawcalls: &mut Vec<Draw>) {
+        drawcalls.push(Draw::Rectangle(
+            start,
+            Point::new(w, h),
+            color::dim_background,
+        ));
         for (index, &line) in lines.iter().enumerate() {
-            drawcalls.push(Draw::Text(start + Point::new(0, index as i32),
-                                      line.into(),
-                                      color::gui_text));
+            drawcalls.push(Draw::Text(
+                start + Point::new(0, index as i32),
+                line.into(),
+                color::gui_text,
+            ));
         }
     };
 
@@ -522,7 +564,10 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
 
     let lines = ["Shift+Right", "Num 7", "or: Y"];
     let (width, height) = rect_dim(&lines);
-    let start = Point { x: padding, y: padding };
+    let start = Point {
+        x: padding,
+        y: padding,
+    };
     draw_rect(&lines, start, width, height, drawcalls);
 
     let lines = ["Shift+Right", "Num 9", "or: U"];

@@ -340,9 +340,9 @@ fn process_monsters<R: Rng>(
             .expect("Monster should exist on this position")
             .clone();
         let action = {
-            let (ai, action) = monster_readonly.act(player.pos, world, rng);
+            let (update, action) = monster_readonly.act(player.pos, world, rng);
             if let Some(monster) = world.monster_on_pos(monster_position) {
-                monster.ai_state = ai;
+                monster.ai_state = update.ai_state;
                 monster.spend_ap(1);
             }
             action

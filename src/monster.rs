@@ -1,6 +1,6 @@
 use self::Kind::*;
 
-use ai::{self, AIState, Behavior};
+use ai::{self, AIState, Behavior, Update};
 use blocker::{self, Blocker};
 use color::{self, Color};
 use game::Action;
@@ -110,16 +110,15 @@ impl Monster {
         player_pos: Point,
         world: &mut World,
         rng: &mut R,
-    ) -> (AIState, Action) {
+    ) -> (Update, Action) {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));
         }
-        let (ai_state, action) = match self.behavior {
+        match self.behavior {
             Behavior::LoneAttacker => ai::lone_attacker_act(self, player_pos, world, rng),
             Behavior::PackAttacker => ai::pack_attacker_act(self, player_pos, world, rng),
             Behavior::Friendly => ai::friendly_act(self, player_pos, world, rng),
-        };
-        (ai_state, action)
+        }
     }
 
     pub fn spend_ap(&mut self, count: i32) {

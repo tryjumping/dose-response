@@ -24,18 +24,28 @@ pub enum AIState {
 }
 
 
+#[derive(Copy, Clone, PartialEq, Debug)]
+/// Values the AI can update about itself before performing the action
+/// it decided to make.
+pub struct Update {
+    pub ai_state: AIState,
+}
+
+
 pub fn lone_attacker_act<R: Rng>(
     actor: &Monster,
     player_position: Point,
     world: &mut World,
     rng: &mut R,
-) -> (AIState, Action) {
+) -> (Update, Action) {
     let distance = actor.position.tile_distance(player_position);
     let ai_state = if distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
     } else {
         AIState::Idle
     };
+
+    let update = Update { ai_state };
 
     let action = match ai_state {
         AIState::Chasing => chasing_action(actor, player_position),
@@ -45,7 +55,7 @@ pub fn lone_attacker_act<R: Rng>(
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
     };
-    (ai_state, action)
+    (update, action)
 }
 
 
@@ -54,7 +64,7 @@ pub fn pack_attacker_act<R: Rng>(
     player_position: Point,
     world: &mut World,
     rng: &mut R,
-) -> (AIState, Action) {
+) -> (Update, Action) {
     let player_distance = actor.position.tile_distance(player_position);
     let ai_state = if player_distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
@@ -63,6 +73,8 @@ pub fn pack_attacker_act<R: Rng>(
     } else {
         actor.ai_state
     };
+
+    let update = Update { ai_state };
 
     let action = match ai_state {
         AIState::Chasing => {
@@ -93,7 +105,7 @@ pub fn pack_attacker_act<R: Rng>(
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
     };
-    (ai_state, action)
+    (update, action)
 }
 
 
@@ -102,10 +114,11 @@ pub fn friendly_act<R: Rng>(
     player_position: Point,
     world: &mut World,
     rng: &mut R,
-) -> (AIState, Action) {
+) -> (Update, Action) {
     let destination = idle_destination(actor, world, rng, player_position);
+    let update = Update { ai_state: actor.ai_state };
     let action = Action::Move(destination);
-    (actor.ai_state, action)
+    (update, action)
 }
 
 

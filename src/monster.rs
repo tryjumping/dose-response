@@ -25,6 +25,7 @@ pub struct Monster {
     pub blockers: Blocker,
     pub path: Vec<Point>,
     pub trail: Option<Point>,
+    pub color: Color,
 
     pub max_ap: i32,
     ap: i32,
@@ -47,10 +48,12 @@ impl Monster {
             Shadows | Voices => true,
             Anxiety | Depression | Hunger | Npc => false,
         };
+
         let max_ap = match kind {
             Depression => 2,
             Anxiety | Hunger | Shadows | Voices | Npc => 1,
         };
+
         let behavior = match kind {
             Depression => Behavior::LoneAttacker,
             Anxiety => Behavior::LoneAttacker,
@@ -59,15 +62,27 @@ impl Monster {
             Voices => Behavior::LoneAttacker,
             Npc => Behavior::Friendly,
         };
+
         let invincible = match kind {
             Npc => true,
             _ => false,
         };
+
         // NOTE: NPCs can't walk into the player, monsters can
         let blockers = match kind {
             Npc => blocker::PLAYER | blocker::WALL | blocker::MONSTER,
             _ => blocker::WALL | blocker::MONSTER,
         };
+
+        let color = match kind {
+            Depression => color::depression,
+            Anxiety => color::anxiety,
+            Hunger => color::hunger,
+            Shadows => color::shadows,
+            Voices => color::voices,
+            Npc => color::npc,
+        };
+
         Monster {
             kind,
             position,
@@ -81,6 +96,7 @@ impl Monster {
             blockers,
             path: vec![],
             trail: None,
+            color,
         }
     }
 
@@ -159,14 +175,6 @@ impl Monster {
 
 impl Render for Monster {
     fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
-        let glyph = self.glyph();
-        match self.kind {
-            Anxiety => (glyph, color::anxiety, None),
-            Depression => (glyph, color::depression, None),
-            Hunger => (glyph, color::hunger, None),
-            Shadows => (glyph, color::voices, None),
-            Voices => (glyph, color::shadows, None),
-            Npc => (glyph, color::npc, None),
-        }
+        (self.glyph(), self.color, None)
     }
 }

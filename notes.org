@@ -13,30 +13,21 @@
 ** Non-square fonts for text
 ** Fullscreen
 ** Icon for the executable
-* Interactive NPCs                                                   :design:
-** When High, you can't interact with them
-*** they're translucent
-*** move twice as fast as you
-** When Withdrawn/Sober they can be interacted with
-*** they have a colour (based on their bonus)
-*** they only move 1 HP
-*** you can bump into them
-** Bumping into an interactive NPC
-*** Gives the backrgound the same glow as their colour
-*** They give you a bonus based on their colour
-*** Monsters start targetting them
-*** They have 2 HPs
-** They disappear when killed by a monster
-** They become translucent when the player gets high again
-** The player loses the bonus when the NPC dies or leaves
-** Question: can you "activate" more than one NPC?
-*** does the same bonus stack?
-*** do different bonuses combine?
-** The bonus would be written in the sidebar
-** NPC bonuses:
-*** a red NPC would double the anxiety counter on each `a` killed
-*** blue NPC would give the player 2 action points (like depression)
-*** brown NPC would reduce the sober & withdrawal curves
+* Change NPC speed by Intoxication                                     :idea:
+** They have 2 APs when High
+** They have player's `max_aps` when Sober/Withdrawn
+* Add different kinds of NPCs                                          :idea:
+** Red/Blue/Brown (same colours as monsters)
+* Give player a bonus when bumping into an NPC                         :idea:
+** Red: double anxiety counter gain on killing `a`
+** Blue: give 2 APs
+** Brown: slow down the sober/withdrawal fall by half
+* NPC leaves the player when High                                      :idea:
+** The current bonus is lost
+* NPC gets targeted by monsters when accompayning player               :idea:
+** They have 2 HP
+** HPs reset when they leave the player
+** The NPC becomes grey and leaves the player for 20 turns on "death"
 * Create a Help screen                                                   :ui:
 ** Opens any time by pressing `?`
 ** Shows movement keys
@@ -110,6 +101,30 @@ fn main() {
     println!("Cells: {:?}", cells);
 }
 #+END_SRC
+* interactive NPCs                                                   :design:
+** When High, you can't interact with them
+*** they're translucent
+*** move twice as fast as you
+** When Withdrawn/Sober they can be interacted with
+*** they have a colour (based on their bonus)
+*** they only move 1 HP
+*** you can bump into them
+** Bumping into an interactive NPC
+*** Gives the backrgound the same glow as their colour
+*** They give you a bonus based on their colour
+*** Monsters start targetting them
+*** They have 2 HPs
+** They disappear when killed by a monster
+** They become translucent when the player gets high again
+** The player loses the bonus when the NPC dies or leaves
+** Question: can you "activate" more than one NPC?
+*** does the same bonus stack?
+*** do different bonuses combine?
+** The bonus would be written in the sidebar
+** NPC bonuses:
+*** a red NPC would double the anxiety counter on each `a` killed
+*** blue NPC would give the player 2 action points (like depression)
+*** brown NPC would reduce the sober & withdrawal curves
 * Have Anxieties be able to destroy the terrain                        :idea:
 ** I'd love to have a monster that does that
 ** And Anxiety is already red (the colour of the shattering explosion)

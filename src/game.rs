@@ -1,6 +1,5 @@
-
-
 use animation::{self, AreaOfEffect};
+use ai::{PlayerInfo};
 use blocker;
 use color;
 use engine::{Draw, Settings};
@@ -339,10 +338,16 @@ fn process_monsters<R: Rng>(
             .monster_on_pos(monster_position)
             .expect("Monster should exist on this position")
             .clone();
+        let player_info = PlayerInfo {
+            max_ap: player.max_ap,
+            mind: player.mind,
+            pos: player.pos,
+        };
         let action = {
-            let (update, action) = monster_readonly.act(player.pos, world, rng);
+            let (update, action) = monster_readonly.act(player_info, world, rng);
             if let Some(monster) = world.monster_on_pos(monster_position) {
                 monster.ai_state = update.ai_state;
+                monster.max_ap = update.max_ap;
                 monster.spend_ap(1);
             }
             action

@@ -92,7 +92,7 @@ pub struct Player {
     pub perpetrator: Option<Monster>,
 
     // TODO: Use a Ranged here?
-    max_ap: i32,
+    pub max_ap: i32,
     ap: i32,
 }
 

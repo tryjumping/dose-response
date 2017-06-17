@@ -1,6 +1,7 @@
 use formula;
 use game::Action;
 use monster::Monster;
+use player::Mind;
 use point::Point;
 use rand::Rng;
 use ranged_int::InclusiveRange;
@@ -29,28 +30,38 @@ pub enum AIState {
 /// it decided to make.
 pub struct Update {
     pub ai_state: AIState,
+    pub max_ap: i32,
+}
+
+/// Values related to the Player the AI routines might want to
+/// investigate.
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub struct PlayerInfo {
+    pub pos: Point,
+    pub mind: Mind,
+    pub max_ap: i32,
 }
 
 
 pub fn lone_attacker_act<R: Rng>(
     actor: &Monster,
-    player_position: Point,
+    player_info: PlayerInfo,
     world: &mut World,
     rng: &mut R,
 ) -> (Update, Action) {
-    let distance = actor.position.tile_distance(player_position);
+    let distance = actor.position.tile_distance(player_info.pos);
     let ai_state = if distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
     } else {
         AIState::Idle
     };
 
-    let update = Update { ai_state };
+    let update = Update { ai_state, max_ap: actor.max_ap };
 
     let action = match ai_state {
-        AIState::Chasing => chasing_action(actor, player_position),
+        AIState::Chasing => chasing_action(actor, player_info.pos),
         AIState::Idle => {
-            let destination = idle_destination(actor, world, rng, player_position);
+            let destination = idle_destination(actor, world, rng, player_info.pos);
             Action::Move(destination)
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
@@ -61,11 +72,11 @@ pub fn lone_attacker_act<R: Rng>(
 
 pub fn pack_attacker_act<R: Rng>(
     actor: &Monster,
-    player_position: Point,
+    player_info: PlayerInfo,
     world: &mut World,
     rng: &mut R,
 ) -> (Update, Action) {
-    let player_distance = actor.position.tile_distance(player_position);
+    let player_distance = actor.position.tile_distance(player_info.pos);
     let ai_state = if player_distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
     } else if actor.ai_state == AIState::Chasing {
@@ -74,7 +85,7 @@ pub fn pack_attacker_act<R: Rng>(
         actor.ai_state
     };
 
-    let update = Update { ai_state };
+    let update = Update { ai_state, max_ap: actor.max_ap };
 
     let action = match ai_state {
         AIState::Chasing => {
@@ -92,15 +103,15 @@ pub fn pack_attacker_act<R: Rng>(
 
             for pos in howlees {
                 if let Some(monster) = world.monster_on_pos(pos) {
-                    monster.ai_state = AIState::CheckingOut(player_position);
+                    monster.ai_state = AIState::CheckingOut(player_info.pos);
                 }
             }
 
-            chasing_action(actor, player_position)
+            chasing_action(actor, player_info.pos)
         }
 
         AIState::Idle => {
-            let destination = idle_destination(actor, world, rng, player_position);
+            let destination = idle_destination(actor, world, rng, player_info.pos);
             Action::Move(destination)
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
@@ -111,12 +122,20 @@ pub fn pack_attacker_act<R: Rng>(
 
 pub fn friendly_act<R: Rng>(
     actor: &Monster,
-    player_position: Point,
+    player_info: PlayerInfo,
     world: &mut World,
     rng: &mut R,
 ) -> (Update, Action) {
-    let destination = idle_destination(actor, world, rng, player_position);
-    let update = Update { ai_state: actor.ai_state };
+    let destination = idle_destination(actor, world, rng, player_info.pos);
+    let update = Update {
+        ai_state: actor.ai_state,
+        max_ap: if player_info.mind.is_high() {
+            formula::ESTRANGED_NPC_MAX_AP
+        } else {
+            player_info.max_ap
+        }
+    };
+
     let action = Action::Move(destination);
     (update, action)
 }

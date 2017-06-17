@@ -13,9 +13,6 @@
 ** Non-square fonts for text
 ** Fullscreen
 ** Icon for the executable
-* Change NPC speed by Intoxication                                     :idea:
-** They have 2 APs when High
-** They have player's `max_aps` when Sober/Withdrawn
 * Add different kinds of NPCs                                          :idea:
 ** Red/Blue/Brown (same colours as monsters)
 * Give player a bonus when bumping into an NPC                         :idea:
@@ -1194,3 +1191,10 @@ CLOSED: [2017-06-08 Thu 21:00]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-06-08 Thu 21:00
 :END:
+** DONE Change NPC speed by Intoxication                              :idea:
+CLOSED: [2017-06-17 Sat 14:18]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-06-17 Sat 14:18
+:END:
+*** They have 2 APs when High
+*** They have player's `max_aps` when Sober/Withdrawn

@@ -26,6 +26,8 @@ pub struct Monster {
     pub path: Vec<Point>,
     pub trail: Option<Point>,
     pub color: Color,
+    pub companion_bonus: Option<CompanionBonus>,
+    pub accompanying_player: bool,
 
     pub max_ap: i32,
     ap: i32,
@@ -40,6 +42,13 @@ pub enum Kind {
     Shadows,
     Voices,
     Npc,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum CompanionBonus {
+    DoubleWillGrowth,
+    HalveExhaustion,
+    DoubleActionPoints,
 }
 
 impl Monster {
@@ -80,7 +89,12 @@ impl Monster {
             Hunger => color::hunger,
             Shadows => color::shadows,
             Voices => color::voices,
-            Npc => color::npc,
+            Npc => color::npc_speed,
+        };
+
+        let companion_bonus = match kind {
+            Npc => Some(CompanionBonus::DoubleActionPoints),
+            _ => None,
         };
 
         Monster {
@@ -97,6 +111,8 @@ impl Monster {
             path: vec![],
             trail: None,
             color,
+            companion_bonus,
+            accompanying_player: false,
         }
     }
 

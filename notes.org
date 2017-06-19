@@ -21,10 +21,16 @@
 ** Brown: slow down the sober/withdrawal fall by half
 * NPC leaves the player when High                                      :idea:
 ** The current bonus is lost
-* NPC gets targeted by monsters when accompayning player               :idea:
+* NPC gets targeted by monsters when accompanying player               :idea:
 ** They have 2 HP
 ** HPs reset when they leave the player
 ** The NPC becomes grey and leaves the player for 20 turns on "death"
+* NPCs ignore monsters and destroy them when stepping on one           :idea:
+** So this would make NPCs more like not even aware there are any monsters here
+** Though this sort of maybe defeats the purpose of NPC Hit Points
+** So we would just have when High?
+** Although: I guess we could still have them be attacked
+*** when the PC gets overwhelmed by sadness the NPC could not take it anymore
 * Create a Help screen                                                   :ui:
 ** Opens any time by pressing `?`
 ** Shows movement keys

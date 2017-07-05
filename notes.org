@@ -42,6 +42,19 @@
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
+* Implement Fullscreen for the Opengl backend                            :ui:
+** example: https://github.com/glium/glium/blob/master/examples/fullscreen.rs#L107
+** NOTE: this is not implemented in Glutin 0.7 which Glium uses internally
+** AFAICT you can't just replace that glutin with 0.8 which presumably does this
+*** doesn't seem so? https://github.com/tomaka/glutin/blob/cff7a88d051c972e2b78957443bef5e45149c18a/src/platform/linux/x11.rs#L150
+** Seems to be a Linux-only issue
+** Could we just recreate the window instead of calling rebuild?
+*** Might be a decent workaround
+*** Getting glium runtime errors and the second window is not disappearing
+*** Seems kind of complicated
+** Might also have to move to SDL2 because of this
+** Also: Test this work in multi-monitor setups
+*** Make sure we're able to detect the "current monitor" to do this with
 * Make it more obvious when the player would overdose :design:ui:
 ** https://www.reddit.com/r/roguelikedev/comments/686dey/sharing_saturday_152/dgwl1go/
 ** see alphabetr's comment in that thread

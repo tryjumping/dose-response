@@ -122,7 +122,7 @@ pub fn update(
         let command_count = state.commands.len();
 
         // NOTE: Process player
-        process_player(&mut state);
+        process_player(&mut state, simulation_area);
 
         // NOTE: Process monsters
         if state.player.ap() <= 0 && state.explosion_animation.is_none() {
@@ -339,7 +339,7 @@ fn process_monsters<R: Rng>(
             .expect("Monster should exist on this position")
             .clone();
         let player_info = PlayerInfo {
-            max_ap: player.max_ap,
+            max_ap: player.base_max_ap,
             mind: player.mind,
             pos: player.pos,
         };
@@ -434,6 +434,7 @@ fn process_player_action<R, W>(
     player: &mut player::Player,
     commands: &mut VecDeque<Command>,
     world: &mut World,
+    simulation_area: Rectangle,
     explosion_animation: &mut Option<Box<AreaOfEffect>>,
     rng: &mut R,
     command_logger: &mut W,
@@ -521,6 +522,31 @@ fn process_player_action<R, W>(
                                 if player.anxiety_counter.is_max() {
                                     player.will += 1;
                                     player.anxiety_counter.set_to_min();
+                                }
+                            }
+                            monster::Kind::Npc => {
+                                // Clear any existing monsters accompanying the player. The player
+                                // can have only one companion at a time right now.
+                                //
+                                // TODO: this seems to scream for a mutable monsters iterator
+                                //
+                                // TODO: it also sounds like we could just track the followers in
+                                // player/state, but that requires IDs
+                                let npc_positions = world
+                                    .chunks(simulation_area)
+                                    .flat_map(Chunk::monsters)
+                                    .filter(|m| m.alive() && m.kind == monster::Kind::Npc && simulation_area.contains(m.position))
+                                    .map(|m| m.position)
+                                    .collect::<Vec<_>>();
+                                for npc_pos in npc_positions {
+                                    if let Some(npc) = world.monster_on_pos(npc_pos) {
+                                        npc.accompanying_player = false;
+                                    }
+                                }
+
+                                if let Some(npc) = world.monster_on_pos(dest) {
+                                    npc.accompanying_player = true;
+                                    assert!(npc.companion_bonus.is_some());
                                 }
                             }
                             _ => {}
@@ -623,13 +649,28 @@ fn process_player_action<R, W>(
     }
 }
 
-fn process_player(state: &mut State) {
+fn process_player(state: &mut State, simulation_area: Rectangle) {
+    { // appease borrowck
+        let mut player = &mut state.player;
+        let world = &state.world;
+        let npc_bonuses = world
+            .chunks(simulation_area)
+            .flat_map(Chunk::monsters)
+            .filter(|m| m.alive() && m.kind == monster::Kind::Npc &&
+                    simulation_area.contains(m.position) && m.companion_bonus.is_some() &&
+                    m.accompanying_player)
+            .map(|m| m.companion_bonus.unwrap());
+        player.bonuses.clear();
+        player.bonuses.extend(npc_bonuses);
+    }
+
     let previous_action_points = state.player.ap();
 
     process_player_action(
         &mut state.player,
         &mut state.commands,
         &mut state.world,
+        simulation_area,
         &mut state.explosion_animation,
         &mut state.rng,
         &mut state.command_logger,

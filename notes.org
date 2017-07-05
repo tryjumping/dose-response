@@ -21,6 +21,9 @@
 ** Brown: slow down the sober/withdrawal fall by half
 * NPC leaves the player when High                                      :idea:
 ** The current bonus is lost
+* Nearby NPC stays within player's distance when sober                 :idea:
+** It's really hard to catch them even when sober right now
+** When sober maybe they should just stay on one spot or not move that much
 * NPC gets targeted by monsters when accompanying player               :idea:
 ** They have 2 HP
 ** HPs reset when they leave the player

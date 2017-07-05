@@ -1,10 +1,8 @@
-
-
 use color::{self, Color};
 use formula::{self, ANXIETIES_PER_WILL, SOBRIETY_COUNTER, WILL, WITHDRAWAL};
 use graphics::Render;
 use item::Item;
-use monster::Monster;
+use monster::{Monster, CompanionBonus};
 use point::Point;
 use ranged_int::Ranged;
 use std::fmt::{Display, Error, Formatter};
@@ -81,7 +79,9 @@ pub struct Player {
     pub pos: Point,
     pub inventory: Vec<Item>,
     pub anxiety_counter: Ranged,
+    // TODO: merge this with the other bonuses
     pub bonus: Bonus,
+    pub bonuses: Vec<CompanionBonus>,
     /// How many turns after max Will to achieve victory
     pub sobriety_counter: Ranged,
     pub current_high_streak: i32,
@@ -92,7 +92,7 @@ pub struct Player {
     pub perpetrator: Option<Monster>,
 
     // TODO: Use a Ranged here?
-    pub max_ap: i32,
+    pub base_max_ap: i32,
     ap: i32,
 }
 
@@ -110,9 +110,10 @@ impl Player {
             dead: false,
             invincible,
             perpetrator: None,
-            max_ap: 1,
-            ap: 1,
+            base_max_ap: formula::PLAYER_BASE_AP,
+            ap: formula::PLAYER_BASE_AP,
             bonus: Bonus::None,
+            bonuses: Vec::with_capacity(10),
             sobriety_counter: Ranged::new_min(SOBRIETY_COUNTER),
             current_high_streak: 0,
             longest_high_streak: 0,
@@ -141,7 +142,15 @@ impl Player {
             self.stun -= 1;
             self.panic -= 1;
             self.mind = formula::mind_take_turn(self.mind);
-            self.ap = self.max_ap;
+            self.ap = self.max_ap();
+        }
+    }
+
+    pub fn max_ap(&self) -> i32 {
+        if self.bonuses.contains(&CompanionBonus::DoubleActionPoints) {
+            self.base_max_ap * 2
+        } else {
+            self.base_max_ap
         }
     }
 

@@ -320,11 +320,7 @@ fn process_monsters<R: Rng>(
     assert!(monster_count_estimate > 0);
     let mut monster_positions_to_process = VecDeque::with_capacity(monster_count_estimate as usize);
     monster_positions_to_process.extend(
-        world
-            .chunks(area)
-            .flat_map(Chunk::monsters)
-            .filter(|m| m.alive() && area.contains(m.position))
-            .map(|m| m.position),
+        world.monsters(area).map(|m| m.position)
     );
 
     for &pos in monster_positions_to_process.iter() {

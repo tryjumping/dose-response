@@ -87,6 +87,10 @@ impl Chunk {
     pub fn monsters(&self) -> ::std::slice::Iter<Monster> {
         self.monsters.iter()
     }
+
+    pub fn monsters_mut<'a>(&'a mut self) -> impl Iterator<Item=&'a mut Monster> {
+        self.monsters.iter_mut()
+    }
 }
 
 pub struct ChunkCells<'a> {
@@ -582,6 +586,21 @@ impl World {
         }
     }
 
+    // pub fn chunks_mut<'a>(&'a self, area: Rectangle) -> impl Iterator<Item=&'a mut Chunk> {
+    // }
+
+    pub fn monsters<'a>(&'a self, area: Rectangle) -> impl Iterator<Item=&'a Monster> {
+        self.chunks(area)
+            .flat_map(Chunk::monsters)
+            .filter(move |m| m.alive() && area.contains(m.position))
+    }
+
+    // pub fn monsters_mut<'a>(&'a mut self, area: Rectangle) -> impl Iterator<Item=&'a mut Monster> {
+    //     self.chunks_mut(area)
+    //         .flat_map(Chunk::monsters_mut)
+    //         .filter(move |m| m.alive() && area.contains(m.position))
+    // }
+
     pub fn positions_of_all_chunks(&self) -> Vec<Point> {
         self.chunks
             .keys()
@@ -590,6 +609,18 @@ impl World {
     }
 }
 
+
+fn next_chunk_pos(pos: Point, chunk_size: i32, area: Rectangle, first_chunk_pos_x: i32) -> Point {
+    let result = pos + (chunk_size, 0);
+    if result.x <= area.bottom_right.x {
+        result
+    } else {
+        Point {
+            x: first_chunk_pos_x,
+            y: result.y + chunk_size,
+        }
+    }
+}
 
 pub struct Chunks<'a> {
     world: &'a World,
@@ -602,24 +633,10 @@ impl<'a> Iterator for Chunks<'a> {
     type Item = &'a Chunk;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let chunk_size = self.world.chunk_size;
-        let area = self.area;
-        let first_chunk_pos_x = self.first_chunk_pos.x;
-        let calculate_next_chunk_pos = |pos: Point| {
-            let result = pos + (chunk_size, 0);
-            if result.x <= area.bottom_right.x {
-                result
-            } else {
-                Point {
-                    x: first_chunk_pos_x,
-                    y: result.y + chunk_size,
-                }
-            }
-        };
-
         while self.next_chunk_pos.y <= self.area.bottom_right.y {
             let chunk = self.world.chunk(self.next_chunk_pos);
-            self.next_chunk_pos = calculate_next_chunk_pos(self.next_chunk_pos);
+            self.next_chunk_pos = next_chunk_pos(self.next_chunk_pos, self.world.chunk_size,
+                                                 self.area, self.first_chunk_pos.x);
             if chunk.is_some() {
                 return chunk;
             }

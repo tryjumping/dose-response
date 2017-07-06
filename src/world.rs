@@ -645,3 +645,27 @@ impl<'a> Iterator for Chunks<'a> {
         None
     }
 }
+
+
+pub struct ChunksMut<'a> {
+    world: &'a mut World,
+    area: Rectangle,
+    first_chunk_pos: Point,
+    next_chunk_pos: Point,
+}
+
+impl<'a> Iterator for ChunksMut<'a> {
+    type Item = &'a mut Chunk;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.next_chunk_pos.y <= self.area.bottom_right.y {
+            self.next_chunk_pos = next_chunk_pos(self.next_chunk_pos, self.world.chunk_size,
+                                                 self.area, self.first_chunk_pos.x);
+            if let Some(chunk) = self.world.chunk_mut(self.next_chunk_pos) {
+                return chunk;
+            }
+        }
+
+        None
+    }
+}

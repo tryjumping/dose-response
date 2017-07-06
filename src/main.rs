@@ -1,4 +1,5 @@
 #![deny(overflowing_literals, unsafe_code)]
+#![feature(conservative_impl_trait)]
 
 #[macro_use]
 extern crate bitflags;

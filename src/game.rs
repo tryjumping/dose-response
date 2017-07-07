@@ -524,23 +524,11 @@ fn process_player_action<R, W>(
                                 // Clear any existing monsters accompanying the player. The player
                                 // can have only one companion at a time right now.
                                 //
-                                // TODO: this seems to scream for a mutable monsters iterator
-                                //
                                 // TODO: it also sounds like we could just track the followers in
-                                // player/state, but that requires IDs
-                                let npc_positions = world
-                                    .chunks(simulation_area)
-                                    .flat_map(Chunk::monsters)
-                                    .filter(|m| m.alive() && m.kind == monster::Kind::Npc && simulation_area.contains(m.position))
-                                    .map(|m| m.position)
-                                    .collect::<Vec<_>>();
-                                for npc_pos in npc_positions {
-                                    if let Some(npc) = world.monster_on_pos(npc_pos) {
-                                        npc.accompanying_player = false;
-                                    }
-                                }
-
-                                if let Some(npc) = world.monster_on_pos(dest) {
+                                let npcs = world
+                                    .monsters_mut(simulation_area)
+                                    .filter(|m| m.kind == monster::Kind::Npc);
+                                for npc in npcs {
                                     npc.accompanying_player = true;
                                     assert!(npc.companion_bonus.is_some());
                                 }

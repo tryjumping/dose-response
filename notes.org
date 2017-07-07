@@ -68,58 +68,6 @@
 *** let's use it
 *** say when you stand next to a dose, it will blink between it's colour and white
 *** and the rate of blinking will identify the likelihood that the dose will kill you
-* Switch to `impl Iterator`                                            :code:
-** This will set us simplify the world iteration code so much
-** Example from the Rust playpen that works on nightly:
-#+BEGIN_SRC Rust
-#![feature(conservative_impl_trait)]
-
-#[derive(Clone, Debug)]
-struct Cell {
-    num: i32,
-}
-
-#[derive(Debug)]
-struct Chunk {
-    cells: Vec<Cell>,
-}
-
-#[derive(Debug)]
-struct World {
-    chunks: Vec<Chunk>,
-}
-
-impl World {
-    fn cells<'a>(&'a self) -> impl Iterator<Item=(usize, &'a Cell)> {
-        self.chunks.iter().flat_map(|chunk| chunk.cells.iter()).enumerate()
-    }
-
-    fn cells_mut<'a>(&'a mut self) -> impl Iterator<Item=(usize, &'a mut Cell)> {
-        self.chunks.iter_mut().flat_map(|chunk| chunk.cells.iter_mut()).enumerate()
-    }
-
-}
-
-
-fn main() {
-    let mut world = World {
-        chunks: vec![
-            Chunk{ cells: vec![Cell{num: 1}, Cell{num: 2}, Cell{num: 3}]},
-            Chunk{ cells: vec![Cell{num: 21}, Cell{num: 22}, Cell{num: 23}]},
-            Chunk{ cells: vec![Cell{num: 31}, Cell{num: 32}, Cell{num: 33}]},
-        ]
-    };
-
-    for (id, cell) in world.cells_mut() {
-        if id % 3 == 0 {
-            cell.num = 255;
-        }
-    }
-
-    let cells = world.cells().collect::<Vec<_>>();
-    println!("Cells: {:?}", cells);
-}
-#+END_SRC
 * interactive NPCs                                                   :design:
 ** When High, you can't interact with them
 *** they're translucent
@@ -1220,3 +1168,59 @@ CLOSED: [2017-06-17 Sat 14:18]
 :END:
 *** They have 2 APs when High
 *** They have player's `max_aps` when Sober/Withdrawn
+** DONE Switch to `impl Iterator`                                     :code:
+CLOSED: [2017-07-07 Fri 19:15]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-07-07 Fri 19:15
+:END:
+*** This will set us simplify the world iteration code so much
+*** Example from the Rust playpen that works on nightly:
+#+BEGIN_SRC Rust
+#![feature(conservative_impl_trait)]
+
+#[derive(Clone, Debug)]
+struct Cell {
+    num: i32,
+}
+
+#[derive(Debug)]
+struct Chunk {
+    cells: Vec<Cell>,
+}
+
+#[derive(Debug)]
+struct World {
+    chunks: Vec<Chunk>,
+}
+
+impl World {
+    fn cells<'a>(&'a self) -> impl Iterator<Item=(usize, &'a Cell)> {
+        self.chunks.iter().flat_map(|chunk| chunk.cells.iter()).enumerate()
+    }
+
+    fn cells_mut<'a>(&'a mut self) -> impl Iterator<Item=(usize, &'a mut Cell)> {
+        self.chunks.iter_mut().flat_map(|chunk| chunk.cells.iter_mut()).enumerate()
+    }
+
+}
+
+
+fn main() {
+    let mut world = World {
+        chunks: vec![
+            Chunk{ cells: vec![Cell{num: 1}, Cell{num: 2}, Cell{num: 3}]},
+            Chunk{ cells: vec![Cell{num: 21}, Cell{num: 22}, Cell{num: 23}]},
+            Chunk{ cells: vec![Cell{num: 31}, Cell{num: 32}, Cell{num: 33}]},
+        ]
+    };
+
+    for (id, cell) in world.cells_mut() {
+        if id % 3 == 0 {
+            cell.num = 255;
+        }
+    }
+
+    let cells = world.cells().collect::<Vec<_>>();
+    println!("Cells: {:?}", cells);
+}
+#+END_SRC

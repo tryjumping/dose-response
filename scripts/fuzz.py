@@ -110,10 +110,10 @@ def next_command(previous_command, display):
             'S':  ['SE', 'SW'],
             'SE': ['S', 'E'],
         }
-        directions = [direction for direction in adjacent_directions
-                      if display[direction] in ('empty', 'monster')]
-        if directions:
-            return random.choice(directions)
+        preferred_directions = [direction for direction in adjacent_directions
+                                if display[direction] in ('empty', 'monster')]
+        if preferred_directions:
+            return random.choice(preferred_directions)
 
     walkable_directions = [direction for direction, tile in display.items()
                            if tile in ('empty', 'monster')]

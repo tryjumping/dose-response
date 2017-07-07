@@ -44,10 +44,10 @@ impl Rectangle {
     /// Returns `true` if the two rectangles have at least one `Point`
     /// in common, `false` otherwise.
     pub fn intersects(self, other: Rectangle) -> bool {
-        let left = self.bottom_right.x <= other.top_left.x;
-        let right = self.top_left.x >= other.bottom_right.x;
-        let above = self.bottom_right.y <= other.top_left.y;
-        let below = self.top_left.y >= other.bottom_right.y;
+        let left = self.bottom_right().x < other.top_left().x;
+        let right = self.top_left().x > other.bottom_right().x;
+        let above = self.bottom_right().y < other.top_left().y;
+        let below = self.top_left().y > other.bottom_right().y;
 
         // They intersect if self is neither all the way to the left, right,
         // above or below `other`:
@@ -59,6 +59,8 @@ impl Rectangle {
     /// Same as `intersects` but slow because it tests all the points
     /// inside one rectangle againts the other.
     fn slow_intersects(self, other: Rectangle) -> bool {
+        // TODO: remove this once we're confident the main `intersects`
+        // fn is working correctly.
         other.points().any(|point| self.contains(point))
     }
 

@@ -139,12 +139,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     }
 
     // NOTE: render monsters
-    for monster in state
-        .world
-        .chunks(display_area)
-        .flat_map(Chunk::monsters)
-        .filter(|m| m.alive() && display_area.contains(m.position))
-    {
+    for monster in state.world.monsters(display_area) {
         let visible = monster.position.distance(state.player.pos) < (radius as f32);
         if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems {
             use graphics::Render;

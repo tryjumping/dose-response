@@ -577,15 +577,26 @@ impl World {
         None
     }
 
-    pub fn chunks(&self, area: Rectangle) -> Chunks {
-        Chunks {
-            world: self,
-            area,
-            next_chunk_pos: self.chunk_pos_from_world_pos(area.top_left()).position,
-            first_chunk_pos: self.chunk_pos_from_world_pos(area.top_left()).position,
-        }
+    /// Returns an iterator over chunks that intersect with the given
+    /// area.
+    ///
+    /// NOTE: The order of the chunks is not specified.
+    pub fn chunks<'a>(&'a self, area: Rectangle) -> impl Iterator<Item=&'a Chunk> {
+        let chunk_size = self.chunk_size;
+        self.chunks
+            .iter()
+            .filter(move |&(pos, ref _chunk)| {
+                let chunk_area = Rectangle::from_point_and_size(
+                    pos.position, Point::from_i32(chunk_size));
+                area.intersects(chunk_area)
+            })
+            .map(move |(_pos, chunk)| chunk)
     }
 
+    /// Returns a mutable iterator over chunks that intersect with the
+    /// given area.
+    ///
+    /// NOTE: The order of the chunks is not specified.
     pub fn chunks_mut<'a>(&'a mut self, area: Rectangle) -> impl Iterator<Item=&'a mut Chunk> {
         let chunk_size = self.chunk_size;
         self.chunks
@@ -598,12 +609,18 @@ impl World {
             .map(move |(_pos, chunk)| chunk)
     }
 
+    /// Return an iterator over all monsters in the given area.
+    ///
+    /// NOTE: The order of the monsters is not specified.
     pub fn monsters<'a>(&'a self, area: Rectangle) -> impl Iterator<Item=&'a Monster> {
         self.chunks(area)
             .flat_map(Chunk::monsters)
             .filter(move |m| m.alive() && area.contains(m.position))
     }
 
+    /// Return a mutable iterator over all monsters in the given area.
+    ///
+    /// NOTE: The order of the monsters is not specified.
     pub fn monsters_mut<'a>(&'a mut self, area: Rectangle) -> impl Iterator<Item=&'a mut Monster> {
         self.chunks_mut(area)
             .flat_map(Chunk::monsters_mut)
@@ -615,42 +632,5 @@ impl World {
             .keys()
             .map(|chunk_pos| chunk_pos.position)
             .collect()
-    }
-}
-
-
-fn next_chunk_pos(pos: Point, chunk_size: i32, area: Rectangle, first_chunk_pos_x: i32) -> Point {
-    let result = pos + (chunk_size, 0);
-    if result.x <= area.bottom_right().x {
-        result
-    } else {
-        Point {
-            x: first_chunk_pos_x,
-            y: result.y + chunk_size,
-        }
-    }
-}
-
-pub struct Chunks<'a> {
-    world: &'a World,
-    area: Rectangle,
-    first_chunk_pos: Point,
-    next_chunk_pos: Point,
-}
-
-impl<'a> Iterator for Chunks<'a> {
-    type Item = &'a Chunk;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        while self.next_chunk_pos.y <= self.area.bottom_right().y {
-            let chunk = self.world.chunk(self.next_chunk_pos);
-            self.next_chunk_pos = next_chunk_pos(self.next_chunk_pos, self.world.chunk_size,
-                                                 self.area, self.first_chunk_pos.x);
-            if chunk.is_some() {
-                return chunk;
-            }
-        }
-
-        None
     }
 }

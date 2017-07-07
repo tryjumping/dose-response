@@ -23,7 +23,7 @@ use std::io::Write;
 use std::iter::FromIterator;
 use time::Duration;
 use timer::{Stopwatch, Timer};
-use world::{Chunk, World};
+use world::World;
 
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -318,10 +318,10 @@ fn process_monsters<R: Rng>(
     // NOTE: one quarter of the map area should be a decent overestimate
     let monster_count_estimate = area.dimensions().x * area.dimensions().y / 4;
     assert!(monster_count_estimate > 0);
-    let mut monster_positions_to_process = VecDeque::with_capacity(monster_count_estimate as usize);
-    monster_positions_to_process.extend(
-        world.monsters(area).map(|m| m.position)
-    );
+    let mut monster_positions_vec = world.monsters(area).map(|m| m.position).collect::<Vec<_>>();
+    // TODO: Sort by how far it is from the player?
+    monster_positions_vec.sort_by_key(|pos| (pos.x, pos.y));
+    let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
 
     for &pos in monster_positions_to_process.iter() {
         if let Some(monster) = world.monster_on_pos(pos) {
@@ -638,12 +638,9 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
     { // appease borrowck
         let mut player = &mut state.player;
         let world = &state.world;
-        let npc_bonuses = world
-            .chunks(simulation_area)
-            .flat_map(Chunk::monsters)
-            .filter(|m| m.alive() && m.kind == monster::Kind::Npc &&
-                    simulation_area.contains(m.position) && m.companion_bonus.is_some() &&
-                    m.accompanying_player)
+        let npc_bonuses = world.monsters(simulation_area)
+            .filter(|m| m.kind == monster::Kind::Npc && m.accompanying_player
+                    && m.companion_bonus.is_some())
             .map(|m| m.companion_bonus.unwrap());
         player.bonuses.clear();
         player.bonuses.extend(npc_bonuses);

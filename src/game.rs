@@ -525,6 +525,7 @@ fn process_player_action<R, W>(
                                 // can have only one companion at a time right now.
                                 //
                                 // TODO: it also sounds like we could just track the followers in
+                                // the Player/State struct but that needs Monster IDs.
                                 let npcs = world
                                     .monsters_mut(simulation_area)
                                     .filter(|m| m.kind == monster::Kind::Npc);

@@ -3,11 +3,20 @@ use point::Point;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Rectangle {
-    pub top_left: Point,
-    pub bottom_right: Point,
+    top_left: Point,
+    bottom_right: Point,
 }
 
 impl Rectangle {
+
+    pub fn from_point_and_size(top_left: Point, size: Point) -> Self {
+        assert!(size > (0, 0));
+        Rectangle {
+            top_left,
+            bottom_right: top_left + size,
+        }
+    }
+
     /// Create a new rectangle defined by its middle point and
     /// (half-width, half-height).
     ///
@@ -30,6 +39,35 @@ impl Rectangle {
     /// contains its `top_left` and `bottom_right` corners.
     pub fn contains(self, point: Point) -> bool {
         point >= self.top_left && point <= self.bottom_right
+    }
+
+    /// Returns `true` if the two rectangles have at least one `Point`
+    /// in common, `false` otherwise.
+    pub fn intersects(self, other: Rectangle) -> bool {
+        let left = self.bottom_right.x <= other.top_left.x;
+        let right = self.top_left.x >= other.bottom_right.x;
+        let above = self.bottom_right.y <= other.top_left.y;
+        let below = self.top_left.y >= other.bottom_right.y;
+
+        // They intersect if self is neither all the way to the left, right,
+        // above or below `other`:
+        let result = !(left || right || above || below);
+        debug_assert_eq!(result, self.slow_intersects(other));
+        result
+    }
+
+    /// Same as `intersects` but slow because it tests all the points
+    /// inside one rectangle againts the other.
+    fn slow_intersects(self, other: Rectangle) -> bool {
+        other.points().any(|point| self.contains(point))
+    }
+
+    pub fn top_left(self) -> Point {
+        self.top_left
+    }
+
+    pub fn bottom_right(self) -> Point {
+        self.bottom_right
     }
 
     pub fn points(self) -> RectangleIterator {

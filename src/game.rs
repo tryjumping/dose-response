@@ -320,6 +320,8 @@ fn process_monsters<R: Rng>(
     assert!(monster_count_estimate > 0);
     let mut monster_positions_vec = world.monsters(area).map(|m| m.position).collect::<Vec<_>>();
     // TODO: Sort by how far it is from the player?
+    // NOTE: `world.monsters` does not give a stable result so we need to sort
+    // it here to ensure correct replays.
     monster_positions_vec.sort_by_key(|pos| (pos.x, pos.y));
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
 

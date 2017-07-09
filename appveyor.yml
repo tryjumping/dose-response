@@ -3,14 +3,16 @@
 
 environment:
   global:
-    RUST_VERSION: stable
+    RUST_VERSION: nightly
 
     CRATE_NAME: dose-response
 
   matrix:
     # MinGW
     - TARGET: i686-pc-windows-gnu
+      RUST_VERSION: nightly
     - TARGET: x86_64-pc-windows-gnu
+      RUST_VERSION: nightly
 
     # MSVC
     # - TARGET: i686-pc-windows-msvc
@@ -54,7 +56,7 @@ deploy:
     secure: "/ItkeB7N8x3jUWjM0NWJhVPjx5jaEcEGgTC1GYWUGCHQSQwKcQ/tUqoGj7+HwaCk"
   description: ''
   on:
-    RUST_VERSION: stable
+    RUST_VERSION: nightly
     appveyor_repo_tag: true
   provider: GitHub
 

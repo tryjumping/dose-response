@@ -17,7 +17,8 @@
 ** Red/Blue/Brown (same colours as monsters)
 * Give player a bonus when bumping into an NPC                         :idea:
 ** Red: double anxiety counter gain on killing `a`
-** Blue: give 2 APs
+** DONE Blue: give 2 APs
+CLOSED: [2017-07-21 Fri 17:54]
 ** Brown: slow down the sober/withdrawal fall by half
 * NPC leaves the player when High                                      :idea:
 ** The current bonus is lost
@@ -34,6 +35,18 @@
 ** So we would just have when High?
 ** Although: I guess we could still have them be attacked
 *** when the PC gets overwhelmed by sadness the NPC could not take it anymore
+* Write out tips on death                                              :idea:
+** On early overdose, mention that second dose while High is dangerous
+"Using another dose when High will likely cause overdose early on."
+** On being killed by `a`, mention they take out will and you die at 0
+"Being hit by `a` reduces your Will. You lose when it reaches zero."
+** On being killed by hunger, mention they're deadly on withdrawal
+"Being hit by `h` will quickly get you into a withdrawal."
+** On `D` mention they're fast and deadly
+** More advanced tips:
+*** detect when being swarmed by hunger
+*** detect being drawn to an irresistible dose
+*** detect being confused or stunned
 * Create a Help screen                                                   :ui:
 ** Opens any time by pressing `?`
 ** Shows movement keys

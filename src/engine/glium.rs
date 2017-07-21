@@ -5,10 +5,9 @@ use self::vertex::Vertex;
 use color::Color;
 use engine::{Draw, Settings, UpdateFn};
 
-use glium::{self, DisplayBuild, Surface};
+use glium::{self, Surface};
 use glium::draw_parameters::DrawParameters;
-use glium::glutin::{Event, WindowBuilder};
-use glium::glutin::ElementState as PressState;
+use glium::glutin::{Event, EventsLoop, WindowBuilder, WindowEvent};
 use glium::glutin::VirtualKeyCode as BackendKey;
 use image;
 use keys::{Key, KeyCode};
@@ -162,12 +161,17 @@ pub fn main_loop<T>(
 
     // GL setup
 
-    let display = WindowBuilder::new()
-        .with_vsync()
+    let mut events_loop = EventsLoop::new();
+
+    let window = WindowBuilder::new()
         .with_title(window_title)
-        .with_dimensions(screen_width, screen_height)
-        .build_glium()
-        .expect("dose response ERROR: Could not create the window.");
+        .with_dimensions(screen_width, screen_height);
+
+    let context = glium::glutin::ContextBuilder::new()
+        .with_vsync(true);
+
+    let display = glium::Display::new(window, context, &events_loop).expect(
+        "dose response ERROR: Could not create the display.");
 
     let program = program!(&display,
                            150 => {
@@ -221,8 +225,10 @@ pub fn main_loop<T>(
     let mut fps_clock = Duration::milliseconds(0);
     let mut frame_counter = 0;
     let mut fps = 1;
+    let mut running = true;
 
-    loop {
+
+    while running {
         let now = PreciseTime::now();
         let dt = previous_frame_time.to(now);
         previous_frame_time = now;
@@ -529,75 +535,92 @@ pub fn main_loop<T>(
             .unwrap();
         target.finish().unwrap();
 
-
         // Process events
-        for ev in display.poll_events() {
+        events_loop.poll_events(|ev| {
+            //println!("{:?}", ev);
             match ev {
-                Event::Closed => return,
+                Event::WindowEvent { window_id: _, event } => {
+                    match event {
+                        WindowEvent::Closed => running = false,
+                        WindowEvent::KeyboardInput{ device_id: _, input } => {
+                            use glium::glutin::ElementState::*;
+                            let pressed = match input.state {
+                                Pressed => true,
+                                Released => false,
+                            };
 
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::LControl)) => {
-                    lctrl_pressed = true;
-                }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::RControl)) => {
-                    rctrl_pressed = true;
-                }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::LAlt)) => {
-                    lalt_pressed = true;
-                }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::RAlt)) => {
-                    ralt_pressed = true;
-                }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::LShift)) => {
-                    lshift_pressed = true;
-                }
-                Event::KeyboardInput(PressState::Pressed, _, Some(BackendKey::RShift)) => {
-                    rshift_pressed = true;
-                }
-
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::LControl)) => {
-                    lctrl_pressed = false;
-                }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::RControl)) => {
-                    rctrl_pressed = false;
-                }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::LAlt)) => {
-                    lalt_pressed = false;
-                }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::RAlt)) => {
-                    ralt_pressed = false;
-                }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::LShift)) => {
-                    lshift_pressed = false;
-                }
-                Event::KeyboardInput(PressState::Released, _, Some(BackendKey::RShift)) => {
-                    rshift_pressed = false;
-                }
-
-                Event::KeyboardInput(PressState::Pressed, _, Some(key_code)) => {
-                    // self.key_events.push((code, press_state));
-                    if let Some(code) = key_code_from_backend(key_code) {
-                        keys.push(Key {
-                            code: code,
-                            alt: lalt_pressed || ralt_pressed,
-                            ctrl: lctrl_pressed || rctrl_pressed,
-                            shift: lshift_pressed || rshift_pressed,
-                        });
+                            match input.virtual_keycode {
+                                Some(BackendKey::LControl) => {
+                                    lctrl_pressed = pressed;
+                                }
+                                Some(BackendKey::RControl) => {
+                                    rctrl_pressed = pressed;
+                                }
+                                Some(BackendKey::LAlt) => {
+                                    lalt_pressed = pressed;
+                                }
+                                Some(BackendKey::RAlt) => {
+                                    ralt_pressed = pressed;
+                                }
+                                Some(BackendKey::LShift) => {
+                                    lshift_pressed = pressed;
+                                }
+                                Some(BackendKey::RShift) => {
+                                    rshift_pressed = pressed;
+                                }
+                                Some(key_code) => {
+                                    if pressed {
+                                        if let Some(code) = key_code_from_backend(key_code) {
+                                            keys.push(Key {
+                                                code: code,
+                                                alt: lalt_pressed || ralt_pressed,
+                                                ctrl: lctrl_pressed || rctrl_pressed,
+                                                shift: lshift_pressed || rshift_pressed,
+                                            });
+                                        }
+                                    }
+                                }
+                                None => {
+                                    let code = match input.scancode {
+                                        79 => Some(KeyCode::NumPad7),
+                                        80 => Some(KeyCode::NumPad8),
+                                        81 => Some(KeyCode::NumPad9),
+                                        83 => Some(KeyCode::NumPad4),
+                                        84 => Some(KeyCode::NumPad5),
+                                        85 => Some(KeyCode::NumPad6),
+                                        87 => Some(KeyCode::NumPad1),
+                                        88 => Some(KeyCode::NumPad2),
+                                        89 => Some(KeyCode::NumPad3),
+                                        _ => None,
+                                    };
+                                    if pressed {
+                                        if let Some(code) = code {
+                                            keys.push(Key {
+                                                code: code,
+                                                alt: lalt_pressed || ralt_pressed,
+                                                ctrl: lctrl_pressed || rctrl_pressed,
+                                                shift: lshift_pressed || rshift_pressed,
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        WindowEvent::Focused(false) | WindowEvent::Suspended(false) => {
+                            lctrl_pressed = false;
+                            rctrl_pressed = false;
+                            lalt_pressed = false;
+                            ralt_pressed = false;
+                            lshift_pressed = false;
+                            rshift_pressed = false;
+                        }
+                        _ => (),
                     }
-                }
-
-                Event::Focused(false) |
-                Event::Suspended(false) => {
-                    lctrl_pressed = false;
-                    rctrl_pressed = false;
-                    lalt_pressed = false;
-                    ralt_pressed = false;
-                    lshift_pressed = false;
-                    rshift_pressed = false;
-                }
-
+                },
                 _ => (),
             }
-        }
+        });
+
 
     }
 }

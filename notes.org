@@ -20,6 +20,9 @@
 ** DONE Blue: give 2 APs
 CLOSED: [2017-07-21 Fri 17:54]
 ** Brown: slow down the sober/withdrawal fall by half
+* The NPC Bonus is awarded even when High                               :bug:
+** Sometimes you just luck out and catch up with a NPC even when high
+** no bonus should appear when you do that
 * NPC leaves the player when High                                      :idea:
 ** The current bonus is lost
 * Nearby NPC stays within player's distance when sober                 :idea:
@@ -47,6 +50,8 @@ CLOSED: [2017-07-21 Fri 17:54]
 *** detect when being swarmed by hunger
 *** detect being drawn to an irresistible dose
 *** detect being confused or stunned
+** More general tips
+*** can't interact with npcs when you're high
 * Create a Help screen                                                   :ui:
 ** Opens any time by pressing `?`
 ** Shows movement keys

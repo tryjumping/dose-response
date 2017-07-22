@@ -2,12 +2,15 @@ use generators::GeneratedWorld;
 
 use item::{self, Item};
 use level::{Tile, TileKind};
-use monster::Kind;
+use monster::{Kind, Monster};
 use player::Modifier;
 use point::Point;
 use rand::Rng;
 use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
+// TODO: Instead of `map_size`, use a Rectangle with the world
+// positions here. We want to expose the non-world coordinates in as
+// few places as possible.
 fn generate_map<R: Rng>(rng: &mut R, map_size: Point, player_pos: Point) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted {
@@ -39,7 +42,7 @@ fn generate_map<R: Rng>(rng: &mut R, map_size: Point, player_pos: Point) -> Vec<
     result
 }
 
-fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Kind)> {
+fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster> {
     // 3% chance a monster gets spawned
     let monster_count = 5;
     let monster_chance = 30;
@@ -79,8 +82,9 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, 
         if tile.kind != TileKind::Empty {
             continue;
         }
-        if let Some(monster) = opts.ind_sample(rng) {
-            result.push((pos, monster));
+        if let Some(kind) = opts.ind_sample(rng) {
+            let monster = Monster::new(kind, pos);
+            result.push(monster);
         }
     }
     result
@@ -135,7 +139,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
 }
 
 
-fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, item::Item)> {
+fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Item)> {
     use item::Kind::*;
 
     let mut weights = [

@@ -1,6 +1,6 @@
-use item;
+use item::Item;
 use level::Tile;
-use monster::Kind;
+use monster::Monster;
 use point::Point;
 
 
@@ -9,6 +9,6 @@ pub mod forrest;
 
 pub type GeneratedWorld = (
     Vec<(Point, Tile)>,
-    Vec<(Point, Kind)>,
-    Vec<(Point, item::Item)>,
+    Vec<Monster>,
+    Vec<(Point, Item)>,
 );

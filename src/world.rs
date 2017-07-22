@@ -52,11 +52,13 @@ impl Chunk {
             let pos = self.level.level_position(pos);
             self.level.set_tile(pos, item);
         }
-        for (index, &(pos, kind)) in generated_monsters.iter().enumerate() {
-            let pos = self.level.level_position(pos);
+        for (index, mut monster) in generated_monsters.into_iter().enumerate() {
+            // TODO: the pos conversion would not be necessary if the
+            // worldgen operated with world positions in the first
+            // place.
+            let pos = self.level.level_position(monster.position);
             assert!(self.level.walkable(pos, blocker::WALL | blocker::MONSTER));
-            let monster_world_position = self.world_position(pos);
-            let monster = Monster::new(kind, monster_world_position);
+            monster.position = self.world_position(pos);
             self.monsters.push(monster);
             self.level.set_monster(pos, index);
             assert!(!self.level.walkable(pos, blocker::WALL | blocker::MONSTER));

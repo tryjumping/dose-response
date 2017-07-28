@@ -8,7 +8,7 @@ use graphics::Render;
 use player::Modifier;
 use point::Point;
 
-use rand::Rng;
+use rand::{Rand, Rng};
 use time::Duration;
 use world::World;
 
@@ -49,6 +49,21 @@ pub enum CompanionBonus {
     DoubleWillGrowth,
     HalveExhaustion,
     DoubleActionPoints,
+}
+
+
+// TODO: use a rand_derive or something.
+// I tried it 2017-07-28 and it wasn't working then.
+impl Rand for CompanionBonus {
+    fn rand<R: Rng>(rng: &mut R) -> Self {
+        use self::CompanionBonus::*;
+        match rng.gen_range(0, 2) {
+            0 => DoubleWillGrowth,
+            1 => HalveExhaustion,
+            2 => DoubleActionPoints,
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl Monster {
@@ -92,10 +107,6 @@ impl Monster {
             Npc => color::npc_speed,
         };
 
-        let companion_bonus = match kind {
-            Npc => Some(CompanionBonus::DoubleActionPoints),
-            _ => None,
-        };
 
         Monster {
             kind,
@@ -111,7 +122,7 @@ impl Monster {
             path: vec![],
             trail: None,
             color,
-            companion_bonus,
+            companion_bonus: None,
             accompanying_player: false,
         }
     }

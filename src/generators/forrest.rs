@@ -83,7 +83,14 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
             continue;
         }
         if let Some(kind) = opts.ind_sample(rng) {
-            let monster = Monster::new(kind, pos);
+            let mut monster = Monster::new(kind, pos);
+            match kind {
+                Kind::Npc => {
+                    let bonus = rng.gen();
+                    monster.companion_bonus = Some(bonus);
+                }
+                _ => ()
+            };
             result.push(monster);
         }
     }

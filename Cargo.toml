@@ -11,7 +11,7 @@ name = "dose-response"
 path = "src/main.rs"
 
 [dependencies]
-bitflags = "0.9"
+bitflags = "1.0"
 time = "0.1.35"
 rand = "0.3.14"
 clap = "2.20.1"

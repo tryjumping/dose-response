@@ -142,13 +142,13 @@ impl Level {
     }
 
     pub fn walkable(&self, pos: LevelPosition, blockers: blocker::Blocker) -> bool {
-        use blocker::{PLAYER, WALL, MONSTER};
+        use blocker::Blocker;
         use self::TileKind::Empty;
         // We don't have the player's position here so we can't check that here.
-        assert!(!blockers.contains(PLAYER));
+        assert!(!blockers.contains(Blocker::PLAYER));
         let pos = pos.into();
-        let blocked_by_wall = blockers.contains(WALL) && self.cell(pos).tile.kind != Empty;
-        let blocked_by_monster = blockers.contains(MONSTER) && self.monster_on_pos(pos).is_some();
+        let blocked_by_wall = blockers.contains(Blocker::WALL) && self.cell(pos).tile.kind != Empty;
+        let blocked_by_monster = blockers.contains(Blocker::MONSTER) && self.monster_on_pos(pos).is_some();
         !(blocked_by_wall || blocked_by_monster)
     }
 

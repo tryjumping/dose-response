@@ -1,7 +1,7 @@
 use self::Kind::*;
 
 use ai::{self, AIState, Behavior, PlayerInfo, Update};
-use blocker::{self, Blocker};
+use blocker::Blocker;
 use color::{self, Color};
 use game::Action;
 use graphics::Render;
@@ -94,8 +94,8 @@ impl Monster {
 
         // NOTE: NPCs can't walk into the player, monsters can
         let blockers = match kind {
-            Npc => blocker::PLAYER | blocker::WALL | blocker::MONSTER,
-            _ => blocker::WALL | blocker::MONSTER,
+            Npc => Blocker::PLAYER | Blocker::WALL | Blocker::MONSTER,
+            _ => Blocker::WALL | Blocker::MONSTER,
         };
 
         let color = match kind {

@@ -1,4 +1,4 @@
-use blocker::{self, Blocker};
+use blocker::Blocker;
 use formula;
 use generators::{self, GeneratedWorld};
 use item::{self, Item};
@@ -57,15 +57,15 @@ impl Chunk {
             // worldgen operated with world positions in the first
             // place.
             let pos = self.level.level_position(monster.position);
-            assert!(self.level.walkable(pos, blocker::WALL | blocker::MONSTER));
+            assert!(self.level.walkable(pos, Blocker::WALL | Blocker::MONSTER));
             monster.position = self.world_position(pos);
             self.monsters.push(monster);
             self.level.set_monster(pos, index);
-            assert!(!self.level.walkable(pos, blocker::WALL | blocker::MONSTER));
+            assert!(!self.level.walkable(pos, Blocker::WALL | Blocker::MONSTER));
         }
         for &(pos, item) in items.iter() {
             let pos = self.level.level_position(pos);
-            assert!(self.level.walkable(pos, blocker::WALL));
+            assert!(self.level.walkable(pos, Blocker::WALL));
             self.level.add_item(pos, item);
         }
     }
@@ -225,7 +225,7 @@ impl World {
                 break;
             }
             let pos = initial_player_position + offset;
-            if self.walkable(pos, blocker::WALL, initial_player_position) {
+            if self.walkable(pos, Blocker::WALL, initial_player_position) {
                 let dose = Item {
                     kind: item::Kind::Dose,
                     modifier: player::Modifier::Intoxication {
@@ -250,7 +250,7 @@ impl World {
                 y: rng.gen_range(-5, 6),
             };
             let pos = initial_player_position + offset;
-            if self.walkable(pos, blocker::WALL, initial_player_position) {
+            if self.walkable(pos, Blocker::WALL, initial_player_position) {
                 let food = Item {
                     kind: item::Kind::Food,
                     modifier: player::Modifier::Attribute {
@@ -363,12 +363,11 @@ impl World {
     /// `blockers` option controls can influence the logic: are
     /// monster treated as blocking or not?
     pub fn walkable(&self, pos: Point, blockers: Blocker, player_pos: Point) -> bool {
-        use blocker::PLAYER;
         let level_cell_walkable = self.chunk(pos)
             .map(|chunk| {
-                let blocks_player = blockers.contains(PLAYER) && pos == player_pos;
+                let blocks_player = blockers.contains(Blocker::PLAYER) && pos == player_pos;
                 let level_position = chunk.level_position(pos);
-                chunk.level.walkable(level_position, blockers - PLAYER) && !blocks_player
+                chunk.level.walkable(level_position, blockers - Blocker::PLAYER) && !blocks_player
             })
             .unwrap_or(false);
         self.within_bounds(pos) && level_cell_walkable
@@ -411,11 +410,10 @@ impl World {
         destination: Point,
         player_position: Point,
     ) {
-        use blocker::{PLAYER, MONSTER, WALL};
         if monster_position == destination {
             return;
         }
-        let blocker = PLAYER | MONSTER | WALL;
+        let blocker = Blocker::PLAYER | Blocker::MONSTER | Blocker::WALL;
         assert!(
             self.walkable(destination, blocker, player_position),
             "Moster at {:?} cannot move to {:?} because it's occupied.",
@@ -474,7 +472,7 @@ impl World {
                 );
             }
 
-            assert!(!self.walkable(destination, MONSTER, player_position));
+            assert!(!self.walkable(destination, Blocker::MONSTER, player_position));
         }
     }
 
@@ -511,7 +509,7 @@ impl World {
             // Make sure we don't go out of bounds with self.cell(pos):
             // NOTE: We're not checking for the player's position here so we'll just supply a
             // dummy value.
-            if !self.walkable(pos, blocker::WALL, Point::new(0, 0)) {
+            if !self.walkable(pos, Blocker::WALL, Point::new(0, 0)) {
                 continue;
             }
             doses.extend(

@@ -6,7 +6,6 @@ extern crate bitflags;
 extern crate clap;
 extern crate rand;
 extern crate time;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;

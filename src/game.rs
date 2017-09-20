@@ -1,13 +1,13 @@
 use animation::{self, AreaOfEffect};
 use ai::{PlayerInfo};
-use blocker;
+use blocker::Blocker;
 use color;
 use engine::{Draw, Settings};
 use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::TileKind;
-use monster;
+use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
 use point::Point;
@@ -152,10 +152,10 @@ pub fn update(
     // Run the dose explosion effect here:
     if let Some(ref anim) = state.explosion_animation {
         for (pos, _, effect) in anim.tiles() {
-            if effect.contains(animation::KILL) {
+            if effect.contains(animation::TileEffect::KILL) {
                 kill_monster(pos, &mut state.world);
             }
-            if effect.contains(animation::SHATTER) {
+            if effect.contains(animation::TileEffect::SHATTER) {
                 if let Some(cell) = state.world.cell_mut(pos) {
                     cell.tile.kind = TileKind::Empty;
                     cell.items.clear();
@@ -468,7 +468,7 @@ fn process_player_action<R, W>(
             action = Action::Move(player.pos);
         } else if *player.panic > 0 {
             let new_pos =
-                world.random_neighbour_position(rng, player.pos, blocker::WALL, player.pos);
+                world.random_neighbour_position(rng, player.pos, Blocker::WALL, player.pos);
             action = Action::Move(new_pos);
 
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
@@ -476,7 +476,7 @@ fn process_player_action<R, W>(
                 usize;
             if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
                 let mut path =
-                    pathfinding::Path::find(player.pos, dose_pos, world, blocker::WALL, player.pos);
+                    pathfinding::Path::find(player.pos, dose_pos, world, Blocker::WALL, player.pos);
 
                 let new_pos_opt = if path.len() <= resist_radius {
                     path.next()
@@ -508,7 +508,7 @@ fn process_player_action<R, W>(
         match action {
             Action::Move(dest) => {
                 let dest_walkable =
-                    world.walkable(dest, blocker::WALL | blocker::MONSTER, player.pos);
+                    world.walkable(dest, Blocker::WALL | Blocker::MONSTER, player.pos);
                 let bumping_into_monster = world.monster_on_pos(dest).is_some();
                 if bumping_into_monster {
                     player.spend_ap(1);
@@ -516,7 +516,12 @@ fn process_player_action<R, W>(
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
                             monster::Kind::Anxiety => {
-                                player.anxiety_counter += 1;
+                                let increment = if player.bonuses.contains(&CompanionBonus::DoubleWillGrowth) {
+                                    2
+                                } else {
+                                    1
+                                };
+                                player.anxiety_counter += increment;
                                 if player.anxiety_counter.is_max() {
                                     player.will += 1;
                                     player.anxiety_counter.set_to_min();
@@ -638,7 +643,7 @@ fn process_player_action<R, W>(
 
 fn process_player(state: &mut State, simulation_area: Rectangle) {
     { // appease borrowck
-        let mut player = &mut state.player;
+        let player = &mut state.player;
         let world = &state.world;
         let npc_bonuses = world.monsters(simulation_area)
             .filter(|m| m.kind == monster::Kind::Npc && m.accompanying_player

@@ -21,9 +21,6 @@ CLOSED: [2017-10-04 Wed 20:55]
 ** DONE Blue: give 2 APs
 CLOSED: [2017-07-21 Fri 17:54]
 ** Brown: slow down the sober/withdrawal fall by half
-* Allow setting invincibility while the game is running                :code:
-** From the Cheat mode
-** That would simplify our testing
 * Show current bonus in the sidebar                                      :ui:
 * The NPC bonus disappears when the NPC leaves the simulation area :bug:design:
 This is a bit of an unclear behaviour. We could and probably should
@@ -1265,3 +1262,10 @@ fn main() {
     println!("Cells: {:?}", cells);
 }
 #+END_SRC
+** DONE Allow setting invincibility while the game is running         :code:
+CLOSED: [2017-10-04 Wed 22:12]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-10-04 Wed 22:12
+:END:
+*** From the Cheat mode
+*** That would simplify our testing

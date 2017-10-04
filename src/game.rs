@@ -78,9 +78,17 @@ pub fn update(
         settings.fullscreen = !settings.fullscreen;
     }
 
-    // Uncover map
+    // Uncover map / set the Cheat mode
     if state.keys.matches_code(KeyCode::F6) {
         state.cheating = !state.cheating;
+    }
+
+    // NOTE: this will not show up in the replay so that'll be out of
+    // sync. We can pass `--invincible` while running the replay
+    // though and that should always work, I think.
+    if state.keys.matches_code(KeyCode::I) && state.cheating {
+        println!("Making the player invincible!");
+        state.player.invincible = true;
     }
 
     state.paused = if state.replay && state.keys.matches_code(KeyCode::Space) {

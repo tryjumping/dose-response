@@ -86,6 +86,14 @@ CLOSED: [2017-07-21 Fri 17:54]
 *** let's use it
 *** say when you stand next to a dose, it will blink between it's colour and white
 *** and the rate of blinking will identify the likelihood that the dose will kill you
+* Replace the `time` crate                                             :code:
+** Time is now deprecated
+*** https://github.com/rust-lang-deprecated/time
+** The readme points to `chrono`
+** But maybe we could just go back to `std::time`? That's at least stable
+* Remove the requirement on Visual C++ Runtime on msvc                 :code:
+** https://news.ycombinator.com/item?id=15197424
+** Try to link with MSVCRT.DLL
 * interactive NPCs                                                   :design:
 ** When High, you can't interact with them
 *** they're translucent

@@ -49,6 +49,7 @@ pub fn update(
     state.replay_step = state.replay_step + dt;
 
     state.keys.extend(new_keys.iter().cloned());
+    state.mouse = mouse;
 
     // Quit the game when Q is pressed or on replay and requested
     if state.keys.matches_code(KeyCode::Q) || (!state.player.alive() && state.exit_after) ||

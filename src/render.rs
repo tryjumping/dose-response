@@ -405,6 +405,10 @@ fn render_panel(
         );
     }
 
+    if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.display_size {
+        lines.push(format!("Mouse: {}", state.mouse.tile_pos).into())
+    }
+
     if !player.bonuses.is_empty() {
         lines.push("Bonus:".into());
         for bonus in &player.bonuses {

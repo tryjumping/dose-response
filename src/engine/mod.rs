@@ -36,10 +36,10 @@ pub enum Draw {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Mouse {
-    tile_pos: Point,
-    screen_pos: Point,
-    left: bool,
-    right: bool,
+    pub tile_pos: Point,
+    pub screen_pos: Point,
+    pub left: bool,
+    pub right: bool,
 }
 
 impl Default for Mouse {

@@ -1,6 +1,7 @@
 
 
 use animation::{AreaOfEffect, ScreenFade};
+use engine::Mouse;
 use keys::Keys;
 use monster;
 use player::Player;
@@ -103,6 +104,7 @@ pub struct State {
     pub seed: u32,
     pub rng: IsaacRng,
     pub keys: Keys,
+    pub mouse: Mouse,
     pub commands: VecDeque<Command>,
     pub verifications: VecDeque<Verification>,
     pub command_logger: Box<Write>,
@@ -165,6 +167,7 @@ impl State {
             seed,
             rng,
             keys: Keys::new(),
+            mouse: Default::default(),
             commands,
             verifications,
             command_logger: Box::new(log_writer),

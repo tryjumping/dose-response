@@ -405,6 +405,13 @@ fn render_panel(
         );
     }
 
+    if !player.bonuses.is_empty() {
+        lines.push("Bonus:".into());
+        for bonus in &player.bonuses {
+            lines.push(format!("* {:?}", bonus).into());
+        }
+    }
+
     if state.cheating {
         lines.push("CHEATING".into());
         lines.push("".into());

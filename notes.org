@@ -13,14 +13,12 @@
 ** Non-square fonts for text
 ** Fullscreen
 ** Icon for the executable
-* Add different kinds of NPCs                                          :idea:
-** Red/Blue/Brown (same colours as monsters)
 * Give player a bonus when bumping into an NPC                         :idea:
 ** DONE Red: double anxiety counter gain on killing `a`
 CLOSED: [2017-10-04 Wed 20:55]
 ** DONE Blue: give 2 APs
 CLOSED: [2017-07-21 Fri 17:54]
-** Brown: slow down the sober/withdrawal fall by half
+** TODO Brown: slow down the sober/withdrawal fall by half
 * The NPC bonus disappears when the NPC leaves the simulation area :bug:design:
 This is a bit of an unclear behaviour. We could and probably should
 fix it, but realistically, the NPC should probably accompany the
@@ -1273,3 +1271,9 @@ CLOSED: [2017-10-04 Wed 22:19]
 :PROPERTIES:
 :ARCHIVE_TIME: 2017-10-04 Wed 22:19
 :END:
+** DONE Add different kinds of NPCs                                   :idea:
+CLOSED: [2017-10-04 Wed 22:20]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-10-04 Wed 22:20
+:END:
+*** Red/Blue/Brown (same colours as monsters)

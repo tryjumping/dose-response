@@ -1,5 +1,3 @@
-
-
 use self::vertex::Vertex;
 
 use color::Color;
@@ -154,7 +152,7 @@ pub fn main_loop<T>(
 ) {
     // TODO: don't hardcode this value -- calculate it from the tilemap.
     let tilesize = 16;
-    let (screen_width, screen_height) = (
+    let (mut screen_width, mut screen_height) = (
         display_size.x as u32 * tilesize as u32,
         display_size.y as u32 * tilesize as u32,
     );
@@ -209,6 +207,7 @@ pub fn main_loop<T>(
 
     // Main loop
 
+    let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
     let mut drawcalls = Vec::with_capacity(4000);
     let mut lctrl_pressed = false;
@@ -254,7 +253,7 @@ pub fn main_loop<T>(
             display_size,
             fps,
             &keys,
-            Default::default(), // TODO: mouse
+            mouse,
             settings,
             &mut drawcalls,
         ) {
@@ -543,6 +542,11 @@ pub fn main_loop<T>(
                 Event::WindowEvent { window_id: _, event } => {
                     match event {
                         WindowEvent::Closed => running = false,
+                        WindowEvent::Resized(width, height) => {
+                            println!("Window resized to: {} x {}", width, height);
+                            screen_width = width;
+                            screen_height = height;
+                        },
                         WindowEvent::KeyboardInput{ device_id: _, input } => {
                             use glium::glutin::ElementState::*;
                             let pressed = match input.state {
@@ -606,6 +610,33 @@ pub fn main_loop<T>(
                                     }
                                 }
                             }
+                        }
+                        WindowEvent::MouseMoved{ position: (x, y), ..} => {
+                            let (x, y) = (x as i32, y as i32);
+                            mouse.screen_pos = Point { x, y };
+
+                            let tile_width = screen_width as i32 / display_size.x;
+                            let mouse_tile_x = x / tile_width;
+
+                            let tile_height = screen_height as i32 / display_size.y;
+                            let mouse_tile_y = y / tile_height;
+
+                            mouse.tile_pos = Point { x: mouse_tile_x, y: mouse_tile_y };
+                        }
+                        WindowEvent::MouseInput{ state, button, .. } => {
+                            use glium::glutin::MouseButton::*;
+                            use glium::glutin::ElementState::*;
+
+                            let pressed = match state {
+                                Pressed => true,
+                                Released => false,
+                            };
+
+                            match button {
+                                Left => mouse.left = pressed,
+                                Right => mouse.right = pressed,
+                                _ => {}
+                            };
                         }
                         WindowEvent::Focused(false) | WindowEvent::Suspended(false) => {
                             lctrl_pressed = false;

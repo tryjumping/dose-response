@@ -16,10 +16,25 @@
 * Add different kinds of NPCs                                          :idea:
 ** Red/Blue/Brown (same colours as monsters)
 * Give player a bonus when bumping into an NPC                         :idea:
-** Red: double anxiety counter gain on killing `a`
+** DONE Red: double anxiety counter gain on killing `a`
+CLOSED: [2017-10-04 Wed 20:55]
 ** DONE Blue: give 2 APs
 CLOSED: [2017-07-21 Fri 17:54]
 ** Brown: slow down the sober/withdrawal fall by half
+* Allow setting invincibility while the game is running                :code:
+** From the Cheat mode
+** That would simplify our testing
+* Show current bonus in the sidebar                                      :ui:
+* The NPC bonus disappears when the NPC leaves the simulation area :bug:design:
+This is a bit of an unclear behaviour. We could and probably should
+fix it, but realistically, the NPC should probably accompany the
+player on their journey.
+
+So once that's implemented, the NPC will always be in the simulation
+area. So I'm not sure it's a bug we actually want to fix necessarily.
+* Right-click on monster to show its info                                :ui:
+* Show the current anxiety counter in the sidebar                        :ui:
+** or when you right-click on player
 * The NPC Bonus is awarded even when High                               :bug:
 ** Sometimes you just luck out and catch up with a NPC even when high
 ** no bonus should appear when you do that

@@ -72,7 +72,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
             item: Some(Kind::Voices),
         },
         Weighted {
-            weight: 1,
+            weight: 10,
             item: Some(Kind::Npc),
         },
     ];
@@ -86,8 +86,15 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
             let mut monster = Monster::new(kind, pos);
             match kind {
                 Kind::Npc => {
+                    use monster::CompanionBonus::*;
+                    use color;
                     let bonus = rng.gen();
                     monster.companion_bonus = Some(bonus);
+                    monster.color = match bonus {
+                        DoubleWillGrowth => color::npc_will,
+                        HalveExhaustion => color::npc_mind,
+                        DoubleActionPoints => color::npc_speed,
+                    };
                 }
                 _ => ()
             };

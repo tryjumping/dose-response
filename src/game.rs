@@ -516,18 +516,23 @@ fn process_player_action<R, W>(
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
                             monster::Kind::Anxiety => {
+                                println!("Bumped into anxiety! Current anxiety counter: {:?}", player.anxiety_counter);
                                 let increment = if player.bonuses.contains(&CompanionBonus::DoubleWillGrowth) {
                                     2
                                 } else {
                                     1
                                 };
+                                println!("Anxiety increment: {:?}", increment);
                                 player.anxiety_counter += increment;
+                                println!("New anxiety counter: {:?}", player.anxiety_counter);
                                 if player.anxiety_counter.is_max() {
+                                    println!("Increasing player's will");
                                     player.will += 1;
                                     player.anxiety_counter.set_to_min();
                                 }
                             }
                             monster::Kind::Npc => {
+                                println!("Bumped into NPC: {:?}", world.monster_on_pos(dest));
                                 // Clear any existing monsters accompanying the player. The player
                                 // can have only one companion at a time right now.
                                 //
@@ -537,8 +542,14 @@ fn process_player_action<R, W>(
                                     .monsters_mut(simulation_area)
                                     .filter(|m| m.kind == monster::Kind::Npc);
                                 for npc in npcs {
-                                    npc.accompanying_player = true;
-                                    assert!(npc.companion_bonus.is_some());
+                                    if npc.position == dest {
+                                        println!("NPC {:?} accompanies the player.", npc);
+                                        npc.accompanying_player = true;
+                                        assert!(npc.companion_bonus.is_some());
+                                    } else if npc.accompanying_player {
+                                        println!("NPC {:?} leaves the player.", npc);
+                                        npc.accompanying_player = false;
+                                    }
                                 }
                             }
                             _ => {}
@@ -645,6 +656,10 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
     { // appease borrowck
         let player = &mut state.player;
         let world = &state.world;
+        // TODO: this will stop the bonus from working once the
+        // companion NPC leaves the simulation_area. Which is
+        // currently possible because it doesn't follow the player
+        // around.
         let npc_bonuses = world.monsters(simulation_area)
             .filter(|m| m.kind == monster::Kind::Npc && m.accompanying_player
                     && m.companion_bonus.is_some())

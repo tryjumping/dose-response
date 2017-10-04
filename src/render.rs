@@ -150,9 +150,9 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
                     let (glyph, color, _) = monster.render(dt);
                     // TODO: show a fading animation of the trail colour
                     let color = color::Color {
-                        r: color.r - 55,
-                        g: color.g - 55,
-                        b: color.b - 55,
+                        r: color.r.saturating_sub(55),
+                        g: color.g.saturating_sub(55),
+                        b: color.b.saturating_sub(55),
                     };
                     drawcalls.push(Draw::Char(trail_pos, glyph, color));
                 }

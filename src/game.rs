@@ -2,7 +2,7 @@ use animation::{self, AreaOfEffect};
 use ai::{PlayerInfo};
 use blocker::Blocker;
 use color;
-use engine::{Draw, Settings};
+use engine::{Draw, Mouse, Settings};
 use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
@@ -40,6 +40,7 @@ pub fn update(
     _display_size: Point,
     fps: i32,
     new_keys: &[Key],
+    mouse: Mouse,
     mut settings: Settings,
     drawcalls: &mut Vec<Draw>,
 ) -> Option<(Settings, State)> {

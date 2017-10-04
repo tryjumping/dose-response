@@ -34,6 +34,26 @@ pub enum Draw {
 }
 
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Mouse {
+    tile_pos: Point,
+    screen_pos: Point,
+    left: bool,
+    right: bool,
+}
+
+impl Default for Mouse {
+    fn default() -> Self {
+        Mouse {
+            tile_pos: Point::new(-1, -1),
+            screen_pos: Point::new(-1, -1),
+            left: false,
+            right: false,
+        }
+    }
+}
+
+
 /// Settings the engine needs to carry.
 ///
 /// Things such as the fullscreen/windowed display, font size, font
@@ -49,6 +69,7 @@ pub type UpdateFn<T> = fn(T,
                           size: Point,
                           fps: i32,
                           keys: &[Key],
+                          mouse: Mouse,
                           settings: Settings,
                           drawcalls: &mut Vec<Draw>)
                           -> Option<(Settings, T)>;

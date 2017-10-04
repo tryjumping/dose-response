@@ -254,6 +254,7 @@ pub fn main_loop<T>(
             display_size,
             fps,
             &keys,
+            Default::default(), // TODO: mouse
             settings,
             &mut drawcalls,
         ) {

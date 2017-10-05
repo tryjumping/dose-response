@@ -19,6 +19,9 @@ CLOSED: [2017-10-04 Wed 20:55]
 ** DONE Blue: give 2 APs
 CLOSED: [2017-07-21 Fri 17:54]
 ** TODO Brown: slow down the sober/withdrawal fall by half
+* Consider uploading "nightlies" somewhere
+** We run CI on every push, let's copy the binaries somewhere
+** So we can always get the latest build out to folks
 * The NPC bonus disappears when the NPC leaves the simulation area :bug:design:
 This is a bit of an unclear behaviour. We could and probably should
 fix it, but realistically, the NPC should probably accompany the

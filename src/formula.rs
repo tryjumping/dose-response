@@ -10,9 +10,17 @@ pub const NO_LETHAL_DOSE_RADIUS: i32 = 6;
 pub const ANXIETIES_PER_WILL: InclusiveRange = InclusiveRange(0, 7);
 
 pub const WILL: InclusiveRange = InclusiveRange(0, 5);
-pub const WITHDRAWAL: InclusiveRange = InclusiveRange(0, 15);
-pub const SOBER: InclusiveRange = InclusiveRange(0, 20);
-pub const HIGH: InclusiveRange = InclusiveRange(0, 80);
+
+// The rate at which the Mind drops. This is higher than one so we can
+// apply bonuses that slow the rate down.
+pub const MIND_DROP_PER_TURN: i32 = 2;
+
+// NOTE: We use the MIND_DROP_PER_TURN multiple here. That way, unless
+// it's modified, the number here contains the default pace in turns.
+pub const WITHDRAWAL: InclusiveRange = InclusiveRange(0, 15 * MIND_DROP_PER_TURN);
+pub const SOBER: InclusiveRange = InclusiveRange(0, 20 * MIND_DROP_PER_TURN);
+pub const HIGH: InclusiveRange = InclusiveRange(0, 80 * MIND_DROP_PER_TURN);
+
 pub const PLAYER_BASE_AP: i32 = 1;
 pub const SOBRIETY_COUNTER: InclusiveRange = InclusiveRange(0, 100);
 pub const PANIC_TURNS: InclusiveRange = InclusiveRange(0, 10);
@@ -22,6 +30,7 @@ pub const CHASING_DISTANCE: i32 = 5;
 pub const HOWLING_DISTANCE: i32 = 15;
 
 pub const ESTRANGED_NPC_MAX_AP: i32 = 2;
+
 
 
 pub fn exploration_radius(mental_state: Mind) -> i32 {
@@ -39,12 +48,12 @@ pub fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 }
 
 
-pub fn mind_take_turn(mind: Mind) -> Mind {
+pub fn mind_take_turn(mind: Mind, drop: i32) -> Mind {
     use self::Mind::*;
     match mind {
-        Withdrawal(value) => Withdrawal(value - 1),
+        Withdrawal(value) => Withdrawal(value - drop),
         Sober(value) => {
-            let new_value = value - 1;
+            let new_value = value - drop;
             if new_value.is_min() {
                 Withdrawal(Ranged::new_max(WITHDRAWAL))
             } else {
@@ -52,7 +61,7 @@ pub fn mind_take_turn(mind: Mind) -> Mind {
             }
         }
         High(value) => {
-            let new_value = value - 1;
+            let new_value = value - drop;
             if new_value.is_min() {
                 Withdrawal(Ranged::new_max(WITHDRAWAL))
             } else {

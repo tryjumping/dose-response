@@ -142,7 +142,13 @@ impl Player {
         if self.alive() {
             self.stun -= 1;
             self.panic -= 1;
-            self.mind = formula::mind_take_turn(self.mind);
+
+            let mut mind_drop = formula::MIND_DROP_PER_TURN;
+            if self.bonuses.contains(&CompanionBonus::HalveExhaustion) {
+                mind_drop /= 2;
+            }
+
+            self.mind = formula::mind_take_turn(self.mind, mind_drop);
             self.ap = self.max_ap();
         }
     }

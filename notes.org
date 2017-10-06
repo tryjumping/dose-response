@@ -13,13 +13,6 @@
 ** Non-square fonts for text
 ** Fullscreen
 ** Icon for the executable
-* TODO Give player a bonus when bumping into an NPC                    :idea:
-** DONE Red: double anxiety counter gain on killing `a`
-CLOSED: [2017-10-04 Wed 20:55]
-** DONE Blue: give 2 APs
-CLOSED: [2017-07-21 Fri 17:54]
-** TODO Brown: slow down the sober/withdrawal fall by half
-*** Question: does it do that for Hungers as well?
 * The NPC bonus disappears when the NPC leaves the simulation area :bug:design:
 This is a bit of an unclear behaviour. We could and probably should
 fix it, but realistically, the NPC should probably accompany the
@@ -1298,3 +1291,15 @@ CLOSED: [2017-10-06 Fri 21:08]
 :ARCHIVE_TIME: 2017-10-06 Fri 21:08
 :END:
 *** or when you right-click on player
+** DONE Give player a bonus when bumping into an NPC                  :idea:
+CLOSED: [2017-10-06 Fri 21:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-10-06 Fri 21:57
+:END:
+*** DONE Red: double anxiety counter gain on killing `a`
+CLOSED: [2017-10-04 Wed 20:55]
+*** DONE Blue: give 2 APs
+CLOSED: [2017-07-21 Fri 17:54]
+*** DONE Brown: slow down the sober/withdrawal fall by half
+CLOSED: [2017-10-06 Fri 21:57]
+**** Question: does it do that for Hungers as well?

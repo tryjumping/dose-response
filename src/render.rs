@@ -198,7 +198,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     }
 
     let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
-    if state.cheating && mouse_inside_map && state.mouse.right {
+    if mouse_inside_map && state.mouse.right {
         render_monster_info(state, drawcalls);
     }
 }

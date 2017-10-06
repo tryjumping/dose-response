@@ -45,6 +45,9 @@ area. So I'm not sure it's a bug we actually want to fix necessarily.
 ** So we would just have when High?
 ** Although: I guess we could still have them be attacked
 *** when the PC gets overwhelmed by sadness the NPC could not take it anymore
+* Increase the irresistibility radius by one                         :design:
+** That will make the game possibly more interesting
+** but more importantly, it'll make sure that the first Will bump has a visible effect
 * Write out tips on death                                              :idea:
 ** On early overdose, mention that second dose while High is dangerous
 "Using another dose when High will likely cause overdose early on."

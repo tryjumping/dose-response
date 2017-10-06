@@ -19,9 +19,6 @@ CLOSED: [2017-10-04 Wed 20:55]
 ** DONE Blue: give 2 APs
 CLOSED: [2017-07-21 Fri 17:54]
 ** TODO Brown: slow down the sober/withdrawal fall by half
-* Consider uploading "nightlies" somewhere
-** We run CI on every push, let's copy the binaries somewhere
-** So we can always get the latest build out to folks
 * The NPC bonus disappears when the NPC leaves the simulation area :bug:design:
 This is a bit of an unclear behaviour. We could and probably should
 fix it, but realistically, the NPC should probably accompany the
@@ -29,11 +26,6 @@ player on their journey.
 
 So once that's implemented, the NPC will always be in the simulation
 area. So I'm not sure it's a bug we actually want to fix necessarily.
-* Disable cheating and all debug features in the published mode        :code:
-** I'd like that to be a different thing from the debug/release builds though
-** Say a new Cargo feature called `published`
-** And that  would gate all the debug features
-*** rather than the debug/release switch
 * The NPC Bonus is awarded even when High                               :bug:
 ** Sometimes you just luck out and catch up with a NPC even when high
 ** no bonus should appear when you do that
@@ -77,6 +69,9 @@ area. So I'm not sure it's a bug we actually want to fix necessarily.
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
+* Consider uploading "nightlies" somewhere
+** We run CI on every push, let's copy the binaries somewhere
+** So we can always get the latest build out to folks
 * Implement Fullscreen for the Opengl backend                            :ui:
 ** example: https://github.com/glium/glium/blob/master/examples/fullscreen.rs#L107
 ** NOTE: this is not implemented in Glutin 0.7 which Glium uses internally
@@ -100,6 +95,12 @@ area. So I'm not sure it's a bug we actually want to fix necessarily.
 *** let's use it
 *** say when you stand next to a dose, it will blink between it's colour and white
 *** and the rate of blinking will identify the likelihood that the dose will kill you
+* Disable cheating and all debug features in the published mode        :code:
+** I'd like that to be a different thing from the debug/release builds though
+** Say a new Cargo feature called `published`
+** And that  would gate all the debug features
+*** rather than the debug/release switch
+** And actually rename CHEATING to DEBUG
 * Replace the `time` crate                                             :code:
 ** Time is now deprecated
 *** https://github.com/rust-lang-deprecated/time

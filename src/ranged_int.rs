@@ -18,10 +18,18 @@ use std::ops::{Add, AddAssign, Deref, Sub, SubAssign};
 pub struct InclusiveRange(pub i32, pub i32);
 
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Ranged {
     val: i32,
     range: InclusiveRange,
+}
+
+// NOTE: Custom formatter that's always on 1 line even when pretty-printing
+impl ::std::fmt::Debug for Ranged {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result <(), ::std::fmt::Error> {
+        let InclusiveRange(min, max) = self.range;
+        write!(f, "{} in <{}..{}>", self.val, min, max)
+    }
 }
 
 impl Ranged {

@@ -1,11 +1,18 @@
 use std::cmp::{Ordering, max};
-use std::fmt::{Display, Error, Formatter};
+use std::fmt::{self, Display, Error, Formatter};
 use std::ops::{Add, AddAssign, Div, Sub};
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
+}
+
+// NOTE: Custom formatter that's always on 1 line even when pretty-printing
+impl fmt::Debug for Point {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Point{{x: {}, y: {}}}", self.x, self.y)
+    }
 }
 
 impl Point {

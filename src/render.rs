@@ -196,6 +196,11 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     if state.endgame_screen_visible {
         render_endgame_screen(state, drawcalls);
     }
+
+    let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
+    if state.cheating && mouse_inside_map && state.mouse.right {
+        render_monster_info(state, drawcalls);
+    }
 }
 
 
@@ -510,6 +515,45 @@ fn render_panel(
     }
 
 }
+
+
+fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
+    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+    let mouse_world_pos = screen_left_top_corner + state.mouse.tile_pos;
+    // TODO: world.monster_on_pos is mutable, let's add an immutable version
+    let monster_area = Rectangle::from_point_and_size(
+        mouse_world_pos, (1, 1).into());
+    let mut debug_text = None;
+    for monster in state.world.monsters(monster_area) {
+        if monster.position == mouse_world_pos {
+            debug_text = Some(format!("{:#?}", monster));
+        }
+    }
+    if mouse_world_pos == state.player.pos {
+        debug_text = Some(format!("{:#?}", state.player));
+    }
+
+    if let Some(debug_text) = debug_text {
+        let height = debug_text.lines().count();
+        let width = debug_text.lines().map(|s| s.chars().count()).max().unwrap();
+        drawcalls.push(Draw::Rectangle(
+            (0, 0).into(),
+            (width as i32, height as i32).into(),
+            color::background,
+        ));
+        for (index, line) in debug_text.lines().enumerate() {
+            drawcalls.push(Draw::Text(
+                Point {
+                    x: 0,
+                    y: 0 + index as i32,
+                },
+                line.to_string().into(),
+                color::gui_text
+            ));
+        }
+    }
+}
+
 
 fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     fn rect_dim(lines: &[&str]) -> (i32, i32) {

@@ -69,6 +69,7 @@ pub enum CauseOfDeath {
     Killed,
 }
 
+#[derive(Debug)]
 pub struct Player {
     pub mind: Mind,
     pub will: Ranged,

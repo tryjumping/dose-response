@@ -29,14 +29,11 @@ player on their journey.
 
 So once that's implemented, the NPC will always be in the simulation
 area. So I'm not sure it's a bug we actually want to fix necessarily.
-* Right-click on monster to show its info                                :ui:
 * Disable cheating and all debug features in the published mode        :code:
 ** I'd like that to be a different thing from the debug/release builds though
 ** Say a new Cargo feature called `published`
 ** And that  would gate all the debug features
 *** rather than the debug/release switch
-* Show the current anxiety counter in the sidebar                        :ui:
-** or when you right-click on player
 * The NPC Bonus is awarded even when High                               :bug:
 ** Sometimes you just luck out and catch up with a NPC even when high
 ** no bonus should appear when you do that
@@ -1285,3 +1282,14 @@ CLOSED: [2017-10-04 Wed 22:20]
 :ARCHIVE_TIME: 2017-10-04 Wed 22:20
 :END:
 *** Red/Blue/Brown (same colours as monsters)
+** DONE Right-click on monster to show its info                         :ui:
+CLOSED: [2017-10-06 Fri 21:06]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-10-06 Fri 21:06
+:END:
+** DONE Show the current anxiety counter in the sidebar                 :ui:
+CLOSED: [2017-10-06 Fri 21:08]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-10-06 Fri 21:08
+:END:
+*** or when you right-click on player

@@ -410,10 +410,6 @@ fn render_panel(
         );
     }
 
-    if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.display_size {
-        lines.push(format!("Mouse: {}", state.mouse.tile_pos).into())
-    }
-
     if !player.bonuses.is_empty() {
         lines.push("Bonus:".into());
         for bonus in &player.bonuses {
@@ -438,6 +434,10 @@ fn render_panel(
     }
 
     if state.cheating {
+        if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.display_size {
+            lines.push(format!("Mouse: {}", state.mouse.tile_pos).into())
+        }
+
         lines.push("Time stats:".into());
         for frame_stat in state.stats.last_frames(25) {
             lines.push(

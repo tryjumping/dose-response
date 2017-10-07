@@ -38,9 +38,6 @@ area. So I'm not sure it's a bug we actually want to fix necessarily.
 ** So we would just have when High?
 ** Although: I guess we could still have them be attacked
 *** when the PC gets overwhelmed by sadness the NPC could not take it anymore
-* Increase the irresistibility radius by one                         :design:
-** That will make the game possibly more interesting
-** but more importantly, it'll make sure that the first Will bump has a visible effect
 * Write out tips on death                                              :idea:
 ** On early overdose, mention that second dose while High is dangerous
 "Using another dose when High will likely cause overdose early on."
@@ -1303,3 +1300,10 @@ CLOSED: [2017-07-21 Fri 17:54]
 *** DONE Brown: slow down the sober/withdrawal fall by half
 CLOSED: [2017-10-06 Fri 21:57]
 **** Question: does it do that for Hungers as well?
+** DONE Increase the irresistibility radius by one                  :design:
+CLOSED: [2017-10-07 Sat 11:13]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-10-07 Sat 11:13
+:END:
+*** That will make the game possibly more interesting
+*** but more importantly, it'll make sure that the first Will bump has a visible effect

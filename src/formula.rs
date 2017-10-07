@@ -44,7 +44,7 @@ pub fn exploration_radius(mental_state: Mind) -> i32 {
 
 
 pub fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
-    cmp::max(dose_irresistible_value + 1 - will, 0)
+    cmp::max(dose_irresistible_value + 2 - will, 0)
 }
 
 

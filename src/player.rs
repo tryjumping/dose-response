@@ -40,6 +40,10 @@ impl Mind {
             _ => false,
         }
     }
+
+    pub fn is_sober(&self) -> bool {
+        !self.is_high()
+    }
 }
 
 impl Display for Mind {

@@ -541,7 +541,8 @@ fn process_player_action<R, W>(
                                     player.anxiety_counter.set_to_min();
                                 }
                             }
-                            monster::Kind::Npc => {
+                            // NOTE: NPCs don't give bonuses or accompany the player when high.
+                            monster::Kind::Npc if player.mind.is_sober() => {
                                 println!("Bumped into NPC: {:?}", world.monster_on_pos(dest));
                                 // Clear any existing monsters accompanying the player. The player
                                 // can have only one companion at a time right now.

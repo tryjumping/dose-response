@@ -591,6 +591,20 @@ pub fn main_loop<T>(
                                 Released => false,
                             };
 
+                            // TODO: this is a temp fix for a
+                            // glutin/winit bug where the keypress
+                            // release event for the Shift keys has
+                            // its `virtual_keycode` set to `None`
+                            // instead of `Some(LShift)`. But the
+                            // scancodes still work so we'll use them
+                            // instead for now.
+                            if input.scancode == 42 && !pressed {
+                                lshift_pressed = false;
+                            }
+                            if input.scancode == 54 && !pressed {
+                                rshift_pressed = false;
+                            }
+
                             match input.virtual_keycode {
                                 Some(BackendKey::LControl) => {
                                     lctrl_pressed = pressed;

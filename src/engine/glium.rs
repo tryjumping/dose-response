@@ -171,6 +171,9 @@ pub fn main_loop<T>(
     let display = glium::Display::new(window, context, &events_loop).expect(
         "dose response ERROR: Could not create the display.");
 
+    // We'll just assume the monitors won't change throughout the game.
+    let monitors: Vec<_> = events_loop.get_available_monitors().collect();
+
     let program = program!(&display,
                            150 => {
                                outputs_srgb: true,
@@ -206,7 +209,12 @@ pub fn main_loop<T>(
 
 
     // Main loop
-
+    let mut window_pos = {
+        match display.gl_window().get_position() {
+            Some((x, y)) => Point::new(x as i32, y as i32),
+            None => Default::default(),
+        }
+    };
     let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
     let mut drawcalls = Vec::with_capacity(4000);
@@ -247,6 +255,7 @@ pub fn main_loop<T>(
             display_size,
             default_background,
         ));
+        let previous_settings = settings;
         match update(
             state,
             dt,
@@ -264,6 +273,30 @@ pub fn main_loop<T>(
             None => break,
         };
         keys.clear();
+
+        if previous_settings.fullscreen != settings.fullscreen {
+            if settings.fullscreen {
+                for monitor in &monitors {
+                    let monitor_pos = {
+                        let pos = monitor.get_position();
+                        Point::new(pos.0 as i32, pos.1 as i32)
+                    };
+                    let monitor_dimensions = {
+                        let dim = monitor.get_dimensions();
+                        Point::new(dim.0 as i32, dim.1 as i32)
+                    };
+
+                    let monitor_bottom_left = monitor_pos + monitor_dimensions;
+                    if window_pos >= monitor_pos && window_pos < monitor_bottom_left {
+                        println!("Monitor: {:?}, pos: {:?}, dimensions: {:?}",
+                                 monitor.get_name(), monitor.get_position(), monitor.get_dimensions());
+                        display.gl_window().set_fullscreen(Some(monitor.clone()));
+                    }
+                }
+            } else {
+                display.gl_window().set_fullscreen(None);
+            }
+        }
 
         // Process drawcalls
         vertices.clear();
@@ -547,6 +580,10 @@ pub fn main_loop<T>(
                             screen_width = width;
                             screen_height = height;
                         },
+                        WindowEvent::Moved(x, y) => {
+                            window_pos.x = x;
+                            window_pos.y = y;
+                        }
                         WindowEvent::KeyboardInput{ device_id: _, input } => {
                             use glium::glutin::ElementState::*;
                             let pressed = match input.state {

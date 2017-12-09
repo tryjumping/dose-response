@@ -5,6 +5,7 @@ Avoid the dangers threatening your mind and body while desperately
 looking for the next fix.
 
 ## [Unreleased]
+- Toggle fullscreen when pressing Alt+Enter
 
 ## [0.4.3] - 2017-04-28
 

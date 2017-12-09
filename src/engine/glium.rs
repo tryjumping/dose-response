@@ -598,6 +598,8 @@ pub fn main_loop<T>(
                             // instead of `Some(LShift)`. But the
                             // scancodes still work so we'll use them
                             // instead for now.
+                            // It's a winit issue:
+                            // https://github.com/tomaka/winit/issues/361
                             if input.scancode == 42 && !pressed {
                                 lshift_pressed = false;
                             }

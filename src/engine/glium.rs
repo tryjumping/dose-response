@@ -638,7 +638,7 @@ pub fn main_loop<T>(
                                 _ => {}
                             };
                         }
-                        WindowEvent::Focused(false) | WindowEvent::Suspended(false) => {
+                        WindowEvent::Focused(false) => {
                             lctrl_pressed = false;
                             rctrl_pressed = false;
                             lalt_pressed = false;

@@ -23,7 +23,7 @@ tcod = { git = "https://github.com/tomassedovic/tcod-rs", optional = true }
 rustbox = { version = "0.9.0", optional = true }
 piston_window = { version = "0.63.0", optional = true }
 image = { version = "0.12.2", optional = true }
-glium = { version = "0.17.0", optional = true }
+glium = { version = "0.18.1", optional = true }
 zmq = { version = "0.8", optional = true }
 
 [build-dependencies]

@@ -60,6 +60,12 @@ impl Display for Point {
     }
 }
 
+impl Default for Point {
+    fn default() -> Self {
+        Self::new(0, 0)
+    }
+}
+
 impl Add for Point {
     type Output = Self;
 

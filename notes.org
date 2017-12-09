@@ -68,6 +68,10 @@ area. So I'm not sure it's a bug we actually want to fix necessarily.
 ** So we can always get the latest build out to folks
 * Implement Fullscreen for the Opengl backend                            :ui:
 ** example: https://github.com/glium/glium/blob/master/examples/fullscreen.rs#L107
+** seems to be fixed in Glutin 0.11.0 at least
+*** hm so we can run the 0.11 glutin fullscreen example
+*** but not the glium one. That still crashes
+*** dunno what's up with that
 ** NOTE: this is not implemented in Glutin 0.7 which Glium uses internally
 ** AFAICT you can't just replace that glutin with 0.8 which presumably does this
 *** doesn't seem so? https://github.com/tomaka/glutin/blob/cff7a88d051c972e2b78957443bef5e45149c18a/src/platform/linux/x11.rs#L150

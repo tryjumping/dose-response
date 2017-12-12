@@ -666,7 +666,20 @@ fn process_player_action<R, W>(
 fn process_player(state: &mut State, simulation_area: Rectangle) {
     { // appease borrowck
         let player = &mut state.player;
+
+        // NPCs should unfollow an intoxicated player:
+        if player.mind.is_high() {
+            let npcs = state.world.monsters_mut(simulation_area)
+                .filter(|m| m.kind == monster::Kind::Npc && m.accompanying_player
+                        && m.companion_bonus.is_some());
+            for npc in npcs {
+                println!("{:?} will not accompany an intoxicated player.", npc);
+                npc.accompanying_player = false;
+            }
+        }
+
         let world = &state.world;
+
         // TODO: this will stop the bonus from working once the
         // companion NPC leaves the simulation_area. Which is
         // currently possible because it doesn't follow the player

@@ -18,8 +18,6 @@
 ** The game should always maintain the correct aspect ratio
 *** We can just letterbox it for now
 *** Later, switch fonts dynamically based on the size
-* NPC leaves the player when High                                      :idea:
-** The current bonus is lost
 * Nearby NPC stays within player's distance when sober                 :idea:
 ** It's really hard to catch them even when sober right now
 ** When sober maybe they should just stay on one spot or not move that much
@@ -1324,3 +1322,9 @@ CLOSED: [2017-12-09 Sat 17:05]
 :END:
 *** Sometimes you just luck out and catch up with a NPC even when high
 *** no bonus should appear when you do that
+** DONE NPC leaves the player when High                               :idea:
+CLOSED: [2017-12-12 Tue 12:42]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-12-12 Tue 12:42
+:END:
+*** The current bonus is lost

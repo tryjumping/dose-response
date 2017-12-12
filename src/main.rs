@@ -3,12 +3,14 @@
 
 #[macro_use]
 extern crate bitflags;
-extern crate clap;
 extern crate rand;
 extern crate time;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+
+#[cfg(feature = "cli")]
+extern crate clap;
 
 #[macro_use]
 #[cfg(feature = "opengl")]
@@ -183,17 +185,17 @@ fn run_remote(
 }
 
 
-fn main() {
+#[cfg(feature = "cli")]
+fn process_cli_and_run_game(
+    display_size: point::Point,
+    world_size: point::Point,
+    map_size: i32,
+    panel_width: i32,
+    default_background: color::Color,
+    title: &str,
+    update: engine::UpdateFn<State>,
+) {
     use clap::{App, Arg, ArgGroup};
-
-    // NOTE: at our current font, the height of 43 is the maximum
-    // value for 1336x768 monitors.
-    let map_size = 43;
-    let panel_width = 20;
-    let display_size = (map_size + panel_width, map_size).into();
-    // NOTE: 2 ^ 30
-    let world_size = (1_073_741_824, 1_073_741_824).into();
-    let title = "Dose Response";
 
     let matches = App::new(title)
         .author("Tomas Sedovic <tomas@sedovic.cz>")
@@ -299,10 +301,11 @@ fn main() {
         )
     };
 
+
     if matches.is_present("libtcod") {
         run_libtcod(
             display_size,
-            color::background,
+            default_background,
             title,
             &Path::new(""),
             state,
@@ -310,17 +313,46 @@ fn main() {
     } else if matches.is_present("piston") {
         run_piston(
             display_size,
-            color::background,
+            default_background,
             title,
             &Path::new(""),
             state,
-            game::update,
+            update,
         );
     } else if matches.is_present("terminal") {
         run_terminal();
     } else if matches.is_present("remote") {
-        run_remote(display_size, color::background, title, state, game::update);
+        run_remote(display_size, default_background, title, state, update);
     } else {
-        run_opengl(display_size, color::background, title, state, game::update);
+        run_opengl(display_size, default_background, title, state, update);
     }
+}
+
+
+#[cfg(not(feature = "cli"))]
+fn process_cli_and_run_game(
+    _display_size: point::Point,
+    _world_size: point::Point,
+    _map_size: i32,
+    _panel_width: i32,
+    _default_background: color::Color,
+    _title: &str,
+    _update: engine::UpdateFn<State>,
+) {
+    unimplemented!()
+}
+
+
+fn main() {
+    // NOTE: at our current font, the height of 43 is the maximum
+    // value for 1336x768 monitors.
+    let map_size = 43;
+    let panel_width = 20;
+    let display_size = (map_size + panel_width, map_size).into();
+    // NOTE: 2 ^ 30
+    let world_size = (1_073_741_824, 1_073_741_824).into();
+    let title = "Dose Response";
+
+    process_cli_and_run_game(display_size, world_size, map_size, panel_width,
+                             color::background, title, game::update);
 }

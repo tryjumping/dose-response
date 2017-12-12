@@ -11,6 +11,7 @@ extern crate serde_derive;
 extern crate serde_json;
 
 #[macro_use]
+#[cfg(feature = "opengl")]
 extern crate glium;
 
 #[cfg(feature = "piston")]

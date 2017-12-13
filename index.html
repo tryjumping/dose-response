@@ -1,0 +1,25 @@
+<body>
+</body>
+<script>
+var width = 80;
+var height = 60;
+var squareSize = 10;
+var c = document.createElement('canvas');
+c.width = width*squareSize;
+c.height = height*squareSize;
+document.body.append(c);
+
+var ctx = c.getContext('2d');
+ctx.textAlign = "center";
+ctx.font = '12px arial';
+
+fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
+.then(response => response.arrayBuffer())
+.then(bytes => WebAssembly.instantiate(bytes, {
+  env: {
+ }
+}))
+.then(results => {
+    console.log("The game has finished.");
+});
+</script>

@@ -342,7 +342,7 @@ fn process_cli_and_run_game(
     _title: &str,
     _update: engine::UpdateFn<State>,
 ) {
-    unimplemented!()
+    // TODO: run the game here
 }
 
 

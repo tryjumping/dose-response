@@ -12,7 +12,11 @@ path = "src/main.rs"
 
 [dependencies]
 bitflags = "1.0"
-rand = "0.3.18"
+
+# NOTE: we're using master to compile under WebAssembly. Once a
+# version newer than "0.3.18" exists, we can switch to it.
+rand = { git = "https://github.com/rust-lang-nursery/rand" }
+
 clap = { version = "2.20.1", optional = true }
 serde = "1.0"
 serde_derive = "1.0"

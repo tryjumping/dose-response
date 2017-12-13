@@ -70,7 +70,7 @@ pub fn update(
             state.panel_width,
             state.display_size,
             state.exit_after,
-            &state::generate_replay_path(),
+            state::generate_replay_path(),
             state.player.invincible,
         );
         return Some((settings, state));

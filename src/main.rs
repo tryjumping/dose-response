@@ -11,6 +11,9 @@ extern crate serde_json;
 #[cfg(feature = "cli")]
 extern crate clap;
 
+#[cfg(feature = "replay")]
+extern crate chrono;
+
 #[macro_use]
 #[cfg(feature = "opengl")]
 extern crate glium;
@@ -287,7 +290,7 @@ fn process_cli_and_run_game(
             );
         }
         let replay_file = match matches.value_of("replay-file") {
-            Some(file) => Path::new(file).into(),
+            Some(file) => Some(file.into()),
             None => state::generate_replay_path(),
         };
         State::new_game(
@@ -296,7 +299,7 @@ fn process_cli_and_run_game(
             panel_width,
             display_size,
             matches.is_present("exit-after"),
-            &replay_file,
+            replay_file,
             matches.is_present("invincible"),
         )
     };

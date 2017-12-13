@@ -13,7 +13,7 @@ use std::collections::VecDeque;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
-use std::time::{self, Duration};
+use std::time::Duration;
 use timer::Timer;
 use world::World;
 
@@ -50,24 +50,27 @@ pub enum Command {
 }
 
 
-pub fn generate_replay_path() -> PathBuf {
-    let cur_time = time::Instant::now();
+#[cfg(feature = "replay")]
+pub fn generate_replay_path() -> Option<PathBuf> {
+    use chrono::prelude::*;
+    let local_time = Local::now();
+
     // Timestamp in format: 2016-11-20T20-04-39.123. We can't use the
     // colons in the timestamp -- Windows don't allow them in a path.
-    let timestamp = format!(
-        "{}.{:03}",
-        time::strftime("%FT%H-%M-%S", &cur_time).unwrap(),
-        (cur_time.tm_nsec / 1000000)
-    );
+    let timestamp = local_time.format("%FT%H-%M-%S%.3f");
     let replay_dir = &Path::new("replays");
     assert!(replay_dir.is_relative());
     if !replay_dir.exists() {
         fs::create_dir_all(replay_dir).unwrap();
     }
     let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
-    replay_path.into()
+    Some(replay_path.into())
 }
 
+#[cfg(not(feature = "replay"))]
+pub fn generate_replay_path() -> Option<PathBuf> {
+    None
+}
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Verification {
@@ -195,24 +198,31 @@ impl State {
         panel_width: i32,
         display_size: Point,
         exit_after: bool,
-        replay_path: &Path,
+        replay_path: Option<PathBuf>,
         invincible: bool,
     ) -> State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
         let seed = rand::random::<u32>();
-        let mut writer = match File::create(replay_path) {
-            Ok(f) => f,
-            Err(msg) => {
-                panic!(
-                    "Failed to create the replay file at '{:?}'.
+        let mut writer: Box<Write> = if let Some(replay_path) = replay_path {
+            match File::create(&replay_path) {
+                Ok(f) => {
+                    println!("Recording the gameplay to '{}'", replay_path.display());
+                    Box::new(f)
+                }
+                Err(msg) => {
+                    panic!(
+                        "Failed to create the replay file at '{:?}'.
 Reason: '{}'.",
-                    replay_path.display(),
-                    msg
-                )
+                        replay_path.display(),
+                        msg
+                    )
+                }
             }
+        } else {
+            Box::new(io::sink())
         };
-        println!("Recording the gameplay to '{}'", replay_path.display());
+
         log_seed(&mut writer, seed);
         let cheating = false;
         let replay = false;

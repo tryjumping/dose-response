@@ -20,6 +20,14 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
  }
 }))
 .then(results => {
-    console.log("The game has finished.");
+console.log("The game has finished.");
+results.instance.exports.initialise();
+console.log("The game is initialised.");
+function update() {
+    window.requestAnimationFrame(update);
+    console.log(results.instance.exports.update());
+}
+update();
+
 });
 </script>

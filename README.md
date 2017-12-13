@@ -100,6 +100,10 @@ Compile:
 
 The compiled file will be created in: `target/wasm32-unknown-unknown/release/dose-response.wasm`
 
+NOTE: while the code compiles, running it will panic on calling the
+random number generator. Until that works, working on wasm is not
+particularly useful.
+
 License
 -------
 

@@ -239,7 +239,7 @@ pub fn main_loop<T>(
 
     while running {
         let now = Instant::now();
-        let dt = previous_frame_time.duration_since(now);
+        let dt = now.duration_since(previous_frame_time);
         previous_frame_time = now;
 
         // Calculate FPS

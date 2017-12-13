@@ -13,8 +13,7 @@ use std::collections::VecDeque;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
-use time;
-use time::Duration;
+use std::time::{self, Duration};
 use timer::Timer;
 use world::World;
 
@@ -52,7 +51,7 @@ pub enum Command {
 
 
 pub fn generate_replay_path() -> PathBuf {
-    let cur_time = time::now();
+    let cur_time = time::Instant::now();
     // Timestamp in format: 2016-11-20T20-04-39.123. We can't use the
     // colons in the timestamp -- Windows don't allow them in a path.
     let timestamp = format!(
@@ -177,10 +176,10 @@ impl State {
             replay,
             replay_full_speed,
             exit_after,
-            clock: Duration::zero(),
-            replay_step: Duration::zero(),
+            clock: Duration::new(0, 0),
+            replay_step: Duration::new(0, 0),
             stats: Stats::new(6000), // about a minute and a half at 60 FPS
-            pos_timer: Timer::new(Duration::milliseconds(0)),
+            pos_timer: Timer::new(Duration::from_millis(0)),
             old_screen_pos: (0, 0).into(),
             new_screen_pos: (0, 0).into(),
             paused: false,

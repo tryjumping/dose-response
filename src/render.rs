@@ -14,7 +14,8 @@ use state::{Side, State};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-use time::Duration;
+use std::time::Duration;
+use util;
 use world::Chunk;
 
 
@@ -55,7 +56,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     let display_area = Rectangle::center(state.screen_position_in_world, state.map_size / 2);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
-    let total_time_ms = state.clock.num_milliseconds();
+    let total_time_ms = util::num_milliseconds(state.clock) as i64;
     let world_size = state.world_size;
 
     let player_will_is_max = state.player.will.is_max();
@@ -443,21 +444,21 @@ fn render_panel(
             lines.push(
                 format!(
                     "upd: {}, dc: {}",
-                    frame_stat.update.num_milliseconds(),
-                    frame_stat.drawcalls.num_milliseconds()
+                    util::num_milliseconds(frame_stat.update),
+                    util::num_milliseconds(frame_stat.drawcalls)
                 ).into(),
             );
         }
         lines.push(
             format!(
                 "longest upd: {}",
-                state.stats.longest_update().num_milliseconds()
+                util::num_milliseconds(state.stats.longest_update())
             ).into(),
         );
         lines.push(
             format!(
                 "longest dc: {}",
-                state.stats.longest_drawcalls().num_milliseconds()
+                util::num_milliseconds(state.stats.longest_drawcalls())
             ).into(),
         );
     }
@@ -501,7 +502,7 @@ fn render_panel(
                 x: x + 1,
                 y: bottom - 1,
             },
-            format!("dt: {}ms", dt.num_milliseconds()).into(),
+            format!("dt: {}ms", util::num_milliseconds(dt)).into(),
             fg,
         ));
         drawcalls.push(Draw::Text(

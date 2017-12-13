@@ -4,7 +4,6 @@
 #[macro_use]
 extern crate bitflags;
 extern crate rand;
-extern crate time;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
@@ -56,6 +55,7 @@ mod render;
 mod state;
 mod stats;
 mod timer;
+mod util;
 mod world;
 
 

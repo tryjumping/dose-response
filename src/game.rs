@@ -18,11 +18,12 @@ use render;
 use state::{self, Command, Side, State};
 use stats::{FrameStats, Stats};
 use std::collections::{HashMap, VecDeque};
-use std::i64;
+use std::u64;
 use std::io::Write;
 use std::iter::FromIterator;
-use time::Duration;
+use std::time::Duration;
 use timer::{Stopwatch, Timer};
+use util;
 use world::World;
 
 
@@ -101,9 +102,9 @@ pub fn update(
 
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
     let timed_step = if state.replay && !state.paused &&
-        (state.replay_step.num_milliseconds() >= 50 || state.replay_full_speed)
+        (util::num_milliseconds(state.replay_step) >= 50 || state.replay_full_speed)
     {
-        state.replay_step = Duration::zero();
+        state.replay_step = Duration::new(0, 0);
         true
     } else {
         false
@@ -227,9 +228,9 @@ pub fn update(
         };
         state.screen_fading = Some(animation::ScreenFade::new(
             fade_color,
-            Duration::milliseconds(fade_duration),
-            Duration::milliseconds(200),
-            Duration::milliseconds(300),
+            Duration::from_millis(fade_duration),
+            Duration::from_millis(200),
+            Duration::from_millis(300),
             fade_percentage,
         ));
     }
@@ -252,7 +253,7 @@ pub fn update(
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
         let display_pos = state.player.pos - screen_left_top_corner;
-        let dur = Duration::milliseconds(400);
+        let dur = Duration::from_millis(400);
         let exploration_radius = formula::exploration_radius(state.player.mind);
         // TODO: move the screen roughly the same distance along X and Y
         if display_pos.x < exploration_radius ||
@@ -930,13 +931,13 @@ fn show_exit_stats(stats: &Stats) {
         stats
             .longest_update_durations()
             .iter()
-            .map(|dur| dur.num_microseconds().unwrap_or(i64::MAX))
+            .map(|dur| util::num_microseconds(*dur).unwrap_or(u64::MAX))
             .map(|us| us as f32 / 1000.0)
             .collect::<Vec<_>>(),
         stats
             .longest_drawcall_durations()
             .iter()
-            .map(|dur| dur.num_microseconds().unwrap_or(i64::MAX))
+            .map(|dur| util::num_microseconds(*dur).unwrap_or(u64::MAX))
             .map(|us| us as f32 / 1000.0)
             .collect::<Vec<_>>()
     );

@@ -1,7 +1,7 @@
 use color::Color;
 use point::{Point, SquareArea};
 
-use time::Duration;
+use std::time::Duration;
 use timer::Timer;
 
 pub trait AreaOfEffect {
@@ -34,7 +34,7 @@ impl SquareExplosion {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
         let wave_count = max_radius - initial_radius + 1;
-        let wave_duration = Duration::milliseconds(100);
+        let wave_duration = Duration::from_millis(100);
         SquareExplosion {
             center,
             max_radius,
@@ -42,7 +42,7 @@ impl SquareExplosion {
             current_radius: initial_radius,
             color,
             wave_count,
-            timer: Timer::new(wave_duration * wave_count),
+            timer: Timer::new(wave_duration.checked_mul(wave_count as u32).unwrap()),
         }
     }
 }
@@ -98,7 +98,7 @@ impl CardinalExplosion {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
         let wave_count = max_radius - initial_radius + 1;
-        let wave_duration = Duration::milliseconds(100);
+        let wave_duration = Duration::from_millis(100);
         CardinalExplosion {
             center,
             max_radius,
@@ -107,7 +107,7 @@ impl CardinalExplosion {
             kill_color,
             shatter_color,
             wave_count,
-            timer: Timer::new(wave_duration * wave_count),
+            timer: Timer::new(wave_duration.checked_mul(wave_count as u32).unwrap()),
         }
     }
 }
@@ -222,7 +222,7 @@ impl DiagonalExplosion {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
         let wave_count = max_radius - initial_radius + 1;
-        let wave_duration = Duration::milliseconds(100);
+        let wave_duration = Duration::from_millis(100);
         DiagonalExplosion {
             center,
             max_radius,
@@ -231,7 +231,7 @@ impl DiagonalExplosion {
             kill_color,
             shatter_color,
             wave_count,
-            timer: Timer::new(wave_duration * wave_count),
+            timer: Timer::new(wave_duration.checked_mul(wave_count as u32).unwrap()),
         }
     }
 }

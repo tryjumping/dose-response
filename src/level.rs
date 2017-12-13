@@ -6,7 +6,7 @@ use point;
 
 use rand::{self, Rng};
 use std::collections::HashMap;
-use time::Duration;
+use std::time::Duration;
 
 
 /// Position within a level. Ensured to be always within bounds.

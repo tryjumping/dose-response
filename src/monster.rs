@@ -9,7 +9,7 @@ use player::Modifier;
 use point::Point;
 
 use rand::{Rand, Rng};
-use time::Duration;
+use std::time::Duration;
 use world::World;
 
 

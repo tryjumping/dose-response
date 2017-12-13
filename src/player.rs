@@ -6,7 +6,7 @@ use monster::{Monster, CompanionBonus};
 use point::Point;
 use ranged_int::Ranged;
 use std::fmt::{Display, Error, Formatter};
-use time::Duration;
+use std::time::Duration;
 
 
 #[derive(Copy, Clone, PartialEq, Debug)]

@@ -3,7 +3,7 @@
 use color::Color;
 use engine::Draw;
 use point::Point;
-use time::Duration;
+use std::time::Duration;
 
 
 pub trait Render {

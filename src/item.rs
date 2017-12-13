@@ -5,7 +5,7 @@ use self::Kind::*;
 use color::{self, Color};
 use graphics::Render;
 use player::Modifier;
-use time::Duration;
+use std::time::Duration;
 
 
 #[derive(Clone, Copy, PartialEq, Debug, Eq, Hash)]

@@ -5,7 +5,7 @@ use keys::Key;
 use point::Point;
 use std::borrow::Cow;
 
-use time::Duration;
+use std::time::Duration;
 
 
 #[cfg(feature = "opengl")]

@@ -10,7 +10,9 @@ use glium::glutin::VirtualKeyCode as BackendKey;
 use image;
 use keys::{Key, KeyCode};
 use point::Point;
-use time::{Duration, PreciseTime};
+use std::time::{Duration, Instant};
+use util;
+
 
 // NOTE: This is designed specifically to deduplicated characters on
 // the same position (using Vec::dedup). So the only thing considered
@@ -228,25 +230,25 @@ pub fn main_loop<T>(
     let mut keys = vec![];
     // We're not using alpha at all for now, but it's passed everywhere.
     let alpha = 1.0;
-    let mut previous_frame_time = PreciseTime::now();
-    let mut fps_clock = Duration::milliseconds(0);
+    let mut previous_frame_time = Instant::now();
+    let mut fps_clock = Duration::from_millis(0);
     let mut frame_counter = 0;
     let mut fps = 1;
     let mut running = true;
 
 
     while running {
-        let now = PreciseTime::now();
-        let dt = previous_frame_time.to(now);
+        let now = Instant::now();
+        let dt = previous_frame_time.duration_since(now);
         previous_frame_time = now;
 
         // Calculate FPS
         fps_clock = fps_clock + dt;
         frame_counter += 1;
-        if fps_clock.num_milliseconds() > 1000 {
+        if util::num_milliseconds(fps_clock) > 1000 {
             fps = frame_counter;
             frame_counter = 1;
-            fps_clock = Duration::milliseconds(0);
+            fps_clock = Duration::from_millis(0);
         }
 
         drawcalls.clear();

@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
+use std::time::Duration;
 
-use time::Duration;
+use util;
 
 #[derive(Debug)]
 pub struct FrameStats {
@@ -69,27 +70,27 @@ impl Stats {
 
     pub fn longest_update(&self) -> Duration {
         self.longest_updates.last().cloned().unwrap_or(
-            Duration::seconds(0),
+            Duration::new(0, 0),
         )
     }
 
     pub fn longest_drawcalls(&self) -> Duration {
         self.longest_drawcalls.last().cloned().unwrap_or(
-            Duration::seconds(0),
+            Duration::new(0, 0),
         )
     }
 
     pub fn mean_update(&self) -> f32 {
         self.frame_stats
             .iter()
-            .map(|fs| fs.update.num_milliseconds() as f32)
+            .map(|fs| util::num_milliseconds(fs.update) as f32)
             .fold(0.0, |acc, dur| acc + dur) / (self.frame_stats.len() as f32)
     }
 
     pub fn mean_drawcalls(&self) -> f32 {
         self.frame_stats
             .iter()
-            .map(|fs| fs.drawcalls.num_milliseconds() as f32)
+            .map(|fs| util::num_milliseconds(fs.drawcalls) as f32)
             .fold(0.0, |acc, dur| acc + dur) / (self.frame_stats.len() as f32)
     }
 

@@ -1,4 +1,6 @@
-use time::{Duration, PreciseTime};
+use std::time::{Duration, Instant};
+
+use util;
 
 
 #[derive(Copy, Clone, Debug)]
@@ -19,22 +21,23 @@ impl Timer {
         assert!(elapsed_percent >= 0.0);
         assert!(elapsed_percent <= 1.0);
         let mut timer = Timer::new(duration);
-        let current_ms = duration.num_milliseconds() as f32 * (1.0 - elapsed_percent);
-        timer.current = Duration::milliseconds(current_ms as i64);
+        let current_ms = util::num_milliseconds(duration) as f32 * (1.0 - elapsed_percent);
+        assert!(current_ms >= 0.0);
+        timer.current = Duration::from_millis(current_ms as u64);
 
         timer
     }
 
     pub fn update(&mut self, dt: Duration) {
         if dt > self.current {
-            self.current = Duration::zero();
+            self.current = Duration::new(0, 0);
         } else {
             self.current = self.current - dt;
         }
     }
 
     pub fn percentage_remaining(&self) -> f32 {
-        (self.current.num_milliseconds() as f32) / (self.max.num_milliseconds() as f32)
+        (util::num_milliseconds(self.current) as f32) / (util::num_milliseconds(self.max) as f32)
     }
 
     pub fn percentage_elapsed(&self) -> f32 {
@@ -42,20 +45,20 @@ impl Timer {
     }
 
     pub fn finished(&self) -> bool {
-        self.current.is_zero()
+        self.current == Duration::new(0, 0)
     }
 }
 
 pub struct Stopwatch {
-    start: PreciseTime,
+    start: Instant,
 }
 
 impl Stopwatch {
     pub fn start() -> Self {
-        Stopwatch { start: PreciseTime::now() }
+        Stopwatch { start: Instant::now() }
     }
 
     pub fn finish(self) -> Duration {
-        self.start.to(PreciseTime::now())
+        self.start.duration_since(Instant::now())
     }
 }

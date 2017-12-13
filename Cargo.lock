@@ -319,7 +319,6 @@ dependencies = [
  "serde_derive 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tcod 0.12.1 (git+https://github.com/tomassedovic/tcod-rs)",
- "time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1261,17 +1260,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "time"
-version = "0.1.38"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
- "redox_syscall 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
- "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "toml"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1685,7 +1673,6 @@ dependencies = [
 "checksum termbox-sys 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)" = "e32daa27881ea4b2ef36e4972d6cdefb241c19ac48d318381b688d1a631b8760"
 "checksum termion 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "689a3bdfaab439fd92bc87df5c4c78417d3cbe537487274e9b0b2dce76e92096"
 "checksum textwrap 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c0b59b6b4b44d867f1370ef1bd91bfb262bf07bf0ae65c202ea2fbc16153b693"
-"checksum time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)" = "d5d788d3aa77bc0ef3e9621256885555368b47bd495c13dd2e7413c89f845520"
 "checksum toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
 "checksum unicode-width 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "bf3a113775714a22dcb774d8ea3655c53a32debae63a063acc00a91cc586245f"
 "checksum unicode-xid 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)" = "8c1f860d7d29cf02cb2f3f359fd35991af3d30bac52c57d265a3c461074cb4dc"

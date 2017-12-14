@@ -1,18 +1,18 @@
 * Tentative roadmap to 1.0.0
 ** NPCs
-** Monsters and player able to shatter walls
 ** Ending: finding a special NPC who gets generated after max Will
-** World generation
-** Reasonable AI
-*** monsters further away should not freak out when another monster is in the way
 ** More balanced gameplay
 ** Save/load game
+** Fullscreen with correct aspect-ratio handling
 ** Nice colours
 *** good colour palette
 *** distinct colours (so they're visible while High, too)
-** Non-square fonts for text
-** Fullscreen with correct aspect-ratio handling
 ** Icon for the executable
+** Monsters and player able to shatter walls
+** World generation
+** Reasonable AI
+*** monsters further away should not freak out when another monster is in the way
+** Non-square fonts for text
 * Handle resized window                                                  :ui:
 ** When we resize a window now, everything just gets squished
 ** The game should always maintain the correct aspect ratio

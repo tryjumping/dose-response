@@ -18,26 +18,12 @@
 ** The game should always maintain the correct aspect ratio
 *** We can just letterbox it for now
 *** Later, switch fonts dynamically based on the size
-* Nearby NPC stays within player's distance when sober                 :idea:
+* Nearby NPC should stay within player's distance when sober           :idea:
 ** It's really hard to catch them even when sober right now
 ** When sober maybe they should just stay on one spot or not move that much
-* NPC gets targeted by monsters when accompanying player               :idea:
-** They have 2 HP
-** HPs reset when they leave the player
-** The NPC becomes grey and leaves the player for 20 turns on "death"
-* NPCs ignore monsters and destroy them when stepping on one           :idea:
+* NPCs should ignore monsters and destroy them when stepping on one    :idea:
 ** So this would make NPCs more like not even aware there are any monsters here
-** Though this sort of maybe defeats the purpose of NPC Hit Points
-** So we would just have when High?
-** Although: I guess we could still have them be attacked
-*** when the PC gets overwhelmed by sadness the NPC could not take it anymore
-* The NPC bonus disappears when the NPC leaves the simulation area :bug:design:
-This is a bit of an unclear behaviour. We could and probably should
-fix it, but realistically, the NPC should probably accompany the
-player on their journey.
-
-So once that's implemented, the NPC will always be in the simulation
-area. So I'm not sure it's a bug we actually want to fix necessarily.
+** But only when they are accompanying the player
 * Write out tips on death                                              :idea:
 ** On early overdose, mention that second dose while High is dangerous
 "Using another dose when High will likely cause overdose early on."
@@ -1328,3 +1314,22 @@ CLOSED: [2017-12-12 Tue 12:42]
 :ARCHIVE_TIME: 2017-12-12 Tue 12:42
 :END:
 *** The current bonus is lost
+** DONE The NPC bonus disappears when the NPC leaves the simulation area :bug:design:
+CLOSED: [2017-12-14 Thu 11:59]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-12-14 Thu 11:59
+:END:
+This is a bit of an unclear behaviour. We could and probably should
+fix it, but realistically, the NPC should probably accompany the
+player on their journey.
+
+So once that's implemented, the NPC will always be in the simulation
+area. So I'm not sure it's a bug we actually want to fix necessarily.
+** NPC gets targeted by monsters when accompanying player             :idea:
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-12-14 Thu 11:59
+:END:
+*** They have 2 HP
+*** HPs reset when they leave the player
+*** The NPC becomes grey and leaves the player for 20 turns on "death"
+*** nope, not going to do this

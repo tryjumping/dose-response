@@ -95,17 +95,7 @@ pub fn update(
     }
 
     if state.keys.matches_code(KeyCode::F) && state.cheating {
-        println!("TODO: spawn food!");
-        // TODO: don't duplicate food creation logic here!
-        let food = item::Item {
-            kind: item::Kind::Food,
-            modifier: player::Modifier::Attribute {
-                state_of_mind: 10,
-                will: 0,
-            },
-            irresistible: 0,
-        };
-        state.player.inventory.push(food);
+        state.player.inventory.push(formula::FOOD_PREFAB);
     }
 
     state.paused = if state.replay && state.keys.matches_code(KeyCode::Space) {

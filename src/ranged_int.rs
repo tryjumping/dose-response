@@ -1,6 +1,6 @@
 use std::cmp;
 use std::ops::{Add, AddAssign, Deref, Sub, SubAssign};
-
+use rand::Rng;
 
 // TODO: Basically the reason we do this instead of `std::ops::Range`
 // is that Range is non-copy. I'd also prefer to use the inclusive
@@ -16,6 +16,12 @@ use std::ops::{Add, AddAssign, Deref, Sub, SubAssign};
 // probably stuck with this instead of the nicer syntax. Oh well.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct InclusiveRange(pub i32, pub i32);
+
+impl InclusiveRange {
+    pub fn random<R: Rng>(&self, rng: &mut R) -> i32 {
+        rng.gen_range(self.0, self.1 + 1)
+    }
+}
 
 
 #[derive(Copy, Clone, PartialEq, Eq)]

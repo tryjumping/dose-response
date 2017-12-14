@@ -1,4 +1,5 @@
-use player::{Bonus, CauseOfDeath, Mind, Player};
+use item::{Kind, Item};
+use player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
 use ranged_int::{InclusiveRange, Ranged};
 use std::cmp;
 
@@ -20,6 +21,57 @@ pub const MIND_DROP_PER_TURN: i32 = 2;
 pub const WITHDRAWAL: InclusiveRange = InclusiveRange(0, 15 * MIND_DROP_PER_TURN);
 pub const SOBER: InclusiveRange = InclusiveRange(0, 20 * MIND_DROP_PER_TURN);
 pub const HIGH: InclusiveRange = InclusiveRange(0, 80 * MIND_DROP_PER_TURN);
+
+pub const DOSE_PREFAB: Item = Item {
+    kind: Kind::Dose,
+    irresistible: 2,
+    modifier: Modifier::Intoxication {
+        state_of_mind: 70 * MIND_DROP_PER_TURN,
+        tolerance_increase: 1,
+    },
+};
+
+pub const STRONG_DOSE_PREFAB: Item = Item {
+    kind: Kind::StrongDose,
+    irresistible: 4,
+    modifier: Modifier::Intoxication {
+        state_of_mind: 130 * MIND_DROP_PER_TURN,
+        tolerance_increase: 3,
+    },
+};
+
+pub const CARDINAL_DOSE_PREFAB: Item = Item {
+    kind: Kind::CardinalDose,
+    irresistible: 3,
+    modifier: Modifier::Intoxication {
+        state_of_mind: 95 * MIND_DROP_PER_TURN,
+        tolerance_increase: 2,
+    },
+};
+
+pub const DIAGONAL_DOSE_PREFAB: Item = Item {
+    kind: Kind::DiagonalDose,
+    irresistible: 3,
+    modifier: Modifier::Intoxication {
+        state_of_mind: 95 * MIND_DROP_PER_TURN,
+        tolerance_increase: 2,
+    },
+};
+
+pub const FOOD_PREFAB: Item = Item {
+    kind: Kind::Food,
+    irresistible: 0,
+    modifier: Modifier::Attribute {
+        state_of_mind: 10 * MIND_DROP_PER_TURN,
+        will: 0,
+    },
+};
+
+// This how much a given dose can vary from the prefab's base value
+pub const DOSE_MIND_VARIANCE: InclusiveRange = InclusiveRange(-5, 5);
+pub const STRONG_DOSE_MIND_VARIANCE: InclusiveRange = InclusiveRange(-15, -15);
+pub const CARDINAL_DOSE_MIND_VARIANCE: InclusiveRange = InclusiveRange(-10, 10);
+pub const DIAGONAL_DOSE_MIND_VARIANCE: InclusiveRange = InclusiveRange(-10, 10);
 
 pub const PLAYER_BASE_AP: i32 = 1;
 pub const SOBRIETY_COUNTER: InclusiveRange = InclusiveRange(0, 100);

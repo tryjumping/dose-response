@@ -1,5 +1,6 @@
 use generators::GeneratedWorld;
 
+use formula;
 use item::{self, Item};
 use level::{Tile, TileKind};
 use monster::{Kind, Monster};
@@ -106,49 +107,48 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
 
 fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     use item::Kind::*;
-    let mut irresistible = 0;
-    let modifier = match kind {
+    match kind {
         Dose => {
-            irresistible = 2;
-            let base = 70;
-            Modifier::Intoxication {
-                state_of_mind: base + rng.gen_range(-5, 6),
-                tolerance_increase: 1,
-            }
+            let mut item = formula::DOSE_PREFAB;
+            match item.modifier {
+                Modifier::Intoxication{ref mut state_of_mind, ..} => {
+                    *state_of_mind += formula::DOSE_MIND_VARIANCE.random(rng);
+                }
+                _ => {},
+            };
+            item
         }
         StrongDose => {
-            irresistible = 4;
-            let base = 130;
-            Modifier::Intoxication {
-                state_of_mind: base + rng.gen_range(-15, 16),
-                tolerance_increase: 3,
-            }
+            let mut item = formula::STRONG_DOSE_PREFAB;
+            match item.modifier {
+                Modifier::Intoxication{ref mut state_of_mind, ..} => {
+                    *state_of_mind += formula::STRONG_DOSE_MIND_VARIANCE.random(rng);
+                }
+                _ => {},
+            };
+            item
         }
         CardinalDose => {
-            irresistible = 3;
-            let base = 95;
-            Modifier::Intoxication {
-                state_of_mind: base + rng.gen_range(-10, 11),
-                tolerance_increase: 2,
-            }
+            let mut item = formula::CARDINAL_DOSE_PREFAB;
+            match item.modifier {
+                Modifier::Intoxication{ref mut state_of_mind, ..} => {
+                    *state_of_mind += formula::CARDINAL_DOSE_MIND_VARIANCE.random(rng);
+                }
+                _ => {},
+            };
+            item
         }
         DiagonalDose => {
-            irresistible = 3;
-            let base = 95;
-            Modifier::Intoxication {
-                state_of_mind: base + rng.gen_range(-10, 11),
-                tolerance_increase: 2,
-            }
+            let mut item = formula::DIAGONAL_DOSE_PREFAB;
+            match item.modifier {
+                Modifier::Intoxication{ref mut state_of_mind, ..} => {
+                    *state_of_mind += formula::DIAGONAL_DOSE_MIND_VARIANCE.random(rng);
+                }
+                _ => {},
+            };
+            item
         }
-        Food => Modifier::Attribute {
-            state_of_mind: 10,
-            will: 0,
-        },
-    };
-    Item {
-        kind: kind,
-        modifier: modifier,
-        irresistible: irresistible,
+        Food => formula::FOOD_PREFAB,
     }
 }
 

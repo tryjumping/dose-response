@@ -555,7 +555,7 @@ pub fn main_loop<T>(
 
         // Render
         let mut target = display.draw();
-        target.clear_color_srgb(0.0, 0.0, 0.0, 1.0);
+        target.clear_color_srgb(1.0, 0.0, 1.0, 1.0);
         target
             .draw(
                 &vertex_buffer,

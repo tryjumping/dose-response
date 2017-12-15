@@ -202,6 +202,7 @@ pub fn update(
         } else if cfg!(debug_assertions) {
             // We're in the debug build, log the verification
             let verification = state.verification();
+            #[cfg(not(feature = "web"))]
             state::log_verification(&mut state.command_logger, verification);
         } else {
             // NOTE: We're in the release build, *DON'T* log the
@@ -706,7 +707,10 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         simulation_area,
         &mut state.explosion_animation,
         &mut state.rng,
+        #[cfg(not(feature = "web"))]
         &mut state.command_logger,
+        #[cfg(feature = "web")]
+        &mut ::std::io::sink(),
     );
 
     let spent_ap_this_turn = previous_action_points > state.player.ap();

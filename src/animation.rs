@@ -4,7 +4,7 @@ use point::{Point, SquareArea};
 use std::time::Duration;
 use timer::Timer;
 
-pub trait AreaOfEffect {
+pub trait AreaOfEffect: Send {
     fn update(&mut self, dt: Duration);
     fn finished(&self) -> bool;
     fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>>;

@@ -109,6 +109,7 @@ pub struct State {
     pub mouse: Mouse,
     pub commands: VecDeque<Command>,
     pub verifications: VecDeque<Verification>,
+    #[cfg(not(feature = "web"))]
     pub command_logger: Box<Write>,
     pub side: Side,
     pub turn: i32,
@@ -172,6 +173,7 @@ impl State {
             mouse: Default::default(),
             commands,
             verifications,
+            #[cfg(not(feature = "web"))]
             command_logger: Box::new(log_writer),
             side: Side::Player,
             turn: 0,
@@ -203,7 +205,8 @@ impl State {
     ) -> State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
-        let seed = rand::random::<u32>();
+        //let seed = rand::random::<u32>();
+        let seed = 1234;
         let mut writer: Box<Write> = if let Some(replay_path) = replay_path {
             match File::create(&replay_path) {
                 Ok(f) => {

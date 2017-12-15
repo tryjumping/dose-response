@@ -25,7 +25,9 @@ results.instance.exports.initialise();
 console.log("The game is initialised.");
 function update() {
     window.requestAnimationFrame(update);
-    console.log(results.instance.exports.update());
+    //console.log("calling update");
+    results.instance.exports.update();
+    //console.log("called update");
 }
 update();
 

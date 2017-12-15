@@ -14,6 +14,10 @@ extern crate clap;
 #[cfg(feature = "replay")]
 extern crate chrono;
 
+#[cfg(feature = "web")]
+#[macro_use]
+extern crate lazy_static;
+
 #[macro_use]
 #[cfg(feature = "opengl")]
 extern crate glium;
@@ -35,6 +39,8 @@ extern crate zmq;
 
 use state::State;
 use std::path::Path;
+#[cfg(feature = "web")]
+use std::sync::Mutex;
 
 mod ai;
 mod animation;
@@ -343,6 +349,73 @@ fn process_cli_and_run_game(
     _update: engine::UpdateFn<State>,
 ) {
     // TODO: run the game here
+}
+
+#[cfg(feature = "web")]
+lazy_static! {
+    static ref STATE: Mutex<Option<State>> = {
+        // NOTE: at our current font, the height of 43 is the maximum
+        // value for 1336x768 monitors.
+        let map_size = 43;
+        let panel_width = 20;
+        let display_size = (map_size + panel_width, map_size).into();
+        // NOTE: 2 ^ 30
+        let world_size = (1_073_741_824, 1_073_741_824).into();
+        let title = "Dose Response";
+
+        let state =  State::new_game(
+            world_size,
+            map_size,
+            panel_width,
+            display_size,
+            false,  // exit-after
+            None,  // replay file
+            false,  // invincible
+        );
+
+        Mutex::new(Some(state))
+    };
+}
+
+
+#[no_mangle]
+pub fn initialise() {
+
+}
+
+#[no_mangle]
+pub fn update() {
+    // TODO update a frame here
+    ::std::time::Instant::now();  // NOTE:: this is crashing :-(
+
+    match STATE.try_lock() {
+        Ok(mut state) => {
+            let state = state.take();
+            if let Some(state) = state {
+                let dt = std::time::Duration::new(0, 0);
+                let display_size = point::Point::new(0, 0);
+                let fps = 60;
+                let keys: Vec<keys::Key> = vec![];
+                let mouse: engine::Mouse = Default::default();
+                let settings = engine::Settings{ fullscreen: false };
+                let mut drawcalls: Vec<engine::Draw> = vec![];
+
+                game::update(
+                    state,
+                    dt,
+                    display_size,
+                    fps,
+                    &keys,
+                    mouse,
+                    settings,
+                    &mut drawcalls,
+                );
+            }
+        }
+        Err(state) => {
+        }
+    }
+
 }
 
 

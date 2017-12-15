@@ -544,25 +544,23 @@ pub fn main_loop<T>(
 
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
 
+        let display_width = display_size.x as f32 * tilesize as f32;
+        let display_height = display_size.y as f32 * tilesize as f32;
 
-        let extra_width = ((screen_width as f32) - (display_size.x as f32 * tilesize as f32))
-            / (tilesize as f32);
-        let extra_height = ((screen_height as f32) - (display_size.y as f32 * tilesize as f32))
-            / (tilesize as f32);
+        let extra_width = (screen_width as f32) - display_width;
+        let extra_height = (screen_height as f32) - display_height;
 
-        let corrected_display_width = display_size.x as f32 + extra_width;
-        let corrected_display_height = display_size.y as f32 + extra_height;
-
-
-        // Render
         let uniforms =
             uniform! {
                 tex: &texture,
-                world_dimensions: [corrected_display_width, corrected_display_height],
+                tile_count: [display_size.x as f32, display_size.y as f32],
+                display_px: [display_width, display_height],
+                extra_px: [extra_width, extra_height],
                 texture_gl_dimensions: [1.0 / texture_tile_count_x,
                                         1.0 / texture_tile_count_y],
             };
 
+        // Render
         let mut target = display.draw();
         target.clear_color_srgb(1.0, 0.0, 1.0, 1.0);
         target

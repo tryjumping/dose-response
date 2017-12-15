@@ -568,6 +568,11 @@ pub fn main_loop<T>(
             (display_px, extra_px)
         };
 
+        // TODO: Once we support multiple font sizes, we can adjust it
+        // here. We could also potentially only allow resizes in steps
+        // that would result in crisp text (i.e. no font resizing on
+        // the GL side).
+
         let uniforms =
             uniform! {
                 tex: &texture,

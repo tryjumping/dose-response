@@ -544,18 +544,36 @@ pub fn main_loop<T>(
 
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
 
-        let display_width = display_size.x as f32 * tilesize as f32;
-        let display_height = display_size.y as f32 * tilesize as f32;
+        // Calculate the dimensions to provide the largest display
+        // area while maintaining the aspect ratio (and letterbox the
+        // display).
+        let (display_px, extra_px) = {
+            let screen_width = screen_width as f32;
+            let screen_height = screen_height as f32;
 
-        let extra_width = (screen_width as f32) - display_width;
-        let extra_height = (screen_height as f32) - display_height;
+            let native_display_width = display_size.x as f32 * tilesize as f32;
+            let native_display_height = display_size.y as f32 * tilesize as f32;
+
+            let expected_height = native_display_height * screen_width / native_display_width;
+            let (display_width, display_height) = if screen_height >= expected_height {
+                (screen_width, expected_height)
+            } else {
+                let coef = screen_height / native_display_height;
+                (native_display_width * coef, screen_height)
+            };
+
+            let display_px = [display_width, display_height];
+            let extra_px = [screen_width - display_width, screen_height - display_height];
+
+            (display_px, extra_px)
+        };
 
         let uniforms =
             uniform! {
                 tex: &texture,
                 tile_count: [display_size.x as f32, display_size.y as f32],
-                display_px: [display_width, display_height],
-                extra_px: [extra_width, extra_height],
+                display_px: display_px,
+                extra_px: extra_px,
                 texture_gl_dimensions: [1.0 / texture_tile_count_x,
                                         1.0 / texture_tile_count_y],
             };

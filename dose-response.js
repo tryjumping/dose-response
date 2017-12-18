@@ -19,6 +19,7 @@ var buffer_pointer;
 
 fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
   .then(response => response.arrayBuffer())
+
   .then(bytes => WebAssembly.instantiate(bytes, {
     env: {
       draw: function(ptr) {
@@ -39,6 +40,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
       }
     }
   }))
+
   .then(results => {
     console.log("The game has finished.");
     console.log(results);

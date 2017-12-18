@@ -386,11 +386,9 @@ pub fn initialise() {
 #[no_mangle]
 pub fn update() {
     // TODO update a frame here
-    ::std::time::Instant::now();  // NOTE:: this is crashing :-(
-
     match STATE.try_lock() {
-        Ok(mut state) => {
-            let state = state.take();
+        Ok(mut static_state) => {
+            let state = static_state.take();
             if let Some(state) = state {
                 let dt = std::time::Duration::new(0, 0);
                 let display_size = point::Point::new(0, 0);
@@ -400,7 +398,7 @@ pub fn update() {
                 let settings = engine::Settings{ fullscreen: false };
                 let mut drawcalls: Vec<engine::Draw> = vec![];
 
-                game::update(
+                let result = game::update(
                     state,
                     dt,
                     display_size,
@@ -410,9 +408,14 @@ pub fn update() {
                     settings,
                     &mut drawcalls,
                 );
+
+                if let Some((settings, state)) = result {
+                    static_state.get_or_insert(state);
+                }
             }
         }
         Err(state) => {
+            unreachable!()
         }
     }
 

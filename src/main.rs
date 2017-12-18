@@ -1,6 +1,7 @@
 #![deny(overflowing_literals, unsafe_code)]
 #![feature(conservative_impl_trait)]
 
+
 #[macro_use]
 extern crate bitflags;
 extern crate rand;
@@ -379,44 +380,93 @@ lazy_static! {
 
 
 #[no_mangle]
-pub fn initialise() {
+pub extern "C" fn initialise() -> *mut ::std::os::raw::c_void {
+    let mut buf: Vec<u8> = vec![21; 10];
+    let ptr = buf.as_mut_ptr();
 
+    #[allow(unsafe_code)]
+    unsafe {
+        let u8_ptr = ptr as *mut u8;
+        for i in 5..10 {
+            *u8_ptr.offset(i) = 55;
+        }
+    }
+
+    std::mem::forget(buf);
+
+    // NOTE(shadower): if you uncomment tihs, we won't be able to access the memory from Rust
+    //update_state();
+    ptr as _
+}
+
+extern "C" {
+    fn draw(nums: *const std::os::raw::c_void);
+}
+
+
+fn update_state() {
+
+    {
+        // TODO update a frame here
+        match STATE.try_lock() {
+            Ok(mut static_state) => {
+                let state = static_state.take();
+                if let Some(state) = state {
+                    let dt = std::time::Duration::new(0, 0);
+                    let display_size = point::Point::new(0, 0);
+                    let fps = 60;
+                    let keys: Vec<keys::Key> = vec![];
+                    let mouse: engine::Mouse = Default::default();
+                    let settings = engine::Settings{ fullscreen: false };
+                    let mut drawcalls: Vec<engine::Draw> = vec![];
+
+                    let state_mem_ptr = state.mem.as_ptr();
+
+
+                    let result = game::update(
+                        state,
+                        dt,
+                        display_size,
+                        fps,
+                        &keys,
+                        mouse,
+                        settings,
+                        &mut drawcalls,
+                    );
+
+                    if let Some((settings, state)) = result {
+                        static_state.get_or_insert(state);
+                    }
+
+
+                }
+            }
+            Err(state) => {
+                unreachable!()
+            }
+        }
+    }
 }
 
 #[no_mangle]
-pub fn update() {
-    // TODO update a frame here
-    match STATE.try_lock() {
-        Ok(mut static_state) => {
-            let state = static_state.take();
-            if let Some(state) = state {
-                let dt = std::time::Duration::new(0, 0);
-                let display_size = point::Point::new(0, 0);
-                let fps = 60;
-                let keys: Vec<keys::Key> = vec![];
-                let mouse: engine::Mouse = Default::default();
-                let settings = engine::Settings{ fullscreen: false };
-                let mut drawcalls: Vec<engine::Draw> = vec![];
+pub extern "C" fn update(ptr: *mut std::os::raw::c_void) {
+    let u8_ptr = ptr as *mut u8;
 
-                let result = game::update(
-                    state,
-                    dt,
-                    display_size,
-                    fps,
-                    &keys,
-                    mouse,
-                    settings,
-                    &mut drawcalls,
-                );
+    #[allow(unsafe_code)]
+    unsafe {
+        for i in 0..10 {
+            *u8_ptr.offset(i) = 42;
+        }
+        //draw(state_mem_ptr as *mut std::os::raw::c_void);
+    }
 
-                if let Some((settings, state)) = result {
-                    static_state.get_or_insert(state);
-                }
-            }
-        }
-        Err(state) => {
-            unreachable!()
-        }
+    // NOTE(shadower): this must happen *after* we've updated the
+    // memory. Otherwise it doesn't overwrite the pointer's contents.
+    update_state();
+
+    #[allow(unsafe_code)]
+    unsafe {
+        draw(ptr);
     }
 
 }

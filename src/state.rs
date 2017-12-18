@@ -82,6 +82,7 @@ pub struct Verification {
 
 pub struct State {
     pub player: Player,
+    pub mem: Vec<u8>,
     pub explosion_animation: Option<Box<AreaOfEffect>>,
 
     /// The actual size of the game world in tiles. Could be infinite
@@ -159,6 +160,7 @@ impl State {
 
         State {
             player: Player::new(player_position, invincible),
+            mem: vec![23; 20],
             explosion_animation: None,
             chunk_size: 32,
             world_size,

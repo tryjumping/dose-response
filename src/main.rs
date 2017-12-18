@@ -352,37 +352,44 @@ fn process_cli_and_run_game(
     // TODO: run the game here
 }
 
-#[cfg(feature = "web")]
-lazy_static! {
-    static ref STATE: Mutex<Option<State>> = {
-        // NOTE: at our current font, the height of 43 is the maximum
-        // value for 1336x768 monitors.
-        let map_size = 43;
-        let panel_width = 20;
-        let display_size = (map_size + panel_width, map_size).into();
-        // NOTE: 2 ^ 30
-        let world_size = (1_073_741_824, 1_073_741_824).into();
-        let title = "Dose Response";
-
-        let state =  State::new_game(
-            world_size,
-            map_size,
-            panel_width,
-            display_size,
-            false,  // exit-after
-            None,  // replay file
-            false,  // invincible
-        );
-
-        Mutex::new(Some(state))
-    };
-}
+// #[cfg(feature = "web")]
+// static mut STATE: Option<State> = None;
 
 
 #[no_mangle]
 pub extern "C" fn initialise() -> *mut ::std::os::raw::c_void {
+
+
+    let state = {
+        // NOTE: at our current font, the height of 43 is the maximum
+        // value for 1336x768 monitors.
+        let map_size = 43;
+        let panel_width = 20;
+        let display_size: point::Point = (map_size + panel_width, map_size).into();
+        // NOTE: 2 ^ 30
+        let world_size: point::Point = (1_073_741_824, 1_073_741_824).into();
+        let title = "Dose Response";
+
+        // State::new_game(
+        //     world_size,
+        //     map_size,
+        //     panel_width,
+        //     display_size,
+        //     false,  // exit-after
+        //     None,  // replay file
+        //     false,  // invincible
+        // )
+            
+    };
+
     let mut buf: Vec<u8> = vec![21; 10];
     let ptr = buf.as_mut_ptr();
+
+    #[allow(unsafe_code)]
+    unsafe {
+        //STATE.get_or_insert(state);
+    }
+
 
     #[allow(unsafe_code)]
     unsafe {
@@ -395,7 +402,7 @@ pub extern "C" fn initialise() -> *mut ::std::os::raw::c_void {
     std::mem::forget(buf);
 
     // NOTE(shadower): if you uncomment tihs, we won't be able to access the memory from Rust
-    //update_state();
+    update_state();
     ptr as _
 }
 
@@ -407,44 +414,44 @@ extern "C" {
 fn update_state() {
 
     {
-        // TODO update a frame here
-        match STATE.try_lock() {
-            Ok(mut static_state) => {
-                let state = static_state.take();
-                if let Some(state) = state {
-                    let dt = std::time::Duration::new(0, 0);
-                    let display_size = point::Point::new(0, 0);
-                    let fps = 60;
-                    let keys: Vec<keys::Key> = vec![];
-                    let mouse: engine::Mouse = Default::default();
-                    let settings = engine::Settings{ fullscreen: false };
-                    let mut drawcalls: Vec<engine::Draw> = vec![];
+        // // TODO update a frame here
+        // match STATE.try_lock() {
+        //     Ok(mut static_state) => {
+        //         // let state = static_state.take();
+        //         // if let Some(state) = state {
+        //         //     let dt = std::time::Duration::new(0, 0);
+        //         //     let display_size = point::Point::new(0, 0);
+        //         //     let fps = 60;
+        //         //     let keys: Vec<keys::Key> = vec![];
+        //         //     let mouse: engine::Mouse = Default::default();
+        //         //     let settings = engine::Settings{ fullscreen: false };
+        //         //     let mut drawcalls: Vec<engine::Draw> = vec![];
 
-                    let state_mem_ptr = state.mem.as_ptr();
-
-
-                    let result = game::update(
-                        state,
-                        dt,
-                        display_size,
-                        fps,
-                        &keys,
-                        mouse,
-                        settings,
-                        &mut drawcalls,
-                    );
-
-                    if let Some((settings, state)) = result {
-                        static_state.get_or_insert(state);
-                    }
+        //         //     let state_mem_ptr = state.mem.as_ptr();
 
 
-                }
-            }
-            Err(state) => {
-                unreachable!()
-            }
-        }
+        //         //     let result = game::update(
+        //         //         state,
+        //         //         dt,
+        //         //         display_size,
+        //         //         fps,
+        //         //         &keys,
+        //         //         mouse,
+        //         //         settings,
+        //         //         &mut drawcalls,
+        //         //     );
+
+        //         //     if let Some((settings, state)) = result {
+        //         //         static_state.get_or_insert(state);
+        //         //     }
+        //         // }
+        //         drop(static_state);
+
+        //     }
+        //     Err(state) => {
+        //         unreachable!()
+        //     }
+        // }
     }
 }
 

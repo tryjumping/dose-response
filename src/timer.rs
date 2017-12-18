@@ -50,15 +50,18 @@ impl Timer {
 }
 
 pub struct Stopwatch {
-    start: Instant,
+    //start: Instant,
 }
 
 impl Stopwatch {
     pub fn start() -> Self {
-        Stopwatch { start: Instant::now() }
+        Stopwatch {
+            //start: Instant::now()
+        }
     }
 
     pub fn finish(self) -> Duration {
-        Instant::now().duration_since(self.start)
+        //Instant::now().duration_since(self.start)
+        Duration::new(0, 0)
     }
 }

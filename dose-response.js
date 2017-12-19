@@ -26,11 +26,11 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
         console.log("Called draw with:", arguments);
         console.log("ptr: ", ptr, "len: ", len);
 
-        memory = new Uint8Array(wasm_instance.exports.memory.buffer);
+        memory = new Uint8Array(wasm_instance.exports.memory.buffer, ptr, len);
         console.log("memory:", memory);
 
-        for(var i = 0; i < len; i++) {
-          console.log("arr[ptr]:", memory[ptr + i]);
+        for(let n of memory.values()) {
+          console.log(n);
         }
 
       }

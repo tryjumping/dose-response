@@ -157,7 +157,7 @@ fn run_opengl(
     _default_background: color::Color,
     _window_title: &str,
     _state: State,
-    _update: engine::UpdateFn<State>,
+    _update: engine::UpdateFn,
 ) {
     println!("The \"opengl\" feature was not compiled in.");
 }
@@ -343,7 +343,7 @@ fn process_cli_and_run_game(
     _panel_width: i32,
     _default_background: color::Color,
     _title: &str,
-    _update: engine::UpdateFn<State>,
+    _update: engine::UpdateFn,
 ) {
     // TODO: run the game here
 }

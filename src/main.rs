@@ -405,8 +405,24 @@ pub fn update(state_ptr: *mut State) {
     );
 
 
-    //  TODO: put the data from real drawcalls here
-    let js_drawcalls = vec![42; 10];
+    // Each "drawcall" will be 6 u8 values: x, y, char, r, g, b
+    let mut js_drawcalls = Vec::with_capacity(drawcalls.len() * 6);
+    for dc in &drawcalls {
+        match dc {
+            &engine::Draw::Char(point, glyph, color) => {
+                assert!(point.x >= 0 && point.x < 255);
+                assert!(point.y >= 0 && point.y < 255);
+                assert!(glyph.is_ascii());
+                js_drawcalls.push(point.x as u8);
+                js_drawcalls.push(point.y as u8);
+                js_drawcalls.push(glyph as u8);
+                js_drawcalls.push(color.r);
+                js_drawcalls.push(color.g);
+                js_drawcalls.push(color.b);
+            }
+            _ => {}  // TODO
+        }
+    }
 
     #[allow(unsafe_code)]
     unsafe {

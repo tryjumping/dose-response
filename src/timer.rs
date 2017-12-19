@@ -1,4 +1,6 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
+#[cfg(not(feature = "web"))]
+use std::time::Instant;
 
 use util;
 
@@ -50,18 +52,24 @@ impl Timer {
 }
 
 pub struct Stopwatch {
-    //start: Instant,
+    #[cfg(not(feature = "web"))]
+    start: Instant,
 }
 
 impl Stopwatch {
     pub fn start() -> Self {
         Stopwatch {
-            //start: Instant::now()
+            #[cfg(not(feature = "web"))]
+            start: Instant::now()
         }
     }
 
     pub fn finish(self) -> Duration {
-        //Instant::now().duration_since(self.start)
-        Duration::new(0, 0)
+        #[cfg(not(feature = "web"))]
+        return Instant::now().duration_since(self.start);
+
+        // TODO: make this work for the web as well!
+        #[cfg(feature = "web")]
+        return Duration::new(0, 0);
     }
 }

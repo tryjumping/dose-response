@@ -15,8 +15,6 @@ extern crate clap;
 #[cfg(feature = "replay")]
 extern crate chrono;
 
-#[cfg(feature = "web")]
-
 #[macro_use]
 #[cfg(feature = "opengl")]
 extern crate glium;

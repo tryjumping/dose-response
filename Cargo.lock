@@ -321,7 +321,6 @@ dependencies = [
  "clap 2.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glium 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.12.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston_window 0.63.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.4.0-pre.0 (git+https://github.com/rust-lang-nursery/rand)",
  "rustbox 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",

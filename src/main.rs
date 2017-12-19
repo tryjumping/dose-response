@@ -349,7 +349,7 @@ fn process_cli_and_run_game(
 
 
 #[no_mangle]
-pub extern "C" fn initialise() -> *mut State {
+pub fn initialise() -> *mut State {
     let mut state = {
         // NOTE: at our current font, the height of 43 is the maximum
         // value for 1336x768 monitors.
@@ -371,22 +371,16 @@ pub extern "C" fn initialise() -> *mut State {
         ))
     };
 
-    // NOTE(shadower): if you uncomment tihs, we won't be able to access the memory from Rust
-    update_state(&mut state);
     Box::into_raw(state)
 }
 
-extern "C" {
+extern {
     fn draw(nums: *const u8, len: usize);
 }
 
 
-fn update_state(state: &mut State) {
-}
-
-
 #[no_mangle]
-pub extern "C" fn update(state_ptr: *mut State) {
+pub fn update(state_ptr: *mut State) {
     #[allow(unsafe_code)]
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 

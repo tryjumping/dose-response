@@ -1,6 +1,6 @@
 var width = 63;
 var height = 43;
-var squareSize = 10;
+var squareSize = 16;
 var c = document.createElement('canvas');
 
 c.width = width*squareSize;
@@ -9,7 +9,7 @@ document.body.append(c);
 
 var ctx = c.getContext('2d');
 ctx.textAlign = "center";
-ctx.font = '12px arial';
+ctx.font = '16px arial';
 
 var wasm_instance;
 var gamestate_ptr;

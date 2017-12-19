@@ -379,53 +379,11 @@ pub extern "C" fn initialise() -> *mut State {
 }
 
 extern "C" {
-    fn draw(nums: *const u8, len: usize, counter: i32);
+    fn draw(nums: *const u8, len: usize);
 }
 
 
 fn update_state(state: &mut State) {
-    state.turn += 1;
-
-    {
-        // // TODO update a frame here
-        // match STATE.try_lock() {
-        //     Ok(mut static_state) => {
-        //         // let state = static_state.take();
-        //         // if let Some(state) = state {
-        //         //     let dt = std::time::Duration::new(0, 0);
-        //         //     let display_size = point::Point::new(0, 0);
-        //         //     let fps = 60;
-        //         //     let keys: Vec<keys::Key> = vec![];
-        //         //     let mouse: engine::Mouse = Default::default();
-        //         //     let settings = engine::Settings{ fullscreen: false };
-        //         //     let mut drawcalls: Vec<engine::Draw> = vec![];
-
-        //         //     let state_mem_ptr = state.mem.as_ptr();
-
-
-        //         //     let result = game::update(
-        //         //         state,
-        //         //         dt,
-        //         //         display_size,
-        //         //         fps,
-        //         //         &keys,
-        //         //         mouse,
-        //         //         settings,
-        //         //         &mut drawcalls,
-        //         //     );
-
-        //         //     if let Some((settings, state)) = result {
-        //         //         static_state.get_or_insert(state);
-        //         //     }
-        //         // }
-        //         drop(static_state);
-
-        //     }
-        //     Err(state) => {
-        //         unreachable!()
-        //     }
-        // }
-    }
 }
 
 
@@ -434,16 +392,33 @@ pub extern "C" fn update(state_ptr: *mut State) {
     #[allow(unsafe_code)]
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 
-    update_state(&mut state);
-    let counter = state.turn;
 
-    //  TODO: put some actual data here
-    let mut drawcalls = vec![42; 10];
-    drawcalls.push(counter as u8);
+    let dt = std::time::Duration::new(0, 0);
+    let display_size = point::Point::new(0, 0);
+    let fps = 60;
+    let keys: Vec<keys::Key> = vec![];
+    let mouse: engine::Mouse = Default::default();
+    let mut settings = engine::Settings{ fullscreen: false };
+    let mut drawcalls: Vec<engine::Draw> = vec![];
+
+    let result = game::update(
+        &mut state,
+        dt,
+        display_size,
+        fps,
+        &keys,
+        mouse,
+        &mut settings,
+        &mut drawcalls,
+    );
+
+
+    //  TODO: put the data from real drawcalls here
+    let js_drawcalls = vec![42; 10];
 
     #[allow(unsafe_code)]
     unsafe {
-        draw(drawcalls.as_ptr(), drawcalls.len(), counter);
+        draw(js_drawcalls.as_ptr(), js_drawcalls.len());
     }
 
     std::mem::forget(state);

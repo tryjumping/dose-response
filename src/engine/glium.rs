@@ -2,6 +2,8 @@ use self::vertex::Vertex;
 
 use color::Color;
 use engine::{Draw, Settings, UpdateFn};
+use game::RunningState;
+use state::State;
 
 use glium::{self, Surface};
 use glium::draw_parameters::DrawParameters;
@@ -145,12 +147,12 @@ mod vertex {
 }
 
 
-pub fn main_loop<T>(
+pub fn main_loop(
     display_size: Point,
     default_background: Color,
     window_title: &str,
-    mut state: T,
-    update: UpdateFn<T>,
+    mut state: State,
+    update: UpdateFn,
 ) {
     // TODO: don't hardcode this value -- calculate it from the tilemap.
     let tilesize = 16;
@@ -201,14 +203,6 @@ pub fn main_loop<T>(
     let texture_tile_count_x = tex_width_px as f32 / tilesize as f32;
     let texture_tile_count_y = tex_height_px as f32 / tilesize as f32;
 
-    let uniforms =
-        uniform! {
-        tex: &texture,
-        world_dimensions: [display_size.x as f32, display_size.y as f32],
-        texture_gl_dimensions: [1.0 / texture_tile_count_x,
-                                1.0 / texture_tile_count_y],
-    };
-
 
     // Main loop
     let mut window_pos = {
@@ -258,22 +252,25 @@ pub fn main_loop<T>(
             default_background,
         ));
         let previous_settings = settings;
-        match update(
-            state,
+        let update_result = update(
+            &mut state,
             dt,
             display_size,
             fps,
             &keys,
             mouse,
-            settings,
+            &mut settings,
             &mut drawcalls,
-        ) {
-            Some((new_settings, new_state)) => {
+        );
+
+        match update_result {
+            RunningState::Running => {}
+            RunningState::NewGame(new_state) => {
                 state = new_state;
-                settings = new_settings;
             }
-            None => break,
-        };
+            RunningState::Stopped => break,
+        }
+
         keys.clear();
 
         if previous_settings.fullscreen != settings.fullscreen {
@@ -552,6 +549,44 @@ pub fn main_loop<T>(
 
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
 
+        // Calculate the dimensions to provide the largest display
+        // area while maintaining the aspect ratio (and letterbox the
+        // display).
+        let (display_px, extra_px) = {
+            let screen_width = screen_width as f32;
+            let screen_height = screen_height as f32;
+
+            let native_display_width = display_size.x as f32 * tilesize as f32;
+            let native_display_height = display_size.y as f32 * tilesize as f32;
+
+            let expected_height = native_display_height * screen_width / native_display_width;
+            let (display_width, display_height) = if screen_height >= expected_height {
+                (screen_width, expected_height)
+            } else {
+                let coef = screen_height / native_display_height;
+                (native_display_width * coef, screen_height)
+            };
+
+            let display_px = [display_width, display_height];
+            let extra_px = [screen_width - display_width, screen_height - display_height];
+
+            (display_px, extra_px)
+        };
+
+        // TODO: Once we support multiple font sizes, we can adjust it
+        // here. We could also potentially only allow resizes in steps
+        // that would result in crisp text (i.e. no font resizing on
+        // the GL side).
+
+        let uniforms =
+            uniform! {
+                tex: &texture,
+                tile_count: [display_size.x as f32, display_size.y as f32],
+                display_px: display_px,
+                extra_px: extra_px,
+                texture_gl_dimensions: [1.0 / texture_tile_count_x,
+                                        1.0 / texture_tile_count_y],
+            };
 
         // Render
         let mut target = display.draw();

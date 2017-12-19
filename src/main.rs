@@ -117,7 +117,7 @@ fn run_piston(
     _window_title: &str,
     _font_path: &Path,
     _state: State,
-    _update: engine::UpdateFn<State>,
+    _update: engine::UpdateFn,
 ) {
     println!("The \"piston\" feature was not compiled in.");
 }
@@ -139,7 +139,7 @@ fn run_opengl(
     default_background: color::Color,
     window_title: &str,
     state: State,
-    update: engine::UpdateFn<State>,
+    update: engine::UpdateFn,
 ) {
     println!("Using the default backend: opengl");
     engine::glium::main_loop(
@@ -185,7 +185,7 @@ fn run_remote(
     _default_background: color::Color,
     _window_title: &str,
     _state: State,
-    _update: engine::UpdateFn<State>,
+    _update: engine::UpdateFn,
 ) {
     println!("The \"remote\" feature was not compiled in.");
 }
@@ -199,7 +199,7 @@ fn process_cli_and_run_game(
     panel_width: i32,
     default_background: color::Color,
     title: &str,
-    update: engine::UpdateFn<State>,
+    update: engine::UpdateFn,
 ) {
     use clap::{App, Arg, ArgGroup};
 

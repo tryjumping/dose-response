@@ -325,7 +325,7 @@ impl Iterator for XIterator {
 }
 
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct ScreenFade {
     pub color: Color,
     pub fade_out_time: Duration,

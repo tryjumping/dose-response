@@ -23,8 +23,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
   .then(bytes => WebAssembly.instantiate(bytes, {
     env: {
       draw: function(ptr, len) {
-        console.log("Called draw with:", arguments);
-        console.log("ptr: ", ptr, "len: ", len);
+        console.log("Called draw with ptr:", ptr, "len:", len);
 
         memory = new Uint8Array(wasm_instance.exports.memory.buffer, ptr, len);
         console.log("memory:", memory);

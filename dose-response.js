@@ -13,8 +13,8 @@ var ctx = c.getContext('2d');
 ctx.textAlign = "center";
 ctx.font = '12px arial';
 
-var rust_memory;
-var buffer_pointer;
+var wasm_instance;
+var gamestate_ptr;
 
 
 fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
@@ -22,19 +22,15 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
 
   .then(bytes => WebAssembly.instantiate(bytes, {
     env: {
-      draw: function(ptr) {
+      draw: function(ptr, len, counter) {
         console.log("Called draw with:", arguments);
-        console.log("ptr: ", ptr);
-        console.log("rust mem:", rust_memory);
+        console.log("ptr: ", ptr, "len: ", len);
 
+        memory = new Uint8Array(wasm_instance.exports.memory.buffer);
+        console.log("memory:", memory);
 
-        for(var i = 0; i < 10; i++) {
-          console.log("arr[ptr]:", rust_memory[(ptr) + i]);
-        }
-
-        console.log("buffer pointer: ", buffer_pointer);
-        for(var i = 0; i < 10; i++) {
-          console.log("arr[buffer_pointer]:", rust_memory[(buffer_pointer) + i]);
+        for(var i = 0; i < len; i++) {
+          console.log("arr[ptr]:", memory[ptr + i]);
         }
 
       }
@@ -45,18 +41,18 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
     console.log("The game has finished.");
     console.log(results);
     console.log(results.module);
-    rust_memory = new Uint8Array(results.instance.exports.memory.buffer);
-    let buffer_ptr = results.instance.exports.initialise();
-    rust_memory[buffer_ptr+1] = 22;
+    wasm_instance = results.instance;
+    gamestate_ptr = results.instance.exports.initialise();
     console.log("The game is initialised.");
-    console.log("Buffer pointer:", buffer_ptr);
-    buffer_pointer = buffer_ptr;
-    results.instance.exports.update(buffer_ptr);
+    console.log("Gamestate pointer:", gamestate_ptr);
+
+
+    results.instance.exports.update(gamestate_ptr);
 
     function update() {
       //window.requestAnimationFrame(update);
       //console.log("calling update");
-      results.instance.exports.update(buffer_ptr);
+      results.instance.exports.update(gamestate_ptr);
       //console.log("called update");
     }
     update();

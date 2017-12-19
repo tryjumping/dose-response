@@ -16,8 +16,6 @@ extern crate clap;
 extern crate chrono;
 
 #[cfg(feature = "web")]
-#[macro_use]
-extern crate lazy_static;
 
 #[macro_use]
 #[cfg(feature = "opengl")]
@@ -40,8 +38,6 @@ extern crate zmq;
 
 use state::State;
 use std::path::Path;
-#[cfg(feature = "web")]
-use std::sync::Mutex;
 
 mod ai;
 mod animation;
@@ -352,15 +348,11 @@ fn process_cli_and_run_game(
     // TODO: run the game here
 }
 
-// #[cfg(feature = "web")]
-// static mut STATE: Option<State> = None;
 
 
 #[no_mangle]
-pub extern "C" fn initialise() -> *mut ::std::os::raw::c_void {
-
-
-    let state = {
+pub extern "C" fn initialise() -> *mut State {
+    let mut state = {
         // NOTE: at our current font, the height of 43 is the maximum
         // value for 1336x768 monitors.
         let map_size = 43;
@@ -368,50 +360,31 @@ pub extern "C" fn initialise() -> *mut ::std::os::raw::c_void {
         let display_size: point::Point = (map_size + panel_width, map_size).into();
         // NOTE: 2 ^ 30
         let world_size: point::Point = (1_073_741_824, 1_073_741_824).into();
-        let title = "Dose Response";
+        let _title = "Dose Response";
 
-        // State::new_game(
-        //     world_size,
-        //     map_size,
-        //     panel_width,
-        //     display_size,
-        //     false,  // exit-after
-        //     None,  // replay file
-        //     false,  // invincible
-        // )
-            
+        Box::new(State::new_game(
+            world_size,
+            map_size,
+            panel_width,
+            display_size,
+            false,  // exit-after
+            None,  // replay file
+            false,  // invincible
+        ))
     };
 
-    let mut buf: Vec<u8> = vec![21; 10];
-    let ptr = buf.as_mut_ptr();
-
-    #[allow(unsafe_code)]
-    unsafe {
-        //STATE.get_or_insert(state);
-    }
-
-
-    #[allow(unsafe_code)]
-    unsafe {
-        let u8_ptr = ptr as *mut u8;
-        for i in 5..10 {
-            *u8_ptr.offset(i) = 55;
-        }
-    }
-
-    std::mem::forget(buf);
-
     // NOTE(shadower): if you uncomment tihs, we won't be able to access the memory from Rust
-    update_state();
-    ptr as _
+    update_state(&mut state);
+    Box::into_raw(state)
 }
 
 extern "C" {
-    fn draw(nums: *const std::os::raw::c_void);
+    fn draw(nums: *const u8, len: usize, counter: i32);
 }
 
 
-fn update_state() {
+fn update_state(state: &mut State) {
+    state.turn += 1;
 
     {
         // // TODO update a frame here
@@ -455,40 +428,38 @@ fn update_state() {
     }
 }
 
+
 #[no_mangle]
-pub extern "C" fn update(ptr: *mut std::os::raw::c_void) {
-    let u8_ptr = ptr as *mut u8;
+pub extern "C" fn update(state_ptr: *mut State) {
+    #[allow(unsafe_code)]
+    let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
+
+    update_state(&mut state);
+    let counter = state.turn;
+
+    //  TODO: put some actual data here
+    let mut drawcalls = vec![42; 10];
+    drawcalls.push(counter as u8);
 
     #[allow(unsafe_code)]
     unsafe {
-        for i in 0..10 {
-            *u8_ptr.offset(i) = 42;
-        }
-        //draw(state_mem_ptr as *mut std::os::raw::c_void);
+        draw(drawcalls.as_ptr(), drawcalls.len(), counter);
     }
 
-    // NOTE(shadower): this must happen *after* we've updated the
-    // memory. Otherwise it doesn't overwrite the pointer's contents.
-    update_state();
-
-    #[allow(unsafe_code)]
-    unsafe {
-        draw(ptr);
-    }
-
+    std::mem::forget(state);
 }
 
 
 fn main() {
     // NOTE: at our current font, the height of 43 is the maximum
     // value for 1336x768 monitors.
-    let map_size = 43;
-    let panel_width = 20;
-    let display_size = (map_size + panel_width, map_size).into();
-    // NOTE: 2 ^ 30
-    let world_size = (1_073_741_824, 1_073_741_824).into();
-    let title = "Dose Response";
+    // let map_size = 43;
+    // let panel_width = 20;
+    // let display_size = (map_size + panel_width, map_size).into();
+    // // NOTE: 2 ^ 30
+    // let world_size = (1_073_741_824, 1_073_741_824).into();
+    // let title = "Dose Response";
 
-    process_cli_and_run_game(display_size, world_size, map_size, panel_width,
-                             color::background, title, game::update);
+    // process_cli_and_run_game(display_size, world_size, map_size, panel_width,
+    //                          color::background, title, game::update);
 }

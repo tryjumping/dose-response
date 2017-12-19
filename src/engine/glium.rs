@@ -2,6 +2,8 @@ use self::vertex::Vertex;
 
 use color::Color;
 use engine::{Draw, Settings, UpdateFn};
+use game::RunningState;
+use state::State;
 
 use glium::{self, Surface};
 use glium::draw_parameters::DrawParameters;
@@ -145,12 +147,12 @@ mod vertex {
 }
 
 
-pub fn main_loop<T>(
+pub fn main_loop(
     display_size: Point,
     default_background: Color,
     window_title: &str,
-    mut state: T,
-    update: UpdateFn<T>,
+    mut state: State,
+    update: UpdateFn,
 ) {
     // TODO: don't hardcode this value -- calculate it from the tilemap.
     let tilesize = 16;
@@ -250,22 +252,25 @@ pub fn main_loop<T>(
             default_background,
         ));
         let previous_settings = settings;
-        match update(
-            state,
+        let update_result = update(
+            &mut state,
             dt,
             display_size,
             fps,
             &keys,
             mouse,
-            settings,
+            &mut settings,
             &mut drawcalls,
-        ) {
-            Some((new_settings, new_state)) => {
+        );
+
+        match update_result {
+            RunningState::Running => {}
+            RunningState::NewGame(new_state) => {
                 state = new_state;
-                settings = new_settings;
             }
-            None => break,
-        };
+            RunningState::Stopped => break,
+        }
+
         keys.clear();
 
         if previous_settings.fullscreen != settings.fullscreen {

@@ -35,16 +35,23 @@ pub enum Action {
 }
 
 
+pub enum RunningState {
+    Running,
+    Stopped,
+    NewGame(State),
+}
+
+
 pub fn update(
-    mut state: State,
+    state: &mut State,
     dt: Duration,
     _display_size: Point,
     fps: i32,
     new_keys: &[Key],
     mouse: Mouse,
-    mut settings: Settings,
+    settings: &mut Settings,
     drawcalls: &mut Vec<Draw>,
-) -> Option<(Settings, State)> {
+) -> RunningState {
     let update_stopwatch = Stopwatch::start();
     state.clock = state.clock + dt;
     state.replay_step = state.replay_step + dt;
@@ -59,7 +66,7 @@ pub fn update(
                   (!state.player.alive() && state.screen_fading.is_none())))
     {
         show_exit_stats(&state.stats);
-        return None;
+        return RunningState::Stopped;
     }
 
     // Restart the game on F5
@@ -73,7 +80,7 @@ pub fn update(
             state::generate_replay_path(),
             state.player.invincible,
         );
-        return Some((settings, state));
+        return RunningState::NewGame(state);
     }
 
     // Full screen on Alt-Enter
@@ -137,7 +144,7 @@ pub fn update(
         let command_count = state.commands.len();
 
         // NOTE: Process player
-        process_player(&mut state, simulation_area);
+        process_player(state, simulation_area);
 
         // NOTE: Process monsters
         if state.player.ap() <= 0 && state.explosion_animation.is_none() {
@@ -245,14 +252,16 @@ pub fn update(
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     // NOTE: update the dose/food explosion animations
-    state.explosion_animation = state.explosion_animation.and_then(|mut animation| {
-        animation.update(dt);
-        if animation.finished() {
-            None
-        } else {
-            Some(animation)
-        }
-    });
+    state.explosion_animation = state.explosion_animation
+        .take()
+        .and_then(|mut animation| {
+            animation.update(dt);
+            if animation.finished() {
+                None
+            } else {
+                Some(animation)
+            }
+        });
 
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
@@ -317,7 +326,7 @@ pub fn update(
         update: update_duration,
         drawcalls: drawcall_duration,
     });
-    Some((settings, state))
+    RunningState::Running
 }
 
 

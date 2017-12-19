@@ -1,8 +1,8 @@
-
-
 use color::Color;
+use game::RunningState;
 use keys::Key;
 use point::Point;
+use state::State;
 use std::borrow::Cow;
 
 use std::time::Duration;
@@ -64,15 +64,15 @@ pub struct Settings {
 }
 
 
-pub type UpdateFn<T> = fn(T,
-                          dt: Duration,
-                          size: Point,
-                          fps: i32,
-                          keys: &[Key],
-                          mouse: Mouse,
-                          settings: Settings,
-                          drawcalls: &mut Vec<Draw>)
-                          -> Option<(Settings, T)>;
+pub type UpdateFn = fn(&mut State,
+                       dt: Duration,
+                       size: Point,
+                       fps: i32,
+                       keys: &[Key],
+                       mouse: Mouse,
+                       settings: &mut Settings,
+                       drawcalls: &mut Vec<Draw>)
+                       -> RunningState;
 
 
 // NOTE:

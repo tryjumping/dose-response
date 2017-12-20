@@ -409,12 +409,12 @@ pub fn update(state_ptr: *mut State) {
     let mut js_drawcalls = Vec::with_capacity(drawcalls.len() * 6);
     for dc in &drawcalls {
         match dc {
-            &engine::Draw::Char(point, glyph, color) => {
-                assert!(point.x >= 0 && point.x < 255);
-                assert!(point.y >= 0 && point.y < 255);
+            &engine::Draw::Char(pos, glyph, color) => {
+                assert!(pos.x >= 0 && pos.x < 255);
+                assert!(pos.y >= 0 && pos.y < 255);
                 assert!(glyph.is_ascii());
-                js_drawcalls.push(point.x as u8);
-                js_drawcalls.push(point.y as u8);
+                js_drawcalls.push(pos.x as u8);
+                js_drawcalls.push(pos.y as u8);
                 js_drawcalls.push(glyph as u8);
                 js_drawcalls.push(color.r);
                 js_drawcalls.push(color.g);

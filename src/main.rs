@@ -404,6 +404,7 @@ pub fn update(state_ptr: *mut State) {
         &mut drawcalls,
     );
 
+    engine::sort_drawcalls(&mut drawcalls, 0..);
 
     // Each "drawcall" will be 6 u8 values: x, y, char, r, g, b
     let mut js_drawcalls = Vec::with_capacity(drawcalls.len() * 6);

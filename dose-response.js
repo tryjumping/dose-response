@@ -138,7 +138,13 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
           let g = memory[i + 4];
           let b = memory[i + 5];
 
-          if(glyph === null) {
+          // NOTE: (255, 255) position means fade
+          if(x == 255 && y == 255) {
+            // NOTE: alpha is stored in the glyph position
+            let alpha = memory[i + 2] / 255;  // convert the "alpha" to <0, 1>
+            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            ctx.fillRect(0, 0, width * squareSize, height * squareSize);
+          } else if(glyph === null) {
             ctx.fillStyle = `rgb(${r},${g},${b})`;
             ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
           } else {

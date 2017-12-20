@@ -464,7 +464,19 @@ pub fn update(state_ptr: *mut State) {
                 js_drawcalls.push(color.b);
             }
 
-            _ => {}  // TODO
+            &engine::Draw::Fade(fade, color) => {
+                assert!(fade >= 0.0);
+                assert!(fade <= 1.0);
+                // NOTE: (255, 255) position means fade
+                js_drawcalls.push(255);
+                js_drawcalls.push(255);
+                // NOTE: fade value/alpha is stored in the glyph
+                js_drawcalls.push(((1.0 - fade) * 255.0) as u8);
+                js_drawcalls.push(color.r);
+                js_drawcalls.push(color.g);
+                js_drawcalls.push(color.b);
+            }
+
         }
     }
 

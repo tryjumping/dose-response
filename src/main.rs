@@ -436,13 +436,13 @@ pub fn update(state_ptr: *mut State) {
 fn main() {
     // NOTE: at our current font, the height of 43 is the maximum
     // value for 1336x768 monitors.
-    // let map_size = 43;
-    // let panel_width = 20;
-    // let display_size = (map_size + panel_width, map_size).into();
-    // // NOTE: 2 ^ 30
-    // let world_size = (1_073_741_824, 1_073_741_824).into();
-    // let title = "Dose Response";
+    let map_size = 43;
+    let panel_width = 20;
+    let display_size = (map_size + panel_width, map_size).into();
+    // NOTE: 2 ^ 30
+    let world_size = (1_073_741_824, 1_073_741_824).into();
+    let title = "Dose Response";
 
-    // process_cli_and_run_game(display_size, world_size, map_size, panel_width,
-    //                          color::background, title, game::update);
+    process_cli_and_run_game(display_size, world_size, map_size, panel_width,
+                             color::background, title, game::update);
 }

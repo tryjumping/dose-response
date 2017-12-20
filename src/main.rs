@@ -454,7 +454,6 @@ pub fn key_pressed(
     }
 
     std::mem::forget(state);
-
 }
 
 

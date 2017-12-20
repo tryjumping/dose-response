@@ -29,13 +29,11 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
   .then(bytes => WebAssembly.instantiate(bytes, {
     env: {
       draw: function(ptr, len) {
-        console.log("Called draw with ptr:", ptr, "len:", len);
         if(len % 6 != 0) {
           throw new Error("The drawcalls vector must have a multiple of 6 elements!");
         }
 
         memory = new Uint8Array(wasm_instance.exports.memory.buffer, ptr, len);
-        console.log("memory:", memory);
 
         for(let i = 0; i < len; i += 6) {
           let x = memory[i + 0];
@@ -47,7 +45,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
 
           ctx.fillStyle = `rgb(${r},${g},${b})`;
           ctx.clearRect(x * squareSize, y * squareSize, squareSize, squareSize);
-          ctx.fillText(glyph, x*squareSize + squareSize / 2, y*squareSize + squareSize / 2);
+          ctx.fillText(glyph, x * squareSize + squareSize / 2, y * squareSize + squareSize / 2);
         }
 
       }
@@ -61,21 +59,15 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
       keyqueue.push(event);
     });
 
-    console.log("The game has finished.");
     console.log(results);
-    console.log(results.module);
     wasm_instance = results.instance;
     gamestate_ptr = results.instance.exports.initialise();
     console.log("The game is initialised.");
     console.log("Gamestate pointer:", gamestate_ptr);
 
-
-    results.instance.exports.update(gamestate_ptr);
-
     function update() {
       //window.requestAnimationFrame(update);
-      //window.setTimeout(update, 100);
-      //console.log("calling update");
+      window.setTimeout(update, 100);
       for(let key of keyqueue) {
         var key_code = -1;
         if(key.key in keymap) {
@@ -89,9 +81,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
       keyqueue = [];
 
       results.instance.exports.update(gamestate_ptr);
-      //console.log("called update");
     }
     update();
-    window.requestAnimationFrame(update);
 
   });

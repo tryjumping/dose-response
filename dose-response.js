@@ -13,7 +13,7 @@ ctx.font = '16px arial';
 
 var wasm_instance;
 var gamestate_ptr;
-var keyqueue = [];
+var pressed_keys = [];
 
 const keymap = {
   ArrowUp: 0,
@@ -56,7 +56,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
 
     document.addEventListener('keydown', (event) => {
       console.log(event);
-      keyqueue.push(event);
+      pressed_keys.push(event);
     });
 
     console.log(results);
@@ -68,7 +68,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
     function update() {
       //window.requestAnimationFrame(update);
       window.setTimeout(update, 100);
-      for(let key of keyqueue) {
+      for(let key of pressed_keys) {
         var key_code = -1;
         if(key.key in keymap) {
           key_code = keymap[key.key];
@@ -78,7 +78,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
           key_code,
           key.ctrlKey, key.altKey, key.shiftKey, key.location);
       }
-      keyqueue = [];
+      pressed_keys = [];
 
       results.instance.exports.update(gamestate_ptr);
     }

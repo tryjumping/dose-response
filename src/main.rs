@@ -385,7 +385,7 @@ pub fn update(state_ptr: *mut State) {
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 
 
-    let dt = std::time::Duration::new(0, 0);
+    let dt = std::time::Duration::new(1, 0);
     let display_size = point::Point::new(0, 0);
     let fps = 60;
     let keys: Vec<keys::Key> = vec![];

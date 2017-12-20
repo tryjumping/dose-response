@@ -34,20 +34,6 @@ pub enum Draw {
     Fade(f32, Color),
 }
 
-
-// NOTE: This is designed specifically to deduplicated characters on
-// the same position (using Vec::dedup). So the only thing considered
-// equal are characters with the same pos value.
-impl PartialEq for Draw {
-    fn eq(&self, other: &Self) -> bool {
-        use engine::Draw::*;
-        match (self, other) {
-            (&Char(p1, ..), &Char(p2, ..)) => p1 == p2,
-            _ => false,
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Mouse {
     pub tile_pos: Point,
@@ -131,7 +117,16 @@ pub fn sort_drawcalls(drawcalls: &mut Vec<Draw>, range: RangeFrom<usize>) {
     // any given point, only the last specified drawcall of the
     // same kind will remain.
     drawcalls.reverse();
-    drawcalls.dedup();
+    drawcalls.dedup_by(|first, second| {
+        // NOTE: This is designed specifically to deduplicate
+        // characters on the same position (using Vec::dedup). So the
+        // only thing considered equal are characters with the same
+        // pos value.
+        match (first, second) {
+            (&mut Char(p1, ..), &mut Char(p2, ..)) => p1 == p2,
+            _ => false,
+        }
+    });
     drawcalls.reverse();
 }
 

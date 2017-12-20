@@ -164,8 +164,9 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
     console.log("The game is initialised.");
     console.log("Gamestate pointer:", gamestate_ptr);
 
-    function update() {
+    function update(timestamp) {
       //window.requestAnimationFrame(update);
+      //console.log(timestamp);
       window.setTimeout(update, 100);
       for(let key of pressed_keys) {
         var key_code = -1;

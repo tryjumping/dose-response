@@ -420,6 +420,22 @@ pub fn update(state_ptr: *mut State) {
                 js_drawcalls.push(color.g);
                 js_drawcalls.push(color.b);
             }
+
+            &engine::Draw::Text(start_pos, ref text, color) => {
+                for (i, glyph) in text.char_indices() {
+                    let pos = start_pos + (i as i32, 0);
+                    assert!(pos.x >= 0 && pos.x < 255);
+                    assert!(pos.y >= 0 && pos.y < 255);
+                    assert!(glyph.is_ascii());
+                    js_drawcalls.push(pos.x as u8);
+                    js_drawcalls.push(pos.y as u8);
+                    js_drawcalls.push(glyph as u8);
+                    js_drawcalls.push(color.r);
+                    js_drawcalls.push(color.g);
+                    js_drawcalls.push(color.b);
+                }
+            }
+
             _ => {}  // TODO
         }
     }

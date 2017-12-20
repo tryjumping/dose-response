@@ -125,17 +125,26 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
 
         memory = new Uint8Array(wasm_instance.exports.memory.buffer, ptr, len);
 
+        ctx.clearRect(0, 0, width * squareSize, height * squareSize);
+
         for(let i = 0; i < len; i += 6) {
           let x = memory[i + 0];
           let y = memory[i + 1];
-          let glyph = String.fromCharCode(memory[i + 2]);
+          var glyph = null;
+          if(memory[i + 2] != 0) {
+            glyph = String.fromCharCode(memory[i + 2]);
+          }
           let r = memory[i + 3];
           let g = memory[i + 4];
           let b = memory[i + 5];
 
-          ctx.fillStyle = `rgb(${r},${g},${b})`;
-          ctx.clearRect(x * squareSize, y * squareSize, squareSize, squareSize);
-          ctx.fillText(glyph, x * squareSize + squareSize / 2, y * squareSize + squareSize / 2);
+          if(glyph === null) {
+            ctx.fillStyle = `rgb(${r},${g},${b})`;
+            ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
+          } else {
+            ctx.fillStyle = `rgb(${r},${g},${b})`;
+            ctx.fillText(glyph, x * squareSize + squareSize / 2, y * squareSize + squareSize / 2);
+          }
         }
 
       }

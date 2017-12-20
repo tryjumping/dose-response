@@ -436,6 +436,33 @@ pub fn update(state_ptr: *mut State) {
                 }
             }
 
+            &engine::Draw::Rectangle(top_left, dimensions, color) => {
+                if dimensions.x > 0 && dimensions.y > 0 {
+                    let rect = rect::Rectangle::from_point_and_size(top_left, dimensions);
+                    for pos in rect.points() {
+                        assert!(pos.x >= 0 && pos.x < 255);
+                        assert!(pos.y >= 0 && pos.y < 255);
+                        js_drawcalls.push(pos.x as u8);
+                        js_drawcalls.push(pos.y as u8);
+                        js_drawcalls.push(0);
+                        js_drawcalls.push(color.r);
+                        js_drawcalls.push(color.g);
+                        js_drawcalls.push(color.b);
+                    }
+                }
+            }
+
+            &engine::Draw::Background(pos, color) => {
+                assert!(pos.x >= 0 && pos.x < 255);
+                assert!(pos.y >= 0 && pos.y < 255);
+                js_drawcalls.push(pos.x as u8);
+                js_drawcalls.push(pos.y as u8);
+                js_drawcalls.push(0);
+                js_drawcalls.push(color.r);
+                js_drawcalls.push(color.g);
+                js_drawcalls.push(color.b);
+            }
+
             _ => {}  // TODO
         }
     }

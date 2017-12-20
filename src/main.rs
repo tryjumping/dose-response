@@ -433,14 +433,12 @@ pub fn update(state_ptr: *mut State) {
 }
 
 #[no_mangle]
-pub extern "C" fn key_pressed(
+pub fn key_pressed(
     state_ptr: *mut State,
     external_code: i32,
     ctrl: bool, alt: bool, shift: bool, location: i32
 )
 {
-    use std::ffi::CStr;
-
     #[allow(unsafe_code)]
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 

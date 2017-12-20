@@ -380,12 +380,11 @@ extern {
 
 
 #[no_mangle]
-pub fn update(state_ptr: *mut State) {
+pub fn update(state_ptr: *mut State, dt_ms: u32) {
     #[allow(unsafe_code)]
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 
-
-    let dt = std::time::Duration::from_millis(100);
+    let dt = std::time::Duration::from_millis(dt_ms as u64);
     let display_size = point::Point::new(0, 0);
     let fps = 60;
     let keys: Vec<keys::Key> = vec![];

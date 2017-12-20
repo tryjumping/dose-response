@@ -170,10 +170,13 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
     console.log("The game is initialised.");
     console.log("Gamestate pointer:", gamestate_ptr);
 
+    var previous_frame_timestamp = 0;
+
     function update(timestamp) {
-      //window.requestAnimationFrame(update);
-      //console.log(timestamp);
-      window.setTimeout(update, 100);
+      window.requestAnimationFrame(update);
+      let dt = timestamp - previous_frame_timestamp;
+      previous_frame_timestamp = timestamp;
+
       for(let key of pressed_keys) {
         var key_code = -1;
         if(key.key in keymap) {
@@ -189,8 +192,8 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
       }
       pressed_keys = [];
 
-      results.instance.exports.update(gamestate_ptr);
+      results.instance.exports.update(gamestate_ptr, dt);
     }
-    update();
+    update(previous_frame_timestamp);
 
   });

@@ -432,6 +432,33 @@ pub fn update(state_ptr: *mut State) {
     std::mem::forget(state);
 }
 
+#[no_mangle]
+pub extern "C" fn key_pressed(
+    state_ptr: *mut State,
+    external_code: i32,
+    ctrl: bool, alt: bool, shift: bool, location: i32
+)
+{
+    use std::ffi::CStr;
+
+    #[allow(unsafe_code)]
+    let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
+
+    let code = match external_code {
+        0 => Some(keys::KeyCode::Up),
+        1 => Some(keys::KeyCode::Down),
+        2 => Some(keys::KeyCode::Left),
+        3 => Some(keys::KeyCode::Right),
+        _ => None,
+    };
+    if let Some(code) = code {
+        state.keys.push(keys::Key { code, alt, ctrl, shift});
+    }
+
+    std::mem::forget(state);
+
+}
+
 
 fn main() {
     // NOTE: at our current font, the height of 43 is the maximum

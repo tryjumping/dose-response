@@ -13,6 +13,14 @@ ctx.font = '16px arial';
 
 var wasm_instance;
 var gamestate_ptr;
+var keyqueue = [];
+
+const keymap = {
+  ArrowUp: 0,
+  ArrowDown: 1,
+  ArrowLeft: 2,
+  ArrowRight: 3
+};
 
 
 fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
@@ -47,6 +55,12 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
   }))
 
   .then(results => {
+
+    document.addEventListener('keydown', (event) => {
+      console.log(event);
+      keyqueue.push(event);
+    });
+
     console.log("The game has finished.");
     console.log(results);
     console.log(results.module);
@@ -60,7 +74,20 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
 
     function update() {
       //window.requestAnimationFrame(update);
+      //window.setTimeout(update, 100);
       //console.log("calling update");
+      for(let key of keyqueue) {
+        var key_code = -1;
+        if(key.key in keymap) {
+          key_code = keymap[key.key];
+        }
+        wasm_instance.exports.key_pressed(
+          gamestate_ptr,
+          key_code,
+          key.ctrlKey, key.altKey, key.shiftKey, key.location);
+      }
+      keyqueue = [];
+
       results.instance.exports.update(gamestate_ptr);
       //console.log("called update");
     }

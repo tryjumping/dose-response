@@ -442,19 +442,91 @@ pub fn key_pressed(
     #[allow(unsafe_code)]
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 
-    let code = match external_code {
-        0 => Some(keys::KeyCode::Up),
-        1 => Some(keys::KeyCode::Down),
-        2 => Some(keys::KeyCode::Left),
-        3 => Some(keys::KeyCode::Right),
-        _ => None,
-    };
+    let code = from_js_keycode(external_code);
     if let Some(code) = code {
         state.keys.push(keys::Key { code, alt, ctrl, shift});
     }
 
     std::mem::forget(state);
 }
+
+fn from_js_keycode(js_keycode: i32) -> Option<keys::KeyCode> {
+    use keys::KeyCode::*;
+    let map = [
+        D1,
+        D2,
+        D3,
+        D4,
+        D5,
+        D6,
+        D7,
+        D8,
+        D9,
+        D0,
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H,
+        I,
+        J,
+        K,
+        L,
+        M,
+        N,
+        O,
+        P,
+        Q,
+        R,
+        S,
+        T,
+        U,
+        V,
+        W,
+        X,
+        Y,
+        Z,
+        NumPad0,
+        NumPad1,
+        NumPad2,
+        NumPad3,
+        NumPad4,
+        NumPad5,
+        NumPad6,
+        NumPad7,
+        NumPad8,
+        NumPad9,
+        F1,
+        F2,
+        F3,
+        F4,
+        F5,
+        F6,
+        F7,
+        F8,
+        F9,
+        F10,
+        F11,
+        F12,
+        Left,
+        Right,
+        Up,
+        Down,
+        Enter,
+        Space,
+        Esc,
+    ];
+
+    if js_keycode >= 0 && (js_keycode as usize) < map.len() {
+        Some(map[js_keycode as usize])
+    } else {
+        None
+    }
+}
+
 
 
 fn main() {

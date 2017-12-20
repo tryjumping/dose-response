@@ -16,11 +16,101 @@ var gamestate_ptr;
 var pressed_keys = [];
 
 const keymap = {
-  ArrowUp: 0,
-  ArrowDown: 1,
-  ArrowLeft: 2,
-  ArrowRight: 3
+  "1": 0,
+  "2": 1,
+  "3": 2,
+  "4": 3,
+  "5": 4,
+  "6": 5,
+  "7": 6,
+  "8": 7,
+  "9": 8,
+  "0": 9,
+
+  "a": 10,
+  "b": 11,
+  "c": 12,
+  "d": 13,
+  "e": 14,
+  "f": 15,
+  "g": 16,
+  "h": 17,
+  "i": 18,
+  "j": 19,
+  "k": 20,
+  "l": 21,
+  "m": 22,
+  "n": 23,
+  "o": 24,
+  "p": 25,
+  "q": 26,
+  "r": 27,
+  "s": 28,
+  "t": 29,
+  "u": 30,
+  "v": 31,
+  "w": 32,
+  "x": 33,
+  "y": 34,
+  "z": 35,
+
+  // `event.key` is uppercase when shift is pressed. But our Rust code
+  // expects it to be the same as lowerase so we need to handle it
+  // specially:
+
+  "A": 10,
+  "B": 11,
+  "C": 12,
+  "D": 13,
+  "E": 14,
+  "F": 15,
+  "G": 16,
+  "H": 17,
+  "I": 18,
+  "J": 19,
+  "K": 20,
+  "L": 21,
+  "M": 22,
+  "N": 23,
+  "O": 24,
+  "P": 25,
+  "Q": 26,
+  "R": 27,
+  "S": 28,
+  "T": 29,
+  "U": 30,
+  "V": 31,
+  "W": 32,
+  "X": 33,
+  "Y": 34,
+  "Z": 35,
+
+  // Codes 36 - 45 are for the numpad
+
+  // Codes 46 - 57 are for the F keys
+
+  "ArrowLeft": 58,
+  "ArrowRight": 59,
+  "ArrowUp": 60,
+  "ArrowDown": 61,
+  "Enter": 62,
+  " ": 63,
+  "Escape": 64
 };
+
+const numpad_keymap = {
+  "Numpad0": 36,
+  "Numpad1": 37,
+  "Numpad2": 38,
+  "Numpad3": 39,
+  "Numpad4": 40,
+  "Numpad5": 41,
+  "Numpad6": 42,
+  "Numpad7": 43,
+  "Numpad8": 44,
+  "Numpad9": 45
+};
+
 
 
 fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
@@ -72,6 +162,9 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
         var key_code = -1;
         if(key.key in keymap) {
           key_code = keymap[key.key];
+        }
+        if(key.code.startsWith("Numpad")) {
+          key_code = numpad_keymap[key.code];
         }
         wasm_instance.exports.key_pressed(
           gamestate_ptr,

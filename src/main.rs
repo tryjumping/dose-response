@@ -436,7 +436,7 @@ pub fn update(state_ptr: *mut State) {
 pub fn key_pressed(
     state_ptr: *mut State,
     external_code: i32,
-    ctrl: bool, alt: bool, shift: bool, location: i32
+    ctrl: bool, alt: bool, shift: bool
 )
 {
     #[allow(unsafe_code)]

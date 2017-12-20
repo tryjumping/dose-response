@@ -76,7 +76,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
         wasm_instance.exports.key_pressed(
           gamestate_ptr,
           key_code,
-          key.ctrlKey, key.altKey, key.shiftKey, key.location);
+          key.ctrlKey, key.altKey, key.shiftKey);
       }
       pressed_keys = [];
 

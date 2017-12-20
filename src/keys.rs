@@ -137,4 +137,8 @@ impl Keys {
     pub fn extend<T: IntoIterator<Item = Key>>(&mut self, iterator: T) {
         self.keys.extend(iterator)
     }
+
+    pub fn push(&mut self, key: Key) {
+        self.keys.push_back(key);
+    }
 }

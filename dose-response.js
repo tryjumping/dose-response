@@ -160,15 +160,11 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
   .then(results => {
 
     document.addEventListener('keydown', (event) => {
-      console.log(event);
       pressed_keys.push(event);
     });
 
-    console.log(results);
     wasm_instance = results.instance;
     gamestate_ptr = results.instance.exports.initialise();
-    console.log("The game is initialised.");
-    console.log("Gamestate pointer:", gamestate_ptr);
 
     var previous_frame_timestamp = 0;
 

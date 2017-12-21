@@ -404,6 +404,14 @@ pub fn update(state_ptr: *mut State, dt_ms: u32) {
         &mut drawcalls,
     );
 
+    match result {
+        game::RunningState::Running => {}
+        game::RunningState::NewGame(new_state) => {
+            *state = new_state;
+        }
+        game::RunningState::Stopped => {},
+    }
+
     engine::sort_drawcalls(&mut drawcalls, 0..);
 
     // Each "drawcall" will be 6 u8 values: x, y, char, r, g, b

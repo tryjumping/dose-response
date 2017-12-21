@@ -376,6 +376,7 @@ pub fn initialise() -> *mut State {
 
 extern {
     fn draw(nums: *const u8, len: usize);
+    fn random() -> f32;
 }
 
 

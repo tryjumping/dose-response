@@ -118,6 +118,7 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
 
   .then(bytes => WebAssembly.instantiate(bytes, {
     env: {
+      random: Math.random,
       draw: function(ptr, len) {
         if(len % 6 != 0) {
           throw new Error("The drawcalls vector must have a multiple of 6 elements!");

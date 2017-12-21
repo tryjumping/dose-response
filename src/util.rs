@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use rand;
+
 
 /// The number of nanoseconds in a microsecond.
 const NANOS_PER_MICRO: u32 = 1000;
@@ -25,4 +27,18 @@ pub fn num_microseconds(duration: Duration) -> Option<u64> {
         return secs_part.checked_add(nanos_part as u64)
     }
     None
+}
+
+
+#[cfg(not(feature = "web"))]
+pub fn random_seed() -> u32 {
+    rand::random::<u32>()
+}
+
+#[cfg(feature = "web")]
+pub fn random_seed() -> u32 {
+    #[allow(unsafe_code)]
+    // NOTE: this comes from `Math.random` and returns a float in the <0, 1> range:
+    let random_float = unsafe { ::random() };
+    (random_float * ::std::u32::MAX as f32) as u32
 }

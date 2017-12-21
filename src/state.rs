@@ -1,11 +1,10 @@
-
-
 use animation::{AreaOfEffect, ScreenFade};
 use engine::Mouse;
 use keys::Keys;
 use monster;
 use player::Player;
 use point::Point;
+use util;
 use rand::{self, IsaacRng, SeedableRng};
 
 use stats::Stats;
@@ -203,8 +202,7 @@ impl State {
     ) -> State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
-        //let seed = rand::random::<u32>();
-        let seed = 1234;
+        let seed = util::random_seed();
         let mut writer: Box<Write> = if let Some(replay_path) = replay_path {
             match File::create(&replay_path) {
                 Ok(f) => {

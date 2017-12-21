@@ -70,7 +70,7 @@ pub fn update(
     }
 
     // Restart the game on F5
-    if state.keys.matches_code(KeyCode::F5) {
+    if state.keys.matches_code(KeyCode::F5) || state.endgame_screen_visible && state.keys.matches_code(KeyCode::N) {
         let state = State::new_game(
             state.world_size,
             state.map_size.x,

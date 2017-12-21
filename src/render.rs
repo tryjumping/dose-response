@@ -243,7 +243,7 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         "Longest High streak: {} turns",
         state.player.longest_high_streak
     );
-    let keyboard_text = "[F5] New Game    [Q] Quit";
+    let keyboard_text = "[N] New Game    [Q] Quit";
 
     let longest_text = [
         endgame_reason_text,

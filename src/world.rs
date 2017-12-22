@@ -37,8 +37,9 @@ impl Chunk {
             monsters: vec![],
         };
 
+        let mut one_off_rng = chunk.rng.clone();
         let generated_data =
-            generators::forrest::generate(&mut chunk.rng, chunk.level.size(), player_position);
+            generators::forrest::generate(&mut chunk.rng, &mut one_off_rng, chunk.level.size(), player_position);
 
         chunk.populate(generated_data);
 

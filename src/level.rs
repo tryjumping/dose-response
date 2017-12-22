@@ -4,7 +4,6 @@ use graphics::Render;
 use item::Item;
 use point;
 
-use rand::{self, Rng};
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -46,11 +45,7 @@ impl Tile {
     pub fn new(kind: TileKind) -> Tile {
         let color = match kind {
             TileKind::Empty => color::empty_tile,
-            TileKind::Tree => {
-                let options = [color::tree_1, color::tree_2, color::tree_3];
-                //*rand::thread_rng().choose(&options).unwrap()
-                color::tree_1
-            }
+            TileKind::Tree => color::tree_1,
         };
         Tile {
             kind,

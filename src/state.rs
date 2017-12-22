@@ -5,7 +5,7 @@ use monster;
 use player::Player;
 use point::Point;
 use util;
-use rand::{self, IsaacRng, SeedableRng};
+use rand::{IsaacRng, SeedableRng};
 
 use stats::Stats;
 use std::collections::VecDeque;

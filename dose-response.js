@@ -9,7 +9,7 @@ document.body.append(c);
 
 var ctx = c.getContext('2d');
 ctx.textAlign = "center";
-ctx.font = '16px arial';
+ctx.font = '14px mononoki';
 
 var wasm_instance;
 var gamestate_ptr;
@@ -150,7 +150,10 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
             ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
           } else {
             ctx.fillStyle = `rgb(${r},${g},${b})`;
-            ctx.fillText(glyph, x * squareSize + squareSize / 2, y * squareSize + squareSize / 2);
+
+            let x_fudge = 8;
+            let y_fudge = 13;
+            ctx.fillText(glyph, x * squareSize + x_fudge, y * squareSize + y_fudge);
           }
         }
 

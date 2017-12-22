@@ -449,7 +449,7 @@ pub fn update(state_ptr: *mut State, dt_ms: u32) {
             }
 
             &engine::Draw::Rectangle(top_left, dimensions, color) => {
-                if dimensions.x > 0 && dimensions.y > 0 {
+                if dimensions.x >= 1 && dimensions.y >= 1 {
                     let rect = rect::Rectangle::from_point_and_size(top_left, dimensions);
                     for pos in rect.points() {
                         assert!(pos.x >= 0 && pos.x < 255);

@@ -13,7 +13,7 @@ impl Rectangle {
         assert!(size > (0, 0));
         Rectangle {
             top_left,
-            bottom_right: top_left + size,
+            bottom_right: top_left + size - (1, 1),
         }
     }
 
@@ -31,7 +31,7 @@ impl Rectangle {
     }
 
     pub fn dimensions(self) -> Point {
-        self.bottom_right - self.top_left
+        self.bottom_right - self.top_left + (1, 1)
     }
 
     /// Returns `true` if the point is within the areas specified by
@@ -104,4 +104,33 @@ impl Iterator for RectangleIterator {
             Some(result)
         }
     }
+}
+
+#[cfg(test)]
+mod tests{
+    use super::Rectangle;
+    use point::Point;
+
+    #[test]
+    fn smallest_rect() {
+        let rect = Rectangle::from_point_and_size((0, 0).into(), (1, 1).into());
+        assert_eq!(rect.dimensions(), Point::new(1, 1));
+        assert_eq!(rect.points().collect::<Vec<_>>().len(), 1);
+
+        let rect = Rectangle::from_point_and_size((5, 7).into(), (1, 1).into());
+        assert_eq!(rect.dimensions(), Point::new(1, 1));
+        assert_eq!(rect.points().collect::<Vec<_>>().len(), 1);
+    }
+
+    #[test]
+    fn rect_size_2() {
+        let rect = Rectangle::from_point_and_size((0, 0).into(), (2, 2).into());
+        assert_eq!(rect.dimensions(), Point::new(2, 2));
+        assert_eq!(rect.points().collect::<Vec<_>>().len(), 4);
+
+        let rect = Rectangle::from_point_and_size((5, 7).into(), (2, 2).into());
+        assert_eq!(rect.dimensions(), Point::new(2, 2));
+        assert_eq!(rect.points().collect::<Vec<_>>().len(), 4);
+    }
+
 }

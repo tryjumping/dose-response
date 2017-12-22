@@ -348,9 +348,10 @@ fn process_cli_and_run_game(
 
 
 
+#[cfg(feature = "web")]
 #[no_mangle]
 pub fn initialise() -> *mut State {
-    let mut state = {
+    let state = {
         // NOTE: at our current font, the height of 43 is the maximum
         // value for 1336x768 monitors.
         let map_size = 43;
@@ -374,12 +375,14 @@ pub fn initialise() -> *mut State {
     Box::into_raw(state)
 }
 
+#[cfg(feature = "web")]
 extern {
     fn draw(nums: *const u8, len: usize);
     fn random() -> f32;
 }
 
 
+#[cfg(feature = "web")]
 #[no_mangle]
 pub fn update(state_ptr: *mut State, dt_ms: u32) {
     #[allow(unsafe_code)]

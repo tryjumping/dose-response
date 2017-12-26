@@ -41,6 +41,8 @@
 *** carry food
 *** don't pick up doses unless sober at first
 * Add the `?` hint for help to the endgame screen                        :ui:
+* Use rect::Rectangle for Point::areas                                 :code:
+* Use rect::Rectangle for the Rectangle drawcall                       :code:
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them

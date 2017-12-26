@@ -350,7 +350,7 @@ fn process_cli_and_run_game(
 
 #[cfg(feature = "web")]
 #[no_mangle]
-pub fn initialise() -> *mut State {
+pub extern "C" fn initialise() -> *mut State {
     let state = {
         // NOTE: at our current font, the height of 43 is the maximum
         // value for 1336x768 monitors.
@@ -384,7 +384,7 @@ extern {
 
 #[cfg(feature = "web")]
 #[no_mangle]
-pub fn update(state_ptr: *mut State, dt_ms: u32) {
+pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
     #[allow(unsafe_code)]
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 
@@ -500,7 +500,7 @@ pub fn update(state_ptr: *mut State, dt_ms: u32) {
 }
 
 #[no_mangle]
-pub fn key_pressed(
+pub extern "C" fn key_pressed(
     state_ptr: *mut State,
     external_code: i32,
     ctrl: bool, alt: bool, shift: bool

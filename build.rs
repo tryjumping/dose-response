@@ -50,7 +50,7 @@ fn main() {
     let mut lookup_table_fn_definition = String::new();
 
     lookup_table_fn_definition.push_str(
-        "fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n",
+        "#[cfg(not(feature = \"web\"))]\nfn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n",
     );
     lookup_table_fn_definition.push_str("match chr {\n");
     for &(index, chr) in &lookup_table {

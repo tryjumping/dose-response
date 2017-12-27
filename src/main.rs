@@ -35,6 +35,7 @@ extern crate rustbox;
 extern crate zmq;
 
 use state::State;
+#[cfg(not(feature = "web"))]
 use std::path::Path;
 
 mod ai;
@@ -78,6 +79,7 @@ fn run_libtcod(
 }
 
 #[cfg(not(feature = "libtcod"))]
+#[cfg(not(feature = "web"))]
 fn run_libtcod(
     _display_size: point::Point,
     _default_background: color::Color,
@@ -109,6 +111,7 @@ fn run_piston(
 }
 
 #[cfg(not(feature = "piston"))]
+#[cfg(not(feature = "web"))]
 fn run_piston(
     _display_size: point::Point,
     _default_background: color::Color,
@@ -127,6 +130,7 @@ fn run_terminal() {
 }
 
 #[cfg(not(feature = "terminal"))]
+#[cfg(not(feature = "web"))]
 fn run_terminal() {
     println!("The \"terminal\" feature was not compiled in.");
 }
@@ -150,6 +154,7 @@ fn run_opengl(
 }
 
 #[cfg(not(feature = "opengl"))]
+#[cfg(not(feature = "web"))]
 fn run_opengl(
     _display_size: point::Point,
     _default_background: color::Color,
@@ -178,6 +183,7 @@ fn run_remote(
 }
 
 #[cfg(not(feature = "remote"))]
+#[cfg(not(feature = "web"))]
 fn run_remote(
     _display_size: point::Point,
     _default_background: color::Color,

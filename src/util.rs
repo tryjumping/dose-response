@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+#[cfg(not(feature = "web"))]
 use rand;
 
 

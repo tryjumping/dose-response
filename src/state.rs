@@ -9,7 +9,9 @@ use rand::{IsaacRng, SeedableRng};
 
 use stats::Stats;
 use std::collections::VecDeque;
-use std::fs::{self, File};
+#[cfg(not(feature = "web"))]
+use std::fs;
+use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;

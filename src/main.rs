@@ -383,9 +383,9 @@ extern {
 
 
 #[cfg(feature = "web")]
+#[allow(unsafe_code)]
 #[no_mangle]
 pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
-    #[allow(unsafe_code)]
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 
     let dt = std::time::Duration::from_millis(dt_ms as u64);
@@ -491,7 +491,6 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
         }
     }
 
-    #[allow(unsafe_code)]
     unsafe {
         draw(js_drawcalls.as_ptr(), js_drawcalls.len());
     }
@@ -499,6 +498,7 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
     std::mem::forget(state);
 }
 
+#[allow(unsafe_code)]
 #[no_mangle]
 pub extern "C" fn key_pressed(
     state_ptr: *mut State,
@@ -506,7 +506,6 @@ pub extern "C" fn key_pressed(
     ctrl: bool, alt: bool, shift: bool
 )
 {
-    #[allow(unsafe_code)]
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 
     let code = from_js_keycode(external_code);

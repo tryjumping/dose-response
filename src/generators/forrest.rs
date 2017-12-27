@@ -13,7 +13,7 @@ use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 // TODO: Instead of `map_size`, use a Rectangle with the world
 // positions here. We want to expose the non-world coordinates in as
 // few places as possible.
-fn generate_map<R: Rng, G: Rng>(rng: &mut R, one_off_rng: &mut G, map_size: Point, player_pos: Point) -> Vec<(Point, Tile)> {
+fn generate_map<R: Rng, G: Rng>(rng: &mut R, throwavay_rng: &mut G, map_size: Point, player_pos: Point) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted {
             weight: 610,
@@ -42,7 +42,7 @@ fn generate_map<R: Rng, G: Rng>(rng: &mut R, one_off_rng: &mut G, map_size: Poin
             let mut tile = Tile::new(kind);
             if tile.kind == TileKind::Tree {
                 let options = [color::tree_1, color::tree_2, color::tree_3];
-                tile.fg_color = *one_off_rng.choose(&options).unwrap();
+                tile.fg_color = *throwavay_rng.choose(&options).unwrap();
             }
 
             result.push((Point::new(x, y), tile));
@@ -210,8 +210,8 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Ite
 }
 
 
-pub fn generate<R: Rng, G: Rng>(rng: &mut R, one_off_rng: &mut G, size: Point, player: Point) -> GeneratedWorld {
-    let map = generate_map(rng, one_off_rng, size, player);
+pub fn generate<R: Rng, G: Rng>(rng: &mut R, throwavay_rng: &mut G, size: Point, player: Point) -> GeneratedWorld {
+    let map = generate_map(rng, throwavay_rng, size, player);
     let monsters = generate_monsters(rng, &map);
     let items = generate_items(rng, &map);
     (map, monsters, items)

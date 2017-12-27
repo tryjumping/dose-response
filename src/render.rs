@@ -613,7 +613,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = ["Shift+Right", "Num 7", "or: Y"];
+    let lines = ["Shift+Left", "Num 7", "or: Y"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: padding,

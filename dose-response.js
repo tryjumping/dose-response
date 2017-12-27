@@ -67,7 +67,28 @@ fetch('target/wasm32-unknown-unknown/release/dose-response.wasm')
   .then(results => {
 
     document.addEventListener('keydown', (event) => {
-      pressed_keys.push(normalize_key(event));
+      let key = normalize_key(event);
+
+      // Prevent default for these keys. They will scroll the page
+      // otherwise.
+      let stopkeys = {
+        "ArrowDown": true,
+        "ArrowUp": true,
+        "ArrowLeft": true,
+        "ArrowRight": true,
+        " ": true,
+        "PageDown": true,
+        "PageUp": true,
+        "Home": true,
+        "End": true
+      };
+      if(stopkeys[key.name]) {
+        event.preventDefault();
+      }
+
+      if(key.numerical_code != 0) {
+        pressed_keys.push(key);
+      }
     }, true);
 
     wasm_instance = results.instance;

@@ -138,6 +138,7 @@ impl Keys {
         self.keys.extend(iterator)
     }
 
+    #[allow(dead_code)]
     pub fn push(&mut self, key: Key) {
         self.keys.push_back(key);
     }

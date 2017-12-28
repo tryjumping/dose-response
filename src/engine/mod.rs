@@ -24,6 +24,9 @@ pub mod rustbox;
 #[cfg(feature = "remote")]
 pub mod remote;
 
+#[cfg(feature = "web")]
+pub mod wasm;
+
 
 #[derive(Debug, Clone)]
 pub enum Draw {

@@ -49,6 +49,7 @@
 * Consider uploading "nightlies" somewhere
 ** We run CI on every push, let's copy the binaries somewhere
 ** So we can always get the latest build out to folks
+** Theoretically, this could be super easy with wasm
 * Make it more obvious when the player would overdose :design:ui:
 ** https://www.reddit.com/r/roguelikedev/comments/686dey/sharing_saturday_152/dgwl1go/
 ** see alphabetr's comment in that thread

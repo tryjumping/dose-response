@@ -6,6 +6,12 @@ looking for the next fix.
 
 ## [Unreleased]
 - Toggle fullscreen when pressing Alt+Enter
+- NPCs give bonuses when bumped into while sober
+  - The player can only have 1 bonus active at a time
+  - The bonus goes away if the player gets High again
+- WebAssembly support!
+  - The game can now be played (in a modern up-to-date browser) at:
+  - https://aimlesslygoingforward.com/projects/dose-response-roguelike/play.html
 
 ## [0.4.3] - 2017-04-28
 

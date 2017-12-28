@@ -67,6 +67,7 @@ pub struct Settings {
 }
 
 
+#[allow(dead_code)]
 pub type UpdateFn = fn(&mut State,
                        dt: Duration,
                        size: Point,

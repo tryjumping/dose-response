@@ -147,21 +147,13 @@ pub extern "C" fn key_pressed(
 
 #[no_mangle]
 pub extern "C" fn initialise() -> *mut State {
+    println!("Initialising {} for WebAssembly", ::GAME_TITLE);
     let state = {
-        // NOTE: at our current font, the height of 43 is the maximum
-        // value for 1336x768 monitors.
-        let map_size = 43;
-        let panel_width = 20;
-        let display_size: Point = (map_size + panel_width, map_size).into();
-        // NOTE: 2 ^ 30
-        let world_size: Point = (1_073_741_824, 1_073_741_824).into();
-        let _title = "Dose Response";
-
         Box::new(State::new_game(
-            world_size,
-            map_size,
-            panel_width,
-            display_size,
+            ::WORLD_SIZE,
+            ::DISPLAYED_MAP_SIZE,
+            ::PANEL_WIDTH,
+            ::DISPLAY_SIZE,
             false,  // exit-after
             None,  // replay file
             false,  // invincible

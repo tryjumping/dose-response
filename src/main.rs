@@ -68,6 +68,23 @@ mod util;
 mod world;
 
 
+// These are all in tiles and relate to how much we show on the screen.
+//
+// NOTE: at our current font size, the height of 43 tiles is the
+// maximum value for 1336x768 monitors.
+const DISPLAYED_MAP_SIZE: i32 = 43;
+const PANEL_WIDTH: i32 = 20;
+const DISPLAY_SIZE: point::Point = point::Point {
+    x: DISPLAYED_MAP_SIZE + PANEL_WIDTH,
+    y: DISPLAYED_MAP_SIZE,
+};
+const WORLD_SIZE: point::Point = point::Point {
+    x: 1_073_741_824,
+    y: 1_073_741_824,
+};
+
+const GAME_TITLE: &str = "Dose Response";
+
 
 #[cfg(feature = "libtcod")]
 fn run_libtcod(
@@ -201,18 +218,10 @@ fn run_remote(
 
 
 #[cfg(feature = "cli")]
-fn process_cli_and_run_game(
-    display_size: point::Point,
-    world_size: point::Point,
-    map_size: i32,
-    panel_width: i32,
-    default_background: color::Color,
-    title: &str,
-    update: engine::UpdateFn,
-) {
+fn process_cli_and_run_game() {
     use clap::{App, Arg, ArgGroup};
 
-    let matches = App::new(title)
+    let matches = App::new(GAME_TITLE)
         .author("Tomas Sedovic <tomas@sedovic.cz>")
         .about("Roguelike game about addiction")
         .arg(
@@ -285,10 +294,10 @@ fn process_cli_and_run_game(
         }
         let replay_path = std::path::Path::new(replay);
         state::State::replay_game(
-            world_size,
-            map_size,
-            panel_width,
-            display_size,
+            WORLD_SIZE,
+            DISPLAYED_MAP_SIZE,
+            PANEL_WIDTH,
+            DISPLAY_SIZE,
             &replay_path,
             matches.is_present("invincible"),
             matches.is_present("replay-full-speed"),
@@ -306,10 +315,10 @@ fn process_cli_and_run_game(
             None => state::generate_replay_path(),
         };
         state::State::new_game(
-            world_size,
-            map_size,
-            panel_width,
-            display_size,
+            WORLD_SIZE,
+            DISPLAYED_MAP_SIZE,
+            PANEL_WIDTH,
+            DISPLAY_SIZE,
             matches.is_present("exit-after"),
             replay_file,
             matches.is_present("invincible"),
@@ -319,55 +328,41 @@ fn process_cli_and_run_game(
 
     if matches.is_present("libtcod") {
         run_libtcod(
-            display_size,
-            default_background,
-            title,
+            DISPLAY_SIZE,
+            color::background,
+            GAME_TITLE,
             &std::path::Path::new(""),
             state,
         );
     } else if matches.is_present("piston") {
         run_piston(
-            display_size,
-            default_background,
-            title,
+            DISPLAY_SIZE,
+            color::background,
+            GAME_TITLE,
             &std::path::Path::new(""),
             state,
-            update,
+            game::update,
         );
     } else if matches.is_present("terminal") {
         run_terminal();
     } else if matches.is_present("remote") {
-        run_remote(display_size, default_background, title, state, update);
+        run_remote(DISPLAY_SIZE, color::background, GAME_TITLE, state, game::update);
     } else {
-        run_opengl(display_size, default_background, title, state, update);
+        run_opengl(DISPLAY_SIZE, color::background, GAME_TITLE, state, game::update);
     }
 }
 
 
+// NOTE: this function is intentionally empty and should stay here.
+// Under wasm we don't want to run the game immediately because the
+// game loop must be controlled from the browser not Rust. So we've
+// provided external endpoints the browser will call in. But `main`
+// still gets executed when the wasm binary is loaded.
 #[cfg(not(feature = "cli"))]
-fn process_cli_and_run_game(
-    _display_size: point::Point,
-    _world_size: point::Point,
-    _map_size: i32,
-    _panel_width: i32,
-    _default_background: color::Color,
-    _title: &str,
-    _update: engine::UpdateFn,
-) {
-    // TODO: run the game here
+fn process_cli_and_run_game() {
 }
 
 
 fn main() {
-    // NOTE: at our current font, the height of 43 is the maximum
-    // value for 1336x768 monitors.
-    let map_size = 43;
-    let panel_width = 20;
-    let display_size = (map_size + panel_width, map_size).into();
-    // NOTE: 2 ^ 30
-    let world_size = (1_073_741_824, 1_073_741_824).into();
-    let title = "Dose Response";
-
-    process_cli_and_run_game(display_size, world_size, map_size, panel_width,
-                             color::background, title, game::update);
+    process_cli_and_run_game();
 }

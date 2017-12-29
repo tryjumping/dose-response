@@ -328,6 +328,7 @@ fn wrap_text(text: &str, width: usize) -> Vec<String> {
             current_line = String::from(word);
         }
     }
+    result.push(current_line);
 
     result
 }

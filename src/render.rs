@@ -205,6 +205,17 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
 }
 
 
+fn endgame_tip(_state: &State) -> &'static str {
+    let tips = &[
+        "Using another dose when High will likely cause overdose early on.",
+        "Being hit by `a` reduces your Will. You lose when it reaches zero.",
+        "Being hit by `h` will quickly get you into a withdrawal.",
+    ];
+
+    tips[0]
+}
+
+
 fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     use self::CauseOfDeath::*;
     let cause_of_death = formula::cause_of_death(&state.player);
@@ -221,11 +232,11 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     let endgame_description = match (cause_of_death, perpetrator) {
         (Some(Exhausted), None) => "Exhausted".into(),
-        (Some(Exhausted), Some(monster)) => format!("Exhausted because of {}", monster.glyph()),
+        (Some(Exhausted), Some(monster)) => format!("Exhausted because of `{}`", monster.glyph()),
         (Some(Overdosed), _) => "Overdosed".into(),
-        (Some(LostWill), Some(monster)) => format!("Lost all Will due to {}", monster.glyph()),
+        (Some(LostWill), Some(monster)) => format!("Lost all Will due to `{}`", monster.glyph()),
         (Some(LostWill), None) => unreachable!(),
-        (Some(Killed), Some(monster)) => format!("Defeated by {}", monster.glyph()),
+        (Some(Killed), Some(monster)) => format!("Defeated by `{}`", monster.glyph()),
         (Some(Killed), None) => unreachable!(),
         (None, _) => "".into(),  // Victory
     };
@@ -243,20 +254,22 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         "Longest High streak: {} turns",
         state.player.longest_high_streak
     );
+    let tip_text = format!("Tip: {}", endgame_tip(state));
     let keyboard_text = "[N] New Game    [Q] Quit";
 
     let longest_text = [
         endgame_reason_text,
+        &tip_text,
         &endgame_description,
         &turns_text,
-        &carrying_doses_text,
         &high_streak_text,
+        &carrying_doses_text,
         keyboard_text,
     ].iter()
         .map(|s| s.chars().count())
         .max()
         .unwrap() as i32;
-    let lines_count = 7;
+    let lines_count = 9;
 
     let rect_dimensions = Point {
         // NOTE: 1 tile padding, which is why we have the `+ 2`.
@@ -308,8 +321,30 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     drawcalls.push(Draw::Text(
         rect_start +
+            (
+                centered_text_pos(
+                    rect_dimensions.x,
+                    &tip_text,
+                ),
+                3,
+            ),
+        tip_text.into(),
+        color::gui_text,
+    ));
+
+    drawcalls.push(Draw::Text(
+        rect_start +
             (centered_text_pos(rect_dimensions.x, &turns_text), 5),
         turns_text.into(),
+        color::gui_text,
+    ));
+    drawcalls.push(Draw::Text(
+        rect_start +
+            (
+                centered_text_pos(rect_dimensions.x, &high_streak_text),
+                7,
+            ),
+        high_streak_text.into(),
         color::gui_text,
     ));
     drawcalls.push(Draw::Text(
@@ -319,18 +354,9 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
                     rect_dimensions.x,
                     &carrying_doses_text,
                 ),
-                7,
-            ),
-        carrying_doses_text.into(),
-        color::gui_text,
-    ));
-    drawcalls.push(Draw::Text(
-        rect_start +
-            (
-                centered_text_pos(rect_dimensions.x, &high_streak_text),
                 9,
             ),
-        high_streak_text.into(),
+        carrying_doses_text.into(),
         color::gui_text,
     ));
     drawcalls.push(Draw::Text(

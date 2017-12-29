@@ -1,8 +1,9 @@
 use item::{Kind, Item};
 use player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
+use monster::CompanionBonus;
 use ranged_int::{InclusiveRange, Ranged};
 use std::cmp;
-use num_rational::Rational32;
+use num_rational::{Ratio, Rational32};
 
 
 pub const INITIAL_SAFE_RADIUS: i32 = 25;
@@ -13,7 +14,7 @@ pub const ANXIETIES_PER_WILL: InclusiveRange = InclusiveRange(0, 7);
 
 pub const WILL: InclusiveRange = InclusiveRange(0, 5);
 
-// The rate at which the Mind drops.
+// The rate at which the Mind drops under normal circumstances
 pub const MIND_DROP_PER_TURN: i32 = 1;
 
 // NOTE: We use the MIND_DROP_PER_TURN multiple here. That way, unless
@@ -97,6 +98,15 @@ pub fn exploration_radius(mental_state: Mind) -> i32 {
 
 pub fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
     cmp::max(dose_irresistible_value + 2 - will, 0)
+}
+
+
+pub fn mind_drop_per_turn(bonuses: &[CompanionBonus]) -> Rational32 {
+    if bonuses.contains(&CompanionBonus::HalveExhaustion) {
+        Ratio::new(MIND_DROP_PER_TURN, 2)
+    } else {
+        Ratio::from_integer(MIND_DROP_PER_TURN)
+    }
 }
 
 

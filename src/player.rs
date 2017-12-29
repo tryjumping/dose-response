@@ -7,7 +7,7 @@ use point::Point;
 use ranged_int::Ranged;
 use std::fmt::{Display, Error, Formatter};
 use std::time::Duration;
-use num_rational::Ratio;
+
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Modifier {
@@ -147,12 +147,7 @@ impl Player {
             self.stun -= 1;
             self.panic -= 1;
 
-            let mind_drop = if self.bonuses.contains(&CompanionBonus::HalveExhaustion) {
-                Ratio::new(formula::MIND_DROP_PER_TURN, 2)
-            } else {
-                Ratio::from_integer(formula::MIND_DROP_PER_TURN)
-            };
-
+            let mind_drop = formula::mind_drop_per_turn(&self.bonuses);
             self.mind = formula::mind_take_turn(self.mind, mind_drop);
             self.ap = self.max_ap();
         }

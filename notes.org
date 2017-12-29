@@ -64,6 +64,18 @@
 *** let's use it
 *** say when you stand next to a dose, it will blink between it's colour and white
 *** and the rate of blinking will identify the likelihood that the dose will kill you
+* Consider replacing Action Points with energy-based approach          :code:
+** Basically, we'll want to be able to have NPCs move more slowly than the player
+** So we need a speed system
+** One such is described here:
+*** http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
+** It's not necessarily about AP/Energy-based
+*** we just need a way to be able to "build" some action up across turns
+*** but it does kind of seem to me that maybe AP is not the right mental model here
+*** because you don't generally store up APs (with a few exceptions)
+** One place to use this would be: friendly NPCs more half as slow to be more approachable
+*** Right now we just stop them when they're nearby
+*** But it would be more lively/dynamic if they still moved just more slowly
 * Disable cheating and all debug features in the published mode        :code:
 ** I'd like that to be a different thing from the debug/release builds though
 ** Say a new Cargo feature called `published`

@@ -84,6 +84,7 @@ pub const HOWLING_DISTANCE: i32 = 15;
 
 pub const ESTRANGED_NPC_MAX_AP: i32 = 2;
 
+pub const FRIENDLY_NPC_FREEZE_RADIUS: f32 = 3.0;
 
 
 pub fn exploration_radius(mental_state: Mind) -> i32 {

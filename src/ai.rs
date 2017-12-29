@@ -123,14 +123,22 @@ pub fn friendly_act<R: Rng>(
     world: &mut World,
     rng: &mut R,
 ) -> (Update, Action) {
+    let player_is_nearby = player_info.pos.distance(actor.position) <= formula::FRIENDLY_NPC_FREEZE_RADIUS;
+
     let destination = if actor.accompanying_player {
         // Pick a position near the player
         world.random_position_in_range(rng, player_info.pos, InclusiveRange(1, 3), 10,
                                        actor.blockers, player_info.pos)
             .unwrap_or(player_info.pos)
+    } else if player_is_nearby && !player_info.mind.is_high() {
+        // If the NPC is approachable and nearby, make it stop
+        // wandering about so it's easier to actually approach by the
+        // player.
+        actor.position
     } else {
         idle_destination(actor, world, rng, player_info.pos)
     };
+
     let update = Update {
         ai_state: actor.ai_state,
         max_ap: if player_info.mind.is_high() {

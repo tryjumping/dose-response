@@ -13,16 +13,6 @@
 ** Reasonable AI
 *** monsters further away should not freak out when another monster is in the way
 ** Non-square fonts for text
-* Nearby NPC should stay within player's distance when sober           :idea:
-** It's really hard to catch them even when sober right now
-** When sober maybe they should just stay on one spot or not move that much
-** It would be good if we could halve their normal speed
-*** So they only move once every 2 turns say
-*** But we'd have to be careful how to implement this
-**** Floats will get precision loss and can skip a beat
-**** Ints are a little unwieldy (but we do that for halving the hunger anyway)
-**** We could try to bring in the `num` crate and its `num::rational::Ratio<i32>`
-**** We're using it for `Range` now so sure
 * NPCs should ignore monsters and destroy them when stepping on one    :idea:
 ** So this would make NPCs more like not even aware there are any monsters here
 ** But only when they are accompanying the player
@@ -1366,3 +1356,17 @@ CLOSED: [2017-12-29 Fri 11:04]
 **** https://github.com/rust-lang-deprecated/time
 *** The readme points to `chrono`
 *** But maybe we could just go back to `std::time`? That's at least stable
+** DONE Nearby NPC should stay within player's distance when sober    :idea:
+CLOSED: [2017-12-29 Fri 21:28]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-12-29 Fri 21:28
+:END:
+*** It's really hard to catch them even when sober right now
+*** When sober maybe they should just stay on one spot or not move that much
+*** It would be good if we could halve their normal speed
+**** So they only move once every 2 turns say
+**** But we'd have to be careful how to implement this
+***** Floats will get precision loss and can skip a beat
+***** Ints are a little unwieldy (but we do that for halving the hunger anyway)
+***** We could try to bring in the `num` crate and its `num::rational::Ratio<i32>`
+***** We're using it for `Range` now so sure

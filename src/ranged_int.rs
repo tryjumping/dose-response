@@ -105,18 +105,18 @@ impl Ranged {
     }
 }
 
-impl Add<i32> for Ranged {
+impl Add<Rational32> for Ranged {
     type Output = Ranged;
 
-    fn add(self, other: i32) -> Self::Output {
+    fn add(self, other: Rational32) -> Self::Output {
         let range = InclusiveRange(self.min(), self.max());
         // NOTE: Ratio doesn't have checked_add so we do the check on
         // an int representation to detect any overflows. We can't use
         // the value though as it does not contain the fractional
         // portion.
-        match self.val.to_integer().checked_add(other) {
+        match self.val.to_integer().checked_add(other.to_integer()) {
             Some(_) => {
-                let v = self.val + Ratio::from_integer(other);
+                let v = self.val + other;
                 let new_val = if v > self.max {
                     self.max
                 } else if v < self.min {
@@ -127,7 +127,7 @@ impl Add<i32> for Ranged {
                 Ranged::new(new_val, range)
             }
             None => {
-                if other > 0 {
+                if other > Ratio::from_integer(0) {
                     Ranged::new_max(range)
                 } else {
                     Ranged::new_min(range)
@@ -137,9 +137,32 @@ impl Add<i32> for Ranged {
     }
 }
 
+impl AddAssign<Rational32> for Ranged {
+    fn add_assign(&mut self, other: Rational32) {
+        *self = self.clone() + other
+    }
+}
+
+impl Add<i32> for Ranged {
+    type Output = Ranged;
+
+    fn add(self, other: i32) -> Self::Output {
+        self + Ratio::from_integer(other)
+    }
+}
+
 impl AddAssign<i32> for Ranged {
     fn add_assign(&mut self, other: i32) {
         *self = self.clone() + other
+    }
+}
+
+
+impl Sub<Rational32> for Ranged {
+    type Output = Ranged;
+
+    fn sub(self, other: Rational32) -> Self::Output {
+        self + (-other)
     }
 }
 
@@ -147,13 +170,7 @@ impl Sub<i32> for Ranged {
     type Output = Ranged;
 
     fn sub(self, other: i32) -> Self::Output {
-        let range = InclusiveRange(self.min(), self.max());
-        let (negated_val, overflowed) = other.overflowing_neg();
-        if overflowed {
-            Ranged::new_max(range)
-        } else {
-            self + negated_val
-        }
+        self - Ratio::from_integer(other)
     }
 }
 

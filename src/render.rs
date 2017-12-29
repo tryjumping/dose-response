@@ -257,28 +257,35 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     let tip_text = format!("Tip: {}", endgame_tip(state));
     let keyboard_text = "[N] New Game    [Q] Quit";
 
-    let lines = vec![
+    let mut lines = vec![
         endgame_reason_text.into(),
         endgame_description,
+        "".into(),
+        "".into(),
         turns_text,
+        "".into(),
         high_streak_text,
+        "".into(),
         carrying_doses_text,
-        tip_text,
-        keyboard_text.into(),
+        "".into(),
+        "".into(),
     ];
+
+    let max_line_width = 35;
+    lines.extend(wrap_text(&tip_text, max_line_width));
+    lines.push("".into());
+    lines.push("".into());
+    lines.push(keyboard_text.into());
 
     let longest_text = lines.iter()
         .map(|s| s.chars().count())
         .max()
         .unwrap() as i32;
-    let lines_count = 9;
 
     let rect_dimensions = Point {
         // NOTE: 1 tile padding, which is why we have the `+ 2`.
         x: longest_text + 2,
-        // NOTE: each line has an empty line below so we just have `+
-        // 1` for the top padding.
-        y: lines_count * 2 + 1,
+        y: lines.len() as i32 + 2,
     };
     let rect_start = Point {
         x: (state.display_size.x - rect_dimensions.x) / 2,
@@ -301,12 +308,27 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     ));
 
     for (index, text) in lines.into_iter().enumerate() {
-        drawcalls.push(centered_text_drawcall(text.into(), index as i32));
+        drawcalls.push(centered_text_drawcall(text.into(), index as i32 + 1));
     }
 
 }
 
 
+fn wrap_text(text: &str, width: usize) -> Vec<String> {
+    let mut result = vec![];
+    let mut current_line = String::new();
+    for word in text.split(' ') {
+        if current_line.len() + word.len() + 1 <= width {
+            current_line.push(' ');
+            current_line.push_str(word);
+        } else {
+            result.push(current_line);
+            current_line = String::from(word);
+        }
+    }
+
+    result
+}
 
 
 fn render_panel(

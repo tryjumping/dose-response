@@ -94,6 +94,11 @@ pub fn update(
         state.cheating = !state.cheating;
     }
 
+    // Toggle engame screen visibility
+    if state.game_ended && state.keys.matches_code(KeyCode::Space) {
+        state.endgame_screen_visible = !state.endgame_screen_visible;
+    }
+
     // NOTE: this will not show up in the replay so that'll be out of
     // sync. We can pass `--invincible` while running the replay
     // though and that should always work, I think.
@@ -303,6 +308,7 @@ pub fn update(
             // after we've faded out:
             if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
                 state.game_ended = true;
+                state.endgame_screen_visible = true;
             }
             state.screen_fading = Some(anim);
         }
@@ -745,6 +751,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
     if state.player.sobriety_counter.is_max() {
         state.side = Side::Victory;
         state.game_ended = true;
+        state.endgame_screen_visible = true;
     }
 
     state.world.explore(

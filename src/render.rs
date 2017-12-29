@@ -194,7 +194,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
         render_controls_help(state.map_size, drawcalls);
     }
 
-    if state.game_ended {
+    if state.game_ended && state.endgame_screen_visible {
         render_endgame_screen(state, drawcalls);
     }
 

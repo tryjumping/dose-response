@@ -35,9 +35,6 @@
 *** carry food
 *** don't pick up doses unless sober at first
 * Add the `?` hint for help to the endgame screen                        :ui:
-* Dismiss the "you diead" screen when pressing Spacebar                  :ui:
-** So the player can see the full map
-** cycle the map and game over screen by pressing the key
 * Use rect::Rectangle for Point::areas                                 :code:
 * Use rect::Rectangle for the Rectangle drawcall                       :code:
 * Disable cheating and all debug features in the published mode        :code:
@@ -1386,3 +1383,10 @@ CLOSED: [2017-12-29 Fri 22:03]
 **** a red NPC would double the anxiety counter on each `a` killed
 **** blue NPC would give the player 2 action points (like depression)
 **** brown NPC would reduce the sober & withdrawal curves
+** DONE Dismiss the "you diead" screen when pressing Spacebar           :ui:
+CLOSED: [2017-12-29 Fri 22:41]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-12-29 Fri 22:41
+:END:
+*** So the player can see the full map
+*** cycle the map and game over screen by pressing the key

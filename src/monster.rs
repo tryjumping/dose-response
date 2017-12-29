@@ -57,7 +57,7 @@ pub enum CompanionBonus {
 impl Rand for CompanionBonus {
     fn rand<R: Rng>(rng: &mut R) -> Self {
         use self::CompanionBonus::*;
-        match rng.gen_range(0, 2) {
+        match rng.gen_range(0, 3) {
             0 => DoubleWillGrowth,
             1 => HalveExhaustion,
             2 => DoubleActionPoints,

@@ -257,15 +257,17 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     let tip_text = format!("Tip: {}", endgame_tip(state));
     let keyboard_text = "[N] New Game    [Q] Quit";
 
-    let longest_text = [
-        endgame_reason_text,
-        &tip_text,
-        &endgame_description,
-        &turns_text,
-        &high_streak_text,
-        &carrying_doses_text,
-        keyboard_text,
-    ].iter()
+    let lines = vec![
+        endgame_reason_text.into(),
+        endgame_description,
+        turns_text,
+        high_streak_text,
+        carrying_doses_text,
+        tip_text,
+        keyboard_text.into(),
+    ];
+
+    let longest_text = lines.iter()
         .map(|s| s.chars().count())
         .max()
         .unwrap() as i32;
@@ -287,88 +289,24 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         (container_width - text.chars().count() as i32) / 2
     }
 
+    let centered_text_drawcall = |text: String, y_offset: i32| -> Draw {
+        let offset = (centered_text_pos(rect_dimensions.x, &text), y_offset);
+        Draw::Text(rect_start + offset, text.into(), color::gui_text)
+    };
+
     drawcalls.push(Draw::Rectangle(
         rect_start,
         rect_dimensions,
         color::background,
     ));
 
-    drawcalls.push(Draw::Text(
-        rect_start +
-            (
-                centered_text_pos(
-                    rect_dimensions.x,
-                    &endgame_reason_text,
-                ),
-                1,
-            ),
-        endgame_reason_text.into(),
-        color::gui_text,
-    ));
+    for (index, text) in lines.into_iter().enumerate() {
+        drawcalls.push(centered_text_drawcall(text.into(), index as i32));
+    }
 
-    drawcalls.push(Draw::Text(
-        rect_start +
-            (
-                centered_text_pos(
-                    rect_dimensions.x,
-                    &endgame_description,
-                ),
-                2,
-            ),
-        endgame_description.into(),
-        color::gui_text,
-    ));
-
-    drawcalls.push(Draw::Text(
-        rect_start +
-            (
-                centered_text_pos(
-                    rect_dimensions.x,
-                    &tip_text,
-                ),
-                3,
-            ),
-        tip_text.into(),
-        color::gui_text,
-    ));
-
-    drawcalls.push(Draw::Text(
-        rect_start +
-            (centered_text_pos(rect_dimensions.x, &turns_text), 5),
-        turns_text.into(),
-        color::gui_text,
-    ));
-    drawcalls.push(Draw::Text(
-        rect_start +
-            (
-                centered_text_pos(rect_dimensions.x, &high_streak_text),
-                7,
-            ),
-        high_streak_text.into(),
-        color::gui_text,
-    ));
-    drawcalls.push(Draw::Text(
-        rect_start +
-            (
-                centered_text_pos(
-                    rect_dimensions.x,
-                    &carrying_doses_text,
-                ),
-                9,
-            ),
-        carrying_doses_text.into(),
-        color::gui_text,
-    ));
-    drawcalls.push(Draw::Text(
-        rect_start +
-            (
-                centered_text_pos(rect_dimensions.x, &keyboard_text),
-                13,
-            ),
-        keyboard_text.into(),
-        color::gui_text,
-    ));
 }
+
+
 
 
 fn render_panel(

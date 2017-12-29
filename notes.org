@@ -13,9 +13,6 @@
 ** Reasonable AI
 *** monsters further away should not freak out when another monster is in the way
 ** Non-square fonts for text
-* NPCs should ignore monsters and destroy them when stepping on one    :idea:
-** So this would make NPCs more like not even aware there are any monsters here
-** But only when they are accompanying the player
 * Write out tips on death                                              :idea:
 ** On early overdose, mention that second dose while High is dangerous
 "Using another dose when High will likely cause overdose early on."
@@ -38,11 +35,34 @@
 *** carry food
 *** don't pick up doses unless sober at first
 * Add the `?` hint for help to the endgame screen                        :ui:
-* Pre-allocated the wasm drawcalls vecs better                         :code:
-* Make `sort_drawcalls` more efficient? :code:
-** I really don't like having two `reverse` calls in there
+* Dismiss the "you diead" screen when pressing Spacebar                  :ui:
+** So the player can see the full map
+** cycle the map and game over screen by pressing the key
 * Use rect::Rectangle for Point::areas                                 :code:
 * Use rect::Rectangle for the Rectangle drawcall                       :code:
+* Disable cheating and all debug features in the published mode        :code:
+** I'd like that to be a different thing from the debug/release builds though
+** Say a new Cargo feature called `published`
+** And that  would gate all the debug features
+*** rather than the debug/release switch
+** And actually rename CHEATING to DEBUG
+* Remove the requirement on Visual C++ Runtime on msvc                 :code:
+** https://www.reddit.com/r/rust/comments/7mif9i/how_to_compile_binaries_without_dependencies_on/druuu2n/
+** https://news.ycombinator.com/item?id=15197424
+** Try to link with MSVCRT.DLL
+** Add this to Dose Response's root directory:
+#+BEGIN_SRC
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+[target.i686-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+#+END_SRC
+* NPCs should ignore monsters and destroy them when stepping on one    :idea:
+** So this would make NPCs more like not even aware there are any monsters here
+** But only when they are accompanying the player
+* Pre-allocate the wasm drawcalls vecs better                          :code:
+* Make `sort_drawcalls` more efficient? :code:
+** I really don't like having two `reverse` calls in there
 * Make the canvas drawing more performant                              :code:
 ** https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
 ** Think about reducing the Draw::Rectangle and Draw::Fade data footprint
@@ -76,47 +96,6 @@
 ** One place to use this would be: friendly NPCs more half as slow to be more approachable
 *** Right now we just stop them when they're nearby
 *** But it would be more lively/dynamic if they still moved just more slowly
-* Disable cheating and all debug features in the published mode        :code:
-** I'd like that to be a different thing from the debug/release builds though
-** Say a new Cargo feature called `published`
-** And that  would gate all the debug features
-*** rather than the debug/release switch
-** And actually rename CHEATING to DEBUG
-* Remove the requirement on Visual C++ Runtime on msvc                 :code:
-** https://www.reddit.com/r/rust/comments/7mif9i/how_to_compile_binaries_without_dependencies_on/druuu2n/
-** https://news.ycombinator.com/item?id=15197424
-** Try to link with MSVCRT.DLL
-** Add this to Dose Response's root directory:
-#+BEGIN_SRC
-[target.x86_64-pc-windows-msvc]
-rustflags = ["-Ctarget-feature=+crt-static"]
-[target.i686-pc-windows-msvc]
-rustflags = ["-Ctarget-feature=+crt-static"]
-#+END_SRC
-* interactive NPCs                                                   :design:
-** When High, you can't interact with them
-*** they're translucent
-*** move twice as fast as you
-** When Withdrawn/Sober they can be interacted with
-*** they have a colour (based on their bonus)
-*** they only move 1 HP
-*** you can bump into them
-** Bumping into an interactive NPC
-*** Gives the backrgound the same glow as their colour
-*** They give you a bonus based on their colour
-*** Monsters start targetting them
-*** They have 2 HPs
-** They disappear when killed by a monster
-** They become translucent when the player gets high again
-** The player loses the bonus when the NPC dies or leaves
-** Question: can you "activate" more than one NPC?
-*** does the same bonus stack?
-*** do different bonuses combine?
-** The bonus would be written in the sidebar
-** NPC bonuses:
-*** a red NPC would double the anxiety counter on each `a` killed
-*** blue NPC would give the player 2 action points (like depression)
-*** brown NPC would reduce the sober & withdrawal curves
 * Have Anxieties be able to destroy the terrain                        :idea:
 ** I'd love to have a monster that does that
 ** And Anxiety is already red (the colour of the shattering explosion)
@@ -138,9 +117,6 @@ moving in that direction.
 * Make the NPCs "angry" when you "hit" them                            :idea:
 ** Right now, nothing happens when you bump into them
 ** So instead, let's make them faded like when you get High for a few turns
-* Dismiss the "you diead" screen when pressing Spacebar                  :ui:
-** So the player can see the full map
-** cycle the map and game over screen by pressing the key
 * Irresistible doses don't always atract                           :bug:idea:
 ** Seems that when there is a normal dose in the irresistible area we can break free
 ** I'll need to test the exact parameters of this
@@ -1382,3 +1358,31 @@ CLOSED: [2017-12-29 Fri 21:28]
 ***** Ints are a little unwieldy (but we do that for halving the hunger anyway)
 ***** We could try to bring in the `num` crate and its `num::rational::Ratio<i32>`
 ***** We're using it for `Range` now so sure
+** DONE interactive NPCs                                            :design:
+CLOSED: [2017-12-29 Fri 22:03]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-12-29 Fri 22:03
+:END:
+*** When High, you can't interact with them
+**** they're translucent
+**** move twice as fast as you
+*** When Withdrawn/Sober they can be interacted with
+**** they have a colour (based on their bonus)
+**** they only move 1 HP
+**** you can bump into them
+*** Bumping into an interactive NPC
+**** Gives the backrgound the same glow as their colour
+**** They give you a bonus based on their colour
+**** Monsters start targetting them
+**** They have 2 HPs
+*** They disappear when killed by a monster
+*** They become translucent when the player gets high again
+*** The player loses the bonus when the NPC dies or leaves
+*** Question: can you "activate" more than one NPC?
+**** does the same bonus stack?
+**** do different bonuses combine?
+*** The bonus would be written in the sidebar
+*** NPC bonuses:
+**** a red NPC would double the anxiety counter on each `a` killed
+**** blue NPC would give the player 2 action points (like depression)
+**** brown NPC would reduce the sober & withdrawal curves

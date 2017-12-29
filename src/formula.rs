@@ -2,6 +2,7 @@ use item::{Kind, Item};
 use player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
 use ranged_int::{InclusiveRange, Ranged};
 use std::cmp;
+use num_rational::Rational32;
 
 
 pub const INITIAL_SAFE_RADIUS: i32 = 25;
@@ -12,21 +13,20 @@ pub const ANXIETIES_PER_WILL: InclusiveRange = InclusiveRange(0, 7);
 
 pub const WILL: InclusiveRange = InclusiveRange(0, 5);
 
-// The rate at which the Mind drops. This is higher than one so we can
-// apply bonuses that slow the rate down.
-pub const MIND_DROP_PER_TURN: i32 = 2;
+// The rate at which the Mind drops.
+pub const MIND_DROP_PER_TURN: i32 = 1;
 
 // NOTE: We use the MIND_DROP_PER_TURN multiple here. That way, unless
 // it's modified, the number here contains the default pace in turns.
-pub const WITHDRAWAL: InclusiveRange = InclusiveRange(0, 15 * MIND_DROP_PER_TURN);
-pub const SOBER: InclusiveRange = InclusiveRange(0, 20 * MIND_DROP_PER_TURN);
-pub const HIGH: InclusiveRange = InclusiveRange(0, 80 * MIND_DROP_PER_TURN);
+pub const WITHDRAWAL: InclusiveRange = InclusiveRange(0, 15);
+pub const SOBER: InclusiveRange = InclusiveRange(0, 20);
+pub const HIGH: InclusiveRange = InclusiveRange(0, 80);
 
 pub const DOSE_PREFAB: Item = Item {
     kind: Kind::Dose,
     irresistible: 2,
     modifier: Modifier::Intoxication {
-        state_of_mind: 70 * MIND_DROP_PER_TURN,
+        state_of_mind: 70,
         tolerance_increase: 1,
     },
 };
@@ -35,7 +35,7 @@ pub const STRONG_DOSE_PREFAB: Item = Item {
     kind: Kind::StrongDose,
     irresistible: 4,
     modifier: Modifier::Intoxication {
-        state_of_mind: 130 * MIND_DROP_PER_TURN,
+        state_of_mind: 130,
         tolerance_increase: 3,
     },
 };
@@ -44,7 +44,7 @@ pub const CARDINAL_DOSE_PREFAB: Item = Item {
     kind: Kind::CardinalDose,
     irresistible: 3,
     modifier: Modifier::Intoxication {
-        state_of_mind: 95 * MIND_DROP_PER_TURN,
+        state_of_mind: 95,
         tolerance_increase: 2,
     },
 };
@@ -53,7 +53,7 @@ pub const DIAGONAL_DOSE_PREFAB: Item = Item {
     kind: Kind::DiagonalDose,
     irresistible: 3,
     modifier: Modifier::Intoxication {
-        state_of_mind: 95 * MIND_DROP_PER_TURN,
+        state_of_mind: 95,
         tolerance_increase: 2,
     },
 };
@@ -62,7 +62,7 @@ pub const FOOD_PREFAB: Item = Item {
     kind: Kind::Food,
     irresistible: 0,
     modifier: Modifier::Attribute {
-        state_of_mind: 10 * MIND_DROP_PER_TURN,
+        state_of_mind: 10,
         will: 0,
     },
 };
@@ -100,7 +100,7 @@ pub fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
 }
 
 
-pub fn mind_take_turn(mind: Mind, drop: i32) -> Mind {
+pub fn mind_take_turn(mind: Mind, drop: Rational32) -> Mind {
     use self::Mind::*;
     match mind {
         Withdrawal(value) => Withdrawal(value - drop),

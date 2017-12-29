@@ -16,6 +16,12 @@
 * Nearby NPC should stay within player's distance when sober           :idea:
 ** It's really hard to catch them even when sober right now
 ** When sober maybe they should just stay on one spot or not move that much
+** It would be good if we could halve their normal speed
+*** So they only move once every 2 turns say
+*** But we'd have to be careful how to implement this
+**** Floats will get precision loss and can skip a beat
+**** Ints are a little unwieldy (but we do that for halving the hunger anyway)
+**** We could try to bring in the `num` crate and its `num::rational::Ratio<i32>`
 * NPCs should ignore monsters and destroy them when stepping on one    :idea:
 ** So this would make NPCs more like not even aware there are any monsters here
 ** But only when they are accompanying the player
@@ -66,14 +72,17 @@
 ** And that  would gate all the debug features
 *** rather than the debug/release switch
 ** And actually rename CHEATING to DEBUG
-* Replace the `time` crate                                             :code:
-** Time is now deprecated
-*** https://github.com/rust-lang-deprecated/time
-** The readme points to `chrono`
-** But maybe we could just go back to `std::time`? That's at least stable
 * Remove the requirement on Visual C++ Runtime on msvc                 :code:
+** https://www.reddit.com/r/rust/comments/7mif9i/how_to_compile_binaries_without_dependencies_on/druuu2n/
 ** https://news.ycombinator.com/item?id=15197424
 ** Try to link with MSVCRT.DLL
+** Add this to Dose Response's root directory:
+#+BEGIN_SRC
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+[target.i686-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+#+END_SRC
 * interactive NPCs                                                   :design:
 ** When High, you can't interact with them
 *** they're translucent
@@ -1340,3 +1349,12 @@ CLOSED: [2017-12-15 Fri 14:22]
 *** The game should always maintain the correct aspect ratio
 **** We can just letterbox it for now
 **** Later, switch fonts dynamically based on the size
+** DONE Replace the `time` crate                                      :code:
+CLOSED: [2017-12-29 Fri 11:04]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-12-29 Fri 11:04
+:END:
+*** Time is now deprecated
+**** https://github.com/rust-lang-deprecated/time
+*** The readme points to `chrono`
+*** But maybe we could just go back to `std::time`? That's at least stable

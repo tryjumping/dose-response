@@ -60,7 +60,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     let world_size = state.world_size;
 
     let player_will_is_max = state.player.will.is_max();
-    let player_will = *state.player.will;
+    let player_will = state.player.will.to_int();
     // NOTE: this is here to appease the borrow checker. If we
     // borrowed the state here as immutable, we wouln't need it.
     let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
@@ -381,7 +381,7 @@ fn render_panel(
         mind_str.into(),
         "".into(), // NOTE: placeholder for the Mind state percentage bar
         "".into(),
-        format!("Will: {}", *player.will).into(),
+        format!("Will: {}", player.will.to_int()).into(),
     ];
 
     if player.inventory.len() > 0 {
@@ -424,11 +424,11 @@ fn render_panel(
     }
 
     if player.alive() {
-        if *player.stun > 0 {
-            lines.push(format!("Stunned({})", *player.stun).into());
+        if player.stun.to_int() > 0 {
+            lines.push(format!("Stunned({})", player.stun.to_int()).into());
         }
-        if *player.panic > 0 {
-            lines.push(format!("Panicking({})", *player.panic).into());
+        if player.panic.to_int() > 0 {
+            lines.push(format!("Panicking({})", player.panic.to_int()).into());
         }
     } else {
         lines.push("Dead".into());

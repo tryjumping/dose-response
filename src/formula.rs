@@ -88,9 +88,9 @@ pub const ESTRANGED_NPC_MAX_AP: i32 = 2;
 pub fn exploration_radius(mental_state: Mind) -> i32 {
     use player::Mind::*;
     match mental_state {
-        Withdrawal(value) => if *value >= value.middle() { 5 } else { 4 },
+        Withdrawal(value) => if value.to_int() >= value.middle() { 5 } else { 4 },
         Sober(_) => 6,
-        High(value) => if *value >= value.middle() { 8 } else { 7 },
+        High(value) => if value.to_int() >= value.middle() { 8 } else { 7 },
     }
 }
 
@@ -129,20 +129,20 @@ pub fn mind_take_turn(mind: Mind, drop: i32) -> Mind {
 pub fn process_hunger(mind: Mind, amount: i32) -> Mind {
     match mind {
         Mind::Withdrawal(val) => {
-            if (*val + amount) > val.max() {
+            if (val.to_int() + amount) > val.max() {
                 let new_val = Ranged::new_min(SOBER);
-                Mind::Sober(new_val + (val.max() - *val + amount))
+                Mind::Sober(new_val + (val.max() - val.to_int() + amount))
             } else {
                 Mind::Withdrawal(val + amount)
             }
         }
 
         Mind::Sober(val) => {
-            if (*val + amount) >= val.min() {
+            if (val.to_int() + amount) >= val.min() {
                 Mind::Sober(val + amount)
             } else {
                 let new_val = Ranged::new_max(WITHDRAWAL);
-                let amount = val.min() - *val + amount;
+                let amount = val.min() - val.to_int() + amount;
                 Mind::Withdrawal(new_val + amount)
             }
         }
@@ -177,8 +177,8 @@ pub fn intoxicate(mind: Mind, tolerance: i32, expected_increment: i32) -> Mind {
 
 pub fn mind_bonus(mind: Mind) -> Option<Bonus> {
     match mind {
-        Mind::High(val) if *val == val.max() - 1 => Some(Bonus::UncoverMap),
-        Mind::High(val) if *val == val.max() - 2 => Some(Bonus::SeeMonstersAndItems),
+        Mind::High(val) if val.to_int() == val.max() - 1 => Some(Bonus::UncoverMap),
+        Mind::High(val) if val.to_int() == val.max() - 2 => Some(Bonus::SeeMonstersAndItems),
         _ => None,
     }
 }

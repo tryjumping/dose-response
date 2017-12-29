@@ -488,15 +488,15 @@ fn process_player_action<R, W>(
             Command::UseStrongDose => Action::Use(item::Kind::StrongDose),
         };
 
-        if *player.stun > 0 {
+        if player.stun.to_int() > 0 {
             action = Action::Move(player.pos);
-        } else if *player.panic > 0 {
+        } else if player.panic.to_int() > 0 {
             let new_pos =
                 world.random_neighbour_position(rng, player.pos, Blocker::WALL, player.pos);
             action = Action::Move(new_pos);
 
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
-            let resist_radius = formula::player_resist_radius(dose.irresistible, *player.will) as
+            let resist_radius = formula::player_resist_radius(dose.irresistible, player.will.to_int()) as
                 usize;
             if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
                 let mut path =
@@ -522,7 +522,7 @@ fn process_player_action<R, W>(
             .inventory
             .iter()
             .find(|i| {
-                i.is_dose() && formula::player_resist_radius(i.irresistible, *player.will) > 0
+                i.is_dose() && formula::player_resist_radius(i.irresistible, player.will.to_int()) > 0
             })
             .map(|i| i.kind);
         if let Some(kind) = carried_irresistible_dose {
@@ -592,7 +592,7 @@ fn process_player_action<R, W>(
                             Dose | StrongDose | CardinalDose | DiagonalDose => {
                                 if formula::player_resist_radius(
                                     item.irresistible,
-                                    *player.will,
+                                    player.will.to_int(),
                                 ) == 0
                                 {
                                     player.inventory.push(item);

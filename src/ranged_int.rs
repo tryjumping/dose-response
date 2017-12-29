@@ -1,6 +1,9 @@
 use std::cmp;
-use std::ops::{Add, AddAssign, Deref, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign};
+
+use num_rational::{Ratio, Rational32};
 use rand::Rng;
+
 
 // TODO: Basically the reason we do this instead of `std::ops::Range`
 // is that Range is non-copy. I'd also prefer to use the inclusive
@@ -23,30 +26,37 @@ impl InclusiveRange {
     }
 }
 
-
+/// A bounded, fractional value.
+///
+/// The value carries a specified minimum and maximum (always i32)
+/// that it will always clamp to.
+///
+/// Internally, the value is a `Rational32` which means it can be a
+/// non-integer, but still precise and consistent (without the
+/// floating point weirdness).
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Ranged {
-    val: i32,
-    range: InclusiveRange,
+    val: Rational32,
+    min: Rational32,
+    max: Rational32,
 }
 
 // NOTE: Custom formatter that's always on 1 line even when pretty-printing
 impl ::std::fmt::Debug for Ranged {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result <(), ::std::fmt::Error> {
-        let InclusiveRange(min, max) = self.range;
-        write!(f, "{} in <{}..{}>", self.val, min, max)
+        write!(f, "{} in <{}..{}>", self.val, self.min, self.max)
     }
 }
 
 impl Ranged {
-    pub fn new(value: i32, range: InclusiveRange) -> Self {
+    pub fn new<N: Into<Rational32>>(value: N, range: InclusiveRange) -> Self {
         assert!(range.0 <= range.1);
-        let value = cmp::max(value, range.0);
-        let value = cmp::min(value, range.1);
-        Ranged {
-            val: value,
-            range: range,
-        }
+        let val = value.into();
+        let min = Ratio::from_integer(range.0);
+        let max = Ratio::from_integer(range.1);
+        let val = cmp::max(val, min);
+        let val = cmp::min(val, max);
+        Ranged { val, min, max }
     }
 
     pub fn new_min(range: InclusiveRange) -> Self {
@@ -58,23 +68,27 @@ impl Ranged {
     }
 
     pub fn set_to_min(&mut self) {
-        self.val = self.min()
+        self.val = self.min().into()
     }
 
     pub fn min(&self) -> i32 {
-        self.range.0
+        self.min.to_integer()
     }
 
     pub fn max(&self) -> i32 {
-        self.range.1
+        self.max.to_integer()
     }
 
     pub fn is_min(&self) -> bool {
-        self.val == self.min()
+        self.val == self.min
     }
 
     pub fn is_max(&self) -> bool {
-        self.val == self.max()
+        self.val == self.max
+    }
+
+    pub fn to_int(&self) -> i32 {
+        self.val.to_integer()
     }
 
     pub fn middle(&self) -> i32 {
@@ -82,7 +96,9 @@ impl Ranged {
     }
 
     pub fn percent(&self) -> f32 {
-        let result = self.val as f32 / (self.max() - self.min()) as f32;
+        let length = self.max() as f32 - self.min() as f32;
+        let value = *self.val.numer() as f32 / *self.val.denom() as f32;
+        let result = value / length;
         assert!(result >= 0.0);
         assert!(result <= 1.0);
         result
@@ -93,22 +109,28 @@ impl Add<i32> for Ranged {
     type Output = Ranged;
 
     fn add(self, other: i32) -> Self::Output {
-        match self.val.checked_add(other) {
-            Some(v) => {
-                let new_val = if v > self.max() {
-                    self.max()
-                } else if v < self.min() {
-                    self.min()
+        let range = InclusiveRange(self.min(), self.max());
+        // NOTE: Ratio doesn't have checked_add so we do the check on
+        // an int representation to detect any overflows. We can't use
+        // the value though as it does not contain the fractional
+        // portion.
+        match self.val.to_integer().checked_add(other) {
+            Some(_) => {
+                let v = self.val + Ratio::from_integer(other);
+                let new_val = if v > self.max {
+                    self.max
+                } else if v < self.min {
+                    self.min
                 } else {
                     v
                 };
-                Ranged::new(new_val, self.range)
+                Ranged::new(new_val, range)
             }
             None => {
                 if other > 0 {
-                    Ranged::new_max(self.range)
+                    Ranged::new_max(range)
                 } else {
-                    Ranged::new_min(self.range)
+                    Ranged::new_min(range)
                 }
             }
         }
@@ -125,9 +147,10 @@ impl Sub<i32> for Ranged {
     type Output = Ranged;
 
     fn sub(self, other: i32) -> Self::Output {
+        let range = InclusiveRange(self.min(), self.max());
         let (negated_val, overflowed) = other.overflowing_neg();
         if overflowed {
-            Ranged::new_max(self.range)
+            Ranged::new_max(range)
         } else {
             self + negated_val
         }
@@ -140,13 +163,8 @@ impl SubAssign<i32> for Ranged {
     }
 }
 
-impl Deref for Ranged {
-    type Target = i32;
 
-    fn deref(&self) -> &i32 {
-        &self.val
-    }
-}
+
 
 #[cfg(test)]
 mod test {

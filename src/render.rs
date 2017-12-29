@@ -205,14 +205,16 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
 }
 
 
-fn endgame_tip(_state: &State) -> &'static str {
+fn endgame_tip(state: &State) -> &'static str {
+    use rand::Rng;
+    let mut throwavay_rng = state.rng.clone();
     let tips = &[
         "Using another dose when High will likely cause overdose early on.",
         "Being hit by `a` reduces your Will. You lose when it reaches zero.",
         "Being hit by `h` will quickly get you into a withdrawal.",
     ];
 
-    tips[0]
+    throwavay_rng.choose(tips).unwrap()
 }
 
 

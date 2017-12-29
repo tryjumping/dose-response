@@ -71,7 +71,7 @@ pub fn update(
     }
 
     // Restart the game on F5
-    if state.keys.matches_code(KeyCode::F5) || state.endgame_screen_visible && state.keys.matches_code(KeyCode::N) {
+    if state.keys.matches_code(KeyCode::F5) || (state.game_ended && state.keys.matches_code(KeyCode::N)) {
         let state = State::new_game(
             state.world_size,
             state.map_size.x,
@@ -302,7 +302,7 @@ pub fn update(
             // TODO: this is a bit hacky, but we want to uncover the screen only
             // after we've faded out:
             if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
-                state.endgame_screen_visible = true;
+                state.game_ended = true;
             }
             state.screen_fading = Some(anim);
         }
@@ -744,7 +744,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
     // NOTE: The player has stayed sober long enough. Victory! \o/
     if state.player.sobriety_counter.is_max() {
         state.side = Side::Victory;
-        state.endgame_screen_visible = true;
+        state.game_ended = true;
     }
 
     state.world.explore(

@@ -128,7 +128,7 @@ pub struct State {
 
     /// Whether the game is over (one way or another) and we should
     /// show the endgame screen -- uncovered map, the score, etc.
-    pub endgame_screen_visible: bool,
+    pub game_ended: bool,
 
     pub show_keboard_movement_hints: bool,
 }
@@ -188,7 +188,8 @@ impl State {
             new_screen_pos: (0, 0).into(),
             paused: false,
             screen_fading: None,
-            endgame_screen_visible: false,
+            game_ended: false,
+            
             show_keboard_movement_hints: true,
         }
     }

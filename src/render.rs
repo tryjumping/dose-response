@@ -42,7 +42,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     let mut bonus = state.player.bonus;
     // TODO: setting this as a bonus is a hack. Pass it to all renderers
     // directly instead.
-    if state.endgame_screen_visible {
+    if state.game_ended {
         bonus = Bonus::UncoverMap;
     }
     if state.cheating {
@@ -194,7 +194,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
         render_controls_help(state.map_size, drawcalls);
     }
 
-    if state.endgame_screen_visible {
+    if state.game_ended {
         render_endgame_screen(state, drawcalls);
     }
 

@@ -25,6 +25,8 @@ extern crate piston_window;
 #[cfg(any(feature = "piston", feature = "opengl"))]
 extern crate image;
 
+extern crate num_rational;
+
 #[cfg(feature = "libtcod")]
 pub extern crate tcod;
 

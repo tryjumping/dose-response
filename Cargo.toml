@@ -28,6 +28,10 @@ image = { version = "0.12.2", optional = true }
 glium = { version = "0.18.1", optional = true }
 zmq = { version = "0.8", optional = true }
 
+[dependencies.num-rational]
+version = "0.1.40"
+default-features = false
+
 [build-dependencies]
 rusttype = "0.2.1"
 image = "0.12.2"

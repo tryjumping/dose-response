@@ -56,7 +56,7 @@ pub fn lone_attacker_act<R: Rng>(
         AIState::Idle
     };
 
-    let update = Update { ai_state, max_ap: actor.max_ap };
+    let update = Update { ai_state, max_ap: actor.ap.max() };
 
     let action = match ai_state {
         AIState::Chasing => chasing_action(actor, player_info.pos),
@@ -85,7 +85,7 @@ pub fn pack_attacker_act<R: Rng>(
         actor.ai_state
     };
 
-    let update = Update { ai_state, max_ap: actor.max_ap };
+    let update = Update { ai_state, max_ap: actor.ap.max() };
 
     let action = match ai_state {
         AIState::Chasing => {

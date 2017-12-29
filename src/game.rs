@@ -11,6 +11,7 @@ use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
 use point::Point;
+use ranged_int::{InclusiveRange, Ranged};
 
 use rand::Rng;
 use rect::Rectangle;
@@ -369,7 +370,10 @@ fn process_monsters<R: Rng>(
             let (update, action) = monster_readonly.act(player_info, world, rng);
             if let Some(monster) = world.monster_on_pos(monster_position) {
                 monster.ai_state = update.ai_state;
-                monster.max_ap = update.max_ap;
+                monster.ap = Ranged::new(monster.ap.to_int(),
+                                         InclusiveRange(monster.ap.min(), update.max_ap));
+
+
                 monster.spend_ap(1);
             }
             action

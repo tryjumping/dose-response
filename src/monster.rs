@@ -7,6 +7,7 @@ use game::Action;
 use graphics::Render;
 use player::Modifier;
 use point::Point;
+use ranged_int::{InclusiveRange, Ranged};
 
 use rand::{Rand, Rng};
 use std::time::Duration;
@@ -29,8 +30,7 @@ pub struct Monster {
     pub companion_bonus: Option<CompanionBonus>,
     pub accompanying_player: bool,
 
-    pub max_ap: i32,
-    ap: i32,
+    pub ap: Ranged,
 }
 
 
@@ -116,8 +116,7 @@ impl Monster {
             invincible,
             behavior,
             ai_state: AIState::Idle,
-            ap: 0,
-            max_ap,
+            ap: Ranged::new_min(InclusiveRange(0, max_ap)),
             blockers,
             path: vec![],
             trail: None,
@@ -165,20 +164,21 @@ impl Monster {
     }
 
     pub fn spend_ap(&mut self, count: i32) {
-        if !(count <= self.ap) {
+        let ap = self.ap.to_int();
+        if !(count <= ap) {
             // println!("bad assert: {:?}", self);
         }
-        assert!(count <= self.ap);
+        assert!(count <= ap);
         self.ap -= count;
     }
 
     pub fn has_ap(&self, count: i32) -> bool {
-        !self.dead && self.ap >= count
+        !self.dead && self.ap.to_int() >= count
     }
 
     pub fn new_turn(&mut self) {
         if !self.dead {
-            self.ap = self.max_ap;
+            self.ap.set_to_max();
             self.trail = None;
         }
     }

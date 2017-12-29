@@ -71,6 +71,10 @@ impl Ranged {
         self.val = self.min().into()
     }
 
+    pub fn set_to_max(&mut self) {
+        self.val = self.max().into()
+    }
+
     pub fn min(&self) -> i32 {
         self.min.to_integer()
     }

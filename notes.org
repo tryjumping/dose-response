@@ -48,8 +48,15 @@
 *** carry food
 *** don't pick up doses unless sober at first
 * Add the `?` hint for help to the endgame screen                        :ui:
+* Pre-allocated the wasm drawcalls vecs better                         :code:
+* Make `sort_drawcalls` more efficient? :code:
+** I really don't like having two `reverse` calls in there
 * Use rect::Rectangle for Point::areas                                 :code:
 * Use rect::Rectangle for the Rectangle drawcall                       :code:
+* Make the canvas drawing more performant                              :code:
+** https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
+** Think about reducing the Draw::Rectangle and Draw::Fade data footprint
+*** by like emulating an enum or something
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them

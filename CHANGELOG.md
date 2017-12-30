@@ -1,10 +1,13 @@
 # Change Log
 
-Dose Response is an unfinished roguelike where you play an addict.
-Avoid the dangers threatening your mind and body while desperately
-looking for the next fix.
+Dose Response is roguelike game (currently in development) where you
+play an addict. Avoid the dangers threatening your mind and body while
+desperately looking for the next fix.
 
 ## [Unreleased]
+
+
+## [0.5.0] - 2017-12-30
 - Toggle fullscreen when pressing Alt+Enter
 - NPCs give bonuses when bumped into while sober
   - The player can only have 1 bonus active at a time
@@ -12,6 +15,7 @@ looking for the next fix.
 - WebAssembly support!
   - The game can now be played (in a modern up-to-date browser) at:
   - https://aimlesslygoingforward.com/projects/dose-response-roguelike/play.html
+
 
 ## [0.4.3] - 2017-04-28
 

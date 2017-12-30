@@ -15,6 +15,7 @@ desperately looking for the next fix.
 - WebAssembly support!
   - The game can now be played (in a modern up-to-date browser) at:
   - https://aimlesslygoingforward.com/projects/dose-response-roguelike/play.html
+- Different ways of losing the game now fade in different colours
 
 
 ## [0.4.3] - 2017-04-28

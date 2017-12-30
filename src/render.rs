@@ -212,6 +212,10 @@ fn endgame_tip(state: &State) -> &'static str {
         "Using another dose when High will likely cause overdose early on.",
         "Being hit by `a` reduces your Will. You lose when it reaches zero.",
         "Being hit by `h` will quickly get you into a withdrawal.",
+        "Directly confronting `a` will slowly increase your Will.",
+        "The other characters won't talk to you while you're High.",
+        "Bumping to another person while sober will give you a bonus.",
+        "Eat food (by pressing [1]) to stave off withdrawal.",
     ];
 
     throwavay_rng.choose(tips).unwrap()

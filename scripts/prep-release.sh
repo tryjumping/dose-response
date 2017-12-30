@@ -10,7 +10,8 @@ set -eux
 
 verify_repo_is_clean
 
-VERSION=$(grep '^version\s\+' Cargo.toml | awk '{gsub(/"/, "", $3); print $3}')
+VERSION=$(grep '^version\s\+' Cargo.toml | head -n 1 | awk '{gsub(/"/, "", $3); print $3}')
+echo Version: $VERSION
 
 cargo build --release
 verify_repo_is_clean

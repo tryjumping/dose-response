@@ -1,20 +1,22 @@
-var width = 63;
-var height = 43;
-var squareSize = 16;
-var c = document.createElement('canvas');
+function play_game(canvas, wasm_path) {
+  var width = 63;
+  var height = 43;
+  var squareSize = 16;
 
-c.width = width*squareSize;
-c.height = height*squareSize;
-document.body.appendChild(c);
+  var c = canvas;
+  var ctx = c.getContext('2d');
 
-var ctx = c.getContext('2d');
-ctx.textAlign = "center";
-ctx.font = '14px mononoki';
-
-function play_game(wasm_path) {
   var wasm_instance;
   var gamestate_ptr;
   var pressed_keys = [];
+
+  console.log("Setting up the canvas", c);
+  c.width = width*squareSize;
+  c.height = height*squareSize;
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgb(255, 255, 255)";
+  ctx.fillText("Loading...", c.width / 2, c.height / 2);
 
   console.log("Fetching: ", wasm_path);
 
@@ -72,6 +74,7 @@ function play_game(wasm_path) {
 
     .then(function(results) {
       console.log("Wasm loaded, playing the game now.");
+      ctx.font = '14px mononoki';
       document.addEventListener('keydown', function(event) {
         let key = normalize_key(event);
 

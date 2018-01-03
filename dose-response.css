@@ -2,9 +2,11 @@
   font-family: 'mononoki';
   font-style: normal;
   font-weight: 400;
-  src: local('mononoki'), url('fonts/mononoki-Regular.ttf') format('truetype');
+  src: local('mononoki'), url('mononoki-Regular.ttf'), url('fonts/mononoki-Regular.ttf') format('truetype');
 }
 
 canvas {
   background: black;
+  width: 1008px;
+  height: 688px;
 }

@@ -4,14 +4,27 @@
 ** More balanced gameplay
 ** Save/load game
 ** Fullscreen with correct aspect-ratio handling
+** Integrated help
+*** When you press `?`
+*** Should show
+**** Controls
+**** How to play
+**** Tips
+** Menu
+*** Implied by Save/Load
+*** Or is it? Maybe we could just always load if there is a saved game...
+*** But we should have a menu anyway
+*** On `Esc`
 ** Nice colours
 *** good colour palette
 *** distinct colours (so they're visible while High, too)
-** Icon for the executable
-** Monsters and player able to shatter walls
-** World generation
 ** Reasonable AI
 *** monsters further away should not freak out when another monster is in the way
+
+** Icon for the executable
+* Nice-to-have post 1.0.0
+** Monsters and player able to shatter walls
+** World generation
 ** Non-square fonts for text
 * Write out tips on death                                              :idea:
 ** On early overdose, mention that second dose while High is dangerous

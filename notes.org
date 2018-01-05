@@ -42,17 +42,6 @@
 ** And that  would gate all the debug features
 *** rather than the debug/release switch
 ** And actually rename CHEATING to DEBUG
-* Remove the requirement on Visual C++ Runtime on msvc                 :code:
-** https://www.reddit.com/r/rust/comments/7mif9i/how_to_compile_binaries_without_dependencies_on/druuu2n/
-** https://news.ycombinator.com/item?id=15197424
-** Try to link with MSVCRT.DLL
-** Add this to Dose Response's root directory:
-#+BEGIN_SRC
-[target.x86_64-pc-windows-msvc]
-rustflags = ["-Ctarget-feature=+crt-static"]
-[target.i686-pc-windows-msvc]
-rustflags = ["-Ctarget-feature=+crt-static"]
-#+END_SRC
 * NPCs should ignore monsters and destroy them when stepping on one    :idea:
 ** So this would make NPCs more like not even aware there are any monsters here
 ** But only when they are accompanying the player
@@ -1407,3 +1396,18 @@ CLOSED: [2018-01-05 Fri 11:55]
 **** detect being confused or stunned
 *** More general tips
 **** can't interact with npcs when you're high
+** DONE Remove the requirement on Visual C++ Runtime on msvc          :code:
+CLOSED: [2018-01-05 Fri 17:04]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-05 Fri 17:05
+:END:
+*** https://www.reddit.com/r/rust/comments/7mif9i/how_to_compile_binaries_without_dependencies_on/druuu2n/
+*** https://news.ycombinator.com/item?id=15197424
+*** Try to link with MSVCRT.DLL
+*** Add this to Dose Response's root directory:
+#+BEGIN_SRC
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+[target.i686-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+#+END_SRC

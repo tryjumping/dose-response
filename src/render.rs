@@ -205,20 +205,68 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
 }
 
 
-fn endgame_tip(state: &State) -> &'static str {
+fn endgame_tip(state: &State) -> String {
     use rand::Rng;
+    use self::CauseOfDeath::*;
     let mut throwavay_rng = state.rng.clone();
-    let tips = &[
+
+    let overdosed_tips = &[
         "Using another dose when High will likely cause overdose early on.",
-        "Being hit by `a` reduces your Will. You lose when it reaches zero.",
-        "Being hit by `h` will quickly get you into a withdrawal.",
-        "Directly confronting `a` will slowly increase your Will.",
-        "The other characters won't talk to you while you're High.",
-        "Bumping to another person while sober will give you a bonus.",
-        "Eat food (by pressing [1]) to stave off withdrawal.",
+        "When you get too close to a dose, it will be impossible to resist.",
+        "The `+`, `x` and `I` doses are much stronger. Early on, you'll likely overdose on them.",
     ];
 
-    throwavay_rng.choose(tips).unwrap()
+    let food_tips = &[
+        "Eat food (by pressing [1]) or use a dose to stave off withdrawal.",
+    ];
+
+    let hunger_tips = &[
+        "Being hit by `h` will quickly get you into a withdrawal.",
+        "The `h` monsters can swarm you.",
+    ];
+
+    let anxiety_tips = &[
+        "Being hit by `a` reduces your Will. You lose when it reaches zero.",
+    ];
+
+    let unsorted_tips = &[
+        "As you use doses, you slowly build up tolerance.",
+        "Even the doses of the same kind can have different strength. Their purity varies.",
+        "Directly confronting `a` will slowly increase your Will.",
+        "The other characters won't talk to you while you're High.",
+        "Bumping to another person sober will give you a bonus.",
+        "The `D` monsters move twice as fast as you. Be careful.",
+    ];
+
+    let all_tips = overdosed_tips.iter()
+        .chain(food_tips)
+        .chain(hunger_tips)
+        .chain(anxiety_tips)
+        .chain(unsorted_tips)
+        .collect::<Vec<_>>();
+
+    let cause_of_death = formula::cause_of_death(&state.player);
+    let perpetrator = state.player.perpetrator.as_ref();
+    let selected_tip = match (cause_of_death, perpetrator) {
+        (Some(Overdosed), _) => {
+            throwavay_rng.choose(overdosed_tips).unwrap()
+        }
+        (Some(Exhausted), Some(_monster)) => {
+            throwavay_rng.choose(hunger_tips).unwrap()
+        }
+        (Some(Exhausted), None) => {
+            throwavay_rng.choose(food_tips).unwrap()
+        }
+        (Some(LostWill), Some(_monster)) => {
+            throwavay_rng.choose(anxiety_tips).unwrap()
+        }
+        _ => {
+
+            throwavay_rng.choose(&all_tips).unwrap()
+        }
+    };
+
+    String::from(*selected_tip)
 }
 
 

@@ -568,6 +568,20 @@ pub fn main_loop(
                             window_pos.x = x;
                             window_pos.y = y;
                         }
+                        WindowEvent::ReceivedCharacter(chr) => {
+                            let code = match chr {
+                                '?' => Some(KeyCode::QuestionMark),
+                                _ => None,
+                            };
+                            if let Some(code) = code {
+                                keys.push(Key {
+                                    code: code,
+                                    alt: false,
+                                    ctrl: false,
+                                    shift: false,
+                                });
+                            }
+                        }
                         WindowEvent::KeyboardInput{ device_id: _, input } => {
                             use glium::glutin::ElementState::*;
                             let pressed = match input.state {

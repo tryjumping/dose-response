@@ -121,6 +121,8 @@ fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {
         32 => Some(Space),
         27 => Some(Esc),
 
+        0x03F => Some(QuestionMark),
+
         _ => None,
     }
 }

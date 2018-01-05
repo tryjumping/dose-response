@@ -78,6 +78,7 @@ pub enum KeyCode {
     Enter,
     Space,
     Esc,
+    QuestionMark,
 }
 
 

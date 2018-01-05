@@ -26,20 +26,6 @@
 ** Monsters and player able to shatter walls
 ** World generation
 ** Non-square fonts for text
-* Write out tips on death                                              :idea:
-** On early overdose, mention that second dose while High is dangerous
-"Using another dose when High will likely cause overdose early on."
-** On being killed by `a`, mention they take out will and you die at 0
-"Being hit by `a` reduces your Will. You lose when it reaches zero."
-** On being killed by hunger, mention they're deadly on withdrawal
-"Being hit by `h` will quickly get you into a withdrawal."
-** On `D` mention they're fast and deadly
-** More advanced tips:
-*** detect when being swarmed by hunger
-*** detect being drawn to an irresistible dose
-*** detect being confused or stunned
-** More general tips
-*** can't interact with npcs when you're high
 * Create a Help screen                                                   :ui:
 ** Opens any time by pressing `?`
 ** Shows movement keys
@@ -1403,3 +1389,21 @@ CLOSED: [2017-12-29 Fri 22:41]
 :END:
 *** So the player can see the full map
 *** cycle the map and game over screen by pressing the key
+** DONE Write out tips on death                                       :idea:
+CLOSED: [2018-01-05 Fri 11:55]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-05 Fri 11:55
+:END:
+*** On early overdose, mention that second dose while High is dangerous
+"Using another dose when High will likely cause overdose early on."
+*** On being killed by `a`, mention they take out will and you die at 0
+"Being hit by `a` reduces your Will. You lose when it reaches zero."
+*** On being killed by hunger, mention they're deadly on withdrawal
+"Being hit by `h` will quickly get you into a withdrawal."
+*** On `D` mention they're fast and deadly
+*** More advanced tips:
+**** detect when being swarmed by hunger
+**** detect being drawn to an irresistible dose
+**** detect being confused or stunned
+*** More general tips
+**** can't interact with npcs when you're high

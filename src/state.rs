@@ -130,6 +130,7 @@ pub struct State {
     /// show the endgame screen -- uncovered map, the score, etc.
     pub game_ended: bool,
     pub endgame_screen_visible: bool,
+    pub help_screen_visible: bool,
 
     pub show_keboard_movement_hints: bool,
 }
@@ -191,6 +192,7 @@ impl State {
             screen_fading: None,
             game_ended: false,
             endgame_screen_visible: true,
+            help_screen_visible: false,
             show_keboard_movement_hints: true,
         }
     }

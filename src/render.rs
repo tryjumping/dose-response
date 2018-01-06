@@ -202,6 +202,10 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     if mouse_inside_map && state.mouse.right {
         render_monster_info(state, drawcalls);
     }
+
+    if state.help_screen_visible {
+        render_help_screen(state, drawcalls);
+    }
 }
 
 
@@ -267,6 +271,21 @@ fn endgame_tip(state: &State) -> String {
     };
 
     String::from(*selected_tip)
+}
+
+
+fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
+    let padding = Point::from_i32(2);
+    let rect = Rectangle::from_point_and_size(padding, state.display_size - (padding * 2));
+
+    drawcalls.push(Draw::Rectangle(
+        rect.top_left(),
+        rect.dimensions(),
+        //color::background,
+        color::anxiety,
+    ));
+
+    drawcalls.push(Draw::Text(rect.top_left(), "TODO: HELP TEXT GOES HERE".into(), color::gui_text));
 }
 
 

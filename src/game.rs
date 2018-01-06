@@ -84,6 +84,16 @@ pub fn update(
         return RunningState::NewGame(state);
     }
 
+    // TODO: handle stacking windows properly
+    // Show the help screen on `?`
+    if state.keys.matches_code(KeyCode::QuestionMark) {
+        state.help_screen_visible = true;
+    }
+    // And hide it on `Esc`
+    if state.keys.matches_code(KeyCode::Esc) {
+        state.help_screen_visible = false;
+    }
+
     // Full screen on Alt-Enter
     if state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
         settings.fullscreen = !settings.fullscreen;

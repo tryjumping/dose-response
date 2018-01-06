@@ -1,6 +1,6 @@
 use std::cmp::{Ordering, max};
 use std::fmt::{self, Display, Error, Formatter};
-use std::ops::{Add, AddAssign, Div, Sub};
+use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 #[derive(Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Point {
@@ -172,6 +172,14 @@ impl PartialOrd<(i32, i32)> for Point {
     fn ge(&self, other: &(i32, i32)) -> bool {
         let other: Point = (*other).into();
         self >= &other
+    }
+}
+
+impl Mul<i32> for Point {
+    type Output = Self;
+
+    fn mul(self, rhs: i32) -> Self {
+        Point::new(self.x * rhs, self.y * rhs)
     }
 }
 

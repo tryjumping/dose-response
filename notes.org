@@ -42,6 +42,9 @@
 ** And that  would gate all the debug features
 *** rather than the debug/release switch
 ** And actually rename CHEATING to DEBUG
+* Don't Quit the game on pressing Q once we have a menu                  :ui:
+** Or at least always save the game
+** But really, pressing a key by accident shouldn't close the game
 * NPCs should ignore monsters and destroy them when stepping on one    :idea:
 ** So this would make NPCs more like not even aware there are any monsters here
 ** But only when they are accompanying the player

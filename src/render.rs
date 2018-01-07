@@ -28,6 +28,9 @@ pub fn render(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) 
             Window::Help => {
                 render_help_screen(state, drawcalls);
             }
+            Window::Endgame => {
+                render_endgame_screen(state, drawcalls);
+            }
         }
     }
 }
@@ -206,10 +209,6 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     );
     if state.show_keboard_movement_hints {
         render_controls_help(state.map_size, drawcalls);
-    }
-
-    if state.game_ended && state.endgame_screen_visible {
-        render_endgame_screen(state, drawcalls);
     }
 
     let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;

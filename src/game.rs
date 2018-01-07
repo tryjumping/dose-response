@@ -112,6 +112,9 @@ pub fn update(
         Window::Help => {
             process_help_window(state)
         }
+        Window::Endgame => {
+            process_endgame_window(state)
+        }
     };
 
     // NOTE: Clear any unprocessed keys
@@ -145,15 +148,21 @@ fn process_game(
         return RunningState::Running;
     }
 
+    // TODO: The check for whether the fading animation is done is a
+    // bad hack. We have to do it otherwise the animation never
+    // finishes because it's only being updated in this `process_game`
+    // function. So if we switch windows, it never gets run. Seems
+    // like we want to pull it out.
+
+    // Show the endgame screen on any pressed key:
+    if state.game_ended && state.screen_fading.is_none() && state.keys.matches(|_| true) {
+        state.window_stack.push(Window::Endgame);
+        return RunningState::Running;
+    }
+
     // Uncover map / set the Cheat mode
     if state.keys.matches_code(KeyCode::F6) {
         state.cheating = !state.cheating;
-    }
-
-    // Toggle engame screen visibility
-    // TODO: redo this with the window stacks by pushing/popping it
-    if state.game_ended && state.keys.matches_code(KeyCode::Space) {
-        state.endgame_screen_visible = !state.endgame_screen_visible;
     }
 
     // NOTE: this will not show up in the replay so that'll be out of
@@ -353,6 +362,7 @@ fn process_game(
     if let Some(mut anim) = state.screen_fading {
         if anim.timer.finished() {
             state.screen_fading = None;
+            state.window_stack.push(Window::Endgame);
             println!("Game real time: {:?}", state.clock);
         } else {
             use animation::ScreenFadePhase;
@@ -363,7 +373,6 @@ fn process_game(
             // after we've faded out:
             if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
                 state.game_ended = true;
-                state.endgame_screen_visible = true;
             }
             state.screen_fading = Some(anim);
         }
@@ -386,6 +395,12 @@ fn process_game(
 
 
 fn process_help_window(_state: &mut State) -> RunningState {
+    RunningState::Running
+}
+
+
+fn process_endgame_window(_state: &mut State) -> RunningState {
+    // TODO: restart game on pressing `N`
     RunningState::Running
 }
 
@@ -804,7 +819,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
     if state.player.sobriety_counter.is_max() {
         state.side = Side::Victory;
         state.game_ended = true;
-        state.endgame_screen_visible = true;
+        state.window_stack.push(Window::Endgame);
     }
 
     state.world.explore(

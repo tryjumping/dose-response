@@ -131,7 +131,6 @@ pub struct State {
     pub game_ended: bool,
 
     pub window_stack: Vec<Window>,
-    pub endgame_screen_visible: bool,
 
     pub show_keboard_movement_hints: bool,
 }
@@ -193,7 +192,6 @@ impl State {
             screen_fading: None,
             game_ended: false,
             window_stack: vec![Window::Game],
-            endgame_screen_visible: true,
             show_keboard_movement_hints: true,
         }
     }
@@ -363,6 +361,7 @@ Reason: '{}'.",
 pub enum Window {
     Game,
     Help,
+    Endgame,
 }
 
 

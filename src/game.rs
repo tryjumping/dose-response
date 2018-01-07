@@ -117,6 +117,25 @@ pub fn update(
         }
     };
 
+    // NOTE: process the screen fading animation animation.
+    // This must happen outside of the window-custom code because the fadeout could
+    // span multiple windows.
+    if let Some(mut anim) = state.screen_fading {
+        if anim.timer.finished() {
+            state.screen_fading = None;
+        } else {
+            use animation::ScreenFadePhase;
+            let prev_phase = anim.phase;
+            anim.update(dt);
+            let new_phase = anim.phase;
+            // TODO: this is a bit hacky, but we want to uncover the screen only
+            // after we've faded out:
+            if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
+            }
+            state.screen_fading = Some(anim);
+        }
+    }
+
     // NOTE: Clear any unprocessed keys
     while let Some(_key) = state.keys.get() { }
 
@@ -148,14 +167,8 @@ fn process_game(
         return RunningState::Running;
     }
 
-    // TODO: The check for whether the fading animation is done is a
-    // bad hack. We have to do it otherwise the animation never
-    // finishes because it's only being updated in this `process_game`
-    // function. So if we switch windows, it never gets run. Seems
-    // like we want to pull it out.
-
     // Show the endgame screen on any pressed key:
-    if state.game_ended && state.screen_fading.is_none() && state.keys.matches(|_| true) {
+    if state.game_ended && state.keys.matches(|_| true) {
         state.window_stack.push(Window::Endgame);
         return RunningState::Running;
     }
@@ -309,6 +322,8 @@ fn process_game(
         } else {
             (0.0, 500)
         };
+        state.game_ended = true;
+        state.window_stack.push(Window::Endgame);
         state.screen_fading = Some(animation::ScreenFade::new(
             fade_color,
             Duration::from_millis(fade_duration),
@@ -316,6 +331,7 @@ fn process_game(
             Duration::from_millis(300),
             fade_percentage,
         ));
+        println!("Game real time: {:?}", state.clock);
     }
 
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
@@ -355,26 +371,6 @@ fn process_game(
             state.new_screen_pos = (state.old_screen_pos.x, state.player.pos.y).into();
         } else {
             // Do nothing
-        }
-    }
-
-    // NOTE: process the screen fading animation on death
-    if let Some(mut anim) = state.screen_fading {
-        if anim.timer.finished() {
-            state.screen_fading = None;
-            state.window_stack.push(Window::Endgame);
-            println!("Game real time: {:?}", state.clock);
-        } else {
-            use animation::ScreenFadePhase;
-            let prev_phase = anim.phase;
-            anim.update(dt);
-            let new_phase = anim.phase;
-            // TODO: this is a bit hacky, but we want to uncover the screen only
-            // after we've faded out:
-            if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
-                state.game_ended = true;
-            }
-            state.screen_fading = Some(anim);
         }
     }
 

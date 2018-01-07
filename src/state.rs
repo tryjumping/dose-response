@@ -133,6 +133,15 @@ pub struct State {
     pub window_stack: Vec<Window>,
 
     pub show_keboard_movement_hints: bool,
+
+    /// Whether we should push the Endscreen window and uncover the
+    /// map during the transition from screen fade out to fade in
+    /// phase. This is purely a visual effect and the values here are
+    /// a bit of a hack. If there's more instances of us wanting to do
+    /// this, we hould just have a list of screen fade transition
+    /// effects here instead.
+    pub show_endscreen_and_uncover_map_during_fadein: bool,
+    pub uncovered_map: bool,
 }
 
 impl State {
@@ -193,6 +202,8 @@ impl State {
             game_ended: false,
             window_stack: vec![Window::Game],
             show_keboard_movement_hints: true,
+            show_endscreen_and_uncover_map_during_fadein: false,
+            uncovered_map: false,
         }
     }
 

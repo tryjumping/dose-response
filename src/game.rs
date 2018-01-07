@@ -131,6 +131,10 @@ pub fn update(
             // TODO: this is a bit hacky, but we want to uncover the screen only
             // after we've faded out:
             if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
+                if state.show_endscreen_and_uncover_map_during_fadein {
+                    state.uncovered_map = true;
+                    state.window_stack.push(Window::Endgame);
+                }
             }
             state.screen_fading = Some(anim);
         }
@@ -168,7 +172,7 @@ fn process_game(
     }
 
     // Show the endgame screen on any pressed key:
-    if state.game_ended && state.keys.matches(|_| true) {
+    if state.game_ended && state.screen_fading.is_none() && state.keys.matches(|_| true) {
         state.window_stack.push(Window::Endgame);
         return RunningState::Running;
     }
@@ -323,7 +327,7 @@ fn process_game(
             (0.0, 500)
         };
         state.game_ended = true;
-        state.window_stack.push(Window::Endgame);
+        state.show_endscreen_and_uncover_map_during_fadein = true;
         state.screen_fading = Some(animation::ScreenFade::new(
             fade_color,
             Duration::from_millis(fade_duration),
@@ -815,6 +819,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
     if state.player.sobriety_counter.is_max() {
         state.side = Side::Victory;
         state.game_ended = true;
+        state.uncovered_map = true;
         state.window_stack.push(Window::Endgame);
     }
 

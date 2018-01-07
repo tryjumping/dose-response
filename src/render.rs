@@ -59,10 +59,10 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     let mut bonus = state.player.bonus;
     // TODO: setting this as a bonus is a hack. Pass it to all renderers
     // directly instead.
-    if state.game_ended {
+    if state.cheating {
         bonus = Bonus::UncoverMap;
     }
-    if state.cheating {
+    if state.uncovered_map {
         bonus = Bonus::UncoverMap;
     }
     let radius = formula::exploration_radius(state.player.mind);

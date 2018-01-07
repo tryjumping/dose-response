@@ -1,5 +1,3 @@
-
-
 use color::{self, Color};
 use engine::Draw;
 use formula;
@@ -10,13 +8,29 @@ use monster;
 use player::{Bonus, CauseOfDeath, Mind};
 use point::{Point, SquareArea};
 use rect::Rectangle;
-use state::{Side, State};
+use state::{Side, State, Window};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
 use std::time::Duration;
 use util;
 use world::Chunk;
+
+
+pub fn render(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) {
+    // TODO: This might be inefficient for windows fully covering
+    // other windows.
+    for &window in &state.window_stack {
+        match window {
+            Window::Game => {
+                render_game(state, dt, fps, drawcalls);
+            }
+            Window::Help => {
+                render_help_screen(state, drawcalls);
+            }
+        }
+    }
+}
 
 
 pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) {
@@ -201,10 +215,6 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
     if mouse_inside_map && state.mouse.right {
         render_monster_info(state, drawcalls);
-    }
-
-    if state.help_screen_visible {
-        render_help_screen(state, drawcalls);
     }
 }
 

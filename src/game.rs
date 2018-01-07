@@ -16,7 +16,7 @@ use ranged_int::{InclusiveRange, Ranged};
 use rand::Rng;
 use rect::Rectangle;
 use render;
-use state::{self, Command, Side, State};
+use state::{self, Command, Side, State, Window};
 use stats::{FrameStats, Stats};
 use std::collections::{HashMap, VecDeque};
 use std::u64;
@@ -60,6 +60,7 @@ pub fn update(
     state.keys.extend(new_keys.iter().cloned());
     state.mouse = mouse;
 
+
     // Quit the game when Q is pressed or on replay and requested
     if state.keys.matches_code(KeyCode::Q) || (!state.player.alive() && state.exit_after) ||
         (state.replay && state.exit_after &&
@@ -71,6 +72,7 @@ pub fn update(
     }
 
     // Restart the game on F5
+    // TODO: move the `N` handling to the endgame screen
     if state.keys.matches_code(KeyCode::F5) || (state.game_ended && state.keys.matches_code(KeyCode::N)) {
         let state = State::new_game(
             state.world_size,
@@ -84,19 +86,63 @@ pub fn update(
         return RunningState::NewGame(state);
     }
 
-    // TODO: handle stacking windows properly
-    // Show the help screen on `?`
-    if state.keys.matches_code(KeyCode::QuestionMark) {
-        state.help_screen_visible = true;
-    }
-    // And hide it on `Esc`
-    if state.keys.matches_code(KeyCode::Esc) {
-        state.help_screen_visible = false;
-    }
-
     // Full screen on Alt-Enter
     if state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
         settings.fullscreen = !settings.fullscreen;
+    }
+
+    // Close the topmost window on Esc
+    if state.keys.matches_code(KeyCode::Esc) {
+        if state.window_stack.len() > 1 {
+            state.window_stack.pop();
+        } else {
+            // NOTE: We've pressed Esc on the lowest-level window (the
+            // game) -- show the main menu instead of popping the stack.
+
+            // state.window_stack.push(Window::Menu);
+        }
+    }
+
+
+    let current_window = *state.window_stack.last().unwrap_or(&Window::Game);
+    let game_update_result = match current_window {
+        Window::Game => {
+            process_game(state, dt)
+        }
+        Window::Help => {
+            process_help_window(state)
+        }
+    };
+
+    // NOTE: Clear any unprocessed keys
+    while let Some(_key) = state.keys.get() { }
+
+    let update_duration = update_stopwatch.finish();
+
+
+
+    let drawcall_stopwatch = Stopwatch::start();
+    render::render(&state, dt, fps, drawcalls);
+    let drawcall_duration = drawcall_stopwatch.finish();
+
+    state.stats.push(FrameStats {
+        update: update_duration,
+        drawcalls: drawcall_duration,
+    });
+
+    game_update_result
+}
+
+
+fn process_game(
+    state: &mut State,
+    dt: Duration,
+) -> RunningState {
+
+    // Show the help screen on `?`
+    if state.keys.matches_code(KeyCode::QuestionMark) {
+        state.window_stack.push(Window::Help);
+        return RunningState::Running;
     }
 
     // Uncover map / set the Cheat mode
@@ -105,6 +151,7 @@ pub fn update(
     }
 
     // Toggle engame screen visibility
+    // TODO: redo this with the window stacks by pushing/popping it
     if state.game_ended && state.keys.matches_code(KeyCode::Space) {
         state.endgame_screen_visible = !state.endgame_screen_visible;
     }
@@ -262,8 +309,6 @@ pub fn update(
         ));
     }
 
-    let update_duration = update_stopwatch.finish();
-    let drawcall_stopwatch = Stopwatch::start();
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
@@ -336,13 +381,11 @@ pub fn update(
         }
     }
 
-    render::render_game(&state, dt, fps, drawcalls);
+    RunningState::Running
+}
 
-    let drawcall_duration = drawcall_stopwatch.finish();
-    state.stats.push(FrameStats {
-        update: update_duration,
-        drawcalls: drawcall_duration,
-    });
+
+fn process_help_window(_state: &mut State) -> RunningState {
     RunningState::Running
 }
 

@@ -10,14 +10,6 @@ function play_game(canvas, wasm_path) {
   var gamestate_ptr;
   var pressed_keys = [];
 
-  console.log("Setting up the canvas", c);
-  c.width = width*squareSize;
-  c.height = height*squareSize;
-  ctx.clearRect(0, 0, c.width, c.height);
-  ctx.textAlign = "center";
-  ctx.fillStyle = "rgb(255, 255, 255)";
-  ctx.fillText("Loading...", c.width / 2, c.height / 2);
-
   console.log("Fetching: ", wasm_path);
 
   fetch(wasm_path)
@@ -73,8 +65,13 @@ function play_game(canvas, wasm_path) {
     })
 
     .then(function(results) {
-      console.log("Wasm loaded, playing the game now.");
+      console.log("Wasm loaded.");
+
+      console.log("Setting up the canvas", c);
+      c.width = width*squareSize;
+      c.height = height*squareSize;
       ctx.font = '14px mononoki';
+
       document.addEventListener('keydown', function(event) {
         let key = normalize_key(event);
 
@@ -121,7 +118,8 @@ function play_game(canvas, wasm_path) {
 
         results.instance.exports.update(gamestate_ptr, dt);
       }
-      update(previous_frame_timestamp);
 
+      console.log("Playing the game.");
+      update(previous_frame_timestamp);
     });
 }

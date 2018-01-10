@@ -29,6 +29,38 @@
 * Create a Help screen                                                   :ui:
 ** Opens any time by pressing `?`
 ** Shows movement keys
+*** We need to be able to render the arrow characters
+*** Try & test this on wasm first?
+**** though that only handles ASCII doesn't it?
+*** https://www.toptal.com/designers/htmlarrows/assets/images/htmlarrows-hero-529437ad.jpg
+*** Here's a code that prints tehm out it rust
+#+BEGIN_SRC
+let chars = [
+    '\u{2190}',
+    '\u{2191}',
+    '\u{2192}',
+    '\u{2193}',
+
+    '\u{2196}',
+    '\u{2197}',
+    '\u{2198}',
+    '\u{2199}',
+];
+
+for chr in &chars {
+    println!("{}, {}", chr, *chr as u32);
+}
+#+END_SRC
+**** Outputs:
+←, 8592
+↑, 8593
+→, 8594
+↓, 8595
+↖, 8598
+↗, 8599
+↘, 8600
+↙, 8601
+**** The `\u{}` sequence expects hexadecimal numbers
 ** Shows basic tips
 *** use doses
 *** carry food

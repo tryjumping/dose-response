@@ -301,8 +301,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     // Numpad controls
     {
         lines.clear();
-        // TODO: should be centered
-        lines.push("Controls: numpad".into());
+        lines.push(center("Controls: numpad", rect.width()));
         lines.push("".into());
 
         lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
@@ -324,7 +323,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     {
         lines.clear();
         // TODO: should be centered
-        lines.push("Controls: arrow keys".into());
+        lines.push(center("Controls: arrow keys", rect.width()));
         lines.push("".into());
 
         lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
@@ -346,7 +345,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     {
         lines.clear();
         // TODO: should be centered
-        lines.push("Controls: Vi keys".into());
+        lines.push(center("Controls: Vi keys", rect.width()));
         lines.push("".into());
 
         lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
@@ -369,7 +368,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     {
         lines.clear();
         // TODO: should be centered
-        lines.push("How to play".into());
+        lines.push(center("How to play", rect.width()));
         lines.push("".into());
 
         lines.extend(wrap_text("Your character ('@') is an addict. If you stay long without using a Dose ('i'), you will lose. You can also pick up food ('%') which lets you stay sober for longer.", max_line_width));
@@ -392,6 +391,20 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             Draw::Text(rect.top_left() + Point::new(0, index as i32),
                        line.into(),
                        color::gui_text));
+    }
+}
+
+
+fn center<S: AsRef<str>>(text: S, width: i32) -> String {
+    let text_len = text.as_ref().chars().count() as i32;
+    if text_len >= width {
+        text.as_ref().into()
+    } else {
+        let total_padding = width - text_len;
+        let left_padding = total_padding / 2;
+        let mut result = " ".repeat(left_padding as usize);
+        result.push_str(text.as_ref());
+        result
     }
 }
 
@@ -452,7 +465,7 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     ];
 
     let max_line_width = 35;
-    lines.extend(wrap_text(&tip_text, max_line_width));
+    lines.extend(wrap_text(&tip_text, max_line_width as i32));
     lines.push("".into());
     lines.push("".into());
     lines.push(keyboard_text.into());
@@ -494,11 +507,11 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 }
 
 
-fn wrap_text(text: &str, width: usize) -> Vec<String> {
+fn wrap_text(text: &str, width: i32) -> Vec<String> {
     let mut result = vec![];
     let mut current_line = String::new();
     for word in text.split(' ') {
-        if current_line.len() + word.len() + 1 <= width {
+        if (current_line.len() + word.len() + 1) as i32 <= width {
             current_line.push(' ');
             current_line.push_str(word);
         } else {

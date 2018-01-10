@@ -34,6 +34,10 @@ impl Rectangle {
         self.bottom_right - self.top_left + (1, 1)
     }
 
+    pub fn width(self) -> i32 {
+        self.dimensions().x
+    }
+
     /// Returns `true` if the point is within the areas specified by
     /// the rectangle. The mach is inclusive, so a `Rectangle`
     /// contains its `top_left` and `bottom_right` corners.

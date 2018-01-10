@@ -309,20 +309,18 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         lines.extend(wrap_text("You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction.", max_line_width));
         lines.push("".into());
 
-        // TODO: should be centered
-        lines.push(" ----------- ".into());
-        lines.push("| 7 | 8 | 9 |".into());
-        lines.push(" --- --- --- ".into());
-        lines.push("| 4 | @ | 6 |".into());
-        lines.push(" --- --- --- ".into());
-        lines.push("| 1 | 2 | 3 |".into());
-        lines.push(" --- --- --- ".into());
+        lines.push(center(" ----------- ", rect.width()));
+        lines.push(center("| 7 | 8 | 9 |", rect.width()));
+        lines.push(center(" --- --- --- ", rect.width()));
+        lines.push(center("| 4 | @ | 6 |", rect.width()));
+        lines.push(center(" --- --- --- ", rect.width()));
+        lines.push(center("| 1 | 2 | 3 |", rect.width()));
+        lines.push(center(" --- --- --- ", rect.width()));
     }
 
     // Arrow controls
     {
         lines.clear();
-        // TODO: should be centered
         lines.push(center("Controls: arrow keys", rect.width()));
         lines.push("".into());
 
@@ -331,20 +329,18 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         lines.extend(wrap_text("If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.", max_line_width));
         lines.push("".into());
 
-        // TODO: should be centered
-        lines.push("Shift + Left |      | Shift + Right".into());
-        lines.push("             |  Up  |              ".into());
-        lines.push("-----------------------------------".into());
-        lines.push("        Left |  @   | Right".into());
-        lines.push("-----------------------------------".into());
-        lines.push("             | Down |              ".into());
-        lines.push(" Ctrl + Left |      | Ctrl + Right".into());
+        lines.push(center("Shift + Left |      | Shift + Right", rect.width()));
+        lines.push(center("             |  Up  |              ", rect.width()));
+        lines.push(center("-----------------------------------", rect.width()));
+        lines.push(center("        Left |  @   | Right        ", rect.width()));
+        lines.push(center("-----------------------------------", rect.width()));
+        lines.push(center("             | Down |              ", rect.width()));
+        lines.push(center(" Ctrl + Left |      | Ctrl + Right ", rect.width()));
     }
 
     // Vi keys
     {
         lines.clear();
-        // TODO: should be centered
         lines.push(center("Controls: Vi keys", rect.width()));
         lines.push("".into());
 
@@ -353,21 +349,19 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         lines.extend(wrap_text("You can also move using the \"Vi keys\". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor.", max_line_width));
         lines.push("".into());
 
-        // TODO: should be centered
-        lines.push(" ----------- ".into());
-        lines.push("| Y | K | U |".into());
-        lines.push(" --- --- --- ".into());
-        lines.push("| H | @ | L |".into());
-        lines.push(" --- --- --- ".into());
-        lines.push("| N | J | M |".into());
-        lines.push(" --- --- --- ".into());
+        lines.push(center(" ----------- ", rect.width()));
+        lines.push(center("| Y | K | U |", rect.width()));
+        lines.push(center(" --- --- --- ", rect.width()));
+        lines.push(center("| H | @ | L |", rect.width()));
+        lines.push(center(" --- --- --- ", rect.width()));
+        lines.push(center("| N | J | M |", rect.width()));
+        lines.push(center(" --- --- --- ", rect.width()));
 
     }
 
-    // How to play
+    // How to center(play, rect.width())
     {
         lines.clear();
-        // TODO: should be centered
         lines.push(center("How to play", rect.width()));
         lines.push("".into());
 

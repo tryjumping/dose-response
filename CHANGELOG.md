@@ -5,6 +5,11 @@ play an addict. Avoid the dangers threatening your mind and body while
 desperately looking for the next fix.
 
 ## [Unreleased]
+- Added Help screen (press `?` to open it)
+
+## [0.5.1] - 2018-01-11
+- Added hints to the end game screen
+- Fixed the Vi keys
 
 
 ## [0.5.0] - 2017-12-30

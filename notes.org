@@ -26,6 +26,9 @@
 ** Monsters and player able to shatter walls
 ** World generation
 ** Non-square fonts for text
+* Vi keys are not correct                                               :bug:
+** https://github.com/tomassedovic/dose-response/issues/3
+** We use `n` & `m` instead of `b` & `n`.
 * Create a Help screen                                                   :ui:
 ** Opens any time by pressing `?`
 ** Shows movement keys

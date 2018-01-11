@@ -26,9 +26,6 @@
 ** Monsters and player able to shatter walls
 ** World generation
 ** Non-square fonts for text
-* Vi keys are not correct                                               :bug:
-** https://github.com/tomassedovic/dose-response/issues/3
-** We use `n` & `m` instead of `b` & `n`.
 * Create a Help screen                                                   :ui:
 ** Opens any time by pressing `?`
 ** Shows movement keys
@@ -1449,3 +1446,10 @@ rustflags = ["-Ctarget-feature=+crt-static"]
 [target.i686-pc-windows-msvc]
 rustflags = ["-Ctarget-feature=+crt-static"]
 #+END_SRC
+** DONE Vi keys are not correct                                        :bug:
+CLOSED: [2018-01-11 Thu 09:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-11 Thu 09:57
+:END:
+*** https://github.com/tomassedovic/dose-response/issues/3
+*** We use `n` & `m` instead of `b` & `n`.

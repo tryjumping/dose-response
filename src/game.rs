@@ -875,15 +875,15 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
             } => commands.push_back(Command::SE),
             Key { code: Right, .. } => commands.push_back(Command::E),
 
-            // Vi keys (hjkl for cardinal and yunm for diagonal movement)
+            // Vi keys (hjkl for cardinal and yubn for diagonal movement)
             Key { code: K, .. } => commands.push_back(Command::N),
             Key { code: J, .. } => commands.push_back(Command::S),
             Key { code: H, .. } => commands.push_back(Command::W),
             Key { code: L, .. } => commands.push_back(Command::E),
             Key { code: Y, .. } => commands.push_back(Command::NW),
-            Key { code: N, .. } => commands.push_back(Command::SW),
+            Key { code: B, .. } => commands.push_back(Command::SW),
             Key { code: U, .. } => commands.push_back(Command::NE),
-            Key { code: M, .. } => commands.push_back(Command::SE),
+            Key { code: N, .. } => commands.push_back(Command::SE),
 
             // Non-movement commands
             Key { code: E, .. } |

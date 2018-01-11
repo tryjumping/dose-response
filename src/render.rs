@@ -354,7 +354,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         lines.push(center(" --- --- --- ", rect.width()));
         lines.push(center("| H | @ | L |", rect.width()));
         lines.push(center(" --- --- --- ", rect.width()));
-        lines.push(center("| N | J | M |", rect.width()));
+        lines.push(center("| B | J | N |", rect.width()));
         lines.push(center(" --- --- --- ", rect.width()));
 
     }

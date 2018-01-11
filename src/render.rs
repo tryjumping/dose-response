@@ -309,13 +309,11 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         lines.extend(wrap_text("You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction.", max_line_width));
         lines.push("".into());
 
-        lines.push(center(" ----------- ", rect.width()));
-        lines.push(center("| 7 | 8 | 9 |", rect.width()));
-        lines.push(center(" --- --- --- ", rect.width()));
-        lines.push(center("| 4 | @ | 6 |", rect.width()));
-        lines.push(center(" --- --- --- ", rect.width()));
-        lines.push(center("| 1 | 2 | 3 |", rect.width()));
-        lines.push(center(" --- --- --- ", rect.width()));
+        lines.push(center(r"7 8 9", rect.width()));
+        lines.push(center(r" \|/ ", rect.width()));
+        lines.push(center(r"4-@-6", rect.width()));
+        lines.push(center(r" /|\ ", rect.width()));
+        lines.push(center(r"1 2 3", rect.width()));
     }
 
     // Arrow controls
@@ -329,13 +327,12 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         lines.extend(wrap_text("If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.", max_line_width));
         lines.push("".into());
 
-        lines.push(center("Shift + Left |      | Shift + Right", rect.width()));
-        lines.push(center("             |  Up  |              ", rect.width()));
-        lines.push(center("-----------------------------------", rect.width()));
-        lines.push(center("        Left |  @   | Right        ", rect.width()));
-        lines.push(center("-----------------------------------", rect.width()));
-        lines.push(center("             | Down |              ", rect.width()));
-        lines.push(center(" Ctrl + Left |      | Ctrl + Right ", rect.width()));
+        lines.push(center(r"Shift+Left  Up  Shift+Right", rect.width()));
+        lines.push(center(r"         \  |  /           ", rect.width()));
+        lines.push(center(r"       Left-@-Right        ", rect.width()));
+        lines.push(center(r"         /  |  \           ", rect.width()));
+        lines.push(center(r"Ctrl+Left  Down Ctrl+Right ", rect.width()));
+
     }
 
     // Vi keys
@@ -349,13 +346,11 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         lines.extend(wrap_text("You can also move using the \"Vi keys\". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor.", max_line_width));
         lines.push("".into());
 
-        lines.push(center(" ----------- ", rect.width()));
-        lines.push(center("| Y | K | U |", rect.width()));
-        lines.push(center(" --- --- --- ", rect.width()));
-        lines.push(center("| H | @ | L |", rect.width()));
-        lines.push(center(" --- --- --- ", rect.width()));
-        lines.push(center("| B | J | N |", rect.width()));
-        lines.push(center(" --- --- --- ", rect.width()));
+        lines.push(center(r"y k u", rect.width()));
+        lines.push(center(r" \|/ ", rect.width()));
+        lines.push(center(r"h-@-l", rect.width()));
+        lines.push(center(r" /|\ ", rect.width()));
+        lines.push(center(r"b j n", rect.width()));
 
     }
 

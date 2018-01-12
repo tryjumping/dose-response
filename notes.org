@@ -26,46 +26,44 @@
 ** Monsters and player able to shatter walls
 ** World generation
 ** Non-square fonts for text
-* Create a Help screen                                                   :ui:
-** Opens any time by pressing `?`
-** Shows movement keys
-*** We need to be able to render the arrow characters
-*** Try & test this on wasm first?
-**** though that only handles ASCII doesn't it?
-*** https://www.toptal.com/designers/htmlarrows/assets/images/htmlarrows-hero-529437ad.jpg
-*** Here's a code that prints tehm out it rust
-#+BEGIN_SRC
-let chars = [
-    '\u{2190}',
-    '\u{2191}',
-    '\u{2192}',
-    '\u{2193}',
-
-    '\u{2196}',
-    '\u{2197}',
-    '\u{2198}',
-    '\u{2199}',
-];
-
-for chr in &chars {
-    println!("{}, {}", chr, *chr as u32);
-}
-#+END_SRC
-**** Outputs:
-←, 8592
-↑, 8593
-→, 8594
-↓, 8595
-↖, 8598
-↗, 8599
-↘, 8600
-↙, 8601
-**** The `\u{}` sequence expects hexadecimal numbers
-** Shows basic tips
-*** use doses
-*** carry food
-*** don't pick up doses unless sober at first
-* Add the `?` hint for help to the endgame screen                        :ui:
+* Release checklist
+- [ ] Create a new release in CHANGELOG.md
+- [ ] Take a screenshot
+- [ ] Move the screenshot to Dose Response's screenshots directory
+- [ ] Commit the screenshot in the repo
+- [ ] Bump the version
+- [ ] Run: `cargo check; cargo build; cargo build --release; make wasm`
+- [ ] Copy the *.js *.css *.wasm files to the project website
+- [ ] Copy the screenshot to the project website
+- [ ] Test the wasm version
+- [ ] Run: `make release`
+- [ ] Verify the binaries get created in the github release page
+- [ ] Update the project page
+  - [ ] Update screenshot
+  - [ ] Update the "what's new" section
+  - [ ] Update the links to the latest builds
+- [ ] Update the github release page
+  - [ ] Update screenshot
+  - [ ] Update the "what's new" section
+  - [ ] Update the links to the latest builds
+- [ ] Deploy the project website
+- [ ] Optional: Write a release update blog post
+- [ ] Optional: Record a lets play
+* Investigate terminal backend
+** Libraries:
+*** https://crates.io/crates/termion
+*** https://crates.io/crates/rustbox
+*** https://crates.io/crates/easycurses
+** Should be cross-platform
+** Ideally no C deps (though I could live with that tbh)
+* Center the generated font bitmap :ui:
+** Right now certain punctuation characters such as `|` and `!` are off-center
+** That's good for freeform text but not for the game graphics
+** We should update the code in build.rs to center these characters
+** Or alternatively remove the padding from the bitmap and center them in rendering
+*** That would be the technically preferable solution but harder to implement I think
+*** It would also let us use the same font bitmap for actual text
+*** Although maybe we want to separate graphics and text fonts anyway
 * Use rect::Rectangle for Point::areas                                 :code:
 * Use rect::Rectangle for the Rectangle drawcall                       :code:
 * Disable cheating and all debug features in the published mode        :code:
@@ -1453,3 +1451,51 @@ CLOSED: [2018-01-11 Thu 09:57]
 :END:
 *** https://github.com/tomassedovic/dose-response/issues/3
 *** We use `n` & `m` instead of `b` & `n`.
+** DONE Create a Help screen                                            :ui:
+CLOSED: [2018-01-12 Fri 23:54]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-12 Fri 23:55
+:END:
+*** Opens any time by pressing `?`
+*** Shows movement keys
+**** We need to be able to render the arrow characters
+**** Try & test this on wasm first?
+***** though that only handles ASCII doesn't it?
+**** https://www.toptal.com/designers/htmlarrows/assets/images/htmlarrows-hero-529437ad.jpg
+**** Here's a code that prints tehm out it rust
+#+BEGIN_SRC
+let chars = [
+    '\u{2190}',
+    '\u{2191}',
+    '\u{2192}',
+    '\u{2193}',
+
+    '\u{2196}',
+    '\u{2197}',
+    '\u{2198}',
+    '\u{2199}',
+];
+
+for chr in &chars {
+    println!("{}, {}", chr, *chr as u32);
+}
+#+END_SRC
+***** Outputs:
+←, 8592
+↑, 8593
+→, 8594
+↓, 8595
+↖, 8598
+↗, 8599
+↘, 8600
+↙, 8601
+***** The `\u{}` sequence expects hexadecimal numbers
+*** Shows basic tips
+**** use doses
+**** carry food
+**** don't pick up doses unless sober at first
+** DONE Add the `?` hint for help to the endgame screen                 :ui:
+CLOSED: [2018-01-12 Fri 23:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-12 Fri 23:57
+:END:

@@ -117,9 +117,9 @@ fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {
         0xFF52 => Some(Up),
         0xFF54 => Some(Down),
 
-        13 => Some(Enter),
+        0xFF0D => Some(Enter),
         32 => Some(Space),
-        27 => Some(Esc),
+        0xFF1B => Some(Esc),
 
         0x03F => Some(QuestionMark),
 

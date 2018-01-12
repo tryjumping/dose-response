@@ -465,7 +465,7 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         state.player.longest_high_streak
     );
     let tip_text = format!("Tip: {}", endgame_tip(state));
-    let keyboard_text = "[N] New Game    [Q] Quit";
+    let keyboard_text = "[N] New Game    [?] Help    [Q] Quit";
 
     let mut lines = vec![
         endgame_reason_text.into(),

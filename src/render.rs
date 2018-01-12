@@ -290,15 +290,20 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     drawcalls.push(Draw::Rectangle(
         rect.top_left(),
         rect.dimensions(),
-        //color::background,
-        color::anxiety,
+        color::dose_background,
+    ));
+
+    drawcalls.push(Draw::Rectangle(
+        rect.top_left() + (1, 1),
+        rect.dimensions() - (2, 2),
+        color::background,
     ));
 
     let mut lines = vec![
         "".into(),
     ];
 
-    let max_line_width = rect.width();
+    let max_line_width = rect.width() - 4;
 
     match state.current_help_window {
         HelpWindow::NumpadControls => {
@@ -380,13 +385,13 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     for (index, line) in lines.into_iter().enumerate() {
         drawcalls.push(
-            Draw::Text(rect.top_left() + Point::new(0, index as i32),
+            Draw::Text(rect.top_left() + Point::new(2, index as i32),
                        line.into(),
                        color::gui_text));
     }
 
     if state.current_help_window != HelpWindow::HowToPlay {
-        let text = "-> Next page";
+        let text = "[->] Next page";
         let next_page_text = Draw::Text(
             rect.bottom_right() + (-(text.chars().count() as i32), -1),
             text.into(),
@@ -396,9 +401,9 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     }
 
     if state.current_help_window != HelpWindow::NumpadControls {
-        let text = "Previous page <-";
+        let text = "Previous page [<-]";
         let next_page_text = Draw::Text(
-            rect.bottom_left() + (0, -1),
+            rect.bottom_left() + (1, -1),
             text.into(),
             color::gui_text,
         );

@@ -133,6 +133,7 @@ pub struct State {
     pub window_stack: Vec<Window>,
 
     pub show_keboard_movement_hints: bool,
+    pub current_help_window: HelpWindow,
 
     /// Whether we should push the Endscreen window and uncover the
     /// map during the transition from screen fade out to fade in
@@ -202,6 +203,7 @@ impl State {
             game_ended: false,
             window_stack: vec![Window::Game],
             show_keboard_movement_hints: true,
+            current_help_window: HelpWindow::NumpadControls,
             show_endscreen_and_uncover_map_during_fadein: false,
             uncovered_map: false,
         }
@@ -375,6 +377,14 @@ pub enum Window {
     Endgame,
 }
 
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum HelpWindow {
+    NumpadControls,
+    ArrowControls,
+    ViKeys,
+    HowToPlay,
+}
 
 pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
     writeln!(writer, "{}", seed).unwrap();

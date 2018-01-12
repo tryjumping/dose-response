@@ -394,7 +394,28 @@ fn process_game(
 }
 
 
-fn process_help_window(_state: &mut State) -> RunningState {
+fn process_help_window(state: &mut State) -> RunningState {
+    use state::HelpWindow::*;
+    if state.keys.matches_code(KeyCode::Right) {
+        let new_help_window = match state.current_help_window {
+            NumpadControls => ArrowControls,
+            ArrowControls => ViKeys,
+            ViKeys => HowToPlay,
+            HowToPlay => HowToPlay,
+        };
+        state.current_help_window = new_help_window;
+    }
+
+    if state.keys.matches_code(KeyCode::Left) {
+        let new_help_window = match state.current_help_window {
+            NumpadControls => NumpadControls,
+            ArrowControls => NumpadControls,
+            ViKeys => ArrowControls,
+            HowToPlay => ViKeys,
+        };
+        state.current_help_window = new_help_window;
+    }
+
     RunningState::Running
 }
 

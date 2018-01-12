@@ -8,7 +8,7 @@ use monster;
 use player::{Bonus, CauseOfDeath, Mind};
 use point::{Point, SquareArea};
 use rect::Rectangle;
-use state::{Side, State, Window};
+use state::{HelpWindow, Side, State, Window};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -298,82 +298,77 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     let max_line_width = 50;
 
-    // Numpad controls
-    {
-        lines.clear();
-        lines.push(center("Controls: numpad", rect.width()));
-        lines.push("".into());
+    match state.current_help_window {
+        HelpWindow::NumpadControls => {
+            lines.clear();
+            lines.push(center("Controls: numpad", rect.width()));
+            lines.push("".into());
 
-        lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
-        lines.push("".into());
-        lines.extend(wrap_text("You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction.", max_line_width));
-        lines.push("".into());
+            lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
+            lines.push("".into());
+            lines.extend(wrap_text("You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction.", max_line_width));
+            lines.push("".into());
 
-        lines.push(center(r"7 8 9", rect.width()));
-        lines.push(center(r" \|/ ", rect.width()));
-        lines.push(center(r"4-@-6", rect.width()));
-        lines.push(center(r" /|\ ", rect.width()));
-        lines.push(center(r"1 2 3", rect.width()));
+            lines.push(center(r"7 8 9", rect.width()));
+            lines.push(center(r" \|/ ", rect.width()));
+            lines.push(center(r"4-@-6", rect.width()));
+            lines.push(center(r" /|\ ", rect.width()));
+            lines.push(center(r"1 2 3", rect.width()));
+        }
+
+        HelpWindow::ArrowControls => {
+            lines.clear();
+            lines.push(center("Controls: arrow keys", rect.width()));
+            lines.push("".into());
+
+            lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
+            lines.push("".into());
+            lines.extend(wrap_text("If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.", max_line_width));
+            lines.push("".into());
+
+            lines.push(center(r"Shift+Left  Up  Shift+Right", rect.width()));
+            lines.push(center(r"         \  |  /           ", rect.width()));
+            lines.push(center(r"       Left-@-Right        ", rect.width()));
+            lines.push(center(r"         /  |  \           ", rect.width()));
+            lines.push(center(r"Ctrl+Left  Down Ctrl+Right ", rect.width()));
+        }
+
+        HelpWindow::ViKeys => {
+            lines.clear();
+            lines.push(center("Controls: Vi keys", rect.width()));
+            lines.push("".into());
+
+            lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
+            lines.push("".into());
+            lines.extend(wrap_text("You can also move using the \"Vi keys\". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor.", max_line_width));
+            lines.push("".into());
+
+            lines.push(center(r"y k u", rect.width()));
+            lines.push(center(r" \|/ ", rect.width()));
+            lines.push(center(r"h-@-l", rect.width()));
+            lines.push(center(r" /|\ ", rect.width()));
+            lines.push(center(r"b j n", rect.width()));
+        }
+
+        HelpWindow::HowToPlay => {
+            lines.clear();
+            lines.push(center("How to play", rect.width()));
+            lines.push("".into());
+
+            lines.extend(wrap_text("Your character ('@') is an addict. If you stay long without using a Dose ('i'), you will lose. You can also pick up food ('%') which lets you stay sober for longer.", max_line_width));
+            lines.push("".into());
+            lines.extend(wrap_text("Using a Dose or eating Food will also kill all nearby enemies.", max_line_width));
+            lines.push("".into());
+            lines.extend(wrap_text("Each Dose has a glow around it. If you step into it, you will be unable to resist even if it means Overdosing yourself. At the beginning, you will also Overdose by using another Dose when you're still High or using a Dose that's too strong for you ('+', 'x' or 'I'). With each Dose you build up tolerance which makes you seek out stronger Doses later on.", max_line_width));
+            lines.push("".into());
+            lines.extend(wrap_text("All the letters ('h', 'v', 'S', 'a' and 'D') are enemies. Each has their own way of harming you. The 'D' move twice as fast and will kill you outright. The 'a' will reduce your Will on each hit. When it reaches zero, you will lose.", max_line_width));
+            lines.push("".into());
+            lines.extend(wrap_text("To progress, you need to get stronger Will. Defeat enough `a` monsters and it will go up. The Dose or Food \"explosions\" don't count though! Higher Will makes the irresistible area around Doses smaller. It will also let you pick them up!", max_line_width));
+            lines.push("".into());
+            lines.extend(wrap_text("If you see another @ characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober.", max_line_width));
+
+        }
     }
-
-    // Arrow controls
-    {
-        lines.clear();
-        lines.push(center("Controls: arrow keys", rect.width()));
-        lines.push("".into());
-
-        lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
-        lines.push("".into());
-        lines.extend(wrap_text("If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.", max_line_width));
-        lines.push("".into());
-
-        lines.push(center(r"Shift+Left  Up  Shift+Right", rect.width()));
-        lines.push(center(r"         \  |  /           ", rect.width()));
-        lines.push(center(r"       Left-@-Right        ", rect.width()));
-        lines.push(center(r"         /  |  \           ", rect.width()));
-        lines.push(center(r"Ctrl+Left  Down Ctrl+Right ", rect.width()));
-
-    }
-
-    // Vi keys
-    {
-        lines.clear();
-        lines.push(center("Controls: Vi keys", rect.width()));
-        lines.push("".into());
-
-        lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
-        lines.push("".into());
-        lines.extend(wrap_text("You can also move using the \"Vi keys\". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor.", max_line_width));
-        lines.push("".into());
-
-        lines.push(center(r"y k u", rect.width()));
-        lines.push(center(r" \|/ ", rect.width()));
-        lines.push(center(r"h-@-l", rect.width()));
-        lines.push(center(r" /|\ ", rect.width()));
-        lines.push(center(r"b j n", rect.width()));
-
-    }
-
-    // How to center(play, rect.width())
-    {
-        lines.clear();
-        lines.push(center("How to play", rect.width()));
-        lines.push("".into());
-
-        lines.extend(wrap_text("Your character ('@') is an addict. If you stay long without using a Dose ('i'), you will lose. You can also pick up food ('%') which lets you stay sober for longer.", max_line_width));
-        lines.push("".into());
-        lines.extend(wrap_text("Using a Dose or eating Food will also kill all nearby enemies.", max_line_width));
-        lines.push("".into());
-        lines.extend(wrap_text("Each Dose has a glow around it. If you step into it, you will be unable to resist even if it means Overdosing yourself. At the beginning, you will also Overdose by using another Dose when you're still High or using a Dose that's too strong for you ('+', 'x' or 'I'). With each Dose you build up tolerance which makes you seek out stronger Doses later on.", max_line_width));
-        lines.push("".into());
-        lines.extend(wrap_text("All the letters ('h', 'v', 'S', 'a' and 'D') are enemies. Each has their own way of harming you. The 'D' move twice as fast and will kill you outright. The 'a' will reduce your Will on each hit. When it reaches zero, you will lose.", max_line_width));
-        lines.push("".into());
-        lines.extend(wrap_text("To progress, you need to get stronger Will. Defeat enough `a` monsters and it will go up. The Dose or Food \"explosions\" don't count though! Higher Will makes the irresistible area around Doses smaller. It will also let you pick them up!", max_line_width));
-        lines.push("".into());
-        lines.extend(wrap_text("If you see another @ characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober.", max_line_width));
-
-    }
-
 
     for (index, line) in lines.into_iter().enumerate() {
         drawcalls.push(

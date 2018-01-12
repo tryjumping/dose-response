@@ -294,19 +294,23 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         color::anxiety,
     ));
 
-    let mut lines = vec![];
+    let mut lines = vec![
+        "".into(),
+    ];
 
-    let max_line_width = 50;
+    let max_line_width = rect.width();
 
     match state.current_help_window {
         HelpWindow::NumpadControls => {
-            lines.clear();
             lines.push(center("Controls: numpad", rect.width()));
+            lines.push("".into());
             lines.push("".into());
 
             lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
             lines.push("".into());
             lines.extend(wrap_text("You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction.", max_line_width));
+            lines.push("".into());
+            lines.push("".into());
             lines.push("".into());
 
             lines.push(center(r"7 8 9", rect.width()));
@@ -317,13 +321,15 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         }
 
         HelpWindow::ArrowControls => {
-            lines.clear();
             lines.push(center("Controls: arrow keys", rect.width()));
+            lines.push("".into());
             lines.push("".into());
 
             lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
             lines.push("".into());
             lines.extend(wrap_text("If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.", max_line_width));
+            lines.push("".into());
+            lines.push("".into());
             lines.push("".into());
 
             lines.push(center(r"Shift+Left  Up  Shift+Right", rect.width()));
@@ -334,13 +340,15 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         }
 
         HelpWindow::ViKeys => {
-            lines.clear();
             lines.push(center("Controls: Vi keys", rect.width()));
+            lines.push("".into());
             lines.push("".into());
 
             lines.extend(wrap_text("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally.", max_line_width));
             lines.push("".into());
             lines.extend(wrap_text("You can also move using the \"Vi keys\". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor.", max_line_width));
+            lines.push("".into());
+            lines.push("".into());
             lines.push("".into());
 
             lines.push(center(r"y k u", rect.width()));
@@ -351,8 +359,8 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         }
 
         HelpWindow::HowToPlay => {
-            lines.clear();
             lines.push(center("How to play", rect.width()));
+            lines.push("".into());
             lines.push("".into());
 
             lines.extend(wrap_text("Your character ('@') is an addict. If you stay long without using a Dose ('i'), you will lose. You can also pick up food ('%') which lets you stay sober for longer.", max_line_width));
@@ -375,6 +383,26 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             Draw::Text(rect.top_left() + Point::new(0, index as i32),
                        line.into(),
                        color::gui_text));
+    }
+
+    if state.current_help_window != HelpWindow::HowToPlay {
+        let text = "-> Next page";
+        let next_page_text = Draw::Text(
+            rect.bottom_right() + (-(text.chars().count() as i32), -1),
+            text.into(),
+            color::gui_text,
+        );
+        drawcalls.push(next_page_text);
+    }
+
+    if state.current_help_window != HelpWindow::NumpadControls {
+        let text = "Previous page <-";
+        let next_page_text = Draw::Text(
+            rect.bottom_left() + (0, -1),
+            text.into(),
+            color::gui_text,
+        );
+        drawcalls.push(next_page_text);
     }
 }
 

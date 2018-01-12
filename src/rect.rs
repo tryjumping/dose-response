@@ -76,6 +76,10 @@ impl Rectangle {
         self.bottom_right
     }
 
+    pub fn bottom_left(self) -> Point {
+        Point::new(self.top_left.x, self.bottom_right.y)
+    }
+
     pub fn points(self) -> RectangleIterator {
         RectangleIterator {
             rect: self,

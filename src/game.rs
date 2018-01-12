@@ -420,8 +420,13 @@ fn process_help_window(state: &mut State) -> RunningState {
 }
 
 
-fn process_endgame_window(_state: &mut State) -> RunningState {
-    // TODO: restart game on pressing `N`
+fn process_endgame_window(state: &mut State) -> RunningState {
+    // Show the help screen on `?`
+    if state.keys.matches_code(KeyCode::QuestionMark) {
+        state.window_stack.push(Window::Help);
+        return RunningState::Running;
+    }
+
     RunningState::Running
 }
 

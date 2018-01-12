@@ -72,18 +72,8 @@ pub fn update(
     }
 
     // Restart the game on F5
-    // TODO: move the `N` handling to the endgame screen
-    if state.keys.matches_code(KeyCode::F5) || (state.game_ended && state.keys.matches_code(KeyCode::N)) {
-        let state = State::new_game(
-            state.world_size,
-            state.map_size.x,
-            state.panel_width,
-            state.display_size,
-            state.exit_after,
-            state::generate_replay_path(),
-            state.player.invincible,
-        );
-        return RunningState::NewGame(state);
+    if state.keys.matches_code(KeyCode::F5) {
+        return RunningState::NewGame(create_new_game_state(state));
     }
 
     // Full screen on Alt-Enter
@@ -421,6 +411,11 @@ fn process_help_window(state: &mut State) -> RunningState {
 
 
 fn process_endgame_window(state: &mut State) -> RunningState {
+    // Start a new game by pressing `N`
+    if state.game_ended && state.keys.matches_code(KeyCode::N) {
+        return RunningState::NewGame(create_new_game_state(state));
+    }
+
     // Show the help screen on `?`
     if state.keys.matches_code(KeyCode::QuestionMark) {
         state.window_stack.push(Window::Help);
@@ -1131,4 +1126,17 @@ fn verify_states(expected: state::Verification, actual: state::Verification) {
         }
     }
     assert!(expected == actual, "Validation failed!");
+}
+
+
+fn create_new_game_state(state: &State) -> State {
+    State::new_game(
+        state.world_size,
+        state.map_size.x,
+        state.panel_width,
+        state.display_size,
+        state.exit_after,
+        state::generate_replay_path(),
+        state.player.invincible,
+    )
 }

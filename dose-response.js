@@ -22,43 +22,75 @@ function play_game(canvas, wasm_path) {
         env: {
           random: Math.random,
           draw: function(ptr, len) {
-            if(len % 6 != 0) {
-              throw new Error("The drawcalls vector must have a multiple of 6 elements!");
-            }
-
             memory = new Uint8Array(wasm_instance.exports.memory.buffer, ptr, len);
 
             ctx.clearRect(0, 0, width * squareSize, height * squareSize);
 
-            for(let i = 0; i < len; i += 6) {
-              let x = memory[i + 0];
-              let y = memory[i + 1];
-              var glyph = null;
-              if(memory[i + 2] != 0) {
-                glyph = String.fromCharCode(memory[i + 2]);
-              }
-              let r = memory[i + 3];
-              let g = memory[i + 4];
-              let b = memory[i + 5];
+            var decoder = new msgpack.Decoder();
+            decoder.on("data", function(chunk) {
 
-              // NOTE: (255, 255) position means fade
-              if(x == 255 && y == 255) {
-                // NOTE: alpha is stored in the glyph position
-                let alpha = memory[i + 2] / 255;  // convert the "alpha" to <0, 1>
-                ctx.fillStyle = "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
-                ctx.fillRect(0, 0, width * squareSize, height * squareSize);
-              } else if(glyph === null) {
-                ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
-                ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
-              } else {
-                ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+              var discriminant = chunk[0];
+              var data = chunk[1];
 
-                let x_fudge = 8;
-                let y_fudge = 13;
+              switch(discriminant) {
+              case 0:  // Char
+                var x = data[0][0];
+                var y = data[0][1];
+                var glyph = data[1];
+                var color = data[2];
+
+                ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+                var x_fudge = 8;
+                var y_fudge = 13;
                 ctx.fillText(glyph, x * squareSize + x_fudge, y * squareSize + y_fudge);
-              }
-            }
+                break;
 
+              case 1: // Background
+                var x = data[0][0];
+                var y = data[0][1];
+                var color = data[1];
+
+                ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+                ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
+                break;
+
+              case 2: // Text
+                var x = data[0][0];
+                var y = data[0][1];
+                var text = data[1];
+                var color = data[2];
+
+                ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+                var x_fudge = 8;
+                var y_fudge = 13;
+                ctx.fillText(text, x * squareSize + x_fudge, y * squareSize + y_fudge);
+                break;
+
+              case 3: // Rectangle
+                var x = data[0][0];
+                var y = data[0][1];
+                var dimensions = data[1];
+                var color = data[2];
+
+                ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+                ctx.fillRect(x * squareSize, y * squareSize, dimensions[0] * squareSize, dimensions[1] * squareSize);
+                break;
+
+              case 4: // Fade
+                var alpha = 1 - data[0];
+                var color = data[1];
+
+                ctx.fillStyle = "rgba(" + color[0] + "," + color[1] + "," + color[2] + "," + alpha + ")";
+                ctx.fillRect(0, 0, width * squareSize, height * squareSize);
+                break;
+
+              default:
+                console.log("Unknown drawcall type:", discriminant);
+              }
+            });
+
+            decoder.decode(memory);
+            decoder.end();
           }
         }
       });

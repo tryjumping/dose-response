@@ -5,9 +5,13 @@
 #[macro_use]
 extern crate bitflags;
 extern crate rand;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+
+#[cfg(feature = "web")]
+extern crate rmp_serde as rmps;
 
 #[cfg(feature = "cli")]
 extern crate clap;

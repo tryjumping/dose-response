@@ -1,12 +1,15 @@
-use std::mem;
-use std::time::Duration;
-
 use engine::{self, Draw, Mouse, Settings};
 use game::{self, RunningState};
 use keys::{Key, KeyCode};
 use point::Point;
 use rect::Rectangle;
 use state::State;
+
+use std::mem;
+use std::time::Duration;
+
+use serde::Serialize;
+use rmps::Serializer;
 
 
 extern {
@@ -200,78 +203,14 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
 
     engine::sort_drawcalls(&mut drawcalls, 0..);
 
-    // Each "drawcall" will be 6 u8 values: x, y, char, r, g, b
     let mut js_drawcalls = Vec::with_capacity(drawcalls.len() * 6);
-    for dc in &drawcalls {
-        match dc {
-            &Draw::Char(pos, glyph, color) => {
-                assert!(pos.x >= 0 && pos.x < 255);
-                assert!(pos.y >= 0 && pos.y < 255);
-                assert!(glyph.is_ascii());
-                js_drawcalls.push(pos.x as u8);
-                js_drawcalls.push(pos.y as u8);
-                js_drawcalls.push(glyph as u8);
-                js_drawcalls.push(color.r);
-                js_drawcalls.push(color.g);
-                js_drawcalls.push(color.b);
-            }
 
-            &Draw::Text(start_pos, ref text, color) => {
-                for (i, glyph) in text.char_indices() {
-                    let pos = start_pos + (i as i32, 0);
-                    assert!(pos.x >= 0 && pos.x < 255);
-                    assert!(pos.y >= 0 && pos.y < 255);
-                    assert!(glyph.is_ascii());
-                    js_drawcalls.push(pos.x as u8);
-                    js_drawcalls.push(pos.y as u8);
-                    js_drawcalls.push(glyph as u8);
-                    js_drawcalls.push(color.r);
-                    js_drawcalls.push(color.g);
-                    js_drawcalls.push(color.b);
-                }
-            }
+    let mut buffer: Vec<u8> = vec![42; 100];
 
-            &Draw::Rectangle(top_left, dimensions, color) => {
-                if dimensions.x >= 1 && dimensions.y >= 1 {
-                    let rect = Rectangle::from_point_and_size(top_left, dimensions);
-                    for pos in rect.points() {
-                        assert!(pos.x >= 0 && pos.x < 255);
-                        assert!(pos.y >= 0 && pos.y < 255);
-                        js_drawcalls.push(pos.x as u8);
-                        js_drawcalls.push(pos.y as u8);
-                        js_drawcalls.push(0);
-                        js_drawcalls.push(color.r);
-                        js_drawcalls.push(color.g);
-                        js_drawcalls.push(color.b);
-                    }
-                }
-            }
-
-            &Draw::Background(pos, color) => {
-                assert!(pos.x >= 0 && pos.x < 255);
-                assert!(pos.y >= 0 && pos.y < 255);
-                js_drawcalls.push(pos.x as u8);
-                js_drawcalls.push(pos.y as u8);
-                js_drawcalls.push(0);
-                js_drawcalls.push(color.r);
-                js_drawcalls.push(color.g);
-                js_drawcalls.push(color.b);
-            }
-
-            &Draw::Fade(fade, color) => {
-                assert!(fade >= 0.0);
-                assert!(fade <= 1.0);
-                // NOTE: (255, 255) position means fade
-                js_drawcalls.push(255);
-                js_drawcalls.push(255);
-                // NOTE: fade value/alpha is stored in the glyph
-                js_drawcalls.push(((1.0 - fade) * 255.0) as u8);
-                js_drawcalls.push(color.r);
-                js_drawcalls.push(color.g);
-                js_drawcalls.push(color.b);
-            }
-
-        }
+    for drawcall in &drawcalls {
+        buffer.clear();
+        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
+        js_drawcalls.extend(&buffer);
     }
 
     unsafe {

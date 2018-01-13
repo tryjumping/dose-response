@@ -28,7 +28,7 @@ pub mod remote;
 pub mod wasm;
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Draw {
     Char(Point, char, Color),
     Background(Point, Color),

@@ -49,7 +49,21 @@
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* Readable text                                                          :ui:
+* Readable text in wasm                                                  :ui:
+** Need to actually differentiate between the structs we send out
+** Consider proper serialization library instead of rolling my own
+** e.g. MessagePack:
+*** Has a Serde backend
+*** And JS: https://www.npmjs.com/package/msgpack-lite
+*** Question: does it support stream reading?
+**** If not, do we actually care?
+**** It would basically double the memory reqs otherwise
+** Or Capn Proto?
+** Or Protobuf?
+** TODO Ok it works, but (as expected) the text positioning and wrapping is wrong
+*** Because the fonts are now narrower than the game expects
+*** So we need to add wrapping and alignment to the drawcalls
+* Readable text in glium                                                 :ui:
 ** We should not align the characters to square grid for text
 ** It's just really hard to read
 ** Ideally, we'd get full support for variable-width text

@@ -1,7 +1,7 @@
 #![allow(non_upper_case_globals)]
 #![cfg_attr(rustfmt, rustfmt_skip)]
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Color {
     pub r: u8,
     pub g: u8,

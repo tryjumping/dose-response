@@ -284,18 +284,22 @@ fn endgame_tip(state: &State) -> String {
 
 
 fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
-    let padding = Point::from_i32(2);
-    let rect = Rectangle::from_point_and_size(padding, state.display_size - (padding * 2));
+    let screen_padding = Point::from_i32(2);
+    let window_rect = Rectangle::from_point_and_size(
+        screen_padding, state.display_size - (screen_padding * 2));
+
+    let rect = Rectangle::from_point_and_size(
+        window_rect.top_left() + (2, 1), window_rect.dimensions() - (4, 2));
 
     drawcalls.push(Draw::Rectangle(
-        rect.top_left(),
-        rect.dimensions(),
+        window_rect.top_left(),
+        window_rect.dimensions(),
         color::dose_background,
     ));
 
     drawcalls.push(Draw::Rectangle(
-        rect.top_left() + (1, 1),
-        rect.dimensions() - (2, 2),
+        window_rect.top_left() + (1, 1),
+        window_rect.dimensions() - (2, 2),
         color::background,
     ));
 
@@ -303,7 +307,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         "".into(),
     ];
 
-    let max_line_width = rect.width() - 4;
+    let max_line_width = rect.width();
 
     match state.current_help_window {
         HelpWindow::NumpadControls => {
@@ -385,7 +389,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     for (index, line) in lines.into_iter().enumerate() {
         drawcalls.push(
-            Draw::Text(rect.top_left() + Point::new(2, index as i32),
+            Draw::Text(rect.top_left() + Point::new(0, index as i32),
                        line.into(),
                        color::gui_text));
     }
@@ -393,7 +397,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     if state.current_help_window != HelpWindow::HowToPlay {
         let text = "[->] Next page";
         let next_page_text = Draw::Text(
-            rect.bottom_right() + (-(text.chars().count() as i32), -1),
+            rect.bottom_right() + (-(text.chars().count() as i32), 0),
             text.into(),
             color::gui_text,
         );
@@ -403,7 +407,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     if state.current_help_window != HelpWindow::NumpadControls {
         let text = "Previous page [<-]";
         let next_page_text = Draw::Text(
-            rect.bottom_left() + (1, -1),
+            rect.bottom_left(),
             text.into(),
             color::gui_text,
         );

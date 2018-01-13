@@ -63,6 +63,10 @@
 ** TODO Ok it works, but (as expected) the text positioning and wrapping is wrong
 *** Because the fonts are now narrower than the game expects
 *** So we need to add wrapping and alignment to the drawcalls
+*** WRITE THE USAGE CODE FIRST
+* Split out the rendering functionality into a proper crate            :code:
+** Call it "Charmed, I'm sure."
+** Crates.io will be called "charmed"
 * Readable text in glium                                                 :ui:
 ** We should not align the characters to square grid for text
 ** It's just really hard to read

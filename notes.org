@@ -65,6 +65,8 @@
 *** Exit
 ** Add the Marla Daniels quote there??
 *** YES YES YES
+* Show the next/prev page title in the help page                         :ui:
+** Instead of the generic Next page / Previous page text
 * "What is a roguelike?" help page                                       :ui:
 ** every life matters
 ** you'll be losing a lot

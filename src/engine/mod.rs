@@ -30,10 +30,15 @@ pub mod wasm;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Draw {
+    /// Position, glyph, color
     Char(Point, char, Color),
+    /// Position, color
     Background(Point, Color),
+    /// Position, text, colour
     Text(Point, Cow<'static, str>, Color),
+    /// Position, size, color
     Rectangle(Point, Point, Color),
+    /// Fade (one minus alpha: 1.0 means no fade, 0.0 means full fade), color
     Fade(f32, Color),
 }
 

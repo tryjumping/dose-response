@@ -49,14 +49,27 @@
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* Investigate terminal backend
-** Libraries:
-*** https://crates.io/crates/termion
-*** https://crates.io/crates/rustbox
-*** https://crates.io/crates/easycurses
-** Should be cross-platform
-** Ideally no C deps (though I could live with that tbh)
-* Center the generated font bitmap :ui:
+* Readable text                                                          :ui:
+** We should not align the characters to square grid for text
+** It's just really hard to read
+** Ideally, we'd get full support for variable-width text
+** But a simpler solution
+*** Separate bitmap for the fixed width font
+*** And then improve by using that bitmap the square grid, too
+*** And leave properly kerned variable width to other games
+*** We don't want to be using different fonts anyway
+* Main menu
+** Options
+*** Start a New Game
+*** Help
+*** Exit
+** Add the Marla Daniels quote there??
+*** YES YES YES
+* "What is a roguelike?" help page                                       :ui:
+** every life matters
+** you'll be losing a lot
+** but every death is an opportunity to learn
+* Center the generated font bitmap                                       :ui:
 ** Right now certain punctuation characters such as `|` and `!` are off-center
 ** That's good for freeform text but not for the game graphics
 ** We should update the code in build.rs to center these characters
@@ -64,6 +77,13 @@
 *** That would be the technically preferable solution but harder to implement I think
 *** It would also let us use the same font bitmap for actual text
 *** Although maybe we want to separate graphics and text fonts anyway
+* Investigate terminal backend
+** Libraries:
+*** https://crates.io/crates/termion
+*** https://crates.io/crates/rustbox
+*** https://crates.io/crates/easycurses
+** Should be cross-platform
+** Ideally no C deps (though I could live with that tbh)
 * Use rect::Rectangle for Point::areas                                 :code:
 * Use rect::Rectangle for the Rectangle drawcall                       :code:
 * Disable cheating and all debug features in the published mode        :code:

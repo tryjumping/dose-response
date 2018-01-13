@@ -307,7 +307,7 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
 
     match state.current_help_window {
         HelpWindow::NumpadControls => {
-            lines.push(center("Controls: numpad", rect.width()));
+            lines.push(center("Controls: numpad", max_line_width));
             lines.push("".into());
             lines.push("".into());
 
@@ -318,15 +318,15 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             lines.push("".into());
             lines.push("".into());
 
-            lines.push(center(r"7 8 9", rect.width()));
-            lines.push(center(r" \|/ ", rect.width()));
-            lines.push(center(r"4-@-6", rect.width()));
-            lines.push(center(r" /|\ ", rect.width()));
-            lines.push(center(r"1 2 3", rect.width()));
+            lines.push(center(r"7 8 9", max_line_width));
+            lines.push(center(r" \|/ ", max_line_width));
+            lines.push(center(r"4-@-6", max_line_width));
+            lines.push(center(r" /|\ ", max_line_width));
+            lines.push(center(r"1 2 3", max_line_width));
         }
 
         HelpWindow::ArrowControls => {
-            lines.push(center("Controls: arrow keys", rect.width()));
+            lines.push(center("Controls: arrow keys", max_line_width));
             lines.push("".into());
             lines.push("".into());
 
@@ -337,15 +337,15 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             lines.push("".into());
             lines.push("".into());
 
-            lines.push(center(r"Shift+Left  Up  Shift+Right", rect.width()));
-            lines.push(center(r"         \  |  /           ", rect.width()));
-            lines.push(center(r"       Left-@-Right        ", rect.width()));
-            lines.push(center(r"         /  |  \           ", rect.width()));
-            lines.push(center(r"Ctrl+Left  Down Ctrl+Right ", rect.width()));
+            lines.push(center(r"Shift+Left  Up  Shift+Right", max_line_width));
+            lines.push(center(r"         \  |  /           ", max_line_width));
+            lines.push(center(r"       Left-@-Right        ", max_line_width));
+            lines.push(center(r"         /  |  \           ", max_line_width));
+            lines.push(center(r"Ctrl+Left  Down Ctrl+Right ", max_line_width));
         }
 
         HelpWindow::ViKeys => {
-            lines.push(center("Controls: Vi keys", rect.width()));
+            lines.push(center("Controls: Vi keys", max_line_width));
             lines.push("".into());
             lines.push("".into());
 
@@ -356,15 +356,15 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             lines.push("".into());
             lines.push("".into());
 
-            lines.push(center(r"y k u", rect.width()));
-            lines.push(center(r" \|/ ", rect.width()));
-            lines.push(center(r"h-@-l", rect.width()));
-            lines.push(center(r" /|\ ", rect.width()));
-            lines.push(center(r"b j n", rect.width()));
+            lines.push(center(r"y k u", max_line_width));
+            lines.push(center(r" \|/ ", max_line_width));
+            lines.push(center(r"h-@-l", max_line_width));
+            lines.push(center(r" /|\ ", max_line_width));
+            lines.push(center(r"b j n", max_line_width));
         }
 
         HelpWindow::HowToPlay => {
-            lines.push(center("How to play", rect.width()));
+            lines.push(center("How to play", max_line_width));
             lines.push("".into());
             lines.push("".into());
 

@@ -289,7 +289,7 @@ enum Line {
 }
 
 
-fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
+fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     let screen_padding = Point::from_i32(2);
     let window_rect = Rectangle::from_point_and_size(
         screen_padding, state.display_size - (screen_padding * 2));
@@ -390,19 +390,58 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         }
     }
 
-    for (index, line) in lines.into_iter().enumerate() {
-        drawcalls.push(
-            Draw::Text(rect.top_left() + Point::new(0, index as i32),
-                       line.into(),
-                       color::gui_text));
+    let mut ypos = 0;
+    for text in lines.into_iter() {
+        match text {
+            Empty => {
+                ypos += 1;
+            },
+
+            EmptySpace(number_of_lines) => {
+                ypos += number_of_lines;
+            },
+
+            Paragraph(text) => {
+                let pos = rect.top_left() + Point::new(0, ypos);
+                dc = Draw::Text(pos, text.into(), color::gui_text, Default::default());
+                ypos += metrics.get_text_height(dc);
+                drawcalls.push(dc);
+            },
+
+            Centered(text) => {
+                let options = Draw::TextOptions {
+                    wrapped: false,
+                    align: Draw::TextAlign::Center,
+                    .. Default::default(),
+                };
+                let pos = rect.top_left() + Point::new(0, ypos);
+                dc = Draw::Text(pos, text.into(), color::gui_text, Draw::align_center());
+                ypos += 1;
+                drawcalls.push(dc);
+            },
+
+            SquareTiles(text) => {
+                let options = Draw::TextOptions {
+                    fit_to_grid: true,
+                    wrapped: false,
+                    align: Draw::TextAlign::Center,
+                    .. Default::default(),
+                };
+                let pos = rect.top_left() + Point::new(0, ypos);
+                dc = Draw::Text(pos, text.into(), color::gui_text, options);
+                ypos += 1;
+                drawcalls.push(dc);
+            },
+        }
     }
 
     if state.current_help_window != HelpWindow::HowToPlay {
         let text = "[->] Next page";
         let next_page_text = Draw::Text(
-            rect.bottom_right() + (-(text.chars().count() as i32), 0),
+            rect.bottom_right()
             text.into(),
             color::gui_text,
+            Draw::align_right(),
         );
         drawcalls.push(next_page_text);
     }
@@ -413,22 +452,9 @@ fn render_help_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             rect.bottom_left(),
             text.into(),
             color::gui_text,
+            .. Default::default(),
         );
         drawcalls.push(next_page_text);
-    }
-}
-
-
-fn center<S: AsRef<str>>(text: S, width: i32) -> String {
-    let text_len = text.as_ref().chars().count() as i32;
-    if text_len >= width {
-        text.as_ref().into()
-    } else {
-        let total_padding = width - text_len;
-        let left_padding = total_padding / 2;
-        let mut result = " ".repeat(left_padding as usize);
-        result.push_str(text.as_ref());
-        result
     }
 }
 
@@ -509,15 +535,6 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         y: 7,
     };
 
-    fn centered_text_pos(container_width: i32, text: &str) -> i32 {
-        (container_width - text.chars().count() as i32) / 2
-    }
-
-    let centered_text_drawcall = |text: String, y_offset: i32| -> Draw {
-        let offset = (centered_text_pos(rect_dimensions.x, &text), y_offset);
-        Draw::Text(rect_start + offset, text.into(), color::gui_text)
-    };
-
     drawcalls.push(Draw::Rectangle(
         rect_start,
         rect_dimensions,
@@ -525,28 +542,22 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     ));
 
     for (index, text) in lines.into_iter().enumerate() {
-        drawcalls.push(centered_text_drawcall(text.into(), index as i32 + 1));
+        let pos = rect_start + Point::new(0, index as i32 + 1);
+        let dc = Draw::Text(
+            pos,
+            text.into(),
+            color::gui_text,
+            // TODO:: should be Draw::align_center()
+            Draw::TextOptions {
+                align: Draw::TextAlign::Center,
+                .. Default::default(),
+            }
+        );
+        drawcalls.push(dc);
     }
 
 }
 
-
-fn wrap_text(text: &str, width: i32) -> Vec<String> {
-    let mut result = vec![];
-    let mut current_line = String::new();
-    for word in text.split(' ') {
-        if (current_line.len() + word.len() + 1) as i32 <= width {
-            current_line.push(' ');
-            current_line.push_str(word);
-        } else {
-            result.push(current_line);
-            current_line = String::from(word);
-        }
-    }
-    result.push(current_line);
-
-    result
-}
 
 
 fn render_panel(

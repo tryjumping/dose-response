@@ -43,6 +43,44 @@ pub enum Draw {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TextOptions {
+    align: TextAlign,
+    wrapped: bool,
+    fit_to_grid: bool,
+}
+
+
+impl Default for TextOptions {
+    fn default() -> Self {
+        TextOptions {
+            align: TextAlign::Left,
+            wrapped: false,
+            fit_to_grid: false,
+        }
+    }
+}
+
+
+pub fn align_right() -> TextOptions {
+    TextOptions {
+        align: TextAlign::Right,
+        .. Default::default(),
+    }
+}
+
+
+pub fn align_center() -> TextOptions {
+    TextOptions {
+        align: TextAlign::Center,
+        .. Default::default(),
+    }
+}
+
+
+
+
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Mouse {
     pub tile_pos: Point,
     pub screen_pos: Point,

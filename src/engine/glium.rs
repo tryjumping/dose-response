@@ -109,6 +109,24 @@ fn texture_coords_from_char(chr: char) -> (f32, f32) {
 }
 
 
+fn wrap_fit_to_grid_text(text: &str, width: i32) -> Vec<String> {
+    let mut result = vec![];
+    let mut current_line = String::new();
+    for word in text.split(' ') {
+        if (current_line.len() + word.len() + 1) as i32 <= width {
+            current_line.push(' ');
+            current_line.push_str(word);
+        } else {
+            result.push(current_line);
+            current_line = String::from(word);
+        }
+    }
+    result.push(current_line);
+
+    result
+}
+
+
 #[allow(unsafe_code)]
 mod vertex {
     #[derive(Copy, Clone, Debug)]

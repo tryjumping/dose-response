@@ -15,6 +15,7 @@ use rmps::Serializer;
 extern {
     fn draw(nums: *const u8, len: usize);
     pub fn random() -> f32;
+    fn wrapped_text_height_in_tiles(text_ptr: *const u8, text_len: usize, max_width_in_tiles: i32) -> i32;
 }
 
 

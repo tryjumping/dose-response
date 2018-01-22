@@ -340,15 +340,10 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
             lines.push(Centered("Controls: arrow keys"));
             lines.push(EmptySpace(2));
 
-            let text = "You control the @ character. It moves just like the king in Chess: \
-                        one step in any direction. That means up, down, left, right, but \
-                        also diagonally.
+            lines.push(Paragraph("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally."));
+            lines.push(Empty);
+            lines.push(Paragraph("If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys."));
 
-                        If you don't have a numpad, you can use the arrow keys. You will need \
-                        [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] \
-                        means down. You combine them with the [Left] and [Right] keys.";
-
-            lines.push(Paragraph(text));
             lines.push(EmptySpace(3));
 
             lines.push(SquareTiles(r"Shift+Left  Up  Shift+Right"));

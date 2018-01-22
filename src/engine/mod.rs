@@ -47,8 +47,12 @@ pub struct TextOptions {
     /// Regular old text alignment: left, center, right.
     pub align: TextAlign,
 
-    /// If less than `1`, do not wrap the text.
-    pub wrap_width: i32,
+    /// Whether to wrap the text.
+    pub wrap: bool,
+
+    /// If less than `1`, ignore it. Used for text wrapping and
+    /// centering.
+    pub width: i32,
 
     /// If true, rander each character aligned with the `Tile` grid.
     /// That makes the text hard to read, but corresponds to the way
@@ -80,7 +84,8 @@ impl Default for TextOptions {
     fn default() -> Self {
         TextOptions {
             align: TextAlign::Left,
-            wrap_width: 0,
+            wrap: false,
+            width: 0,
             fit_to_grid: false,
         }
     }

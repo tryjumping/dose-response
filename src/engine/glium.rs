@@ -133,10 +133,10 @@ impl TextMetrics for Metrics {
     fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
         match text_drawcall {
             &Draw::Text(_pos, ref text, _color, options) => {
-                if options.wrap_width > 0 {
+                if options.wrap && options.width > 0 {
                     // TODO: this does a needless allocation by
                     // returning Vec<String> we don't use here.
-                    let lines = wrap_fit_to_grid_text(&text, options.wrap_width);
+                    let lines = wrap_fit_to_grid_text(&text, options.width);
                     lines.len() as i32
                 } else {
                     1
@@ -453,15 +453,34 @@ pub fn main_loop(
                         }
                     };
 
-                    // TODO: handle text alignment
-                    if options.wrap_width > 0 {
-                        let lines = wrap_fit_to_grid_text(text, options.wrap_width);
+                    if options.wrap && options.width > 0 {
+                        // TODO: handle text alignment for wrapped text
+                        let lines = wrap_fit_to_grid_text(text, options.width);
                         for (index, line) in lines.iter().enumerate() {
                             let pos = start_pos + Point::new(0, index as i32);
                             turn_text_into_char_drawcalls(pos, line);
                         }
                     } else {
-                        turn_text_into_char_drawcalls(start_pos, text);
+                        use engine::TextAlign::*;
+                        let pos = match options.align {
+                            Left => {
+                                start_pos
+                            }
+                            Right => {
+                                let text_width = text.chars().count() as i32;
+                                start_pos - Point::new(text_width, 0)
+                            }
+                            Center => {
+                                let text_width = text.chars().count() as i32;
+                                let max_width = options.width;
+                                if max_width < 1 || (text_width > max_width) {
+                                    start_pos
+                                } else {
+                                    start_pos + Point::new((max_width - text_width) / 2, 0)
+                                }
+                            }
+                        };
+                        turn_text_into_char_drawcalls(pos, text);
                     }
                 }
 

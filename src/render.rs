@@ -514,7 +514,6 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
         state.player.longest_high_streak
     );
     let tip_text = format!("Tip: {}", endgame_tip(state));
-    let keyboard_text = "[N] New Game    [?] Help    [Q] Quit";
 
     let lines = vec![
         Centered(endgame_reason_text),
@@ -528,9 +527,7 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
         EmptySpace(2),
         Paragraph(&tip_text),
         EmptySpace(2),
-        Centered(keyboard_text),
     ];
-
 
     let padding = Point::from_i32(1);
     let size = Point::new(37, 17) + (padding * 2);
@@ -553,6 +550,13 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
     );
 
     render_laid_out_text(&lines, rect, metrics, drawcalls);
+
+    drawcalls.push(Draw::Text(
+        rect.bottom_left(),
+        "[N] New Game    [?] Help    [Q] Quit".into(),
+        color::gui_text,
+        TextOptions::align_center(rect.width()),
+    ));
 }
 
 

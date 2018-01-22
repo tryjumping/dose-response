@@ -130,11 +130,13 @@ fn wrap_fit_to_grid_text(text: &str, width: i32) -> Vec<String> {
 struct Metrics;
 
 impl TextMetrics for Metrics {
-    fn get_text_height(&self, text_drawcall: &Draw, max_width: i32) -> i32 {
+    fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
         match text_drawcall {
             &Draw::Text(_pos, ref text, _color, options) => {
-                if options.wrapped {
-                    let lines = wrap_fit_to_grid_text(&text, max_width);
+                if options.wrap_width > 0 {
+                    // TODO: this does a needless allocation by
+                    // returning Vec<String> we don't use here.
+                    let lines = wrap_fit_to_grid_text(&text, options.wrap_width);
                     lines.len() as i32
                 } else {
                     1
@@ -409,44 +411,57 @@ pub fn main_loop(
 
                 }
 
-                &Draw::Text(start_pos, ref text, color, _options) => {
-                    for (i, chr) in text.char_indices() {
-                        let pos = start_pos + (i as i32, 0);
-                        let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
-                        let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
-                        let color = gl_color(color, alpha);
+                &Draw::Text(start_pos, ref text, color, options) => {
+                    let mut turn_text_into_char_drawcalls = |start_pos: Point, text: &str| {
+                        for (i, chr) in text.char_indices() {
+                            let pos = start_pos + (i as i32, 0);
+                            let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
+                            let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                            let color = gl_color(color, alpha);
 
-                        vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y],
-                            tilemap_index: [tilemap_x, tilemap_y],
-                            color: color,
-                        });
-                        vertices.push(Vertex {
-                            tile_position: [pos_x + 1.0, pos_y],
-                            tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                            color: color,
-                        });
-                        vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y + 1.0],
-                            tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                            color: color,
-                        });
+                            vertices.push(Vertex {
+                                tile_position: [pos_x, pos_y],
+                                tilemap_index: [tilemap_x, tilemap_y],
+                                color: color,
+                            });
+                            vertices.push(Vertex {
+                                tile_position: [pos_x + 1.0, pos_y],
+                                tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                color: color,
+                            });
+                            vertices.push(Vertex {
+                                tile_position: [pos_x, pos_y + 1.0],
+                                tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                color: color,
+                            });
 
-                        vertices.push(Vertex {
-                            tile_position: [pos_x + 1.0, pos_y],
-                            tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                            color: color,
-                        });
-                        vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y + 1.0],
-                            tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                            color: color,
-                        });
-                        vertices.push(Vertex {
-                            tile_position: [pos_x + 1.0, pos_y + 1.0],
-                            tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
-                            color: color,
-                        });
+                            vertices.push(Vertex {
+                                tile_position: [pos_x + 1.0, pos_y],
+                                tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                                color: color,
+                            });
+                            vertices.push(Vertex {
+                                tile_position: [pos_x, pos_y + 1.0],
+                                tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                                color: color,
+                            });
+                            vertices.push(Vertex {
+                                tile_position: [pos_x + 1.0, pos_y + 1.0],
+                                tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                                color: color,
+                            });
+                        }
+                    };
+
+                    // TODO: handle text alignment
+                    if options.wrap_width > 0 {
+                        let lines = wrap_fit_to_grid_text(text, options.wrap_width);
+                        for (index, line) in lines.iter().enumerate() {
+                            let pos = start_pos + Point::new(0, index as i32);
+                            turn_text_into_char_drawcalls(pos, line);
+                        }
+                    } else {
+                        turn_text_into_char_drawcalls(start_pos, text);
                     }
                 }
 

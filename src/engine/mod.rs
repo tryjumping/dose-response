@@ -44,8 +44,15 @@ pub enum Draw {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TextOptions {
+    /// Regular old text alignment: left, center, right.
     pub align: TextAlign,
-    pub wrapped: bool,
+
+    /// If less than `1`, do not wrap the text.
+    pub wrap_width: i32,
+
+    /// If true, rander each character aligned with the `Tile` grid.
+    /// That makes the text hard to read, but corresponds to the way
+    /// we render the game.
     pub fit_to_grid: bool,
 }
 
@@ -73,7 +80,7 @@ impl Default for TextOptions {
     fn default() -> Self {
         TextOptions {
             align: TextAlign::Left,
-            wrapped: false,
+            wrap_width: 0,
             fit_to_grid: false,
         }
     }
@@ -93,7 +100,7 @@ pub trait TextMetrics {
     /// Return the height in tiles of the given text.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
-    fn get_text_height(&self, text_drawcall: &Draw, max_width: i32) -> i32;
+    fn get_text_height(&self, text_drawcall: &Draw) -> i32;
 }
 
 

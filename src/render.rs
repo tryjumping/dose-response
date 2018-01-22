@@ -409,11 +409,11 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
             Paragraph(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
                 let options = TextOptions {
-                    wrapped: true,
+                    wrap_width: max_line_width,
                     .. Default::default()
                 };
                 let dc = Draw::Text(pos, text.into(), color::gui_text, options);
-                ypos += metrics.get_text_height(&dc, max_line_width);
+                ypos += metrics.get_text_height(&dc);
                 drawcalls.push(dc);
             },
 
@@ -427,7 +427,6 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
             SquareTiles(text) => {
                 let options = TextOptions {
                     fit_to_grid: true,
-                    wrapped: false,
                     align: TextAlign::Center,
                     .. Default::default()
                 };

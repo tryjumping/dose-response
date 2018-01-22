@@ -84,7 +84,10 @@ function play_game(canvas, wasm_path) {
                 var text_options = data[3];
                 var align = text_options[0][0];
                 var wrap = text_options[1];
-                var width = text_options[2];
+                var text_width = text_options[2];
+
+
+                // TODO: implement fit_to_grid rendering!
                 var fit_to_grid = text_options[3];
 
                 switch(align) {
@@ -97,7 +100,7 @@ function play_game(canvas, wasm_path) {
                 case 2:
                   if(width > 0) {
                     ctx.textAlign = "center";
-                    x += width / 2;
+                    x += text_width / 2;
                   }
                   break;
                 default:
@@ -108,8 +111,8 @@ function play_game(canvas, wasm_path) {
                 var x_fudge = 8;
                 var y_fudge = 13;
 
-                if(wrap && width > 0) {
-                  var lines = wrapText(ctx, text, width * squareSize);
+                if(wrap && text_width > 0) {
+                  var lines = wrapText(ctx, text, text_width * squareSize);
                   // TODO: this duplicates the height calculation in `wrapped_text_height_in_tiles`!
                   var font_height_px = parseInt(ctx.font.match(/\d+/), 10);
                   var line_height_px = font_height_px * 1.3;
@@ -152,10 +155,8 @@ function play_game(canvas, wasm_path) {
             let buffer = new Uint8Array(wasm_instance.exports.memory.buffer, text_ptr, text_len);
             let decoder = new TextDecoder();
             let text = decoder.decode(buffer);
-            let lines = wrapText(ctx, text, max_width_in_tiles);
-            let font_height_px = parseInt(ctx.font.match(/\d+/), 10);
-            let line_height_px = font_height_px * 1.3;
-            return Math.ceil(line_height_px / squareSize);
+            let lines = wrapText(ctx, text, max_width_in_tiles * squareSize);
+            return lines.length;
           }
         }
       });

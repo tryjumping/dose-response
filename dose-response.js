@@ -62,6 +62,7 @@ function play_game(canvas, wasm_path) {
                 ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
                 var x_fudge = 8;
                 var y_fudge = 13;
+                ctx.textAlign = "start";
                 ctx.fillText(glyph, x * squareSize + x_fudge, y * squareSize + y_fudge);
                 break;
 
@@ -80,12 +81,45 @@ function play_game(canvas, wasm_path) {
                 var text = data[1];
                 var color = data[2];
 
-                // TODO: implement wrapping and alignment!!
+                var text_options = data[3];
+                var align = text_options[0][0];
+                var wrap = text_options[1];
+                var width = text_options[2];
+                var fit_to_grid = text_options[3];
+
+                switch(align) {
+                case 0:
+                  ctx.textAlign = "left";
+                  break;
+                case 1:
+                  ctx.textAlign = "right";
+                  break;
+                case 2:
+                  if(width > 0) {
+                    ctx.textAlign = "center";
+                    x += width / 2;
+                  }
+                  break;
+                default:
+                  ctx.textAlign = "left";
+                }
 
                 ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
                 var x_fudge = 8;
                 var y_fudge = 13;
-                ctx.fillText(text, x * squareSize + x_fudge, y * squareSize + y_fudge);
+
+                if(wrap && width > 0) {
+                  var lines = wrapText(ctx, text, width * squareSize);
+                  // TODO: this duplicates the height calculation in `wrapped_text_height_in_tiles`!
+                  var font_height_px = parseInt(ctx.font.match(/\d+/), 10);
+                  var line_height_px = font_height_px * 1.3;
+                  var line_height = Math.ceil(line_height_px / squareSize);
+                  for(let i = 0; i < lines.length; i++) {
+                    ctx.fillText(lines[i], x * squareSize + x_fudge, y * squareSize + y_fudge + (line_height_px * i));
+                  }
+                } else {
+                  ctx.fillText(text, x * squareSize + x_fudge, y * squareSize + y_fudge);
+                }
                 break;
 
               case 3: // Rectangle

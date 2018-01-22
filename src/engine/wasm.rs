@@ -1,8 +1,7 @@
-use engine::{self, Draw, Mouse, Settings};
+use engine::{self, Draw, Mouse, TextMetrics, Settings};
 use game::{self, RunningState};
 use keys::{Key, KeyCode};
 use point::Point;
-use rect::Rectangle;
 use state::State;
 
 use std::mem;
@@ -132,6 +131,29 @@ fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {
 }
 
 
+struct Metrics;
+
+impl TextMetrics for Metrics {
+    fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
+        match text_drawcall {
+            &Draw::Text(_pos, ref text, _color, options) => {
+                if options.wrap && options.width > 0 {
+                    #[allow(unsafe_code)]
+                    unsafe {
+                        wrapped_text_height_in_tiles(text.as_ptr(), text.len(), options.width)
+                    }
+                } else {
+                    1
+                }
+            }
+            _ => {
+                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
+            },
+        }
+    }
+}
+
+
 #[allow(unsafe_code)]
 #[no_mangle]
 pub extern "C" fn key_pressed(
@@ -191,6 +213,7 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
         &keys,
         mouse,
         &mut settings,
+        &mut Metrics,
         &mut drawcalls,
     );
 

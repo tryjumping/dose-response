@@ -420,11 +420,8 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
 
             Centered(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                let options = TextOptions {
-                    width: max_line_width,
-                    .. TextOptions::align_center()
-                };
-                let dc = Draw::Text(pos, text.into(), color::gui_text, options);
+                let dc = Draw::Text(pos, text.into(), color::gui_text,
+                                    TextOptions::align_center(max_line_width));
                 ypos += 1;
                 drawcalls.push(dc);
             },
@@ -528,14 +525,10 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     lines.push("".into());
     lines.push(keyboard_text.into());
 
-    let longest_text = lines.iter()
-        .map(|s| s.chars().count())
-        .max()
-        .unwrap() as i32;
-
+    let max_line_width = 35;
     let rect_dimensions = Point {
         // NOTE: 1 tile padding, which is why we have the `+ 2`.
-        x: longest_text + 2,
+        x: max_line_width + 2,
         y: lines.len() as i32 + 2,
     };
     let rect_start = Point {
@@ -555,7 +548,7 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             pos,
             text.into(),
             color::gui_text,
-            TextOptions::align_center(),
+            TextOptions::align_center(max_line_width),
         );
         drawcalls.push(dc);
     }

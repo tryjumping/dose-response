@@ -70,9 +70,10 @@ impl TextOptions {
     }
 
 
-    pub fn align_center() -> TextOptions {
+    pub fn align_center(width: i32) -> TextOptions {
         TextOptions {
             align: TextAlign::Center,
+            width: width,
             .. Default::default()
         }
     }

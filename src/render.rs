@@ -29,7 +29,7 @@ pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, draw
                 render_help_screen(state, metrics, drawcalls);
             }
             Window::Endgame => {
-                render_endgame_screen(state, drawcalls);
+                render_endgame_screen(state, metrics, drawcalls);
             }
         }
     }
@@ -284,17 +284,18 @@ fn endgame_tip(state: &State) -> String {
 
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-enum Layout {
-    Centered(&'static str),
+enum Layout<'a> {
+    Centered(&'a str),
     Empty,
     EmptySpace(i32),
-    Paragraph(&'static str),
-    SquareTiles(&'static str),
+    Paragraph(&'a str),
+    SquareTiles(&'a str),
 }
 
 
 fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     use self::Layout::*;
+
     let screen_padding = Point::from_i32(2);
     let window_rect = Rectangle::from_point_and_size(
         screen_padding, state.display_size - (screen_padding * 2));
@@ -314,10 +315,7 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
         color::background,
     ));
 
-    let mut lines = vec![
-    ];
-
-    let max_line_width = rect.width();
+    let mut lines = vec![];
 
     match state.current_help_window {
         HelpWindow::NumpadControls => {
@@ -395,51 +393,7 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
         }
     }
 
-    let mut ypos = 0;
-    for text in lines.into_iter() {
-        match text {
-            Empty => {
-                ypos += 1;
-            },
-
-            EmptySpace(number_of_lines) => {
-                ypos += number_of_lines;
-            },
-
-            Paragraph(text) => {
-                let pos = rect.top_left() + Point::new(0, ypos);
-                let options = TextOptions {
-                    wrap: true,
-                    width: max_line_width,
-                    .. Default::default()
-                };
-                let dc = Draw::Text(pos, text.into(), color::gui_text, options);
-                ypos += metrics.get_text_height(&dc);
-                drawcalls.push(dc);
-            },
-
-            Centered(text) => {
-                let pos = rect.top_left() + Point::new(0, ypos);
-                let dc = Draw::Text(pos, text.into(), color::gui_text,
-                                    TextOptions::align_center(max_line_width));
-                ypos += 1;
-                drawcalls.push(dc);
-            },
-
-            SquareTiles(text) => {
-                let options = TextOptions {
-                    fit_to_grid: true,
-                    width: max_line_width,
-                    align: TextAlign::Center,
-                    .. Default::default()
-                };
-                let pos = rect.top_left() + Point::new(0, ypos);
-                let dc = Draw::Text(pos, text.into(), color::gui_text, options);
-                ypos += 1;
-                drawcalls.push(dc);
-            },
-        }
-    }
+    render_laid_out_text(&lines, rect, metrics, drawcalls);
 
     if state.current_help_window != HelpWindow::HowToPlay {
         let text = "[->] Next page";
@@ -465,8 +419,64 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
 }
 
 
-fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
+fn render_laid_out_text(lines: &[Layout],
+                        rect: Rectangle,
+                        metrics: &TextMetrics,
+                        drawcalls: &mut Vec<Draw>) {
+    use self::Layout::*;
+
+    let mut ypos = 0;
+    for text in lines.iter() {
+        match text {
+            &Empty => {
+                ypos += 1;
+            },
+
+            &EmptySpace(number_of_lines) => {
+                ypos += number_of_lines;
+            },
+
+            &Paragraph(text) => {
+                let pos = rect.top_left() + Point::new(0, ypos);
+                let options = TextOptions {
+                    wrap: true,
+                    width: rect.width(),
+                    .. Default::default()
+                };
+                let dc = Draw::Text(pos, text.to_string().into(), color::gui_text, options);
+                ypos += metrics.get_text_height(&dc);
+                drawcalls.push(dc);
+            },
+
+            &Centered(text) => {
+                let pos = rect.top_left() + Point::new(0, ypos);
+                let dc = Draw::Text(pos, text.to_string().into(), color::gui_text,
+                                    TextOptions::align_center(rect.width()));
+                ypos += 1;
+                drawcalls.push(dc);
+            },
+
+            &SquareTiles(text) => {
+                let options = TextOptions {
+                    fit_to_grid: true,
+                    width: rect.width(),
+                    align: TextAlign::Center,
+                    .. Default::default()
+                };
+                let pos = rect.top_left() + Point::new(0, ypos);
+                let dc = Draw::Text(pos, text.to_string().into(), color::gui_text, options);
+                ypos += 1;
+                drawcalls.push(dc);
+            },
+        }
+    }
+}
+
+
+fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     use self::CauseOfDeath::*;
+    use self::Layout::*;
+
     let cause_of_death = formula::cause_of_death(&state.player);
     let endgame_reason_text = if state.side == Side::Victory {
         // TODO: remove Side entirely for now.
@@ -506,53 +516,43 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
     let tip_text = format!("Tip: {}", endgame_tip(state));
     let keyboard_text = "[N] New Game    [?] Help    [Q] Quit";
 
-    let mut lines = vec![
-        endgame_reason_text.into(),
-        endgame_description,
-        "".into(),
-        "".into(),
-        turns_text,
-        "".into(),
-        high_streak_text,
-        "".into(),
-        carrying_doses_text,
-        "".into(),
-        "".into(),
+    let lines = vec![
+        Centered(endgame_reason_text),
+        Centered(&endgame_description),
+        EmptySpace(2),
+        Centered(&turns_text),
+        Empty,
+        Centered(&high_streak_text),
+        Empty,
+        Centered(&carrying_doses_text),
+        EmptySpace(2),
+        Paragraph(&tip_text),
+        EmptySpace(2),
+        Centered(keyboard_text),
     ];
 
-    lines.push(tip_text);
-    lines.push("".into());
-    lines.push("".into());
-    lines.push(keyboard_text.into());
 
-    let max_line_width = 35;
-    let rect_dimensions = Point {
-        // NOTE: 1 tile padding, which is why we have the `+ 2`.
-        x: max_line_width + 2,
-        y: lines.len() as i32 + 2,
-    };
-    let rect_start = Point {
-        x: (state.display_size.x - rect_dimensions.x) / 2,
+    let padding = Point::from_i32(1);
+    let size = Point::new(37, 17) + (padding * 2);
+    let top_left = Point {
+        x: (state.display_size.x - size.x) / 2,
         y: 7,
     };
 
+    let window_rect = Rectangle::from_point_and_size(top_left, size);
+
     drawcalls.push(Draw::Rectangle(
-        rect_start,
-        rect_dimensions,
+        window_rect.top_left(),
+        window_rect.dimensions(),
         color::background,
     ));
 
-    for (index, text) in lines.into_iter().enumerate() {
-        let pos = rect_start + Point::new(0, index as i32 + 1);
-        let dc = Draw::Text(
-            pos,
-            text.into(),
-            color::gui_text,
-            TextOptions::align_center(max_line_width),
-        );
-        drawcalls.push(dc);
-    }
+    let rect = Rectangle::from_point_and_size(
+        window_rect.top_left() + padding,
+        window_rect.dimensions() - (padding * 2),
+    );
 
+    render_laid_out_text(&lines, rect, metrics, drawcalls);
 }
 
 

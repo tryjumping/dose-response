@@ -1,5 +1,5 @@
 use color::{self, Color};
-use engine::Draw;
+use engine::{Draw, TextAlign, TextMetrics, TextOptions};
 use formula;
 use game;
 use graphics;
@@ -17,7 +17,7 @@ use util;
 use world::Chunk;
 
 
-pub fn render(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) {
+pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     // TODO: This might be inefficient for windows fully covering
     // other windows.
     for &window in &state.window_stack {
@@ -26,7 +26,7 @@ pub fn render(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) 
                 render_game(state, dt, fps, drawcalls);
             }
             Window::Help => {
-                render_help_screen(state, drawcalls);
+                render_help_screen(state, metrics, drawcalls);
             }
             Window::Endgame => {
                 render_endgame_screen(state, drawcalls);
@@ -283,13 +283,18 @@ fn endgame_tip(state: &State) -> String {
 }
 
 
-enum Line {
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Layout {
+    Centered(&'static str),
     Empty,
-
+    EmptySpace(i32),
+    Paragraph(&'static str),
+    SquareTiles(&'static str),
 }
 
 
 fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+    use self::Layout::*;
     let screen_padding = Point::from_i32(2);
     let window_rect = Rectangle::from_point_and_size(
         screen_padding, state.display_size - (screen_padding * 2));
@@ -345,7 +350,7 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
                         [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] \
                         means down. You combine them with the [Left] and [Right] keys.";
 
-            lines.push(Text(text));
+            lines.push(Paragraph(text));
             lines.push(EmptySpace(3));
 
             lines.push(SquareTiles(r"Shift+Left  Up  Shift+Right"));
@@ -403,32 +408,31 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
 
             Paragraph(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                dc = Draw::Text(pos, text.into(), color::gui_text, Default::default());
-                ypos += metrics.get_text_height(dc);
+                let options = TextOptions {
+                    wrapped: true,
+                    .. Default::default()
+                };
+                let dc = Draw::Text(pos, text.into(), color::gui_text, options);
+                ypos += metrics.get_text_height(&dc, max_line_width);
                 drawcalls.push(dc);
             },
 
             Centered(text) => {
-                let options = Draw::TextOptions {
-                    wrapped: false,
-                    align: Draw::TextAlign::Center,
-                    .. Default::default(),
-                };
                 let pos = rect.top_left() + Point::new(0, ypos);
-                dc = Draw::Text(pos, text.into(), color::gui_text, Draw::align_center());
+                let dc = Draw::Text(pos, text.into(), color::gui_text, TextOptions::align_center());
                 ypos += 1;
                 drawcalls.push(dc);
             },
 
             SquareTiles(text) => {
-                let options = Draw::TextOptions {
+                let options = TextOptions {
                     fit_to_grid: true,
                     wrapped: false,
-                    align: Draw::TextAlign::Center,
-                    .. Default::default(),
+                    align: TextAlign::Center,
+                    .. Default::default()
                 };
                 let pos = rect.top_left() + Point::new(0, ypos);
-                dc = Draw::Text(pos, text.into(), color::gui_text, options);
+                let dc = Draw::Text(pos, text.into(), color::gui_text, options);
                 ypos += 1;
                 drawcalls.push(dc);
             },
@@ -438,10 +442,10 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
     if state.current_help_window != HelpWindow::HowToPlay {
         let text = "[->] Next page";
         let next_page_text = Draw::Text(
-            rect.bottom_right()
+            rect.bottom_right(),
             text.into(),
             color::gui_text,
-            Draw::align_right(),
+            TextOptions::align_right(),
         );
         drawcalls.push(next_page_text);
     }
@@ -452,7 +456,7 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
             rect.bottom_left(),
             text.into(),
             color::gui_text,
-            .. Default::default(),
+            Default::default(),
         );
         drawcalls.push(next_page_text);
     }
@@ -514,8 +518,7 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
         "".into(),
     ];
 
-    let max_line_width = 35;
-    lines.extend(wrap_text(&tip_text, max_line_width as i32));
+    lines.push(tip_text);
     lines.push("".into());
     lines.push("".into());
     lines.push(keyboard_text.into());
@@ -547,11 +550,7 @@ fn render_endgame_screen(state: &State, drawcalls: &mut Vec<Draw>) {
             pos,
             text.into(),
             color::gui_text,
-            // TODO:: should be Draw::align_center()
-            Draw::TextOptions {
-                align: Draw::TextAlign::Center,
-                .. Default::default(),
-            }
+            TextOptions::align_center(),
         );
         drawcalls.push(dc);
     }
@@ -687,6 +686,7 @@ fn render_panel(
             },
             line.into(),
             fg,
+            Default::default(),
         ));
     }
 
@@ -719,6 +719,7 @@ fn render_panel(
             },
             format!("dt: {}ms", util::num_milliseconds(dt)).into(),
             fg,
+            Default::default(),
         ));
         drawcalls.push(Draw::Text(
             Point {
@@ -727,6 +728,7 @@ fn render_panel(
             },
             format!("FPS: {}", fps).into(),
             fg,
+            Default::default(),
         ));
     }
 
@@ -764,7 +766,8 @@ fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
                     y: 0 + index as i32,
                 },
                 line.to_string().into(),
-                color::gui_text
+                color::gui_text,
+                Default::default(),
             ));
         }
     }
@@ -790,6 +793,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
                 start + Point::new(0, index as i32),
                 line.into(),
                 color::gui_text,
+                Default::default(),
             ));
         }
     };

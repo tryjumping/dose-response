@@ -35,18 +35,37 @@ pub enum Draw {
     /// Position, color
     Background(Point, Color),
     /// Position, text, colour
-    Text(Point, Cow<'static, str>, Color),
+    Text(Point, Cow<'static, str>, Color, TextOptions),
     /// Position, size, color
     Rectangle(Point, Point, Color),
     /// Fade (one minus alpha: 1.0 means no fade, 0.0 means full fade), color
     Fade(f32, Color),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TextOptions {
-    align: TextAlign,
-    wrapped: bool,
-    fit_to_grid: bool,
+    pub align: TextAlign,
+    pub wrapped: bool,
+    pub fit_to_grid: bool,
+}
+
+
+impl TextOptions {
+    pub fn align_right() -> TextOptions {
+        TextOptions {
+            align: TextAlign::Right,
+            .. Default::default()
+        }
+    }
+
+
+    pub fn align_center() -> TextOptions {
+        TextOptions {
+            align: TextAlign::Center,
+            .. Default::default()
+        }
+    }
+
 }
 
 
@@ -61,22 +80,21 @@ impl Default for TextOptions {
 }
 
 
-pub fn align_right() -> TextOptions {
-    TextOptions {
-        align: TextAlign::Right,
-        .. Default::default(),
-    }
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum TextAlign {
+    Left,
+    Right,
+    Center,
 }
 
 
-pub fn align_center() -> TextOptions {
-    TextOptions {
-        align: TextAlign::Center,
-        .. Default::default(),
-    }
+pub trait TextMetrics {
+    /// Return the height in tiles of the given text.
+    ///
+    /// Panics when `text_drawcall` is not `Draw::Text`
+    fn get_text_height(&self, text_drawcall: &Draw, max_width: i32) -> i32;
 }
-
-
 
 
 
@@ -118,6 +136,7 @@ pub type UpdateFn = fn(&mut State,
                        keys: &[Key],
                        mouse: Mouse,
                        settings: &mut Settings,
+                       metrics: &TextMetrics,
                        drawcalls: &mut Vec<Draw>)
                        -> RunningState;
 

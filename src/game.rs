@@ -2,7 +2,7 @@ use animation::{self, AreaOfEffect};
 use ai::{PlayerInfo};
 use blocker::Blocker;
 use color;
-use engine::{Draw, Mouse, Settings};
+use engine::{Draw, Mouse, TextMetrics, Settings};
 use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
@@ -51,6 +51,7 @@ pub fn update(
     new_keys: &[Key],
     mouse: Mouse,
     settings: &mut Settings,
+    metrics: &TextMetrics,
     drawcalls: &mut Vec<Draw>,
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
@@ -138,7 +139,7 @@ pub fn update(
 
 
     let drawcall_stopwatch = Stopwatch::start();
-    render::render(&state, dt, fps, drawcalls);
+    render::render(&state, dt, fps, metrics, drawcalls);
     let drawcall_duration = drawcall_stopwatch.finish();
 
     state.stats.push(FrameStats {

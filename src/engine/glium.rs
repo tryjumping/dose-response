@@ -1,7 +1,7 @@
 use self::vertex::Vertex;
 
 use color::Color;
-use engine::{Draw, Settings, UpdateFn};
+use engine::{Draw, Settings, UpdateFn, TextMetrics};
 use game::RunningState;
 use state::State;
 
@@ -124,6 +124,27 @@ fn wrap_fit_to_grid_text(text: &str, width: i32) -> Vec<String> {
     result.push(current_line);
 
     result
+}
+
+
+struct Metrics;
+
+impl TextMetrics for Metrics {
+    fn get_text_height(&self, text_drawcall: &Draw, max_width: i32) -> i32 {
+        match text_drawcall {
+            &Draw::Text(_pos, ref text, _color, options) => {
+                if options.wrapped {
+                    let lines = wrap_fit_to_grid_text(&text, max_width);
+                    lines.len() as i32
+                } else {
+                    1
+                }
+            }
+            _ => {
+                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
+            },
+        }
+    }
 }
 
 
@@ -265,6 +286,7 @@ pub fn main_loop(
             &keys,
             mouse,
             &mut settings,
+            &Metrics,
             &mut drawcalls,
         );
 
@@ -387,7 +409,7 @@ pub fn main_loop(
 
                 }
 
-                &Draw::Text(start_pos, ref text, color) => {
+                &Draw::Text(start_pos, ref text, color, _options) => {
                     for (i, chr) in text.char_indices() {
                         let pos = start_pos + (i as i32, 0);
                         let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);

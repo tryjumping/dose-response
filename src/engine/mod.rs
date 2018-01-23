@@ -53,11 +53,6 @@ pub struct TextOptions {
     /// If less than `1`, ignore it. Used for text wrapping and
     /// centering.
     pub width: i32,
-
-    /// If true, rander each character aligned with the `Tile` grid.
-    /// That makes the text hard to read, but corresponds to the way
-    /// we render the game.
-    pub fit_to_grid: bool,
 }
 
 
@@ -87,7 +82,6 @@ impl Default for TextOptions {
             align: TextAlign::Left,
             wrap: false,
             width: 0,
-            fit_to_grid: false,
         }
     }
 }

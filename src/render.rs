@@ -1,5 +1,5 @@
 use color::{self, Color};
-use engine::{Draw, TextAlign, TextMetrics, TextOptions};
+use engine::{Draw, TextMetrics, TextOptions};
 use formula;
 use game;
 use graphics;
@@ -452,16 +452,14 @@ fn render_laid_out_text(lines: &[Layout],
             },
 
             &SquareTiles(text) => {
-                let options = TextOptions {
-                    fit_to_grid: true,
-                    width: rect.width(),
-                    align: TextAlign::Center,
-                    .. Default::default()
-                };
-                let pos = rect.top_left() + Point::new(0, ypos);
-                let dc = Draw::Text(pos, text.to_string().into(), color::gui_text, options);
+                let text_size = text.chars().count() as i32;
+                let max_size = rect.width();
+                let start_pos = rect.top_left() + ((max_size - text_size) / 2, ypos);
+                for (i, chr) in text.char_indices() {
+                    let pos = start_pos + (i as i32, 0);
+                    drawcalls.push(Draw::Char(pos, chr, color::gui_text));
+                }
                 ypos += 1;
-                drawcalls.push(dc);
             },
         }
     }

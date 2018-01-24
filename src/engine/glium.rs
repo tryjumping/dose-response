@@ -1,9 +1,8 @@
 use self::vertex::Vertex;
 
 use color::Color;
-use engine::{Draw, Settings, UpdateFn, TextMetrics};
+use engine::{self, Draw, Settings, UpdateFn, TextMetrics};
 use game::RunningState;
-use rect::Rectangle;
 use state::State;
 
 use glium::{self, Surface};
@@ -242,8 +241,7 @@ pub fn main_loop(
     };
     let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
-    let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize
-                                  ];
+    let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize];
     let mut drawcalls = Vec::with_capacity(4000);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
@@ -384,32 +382,8 @@ pub fn main_loop(
         // NOTE: last time we tried it it was 3632
         //println!("Drawcall count: {}", drawcalls.len());
 
-        // NOTE: Clear the background_map by setting it to the default colour
-        for color in background_map.iter_mut() {
-            *color = Color{r: 0, g: 0, b: 0};
-        }
+        engine::populate_background_map(&mut background_map, display_size, &drawcalls);
 
-        // NOTE: generate the background map
-        for drawcall in &drawcalls {
-            match drawcall {
-                &Draw::Background(pos, background_color) => {
-                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
-                        background_map[(pos.y * display_size.x + pos.x) as usize] = background_color;
-                    }
-                }
-
-                &Draw::Rectangle(top_left, dimensions, color) => {
-                    let rect = Rectangle::from_point_and_size(top_left, dimensions);
-                    for pos in rect.points() {
-                        if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
-                            background_map[(pos.y * display_size.x + pos.x) as usize] = color;
-                        }
-                    }
-                }
-
-                _ => {}
-            }
-        }
 
         // Render the background tiles separately and before all the other drawcalls.
         for (index, background_color) in background_map.iter().enumerate() {

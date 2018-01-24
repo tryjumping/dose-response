@@ -2,6 +2,7 @@ use color::Color;
 use game::RunningState;
 use keys::Key;
 use point::Point;
+use rect::Rectangle;
 use state::State;
 use std::borrow::Cow;
 
@@ -121,6 +122,41 @@ impl Default for Mouse {
             right: false,
         }
     }
+}
+
+
+pub fn populate_background_map(background_map: &mut Vec<Color>,
+                               display_size: Point,
+                               drawcalls: &Vec<Draw>) {
+    assert!(background_map.len() >= (display_size.x * display_size.y) as usize);
+
+    // NOTE: Clear the background_map by setting it to the default colour
+    for color in background_map.iter_mut() {
+        *color = Color{r: 0, g: 0, b: 0};
+    }
+
+    // NOTE: generate the background map
+    for drawcall in drawcalls {
+        match drawcall {
+            &Draw::Background(pos, background_color) => {
+                if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                    background_map[(pos.y * display_size.x + pos.x) as usize] = background_color;
+                }
+            }
+
+            &Draw::Rectangle(top_left, dimensions, color) => {
+                let rect = Rectangle::from_point_and_size(top_left, dimensions);
+                for pos in rect.points() {
+                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                        background_map[(pos.y * display_size.x + pos.x) as usize] = color;
+                    }
+                }
+            }
+
+            _ => {}
+        }
+    }
+
 }
 
 

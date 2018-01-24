@@ -381,6 +381,9 @@ pub fn main_loop(
         // drawcalls.
 
 
+        // NOTE: last time we tried it it was 3632
+        //println!("Drawcall count: {}", drawcalls.len());
+
         // NOTE: Clear the background_map by setting it to the default colour
         for color in background_map.iter_mut() {
             *color = Color{r: 0, g: 0, b: 0};
@@ -390,17 +393,17 @@ pub fn main_loop(
         for drawcall in &drawcalls {
             match drawcall {
                 &Draw::Background(pos, background_color) => {
-                    assert!(pos.y >= 0);
-                    assert!(pos.x >= 0);
-                    background_map[(pos.y * display_size.x + pos.x) as usize] = background_color;
+                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                        background_map[(pos.y * display_size.x + pos.x) as usize] = background_color;
+                    }
                 }
 
                 &Draw::Rectangle(top_left, dimensions, color) => {
                     let rect = Rectangle::from_point_and_size(top_left, dimensions);
                     for pos in rect.points() {
-                        assert!(pos.x >= 0);
-                        assert!(pos.y >= 0);
-                        background_map[(pos.y * display_size.x + pos.x) as usize] = color;
+                        if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                            background_map[(pos.y * display_size.x + pos.x) as usize] = color;
+                        }
                     }
                 }
 
@@ -454,81 +457,82 @@ pub fn main_loop(
         for drawcall in &drawcalls {
             match drawcall {
                 &Draw::Char(pos, chr, foreground_color) => {
-                    let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
-                    let fill_tile_tilemap_index = [0.0, 5.0];
-                    let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
-                    let color = gl_color(foreground_color, alpha);
-                    let background_color = gl_color(
-                        background_map[(pos.y * display_size.x + pos.x) as usize],
-                        alpha);
+                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                        let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
+                        let fill_tile_tilemap_index = [0.0, 5.0];
+                        let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                        let color = gl_color(foreground_color, alpha);
+                        let background_color = gl_color(
+                            background_map[(pos.y * display_size.x + pos.x) as usize],
+                            alpha);
 
-                    // NOTE: fill the tile with the background colour
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y],
-                        tilemap_index: fill_tile_tilemap_index,
-                        color: background_color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y],
-                        tilemap_index: fill_tile_tilemap_index,
-                        color: background_color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + 1.0],
-                        tilemap_index: fill_tile_tilemap_index,
-                        color: background_color,
-                    });
+                        // NOTE: fill the tile with the background colour
+                        vertices.push(Vertex {
+                            tile_position: [pos_x, pos_y],
+                            tilemap_index: fill_tile_tilemap_index,
+                            color: background_color,
+                        });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x + 1.0, pos_y],
+                            tilemap_index: fill_tile_tilemap_index,
+                            color: background_color,
+                        });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x, pos_y + 1.0],
+                            tilemap_index: fill_tile_tilemap_index,
+                            color: background_color,
+                        });
 
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y],
-                        tilemap_index: fill_tile_tilemap_index,
-                        color: background_color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + 1.0],
-                        tilemap_index: fill_tile_tilemap_index,
-                        color: background_color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y + 1.0],
-                        tilemap_index: fill_tile_tilemap_index,
-                        color: background_color,
-                    });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x + 1.0, pos_y],
+                            tilemap_index: fill_tile_tilemap_index,
+                            color: background_color,
+                        });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x, pos_y + 1.0],
+                            tilemap_index: fill_tile_tilemap_index,
+                            color: background_color,
+                        });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x + 1.0, pos_y + 1.0],
+                            tilemap_index: fill_tile_tilemap_index,
+                            color: background_color,
+                        });
 
 
-                    // NOTE: draw the glyph
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y],
-                        tilemap_index: [tilemap_x, tilemap_y],
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y],
-                        tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + 1.0],
-                        tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                        color: color,
-                    });
+                        // NOTE: draw the glyph
+                        vertices.push(Vertex {
+                            tile_position: [pos_x, pos_y],
+                            tilemap_index: [tilemap_x, tilemap_y],
+                            color: color,
+                        });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x + 1.0, pos_y],
+                            tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                            color: color,
+                        });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x, pos_y + 1.0],
+                            tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                            color: color,
+                        });
 
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y],
-                        tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + 1.0],
-                        tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y + 1.0],
-                        tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
-                        color: color,
-                    });
-
+                        vertices.push(Vertex {
+                            tile_position: [pos_x + 1.0, pos_y],
+                            tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                            color: color,
+                        });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x, pos_y + 1.0],
+                            tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                            color: color,
+                        });
+                        vertices.push(Vertex {
+                            tile_position: [pos_x + 1.0, pos_y + 1.0],
+                            tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                            color: color,
+                        });
+                    }
                 }
 
                 &Draw::Background(..) => {

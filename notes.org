@@ -15,6 +15,7 @@
 *** Or is it? Maybe we could just always load if there is a saved game...
 *** But we should have a menu anyway
 *** On `Esc`
+** Don't abort on `Q` keyress
 ** Nice colours
 *** good colour palette
 *** distinct colours (so they're visible while High, too)
@@ -64,6 +65,10 @@
 *** Because the fonts are now narrower than the game expects
 *** So we need to add wrapping and alignment to the drawcalls
 *** WRITE THE USAGE CODE FIRST
+* Add console printing to the wasm module
+* Print out warnings if the js drawcalls and buffer capacities are exceeded
+* Performance-tune the game
+** minimise drawcalls and data transmission
 * Split out the rendering functionality into a proper crate            :code:
 ** Call it "Charmed, I'm sure."
 ** Crates.io will be called "charmed"

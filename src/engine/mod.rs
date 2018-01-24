@@ -5,7 +5,6 @@ use point::Point;
 use state::State;
 use std::borrow::Cow;
 
-use std::ops::RangeFrom;
 use std::time::Duration;
 
 
@@ -148,60 +147,6 @@ pub type UpdateFn = fn(&mut State,
                        -> RunningState;
 
 
-/// Sort the drawcalls in the specified range. Then "reverse
-/// deduplicate" them -- meaning the latest item stays (rather than
-/// the first one in a normal dedup).
-pub fn sort_drawcalls(drawcalls: &mut Vec<Draw>, range: RangeFrom<usize>) {
-    use std::cmp::Ordering::*;
-    use engine::Draw::*;
-    drawcalls[range].sort_by(|a, b| {
-        match (a, b) {
-            (&Char(p1, ..), &Char(p2, ..)) => {
-                let x_ordering = p1.x.cmp(&p2.x);
-                if x_ordering == Equal {
-                    p1.y.cmp(&p2.y)
-                } else {
-                    x_ordering
-                }
-            }
-
-            (&Background(..), &Background(..)) => Equal,
-            (&Text(..), &Text(..)) => Equal,
-            (&Rectangle(..), &Rectangle(..)) => Equal,
-            (&Fade(..), &Fade(..)) => Equal,
-
-            (&Fade(..), _) => Greater,
-            (_, &Fade(..)) => Less,
-
-            (&Background(..), &Char(..)) => Less,
-            (&Char(..), &Background(..)) => Greater,
-
-            (&Background(..), &Text(..)) => Less,
-            (&Text(..), &Background(..)) => Greater,
-
-            (&Background(..), &Rectangle(..)) => Less,
-            (&Rectangle(..), &Background(..)) => Greater,
-
-            _ => Equal,
-        }
-    });
-
-    // Remove duplicate background and foreground tiles. I.e. for
-    // any given point, only the last specified drawcall of the
-    // same kind will remain.
-    drawcalls.reverse();
-    drawcalls.dedup_by(|first, second| {
-        // NOTE: This is designed specifically to deduplicate
-        // characters on the same position (using Vec::dedup). So the
-        // only thing considered equal are characters with the same
-        // pos value.
-        match (first, second) {
-            (&mut Char(p1, ..), &mut Char(p2, ..)) => p1 == p2,
-            _ => false,
-        }
-    });
-    drawcalls.reverse();
-}
 
 
 // NOTE:

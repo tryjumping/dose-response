@@ -3,6 +3,7 @@ use self::vertex::Vertex;
 use color::Color;
 use engine::{Draw, Settings, UpdateFn, TextMetrics};
 use game::RunningState;
+use rect::Rectangle;
 use state::State;
 
 use glium::{self, Surface};
@@ -241,6 +242,8 @@ pub fn main_loop(
     };
     let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
+    let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize
+                                  ];
     let mut drawcalls = Vec::with_capacity(4000);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
@@ -328,16 +331,172 @@ pub fn main_loop(
 
         // Process drawcalls
         vertices.clear();
-        // NOTE: The first item is inserted by the engine/backend here, so keep it there
-        ::engine::sort_drawcalls(&mut drawcalls, 1..);
+
+        // NOTE: So the rendering is a little more involved than I
+        // initially planned.
+        //
+        // Here's the problem, we want to be able to set the
+        // background colour independently and possibly *after*
+        // setting the glyph.
+        //
+        // It might also be interspersed by the `Rectangle` drawcalls
+        // which will clear the given area.
+        //
+        // On top of that, we only want to render the topmost glyph on
+        // any given tile.
+        //
+        // I could not figure out how to do this by merely sorting the
+        // drawcalls with a custom ordering closure. It may yet be
+        // possible but I don't know.
+        //
+        // So what we do instead is a three-phase render:
+        //
+        // First, we'll build a map of the background tiles. We do
+        // this by going through all drawcalls and recording the
+        // colour for each `Background` or `Rectangle` call.
+        //
+        // Second, we render all the backgrounds by iterating over the
+        // entires in the background map. This makes sure that we've
+        // rendered all background tiles even if there was no
+        // corresponding glyph there.
+        //
+        // Third, we render everything *except* for the `Background`
+        // tiles. They've been rendered already so let's not do it
+        // again. This handles the situation where a later background
+        // would overwrite a glyph.
+        //
+        // Also, when we render `Glyph`s, we will first clear the tile
+        // to the background in the map. This will make sure that any
+        // previously rendered glyphs will be overwritten.
+        //
+        // Furthermore, we still DO render the `Rectangle`s, because
+        // they should still clear all the areas they cover.
+        // Basically, we pre-render the background and then have
+        // OpenGL handle the rest.
+        //
+        // Finally, we do NOT render the `Fade` during the rendering
+        // pass, but record the fade colour and value and render it
+        // after all the other drawcalls have been processed. That
+        // way, it will not be overwritten by any subsequent
+        // drawcalls.
+
+
+        // NOTE: Clear the background_map by setting it to the default colour
+        for color in background_map.iter_mut() {
+            *color = Color{r: 0, g: 0, b: 0};
+        }
+
+        // NOTE: generate the background map
+        for drawcall in &drawcalls {
+            match drawcall {
+                &Draw::Background(pos, background_color) => {
+                    assert!(pos.y >= 0);
+                    assert!(pos.x >= 0);
+                    background_map[(pos.y * display_size.x + pos.x) as usize] = background_color;
+                }
+
+                &Draw::Rectangle(top_left, dimensions, color) => {
+                    let rect = Rectangle::from_point_and_size(top_left, dimensions);
+                    for pos in rect.points() {
+                        assert!(pos.x >= 0);
+                        assert!(pos.y >= 0);
+                        background_map[(pos.y * display_size.x + pos.x) as usize] = color;
+                    }
+                }
+
+                _ => {}
+            }
+        }
+
+        // Render the background tiles separately and before all the other drawcalls.
+        for (index, background_color) in background_map.iter().enumerate() {
+            let pos_x = ((index as i32) % display_size.x) as f32;
+            let pos_y = ((index as i32) / display_size.x) as f32;
+            let tilemap_index = [0.0, 5.0];
+            let color = gl_color(*background_color, alpha);
+
+            vertices.push(Vertex {
+                tile_position: [pos_x, pos_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+            vertices.push(Vertex {
+                tile_position: [pos_x + 1.0, pos_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+            vertices.push(Vertex {
+                tile_position: [pos_x, pos_y + 1.0],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+
+            vertices.push(Vertex {
+                tile_position: [pos_x + 1.0, pos_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+            vertices.push(Vertex {
+                tile_position: [pos_x, pos_y + 1.0],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+            vertices.push(Vertex {
+                tile_position: [pos_x + 1.0, pos_y + 1.0],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+        }
+
+
+        let mut screen_fade = None;
 
         for drawcall in &drawcalls {
             match drawcall {
                 &Draw::Char(pos, chr, foreground_color) => {
                     let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
+                    let fill_tile_tilemap_index = [0.0, 5.0];
                     let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
                     let color = gl_color(foreground_color, alpha);
+                    let background_color = gl_color(
+                        background_map[(pos.y * display_size.x + pos.x) as usize],
+                        alpha);
 
+                    // NOTE: fill the tile with the background colour
+                    vertices.push(Vertex {
+                        tile_position: [pos_x, pos_y],
+                        tilemap_index: fill_tile_tilemap_index,
+                        color: background_color,
+                    });
+                    vertices.push(Vertex {
+                        tile_position: [pos_x + 1.0, pos_y],
+                        tilemap_index: fill_tile_tilemap_index,
+                        color: background_color,
+                    });
+                    vertices.push(Vertex {
+                        tile_position: [pos_x, pos_y + 1.0],
+                        tilemap_index: fill_tile_tilemap_index,
+                        color: background_color,
+                    });
+
+                    vertices.push(Vertex {
+                        tile_position: [pos_x + 1.0, pos_y],
+                        tilemap_index: fill_tile_tilemap_index,
+                        color: background_color,
+                    });
+                    vertices.push(Vertex {
+                        tile_position: [pos_x, pos_y + 1.0],
+                        tilemap_index: fill_tile_tilemap_index,
+                        color: background_color,
+                    });
+                    vertices.push(Vertex {
+                        tile_position: [pos_x + 1.0, pos_y + 1.0],
+                        tilemap_index: fill_tile_tilemap_index,
+                        color: background_color,
+                    });
+
+
+                    // NOTE: draw the glyph
                     vertices.push(Vertex {
                         tile_position: [pos_x, pos_y],
                         tilemap_index: [tilemap_x, tilemap_y],
@@ -372,43 +531,8 @@ pub fn main_loop(
 
                 }
 
-                &Draw::Background(pos, background_color) => {
-                    let (pos_x, pos_y) = (pos.x as f32, pos.y as f32);
-                    let tilemap_index = [0.0, 5.0];
-                    let color = gl_color(background_color, alpha);
-
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + 1.0],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + 1.0],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + 1.0, pos_y + 1.0],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-
+                &Draw::Background(..) => {
+                    // NOTE: do nothing, all the BG calls have been drawn already
                 }
 
                 &Draw::Text(start_pos, ref text, color, options) => {
@@ -524,49 +648,57 @@ pub fn main_loop(
                 }
 
                 &Draw::Fade(fade, color) => {
-                    assert!(fade >= 0.0);
-                    assert!(fade <= 1.0);
-
-                    let (pos_x, pos_y) = (0.0, 0.0);
-                    let (dim_x, dim_y) = (display_size.x as f32, display_size.y as f32);
-                    let tilemap_index = [0.0, 5.0];
-                    let color = gl_color(color, 1.0 - fade);
-
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + dim_x, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + dim_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + dim_x, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + dim_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        tile_position: [pos_x + dim_x, pos_y + dim_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-
+                    screen_fade = Some((fade, color));
                 }
             }
         }
+
+        // NOTE: render the fade overlay
+        if let Some((mut fade, color)) = screen_fade {
+            if fade < 0.0 {
+                fade = 0.0;
+            }
+            if fade > 1.0 {
+                fade = 1.0;
+            }
+            let (pos_x, pos_y) = (0.0, 0.0);
+            let (dim_x, dim_y) = (display_size.x as f32, display_size.y as f32);
+            let tilemap_index = [0.0, 5.0];
+            let color = gl_color(color, 1.0 - fade);
+
+            vertices.push(Vertex {
+                tile_position: [pos_x, pos_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+            vertices.push(Vertex {
+                tile_position: [pos_x + dim_x, pos_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+            vertices.push(Vertex {
+                tile_position: [pos_x, pos_y + dim_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+
+            vertices.push(Vertex {
+                tile_position: [pos_x + dim_x, pos_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+            vertices.push(Vertex {
+                tile_position: [pos_x, pos_y + dim_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+            vertices.push(Vertex {
+                tile_position: [pos_x + dim_x, pos_y + dim_y],
+                tilemap_index: tilemap_index,
+                color: color,
+            });
+        }
+
 
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
 

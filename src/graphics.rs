@@ -36,22 +36,29 @@ pub fn progress_bar(
     } else if percentage == 1.0 {
         highlighted_width = width;
     }
-    drawcalls.push(Draw::Rectangle(
-        pos,
-        Point {
-            x: highlighted_width,
-            y: 1,
-        },
-        foreground,
-    ));
-    drawcalls.push(Draw::Rectangle(
-        pos + (highlighted_width, 0),
-        Point {
-            x: width - highlighted_width,
-            y: 1,
-        },
-        background,
-    ));
+
+    if highlighted_width > 0 {
+        drawcalls.push(Draw::Rectangle(
+            pos,
+            Point {
+                x: highlighted_width,
+                y: 1,
+            },
+            foreground,
+        ));
+    }
+
+    let remaining_width = width - highlighted_width;
+    if remaining_width > 0 {
+        drawcalls.push(Draw::Rectangle(
+            pos + (highlighted_width, 0),
+            Point {
+                x: remaining_width,
+                y: 1,
+            },
+            background,
+        ));
+    }
 }
 
 

@@ -1,3 +1,4 @@
+use color::Color;
 use engine::{self, Draw, Mouse, TextMetrics, Settings};
 use game::{self, RunningState};
 use keys::{Key, KeyCode};
@@ -198,12 +199,13 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
     let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
 
     let dt = Duration::from_millis(dt_ms as u64);
-    let display_size = Point::new(0, 0);
+    let display_size = state.display_size;
     let fps = 60;
     let keys: Vec<Key> = vec![];
     let mouse: Mouse = Default::default();
     let mut settings = Settings{ fullscreen: false };
-    let mut drawcalls: Vec<Draw> = vec![];
+    let mut drawcalls: Vec<Draw> = Vec::with_capacity(4000);
+    let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize];
 
     let result = game::update(
         &mut state,
@@ -225,13 +227,55 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
         RunningState::Stopped => {},
     }
 
-    engine::sort_drawcalls(&mut drawcalls, 0..);
+    engine::populate_background_map(&mut background_map, display_size, &drawcalls);
 
     let mut js_drawcalls = Vec::with_capacity(drawcalls.len() * 6);
 
     let mut buffer: Vec<u8> = vec![42; 100];
 
+    // Send the background drawcalls first
+    for (index, background_color) in background_map.iter().enumerate() {
+        let pos = Point::new((index as i32) % display_size.x, (index as i32) / display_size.x);
+        let drawcall = Draw::Background(pos, *background_color);
+        buffer.clear();
+        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
+        js_drawcalls.extend(&buffer);
+    }
+
+    let mut screen_fade = None;
+
     for drawcall in &drawcalls {
+        match drawcall {
+            &Draw::Background(..) => {}
+            &Draw::Fade(color, fade) => {
+                screen_fade = Some(Draw::Fade(color, fade));
+            }
+
+            &Draw::Char(pos, _glyph, _color) => {
+                if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                    // Clear the background
+                    buffer.clear();
+                    let bg_dc = Draw::Background(pos, background_map[(pos.y * display_size.x + pos.x) as usize]);
+                    bg_dc.serialize(&mut Serializer::new(&mut buffer)).unwrap();
+                    js_drawcalls.extend(&buffer);
+
+                    // Send the glyph
+                    buffer.clear();
+                    drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
+                    js_drawcalls.extend(&buffer);
+                }
+            }
+
+            _ => {
+                buffer.clear();
+                drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
+                js_drawcalls.extend(&buffer);
+            }
+        }
+    }
+
+    // Send the Fade drawcall last
+    if let Some(drawcall) = screen_fade {
         buffer.clear();
         drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
         js_drawcalls.extend(&buffer);

@@ -16,6 +16,9 @@ use std::time::{Duration, Instant};
 use util;
 
 
+const VERTICES_CAPACITY: usize = 50_000;
+
+
 fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
     [
         color.r as f32 / 255.0,
@@ -242,14 +245,14 @@ pub fn main_loop(
     let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
     let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize];
-    let mut drawcalls = Vec::with_capacity(4000);
+    let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
     let mut lalt_pressed = false;
     let mut ralt_pressed = false;
     let mut lshift_pressed = false;
     let mut rshift_pressed = false;
-    let mut vertices = Vec::with_capacity(drawcalls.len() * 6);
+    let mut vertices = Vec::with_capacity(VERTICES_CAPACITY);
     let mut keys = vec![];
     // We're not using alpha at all for now, but it's passed everywhere.
     let alpha = 1.0;
@@ -677,6 +680,15 @@ pub fn main_loop(
             });
         }
 
+        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
+            println!("Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
+            drawcalls.len(), engine::DRAWCALL_CAPACITY);
+        }
+
+        if vertices.len() > VERTICES_CAPACITY {
+            println!("Warning: vertex count exceeded initial capacity {}. Current count: {} ",
+                     vertices.len(), VERTICES_CAPACITY);
+        }
 
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
 

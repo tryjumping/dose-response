@@ -12,6 +12,10 @@ use serde::Serialize;
 use rmps::Serializer;
 
 
+const BUFFER_CAPACITY: usize = 400;
+const JS_DRAWCALL_CAPACITY: usize = 80_000;
+
+
 extern {
     fn draw(nums: *const u8, len: usize);
     pub fn random() -> f32;
@@ -204,7 +208,7 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
     let keys: Vec<Key> = vec![];
     let mouse: Mouse = Default::default();
     let mut settings = Settings{ fullscreen: false };
-    let mut drawcalls: Vec<Draw> = Vec::with_capacity(4000);
+    let mut drawcalls: Vec<Draw> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize];
 
     let result = game::update(
@@ -229,9 +233,9 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
 
     engine::populate_background_map(&mut background_map, display_size, &drawcalls);
 
-    let mut js_drawcalls = Vec::with_capacity(drawcalls.len() * 6);
+    let mut js_drawcalls = Vec::with_capacity(JS_DRAWCALL_CAPACITY);
 
-    let mut buffer: Vec<u8> = vec![42; 100];
+    let mut buffer: Vec<u8> = vec![42; BUFFER_CAPACITY];
 
     // Send the background drawcalls first
     for (index, background_color) in background_map.iter().enumerate() {
@@ -274,12 +278,51 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
         }
     }
 
+
+    if state.cheating {
+        // NOTE: render buffer size:
+        let drawcall = Draw::Text(display_size - (5, 5),
+                                  format!("Buffer cap: {}", buffer.capacity()).into(),
+                                  ::color::gui_text,
+                                  engine::TextOptions::align_right());
+        buffer.clear();
+        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
+        js_drawcalls.extend(&buffer);
+
+        // NOTE: render js drawcall size
+        let drawcall = Draw::Text(display_size - (5, 4),
+                                  format!("js_drawcall len: {}", js_drawcalls.len()).into(),
+                                  ::color::gui_text,
+                                  engine::TextOptions::align_right());
+        buffer.clear();
+        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
+        js_drawcalls.extend(&buffer);
+
+        // NOTE: render js drawcall size
+        let drawcall = Draw::Text(display_size - (5, 3),
+                                  format!("drawcall len: {}", drawcalls.len()).into(),
+                                  ::color::gui_text,
+                                  engine::TextOptions::align_right());
+        buffer.clear();
+        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
+        js_drawcalls.extend(&buffer);
+
+        // TODO: print out warning when we exceed the capacity to the
+        // JS console.
+    }
+
+
+
     // Send the Fade drawcall last
     if let Some(drawcall) = screen_fade {
         buffer.clear();
         drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
         js_drawcalls.extend(&buffer);
     }
+
+
+    // TODO
+
 
     unsafe {
         draw(js_drawcalls.as_ptr(), js_drawcalls.len());

@@ -28,6 +28,9 @@ pub mod remote;
 pub mod wasm;
 
 
+pub const DRAWCALL_CAPACITY: usize = 5000;
+
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Draw {
     /// Position, glyph, color

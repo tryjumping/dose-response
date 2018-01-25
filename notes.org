@@ -1,21 +1,24 @@
 * Tentative roadmap to 1.0.0
-** NPCs
-** Ending: finding a special NPC who gets generated after max Will
-** More balanced gameplay
-** Save/load game
-** Fullscreen with correct aspect-ratio handling
-** Integrated help
-*** When you press `?`
-*** Should show
-**** Controls
-**** How to play
-**** Tips
+** DONE NPCs
+CLOSED: [2018-01-25 Thu 13:05]
 ** Menu
 *** Implied by Save/Load
 *** Or is it? Maybe we could just always load if there is a saved game...
 *** But we should have a menu anyway
 *** On `Esc`
-** Don't abort on `Q` keyress
+** Don't abort on `Q` keypress
+** Save/load game
+** Ending: finding a special NPC who gets generated after max Will
+** More balanced gameplay
+** DONE Fullscreen with correct aspect-ratio handling
+CLOSED: [2018-01-25 Thu 13:05]
+** DONE Integrated help
+CLOSED: [2018-01-25 Thu 13:05]
+*** When you press `?`
+*** Should show
+**** Controls
+**** How to play
+**** Tips
 ** Nice colours
 *** good colour palette
 *** distinct colours (so they're visible while High, too)
@@ -27,7 +30,7 @@
 ** Monsters and player able to shatter walls
 ** World generation
 ** Non-square fonts for text
-* Release checklist
+* Release checklist                                         :notes:checklist:
 - [ ] Create a new release in CHANGELOG.md
 - [ ] Take a screenshot
 - [ ] Move the screenshot to Dose Response's screenshots directory
@@ -50,28 +53,6 @@
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* Readable text in wasm                                                  :ui:
-** Need to actually differentiate between the structs we send out
-** Consider proper serialization library instead of rolling my own
-** e.g. MessagePack:
-*** Has a Serde backend
-*** And JS: https://www.npmjs.com/package/msgpack-lite
-*** Question: does it support stream reading?
-**** If not, do we actually care?
-**** It would basically double the memory reqs otherwise
-** Or Capn Proto?
-** Or Protobuf?
-** TODO Ok it works, but (as expected) the text positioning and wrapping is wrong
-*** Because the fonts are now narrower than the game expects
-*** So we need to add wrapping and alignment to the drawcalls
-*** WRITE THE USAGE CODE FIRST
-* Add console printing to the wasm module
-* Print out warnings if the js drawcalls and buffer capacities are exceeded
-* Performance-tune the game
-** minimise drawcalls and data transmission
-* Split out the rendering functionality into a proper crate            :code:
-** Call it "Charmed, I'm sure."
-** Crates.io will be called "charmed"
 * Readable text in glium                                                 :ui:
 ** We should not align the characters to square grid for text
 ** It's just really hard to read
@@ -88,12 +69,17 @@
 *** Exit
 ** Add the Marla Daniels quote there??
 *** YES YES YES
+* Don't Quit the game on pressing Q once we have a menu                  :ui:
+** Or at least always save the game
+** But really, pressing a key by accident shouldn't close the game
 * Show the next/prev page title in the help page                         :ui:
 ** Instead of the generic Next page / Previous page text
 * "What is a roguelike?" help page                                       :ui:
 ** every life matters
 ** you'll be losing a lot
 ** but every death is an opportunity to learn
+* Show the current game build version in the main menu                   :ui:
+** https://doc.rust-lang.org/cargo/reference/environment-variables.html
 * Center the generated font bitmap                                       :ui:
 ** Right now certain punctuation characters such as `|` and `!` are off-center
 ** That's good for freeform text but not for the game graphics
@@ -102,6 +88,7 @@
 *** That would be the technically preferable solution but harder to implement I think
 *** It would also let us use the same font bitmap for actual text
 *** Although maybe we want to separate graphics and text fonts anyway
+* Mouse support for menus                                                :ui:
 * Investigate terminal backend
 ** Libraries:
 *** https://crates.io/crates/termion
@@ -109,17 +96,22 @@
 *** https://crates.io/crates/easycurses
 ** Should be cross-platform
 ** Ideally no C deps (though I could live with that tbh)
-* Use rect::Rectangle for Point::areas                                 :code:
 * Use rect::Rectangle for the Rectangle drawcall                       :code:
+* Use rect::Rectangle for Point::areas                                 :code:
+* Split out the rendering functionality into a proper crate            :code:
+** Call it "Charmed, I'm sure."
+** Crates.io will be called "charmed"
 * Disable cheating and all debug features in the published mode        :code:
 ** I'd like that to be a different thing from the debug/release builds though
 ** Say a new Cargo feature called `published`
 ** And that  would gate all the debug features
 *** rather than the debug/release switch
 ** And actually rename CHEATING to DEBUG
-* Don't Quit the game on pressing Q once we have a menu                  :ui:
-** Or at least always save the game
-** But really, pressing a key by accident shouldn't close the game
+* Add console printing to the wasm module
+* Print out warnings if the js drawcalls and buffer capacities are exceeded
+* Performance-tune the game
+** minimise drawcalls and data transmission
+** try to make sure we never have to grow our vectors
 * NPCs should ignore monsters and destroy them when stepping on one    :idea:
 ** So this would make NPCs more like not even aware there are any monsters here
 ** But only when they are accompanying the player
@@ -1544,3 +1536,22 @@ CLOSED: [2018-01-12 Fri 23:57]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-01-12 Fri 23:57
 :END:
+** DONE Readable text in wasm                                           :ui:
+CLOSED: [2018-01-25 Thu 13:05]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-25 Thu 13:05
+:END:
+*** Need to actually differentiate between the structs we send out
+*** Consider proper serialization library instead of rolling my own
+*** e.g. MessagePack:
+**** Has a Serde backend
+**** And JS: https://www.npmjs.com/package/msgpack-lite
+**** Question: does it support stream reading?
+***** If not, do we actually care?
+***** It would basically double the memory reqs otherwise
+*** Or Capn Proto?
+*** Or Protobuf?
+*** TODO Ok it works, but (as expected) the text positioning and wrapping is wrong
+**** Because the fonts are now narrower than the game expects
+**** So we need to add wrapping and alignment to the drawcalls
+**** WRITE THE USAGE CODE FIRST

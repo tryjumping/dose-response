@@ -15,10 +15,14 @@ void main() {
     v_tilemap_index = tilemap_index;
     v_color = color;
 
-    vec2 full_dimension_px = display_px + extra_px;
-    vec2 tile_pos = (tile_position / tile_count);
-    vec2 tile_pos_in_display_space = tile_pos * (display_px / full_dimension_px);
-    vec2 tile_pos_offseted = tile_pos_in_display_space + (0.5 * extra_px / full_dimension_px);
+    // vec2 full_dimension_px = display_px + extra_px;
+    // vec2 tile_pos = (tile_position / tile_count);
+    // vec2 tile_pos_in_display_space = tile_pos * (display_px / full_dimension_px);
+    // vec2 tile_pos_offseted = tile_pos_in_display_space + (0.5 * extra_px / full_dimension_px);
+
+// TODO: fix fullscreen letterboxing again1!
+
+    vec2 tile_pos_offseted = tile_position / display_px;
 
     vec2 pos = vec2(1.0, -1.0) * (2.0 * tile_pos_offseted - 1.0);
     gl_Position = vec4(pos, 0.0, 1.0);

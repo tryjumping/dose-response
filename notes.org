@@ -53,15 +53,6 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* Readable text in glium                                                 :ui:
-** We should not align the characters to square grid for text
-** It's just really hard to read
-** Ideally, we'd get full support for variable-width text
-** But a simpler solution
-*** Separate bitmap for the fixed width font
-*** And then improve by using that bitmap the square grid, too
-*** And leave properly kerned variable width to other games
-*** We don't want to be using different fonts anyway
 * Main menu
 ** Options
 *** Start a New Game
@@ -78,17 +69,9 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** every life matters
 ** you'll be losing a lot
 ** but every death is an opportunity to learn
+* Mouse support for menus                                                :ui:
 * Show the current game build version in the main menu                   :ui:
 ** https://doc.rust-lang.org/cargo/reference/environment-variables.html
-* Center the generated font bitmap                                       :ui:
-** Right now certain punctuation characters such as `|` and `!` are off-center
-** That's good for freeform text but not for the game graphics
-** We should update the code in build.rs to center these characters
-** Or alternatively remove the padding from the bitmap and center them in rendering
-*** That would be the technically preferable solution but harder to implement I think
-*** It would also let us use the same font bitmap for actual text
-*** Although maybe we want to separate graphics and text fonts anyway
-* Mouse support for menus                                                :ui:
 * Investigate terminal backend
 ** Libraries:
 *** https://crates.io/crates/termion
@@ -1555,3 +1538,28 @@ CLOSED: [2018-01-25 Thu 13:05]
 **** Because the fonts are now narrower than the game expects
 **** So we need to add wrapping and alignment to the drawcalls
 **** WRITE THE USAGE CODE FIRST
+** DONE Readable text in glium                                          :ui:
+CLOSED: [2018-01-25 Thu 23:41]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-25 Thu 23:41
+:END:
+*** We should not align the characters to square grid for text
+*** It's just really hard to read
+*** Ideally, we'd get full support for variable-width text
+*** But a simpler solution
+**** Separate bitmap for the fixed width font
+**** And then improve by using that bitmap the square grid, too
+**** And leave properly kerned variable width to other games
+**** We don't want to be using different fonts anyway
+** DONE Center the generated font bitmap                                :ui:
+CLOSED: [2018-01-25 Thu 23:41]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-25 Thu 23:41
+:END:
+*** Right now certain punctuation characters such as `|` and `!` are off-center
+*** That's good for freeform text but not for the game graphics
+*** We should update the code in build.rs to center these characters
+*** Or alternatively remove the padding from the bitmap and center them in rendering
+**** That would be the technically preferable solution but harder to implement I think
+**** It would also let us use the same font bitmap for actual text
+**** Although maybe we want to separate graphics and text fonts anyway

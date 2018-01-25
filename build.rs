@@ -91,10 +91,8 @@ fn main() {
 
     for g in glyphs {
         if let Some(bb) = g.pixel_bounding_box() {
-            // Center the glyphs horizontally within their tile
-            let x_offset = bb.width() / 2;
             g.draw(|x, y, v| {
-                let x = x as i32 + bb.min.x + x_offset;
+                let x = x as i32 + bb.min.x;
                 let y = y as i32 + bb.min.y;
                 // There's still a possibility that the glyph clips
                 // the boundaries of the bitmap

@@ -532,13 +532,31 @@ pub fn main_loop(
                 &Draw::Text(start_pos, ref text, color, options) => {
                     let color = gl_color(color, alpha);
                     let start_pixel_pos = pixel_from_tile(start_pos);
-                    let mut pos_x = start_pixel_pos.x as f32;
-                    let mut pos_y = start_pixel_pos.y as f32;
-                        let tile_width = tilesize as f32;
-                        let tile_height = tilesize as f32;
+                    let pos_x = start_pixel_pos.x as f32;
+                    let pos_y = start_pixel_pos.y as f32;
+                    let tile_width = tilesize as f32;
+                    let tile_height = tilesize as f32;
 
+                    let mut offset_x = 0.0;
+                    let mut offset_y = 0.0;
+
+                    // TODO: we need to split this by words or it
+                    // won't do word breaks, split at punctuation,
+                    // etc.
+
+                    // TODO: also, we're no longer calculating the
+                    // line height correctly. Needs to be set on the
+                    // actual result here.
                     for chr in text.chars() {
                         let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                        if options.wrap && options.width > 0 {
+                            if offset_x >= (options.width as f32 * tile_width) {
+                                offset_y += tile_height;
+                                offset_x = 0.0;
+                            }
+                        }
+                        let pos_x = pos_x + offset_x;
+                        let pos_y = pos_y + offset_y;
 
                             vertices.push(Vertex {
                                 tile_position: [pos_x, pos_y],
@@ -582,7 +600,7 @@ pub fn main_loop(
                         // NOTE: yeah, let's have the shader operate on pixels
 
                         let advance_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                        pos_x += advance_width as f32;
+                        offset_x += advance_width as f32;
                     }
 
 

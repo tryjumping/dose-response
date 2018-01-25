@@ -190,4 +190,5 @@ pub type UpdateFn = fn(&mut State,
 
 // NOTE:
 // fn texture_coords_from_char(chr: char) -> Option<(i32, i32)>
+#[cfg(not(feature = "web"))]
 include!(concat!(env!("OUT_DIR"), "/glyph_lookup_table.rs"));

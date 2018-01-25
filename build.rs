@@ -47,24 +47,42 @@ fn main() {
         .map(|(index, ascii_code)| (index, ascii_code as char))
         .collect::<Vec<_>>();
 
-    let mut lookup_table_fn_definition = String::new();
+    let h_metrics = lookup_table
+        .iter()
+        .map(|&(_index, chr)| {
+            font.glyph(chr).unwrap().scaled(scale).h_metrics().advance_width
+        });
 
-    lookup_table_fn_definition.push_str(
-        "#[cfg(not(feature = \"web\"))]\nfn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n",
+    let mut lookup_table_contents = String::new();
+
+    lookup_table_contents.push_str(
+        "fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n",
     );
-    lookup_table_fn_definition.push_str("match chr {\n");
+    lookup_table_contents.push_str("match chr {\n");
     for &(index, chr) in &lookup_table {
-        lookup_table_fn_definition.push_str(&format!("  {:?} => Some(({}, 0)),\n", chr, index));
+        lookup_table_contents.push_str(&format!("  {:?} => Some(({}, 0)),\n", chr, index));
     }
-    lookup_table_fn_definition.push_str("_ => None,\n}\n}\n");
+    lookup_table_contents.push_str("_ => None,\n}\n}\n\n");
+
+    lookup_table_contents.push_str(&format!("pub const VERTICAL_ASCENT: i32 = {};\n\n", v_metrics.ascent as i32));
+
+    lookup_table_contents.push_str("pub fn glyph_advance_width(chr: char) -> Option<i32> {\n");
+    lookup_table_contents.push_str("match chr {\n");
+
+    for (&(_index, chr), advance_width) in lookup_table.iter().zip(h_metrics) {
+        lookup_table_contents.push_str(&format!("    {:?} => Some({}),\n", chr, advance_width as i32));
+    }
+
+    lookup_table_contents.push_str("_ => None,\n}\n\n");
+    lookup_table_contents.push_str("}\n");
+
 
     let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs")).unwrap();
     lt_file
-        .write_all(lookup_table_fn_definition.as_bytes())
+        .write_all(lookup_table_contents.as_bytes())
         .unwrap();
 
 
-    // TODO: center the characters horizontaly
     let glyphs: Vec<PositionedGlyph> = lookup_table
         .iter()
         .map(|&(index, chr)| {

@@ -12,8 +12,10 @@ use std::collections::VecDeque;
 #[cfg(not(feature = "web"))]
 use std::fs;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, Write};
-use std::path::{Path, PathBuf};
+use std::io::{self, Write};
+#[cfg(feature = "replay")]
+use std::path::Path;
+use std::path::PathBuf;
 use std::time::Duration;
 use timer::Timer;
 use world::World;
@@ -261,6 +263,7 @@ Reason: '{}'.",
         )
     }
 
+    #[cfg(feature = "replay")]
     pub fn replay_game(
         world_size: Point,
         map_size: i32,
@@ -271,6 +274,7 @@ Reason: '{}'.",
         replay_full_speed: bool,
         exit_after: bool,
     ) -> State {
+        use std::io::{BufRead, BufReader};
         use serde_json;
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();

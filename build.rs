@@ -64,7 +64,8 @@ fn main() {
     }
     lookup_table_contents.push_str("_ => None,\n}\n}\n\n");
 
-    lookup_table_contents.push_str(&format!("pub const VERTICAL_ASCENT: i32 = {};\n\n", v_metrics.ascent as i32));
+    // NOTE: uncomment this if we need this. For now we always align lines to the tiles.
+    //lookup_table_contents.push_str(&format!("pub const VERTICAL_ASCENT: i32 = {};\n\n", v_metrics.ascent as i32));
 
     lookup_table_contents.push_str("pub fn glyph_advance_width(chr: char) -> Option<i32> {\n");
     lookup_table_contents.push_str("match chr {\n");

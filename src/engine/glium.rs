@@ -130,7 +130,50 @@ fn wrap_fit_to_grid_text(text: &str, width: i32) -> Vec<String> {
 }
 
 
-struct Metrics;
+// Calculate the width in pixels of a given text
+fn text_width_px(text: &str, tile_width_px: i32) -> i32 {
+    text.chars()
+        .map(|chr| engine::glyph_advance_width(chr).unwrap_or(tile_width_px as i32))
+        .sum()
+}
+
+
+fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
+    let mut result = vec![];
+    let wrap_width_px = width_tiles * tile_width_px;
+    let space_width = engine::glyph_advance_width(' ').unwrap_or(tile_width_px as i32);
+
+    let mut current_line = String::new();
+    let mut current_width_px = 0;
+
+    let mut words = text.split(' ');
+    if let Some(word) = words.next() {
+        current_width_px += text_width_px(word, tile_width_px);
+        current_line.push_str(word);
+    }
+
+    for word in words {
+        let word_width = text_width_px(word, tile_width_px);
+        if current_width_px + space_width + word_width <= wrap_width_px {
+            current_width_px += space_width + word_width;
+            current_line.push(' ');
+            current_line.push_str(word);
+        } else {
+            result.push(current_line);
+            current_width_px = word_width;
+            current_line = String::from(word);
+        }
+    }
+    result.push(current_line);
+
+    result
+}
+
+
+
+struct Metrics {
+    tile_width_px: i32,
+}
 
 impl TextMetrics for Metrics {
     fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
@@ -139,7 +182,7 @@ impl TextMetrics for Metrics {
                 if options.wrap && options.width > 0 {
                     // TODO: this does a needless allocation by
                     // returning Vec<String> we don't use here.
-                    let lines = wrap_fit_to_grid_text(&text, options.width);
+                    let lines = wrap_text(&text, options.width, self.tile_width_px);
                     lines.len() as i32
                 } else {
                     1
@@ -293,7 +336,7 @@ pub fn main_loop(
             &keys,
             mouse,
             &mut settings,
-            &Metrics,
+            &Metrics { tile_width_px: tilesize as i32 },
             &mut drawcalls,
         );
 
@@ -531,32 +574,35 @@ pub fn main_loop(
 
                 &Draw::Text(start_pos, ref text, color, options) => {
                     let color = gl_color(color, alpha);
-                    let start_pixel_pos = pixel_from_tile(start_pos);
-                    let pos_x = start_pixel_pos.x as f32;
-                    let pos_y = start_pixel_pos.y as f32;
                     let tile_width = tilesize as f32;
                     let tile_height = tilesize as f32;
 
-                    let mut offset_x = 0.0;
-                    let mut offset_y = 0.0;
+                    let mut render_line = |pos, line: &str| {
+                        let start_pixel_pos = pixel_from_tile(pos);
+                        let pos_x = start_pixel_pos.x as f32;
+                        let pos_y = start_pixel_pos.y as f32;
 
-                    // TODO: we need to split this by words or it
-                    // won't do word breaks, split at punctuation,
-                    // etc.
 
-                    // TODO: also, we're no longer calculating the
-                    // line height correctly. Needs to be set on the
-                    // actual result here.
-                    for chr in text.chars() {
-                        let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
-                        if options.wrap && options.width > 0 {
-                            if offset_x >= (options.width as f32 * tile_width) {
-                                offset_y += tile_height;
-                                offset_x = 0.0;
-                            }
-                        }
-                        let pos_x = pos_x + offset_x;
-                        let pos_y = pos_y + offset_y;
+                        let mut offset_x = 0.0;
+                        //let mut offset_y = 0.0;
+
+                        // TODO: we need to split this by words or it
+                        // won't do word breaks, split at punctuation,
+                        // etc.
+
+                        // TODO: also, we're no longer calculating the
+                        // line height correctly. Needs to be set on the
+                        // actual result here.
+                        for chr in line.chars() {
+                            let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                            // if options.wrap && options.width > 0 {
+                            //     if offset_x >= (options.width as f32 * tile_width) {
+                            //         offset_y += tile_height;
+                            //         offset_x = 0.0;
+                            //     }
+                            // }
+                            let pos_x = pos_x + offset_x;
+                            //let pos_y = pos_y + offset_y;
 
                             vertices.push(Vertex {
                                 tile_position: [pos_x, pos_y],
@@ -590,30 +636,18 @@ pub fn main_loop(
                                 color: color,
                             });
 
-
-                        // NOTE: SHIT! This is in pixels, but the shaders work with tiles
-
-                        // NOTE: could we maybe undo the math here somehow?
-
-                        // NOTE: nah, let's just pass the pixel values or whatever there
-
-                        // NOTE: yeah, let's have the shader operate on pixels
-
-                        let advance_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                        offset_x += advance_width as f32;
-                    }
+                            let advance_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+                            offset_x += advance_width as f32;
+                        }
+                    };
 
 
-
-
-
-                    // TODO: wrap stuff later
                     if options.wrap && options.width > 0 {
                         // TODO: handle text alignment for wrapped text
-                        let lines = wrap_fit_to_grid_text(text, options.width);
+                        let lines = wrap_text(text, options.width, tile_width as i32);
                         for (index, line) in lines.iter().enumerate() {
                             let pos = start_pos + Point::new(0, index as i32);
-                            //turn_text_into_char_drawcalls(pos, line);
+                            render_line(pos, line);
                         }
                     } else {
                         use engine::TextAlign::*;
@@ -635,7 +669,7 @@ pub fn main_loop(
                                 }
                             }
                         };
-                        //turn_text_into_char_drawcalls(pos, text);
+                        render_line(pos, text);
                     }
                 }
 

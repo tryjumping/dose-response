@@ -112,24 +112,6 @@ fn texture_coords_from_char(chr: char) -> (f32, f32) {
 }
 
 
-fn wrap_fit_to_grid_text(text: &str, width: i32) -> Vec<String> {
-    let mut result = vec![];
-    let mut current_line = String::new();
-    for word in text.split(' ') {
-        if (current_line.len() + word.len() + 1) as i32 <= width {
-            current_line.push(' ');
-            current_line.push_str(word);
-        } else {
-            result.push(current_line);
-            current_line = String::from(word);
-        }
-    }
-    result.push(current_line);
-
-    result
-}
-
-
 // Calculate the width in pixels of a given text
 fn text_width_px(text: &str, tile_width_px: i32) -> i32 {
     text.chars()
@@ -577,10 +559,9 @@ pub fn main_loop(
                     let tile_width = tilesize as f32;
                     let tile_height = tilesize as f32;
 
-                    let mut render_line = |pos, line: &str| {
-                        let start_pixel_pos = pixel_from_tile(pos);
-                        let pos_x = start_pixel_pos.x as f32;
-                        let pos_y = start_pixel_pos.y as f32;
+                    let mut render_line = |pos_px: Point, line: &str| {
+                        let pos_x = pos_px.x as f32;
+                        let pos_y = pos_px.y as f32;
 
 
                         let mut offset_x = 0.0;
@@ -646,26 +627,27 @@ pub fn main_loop(
                         // TODO: handle text alignment for wrapped text
                         let lines = wrap_text(text, options.width, tile_width as i32);
                         for (index, line) in lines.iter().enumerate() {
-                            let pos = start_pos + Point::new(0, index as i32);
+                            let pos = pixel_from_tile(start_pos + Point::new(0, index as i32));
                             render_line(pos, line);
                         }
                     } else {
                         use engine::TextAlign::*;
                         let pos = match options.align {
                             Left => {
-                                start_pos
+                                pixel_from_tile(start_pos)
                             }
                             Right => {
-                                let text_width = text.chars().count() as i32;
-                                start_pos - Point::new(text_width, 0)
+                                pixel_from_tile(start_pos + (1, 0)) - Point::new(
+                                    text_width_px(text, tile_width as i32), 0)
                             }
                             Center => {
-                                let text_width = text.chars().count() as i32;
-                                let max_width = options.width;
+                                let tile_width = tile_width as i32;
+                                let text_width = text_width_px(text, tile_width);
+                                let max_width = options.width * (tile_width);
                                 if max_width < 1 || (text_width > max_width) {
                                     start_pos
                                 } else {
-                                    start_pos + Point::new((max_width - text_width) / 2, 0)
+                                    pixel_from_tile(start_pos) + Point::new((max_width - text_width) / 2, 0)
                                 }
                             }
                         };

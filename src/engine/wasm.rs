@@ -159,15 +159,27 @@ impl TextMetrics for Metrics {
 }
 
 
+/// Struct holding most of our games' memory. Everything we could
+/// preallocate is here.
+pub struct Wasm {
+    state: *mut State,
+    buffer: *mut Vec<u8>,
+    drawcalls: *mut Vec<Draw>,
+    js_drawcalls: *mut Vec<u8>,
+    background_map: *mut Vec<Color>,
+}
+
+
 #[allow(unsafe_code)]
 #[no_mangle]
 pub extern "C" fn key_pressed(
-    state_ptr: *mut State,
+    wasm_ptr: *mut Wasm,
     external_code: u32,
     ctrl: bool, alt: bool, shift: bool
 )
 {
-    let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
+    let wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
+    let mut state: Box<State> = unsafe { Box::from_raw(wasm.state) };
 
     let code = key_code_from_backend(external_code);
     if let Some(code) = code {
@@ -175,32 +187,59 @@ pub extern "C" fn key_pressed(
     }
 
     mem::forget(state);
+    mem::forget(wasm);
 }
 
 
 #[no_mangle]
-pub extern "C" fn initialise() -> *mut State {
+pub extern "C" fn initialise() -> *mut Wasm {
     println!("Initialising {} for WebAssembly", ::GAME_TITLE);
-    let state = {
-        Box::new(State::new_game(
-            ::WORLD_SIZE,
-            ::DISPLAYED_MAP_SIZE,
-            ::PANEL_WIDTH,
-            ::DISPLAY_SIZE,
-            false,  // exit-after
-            None,  // replay file
-            false,  // invincible
-        ))
+    let state = Box::new(State::new_game(
+        ::WORLD_SIZE,
+        ::DISPLAYED_MAP_SIZE,
+        ::PANEL_WIDTH,
+        ::DISPLAY_SIZE,
+        false,  // exit-after
+        None,  // replay file
+        false,  // invincible
+    ));
+    let buffer = Box::new(Vec::with_capacity(BUFFER_CAPACITY));
+    let drawcalls = Box::new(Vec::with_capacity(engine::DRAWCALL_CAPACITY));
+    let js_drawcalls = Box::new(Vec::with_capacity(JS_DRAWCALL_CAPACITY));
+    let background_map = Box::new(vec![Color{r: 0, g: 0, b: 0}; (::DISPLAY_SIZE.x * ::DISPLAY_SIZE.y) as usize]);
+    let wasm = {
+        Box::new(Wasm {
+            state: Box::into_raw(state),
+            buffer: Box::into_raw(buffer),
+            drawcalls: Box::into_raw(drawcalls),
+            js_drawcalls: Box::into_raw(js_drawcalls),
+            background_map: Box::into_raw(background_map),
+        })
     };
 
-    Box::into_raw(state)
+    Box::into_raw(wasm)
+}
+
+
+fn serialise_drawcall(drawcall: &Draw, buffer: &mut Vec<u8>, js_drawcalls: &mut Vec<u8>) {
+    buffer.clear();
+    drawcall.serialize(&mut Serializer::new(&mut *buffer)).unwrap();
+    js_drawcalls.extend(buffer.iter());
 }
 
 
 #[allow(unsafe_code)]
 #[no_mangle]
-pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
-    let mut state: Box<State> = unsafe { Box::from_raw(state_ptr) };
+pub extern "C" fn update(wasm_ptr: *mut Wasm, dt_ms: u32) {
+    let wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
+    let mut state: Box<State> = unsafe { Box::from_raw(wasm.state) };
+    let mut buffer: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.buffer) };
+    let mut drawcalls: Box<Vec<Draw>> = unsafe { Box::from_raw(wasm.drawcalls) };
+    let mut js_drawcalls: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.js_drawcalls) };
+    let mut background_map: Box<Vec<Color>> = unsafe { Box::from_raw(wasm.background_map) };
+
+    drawcalls.clear();
+    js_drawcalls.clear();
 
     let dt = Duration::from_millis(dt_ms as u64);
     let display_size = state.display_size;
@@ -208,8 +247,6 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
     let keys: Vec<Key> = vec![];
     let mouse: Mouse = Default::default();
     let mut settings = Settings{ fullscreen: false };
-    let mut drawcalls: Vec<Draw> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
-    let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize];
 
     let result = game::update(
         &mut state,
@@ -233,22 +270,16 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
 
     engine::populate_background_map(&mut background_map, display_size, &drawcalls);
 
-    let mut js_drawcalls = Vec::with_capacity(JS_DRAWCALL_CAPACITY);
-
-    let mut buffer: Vec<u8> = vec![42; BUFFER_CAPACITY];
-
     // Send the background drawcalls first
     for (index, background_color) in background_map.iter().enumerate() {
         let pos = Point::new((index as i32) % display_size.x, (index as i32) / display_size.x);
         let drawcall = Draw::Background(pos, *background_color);
-        buffer.clear();
-        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
-        js_drawcalls.extend(&buffer);
+        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
     }
 
     let mut screen_fade = None;
 
-    for drawcall in &drawcalls {
+    for drawcall in drawcalls.iter() {
         match drawcall {
             &Draw::Background(..) => {}
             &Draw::Fade(color, fade) => {
@@ -258,22 +289,16 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
             &Draw::Char(pos, _glyph, _color) => {
                 if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
                     // Clear the background
-                    buffer.clear();
                     let bg_dc = Draw::Background(pos, background_map[(pos.y * display_size.x + pos.x) as usize]);
-                    bg_dc.serialize(&mut Serializer::new(&mut buffer)).unwrap();
-                    js_drawcalls.extend(&buffer);
+                    serialise_drawcall(&bg_dc, &mut buffer, &mut js_drawcalls);
 
                     // Send the glyph
-                    buffer.clear();
-                    drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
-                    js_drawcalls.extend(&buffer);
+                    serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
                 }
             }
 
             _ => {
-                buffer.clear();
-                drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
-                js_drawcalls.extend(&buffer);
+                serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
             }
         }
     }
@@ -285,27 +310,21 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
                                   format!("Buffer cap: {}", buffer.capacity()).into(),
                                   ::color::gui_text,
                                   engine::TextOptions::align_right());
-        buffer.clear();
-        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
-        js_drawcalls.extend(&buffer);
+        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
 
         // NOTE: render js drawcall size
         let drawcall = Draw::Text(display_size - (5, 4),
                                   format!("js_drawcall len: {}", js_drawcalls.len()).into(),
                                   ::color::gui_text,
                                   engine::TextOptions::align_right());
-        buffer.clear();
-        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
-        js_drawcalls.extend(&buffer);
+        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
 
         // NOTE: render js drawcall size
         let drawcall = Draw::Text(display_size - (5, 3),
                                   format!("drawcall len: {}", drawcalls.len()).into(),
                                   ::color::gui_text,
                                   engine::TextOptions::align_right());
-        buffer.clear();
-        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
-        js_drawcalls.extend(&buffer);
+        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
 
         // TODO: print out warning when we exceed the capacity to the
         // JS console.
@@ -315,9 +334,7 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
 
     // Send the Fade drawcall last
     if let Some(drawcall) = screen_fade {
-        buffer.clear();
-        drawcall.serialize(&mut Serializer::new(&mut buffer)).unwrap();
-        js_drawcalls.extend(&buffer);
+        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
     }
 
 
@@ -328,5 +345,10 @@ pub extern "C" fn update(state_ptr: *mut State, dt_ms: u32) {
         draw(js_drawcalls.as_ptr(), js_drawcalls.len());
     }
 
+    mem::forget(background_map);
+    mem::forget(js_drawcalls);
+    mem::forget(drawcalls);
+    mem::forget(buffer);
     mem::forget(state);
+    mem::forget(wasm);
 }

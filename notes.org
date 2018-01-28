@@ -10,8 +10,8 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** Save/load game
 ** Ending: finding a special NPC who gets generated after max Will
 ** More balanced gameplay
-** DONE Fullscreen with correct aspect-ratio handling
-CLOSED: [2018-01-25 Thu 13:05]
+** Fullscreen with correct aspect-ratio handling
+*** This was done but we broke it when adding font handling
 ** DONE Integrated help
 CLOSED: [2018-01-25 Thu 13:05]
 *** When you press `?`
@@ -24,7 +24,6 @@ CLOSED: [2018-01-25 Thu 13:05]
 *** distinct colours (so they're visible while High, too)
 ** Reasonable AI
 *** monsters further away should not freak out when another monster is in the way
-
 ** Icon for the executable
 * Nice-to-have post 1.0.0
 ** Monsters and player able to shatter walls
@@ -53,6 +52,7 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
+* Fix fullscreen
 * Main menu
 ** Options
 *** Start a New Game
@@ -1539,9 +1539,9 @@ CLOSED: [2018-01-25 Thu 13:05]
 **** So we need to add wrapping and alignment to the drawcalls
 **** WRITE THE USAGE CODE FIRST
 ** DONE Readable text in glium                                          :ui:
-CLOSED: [2018-01-25 Thu 23:41]
+CLOSED: [2018-01-28 Sun 11:25]
 :PROPERTIES:
-:ARCHIVE_TIME: 2018-01-25 Thu 23:41
+:ARCHIVE_TIME: 2018-01-28 Sun 11:25
 :END:
 *** We should not align the characters to square grid for text
 *** It's just really hard to read
@@ -1551,6 +1551,7 @@ CLOSED: [2018-01-25 Thu 23:41]
 **** And then improve by using that bitmap the square grid, too
 **** And leave properly kerned variable width to other games
 **** We don't want to be using different fonts anyway
+<<<<<<< HEAD
 ** DONE Center the generated font bitmap                                :ui:
 CLOSED: [2018-01-25 Thu 23:41]
 :PROPERTIES:

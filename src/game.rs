@@ -72,30 +72,13 @@ pub fn update(
         return RunningState::Stopped;
     }
 
-    // Restart the game on F5
-    if state.keys.matches_code(KeyCode::F5) {
-        return RunningState::NewGame(create_new_game_state(state));
-    }
-
     // Full screen on Alt-Enter
     if state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
         settings.fullscreen = !settings.fullscreen;
     }
 
-    // Close the topmost window on Esc
-    if state.keys.matches_code(KeyCode::Esc) {
-        if state.window_stack.len() > 1 {
-            state.window_stack.pop();
-        } else {
-            // NOTE: We've pressed Esc on the lowest-level window (the
-            // game) -- show the main menu instead of popping the stack.
 
-            // state.window_stack.push(Window::Menu);
-        }
-    }
-
-
-    let current_window = *state.window_stack.last().unwrap_or(&Window::MainMenu);
+    let current_window = state.window_stack.top();
     let game_update_result = match current_window {
         Window::MainMenu => {
             process_main_menu(state)
@@ -158,6 +141,16 @@ fn process_game(
     state: &mut State,
     dt: Duration,
 ) -> RunningState {
+
+    if state.keys.matches_code(KeyCode::Esc) {
+        state.window_stack.push(Window::MainMenu);
+        return RunningState::Running;
+    }
+
+    // Restart the game on F5
+    if state.keys.matches_code(KeyCode::F5) {
+        return RunningState::NewGame(create_new_game_state(state));
+    }
 
     // Show the help screen on `?`
     if state.keys.matches_code(KeyCode::QuestionMark) {
@@ -389,8 +382,15 @@ fn process_game(
 
 
 fn process_main_menu(state: &mut State) -> RunningState {
+    if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::R) {
+        state.window_stack.pop();
+        return RunningState::Running;
+    }
+
     if state.keys.matches_code(KeyCode::N) {
-        state.window_stack.push(Window::Game);
+        // TODO: when this is the first run, this should resume the game that's already
+        // loaded in the background.
+        return RunningState::NewGame(create_new_game_state(state));
     } else if state.keys.matches_code(KeyCode::QuestionMark) {
         state.window_stack.push(Window::Help);
     } else if state.keys.matches_code(KeyCode::H) {
@@ -403,6 +403,12 @@ fn process_main_menu(state: &mut State) -> RunningState {
 
 fn process_help_window(state: &mut State) -> RunningState {
     use state::HelpWindow::*;
+
+    if state.keys.matches_code(KeyCode::Esc) {
+        state.window_stack.pop();
+        return RunningState::Running;
+    }
+
     if state.keys.matches_code(KeyCode::Right) {
         let new_help_window = match state.current_help_window {
             NumpadControls => ArrowControls,
@@ -428,14 +434,19 @@ fn process_help_window(state: &mut State) -> RunningState {
 
 
 fn process_endgame_window(state: &mut State) -> RunningState {
-    // Start a new game by pressing `N`
-    if state.game_ended && state.keys.matches_code(KeyCode::N) {
-        return RunningState::NewGame(create_new_game_state(state));
+    if state.keys.matches_code(KeyCode::Esc) {
+        state.window_stack.push(Window::MainMenu);
+        return RunningState::Running;
     }
 
     // Show the help screen on `?`
     if state.keys.matches_code(KeyCode::QuestionMark) {
         state.window_stack.push(Window::Help);
+        return RunningState::Running;
+    }
+
+    if state.keys.get().is_some() {
+        state.window_stack.pop();
         return RunningState::Running;
     }
 

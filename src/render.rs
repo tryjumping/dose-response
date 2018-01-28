@@ -20,7 +20,7 @@ use world::Chunk;
 pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     // TODO: This might be inefficient for windows fully covering
     // other windows.
-    for &window in &state.window_stack {
+    for &window in state.window_stack.windows() {
         match window {
             Window::MainMenu => {
                 render_main_menu(state, metrics, drawcalls);
@@ -297,7 +297,7 @@ enum Layout<'a> {
 }
 
 
-fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+fn render_main_menu(_state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     use self::Layout::*;
 
     let window_rect = Rectangle::from_point_and_size(Point::from_i32(10), Point::from_i32(20));
@@ -313,10 +313,10 @@ fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Dr
     let lines = vec![
         Centered("Main Menu"),
         EmptySpace(2),
-        Centered("Start a New Game"),
-        Centered("Resume Current Game"),
-        Centered("Help"),
-        Centered("Quit"),
+        Centered("[N]ew Game"),
+        Centered("[R]esume Current Game"),
+        Centered("[H]elp"),
+        Centered("[Q]uit"),
     ];
 
     // TODO: add game title, author and version
@@ -578,7 +578,7 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
 
     drawcalls.push(Draw::Text(
         rect.bottom_left(),
-        "[N] New Game    [?] Help    [Q] Quit".into(),
+        "[?] Help       [Esc] Main Menu".into(),
         color::gui_text,
         TextOptions::align_center(rect.width()),
     ));

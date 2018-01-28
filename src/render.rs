@@ -85,7 +85,8 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     // borrowed the state here as immutable, we wouln't need it.
     let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
-
+    // NOTE: Clear the screen
+    drawcalls.push(Draw::Rectangle(Point::from_i32(0), state.display_size, color::background));
 
     // NOTE: render the cells on the map. That means world geometry and items.
     for (world_pos, cell) in
@@ -297,11 +298,30 @@ enum Layout<'a> {
 
 
 fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+    use self::Layout::*;
+
     let window_rect = Rectangle::from_point_and_size(Point::from_i32(10), Point::from_i32(20));
-    //let text = ;
+
+    let rect = Rectangle::from_point_and_size(
+        window_rect.top_left() + (2, 1), window_rect.dimensions() - (4, 2));
+
+    // TODO: center the rect, make it wide enough, set a good colour
 
     drawcalls.push(Draw::Rectangle(window_rect.top_left(), window_rect.dimensions(),
                                    color::Color{r: 255, g: 0, b: 255}));
+
+    let lines = vec![
+        Centered("Main Menu"),
+        EmptySpace(2),
+        Centered("Start a New Game"),
+        Centered("Resume Current Game"),
+        Centered("Help"),
+        Centered("Quit"),
+    ];
+
+    // TODO: add game title, author and version
+
+    render_laid_out_text(&lines, rect, metrics, drawcalls);
 }
 
 

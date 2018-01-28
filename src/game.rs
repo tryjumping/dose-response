@@ -63,7 +63,7 @@ pub fn update(
 
 
     // Quit the game when Q is pressed or on replay and requested
-    if state.keys.matches_code(KeyCode::Q) || (!state.player.alive() && state.exit_after) ||
+    if (!state.player.alive() && state.exit_after) ||
         (state.replay && state.exit_after &&
              (state.commands.is_empty() ||
                   (!state.player.alive() && state.screen_fading.is_none())))
@@ -389,6 +389,15 @@ fn process_game(
 
 
 fn process_main_menu(state: &mut State) -> RunningState {
+    if state.keys.matches_code(KeyCode::N) {
+        state.window_stack.push(Window::Game);
+    } else if state.keys.matches_code(KeyCode::QuestionMark) {
+        state.window_stack.push(Window::Help);
+    } else if state.keys.matches_code(KeyCode::H) {
+        state.window_stack.push(Window::Help);
+    } else if state.keys.matches_code(KeyCode::Q) {
+        return RunningState::Stopped;
+    }
     RunningState::Running
 }
 

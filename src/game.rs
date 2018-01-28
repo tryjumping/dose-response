@@ -95,8 +95,11 @@ pub fn update(
     }
 
 
-    let current_window = *state.window_stack.last().unwrap_or(&Window::Game);
+    let current_window = *state.window_stack.last().unwrap_or(&Window::MainMenu);
     let game_update_result = match current_window {
+        Window::MainMenu => {
+            process_main_menu(state)
+        }
         Window::Game => {
             process_game(state, dt)
         }
@@ -384,6 +387,10 @@ fn process_game(
     RunningState::Running
 }
 
+
+fn process_main_menu(state: &mut State) -> RunningState {
+    RunningState::Running
+}
 
 fn process_help_window(state: &mut State) -> RunningState {
     use state::HelpWindow::*;

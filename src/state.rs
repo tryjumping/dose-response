@@ -203,7 +203,7 @@ impl State {
             paused: false,
             screen_fading: None,
             game_ended: false,
-            window_stack: vec![Window::Game],
+            window_stack: vec![Window::MainMenu],
             show_keboard_movement_hints: true,
             current_help_window: HelpWindow::NumpadControls,
             show_endscreen_and_uncover_map_during_fadein: false,
@@ -376,6 +376,7 @@ Reason: '{}'.",
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Window {
+    MainMenu,
     Game,
     Help,
     Endgame,

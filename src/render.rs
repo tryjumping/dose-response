@@ -22,6 +22,9 @@ pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, draw
     // other windows.
     for &window in &state.window_stack {
         match window {
+            Window::MainMenu => {
+                render_main_menu(state, metrics, drawcalls);
+            }
             Window::Game => {
                 render_game(state, dt, fps, drawcalls);
             }
@@ -290,6 +293,15 @@ enum Layout<'a> {
     EmptySpace(i32),
     Paragraph(&'a str),
     SquareTiles(&'a str),
+}
+
+
+fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+    let window_rect = Rectangle::from_point_and_size(Point::from_i32(10), Point::from_i32(20));
+    //let text = ;
+
+    drawcalls.push(Draw::Rectangle(window_rect.top_left(), window_rect.dimensions(),
+                                   color::Color{r: 255, g: 0, b: 255}));
 }
 
 

@@ -311,15 +311,17 @@ fn render_main_menu(_state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<D
                                    color::Color{r: 255, g: 0, b: 255}));
 
     let lines = vec![
-        Centered("Main Menu"),
+        Centered("Dose Response"),
+        Centered("By Tomas Sedovic"),
         EmptySpace(2),
         Centered("[N]ew Game"),
         Centered("[R]esume Current Game"),
         Centered("[H]elp"),
         Centered("[Q]uit"),
+        EmptySpace(2),
+        Paragraph("\"You cannot lose if you do not play.\""),
+        Paragraph("-- Marla Daniels"),
     ];
-
-    // TODO: add game title, author and version
 
     render_laid_out_text(&lines, rect, metrics, drawcalls);
 }

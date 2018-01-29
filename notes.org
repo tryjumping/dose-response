@@ -6,7 +6,8 @@ CLOSED: [2018-01-25 Thu 13:05]
 *** Or is it? Maybe we could just always load if there is a saved game...
 *** But we should have a menu anyway
 *** On `Esc`
-** Don't abort on `Q` keypress
+** DONE Don't abort on `Q` keypress
+CLOSED: [2018-01-29 Mon 20:27]
 ** Save/load game
 ** Ending: finding a special NPC who gets generated after max Will
 ** More balanced gameplay
@@ -53,16 +54,6 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
 * Fix fullscreen
-* Main menu
-** Options
-*** Start a New Game
-*** Help
-*** Exit
-** Add the Marla Daniels quote there??
-*** YES YES YES
-* Don't Quit the game on pressing Q once we have a menu                  :ui:
-** Or at least always save the game
-** But really, pressing a key by accident shouldn't close the game
 * Show the next/prev page title in the help page                         :ui:
 ** Instead of the generic Next page / Previous page text
 * "What is a roguelike?" help page                                       :ui:
@@ -1564,3 +1555,21 @@ CLOSED: [2018-01-25 Thu 23:41]
 **** That would be the technically preferable solution but harder to implement I think
 **** It would also let us use the same font bitmap for actual text
 **** Although maybe we want to separate graphics and text fonts anyway
+** DONE Main menu
+CLOSED: [2018-01-29 Mon 20:28]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-29 Mon 20:28
+:END:
+*** Options
+**** Start a New Game
+**** Help
+**** Exit
+*** Add the Marla Daniels quote there??
+**** YES YES YES
+** DONE Don't Quit the game on pressing Q once we have a menu           :ui:
+CLOSED: [2018-01-29 Mon 20:28]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-01-29 Mon 20:28
+:END:
+*** Or at least always save the game
+*** But really, pressing a key by accident shouldn't close the game

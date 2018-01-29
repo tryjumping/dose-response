@@ -297,20 +297,29 @@ enum Layout<'a> {
 }
 
 
-fn render_main_menu(_state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     use self::Layout::*;
 
-    let window_rect = Rectangle::from_point_and_size(Point::from_i32(10), Point::from_i32(20));
+    let window_pos = Point::new(0, 0);
+    let window_size = state.display_size;
 
-    let rect = Rectangle::from_point_and_size(
-        window_rect.top_left() + (2, 1), window_rect.dimensions() - (4, 2));
+    let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
 
-    // TODO: center the rect, make it wide enough, set a good colour
+    let inner_window_rect = Rectangle::from_point_and_size(
+        window_rect.top_left() + (1, 1), window_rect.dimensions() - (2, 2));
 
     drawcalls.push(Draw::Rectangle(window_rect.top_left(), window_rect.dimensions(),
-                                   color::Color{r: 255, g: 0, b: 255}));
+                                   color::window_edge));
+
+    drawcalls.push(Draw::Rectangle(inner_window_rect.top_left(), inner_window_rect.dimensions(),
+                                   color::background));
+
+    let rect_size = Point::new(20, 15);
+    let rect_pos = Point::new((inner_window_rect.width() - rect_size.x) / 2, 0);
+    let rect = Rectangle::from_point_and_size(rect_pos, rect_size);
 
     let mut lines = vec![
+        EmptySpace(2),
         Centered("Dose Response"),
         Centered("By Tomas Sedovic"),
         EmptySpace(2),
@@ -327,7 +336,7 @@ fn render_main_menu(_state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<D
         lines.push(Centered(option));
     }
 
-    lines.push(EmptySpace(2));
+    lines.push(EmptySpace(3));
     lines.push(Paragraph("\"You cannot lose if you do not play.\""));
     lines.push(Paragraph("-- Marla Daniels"));
 
@@ -348,7 +357,7 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
     drawcalls.push(Draw::Rectangle(
         window_rect.top_left(),
         window_rect.dimensions(),
-        color::dose_background,
+        color::window_edge,
     ));
 
     drawcalls.push(Draw::Rectangle(

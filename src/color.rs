@@ -10,6 +10,7 @@ pub struct Color {
 
 pub static background: Color = Color { r: 0, g: 0, b: 0 };
 pub static dim_background: Color = Color { r: 30, g: 30, b: 30 };
+pub static window_edge: Color = Color { r: 0, g: 64, b: 64 };
 pub static death_animation: Color = Color { r: 255, g: 0, b: 0 };
 pub static overdose_animation: Color = Color { r: 255, g: 255, b: 255 };
 pub static exhaustion_animation: Color = Color { r: 0, g: 0, b: 0 };

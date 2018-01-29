@@ -35,7 +35,7 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Take a screenshot
 - [ ] Move the screenshot to Dose Response's screenshots directory
 - [ ] Commit the screenshot in the repo
-- [ ] Bump the version
+- [ ] Bump the version in Cargo.toml
 - [ ] Run: `cargo check; cargo build; cargo build --release; make wasm`
 - [ ] Copy the *.js *.css *.wasm files to the project website
 - [ ] Copy the screenshot to the project website

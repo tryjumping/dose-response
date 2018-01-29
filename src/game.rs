@@ -147,11 +147,6 @@ fn process_game(
         return RunningState::Running;
     }
 
-    // Restart the game on F5
-    if state.keys.matches_code(KeyCode::F5) {
-        return RunningState::NewGame(create_new_game_state(state));
-    }
-
     // Show the help screen on `?`
     if state.keys.matches_code(KeyCode::QuestionMark) {
         state.window_stack.push(Window::Help);

@@ -310,18 +310,26 @@ fn render_main_menu(_state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<D
     drawcalls.push(Draw::Rectangle(window_rect.top_left(), window_rect.dimensions(),
                                    color::Color{r: 255, g: 0, b: 255}));
 
-    let lines = vec![
+    let mut lines = vec![
         Centered("Dose Response"),
         Centered("By Tomas Sedovic"),
         EmptySpace(2),
-        Centered("[N]ew Game"),
-        Centered("[R]esume Current Game"),
-        Centered("[H]elp"),
-        Centered("[Q]uit"),
-        EmptySpace(2),
-        Paragraph("\"You cannot lose if you do not play.\""),
-        Paragraph("-- Marla Daniels"),
     ];
+
+    let options = vec![
+        "[N]ew Game",
+        "[R]esume Current Game",
+        "[H]elp",
+        "[Q]uit",
+    ];
+
+    for option in options {
+        lines.push(Centered(option));
+    }
+
+    lines.push(EmptySpace(2));
+    lines.push(Paragraph("\"You cannot lose if you do not play.\""));
+    lines.push(Paragraph("-- Marla Daniels"));
 
     render_laid_out_text(&lines, rect, metrics, drawcalls);
 }

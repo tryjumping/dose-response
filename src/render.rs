@@ -894,7 +894,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = ["Ctrl+Left", "Num 1", "or: N"];
+    let lines = ["Ctrl+Left", "Num 1", "or: B"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: padding,
@@ -902,7 +902,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     };
     draw_rect(&lines, start, width, height, drawcalls);
 
-    let lines = ["Ctrl+Right", "Num 3", "or: M"];
+    let lines = ["Ctrl+Right", "Num 3", "or: N"];
     let (width, height) = rect_dim(&lines);
     let start = Point {
         x: map_size.x - width - padding,

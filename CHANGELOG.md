@@ -4,6 +4,9 @@ Dose Response is roguelike game (currently in development) where you
 play an addict. Avoid the dangers threatening your mind and body while
 desperately looking for the next fix.
 
+## [Unreleased]
+
+
 ## [0.5.2] - 2018-01-29
 - Added Help screen (press `?` to open it)
 - Added Main menu (press `Esc` to open it)

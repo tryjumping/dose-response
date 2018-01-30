@@ -42,11 +42,11 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Test the wasm version
 - [ ] Run: `make release`
 - [ ] Verify the binaries get created in the github release page
-- [ ] Update the project page
+- [ ] Update the project page [0/3]
   - [ ] Update screenshot
   - [ ] Update the "what's new" section
   - [ ] Update the links to the latest builds
-- [ ] Update the github release page
+- [ ] Update the github release page [0/3]
   - [ ] Update screenshot
   - [ ] Update the "what's new" section
   - [ ] Update the links to the latest builds
@@ -63,6 +63,7 @@ CLOSED: [2018-01-25 Thu 13:05]
 * Mouse support for menus                                                :ui:
 * Show the current game build version in the main menu                   :ui:
 ** https://doc.rust-lang.org/cargo/reference/environment-variables.html
+* Replace keyboard hints with a "press ? to help" msg?                   :ui:
 * Investigate terminal backend
 ** Libraries:
 *** https://crates.io/crates/termion

@@ -1,7 +1,8 @@
 * Tentative roadmap to 1.0.0
 ** DONE NPCs
 CLOSED: [2018-01-25 Thu 13:05]
-** Menu
+** DONE Menu
+CLOSED: [2018-01-30 Tue 09:51]
 *** Implied by Save/Load
 *** Or is it? Maybe we could just always load if there is a saved game...
 *** But we should have a menu anyway

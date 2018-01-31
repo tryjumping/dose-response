@@ -55,6 +55,9 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
 * Fix fullscreen
+* Saving game
+* Loading game
+* Store save in the right location for the system
 * Show the next/prev page title in the help page                         :ui:
 ** Instead of the generic Next page / Previous page text
 * "What is a roguelike?" help page                                       :ui:

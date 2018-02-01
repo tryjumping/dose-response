@@ -5,7 +5,7 @@ use monster;
 use player::Player;
 use point::Point;
 use util;
-use rand::{IsaacRng, SeedableRng};
+use rand::IsaacRng;
 
 use stats::Stats;
 use std::collections::VecDeque;
@@ -165,12 +165,11 @@ impl State {
         replay_full_speed: bool,
         exit_after: bool,
     ) -> State {
-        let seed_arr: &[_] = &[seed];
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
-        let mut rng: IsaacRng = SeedableRng::from_seed(seed_arr);
+        let mut rng = IsaacRng::new_from_u64(seed as u64);
         let world = World::new(&mut rng, seed, world_size.x, 32, player_position);
 
         State {

@@ -7,7 +7,7 @@ use monster::Monster;
 use player;
 use point::{CircularArea, Point, SquareArea};
 
-use rand::{IsaacRng, Rng, SeedableRng};
+use rand::{IsaacRng, Rng};
 use ranged_int::InclusiveRange;
 use rect::Rectangle;
 use std::collections::HashMap;
@@ -22,18 +22,19 @@ pub struct Chunk {
 
 impl Chunk {
     fn new(world_seed: u32, position: ChunkPosition, size: i32, player_position: Point) -> Self {
+        use std::num::Wrapping;
         let pos = position.position;
         // NOTE: `x` and `y` overflow on negative values here, but all
         // we care about is having a distinct value for each position
         // so our seeds don't repeat. So this is fine here.
-        let chunk_seed: &[_] = &[world_seed, pos.x as u32, pos.y as u32];
+        let seed = Wrapping(world_seed as u64) * Wrapping(pos.x as u64) * Wrapping(pos.y as u64);
 
         // TODO: Monsters in different chunks will now have identical
         // IDs. We need to investigate whether that's a problem.
 
         let mut chunk = Chunk {
             position: pos,
-            rng: SeedableRng::from_seed(chunk_seed),
+            rng: IsaacRng::new_from_u64(seed.0),
             level: Level::new(size, size),
             monsters: vec![],
         };

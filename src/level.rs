@@ -9,7 +9,7 @@ use std::time::Duration;
 
 
 /// Position within a level. Ensured to be always within bounds.
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LevelPosition {
     pos: point::Point,
 }
@@ -21,7 +21,7 @@ impl Into<point::Point> for LevelPosition {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Cell {
     pub tile: Tile,
     pub items: Vec<Item>,
@@ -29,13 +29,13 @@ pub struct Cell {
 }
 
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum TileKind {
     Empty,
     Tree,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Tile {
     pub kind: TileKind,
     pub fg_color: Color,
@@ -67,6 +67,7 @@ impl Render for Tile {
 }
 
 
+#[derive(Serialize, Deserialize)]
 pub struct Level {
     dimensions: point::Point,
     pub monsters: HashMap<LevelPosition, usize>,

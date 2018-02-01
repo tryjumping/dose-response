@@ -8,7 +8,7 @@ use player::Modifier;
 use std::time::Duration;
 
 
-#[derive(Clone, Copy, PartialEq, Debug, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Debug, Eq, Hash, Serialize, Deserialize)]
 pub enum Kind {
     Food,
     Dose,
@@ -45,7 +45,7 @@ impl Iterator for KindIterator {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Item {
     pub kind: Kind,
     pub modifier: Modifier,

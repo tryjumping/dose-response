@@ -25,7 +25,7 @@ use world::World;
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the
 // player won? Lost?
-#[derive(Copy, PartialEq, Clone, Debug)]
+#[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub enum Side {
     Player,
     Victory,
@@ -84,6 +84,7 @@ pub struct Verification {
     pub monsters: Vec<(Point, Point, monster::Kind)>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct State {
     pub player: Player,
     pub explosion_animation: Option<Box<AreaOfEffect>>,
@@ -375,7 +376,7 @@ Reason: '{}'.",
 }
 
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Window {
     MainMenu,
     Game,
@@ -384,7 +385,7 @@ pub enum Window {
 }
 
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum HelpWindow {
     NumpadControls,
     ArrowControls,

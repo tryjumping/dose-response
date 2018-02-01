@@ -82,7 +82,7 @@ pub enum KeyCode {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Keys {
     keys: VecDeque<Key>,
 }

@@ -5,7 +5,7 @@ use std::time::Instant;
 use util;
 
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Timer {
     max: Duration,
     current: Duration,

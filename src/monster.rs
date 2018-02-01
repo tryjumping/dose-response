@@ -14,7 +14,7 @@ use std::time::Duration;
 use world::World;
 
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Monster {
     pub kind: Kind,
     pub position: Point,

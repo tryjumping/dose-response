@@ -1,4 +1,5 @@
 bitflags! {
+    #[derive(Serialize, Deserialize)]
     /// Flag to indicate features that block pathfinding/walking.
     pub struct Blocker: u32 {
         const WALL    = 0b00000001;

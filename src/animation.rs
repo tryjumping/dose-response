@@ -18,7 +18,7 @@ bitflags! {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SquareExplosion {
     pub center: Point,
     pub max_radius: i32,
@@ -75,7 +75,7 @@ impl AreaOfEffect for SquareExplosion {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CardinalExplosion {
     center: Point,
     max_radius: i32,
@@ -325,7 +325,7 @@ impl Iterator for XIterator {
 }
 
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct ScreenFade {
     pub color: Color,
     pub fade_out_time: Duration,
@@ -335,7 +335,7 @@ pub struct ScreenFade {
     pub phase: ScreenFadePhase,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ScreenFadePhase {
     FadeOut,
     Wait,

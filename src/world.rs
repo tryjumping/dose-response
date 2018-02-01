@@ -12,6 +12,7 @@ use ranged_int::InclusiveRange;
 use rect::Rectangle;
 use std::collections::HashMap;
 
+#[derive(Serialize, Deserialize)]
 pub struct Chunk {
     position: Point,
     pub rng: IsaacRng,
@@ -112,12 +113,13 @@ impl<'a> Iterator for ChunkCells<'a> {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 struct ChunkPosition {
     position: Point,
 }
 
 
+#[derive(Serialize, Deserialize)]
 pub struct World {
     seed: u32,
     max_half_size: i32,

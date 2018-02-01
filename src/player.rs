@@ -9,7 +9,7 @@ use std::fmt::{Display, Error, Formatter};
 use std::time::Duration;
 
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Modifier {
     Death,
     // TODO: probably rename `state_of_mind` to something like hunger
@@ -26,7 +26,7 @@ pub enum Modifier {
     Stun(i32),
 }
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Mind {
     Withdrawal(Ranged),
     Sober(Ranged),
@@ -58,7 +58,7 @@ impl Display for Mind {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Bonus {
     None,
     SeeMonstersAndItems,
@@ -73,7 +73,7 @@ pub enum CauseOfDeath {
     Killed,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Player {
     pub mind: Mind,
     pub will: Ranged,

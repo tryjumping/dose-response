@@ -9,7 +9,7 @@ use rect::Rectangle;
 use world::World;
 
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {
     LoneAttacker,
     PackAttacker,
@@ -17,7 +17,7 @@ pub enum Behavior {
 }
 
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum AIState {
     Idle,
     Chasing,

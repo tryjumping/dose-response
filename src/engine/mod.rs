@@ -108,7 +108,7 @@ pub trait TextMetrics {
 
 
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Mouse {
     pub tile_pos: Point,
     pub screen_pos: Point,
@@ -167,7 +167,7 @@ pub fn populate_background_map(background_map: &mut Vec<Color>,
 ///
 /// Things such as the fullscreen/windowed display, font size, font
 /// type, etc.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Settings {
     pub fullscreen: bool,
 }

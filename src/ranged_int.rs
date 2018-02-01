@@ -34,7 +34,7 @@ impl InclusiveRange {
 /// Internally, the value is a `Rational32` which means it can be a
 /// non-integer, but still precise and consistent (without the
 /// floating point weirdness).
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ranged {
     val: Rational32,
     min: Rational32,

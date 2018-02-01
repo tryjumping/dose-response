@@ -3,13 +3,13 @@ use std::time::Duration;
 
 use util;
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct FrameStats {
     pub update: Duration,
     pub drawcalls: Duration,
 }
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Stats {
     size: usize,
     frame_stats: VecDeque<FrameStats>,

@@ -9,6 +9,7 @@ use rand::IsaacRng;
 
 use stats::Stats;
 use std::collections::VecDeque;
+use std::error::Error;
 #[cfg(not(feature = "web"))]
 use std::fs;
 use std::fs::File;
@@ -377,11 +378,24 @@ Reason: '{}'.",
         }
     }
 
-    pub fn save_to_file(&self) {
-        // TODO: handle results
-        use serde_json;
-        let json_contents = serde_json::to_string(self).expect("Failed to create json");
-        println!("{:?}", json_contents);
+    pub fn save_to_file(&self) -> Result<(), Box<Error>> {
+        use bincode::{serialize, Infinite};
+
+        // TODO: select the filename dynamicaly!
+        let filename = "SAVEDGAME.sav";
+        let buffer = serialize(self, Infinite)?;
+
+        // TODO: this can be compressed nicely!
+
+        let mut file = File::create(filename)?;
+        file.write_all(&buffer)?;
+
+        Ok(())
+    }
+
+    pub fn load_from_file() -> State {
+        //let decoded: World = deserialize(&encoded[..]).unwrap();
+        unimplemented!();
     }
 }
 

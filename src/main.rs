@@ -4,6 +4,7 @@
 
 #[macro_use]
 extern crate bitflags;
+extern crate bincode;
 extern crate rand;
 extern crate serde;
 #[macro_use]

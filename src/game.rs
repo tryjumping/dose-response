@@ -392,8 +392,14 @@ fn process_main_menu(state: &mut State) -> RunningState {
         state.window_stack.push(Window::Help);
     } else if state.keys.matches_code(KeyCode::Q) || state.keys.matches_code(KeyCode::S) {
         // TODO: handle error here -- don't quit or panic on failure
-        state.save_to_file();
-        return RunningState::Stopped;
+        match state.save_to_file() {
+            Ok(()) => return RunningState::Stopped,
+            Err(error) => {
+                // NOTE: we couldn't save the game so we'll keep going
+                println!("Error saving the game: {:?}", error);
+                // TODO: Show a GUI message to that effect
+            }
+        }
     }
     RunningState::Running
 }

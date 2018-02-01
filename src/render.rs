@@ -329,7 +329,7 @@ fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Dr
         "[N]ew Game",
         "[R]esume Current Game",
         "[H]elp",
-        "[Q]uit",
+        "[S]ave and Quit",
     ];
 
     for option in options {

@@ -376,6 +376,13 @@ Reason: '{}'.",
             monsters,
         }
     }
+
+    pub fn save_to_file(&self) {
+        // TODO: handle results
+        use serde_json;
+        let json_contents = serde_json::to_string(self).expect("Failed to create json");
+        println!("{:?}", json_contents);
+    }
 }
 
 

@@ -390,7 +390,9 @@ fn process_main_menu(state: &mut State) -> RunningState {
         state.window_stack.push(Window::Help);
     } else if state.keys.matches_code(KeyCode::H) {
         state.window_stack.push(Window::Help);
-    } else if state.keys.matches_code(KeyCode::Q) {
+    } else if state.keys.matches_code(KeyCode::Q) || state.keys.matches_code(KeyCode::S) {
+        // TODO: handle error here -- don't quit or panic on failure
+        state.save_to_file();
         return RunningState::Stopped;
     }
     RunningState::Running

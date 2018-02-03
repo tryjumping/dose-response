@@ -327,18 +327,34 @@ fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Dr
         EmptySpace(2),
     ];
 
-    let options = vec![
-        "[R]esume Current Game",
-        "[N]ew Game",
-        // TODO: only show load game when relevant
-        "[L]oad the saved game",
-        "[H]elp",
-        "[S]ave and Quit",
-        "[Q]uit without saving",
-    ];
+    let mut options = vec![];
+
+    if !state.game_ended {
+        options.push("[R]esume");
+    }
+
+    options.push("[N]ew Game");
+
+    // NOTE: we won't hiding this option, because it would require
+    // checking if the file exists every frame (or do some complex
+    // caching).
+    options.push("[L]oad game");
+
+    options.push("[H]elp");
+
+    if !state.game_ended {
+        options.push("[S]ave and Quit");
+    }
+
+    if state.game_ended {
+        options.push("[Q]uit");
+    } else {
+        options.push("[Q]uit without saving");
+    }
 
     for option in options {
         lines.push(Centered(option));
+        lines.push(Empty);
     }
 
     lines.push(EmptySpace(3));

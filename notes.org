@@ -9,12 +9,13 @@ CLOSED: [2018-01-30 Tue 09:51]
 *** On `Esc`
 ** DONE Don't abort on `Q` keypress
 CLOSED: [2018-01-29 Mon 20:27]
-** Save/load game
-** Ending: finding a special NPC who gets generated after max Will
-** More balanced gameplay
-*** including safe starting areas (no overdose risks)
+** DONE Save/load game
+CLOSED: [2018-02-03 Sat 08:23]
 ** Fullscreen with correct aspect-ratio handling
 *** This was done but we broke it when adding font handling
+** More balanced gameplay
+*** including safe starting areas (no overdose risks)
+** Ending: finding a special NPC who gets generated after max Will
 ** DONE Integrated help
 CLOSED: [2018-01-25 Thu 13:05]
 *** When you press `?`
@@ -56,19 +57,18 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
 * Fix fullscreen
-* Saving game
-** Save the game when closing the window
-* Loading game
-** delete the game upon successfull load
-* Handle Save failures gracefully in the UI
-** When a game can't be saved, keep playing
-** But we must show a message in the UI to indicate this
-* Store save in the right location for the system
+** Aspect ratio
+** Keep the screen on the same monitor
+*** repro: fullscreen, windowed, fullscreen -> moves to another monitor
 * Game balance notes:
 ** starting doses overlap
 ** Immediatelly within starting doses' area
 ** food can spawn at the player's location
 ** too many NPCs
+* Store save in the right location for the system
+** https://crates.io/crates/standard_paths
+*** looks good but no mac support?
+** https://crates.io/crates/xdg-basedir
 * Show the next/prev page title in the help page                         :ui:
 ** Instead of the generic Next page / Previous page text
 * "What is a roguelike?" help page                                       :ui:
@@ -1589,3 +1589,22 @@ CLOSED: [2018-01-29 Mon 20:28]
 :END:
 *** Or at least always save the game
 *** But really, pressing a key by accident shouldn't close the game
+** DONE Saving game
+CLOSED: [2018-02-03 Sat 08:23]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-03 Sat 08:23
+:END:
+*** Save the game when closing the window
+** DONE Loading game
+CLOSED: [2018-02-03 Sat 08:23]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-03 Sat 08:24
+:END:
+*** delete the game upon successfull load
+** DONE Handle Save failures gracefully in the UI
+CLOSED: [2018-02-03 Sat 08:23]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-03 Sat 08:24
+:END:
+*** When a game can't be saved, keep playing
+*** But we must show a message in the UI to indicate this

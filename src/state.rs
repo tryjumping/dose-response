@@ -389,6 +389,7 @@ Reason: '{}'.",
 
         let mut file = File::create(filename)?;
         file.write_all(&buffer)?;
+        file.flush()?;
 
         Ok(())
     }

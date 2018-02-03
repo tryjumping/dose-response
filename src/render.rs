@@ -328,12 +328,13 @@ fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Dr
     ];
 
     let options = vec![
+        "[R]esume Current Game",
         "[N]ew Game",
         // TODO: only show load game when relevant
-        "[L]oad the previously saved game",
-        "[R]esume Current Game",
+        "[L]oad the saved game",
         "[H]elp",
         "[S]ave and Quit",
+        "[Q]uit without saving",
     ];
 
     for option in options {

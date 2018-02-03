@@ -389,11 +389,13 @@ fn process_main_menu(state: &mut State) -> RunningState {
         // TODO: when this is the first run, this should resume the game that's already
         // loaded in the background.
         return RunningState::NewGame(create_new_game_state(state));
-    } else if state.keys.matches_code(KeyCode::QuestionMark) {
+    }
+    if state.keys.matches_code(KeyCode::QuestionMark) || state.keys.matches_code(KeyCode::H) {
         state.window_stack.push(Window::Help);
-    } else if state.keys.matches_code(KeyCode::H) {
-        state.window_stack.push(Window::Help);
-    } else if state.keys.matches_code(KeyCode::Q) || state.keys.matches_code(KeyCode::S) {
+        return RunningState::Running;
+    }
+
+    if state.keys.matches_code(KeyCode::S) {
         if !state.game_ended {
             match state.save_to_file() {
                 Ok(()) => return RunningState::Stopped,
@@ -404,7 +406,14 @@ fn process_main_menu(state: &mut State) -> RunningState {
                 }
             }
         }
-    } else if state.keys.matches_code(KeyCode::L) {
+        return RunningState::Running;
+    }
+
+    if state.keys.matches_code(KeyCode::Q) {
+        return RunningState::Stopped
+    }
+
+    if state.keys.matches_code(KeyCode::L) {
         match State::load_from_file() {
             Ok(new_state) => {
                 *state = new_state;
@@ -419,7 +428,6 @@ fn process_main_menu(state: &mut State) -> RunningState {
                     Window::Message("Error: could not load the game.".into()));
                 return RunningState::Running;
             }
-
         }
     }
     RunningState::Running

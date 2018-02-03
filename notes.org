@@ -12,6 +12,7 @@ CLOSED: [2018-01-29 Mon 20:27]
 ** Save/load game
 ** Ending: finding a special NPC who gets generated after max Will
 ** More balanced gameplay
+*** including safe starting areas (no overdose risks)
 ** Fullscreen with correct aspect-ratio handling
 *** This was done but we broke it when adding font handling
 ** DONE Integrated help
@@ -63,6 +64,11 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** When a game can't be saved, keep playing
 ** But we must show a message in the UI to indicate this
 * Store save in the right location for the system
+* Game balance notes:
+** starting doses overlap
+** Immediatelly within starting doses' area
+** food can spawn at the player's location
+** too many NPCs
 * Show the next/prev page title in the help page                         :ui:
 ** Instead of the generic Next page / Previous page text
 * "What is a roguelike?" help page                                       :ui:

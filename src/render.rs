@@ -20,24 +20,26 @@ use world::Chunk;
 pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     // TODO: This might be inefficient for windows fully covering
     // other windows.
-    for &window in state.window_stack.windows() {
+    for window in state.window_stack.windows() {
         match window {
-            Window::MainMenu => {
+            &Window::MainMenu => {
                 render_main_menu(state, metrics, drawcalls);
             }
-            Window::Game => {
+            &Window::Game => {
                 render_game(state, dt, fps, drawcalls);
             }
-            Window::Help => {
+            &Window::Help => {
                 render_help_screen(state, metrics, drawcalls);
             }
-            Window::Endgame => {
+            &Window::Endgame => {
                 render_endgame_screen(state, metrics, drawcalls);
+            }
+            &Window::Message(ref text) => {
+                render_message(state, text, metrics, drawcalls);
             }
         }
     }
 }
-
 
 pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) {
     if state.player.alive() {
@@ -327,6 +329,8 @@ fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Dr
 
     let options = vec![
         "[N]ew Game",
+        // TODO: only show load game when relevant
+        "[L]oad the previously saved game",
         "[R]esume Current Game",
         "[H]elp",
         "[S]ave and Quit",
@@ -603,6 +607,37 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
     ));
 }
 
+
+fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+    let window_size = Point::new(40, 10);
+    let window_pos = ((state.display_size - window_size) / 2) - (0, 10);
+    let window_rect = Rectangle::from_point_and_size(
+        window_pos, window_size);
+
+    let padding = Point::new(2, 3);
+    let rect = Rectangle::from_point_and_size(
+        window_rect.top_left() + padding, window_rect.dimensions() - padding * 2);
+
+    drawcalls.push(Draw::Rectangle(
+        window_rect.top_left(),
+        window_rect.dimensions(),
+        color::window_edge,
+    ));
+
+    drawcalls.push(Draw::Rectangle(
+        window_rect.top_left() + (1, 1),
+        window_rect.dimensions() - (2, 2),
+        color::background,
+    ));
+
+    drawcalls.push(Draw::Text(
+        rect.top_left(),
+        text.to_string().into(),
+        color::gui_text,
+        TextOptions::align_center(rect.width()),
+    ));
+
+}
 
 
 fn render_panel(

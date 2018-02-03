@@ -92,6 +92,9 @@ pub fn update(
         Window::Endgame => {
             process_endgame_window(state)
         }
+        Window::Message(_) => {
+            process_message_window(state)
+        }
     };
 
     // NOTE: process the screen fading animation animation.
@@ -397,8 +400,25 @@ fn process_main_menu(state: &mut State) -> RunningState {
             Err(error) => {
                 // NOTE: we couldn't save the game so we'll keep going
                 println!("Error saving the game: {:?}", error);
-                // TODO: Show a GUI message to that effect
+                state.window_stack.push(Window::Message("Error: could not save the game.".into()));
             }
+        }
+    } else if state.keys.matches_code(KeyCode::L) {
+        match State::load_from_file() {
+            Ok(new_state) => {
+                *state = new_state;
+                if state.window_stack.top() == Window::MainMenu {
+                    state.window_stack.pop();
+                }
+                return RunningState::Running;
+            }
+            Err(error) => {
+                println!("Error loading the game: {:?}", error);
+                state.window_stack.push(
+                    Window::Message("Error: could not load the game.".into()));
+                return RunningState::Running;
+            }
+
         }
     }
     RunningState::Running
@@ -448,6 +468,16 @@ fn process_endgame_window(state: &mut State) -> RunningState {
         return RunningState::Running;
     }
 
+    if state.keys.get().is_some() {
+        state.window_stack.pop();
+        return RunningState::Running;
+    }
+
+    RunningState::Running
+}
+
+
+fn process_message_window(state: &mut State) -> RunningState {
     if state.keys.get().is_some() {
         state.window_stack.pop();
         return RunningState::Running;

@@ -202,7 +202,7 @@ impl State {
             exit_after,
             clock: Duration::new(0, 0),
             replay_step: Duration::new(0, 0),
-            stats: Stats::new(6000), // about a minute and a half at 60 FPS
+            stats: Default::default(),
             pos_timer: Timer::new(Duration::from_millis(0)),
             old_screen_pos: (0, 0).into(),
             new_screen_pos: (0, 0).into(),
@@ -393,23 +393,39 @@ Reason: '{}'.",
         Ok(())
     }
 
-    pub fn load_from_file() -> State {
-        //let decoded: World = deserialize(&encoded[..]).unwrap();
-        unimplemented!();
+    pub fn load_from_file() -> Result<State, Box<Error>> {
+        use bincode::deserialize;
+        use std::io::Read;
+
+        let filename = "SAVEDGAME.sav";
+        let state = {
+            let mut buffer = Vec::with_capacity(1_000_000);
+            let mut file = File::open(filename)?;
+            file.read_to_end(&mut buffer)?;
+            deserialize(&buffer[..])?
+        };
+
+        if let Err(error) = ::std::fs::remove_file(filename) {
+            println!("Failed to delete the successfully loaded savegame. Error: {:?}", error);
+            println!("Ignoring...");
+        }
+
+        Ok(state)
     }
 }
 
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Window {
     MainMenu,
     Game,
     Help,
     Endgame,
+    Message(String),
 }
 
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum HelpWindow {
     NumpadControls,
     ArrowControls,

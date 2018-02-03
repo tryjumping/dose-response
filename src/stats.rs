@@ -9,7 +9,7 @@ pub struct FrameStats {
     pub drawcalls: Duration,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Stats {
     size: usize,
     frame_stats: VecDeque<FrameStats>,
@@ -102,6 +102,15 @@ impl Stats {
         &self.longest_drawcalls
     }
 }
+
+
+impl Default for Stats {
+    fn default() -> Self {
+        // about a minute and a half at 60 FPS
+        Stats::new(6000)
+    }
+}
+
 
 pub struct FrameStatsIterator<'a> {
     frame_stats: &'a VecDeque<FrameStats>,

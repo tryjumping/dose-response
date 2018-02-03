@@ -4,7 +4,7 @@ pub struct WindowStack<T> {
 }
 
 
-impl<T: Copy> WindowStack<T> {
+impl<T: Clone> WindowStack<T> {
     pub fn new(default: T) -> Self {
         WindowStack {
             stack: vec![default],
@@ -22,7 +22,7 @@ impl<T: Copy> WindowStack<T> {
     }
 
     pub fn top(&self) -> T {
-        *self.stack.last().unwrap()
+        self.stack.last().unwrap().clone()
     }
 
     pub fn windows(&self) -> impl Iterator<Item=&T> {

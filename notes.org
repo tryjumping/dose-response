@@ -11,7 +11,8 @@ CLOSED: [2018-01-30 Tue 09:51]
 CLOSED: [2018-01-29 Mon 20:27]
 ** DONE Save/load game
 CLOSED: [2018-02-03 Sat 08:23]
-** Fullscreen with correct aspect-ratio handling
+** DONE Fullscreen with correct aspect-ratio handling
+CLOSED: [2018-02-04 Sun 10:09]
 *** This was done but we broke it when adding font handling
 ** More balanced gameplay
 *** including safe starting areas (no overdose risks)
@@ -56,7 +57,8 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* Fix fullscreen
+* DONE Fix fullscreen
+CLOSED: [2018-02-04 Sun 10:08]
 ** Aspect ratio
 ** Keep the screen on the same monitor
 *** repro: fullscreen, windowed, fullscreen -> moves to another monitor

@@ -1,11 +1,17 @@
 #version 150 core
 
 uniform vec2 tile_count;
+// Window size (rendering area) in pixels
 uniform vec2 native_display_px;
+// Actual display size in pixels. Has the same aspect ratio as
+//`native_display_px`, but can be bigger say on fullscreen.
 uniform vec2 display_px;
+// Additional empty space. If the final rendering area has a different
+//aspect ratio, this contains the extra space so we can letterbox or
+//whatever.
 uniform vec2 extra_px;
 
-in vec2 tile_position;
+in vec2 pos_px;
 in vec2 tilemap_index;
 in vec4 color;
 
@@ -17,8 +23,8 @@ void main() {
     v_color = color;
 
     vec2 full_dimension_px = display_px + extra_px;
-    vec2 tile_pos_offseted = tile_position / native_display_px * (display_px / full_dimension_px) + (0.5 * extra_px / full_dimension_px);
+    vec2 pos_fit_to_screen = pos_px / native_display_px * (display_px / full_dimension_px) + (0.5 * extra_px / full_dimension_px);
 
-    vec2 pos = vec2(1.0, -1.0) * (2.0 * tile_pos_offseted - 1.0);
+    vec2 pos = vec2(1.0, -1.0) * (2.0 * pos_fit_to_screen - 1.0);
     gl_Position = vec4(pos, 0.0, 1.0);
 }

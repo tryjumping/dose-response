@@ -186,7 +186,7 @@ mod vertex {
         ///
         /// Note that this doesn't have to be an integer, so you can
         /// implement smooth positioning by using a fractional value.
-        pub tile_position: [f32; 2],
+        pub pos_px: [f32; 2],
 
         /// Index into the texture map. [0, 0] is the top-left corner, the
         /// map's width and height depends on the number of textures in it.
@@ -199,7 +199,7 @@ mod vertex {
         /// we set the final colour.
         pub color: [f32; 4],
     }
-    implement_vertex!(Vertex, tile_position, tilemap_index, color);
+    implement_vertex!(Vertex, pos_px, tilemap_index, color);
 }
 
 
@@ -431,33 +431,33 @@ pub fn main_loop(
             let color = gl_color(*background_color, alpha);
 
             vertices.push(Vertex {
-                tile_position: [pos_x, pos_y],
+                pos_px: [pos_x, pos_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });
             vertices.push(Vertex {
-                tile_position: [pos_x + tile_width, pos_y],
+                pos_px: [pos_x + tile_width, pos_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });
             vertices.push(Vertex {
-                tile_position: [pos_x, pos_y + tile_height],
+                pos_px: [pos_x, pos_y + tile_height],
                 tilemap_index: tilemap_index,
                 color: color,
             });
 
             vertices.push(Vertex {
-                tile_position: [pos_x + tile_width, pos_y],
+                pos_px: [pos_x + tile_width, pos_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });
             vertices.push(Vertex {
-                tile_position: [pos_x, pos_y + tile_height],
+                pos_px: [pos_x, pos_y + tile_height],
                 tilemap_index: tilemap_index,
                 color: color,
             });
             vertices.push(Vertex {
-                tile_position: [pos_x + tile_width, pos_y + tile_height],
+                pos_px: [pos_x + tile_width, pos_y + tile_height],
                 tilemap_index: tilemap_index,
                 color: color,
             });
@@ -483,33 +483,33 @@ pub fn main_loop(
 
                         // NOTE: fill the tile with the background colour
                         vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y],
+                            pos_px: [pos_x, pos_y],
                             tilemap_index: fill_tile_tilemap_index,
                             color: background_color,
                         });
                         vertices.push(Vertex {
-                            tile_position: [pos_x + tile_width, pos_y],
+                            pos_px: [pos_x + tile_width, pos_y],
                             tilemap_index: fill_tile_tilemap_index,
                             color: background_color,
                         });
                         vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y + tile_height],
+                            pos_px: [pos_x, pos_y + tile_height],
                             tilemap_index: fill_tile_tilemap_index,
                             color: background_color,
                         });
 
                         vertices.push(Vertex {
-                            tile_position: [pos_x + tile_width, pos_y],
+                            pos_px: [pos_x + tile_width, pos_y],
                             tilemap_index: fill_tile_tilemap_index,
                             color: background_color,
                         });
                         vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y + tile_height],
+                            pos_px: [pos_x, pos_y + tile_height],
                             tilemap_index: fill_tile_tilemap_index,
                             color: background_color,
                         });
                         vertices.push(Vertex {
-                            tile_position: [pos_x + tile_width, pos_y + tile_height],
+                            pos_px: [pos_x + tile_width, pos_y + tile_height],
                             tilemap_index: fill_tile_tilemap_index,
                             color: background_color,
                         });
@@ -517,33 +517,33 @@ pub fn main_loop(
 
                         // NOTE: draw the glyph
                         vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y],
+                            pos_px: [pos_x, pos_y],
                             tilemap_index: [tilemap_x, tilemap_y],
                             color: color,
                         });
                         vertices.push(Vertex {
-                            tile_position: [pos_x + tile_width, pos_y],
+                            pos_px: [pos_x + tile_width, pos_y],
                             tilemap_index: [tilemap_x + 1.0, tilemap_y],
                             color: color,
                         });
                         vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y + tile_height],
+                            pos_px: [pos_x, pos_y + tile_height],
                             tilemap_index: [tilemap_x, tilemap_y + 1.0],
                             color: color,
                         });
 
                         vertices.push(Vertex {
-                            tile_position: [pos_x + tile_width, pos_y],
+                            pos_px: [pos_x + tile_width, pos_y],
                             tilemap_index: [tilemap_x + 1.0, tilemap_y],
                             color: color,
                         });
                         vertices.push(Vertex {
-                            tile_position: [pos_x, pos_y + tile_height],
+                            pos_px: [pos_x, pos_y + tile_height],
                             tilemap_index: [tilemap_x, tilemap_y + 1.0],
                             color: color,
                         });
                         vertices.push(Vertex {
-                            tile_position: [pos_x + tile_width, pos_y + tile_height],
+                            pos_px: [pos_x + tile_width, pos_y + tile_height],
                             tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
                             color: color,
                         });
@@ -586,33 +586,33 @@ pub fn main_loop(
                             //let pos_y = pos_y + offset_y;
 
                             vertices.push(Vertex {
-                                tile_position: [pos_x, pos_y],
+                                pos_px: [pos_x, pos_y],
                                 tilemap_index: [tilemap_x, tilemap_y],
                                 color: color,
                             });
                             vertices.push(Vertex {
-                                tile_position: [pos_x + tile_width, pos_y],
+                                pos_px: [pos_x + tile_width, pos_y],
                                 tilemap_index: [tilemap_x + 1.0, tilemap_y],
                                 color: color,
                             });
                             vertices.push(Vertex {
-                                tile_position: [pos_x, pos_y + tile_height],
+                                pos_px: [pos_x, pos_y + tile_height],
                                 tilemap_index: [tilemap_x, tilemap_y + 1.0],
                                 color: color,
                             });
 
                             vertices.push(Vertex {
-                                tile_position: [pos_x + tile_width, pos_y],
+                                pos_px: [pos_x + tile_width, pos_y],
                                 tilemap_index: [tilemap_x + 1.0, tilemap_y],
                                 color: color,
                             });
                             vertices.push(Vertex {
-                                tile_position: [pos_x, pos_y + tile_height],
+                                pos_px: [pos_x, pos_y + tile_height],
                                 tilemap_index: [tilemap_x, tilemap_y + 1.0],
                                 color: color,
                             });
                             vertices.push(Vertex {
-                                tile_position: [pos_x + tile_width, pos_y + tile_height],
+                                pos_px: [pos_x + tile_width, pos_y + tile_height],
                                 tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
                                 color: color,
                             });
@@ -664,33 +664,33 @@ pub fn main_loop(
                     let color = gl_color(color, alpha);
 
                     vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y],
+                        pos_px: [pos_x, pos_y],
                         tilemap_index: tilemap_index,
                         color: color,
                     });
                     vertices.push(Vertex {
-                        tile_position: [pos_x + dim_x, pos_y],
+                        pos_px: [pos_x + dim_x, pos_y],
                         tilemap_index: tilemap_index,
                         color: color,
                     });
                     vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + dim_y],
+                        pos_px: [pos_x, pos_y + dim_y],
                         tilemap_index: tilemap_index,
                         color: color,
                     });
 
                     vertices.push(Vertex {
-                        tile_position: [pos_x + dim_x, pos_y],
+                        pos_px: [pos_x + dim_x, pos_y],
                         tilemap_index: tilemap_index,
                         color: color,
                     });
                     vertices.push(Vertex {
-                        tile_position: [pos_x, pos_y + dim_y],
+                        pos_px: [pos_x, pos_y + dim_y],
                         tilemap_index: tilemap_index,
                         color: color,
                     });
                     vertices.push(Vertex {
-                        tile_position: [pos_x + dim_x, pos_y + dim_y],
+                        pos_px: [pos_x + dim_x, pos_y + dim_y],
                         tilemap_index: tilemap_index,
                         color: color,
                     });
@@ -717,33 +717,33 @@ pub fn main_loop(
             let color = gl_color(color, 1.0 - fade);
 
             vertices.push(Vertex {
-                tile_position: [pos_x, pos_y],
+                pos_px: [pos_x, pos_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });
             vertices.push(Vertex {
-                tile_position: [pos_x + dim_x, pos_y],
+                pos_px: [pos_x + dim_x, pos_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });
             vertices.push(Vertex {
-                tile_position: [pos_x, pos_y + dim_y],
+                pos_px: [pos_x, pos_y + dim_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });
 
             vertices.push(Vertex {
-                tile_position: [pos_x + dim_x, pos_y],
+                pos_px: [pos_x + dim_x, pos_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });
             vertices.push(Vertex {
-                tile_position: [pos_x, pos_y + dim_y],
+                pos_px: [pos_x, pos_y + dim_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });
             vertices.push(Vertex {
-                tile_position: [pos_x + dim_x, pos_y + dim_y],
+                pos_px: [pos_x + dim_x, pos_y + dim_y],
                 tilemap_index: tilemap_index,
                 color: color,
             });

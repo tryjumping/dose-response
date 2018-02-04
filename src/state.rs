@@ -174,11 +174,12 @@ impl State {
         assert_eq!(world_size.x, world_size.y);
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
+        let player = Player::new(player_position, invincible);
         let mut rng = IsaacRng::new_from_u64(seed as u64);
-        let world = World::new(&mut rng, seed, world_size.x, 32, player_position);
+        let world = World::new(&mut rng, seed, world_size.x, 32, player.info());
 
         State {
-            player: Player::new(player_position, invincible),
+            player,
             explosion_animation: None,
             chunk_size: 32,
             world_size,

@@ -4,7 +4,7 @@ use generators::{self, GeneratedWorld};
 use item::{self, Item};
 use level::{self, Cell, Level};
 use monster::Monster;
-use player;
+use player::{self, PlayerInfo};
 use point::{CircularArea, Point, SquareArea};
 
 use rand::{IsaacRng, Rng};
@@ -136,7 +136,7 @@ impl World {
         seed: u32,
         dimension: i32,
         chunk_size: i32,
-        initial_player_position: Point,
+        player_info: PlayerInfo,
     ) -> Self {
         assert!(dimension > 0);
         assert!(chunk_size > 0);
@@ -152,7 +152,7 @@ impl World {
 
         // TODO: I don't think this code belongs in World. Move it
         // into the level generators or osmething?
-        world.prepare_initial_playing_area(initial_player_position, rng);
+        world.prepare_initial_playing_area(player_info, rng);
         world
     }
 
@@ -160,19 +160,19 @@ impl World {
     /// place some food nearby and a dose in sight.
     fn prepare_initial_playing_area<R: Rng>(
         &mut self,
-        initial_player_position: Point,
+        player_info: PlayerInfo,
         rng: &mut R,
     ) {
         assert!(formula::INITIAL_SAFE_RADIUS <= formula::INITIAL_EASY_RADIUS);
 
 
         let safe_area = Rectangle::center(
-            initial_player_position,
+            player_info.pos,
             Point::from_i32(formula::INITIAL_SAFE_RADIUS),
         );
 
         let easy_area = Rectangle::center(
-            initial_player_position,
+            player_info.pos,
             Point::from_i32(formula::INITIAL_EASY_RADIUS),
         );
 
@@ -197,9 +197,30 @@ impl World {
 
         // Remove strong doses from the starting area
         let no_lethal_dose_area = Rectangle::center(
-            initial_player_position,
+            player_info.pos,
             Point::from_i32(formula::NO_LETHAL_DOSE_RADIUS),
         );
+
+
+        // Clear any doses whos irresistible area touches the player's
+        // position.
+        {
+            let resist_radius = formula::player_resist_radius(
+                formula::DOSE_PREFAB.irresistible, player_info.will);
+            let resist_area = Rectangle::center(
+                player_info.pos, Point::from_i32(resist_radius));
+            for point in resist_area.points() {
+                if let Some(cell) = self.cell_mut(point) {
+                    for index in (0..cell.items.len()).rev() {
+                        if cell.items[index].is_dose() {
+                            cell.items.remove(index);
+                        }
+                    }
+                }
+            }
+        }
+
+
 
         for pos in no_lethal_dose_area.points() {
             if let Some(cell) = self.cell_mut(pos) {
@@ -216,11 +237,6 @@ impl World {
             }
         }
 
-        // Remove anything on the player's position
-        if let Some(cell) = self.cell_mut(initial_player_position) {
-            cell.items.clear();
-        }
-
         // Generate a usable dose nearby, give up after 50 attempts
         for _ in 0..50 {
             let offset = Point {
@@ -228,10 +244,15 @@ impl World {
                 y: rng.gen_range(-3, 4),
             };
             if offset == (0, 0) {
-                break;
+                continue;
             }
-            let pos = initial_player_position + offset;
-            if self.walkable(pos, Blocker::WALL, initial_player_position) {
+            let pos = player_info.pos + offset;
+            if self.walkable(pos, Blocker::WALL, player_info.pos) {
+                // Skip if there already is an item at the position
+                if !self.cell(pos).map_or(true, |cell| cell.items.is_empty()) {
+                    continue;
+                }
+
                 let dose = Item {
                     kind: item::Kind::Dose,
                     modifier: player::Modifier::Intoxication {
@@ -240,11 +261,34 @@ impl World {
                     },
                     irresistible: 2,
                 };
+
+
+                let resist_radius = formula::player_resist_radius(dose.irresistible, player_info.will);
+                let resist_area = Rectangle::center(
+                    pos, Point::from_i32(resist_radius));
+
+                // Bail if the player would be in the resist radius
+                if resist_area.contains(player_info.pos) {
+                    continue;
+                }
+
+                // Bail if another dose is in the resist area
+                if resist_area.points().any(|irresistable_point| {
+                    self.cell(irresistable_point).map_or(
+                        false,
+                        |cell| {
+                            cell.items.iter().any(|item| item.is_dose())
+                        })
+                }) {
+                    continue;
+                }
+
+                // Try to place the dose and exit
                 if let Some(chunk) = self.chunk_mut(pos) {
                     let level_position = chunk.level_position(pos);
                     chunk.level.add_item(level_position, dose);
+                    break;
                 }
-                break;
             }
         }
 
@@ -255,8 +299,8 @@ impl World {
                 x: rng.gen_range(-5, 6),
                 y: rng.gen_range(-5, 6),
             };
-            let pos = initial_player_position + offset;
-            if self.walkable(pos, Blocker::WALL, initial_player_position) {
+            let pos = player_info.pos + offset;
+            if self.walkable(pos, Blocker::WALL, player_info.pos) {
                 let food = Item {
                     kind: item::Kind::Food,
                     modifier: player::Modifier::Attribute {
@@ -277,6 +321,11 @@ impl World {
                     break;
                 }
             }
+        }
+
+        // Remove anything at the player's position
+        if let Some(cell) = self.cell_mut(player_info.pos) {
+            cell.items.clear();
         }
 
     }

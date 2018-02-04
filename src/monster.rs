@@ -1,11 +1,11 @@
 use self::Kind::*;
 
-use ai::{self, AIState, Behavior, PlayerInfo, Update};
+use ai::{self, AIState, Behavior, Update};
 use blocker::Blocker;
 use color::{self, Color};
 use game::Action;
 use graphics::Render;
-use player::Modifier;
+use player::{Modifier, PlayerInfo};
 use point::Point;
 use ranged_int::{InclusiveRange, Ranged};
 

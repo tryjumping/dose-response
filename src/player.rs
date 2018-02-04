@@ -73,6 +73,17 @@ pub enum CauseOfDeath {
     Killed,
 }
 
+/// Values related to the Player the AI routines might want to
+/// investigate.
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub struct PlayerInfo {
+    pub pos: Point,
+    pub mind: Mind,
+    pub max_ap: i32,
+    pub will: i32,
+}
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Player {
     pub mind: Mind,
@@ -122,6 +133,15 @@ impl Player {
             sobriety_counter: Ranged::new_min(SOBRIETY_COUNTER),
             current_high_streak: 0,
             longest_high_streak: 0,
+        }
+    }
+
+    pub fn info(&self) -> PlayerInfo {
+        PlayerInfo {
+            max_ap: self.base_max_ap,
+            mind: self.mind,
+            pos: self.pos,
+            will: self.will.to_int(),
         }
     }
 

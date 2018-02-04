@@ -1,7 +1,7 @@
 use formula;
 use game::Action;
 use monster::Monster;
-use player::Mind;
+use player::PlayerInfo;
 use point::Point;
 use rand::Rng;
 use ranged_int::InclusiveRange;
@@ -30,15 +30,6 @@ pub enum AIState {
 /// it decided to make.
 pub struct Update {
     pub ai_state: AIState,
-    pub max_ap: i32,
-}
-
-/// Values related to the Player the AI routines might want to
-/// investigate.
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub struct PlayerInfo {
-    pub pos: Point,
-    pub mind: Mind,
     pub max_ap: i32,
 }
 

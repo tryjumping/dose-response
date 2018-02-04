@@ -65,6 +65,29 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** Immediatelly within starting doses' area
 ** food can spawn at the player's location
 ** too many NPCs
+* Make the fonts bigger & map smaller
+** To make it easier to read
+** And increase the claustrophobic feeling
+* Don't fade when showing the main menu
+** I think we can do this by issuing another Fade call in the menu render
+* Write a "call for artists" post?
+** Here's what I'd like to see (in this order)
+*** Icon
+*** Colours
+*** Font
+*** Tiles
+** Should post a demo
+** Would prefer open formats
+*** To keep with the open source spirit of the game
+*** Something like CC-BY-SA sounds good
+*** Must be available for commercial use (or at least licensed as such for me)
+*** Expect zero profit but open to revenue sharing
+** Post to:
+*** website
+*** twitter
+*** g+
+*** mastodon
+*** maybe reddit?
 * Store save in the right location for the system
 ** https://crates.io/crates/standard_paths
 *** looks good but no mac support?

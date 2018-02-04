@@ -7,7 +7,7 @@ use state::State;
 
 use glium::{self, Surface};
 use glium::draw_parameters::DrawParameters;
-use glium::glutin::{Event, EventsLoop, WindowBuilder, WindowEvent};
+use glium::glutin::{Event, EventsLoop, MonitorId, WindowBuilder, WindowEvent};
 use glium::glutin::VirtualKeyCode as BackendKey;
 use image;
 use keys::{Key, KeyCode};
@@ -117,6 +117,27 @@ fn text_width_px(text: &str, tile_width_px: i32) -> i32 {
     text.chars()
         .map(|chr| engine::glyph_advance_width(chr).unwrap_or(tile_width_px as i32))
         .sum()
+}
+
+
+fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<MonitorId> {
+    for monitor in monitors {
+        let monitor_pos = {
+            let pos = monitor.get_position();
+            Point::new(pos.0 as i32, pos.1 as i32)
+        };
+        let monitor_dimensions = {
+            let dim = monitor.get_dimensions();
+            Point::new(dim.0 as i32, dim.1 as i32)
+        };
+
+        let monitor_bottom_left = monitor_pos + monitor_dimensions;
+        if window_pos >= monitor_pos && window_pos < monitor_bottom_left {
+            return Some(monitor.clone());
+        }
+    }
+
+    monitors.iter().cloned().next()
 }
 
 
@@ -268,6 +289,9 @@ pub fn main_loop(
             None => Default::default(),
         }
     };
+    let mut pre_fullscreen_window_pos = window_pos;
+    let mut current_monitor = get_current_monitor(&monitors, window_pos);
+
     let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
     let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize];
@@ -332,27 +356,22 @@ pub fn main_loop(
 
         keys.clear();
 
+        let mut switched_from_fullscreen = false;
+
         if previous_settings.fullscreen != settings.fullscreen {
             if settings.fullscreen {
-                for monitor in &monitors {
-                    let monitor_pos = {
-                        let pos = monitor.get_position();
-                        Point::new(pos.0 as i32, pos.1 as i32)
-                    };
-                    let monitor_dimensions = {
-                        let dim = monitor.get_dimensions();
-                        Point::new(dim.0 as i32, dim.1 as i32)
-                    };
-
-                    let monitor_bottom_left = monitor_pos + monitor_dimensions;
-                    if window_pos >= monitor_pos && window_pos < monitor_bottom_left {
+                if let Some(ref monitor) = current_monitor {
+                    pre_fullscreen_window_pos = window_pos;
                         println!("Monitor: {:?}, pos: {:?}, dimensions: {:?}",
                                  monitor.get_name(), monitor.get_position(), monitor.get_dimensions());
                         display.gl_window().set_fullscreen(Some(monitor.clone()));
-                    }
                 }
             } else {
+                println!("Switched from fullscreen.");
                 display.gl_window().set_fullscreen(None);
+                let pos = display.gl_window().get_position();
+                println!("New window position: {:?}", pos);
+                switched_from_fullscreen = true;
             }
         }
 
@@ -833,8 +852,20 @@ pub fn main_loop(
                             screen_height = height;
                         },
                         WindowEvent::Moved(x, y) => {
-                            window_pos.x = x;
-                            window_pos.y = y;
+                            if settings.fullscreen || switched_from_fullscreen {
+                                // Don't update the window position
+                                //
+                                // Even after we switch from
+                                // fullscreen, the `Moved` event has a
+                                // wrong value that messes things up.
+                                // So we restore the previous position
+                                // manually instead.
+                            } else {
+                                println!("Window moved to: {}, {}", x, y);
+                                window_pos.x = x;
+                                window_pos.y = y;
+                                current_monitor = get_current_monitor(&monitors, window_pos);
+                            }
                         }
                         WindowEvent::ReceivedCharacter(chr) => {
                             let code = match chr {
@@ -973,5 +1004,15 @@ pub fn main_loop(
         });
 
 
+        // If we just switched from fullscreen back to a windowed
+        // mode, restore the window position we had before. We do this
+        // because the `Moved` event fires with an incorrect value
+        // when coming back from full screen.
+        //
+        // This ensures that we can switch full screen back and fort
+        // on a multi monitor setup.
+        if switched_from_fullscreen {
+            window_pos = pre_fullscreen_window_pos;
+        }
     }
 }

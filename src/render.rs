@@ -362,6 +362,9 @@ fn render_main_menu(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Dr
     lines.push(Paragraph("-- Marla Daniels"));
 
     render_laid_out_text(&lines, rect, metrics, drawcalls);
+
+    // Clear any fade set by the gameplay rendering
+    drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
 }
 
 
@@ -483,6 +486,9 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
         );
         drawcalls.push(next_page_text);
     }
+
+    // Clear any fade set by the gameplay rendering
+    drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
 }
 
 

@@ -17,6 +17,13 @@ CLOSED: [2018-02-04 Sun 10:09]
 ** More balanced gameplay
 *** including safe starting areas (no overdose risks)
 ** Ending: finding a special NPC who gets generated after max Will
+*** immobile
+*** Must disappear when high
+*** Should show a direction towards them
+*** Spawn a ton of extra monsters?
+**** just on the direct route though?
+**** so a longer route would be safer
+*** bug-glyph-misaligned.png
 ** DONE Integrated help
 CLOSED: [2018-01-25 Thu 13:05]
 *** When you press `?`
@@ -63,10 +70,19 @@ CLOSED: [2018-02-04 Sun 10:08]
 ** Keep the screen on the same monitor
 *** repro: fullscreen, windowed, fullscreen -> moves to another monitor
 * Game balance notes:
-** starting doses overlap
+** DONE starting doses overlap
+CLOSED: [2018-02-04 Sun 16:33]
 ** Immediatelly within starting doses' area
-** food can spawn at the player's location
-** too many NPCs
+** DONE food can spawn at the player's location
+CLOSED: [2018-02-04 Sun 16:33]
+** DONE too many NPCs
+CLOSED: [2018-02-04 Sun 17:48]
+** Is the tolerance progression okay?
+*** I have a feeling it builds up too slowly
+*** But we definitely need to play some more and actually get to the endgame
+* Must center the glyphs
+** they're now left-aligned to the grid
+** we need an offset when we render them
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling

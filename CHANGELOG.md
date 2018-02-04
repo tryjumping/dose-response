@@ -5,12 +5,15 @@ play an addict. Avoid the dangers threatening your mind and body while
 desperately looking for the next fix.
 
 ## [Unreleased]
+- Added saving and loading
+- Fixed fullscreen (including on multi-monitor setups)
 
 
 ## [0.5.2] - 2018-01-29
 - Added Help screen (press `?` to open it)
 - Added Main menu (press `Esc` to open it)
 - Added variable-width text rendering (used in the menus and help)
+
 
 ## [0.5.1] - 2018-01-11
 - Added hints to the end game screen

@@ -81,7 +81,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
             item: Some(Kind::Voices),
         },
         Weighted {
-            weight: 10,
+            weight: 2,
             item: Some(Kind::Npc),
         },
     ];

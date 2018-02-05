@@ -961,7 +961,7 @@ pub fn main_loop(
                                 }
                             }
                         }
-                        WindowEvent::MouseMoved{ position: (x, y), ..} => {
+                        WindowEvent::CursorMoved{ position: (x, y), ..} => {
                             let (x, y) = (x as i32, y as i32);
                             mouse.screen_pos = Point { x, y };
 

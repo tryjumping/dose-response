@@ -64,6 +64,57 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
+* TODO Release build broken on worklaptop                               :bug:
+** It segfaults
+#+BEGIN_SRC
+    Finished release [optimized + debuginfo] target(s) in 389.28 secs
+     Running `target/release/dose-response`
+Recording the gameplay to 'replays/replay-2018-02-05T12-15-29.913'
+Using the default backend: opengl
+Segmentation fault (core dumped)
+#+END_SRC
+** The debug build is fine though
+** We can try valgrind
+#+BEGIN_SRC
+==8047== Jump to the invalid address stated on the next line
+==8047==    at 0x0: ???
+==8047==    by 0x2AD679: glutin::platform::platform::x11::Context::new::hf410b01e793bd6a1 (x11.rs:217)
+==8047==    by 0x2A8C88: new (mod.rs:58)
+==8047==    by 0x2A8C88: glutin::GlWindow::new::hab35f1133b654b29 (lib.rs:322)
+==8047==    by 0x24F75B: glium::backend::glutin::Display::new::h1dc6e175bf62856c (mod.rs:70)
+==8047==    by 0x187C0B: dose_response::engine::glium::main_loop::h0b13abbbbd9d9d99 (glium.rs:253)
+==8047==    by 0x1516B5: run_opengl (main.rs:175)
+==8047==    by 0x1516B5: process_cli_and_run_game (main.rs:357)
+==8047==    by 0x1516B5: dose_response::main::h4e19e89294a32849 (main.rs:373)
+==8047==    by 0x153935: std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h087a363af5de5204 (rt.rs:74)
+==8047==    by 0x3D25E7: {{closure}} (rt.rs:59)
+==8047==    by 0x3D25E7: _ZN3std9panicking3try7do_call17h3a020153b10a6418E.llvm.5B614953 (panicking.rs:479)
+==8047==    by 0x3EDBEE: __rust_maybe_catch_panic (lib.rs:102)
+==8047==    by 0x3DA2F3: try<i32,closure> (panicking.rs:458)
+==8047==    by 0x3DA2F3: catch_unwind<closure,i32> (panic.rs:358)
+==8047==    by 0x3DA2F3: std::rt::lang_start_internal::h6da36e5a2593d5f7 (rt.rs:58)
+==8047==    by 0x151901: main (rt.rs:74)
+==8047==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
+#+END_SRC
+** Prolly opengl?
+*** so yea looks it's a glutin thing
+** It does work on Stable: `rustc 1.23.0 (766bd11c8 2018-01-01)`
+*** The fixes are recorded in the `stable` branch
+*** Which means chances our, we've got a lucky functioning version on geralt
+*** But that means we need to pin our build process to that version or something?
+*** God, I can't wait for impl Trait to land
+** Try the same stable "fix" in nightly?
+*** getting the same crash
+*** so this is not related to our use of the impl Trait stuff
+** TODO Check out upstream issues
+*** in glutin, winit and glium
+** TODO Update all our deps
+*** Maybe it's something that was actually fixed in our deps or something?
+*** Try updating glium, glutin and winit
+** Println (this is a runtime error) to see where it occurs
+*** This line in engine/glium.rs
+let display = glium::Display::new(window, context, &events_loop).expect(...)
+* TODO Release build broken on Windows                                  :bug:
 * DONE Fix fullscreen
 CLOSED: [2018-02-04 Sun 10:08]
 ** Aspect ratio

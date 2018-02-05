@@ -465,6 +465,10 @@ fn process_help_window(state: &mut State) -> RunningState {
 
 
 fn process_endgame_window(state: &mut State) -> RunningState {
+    if state.keys.matches_code(KeyCode::N) {
+        return RunningState::NewGame(create_new_game_state(state));
+    }
+
     if state.keys.matches_code(KeyCode::Esc) {
         state.window_stack.push(Window::MainMenu);
         return RunningState::Running;

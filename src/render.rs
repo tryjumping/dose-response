@@ -624,7 +624,7 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
 
     drawcalls.push(Draw::Text(
         rect.bottom_left(),
-        "[?] Help       [Esc] Main Menu".into(),
+        "[N]ew Game       [?] Help       [Esc] Main Menu".into(),
         color::gui_text,
         TextOptions::align_center(rect.width()),
     ));

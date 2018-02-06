@@ -628,6 +628,9 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
         color::gui_text,
         TextOptions::align_center(rect.width()),
     ));
+
+    // Clear any fade set by the gameplay rendering
+    drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
 }
 
 

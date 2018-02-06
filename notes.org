@@ -82,9 +82,14 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** Is the tolerance progression okay?
 *** I have a feeling it builds up too slowly
 *** But we definitely need to play some more and actually get to the endgame
+*** Yea, I just won the game and I never had to use any of the strong stuff
+*** Need to increase it
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
+* DONE The "Victory" endgame screen is faded                            :bug:
+CLOSED: [2018-02-06 Tue 23:28]
+** It should be fully visible just like the death endgame screen
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling

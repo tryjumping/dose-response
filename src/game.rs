@@ -378,10 +378,35 @@ fn process_game(
 }
 
 
-fn process_main_menu(state: &mut State) -> RunningState {
+fn process_main_menu(state: &mut State, window: &main_menu_window::Window) -> RunningState {
     if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::R) {
         state.window_stack.pop();
         return RunningState::Running;
+    }
+
+    if let Some(option) = window.hovered(state.mouse) {
+        match option {
+            MenuOptions::NewGame => {
+                unimplemented!()
+            }
+
+            MenuOptions::Help => {
+                unimplemented!()
+            }
+
+            MenuOptions::Save => {
+                unimplemented!()
+            }
+
+            MenuOptions::Load => {
+                unimplemented!()
+            }
+
+            MenuOptions::Quit => {
+                unimplemented!()
+            }
+
+        }
     }
 
     if state.keys.matches_code(KeyCode::N) {

@@ -34,6 +34,8 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** Nice colours
 *** good colour palette
 *** distinct colours (so they're visible while High, too)
+*** The `S` and `v` monsters are hard to spot
+*** The blue doses are hard to see when High
 ** Reasonable AI
 *** monsters further away should not freak out when another monster is in the way
 ** Icon for the executable

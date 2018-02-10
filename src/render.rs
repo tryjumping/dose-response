@@ -4,17 +4,19 @@ use formula;
 use game;
 use graphics;
 use item;
+use main_menu_window;
 use monster;
 use player::{Bonus, CauseOfDeath, Mind};
 use point::{Point, SquareArea};
 use rect::Rectangle;
 use state::{HelpWindow, Side, State, Window};
-use std::borrow::Cow;
-use std::collections::HashMap;
-
-use std::time::Duration;
 use util;
 use world::Chunk;
+
+
+use std::borrow::Cow;
+use std::collections::HashMap;
+use std::time::Duration;
 
 
 pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
@@ -289,16 +291,6 @@ fn endgame_tip(state: &State) -> String {
 }
 
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-enum Layout<'a> {
-    Centered(&'a str),
-    Empty,
-    EmptySpace(i32),
-    Paragraph(&'a str),
-    SquareTiles(&'a str),
-}
-
-
 fn render_main_menu(state: &State, window: main_menu_window::Window, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     window.render(state, drawcalls);
 
@@ -308,7 +300,7 @@ fn render_main_menu(state: &State, window: main_menu_window::Window, metrics: &T
 
 
 fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
-    use self::Layout::*;
+    use ui::Layout::*;
 
     let screen_padding = Point::from_i32(2);
     let window_rect = Rectangle::from_point_and_size(
@@ -435,7 +427,7 @@ fn render_laid_out_text(lines: &[Layout],
                         rect: Rectangle,
                         metrics: &TextMetrics,
                         drawcalls: &mut Vec<Draw>) {
-    use self::Layout::*;
+    use ui::Layout::*;
 
     let mut ypos = 0;
     for text in lines.iter() {
@@ -485,7 +477,7 @@ fn render_laid_out_text(lines: &[Layout],
 
 fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     use self::CauseOfDeath::*;
-    use self::Layout::*;
+    use ui::Layout::*;
 
     let cause_of_death = formula::cause_of_death(&state.player);
     let endgame_reason_text = if state.side == Side::Victory {

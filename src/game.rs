@@ -6,6 +6,7 @@ use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::TileKind;
+use main_menu_window;
 use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
@@ -379,6 +380,7 @@ fn process_game(
 
 
 fn process_main_menu(state: &mut State, window: &main_menu_window::Window) -> RunningState {
+    use main_menu_window::Options::*;
     if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::R) {
         state.window_stack.pop();
         return RunningState::Running;
@@ -386,23 +388,23 @@ fn process_main_menu(state: &mut State, window: &main_menu_window::Window) -> Ru
 
     if let Some(option) = window.hovered(state.mouse) {
         match option {
-            MenuOptions::NewGame => {
+            NewGame => {
                 unimplemented!()
             }
 
-            MenuOptions::Help => {
+            Help => {
                 unimplemented!()
             }
 
-            MenuOptions::Save => {
+            SaveAndQuit => {
                 unimplemented!()
             }
 
-            MenuOptions::Load => {
+            Load => {
                 unimplemented!()
             }
 
-            MenuOptions::Quit => {
+            Quit => {
                 unimplemented!()
             }
 

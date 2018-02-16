@@ -1753,3 +1753,12 @@ CLOSED: [2018-02-16 Fri 18:04]
 *** For the release mode only
 *** This should speed up the game
 *** https://blog.rust-lang.org/2018/02/15/Rust-1.24.html
+** DONE Fix rand compilation error on wasm                            :code:
+CLOSED: [2018-02-16 Fri 20:39]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-16 Fri 20:39
+:END:
+*** We need to use master rand because of serialization support
+*** But it does not compile on wasm
+*** Need to fix that
+*** Switch to a local checkout and investigate

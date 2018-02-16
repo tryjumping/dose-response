@@ -33,10 +33,11 @@ zmq = { version = "0.8", optional = true }
 version = "0.1.40"
 default-features = false
 
-[dependencies.rand]
-#version = "0.4.2"
-git = "https://github.com/rust-lang-nursery/rand.git"
-features = ["serde-1"]
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rand = { git = "https://github.com/rust-lang-nursery/rand.git", features = ["serde-1"], optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+rand = { git = "https://github.com/rust-lang-nursery/rand.git" , default-features = false, features = ["serde-1"] }
 
 [build-dependencies]
 rusttype = "0.2.1"
@@ -45,7 +46,7 @@ image = "0.12.2"
 
 [features]
 
-default = ["opengl", "cli", "replay"]
+default = ["opengl", "cli", "replay", "rand"]
 
 cli = ["clap"]
 

@@ -1070,7 +1070,7 @@ dependencies = [
 [[package]]
 name = "rand"
 version = "0.4.2"
-source = "git+https://github.com/rust-lang-nursery/rand.git#c1c29f7cc80156f74b36653976992a03ae80d4c6"
+source = "git+https://github.com/rust-lang-nursery/rand.git#ae3839d168399d14bdc3f55302a27a60f6e523fc"
 dependencies = [
  "cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "fuchsia-zircon 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",

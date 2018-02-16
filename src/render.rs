@@ -300,7 +300,7 @@ fn render_main_menu(
 }
 
 fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
-    use ui::TextFlow::*;
+    use ui::Text::*;
 
     let screen_padding = Point::from_i32(2);
     let window_rect =
@@ -425,7 +425,7 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
 
 fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     use self::CauseOfDeath::*;
-    use ui::TextFlow::*;
+    use ui::Text::*;
 
     let cause_of_death = formula::cause_of_death(&state.player);
     let endgame_reason_text = if state.side == Side::Victory {

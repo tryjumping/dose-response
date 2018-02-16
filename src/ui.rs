@@ -4,7 +4,7 @@ use point::Point;
 use rect::Rectangle;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum TextFlow<'a> {
+pub enum Text<'a> {
     Centered(&'a str),
     Empty,
     EmptySpace(i32),
@@ -13,15 +13,15 @@ pub enum TextFlow<'a> {
 }
 
 pub fn render_text_flow(
-    lines: &[TextFlow],
+    text_flow: &[Text],
     rect: Rectangle,
     metrics: &TextMetrics,
     drawcalls: &mut Vec<Draw>,
 ) {
-    use self::TextFlow::*;
+    use self::Text::*;
 
     let mut ypos = 0;
-    for text in lines.iter() {
+    for text in text_flow.iter() {
         match text {
             &Empty => {
                 ypos += 1;
@@ -70,19 +70,19 @@ pub fn render_text_flow(
 }
 
 pub fn text_flow_rect(
-    lines: &[TextFlow],
+    lines: &[Text],
     rect: Rectangle,
     metrics: &TextMetrics,
 ) -> Rectangle {
-    //use self::TextFlow::*;
+    //use self::Text::*;
     unimplemented!()
 }
 
 pub fn text_rect(
-    text_flow: &TextFlow,
+    text_flow: &Text,
     rect: Rectangle,
     metrics: &TextMetrics,
 ) -> Rectangle {
-    //use self::TextFlow::*;
+    //use self::Text::*;
     unimplemented!()
 }

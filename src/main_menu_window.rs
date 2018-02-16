@@ -3,7 +3,7 @@ use engine::{Draw, TextMetrics};
 use point::Point;
 use rect::Rectangle;
 use state::State;
-use ui::{self, TextFlow};
+use ui::{self, Text};
 
 pub enum MenuItem {
     Resume,
@@ -34,7 +34,7 @@ pub struct Layout<'a> {
     window_rect: Rectangle,
     inner_window_rect: Rectangle,
     rect: Rectangle,
-    lines: Vec<TextFlow<'a>>,
+    text_flow: Vec<Text<'a>>,
     menu_item_under_mouse: Option<MenuItem>,
     menu_rect_under_mouse: Option<Rectangle>,
 }
@@ -43,7 +43,7 @@ pub struct Window;
 
 impl Window {
     fn calculate_layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
-        use ui::TextFlow::*;
+        use ui::Text::*;
 
         let window_pos = Point::new(0, 0);
         let window_size = state.display_size;
@@ -59,14 +59,14 @@ impl Window {
         let rect_pos = Point::new((inner_window_rect.width() - rect_size.x) / 2, 0);
         let rect = Rectangle::from_point_and_size(rect_pos, rect_size);
 
-        let mut lines = vec![
+        let mut text_flow = vec![
             EmptySpace(2),
             Centered("Dose Response"),
             Centered("By Tomas Sedovic"),
             EmptySpace(2),
         ];
 
-        let header_rect = ui::text_flow_rect(&lines, rect, metrics);
+        let header_rect = ui::text_flow_rect(&text_flow, rect, metrics);
 
         let mut options = vec![];
 
@@ -111,20 +111,20 @@ impl Window {
                 menu_item_under_mouse = Some(option);
                 menu_rect_under_mouse = Some(rect);
             }
-            lines.push(text);
-            lines.push(Empty);
+            text_flow.push(text);
+            text_flow.push(Empty);
         }
         let rect = Rectangle::new(next_top_left, rect.bottom_right());
 
-        lines.push(EmptySpace(3));
-        lines.push(Paragraph("\"You cannot lose if you do not play.\""));
-        lines.push(Paragraph("-- Marla Daniels"));
+        text_flow.push(EmptySpace(3));
+        text_flow.push(Paragraph("\"You cannot lose if you do not play.\""));
+        text_flow.push(Paragraph("-- Marla Daniels"));
 
         Layout {
             window_rect,
             inner_window_rect,
             rect,
-            lines,
+            text_flow,
             menu_item_under_mouse,
             menu_rect_under_mouse,
         }
@@ -145,7 +145,7 @@ impl Window {
 
         let rect = layout.rect;
 
-        ui::render_text_flow(&layout.lines, rect, metrics, drawcalls);
+        ui::render_text_flow(&layout.text_flow, rect, metrics, drawcalls);
 
         if let Some(rect) = layout.menu_rect_under_mouse {
             drawcalls.push(Draw::Rectangle(

@@ -355,77 +355,90 @@ fn process_game(state: &mut State, dt: Duration) -> RunningState {
 
 fn process_main_menu(state: &mut State, window: &main_menu_window::Window, metrics: &TextMetrics) -> RunningState {
     use main_menu_window::MenuItem::*;
-    if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::R) {
-        state.window_stack.pop();
-        return RunningState::Running;
-    }
+
+    let mut option = None;
 
     if state.mouse.left {
-        if let Some(option) = window.hovered(&state, metrics) {
-            match option {
-                Resume => unimplemented!(),
+        option = window.hovered(&state, metrics);
+    }
 
-                NewGame => unimplemented!(),
-
-                Help => unimplemented!(),
-
-                SaveAndQuit => unimplemented!(),
-
-                Load => unimplemented!(),
-
-                Quit => unimplemented!(),
-            }
+    if option.is_none() {
+        if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::R) {
+            option = Some(Resume);
+        } else if state.keys.matches_code(KeyCode::N) {
+            option = Some(NewGame);
+        } else if state.keys.matches_code(KeyCode::QuestionMark) || state.keys.matches_code(KeyCode::H) {
+            option = Some(Help);
+        } else if state.keys.matches_code(KeyCode::S) {
+            option = Some(SaveAndQuit);
+        } else if state.keys.matches_code(KeyCode::Q) {
+            option = Some(Quit);
+        } else if state.keys.matches_code(KeyCode::L) {
+            option = Some(Load);
         }
     }
 
-    if state.keys.matches_code(KeyCode::N) {
-        // TODO: when this is the first run, this should resume the game that's already
-        // loaded in the background.
-        return RunningState::NewGame(create_new_game_state(state));
-    }
-    if state.keys.matches_code(KeyCode::QuestionMark) || state.keys.matches_code(KeyCode::H) {
-        state.window_stack.push(Window::Help);
-        return RunningState::Running;
-    }
 
-    if state.keys.matches_code(KeyCode::S) {
-        if !state.game_ended {
-            match state.save_to_file() {
-                Ok(()) => return RunningState::Stopped,
-                Err(error) => {
-                    // NOTE: we couldn't save the game so we'll keep going
-                    println!("Error saving the game: {:?}", error);
-                    state
-                        .window_stack
-                        .push(Window::Message("Error: could not save the game.".into()));
-                }
+    if let Some(option) = option {
+        match option {
+            Resume => {
+                state.window_stack.pop();
+                return RunningState::Running;
             }
-        }
-        return RunningState::Running;
-    }
 
-    if state.keys.matches_code(KeyCode::Q) {
-        return RunningState::Stopped;
-    }
+            NewGame => {
+                // TODO: when this is the first run, this should resume the game that's already
+                // loaded in the background.
+                return RunningState::NewGame(create_new_game_state(state));
+            }
 
-    if state.keys.matches_code(KeyCode::L) {
-        match State::load_from_file() {
-            Ok(new_state) => {
-                *state = new_state;
-                if state.window_stack.top() == Window::MainMenu {
-                    state.window_stack.pop();
+            Help => {
+                state.window_stack.push(Window::Help);
+                return RunningState::Running;
+            }
+
+            SaveAndQuit => {
+                if !state.game_ended {
+                    match state.save_to_file() {
+                        Ok(()) => return RunningState::Stopped,
+                        Err(error) => {
+                            // NOTE: we couldn't save the game so we'll keep going
+                            println!("Error saving the game: {:?}", error);
+                            state
+                                .window_stack
+                                .push(Window::Message("Error: could not save the game.".into()));
+                        }
+                    }
                 }
                 return RunningState::Running;
             }
-            Err(error) => {
-                println!("Error loading the game: {:?}", error);
-                state
-                    .window_stack
-                    .push(Window::Message("Error: could not load the game.".into()));
-                return RunningState::Running;
+
+            Load => {
+                match State::load_from_file() {
+                    Ok(new_state) => {
+                        *state = new_state;
+                        if state.window_stack.top() == Window::MainMenu {
+                            state.window_stack.pop();
+                        }
+                        return RunningState::Running;
+                    }
+                    Err(error) => {
+                        println!("Error loading the game: {:?}", error);
+                        state
+                            .window_stack
+                            .push(Window::Message("Error: could not load the game.".into()));
+                        return RunningState::Running;
+                    }
+                }
             }
+
+            Quit => {
+                return RunningState::Stopped;
+            }
+
         }
     }
+
     RunningState::Running
 }
 

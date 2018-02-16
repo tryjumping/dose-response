@@ -68,11 +68,6 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Optional: Record a lets play
 * TODO Release build broken on Windows                                  :bug:
 ** try a new build with the glium update
-* DONE Fix fullscreen
-CLOSED: [2018-02-04 Sun 10:08]
-** Aspect ratio
-** Keep the screen on the same monitor
-*** repro: fullscreen, windowed, fullscreen -> moves to another monitor
 * Game balance notes:
 ** DONE starting doses overlap
 CLOSED: [2018-02-04 Sun 16:33]
@@ -89,18 +84,17 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
-* DONE The "Victory" endgame screen is faded                            :bug:
-CLOSED: [2018-02-06 Tue 23:28]
-** It should be fully visible just like the death endgame screen
+* Main menu mouse support looks ugly                                     :ui:
+** Ugly colour
+** Asymmetric highlighted rect
+* Mouse support for endgame screen                                       :ui:
+* Mouse support for inventory                                            :ui:
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling
-* Add codegen-units: 1 to Cargo.toml                                   :code:
-** For the release mode only
-** This should speed up the game
-** https://blog.rust-lang.org/2018/02/15/Rust-1.24.html
-* Don't fade when showing the main menu
-** I think we can do this by issuing another Fade call in the menu render
+* Fix mouse position in fullscreen                                       :ui:
+** Looks like the Y coord is right but X is off
+** Prolly a letterboxing artifact
 * Show the next/prev page title in the help page                         :ui:
 ** Instead of the generic Next page / Previous page text
 * Write a "Legend" help page
@@ -132,14 +126,13 @@ CLOSED: [2018-02-06 Tue 23:28]
 *** g+
 *** mastodon
 *** maybe reddit?
+* Replace keyboard hints with a "press ? to help" msg?                   :ui:
 * Store save in the right location for the system
 ** https://crates.io/crates/standard_paths
 *** looks good but no mac support?
 ** https://crates.io/crates/xdg-basedir
-* Mouse support for menus                                                :ui:
 * Show the current game build version in the main menu                   :ui:
 ** https://doc.rust-lang.org/cargo/reference/environment-variables.html
-* Replace keyboard hints with a "press ? to help" msg?                   :ui:
 * Investigate terminal backend
 ** Libraries:
 *** https://crates.io/crates/termion
@@ -1727,3 +1720,36 @@ CLOSED: [2018-02-05 Mon 17:21]
 *** Println (this is a runtime error) to see where it occurs
 **** This line in engine/glium.rs
 let display = glium::Display::new(window, context, &events_loop).expect(...)
+** DONE The "Victory" endgame screen is faded                          :bug:
+CLOSED: [2018-02-06 Tue 23:28]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-16 Fri 17:52
+:END:
+*** It should be fully visible just like the death endgame screen
+** DONE Fix fullscreen
+CLOSED: [2018-02-04 Sun 10:08]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-16 Fri 17:53
+:END:
+*** Aspect ratio
+*** Keep the screen on the same monitor
+**** repro: fullscreen, windowed, fullscreen -> moves to another monitor
+** DONE Don't fade when showing the main menu
+CLOSED: [2018-02-16 Fri 17:54]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-16 Fri 17:54
+:END:
+*** I think we can do this by issuing another Fade call in the menu render
+** DONE Mouse support for menus                                         :ui:
+CLOSED: [2018-02-16 Fri 17:54]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-16 Fri 17:54
+:END:
+** DONE Add codegen-units: 1 to Cargo.toml                            :code:
+CLOSED: [2018-02-16 Fri 18:04]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-16 Fri 18:04
+:END:
+*** For the release mode only
+*** This should speed up the game
+*** https://blog.rust-lang.org/2018/02/15/Rust-1.24.html

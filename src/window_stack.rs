@@ -3,7 +3,6 @@ pub struct WindowStack<T> {
     stack: Vec<T>,
 }
 
-
 impl<T: Clone> WindowStack<T> {
     pub fn new(default: T) -> Self {
         WindowStack {
@@ -25,7 +24,7 @@ impl<T: Clone> WindowStack<T> {
         self.stack.last().unwrap().clone()
     }
 
-    pub fn windows(&self) -> impl Iterator<Item=&T> {
+    pub fn windows(&self) -> impl Iterator<Item = &T> {
         self.stack.iter()
     }
 }

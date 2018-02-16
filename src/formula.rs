@@ -1,10 +1,9 @@
-use item::{Kind, Item};
+use item::{Item, Kind};
 use player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
 use monster::CompanionBonus;
 use ranged_int::{InclusiveRange, Ranged};
 use std::cmp;
 use num_rational::{Ratio, Rational32};
-
 
 pub const INITIAL_SAFE_RADIUS: i32 = 25;
 pub const INITIAL_EASY_RADIUS: i32 = 40;
@@ -86,21 +85,26 @@ pub const ESTRANGED_NPC_MAX_AP: i32 = 2;
 
 pub const FRIENDLY_NPC_FREEZE_RADIUS: f32 = 3.0;
 
-
 pub fn exploration_radius(mental_state: Mind) -> i32 {
     use player::Mind::*;
     match mental_state {
-        Withdrawal(value) => if value.to_int() >= value.middle() { 5 } else { 4 },
+        Withdrawal(value) => if value.to_int() >= value.middle() {
+            5
+        } else {
+            4
+        },
         Sober(_) => 6,
-        High(value) => if value.to_int() >= value.middle() { 8 } else { 7 },
+        High(value) => if value.to_int() >= value.middle() {
+            8
+        } else {
+            7
+        },
     }
 }
-
 
 pub fn player_resist_radius(dose_irresistible_value: i32, will: i32) -> i32 {
     cmp::max(dose_irresistible_value + 2 - will, 0)
 }
-
 
 pub fn mind_drop_per_turn(bonuses: &[CompanionBonus]) -> Rational32 {
     if bonuses.contains(&CompanionBonus::HalveExhaustion) {
@@ -109,7 +113,6 @@ pub fn mind_drop_per_turn(bonuses: &[CompanionBonus]) -> Rational32 {
         Ratio::from_integer(MIND_DROP_PER_TURN)
     }
 }
-
 
 pub fn mind_take_turn(mind: Mind, drop: Rational32) -> Mind {
     use self::Mind::*;
@@ -133,7 +136,6 @@ pub fn mind_take_turn(mind: Mind, drop: Rational32) -> Mind {
         }
     }
 }
-
 
 /// Update the `Mind` when eating food or being hit by the Hunger
 /// monster.
@@ -171,7 +173,6 @@ pub fn process_hunger(mind: Mind, amount: i32) -> Mind {
     }
 }
 
-
 pub fn intoxicate(mind: Mind, tolerance: i32, expected_increment: i32) -> Mind {
     let increment = cmp::max(10, expected_increment - tolerance);
 
@@ -179,12 +180,10 @@ pub fn intoxicate(mind: Mind, tolerance: i32, expected_increment: i32) -> Mind {
     // value, otherwise we go to high directly, ignoring any
     // withdrawn/sober states.
     match mind {
-        Mind::Withdrawal(_) |
-        Mind::Sober(_) => Mind::High(Ranged::new(increment, HIGH)),
+        Mind::Withdrawal(_) | Mind::Sober(_) => Mind::High(Ranged::new(increment, HIGH)),
         Mind::High(val) => Mind::High(val + increment),
     }
 }
-
 
 pub fn mind_bonus(mind: Mind) -> Option<Bonus> {
     match mind {
@@ -212,7 +211,6 @@ pub fn cause_of_death(player: &Player) -> Option<CauseOfDeath> {
 
     None
 }
-
 
 pub fn mind_fade_value(mind: Mind) -> f32 {
     use player::Mind::*;

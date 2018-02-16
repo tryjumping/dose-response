@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 use std::iter::IntoIterator;
 
-
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Key {
     pub code: KeyCode,
@@ -9,7 +8,6 @@ pub struct Key {
     pub ctrl: bool,
     pub shift: bool,
 }
-
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum KeyCode {
@@ -81,16 +79,16 @@ pub enum KeyCode {
     QuestionMark,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Keys {
     keys: VecDeque<Key>,
 }
 
-
 impl Keys {
     pub fn new() -> Self {
-        Keys { keys: VecDeque::new() }
+        Keys {
+            keys: VecDeque::new(),
+        }
     }
 
     /// Pop the `Key` from the beginning of the queue.
@@ -106,7 +104,6 @@ impl Keys {
     where
         F: Fn(Key) -> bool,
     {
-
         let mut len = self.keys.len();
         let mut processed = 0;
         let mut found = false;
@@ -124,7 +121,6 @@ impl Keys {
             processed += 1;
         }
         return found;
-
     }
 
     /// Return true if any key has the specified key code.

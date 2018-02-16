@@ -1,4 +1,4 @@
-use std::cmp::{Ordering, max};
+use std::cmp::{max, Ordering};
 use std::fmt::{self, Display, Error, Formatter};
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
@@ -190,7 +190,6 @@ impl Div<i32> for Point {
         Point::new(self.x / rhs, self.y / rhs)
     }
 }
-
 
 pub struct CircularArea {
     pos: Point,
@@ -402,7 +401,6 @@ mod test {
         assert_eq!(Point::new(1, 0) >= Point::new(0, 0), true);
         assert_eq!(Point::new(0, 1) >= Point::new(0, 0), true);
     }
-
 
     #[test]
     fn test_point_tuple_comparison() {

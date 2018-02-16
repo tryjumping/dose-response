@@ -115,12 +115,10 @@ impl Path {
                             path_buffer.push(current);
                         }
                     }
-                    Some(&None) => {
-                        panic!(
-                            "Every point except for the initial \
-                                           one (`from`) one should be some."
-                        )
-                    }
+                    Some(&None) => panic!(
+                        "Every point except for the initial \
+                         one (`from`) one should be some."
+                    ),
                     None => {
                         path_buffer = vec![];
                         break;
@@ -178,9 +176,6 @@ impl PartialOrd for State {
         Some(self.cmp(other))
     }
 }
-
-
-
 
 #[cfg(test)]
 mod test {

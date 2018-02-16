@@ -22,7 +22,6 @@ use timer::Timer;
 use window_stack::WindowStack;
 use world::World;
 
-
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the
 // player won? Lost?
@@ -31,8 +30,6 @@ pub enum Side {
     Player,
     Victory,
 }
-
-
 
 // TODO: rename this to Input or something like that. This represents the raw
 // commands from the player or AI abstracted from keyboard, joystick or
@@ -53,7 +50,6 @@ pub enum Command {
     UseDiagonalDose,
     UseStrongDose,
 }
-
 
 #[cfg(feature = "replay")]
 pub fn generate_replay_path() -> Option<PathBuf> {
@@ -115,8 +111,7 @@ pub struct State {
     pub keys: Keys,
     pub mouse: Mouse,
     pub commands: VecDeque<Command>,
-    #[serde(skip_serializing, skip_deserializing)]
-    pub verifications: VecDeque<Verification>,
+    #[serde(skip_serializing, skip_deserializing)] pub verifications: VecDeque<Verification>,
     #[serde(skip_serializing, skip_deserializing, default = "empty_command_logger")]
     pub command_logger: Box<Write>,
     pub side: Side,
@@ -127,8 +122,7 @@ pub struct State {
     pub exit_after: bool,
     pub clock: Duration,
     pub replay_step: Duration,
-    #[serde(skip_serializing, skip_deserializing)]
-    pub stats: Stats,
+    #[serde(skip_serializing, skip_deserializing)] pub stats: Stats,
     pub pos_timer: Timer,
     pub paused: bool,
     pub old_screen_pos: Point,
@@ -236,14 +230,12 @@ impl State {
                     println!("Recording the gameplay to '{}'", replay_path.display());
                     Box::new(f)
                 }
-                Err(msg) => {
-                    panic!(
-                        "Failed to create the replay file at '{:?}'.
+                Err(msg) => panic!(
+                    "Failed to create the replay file at '{:?}'.
 Reason: '{}'.",
-                        replay_path.display(),
-                        msg
-                    )
-                }
+                    replay_path.display(),
+                    msg
+                ),
             }
         } else {
             Box::new(io::sink())
@@ -290,12 +282,10 @@ Reason: '{}'.",
             Ok(file) => {
                 let mut lines = BufReader::new(file).lines();
                 match lines.next() {
-                    Some(seed_str) => {
-                        match seed_str.unwrap().parse() {
-                            Ok(parsed_seed) => seed = parsed_seed,
-                            Err(_) => panic!("The seed must be a number."),
-                        }
-                    }
+                    Some(seed_str) => match seed_str.unwrap().parse() {
+                        Ok(parsed_seed) => seed = parsed_seed,
+                        Err(_) => panic!("The seed must be a number."),
+                    },
                     None => panic!("The replay file is empty."),
                 }
 
@@ -308,32 +298,27 @@ Reason: '{}'.",
                             } else {
                                 let verification = serde_json::from_str(&line).expect(&format!(
                                     "Couldn't load the \
-                                                      command or \
-                                                      verification: '{}'.",
+                                     command or \
+                                     verification: '{}'.",
                                     line
                                 ));
                                 verifications.push_back(verification);
                             }
                         }
-                        Some(Err(err)) => {
-                            panic!(
-                                "Error reading a line from the replay \
-                                    file: {:?}.",
-                                err
-                            )
-                        }
+                        Some(Err(err)) => panic!(
+                            "Error reading a line from the replay \
+                             file: {:?}.",
+                            err
+                        ),
                         None => break,
                     }
                 }
-
             }
-            Err(msg) => {
-                panic!(
-                    "Failed to read the replay file: {}. Reason: {}",
-                    replay_path.display(),
-                    msg
-                )
-            }
+            Err(msg) => panic!(
+                "Failed to read the replay file: {}. Reason: {}",
+                replay_path.display(),
+                msg
+            ),
         }
         println!("Replaying game log: '{}'", replay_path.display());
         let cheating = true;
@@ -367,9 +352,8 @@ Reason: '{}'.",
                 }
             }
         }
-        monsters.sort_by_key(|&(monster_pos, _chunk_pos, kind)| {
-            (monster_pos.x, monster_pos.y, kind)
-        });
+        monsters
+            .sort_by_key(|&(monster_pos, _chunk_pos, kind)| (monster_pos.x, monster_pos.y, kind));
 
         Verification {
             turn: self.turn,
@@ -408,14 +392,16 @@ Reason: '{}'.",
         };
 
         if let Err(error) = ::std::fs::remove_file(filename) {
-            println!("Failed to delete the successfully loaded savegame. Error: {:?}", error);
+            println!(
+                "Failed to delete the successfully loaded savegame. Error: {:?}",
+                error
+            );
             println!("Ignoring...");
         }
 
         Ok(state)
     }
 }
-
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Window {
@@ -425,7 +411,6 @@ pub enum Window {
     Endgame,
     Message(String),
 }
-
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum HelpWindow {
@@ -447,8 +432,8 @@ pub fn log_command<W: Write>(writer: &mut W, command: Command) {
     use serde_json;
     let json_command = serde_json::to_string(&command).expect(&format!(
         "Could not \
-                                                         serialise {:?} to \
-                                                         json.",
+         serialise {:?} to \
+         json.",
         command
     ));
     writeln!(writer, "{}", json_command).unwrap();
@@ -458,14 +443,14 @@ pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {
     use serde_json;
     let json = serde_json::to_string(&verification).expect(&format!(
         "Could not \
-                                                              serialise \
-                                                              {:?} to json.",
+         serialise \
+         {:?} to json.",
         verification
     ));
     writeln!(writer, "{}", json).expect(&format!(
         "Could not write the \
-                                                  verification: '{}' to the \
-                                                  replay log.",
+         verification: '{}' to the \
+         replay log.",
         json
     ));
 }

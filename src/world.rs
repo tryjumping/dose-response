@@ -27,9 +27,8 @@ impl Chunk {
         // NOTE: `x` and `y` overflow on negative values here, but all
         // we care about is having a distinct value for each position
         // so our seeds don't repeat. So this is fine here.
-        let seed = Wrapping(world_seed as u64) +
-            (Wrapping(13) * Wrapping(pos.x as u64)) +
-            (Wrapping(17) * Wrapping(pos.y as u64));
+        let seed = Wrapping(world_seed as u64) + (Wrapping(13) * Wrapping(pos.x as u64))
+            + (Wrapping(17) * Wrapping(pos.y as u64));
 
         // TODO: Monsters in different chunks will now have identical
         // IDs. We need to investigate whether that's a problem.
@@ -42,14 +41,17 @@ impl Chunk {
         };
 
         let mut throwavay_rng = chunk.rng.clone();
-        let generated_data =
-            generators::forrest::generate(&mut chunk.rng, &mut throwavay_rng, chunk.level.size(), player_position);
+        let generated_data = generators::forrest::generate(
+            &mut chunk.rng,
+            &mut throwavay_rng,
+            chunk.level.size(),
+            player_position,
+        );
 
         chunk.populate(generated_data);
 
         chunk
     }
-
 
     fn populate(&mut self, generated_world: GeneratedWorld) {
         let (map, generated_monsters, items) = generated_world;
@@ -95,7 +97,7 @@ impl Chunk {
         self.monsters.iter()
     }
 
-    pub fn monsters_mut<'a>(&'a mut self) -> impl Iterator<Item=&'a mut Monster> {
+    pub fn monsters_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut Monster> {
         self.monsters.iter_mut()
     }
 }
@@ -120,7 +122,6 @@ impl<'a> Iterator for ChunkCells<'a> {
 struct ChunkPosition {
     position: Point,
 }
-
 
 #[derive(Serialize, Deserialize)]
 pub struct World {
@@ -158,13 +159,8 @@ impl World {
 
     /// Remove some of the monsters from player's initial vicinity,
     /// place some food nearby and a dose in sight.
-    fn prepare_initial_playing_area<R: Rng>(
-        &mut self,
-        player_info: PlayerInfo,
-        rng: &mut R,
-    ) {
+    fn prepare_initial_playing_area<R: Rng>(&mut self, player_info: PlayerInfo, rng: &mut R) {
         assert!(formula::INITIAL_SAFE_RADIUS <= formula::INITIAL_EASY_RADIUS);
-
 
         let safe_area = Rectangle::center(
             player_info.pos,
@@ -201,14 +197,12 @@ impl World {
             Point::from_i32(formula::NO_LETHAL_DOSE_RADIUS),
         );
 
-
         // Clear any doses whos irresistible area touches the player's
         // position.
         {
-            let resist_radius = formula::player_resist_radius(
-                formula::DOSE_PREFAB.irresistible, player_info.will);
-            let resist_area = Rectangle::center(
-                player_info.pos, Point::from_i32(resist_radius));
+            let resist_radius =
+                formula::player_resist_radius(formula::DOSE_PREFAB.irresistible, player_info.will);
+            let resist_area = Rectangle::center(player_info.pos, Point::from_i32(resist_radius));
             for point in resist_area.points() {
                 if let Some(cell) = self.cell_mut(point) {
                     for index in (0..cell.items.len()).rev() {
@@ -219,8 +213,6 @@ impl World {
                 }
             }
         }
-
-
 
         for pos in no_lethal_dose_area.points() {
             if let Some(cell) = self.cell_mut(pos) {
@@ -262,10 +254,9 @@ impl World {
                     irresistible: 2,
                 };
 
-
-                let resist_radius = formula::player_resist_radius(dose.irresistible, player_info.will);
-                let resist_area = Rectangle::center(
-                    pos, Point::from_i32(resist_radius));
+                let resist_radius =
+                    formula::player_resist_radius(dose.irresistible, player_info.will);
+                let resist_area = Rectangle::center(pos, Point::from_i32(resist_radius));
 
                 // Bail if the player would be in the resist radius
                 if resist_area.contains(player_info.pos) {
@@ -274,11 +265,8 @@ impl World {
 
                 // Bail if another dose is in the resist area
                 if resist_area.points().any(|irresistable_point| {
-                    self.cell(irresistable_point).map_or(
-                        false,
-                        |cell| {
-                            cell.items.iter().any(|item| item.is_dose())
-                        })
+                    self.cell(irresistable_point)
+                        .map_or(false, |cell| cell.items.iter().any(|item| item.is_dose()))
                 }) {
                     continue;
                 }
@@ -327,7 +315,6 @@ impl World {
         if let Some(cell) = self.cell_mut(player_info.pos) {
             cell.items.clear();
         }
-
     }
 
     /// Return the ChunkPosition for a given point within the chunk.
@@ -376,9 +363,9 @@ impl World {
         let chunk_size = self.chunk_size;
         // TODO: figure out how to generate the starting chunks so the
         // player has some doses and food and no monsters.
-        self.chunks.entry(chunk_position).or_insert_with(|| {
-            Chunk::new(seed, chunk_position, chunk_size, (0, 0).into())
-        });
+        self.chunks
+            .entry(chunk_position)
+            .or_insert_with(|| Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()));
     }
 
     fn cell(&self, world_pos: Point) -> Option<&Cell> {
@@ -407,10 +394,9 @@ impl World {
     /// some sort of upper limit on the positions it's able to
     /// support.
     pub fn within_bounds(&self, pos: Point) -> bool {
-        pos.x < self.max_half_size && pos.x > -self.max_half_size && pos.y < self.max_half_size &&
-            pos.y > -self.max_half_size
+        pos.x < self.max_half_size && pos.x > -self.max_half_size && pos.y < self.max_half_size
+            && pos.y > -self.max_half_size
     }
-
 
     /// Check whether the given position is walkable.
     ///
@@ -422,7 +408,10 @@ impl World {
             .map(|chunk| {
                 let blocks_player = blockers.contains(Blocker::PLAYER) && pos == player_pos;
                 let level_position = chunk.level_position(pos);
-                chunk.level.walkable(level_position, blockers - Blocker::PLAYER) && !blocks_player
+                chunk
+                    .level
+                    .walkable(level_position, blockers - Blocker::PLAYER)
+                    && !blocks_player
             })
             .unwrap_or(false);
         self.within_bounds(pos) && level_cell_walkable
@@ -445,9 +434,10 @@ impl World {
         if self.within_bounds(world_pos) {
             if let Some(chunk) = self.chunk_mut(world_pos) {
                 let level_position = chunk.level_position(world_pos);
-                chunk.level.monster_on_pos(level_position).and_then(
-                    move |monster_index| Some(&mut chunk.monsters[monster_index]),
-                )
+                chunk
+                    .level
+                    .monster_on_pos(level_position)
+                    .and_then(move |monster_index| Some(&mut chunk.monsters[monster_index]))
             } else {
                 None
             }
@@ -487,10 +477,9 @@ impl World {
             ));
             let level_monster_pos = chunk.level_position(monster_position);
             let level_destination_pos = chunk.level_position(destination);
-            chunk.level.move_monster(
-                level_monster_pos,
-                level_destination_pos,
-            );
+            chunk
+                .level
+                .move_monster(level_monster_pos, level_destination_pos);
         } else {
             // Need to move the monster to another chunk
             // NOTE: We're not removing the monster from the
@@ -502,7 +491,7 @@ impl World {
             let mut new_monster = {
                 let monster = self.monster_on_pos(monster_position).expect(
                     "Trying to move a monster, but there's nothing \
-                             there.",
+                     there.",
                 );
                 let result = monster.clone();
                 monster.dead = true;
@@ -515,16 +504,15 @@ impl World {
                 new_monster.position = destination;
                 let destination_chunk = self.chunk_mut(destination).expect(&format!(
                     "Destination chunk at {:?} doesn't \
-                                      exist.",
+                     exist.",
                     destination
                 ));
                 let new_monster_index = destination_chunk.monsters.len();
                 destination_chunk.monsters.push(new_monster);
                 let destination_level_position = destination_chunk.level_position(destination);
-                destination_chunk.level.set_monster(
-                    destination_level_position,
-                    new_monster_index,
-                );
+                destination_chunk
+                    .level
+                    .set_monster(destination_level_position, new_monster_index);
             }
 
             assert!(!self.walkable(destination, Blocker::MONSTER, player_position));
@@ -604,7 +592,7 @@ impl World {
         }
         match rng.choose(&walkables) {
             Some(&random_pos) => random_pos,
-            None => starting_pos,  // Nowhere to go
+            None => starting_pos, // Nowhere to go
         }
     }
 
@@ -623,8 +611,8 @@ impl World {
                 rng.gen_range(-range.1, range.1 + 1),
             );
             let candidate = starting_position + offset;
-            if offset.x.abs() > range.0 && offset.y.abs() > range.0 &&
-                self.walkable(candidate, blockers, player_position)
+            if offset.x.abs() > range.0 && offset.y.abs() > range.0
+                && self.walkable(candidate, blockers, player_position)
             {
                 return Some(candidate);
             }
@@ -636,13 +624,13 @@ impl World {
     /// area.
     ///
     /// NOTE: The order of the chunks is not specified.
-    pub fn chunks<'a>(&'a self, area: Rectangle) -> impl Iterator<Item=&'a Chunk> {
+    pub fn chunks<'a>(&'a self, area: Rectangle) -> impl Iterator<Item = &'a Chunk> {
         let chunk_size = self.chunk_size;
         self.chunks
             .iter()
             .filter(move |&(pos, ref _chunk)| {
-                let chunk_area = Rectangle::from_point_and_size(
-                    pos.position, Point::from_i32(chunk_size));
+                let chunk_area =
+                    Rectangle::from_point_and_size(pos.position, Point::from_i32(chunk_size));
                 area.intersects(chunk_area)
             })
             .map(move |(_pos, chunk)| chunk)
@@ -652,13 +640,13 @@ impl World {
     /// given area.
     ///
     /// NOTE: The order of the chunks is not specified.
-    pub fn chunks_mut<'a>(&'a mut self, area: Rectangle) -> impl Iterator<Item=&'a mut Chunk> {
+    pub fn chunks_mut<'a>(&'a mut self, area: Rectangle) -> impl Iterator<Item = &'a mut Chunk> {
         let chunk_size = self.chunk_size;
         self.chunks
             .iter_mut()
             .filter(move |&(pos, ref _chunk)| {
-                let chunk_area = Rectangle::from_point_and_size(
-                    pos.position, Point::from_i32(chunk_size));
+                let chunk_area =
+                    Rectangle::from_point_and_size(pos.position, Point::from_i32(chunk_size));
                 area.intersects(chunk_area)
             })
             .map(move |(_pos, chunk)| chunk)
@@ -667,7 +655,7 @@ impl World {
     /// Return an iterator over all monsters in the given area.
     ///
     /// NOTE: The order of the monsters is not specified.
-    pub fn monsters<'a>(&'a self, area: Rectangle) -> impl Iterator<Item=&'a Monster> {
+    pub fn monsters<'a>(&'a self, area: Rectangle) -> impl Iterator<Item = &'a Monster> {
         self.chunks(area)
             .flat_map(Chunk::monsters)
             .filter(move |m| m.alive() && area.contains(m.position))
@@ -676,7 +664,10 @@ impl World {
     /// Return a mutable iterator over all monsters in the given area.
     ///
     /// NOTE: The order of the monsters is not specified.
-    pub fn monsters_mut<'a>(&'a mut self, area: Rectangle) -> impl Iterator<Item=&'a mut Monster> {
+    pub fn monsters_mut<'a>(
+        &'a mut self,
+        area: Rectangle,
+    ) -> impl Iterator<Item = &'a mut Monster> {
         self.chunks_mut(area)
             .flat_map(Chunk::monsters_mut)
             .filter(move |m| m.alive() && area.contains(m.position))

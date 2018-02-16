@@ -2,12 +2,11 @@ use color::{self, Color};
 use formula::{self, ANXIETIES_PER_WILL, SOBRIETY_COUNTER, WILL, WITHDRAWAL};
 use graphics::Render;
 use item::Item;
-use monster::{Monster, CompanionBonus};
+use monster::{CompanionBonus, Monster};
 use point::Point;
 use ranged_int::Ranged;
 use std::fmt::{Display, Error, Formatter};
 use std::time::Duration;
-
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Modifier {
@@ -17,7 +16,10 @@ pub enum Modifier {
     // since the two users of this are the Food item (which never
     // increases past Sober) and Hunger (which is only negative and
     // works even when high).
-    Attribute { will: i32, state_of_mind: i32 },
+    Attribute {
+        will: i32,
+        state_of_mind: i32,
+    },
     Intoxication {
         state_of_mind: i32,
         tolerance_increase: i32,
@@ -82,7 +84,6 @@ pub struct PlayerInfo {
     pub max_ap: i32,
     pub will: i32,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Player {
@@ -223,7 +224,6 @@ impl Player {
         }
     }
 }
-
 
 impl Render for Player {
     fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {

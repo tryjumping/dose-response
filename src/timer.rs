@@ -4,7 +4,6 @@ use std::time::Instant;
 
 use util;
 
-
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Timer {
     max: Duration,
@@ -52,15 +51,14 @@ impl Timer {
 }
 
 pub struct Stopwatch {
-    #[cfg(not(feature = "web"))]
-    start: Instant,
+    #[cfg(not(feature = "web"))] start: Instant,
 }
 
 impl Stopwatch {
     pub fn start() -> Self {
         Stopwatch {
             #[cfg(not(feature = "web"))]
-            start: Instant::now()
+            start: Instant::now(),
         }
     }
 

@@ -13,7 +13,12 @@ use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 // TODO: Instead of `map_size`, use a Rectangle with the world
 // positions here. We want to expose the non-world coordinates in as
 // few places as possible.
-fn generate_map<R: Rng, G: Rng>(rng: &mut R, throwavay_rng: &mut G, map_size: Point, player_pos: Point) -> Vec<(Point, Tile)> {
+fn generate_map<R: Rng, G: Rng>(
+    rng: &mut R,
+    throwavay_rng: &mut G,
+    map_size: Point,
+    player_pos: Point,
+) -> Vec<(Point, Tile)> {
     let mut weights = [
         Weighted {
             weight: 610,
@@ -105,7 +110,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
                         DoubleActionPoints => color::npc_speed,
                     };
                 }
-                _ => ()
+                _ => (),
             };
             result.push(monster);
         }
@@ -119,47 +124,58 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
         Dose => {
             let mut item = formula::DOSE_PREFAB;
             match item.modifier {
-                Modifier::Intoxication{ref mut state_of_mind, ..} => {
+                Modifier::Intoxication {
+                    ref mut state_of_mind,
+                    ..
+                } => {
                     *state_of_mind += formula::DOSE_MIND_VARIANCE.random(rng);
                 }
-                _ => {},
+                _ => {}
             };
             item
         }
         StrongDose => {
             let mut item = formula::STRONG_DOSE_PREFAB;
             match item.modifier {
-                Modifier::Intoxication{ref mut state_of_mind, ..} => {
+                Modifier::Intoxication {
+                    ref mut state_of_mind,
+                    ..
+                } => {
                     *state_of_mind += formula::STRONG_DOSE_MIND_VARIANCE.random(rng);
                 }
-                _ => {},
+                _ => {}
             };
             item
         }
         CardinalDose => {
             let mut item = formula::CARDINAL_DOSE_PREFAB;
             match item.modifier {
-                Modifier::Intoxication{ref mut state_of_mind, ..} => {
+                Modifier::Intoxication {
+                    ref mut state_of_mind,
+                    ..
+                } => {
                     *state_of_mind += formula::CARDINAL_DOSE_MIND_VARIANCE.random(rng);
                 }
-                _ => {},
+                _ => {}
             };
             item
         }
         DiagonalDose => {
             let mut item = formula::DIAGONAL_DOSE_PREFAB;
             match item.modifier {
-                Modifier::Intoxication{ref mut state_of_mind, ..} => {
+                Modifier::Intoxication {
+                    ref mut state_of_mind,
+                    ..
+                } => {
                     *state_of_mind += formula::DIAGONAL_DOSE_MIND_VARIANCE.random(rng);
                 }
-                _ => {},
+                _ => {}
             };
             item
         }
         Food => formula::FOOD_PREFAB,
     }
 }
-
 
 fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Item)> {
     use item::Kind::*;
@@ -209,8 +225,12 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Ite
     result
 }
 
-
-pub fn generate<R: Rng, G: Rng>(rng: &mut R, throwavay_rng: &mut G, size: Point, player: Point) -> GeneratedWorld {
+pub fn generate<R: Rng, G: Rng>(
+    rng: &mut R,
+    throwavay_rng: &mut G,
+    size: Point,
+    player: Point,
+) -> GeneratedWorld {
     let map = generate_map(rng, throwavay_rng, size, player);
     let monsters = generate_monsters(rng, &map);
     let items = generate_items(rng, &map);

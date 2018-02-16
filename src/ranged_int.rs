@@ -4,7 +4,6 @@ use std::ops::{Add, AddAssign, Sub, SubAssign};
 use num_rational::{Ratio, Rational32};
 use rand::Rng;
 
-
 // TODO: Basically the reason we do this instead of `std::ops::Range`
 // is that Range is non-copy. I'd also prefer to use the inclusive
 // range, but that's not stabilised yet.
@@ -26,16 +25,13 @@ impl InclusiveRange {
     }
 }
 
-
 // NOTE: This provides a "custom" ser/de implementations until
 // num-rational supports serde 1.0.
 #[derive(Serialize, Deserialize)]
 #[serde(remote = "Rational32")]
 struct RationalDef {
-    #[serde(getter = "Rational32::numer")]
-    numer: i32,
-    #[serde(getter = "Rational32::denom")]
-    denom: i32,
+    #[serde(getter = "Rational32::numer")] numer: i32,
+    #[serde(getter = "Rational32::denom")] denom: i32,
 }
 
 impl From<RationalDef> for Rational32 {
@@ -43,7 +39,6 @@ impl From<RationalDef> for Rational32 {
         Rational32::new(def.numer, def.denom)
     }
 }
-
 
 /// A bounded, fractional value.
 ///
@@ -55,17 +50,14 @@ impl From<RationalDef> for Rational32 {
 /// floating point weirdness).
 #[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ranged {
-    #[serde(with = "RationalDef")]
-    val: Rational32,
-    #[serde(with = "RationalDef")]
-    min: Rational32,
-    #[serde(with = "RationalDef")]
-    max: Rational32,
+    #[serde(with = "RationalDef")] val: Rational32,
+    #[serde(with = "RationalDef")] min: Rational32,
+    #[serde(with = "RationalDef")] max: Rational32,
 }
 
 // NOTE: Custom formatter that's always on 1 line even when pretty-printing
 impl ::std::fmt::Debug for Ranged {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result <(), ::std::fmt::Error> {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
         write!(f, "{} in <{}..{}>", self.val, self.min, self.max)
     }
 }
@@ -183,7 +175,6 @@ impl AddAssign<i32> for Ranged {
     }
 }
 
-
 impl Sub<Rational32> for Ranged {
     type Output = Ranged;
 
@@ -205,9 +196,6 @@ impl SubAssign<i32> for Ranged {
         *self = self.clone() - other
     }
 }
-
-
-
 
 #[cfg(test)]
 mod test {

@@ -1,5 +1,3 @@
-
-
 use color::Color;
 use engine::{Draw, Settings, UpdateFn};
 use keys::Key;
@@ -10,7 +8,6 @@ use std::thread;
 use time::Duration;
 
 use zmq;
-
 
 struct ZeroMQ {
     socket: zmq::Socket,
@@ -30,9 +27,9 @@ impl ZeroMQ {
         if poll_status == 0 {
             Ok(None)
         } else {
-            let key_data = self.socket.recv_bytes(0).map(
-                |bytes| String::from_utf8(bytes),
-            )??;
+            let key_data = self.socket
+                .recv_bytes(0)
+                .map(|bytes| String::from_utf8(bytes))??;
             let key = serde_json::from_str(&key_data)?;
             Ok(Some(key))
         }
@@ -45,7 +42,6 @@ impl ZeroMQ {
         Ok(())
     }
 }
-
 
 #[derive(Serialize, Deserialize)]
 struct Display {
@@ -75,7 +71,6 @@ impl Display {
         }
     }
 }
-
 
 pub fn main_loop<T>(
     display_size: Point,

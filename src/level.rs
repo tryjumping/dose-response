@@ -7,7 +7,6 @@ use point;
 use std::collections::HashMap;
 use std::time::Duration;
 
-
 /// Position within a level. Ensured to be always within bounds.
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LevelPosition {
@@ -20,14 +19,12 @@ impl Into<point::Point> for LevelPosition {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Cell {
     pub tile: Tile,
     pub items: Vec<Item>,
     pub explored: bool,
 }
-
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum TileKind {
@@ -54,7 +51,6 @@ impl Tile {
     }
 }
 
-
 impl Render for Tile {
     fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
         use self::TileKind::*;
@@ -65,7 +61,6 @@ impl Render for Tile {
         (glyph, self.fg_color, Option::None)
     }
 }
-
 
 #[derive(Serialize, Deserialize)]
 pub struct Level {
@@ -83,12 +78,10 @@ impl Level {
             dimensions,
             monsters: HashMap::new(),
             map: (0..map_size)
-                .map(|_| {
-                    Cell {
-                        tile: Tile::new(TileKind::Empty),
-                        items: vec![],
-                        explored: false,
-                    }
+                .map(|_| Cell {
+                    tile: Tile::new(TileKind::Empty),
+                    items: vec![],
+                    explored: false,
                 })
                 .collect(),
         }
@@ -145,7 +138,8 @@ impl Level {
         assert!(!blockers.contains(Blocker::PLAYER));
         let pos = pos.into();
         let blocked_by_wall = blockers.contains(Blocker::WALL) && self.cell(pos).tile.kind != Empty;
-        let blocked_by_monster = blockers.contains(Blocker::MONSTER) && self.monster_on_pos(pos).is_some();
+        let blocked_by_monster =
+            blockers.contains(Blocker::MONSTER) && self.monster_on_pos(pos).is_some();
         !(blocked_by_wall || blocked_by_monster)
     }
 
@@ -155,9 +149,8 @@ impl Level {
         if self.monsters.contains_key(&destination) {
             panic!(
                 "Trying to move monster from {:?} to {:?}, but that's \
-                    already occupied.",
-                monster_position,
-                destination
+                 already occupied.",
+                monster_position, destination
             );
         } else {
             if let Some(monster_index) = self.monsters.remove(&monster_position) {

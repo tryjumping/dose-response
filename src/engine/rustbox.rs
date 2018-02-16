@@ -1,6 +1,5 @@
 // use rustbox::{self, RustBox};
 
-
 // let rustbox = RustBox::init(Default::default()).expect(
 //     "Failed to initialise rustbox!");
 // let terminal_size = (rustbox.width() as i32, rustbox.height() as i32);
@@ -10,6 +9,5 @@
 //             required size: {:?}",
 //              terminal_size, (width, height));
 // }
-
 
 // self.display.rustbox.present();

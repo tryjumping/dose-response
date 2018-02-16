@@ -1,12 +1,9 @@
-
-
 use self::Kind::*;
 
 use color::{self, Color};
 use graphics::Render;
 use player::Modifier;
 use std::time::Duration;
-
 
 #[derive(Clone, Copy, PartialEq, Debug, Eq, Hash, Serialize, Deserialize)]
 pub enum Kind {
@@ -19,7 +16,9 @@ pub enum Kind {
 
 impl Kind {
     pub fn iter() -> KindIterator {
-        KindIterator { current: Some(self::Kind::Food) }
+        KindIterator {
+            current: Some(self::Kind::Food),
+        }
     }
 }
 
@@ -60,7 +59,6 @@ impl Item {
         }
     }
 }
-
 
 impl Render for Item {
     fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {

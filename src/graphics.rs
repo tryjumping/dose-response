@@ -1,10 +1,7 @@
-
-
 use color::Color;
 use engine::Draw;
 use point::Point;
 use std::time::Duration;
-
 
 pub trait Render {
     fn render(&self, dt: Duration) -> (char, Color, Option<Color>);
@@ -18,7 +15,6 @@ pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>, dt: Duration, pos: Point, rend
     }
     drawcalls.push(Char(pos, glyph, fg));
 }
-
 
 pub fn progress_bar(
     drawcalls: &mut Vec<Draw>,
@@ -60,7 +56,6 @@ pub fn progress_bar(
         ));
     }
 }
-
 
 pub fn lerp(from: f32, to: f32, t: f32) -> f32 {
     (1.0 - t) * from + t * to

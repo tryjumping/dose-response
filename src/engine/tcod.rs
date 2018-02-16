@@ -1,5 +1,3 @@
-
-
 use color::Color;
 use engine::{Draw, Settings, UpdateFn};
 use keys::{Key, KeyCode};
@@ -57,51 +55,46 @@ fn key_from_tcod(tcod_key: TcodKey) -> Option<Key> {
         TcodCode::F11 => Some(KeyCode::F11),
         TcodCode::F12 => Some(KeyCode::F12),
 
-        TcodCode::Char => {
-            match tcod_key.printable {
-                'a' => Some(KeyCode::A),
-                'b' => Some(KeyCode::B),
-                'c' => Some(KeyCode::C),
-                'd' => Some(KeyCode::D),
-                'e' => Some(KeyCode::E),
-                'f' => Some(KeyCode::F),
-                'g' => Some(KeyCode::G),
-                'h' => Some(KeyCode::H),
-                'i' => Some(KeyCode::I),
-                'j' => Some(KeyCode::J),
-                'k' => Some(KeyCode::K),
-                'l' => Some(KeyCode::L),
-                'm' => Some(KeyCode::M),
-                'n' => Some(KeyCode::N),
-                'o' => Some(KeyCode::O),
-                'p' => Some(KeyCode::P),
-                'q' => Some(KeyCode::Q),
-                'r' => Some(KeyCode::R),
-                's' => Some(KeyCode::S),
-                't' => Some(KeyCode::T),
-                'u' => Some(KeyCode::U),
-                'v' => Some(KeyCode::V),
-                'w' => Some(KeyCode::W),
-                'x' => Some(KeyCode::X),
-                'y' => Some(KeyCode::Y),
-                'z' => Some(KeyCode::Z),
+        TcodCode::Char => match tcod_key.printable {
+            'a' => Some(KeyCode::A),
+            'b' => Some(KeyCode::B),
+            'c' => Some(KeyCode::C),
+            'd' => Some(KeyCode::D),
+            'e' => Some(KeyCode::E),
+            'f' => Some(KeyCode::F),
+            'g' => Some(KeyCode::G),
+            'h' => Some(KeyCode::H),
+            'i' => Some(KeyCode::I),
+            'j' => Some(KeyCode::J),
+            'k' => Some(KeyCode::K),
+            'l' => Some(KeyCode::L),
+            'm' => Some(KeyCode::M),
+            'n' => Some(KeyCode::N),
+            'o' => Some(KeyCode::O),
+            'p' => Some(KeyCode::P),
+            'q' => Some(KeyCode::Q),
+            'r' => Some(KeyCode::R),
+            's' => Some(KeyCode::S),
+            't' => Some(KeyCode::T),
+            'u' => Some(KeyCode::U),
+            'v' => Some(KeyCode::V),
+            'w' => Some(KeyCode::W),
+            'x' => Some(KeyCode::X),
+            'y' => Some(KeyCode::Y),
+            'z' => Some(KeyCode::Z),
 
-                _ => None,
-            }
-        }
+            _ => None,
+        },
         _ => None,
     };
 
-    key_code.map(|code| {
-        Key {
-            code: code,
-            alt: tcod_key.alt,
-            ctrl: tcod_key.ctrl,
-            shift: tcod_key.shift,
-        }
+    key_code.map(|code| Key {
+        code: code,
+        alt: tcod_key.alt,
+        ctrl: tcod_key.ctrl,
+        shift: tcod_key.shift,
     })
 }
-
 
 impl Into<tcod::Color> for Color {
     fn into(self) -> tcod::Color {
@@ -113,7 +106,6 @@ impl Into<tcod::Color> for Color {
     }
 }
 
-
 #[cfg(not(debug_assertions))]
 fn limit_fps_in_release(fps: i32) {
     tcod::system::set_fps(fps);
@@ -121,7 +113,6 @@ fn limit_fps_in_release(fps: i32) {
 
 #[cfg(debug_assertions)]
 fn limit_fps_in_release(_fps: i32) {}
-
 
 pub struct Engine {
     root: RootConsole,
@@ -145,7 +136,6 @@ impl Engine {
 
         // Limit FPS in the release mode
         limit_fps_in_release(60);
-
 
         Engine {
             root: root,
@@ -213,11 +203,8 @@ impl Engine {
                     &Draw::Char(pos, chr, foreground_color) => {
                         if self.within_bounds(pos) {
                             self.root.set_char(pos.x, pos.y, chr);
-                            self.root.set_char_foreground(
-                                pos.x,
-                                pos.y,
-                                foreground_color.into(),
-                            );
+                            self.root
+                                .set_char_foreground(pos.x, pos.y, foreground_color.into());
                         }
                     }
 

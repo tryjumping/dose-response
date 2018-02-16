@@ -1,7 +1,7 @@
 use animation::{self, AreaOfEffect};
 use blocker::Blocker;
 use color;
-use engine::{Draw, Mouse, TextMetrics, Settings};
+use engine::{Draw, Mouse, Settings, TextMetrics};
 use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
@@ -27,7 +27,6 @@ use timer::{Stopwatch, Timer};
 use util;
 use world::World;
 
-
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Action {
     Move(Point),
@@ -35,13 +34,11 @@ pub enum Action {
     Use(item::Kind),
 }
 
-
 pub enum RunningState {
     Running,
     Stopped,
     NewGame(State),
 }
-
 
 pub fn update(
     state: &mut State,
@@ -61,12 +58,11 @@ pub fn update(
     state.keys.extend(new_keys.iter().cloned());
     state.mouse = mouse;
 
-
     // Quit the game when Q is pressed or on replay and requested
-    if (!state.player.alive() && state.exit_after) ||
-        (state.replay && state.exit_after &&
-             (state.commands.is_empty() ||
-                  (!state.player.alive() && state.screen_fading.is_none())))
+    if (!state.player.alive() && state.exit_after)
+        || (state.replay && state.exit_after
+            && (state.commands.is_empty()
+                || (!state.player.alive() && state.screen_fading.is_none())))
     {
         show_exit_stats(&state.stats);
         return RunningState::Stopped;
@@ -77,24 +73,13 @@ pub fn update(
         settings.fullscreen = !settings.fullscreen;
     }
 
-
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
-        Window::MainMenu => {
-            process_main_menu(state)
-        }
-        Window::Game => {
-            process_game(state, dt)
-        }
-        Window::Help => {
-            process_help_window(state)
-        }
-        Window::Endgame => {
-            process_endgame_window(state)
-        }
-        Window::Message(_) => {
-            process_message_window(state)
-        }
+        Window::MainMenu => process_main_menu(state, &main_menu_window::Window, metrics),
+        Window::Game => process_game(state, dt),
+        Window::Help => process_help_window(state),
+        Window::Endgame => process_endgame_window(state),
+        Window::Message(_) => process_message_window(state),
     };
 
     // NOTE: process the screen fading animation animation.
@@ -121,11 +106,9 @@ pub fn update(
     }
 
     // NOTE: Clear any unprocessed keys
-    while let Some(_key) = state.keys.get() { }
+    while let Some(_key) = state.keys.get() {}
 
     let update_duration = update_stopwatch.finish();
-
-
 
     let drawcall_stopwatch = Stopwatch::start();
     render::render(&state, dt, fps, metrics, drawcalls);
@@ -139,12 +122,7 @@ pub fn update(
     game_update_result
 }
 
-
-fn process_game(
-    state: &mut State,
-    dt: Duration,
-) -> RunningState {
-
+fn process_game(state: &mut State, dt: Duration) -> RunningState {
     if state.keys.matches_code(KeyCode::Esc) {
         state.window_stack.push(Window::MainMenu);
         return RunningState::Running;
@@ -186,8 +164,8 @@ fn process_game(
     };
 
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
-    let timed_step = if state.replay && !state.paused &&
-        (util::num_milliseconds(state.replay_step) >= 50 || state.replay_full_speed)
+    let timed_step = if state.replay && !state.paused
+        && (util::num_milliseconds(state.replay_step) >= 50 || state.replay_full_speed)
     {
         state.replay_step = Duration::new(0, 0);
         true
@@ -204,7 +182,6 @@ fn process_game(
         let y = (((state.new_screen_pos.y - state.old_screen_pos.y) as f32) * percentage) as i32;
         state.screen_position_in_world = state.old_screen_pos + (x, y);
     }
-
 
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
@@ -271,7 +248,7 @@ fn process_game(
                     if !state.commands.is_empty() {
                         panic!(
                             "Game quit too early -- there are still {} \
-                                commands queued up.",
+                             commands queued up.",
                             state.commands.len()
                         );
                     }
@@ -327,16 +304,14 @@ fn process_game(
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     // NOTE: update the dose/food explosion animations
-    state.explosion_animation = state.explosion_animation
-        .take()
-        .and_then(|mut animation| {
-            animation.update(dt);
-            if animation.finished() {
-                None
-            } else {
-                Some(animation)
-            }
-        });
+    state.explosion_animation = state.explosion_animation.take().and_then(|mut animation| {
+        animation.update(dt);
+        if animation.finished() {
+            None
+        } else {
+            Some(animation)
+        }
+    });
 
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
@@ -344,15 +319,15 @@ fn process_game(
         let dur = Duration::from_millis(400);
         let exploration_radius = formula::exploration_radius(state.player.mind);
         // TODO: move the screen roughly the same distance along X and Y
-        if display_pos.x < exploration_radius ||
-            display_pos.x >= state.map_size.x - exploration_radius
+        if display_pos.x < exploration_radius
+            || display_pos.x >= state.map_size.x - exploration_radius
         {
             // change the screen centre to that of the player
             state.pos_timer = Timer::new(dur);
             state.old_screen_pos = state.screen_position_in_world;
             state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
-        } else if display_pos.y < exploration_radius ||
-                   display_pos.y >= state.map_size.y - exploration_radius
+        } else if display_pos.y < exploration_radius
+            || display_pos.y >= state.map_size.y - exploration_radius
         {
             // change the screen centre to that of the player
             state.pos_timer = Timer::new(dur);
@@ -367,9 +342,9 @@ fn process_game(
     {
         let player_screen_pos = screen_coords_from_world(state.player.pos);
         let d = 15;
-        if player_screen_pos.x < d || player_screen_pos.y < d ||
-            state.map_size.x - player_screen_pos.x < d ||
-            state.map_size.y - player_screen_pos.y < d
+        if player_screen_pos.x < d || player_screen_pos.y < d
+            || state.map_size.x - player_screen_pos.x < d
+            || state.map_size.y - player_screen_pos.y < d
         {
             state.show_keboard_movement_hints = false;
         }
@@ -378,36 +353,26 @@ fn process_game(
     RunningState::Running
 }
 
-
-fn process_main_menu(state: &mut State, window: &main_menu_window::Window) -> RunningState {
-    use main_menu_window::Options::*;
+fn process_main_menu(state: &mut State, window: &main_menu_window::Window, metrics: &TextMetrics) -> RunningState {
+    use main_menu_window::MenuItem::*;
     if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::R) {
         state.window_stack.pop();
         return RunningState::Running;
     }
 
-    if let Some(option) = window.hovered(state.mouse) {
+    if let Some(option) = window.hovered(&state, metrics) {
         match option {
-            NewGame => {
-                unimplemented!()
-            }
+            Resume => unimplemented!(),
 
-            Help => {
-                unimplemented!()
-            }
+            NewGame => unimplemented!(),
 
-            SaveAndQuit => {
-                unimplemented!()
-            }
+            Help => unimplemented!(),
 
-            Load => {
-                unimplemented!()
-            }
+            SaveAndQuit => unimplemented!(),
 
-            Quit => {
-                unimplemented!()
-            }
+            Load => unimplemented!(),
 
+            Quit => unimplemented!(),
         }
     }
 
@@ -428,7 +393,9 @@ fn process_main_menu(state: &mut State, window: &main_menu_window::Window) -> Ru
                 Err(error) => {
                     // NOTE: we couldn't save the game so we'll keep going
                     println!("Error saving the game: {:?}", error);
-                    state.window_stack.push(Window::Message("Error: could not save the game.".into()));
+                    state
+                        .window_stack
+                        .push(Window::Message("Error: could not save the game.".into()));
                 }
             }
         }
@@ -436,7 +403,7 @@ fn process_main_menu(state: &mut State, window: &main_menu_window::Window) -> Ru
     }
 
     if state.keys.matches_code(KeyCode::Q) {
-        return RunningState::Stopped
+        return RunningState::Stopped;
     }
 
     if state.keys.matches_code(KeyCode::L) {
@@ -450,8 +417,9 @@ fn process_main_menu(state: &mut State, window: &main_menu_window::Window) -> Ru
             }
             Err(error) => {
                 println!("Error loading the game: {:?}", error);
-                state.window_stack.push(
-                    Window::Message("Error: could not load the game.".into()));
+                state
+                    .window_stack
+                    .push(Window::Message("Error: could not load the game.".into()));
                 return RunningState::Running;
             }
         }
@@ -490,7 +458,6 @@ fn process_help_window(state: &mut State) -> RunningState {
     RunningState::Running
 }
 
-
 fn process_endgame_window(state: &mut State) -> RunningState {
     if state.keys.matches_code(KeyCode::N) {
         return RunningState::NewGame(create_new_game_state(state));
@@ -515,7 +482,6 @@ fn process_endgame_window(state: &mut State) -> RunningState {
     RunningState::Running
 }
 
-
 fn process_message_window(state: &mut State) -> RunningState {
     if state.keys.get().is_some() {
         state.window_stack.pop();
@@ -524,7 +490,6 @@ fn process_message_window(state: &mut State) -> RunningState {
 
     RunningState::Running
 }
-
 
 fn process_monsters<R: Rng>(
     world: &mut World,
@@ -560,9 +525,10 @@ fn process_monsters<R: Rng>(
             let (update, action) = monster_readonly.act(player.info(), world, rng);
             if let Some(monster) = world.monster_on_pos(monster_position) {
                 monster.ai_state = update.ai_state;
-                monster.ap = Ranged::new(monster.ap.to_int(),
-                                         InclusiveRange(monster.ap.min(), update.max_ap));
-
+                monster.ap = Ranged::new(
+                    monster.ap.to_int(),
+                    InclusiveRange(monster.ap.min(), update.max_ap),
+                );
 
                 monster.spend_ap(1);
             }
@@ -585,13 +551,12 @@ fn process_monsters<R: Rng>(
                 // path in `monster.path`. If the precalculated path
                 // is blocked or there is none, calculate a new one
                 // and cache it. Otherwise, just walk it.
-                let (newpos, newpath) = if monster_readonly.path.is_empty() || path_changed ||
-                    !world.walkable(
+                let (newpos, newpath) = if monster_readonly.path.is_empty() || path_changed
+                    || !world.walkable(
                         monster_readonly.path[0],
                         monster_readonly.blockers,
                         player.pos,
-                    )
-                {
+                    ) {
                     // Calculate a new path or recalculate the existing one.
                     let mut path = pathfinding::Path::find(
                         pos,
@@ -634,17 +599,14 @@ fn process_monsters<R: Rng>(
             Action::Use(_) => unreachable!(),
         }
 
-        if world.monster_on_pos(monster_position).map_or(
-            false,
-            |m| m.has_ap(1),
-        )
+        if world
+            .monster_on_pos(monster_position)
+            .map_or(false, |m| m.has_ap(1))
         {
             monster_positions_to_process.push_back(monster_position);
         }
-
     }
 }
-
 
 fn process_player_action<R, W>(
     player: &mut player::Player,
@@ -688,10 +650,9 @@ fn process_player_action<R, W>(
             let new_pos =
                 world.random_neighbour_position(rng, player.pos, Blocker::WALL, player.pos);
             action = Action::Move(new_pos);
-
         } else if let Some((dose_pos, dose)) = world.nearest_dose(player.pos, 5) {
-            let resist_radius = formula::player_resist_radius(dose.irresistible, player.will.to_int()) as
-                usize;
+            let resist_radius =
+                formula::player_resist_radius(dose.irresistible, player.will.to_int()) as usize;
             if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
                 let mut path =
                     pathfinding::Path::find(player.pos, dose_pos, world, Blocker::WALL, player.pos);
@@ -716,7 +677,8 @@ fn process_player_action<R, W>(
             .inventory
             .iter()
             .find(|i| {
-                i.is_dose() && formula::player_resist_radius(i.irresistible, player.will.to_int()) > 0
+                i.is_dose()
+                    && formula::player_resist_radius(i.irresistible, player.will.to_int()) > 0
             })
             .map(|i| i.kind);
         if let Some(kind) = carried_irresistible_dose {
@@ -734,12 +696,16 @@ fn process_player_action<R, W>(
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
                             monster::Kind::Anxiety => {
-                                println!("Bumped into anxiety! Current anxiety counter: {:?}", player.anxiety_counter);
-                                let increment = if player.bonuses.contains(&CompanionBonus::DoubleWillGrowth) {
-                                    2
-                                } else {
-                                    1
-                                };
+                                println!(
+                                    "Bumped into anxiety! Current anxiety counter: {:?}",
+                                    player.anxiety_counter
+                                );
+                                let increment =
+                                    if player.bonuses.contains(&CompanionBonus::DoubleWillGrowth) {
+                                        2
+                                    } else {
+                                        1
+                                    };
                                 println!("Anxiety increment: {:?}", increment);
                                 player.anxiety_counter += increment;
                                 println!("New anxiety counter: {:?}", player.anxiety_counter);
@@ -775,7 +741,6 @@ fn process_player_action<R, W>(
                         }
                         kill_monster(dest, world);
                     }
-
                 } else if dest_walkable {
                     player.spend_ap(1);
                     player.move_to(dest);
@@ -802,9 +767,10 @@ fn process_player_action<R, W>(
             }
 
             Action::Use(item::Kind::Food) => {
-                if let Some(food_idx) = player.inventory.iter().position(
-                    |&i| i.kind == item::Kind::Food,
-                )
+                if let Some(food_idx) = player
+                    .inventory
+                    .iter()
+                    .position(|&i| i.kind == item::Kind::Food)
                 {
                     player.spend_ap(1);
                     let food = player.inventory.remove(food_idx);
@@ -821,9 +787,10 @@ fn process_player_action<R, W>(
             }
 
             Action::Use(item::Kind::Dose) => {
-                if let Some(dose_index) = player.inventory.iter().position(
-                    |&i| i.kind == item::Kind::Dose,
-                )
+                if let Some(dose_index) = player
+                    .inventory
+                    .iter()
+                    .position(|&i| i.kind == item::Kind::Dose)
                 {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
@@ -832,9 +799,10 @@ fn process_player_action<R, W>(
             }
 
             Action::Use(item::Kind::StrongDose) => {
-                if let Some(dose_index) = player.inventory.iter().position(|&i| {
-                    i.kind == item::Kind::StrongDose
-                })
+                if let Some(dose_index) = player
+                    .inventory
+                    .iter()
+                    .position(|&i| i.kind == item::Kind::StrongDose)
                 {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
@@ -843,9 +811,10 @@ fn process_player_action<R, W>(
             }
 
             Action::Use(item::Kind::CardinalDose) => {
-                if let Some(dose_index) = player.inventory.iter().position(|&i| {
-                    i.kind == item::Kind::CardinalDose
-                })
+                if let Some(dose_index) = player
+                    .inventory
+                    .iter()
+                    .position(|&i| i.kind == item::Kind::CardinalDose)
                 {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
@@ -854,9 +823,10 @@ fn process_player_action<R, W>(
             }
 
             Action::Use(item::Kind::DiagonalDose) => {
-                if let Some(dose_index) = player.inventory.iter().position(|&i| {
-                    i.kind == item::Kind::DiagonalDose
-                })
+                if let Some(dose_index) = player
+                    .inventory
+                    .iter()
+                    .position(|&i| i.kind == item::Kind::DiagonalDose)
                 {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
@@ -872,14 +842,15 @@ fn process_player_action<R, W>(
 }
 
 fn process_player(state: &mut State, simulation_area: Rectangle) {
-    { // appease borrowck
+    {
+        // appease borrowck
         let player = &mut state.player;
 
         // NPCs should unfollow an intoxicated player:
         if player.mind.is_high() {
-            let npcs = state.world.monsters_mut(simulation_area)
-                .filter(|m| m.kind == monster::Kind::Npc && m.accompanying_player
-                        && m.companion_bonus.is_some());
+            let npcs = state.world.monsters_mut(simulation_area).filter(|m| {
+                m.kind == monster::Kind::Npc && m.accompanying_player && m.companion_bonus.is_some()
+            });
             for npc in npcs {
                 println!("{:?} will not accompany an intoxicated player.", npc);
                 npc.accompanying_player = false;
@@ -892,9 +863,11 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         // companion NPC leaves the simulation_area. Which is
         // currently possible because it doesn't follow the player
         // around.
-        let npc_bonuses = world.monsters(simulation_area)
-            .filter(|m| m.kind == monster::Kind::Npc && m.accompanying_player
-                    && m.companion_bonus.is_some())
+        let npc_bonuses = world
+            .monsters(simulation_area)
+            .filter(|m| {
+                m.kind == monster::Kind::Npc && m.accompanying_player && m.companion_bonus.is_some()
+            })
             .map(|m| m.companion_bonus.unwrap());
         player.bonuses.clear();
         player.bonuses.extend(npc_bonuses);
@@ -944,7 +917,6 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         formula::exploration_radius(state.player.mind),
     );
 }
-
 
 fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
     use keys::KeyCode::*;
@@ -1002,8 +974,7 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
             Key { code: N, .. } => commands.push_back(Command::SE),
 
             // Non-movement commands
-            Key { code: E, .. } |
-            Key { code: D1, .. } => {
+            Key { code: E, .. } | Key { code: D1, .. } => {
                 commands.push_back(Command::UseFood);
             }
             Key { code: D2, .. } => {
@@ -1012,12 +983,10 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
             Key { code: D3, .. } => {
                 commands.push_back(Command::UseStrongDose);
             }
-            _ => {
-                match inventory_commands(key) {
-                    Some(command) => commands.push_back(command),
-                    None => (),
-                }
-            }
+            _ => match inventory_commands(key) {
+                Some(command) => commands.push_back(command),
+                None => (),
+            },
         }
     }
 }
@@ -1054,7 +1023,6 @@ fn inventory_commands(key: Key) -> Option<Command> {
     None
 }
 
-
 pub fn inventory_key(kind: item::Kind) -> u8 {
     use item::Kind::*;
     match kind {
@@ -1066,12 +1034,10 @@ pub fn inventory_key(kind: item::Kind) -> u8 {
     }
 }
 
-
 fn kill_monster(monster_position: Point, world: &mut World) {
-    let invincible = world.monster_on_pos(monster_position).map_or(
-        false,
-        |m| m.invincible,
-    );
+    let invincible = world
+        .monster_on_pos(monster_position)
+        .map_or(false, |m| m.invincible);
     if invincible {
         // It's invincible: no-op
     } else {
@@ -1097,34 +1063,27 @@ fn use_dose(
         };
         player.take_effect(item.modifier);
         let animation: Box<AreaOfEffect> = match item.kind {
-            Dose | StrongDose => {
-                Box::new(animation::SquareExplosion::new(
-                    player.pos,
-                    radius,
-                    2,
-                    color::explosion,
-                ))
-            }
-            CardinalDose => {
-                Box::new(animation::CardinalExplosion::new(
-                    player.pos,
-                    radius,
-                    2,
-                    color::explosion,
-                    color::shattering_explosion,
-                ))
-            }
-            DiagonalDose => {
-                Box::new(animation::DiagonalExplosion::new(
-                    player.pos,
-                    radius,
-                    2,
-                    color::explosion,
-                    color::shattering_explosion,
-                ))
-            }
+            Dose | StrongDose => Box::new(animation::SquareExplosion::new(
+                player.pos,
+                radius,
+                2,
+                color::explosion,
+            )),
+            CardinalDose => Box::new(animation::CardinalExplosion::new(
+                player.pos,
+                radius,
+                2,
+                color::explosion,
+                color::shattering_explosion,
+            )),
+            DiagonalDose => Box::new(animation::DiagonalExplosion::new(
+                player.pos,
+                radius,
+                2,
+                color::explosion,
+                color::shattering_explosion,
+            )),
             Food => unreachable!(),
-
         };
         *explosion_animation = Some(animation);
     } else {
@@ -1132,11 +1091,10 @@ fn use_dose(
     }
 }
 
-
 fn show_exit_stats(stats: &Stats) {
     println!(
         "Slowest update durations: {:?}\n\nSlowest drawcall \
-              durations: {:?}",
+         durations: {:?}",
         stats
             .longest_update_durations()
             .iter()
@@ -1157,20 +1115,17 @@ fn show_exit_stats(stats: &Stats) {
     );
 }
 
-
 fn verify_states(expected: state::Verification, actual: state::Verification) {
     if expected.chunk_count != actual.chunk_count {
         println!(
             "Expected chunks: {}, actual: {}",
-            expected.chunk_count,
-            actual.chunk_count
+            expected.chunk_count, actual.chunk_count
         );
     }
     if expected.player_pos != actual.player_pos {
         println!(
             "Expected player position: {}, actual: {}",
-            expected.player_pos,
-            actual.player_pos
+            expected.player_pos, actual.player_pos
         );
     }
     if expected.monsters.len() != actual.monsters.len() {
@@ -1181,14 +1136,18 @@ fn verify_states(expected: state::Verification, actual: state::Verification) {
         );
     }
     if expected.monsters != actual.monsters {
-        let expected_monsters: HashMap<Point, (Point, monster::Kind)> =
-            FromIterator::from_iter(expected.monsters.iter().map(|&(pos, chunk_pos, monster)| {
-                (pos, (chunk_pos, monster))
-            }));
-        let actual_monsters: HashMap<Point, (Point, monster::Kind)> =
-            FromIterator::from_iter(actual.monsters.iter().map(|&(pos, chunk_pos, monster)| {
-                (pos, (chunk_pos, monster))
-            }));
+        let expected_monsters: HashMap<Point, (Point, monster::Kind)> = FromIterator::from_iter(
+            expected
+                .monsters
+                .iter()
+                .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))),
+        );
+        let actual_monsters: HashMap<Point, (Point, monster::Kind)> = FromIterator::from_iter(
+            actual
+                .monsters
+                .iter()
+                .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))),
+        );
 
         for (pos, expected) in &expected_monsters {
             match actual_monsters.get(pos) {
@@ -1196,19 +1155,16 @@ fn verify_states(expected: state::Verification, actual: state::Verification) {
                     if expected != actual {
                         println!(
                             "Monster at {} differ. Expected: {:?}, \
-                                  actual: {:?}",
-                            pos,
-                            expected,
-                            actual
+                             actual: {:?}",
+                            pos, expected, actual
                         );
                     }
                 }
                 None => {
                     println!(
                         "Monster expected at {}: {:?}, but it's not \
-                              there.",
-                        pos,
-                        expected
+                         there.",
+                        pos, expected
                     );
                 }
             }
@@ -1222,7 +1178,6 @@ fn verify_states(expected: state::Verification, actual: state::Verification) {
     }
     assert!(expected == actual, "Validation failed!");
 }
-
 
 fn create_new_game_state(state: &State) -> State {
     State::new_game(

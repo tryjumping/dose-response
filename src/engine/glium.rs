@@ -1,7 +1,7 @@
 use self::vertex::Vertex;
 
 use color::Color;
-use engine::{self, Draw, Settings, UpdateFn, TextMetrics};
+use engine::{self, Draw, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
 use state::State;
 
@@ -15,9 +15,7 @@ use point::Point;
 use std::time::{Duration, Instant};
 use util;
 
-
 const VERTICES_CAPACITY: usize = 50_000;
-
 
 fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
     [
@@ -27,7 +25,6 @@ fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
         alpha,
     ]
 }
-
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
@@ -111,14 +108,12 @@ fn texture_coords_from_char(chr: char) -> (f32, f32) {
     (x as f32, y as f32)
 }
 
-
 // Calculate the width in pixels of a given text
 fn text_width_px(text: &str, tile_width_px: i32) -> i32 {
     text.chars()
         .map(|chr| engine::glyph_advance_width(chr).unwrap_or(tile_width_px as i32))
         .sum()
 }
-
 
 fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<MonitorId> {
     for monitor in monitors {
@@ -139,7 +134,6 @@ fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<Moni
 
     monitors.iter().cloned().next()
 }
-
 
 fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
     let mut result = vec![];
@@ -172,8 +166,6 @@ fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
     result
 }
 
-
-
 struct Metrics {
     tile_width_px: i32,
 }
@@ -193,11 +185,10 @@ impl TextMetrics for Metrics {
             }
             _ => {
                 panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
-            },
+            }
         }
     }
 }
-
 
 #[allow(unsafe_code)]
 mod vertex {
@@ -223,8 +214,6 @@ mod vertex {
     implement_vertex!(Vertex, pos_px, tilemap_index, color);
 }
 
-
-
 pub fn main_loop(
     display_size: Point,
     default_background: Color,
@@ -247,11 +236,10 @@ pub fn main_loop(
         .with_title(window_title)
         .with_dimensions(screen_width, screen_height);
 
-    let context = glium::glutin::ContextBuilder::new()
-        .with_vsync(true);
+    let context = glium::glutin::ContextBuilder::new().with_vsync(true);
 
-    let display = glium::Display::new(window, context, &events_loop).expect(
-        "dose response ERROR: Could not create the display.");
+    let display = glium::Display::new(window, context, &events_loop)
+        .expect("dose response ERROR: Could not create the display.");
 
     // We'll just assume the monitors won't change throughout the game.
     let monitors: Vec<_> = events_loop.get_available_monitors().collect();
@@ -281,7 +269,6 @@ pub fn main_loop(
     let texture_tile_count_x = tex_width_px as f32 / tilesize as f32;
     let texture_tile_count_y = tex_height_px as f32 / tilesize as f32;
 
-
     // Main loop
     let mut window_pos = {
         match display.gl_window().get_position() {
@@ -294,7 +281,8 @@ pub fn main_loop(
 
     let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
-    let mut background_map = vec![Color{r: 0, g: 0, b: 0}; (display_size.x * display_size.y) as usize];
+    let mut background_map =
+        vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize];
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
@@ -311,7 +299,6 @@ pub fn main_loop(
     let mut frame_counter = 0;
     let mut fps = 1;
     let mut running = true;
-
 
     while running {
         let now = Instant::now();
@@ -342,7 +329,9 @@ pub fn main_loop(
             &keys,
             mouse,
             &mut settings,
-            &Metrics { tile_width_px: tilesize as i32 },
+            &Metrics {
+                tile_width_px: tilesize as i32,
+            },
             &mut drawcalls,
         );
 
@@ -362,9 +351,13 @@ pub fn main_loop(
             if settings.fullscreen {
                 if let Some(ref monitor) = current_monitor {
                     pre_fullscreen_window_pos = window_pos;
-                        println!("Monitor: {:?}, pos: {:?}, dimensions: {:?}",
-                                 monitor.get_name(), monitor.get_position(), monitor.get_dimensions());
-                        display.gl_window().set_fullscreen(Some(monitor.clone()));
+                    println!(
+                        "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
+                        monitor.get_name(),
+                        monitor.get_position(),
+                        monitor.get_dimensions()
+                    );
+                    display.gl_window().set_fullscreen(Some(monitor.clone()));
                 }
             } else {
                 println!("Switched from fullscreen.");
@@ -375,12 +368,8 @@ pub fn main_loop(
             }
         }
 
-
         // Return a pixel position from the given tile position
-        let pixel_from_tile = |tile_pos: Point| -> Point {
-            tile_pos * (tilesize as i32)
-        };
-
+        let pixel_from_tile = |tile_pos: Point| -> Point { tile_pos * (tilesize as i32) };
 
         // Process drawcalls
         vertices.clear();
@@ -433,12 +422,10 @@ pub fn main_loop(
         // way, it will not be overwritten by any subsequent
         // drawcalls.
 
-
         // NOTE: last time we tried it it was 3632
         //println!("Drawcall count: {}", drawcalls.len());
 
         engine::populate_background_map(&mut background_map, display_size, &drawcalls);
-
 
         // Render the background tiles separately and before all the other drawcalls.
         for (index, background_color) in background_map.iter().enumerate() {
@@ -482,13 +469,13 @@ pub fn main_loop(
             });
         }
 
-
         let mut screen_fade = None;
 
         for drawcall in &drawcalls {
             match drawcall {
                 &Draw::Char(pos, chr, foreground_color) => {
-                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
+                    {
                         let pixel_pos = pixel_from_tile(pos);
                         let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
                         let tile_width = tilesize as f32;
@@ -498,7 +485,8 @@ pub fn main_loop(
                         let color = gl_color(foreground_color, alpha);
                         let background_color = gl_color(
                             background_map[(pos.y * display_size.x + pos.x) as usize],
-                            alpha);
+                            alpha,
+                        );
 
                         // NOTE: fill the tile with the background colour
                         vertices.push(Vertex {
@@ -532,7 +520,6 @@ pub fn main_loop(
                             tilemap_index: fill_tile_tilemap_index,
                             color: background_color,
                         });
-
 
                         // NOTE: draw the glyph
                         vertices.push(Vertex {
@@ -581,7 +568,6 @@ pub fn main_loop(
                     let mut render_line = |pos_px: Point, line: &str| {
                         let pos_x = pos_px.x as f32;
                         let pos_y = pos_px.y as f32;
-
 
                         let mut offset_x = 0.0;
                         //let mut offset_y = 0.0;
@@ -636,11 +622,11 @@ pub fn main_loop(
                                 color: color,
                             });
 
-                            let advance_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+                            let advance_width =
+                                engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
                             offset_x += advance_width as f32;
                         }
                     };
-
 
                     if options.wrap && options.width > 0 {
                         // TODO: handle text alignment for wrapped text
@@ -652,12 +638,10 @@ pub fn main_loop(
                     } else {
                         use engine::TextAlign::*;
                         let pos = match options.align {
-                            Left => {
-                                pixel_from_tile(start_pos)
-                            }
+                            Left => pixel_from_tile(start_pos),
                             Right => {
-                                pixel_from_tile(start_pos + (1, 0)) - Point::new(
-                                    text_width_px(text, tile_width as i32), 0)
+                                pixel_from_tile(start_pos + (1, 0))
+                                    - Point::new(text_width_px(text, tile_width as i32), 0)
                             }
                             Center => {
                                 let tile_width = tile_width as i32;
@@ -666,7 +650,8 @@ pub fn main_loop(
                                 if max_width < 1 || (text_width > max_width) {
                                     start_pos
                                 } else {
-                                    pixel_from_tile(start_pos) + Point::new((max_width - text_width) / 2, 0)
+                                    pixel_from_tile(start_pos)
+                                        + Point::new((max_width - text_width) / 2, 0)
                                 }
                             }
                         };
@@ -769,13 +754,19 @@ pub fn main_loop(
         }
 
         if drawcalls.len() > engine::DRAWCALL_CAPACITY {
-            println!("Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
-            drawcalls.len(), engine::DRAWCALL_CAPACITY);
+            println!(
+                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
+                drawcalls.len(),
+                engine::DRAWCALL_CAPACITY
+            );
         }
 
         if vertices.len() > VERTICES_CAPACITY {
-            println!("Warning: vertex count exceeded initial capacity {}. Current count: {} ",
-                     vertices.len(), VERTICES_CAPACITY);
+            println!(
+                "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
+                vertices.len(),
+                VERTICES_CAPACITY
+            );
         }
 
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
@@ -810,17 +801,16 @@ pub fn main_loop(
         // that would result in crisp text (i.e. no font resizing on
         // the GL side).
 
-        let uniforms =
-            uniform! {
-                tex: &texture,
-                tile_count: [display_size.x as f32, display_size.y as f32],
-                // TODO: pass this from the block above
-                native_display_px: native_display_px,
-                display_px: display_px,
-                extra_px: extra_px,
-                texture_gl_dimensions: [1.0 / texture_tile_count_x,
-                                        1.0 / texture_tile_count_y],
-            };
+        let uniforms = uniform! {
+            tex: &texture,
+            tile_count: [display_size.x as f32, display_size.y as f32],
+            // TODO: pass this from the block above
+            native_display_px: native_display_px,
+            display_px: display_px,
+            extra_px: extra_px,
+            texture_gl_dimensions: [1.0 / texture_tile_count_x,
+                                    1.0 / texture_tile_count_y],
+        };
 
         // Render
         let mut target = display.draw();
@@ -843,14 +833,17 @@ pub fn main_loop(
         events_loop.poll_events(|ev| {
             //println!("{:?}", ev);
             match ev {
-                Event::WindowEvent { window_id: _, event } => {
+                Event::WindowEvent {
+                    window_id: _,
+                    event,
+                } => {
                     match event {
                         WindowEvent::Closed => running = false,
                         WindowEvent::Resized(width, height) => {
                             println!("Window resized to: {} x {}", width, height);
                             screen_width = width;
                             screen_height = height;
-                        },
+                        }
                         WindowEvent::Moved(x, y) => {
                             if settings.fullscreen || switched_from_fullscreen {
                                 // Don't update the window position
@@ -881,7 +874,10 @@ pub fn main_loop(
                                 });
                             }
                         }
-                        WindowEvent::KeyboardInput{ device_id: _, input } => {
+                        WindowEvent::KeyboardInput {
+                            device_id: _,
+                            input,
+                        } => {
                             use glium::glutin::ElementState::*;
                             let pressed = match input.state {
                                 Pressed => true,
@@ -961,7 +957,9 @@ pub fn main_loop(
                                 }
                             }
                         }
-                        WindowEvent::CursorMoved{ position: (x, y), ..} => {
+                        WindowEvent::CursorMoved {
+                            position: (x, y), ..
+                        } => {
                             let (x, y) = (x as i32, y as i32);
                             mouse.screen_pos = Point { x, y };
 
@@ -971,9 +969,12 @@ pub fn main_loop(
                             let tile_height = screen_height as i32 / display_size.y;
                             let mouse_tile_y = y / tile_height;
 
-                            mouse.tile_pos = Point { x: mouse_tile_x, y: mouse_tile_y };
+                            mouse.tile_pos = Point {
+                                x: mouse_tile_x,
+                                y: mouse_tile_y,
+                            };
                         }
-                        WindowEvent::MouseInput{ state, button, .. } => {
+                        WindowEvent::MouseInput { state, button, .. } => {
                             use glium::glutin::MouseButton::*;
                             use glium::glutin::ElementState::*;
 
@@ -998,11 +999,10 @@ pub fn main_loop(
                         }
                         _ => (),
                     }
-                },
+                }
                 _ => (),
             }
         });
-
 
         // If we just switched from fullscreen back to a windowed
         // mode, restore the window position we had before. We do this

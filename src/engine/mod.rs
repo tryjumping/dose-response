@@ -8,7 +8,6 @@ use std::borrow::Cow;
 
 use std::time::Duration;
 
-
 #[cfg(feature = "opengl")]
 pub mod glium;
 
@@ -27,9 +26,7 @@ pub mod remote;
 #[cfg(feature = "web")]
 pub mod wasm;
 
-
 pub const DRAWCALL_CAPACITY: usize = 5000;
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Draw {
@@ -58,26 +55,22 @@ pub struct TextOptions {
     pub width: i32,
 }
 
-
 impl TextOptions {
     pub fn align_right() -> TextOptions {
         TextOptions {
             align: TextAlign::Right,
-            .. Default::default()
+            ..Default::default()
         }
     }
-
 
     pub fn align_center(width: i32) -> TextOptions {
         TextOptions {
             align: TextAlign::Center,
             width: width,
-            .. Default::default()
+            ..Default::default()
         }
     }
-
 }
-
 
 impl Default for TextOptions {
     fn default() -> Self {
@@ -89,8 +82,6 @@ impl Default for TextOptions {
     }
 }
 
-
-
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TextAlign {
     Left,
@@ -98,15 +89,12 @@ pub enum TextAlign {
     Center,
 }
 
-
 pub trait TextMetrics {
     /// Return the height in tiles of the given text.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
     fn get_text_height(&self, text_drawcall: &Draw) -> i32;
 }
-
-
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Mouse {
@@ -127,15 +115,16 @@ impl Default for Mouse {
     }
 }
 
-
-pub fn populate_background_map(background_map: &mut Vec<Color>,
-                               display_size: Point,
-                               drawcalls: &Vec<Draw>) {
+pub fn populate_background_map(
+    background_map: &mut Vec<Color>,
+    display_size: Point,
+    drawcalls: &Vec<Draw>,
+) {
     assert!(background_map.len() >= (display_size.x * display_size.y) as usize);
 
     // NOTE: Clear the background_map by setting it to the default colour
     for color in background_map.iter_mut() {
-        *color = Color{r: 0, g: 0, b: 0};
+        *color = Color { r: 0, g: 0, b: 0 };
     }
 
     // NOTE: generate the background map
@@ -150,7 +139,8 @@ pub fn populate_background_map(background_map: &mut Vec<Color>,
             &Draw::Rectangle(top_left, dimensions, color) => {
                 let rect = Rectangle::from_point_and_size(top_left, dimensions);
                 for pos in rect.points() {
-                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
+                    {
                         background_map[(pos.y * display_size.x + pos.x) as usize] = color;
                     }
                 }
@@ -159,9 +149,7 @@ pub fn populate_background_map(background_map: &mut Vec<Color>,
             _ => {}
         }
     }
-
 }
-
 
 /// Settings the engine needs to carry.
 ///
@@ -172,21 +160,18 @@ pub struct Settings {
     pub fullscreen: bool,
 }
 
-
 #[allow(dead_code)]
-pub type UpdateFn = fn(&mut State,
-                       dt: Duration,
-                       size: Point,
-                       fps: i32,
-                       keys: &[Key],
-                       mouse: Mouse,
-                       settings: &mut Settings,
-                       metrics: &TextMetrics,
-                       drawcalls: &mut Vec<Draw>)
-                       -> RunningState;
-
-
-
+pub type UpdateFn = fn(
+    &mut State,
+    dt: Duration,
+    size: Point,
+    fps: i32,
+    keys: &[Key],
+    mouse: Mouse,
+    settings: &mut Settings,
+    metrics: &TextMetrics,
+    drawcalls: &mut Vec<Draw>,
+) -> RunningState;
 
 // NOTE:
 // fn texture_coords_from_char(chr: char) -> Option<(i32, i32)>

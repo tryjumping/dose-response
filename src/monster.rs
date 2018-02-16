@@ -13,7 +13,6 @@ use rand::{Rand, Rng};
 use std::time::Duration;
 use world::World;
 
-
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Monster {
     pub kind: Kind,
@@ -33,7 +32,6 @@ pub struct Monster {
     pub ap: Ranged,
 }
 
-
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Kind {
     Anxiety,
@@ -50,7 +48,6 @@ pub enum CompanionBonus {
     HalveExhaustion,
     DoubleActionPoints,
 }
-
 
 // TODO: use a rand_derive or something.
 // I tried it 2017-07-28 and it wasn't working then.
@@ -107,7 +104,6 @@ impl Monster {
             Npc => color::npc_speed,
         };
 
-
         Monster {
             kind,
             position,
@@ -143,7 +139,7 @@ impl Monster {
             Npc => Attribute {
                 will: 0,
                 state_of_mind: 0,
-            },  // NOTE: no-op
+            }, // NOTE: no-op
         }
     }
 
@@ -198,7 +194,6 @@ impl Monster {
         }
     }
 }
-
 
 impl Render for Monster {
     fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {

@@ -13,7 +13,6 @@ use std::path::Path;
 
 use time::Duration;
 
-
 fn from_color_with_alpha(color: Color, alpha: f32) -> [f32; 4] {
     [
         color.r as f32 / 255.0,
@@ -22,7 +21,6 @@ fn from_color_with_alpha(color: Color, alpha: f32) -> [f32; 4] {
         alpha,
     ]
 }
-
 
 fn texture_coords_from_char(chr: char, tilesize: u32) -> (u32, u32) {
     let (x, y) = match chr {
@@ -131,7 +129,6 @@ fn texture_coords_from_char(chr: char, tilesize: u32) -> (u32, u32) {
     (x * tilesize, y * tilesize)
 }
 
-
 fn keycode_from_piston(piston_code: PistonKey) -> Option<KeyCode> {
     match piston_code {
         PistonKey::Return => Some(KeyCode::Enter),
@@ -208,7 +205,6 @@ fn keycode_from_piston(piston_code: PistonKey) -> Option<KeyCode> {
         _ => None,
     }
 }
-
 
 pub fn main_loop<T>(
     display_size: Point,
@@ -375,14 +371,14 @@ pub fn main_loop<T>(
                             let pixel = source.get_pixel(src_x + x, src_y + y).to_rgba();
                             let result = Rgba {
                                 data: [
-                                    ((color.r as f32 / 255.0) * (pixel.data[0] as f32 / 255.0) *
-                                         255.0) as u8,
-                                    ((color.g as f32 / 255.0) * (pixel.data[1] as f32 / 255.0) *
-                                         255.0) as u8,
-                                    ((color.b as f32 / 255.0) * (pixel.data[2] as f32 / 255.0) *
-                                         255.0) as u8,
-                                    ((alpha as f32 / 255.0) * (pixel.data[3] as f32 / 255.0) *
-                                         255.0) as u8,
+                                    ((color.r as f32 / 255.0) * (pixel.data[0] as f32 / 255.0)
+                                        * 255.0) as u8,
+                                    ((color.g as f32 / 255.0) * (pixel.data[1] as f32 / 255.0)
+                                        * 255.0) as u8,
+                                    ((color.b as f32 / 255.0) * (pixel.data[2] as f32 / 255.0)
+                                        * 255.0) as u8,
+                                    ((alpha as f32 / 255.0) * (pixel.data[3] as f32 / 255.0)
+                                        * 255.0) as u8,
                                 ],
                             };
                             destination.put_pixel(dst_x + x, dst_y + y, result);
@@ -400,7 +396,9 @@ pub fn main_loop<T>(
                 ) where
                     I: GenericImage<Pixel = image::Rgba<u8>>,
                 {
-                    let pixel = Rgba { data: [color.r, color.g, color.b, alpha] };
+                    let pixel = Rgba {
+                        data: [color.r, color.g, color.b, alpha],
+                    };
                     for x in 0..tilesize {
                         for y in 0..tilesize {
                             destination.put_pixel(src_x + x, src_y + y, pixel);
@@ -456,7 +454,9 @@ pub fn main_loop<T>(
                         }
 
                         &Draw::Rectangle(top_left, dimensions, color) => {
-                            let pixel = Rgba { data: [color.r, color.g, color.b, alpha] };
+                            let pixel = Rgba {
+                                data: [color.r, color.g, color.b, alpha],
+                            };
                             for x in 0..(dimensions.x as u32 * tilesize) {
                                 for y in 0..(dimensions.y as u32 * tilesize) {
                                     surface.put_pixel(
@@ -471,7 +471,6 @@ pub fn main_loop<T>(
                         &Draw::Fade(..) => {}
                     }
                 }
-
 
                 // NOTE: in debug mode, this is slowing things down a lot.
                 surface_texture
@@ -495,12 +494,10 @@ pub fn main_loop<T>(
                     );
 
                     ::piston_window::image(&surface_texture, c.transform, g);
-
                 });
             }
 
             _ => {}
         }
     }
-
 }

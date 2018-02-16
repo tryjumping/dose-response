@@ -1,16 +1,15 @@
-extern crate rusttype;
 extern crate image;
+extern crate rusttype;
 
 use image::{Rgba, RgbaImage};
 
-use rusttype::{FontCollection, PositionedGlyph, Scale, point};
+use rusttype::{point, FontCollection, PositionedGlyph, Scale};
 use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
 fn main() {
-
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir);
 
@@ -20,7 +19,6 @@ fn main() {
 
     // only succeeds if collection consists of one font
     let font = collection.into_font().unwrap();
-
 
     // Desired font pixel height
     let height: f32 = 16.0;
@@ -47,17 +45,18 @@ fn main() {
         .map(|(index, ascii_code)| (index, ascii_code as char))
         .collect::<Vec<_>>();
 
-    let h_metrics = lookup_table
-        .iter()
-        .map(|&(_index, chr)| {
-            font.glyph(chr).unwrap().scaled(scale).h_metrics().advance_width
-        });
+    let h_metrics = lookup_table.iter().map(|&(_index, chr)| {
+        font.glyph(chr)
+            .unwrap()
+            .scaled(scale)
+            .h_metrics()
+            .advance_width
+    });
 
     let mut lookup_table_contents = String::new();
 
-    lookup_table_contents.push_str(
-        "fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n",
-    );
+    lookup_table_contents
+        .push_str("fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n");
     lookup_table_contents.push_str("match chr {\n");
     for &(index, chr) in &lookup_table {
         lookup_table_contents.push_str(&format!("  {:?} => Some(({}, 0)),\n", chr, index));
@@ -71,26 +70,25 @@ fn main() {
     lookup_table_contents.push_str("match chr {\n");
 
     for (&(_index, chr), advance_width) in lookup_table.iter().zip(h_metrics) {
-        lookup_table_contents.push_str(&format!("    {:?} => Some({}),\n", chr, advance_width as i32));
+        lookup_table_contents.push_str(&format!(
+            "    {:?} => Some({}),\n",
+            chr, advance_width as i32
+        ));
     }
 
     lookup_table_contents.push_str("_ => None,\n}\n\n");
     lookup_table_contents.push_str("}\n");
 
-
     let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs")).unwrap();
-    lt_file
-        .write_all(lookup_table_contents.as_bytes())
-        .unwrap();
-
+    lt_file.write_all(lookup_table_contents.as_bytes()).unwrap();
 
     let glyphs: Vec<PositionedGlyph> = lookup_table
         .iter()
         .map(|&(index, chr)| {
-            font.glyph(chr).unwrap().scaled(scale).positioned(point(
-                height * index as f32,
-                v_metrics.ascent,
-            ))
+            font.glyph(chr)
+                .unwrap()
+                .scaled(scale)
+                .positioned(point(height * index as f32, v_metrics.ascent))
         })
         .collect();
 
@@ -117,7 +115,9 @@ fn main() {
                 // the boundaries of the bitmap
                 if x >= 0 && x < width as i32 && y >= 0 && y < pixel_height as i32 {
                     let alpha = (v * 255.0) as u8;
-                    let pixel = Rgba { data: [255, 255, 255, alpha] };
+                    let pixel = Rgba {
+                        data: [255, 255, 255, alpha],
+                    };
                     fontmap.put_pixel(x as u32, y as u32, pixel);
                 }
             })
@@ -127,5 +127,4 @@ fn main() {
     if let Err(e) = fontmap.save(out_dir.join("font.png")) {
         println!("Error while saving the font map: '{}'", e);
     }
-
 }

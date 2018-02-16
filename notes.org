@@ -95,8 +95,25 @@ CLOSED: [2018-02-06 Tue 23:28]
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling
+* Add codegen-units: 1 to Cargo.toml                                   :code:
+** For the release mode only
+** This should speed up the game
+** https://blog.rust-lang.org/2018/02/15/Rust-1.24.html
 * Don't fade when showing the main menu
 ** I think we can do this by issuing another Fade call in the menu render
+* Show the next/prev page title in the help page                         :ui:
+** Instead of the generic Next page / Previous page text
+* Write a "Legend" help page
+** Describe the all the glyphs
+** %: food
+** i: dose
+** + and x: cardinal and diagonal dose
+** I: strong dose
+** monsters
+* "What is a roguelike?" help page                                       :ui:
+** every life matters
+** you'll be losing a lot
+** but every death is an opportunity to learn
 * Write a "call for artists" post?
 ** Here's what I'd like to see (in this order)
 *** Icon
@@ -119,12 +136,6 @@ CLOSED: [2018-02-06 Tue 23:28]
 ** https://crates.io/crates/standard_paths
 *** looks good but no mac support?
 ** https://crates.io/crates/xdg-basedir
-* Show the next/prev page title in the help page                         :ui:
-** Instead of the generic Next page / Previous page text
-* "What is a roguelike?" help page                                       :ui:
-** every life matters
-** you'll be losing a lot
-** but every death is an opportunity to learn
 * Mouse support for menus                                                :ui:
 * Show the current game build version in the main menu                   :ui:
 ** https://doc.rust-lang.org/cargo/reference/environment-variables.html

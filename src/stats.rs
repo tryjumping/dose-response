@@ -69,15 +69,17 @@ impl Stats {
     }
 
     pub fn longest_update(&self) -> Duration {
-        self.longest_updates.last().cloned().unwrap_or(
-            Duration::new(0, 0),
-        )
+        self.longest_updates
+            .last()
+            .cloned()
+            .unwrap_or(Duration::new(0, 0))
     }
 
     pub fn longest_drawcalls(&self) -> Duration {
-        self.longest_drawcalls.last().cloned().unwrap_or(
-            Duration::new(0, 0),
-        )
+        self.longest_drawcalls
+            .last()
+            .cloned()
+            .unwrap_or(Duration::new(0, 0))
     }
 
     pub fn mean_update(&self) -> f32 {
@@ -103,7 +105,6 @@ impl Stats {
     }
 }
 
-
 impl Default for Stats {
     fn default() -> Self {
         // about a minute and a half at 60 FPS
@@ -111,11 +112,10 @@ impl Default for Stats {
     }
 }
 
-
 pub struct FrameStatsIterator<'a> {
     frame_stats: &'a VecDeque<FrameStats>,
     count: usize, // starts at zero, goes up until size-1
-    size: usize, // the final number of items the iterator produces
+    size: usize,  // the final number of items the iterator produces
 }
 
 impl<'a> Iterator for FrameStatsIterator<'a> {

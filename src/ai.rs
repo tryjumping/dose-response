@@ -8,14 +8,12 @@ use ranged_int::InclusiveRange;
 use rect::Rectangle;
 use world::World;
 
-
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {
     LoneAttacker,
     PackAttacker,
     Friendly,
 }
-
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum AIState {
@@ -24,7 +22,6 @@ pub enum AIState {
     CheckingOut(Point),
 }
 
-
 #[derive(Copy, Clone, PartialEq, Debug)]
 /// Values the AI can update about itself before performing the action
 /// it decided to make.
@@ -32,7 +29,6 @@ pub struct Update {
     pub ai_state: AIState,
     pub max_ap: i32,
 }
-
 
 pub fn lone_attacker_act<R: Rng>(
     actor: &Monster,
@@ -47,7 +43,10 @@ pub fn lone_attacker_act<R: Rng>(
         AIState::Idle
     };
 
-    let update = Update { ai_state, max_ap: actor.ap.max() };
+    let update = Update {
+        ai_state,
+        max_ap: actor.ap.max(),
+    };
 
     let action = match ai_state {
         AIState::Chasing => chasing_action(actor, player_info.pos),
@@ -59,7 +58,6 @@ pub fn lone_attacker_act<R: Rng>(
     };
     (update, action)
 }
-
 
 pub fn pack_attacker_act<R: Rng>(
     actor: &Monster,
@@ -76,16 +74,18 @@ pub fn pack_attacker_act<R: Rng>(
         actor.ai_state
     };
 
-    let update = Update { ai_state, max_ap: actor.ap.max() };
+    let update = Update {
+        ai_state,
+        max_ap: actor.ap.max(),
+    };
 
     let action = match ai_state {
         AIState::Chasing => {
             let howling_area =
                 Rectangle::center(actor.position, Point::from_i32(formula::HOWLING_DISTANCE));
-            let howlees = world.monsters(howling_area)
-                .filter(|m| {
-                    m.behavior == Behavior::PackAttacker && m.position != actor.position
-                })
+            let howlees = world
+                .monsters(howling_area)
+                .filter(|m| m.behavior == Behavior::PackAttacker && m.position != actor.position)
                 .map(|m| m.position)
                 .collect::<Vec<_>>();
 
@@ -107,19 +107,26 @@ pub fn pack_attacker_act<R: Rng>(
     (update, action)
 }
 
-
 pub fn friendly_act<R: Rng>(
     actor: &Monster,
     player_info: PlayerInfo,
     world: &mut World,
     rng: &mut R,
 ) -> (Update, Action) {
-    let player_is_nearby = player_info.pos.distance(actor.position) <= formula::FRIENDLY_NPC_FREEZE_RADIUS;
+    let player_is_nearby =
+        player_info.pos.distance(actor.position) <= formula::FRIENDLY_NPC_FREEZE_RADIUS;
 
     let destination = if actor.accompanying_player {
         // Pick a position near the player
-        world.random_position_in_range(rng, player_info.pos, InclusiveRange(1, 3), 10,
-                                       actor.blockers, player_info.pos)
+        world
+            .random_position_in_range(
+                rng,
+                player_info.pos,
+                InclusiveRange(1, 3),
+                10,
+                actor.blockers,
+                player_info.pos,
+            )
             .unwrap_or(player_info.pos)
     } else if player_is_nearby && !player_info.mind.is_high() {
         // If the NPC is approachable and nearby, make it stop
@@ -136,13 +143,12 @@ pub fn friendly_act<R: Rng>(
             formula::ESTRANGED_NPC_MAX_AP
         } else {
             player_info.max_ap
-        }
+        },
     };
 
     let action = Action::Move(destination);
     (update, action)
 }
-
 
 fn idle_destination<R: Rng>(
     actor: &Monster,

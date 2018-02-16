@@ -1,10 +1,9 @@
 #![deny(overflowing_literals, unsafe_code)]
 #![feature(conservative_impl_trait)]
 
-
+extern crate bincode;
 #[macro_use]
 extern crate bitflags;
-extern crate bincode;
 extern crate rand;
 extern crate serde;
 #[macro_use]
@@ -41,11 +40,9 @@ extern crate rustbox;
 #[cfg(feature = "remote")]
 extern crate zmq;
 
-
 // NOTE: the external functions must be available in crate root:
 #[cfg(feature = "web")]
-pub use engine::wasm::{key_pressed, initialise, update};
-
+pub use engine::wasm::{initialise, key_pressed, update};
 
 mod ai;
 mod animation;
@@ -75,7 +72,6 @@ mod util;
 mod window_stack;
 mod world;
 
-
 // These are all in tiles and relate to how much we show on the screen.
 //
 // NOTE: at our current font size, the height of 43 tiles is the
@@ -92,7 +88,6 @@ const WORLD_SIZE: point::Point = point::Point {
 };
 
 const GAME_TITLE: &str = "Dose Response";
-
 
 #[cfg(feature = "libtcod")]
 fn run_libtcod(
@@ -224,7 +219,6 @@ fn run_remote(
     println!("The \"remote\" feature was not compiled in.");
 }
 
-
 #[cfg(feature = "cli")]
 fn process_cli_and_run_game() {
     use clap::{App, Arg, ArgGroup};
@@ -237,7 +231,7 @@ fn process_cli_and_run_game() {
                 .value_name("FILE")
                 .help(
                     "Replay this file instead of starting and playing a new \
-                    game",
+                     game",
                 )
                 .takes_value(true),
         )
@@ -245,7 +239,7 @@ fn process_cli_and_run_game() {
             Arg::with_name("replay-full-speed")
                 .help(
                     "Don't slow the replay down (useful for getting accurate \
-                    measurements)",
+                     measurements)",
                 )
                 .long("replay-full-speed"),
         )
@@ -266,38 +260,41 @@ fn process_cli_and_run_game() {
                 .help("Makes the player character invincible. They do not die.")
                 .long("invincible"),
         )
-        .arg(Arg::with_name("libtcod").long("libtcod").help(
-            "Use the libtcod rendering backend",
-        ))
-        .arg(Arg::with_name("piston").long("piston").help(
-            "Use the Piston rendering backend",
-        ))
-        .arg(Arg::with_name("opengl").long("opengl").help(
-            "Use the Glium (OpenGL) rendering backend",
-        ))
-        .arg(Arg::with_name("terminal").long("terminal").help(
-            "Use the Rustbox (terminal-only) rendering backend",
-        ))
+        .arg(
+            Arg::with_name("libtcod")
+                .long("libtcod")
+                .help("Use the libtcod rendering backend"),
+        )
+        .arg(
+            Arg::with_name("piston")
+                .long("piston")
+                .help("Use the Piston rendering backend"),
+        )
+        .arg(
+            Arg::with_name("opengl")
+                .long("opengl")
+                .help("Use the Glium (OpenGL) rendering backend"),
+        )
+        .arg(
+            Arg::with_name("terminal")
+                .long("terminal")
+                .help("Use the Rustbox (terminal-only) rendering backend"),
+        )
         .arg(Arg::with_name("remote").long("remote").help(
             "Don't create a game window. The input and output is \
-                    controled via ZeroMQ.",
+             controled via ZeroMQ.",
         ))
-        .group(ArgGroup::with_name("graphics").args(
-            &[
-                "libtcod",
-                "piston",
-                "opengl",
-                "terminal",
-                "remote",
-            ],
-        ))
+        .group(
+            ArgGroup::with_name("graphics")
+                .args(&["libtcod", "piston", "opengl", "terminal", "remote"]),
+        )
         .get_matches();
 
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
             panic!(
                 "The `replay-file` option can only be used during regular \
-                    game, not replay."
+                 game, not replay."
             );
         }
         let replay_path = std::path::Path::new(replay);
@@ -315,7 +312,7 @@ fn process_cli_and_run_game() {
         if matches.is_present("replay-full-speed") {
             panic!(
                 "The `full-replay-speed` option can only be used if the \
-                    replay log is passed."
+                 replay log is passed."
             );
         }
         let replay_file = match matches.value_of("replay-file") {
@@ -332,7 +329,6 @@ fn process_cli_and_run_game() {
             matches.is_present("invincible"),
         )
     };
-
 
     if matches.is_present("libtcod") {
         run_libtcod(
@@ -354,12 +350,23 @@ fn process_cli_and_run_game() {
     } else if matches.is_present("terminal") {
         run_terminal();
     } else if matches.is_present("remote") {
-        run_remote(DISPLAY_SIZE, color::background, GAME_TITLE, state, game::update);
+        run_remote(
+            DISPLAY_SIZE,
+            color::background,
+            GAME_TITLE,
+            state,
+            game::update,
+        );
     } else {
-        run_opengl(DISPLAY_SIZE, color::background, GAME_TITLE, state, game::update);
+        run_opengl(
+            DISPLAY_SIZE,
+            color::background,
+            GAME_TITLE,
+            state,
+            game::update,
+        );
     }
 }
-
 
 // NOTE: this function is intentionally empty and should stay here.
 // Under wasm we don't want to run the game immediately because the
@@ -367,9 +374,7 @@ fn process_cli_and_run_game() {
 // provided external endpoints the browser will call in. But `main`
 // still gets executed when the wasm binary is loaded.
 #[cfg(not(feature = "cli"))]
-fn process_cli_and_run_game() {
-}
-
+fn process_cli_and_run_game() {}
 
 fn main() {
     process_cli_and_run_game();

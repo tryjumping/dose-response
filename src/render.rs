@@ -10,22 +10,27 @@ use player::{Bonus, CauseOfDeath, Mind};
 use point::{Point, SquareArea};
 use rect::Rectangle;
 use state::{HelpWindow, Side, State, Window};
+use ui;
 use util;
 use world::Chunk;
-
 
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::time::Duration;
 
-
-pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+pub fn render(
+    state: &State,
+    dt: Duration,
+    fps: i32,
+    metrics: &TextMetrics,
+    drawcalls: &mut Vec<Draw>,
+) {
     // TODO: This might be inefficient for windows fully covering
     // other windows.
     for window in state.window_stack.windows() {
         match window {
             &Window::MainMenu => {
-                render_main_menu(state, metrics, drawcalls);
+                render_main_menu(state, &main_menu_window::Window, metrics, drawcalls);
             }
             &Window::Game => {
                 render_game(state, dt, fps, drawcalls);
@@ -90,15 +95,18 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
     // NOTE: Clear the screen
-    drawcalls.push(Draw::Rectangle(Point::from_i32(0), state.display_size, color::background));
+    drawcalls.push(Draw::Rectangle(
+        Point::from_i32(0),
+        state.display_size,
+        color::background,
+    ));
 
     // NOTE: render the cells on the map. That means world geometry and items.
-    for (world_pos, cell) in
-        state
-            .world
-            .chunks(display_area)
-            .flat_map(Chunk::cells)
-            .filter(|&(pos, _)| display_area.contains(pos))
+    for (world_pos, cell) in state
+        .world
+        .chunks(display_area)
+        .flat_map(Chunk::cells)
+        .filter(|&(pos, _)| display_area.contains(pos))
     {
         let display_pos = screen_coords_from_world(world_pos);
 
@@ -149,8 +157,8 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
         }
 
         // Render the items
-        if in_fov(world_pos) || cell.explored || bonus == Bonus::SeeMonstersAndItems ||
-            bonus == Bonus::UncoverMap
+        if in_fov(world_pos) || cell.explored || bonus == Bonus::SeeMonstersAndItems
+            || bonus == Bonus::UncoverMap
         {
             for item in cell.items.iter() {
                 graphics::draw(drawcalls, dt, display_pos, item);
@@ -225,7 +233,6 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     }
 }
 
-
 fn endgame_tip(state: &State) -> String {
     use rand::Rng;
     use self::CauseOfDeath::*;
@@ -259,7 +266,8 @@ fn endgame_tip(state: &State) -> String {
         "The `D` monsters move twice as fast as you. Be careful.",
     ];
 
-    let all_tips = overdosed_tips.iter()
+    let all_tips = overdosed_tips
+        .iter()
         .chain(food_tips)
         .chain(hunger_tips)
         .chain(anxiety_tips)
@@ -269,45 +277,39 @@ fn endgame_tip(state: &State) -> String {
     let cause_of_death = formula::cause_of_death(&state.player);
     let perpetrator = state.player.perpetrator.as_ref();
     let selected_tip = match (cause_of_death, perpetrator) {
-        (Some(Overdosed), _) => {
-            throwavay_rng.choose(overdosed_tips).unwrap()
-        }
-        (Some(Exhausted), Some(_monster)) => {
-            throwavay_rng.choose(hunger_tips).unwrap()
-        }
-        (Some(Exhausted), None) => {
-            throwavay_rng.choose(food_tips).unwrap()
-        }
-        (Some(LostWill), Some(_monster)) => {
-            throwavay_rng.choose(anxiety_tips).unwrap()
-        }
-        _ => {
-
-            throwavay_rng.choose(&all_tips).unwrap()
-        }
+        (Some(Overdosed), _) => throwavay_rng.choose(overdosed_tips).unwrap(),
+        (Some(Exhausted), Some(_monster)) => throwavay_rng.choose(hunger_tips).unwrap(),
+        (Some(Exhausted), None) => throwavay_rng.choose(food_tips).unwrap(),
+        (Some(LostWill), Some(_monster)) => throwavay_rng.choose(anxiety_tips).unwrap(),
+        _ => throwavay_rng.choose(&all_tips).unwrap(),
     };
 
     String::from(*selected_tip)
 }
 
-
-fn render_main_menu(state: &State, window: main_menu_window::Window, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
-    window.render(state, drawcalls);
+fn render_main_menu(
+    state: &State,
+    window: &main_menu_window::Window,
+    metrics: &TextMetrics,
+    drawcalls: &mut Vec<Draw>,
+) {
+    window.render(state, metrics, drawcalls);
 
     // Clear any fade set by the gameplay rendering
     drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
 }
 
-
 fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
-    use ui::Layout::*;
+    use ui::TextFlow::*;
 
     let screen_padding = Point::from_i32(2);
-    let window_rect = Rectangle::from_point_and_size(
-        screen_padding, state.display_size - (screen_padding * 2));
+    let window_rect =
+        Rectangle::from_point_and_size(screen_padding, state.display_size - (screen_padding * 2));
 
     let rect = Rectangle::from_point_and_size(
-        window_rect.top_left() + (2, 1), window_rect.dimensions() - (4, 2));
+        window_rect.top_left() + (2, 1),
+        window_rect.dimensions() - (4, 2),
+    );
 
     drawcalls.push(Draw::Rectangle(
         window_rect.top_left(),
@@ -328,12 +330,10 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
             lines.push(Centered("Controls: numpad"));
             lines.push(EmptySpace(2));
 
-
             lines.push(Paragraph("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally."));
             lines.push(Empty);
             lines.push(Paragraph("You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction."));
             lines.push(EmptySpace(3));
-
 
             lines.push(SquareTiles(r"7 8 9"));
             lines.push(SquareTiles(r" \|/ "));
@@ -381,7 +381,9 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
 
             lines.push(Paragraph("Your character ('@') is an addict. If you stay long without using a Dose ('i'), you will lose. You can also pick up food ('%') which lets you stay sober for longer."));
             lines.push(Empty);
-            lines.push(Paragraph("Using a Dose or eating Food will also kill all nearby enemies."));
+            lines.push(Paragraph(
+                "Using a Dose or eating Food will also kill all nearby enemies.",
+            ));
             lines.push(Empty);
             lines.push(Paragraph("Each Dose has a glow around it. If you step into it, you will be unable to resist even if it means Overdosing yourself. At the beginning, you will also Overdose by using another Dose when you're still High or using a Dose that's too strong for you ('+', 'x' or 'I'). With each Dose you build up tolerance which makes you seek out stronger Doses later on."));
             lines.push(Empty);
@@ -390,11 +392,10 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
             lines.push(Paragraph("To progress, you need to get stronger Will. Defeat enough `a` monsters and it will go up. The Dose or Food \"explosions\" don't count though! Higher Will makes the irresistible area around Doses smaller. It will also let you pick them up!"));
             lines.push(Empty);
             lines.push(Paragraph("If you see another @ characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober."));
-
         }
     }
 
-    render_laid_out_text(&lines, rect, metrics, drawcalls);
+    ui::render_text_flow(&lines, rect, metrics, drawcalls);
 
     if state.current_help_window != HelpWindow::HowToPlay {
         let text = "[->] Next page";
@@ -422,62 +423,9 @@ fn render_help_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<
     drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
 }
 
-
-fn render_laid_out_text(lines: &[Layout],
-                        rect: Rectangle,
-                        metrics: &TextMetrics,
-                        drawcalls: &mut Vec<Draw>) {
-    use ui::Layout::*;
-
-    let mut ypos = 0;
-    for text in lines.iter() {
-        match text {
-            &Empty => {
-                ypos += 1;
-            },
-
-            &EmptySpace(number_of_lines) => {
-                ypos += number_of_lines;
-            },
-
-            &Paragraph(text) => {
-                let pos = rect.top_left() + Point::new(0, ypos);
-                let options = TextOptions {
-                    wrap: true,
-                    width: rect.width(),
-                    .. Default::default()
-                };
-                let dc = Draw::Text(pos, text.to_string().into(), color::gui_text, options);
-                ypos += metrics.get_text_height(&dc);
-                drawcalls.push(dc);
-            },
-
-            &Centered(text) => {
-                let pos = rect.top_left() + Point::new(0, ypos);
-                let dc = Draw::Text(pos, text.to_string().into(), color::gui_text,
-                                    TextOptions::align_center(rect.width()));
-                ypos += 1;
-                drawcalls.push(dc);
-            },
-
-            &SquareTiles(text) => {
-                let text_size = text.chars().count() as i32;
-                let max_size = rect.width();
-                let start_pos = rect.top_left() + ((max_size - text_size) / 2, ypos);
-                for (i, chr) in text.char_indices() {
-                    let pos = start_pos + (i as i32, 0);
-                    drawcalls.push(Draw::Char(pos, chr, color::gui_text));
-                }
-                ypos += 1;
-            },
-        }
-    }
-}
-
-
 fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     use self::CauseOfDeath::*;
-    use ui::Layout::*;
+    use ui::TextFlow::*;
 
     let cause_of_death = formula::cause_of_death(&state.player);
     let endgame_reason_text = if state.side == Side::Victory {
@@ -499,7 +447,7 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
         (Some(LostWill), None) => unreachable!(),
         (Some(Killed), Some(monster)) => format!("Defeated by `{}`", monster.glyph()),
         (Some(Killed), None) => unreachable!(),
-        (None, _) => "".into(),  // Victory
+        (None, _) => "".into(), // Victory
     };
 
     let doses_in_inventory = state
@@ -551,7 +499,7 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
         window_rect.dimensions() - (padding * 2),
     );
 
-    render_laid_out_text(&lines, rect, metrics, drawcalls);
+    ui::render_text_flow(&lines, rect, metrics, drawcalls);
 
     drawcalls.push(Draw::Text(
         rect.bottom_left(),
@@ -564,16 +512,16 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
     drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
 }
 
-
 fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
     let window_size = Point::new(40, 10);
     let window_pos = ((state.display_size - window_size) / 2) - (0, 10);
-    let window_rect = Rectangle::from_point_and_size(
-        window_pos, window_size);
+    let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
 
     let padding = Point::new(2, 3);
     let rect = Rectangle::from_point_and_size(
-        window_rect.top_left() + padding, window_rect.dimensions() - padding * 2);
+        window_rect.top_left() + padding,
+        window_rect.dimensions() - padding * 2,
+    );
 
     drawcalls.push(Draw::Rectangle(
         window_rect.top_left(),
@@ -593,9 +541,7 @@ fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: 
         color::gui_text,
         TextOptions::align_center(rect.width()),
     ));
-
 }
-
 
 fn render_panel(
     x: i32,
@@ -648,9 +594,7 @@ fn render_panel(
 
         for kind in item::Kind::iter() {
             if let Some(count) = item_counts.get(&kind) {
-                lines.push(
-                    format!("[{}] {:?}: {}", game::inventory_key(kind), kind, count).into(),
-                );
+                lines.push(format!("[{}] {:?}: {}", game::inventory_key(kind), kind, count).into());
             }
         }
     }
@@ -658,9 +602,7 @@ fn render_panel(
     lines.push("".into());
 
     if player.will.is_max() {
-        lines.push(
-            format!("Sobriety: {}", player.sobriety_counter.percent()).into(),
-        );
+        lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()).into());
     }
 
     if !player.bonuses.is_empty() {
@@ -715,7 +657,6 @@ fn render_panel(
         );
     }
 
-
     for (y, line) in lines.into_iter().enumerate() {
         drawcalls.push(Draw::Text(
             Point {
@@ -769,16 +710,13 @@ fn render_panel(
             Default::default(),
         ));
     }
-
 }
-
 
 fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
     let mouse_world_pos = screen_left_top_corner + state.mouse.tile_pos;
     // TODO: world.monster_on_pos is mutable, let's add an immutable version
-    let monster_area = Rectangle::from_point_and_size(
-        mouse_world_pos, (1, 1).into());
+    let monster_area = Rectangle::from_point_and_size(mouse_world_pos, (1, 1).into());
     let mut debug_text = None;
     for monster in state.world.monsters(monster_area) {
         if monster.position == mouse_world_pos {
@@ -810,7 +748,6 @@ fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
         }
     }
 }
-
 
 fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
     fn rect_dim(lines: &[&str]) -> (i32, i32) {

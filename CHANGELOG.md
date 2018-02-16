@@ -8,8 +8,9 @@ desperately looking for the next fix.
 - Added saving and loading
 - Fixed fullscreen (including on multi-monitor setups)
 - Fixed food appearing on the player's initial position
-+ Fixed doses' irresistible areas covering the player's position
+- Fixed doses' irresistible areas covering the player's position
 - There's now at least one clear safe-to-use dose nearby
+- Mouse support in the main menu
 
 
 ## [0.5.2] - 2018-01-29

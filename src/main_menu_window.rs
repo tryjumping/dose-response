@@ -5,6 +5,7 @@ use rect::Rectangle;
 use state::State;
 use ui::{self, Text};
 
+#[derive(Debug)]
 pub enum MenuItem {
     Resume,
     NewGame,
@@ -66,8 +67,6 @@ impl Window {
             EmptySpace(2),
         ];
 
-        let header_rect = ui::text_flow_rect(&text_flow, rect, metrics);
-
         let mut options = vec![];
 
         if !state.game_ended {
@@ -93,21 +92,25 @@ impl Window {
             options.push(MenuItem::Quit);
         }
 
+        let header_rect = ui::text_flow_rect(&text_flow, rect, metrics);
+
         let mut menu_item_under_mouse = None;
         let mut menu_rect_under_mouse = None;
-        let mut next_top_left = rect.top_left();
+        let mut ypos = header_rect.bottom_right().y;
         for option in options {
             let text = Centered(option.to_str());
-            let rect = ui::text_rect(&text, rect, metrics);
-            next_top_left += rect.bottom_right();
-            if rect.contains(state.mouse.tile_pos) {
+            let text_rect = ui::text_rect(
+                &text,
+                Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()),
+                metrics);
+            ypos += text_rect.dimensions().y;
+            if text_rect.contains(state.mouse.tile_pos) {
                 menu_item_under_mouse = Some(option);
-                menu_rect_under_mouse = Some(rect);
+                menu_rect_under_mouse = Some(text_rect);
             }
             text_flow.push(text);
             text_flow.push(Empty);
         }
-        let rect = Rectangle::new(next_top_left, rect.bottom_right());
 
         text_flow.push(EmptySpace(3));
         text_flow.push(Paragraph("\"You cannot lose if you do not play.\""));
@@ -138,8 +141,6 @@ impl Window {
 
         let rect = layout.rect;
 
-        ui::render_text_flow(&layout.text_flow, rect, metrics, drawcalls);
-
         if let Some(rect) = layout.menu_rect_under_mouse {
             drawcalls.push(Draw::Rectangle(
                 rect.top_left(),
@@ -148,6 +149,8 @@ impl Window {
                 color::Color{r: 255, g: 0, b: 0},
             ));
         }
+
+        ui::render_text_flow(&layout.text_flow, rect, metrics, drawcalls);
     }
 
     pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<MenuItem> {

@@ -360,19 +360,21 @@ fn process_main_menu(state: &mut State, window: &main_menu_window::Window, metri
         return RunningState::Running;
     }
 
-    if let Some(option) = window.hovered(&state, metrics) {
-        match option {
-            Resume => unimplemented!(),
+    if state.mouse.left {
+        if let Some(option) = window.hovered(&state, metrics) {
+            match option {
+                Resume => unimplemented!(),
 
-            NewGame => unimplemented!(),
+                NewGame => unimplemented!(),
 
-            Help => unimplemented!(),
+                Help => unimplemented!(),
 
-            SaveAndQuit => unimplemented!(),
+                SaveAndQuit => unimplemented!(),
 
-            Load => unimplemented!(),
+                Load => unimplemented!(),
 
-            Quit => unimplemented!(),
+                Quit => unimplemented!(),
+            }
         }
     }
 

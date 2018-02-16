@@ -22,13 +22,12 @@ pub fn render_text_flow(
 
     let mut ypos = 0;
     for text in text_flow.iter() {
+        ypos += text_height(text, rect, metrics);
         match text {
             &Empty => {
-                ypos += 1;
             }
 
-            &EmptySpace(number_of_lines) => {
-                ypos += number_of_lines;
+            &EmptySpace(_) => {
             }
 
             &Paragraph(text) => {
@@ -39,7 +38,6 @@ pub fn render_text_flow(
                     ..Default::default()
                 };
                 let dc = Draw::Text(pos, text.to_string().into(), color::gui_text, options);
-                ypos += metrics.get_text_height(&dc);
                 drawcalls.push(dc);
             }
 
@@ -51,7 +49,6 @@ pub fn render_text_flow(
                     color::gui_text,
                     TextOptions::align_center(rect.width()),
                 );
-                ypos += 1;
                 drawcalls.push(dc);
             }
 
@@ -63,26 +60,57 @@ pub fn render_text_flow(
                     let pos = start_pos + (i as i32, 0);
                     drawcalls.push(Draw::Char(pos, chr, color::gui_text));
                 }
-                ypos += 1;
             }
         }
     }
 }
 
+fn text_height(
+    text: &Text,
+    rect: Rectangle,
+    metrics: &TextMetrics,
+) -> i32 {
+    use self::Text::*;
+    match text {
+        &Empty => 1,
+        &EmptySpace(number_of_lines) => number_of_lines,
+        &Paragraph(text) => {
+            let pos = rect.top_left();
+            let options = TextOptions {
+                wrap: true,
+                width: rect.width(),
+                ..Default::default()
+            };
+            let dc = Draw::Text(pos, text.to_string().into(), color::gui_text, options);
+            metrics.get_text_height(&dc)
+        }
+        &Centered(_text) => 1,
+        &SquareTiles(_text) => 1,
+    }
+}
+
 pub fn text_flow_rect(
-    lines: &[Text],
+    text_flow: &[Text],
     rect: Rectangle,
     metrics: &TextMetrics,
 ) -> Rectangle {
-    //use self::Text::*;
-    unimplemented!()
+    let height = text_flow.iter()
+        .map(|text| text_height(text, rect, metrics))
+        .sum();
+    Rectangle::new(
+        rect.top_left() ,
+        rect.top_left() + (0, height),
+    )
 }
 
 pub fn text_rect(
-    text_flow: &Text,
+    text: &Text,
     rect: Rectangle,
     metrics: &TextMetrics,
 ) -> Rectangle {
-    //use self::Text::*;
-    unimplemented!()
+    let height = text_height(text, rect, metrics);
+    Rectangle::new(
+        rect.top_left() ,
+        rect.top_left() + (rect.bottom_right().x, height),
+    )
 }

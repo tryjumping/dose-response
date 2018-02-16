@@ -364,11 +364,11 @@ Reason: '{}'.",
     }
 
     pub fn save_to_file(&self) -> Result<(), Box<Error>> {
-        use bincode::{serialize, Infinite};
+        use bincode::serialize;
 
         // TODO: select the filename dynamicaly!
         let filename = "SAVEDGAME.sav";
-        let buffer = serialize(self, Infinite)?;
+        let buffer = serialize(self)?;
 
         // TODO: this can be compressed nicely!
 

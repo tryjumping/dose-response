@@ -311,7 +311,7 @@ dependencies = [
 
 [[package]]
 name = "dose-response"
-version = "0.5.2"
+version = "0.6.0"
 dependencies = [
  "bincode 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitflags 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",

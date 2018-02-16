@@ -5,12 +5,16 @@ play an addict. Avoid the dangers threatening your mind and body while
 desperately looking for the next fix.
 
 ## [Unreleased]
+
+
+## [0.6.0] - 2018-02-16
 - Added saving and loading
 - Fixed fullscreen (including on multi-monitor setups)
 - Fixed food appearing on the player's initial position
 - Fixed doses' irresistible areas covering the player's position
 - There's now at least one clear safe-to-use dose nearby
-- Mouse support in the main menu
+- Basic mouse support in the main menu
+- Increased the rate at which the player develops tolerance
 
 
 ## [0.5.2] - 2018-01-29

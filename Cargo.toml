@@ -62,3 +62,7 @@ terminal = ["rustbox"]
 libtcod = ["tcod"]
 
 remote = ["zmq"]
+
+
+[profile.release]
+codegen-units = 1

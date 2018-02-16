@@ -71,32 +71,25 @@ impl Window {
         let mut options = vec![];
 
         if !state.game_ended {
-            //options.push();
             options.push(MenuItem::Resume);
         }
 
-        //options.push("[N]ew Game");
         options.push(MenuItem::NewGame);
 
         // NOTE: we won't hiding this option, because it would require
         // checking if the file exists every frame (or do some complex
         // caching).
-        //options.push("[L]oad game");
         options.push(MenuItem::Load);
 
-        //options.push("[H]elp");
         options.push(MenuItem::Help);
 
         if !state.game_ended {
-            //options.push("[S]ave and Quit");
             options.push(MenuItem::SaveAndQuit);
         }
 
         if state.game_ended {
-            //options.push("[Q]uit");
             options.push(MenuItem::Quit);
         } else {
-            //options.push("[Q]uit without saving");
             options.push(MenuItem::Quit);
         }
 

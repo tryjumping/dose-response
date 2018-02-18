@@ -29,6 +29,14 @@ function play_game(canvas, wasm_path) {
   var wasm_instance;
   var gamestate_ptr;
   var pressed_keys = [];
+  var mouse = {
+    tile_x: 0,
+    tile_y: 0,
+    pixel_x: 0,
+    pixel_y: 0,
+    left: false,
+    right: false
+  };
 
   console.log("Fetching: ", wasm_path);
 
@@ -195,6 +203,57 @@ function play_game(canvas, wasm_path) {
         }
       }, true);
 
+      var getMousePos = function(canvas, event) {
+        var rect = canvas.getBoundingClientRect();
+        let x = (event.clientX - rect.left) / (rect.right - rect.left) * canvas.width;
+        let y = (event.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height;
+        let tile_x = x / squareSize;
+        let tile_y = y / squareSize;
+        if(x >= 0 && y >= 0 && x < canvas.width && y < canvas.height) {
+          return {
+            x: Math.floor(x),
+            y: Math.floor(y),
+            tile_x: Math.floor(tile_x),
+            tile_y: Math.floor(tile_y)
+          };
+        } else {
+          return null;
+        }
+      };
+
+      document.addEventListener('mousemove', function(event) {
+        let current_mouse = getMousePos(canvas, event);
+        if(current_mouse) {
+          mouse.pixel_x = current_mouse.x;
+          mouse.pixel_y = current_mouse.y;
+          mouse.tile_x = current_mouse.tile_x;
+          mouse.tile_y = current_mouse.tile_y;
+        }
+      });
+      document.addEventListener('mousedown', function(event) {
+        let current_mouse = getMousePos(canvas, event);
+        if(current_mouse) {
+          mouse.pixel_x = current_mouse.x;
+          mouse.pixel_y = current_mouse.y;
+          mouse.tile_x = current_mouse.tile_x;
+          mouse.tile_y = current_mouse.tile_y;
+          mouse.left = true;
+        }
+      });
+      // TODO: This will miss the click if it's pressed and released
+      // in the same frame.
+      document.addEventListener('mouseup', function(event) {
+        let current_mouse = getMousePos(canvas, event);
+        if(current_mouse) {
+          mouse.pixel_x = current_mouse.x;
+          mouse.pixel_y = current_mouse.y;
+          mouse.tile_x = current_mouse.tile_x;
+          mouse.tile_y = current_mouse.tile_y;
+          mouse.left = false;
+        }
+      });
+
+
       wasm_instance = results.instance;
       gamestate_ptr = results.instance.exports.initialise();
 
@@ -214,7 +273,10 @@ function play_game(canvas, wasm_path) {
         }
         pressed_keys = [];
 
-        results.instance.exports.update(gamestate_ptr, dt);
+        results.instance.exports.update(
+          gamestate_ptr, dt,
+          mouse.tile_x, mouse.tile_y, mouse.pixel_x, mouse.pixel_y,
+          mouse.left, mouse.right);
       }
 
       // console.log("Playing the game.");

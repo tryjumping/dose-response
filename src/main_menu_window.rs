@@ -145,8 +145,7 @@ impl Window {
             drawcalls.push(Draw::Rectangle(
                 rect.top_left(),
                 rect.dimensions(),
-                // TODO: add bloody colour pallettes already
-                color::Color{r: 255, g: 0, b: 0},
+                color::menu_highlight,
             ));
         }
 

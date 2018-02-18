@@ -110,7 +110,7 @@ pub fn text_rect(
 ) -> Rectangle {
     let height = text_height(text, rect, metrics);
     Rectangle::new(
-        rect.top_left() ,
-        rect.top_left() + (rect.bottom_right().x, height),
+        rect.top_left(),
+        Point::new(rect.bottom_right().x, rect.top_left().y + height - 1),
     )
 }

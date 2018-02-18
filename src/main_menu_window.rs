@@ -96,7 +96,7 @@ impl Window {
 
         let mut menu_item_under_mouse = None;
         let mut menu_rect_under_mouse = None;
-        let mut ypos = header_rect.bottom_right().y;
+        let mut ypos = header_rect.bottom_right().y + 1;
         for option in options {
             let text = Centered(option.to_str());
             let text_rect = ui::text_rect(
@@ -110,6 +110,7 @@ impl Window {
             }
             text_flow.push(text);
             text_flow.push(Empty);
+            ypos += ui::text_rect(&Empty, Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()), metrics).dimensions().y;
         }
 
         text_flow.push(EmptySpace(3));

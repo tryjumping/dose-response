@@ -83,9 +83,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
-* Main menu mouse support looks ugly                                     :ui:
-** Ugly colour
-** Asymmetric highlighted rect
 * Mouse support for endgame screen                                       :ui:
 * Mouse support for inventory                                            :ui:
 * Must center the glyphs
@@ -1778,3 +1775,10 @@ CLOSED: [2018-02-18 Sun 15:33]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-02-18 Sun 15:33
 :END:
+** DONE Main menu mouse support looks ugly                              :ui:
+CLOSED: [2018-02-18 Sun 16:35]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-18 Sun 16:35
+:END:
+*** Ugly colour
+*** Asymmetric highlighted rect

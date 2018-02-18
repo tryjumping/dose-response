@@ -37,6 +37,8 @@ function play_game(canvas, wasm_path) {
     left: false,
     right: false
   };
+  var left_pressed_this_frame = false;
+  var right_pressed_this_frame = false;
 
   console.log("Fetching: ", wasm_path);
 
@@ -237,11 +239,15 @@ function play_game(canvas, wasm_path) {
           mouse.pixel_y = current_mouse.y;
           mouse.tile_x = current_mouse.tile_x;
           mouse.tile_y = current_mouse.tile_y;
-          mouse.left = true;
+          if(event.button === 0) {
+            mouse.left = true;
+            left_pressed_this_frame = true;
+          } else if (event.button === 2) {
+            mouse.right = true;
+            right_pressed_this_frame = true;
+          }
         }
       });
-      // TODO: This will miss the click if it's pressed and released
-      // in the same frame.
       document.addEventListener('mouseup', function(event) {
         let current_mouse = getMousePos(canvas, event);
         if(current_mouse) {
@@ -249,7 +255,11 @@ function play_game(canvas, wasm_path) {
           mouse.pixel_y = current_mouse.y;
           mouse.tile_x = current_mouse.tile_x;
           mouse.tile_y = current_mouse.tile_y;
-          mouse.left = false;
+          if(event.button === 0) {
+            mouse.left = false;
+          } else if (event.button === 2) {
+            mouse.right = false;
+          }
         }
       });
 
@@ -264,6 +274,11 @@ function play_game(canvas, wasm_path) {
         let dt = timestamp - previous_frame_timestamp;
         previous_frame_timestamp = timestamp;
 
+        let left_clicked = left_pressed_this_frame || mouse.left;
+        let right_clicked = right_pressed_this_frame || mouse.right;
+        left_pressed_this_frame = false;
+        right_pressed_this_frame = false;
+
         for(var index = 0; index < pressed_keys.length; index++) {
           var key = pressed_keys[index];
           wasm_instance.exports.key_pressed(
@@ -276,7 +291,7 @@ function play_game(canvas, wasm_path) {
         results.instance.exports.update(
           gamestate_ptr, dt,
           mouse.tile_x, mouse.tile_y, mouse.pixel_x, mouse.pixel_y,
-          mouse.left, mouse.right);
+          left_clicked, right_clicked);
       }
 
       // console.log("Playing the game.");

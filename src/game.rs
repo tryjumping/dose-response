@@ -6,7 +6,7 @@ use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::TileKind;
-use main_menu_window;
+use windows::main_menu;
 use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
@@ -75,7 +75,7 @@ pub fn update(
 
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
-        Window::MainMenu => process_main_menu(state, &main_menu_window::Window, metrics),
+        Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
         Window::Game => process_game(state, dt),
         Window::Help => process_help_window(state),
         Window::Endgame => process_endgame_window(state),
@@ -353,8 +353,8 @@ fn process_game(state: &mut State, dt: Duration) -> RunningState {
     RunningState::Running
 }
 
-fn process_main_menu(state: &mut State, window: &main_menu_window::Window, metrics: &TextMetrics) -> RunningState {
-    use main_menu_window::MenuItem::*;
+fn process_main_menu(state: &mut State, window: &main_menu::Window, metrics: &TextMetrics) -> RunningState {
+    use windows::main_menu::MenuItem::*;
 
     let mut option = None;
 

@@ -4,7 +4,7 @@ use formula;
 use game;
 use graphics;
 use item;
-use main_menu_window;
+use windows::main_menu;
 use monster;
 use player::{Bonus, CauseOfDeath, Mind};
 use point::{Point, SquareArea};
@@ -30,7 +30,7 @@ pub fn render(
     for window in state.window_stack.windows() {
         match window {
             &Window::MainMenu => {
-                render_main_menu(state, &main_menu_window::Window, metrics, drawcalls);
+                render_main_menu(state, &main_menu::Window, metrics, drawcalls);
             }
             &Window::Game => {
                 render_game(state, dt, fps, drawcalls);
@@ -289,7 +289,7 @@ fn endgame_tip(state: &State) -> String {
 
 fn render_main_menu(
     state: &State,
-    window: &main_menu_window::Window,
+    window: &main_menu::Window,
     metrics: &TextMetrics,
     drawcalls: &mut Vec<Draw>,
 ) {

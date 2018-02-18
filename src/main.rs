@@ -56,7 +56,6 @@ mod graphics;
 mod item;
 mod keys;
 mod level;
-mod main_menu_window;
 mod monster;
 mod pathfinding;
 mod player;
@@ -70,6 +69,7 @@ mod timer;
 mod ui;
 mod util;
 mod window_stack;
+mod windows;
 mod world;
 
 // These are all in tiles and relate to how much we show on the screen.

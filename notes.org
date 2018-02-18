@@ -44,7 +44,7 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** World generation
 ** Non-square fonts for text
 * Release checklist                                         :notes:checklist:
-- [ ] Create a new release in CHANGELOG.md
+- [X] Create a new release in CHANGELOG.md
 - [ ] Take a screenshot
 - [ ] Move the screenshot to Dose Response's screenshots directory
 - [ ] Commit the screenshot in the repo
@@ -55,6 +55,10 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Test the wasm version
 - [ ] Run: `make release`
 - [ ] Verify the binaries get created in the github release page
+- [ ] Test the builds [0/3]
+  - [ ] Test all the Windows Builds
+  - [ ] Test the linux builds on geralt
+  - [ ] Test the linux builds on worklaptop
 - [ ] Update the project page [0/3]
   - [ ] Update screenshot
   - [ ] Update the "what's new" section
@@ -66,8 +70,6 @@ CLOSED: [2018-01-25 Thu 13:05]
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* TODO Release build broken on Windows                                  :bug:
-** try a new build with the glium update
 * Game balance notes:
 ** DONE starting doses overlap
 CLOSED: [2018-02-04 Sun 16:33]
@@ -81,17 +83,19 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
-* Must center the glyphs
-** they're now left-aligned to the grid
-** we need an offset when we render them
 * Main menu mouse support looks ugly                                     :ui:
 ** Ugly colour
 ** Asymmetric highlighted rect
 * Mouse support for endgame screen                                       :ui:
 * Mouse support for inventory                                            :ui:
+* Must center the glyphs
+** they're now left-aligned to the grid
+** we need an offset when we render them
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling
+* Fullscreen does nothing on Windows                                     :ui:
+** Pressing Alt+Enter doesn't seem to do anything
 * Fix mouse position in fullscreen                                       :ui:
 ** Looks like the Y coord is right but X is off
 ** Prolly a letterboxing artifact
@@ -138,6 +142,7 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** https://crates.io/crates/termion
 *** https://crates.io/crates/rustbox
 *** https://crates.io/crates/easycurses
+*** https://crates.io/crates/crossterm
 ** Should be cross-platform
 ** Ideally no C deps (though I could live with that tbh)
 * Use rect::Rectangle for the Rectangle drawcall                       :code:
@@ -1762,3 +1767,14 @@ CLOSED: [2018-02-16 Fri 20:39]
 *** But it does not compile on wasm
 *** Need to fix that
 *** Switch to a local checkout and investigate
+** DONE Release build broken on Windows                                :bug:
+CLOSED: [2018-02-16 Fri 23:06]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-16 Fri 23:06
+:END:
+*** try a new build with the glium update
+** DONE Mouse support in wasm
+CLOSED: [2018-02-18 Sun 15:33]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-18 Sun 15:33
+:END:

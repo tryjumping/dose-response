@@ -374,8 +374,7 @@ pub fn main_loop(
 
         drawcalls.clear();
         drawcalls.push(Draw::Rectangle(
-            Point { x: 0, y: 0 },
-            display_size,
+            Rectangle::from_point_and_size(Point::new(0, 0), display_size),
             default_background,
         ));
         let previous_settings = settings;
@@ -717,7 +716,9 @@ pub fn main_loop(
                     }
                 }
 
-                &Draw::Rectangle(top_left, dimensions, color) => {
+                &Draw::Rectangle(rect, color) => {
+                    let top_left = rect.top_left();
+                    let dimensions = rect.dimensions();
                     let top_left_px = pixel_from_tile(top_left);
                     let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
                     let dimensions_px = pixel_from_tile(dimensions);

@@ -36,8 +36,8 @@ pub enum Draw {
     Background(Point, Color),
     /// Position, text, colour
     Text(Point, Cow<'static, str>, Color, TextOptions),
-    /// Position, size, color
-    Rectangle(Point, Point, Color),
+    /// Rectangle, color
+    Rectangle(Rectangle, Color),
     /// Fade (one minus alpha: 1.0 means no fade, 0.0 means full fade), color
     Fade(f32, Color),
 }
@@ -151,8 +151,7 @@ pub fn populate_background_map(
                 }
             }
 
-            &Draw::Rectangle(top_left, dimensions, color) => {
-                let rect = Rectangle::from_point_and_size(top_left, dimensions);
+            &Draw::Rectangle(rect, color) => {
                 for pos in rect.points() {
                     if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
                     {

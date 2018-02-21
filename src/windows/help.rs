@@ -100,15 +100,11 @@ impl Window {
 
         let layout = self.layout(state, metrics);
 
-        drawcalls.push(Draw::Rectangle(
-            layout.window_rect.top_left(),
-            layout.window_rect.dimensions(),
-            color::window_edge,
-        ));
+        drawcalls.push(Draw::Rectangle(layout.window_rect, color::window_edge,));
 
         drawcalls.push(Draw::Rectangle(
-            layout.window_rect.top_left() + (1, 1),
-            layout.window_rect.dimensions() - (2, 2),
+            Rectangle::new(layout.window_rect.top_left() + (1, 1),
+                           layout.window_rect.bottom_right() - (1, 1)),
             color::background,
         ));
 
@@ -188,8 +184,7 @@ impl Window {
 
         if let Some(highlighted_rect) = layout.rect_under_mouse {
             drawcalls.push(
-                Draw::Rectangle(highlighted_rect.top_left(),
-                                highlighted_rect.dimensions(),
+                Draw::Rectangle(highlighted_rect,
                                 color::menu_highlight));
         }
 

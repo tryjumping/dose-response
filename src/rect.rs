@@ -1,6 +1,6 @@
 use point::Point;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rectangle {
     top_left: Point,
     bottom_right: Point,

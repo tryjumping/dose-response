@@ -1,6 +1,7 @@
 use color::Color;
 use engine::Draw;
 use point::Point;
+use rect::Rectangle;
 use std::time::Duration;
 
 pub trait Render {
@@ -35,11 +36,7 @@ pub fn progress_bar(
 
     if highlighted_width > 0 {
         drawcalls.push(Draw::Rectangle(
-            pos,
-            Point {
-                x: highlighted_width,
-                y: 1,
-            },
+            Rectangle::from_point_and_size(pos, Point::new(highlighted_width, 1)),
             foreground,
         ));
     }
@@ -47,11 +44,8 @@ pub fn progress_bar(
     let remaining_width = width - highlighted_width;
     if remaining_width > 0 {
         drawcalls.push(Draw::Rectangle(
-            pos + (highlighted_width, 0),
-            Point {
-                x: remaining_width,
-                y: 1,
-            },
+            Rectangle::from_point_and_size(pos + (highlighted_width, 0),
+                                           Point::new(remaining_width, 1)),
             background,
         ));
     }

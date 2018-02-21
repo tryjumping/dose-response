@@ -96,8 +96,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
 
     // NOTE: Clear the screen
     drawcalls.push(Draw::Rectangle(
-        Point::from_i32(0),
-        state.display_size,
+        Rectangle::from_point_and_size(Point::from_i32(0), state.display_size),
         color::background,
     ));
 
@@ -376,11 +375,7 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
 
     let window_rect = Rectangle::from_point_and_size(top_left, size);
 
-    drawcalls.push(Draw::Rectangle(
-        window_rect.top_left(),
-        window_rect.dimensions(),
-        color::background,
-    ));
+    drawcalls.push(Draw::Rectangle(window_rect, color::background));
 
     let rect = Rectangle::from_point_and_size(
         window_rect.top_left() + padding,
@@ -411,15 +406,10 @@ fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: 
         window_rect.dimensions() - padding * 2,
     );
 
-    drawcalls.push(Draw::Rectangle(
-        window_rect.top_left(),
-        window_rect.dimensions(),
-        color::window_edge,
-    ));
+    drawcalls.push(Draw::Rectangle(window_rect, color::window_edge));
 
     drawcalls.push(Draw::Rectangle(
-        window_rect.top_left() + (1, 1),
-        window_rect.dimensions() - (2, 2),
+        Rectangle::new(window_rect.top_left() + (1, 1), window_rect.bottom_right() - (1, 1)),
         color::background,
     ));
 
@@ -446,11 +436,7 @@ fn render_panel(
     {
         let height = display_size.y;
         drawcalls.push(Draw::Rectangle(
-            Point { x: x, y: 0 },
-            Point {
-                x: width,
-                y: height,
-            },
+            Rectangle::from_point_and_size(Point::new(x, 0), Point::new(width, height)),
             bg,
         ));
     }
@@ -619,8 +605,9 @@ fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
         let height = debug_text.lines().count();
         let width = debug_text.lines().map(|s| s.chars().count()).max().unwrap();
         drawcalls.push(Draw::Rectangle(
-            (0, 0).into(),
-            (width as i32, height as i32).into(),
+            Rectangle::from_point_and_size(
+                Point::from_i32(0),
+                Point::new(width as i32, height as i32)),
             color::background,
         ));
         for (index, line) in debug_text.lines().enumerate() {
@@ -647,8 +634,7 @@ fn render_controls_help(map_size: Point, drawcalls: &mut Vec<Draw>) {
 
     fn draw_rect(lines: &[&'static str], start: Point, w: i32, h: i32, drawcalls: &mut Vec<Draw>) {
         drawcalls.push(Draw::Rectangle(
-            start,
-            Point::new(w, h),
+            Rectangle::from_point_and_size(start, Point::new(w, h)),
             color::dim_background,
         ));
         for (index, &line) in lines.iter().enumerate() {

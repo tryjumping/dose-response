@@ -129,25 +129,13 @@ impl Window {
 
     pub fn render(&self, state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
         let layout = self.calculate_layout(state, metrics);
-        drawcalls.push(Draw::Rectangle(
-            layout.window_rect.top_left(),
-            layout.window_rect.dimensions(),
-            color::window_edge,
-        ));
-        drawcalls.push(Draw::Rectangle(
-            layout.inner_window_rect.top_left(),
-            layout.inner_window_rect.dimensions(),
-            color::background,
-        ));
+        drawcalls.push(Draw::Rectangle(layout.window_rect, color::window_edge));
+        drawcalls.push(Draw::Rectangle(layout.inner_window_rect, color::background));
 
         let rect = layout.rect;
 
         if let Some(rect) = layout.menu_rect_under_mouse {
-            drawcalls.push(Draw::Rectangle(
-                rect.top_left(),
-                rect.dimensions(),
-                color::menu_highlight,
-            ));
+            drawcalls.push(Draw::Rectangle(rect, color::menu_highlight));
         }
 
         ui::render_text_flow(&layout.text_flow, rect, metrics, drawcalls);

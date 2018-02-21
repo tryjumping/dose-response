@@ -377,9 +377,9 @@ fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut V
 
     drawcalls.push(Draw::Rectangle(window_rect, color::background));
 
-    let rect = Rectangle::from_point_and_size(
+    let rect = Rectangle::new(
         window_rect.top_left() + padding,
-        window_rect.dimensions() - (padding * 2),
+        window_rect.bottom_right() - padding,
     );
 
     ui::render_text_flow(&lines, rect, metrics, drawcalls);
@@ -401,9 +401,9 @@ fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: 
     let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
 
     let padding = Point::new(2, 3);
-    let rect = Rectangle::from_point_and_size(
+    let rect = Rectangle::new(
         window_rect.top_left() + padding,
-        window_rect.dimensions() - padding * 2,
+        window_rect.bottom_right() - padding,
     );
 
     drawcalls.push(Draw::Rectangle(window_rect, color::window_edge));

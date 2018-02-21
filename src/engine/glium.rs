@@ -718,7 +718,7 @@ pub fn main_loop(
 
                 &Draw::Rectangle(rect, color) => {
                     let top_left = rect.top_left();
-                    let dimensions = rect.dimensions();
+                    let dimensions = rect.size();
                     let top_left_px = pixel_from_tile(top_left);
                     let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
                     let dimensions_px = pixel_from_tile(dimensions);

@@ -33,12 +33,12 @@ impl Rectangle {
         }
     }
 
-    pub fn dimensions(self) -> Point {
+    pub fn size(self) -> Point {
         self.bottom_right - self.top_left + (1, 1)
     }
 
     pub fn width(self) -> i32 {
-        self.dimensions().x
+        self.size().x
     }
 
     /// Returns `true` if the point is within the areas specified by

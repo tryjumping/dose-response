@@ -537,7 +537,7 @@ fn process_monsters<R: Rng>(
         return;
     }
     // NOTE: one quarter of the map area should be a decent overestimate
-    let monster_count_estimate = area.dimensions().x * area.dimensions().y / 4;
+    let monster_count_estimate = area.size().x * area.size().y / 4;
     assert!(monster_count_estimate > 0);
     let mut monster_positions_vec = world.monsters(area).map(|m| m.position).collect::<Vec<_>>();
     // TODO: Sort by how far it is from the player?

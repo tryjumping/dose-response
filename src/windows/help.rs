@@ -40,9 +40,9 @@ impl Window {
         let window_rect =
             Rectangle::from_point_and_size(screen_padding, state.display_size - (screen_padding * 2));
 
-        let rect = Rectangle::from_point_and_size(
+        let rect = Rectangle::new(
             window_rect.top_left() + (2, 1),
-            window_rect.dimensions() - (4, 2),
+            window_rect.bottom_right() - (2, 1),
         );
 
         let mut action_under_mouse = None;

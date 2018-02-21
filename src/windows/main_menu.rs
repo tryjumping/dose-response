@@ -51,9 +51,9 @@ impl Window {
 
         let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
 
-        let inner_window_rect = Rectangle::from_point_and_size(
+        let inner_window_rect = Rectangle::new(
             window_rect.top_left() + (1, 1),
-            window_rect.dimensions() - (2, 2),
+            window_rect.bottom_right() - (1, 1),
         );
 
         let rect_size = Point::new(20, 15);
@@ -103,14 +103,16 @@ impl Window {
                 &text,
                 Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()),
                 metrics);
-            ypos += text_rect.dimensions().y;
+            ypos += text_rect.size().y;
             if text_rect.contains(state.mouse.tile_pos) {
                 menu_item_under_mouse = Some(option);
                 menu_rect_under_mouse = Some(text_rect);
             }
             text_flow.push(text);
             text_flow.push(Empty);
-            ypos += ui::text_rect(&Empty, Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()), metrics).dimensions().y;
+            ypos += ui::text_rect(&Empty,
+                                  Rectangle::new(rect.top_left() + (0, ypos),
+                                                 rect.bottom_right()), metrics).size().y;
         }
 
         text_flow.push(EmptySpace(3));

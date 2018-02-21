@@ -20,6 +20,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 use timer::Timer;
 use window_stack::WindowStack;
+use windows;
 use world::World;
 
 // TODO: Rename this to `GameState` and the existing `GameState` to
@@ -136,7 +137,7 @@ pub struct State {
     pub window_stack: WindowStack<Window>,
 
     pub show_keboard_movement_hints: bool,
-    pub current_help_window: HelpWindow,
+    pub current_help_window: windows::help::Page,
 
     /// Whether we should push the Endscreen window and uncover the
     /// map during the transition from screen fade out to fade in
@@ -206,7 +207,7 @@ impl State {
             game_ended: false,
             window_stack: WindowStack::new(Window::Game),
             show_keboard_movement_hints: true,
-            current_help_window: HelpWindow::NumpadControls,
+            current_help_window: windows::help::Page::NumpadControls,
             show_endscreen_and_uncover_map_during_fadein: false,
             uncovered_map: false,
         }
@@ -410,14 +411,6 @@ pub enum Window {
     Help,
     Endgame,
     Message(String),
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum HelpWindow {
-    NumpadControls,
-    ArrowControls,
-    ViKeys,
-    HowToPlay,
 }
 
 fn empty_command_logger() -> Box<Write> {

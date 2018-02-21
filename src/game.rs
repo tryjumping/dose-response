@@ -6,7 +6,7 @@ use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::TileKind;
-use windows::main_menu;
+use windows::{help, main_menu};
 use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
@@ -77,7 +77,7 @@ pub fn update(
     let game_update_result = match current_window {
         Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
         Window::Game => process_game(state, dt),
-        Window::Help => process_help_window(state),
+        Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state),
         Window::Message(_) => process_message_window(state),
     };
@@ -442,32 +442,53 @@ fn process_main_menu(state: &mut State, window: &main_menu::Window, metrics: &Te
     RunningState::Running
 }
 
-fn process_help_window(state: &mut State) -> RunningState {
-    use state::HelpWindow::*;
+fn process_help_window(state: &mut State,
+                       window: &help::Window,
+                       metrics: &TextMetrics) -> RunningState {
+    use self::help::Action;
+    use self::help::Page::*;
 
     if state.keys.matches_code(KeyCode::Esc) {
         state.window_stack.pop();
         return RunningState::Running;
     }
 
-    if state.keys.matches_code(KeyCode::Right) {
-        let new_help_window = match state.current_help_window {
-            NumpadControls => ArrowControls,
-            ArrowControls => ViKeys,
-            ViKeys => HowToPlay,
-            HowToPlay => HowToPlay,
-        };
-        state.current_help_window = new_help_window;
+    let mut action = None;
+
+    if state.mouse.left {
+        action = window.hovered(&state, metrics);
     }
 
-    if state.keys.matches_code(KeyCode::Left) {
-        let new_help_window = match state.current_help_window {
-            NumpadControls => NumpadControls,
-            ArrowControls => NumpadControls,
-            ViKeys => ArrowControls,
-            HowToPlay => ViKeys,
-        };
-        state.current_help_window = new_help_window;
+    if action.is_none() {
+        if state.keys.matches_code(KeyCode::Right) {
+            action = Some(Action::NextPage);
+        } else if state.keys.matches_code(KeyCode::Left) {
+            action = Some(Action::PrevPage);
+        }
+    }
+
+    match action {
+        Some(Action::NextPage) => {
+            let new_help_window = match state.current_help_window {
+                NumpadControls => ArrowControls,
+                ArrowControls => ViKeys,
+                ViKeys => HowToPlay,
+                HowToPlay => HowToPlay,
+            };
+            state.current_help_window = new_help_window;
+        }
+
+        Some(Action::PrevPage) => {
+            let new_help_window = match state.current_help_window {
+                NumpadControls => NumpadControls,
+                ArrowControls => NumpadControls,
+                ViKeys => ArrowControls,
+                HowToPlay => ViKeys,
+            };
+            state.current_help_window = new_help_window;
+        }
+
+        None => {}
     }
 
     RunningState::Running

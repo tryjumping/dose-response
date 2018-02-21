@@ -94,6 +94,21 @@ pub trait TextMetrics {
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
     fn get_text_height(&self, text_drawcall: &Draw) -> i32;
+
+    /// Return the width in tiles of the given text.
+    ///
+    /// Panics when `text_drawcall` is not `Draw::Text`
+    fn get_text_width(&self, text_drawcall: &Draw) -> i32;
+
+    /// Return the width and height of the given text in tiles.
+    ///
+    /// Panics when `text_drawcall` is not `Draw::Text`
+    fn text_size(&self, text_drawcall: &Draw) -> Point;
+
+    /// Return the rectangle the text will be rendered in.
+    ///
+    /// Panics when `text_drawcall` is not `Draw::Text`
+    fn text_rect(&self, text_drawcall: &Draw) -> Rectangle;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

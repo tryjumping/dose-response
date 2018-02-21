@@ -12,6 +12,7 @@ use glium::glutin::VirtualKeyCode as BackendKey;
 use image;
 use keys::{Key, KeyCode};
 use point::Point;
+use rect::Rectangle;
 use std::time::{Duration, Instant};
 use util;
 
@@ -185,6 +186,63 @@ impl TextMetrics for Metrics {
             }
             _ => {
                 panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
+            }
+        }
+    }
+
+    fn get_text_width(&self, text_drawcall: &Draw) -> i32 {
+        match text_drawcall {
+            &Draw::Text(_, ref text, _, options) => {
+                let pixel_width = if options.wrap && options.width > 0 {
+                    // // TODO: handle text alignment for wrapped text
+                    let lines = wrap_text(text, options.width, self.tile_width_px);
+                    lines.iter()
+                        .map(|line| text_width_px(line, self.tile_width_px))
+                        .max()
+                        .unwrap_or(0)
+                } else {
+                    text_width_px(text, self.tile_width_px)
+                };
+                let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
+                tile_width as i32
+            }
+            _ => {
+                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
+            }
+        }
+    }
+
+    fn text_size(&self, text_drawcall: &Draw) -> Point {
+        Point::new(self.get_text_width(text_drawcall), self.get_text_height(text_drawcall))
+    }
+
+    fn text_rect(&self, text_drawcall: &Draw) -> Rectangle {
+        match text_drawcall {
+            &Draw::Text(start_pos, _, _, options) => {
+                let size = self.text_size(text_drawcall);
+
+                let top_left = if options.wrap && options.width > 0 {
+                    start_pos
+                } else {
+                    use engine::TextAlign::*;
+                    match options.align {
+                        Left => start_pos,
+                        Right => start_pos + (1 - size.x, 0),
+                        Center => {
+                            if options.width < 1 || (size.x > options.width) {
+                                start_pos
+                            } else {
+                                start_pos + Point::new((options.width - size.x) / 2, 0)
+                            }
+                        }
+                    }
+                };
+
+                Rectangle::from_point_and_size(top_left, size)
+            }
+
+            _ => {
+                panic!("The argument to `TextMetrics::text_rect` must be `Draw::Text`!");
             }
         }
     }

@@ -391,6 +391,7 @@ pub fn main_loop(
             },
             &mut drawcalls,
         );
+        mouse.left = false;
 
         match update_result {
             RunningState::Running => {}
@@ -1037,16 +1038,15 @@ pub fn main_loop(
                             use glium::glutin::MouseButton::*;
                             use glium::glutin::ElementState::*;
 
-                            let pressed = match state {
-                                Pressed => true,
-                                Released => false,
-                            };
-
-                            match button {
-                                Left => mouse.left = pressed,
-                                Right => mouse.right = pressed,
+                            match (state, button) {
+                                (Released, Left) => {
+                                    mouse.left = true;
+                                }
+                                (Released, Right) => {
+                                    mouse.right = true;
+                                }
                                 _ => {}
-                            };
+                            }
                         }
                         WindowEvent::Focused(false) => {
                             lctrl_pressed = false;

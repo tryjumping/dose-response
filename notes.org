@@ -83,13 +83,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
-* Mouse support for the help screen                                      :ui:
-* Mouse click within a frame                                             :ui:
-** Same issue we had with wasm
-** Press and releasing the mouse in the frame means the clicked event is lost
-* Long mouse press is treated as a stream of clicks                      :ui:
-** This is mostly visible in the help screen
-** You click on the "next page" and instead you get to the last one
 * Mouse support for endgame screen                                       :ui:
 * Mouse support for inventory                                            :ui:
 * Must center the glyphs
@@ -1789,3 +1782,22 @@ CLOSED: [2018-02-18 Sun 16:35]
 :END:
 *** Ugly colour
 *** Asymmetric highlighted rect
+** DONE Mouse support for the help screen                               :ui:
+CLOSED: [2018-02-23 Fri 18:36]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-23 Fri 18:36
+:END:
+** DONE Mouse click within a frame                                      :ui:
+CLOSED: [2018-02-23 Fri 18:36]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-23 Fri 18:36
+:END:
+*** Same issue we had with wasm
+*** Press and releasing the mouse in the frame means the clicked event is lost
+** DONE Long mouse press is treated as a stream of clicks               :ui:
+CLOSED: [2018-02-23 Fri 18:36]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-23 Fri 18:36
+:END:
+*** This is mostly visible in the help screen
+*** You click on the "next page" and instead you get to the last one

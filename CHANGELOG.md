@@ -5,6 +5,7 @@ play an addict. Avoid the dangers threatening your mind and body while
 desperately looking for the next fix.
 
 ## [Unreleased]
+- Mouse support in the Help screen
 
 
 ## [0.6.0] - 2018-02-16

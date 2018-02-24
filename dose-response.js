@@ -255,13 +255,6 @@ function play_game(canvas, wasm_path) {
           mouse.pixel_y = current_mouse.y;
           mouse.tile_x = current_mouse.tile_x;
           mouse.tile_y = current_mouse.tile_y;
-          if(event.button === 0) {
-            //mouse.left = true;
-            //left_pressed_this_frame = true;
-          } else if (event.button === 2) {
-            //mouse.right = true;
-            //right_pressed_this_frame = true;
-          }
         }
       });
       document.addEventListener('mouseup', function(event) {
@@ -307,16 +300,6 @@ function play_game(canvas, wasm_path) {
         mouse.right = false;
       }
 
-      // console.log("Playing the game.");
-      // let text = "Hello world! This is an intentionally long text that is going to overflow at some point and so it is perfect for testing word-wrapping in this situation. We will probably have to expose the wrapText function to wasm or at least one that gives you the wrapped height in pixels or something.";
-      // ctx.fillStyle = "rgb(255, 255, 255)";
-      // var lines = wrapText(ctx, text, 200);
-      // let fontHeight = parseInt(ctx.font.match(/\d+/), 10);
-      // let lineHeight = (fontHeight * 1.3) | 0;
-      // console.log(fontHeight, lineHeight);
-      // for(let i = 0; i < lines.length; i++) {
-      //   ctx.fillText(lines[i], 20, 20 + (lineHeight * i));
-      // }
       update(previous_frame_timestamp);
     });
 }

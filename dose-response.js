@@ -256,11 +256,11 @@ function play_game(canvas, wasm_path) {
           mouse.tile_x = current_mouse.tile_x;
           mouse.tile_y = current_mouse.tile_y;
           if(event.button === 0) {
-            mouse.left = true;
-            left_pressed_this_frame = true;
+            //mouse.left = true;
+            //left_pressed_this_frame = true;
           } else if (event.button === 2) {
-            mouse.right = true;
-            right_pressed_this_frame = true;
+            //mouse.right = true;
+            //right_pressed_this_frame = true;
           }
         }
       });
@@ -272,9 +272,9 @@ function play_game(canvas, wasm_path) {
           mouse.tile_x = current_mouse.tile_x;
           mouse.tile_y = current_mouse.tile_y;
           if(event.button === 0) {
-            mouse.left = false;
+            mouse.left = true;
           } else if (event.button === 2) {
-            mouse.right = false;
+            mouse.right = true;
           }
         }
       });
@@ -290,11 +290,6 @@ function play_game(canvas, wasm_path) {
         let dt = timestamp - previous_frame_timestamp;
         previous_frame_timestamp = timestamp;
 
-        let left_clicked = left_pressed_this_frame || mouse.left;
-        let right_clicked = right_pressed_this_frame || mouse.right;
-        left_pressed_this_frame = false;
-        right_pressed_this_frame = false;
-
         for(var index = 0; index < pressed_keys.length; index++) {
           var key = pressed_keys[index];
           wasm_instance.exports.key_pressed(
@@ -307,7 +302,9 @@ function play_game(canvas, wasm_path) {
         results.instance.exports.update(
           gamestate_ptr, dt,
           mouse.tile_x, mouse.tile_y, mouse.pixel_x, mouse.pixel_y,
-          left_clicked, right_clicked);
+          mouse.left, mouse.right);
+        mouse.left = false;
+        mouse.right = false;
       }
 
       // console.log("Playing the game.");

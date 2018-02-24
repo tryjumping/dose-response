@@ -6,7 +6,7 @@ use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::TileKind;
-use windows::{help, main_menu};
+use windows::{endgame, help, main_menu};
 use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
@@ -78,7 +78,7 @@ pub fn update(
         Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
         Window::Game => process_game(state, dt),
         Window::Help => process_help_window(state, &help::Window, metrics),
-        Window::Endgame => process_endgame_window(state),
+        Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
         Window::Message(_) => process_message_window(state),
     };
 
@@ -494,28 +494,48 @@ fn process_help_window(state: &mut State,
     RunningState::Running
 }
 
-fn process_endgame_window(state: &mut State) -> RunningState {
-    if state.keys.matches_code(KeyCode::N) {
-        return RunningState::NewGame(create_new_game_state(state));
+fn process_endgame_window(state: &mut State,
+                          window: &endgame::Window,
+                          metrics: &TextMetrics) -> RunningState {
+    use windows::endgame::Action::*;
+
+    let mut action = None;
+
+    if state.mouse.left {
+        action = window.hovered(&state, metrics);
     }
 
-    if state.keys.matches_code(KeyCode::Esc) {
-        state.window_stack.push(Window::MainMenu);
-        return RunningState::Running;
+    if action.is_none() {
+        if state.keys.matches_code(KeyCode::N) {
+            action = Some(NewGame);
+        } else if state.keys.matches_code(KeyCode::Esc) {
+            action = Some(Menu);
+        } else if state.keys.matches_code(KeyCode::QuestionMark) {
+            action = Some(Help);
+        } else if state.keys.matches_code(KeyCode::H) {
+            action = Some(Help);
+        }
     }
 
-    // Show the help screen on `?`
-    if state.keys.matches_code(KeyCode::QuestionMark) {
-        state.window_stack.push(Window::Help);
-        return RunningState::Running;
+    match action {
+        Some(NewGame) => {
+            RunningState::NewGame(create_new_game_state(state))
+        }
+        Some(Menu) => {
+            state.window_stack.push(Window::MainMenu);
+            RunningState::Running
+        }
+        Some(Help) => {
+            state.window_stack.push(Window::Help);
+            RunningState::Running
+        }
+        None => {
+            if state.keys.get().is_some() {
+                state.window_stack.pop();
+            }
+            RunningState::Running
+        }
     }
-
-    if state.keys.get().is_some() {
-        state.window_stack.pop();
-        return RunningState::Running;
-    }
-
-    RunningState::Running
 }
 
 fn process_message_window(state: &mut State) -> RunningState {

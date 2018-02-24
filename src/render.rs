@@ -4,13 +4,12 @@ use formula;
 use game;
 use graphics;
 use item;
-use windows::{help, main_menu};
+use windows::{endgame, help, main_menu};
 use monster;
-use player::{Bonus, CauseOfDeath, Mind};
+use player::{Bonus, Mind};
 use point::{Point, SquareArea};
 use rect::Rectangle;
-use state::{Side, State, Window};
-use ui;
+use state::{State, Window};
 use util;
 use world::Chunk;
 
@@ -39,7 +38,7 @@ pub fn render(
                 render_help_screen(state, &help::Window, metrics, drawcalls);
             }
             &Window::Endgame => {
-                render_endgame_screen(state, metrics, drawcalls);
+                render_endgame_screen(state, &endgame::Window, metrics, drawcalls);
             }
             &Window::Message(ref text) => {
                 render_message(state, text, metrics, drawcalls);
@@ -232,59 +231,6 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
     }
 }
 
-fn endgame_tip(state: &State) -> String {
-    use rand::Rng;
-    use self::CauseOfDeath::*;
-    let mut throwavay_rng = state.rng.clone();
-
-    let overdosed_tips = &[
-        "Using another dose when High will likely cause overdose early on.",
-        "When you get too close to a dose, it will be impossible to resist.",
-        "The `+`, `x` and `I` doses are much stronger. Early on, you'll likely overdose on them.",
-    ];
-
-    let food_tips = &[
-        "Eat food (by pressing [1]) or use a dose to stave off withdrawal.",
-    ];
-
-    let hunger_tips = &[
-        "Being hit by `h` will quickly get you into a withdrawal.",
-        "The `h` monsters can swarm you.",
-    ];
-
-    let anxiety_tips = &[
-        "Being hit by `a` reduces your Will. You lose when it reaches zero.",
-    ];
-
-    let unsorted_tips = &[
-        "As you use doses, you slowly build up tolerance.",
-        "Even the doses of the same kind can have different strength. Their purity varies.",
-        "Directly confronting `a` will slowly increase your Will.",
-        "The other characters won't talk to you while you're High.",
-        "Bumping to another person sober will give you a bonus.",
-        "The `D` monsters move twice as fast as you. Be careful.",
-    ];
-
-    let all_tips = overdosed_tips
-        .iter()
-        .chain(food_tips)
-        .chain(hunger_tips)
-        .chain(anxiety_tips)
-        .chain(unsorted_tips)
-        .collect::<Vec<_>>();
-
-    let cause_of_death = formula::cause_of_death(&state.player);
-    let perpetrator = state.player.perpetrator.as_ref();
-    let selected_tip = match (cause_of_death, perpetrator) {
-        (Some(Overdosed), _) => throwavay_rng.choose(overdosed_tips).unwrap(),
-        (Some(Exhausted), Some(_monster)) => throwavay_rng.choose(hunger_tips).unwrap(),
-        (Some(Exhausted), None) => throwavay_rng.choose(food_tips).unwrap(),
-        (Some(LostWill), Some(_monster)) => throwavay_rng.choose(anxiety_tips).unwrap(),
-        _ => throwavay_rng.choose(&all_tips).unwrap(),
-    };
-
-    String::from(*selected_tip)
-}
 
 fn render_main_menu(
     state: &State,
@@ -310,86 +256,13 @@ fn render_help_screen(
     drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
 }
 
-fn render_endgame_screen(state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
-    use self::CauseOfDeath::*;
-    use ui::Text::*;
-
-    let cause_of_death = formula::cause_of_death(&state.player);
-    let endgame_reason_text = if state.side == Side::Victory {
-        // TODO: remove Side entirely for now.
-        assert!(state.player.alive());
-        assert!(cause_of_death.is_none());
-        "You won!"
-    } else {
-        "You lost:"
-    };
-
-    let perpetrator = state.player.perpetrator.as_ref();
-
-    let endgame_description = match (cause_of_death, perpetrator) {
-        (Some(Exhausted), None) => "Exhausted".into(),
-        (Some(Exhausted), Some(monster)) => format!("Exhausted because of `{}`", monster.glyph()),
-        (Some(Overdosed), _) => "Overdosed".into(),
-        (Some(LostWill), Some(monster)) => format!("Lost all Will due to `{}`", monster.glyph()),
-        (Some(LostWill), None) => unreachable!(),
-        (Some(Killed), Some(monster)) => format!("Defeated by `{}`", monster.glyph()),
-        (Some(Killed), None) => unreachable!(),
-        (None, _) => "".into(), // Victory
-    };
-
-    let doses_in_inventory = state
-        .player
-        .inventory
-        .iter()
-        .filter(|item| item.is_dose())
-        .count();
-
-    let turns_text = format!("Turns: {}", state.turn);
-    let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
-    let high_streak_text = format!(
-        "Longest High streak: {} turns",
-        state.player.longest_high_streak
-    );
-    let tip_text = format!("Tip: {}", endgame_tip(state));
-
-    let lines = vec![
-        Centered(endgame_reason_text),
-        Centered(&endgame_description),
-        EmptySpace(2),
-        Centered(&turns_text),
-        Empty,
-        Centered(&high_streak_text),
-        Empty,
-        Centered(&carrying_doses_text),
-        EmptySpace(2),
-        Paragraph(&tip_text),
-        EmptySpace(2),
-    ];
-
-    let padding = Point::from_i32(1);
-    let size = Point::new(37, 17) + (padding * 2);
-    let top_left = Point {
-        x: (state.display_size.x - size.x) / 2,
-        y: 7,
-    };
-
-    let window_rect = Rectangle::from_point_and_size(top_left, size);
-
-    drawcalls.push(Draw::Rectangle(window_rect, color::background));
-
-    let rect = Rectangle::new(
-        window_rect.top_left() + padding,
-        window_rect.bottom_right() - padding,
-    );
-
-    ui::render_text_flow(&lines, rect, metrics, drawcalls);
-
-    drawcalls.push(Draw::Text(
-        rect.bottom_left(),
-        "[N]ew Game       [?] Help       [Esc] Main Menu".into(),
-        color::gui_text,
-        TextOptions::align_center(rect.width()),
-    ));
+fn render_endgame_screen(
+    state: &State,
+    window: &endgame::Window,
+    metrics: &TextMetrics,
+    drawcalls: &mut Vec<Draw>,
+) {
+    window.render(state, metrics, drawcalls);
 
     // Clear any fade set by the gameplay rendering
     drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));

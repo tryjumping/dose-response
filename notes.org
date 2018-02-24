@@ -42,7 +42,8 @@ CLOSED: [2018-01-25 Thu 13:05]
 * Nice-to-have post 1.0.0
 ** Monsters and player able to shatter walls
 ** World generation
-** Non-square fonts for text
+** DONE Non-square fonts for text
+CLOSED: [2018-02-24 Sat 16:56]
 * Release checklist                                         :notes:checklist:
 - [X] Create a new release in CHANGELOG.md
 - [ ] Take a screenshot
@@ -83,11 +84,8 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
+* Add menu button to the side panel                                      :ui:
 * Mouse support for inventory                                            :ui:
-* Dismiss a msgbox with a mouse click                                    :ui:
-** Left or right click anywhere on the screen should dismiss it
-* Fix the wasm build                                                   :code:
-** TextMetrics impl need the new functions
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
@@ -131,6 +129,7 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** mastodon
 *** maybe reddit?
 * Replace keyboard hints with a "press ? to help" msg?                   :ui:
+** Or maybe render them in the side panel?
 * Store save in the right location for the system
 ** https://crates.io/crates/standard_paths
 *** looks good but no mac support?
@@ -145,7 +144,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** https://crates.io/crates/crossterm
 ** Should be cross-platform
 ** Ideally no C deps (though I could live with that tbh)
-* Use rect::Rectangle for the Rectangle drawcall                       :code:
 * Use rect::Rectangle for Point::areas                                 :code:
 * Split out the rendering functionality into a proper crate            :code:
 ** Call it "Charmed, I'm sure."
@@ -1809,3 +1807,20 @@ CLOSED: [2018-02-24 Sat 15:23]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-02-24 Sat 15:23
 :END:
+** DONE Fix the wasm build                                            :code:
+CLOSED: [2018-02-24 Sat 16:41]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-24 Sat 16:41
+:END:
+*** TextMetrics impl need the new functions
+** DONE Use rect::Rectangle for the Rectangle drawcall                :code:
+CLOSED: [2018-02-24 Sat 16:55]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-24 Sat 16:55
+:END:
+** DONE Dismiss a msgbox with a mouse click                             :ui:
+CLOSED: [2018-02-24 Sat 16:54]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-02-24 Sat 16:56
+:END:
+*** Left or right click anywhere on the screen should dismiss it

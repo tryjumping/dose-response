@@ -56,6 +56,12 @@ pub struct TextOptions {
 }
 
 impl TextOptions {
+    pub fn align_left() -> TextOptions {
+        TextOptions {
+            align: TextAlign::Left,
+            ..Default::default()
+        }
+    }
     pub fn align_right() -> TextOptions {
         TextOptions {
             align: TextAlign::Right,

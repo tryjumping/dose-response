@@ -16,21 +16,88 @@ pub enum Action {
 
 
 struct Layout {
+    window_rect: Rectangle,
+    rect: Rectangle,
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
+    new_game_button: Draw,
+    help_button: Draw,
+    menu_button: Draw,
 }
 
 
 pub struct Window;
 
 impl Window {
-    fn layout(&self, _state: &State, _metrics: &TextMetrics) -> Layout {
-        let action_under_mouse = None;
-        let rect_under_mouse = None;
+    fn layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
+        let mut action_under_mouse = None;
+        let mut rect_under_mouse = None;
+
+        let padding = Point::from_i32(1);
+        let size = Point::new(37, 17) + (padding * 2);
+        let top_left = Point {
+            x: (state.display_size.x - size.x) / 2,
+            y: 7,
+        };
+
+        let window_rect = Rectangle::from_point_and_size(top_left, size);
+
+        let rect = Rectangle::new(
+            window_rect.top_left() + padding,
+            window_rect.bottom_right() - padding,
+        );
+
+        let new_game_button = Draw::Text(
+            rect.bottom_left(),
+            "[N]ew Game".into(),
+            color::gui_text,
+            TextOptions::align_left(),
+        );
+
+        let help_button = Draw::Text(
+            rect.bottom_left(),
+            "[?] Help".into(),
+            color::gui_text,
+            TextOptions::align_center(rect.width()),
+        );
+
+        let menu_button = Draw::Text(
+            rect.bottom_right(),
+            "[Esc] Main Menu".into(),
+            color::gui_text,
+            TextOptions::align_right(),
+        );
+
+        let text_rect = metrics.text_rect(&new_game_button);
+        if text_rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::NewGame);
+            rect_under_mouse = Some(text_rect);
+        }
+
+        let text_rect = metrics.text_rect(&help_button);
+        // NOTE(shadower): This is a fixup for the discrepancy between
+        // the text width in pixels and how it maps to the tile
+        // coordinates. It just looks better 1 tile wider.
+        let text_rect = Rectangle::new(text_rect.top_left(), text_rect.bottom_right() + (1, 0));
+        if text_rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::Help);
+            rect_under_mouse = Some(text_rect);
+        }
+
+        let text_rect = metrics.text_rect(&menu_button);
+        if text_rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::Menu);
+            rect_under_mouse = Some(text_rect);
+        }
 
         Layout {
+            window_rect,
+            rect,
             action_under_mouse,
             rect_under_mouse,
+            new_game_button,
+            help_button,
+            menu_button,
         }
     }
 
@@ -93,34 +160,17 @@ impl Window {
             EmptySpace(2),
         ];
 
-        let padding = Point::from_i32(1);
-        let size = Point::new(37, 17) + (padding * 2);
-        let top_left = Point {
-            x: (state.display_size.x - size.x) / 2,
-            y: 7,
-        };
+        drawcalls.push(Draw::Rectangle(layout.window_rect, color::background));
 
-        let window_rect = Rectangle::from_point_and_size(top_left, size);
-
-        drawcalls.push(Draw::Rectangle(window_rect, color::background));
-
-        let rect = Rectangle::new(
-            window_rect.top_left() + padding,
-            window_rect.bottom_right() - padding,
-        );
-
-        ui::render_text_flow(&lines, rect, metrics, drawcalls);
+        ui::render_text_flow(&lines, layout.rect, metrics, drawcalls);
 
         if let Some(rect) = layout.rect_under_mouse {
             drawcalls.push(Draw::Rectangle(rect, color::menu_highlight));
         }
 
-        drawcalls.push(Draw::Text(
-            rect.bottom_left(),
-            "[N]ew Game       [?] Help       [Esc] Main Menu".into(),
-            color::gui_text,
-            TextOptions::align_center(rect.width()),
-        ));
+        drawcalls.push(layout.new_game_button);
+        drawcalls.push(layout.help_button);
+        drawcalls.push(layout.menu_button);
 
     }
 

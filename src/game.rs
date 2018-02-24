@@ -135,7 +135,8 @@ fn process_game(state: &mut State, dt: Duration) -> RunningState {
     }
 
     // Show the endgame screen on any pressed key:
-    if state.game_ended && state.screen_fading.is_none() && state.keys.matches(|_| true) {
+    if state.game_ended && state.screen_fading.is_none() &&
+        (state.keys.matches(|_| true) || state.mouse.right) {
         state.window_stack.push(Window::Endgame);
         return RunningState::Running;
     }
@@ -365,6 +366,8 @@ fn process_main_menu(state: &mut State, window: &main_menu::Window, metrics: &Te
     if option.is_none() {
         if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::R) {
             option = Some(Resume);
+        } else if state.mouse.right {
+            option = Some(Resume);
         } else if state.keys.matches_code(KeyCode::N) {
             option = Some(NewGame);
         } else if state.keys.matches_code(KeyCode::QuestionMark) || state.keys.matches_code(KeyCode::H) {
@@ -448,7 +451,7 @@ fn process_help_window(state: &mut State,
     use self::help::Action;
     use self::help::Page::*;
 
-    if state.keys.matches_code(KeyCode::Esc) {
+    if state.keys.matches_code(KeyCode::Esc) || state.mouse.right {
         state.window_stack.pop();
         return RunningState::Running;
     }
@@ -530,7 +533,7 @@ fn process_endgame_window(state: &mut State,
             RunningState::Running
         }
         None => {
-            if state.keys.get().is_some() {
+            if state.keys.get().is_some() || state.mouse.right {
                 state.window_stack.pop();
             }
             RunningState::Running
@@ -539,7 +542,7 @@ fn process_endgame_window(state: &mut State,
 }
 
 fn process_message_window(state: &mut State) -> RunningState {
-    if state.keys.get().is_some() {
+    if state.keys.get().is_some() || state.mouse.left || state.mouse.right {
         state.window_stack.pop();
         return RunningState::Running;
     }

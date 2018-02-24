@@ -357,6 +357,7 @@ pub fn main_loop(
             &mut drawcalls,
         );
         mouse.left = false;
+        mouse.right = false;
 
         match update_result {
             RunningState::Running => {}

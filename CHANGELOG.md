@@ -6,6 +6,7 @@ desperately looking for the next fix.
 
 ## [Unreleased]
 - Mouse support in the Help screen
+- Mouse support in the endgame screen
 
 
 ## [0.6.0] - 2018-02-16

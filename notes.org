@@ -86,6 +86,8 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Mouse support for inventory                                            :ui:
 * Dismiss a msgbox with a mouse click                                    :ui:
 ** Left or right click anywhere on the screen should dismiss it
+* Fix the wasm build                                                   :code:
+** TextMetrics impl need the new functions
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them

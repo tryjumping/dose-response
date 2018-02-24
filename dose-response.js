@@ -108,7 +108,7 @@ function play_game(canvas, wasm_path) {
                   ctx.textAlign = "right";
                   break;
                 case 2:
-                  if(width > 0) {
+                  if(text_width > 0) {
                     ctx.textAlign = "center";
                     x += text_width / 2;
                   }
@@ -136,13 +136,15 @@ function play_game(canvas, wasm_path) {
                 break;
 
               case 3: // Rectangle
-                var x = data[0][0];
-                var y = data[0][1];
-                var dimensions = data[1];
-                var color = data[2];
+                var x = data[0][0][0];
+                var y = data[0][0][1];
+                var bottom_right = data[0][1];
+                var width = bottom_right[0] - x + 1;
+                var height = bottom_right[1] - y + 1;
+                var color = data[1];
 
                 ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-                ctx.fillRect(x * squareSize, y * squareSize, dimensions[0] * squareSize, dimensions[1] * squareSize);
+                ctx.fillRect(x * squareSize, y * squareSize, width * squareSize, height * squareSize);
                 break;
 
               case 4: // Fade
@@ -167,6 +169,20 @@ function play_game(canvas, wasm_path) {
             let text = decoder.decode(buffer);
             let lines = wrapText(ctx, text, max_width_in_tiles * squareSize);
             return lines.length;
+          },
+          wrapped_text_width_in_tiles: function(text_ptr, text_len, max_width_in_tiles) {
+            let buffer = new Uint8Array(wasm_instance.exports.memory.buffer, text_ptr, text_len);
+            let decoder = new TextDecoder();
+            let text = decoder.decode(buffer);
+            let lines = wrapText(ctx, text, max_width_in_tiles * squareSize);
+            var maxWidthPx = 0;
+            for(let i = 0; i < lines.length; i++) {
+              let width = ctx.measureText(lines[i]).width;
+              if(maxWidthPx < width) {
+                maxWidthPx = width;
+              }
+            }
+            return Math.ceil( maxWidthPx / squareSize);
           }
         }
       });

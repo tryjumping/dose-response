@@ -22,6 +22,11 @@ extern "C" {
         text_len: usize,
         max_width_in_tiles: i32,
     ) -> i32;
+    fn wrapped_text_width_in_tiles(
+        text_ptr: *const u8,
+        text_len: usize,
+        max_width_in_tiles: i32,
+    ) -> i32;
 }
 
 fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {
@@ -153,6 +158,26 @@ impl TextMetrics for Metrics {
             }
             _ => {
                 panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
+            }
+        }
+    }
+
+    fn get_text_width(&self, text_drawcall: &Draw) -> i32 {
+        match text_drawcall {
+            &Draw::Text(_pos, ref text, _color, options) => {
+                let width = if options.wrap {
+                    options.width
+                } else {
+                    text.chars().count() as i32
+                };
+                #[allow(unsafe_code)]
+                unsafe {
+                    wrapped_text_width_in_tiles(text.as_ptr(), text.len(), width)
+                }
+                //10
+            }
+            _ => {
+                panic!("The argument to `TextMetrics::get_text_width` must be `Draw::Text`!");
             }
         }
     }

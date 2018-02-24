@@ -211,41 +211,6 @@ impl TextMetrics for Metrics {
             }
         }
     }
-
-    fn text_size(&self, text_drawcall: &Draw) -> Point {
-        Point::new(self.get_text_width(text_drawcall), self.get_text_height(text_drawcall))
-    }
-
-    fn text_rect(&self, text_drawcall: &Draw) -> Rectangle {
-        match text_drawcall {
-            &Draw::Text(start_pos, _, _, options) => {
-                let size = self.text_size(text_drawcall);
-
-                let top_left = if options.wrap && options.width > 0 {
-                    start_pos
-                } else {
-                    use engine::TextAlign::*;
-                    match options.align {
-                        Left => start_pos,
-                        Right => start_pos + (1 - size.x, 0),
-                        Center => {
-                            if options.width < 1 || (size.x > options.width) {
-                                start_pos
-                            } else {
-                                start_pos + Point::new((options.width - size.x) / 2, 0)
-                            }
-                        }
-                    }
-                };
-
-                Rectangle::from_point_and_size(top_left, size)
-            }
-
-            _ => {
-                panic!("The argument to `TextMetrics::text_rect` must be `Draw::Text`!");
-            }
-        }
-    }
 }
 
 #[allow(unsafe_code)]

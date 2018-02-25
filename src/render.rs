@@ -1,20 +1,16 @@
 use color::{self, Color};
 use engine::{Draw, TextMetrics, TextOptions};
 use formula;
-use game;
 use graphics;
-use item;
-use windows::{endgame, help, main_menu};
+use windows::{endgame, help, main_menu, sidebar};
 use monster;
-use player::{Bonus, Mind};
+use player::Bonus;
 use point::{Point, SquareArea};
 use rect::Rectangle;
 use state::{State, Window};
 use util;
 use world::Chunk;
 
-use std::borrow::Cow;
-use std::collections::HashMap;
 use std::time::Duration;
 
 pub fn render(
@@ -32,7 +28,7 @@ pub fn render(
                 render_main_menu(state, &main_menu::Window, metrics, drawcalls);
             }
             &Window::Game => {
-                render_game(state, dt, fps, drawcalls);
+                render_game(state, &sidebar::Window, metrics, dt, fps, drawcalls);
             }
             &Window::Help => {
                 render_help_screen(state, &help::Window, metrics, drawcalls);
@@ -47,7 +43,12 @@ pub fn render(
     }
 }
 
-pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Draw>) {
+pub fn render_game(state: &State,
+                   sidebar_window: &sidebar::Window,
+                   metrics: &TextMetrics,
+                   dt: Duration,
+                   fps: i32,
+                   drawcalls: &mut Vec<Draw>) {
     if state.player.alive() {
         let fade = formula::mind_fade_value(state.player.mind);
         if fade > 0.0 {
@@ -212,15 +213,7 @@ pub fn render_game(state: &State, dt: Duration, fps: i32, drawcalls: &mut Vec<Dr
         graphics::draw(drawcalls, dt, display_pos, &state.player);
     }
 
-    render_panel(
-        state.map_size.x,
-        state.panel_width,
-        state.display_size,
-        &state,
-        dt,
-        drawcalls,
-        fps,
-    );
+    sidebar_window.render(state, metrics, dt, fps, drawcalls);
     if state.show_keboard_movement_hints {
         render_controls_help(state.map_size, drawcalls);
     }
@@ -292,171 +285,6 @@ fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: 
         color::gui_text,
         TextOptions::align_center(rect.width()),
     ));
-}
-
-fn render_panel(
-    x: i32,
-    width: i32,
-    display_size: Point,
-    state: &State,
-    dt: Duration,
-    drawcalls: &mut Vec<Draw>,
-    fps: i32,
-) {
-    let fg = color::gui_text;
-    let bg = color::dim_background;
-
-    {
-        let height = display_size.y;
-        drawcalls.push(Draw::Rectangle(
-            Rectangle::from_point_and_size(Point::new(x, 0), Point::new(width, height)),
-            bg,
-        ));
-    }
-
-    let player = &state.player;
-
-    let (mind_str, mind_val_percent) = match player.mind {
-        Mind::Withdrawal(val) => ("Withdrawal", val.percent()),
-        Mind::Sober(val) => ("Sober", val.percent()),
-        Mind::High(val) => ("High", val.percent()),
-    };
-
-    let mut lines: Vec<Cow<'static, str>> = vec![
-        mind_str.into(),
-        "".into(), // NOTE: placeholder for the Mind state percentage bar
-        "".into(),
-        format!("Will: {}", player.will.to_int()).into(),
-    ];
-
-    if player.inventory.len() > 0 {
-        lines.push("".into());
-        lines.push("Inventory:".into());
-
-        let mut item_counts = HashMap::new();
-        for item in player.inventory.iter() {
-            let count = item_counts.entry(item.kind).or_insert(0);
-            *count += 1;
-        }
-
-        for kind in item::Kind::iter() {
-            if let Some(count) = item_counts.get(&kind) {
-                lines.push(format!("[{}] {:?}: {}", game::inventory_key(kind), kind, count).into());
-            }
-        }
-    }
-
-    lines.push("".into());
-
-    if player.will.is_max() {
-        lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()).into());
-    }
-
-    if !player.bonuses.is_empty() {
-        lines.push("Bonus:".into());
-        for bonus in &player.bonuses {
-            lines.push(format!("* {:?}", bonus).into());
-        }
-    }
-
-    if state.cheating {
-        lines.push("CHEATING".into());
-        lines.push("".into());
-    }
-
-    if player.alive() {
-        if player.stun.to_int() > 0 {
-            lines.push(format!("Stunned({})", player.stun.to_int()).into());
-        }
-        if player.panic.to_int() > 0 {
-            lines.push(format!("Panicking({})", player.panic.to_int()).into());
-        }
-    } else {
-        lines.push("Dead".into());
-    }
-
-    if state.cheating {
-        if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.display_size {
-            lines.push(format!("Mouse: {}", state.mouse.tile_pos).into())
-        }
-
-        lines.push("Time stats:".into());
-        for frame_stat in state.stats.last_frames(25) {
-            lines.push(
-                format!(
-                    "upd: {}, dc: {}",
-                    util::num_milliseconds(frame_stat.update),
-                    util::num_milliseconds(frame_stat.drawcalls)
-                ).into(),
-            );
-        }
-        lines.push(
-            format!(
-                "longest upd: {}",
-                util::num_milliseconds(state.stats.longest_update())
-            ).into(),
-        );
-        lines.push(
-            format!(
-                "longest dc: {}",
-                util::num_milliseconds(state.stats.longest_drawcalls())
-            ).into(),
-        );
-    }
-
-    for (y, line) in lines.into_iter().enumerate() {
-        drawcalls.push(Draw::Text(
-            Point {
-                x: x + 1,
-                y: y as i32,
-            },
-            line.into(),
-            fg,
-            Default::default(),
-        ));
-    }
-
-    let max_val = match player.mind {
-        Mind::Withdrawal(val) => val.max(),
-        Mind::Sober(val) => val.max(),
-        Mind::High(val) => val.max(),
-    };
-    let mut bar_width = width - 2;
-    if max_val < bar_width {
-        bar_width = max_val;
-    }
-
-    graphics::progress_bar(
-        drawcalls,
-        mind_val_percent,
-        (x + 1, 1).into(),
-        bar_width,
-        color::gui_progress_bar_fg,
-        color::gui_progress_bar_bg,
-    );
-
-    let bottom = display_size.y - 1;
-
-    if state.cheating {
-        drawcalls.push(Draw::Text(
-            Point {
-                x: x + 1,
-                y: bottom - 1,
-            },
-            format!("dt: {}ms", util::num_milliseconds(dt)).into(),
-            fg,
-            Default::default(),
-        ));
-        drawcalls.push(Draw::Text(
-            Point {
-                x: x + 1,
-                y: bottom,
-            },
-            format!("FPS: {}", fps).into(),
-            fg,
-            Default::default(),
-        ));
-    }
 }
 
 fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {

@@ -6,7 +6,7 @@ use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::TileKind;
-use windows::{endgame, help, main_menu};
+use windows::{endgame, help, main_menu, sidebar};
 use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
@@ -76,7 +76,7 @@ pub fn update(
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
         Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
-        Window::Game => process_game(state, dt),
+        Window::Game => process_game(state, &sidebar::Window, metrics, dt),
         Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
         Window::Message(_) => process_message_window(state),
@@ -122,16 +122,38 @@ pub fn update(
     game_update_result
 }
 
-fn process_game(state: &mut State, dt: Duration) -> RunningState {
-    if state.keys.matches_code(KeyCode::Esc) {
-        state.window_stack.push(Window::MainMenu);
-        return RunningState::Running;
+fn process_game(state: &mut State,
+                window: &sidebar::Window,
+                metrics: &TextMetrics,
+                dt: Duration) -> RunningState {
+    use self::sidebar::Action;
+
+    let mut option = None;
+
+    if state.mouse.left {
+        option = window.hovered(&state, metrics);
     }
 
-    // Show the help screen on `?`
-    if state.keys.matches_code(KeyCode::QuestionMark) {
-        state.window_stack.push(Window::Help);
-        return RunningState::Running;
+    if option.is_none() {
+        option = if state.keys.matches_code(KeyCode::Esc) {
+            Some(Action::MainMenu)
+        } else if state.keys.matches_code(KeyCode::QuestionMark) {
+            Some(Action::Help)
+        } else {
+            None
+        };
+    }
+
+    match option {
+        Some(Action::MainMenu) => {
+            state.window_stack.push(Window::MainMenu);
+            return RunningState::Running;
+        }
+        Some(Action::Help) => {
+            state.window_stack.push(Window::Help);
+            return RunningState::Running;
+        }
+        _ => {}
     }
 
     // Show the endgame screen on any pressed key:
@@ -192,6 +214,18 @@ fn process_game(state: &mut State, dt: Duration) -> RunningState {
 
     if (running || paused_one_step || timed_step) && state.side != Side::Victory && no_animations {
         process_keys(&mut state.keys, &mut state.commands);
+        let mouse_command = match option {
+            Some(Action::UseFood) => Some(Command::UseFood),
+            Some(Action::UseDose) => Some(Command::UseDose),
+            Some(Action::UseCardinalDose) => Some(Command::UseCardinalDose),
+            Some(Action::UseDiagonalDose) => Some(Command::UseDiagonalDose),
+            Some(Action::UseStrongDose) => Some(Command::UseStrongDose),
+            _ => None,
+        };
+
+        if let Some(command) = mouse_command{
+            state.commands.push_front(command);
+        }
 
         let command_count = state.commands.len();
 

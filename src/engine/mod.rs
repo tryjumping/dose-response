@@ -110,7 +110,10 @@ pub trait TextMetrics {
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
     fn text_size(&self, text_drawcall: &Draw) -> Point {
-        Point::new(self.get_text_width(text_drawcall), self.get_text_height(text_drawcall))
+        Point::new(
+            self.get_text_width(text_drawcall),
+            self.get_text_height(text_drawcall),
+        )
     }
 
     /// Return the rectangle the text will be rendered in.
@@ -188,14 +191,11 @@ pub fn populate_background_map(
                 }
             }
 
-            &Draw::Rectangle(rect, color) => {
-                for pos in rect.points() {
-                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
-                    {
-                        background_map[(pos.y * display_size.x + pos.x) as usize] = color;
-                    }
+            &Draw::Rectangle(rect, color) => for pos in rect.points() {
+                if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                    background_map[(pos.y * display_size.x + pos.x) as usize] = color;
                 }
-            }
+            },
 
             _ => {}
         }

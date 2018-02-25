@@ -51,7 +51,8 @@ impl Timer {
 }
 
 pub struct Stopwatch {
-    #[cfg(not(feature = "web"))] start: Instant,
+    #[cfg(not(feature = "web"))]
+    start: Instant,
 }
 
 impl Stopwatch {

@@ -122,10 +122,12 @@ pub fn update(
     game_update_result
 }
 
-fn process_game(state: &mut State,
-                window: &sidebar::Window,
-                metrics: &TextMetrics,
-                dt: Duration) -> RunningState {
+fn process_game(
+    state: &mut State,
+    window: &sidebar::Window,
+    metrics: &TextMetrics,
+    dt: Duration,
+) -> RunningState {
     use self::sidebar::Action;
 
     let mut option = None;
@@ -157,8 +159,9 @@ fn process_game(state: &mut State,
     }
 
     // Show the endgame screen on any pressed key:
-    if state.game_ended && state.screen_fading.is_none() &&
-        (state.keys.matches(|_| true) || state.mouse.right) {
+    if state.game_ended && state.screen_fading.is_none()
+        && (state.keys.matches(|_| true) || state.mouse.right)
+    {
         state.window_stack.push(Window::Endgame);
         return RunningState::Running;
     }
@@ -223,7 +226,7 @@ fn process_game(state: &mut State,
             _ => None,
         };
 
-        if let Some(command) = mouse_command{
+        if let Some(command) = mouse_command {
             state.commands.push_front(command);
         }
 
@@ -388,7 +391,11 @@ fn process_game(state: &mut State,
     RunningState::Running
 }
 
-fn process_main_menu(state: &mut State, window: &main_menu::Window, metrics: &TextMetrics) -> RunningState {
+fn process_main_menu(
+    state: &mut State,
+    window: &main_menu::Window,
+    metrics: &TextMetrics,
+) -> RunningState {
     use windows::main_menu::MenuItem::*;
 
     let mut option = None;
@@ -404,7 +411,9 @@ fn process_main_menu(state: &mut State, window: &main_menu::Window, metrics: &Te
             option = Some(Resume);
         } else if state.keys.matches_code(KeyCode::N) {
             option = Some(NewGame);
-        } else if state.keys.matches_code(KeyCode::QuestionMark) || state.keys.matches_code(KeyCode::H) {
+        } else if state.keys.matches_code(KeyCode::QuestionMark)
+            || state.keys.matches_code(KeyCode::H)
+        {
             option = Some(Help);
         } else if state.keys.matches_code(KeyCode::S) {
             option = Some(SaveAndQuit);
@@ -414,7 +423,6 @@ fn process_main_menu(state: &mut State, window: &main_menu::Window, metrics: &Te
             option = Some(Load);
         }
     }
-
 
     if let Some(option) = option {
         match option {
@@ -450,38 +458,37 @@ fn process_main_menu(state: &mut State, window: &main_menu::Window, metrics: &Te
                 return RunningState::Running;
             }
 
-            Load => {
-                match State::load_from_file() {
-                    Ok(new_state) => {
-                        *state = new_state;
-                        if state.window_stack.top() == Window::MainMenu {
-                            state.window_stack.pop();
-                        }
-                        return RunningState::Running;
+            Load => match State::load_from_file() {
+                Ok(new_state) => {
+                    *state = new_state;
+                    if state.window_stack.top() == Window::MainMenu {
+                        state.window_stack.pop();
                     }
-                    Err(error) => {
-                        println!("Error loading the game: {:?}", error);
-                        state
-                            .window_stack
-                            .push(Window::Message("Error: could not load the game.".into()));
-                        return RunningState::Running;
-                    }
+                    return RunningState::Running;
                 }
-            }
+                Err(error) => {
+                    println!("Error loading the game: {:?}", error);
+                    state
+                        .window_stack
+                        .push(Window::Message("Error: could not load the game.".into()));
+                    return RunningState::Running;
+                }
+            },
 
             Quit => {
                 return RunningState::Stopped;
             }
-
         }
     }
 
     RunningState::Running
 }
 
-fn process_help_window(state: &mut State,
-                       window: &help::Window,
-                       metrics: &TextMetrics) -> RunningState {
+fn process_help_window(
+    state: &mut State,
+    window: &help::Window,
+    metrics: &TextMetrics,
+) -> RunningState {
     use self::help::Action;
     use self::help::Page::*;
 
@@ -531,9 +538,11 @@ fn process_help_window(state: &mut State,
     RunningState::Running
 }
 
-fn process_endgame_window(state: &mut State,
-                          window: &endgame::Window,
-                          metrics: &TextMetrics) -> RunningState {
+fn process_endgame_window(
+    state: &mut State,
+    window: &endgame::Window,
+    metrics: &TextMetrics,
+) -> RunningState {
     use windows::endgame::Action::*;
 
     let mut action = None;
@@ -555,9 +564,7 @@ fn process_endgame_window(state: &mut State,
     }
 
     match action {
-        Some(NewGame) => {
-            RunningState::NewGame(create_new_game_state(state))
-        }
+        Some(NewGame) => RunningState::NewGame(create_new_game_state(state)),
         Some(Menu) => {
             state.window_stack.push(Window::MainMenu);
             RunningState::Running

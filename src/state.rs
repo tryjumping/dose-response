@@ -112,7 +112,8 @@ pub struct State {
     pub keys: Keys,
     pub mouse: Mouse,
     pub commands: VecDeque<Command>,
-    #[serde(skip_serializing, skip_deserializing)] pub verifications: VecDeque<Verification>,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub verifications: VecDeque<Verification>,
     #[serde(skip_serializing, skip_deserializing, default = "empty_command_logger")]
     pub command_logger: Box<Write>,
     pub side: Side,
@@ -123,7 +124,8 @@ pub struct State {
     pub exit_after: bool,
     pub clock: Duration,
     pub replay_step: Duration,
-    #[serde(skip_serializing, skip_deserializing)] pub stats: Stats,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub stats: Stats,
     pub pos_timer: Timer,
     pub paused: bool,
     pub old_screen_pos: Point,

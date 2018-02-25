@@ -43,12 +43,14 @@ pub fn render(
     }
 }
 
-pub fn render_game(state: &State,
-                   sidebar_window: &sidebar::Window,
-                   metrics: &TextMetrics,
-                   dt: Duration,
-                   fps: i32,
-                   drawcalls: &mut Vec<Draw>) {
+pub fn render_game(
+    state: &State,
+    sidebar_window: &sidebar::Window,
+    metrics: &TextMetrics,
+    dt: Duration,
+    fps: i32,
+    drawcalls: &mut Vec<Draw>,
+) {
     if state.player.alive() {
         let fade = formula::mind_fade_value(state.player.mind);
         if fade > 0.0 {
@@ -224,7 +226,6 @@ pub fn render_game(state: &State,
     }
 }
 
-
 fn render_main_menu(
     state: &State,
     window: &main_menu::Window,
@@ -275,7 +276,10 @@ fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: 
     drawcalls.push(Draw::Rectangle(window_rect, color::window_edge));
 
     drawcalls.push(Draw::Rectangle(
-        Rectangle::new(window_rect.top_left() + (1, 1), window_rect.bottom_right() - (1, 1)),
+        Rectangle::new(
+            window_rect.top_left() + (1, 1),
+            window_rect.bottom_right() - (1, 1),
+        ),
         color::background,
     ));
 
@@ -308,7 +312,8 @@ fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
         drawcalls.push(Draw::Rectangle(
             Rectangle::from_point_and_size(
                 Point::from_i32(0),
-                Point::new(width as i32, height as i32)),
+                Point::new(width as i32, height as i32),
+            ),
             color::background,
         ));
         for (index, line) in debug_text.lines().enumerate() {

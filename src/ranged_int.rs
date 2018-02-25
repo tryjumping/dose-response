@@ -30,8 +30,10 @@ impl InclusiveRange {
 #[derive(Serialize, Deserialize)]
 #[serde(remote = "Rational32")]
 struct RationalDef {
-    #[serde(getter = "Rational32::numer")] numer: i32,
-    #[serde(getter = "Rational32::denom")] denom: i32,
+    #[serde(getter = "Rational32::numer")]
+    numer: i32,
+    #[serde(getter = "Rational32::denom")]
+    denom: i32,
 }
 
 impl From<RationalDef> for Rational32 {
@@ -50,9 +52,12 @@ impl From<RationalDef> for Rational32 {
 /// floating point weirdness).
 #[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ranged {
-    #[serde(with = "RationalDef")] val: Rational32,
-    #[serde(with = "RationalDef")] min: Rational32,
-    #[serde(with = "RationalDef")] max: Rational32,
+    #[serde(with = "RationalDef")]
+    val: Rational32,
+    #[serde(with = "RationalDef")]
+    min: Rational32,
+    #[serde(with = "RationalDef")]
+    max: Rational32,
 }
 
 // NOTE: Custom formatter that's always on 1 line even when pretty-printing

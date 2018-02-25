@@ -171,9 +171,7 @@ impl TextMetrics for Metrics {
                     text.chars().count() as i32
                 };
                 #[allow(unsafe_code)]
-                unsafe {
-                    wrapped_text_width_in_tiles(text.as_ptr(), text.len(), width)
-                }
+                unsafe { wrapped_text_width_in_tiles(text.as_ptr(), text.len(), width) }
                 //10
             }
             _ => {
@@ -261,14 +259,15 @@ fn serialise_drawcall(drawcall: &Draw, buffer: &mut Vec<u8>, js_drawcalls: &mut 
 
 #[allow(unsafe_code)]
 #[no_mangle]
-pub extern "C" fn update(wasm_ptr: *mut Wasm,
-                         dt_ms: u32,
-                         mouse_tile_x: i32,
-                         mouse_tile_y: i32,
-                         mouse_pixel_x: i32,
-                         mouse_pixel_y: i32,
-                         mouse_left: bool,
-                         mouse_right: bool,
+pub extern "C" fn update(
+    wasm_ptr: *mut Wasm,
+    dt_ms: u32,
+    mouse_tile_x: i32,
+    mouse_tile_y: i32,
+    mouse_pixel_x: i32,
+    mouse_pixel_y: i32,
+    mouse_left: bool,
+    mouse_right: bool,
 ) {
     let wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
     let mut state: Box<State> = unsafe { Box::from_raw(wasm.state) };

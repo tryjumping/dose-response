@@ -102,7 +102,8 @@ impl Window {
             let text_rect = ui::text_rect(
                 &text,
                 Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()),
-                metrics);
+                metrics,
+            );
             ypos += text_rect.size().y;
             if text_rect.contains(state.mouse.tile_pos) {
                 menu_item_under_mouse = Some(option);
@@ -110,9 +111,12 @@ impl Window {
             }
             text_flow.push(text);
             text_flow.push(Empty);
-            ypos += ui::text_rect(&Empty,
-                                  Rectangle::new(rect.top_left() + (0, ypos),
-                                                 rect.bottom_right()), metrics).size().y;
+            ypos += ui::text_rect(
+                &Empty,
+                Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()),
+                metrics,
+            ).size()
+                .y;
         }
 
         text_flow.push(EmptySpace(3));

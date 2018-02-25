@@ -9,7 +9,10 @@ pub struct Rectangle {
 #[allow(dead_code)]
 impl Rectangle {
     pub fn new(top_left: Point, bottom_right: Point) -> Self {
-        Rectangle { top_left, bottom_right }
+        Rectangle {
+            top_left,
+            bottom_right,
+        }
     }
 
     pub fn from_point_and_size(top_left: Point, size: Point) -> Self {

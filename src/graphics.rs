@@ -44,8 +44,10 @@ pub fn progress_bar(
     let remaining_width = width - highlighted_width;
     if remaining_width > 0 {
         drawcalls.push(Draw::Rectangle(
-            Rectangle::from_point_and_size(pos + (highlighted_width, 0),
-                                           Point::new(remaining_width, 1)),
+            Rectangle::from_point_and_size(
+                pos + (highlighted_width, 0),
+                Point::new(remaining_width, 1),
+            ),
             background,
         ));
     }

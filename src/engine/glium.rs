@@ -196,7 +196,8 @@ impl TextMetrics for Metrics {
                 let pixel_width = if options.wrap && options.width > 0 {
                     // // TODO: handle text alignment for wrapped text
                     let lines = wrap_text(text, options.width, self.tile_width_px);
-                    lines.iter()
+                    lines
+                        .iter()
                         .map(|line| text_width_px(line, self.tile_width_px))
                         .max()
                         .unwrap_or(0)

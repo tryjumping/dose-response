@@ -5,12 +5,10 @@ use rect::Rectangle;
 use state::State;
 use ui;
 
-
 pub enum Action {
     NextPage,
     PrevPage,
 }
-
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Page {
@@ -19,7 +17,6 @@ pub enum Page {
     ViKeys,
     HowToPlay,
 }
-
 
 struct Layout {
     next_page_button: Option<Draw>,
@@ -30,15 +27,15 @@ struct Layout {
     rect: Rectangle,
 }
 
-
 pub struct Window;
-
 
 impl Window {
     fn layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
         let screen_padding = Point::from_i32(2);
-        let window_rect =
-            Rectangle::from_point_and_size(screen_padding, state.display_size - (screen_padding * 2));
+        let window_rect = Rectangle::from_point_and_size(
+            screen_padding,
+            state.display_size - (screen_padding * 2),
+        );
 
         let rect = Rectangle::new(
             window_rect.top_left() + (2, 1),
@@ -97,14 +94,15 @@ impl Window {
     pub fn render(&self, state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
         use ui::Text::*;
 
-
         let layout = self.layout(state, metrics);
 
-        drawcalls.push(Draw::Rectangle(layout.window_rect, color::window_edge,));
+        drawcalls.push(Draw::Rectangle(layout.window_rect, color::window_edge));
 
         drawcalls.push(Draw::Rectangle(
-            Rectangle::new(layout.window_rect.top_left() + (1, 1),
-                           layout.window_rect.bottom_right() - (1, 1)),
+            Rectangle::new(
+                layout.window_rect.top_left() + (1, 1),
+                layout.window_rect.bottom_right() - (1, 1),
+            ),
             color::background,
         ));
 
@@ -183,9 +181,7 @@ impl Window {
         ui::render_text_flow(&lines, layout.rect, metrics, drawcalls);
 
         if let Some(highlighted_rect) = layout.rect_under_mouse {
-            drawcalls.push(
-                Draw::Rectangle(highlighted_rect,
-                                color::menu_highlight));
+            drawcalls.push(Draw::Rectangle(highlighted_rect, color::menu_highlight));
         }
 
         if let Some(drawcall) = layout.next_page_button {
@@ -196,7 +192,6 @@ impl Window {
             drawcalls.push(drawcall)
         }
     }
-
 
     pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<Action> {
         self.layout(state, metrics).action_under_mouse

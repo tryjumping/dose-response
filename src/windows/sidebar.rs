@@ -9,11 +9,9 @@ use rect::Rectangle;
 use state::State;
 use util;
 
-
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::time::Duration;
-
 
 pub enum Action {
     MainMenu,
@@ -24,7 +22,6 @@ pub enum Action {
     UseDiagonalDose,
     UseStrongDose,
 }
-
 
 struct Layout {
     x: i32,
@@ -37,9 +34,7 @@ struct Layout {
     rect_under_mouse: Option<Rectangle>,
 }
 
-
 pub struct Window;
-
 
 impl Window {
     fn layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
@@ -92,18 +87,18 @@ impl Window {
         }
     }
 
-
     pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<Action> {
         self.layout(state, metrics).action_under_mouse
     }
 
-
-    pub fn render(&self,
-                  state: &State,
-                  metrics: &TextMetrics,
-                  dt: Duration,
-                  fps: i32,
-                  drawcalls: &mut Vec<Draw>) {
+    pub fn render(
+        &self,
+        state: &State,
+        metrics: &TextMetrics,
+        dt: Duration,
+        fps: i32,
+        drawcalls: &mut Vec<Draw>,
+    ) {
         let layout = self.layout(state, metrics);
         let x = layout.x;
         let fg = layout.fg;
@@ -143,7 +138,9 @@ impl Window {
 
             for kind in item::Kind::iter() {
                 if let Some(count) = item_counts.get(&kind) {
-                    lines.push(format!("[{}] {:?}: {}", game::inventory_key(kind), kind, count).into());
+                    lines.push(
+                        format!("[{}] {:?}: {}", game::inventory_key(kind), kind, count).into(),
+                    );
                 }
             }
         }

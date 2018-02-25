@@ -7,13 +7,11 @@ use rect::Rectangle;
 use state::{Side, State};
 use ui;
 
-
 pub enum Action {
     NewGame,
     Help,
     Menu,
 }
-
 
 struct Layout {
     window_rect: Rectangle,
@@ -24,7 +22,6 @@ struct Layout {
     help_button: Draw,
     menu_button: Draw,
 }
-
 
 pub struct Window;
 
@@ -107,7 +104,6 @@ impl Window {
 
         let layout = self.layout(state, metrics);
 
-
         let cause_of_death = formula::cause_of_death(&state.player);
         let endgame_reason_text = if state.side == Side::Victory {
             // TODO: remove Side entirely for now.
@@ -122,9 +118,13 @@ impl Window {
 
         let endgame_description = match (cause_of_death, perpetrator) {
             (Some(Exhausted), None) => "Exhausted".into(),
-            (Some(Exhausted), Some(monster)) => format!("Exhausted because of `{}`", monster.glyph()),
+            (Some(Exhausted), Some(monster)) => {
+                format!("Exhausted because of `{}`", monster.glyph())
+            }
             (Some(Overdosed), _) => "Overdosed".into(),
-            (Some(LostWill), Some(monster)) => format!("Lost all Will due to `{}`", monster.glyph()),
+            (Some(LostWill), Some(monster)) => {
+                format!("Lost all Will due to `{}`", monster.glyph())
+            }
             (Some(LostWill), None) => unreachable!(),
             (Some(Killed), Some(monster)) => format!("Defeated by `{}`", monster.glyph()),
             (Some(Killed), None) => unreachable!(),
@@ -171,14 +171,12 @@ impl Window {
         drawcalls.push(layout.new_game_button);
         drawcalls.push(layout.help_button);
         drawcalls.push(layout.menu_button);
-
     }
 
     pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<Action> {
         self.layout(state, metrics).action_under_mouse
     }
 }
-
 
 fn endgame_tip(state: &State) -> String {
     use rand::Rng;

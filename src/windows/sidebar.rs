@@ -26,26 +26,89 @@ pub enum Action {
 }
 
 
+struct Layout {
+    x: i32,
+    bottom: i32,
+    fg: color::Color,
+    bg: color::Color,
+    main_menu_button: Draw,
+    help_button: Draw,
+    action_under_mouse: Option<Action>,
+    rect_under_mouse: Option<Rectangle>,
+}
+
+
 pub struct Window;
 
 
 impl Window {
-    pub fn hovered(&self, _state: &State, _metrics: &TextMetrics) -> Option<Action> {
-        None
+    fn layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
+        let x = state.map_size.x;
+        let fg = color::gui_text;
+        let bg = color::dim_background;
+        let mut bottom = state.display_size.y - 2;
+
+        let main_menu_button = Draw::Text(
+            Point::new(x + 1, bottom),
+            "[Esc] Main Menu".into(),
+            fg,
+            Default::default(),
+        );
+
+        bottom -= 2;
+
+        let help_button = Draw::Text(
+            Point::new(x + 1, bottom),
+            "[?] Help".into(),
+            fg,
+            Default::default(),
+        );
+        bottom -= 1;
+
+        let mut action_under_mouse = None;
+        let mut rect_under_mouse = None;
+
+        let main_menu_rect = metrics.text_rect(&main_menu_button);
+        if main_menu_rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MainMenu);
+            rect_under_mouse = Some(main_menu_rect);
+        }
+
+        let help_rect = metrics.text_rect(&help_button);
+        if help_rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::Help);
+            rect_under_mouse = Some(help_rect);
+        }
+
+        Layout {
+            x,
+            fg,
+            bg,
+            action_under_mouse,
+            rect_under_mouse,
+            main_menu_button,
+            help_button,
+            bottom,
+        }
+    }
+
+
+    pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<Action> {
+        self.layout(state, metrics).action_under_mouse
     }
 
 
     pub fn render(&self,
                   state: &State,
-                  _metrics: &TextMetrics,
+                  metrics: &TextMetrics,
                   dt: Duration,
                   fps: i32,
                   drawcalls: &mut Vec<Draw>) {
-        let x = state.map_size.x;
+        let layout = self.layout(state, metrics);
+        let x = layout.x;
+        let fg = layout.fg;
+        let bg = layout.bg;
         let width = state.panel_width;
-
-        let fg = color::gui_text;
-        let bg = color::dim_background;
 
         let height = state.display_size.y;
         drawcalls.push(Draw::Rectangle(
@@ -174,31 +237,18 @@ impl Window {
             color::gui_progress_bar_bg,
         );
 
-        let mut bottom = state.display_size.y - 2;
+        if let Some(highlighted) = layout.rect_under_mouse {
+            drawcalls.push(Draw::Rectangle(highlighted, color::menu_highlight));
+        }
 
-        drawcalls.push(
-            Draw::Text(
-                Point::new(x + 1, bottom),
-                "[Esc] Main Menu".into(),
-                fg,
-                Default::default(),
-            ));
-        bottom -= 2;
-
-        drawcalls.push(
-            Draw::Text(
-                Point::new(x + 1, bottom),
-                "[?] Help".into(),
-                fg,
-                Default::default(),
-            ));
-        bottom -= 1;
+        drawcalls.push(layout.main_menu_button);
+        drawcalls.push(layout.help_button);
 
         if state.cheating {
             drawcalls.push(Draw::Text(
                 Point {
                     x: x + 1,
-                    y: bottom - 1,
+                    y: layout.bottom - 1,
                 },
                 format!("dt: {}ms", util::num_milliseconds(dt)).into(),
                 fg,
@@ -207,7 +257,7 @@ impl Window {
             drawcalls.push(Draw::Text(
                 Point {
                     x: x + 1,
-                    y: bottom,
+                    y: layout.bottom,
                 },
                 format!("FPS: {}", fps).into(),
                 fg,

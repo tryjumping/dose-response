@@ -84,8 +84,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
-* Add menu button to the side panel                                      :ui:
-* Mouse support for inventory                                            :ui:
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
@@ -1824,3 +1822,13 @@ CLOSED: [2018-02-24 Sat 16:54]
 :ARCHIVE_TIME: 2018-02-24 Sat 16:56
 :END:
 *** Left or right click anywhere on the screen should dismiss it
+** DONE Mouse support for inventory                                     :ui:
+CLOSED: [2018-03-02 Fri 17:33]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-02 Fri 17:33
+:END:
+** DONE Add menu button to the side panel                               :ui:
+CLOSED: [2018-03-02 Fri 17:32]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-02 Fri 17:33
+:END:

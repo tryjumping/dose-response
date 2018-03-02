@@ -82,8 +82,6 @@ impl Window {
             }
         }
 
-
-
         let mut bottom = state.display_size.y - 2;
 
         let main_menu_button = Draw::Text(

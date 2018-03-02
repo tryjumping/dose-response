@@ -16,7 +16,7 @@ impl Rectangle {
     }
 
     pub fn from_point_and_size(top_left: Point, size: Point) -> Self {
-        assert!(size > (0, 0));
+        assert!(size >= (0, 0));
         Rectangle {
             top_left,
             bottom_right: top_left + size - (1, 1),
@@ -29,7 +29,7 @@ impl Rectangle {
     /// The result will have dimensions `half_size.x * 2, half_size.y
     /// * 2`.
     pub fn center(center: Point, half_size: Point) -> Self {
-        assert!(half_size > (0, 0));
+        assert!(half_size >= (0, 0));
         Rectangle {
             top_left: center - half_size,
             bottom_right: center + half_size,

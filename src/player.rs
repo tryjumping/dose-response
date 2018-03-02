@@ -117,7 +117,7 @@ impl Player {
     pub fn new(pos: Point, invincible: bool) -> Player {
         Player {
             mind: Mind::Withdrawal(Ranged::new_max(WITHDRAWAL)),
-            will: Ranged::new(2, WILL),
+            will: Ranged::new(formula::PLAYER_STARTING_WILL, WILL),
             tolerance: 0,
             panic: Ranged::new_min(formula::PANIC_TURNS),
             stun: Ranged::new_min(formula::STUN_TURNS),

@@ -28,6 +28,11 @@ struct Layout {
     bottom: i32,
     fg: color::Color,
     bg: color::Color,
+    mind_pos: Point,
+    progress_bar_pos: Point,
+    stats_pos: Point,
+    inventory_pos: Point,
+    inventory: HashMap<item::Kind, i32>,
     main_menu_button: Draw,
     help_button: Draw,
     action_under_mouse: Option<Action>,
@@ -41,6 +46,44 @@ impl Window {
         let x = state.map_size.x;
         let fg = color::gui_text;
         let bg = color::dim_background;
+
+        let mind_pos = Point::new(x + 1, 0);
+        let progress_bar_pos = Point::new(x + 1, 1);
+        let stats_pos = Point::new(x + 1, 3);
+        let inventory_pos = Point::new(x + 1, 5);
+
+        let mut action_under_mouse = None;
+        let mut rect_under_mouse = None;
+
+        let mut inventory = HashMap::new();
+        for item in state.player.inventory.iter() {
+            let count = inventory.entry(item.kind).or_insert(0);
+            *count += 1;
+        }
+
+        let mut item_y_offset = 0;
+        for kind in item::Kind::iter() {
+            if let Some(_) = inventory.get(&kind) {
+                let rect = Rectangle::from_point_and_size(
+                    inventory_pos + Point::new(0, item_y_offset + 1),
+                    Point::new(state.panel_width, 1),
+                );
+                if rect.contains(state.mouse.tile_pos) {
+                    rect_under_mouse = Some(rect);
+                    action_under_mouse = Some(match kind {
+                        item::Kind::Food => Action::UseFood,
+                        item::Kind::Dose => Action::UseDose,
+                        item::Kind::StrongDose => Action::UseStrongDose,
+                        item::Kind::CardinalDose => Action::UseCardinalDose,
+                        item::Kind::DiagonalDose => Action::UseDiagonalDose,
+                    });
+                }
+                item_y_offset += 1;
+            }
+        }
+
+
+
         let mut bottom = state.display_size.y - 2;
 
         let main_menu_button = Draw::Text(
@@ -60,9 +103,6 @@ impl Window {
         );
         bottom -= 1;
 
-        let mut action_under_mouse = None;
-        let mut rect_under_mouse = None;
-
         let main_menu_rect = metrics.text_rect(&main_menu_button);
         if main_menu_rect.contains(state.mouse.tile_pos) {
             action_under_mouse = Some(Action::MainMenu);
@@ -79,6 +119,11 @@ impl Window {
             x,
             fg,
             bg,
+            mind_pos,
+            progress_bar_pos,
+            stats_pos,
+            inventory_pos,
+            inventory,
             action_under_mouse,
             rect_under_mouse,
             main_menu_button,
@@ -113,31 +158,57 @@ impl Window {
 
         let player = &state.player;
 
+        let max_val = match player.mind {
+            Mind::Withdrawal(val) => val.max(),
+            Mind::Sober(val) => val.max(),
+            Mind::High(val) => val.max(),
+        };
+        let mut bar_width = width - 2;
+        if max_val < bar_width {
+            bar_width = max_val;
+        }
+
         let (mind_str, mind_val_percent) = match player.mind {
             Mind::Withdrawal(val) => ("Withdrawal", val.percent()),
             Mind::Sober(val) => ("Sober", val.percent()),
             Mind::High(val) => ("High", val.percent()),
         };
 
-        let mut lines: Vec<Cow<'static, str>> = vec![
+        drawcalls.push(Draw::Text(
+            layout.mind_pos,
             mind_str.into(),
-            "".into(), // NOTE: placeholder for the Mind state percentage bar
-            "".into(),
+            fg,
+            Default::default(),
+        ));
+
+        graphics::progress_bar(
+            drawcalls,
+            mind_val_percent,
+            layout.progress_bar_pos,
+            bar_width,
+            color::gui_progress_bar_fg,
+            color::gui_progress_bar_bg,
+        );
+
+        drawcalls.push(Draw::Text(
+            layout.stats_pos,
             format!("Will: {}", player.will.to_int()).into(),
-        ];
+            fg,
+            Default::default(),
+        ));
 
-        if player.inventory.len() > 0 {
-            lines.push("".into());
-            lines.push("Inventory:".into());
+        let mut lines: Vec<Cow<'static, str>> = vec![];
 
-            let mut item_counts = HashMap::new();
-            for item in player.inventory.iter() {
-                let count = item_counts.entry(item.kind).or_insert(0);
-                *count += 1;
-            }
+        if layout.inventory.len() > 0 {
+            drawcalls.push(Draw::Text(
+                layout.stats_pos,
+                "Inventory".into(),
+                fg,
+                Default::default(),
+            ));
 
             for kind in item::Kind::iter() {
-                if let Some(count) = item_counts.get(&kind) {
+                if let Some(count) = layout.inventory.get(&kind) {
                     lines.push(
                         format!("[{}] {:?}: {}", game::inventory_key(kind), kind, count).into(),
                     );
@@ -207,32 +278,13 @@ impl Window {
             drawcalls.push(Draw::Text(
                 Point {
                     x: x + 1,
-                    y: y as i32,
+                    y: y as i32 + layout.inventory_pos.y + 1,
                 },
                 line.into(),
                 fg,
                 Default::default(),
             ));
         }
-
-        let max_val = match player.mind {
-            Mind::Withdrawal(val) => val.max(),
-            Mind::Sober(val) => val.max(),
-            Mind::High(val) => val.max(),
-        };
-        let mut bar_width = width - 2;
-        if max_val < bar_width {
-            bar_width = max_val;
-        }
-
-        graphics::progress_bar(
-            drawcalls,
-            mind_val_percent,
-            (x + 1, 1).into(),
-            bar_width,
-            color::gui_progress_bar_fg,
-            color::gui_progress_bar_bg,
-        );
 
         if let Some(highlighted) = layout.rect_under_mouse {
             drawcalls.push(Draw::Rectangle(highlighted, color::menu_highlight));

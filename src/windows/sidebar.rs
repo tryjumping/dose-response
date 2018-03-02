@@ -156,6 +156,10 @@ impl Window {
             bg,
         ));
 
+        if let Some(highlighted) = layout.rect_under_mouse {
+            drawcalls.push(Draw::Rectangle(highlighted, color::menu_highlight));
+        }
+
         let player = &state.player;
 
         let max_val = match player.mind {
@@ -201,7 +205,7 @@ impl Window {
 
         if layout.inventory.len() > 0 {
             drawcalls.push(Draw::Text(
-                layout.stats_pos,
+                layout.inventory_pos,
                 "Inventory".into(),
                 fg,
                 Default::default(),
@@ -220,6 +224,7 @@ impl Window {
 
         if player.will.is_max() {
             lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()).into());
+            lines.push("".into());
         }
 
         if !player.bonuses.is_empty() {
@@ -227,6 +232,7 @@ impl Window {
             for bonus in &player.bonuses {
                 lines.push(format!("* {:?}", bonus).into());
             }
+            lines.push("".into());
         }
 
         if state.cheating {
@@ -284,10 +290,6 @@ impl Window {
                 fg,
                 Default::default(),
             ));
-        }
-
-        if let Some(highlighted) = layout.rect_under_mouse {
-            drawcalls.push(Draw::Rectangle(highlighted, color::menu_highlight));
         }
 
         drawcalls.push(layout.main_menu_button);

@@ -10,26 +10,28 @@ pub struct Color {
 
 
 // Palette
+// Haphazardly put together with the help of the DawnBringer 32bit palette:
+// http://pixeljoint.com/forum/forum_posts.asp?TID=16247
 pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
 pub const WHITE: Color = Color { r: 255, g: 255, b: 255 };
 
-pub const GREY: Color = Color { r: 95, g: 95, b: 95 };
-pub const DARK_GREY: Color = Color { r: 30, g: 30, b: 30 };
+pub const GREY: Color = Color { r: 132, g: 126, b: 135 };
+pub const DARK_GREY: Color = Color { r: 50, g: 60, b: 57 };
 
-pub const BLUE: Color = Color { r: 114, g: 126, b: 255 };
-pub const BRIGHT_BLUE: Color = Color { r: 15, g: 255, b: 243 };
-pub const DIM_BLUE: Color = Color { r: 0, g: 64, b: 64 };
+pub const BLUE: Color = Color { r: 99, g: 155, b: 255 };
+pub const BRIGHT_BLUE: Color = Color { r: 95, g: 205, b: 228 };
+pub const DIM_BLUE: Color = Color { r: 34, g: 32, b: 52 };
 
-pub const BRIGHT_GREEN: Color = Color { r: 63, g: 255, b: 63 };
-pub const DIM_GREEN: Color = Color { r: 20, g: 133, b: 20 };
-pub const NATURAL_GREEN: Color = Color { r: 0, g: 191, b: 0 };
+pub const BRIGHT_GREEN: Color = Color { r: 153, g: 229, b: 80 };
+pub const DIM_GREEN: Color = Color { r: 75, g: 105, b: 47 };
+pub const NATURAL_GREEN: Color = Color { r: 106, g: 190, b: 48 };
 
-pub const RED: Color = Color { r: 191, g: 0, b: 0 };
-pub const PURPLE: Color = Color { r: 111, g: 63, b: 255 };  // elim?
-pub const BROWN: Color = Color { r: 148, g: 113, b: 0 };
+pub const RED: Color = Color { r: 172, g: 50, b: 50 };
+pub const PURPLE: Color = Color { r: 118, g: 88, b: 138 };
+pub const BROWN: Color = Color { r: 143, g: 86, b: 59 };
 
-pub const FUNKY_RED: Color = Color { r: 161, g: 39, b: 113 };
-pub const FUNKY_BLUE: Color = Color { r: 58, g: 217, b: 183 };
+pub const FUNKY_RED: Color = Color { r: 215, g: 123, b: 186 };
+pub const FUNKY_BLUE: Color = Color { r: 99, g: 155, b: 255 };
 
 
 // Game colours
@@ -74,7 +76,7 @@ pub const anxiety: Color = RED;
 pub const npc_will: Color = RED;
 pub const shattering_explosion: Color = RED;
 
-pub const depression: Color = PURPLE;  // elim?
+pub const depression: Color = PURPLE;
 pub const npc_speed: Color = PURPLE;
 
 pub const hunger: Color = BROWN;

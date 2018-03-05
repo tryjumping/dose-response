@@ -1,4 +1,4 @@
-use color::{self, Color};
+use color;
 use engine::{Draw, TextMetrics, TextOptions};
 use formula;
 use graphics;
@@ -55,7 +55,7 @@ pub fn render_game(
         let fade = formula::mind_fade_value(state.player.mind);
         if fade > 0.0 {
             // TODO: animate the fade from the previous value?
-            drawcalls.push(Draw::Fade(fade, Color { r: 0, g: 0, b: 0 }));
+            drawcalls.push(Draw::Fade(fade, color::BLACK));
         }
     }
 
@@ -235,7 +235,7 @@ fn render_main_menu(
     window.render(state, metrics, drawcalls);
 
     // Clear any fade set by the gameplay rendering
-    drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
+    drawcalls.push(Draw::Fade(1.0, color::BLACK));
 }
 
 fn render_help_screen(
@@ -247,7 +247,7 @@ fn render_help_screen(
     window.render(state, metrics, drawcalls);
 
     // Clear any fade set by the gameplay rendering
-    drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
+    drawcalls.push(Draw::Fade(1.0, color::BLACK));
 }
 
 fn render_endgame_screen(
@@ -259,7 +259,7 @@ fn render_endgame_screen(
     window.render(state, metrics, drawcalls);
 
     // Clear any fade set by the gameplay rendering
-    drawcalls.push(Draw::Fade(1.0, Color { r: 0, g: 0, b: 0 }));
+    drawcalls.push(Draw::Fade(1.0, color::BLACK));
 }
 
 fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {

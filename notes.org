@@ -95,6 +95,37 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Fix mouse position in fullscreen                                       :ui:
 ** Looks like the Y coord is right but X is off
 ** Prolly a letterboxing artifact
+* Add a "published" Cargo feature                                        :ui:
+** Removes replays
+*** make them a separate feature?
+** Removes cheating
+*** make them a separate feature?
+** Optimises the codegen units
+* Run wasm-gc on the generated web binary
+** Should reduce the binary size
+** Need to install & test it
+* Create an itch.io page
+- [ ] Game description
+- [ ] Colour scheme
+- [ ] Font
+- [ ] Lets play/trailer
+- [ ] Cover image
+- [ ] Icon/Logo for Try Jumping
+- [ ] Icon/Logo for Dose Response
+- [ ] Builds
+- [ ] Link to the online version
+* Examine each release zip/tarball and verify it contains everything it needs
+** License
+** Game binary
+** Wrapped in a directory?
+*** does this differ for each platform?
+* Create a tryjumping.com page
+** Use a Rust or Go-based static site generator
+** https://gohugo.io/getting-started/quick-start/
+** http://cobalt-org.github.io/getting-started/
+* Make the game less dark
+** It is actually really hard to see what's going on in withdrawal
+** Ease off on the darkness fade somewhat
 * Show the next/prev page title in the help page                         :ui:
 ** Instead of the generic Next page / Previous page text
 * Write a "Legend" help page

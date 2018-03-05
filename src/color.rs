@@ -14,8 +14,7 @@ pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
 pub const WHITE: Color = Color { r: 255, g: 255, b: 255 };
 
 pub const GREY: Color = Color { r: 95, g: 95, b: 95 };
-pub const LIGHT_GREY: Color = Color { r: 223, g: 223, b: 223 };  // elim?
-pub const DARK_GREY: Color = Color { r: 30, g: 30, b: 30 };  // elim?
+pub const DARK_GREY: Color = Color { r: 30, g: 30, b: 30 };
 
 pub const BLUE: Color = Color { r: 114, g: 126, b: 255 };
 pub const BRIGHT_BLUE: Color = Color { r: 15, g: 255, b: 243 };
@@ -51,9 +50,9 @@ pub const shadows: Color = GREY;
 pub const npc_dim: Color = GREY;
 pub const dead_player: Color = GREY;
 
-pub const empty_tile: Color = LIGHT_GREY;  // eliminate?
+pub const empty_tile: Color = GREY;
 
-pub const dim_background: Color = DARK_GREY;  // eliminate/join with empty tile?
+pub const dim_background: Color = DARK_GREY;
 
 pub const dose: Color = BLUE;
 

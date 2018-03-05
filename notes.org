@@ -92,6 +92,7 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** And increase the claustrophobic feeling
 * Fullscreen does nothing on Windows                                     :ui:
 ** Pressing Alt+Enter doesn't seem to do anything
+* Build nightlies
 * Fix mouse position in fullscreen                                       :ui:
 ** Looks like the Y coord is right but X is off
 ** Prolly a letterboxing artifact

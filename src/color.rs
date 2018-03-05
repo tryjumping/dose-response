@@ -12,8 +12,6 @@ pub struct Color {
 // Palette
 pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
 pub const WHITE: Color = Color { r: 255, g: 255, b: 255 };
-pub const FULL_RED: Color = Color { r: 255, g: 0, b: 0 };  // elim?
-pub const FULL_GREEN: Color = Color { r: 0, g: 255, b: 0 };  // elim?
 
 pub const GREY: Color = Color { r: 95, g: 95, b: 95 };
 pub const LIGHT_GREY: Color = Color { r: 223, g: 223, b: 223 };  // elim?
@@ -43,10 +41,10 @@ pub const gui_text: Color = WHITE;
 pub const overdose_animation: Color = WHITE;
 pub const player: Color = WHITE;
 
-pub const death_animation: Color = FULL_RED;  // could eliminate?
+pub const death_animation: Color = RED;
 
-pub const gui_progress_bar_fg: Color = FULL_GREEN;  // eliminate?
-pub const tree_2: Color = FULL_GREEN;
+pub const gui_progress_bar_fg: Color = BRIGHT_GREEN;
+pub const tree_2: Color = BRIGHT_GREEN;
 
 pub const voices: Color = GREY;
 pub const shadows: Color = GREY;
@@ -67,11 +65,11 @@ pub const window_edge: Color = DIM_BLUE;
 pub const menu_highlight: Color = DIM_BLUE;
 pub const dose_background: Color = DIM_BLUE;
 
-pub const tree_3: Color = BRIGHT_GREEN;
+pub const tree_3: Color = NATURAL_GREEN;
 
 pub const gui_progress_bar_bg: Color = DIM_GREEN;
 
-pub const tree_1: Color = NATURAL_GREEN;
+pub const tree_1: Color = DIM_GREEN;
 
 pub const anxiety: Color = RED;
 pub const npc_will: Color = RED;

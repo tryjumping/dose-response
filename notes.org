@@ -170,6 +170,12 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
+** Steps:
+cargo run --release
+xwininfo  # find the Window ID
+recordmydesktop --windowid <window id>
+record
+Ctrl-c
 * Consider uploading "nightlies" somewhere
 ** We run CI on every push, let's copy the binaries somewhere
 ** So we can always get the latest build out to folks

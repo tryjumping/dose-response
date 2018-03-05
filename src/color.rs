@@ -8,38 +8,83 @@ pub struct Color {
     pub b: u8,
 }
 
-pub static background: Color = Color { r: 0, g: 0, b: 0 };
-pub static dim_background: Color = Color { r: 30, g: 30, b: 30 };
-pub static window_edge: Color = Color { r: 0, g: 64, b: 64 };
-pub static menu_highlight: Color = Color { r: 0, g: 64, b: 64 };
-pub static death_animation: Color = Color { r: 255, g: 0, b: 0 };
-pub static overdose_animation: Color = Color { r: 255, g: 255, b: 255 };
-pub static exhaustion_animation: Color = Color { r: 0, g: 0, b: 0 };
-pub static gui_text: Color = Color { r: 255, g: 255, b: 255 };
-pub static gui_progress_bar_fg: Color = Color { r: 0, g: 255, b: 0 };
-pub static gui_progress_bar_bg: Color = Color { r: 20, g: 133, b: 20 };
-pub static anxiety: Color = Color { r: 191, g: 0, b: 0 };
-pub static depression: Color = Color { r: 111, g: 63, b: 255 };
-pub static hunger: Color = Color { r: 127, g: 101, b: 63 };
-pub static voices: Color = Color { r: 95, g: 95, b: 95 };
-pub static shadows: Color = Color { r: 95, g: 95, b: 95 };
-//pub static npc_golden: Color = Color { r: 193, g: 193, b: 68 };
-pub static npc_dim: Color = Color { r: 95, g: 95, b: 95 };
-pub static npc_will: Color = Color { r: 191, g: 0, b: 0 };
-pub static npc_mind: Color = Color { r: 127, g: 101, b: 63 };
-pub static npc_speed: Color = Color { r: 111, g: 63, b: 255 } ;
-pub static player: Color = Color { r: 255, g: 255, b: 255 };
-pub static dead_player: Color = Color { r: 80, g: 80, b: 80 };
-pub static empty_tile: Color = Color { r: 223, g: 223, b: 223 };
-pub static dose: Color = Color { r: 114, g: 126, b: 255 };
-pub static dose_glow: Color = Color { r: 15, g: 255, b: 243 };
-pub static shattering_dose: Color = Color { r: 15, g: 255, b: 243 };
-pub static dose_background: Color = Color { r: 0, g: 64, b: 64 };
-pub static explosion: Color = Color { r: 15, g: 255, b: 243 };
-pub static shattering_explosion: Color = Color { r: 191, g: 0, b: 0 };
-pub static food: Color = Color { r: 148, g: 113, b: 0 };
-pub static tree_1: Color = Color { r: 0, g: 191, b: 0 };
-pub static tree_2: Color = Color { r: 0, g: 255, b: 0 };
-pub static tree_3: Color = Color { r: 63, g: 255, b: 63 };
-pub static high: Color = Color { r: 58, g: 217, b: 183 };
-pub static high_to: Color = Color { r: 161, g: 39, b: 113 };
+
+// Palette
+pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
+pub const WHITE: Color = Color { r: 255, g: 255, b: 255 };
+pub const FULL_RED: Color = Color { r: 255, g: 0, b: 0 };  // elim?
+pub const FULL_GREEN: Color = Color { r: 0, g: 255, b: 0 };  // elim?
+
+pub const GREY: Color = Color { r: 95, g: 95, b: 95 };
+pub const LIGHT_GREY: Color = Color { r: 223, g: 223, b: 223 };  // elim?
+pub const DARK_GREY: Color = Color { r: 30, g: 30, b: 30 };  // elim?
+
+pub const BLUE: Color = Color { r: 114, g: 126, b: 255 };
+pub const BRIGHT_BLUE: Color = Color { r: 15, g: 255, b: 243 };
+pub const DIM_BLUE: Color = Color { r: 0, g: 64, b: 64 };
+
+pub const BRIGHT_GREEN: Color = Color { r: 63, g: 255, b: 63 };
+pub const DIM_GREEN: Color = Color { r: 20, g: 133, b: 20 };
+pub const NATURAL_GREEN: Color = Color { r: 0, g: 191, b: 0 };
+
+pub const RED: Color = Color { r: 191, g: 0, b: 0 };
+pub const PURPLE: Color = Color { r: 111, g: 63, b: 255 };  // elim?
+pub const BROWN: Color = Color { r: 148, g: 113, b: 0 };
+
+pub const FUNKY_RED: Color = Color { r: 161, g: 39, b: 113 };
+pub const FUNKY_BLUE: Color = Color { r: 58, g: 217, b: 183 };
+
+
+// Game colours
+pub const background: Color = BLACK;
+pub const exhaustion_animation: Color = BLACK;
+
+pub const gui_text: Color = WHITE;
+pub const overdose_animation: Color = WHITE;
+pub const player: Color = WHITE;
+
+pub const death_animation: Color = FULL_RED;  // could eliminate?
+
+pub const gui_progress_bar_fg: Color = FULL_GREEN;  // eliminate?
+pub const tree_2: Color = FULL_GREEN;
+
+pub const voices: Color = GREY;
+pub const shadows: Color = GREY;
+pub const npc_dim: Color = GREY;
+pub const dead_player: Color = GREY;
+
+pub const empty_tile: Color = LIGHT_GREY;  // eliminate?
+
+pub const dim_background: Color = DARK_GREY;  // eliminate/join with empty tile?
+
+pub const dose: Color = BLUE;
+
+pub const dose_glow: Color = BRIGHT_BLUE;
+pub const shattering_dose: Color = BRIGHT_BLUE;
+pub const explosion: Color = BRIGHT_BLUE;
+
+pub const window_edge: Color = DIM_BLUE;
+pub const menu_highlight: Color = DIM_BLUE;
+pub const dose_background: Color = DIM_BLUE;
+
+pub const tree_3: Color = BRIGHT_GREEN;
+
+pub const gui_progress_bar_bg: Color = DIM_GREEN;
+
+pub const tree_1: Color = NATURAL_GREEN;
+
+pub const anxiety: Color = RED;
+pub const npc_will: Color = RED;
+pub const shattering_explosion: Color = RED;
+
+pub const depression: Color = PURPLE;  // elim?
+pub const npc_speed: Color = PURPLE;
+
+pub const hunger: Color = BROWN;
+pub const npc_mind: Color = BROWN;
+pub const food: Color = BROWN;
+
+pub const high: Color = FUNKY_BLUE;
+pub const high_to: Color = FUNKY_RED;
+
+//pub const npc_golden: Color = Color { r: 193, g: 193, b: 68 };

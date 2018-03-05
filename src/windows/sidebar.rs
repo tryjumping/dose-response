@@ -65,7 +65,7 @@ impl Window {
         for kind in item::Kind::iter() {
             if let Some(_) = inventory.get(&kind) {
                 let rect = Rectangle::from_point_and_size(
-                    inventory_pos + Point::new(0, item_y_offset + 1),
+                    inventory_pos + Point::new(-1, item_y_offset + 1),
                     Point::new(state.panel_width, 1),
                 );
                 if rect.contains(state.mouse.tile_pos) {

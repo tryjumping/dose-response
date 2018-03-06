@@ -16,4 +16,4 @@ echo Version: $VERSION
 cargo build --release
 verify_repo_is_clean
 git tag -a -m "Release version v${VERSION}" "v${VERSION}"
-git push --follow-tags origin master
+git push --tags --follow-tags origin master

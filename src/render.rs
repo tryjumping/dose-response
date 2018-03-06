@@ -73,7 +73,7 @@ pub fn render_game(
     let mut bonus = state.player.bonus;
     // TODO: setting this as a bonus is a hack. Pass it to all renderers
     // directly instead.
-    if state.cheating {
+    if cfg!(feature = "cheating") && state.cheating {
         bonus = Bonus::UncoverMap;
     }
     if state.uncovered_map {
@@ -180,7 +180,7 @@ pub fn render_game(
             use graphics::Render;
             let display_pos = screen_coords_from_world(monster.position);
             if let Some(trail_pos) = monster.trail {
-                if state.cheating {
+                if cfg!(feature = "cheating") && state.cheating {
                     let trail_pos = screen_coords_from_world(trail_pos);
                     let (glyph, color, _) = monster.render(dt);
                     // TODO: show a fading animation of the trail colour
@@ -193,7 +193,7 @@ pub fn render_game(
                 }
             }
 
-            if state.cheating {
+            if cfg!(feature = "cheating") && state.cheating {
                 for &point in &monster.path {
                     let path_pos = screen_coords_from_world(point);
                     let (_, color, _) = monster.render(dt);

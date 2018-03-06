@@ -170,19 +170,19 @@ fn process_game(
     }
 
     // Uncover map / set the Cheat mode
-    if state.keys.matches_code(KeyCode::F6) {
+    if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::F6) {
         state.cheating = !state.cheating;
     }
 
     // NOTE: this will not show up in the replay so that'll be out of
     // sync. We can pass `--invincible` while running the replay
     // though and that should always work, I think.
-    if state.keys.matches_code(KeyCode::I) && state.cheating {
+    if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::I) && state.cheating {
         println!("Making the player invincible!");
         state.player.invincible = true;
     }
 
-    if state.keys.matches_code(KeyCode::F) && state.cheating {
+    if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::F) && state.cheating {
         state.player.inventory.push(formula::FOOD_PREFAB);
     }
 

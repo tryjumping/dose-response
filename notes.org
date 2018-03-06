@@ -84,15 +84,24 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
+* Build nightlies
+** Or have a way to build windows on my machine
+*** Using wine
+*** Or a VM
+*** or cross-compile
+* Fullscreen does nothing on Windows                                     :ui:
+** Pressing Alt+Enter doesn't seem to do anything
+** Add debug print statements, see what happens
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
+* Stringify bonus names properly
+** Right now they're CamelCase just like the enum
+* Remove fog of war when dead/uncovered screen
+** Do the same for the debug mode?
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling
-* Fullscreen does nothing on Windows                                     :ui:
-** Pressing Alt+Enter doesn't seem to do anything
-* Build nightlies
 * Fix mouse position in fullscreen                                       :ui:
 ** Looks like the Y coord is right but X is off
 ** Prolly a letterboxing artifact

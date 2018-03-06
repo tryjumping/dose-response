@@ -10,11 +10,10 @@ use rand::IsaacRng;
 use stats::Stats;
 use std::collections::VecDeque;
 use std::error::Error;
-#[cfg(not(feature = "web"))]
+#[cfg(feature = "replay")]
 use std::fs;
 use std::fs::File;
 use std::io::{self, Write};
-#[cfg(feature = "replay")]
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -263,6 +262,20 @@ Reason: '{}'.",
             replay_full_speed,
             exit_after,
         )
+    }
+
+    #[cfg(not(feature = "replay"))]
+    pub fn replay_game(
+        world_size: Point,
+        map_size: i32,
+        panel_width: i32,
+        display_size: Point,
+        _replay_path: &Path,
+        invincible: bool,
+        _replay_full_speed: bool,
+        exit_after: bool,
+    ) -> State {
+        Self::new_game(world_size, map_size, panel_width, display_size, exit_after, None, invincible)
     }
 
     #[cfg(feature = "replay")]

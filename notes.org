@@ -98,6 +98,18 @@ Switching to fullscreen.
 Monitor: Some("\\\\.\\DISPLAY1"), pos: (0, 0), dimensions: (1920, 1080)
 thread 'main' panicked at 'not yet implemented', C:\Users\appveyor\.cargo\registry\src\github.com-1ecc6299db9ec823\winit-0.10.0\src\platform\windows\window.rs:289:9
 note: Run with `RUST_BACKTRACE=1` for a backtrace.
+** https://github.com/tomaka/winit/blob/d92666c1880bad27d624dbbda2e14adc2b72e557/src/platform/windows/window.rs#L288
+** https://github.com/tomaka/winit/issues/37
+** https://github.com/tomaka/winit/issues/72
+** Trying to initialise the fullscreen directly during window creation fails too
+** So does doing "fullscreen" manually by setting the window size
+*** again, not implemented
+** TODO Consider making fullscreen a cargo feature and disabling it on windows
+** TODO Also, try handling panics on fullscreen so we don't crash
+** TODO Also, see if we can just ventor winit/glutin/glium and fix it locally
+*** and obviously upstreaming the changes
+** TODO The alt+enter thing is genuinely not working either though
+* Remove the windows console again
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them

@@ -113,6 +113,9 @@ note: Run with `RUST_BACKTRACE=1` for a backtrace.
 ** TODO Also, see if we can just ventor winit/glutin/glium and fix it locally
 *** and obviously upstreaming the changes
 ** TODO The alt+enter thing is genuinely not working either though
+* Test release builds don't have debug features
+** Linux: no cheating and no replays
+** Windows: no fullscreen, no cheating and no replays
 * Remove the windows console again
 * Must center the glyphs
 ** they're now left-aligned to the grid

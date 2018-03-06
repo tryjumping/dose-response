@@ -68,10 +68,12 @@ pub fn update(
         return RunningState::Stopped;
     }
 
-    // Full screen on Alt-Enter
-    if state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
-        println!("Pressed Alt+Enter, toggling fullscreen.");
-        settings.fullscreen = !settings.fullscreen;
+    if cfg!(feature = "fullscreen") {
+        // Full screen on Alt-Enter
+        if state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
+            println!("Pressed Alt+Enter, toggling fullscreen.");
+            settings.fullscreen = !settings.fullscreen;
+        }
     }
 
     let current_window = state.window_stack.top();

@@ -381,27 +381,29 @@ pub fn main_loop(
 
         let mut switched_from_fullscreen = false;
 
-        if previous_settings.fullscreen != settings.fullscreen {
-            if settings.fullscreen {
-                println!("Switching to fullscreen.");
-                if let Some(ref monitor) = current_monitor {
-                    pre_fullscreen_window_pos = window_pos;
-                    println!(
-                        "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
-                        monitor.get_name(),
-                        monitor.get_position(),
-                        monitor.get_dimensions()
-                    );
-                    display.gl_window().set_fullscreen(Some(monitor.clone()));
+        if cfg!(feature = "fullscreen") {
+            if previous_settings.fullscreen != settings.fullscreen {
+                if settings.fullscreen {
+                    println!("Switching to fullscreen.");
+                    if let Some(ref monitor) = current_monitor {
+                        pre_fullscreen_window_pos = window_pos;
+                        println!(
+                            "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
+                            monitor.get_name(),
+                            monitor.get_position(),
+                            monitor.get_dimensions()
+                        );
+                        display.gl_window().set_fullscreen(Some(monitor.clone()));
+                    } else {
+                        println!("`current_monitor` is not set!??");
+                    }
                 } else {
-                    println!("`current_monitor` is not set!??");
+                    println!("Switched from fullscreen.");
+                    display.gl_window().set_fullscreen(None);
+                    let pos = display.gl_window().get_position();
+                    println!("New window position: {:?}", pos);
+                    switched_from_fullscreen = true;
                 }
-            } else {
-                println!("Switched from fullscreen.");
-                display.gl_window().set_fullscreen(None);
-                let pos = display.gl_window().get_position();
-                println!("New window position: {:?}", pos);
-                switched_from_fullscreen = true;
             }
         }
 

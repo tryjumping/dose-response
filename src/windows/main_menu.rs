@@ -84,7 +84,9 @@ impl Window {
 
         options.push(MenuItem::Help);
 
-        options.push(MenuItem::ToggleFullscreen);
+        if cfg!(feature = "fullscreen") {
+            options.push(MenuItem::ToggleFullscreen);
+        }
 
         if !state.game_ended {
             options.push(MenuItem::SaveAndQuit);

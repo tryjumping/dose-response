@@ -70,6 +70,7 @@ pub fn update(
 
     // Full screen on Alt-Enter
     if state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
+        println!("Pressed Alt+Enter, toggling fullscreen.");
         settings.fullscreen = !settings.fullscreen;
     }
 

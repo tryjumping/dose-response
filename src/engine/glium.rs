@@ -302,6 +302,13 @@ pub fn main_loop(
     };
     let mut pre_fullscreen_window_pos = window_pos;
     let mut current_monitor = get_current_monitor(&monitors, window_pos);
+    println!("All monitors:");
+    for monitor in &monitors {
+        println!("* {:?}, pos: {:?}", monitor.get_name(), monitor.get_dimensions());
+    }
+    println!("Current monitor: {:?}, pos: {:?}",
+             current_monitor.as_ref().map(|m| m.get_name()),
+             current_monitor.as_ref().map(|ref m| m.get_dimensions()));
 
     let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
@@ -374,6 +381,7 @@ pub fn main_loop(
 
         if previous_settings.fullscreen != settings.fullscreen {
             if settings.fullscreen {
+                println!("Switching to fullscreen.");
                 if let Some(ref monitor) = current_monitor {
                     pre_fullscreen_window_pos = window_pos;
                     println!(
@@ -383,6 +391,8 @@ pub fn main_loop(
                         monitor.get_dimensions()
                     );
                     display.gl_window().set_fullscreen(Some(monitor.clone()));
+                } else {
+                    println!("`current_monitor` is not set!??");
                 }
             } else {
                 println!("Switched from fullscreen.");

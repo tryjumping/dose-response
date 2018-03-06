@@ -76,7 +76,7 @@ pub fn update(
 
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
-        Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
+        Window::MainMenu => process_main_menu(state, settings, &main_menu::Window, metrics),
         Window::Game => process_game(state, &sidebar::Window, metrics, dt),
         Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
@@ -394,6 +394,7 @@ fn process_game(
 
 fn process_main_menu(
     state: &mut State,
+    settings: &mut Settings,
     window: &main_menu::Window,
     metrics: &TextMetrics,
 ) -> RunningState {
@@ -416,6 +417,8 @@ fn process_main_menu(
             || state.keys.matches_code(KeyCode::H)
         {
             option = Some(Help);
+        } else if state.keys.matches_code(KeyCode::F) {
+            option = Some(ToggleFullscreen);
         } else if state.keys.matches_code(KeyCode::S) {
             option = Some(SaveAndQuit);
         } else if state.keys.matches_code(KeyCode::Q) {
@@ -440,6 +443,11 @@ fn process_main_menu(
 
             Help => {
                 state.window_stack.push(Window::Help);
+                return RunningState::Running;
+            }
+
+            ToggleFullscreen => {
+                settings.fullscreen = !settings.fullscreen;
                 return RunningState::Running;
             }
 

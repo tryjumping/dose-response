@@ -10,6 +10,7 @@ pub enum MenuItem {
     Resume,
     NewGame,
     Help,
+    ToggleFullscreen,
     SaveAndQuit,
     Load,
     Quit,
@@ -22,6 +23,7 @@ impl MenuItem {
             &Resume => "[R]esume",
             &NewGame => "[N]ew Game",
             &Help => "[H]elp",
+            &ToggleFullscreen => "[F]ullscreen",
             &SaveAndQuit => "[S]ave and Quit",
             &Load => "[L]oad game",
             // TODO:
@@ -81,6 +83,8 @@ impl Window {
         options.push(MenuItem::Load);
 
         options.push(MenuItem::Help);
+
+        options.push(MenuItem::ToggleFullscreen);
 
         if !state.game_ended {
             options.push(MenuItem::SaveAndQuit);

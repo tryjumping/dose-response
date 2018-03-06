@@ -392,15 +392,7 @@ pub fn main_loop(
                         monitor.get_position(),
                         monitor.get_dimensions()
                     );
-                    //display.gl_window().set_fullscreen(Some(monitor.clone()));
-                    display.gl_window().set_decorations(false);
-                    let size = monitor.get_dimensions();
-                    display.gl_window().set_inner_size(size.0, size.1);
-                    let pos = monitor.get_position();
-                    display.gl_window().set_position(pos.0, pos.1);
-                    //display.gl_window().set_maximized(true);
-
-                    //display.gl_window().set_fullscreen(Some(monitor.clone()));
+                    display.gl_window().set_fullscreen(Some(monitor.clone()));
                 } else {
                     println!("`current_monitor` is not set!??");
                 }

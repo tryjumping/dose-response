@@ -5,7 +5,7 @@ set -ex
 # TODO This is the "test phase", tweak it as you see fit
 main() {
     cross build --target $TARGET
-    cross build --target $TARGET --release
+    cross build --target $TARGET --release --no-default-features --features "opengl cli rand fullscreen"
 
     if [ ! -z $DISABLE_TESTS ]; then
         return

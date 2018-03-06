@@ -92,6 +92,12 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Fullscreen does nothing on Windows                                     :ui:
 ** Pressing Alt+Enter doesn't seem to do anything
 ** Add debug print statements, see what happens
+** So Alt+Enter is not being handled for some reason
+** Adding fullscreen to main menu crashes with this:
+Switching to fullscreen.
+Monitor: Some("\\\\.\\DISPLAY1"), pos: (0, 0), dimensions: (1920, 1080)
+thread 'main' panicked at 'not yet implemented', C:\Users\appveyor\.cargo\registry\src\github.com-1ecc6299db9ec823\winit-0.10.0\src\platform\windows\window.rs:289:9
+note: Run with `RUST_BACKTRACE=1` for a backtrace.
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
@@ -99,6 +105,10 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** Right now they're CamelCase just like the enum
 * Remove fog of war when dead/uncovered screen
 ** Do the same for the debug mode?
+* Consider using proper logging with in-game debug console             :code:
+** The "no console" option for mingw seems to disable println entirely
+** Even when we run the game from the console
+** So: we should log to a file or some internal structure and print it out
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling

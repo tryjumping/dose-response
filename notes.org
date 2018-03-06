@@ -106,6 +106,10 @@ note: Run with `RUST_BACKTRACE=1` for a backtrace.
 *** again, not implemented
 ** TODO Consider making fullscreen a cargo feature and disabling it on windows
 ** TODO Also, try handling panics on fullscreen so we don't crash
+*** Yea so there's catch_unwind:
+**** https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
+**** except it doesn't compile with the Display type /o\
+**** Because of the interior mutability inside that type
 ** TODO Also, see if we can just ventor winit/glutin/glium and fix it locally
 *** and obviously upstreaming the changes
 ** TODO The alt+enter thing is genuinely not working either though

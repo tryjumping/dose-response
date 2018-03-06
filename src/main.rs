@@ -57,6 +57,7 @@ mod item;
 mod keys;
 mod level;
 mod monster;
+mod palette;
 mod pathfinding;
 mod player;
 mod point;

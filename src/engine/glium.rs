@@ -261,7 +261,6 @@ pub fn main_loop(
 
     let window = WindowBuilder::new()
         .with_title(window_title)
-        .with_fullscreen(monitors.get(0).cloned())
         .with_dimensions(screen_width, screen_height);
 
     let context = glium::glutin::ContextBuilder::new().with_vsync(true);
@@ -305,11 +304,13 @@ pub fn main_loop(
     let mut current_monitor = get_current_monitor(&monitors, window_pos);
     println!("All monitors:");
     for monitor in &monitors {
-        println!("* {:?}, pos: {:?}", monitor.get_name(), monitor.get_dimensions());
+        println!("* {:?}, pos: {:?}, size: {:?}",
+                 monitor.get_name(), monitor.get_position(), monitor.get_dimensions());
     }
-    println!("Current monitor: {:?}, pos: {:?}",
+    println!("Current monitor: {:?}, pos: {:?}, size: {:?}",
              current_monitor.as_ref().map(|m| m.get_name()),
-             current_monitor.as_ref().map(|ref m| m.get_dimensions()));
+             current_monitor.as_ref().map(|m| m.get_position()),
+             current_monitor.as_ref().map(|m| m.get_dimensions()));
 
     let mut mouse = Default::default();
     let mut settings = Settings { fullscreen: false };
@@ -391,7 +392,15 @@ pub fn main_loop(
                         monitor.get_position(),
                         monitor.get_dimensions()
                     );
-                    display.gl_window().set_fullscreen(Some(monitor.clone()));
+                    //display.gl_window().set_fullscreen(Some(monitor.clone()));
+                    display.gl_window().set_decorations(false);
+                    let size = monitor.get_dimensions();
+                    display.gl_window().set_inner_size(size.0, size.1);
+                    let pos = monitor.get_position();
+                    display.gl_window().set_position(pos.0, pos.1);
+                    //display.gl_window().set_maximized(true);
+
+                    //display.gl_window().set_fullscreen(Some(monitor.clone()));
                 } else {
                     println!("`current_monitor` is not set!??");
                 }

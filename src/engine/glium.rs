@@ -921,6 +921,9 @@ pub fn main_loop(
                                 Released => false,
                             };
 
+                            println!("KeyboardInput event!");
+                            println!("{:?}", input);
+
                             // TODO: this is a temp fix for a
                             // glutin/winit bug where the keypress
                             // release event for the Shift keys has
@@ -959,12 +962,14 @@ pub fn main_loop(
                                 Some(key_code) => {
                                     if pressed {
                                         if let Some(code) = key_code_from_backend(key_code) {
-                                            keys.push(Key {
+                                            let key = Key {
                                                 code: code,
                                                 alt: lalt_pressed || ralt_pressed,
                                                 ctrl: lctrl_pressed || rctrl_pressed,
                                                 shift: lshift_pressed || rshift_pressed,
-                                            });
+                                            };
+                                            println!("Pushing {:?}", key);
+                                            keys.push(key);
                                         }
                                     }
                                 }
@@ -983,12 +988,14 @@ pub fn main_loop(
                                     };
                                     if pressed {
                                         if let Some(code) = code {
-                                            keys.push(Key {
+                                            let key = Key {
                                                 code: code,
                                                 alt: lalt_pressed || ralt_pressed,
                                                 ctrl: lctrl_pressed || rctrl_pressed,
                                                 shift: lshift_pressed || rshift_pressed,
-                                            });
+                                            };
+                                            println!("Pushing {:?}", key);
+                                            keys.push(key);
                                         }
                                     }
                                 }

@@ -256,17 +256,18 @@ pub fn main_loop(
 
     let mut events_loop = EventsLoop::new();
 
+    // We'll just assume the monitors won't change throughout the game.
+    let monitors: Vec<_> = events_loop.get_available_monitors().collect();
+
     let window = WindowBuilder::new()
         .with_title(window_title)
+        .with_fullscreen(monitors.get(0).cloned())
         .with_dimensions(screen_width, screen_height);
 
     let context = glium::glutin::ContextBuilder::new().with_vsync(true);
 
     let display = glium::Display::new(window, context, &events_loop)
         .expect("dose response ERROR: Could not create the display.");
-
-    // We'll just assume the monitors won't change throughout the game.
-    let monitors: Vec<_> = events_loop.get_available_monitors().collect();
 
     let program = program!(&display,
                            150 => {

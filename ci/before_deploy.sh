@@ -17,7 +17,7 @@ main() {
 
     test -f Cargo.lock || cargo generate-lockfile
 
-    cross rustc --target $TARGET --release -- -C lto
+    cross rustc --target $TARGET --release --no-default-features --features "opengl cli rand fullscreen" -- -C lto
 
     cp target/$TARGET/release/dose-response $stage/
 

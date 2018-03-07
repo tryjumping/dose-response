@@ -175,8 +175,8 @@ impl Player {
     }
 
     pub fn max_ap(&self) -> i32 {
-        if self.bonuses.contains(&CompanionBonus::DoubleActionPoints) {
-            self.base_max_ap * 2
+        if self.bonuses.contains(&CompanionBonus::ExtraActionPoint) {
+            self.base_max_ap + 1
         } else {
             self.base_max_ap
         }

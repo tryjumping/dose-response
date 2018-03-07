@@ -228,7 +228,7 @@ impl Window {
         if !player.bonuses.is_empty() {
             lines.push("Bonus:".into());
             for bonus in &player.bonuses {
-                lines.push(format!("* {:?}", bonus).into());
+                lines.push(format!("* {}", bonus).into());
             }
             lines.push("".into());
         }

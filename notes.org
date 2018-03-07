@@ -145,20 +145,12 @@ CLOSED: [2018-03-06 Tue 22:04]
 **** Extra deployment steps to ship the SDL libraries and link them
 **** An entirely new set of bugs and missing features?
 ***** I mean it should be robust but idk
-* DONE Test release builds don't have debug features
-CLOSED: [2018-03-07 Wed 12:08]
-** DONE Linux: no cheating and no replays
-CLOSED: [2018-03-07 Wed 12:08]
-** DONE Windows: no fullscreen, no cheating and no replays
-CLOSED: [2018-03-06 Tue 21:54]
 * Fix windows broken alt+enter
 ** look at the debug output, look at the code
 ** Remove the Keypress debug output once you're done
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
-* Stringify bonus names properly
-** Right now they're CamelCase just like the enum
 * Remove fog of war when dead/uncovered screen
 ** Do the same for the debug mode?
 * Consider using proper logging with in-game debug console             :code:
@@ -1956,3 +1948,18 @@ CLOSED: [2018-03-07 Wed 18:36]
 :ARCHIVE_TIME: 2018-03-07 Wed 18:36
 :END:
 *** uncomment the lines in .cargo/config
+** DONE Stringify bonus names properly
+CLOSED: [2018-03-07 Wed 18:46]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-07 Wed 18:50
+:END:
+*** Right now they're CamelCase just like the enum
+** DONE Test release builds don't have debug features
+CLOSED: [2018-03-07 Wed 12:08]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-07 Wed 18:50
+:END:
+*** DONE Linux: no cheating and no replays
+CLOSED: [2018-03-07 Wed 12:08]
+*** DONE Windows: no fullscreen, no cheating and no replays
+CLOSED: [2018-03-06 Tue 21:54]

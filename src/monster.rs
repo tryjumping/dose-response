@@ -13,6 +13,9 @@ use rand::{Rand, Rng};
 use std::time::Duration;
 use world::World;
 
+use std::fmt::{Display, Error, Formatter};
+
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Monster {
     pub kind: Kind,
@@ -46,8 +49,22 @@ pub enum Kind {
 pub enum CompanionBonus {
     DoubleWillGrowth,
     HalveExhaustion,
-    DoubleActionPoints,
+    ExtraActionPoint,
 }
+
+
+impl Display for CompanionBonus {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        use self::CompanionBonus::*;
+        let s = match *self {
+            DoubleWillGrowth => "Doubled Will Increase",
+            HalveExhaustion => "Slow Exhaustion Rate",
+            ExtraActionPoint => "Extra Action Point",
+        };
+        f.write_str(s)
+    }
+}
+
 
 // TODO: use a rand_derive or something.
 // I tried it 2017-07-28 and it wasn't working then.
@@ -57,7 +74,7 @@ impl Rand for CompanionBonus {
         match rng.gen_range(0, 3) {
             0 => DoubleWillGrowth,
             1 => HalveExhaustion,
-            2 => DoubleActionPoints,
+            2 => ExtraActionPoint,
             _ => unreachable!(),
         }
     }

@@ -107,7 +107,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
                     monster.color = match bonus {
                         DoubleWillGrowth => color::npc_will,
                         HalveExhaustion => color::npc_mind,
-                        DoubleActionPoints => color::npc_speed,
+                        ExtraActionPoint => color::npc_speed,
                     };
                 }
                 _ => (),

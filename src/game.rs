@@ -117,10 +117,18 @@ pub fn update(
     render::render(&state, dt, fps, metrics, drawcalls);
     let drawcall_duration = drawcall_stopwatch.finish();
 
-    state.stats.push(FrameStats {
-        update: update_duration,
-        drawcalls: drawcall_duration,
-    });
+    if cfg!(feature = "stats") {
+        state.stats.push(FrameStats {
+            update: update_duration,
+            drawcalls: drawcall_duration,
+        });
+    }
+
+    if let RunningState::Stopped = game_update_result  {
+        if cfg!(feature = "stats") {
+            show_exit_stats(&state.stats);
+        }
+    }
 
     game_update_result
 }

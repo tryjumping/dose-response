@@ -18,16 +18,19 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub fn new(size: usize) -> Self {
-        Stats {
-            size,
-            frame_stats: VecDeque::with_capacity(size),
-            longest_updates: Vec::with_capacity(100),
-            longest_drawcalls: Vec::with_capacity(100),
+    pub fn new(frames: usize, updates: usize, drawcalls: usize) -> Self {
+       Stats {
+            size: frames,
+            frame_stats: VecDeque::with_capacity(frames),
+            longest_updates: Vec::with_capacity(updates),
+            longest_drawcalls: Vec::with_capacity(drawcalls),
         }
     }
 
     pub fn push(&mut self, frame_stats: FrameStats) {
+        if cfg!(not(feature = "stats")) {
+            return
+        }
         if self.frame_stats.len() == self.size {
             self.frame_stats.pop_front();
         }
@@ -107,8 +110,12 @@ impl Stats {
 
 impl Default for Stats {
     fn default() -> Self {
-        // about a minute and a half at 60 FPS
-        Stats::new(6000)
+        if cfg!(feature = "stats") {
+            // about a minute and a half at 60 FPS
+            Stats::new(6000, 100, 100)
+        } else {
+            Stats::new(0, 0, 0)
+        }
     }
 }
 

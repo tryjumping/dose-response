@@ -46,11 +46,13 @@ image = "0.12.2"
 
 [features]
 
-default = ["opengl", "cli", "replay", "rand", "fullscreen", "cheating"]
+default = ["opengl", "cli", "replay", "rand", "fullscreen", "cheating", "stats"]
 
 fullscreen = []
 
 cheating = []
+
+stats = []
 
 cli = ["clap"]
 

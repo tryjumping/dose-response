@@ -104,22 +104,58 @@ note: Run with `RUST_BACKTRACE=1` for a backtrace.
 ** Trying to initialise the fullscreen directly during window creation fails too
 ** So does doing "fullscreen" manually by setting the window size
 *** again, not implemented
-** TODO Consider making fullscreen a cargo feature and disabling it on windows
-** TODO Also, try handling panics on fullscreen so we don't crash
+** DONE Consider making fullscreen a cargo feature and disabling it on windows
+CLOSED: [2018-03-06 Tue 22:04]
+** DONE Also, try handling panics on fullscreen so we don't crash
+CLOSED: [2018-03-06 Tue 22:04]
 *** Yea so there's catch_unwind:
 **** https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
 **** except it doesn't compile with the Display type /o\
 **** Because of the interior mutability inside that type
-** TODO Also, see if we can just ventor winit/glutin/glium and fix it locally
+** TODO Also, see if we can just vendor winit/glutin/glium and fix it locally
 *** and obviously upstreaming the changes
-** TODO The alt+enter thing is genuinely not working either though
-* Test release builds don't have debug features
-** Linux: no cheating and no replays
-** Windows: no fullscreen, no cheating and no replays
+*** see how SDL does it?
+** DONE The alt+enter thing is genuinely not working either though
+CLOSED: [2018-03-06 Tue 22:04]
+* Look into trying the rust-sdl2's "bundled" feature
+** https://github.com/Rust-SDL2/rust-sdl2#bundled-feature
+** It seems to build SDL2 as needed
+** Maybe that can be almost as easy as using a pure rust solution?
+*** Build dependencies:
+**** cmake openssl-devel
+*** We'll still need to handle runtime linking though (sigh)
+**** RPATH in the release?
+*** Test the controller examples
+*** Test windows examples
+*** Test ttf and image examples
+**** require the "ttf" and "image" features
+*** Check the drawing API
+**** can we just use this?
+**** could we use the TTF feature for fonts directly?
+**** should be interesting as an optional backend
+*** Pros:
+**** Nice & robust drawing API?
+**** Nice & robust font rendering API?
+**** Joystick and gamepad support!
+**** More robust keyboard support (afaict so far)
+*** Cons:
+**** Harder setup for coders (no longer just git clone && cargo run)
+***** Maybe we could keep glium as the default feature
+***** And use SDL for the shipped releases?
+**** Extra deployment steps to ship the SDL libraries and link them
+**** An entirely new set of bugs and missing features?
+***** I mean it should be robust but idk
+* DONE Test release builds don't have debug features
+CLOSED: [2018-03-07 Wed 12:08]
+** DONE Linux: no cheating and no replays
+CLOSED: [2018-03-07 Wed 12:08]
+** DONE Windows: no fullscreen, no cheating and no replays
+CLOSED: [2018-03-06 Tue 21:54]
 * Fix windows broken alt+enter
 ** look at the debug output, look at the code
 ** Remove the Keypress debug output once you're done
 * Remove the windows console again
+** uncomment the lines in .cargo/config
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
@@ -1910,4 +1946,9 @@ CLOSED: [2018-03-02 Fri 17:33]
 CLOSED: [2018-03-02 Fri 17:32]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-03-02 Fri 17:33
+:END:
+** DONE Remove Stats gathering from the release
+CLOSED: [2018-03-07 Wed 12:40]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-07 Wed 12:40
 :END:

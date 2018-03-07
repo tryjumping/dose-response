@@ -130,6 +130,7 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** To make it easier to read
 ** And increase the claustrophobic feeling
 * Run wasm-gc on the generated web binary
+** https://github.com/alexcrichton/wasm-gc
 ** Should reduce the binary size
 ** Need to install & test it
 * Consider using proper logging with in-game debug console             :code:

@@ -76,9 +76,6 @@ pub fn render_game(
     if cfg!(feature = "cheating") && state.cheating {
         bonus = Bonus::UncoverMap;
     }
-    if state.uncovered_map {
-        bonus = Bonus::UncoverMap;
-    }
     let radius = formula::exploration_radius(state.player.mind);
 
     let player_pos = state.player.pos;
@@ -135,7 +132,7 @@ pub fn render_game(
             };
         }
 
-        if in_fov(world_pos) {
+        if in_fov(world_pos) || state.uncovered_map {
             graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
         } else if cell.explored || bonus == Bonus::UncoverMap {
             graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
@@ -149,7 +146,7 @@ pub fn render_game(
             if item.is_dose() && !player_will_is_max {
                 let resist_radius = formula::player_resist_radius(item.irresistible, player_will);
                 for point in SquareArea::new(world_pos, resist_radius) {
-                    if in_fov(point) {
+                    if in_fov(point) || (state.game_ended && state.uncovered_map) {
                         let screen_coords = screen_coords_from_world(point);
                         drawcalls.push(Draw::Background(screen_coords, color::dose_background));
                     }
@@ -159,7 +156,7 @@ pub fn render_game(
 
         // Render the items
         if in_fov(world_pos) || cell.explored || bonus == Bonus::SeeMonstersAndItems
-            || bonus == Bonus::UncoverMap
+            || bonus == Bonus::UncoverMap || state.uncovered_map
         {
             for item in cell.items.iter() {
                 graphics::draw(drawcalls, dt, display_pos, item);
@@ -176,7 +173,9 @@ pub fn render_game(
     // NOTE: render monsters
     for monster in state.world.monsters(display_area) {
         let visible = monster.position.distance(state.player.pos) < (radius as f32);
-        if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems {
+        if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems ||
+            state.uncovered_map
+        {
             use graphics::Render;
             let display_pos = screen_coords_from_world(monster.position);
             if let Some(trail_pos) = monster.trail {
@@ -216,7 +215,7 @@ pub fn render_game(
     }
 
     sidebar_window.render(state, metrics, dt, fps, drawcalls);
-    if state.show_keboard_movement_hints {
+    if state.show_keboard_movement_hints && !state.game_ended {
         render_controls_help(state.map_size, drawcalls);
     }
 

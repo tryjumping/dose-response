@@ -126,8 +126,6 @@ CLOSED: [2018-03-06 Tue 22:04]
 * Fix mouse position in fullscreen                                       :ui:
 ** Looks like the Y coord is right but X is off
 ** Prolly a letterboxing artifact
-* Remove fog of war when dead/uncovered screen
-** Do the same for the debug mode?
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling
@@ -1968,3 +1966,9 @@ CLOSED: [2018-03-07 Wed 18:51]
 **** make them a separate feature?
 *** Optimises the codegen units
 *** Closing in favour of separate features. Which is implemented
+** DONE Remove fog of war when dead/uncovered screen
+CLOSED: [2018-03-07 Wed 19:43]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-07 Wed 19:43
+:END:
+*** Do the same for the debug mode?

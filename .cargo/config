@@ -1,8 +1,8 @@
 [target.i686-pc-windows-gnu]
-#rustflags = ["-C", "link-args=-mwindows"]
+rustflags = ["-C", "link-args=-mwindows"]
 
 [target.x86_64-pc-windows-gnu]
-#rustflags = ["-C", "link-args=-mwindows"]
+rustflags = ["-C", "link-args=-mwindows"]
 
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-Ctarget-feature=+crt-static"]

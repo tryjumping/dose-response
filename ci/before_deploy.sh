@@ -25,6 +25,7 @@ main() {
     cp COPYING.txt $stage/"Dose Response"/LICENSE.txt
     echo "Version: $TRAVIS_TAG" >> $stage/"Dose Response"/VERSION.txt
     echo "Full Version: $CRATE_NAME-$TRAVIS_TAG-$TARGET" >> $stage/"Dose Response"/VERSION.txt
+    echo "Commit: $TRAVIS_COMMIT" >> $stage/"Dose Response"/VERSION.txt
 
     cd $stage
     tar czf $src/$CRATE_NAME-$TRAVIS_TAG-$TARGET.tar.gz *

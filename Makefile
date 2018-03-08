@@ -7,4 +7,7 @@ release:
 wasm:
 	cargo +nightly build --release --target wasm32-unknown-unknown --no-default-features --features web
 
-.PHONY: replay release wasm
+wasm-release: wasm
+	scripts/wasm-release.sh
+
+.PHONY: replay release wasm wasm-release

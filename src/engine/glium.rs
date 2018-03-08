@@ -968,9 +968,9 @@ pub fn main_loop(
                                         if let Some(code) = key_code_from_backend(key_code) {
                                             let key = Key {
                                                 code: code,
-                                                alt: lalt_pressed || ralt_pressed,
-                                                ctrl: lctrl_pressed || rctrl_pressed,
-                                                shift: lshift_pressed || rshift_pressed,
+                                                alt: lalt_pressed || ralt_pressed || input.modifiers.alt,
+                                                ctrl: lctrl_pressed || rctrl_pressed || input.modifiers.ctrl,
+                                                shift: lshift_pressed || rshift_pressed || input.modifiers.shift,
                                             };
                                             // println!("Pushing {:?}", key);
                                             keys.push(key);
@@ -994,9 +994,9 @@ pub fn main_loop(
                                         if let Some(code) = code {
                                             let key = Key {
                                                 code: code,
-                                                alt: lalt_pressed || ralt_pressed,
-                                                ctrl: lctrl_pressed || rctrl_pressed,
-                                                shift: lshift_pressed || rshift_pressed,
+                                                alt: lalt_pressed || ralt_pressed || input.modifiers.alt,
+                                                ctrl: lctrl_pressed || rctrl_pressed || input.modifiers.ctrl,
+                                                shift: lshift_pressed || rshift_pressed || input.modifiers.shift,
                                             };
                                             // println!("Pushing {:?}", key);
                                             keys.push(key);

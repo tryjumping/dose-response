@@ -137,14 +137,18 @@ CLOSED: [2018-03-06 Tue 22:04]
 *** In the release scripts rename README.md to README.txt
 ** Wrapped in a directory!
 ** Shipped the CI code to that effect
-** TODO Need to verify:
-- [ ] Windows 32 gnu
-- [ ] Windows 64 gnu
-- [ ] Linux 64
-- [ ] Linux 32
-- [ ] Winwos 32 msvc
-- [ ] Windows 64 msvc
-- [ ] OSX
+** Need to verify [7/7]:
+- [X] Windows 32 gnu
+- [X] Windows 64 gnu
+- [X] Linux 64
+- [X] Linux 32
+- [X] Windows 32 msvc
+- [X] Windows 64 msvc
+- [X] OSX 64
+** TODO Rename COPYING.txt to LICENSE.txt
+** TODO Verify just on these:
+- [ ] linux
+- [ ] windows
 * Consider using proper logging with in-game debug console             :code:
 ** The "no console" option for mingw seems to disable println entirely
 ** Even when we run the game from the console

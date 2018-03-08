@@ -1,7 +1,7 @@
 Dose Response
 =============
 
-Dose Response is an unfinished roguelike where you play an addict.
+Dose Response is an open-world roguelike where you play an addict.
 Avoid the dangers threatening your mind and body while desperately
 looking for the next fix.
 
@@ -11,6 +11,9 @@ How To Play
 You control the `@` character on the screen. You can move in the four
 **cardinal directions** (up, down, left and right) and four **diagonal
 directions** (north-east, south-east, north-west, south-west).
+
+For the in-game help click on the `Help` button or press `?` (question
+mark) while playing.
 
 Whenever you see a `%` it's a food that you can pick up and use later.
 If you move onto it, you pick it up automatically.
@@ -38,10 +41,20 @@ Remember:
 
 ## Controls
 
-There is no mouse support (yet!) in the game so you play by pressing
-the keys. There are three keyboard schemes you can use:
+The game is controlled by keyboard. There are three keyboard schemes
+you can use:
 
-### Arrows + `ctrl`/`shift`
+### Numpad (recommended)
+
+Most desktop computers have a numpad, but a lot of laptops don't. If
+you have it, you can use its keys to move around:
+
+Use `8`, `2`, `4` and `6` keys to move up/down/left/right.
+
+To move diagonally, use `7`, `9`, `1` and `3` to move north-west,
+north-east, south-west and south-east.
+
+### Arrows keys + `ctrl`/`shift`
 
 Use your `up`, `down`, `left` and `right` keys to move
 up/down/left/right.
@@ -52,57 +65,15 @@ and pressing `shift` means "south".
 So to move north-east you hold `control` and press `right`. To go
 south-west you hold `shift` and press `left`.
 
-### Numpad
-
-Most desktop computers have a numpad, but a lot of laptops don't. If
-you have it, you can use its keys to move around:
-
-Use `8`, `2`, `4` and `6` keys to move up/down/left/right.
-
-To move diagonally, use `7`, `9`, `1` and `3` to move north-west,
-north-east, south-west and south-east.
-
 ### Vi-keys
 
 Use `k`, `j`, `h` and `l` to move up/down/left/right.
 
-To move diagonally, press `y`, `n`, `u` and `m` to move north-west,
+To move diagonally, press `y`, `b`, `u` and `n` to move north-west,
 south-west, north-east and south-west.
 
 
 
-Headless / Remote-controlled Mode
----------------------------------
-
-Dose Response can be controlled remotely via ZeroMQ. This is mostly
-for testing and it's disabled by default.
-
-To compile it in you need to have zeromq-devel (or equivalent) installed.
-
-Build it with:
-
-    cargo build --features=remote
-
-And then pass `--remote` to the `dose-response` executable.
-
-
-Webassembly
------------
-
-Install the wasm toolchain:
-
-    rustup update nightly
-    rustup target add wasm32-unknown-unknown --toolchain=nightly
-
-Compile:
-
-    cargo +nightly build --release --target wasm32-unknown-unknown --no-default-features
-
-The compiled file will be created in: `target/wasm32-unknown-unknown/release/dose-response.wasm`
-
-NOTE: while the code compiles, running it will panic on calling the
-random number generator. Until that works, working on wasm is not
-particularly useful.
 
 License
 -------

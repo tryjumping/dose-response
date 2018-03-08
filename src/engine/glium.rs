@@ -925,8 +925,8 @@ pub fn main_loop(
                                 Released => false,
                             };
 
-                            println!("KeyboardInput event!");
-                            println!("{:?}", input);
+                            // println!("KeyboardInput event!");
+                            // println!("{:?}", input);
 
                             // TODO: this is a temp fix for a
                             // glutin/winit bug where the keypress
@@ -972,7 +972,7 @@ pub fn main_loop(
                                                 ctrl: lctrl_pressed || rctrl_pressed || input.modifiers.ctrl,
                                                 shift: lshift_pressed || rshift_pressed || input.modifiers.shift,
                                             };
-                                            println!("Pushing {:?}", key);
+                                            // println!("Pushing {:?}", key);
                                             keys.push(key);
                                         }
                                     }
@@ -998,7 +998,7 @@ pub fn main_loop(
                                                 ctrl: lctrl_pressed || rctrl_pressed || input.modifiers.ctrl,
                                                 shift: lshift_pressed || rshift_pressed || input.modifiers.shift,
                                             };
-                                            println!("Pushing {:?}", key);
+                                            // println!("Pushing {:?}", key);
                                             keys.push(key);
                                         }
                                     }

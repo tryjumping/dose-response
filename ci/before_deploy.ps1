@@ -12,9 +12,9 @@ Set-Location $STAGE
 $ZIP = "$SRC_DIR\$($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET).zip"
 
 Copy-Item "$SRC_DIR\target\$($Env:TARGET)\release\dose-response.exe" '.\Dose Response\Dose Response.exe'
-Copy-Item "$SRC_DIR\target\$($Env:TARGET)\README.md" '.\Dose Response\README.txt'
-Copy-Item "$SRC_DIR\target\$($Env:TARGET)\COPYING.txt" '.\Dose Response\'
-Out-File -Path '.\Dose Response\VERSION.txt' -Value "Version: $($Env:APPVEYOR_REPO_TAG_NAME)"
+Copy-Item "$SRC_DIR\target\README.md" '.\Dose Response\README.txt'
+Copy-Item "$SRC_DIR\target\COPYING.txt" '.\Dose Response\'
+Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Version: $($Env:APPVEYOR_REPO_TAG_NAME)"
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Full Version: $($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET)"
 
 7z a "$ZIP" *

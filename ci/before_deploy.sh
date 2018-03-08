@@ -21,8 +21,8 @@ main() {
 
     mkdir -p $stage/"Dose Response"
     cp target/$TARGET/release/dose-response $stage/"Dose Response"
-    cp target/$TARGET/README.md $stage/"Dose Response"/README.txt
-    cp target/$TARGET/COPYING.txt $stage/"Dose Response"/
+    cp target/README.md $stage/"Dose Response"/README.txt
+    cp target/COPYING.txt $stage/"Dose Response"/
     echo "Version: $TRAVIS_TAG" >> $stage/"Dose Response"/VERSION.txt
     echo "Full Version: $CRATE_NAME-$TRAVIS_TAG-$TARGET" >> $stage/"Dose Response"/VERSION.txt
 

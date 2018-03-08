@@ -13,7 +13,7 @@ $ZIP = "$SRC_DIR\$($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET
 
 Copy-Item "$SRC_DIR\target\$($Env:TARGET)\release\dose-response.exe" '.\Dose Response\Dose Response.exe'
 Copy-Item "$SRC_DIR\README.md" '.\Dose Response\README.txt'
-Copy-Item "$SRC_DIR\COPYING.txt" '.\Dose Response\'
+Copy-Item "$SRC_DIR\COPYING.txt" '.\Dose Response\LICENSE.txt'
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Version: $($Env:APPVEYOR_REPO_TAG_NAME)"
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Full Version: $($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET)"
 

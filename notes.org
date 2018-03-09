@@ -89,10 +89,7 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** Using wine
 *** Or a VM
 *** or cross-compile
-* Fullscreen does nothing on Windows                                     :ui:
-** Pressing Alt+Enter doesn't seem to do anything
-** Add debug print statements, see what happens
-** So Alt+Enter is not being handled for some reason
+* Fullscreen crashes on Windows                                          :ui:
 ** Adding fullscreen to main menu crashes with this:
 Switching to fullscreen.
 Monitor: Some("\\\\.\\DISPLAY1"), pos: (0, 0), dimensions: (1920, 1080)
@@ -115,13 +112,8 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** TODO Also, see if we can just vendor winit/glutin/glium and fix it locally
 *** and obviously upstreaming the changes
 *** see how SDL does it?
-** DONE The alt+enter thing is genuinely not working either though
-CLOSED: [2018-03-06 Tue 22:04]
-* TODO Windows docs are unreadable because they're in unix LF format
-** we should convert the line ends to CR LF
-** Looks like by default, PS reads LF and spits out CR LF
-** So this should work:
-Get-Content OldFile.txt | Set-Content NewFile.txt
+** I've disabled fullscreen on windows for now
+*** but we need to fix this
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
@@ -2007,3 +1999,12 @@ CLOSED: [2018-03-09 Fri 17:30]
 :END:
 *** look at the debug output, look at the code
 *** Remove the Keypress debug output once you're done
+** DONE Windows docs are unreadable because they're in unix LF format
+CLOSED: [2018-03-09 Fri 20:25]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-09 Fri 20:25
+:END:
+*** we should convert the line ends to CR LF
+*** Looks like by default, PS reads LF and spits out CR LF
+*** So this should work:
+Get-Content OldFile.txt | Set-Content NewFile.txt

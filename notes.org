@@ -117,9 +117,11 @@ CLOSED: [2018-03-06 Tue 22:04]
 *** see how SDL does it?
 ** DONE The alt+enter thing is genuinely not working either though
 CLOSED: [2018-03-06 Tue 22:04]
-* Fix windows broken alt+enter
-** look at the debug output, look at the code
-** Remove the Keypress debug output once you're done
+* TODO Windows docs are unreadable because they're in unix LF format
+** we should convert the line ends to CR LF
+** Looks like by default, PS reads LF and spits out CR LF
+** So this should work:
+Get-Content OldFile.txt | Set-Content NewFile.txt
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
@@ -1998,3 +2000,10 @@ CLOSED: [2018-03-08 Thu 19:27]
 CLOSED: [2018-03-08 Thu 21:07]
 - [X] linux
 - [X] windows
+** DONE Fix windows broken alt+enter
+CLOSED: [2018-03-09 Fri 17:30]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-09 Fri 17:30
+:END:
+*** look at the debug output, look at the code
+*** Remove the Keypress debug output once you're done

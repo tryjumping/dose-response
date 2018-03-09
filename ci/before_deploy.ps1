@@ -12,8 +12,10 @@ Set-Location $STAGE
 $ZIP = "$SRC_DIR\$($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET).zip"
 
 Copy-Item "$SRC_DIR\target\$($Env:TARGET)\release\dose-response.exe" '.\Dose Response\Dose Response.exe'
-Copy-Item "$SRC_DIR\README.md" '.\Dose Response\README.txt'
-Copy-Item "$SRC_DIR\COPYING.txt" '.\Dose Response\LICENSE.txt'
+# Use Get-Content/Set-Content which should convert the files from LF to CR LF endings
+Get-Content "$SRC_DIR\README.md" | Set-Content '.\Dose Response\README.txt'
+Get-Content "$SRC_DIR\COPYING.txt" | Set-Content '.\Dose Response\LICENSE.txt'
+
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Version: $($Env:APPVEYOR_REPO_TAG_NAME)"
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Full Version: $($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET)"
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Commit: $($Env:APPVEYOR_REPO_COMMIT)"

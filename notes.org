@@ -45,16 +45,16 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** DONE Non-square fonts for text
 CLOSED: [2018-02-24 Sat 16:56]
 * Release checklist                                         :notes:checklist:
-- [ ] Create a new release in CHANGELOG.md
-- [ ] Take a screenshot
-- [ ] Move the screenshot to Dose Response's screenshots directory
-- [ ] Commit the screenshot in the repo
-- [ ] Bump the version in Cargo.toml
-- [ ] Run: `cargo check; cargo build; cargo build --release; make wasm`
-- [ ] Copy the *.js *.css *.wasm files to the project website
-- [ ] Copy the screenshot to the project website
-- [ ] Test the wasm version
+- [X] Create a new release in CHANGELOG.md
+- [X] Take a screenshot
+- [X] Move the screenshot to Dose Response's screenshots directory
+- [X] Commit the screenshot in the repo
+- [X] Bump the version in Cargo.toml
+- [X] Run: `cargo check; cargo build; cargo build --release; make wasm-release`
+- [X] Test the wasm version
 - [ ] Run: `make release`
+- [X] cp target/web/*  files to the project website
+- [ ] Copy the screenshot to the project website
 - [ ] Verify the binaries get created in the github release page
 - [ ] Test the builds [0/3]
   - [ ] Test all the Windows Builds

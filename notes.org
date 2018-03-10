@@ -45,15 +45,15 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** DONE Non-square fonts for text
 CLOSED: [2018-02-24 Sat 16:56]
 * Release checklist                                         :notes:checklist:
-- [X] Create a new release in CHANGELOG.md
-- [X] Take a screenshot
-- [X] Move the screenshot to Dose Response's screenshots directory
-- [X] Commit the screenshot in the repo
-- [X] Bump the version in Cargo.toml
-- [X] Run: `cargo check; cargo build; cargo build --release; make wasm-release`
-- [X] Test the wasm version
+- [ ] Create a new release in CHANGELOG.md
+- [ ] Take a screenshot
+- [ ] Move the screenshot to Dose Response's screenshots directory
+- [ ] Commit the screenshot in the repo
+- [ ] Bump the version in Cargo.toml
+- [ ] Run: `cargo check; cargo build; cargo build --release; make wasm-release`
+- [ ] Test the wasm version
 - [ ] Run: `make release`
-- [X] cp target/web/*  files to the project website
+- [ ] cp target/web/*  files to the project website
 - [ ] Copy the screenshot to the project website
 - [ ] Verify the binaries get created in the github release page
 - [ ] Test the builds [0/3]
@@ -109,6 +109,11 @@ CLOSED: [2018-03-06 Tue 22:04]
 *** see how SDL does it?
 ** I've disabled fullscreen on windows for now
 *** but we need to fix this
+* Test Quicksilver fullscreen
+** https://github.com/ryanisaacg/quicksilver/commit/4705ff8a2baaa9d69b74dcef5f8b4186d920d6dc
+** It seems to be working maybe?
+** It's not running any of the dangerous calls afaics
+** Give it a go
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them

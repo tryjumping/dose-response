@@ -44,7 +44,7 @@ pub const shattering_dose: Color = BRIGHT_BLUE;
 pub const explosion: Color = BRIGHT_BLUE;
 
 pub const window_edge: Color = DIM_BLUE;
-pub const menu_highlight: Color = DIM_BLUE;
+pub const menu_highlight: Color = RED;
 pub const dose_background: Color = DIM_BLUE;
 
 pub const tree_3: Color = NATURAL_GREEN;

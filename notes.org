@@ -2008,3 +2008,8 @@ CLOSED: [2018-03-09 Fri 20:25]
 *** Looks like by default, PS reads LF and spits out CR LF
 *** So this should work:
 Get-Content OldFile.txt | Set-Content NewFile.txt
+** DONE Make the mouse highlight colour a bit brighter
+CLOSED: [2018-03-10 Sat 11:38]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-10 Sat 11:38
+:END:

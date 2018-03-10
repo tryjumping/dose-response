@@ -5,8 +5,17 @@ play an addict. Avoid the dangers threatening your mind and body while
 desperately looking for the next fix.
 
 ## [Unreleased]
-- Mouse support in the Help screen
-- Mouse support in the endgame screen
+
+
+## [0.7.0] - 2018-03-10
+- Added mouse support to the web version
+- Items can be used with mouse now
+- All menus have mouse support
+- You can close windows by right-clicking anywhere on the screen
+- Made the colours a bit nicer
+- Disabled Fullscreen under Windows because it crashes the game
+- Removed fog-of-war at the endgame screen
+- Included Readme and License files with the game
 
 
 ## [0.6.0] - 2018-02-16

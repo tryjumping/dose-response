@@ -45,7 +45,7 @@ CLOSED: [2018-01-25 Thu 13:05]
 ** DONE Non-square fonts for text
 CLOSED: [2018-02-24 Sat 16:56]
 * Release checklist                                         :notes:checklist:
-- [X] Create a new release in CHANGELOG.md
+- [ ] Create a new release in CHANGELOG.md
 - [ ] Take a screenshot
 - [ ] Move the screenshot to Dose Response's screenshots directory
 - [ ] Commit the screenshot in the repo
@@ -84,11 +84,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
-* Build nightlies
-** Or have a way to build windows on my machine
-*** Using wine
-*** Or a VM
-*** or cross-compile
 * Fullscreen crashes on Windows                                          :ui:
 ** Adding fullscreen to main menu crashes with this:
 Switching to fullscreen.
@@ -118,15 +113,25 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
 * Fix mouse position in fullscreen                                       :ui:
-** Looks like the Y coord is right but X is off
-** Prolly a letterboxing artifact
+** Looks like the Y coord is right but X is off (on geralt)
+** But: Y is wrong and X is right on worklaptop
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling
-* Consider using proper logging with in-game debug console             :code:
-** The "no console" option for mingw seems to disable println entirely
-** Even when we run the game from the console
-** So: we should log to a file or some internal structure and print it out
+* Show the next/prev page title in the help page                         :ui:
+** Instead of the generic Next page / Previous page text
+* Make the game less dark
+** It is actually really hard to see what's going on in withdrawal
+** Ease off on the darkness fade somewhat
+* The numpad controls screen is missing a line between paragraphs        :ui:
+** Compare with the vi screen
+** The second paragraph is right after the first on
+* Select the final font / fonts                                          :ui:
+** http://programmingfonts.org/list
+** FYI Hero Trap uses "Dejavu Sans, monospace" and it looks pretty neat
+* Add an icon to the generated executable on Windows
+** window execs can have an icon embedded
+** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
 * Create an itch.io page
 - [ ] Game description
 - [ ] Colour scheme
@@ -141,22 +146,15 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** Use a Rust or Go-based static site generator
 ** https://gohugo.io/getting-started/quick-start/
 ** http://cobalt-org.github.io/getting-started/
-* Make the game less dark
-** It is actually really hard to see what's going on in withdrawal
-** Ease off on the darkness fade somewhat
-* Show the next/prev page title in the help page                         :ui:
-** Instead of the generic Next page / Previous page text
-* Write a "Legend" help page
-** Describe the all the glyphs
-** %: food
-** i: dose
-** + and x: cardinal and diagonal dose
-** I: strong dose
-** monsters
-* "What is a roguelike?" help page                                       :ui:
-** every life matters
-** you'll be losing a lot
-** but every death is an opportunity to learn
+* Record a let's play
+** would be nice to show the game in action
+** people can watch it and see whether it's interesting for them
+** Steps:
+cargo run --release
+xwininfo  # find the Window ID
+recordmydesktop --windowid <window id>
+record
+Ctrl-c
 * Write a "call for artists" post?
 ** Here's what I'd like to see (in this order)
 *** Icon
@@ -175,6 +173,26 @@ CLOSED: [2018-03-06 Tue 22:04]
 *** g+
 *** mastodon
 *** maybe reddit?
+* "What is a roguelike?" help page                                       :ui:
+** every life matters
+** you'll be losing a lot
+** but every death is an opportunity to learn
+* Write a "Legend" help page
+** Describe the all the glyphs
+** %: food
+** i: dose
+** + and x: cardinal and diagonal dose
+** I: strong dose
+** monsters
+* Build nightlies
+** Or have a way to build windows on my machine
+*** Using wine
+*** Or a VM
+*** or cross-compile
+* Consider using proper logging with in-game debug console             :code:
+** The "no console" option for mingw seems to disable println entirely
+** Even when we run the game from the console
+** So: we should log to a file or some internal structure and print it out
 * Look into trying the rust-sdl2's "bundled" feature
 ** https://github.com/Rust-SDL2/rust-sdl2#bundled-feature
 ** It seems to build SDL2 as needed
@@ -203,12 +221,6 @@ CLOSED: [2018-03-06 Tue 22:04]
 **** Extra deployment steps to ship the SDL libraries and link them
 **** An entirely new set of bugs and missing features?
 ***** I mean it should be robust but idk
-* Replace keyboard hints with a "press ? to help" msg?                   :ui:
-** Or maybe render them in the side panel?
-* Store save in the right location for the system
-** https://crates.io/crates/standard_paths
-*** looks good but no mac support?
-** https://crates.io/crates/xdg-basedir
 * Show the current game build version in the main menu                   :ui:
 ** https://doc.rust-lang.org/cargo/reference/environment-variables.html
 * Investigate terminal backend
@@ -223,12 +235,6 @@ CLOSED: [2018-03-06 Tue 22:04]
 * Split out the rendering functionality into a proper crate            :code:
 ** Call it "Charmed, I'm sure."
 ** Crates.io will be called "charmed"
-* Disable cheating and all debug features in the published mode        :code:
-** I'd like that to be a different thing from the debug/release builds though
-** Say a new Cargo feature called `published`
-** And that  would gate all the debug features
-*** rather than the debug/release switch
-** And actually rename CHEATING to DEBUG
 * Add console printing to the wasm module
 * Print out warnings if the js drawcalls and buffer capacities are exceeded
 * Performance-tune the game
@@ -238,21 +244,10 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** So this would make NPCs more like not even aware there are any monsters here
 ** But only when they are accompanying the player
 * Pre-allocate the wasm drawcalls vecs better                          :code:
-* Make `sort_drawcalls` more efficient? :code:
-** I really don't like having two `reverse` calls in there
 * Make the canvas drawing more performant                              :code:
 ** https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
 ** Think about reducing the Draw::Rectangle and Draw::Fade data footprint
 *** by like emulating an enum or something
-* Record a let's play
-** would be nice to show the game in action
-** people can watch it and see whether it's interesting for them
-** Steps:
-cargo run --release
-xwininfo  # find the Window ID
-recordmydesktop --windowid <window id>
-record
-Ctrl-c
 * Consider uploading "nightlies" somewhere
 ** We run CI on every push, let's copy the binaries somewhere
 ** So we can always get the latest build out to folks
@@ -304,9 +299,6 @@ moving in that direction.
 ** Seems that when there is a normal dose in the irresistible area we can break free
 ** I'll need to test the exact parameters of this
 ** But maybe we'll want to keep it there as an "easter egg rule"?
-* Add an icon to the generated executable on Windows
-** window execs can have an icon embedded
-** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
 * Rework the animation system                                          :code:
 ** Right now it's a bunch of boxed traits and we have to match on dose type
 ** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct
@@ -332,9 +324,6 @@ moving in that direction.
 ** this will make it clearer to figure out that you want to keep hunting the Wills
 ** We can start by showing will with a decimal counter
 ** Or a "next will" progress bar
-* Select the final font / fonts                                          :ui:
-** http://programmingfonts.org/list
-** FYI Hero Trap uses "Dejavu Sans, monospace" and it looks pretty neat
 * Investigate adding sound to the game                                 :code:
 ** Not sure about ambient music, but sound effects might be neat
 ** We can look at rodio
@@ -499,10 +488,6 @@ fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
 ** dynamic / changing environment?
 * Don't allow suicide (if there's a way to avoid it)                     :ui:
 ** e.g. fatfingering the arrow when the Depression is near
-* save & exit/load game                                                  :ui:
-** see how nethack 4 does it:
-** https://www.reddit.com/r/roguelikedev/comments/3jk3xm/faq_friday_20_saving/
-** could we use something similar?
 * Display the player's explored area on death                            :ui:
 ** As in, how many tiles they've explored
 ** Might be a bit tricky to calculate
@@ -540,23 +525,6 @@ fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
 Instead of looking at the points' coordinates, look at the actual (pixel) space
 each tile represents. The tiles are not points but squares with an area. This
 should provide a visually better result (but will be harder to compute).
-* Pick a good colour palette                                             :ui:
-** Fun16 by DawnBringer
-*** http://pixeljoint.com/pixelart/95350.htm
-** DB32 by DawnBringer
-*** http://pixeljoint.com/forum/forum_posts.asp?TID=16247
-** Arne's 16-bit palette:
-*** http://androidarts.com/palette/16pal.htm
-** Paul Tol's palette for colour blind people
-*** https://personal.sron.nl/~pault/
-** A colour wheel for generating palettes
-*** http://paletton.com/
-* Add the Marla Daniels quote                                            :ui:
-** When the game is launched and there aren't any saves, it should just jump into the play
-*** (that was the genius of Braid)
-*** (we can use the unexplored area to show help/hints)
-** Any other time, we'll show the menu with the quote & the load-game option
-** Possibly, we may show it during player's death, if it makes sense
 * Effects when being hit/death                                           :ui:
 ** colour fade (or something) on stun, removed will, death, etc.
 ** sound
@@ -2013,3 +1981,67 @@ CLOSED: [2018-03-10 Sat 11:38]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-03-10 Sat 11:38
 :END:
+** Replace keyboard hints with a "press ? to help" msg?                 :ui:
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-10 Sat 11:49
+:END:
+*** Or maybe render them in the side panel?
+*** Nah, we have the Help button on the sidebar now
+*** Closing this
+** Store save in the right location for the system
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-10 Sat 11:50
+:END:
+*** https://crates.io/crates/standard_paths
+**** looks good but no mac support?
+*** https://crates.io/crates/xdg-basedir
+*** Yeah, not for tihs one. We have just 1 save, next to the exe
+** DONE Disable cheating and all debug features in the published mode :code:
+CLOSED: [2018-03-10 Sat 11:50]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-10 Sat 11:50
+:END:
+*** I'd like that to be a different thing from the debug/release builds though
+*** Say a new Cargo feature called `published`
+*** And that  would gate all the debug features
+**** rather than the debug/release switch
+*** And actually rename CHEATING to DEBUG
+** DONE Make `sort_drawcalls` more efficient?                         :code:
+CLOSED: [2018-03-10 Sat 11:54]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-10 Sat 11:54
+:END:
+*** I really don't like having two `reverse` calls in there
+** DONE save & exit/load game                                           :ui:
+CLOSED: [2018-03-10 Sat 11:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-10 Sat 11:57
+:END:
+*** see how nethack 4 does it:
+*** https://www.reddit.com/r/roguelikedev/comments/3jk3xm/faq_friday_20_saving/
+*** could we use something similar?
+** DONE Pick a good colour palette                              :ui:ARCHIVE:
+CLOSED: [2018-03-10 Sat 11:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-10 Sat 11:58
+:END:
+*** Fun16 by DawnBringer
+**** http://pixeljoint.com/pixelart/95350.htm
+*** DB32 by DawnBringer
+**** http://pixeljoint.com/forum/forum_posts.asp?TID=16247
+*** Arne's 16-bit palette:
+**** http://androidarts.com/palette/16pal.htm
+*** Paul Tol's palette for colour blind people
+**** https://personal.sron.nl/~pault/
+*** A colour wheel for generating palettes
+**** http://paletton.com/
+** DONE Add the Marla Daniels quote                                     :ui:
+CLOSED: [2018-03-10 Sat 11:58]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-10 Sat 11:58
+:END:
+*** When the game is launched and there aren't any saves, it should just jump into the play
+**** (that was the genius of Braid)
+**** (we can use the unexplored area to show help/hints)
+*** Any other time, we'll show the menu with the quote & the load-game option
+*** Possibly, we may show it during player's death, if it makes sense

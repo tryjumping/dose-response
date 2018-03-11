@@ -114,6 +114,19 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** It seems to be working maybe?
 ** It's not running any of the dangerous calls afaics
 ** Give it a go
+* Make the "carrying 0 doses" msg nicer                                  :ui:
+** It looks too much like a bug instead of hinting at further possibilities
+** Suggestions by /u/Larzid
+*** "You never managed to save something for a later fix"
+*** "You always consumed anything you laid your eyes on"
+*** https://www.reddit.com/r/roguelikedev/comments/83eosr/sharing_saturday_197/dviow65/
+* Give the monsters names                                            :design:
+** This is something that confuses people
+** The "Defeated by `D`" message is not super useful
+** And this probably wouldn't detract from the abstract nature much
+* Add item use tips in the Controls help page
+** "press [1] to eat food"
+** "or click on it in the sidebar"
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them

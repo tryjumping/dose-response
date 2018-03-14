@@ -179,9 +179,9 @@ impl Window {
                 lines.push(Empty);
                 lines.push(Paragraph("Each Dose has a glow around it. If you step into it, you will be unable to resist even if it means Overdosing yourself. At the beginning, you will also Overdose by using another Dose when you're still High or using a Dose that's too strong for you ('+', 'x' or 'I'). With each Dose you build up tolerance which makes you seek out stronger Doses later on."));
                 lines.push(Empty);
-                lines.push(Paragraph("All the letters ('h', 'v', 'S', 'a' and 'D') are enemies. Each has their own way of harming you. The 'D' move twice as fast and will kill you outright. The 'a' will reduce your Will on each hit. When it reaches zero, you will lose."));
+                lines.push(Paragraph("All the letters ('h', 'v', 'S', 'a' and 'D') are enemies. Each has their own way of harming you. The Depression (D) moves twice as fast and will defeat you outright. The Anxiety (a) will reduce your Will on each hit. When it reaches zero, you will lose."));
                 lines.push(Empty);
-                lines.push(Paragraph("To progress, you need to get stronger Will. Defeat enough `a` monsters and it will go up. The Dose or Food \"explosions\" don't count though! Higher Will makes the irresistible area around Doses smaller. It will also let you pick them up!"));
+                lines.push(Paragraph("To progress, you need to get stronger Will. Defeat enough Anxiety (a) monsters and it will go up. The Dose or Food \"explosions\" don't count though! Higher Will makes the irresistible area around Doses smaller. It will also let you pick them up!"));
                 lines.push(Empty);
                 lines.push(Paragraph("If you see another @ characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober."));
             }

@@ -114,9 +114,6 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** It seems to be working maybe?
 ** It's not running any of the dangerous calls afaics
 ** Give it a go
-* Must center the glyphs
-** they're now left-aligned to the grid
-** we need an offset when we render them
 * Fix mouse position in fullscreen                                       :ui:
 ** Looks like the Y coord is right but X is off (on geralt)
 ** But: Y is wrong and X is right on worklaptop
@@ -2075,3 +2072,10 @@ CLOSED: [2018-03-14 Wed 19:58]
 :END:
 *** "press [1] to eat food"
 *** "or click on it in the sidebar"
+** DONE Center the glyphs in the grid
+CLOSED: [2018-03-14 Wed 20:22]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-14 Wed 20:23
+:END:
+*** they're now left-aligned to the grid
+*** we need an offset when we render them

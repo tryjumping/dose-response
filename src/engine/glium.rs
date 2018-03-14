@@ -560,6 +560,11 @@ pub fn main_loop(
                             color: background_color,
                         });
 
+                        // NOTE: Center the glyphs in their cells
+                        let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+                        let x_offset = (tilesize as i32 - glyph_width) / 2;
+                        let pos_x = pos_x + x_offset as f32;
+
                         // NOTE: draw the glyph
                         vertices.push(Vertex {
                             pos_px: [pos_x, pos_y],

@@ -119,14 +119,15 @@ impl Window {
         let endgame_description = match (cause_of_death, perpetrator) {
             (Some(Exhausted), None) => "Exhausted".into(),
             (Some(Exhausted), Some(monster)) => {
-                format!("Exhausted because of `{}`", monster.glyph())
+                format!("Exhausted because of {} ({})", monster.name(), monster.glyph())
             }
             (Some(Overdosed), _) => "Overdosed".into(),
             (Some(LostWill), Some(monster)) => {
-                format!("Lost all Will due to `{}`", monster.glyph())
+                format!("Lost all Will due to {} ({})", monster.name(), monster.glyph())
             }
             (Some(LostWill), None) => unreachable!(),
-            (Some(Killed), Some(monster)) => format!("Defeated by `{}`", monster.glyph()),
+            (Some(Killed), Some(monster)) => format!("Defeated by {} ({})",
+                                                     monster.name(), monster.glyph()),
             (Some(Killed), None) => unreachable!(),
             (None, _) => "".into(), // Victory
         };

@@ -210,6 +210,18 @@ impl Monster {
             Npc => '@',
         }
     }
+
+    pub fn name(&self) -> &str {
+        match self.kind {
+            Anxiety => "Anxiety",
+            Depression => "Depression",
+            Hunger => "Hunger",
+            Shadows => "Shadows",
+            Voices => "Voices",
+            Npc => "NPC",
+        }
+    }
+
 }
 
 impl Render for Monster {

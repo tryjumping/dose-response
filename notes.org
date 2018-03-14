@@ -114,12 +114,6 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** It seems to be working maybe?
 ** It's not running any of the dangerous calls afaics
 ** Give it a go
-* Make the "carrying 0 doses" msg nicer                                  :ui:
-** It looks too much like a bug instead of hinting at further possibilities
-** Suggestions by /u/Larzid
-*** "You never managed to save something for a later fix"
-*** "You always consumed anything you laid your eyes on"
-*** https://www.reddit.com/r/roguelikedev/comments/83eosr/sharing_saturday_197/dviow65/
 * Give the monsters names                                            :design:
 ** This is something that confuses people
 ** The "Defeated by `D`" message is not super useful
@@ -2063,3 +2057,13 @@ CLOSED: [2018-03-10 Sat 11:58]
 **** (we can use the unexplored area to show help/hints)
 *** Any other time, we'll show the menu with the quote & the load-game option
 *** Possibly, we may show it during player's death, if it makes sense
+** DONE Make the "carrying 0 doses" msg nicer                           :ui:
+CLOSED: [2018-03-14 Wed 19:09]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-14 Wed 19:09
+:END:
+*** It looks too much like a bug instead of hinting at further possibilities
+*** Suggestions by /u/Larzid
+**** "You never managed to save something for a later fix"
+**** "You always consumed anything you laid your eyes on"
+**** https://www.reddit.com/r/roguelikedev/comments/83eosr/sharing_saturday_197/dviow65/

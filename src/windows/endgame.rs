@@ -139,7 +139,11 @@ impl Window {
             .count();
 
         let turns_text = format!("Turns: {}", state.turn);
-        let carrying_doses_text = format!("Carrying {} doses", doses_in_inventory);
+        let carrying_doses_text = if doses_in_inventory > 0 {
+            format!("Carrying {} doses", doses_in_inventory)
+        } else {
+            format!("You've never managed to save a dose for a later fix.")
+        };
         let high_streak_text = format!(
             "Longest High streak: {} turns",
             state.player.longest_high_streak

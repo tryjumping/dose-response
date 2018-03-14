@@ -123,6 +123,9 @@ impl Window {
                 lines.push(SquareTiles(r"4-@-6"));
                 lines.push(SquareTiles(r" /|\ "));
                 lines.push(SquareTiles(r"1 2 3"));
+
+                lines.push(EmptySpace(3));
+                lines.push(Paragraph("Using items: you can use an item you're carrying (food and later on, doses) by clicking on it in the sidebar or pressing its number on the keyboard (not numpad -- that's for movement)."));
             }
 
             Page::ArrowControls => {
@@ -140,6 +143,9 @@ impl Window {
                 lines.push(SquareTiles(r"       Left-@-Right        "));
                 lines.push(SquareTiles(r"         /  |  \           "));
                 lines.push(SquareTiles(r"Ctrl+Left  Down Ctrl+Right "));
+
+                lines.push(EmptySpace(3));
+                lines.push(Paragraph("Using items: you can use an item you're carrying (food and later on, doses) by clicking on it in the sidebar or pressing its number on the keyboard (not numpad -- that's for movement)."));
             }
 
             Page::ViKeys => {
@@ -156,6 +162,9 @@ impl Window {
                 lines.push(SquareTiles(r"h-@-l"));
                 lines.push(SquareTiles(r" /|\ "));
                 lines.push(SquareTiles(r"b j n"));
+
+                lines.push(EmptySpace(3));
+                lines.push(Paragraph("Using items: you can use an item you're carrying (food and later on, doses) by clicking on it in the sidebar or pressing its number on the keyboard (not numpad -- that's for movement)."));
             }
 
             Page::HowToPlay => {

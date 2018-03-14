@@ -114,9 +114,6 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** It seems to be working maybe?
 ** It's not running any of the dangerous calls afaics
 ** Give it a go
-* Add item use tips in the Controls help page
-** "press [1] to eat food"
-** "or click on it in the sidebar"
 * Must center the glyphs
 ** they're now left-aligned to the grid
 ** we need an offset when we render them
@@ -2071,3 +2068,10 @@ CLOSED: [2018-03-14 Wed 19:14]
 *** This is something that confuses people
 *** The "Defeated by `D`" message is not super useful
 *** And this probably wouldn't detract from the abstract nature much
+** DONE Add item use tips in the Controls help page
+CLOSED: [2018-03-14 Wed 19:58]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-14 Wed 19:58
+:END:
+*** "press [1] to eat food"
+*** "or click on it in the sidebar"

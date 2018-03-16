@@ -120,6 +120,12 @@ CLOSED: [2018-03-06 Tue 22:04]
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling
+** Need to test this on worklaptop
+*** And also with wasm
+**** It will require different code there
+**** Actually, that might make rendering easier
+**** So maybe we want to test it there
+** Give enough margin to run this in most scenarios
 * Show the next/prev page title in the help page                         :ui:
 ** Instead of the generic Next page / Previous page text
 * Make the game less dark

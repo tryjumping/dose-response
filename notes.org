@@ -84,6 +84,87 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
+* The numpad controls screen is missing a line between paragraphs        :ui:
+** Compare with the vi screen
+** The second paragraph is right after the first on
+* Show the next/prev page title in the help page                         :ui:
+** Instead of the generic Next page / Previous page text
+* Make the fonts bigger & map smaller
+** To make it easier to read
+** And increase the claustrophobic feeling
+** Need to test this on worklaptop
+*** And also with wasm
+**** It will require different code there
+**** Actually, that might make rendering easier
+**** So maybe we want to test it there
+** Give enough margin to run this in most scenarios
+* The control hints are too wide :ui:
+** Now that we're using proper text rendering, lets adjust the width
+* Record a let's play
+** would be nice to show the game in action
+** people can watch it and see whether it's interesting for them
+** Steps:
+cargo run --release
+xwininfo  # find the Window ID
+recordmydesktop --windowid <window id>
+record
+Ctrl-c
+* Create an itch.io page
+- [ ] Game description
+- [ ] Colour scheme
+- [ ] Font
+- [ ] Lets play/trailer
+- [ ] Cover image
+- [ ] Icon/Logo for Try Jumping
+- [ ] Icon/Logo for Dose Response
+- [ ] Builds
+- [ ] Link to the online version
+* Fix mouse position in fullscreen                                       :ui:
+** Looks like the Y coord is right but X is off (on geralt)
+** But: Y is wrong and X is right on worklaptop
+* "What is a roguelike?" help page                                       :ui:
+** every life matters
+** you'll be losing a lot
+** but every death is an opportunity to learn
+* Write a "Legend" help page
+** Describe the all the glyphs
+** %: food
+** i: dose
+** + and x: cardinal and diagonal dose
+** I: strong dose
+** monsters
+* Create a tryjumping.com page
+** Use a Rust or Go-based static site generator
+** https://gohugo.io/getting-started/quick-start/
+** http://cobalt-org.github.io/getting-started/
+* Look into trying the rust-sdl2's "bundled" feature
+** https://github.com/Rust-SDL2/rust-sdl2#bundled-feature
+** It seems to build SDL2 as needed
+** Maybe that can be almost as easy as using a pure rust solution?
+*** Build dependencies:
+**** cmake openssl-devel
+*** We'll still need to handle runtime linking though (sigh)
+**** RPATH in the release?
+*** Test the controller examples
+*** Test windows examples
+*** Test ttf and image examples
+**** require the "ttf" and "image" features
+*** Check the drawing API
+**** can we just use this?
+**** could we use the TTF feature for fonts directly?
+**** should be interesting as an optional backend
+*** Pros:
+**** Nice & robust drawing API?
+**** Nice & robust font rendering API?
+**** Joystick and gamepad support!
+**** More robust keyboard support (afaict so far)
+*** Cons:
+**** Harder setup for coders (no longer just git clone && cargo run)
+***** Maybe we could keep glium as the default feature
+***** And use SDL for the shipped releases?
+**** Extra deployment steps to ship the SDL libraries and link them
+**** An entirely new set of bugs and missing features?
+***** I mean it should be robust but idk
 * Fullscreen crashes on Windows                                          :ui:
 ** Adding fullscreen to main menu crashes with this:
 Switching to fullscreen.
@@ -114,55 +195,6 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** It seems to be working maybe?
 ** It's not running any of the dangerous calls afaics
 ** Give it a go
-* Fix mouse position in fullscreen                                       :ui:
-** Looks like the Y coord is right but X is off (on geralt)
-** But: Y is wrong and X is right on worklaptop
-* Make the fonts bigger & map smaller
-** To make it easier to read
-** And increase the claustrophobic feeling
-** Need to test this on worklaptop
-*** And also with wasm
-**** It will require different code there
-**** Actually, that might make rendering easier
-**** So maybe we want to test it there
-** Give enough margin to run this in most scenarios
-* Show the next/prev page title in the help page                         :ui:
-** Instead of the generic Next page / Previous page text
-* Make the game less dark
-** It is actually really hard to see what's going on in withdrawal
-** Ease off on the darkness fade somewhat
-* The numpad controls screen is missing a line between paragraphs        :ui:
-** Compare with the vi screen
-** The second paragraph is right after the first on
-* Select the final font / fonts                                          :ui:
-** http://programmingfonts.org/list
-** FYI Hero Trap uses "Dejavu Sans, monospace" and it looks pretty neat
-* Add an icon to the generated executable on Windows
-** window execs can have an icon embedded
-** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
-* Create an itch.io page
-- [ ] Game description
-- [ ] Colour scheme
-- [ ] Font
-- [ ] Lets play/trailer
-- [ ] Cover image
-- [ ] Icon/Logo for Try Jumping
-- [ ] Icon/Logo for Dose Response
-- [ ] Builds
-- [ ] Link to the online version
-* Create a tryjumping.com page
-** Use a Rust or Go-based static site generator
-** https://gohugo.io/getting-started/quick-start/
-** http://cobalt-org.github.io/getting-started/
-* Record a let's play
-** would be nice to show the game in action
-** people can watch it and see whether it's interesting for them
-** Steps:
-cargo run --release
-xwininfo  # find the Window ID
-recordmydesktop --windowid <window id>
-record
-Ctrl-c
 * Write a "call for artists" post?
 ** Here's what I'd like to see (in this order)
 *** Icon
@@ -181,17 +213,15 @@ Ctrl-c
 *** g+
 *** mastodon
 *** maybe reddit?
-* "What is a roguelike?" help page                                       :ui:
-** every life matters
-** you'll be losing a lot
-** but every death is an opportunity to learn
-* Write a "Legend" help page
-** Describe the all the glyphs
-** %: food
-** i: dose
-** + and x: cardinal and diagonal dose
-** I: strong dose
-** monsters
+* Select the final font / fonts                                          :ui:
+** http://programmingfonts.org/list
+** FYI Hero Trap uses "Dejavu Sans, monospace" and it looks pretty neat
+* Add an icon to the generated executable on Windows
+** window execs can have an icon embedded
+** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
+* Make the game less dark
+** It is actually really hard to see what's going on in withdrawal
+** Ease off on the darkness fade somewhat
 * Build nightlies
 ** Or have a way to build windows on my machine
 *** Using wine
@@ -201,34 +231,6 @@ Ctrl-c
 ** The "no console" option for mingw seems to disable println entirely
 ** Even when we run the game from the console
 ** So: we should log to a file or some internal structure and print it out
-* Look into trying the rust-sdl2's "bundled" feature
-** https://github.com/Rust-SDL2/rust-sdl2#bundled-feature
-** It seems to build SDL2 as needed
-** Maybe that can be almost as easy as using a pure rust solution?
-*** Build dependencies:
-**** cmake openssl-devel
-*** We'll still need to handle runtime linking though (sigh)
-**** RPATH in the release?
-*** Test the controller examples
-*** Test windows examples
-*** Test ttf and image examples
-**** require the "ttf" and "image" features
-*** Check the drawing API
-**** can we just use this?
-**** could we use the TTF feature for fonts directly?
-**** should be interesting as an optional backend
-*** Pros:
-**** Nice & robust drawing API?
-**** Nice & robust font rendering API?
-**** Joystick and gamepad support!
-**** More robust keyboard support (afaict so far)
-*** Cons:
-**** Harder setup for coders (no longer just git clone && cargo run)
-***** Maybe we could keep glium as the default feature
-***** And use SDL for the shipped releases?
-**** Extra deployment steps to ship the SDL libraries and link them
-**** An entirely new set of bugs and missing features?
-***** I mean it should be robust but idk
 * Show the current game build version in the main menu                   :ui:
 ** https://doc.rust-lang.org/cargo/reference/environment-variables.html
 * Investigate terminal backend

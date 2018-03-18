@@ -138,6 +138,17 @@ Ctrl-c
 ** https://gohugo.io/getting-started/quick-start/
 ** http://cobalt-org.github.io/getting-started/
 * Look into trying the rust-sdl2's "bundled" feature
+** Seems to be broken on Fedora 27 + Wayland
+*** The bundled build just doesn't work
+*** But the steamrt one (version 2.4 only; 2.6 is broken) does
+*** Go to: http://repo.steamstatic.com/steamrt/pool/main/libs/libsdl2/
+**** Download 'libsdl2_2.0.4+steamrt2+srt1_amd64.deb'
+**** http://repo.steamstatic.com/steamrt/pool/main/libs/libsdl2/libsdl2_2.0.4+steamrt2+srt1_amd64.deb
+*** Put it in a 'lib' directory
+*** cp lib/libSDL2-2.0.so.0.4.0 lib/libSDL2-2.0.so.1
+*** run code with: LD_LIBRARY_PATH=lib target/release/binary
+*** Actually now I'm getting the examples build staticaly??
+**** We need to create a SDL project and test this properly
 ** https://github.com/Rust-SDL2/rust-sdl2#bundled-feature
 ** It seems to build SDL2 as needed
 ** Maybe that can be almost as easy as using a pure rust solution?

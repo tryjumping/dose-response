@@ -199,6 +199,8 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** TODO Also, see if we can just vendor winit/glutin/glium and fix it locally
 *** and obviously upstreaming the changes
 *** see how SDL does it?
+*** Check out this article by Raymond Chen
+**** https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353/
 ** I've disabled fullscreen on windows for now
 *** but we need to fix this
 * Test Quicksilver fullscreen

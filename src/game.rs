@@ -868,11 +868,11 @@ fn process_player_action<R, W>(
                         match item.kind {
                             Food => player.inventory.push(item),
                             Dose | StrongDose | CardinalDose | DiagonalDose => {
-                                if formula::player_resist_radius(
+                                let resist_radius = formula::player_resist_radius(
                                     item.irresistible,
                                     player.will.to_int(),
-                                ) == 0
-                                {
+                                );
+                                if resist_radius == 0 {
                                     player.inventory.push(item);
                                 } else {
                                     use_dose(player, explosion_animation, item);

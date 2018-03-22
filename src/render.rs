@@ -87,7 +87,6 @@ pub fn render_game(
     let total_time_ms = util::num_milliseconds(state.clock) as i64;
     let world_size = state.world_size;
 
-    let player_will_is_max = state.player.will.is_max();
     let player_will = state.player.will.to_int();
     // NOTE: this is here to appease the borrow checker. If we
     // borrowed the state here as immutable, we wouln't need it.
@@ -143,7 +142,7 @@ pub fn render_game(
 
         // Render the irresistible background of a dose
         for item in cell.items.iter() {
-            if item.is_dose() && !player_will_is_max {
+            if item.is_dose() {
                 let resist_radius = formula::player_resist_radius(item.irresistible, player_will);
                 for point in SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) || (state.game_ended && state.uncovered_map) {

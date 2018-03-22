@@ -11,7 +11,7 @@ pub const NO_LETHAL_DOSE_RADIUS: i32 = 6;
 
 pub const ANXIETIES_PER_WILL: InclusiveRange = InclusiveRange(0, 7);
 
-pub const WILL: InclusiveRange = InclusiveRange(0, 5);
+pub const WILL: InclusiveRange = InclusiveRange(0, 6);
 
 // The rate at which the Mind drops under normal circumstances
 pub const MIND_DROP_PER_TURN: i32 = 1;

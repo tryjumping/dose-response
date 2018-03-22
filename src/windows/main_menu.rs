@@ -102,7 +102,7 @@ impl Window {
 
         let mut menu_item_under_mouse = None;
         let mut menu_rect_under_mouse = None;
-        let mut ypos = header_rect.bottom_right().y + 1;
+        let mut ypos = header_rect.bottom_right().y;
         for option in options {
             let text = Centered(option.to_str());
             let text_rect = ui::text_rect(

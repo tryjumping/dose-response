@@ -84,6 +84,11 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
+* Balance the late game
+** So I think the early to mid game is good
+*** Until you start being able to collect doses
+* Strong Dose still being used on Will five??
+** Even thought it doesn't show the irresistible halo
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling

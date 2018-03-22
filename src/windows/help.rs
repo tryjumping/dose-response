@@ -5,6 +5,9 @@ use rect::Rectangle;
 use state::State;
 use ui;
 
+use std::fmt::{Display, Error, Formatter};
+
+
 pub enum Action {
     NextPage,
     PrevPage,
@@ -16,6 +19,41 @@ pub enum Page {
     ArrowControls,
     ViKeys,
     HowToPlay,
+}
+
+impl Page {
+    pub fn prev(&self) -> Option<Self> {
+        use self::Page::*;
+        match *self {
+            NumpadControls => None,
+            ArrowControls => Some(NumpadControls),
+            ViKeys => Some(ArrowControls),
+            HowToPlay => Some(ViKeys),
+        }
+    }
+
+    pub fn next(&self) -> Option<Self> {
+        use self::Page::*;
+        match *self {
+            NumpadControls => Some(ArrowControls),
+            ArrowControls => Some(ViKeys),
+            ViKeys => Some(HowToPlay),
+            HowToPlay => None,
+        }
+    }
+}
+
+impl Display for Page {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        use self::Page::*;
+        let s = match *self {
+            NumpadControls => "Controls: numpad",
+            ArrowControls => "Controls: arrow keys",
+            ViKeys => "Controls: Vi keys",
+            HowToPlay => "How to play",
+        };
+        f.write_str(s)
+    }
 }
 
 struct Layout {
@@ -45,8 +83,8 @@ impl Window {
         let mut action_under_mouse = None;
         let mut rect_under_mouse = None;
 
-        let next_page_button = if state.current_help_window != Page::HowToPlay {
-            let text = "[->] Next page";
+        let next_page_button = state.current_help_window.next().map(|text| {
+            let text = format!("[->] {}", text);
             let drawcall = Draw::Text(
                 rect.bottom_right(),
                 text.into(),
@@ -58,13 +96,11 @@ impl Window {
                 action_under_mouse = Some(Action::NextPage);
                 rect_under_mouse = Some(text_rect);
             }
-            Some(drawcall)
-        } else {
-            None
-        };
+            drawcall
+        });
 
-        let prev_page_button = if state.current_help_window != Page::NumpadControls {
-            let text = "Previous page [<-]";
+        let prev_page_button = state.current_help_window.prev().map(|text| {
+            let text = format!("{} [<-]", text);
             let drawcall = Draw::Text(
                 rect.bottom_left(),
                 text.into(),
@@ -76,10 +112,8 @@ impl Window {
                 action_under_mouse = Some(Action::PrevPage);
                 rect_under_mouse = Some(text_rect);
             }
-            Some(drawcall)
-        } else {
-            None
-        };
+            drawcall
+        });
 
         Layout {
             window_rect,
@@ -106,13 +140,13 @@ impl Window {
             color::background,
         ));
 
+        let header = format!("{}", state.current_help_window);
         let mut lines = vec![];
+        lines.push(Centered(&header));
+        lines.push(EmptySpace(2));
 
         match state.current_help_window {
             Page::NumpadControls => {
-                lines.push(Centered("Controls: numpad"));
-                lines.push(EmptySpace(2));
-
                 lines.push(Paragraph("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally."));
                 lines.push(Empty);
                 lines.push(Paragraph("You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction."));
@@ -129,9 +163,6 @@ impl Window {
             }
 
             Page::ArrowControls => {
-                lines.push(Centered("Controls: arrow keys"));
-                lines.push(EmptySpace(2));
-
                 lines.push(Paragraph("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally."));
                 lines.push(Empty);
                 lines.push(Paragraph("If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys."));
@@ -149,9 +180,6 @@ impl Window {
             }
 
             Page::ViKeys => {
-                lines.push(Centered("Controls: Vi keys"));
-                lines.push(EmptySpace(2));
-
                 lines.push(Paragraph("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally."));
                 lines.push(Empty);
                 lines.push(Paragraph("You can also move using the \"Vi keys\". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor."));
@@ -168,9 +196,6 @@ impl Window {
             }
 
             Page::HowToPlay => {
-                lines.push(Centered("How to play"));
-                lines.push(EmptySpace(2));
-
                 lines.push(Paragraph("Your character ('@') is an addict. If you stay long without using a Dose ('i'), you will lose. You can also pick up food ('%') which lets you stay sober for longer."));
                 lines.push(Empty);
                 lines.push(Paragraph(

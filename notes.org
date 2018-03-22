@@ -84,8 +84,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** But we definitely need to play some more and actually get to the endgame
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
-* Show the next/prev page title in the help page                         :ui:
-** Instead of the generic Next page / Previous page text
 * Make the fonts bigger & map smaller
 ** To make it easier to read
 ** And increase the claustrophobic feeling
@@ -2104,3 +2102,9 @@ CLOSED: [2018-03-22 Thu 21:52]
 :END:
 *** Compare with the vi screen
 *** The second paragraph is right after the first on
+** DONE Show the next/prev page title in the help page                  :ui:
+CLOSED: [2018-03-22 Thu 22:10]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-22 Thu 22:10
+:END:
+*** Instead of the generic Next page / Previous page text

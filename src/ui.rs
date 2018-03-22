@@ -22,7 +22,6 @@ pub fn render_text_flow(
 
     let mut ypos = 0;
     for text in text_flow.iter() {
-        ypos += text_height(text, rect, metrics);
         match text {
             &Empty => {}
 
@@ -60,6 +59,7 @@ pub fn render_text_flow(
                 }
             }
         }
+        ypos += text_height(text, rect, metrics);
     }
 }
 

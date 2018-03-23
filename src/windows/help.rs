@@ -76,7 +76,7 @@ impl Window {
         );
 
         let rect = Rectangle::new(
-            window_rect.top_left() + (2, 1),
+            window_rect.top_left() + (2, 0),
             window_rect.bottom_right() - (2, 1),
         );
 
@@ -143,14 +143,14 @@ impl Window {
         let header = format!("{}", state.current_help_window);
         let mut lines = vec![];
         lines.push(Centered(&header));
-        lines.push(EmptySpace(2));
+        lines.push(EmptySpace(1));
 
         match state.current_help_window {
             Page::NumpadControls => {
                 lines.push(Paragraph("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally."));
                 lines.push(Empty);
                 lines.push(Paragraph("You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction."));
-                lines.push(EmptySpace(3));
+                lines.push(EmptySpace(1));
 
                 lines.push(SquareTiles(r"7 8 9"));
                 lines.push(SquareTiles(r" \|/ "));
@@ -158,7 +158,7 @@ impl Window {
                 lines.push(SquareTiles(r" /|\ "));
                 lines.push(SquareTiles(r"1 2 3"));
 
-                lines.push(EmptySpace(3));
+                lines.push(EmptySpace(1));
                 lines.push(Paragraph("Using items: you can use an item you're carrying (food and later on, doses) by clicking on it in the sidebar or pressing its number on the keyboard (not numpad -- that's for movement)."));
             }
 
@@ -167,7 +167,7 @@ impl Window {
                 lines.push(Empty);
                 lines.push(Paragraph("If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys."));
 
-                lines.push(EmptySpace(3));
+                lines.push(EmptySpace(1));
 
                 lines.push(SquareTiles(r"Shift+Left  Up  Shift+Right"));
                 lines.push(SquareTiles(r"         \  |  /           "));
@@ -175,7 +175,7 @@ impl Window {
                 lines.push(SquareTiles(r"         /  |  \           "));
                 lines.push(SquareTiles(r"Ctrl+Left  Down Ctrl+Right "));
 
-                lines.push(EmptySpace(3));
+                lines.push(EmptySpace(1));
                 lines.push(Paragraph("Using items: you can use an item you're carrying (food and later on, doses) by clicking on it in the sidebar or pressing its number on the keyboard (not numpad -- that's for movement)."));
             }
 
@@ -183,7 +183,7 @@ impl Window {
                 lines.push(Paragraph("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally."));
                 lines.push(Empty);
                 lines.push(Paragraph("You can also move using the \"Vi keys\". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor."));
-                lines.push(EmptySpace(3));
+                lines.push(EmptySpace(1));
 
                 lines.push(SquareTiles(r"y k u"));
                 lines.push(SquareTiles(r" \|/ "));
@@ -191,24 +191,20 @@ impl Window {
                 lines.push(SquareTiles(r" /|\ "));
                 lines.push(SquareTiles(r"b j n"));
 
-                lines.push(EmptySpace(3));
+                lines.push(EmptySpace(1));
                 lines.push(Paragraph("Using items: you can use an item you're carrying (food and later on, doses) by clicking on it in the sidebar or pressing its number on the keyboard (not numpad -- that's for movement)."));
             }
 
             Page::HowToPlay => {
-                lines.push(Paragraph("Your character ('@') is an addict. If you stay long without using a Dose ('i'), you will lose. You can also pick up food ('%') which lets you stay sober for longer."));
+                lines.push(Paragraph("Your character ('@') is an addict. Stay long without using a Dose ('i'), and the game is over. Eat food ('%') to remain sober for longer. Using a Dose or eating Food will also defeat nearby enemies."));
                 lines.push(Empty);
-                lines.push(Paragraph(
-                    "Using a Dose or eating Food will also kill all nearby enemies.",
-                ));
+                lines.push(Paragraph("If you step into the glow around a Dose, you can't resist even if it means Overdosing yourself. At the beginning, you will also Overdose by using a Dose when you're still High or using a Dose that's too strong ('+', 'x' or 'I'). By using Doses you build up tolerance. You'll need stronger Doses later on."));
                 lines.push(Empty);
-                lines.push(Paragraph("Each Dose has a glow around it. If you step into it, you will be unable to resist even if it means Overdosing yourself. At the beginning, you will also Overdose by using another Dose when you're still High or using a Dose that's too strong for you ('+', 'x' or 'I'). With each Dose you build up tolerance which makes you seek out stronger Doses later on."));
+                lines.push(Paragraph("The letters ('h', 'v', 'S', 'a' and 'D') are enemies. Each has their own way of harming you. The Depression ('D') moves twice as fast. The Anxiety ('a') will reduce your Will on each hit. When it reaches zero, you will lose."));
                 lines.push(Empty);
-                lines.push(Paragraph("All the letters ('h', 'v', 'S', 'a' and 'D') are enemies. Each has their own way of harming you. The Depression (D) moves twice as fast and will defeat you outright. The Anxiety (a) will reduce your Will on each hit. When it reaches zero, you will lose."));
+                lines.push(Paragraph("To progress, your Will needs to get stronger. Defeat enough Anxieties ('a') to make it go up. The Dose or Food \"explosions\" don't count though! Higher Will shrinks the irresistible area around Doses. It also lets you pick them up!"));
                 lines.push(Empty);
-                lines.push(Paragraph("To progress, you need to get stronger Will. Defeat enough Anxiety (a) monsters and it will go up. The Dose or Food \"explosions\" don't count though! Higher Will makes the irresistible area around Doses smaller. It will also let you pick them up!"));
-                lines.push(Empty);
-                lines.push(Paragraph("If you see another @ characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober."));
+                lines.push(Paragraph("If you see another '@' characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober."));
             }
         }
 

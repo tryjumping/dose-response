@@ -87,12 +87,10 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
-* Fix the help screen text rendering issues
-** The windows are smaller now
-** The current text doesn't all fit.
-* Update the font size in wasm
 * The control hints are too wide :ui:
 ** Now that we're using proper text rendering, lets adjust the width
+** Also, they're now squished too much
+* Update the font size in wasm
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -2125,3 +2123,10 @@ CLOSED: [2018-03-23 Fri 23:19]
 ***** Actually, that might make rendering easier
 ***** So maybe we want to test it there
 *** Give enough margin to run this in most scenarios
+** DONE Fix the help screen text rendering issues
+CLOSED: [2018-03-23 Fri 23:37]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-23 Fri 23:37
+:END:
+*** The windows are smaller now
+*** The current text doesn't all fit.

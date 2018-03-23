@@ -258,6 +258,9 @@ pub fn main_loop(
 
     let mut events_loop = EventsLoop::new();
 
+    // We'll just assume the monitors won't change throughout the game.
+    let monitors: Vec<_> = events_loop.get_available_monitors().collect();
+
     let window = WindowBuilder::new()
         .with_title(window_title)
         .with_dimensions(screen_width, screen_height);
@@ -302,8 +305,6 @@ pub fn main_loop(
     println!("Window pos: {:?}", window_pos);
     let mut pre_fullscreen_window_pos = window_pos;
 
-    // We'll just assume the monitors won't change throughout the game.
-    let monitors: Vec<_> = events_loop.get_available_monitors().collect();
     let mut current_monitor = get_current_monitor(&monitors, window_pos);
     println!("All monitors:");
     for monitor in &monitors {
@@ -355,34 +356,41 @@ pub fn main_loop(
         }
 
         drawcalls.clear();
-        drawcalls.push(Draw::Rectangle(
-            Rectangle::from_point_and_size(Point::new(0, 0), display_size),
-            default_background,
-        ));
+
         let previous_settings = settings;
-        let update_result = update(
-            &mut state,
-            dt,
-            display_size,
-            fps,
-            &keys,
-            mouse,
-            &mut settings,
-            &Metrics {
-                tile_width_px: tilesize as i32,
-            },
-            &mut drawcalls,
-        );
+
+        // NOTE: Skip the first frame -- the window isn't set up
+        // properly there.
+        if current_frame > 1 {
+            drawcalls.push(Draw::Rectangle(
+                Rectangle::from_point_and_size(Point::new(0, 0), display_size),
+                default_background,
+            ));
+            let update_result = update(
+                &mut state,
+                dt,
+                display_size,
+                fps,
+                &keys,
+                mouse,
+                &mut settings,
+                &Metrics {
+                    tile_width_px: tilesize as i32,
+                },
+                &mut drawcalls,
+            );
+
+            match update_result {
+                RunningState::Running => {}
+                RunningState::NewGame(new_state) => {
+                    state = new_state;
+                }
+                RunningState::Stopped => break,
+            }
+        }
+
         mouse.left = false;
         mouse.right = false;
-
-        match update_result {
-            RunningState::Running => {}
-            RunningState::NewGame(new_state) => {
-                state = new_state;
-            }
-            RunningState::Stopped => break,
-        }
 
         keys.clear();
 
@@ -936,6 +944,10 @@ pub fn main_loop(
                                 window_pos.x = x;
                                 window_pos.y = y;
                                 current_monitor = get_current_monitor(&monitors, window_pos);
+                                println!("Current monitor: {:?}, pos: {:?}, size: {:?}",
+                                         current_monitor.as_ref().map(|m| m.get_name()),
+                                         current_monitor.as_ref().map(|m| m.get_position()),
+                                         current_monitor.as_ref().map(|m| m.get_dimensions()));
                             }
                         }
                         WindowEvent::ReceivedCharacter(chr) => {

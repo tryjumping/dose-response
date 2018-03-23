@@ -337,7 +337,7 @@ pub fn main_loop(
     let mut running = true;
     // NOTE: This will wrap after running continuously for over 64
     // years at 60 FPS. 32 bits are just fine.
-    let mut total_frame_counter: i32 = 0;
+    let mut current_frame: i32 = 0;
 
     while running {
         let now = Instant::now();
@@ -347,7 +347,7 @@ pub fn main_loop(
         // Calculate FPS
         fps_clock = fps_clock + dt;
         frame_counter += 1;
-        total_frame_counter += 1;
+        current_frame += 1;
         if util::num_milliseconds(fps_clock) > 1000 {
             fps = frame_counter;
             frame_counter = 1;
@@ -896,7 +896,7 @@ pub fn main_loop(
                         WindowEvent::Closed => running = false,
                         WindowEvent::Resized(width, height) => {
                             println!("[FRAME {}] Window resized to: {} x {}",
-                                     total_frame_counter, width, height);
+                                     current_frame, width, height);
                             // NOTE: If the primary monitor is
                             // different from the monitor the window
                             // actually spawns at (this happens on my
@@ -909,7 +909,7 @@ pub fn main_loop(
                             // the first frame. So we ask it to resize
                             // to the expected size again and leave it
                             // at that.
-                            if total_frame_counter == 1 {
+                            if current_frame == 1 {
                                 // TODO: do the resize proactively before we even start the loop!
                                 if screen_width != width || screen_height != height {
                                     println!("Resetting the window to its expected size: {} x {}.",
@@ -932,7 +932,7 @@ pub fn main_loop(
                                 // manually instead.
                             } else {
                                 println!("[FRAME {}] Window moved to: {}, {}",
-                                         total_frame_counter, x, y);
+                                         current_frame, x, y);
                                 window_pos.x = x;
                                 window_pos.y = y;
                                 current_monitor = get_current_monitor(&monitors, window_pos);

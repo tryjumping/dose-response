@@ -87,15 +87,10 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
-* Make the fonts bigger & map smaller
-** To make it easier to read
-** And increase the claustrophobic feeling
-** Need to test this on worklaptop
-*** And also with wasm
-**** It will require different code there
-**** Actually, that might make rendering easier
-**** So maybe we want to test it there
-** Give enough margin to run this in most scenarios
+* Fix the help screen text rendering issues
+** The windows are smaller now
+** The current text doesn't all fit.
+* Update the font size in wasm
 * The control hints are too wide :ui:
 ** Now that we're using proper text rendering, lets adjust the width
 * Record a let's play
@@ -2117,3 +2112,16 @@ CLOSED: [2018-03-22 Thu 23:13]
 :ARCHIVE_TIME: 2018-03-22 Thu 23:13
 :END:
 *** Even thought it doesn't show the irresistible halo
+** DONE Make the fonts bigger & map smaller
+CLOSED: [2018-03-23 Fri 23:19]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-23 Fri 23:20
+:END:
+*** To make it easier to read
+*** And increase the claustrophobic feeling
+*** Need to test this on worklaptop
+**** And also with wasm
+***** It will require different code there
+***** Actually, that might make rendering easier
+***** So maybe we want to test it there
+*** Give enough margin to run this in most scenarios

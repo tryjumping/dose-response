@@ -909,9 +909,11 @@ pub fn main_loop(
                             // to the expected size again and leave it
                             // at that.
                             if total_frame_counter == 1 {
-                                println!("Resetting the window to its expected size: {} x {}.",
-                                         screen_width, screen_height);
-                                display.gl_window().set_inner_size(screen_width, screen_height);
+                                if screen_width != width || screen_height != height {
+                                    println!("Resetting the window to its expected size: {} x {}.",
+                                             screen_width, screen_height);
+                                    display.gl_window().set_inner_size(screen_width, screen_height);
+                                }
                             } else {
                                 screen_width = width;
                                 screen_height = height;

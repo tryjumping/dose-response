@@ -258,9 +258,6 @@ pub fn main_loop(
 
     let mut events_loop = EventsLoop::new();
 
-    // We'll just assume the monitors won't change throughout the game.
-    let monitors: Vec<_> = events_loop.get_available_monitors().collect();
-
     let window = WindowBuilder::new()
         .with_title(window_title)
         .with_dimensions(screen_width, screen_height);
@@ -302,7 +299,11 @@ pub fn main_loop(
             None => Default::default(),
         }
     };
+    println!("Window pos: {:?}", window_pos);
     let mut pre_fullscreen_window_pos = window_pos;
+
+    // We'll just assume the monitors won't change throughout the game.
+    let monitors: Vec<_> = events_loop.get_available_monitors().collect();
     let mut current_monitor = get_current_monitor(&monitors, window_pos);
     println!("All monitors:");
     for monitor in &monitors {
@@ -909,6 +910,7 @@ pub fn main_loop(
                             // to the expected size again and leave it
                             // at that.
                             if total_frame_counter == 1 {
+                                // TODO: do the resize proactively before we even start the loop!
                                 if screen_width != width || screen_height != height {
                                     println!("Resetting the window to its expected size: {} x {}.",
                                              screen_width, screen_height);

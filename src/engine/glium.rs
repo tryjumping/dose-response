@@ -246,13 +246,16 @@ pub fn main_loop(
     update: UpdateFn,
 ) {
     let tilesize = super::TILESIZE;
-    let (mut screen_width, mut screen_height) = (
+    let (desired_window_width, desired_window_height) = (
         display_size.x as u32 * tilesize as u32,
         display_size.y as u32 * tilesize as u32,
     );
 
     println!("Requested display in tiles: {} x {}", display_size.x, display_size.y);
-    println!("Desired window size: {} x {}", screen_width, screen_height);
+    println!("Desired window size: {} x {}", desired_window_width, desired_window_height);
+
+    let mut screen_width = desired_window_width;
+    let mut screen_height = desired_window_height;
 
     // GL setup
 
@@ -263,7 +266,7 @@ pub fn main_loop(
 
     let window = WindowBuilder::new()
         .with_title(window_title)
-        .with_dimensions(screen_width, screen_height);
+        .with_dimensions(desired_window_width, desired_window_height);
 
     let context = glium::glutin::ContextBuilder::new().with_vsync(true);
 
@@ -905,29 +908,8 @@ pub fn main_loop(
                         WindowEvent::Resized(width, height) => {
                             println!("[FRAME {}] Window resized to: {} x {}",
                                      current_frame, width, height);
-                            // NOTE: If the primary monitor is
-                            // different from the monitor the window
-                            // actually spawns at (this happens on my
-                            // dev machine where the primary monitor
-                            // is in the portrait orientation and
-                            // therefore more narrow, but the game
-                            // window normally spawns on my landscape
-                            // monitor), it gets resized. We can
-                            // detect it because this event fires on
-                            // the first frame. So we ask it to resize
-                            // to the expected size again and leave it
-                            // at that.
-                            if current_frame == 1 {
-                                // TODO: do the resize proactively before we even start the loop!
-                                if screen_width != width || screen_height != height {
-                                    println!("Resetting the window to its expected size: {} x {}.",
-                                             screen_width, screen_height);
-                                    display.gl_window().set_inner_size(screen_width, screen_height);
-                                }
-                            } else {
-                                screen_width = width;
-                                screen_height = height;
-                            }
+                            screen_width = width;
+                            screen_height = height;
                         }
                         WindowEvent::Moved(x, y) => {
                             if settings.fullscreen || switched_from_fullscreen {
@@ -1099,6 +1081,39 @@ pub fn main_loop(
                 _ => (),
             }
         });
+
+        if current_frame == 1 {
+            // NOTE: We should have the proper window position and
+            // monitor info at this point but not sooner.
+
+            // NOTE: If the primary monitor is different from the
+            // monitor the window actually spawns at (this happens on
+            // my dev machine where the primary monitor is in the
+            // portrait orientation and therefore more narrow, but the
+            // game window normally spawns on my landscape monitor),
+            // it gets resized. We can detect it because this event
+            // fires on the first frame. So we ask it to resize to the
+            // expected size again and leave it at that.
+            println!("Current monitor: {:?}", current_monitor.as_ref().map(|m| m.get_dimensions()));
+
+            if desired_window_width != screen_width || desired_window_height != screen_height {
+                if let Some(ref monitor) = current_monitor {
+                    let (monitor_width, monitor_height) = monitor.get_dimensions();
+                    if desired_window_width <= monitor_width &&
+                        desired_window_height <= monitor_height
+                    {
+                        println!("Resetting the window to its expected size: {} x {}.",
+                                 desired_window_width, desired_window_height);
+                        display.gl_window().set_inner_size(
+                            desired_window_width, desired_window_height);
+                    } else {
+                        println!("TODO: try to resize but maintain aspect ratio.");
+                    }
+                }
+            }
+
+        }
+
 
         // If we just switched from fullscreen back to a windowed
         // mode, restore the window position we had before. We do this

@@ -75,10 +75,10 @@ mod world;
 
 // These are all in tiles and relate to how much we show on the screen.
 //
-// NOTE: at our current font size, the height of 43 tiles is the
-// maximum value for 1336x768 monitors.
-const DISPLAYED_MAP_SIZE: i32 = 43;
-const PANEL_WIDTH: i32 = 20;
+// NOTE: 53 x 30 tiles is the same aspect ratio as a widescreen
+// monitor. Makes sense to keep the two similar.
+const DISPLAYED_MAP_SIZE: i32 = 30;
+const PANEL_WIDTH: i32 = 23;
 const DISPLAY_SIZE: point::Point = point::Point {
     x: DISPLAYED_MAP_SIZE + PANEL_WIDTH,
     y: DISPLAYED_MAP_SIZE,

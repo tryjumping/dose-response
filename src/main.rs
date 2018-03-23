@@ -76,9 +76,14 @@ mod world;
 // These are all in tiles and relate to how much we show on the screen.
 //
 // NOTE: 53 x 30 tiles is the same aspect ratio as a widescreen
-// monitor. Makes sense to keep the two similar.
+// monitor. So that's the ideal to strive for. But if we want to keep
+// the display map square, the sidebar gets too wide.
+//
+// So instead, we've narrowed the sidebar to 17 tiles (just enough to
+// make every withdrawal step show up). That means we don't maintain
+// the perfect aspect ratio, but it seems to be good enough.
 const DISPLAYED_MAP_SIZE: i32 = 30;
-const PANEL_WIDTH: i32 = 23;
+const PANEL_WIDTH: i32 = 17;
 const DISPLAY_SIZE: point::Point = point::Point {
     x: DISPLAYED_MAP_SIZE + PANEL_WIDTH,
     y: DISPLAYED_MAP_SIZE,

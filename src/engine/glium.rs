@@ -245,12 +245,14 @@ pub fn main_loop(
     mut state: State,
     update: UpdateFn,
 ) {
-    // TODO: don't hardcode this value -- calculate it from the tilemap.
-    let tilesize = 16;
+    let tilesize = super::TILESIZE;
     let (mut screen_width, mut screen_height) = (
         display_size.x as u32 * tilesize as u32,
         display_size.y as u32 * tilesize as u32,
     );
+
+    println!("Requested display in tiles: {} x {}", display_size.x, display_size.y);
+    println!("Desired window size: {} x {}", screen_width, screen_height);
 
     // GL setup
 
@@ -332,6 +334,9 @@ pub fn main_loop(
     let mut frame_counter = 0;
     let mut fps = 1;
     let mut running = true;
+    // NOTE: This will wrap after running continuously for over 64
+    // years at 60 FPS. 32 bits are just fine.
+    let mut total_frame_counter: i32 = 0;
 
     while running {
         let now = Instant::now();
@@ -341,6 +346,7 @@ pub fn main_loop(
         // Calculate FPS
         fps_clock = fps_clock + dt;
         frame_counter += 1;
+        total_frame_counter += 1;
         if util::num_milliseconds(fps_clock) > 1000 {
             fps = frame_counter;
             frame_counter = 1;
@@ -408,7 +414,9 @@ pub fn main_loop(
         }
 
         // Return a pixel position from the given tile position
-        let pixel_from_tile = |tile_pos: Point| -> Point { tile_pos * (tilesize as i32) };
+        let pixel_from_tile = |tile_pos: Point| -> Point {
+            tile_pos * (tilesize as i32)
+        };
 
         // Process drawcalls
         vertices.clear();
@@ -860,7 +868,7 @@ pub fn main_loop(
 
         // Render
         let mut target = display.draw();
-        target.clear_color_srgb(0.0, 0.0, 0.0, 1.0);
+        target.clear_color_srgb(0.1, 0.0, 0.1, 1.0);
         target
             .draw(
                 &vertex_buffer,
@@ -886,9 +894,28 @@ pub fn main_loop(
                     match event {
                         WindowEvent::Closed => running = false,
                         WindowEvent::Resized(width, height) => {
-                            println!("Window resized to: {} x {}", width, height);
-                            screen_width = width;
-                            screen_height = height;
+                            println!("[FRAME {}] Window resized to: {} x {}",
+                                     total_frame_counter, width, height);
+                            // NOTE: If the primary monitor is
+                            // different from the monitor the window
+                            // actually spawns at (this happens on my
+                            // dev machine where the primary monitor
+                            // is in the portrait orientation and
+                            // therefore more narrow, but the game
+                            // window normally spawns on my landscape
+                            // monitor), it gets resized. We can
+                            // detect it because this event fires on
+                            // the first frame. So we ask it to resize
+                            // to the expected size again and leave it
+                            // at that.
+                            if total_frame_counter == 1 {
+                                println!("Resetting the window to its expected size: {} x {}.",
+                                         screen_width, screen_height);
+                                display.gl_window().set_inner_size(screen_width, screen_height);
+                            } else {
+                                screen_width = width;
+                                screen_height = height;
+                            }
                         }
                         WindowEvent::Moved(x, y) => {
                             if settings.fullscreen || switched_from_fullscreen {
@@ -900,7 +927,8 @@ pub fn main_loop(
                                 // So we restore the previous position
                                 // manually instead.
                             } else {
-                                println!("Window moved to: {}, {}", x, y);
+                                println!("[FRAME {}] Window moved to: {}, {}",
+                                         total_frame_counter, x, y);
                                 window_pos.x = x;
                                 window_pos.y = y;
                                 current_monitor = get_current_monitor(&monitors, window_pos);

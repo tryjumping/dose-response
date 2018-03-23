@@ -21,7 +21,7 @@ fn main() {
     let font = collection.into_font().unwrap();
 
     // Desired font pixel height
-    let height: f32 = 16.0;
+    let height: f32 = 21.0;
     let pixel_height = height.ceil() as usize;
 
     let scale = Scale::uniform(height);

@@ -13,7 +13,7 @@ pub enum Action {
     PrevPage,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Page {
     NumpadControls,
     ArrowControls,

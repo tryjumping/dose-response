@@ -509,7 +509,6 @@ fn process_help_window(
     metrics: &TextMetrics,
 ) -> RunningState {
     use self::help::Action;
-    use self::help::Page::*;
 
     if state.keys.matches_code(KeyCode::Esc) || state.mouse.right {
         state.window_stack.pop();
@@ -532,22 +531,14 @@ fn process_help_window(
 
     match action {
         Some(Action::NextPage) => {
-            let new_help_window = match state.current_help_window {
-                NumpadControls => ArrowControls,
-                ArrowControls => ViKeys,
-                ViKeys => HowToPlay,
-                HowToPlay => HowToPlay,
-            };
+            let new_help_window = state.current_help_window.next()
+                .unwrap_or(state.current_help_window);
             state.current_help_window = new_help_window;
         }
 
         Some(Action::PrevPage) => {
-            let new_help_window = match state.current_help_window {
-                NumpadControls => NumpadControls,
-                ArrowControls => NumpadControls,
-                ViKeys => ArrowControls,
-                HowToPlay => ViKeys,
-            };
+            let new_help_window = state.current_help_window.prev()
+                .unwrap_or(state.current_help_window);
             state.current_help_window = new_help_window;
         }
 

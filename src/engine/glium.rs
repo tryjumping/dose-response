@@ -265,8 +265,8 @@ pub fn main_loop(
     println!("Requested display in tiles: {} x {}", display_size.x, display_size.y);
     println!("Desired window size: {} x {}", desired_window_width, desired_window_height);
 
-    let mut screen_width = desired_window_width;
-    let mut screen_height = desired_window_height;
+    let mut window_width = desired_window_width;
+    let mut window_height = desired_window_height;
 
     // GL setup
 
@@ -852,8 +852,8 @@ pub fn main_loop(
         // area while maintaining the aspect ratio (and letterbox the
         // display).
         let (native_display_px, display_px, extra_px) = {
-            let screen_width = screen_width as f32;
-            let screen_height = screen_height as f32;
+            let screen_width = window_width as f32;
+            let screen_height = window_height as f32;
 
             let native_display_width = display_size.x as f32 * tilesize as f32;
             let native_display_height = display_size.y as f32 * tilesize as f32;
@@ -919,8 +919,8 @@ pub fn main_loop(
                         WindowEvent::Resized(width, height) => {
                             println!("[FRAME {}] Window resized to: {} x {}",
                                      current_frame, width, height);
-                            screen_width = width;
-                            screen_height = height;
+                            window_width = width;
+                            window_height = height;
                         }
                         WindowEvent::Moved(x, y) => {
                             if settings.fullscreen || switched_from_fullscreen {
@@ -1116,7 +1116,7 @@ pub fn main_loop(
             // expected size again and leave it at that.
             println!("Current monitor: {:?}", current_monitor.as_ref().map(|m| m.get_dimensions()));
 
-            if desired_window_width != screen_width || desired_window_height != screen_height {
+            if desired_window_width != window_width || desired_window_height != window_height {
                 if let Some(ref monitor) = current_monitor {
                     let (monitor_width, monitor_height) = monitor.get_dimensions();
                     if desired_window_width <= monitor_width &&

@@ -251,7 +251,8 @@ impl Window {
 
         if state.cheating {
             if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.display_size {
-                lines.push(format!("Mouse: {}", state.mouse.tile_pos).into())
+                lines.push(format!("Mouse px: {}", state.mouse.screen_pos).into());
+                lines.push(format!("Mouse: {}", state.mouse.tile_pos).into());
             }
 
             lines.push("Time stats:".into());

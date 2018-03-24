@@ -24,6 +24,10 @@ impl Point {
         Point::new(x, x)
     }
 
+    pub fn zero() -> Self {
+        Point::new(0, 0)
+    }
+
     pub fn distance<P: Into<Point>>(&self, other: P) -> f32 {
         let other = other.into();
         let a = (self.x - other.x).pow(2);

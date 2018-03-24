@@ -355,7 +355,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         }
     };
 
-    let padding = 3;
+    let padding = 1;
 
     let lines = &["Up", "Num 8", "or: K"];
     let (width, height) = rect_dim(lines);

@@ -852,24 +852,42 @@ pub fn main_loop(
         // area while maintaining the aspect ratio (and letterbox the
         // display).
         let (native_display_px, display_px, extra_px) = {
-            let screen_width = window_width as f32;
-            let screen_height = window_height as f32;
+            let window_width = window_width as f32;
+            let window_height = window_height as f32;
 
-            let native_display_width = display_size.x as f32 * tilesize as f32;
-            let native_display_height = display_size.y as f32 * tilesize as f32;
+            let unscaled_game_width = display_size.x as f32 * tilesize as f32;
+            let unscaled_game_height = display_size.y as f32 * tilesize as f32;
 
-            let expected_height = native_display_height * screen_width / native_display_width;
-            let (display_width, display_height) = if screen_height >= expected_height {
-                (screen_width, expected_height)
+            // println!("window w x h: {:?}", (window_width, window_height));
+            // println!("unscaled game {:?}", (unscaled_game_width, unscaled_game_height));
+
+            // TODO: we're assuming that the unscaled dimensions
+            // already fit into the display. So the game is only going
+            // to be scaled up, not down.
+
+            // NOTE: try if the hight should fill the display area
+            let final_scaled_height = window_height;
+            let final_scaled_width = final_scaled_height * unscaled_game_width / unscaled_game_height;
+            let (final_scaled_width, final_scaled_height) = if final_scaled_width <= window_width {
+                (final_scaled_width, final_scaled_height)
             } else {
-                let coef = screen_height / native_display_height;
-                (native_display_width * coef, screen_height)
+                // NOTE: try if the width should fill the display area
+                let final_scaled_width = window_width;
+                let final_scaled_height = final_scaled_width * unscaled_game_height / unscaled_game_width;
+
+                if final_scaled_height <= window_height {
+                    // NOTE: we're good
+                } else {
+                    println!("Can't scale neither to width nor height wtf.");
+                }
+                (final_scaled_width, final_scaled_height)
             };
+            //println!("Final scaled: {} x {}", final_scaled_width, final_scaled_height);
 
-            let native_display_px = [native_display_width, native_display_height];
-            let display_px = [display_width, display_height];
-            let extra_px = [screen_width - display_width, screen_height - display_height];
-
+            let native_display_px = [unscaled_game_width, unscaled_game_height];
+            let display_px = [final_scaled_width, final_scaled_height];
+            let extra_px = [window_width - final_scaled_width, window_height - final_scaled_height];
+            //println!("{:?}", (native_display_px, display_px, extra_px));
             (native_display_px, display_px, extra_px)
         };
 

@@ -41,6 +41,9 @@ pub fn render(
             }
         }
     }
+
+    // Show the tile under mouse pointer:
+    // drawcalls.push(Draw::Rectangle(::rect::Rectangle::from_point_and_size(state.mouse.tile_pos, Point::from_i32(1)), color::gui_text));
 }
 
 pub fn render_game(

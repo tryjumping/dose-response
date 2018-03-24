@@ -31,7 +31,8 @@ CLOSED: [2018-01-25 Thu 13:05]
 **** Controls
 **** How to play
 **** Tips
-** Nice colours
+** DONE Nice colours
+CLOSED: [2018-03-24 Sat 14:35]
 *** good colour palette
 *** distinct colours (so they're visible while High, too)
 *** The `S` and `v` monsters are hard to spot

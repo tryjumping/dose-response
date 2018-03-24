@@ -27,6 +27,17 @@ fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
     ]
 }
 
+/// If `val` is outside the `min` / `max` limits, set it to the edge value.
+fn clamp(min: i32, val: i32, max: i32) -> i32 {
+    if val < min {
+        min
+    } else if val > max {
+        max
+    } else {
+        val
+    }
+}
+
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
         BackendKey::Return => Some(KeyCode::Enter),
@@ -1039,13 +1050,22 @@ pub fn main_loop(
                         WindowEvent::CursorMoved {
                             position: (x, y), ..
                         } => {
+                            // println!("Extra px: {:?}", extra_px);
+                            // println!("Display px: {:?}", display_px);
+                            // println!("Native display px: {:?}", native_display_px);
+                            // println!("screen width/height: {:?}", (screen_width, screen_height));
                             let (x, y) = (x as i32, y as i32);
+
+                            let (x, y) = (x - (extra_px[0] / 2.0) as i32, y - (extra_px[1] / 2.0) as i32);
+                            let x = clamp(0, x, display_px[0] as i32 - 1);
+                            let y = clamp(0, y, display_px[1] as i32 - 1);
+
                             mouse.screen_pos = Point { x, y };
 
-                            let tile_width = screen_width as i32 / display_size.x;
+                            let tile_width = display_px[0] as i32 / display_size.x;
                             let mouse_tile_x = x / tile_width;
 
-                            let tile_height = screen_height as i32 / display_size.y;
+                            let tile_height = display_px[1] as i32 / display_size.y;
                             let mouse_tile_y = y / tile_height;
 
                             mouse.tile_pos = Point {

@@ -88,10 +88,18 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
-* The control hints are too wide :ui:
-** Now that we're using proper text rendering, lets adjust the width
-** Also, they're now squished too much
 * Update the font size in wasm
+* "What is a roguelike?" help page                                       :ui:
+** every life matters
+** you'll be losing a lot
+** but every death is an opportunity to learn
+* Write a "Legend" help page
+** Describe the all the glyphs
+** %: food
+** i: dose
+** + and x: cardinal and diagonal dose
+** I: strong dose
+** monsters
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -114,27 +122,6 @@ Ctrl-c
 * Consider uploading binaries to AWS or something
 ** Instead of having them on github
 ** Should make nightlies easier, too maybe?
-* Fix mouse position in fullscreen                                       :ui:
-** Looks like the Y coord is right but X is off (on geralt)
-** But: Y is wrong and X is right on worklaptop
-* Figure out the worklaptop fullscreen issue
-** I think we should only operate with whole numbers
-** So when calculating the tile size, floor it to a whole number
-** Then calculate the actual width & hight using the scaled tile size
-** Then add extra to both width & height (even if it's just like 1-2 pxels)
-** That should mean everything is whole numbers
-** And that should fix the mouse calculation
-* "What is a roguelike?" help page                                       :ui:
-** every life matters
-** you'll be losing a lot
-** but every death is an opportunity to learn
-* Write a "Legend" help page
-** Describe the all the glyphs
-** %: food
-** i: dose
-** + and x: cardinal and diagonal dose
-** I: strong dose
-** monsters
 * Create "organisation" github & gitlab pages
 ** Set up redirects
 ** Fix links on my blog
@@ -2150,3 +2137,28 @@ CLOSED: [2018-03-23 Fri 23:37]
 :END:
 *** The windows are smaller now
 *** The current text doesn't all fit.
+** DONE The control hints are too wide                                  :ui:
+CLOSED: [2018-03-26 Mon 12:43]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-26 Mon 12:43
+:END:
+*** Now that we're using proper text rendering, lets adjust the width
+*** Also, they're now squished too much
+** DONE Fix mouse position in fullscreen                                :ui:
+CLOSED: [2018-03-26 Mon 12:43]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-26 Mon 12:43
+:END:
+*** Looks like the Y coord is right but X is off (on geralt)
+*** But: Y is wrong and X is right on worklaptop
+** DONE Figure out the worklaptop fullscreen issue
+CLOSED: [2018-03-26 Mon 12:43]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-26 Mon 12:43
+:END:
+*** I think we should only operate with whole numbers
+*** So when calculating the tile size, floor it to a whole number
+*** Then calculate the actual width & hight using the scaled tile size
+*** Then add extra to both width & height (even if it's just like 1-2 pxels)
+*** That should mean everything is whole numbers
+*** And that should fix the mouse calculation

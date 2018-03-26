@@ -111,9 +111,19 @@ Ctrl-c
 - [ ] Icon/Logo for Dose Response
 - [ ] Builds
 - [ ] Link to the online version
+* Consider uploading binaries to AWS or something
+** Instead of having them on github
+** Should make nightlies easier, too maybe?
 * Fix mouse position in fullscreen                                       :ui:
 ** Looks like the Y coord is right but X is off (on geralt)
 ** But: Y is wrong and X is right on worklaptop
+* Figure out the worklaptop fullscreen issue
+** I think we should only operate with whole numbers
+** So when calculating the tile size, floor it to a whole number
+** Then calculate the actual width & hight using the scaled tile size
+** Then add extra to both width & height (even if it's just like 1-2 pxels)
+** That should mean everything is whole numbers
+** And that should fix the mouse calculation
 * "What is a roguelike?" help page                                       :ui:
 ** every life matters
 ** you'll be losing a lot
@@ -125,10 +135,19 @@ Ctrl-c
 ** + and x: cardinal and diagonal dose
 ** I: strong dose
 ** monsters
+* Create "organisation" github & gitlab pages
+** Set up redirects
+** Fix links on my blog
+* Set up an org email address
+** info@example.com
 * Create a tryjumping.com page
 ** Use a Rust or Go-based static site generator
 ** https://gohugo.io/getting-started/quick-start/
 ** http://cobalt-org.github.io/getting-started/
+* Add the code & contact info into the readme
+** Link to the website
+** Link to the repo
+** Email address
 * Look into trying the rust-sdl2's "bundled" feature
 ** Seems to be broken on Fedora 27 + Wayland
 *** The bundled build just doesn't work

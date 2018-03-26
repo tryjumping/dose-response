@@ -854,9 +854,11 @@ pub fn main_loop(
         let (native_display_px, display_px, extra_px) = {
             let window_width = window_width as f32;
             let window_height = window_height as f32;
+            let tilecount_x = display_size.x as f32;
+            let tilecount_y = display_size.y as f32;
 
-            let unscaled_game_width = display_size.x as f32 * tilesize as f32;
-            let unscaled_game_height = display_size.y as f32 * tilesize as f32;
+            let unscaled_game_width = tilecount_x * tilesize as f32;
+            let unscaled_game_height = tilecount_y * tilesize as f32;
 
             // println!("window w x h: {:?}", (window_width, window_height));
             // println!("unscaled game {:?}", (unscaled_game_width, unscaled_game_height));
@@ -865,22 +867,26 @@ pub fn main_loop(
             // already fit into the display. So the game is only going
             // to be scaled up, not down.
 
+
+
             // NOTE: try if the hight should fill the display area
-            let final_scaled_height = window_height;
-            let final_scaled_width = final_scaled_height * unscaled_game_width / unscaled_game_height;
-            let (final_scaled_width, final_scaled_height) = if final_scaled_width <= window_width {
-                (final_scaled_width, final_scaled_height)
+            let scaled_tilesize = (window_height / tilecount_y).floor();
+            let scaled_width = scaled_tilesize * tilecount_x;
+            let scaled_height = scaled_tilesize * tilecount_y;
+            let (final_scaled_width, final_scaled_height) = if scaled_width <= window_width {
+                (scaled_width, scaled_height)
             } else {
                 // NOTE: try if the width should fill the display area
-                let final_scaled_width = window_width;
-                let final_scaled_height = final_scaled_width * unscaled_game_height / unscaled_game_width;
+                let scaled_tilesize = (window_width / tilecount_x).floor();
+            let scaled_width = scaled_tilesize * tilecount_x;
+            let scaled_height = scaled_tilesize * tilecount_y;
 
-                if final_scaled_height <= window_height {
+                if scaled_height <= window_height {
                     // NOTE: we're good
                 } else {
                     println!("Can't scale neither to width nor height wtf.");
                 }
-                (final_scaled_width, final_scaled_height)
+                (scaled_width, scaled_height)
             };
             //println!("Final scaled: {} x {}", final_scaled_width, final_scaled_height);
 

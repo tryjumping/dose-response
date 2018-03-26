@@ -19,9 +19,9 @@ function wrapText(ctx, text, maxWidth) {
 
 
 function play_game(canvas, wasm_path) {
-  var width = 63;
-  var height = 43;
-  var squareSize = 16;
+  var width = 47;
+  var height = 30;
+  var squareSize = 21;
 
   var c = canvas;
   var ctx = c.getContext('2d');
@@ -70,8 +70,8 @@ function play_game(canvas, wasm_path) {
                 var color = data[2];
 
                 ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-                var x_fudge = 8;
-                var y_fudge = 13;
+                var x_fudge = 6;
+                var y_fudge = 16;
                 ctx.textAlign = "start";
                 ctx.fillText(glyph, x * squareSize + x_fudge, y * squareSize + y_fudge);
                 break;
@@ -118,8 +118,8 @@ function play_game(canvas, wasm_path) {
                 }
 
                 ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-                var x_fudge = 8;
-                var y_fudge = 13;
+                var x_fudge = 0;
+                var y_fudge = 15;
 
                 if(wrap && text_width > 0) {
                   var lines = wrapText(ctx, text, text_width * squareSize);
@@ -194,7 +194,7 @@ function play_game(canvas, wasm_path) {
       console.log("Setting up the canvas", c);
       c.width = width*squareSize;
       c.height = height*squareSize;
-      ctx.font = '14px mononoki';
+      ctx.font = '18px mononoki';
 
       document.addEventListener('keydown', function(event) {
         let key = normalize_key(event);

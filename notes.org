@@ -89,7 +89,7 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
 * Update the font size in wasm
-* "What is a roguelike?" help page                                       :ui:
+* "What is a Dose Response?" help page                                   :ui:
 ** every life matters
 ** you'll be losing a lot
 ** but every death is an opportunity to learn
@@ -100,6 +100,9 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** + and x: cardinal and diagonal dose
 ** I: strong dose
 ** monsters
+* Keep the control hints on for longer                                   :ui:
+** Now that we've made the map smaller they disappear after the first move
+** Let's make them stick at least for a while longer
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them

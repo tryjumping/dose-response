@@ -92,9 +92,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** The smallest doses were actually okay
 **** But the larger ones weren't
 **** Maybe increase their strength?
-* Cardinal and Diagonal doses are worse than food in AoE
-** They only have a 1 space killing radius
-** Should be 2
 * The scrolling doesn't feel right                                       :ui:
 ** Always center the camera on the player?
 ** Or: implement smooth sclolling?
@@ -2184,3 +2181,10 @@ CLOSED: [2018-03-27 Tue 10:26]
 :END:
 *** Mouse works though
 *** So something to do with the key processing
+** DONE Cardinal and Diagonal doses are worse than food in AoE
+CLOSED: [2018-03-27 Tue 10:33]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-27 Tue 10:33
+:END:
+*** They only have a 1 space killing radius
+*** Should be 2

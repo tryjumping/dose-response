@@ -1084,15 +1084,10 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
             Key { code: N, .. } => commands.push_back(Command::SE),
 
             // Non-movement commands
-            Key { code: E, .. } | Key { code: D1, .. } => {
+            Key { code: E, .. } => {
                 commands.push_back(Command::UseFood);
             }
-            Key { code: D2, .. } => {
-                commands.push_back(Command::UseDose);
-            }
-            Key { code: D3, .. } => {
-                commands.push_back(Command::UseStrongDose);
-            }
+
             _ => match inventory_commands(key) {
                 Some(command) => commands.push_back(command),
                 None => (),

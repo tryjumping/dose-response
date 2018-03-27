@@ -95,9 +95,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Cardinal and Diagonal doses are worse than food in AoE
 ** They only have a 1 space killing radius
 ** Should be 2
-* Pressing [3] does not use the CardinalDose                             :ui:
-** Mouse works though
-** So something to do with the key processing
 * The scrolling doesn't feel right                                       :ui:
 ** Always center the camera on the player?
 ** Or: implement smooth sclolling?
@@ -2180,3 +2177,10 @@ CLOSED: [2018-03-26 Mon 12:43]
 *** Then add extra to both width & height (even if it's just like 1-2 pxels)
 *** That should mean everything is whole numbers
 *** And that should fix the mouse calculation
+** DONE Pressing [3] does not use the CardinalDose                      :ui:
+CLOSED: [2018-03-27 Tue 10:26]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-03-27 Tue 10:26
+:END:
+*** Mouse works though
+*** So something to do with the key processing

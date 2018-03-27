@@ -88,7 +88,22 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
+*** Tried to increase it too much and it didn't quite work out
+**** The smallest doses were actually okay
+**** But the larger ones weren't
+**** Maybe increase their strength?
+* Cardinal and Diagonal doses are worse than food in AoE
+** They only have a 1 space killing radius
+** Should be 2
+* Pressing [3] does not use the CardinalDose                             :ui:
+** Mouse works though
+** So something to do with the key processing
+* The scrolling doesn't feel right                                       :ui:
+** Always center the camera on the player?
+** Or: implement smooth sclolling?
+*** And maybe nonlinear?
 * Update the font size in wasm
+* Fix screen fading in wasm
 * "What is a Dose Response?" help page                                   :ui:
 ** every life matters
 ** you'll be losing a lot

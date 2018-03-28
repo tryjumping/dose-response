@@ -27,7 +27,7 @@ pub const DOSE_PREFAB: Item = Item {
     irresistible: 2,
     modifier: Modifier::Intoxication {
         state_of_mind: 70,
-        tolerance_increase: 3,
+        tolerance_increase: 5,
     },
 };
 
@@ -35,7 +35,7 @@ pub const STRONG_DOSE_PREFAB: Item = Item {
     kind: Kind::StrongDose,
     irresistible: 4,
     modifier: Modifier::Intoxication {
-        state_of_mind: 130,
+        state_of_mind: 160,
         tolerance_increase: 7,
     },
 };
@@ -44,8 +44,8 @@ pub const CARDINAL_DOSE_PREFAB: Item = Item {
     kind: Kind::CardinalDose,
     irresistible: 3,
     modifier: Modifier::Intoxication {
-        state_of_mind: 95,
-        tolerance_increase: 5,
+        state_of_mind: 120,
+        tolerance_increase: 7,
     },
 };
 
@@ -53,8 +53,8 @@ pub const DIAGONAL_DOSE_PREFAB: Item = Item {
     kind: Kind::DiagonalDose,
     irresistible: 3,
     modifier: Modifier::Intoxication {
-        state_of_mind: 95,
-        tolerance_increase: 5,
+        state_of_mind: 120,
+        tolerance_increase: 7,
     },
 };
 

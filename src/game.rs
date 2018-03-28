@@ -260,6 +260,8 @@ fn process_game(
         spent_turn = command_count > state.commands.len();
     }
 
+    state.screen_position_in_world = state.player.pos;
+
     if spent_turn {
         state.turn += 1;
     }

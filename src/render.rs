@@ -42,6 +42,17 @@ pub fn render(
         }
     }
 
+
+    // NOTE: This renders the game's icon. Change the tilesize to an
+    // appropriate value.
+    //
+    // let origin = Point::new(15, 15);
+    // drawcalls.push(Draw::Char(origin, 'D', color::depression));
+    // drawcalls.push(Draw::Char(origin + (1, 0), 'r', color::anxiety));
+    // drawcalls.push(Draw::Char(origin + (0, 1), '@', color::player));
+    // drawcalls.push(Draw::Char(origin + (1, 1), 'i', color::dose));
+    // drawcalls.push(Draw::Fade(1.0, color::BLACK));
+
     // Show the tile under mouse pointer:
     // drawcalls.push(Draw::Rectangle(::rect::Rectangle::from_point_and_size(state.mouse.tile_pos, Point::from_i32(1)), color::gui_text));
 }

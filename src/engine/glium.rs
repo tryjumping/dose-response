@@ -546,7 +546,7 @@ pub fn main_loop(
                 &Draw::Char(pos, chr, foreground_color, offset_px) => {
                     if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
                     {
-                        let pixel_pos = pixel_from_tile(pos);
+                        let pixel_pos = pixel_from_tile(pos) + offset_px;
                         let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
                         let tile_width = tilesize as f32;
                         let tile_height = tilesize as f32;

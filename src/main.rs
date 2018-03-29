@@ -1,5 +1,4 @@
 #![deny(overflowing_literals, unsafe_code)]
-#![feature(conservative_impl_trait)]
 
 extern crate bincode;
 #[macro_use]

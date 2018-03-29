@@ -4,13 +4,11 @@ use ai::{self, AIState, Behavior, Update};
 use blocker::Blocker;
 use color::{self, Color};
 use game::Action;
-use graphics::Render;
 use player::{Modifier, PlayerInfo};
 use point::Point;
 use ranged_int::{InclusiveRange, Ranged};
 
 use rand::{Rand, Rng};
-use std::time::Duration;
 use world::World;
 
 use std::fmt::{Display, Error, Formatter};
@@ -222,10 +220,4 @@ impl Monster {
         }
     }
 
-}
-
-impl Render for Monster {
-    fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
-        (self.glyph(), self.color, None)
-    }
 }

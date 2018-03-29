@@ -1,11 +1,9 @@
 use blocker;
 use color::{self, Color};
-use graphics::Render;
 use item::Item;
 use point;
 
 use std::collections::HashMap;
-use std::time::Duration;
 
 /// Position within a level. Ensured to be always within bounds.
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -49,18 +47,16 @@ impl Tile {
             fg_color: color,
         }
     }
-}
 
-impl Render for Tile {
-    fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
+    pub fn glyph(&self) -> char {
         use self::TileKind::*;
-        let glyph = match self.kind {
+        match self.kind {
             Empty => '.',
             Tree => '#',
-        };
-        (glyph, self.fg_color, Option::None)
+        }
     }
 }
+
 
 #[derive(Serialize, Deserialize)]
 pub struct Level {

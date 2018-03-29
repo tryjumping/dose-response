@@ -1,9 +1,7 @@
 use self::Kind::*;
 
 use color::{self, Color};
-use graphics::Render;
 use player::Modifier;
-use std::time::Duration;
 
 #[derive(Clone, Copy, PartialEq, Debug, Eq, Hash, Serialize, Deserialize)]
 pub enum Kind {
@@ -58,16 +56,24 @@ impl Item {
             Food => false,
         }
     }
-}
 
-impl Render for Item {
-    fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
+    pub fn glyph(&self) -> char {
         match self.kind {
-            Food => ('%', color::food, None),
-            Dose => ('i', color::dose, None),
-            StrongDose => ('I', color::dose_glow, None),
-            CardinalDose => ('+', color::shattering_dose, None),
-            DiagonalDose => ('x', color::shattering_dose, None),
+            Food => '%',
+            Dose => 'i',
+            StrongDose => 'I',
+            CardinalDose => '+',
+            DiagonalDose => 'x',
+        }
+    }
+
+    pub fn color(&self) -> Color {
+        match self.kind {
+            Food => color::food,
+            Dose => color::dose,
+            StrongDose => color::dose_glow,
+            CardinalDose => color::shattering_dose,
+            DiagonalDose => color::shattering_dose,
         }
     }
 }

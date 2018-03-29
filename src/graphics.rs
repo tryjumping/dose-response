@@ -2,20 +2,7 @@ use color::Color;
 use engine::Draw;
 use point::Point;
 use rect::Rectangle;
-use std::time::Duration;
 
-pub trait Render {
-    fn render(&self, dt: Duration) -> (char, Color, Option<Color>);
-}
-
-pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>, dt: Duration, pos: Point, offset_px: Point, render: &R) {
-    use engine::Draw::*;
-    let (glyph, fg, bg_opt) = render.render(dt);
-    if let Some(background) = bg_opt {
-        drawcalls.push(Background(pos, background));
-    }
-    drawcalls.push(Char(pos, glyph, fg, offset_px));
-}
 
 pub fn progress_bar(
     drawcalls: &mut Vec<Draw>,

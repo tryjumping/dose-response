@@ -1,12 +1,10 @@
 use color::{self, Color};
 use formula::{self, ANXIETIES_PER_WILL, SOBRIETY_COUNTER, WILL, WITHDRAWAL};
-use graphics::Render;
 use item::Item;
 use monster::{CompanionBonus, Monster};
 use point::Point;
 use ranged_int::Ranged;
 use std::fmt::{Display, Error, Formatter};
-use std::time::Duration;
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Modifier {
@@ -223,14 +221,21 @@ impl Player {
             self.bonus = bonus;
         }
     }
-}
 
-impl Render for Player {
-    fn render(&self, _dt: Duration) -> (char, Color, Option<Color>) {
+    pub fn color(&self) -> Color {
         if self.alive() {
-            ('@', color::player, None)
+            color::player
         } else {
-            ('&', color::dead_player, None)
+            color::dead_player
         }
     }
+
+    pub fn glyph(&self) -> char {
+        if self.alive() {
+            '@'
+        } else {
+            '&'
+        }
+    }
+
 }

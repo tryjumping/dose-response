@@ -149,9 +149,9 @@ pub fn render_game(
         }
 
         if in_fov(world_pos) || state.uncovered_map {
-            graphics::draw(drawcalls, dt, display_pos, offset_px, &rendered_tile);
+            drawcalls.push(Draw::Char(display_pos, rendered_tile.glyph(), rendered_tile.fg_color, offset_px));
         } else if cell.explored || bonus == Bonus::UncoverMap {
-            graphics::draw(drawcalls, dt, display_pos, offset_px, &rendered_tile);
+            drawcalls.push(Draw::Char(display_pos, rendered_tile.glyph(), rendered_tile.fg_color, offset_px));
             drawcalls.push(Draw::Background(display_pos, color::dim_background));
         } else {
             // It's not visible. Do nothing.
@@ -175,7 +175,7 @@ pub fn render_game(
             || bonus == Bonus::UncoverMap || state.uncovered_map
         {
             for item in cell.items.iter() {
-                graphics::draw(drawcalls, dt, display_pos, offset_px, item);
+                drawcalls.push(Draw::Char(display_pos, item.glyph(), item.color(), offset_px));
             }
         }
     }
@@ -192,12 +192,12 @@ pub fn render_game(
         if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems ||
             state.uncovered_map
         {
-            use graphics::Render;
             let display_pos = screen_coords_from_world(monster.position);
             if let Some(trail_pos) = monster.trail {
                 if cfg!(feature = "cheating") && state.cheating {
                     let trail_pos = screen_coords_from_world(trail_pos);
-                    let (glyph, color, _) = monster.render(dt);
+                    let glyph = monster.glyph();
+                    let color = monster.color;
                     // TODO: show a fading animation of the trail colour
                     let color = color::Color {
                         r: color.r.saturating_sub(55),
@@ -211,12 +211,13 @@ pub fn render_game(
             if cfg!(feature = "cheating") && state.cheating {
                 for &point in &monster.path {
                     let path_pos = screen_coords_from_world(point);
-                    let (_, color, _) = monster.render(dt);
+                    let color = monster.color;
                     drawcalls.push(Draw::Background(path_pos, color));
                 }
             }
 
-            let (glyph, mut color, _) = monster.render(dt);
+            let glyph = monster.glyph();
+            let mut color = monster.color;
             if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
                 color = color::npc_dim;
             }
@@ -227,7 +228,7 @@ pub fn render_game(
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
-        graphics::draw(drawcalls, dt, display_pos, offset_px, &state.player);
+        drawcalls.push(Draw::Char(display_pos, state.player.glyph(), state.player.color(), offset_px));
     }
 
     sidebar_window.render(state, metrics, dt, fps, drawcalls);

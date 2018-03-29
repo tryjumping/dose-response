@@ -15,6 +15,7 @@ pub enum Action {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Page {
+    DoseResponse,
     NumpadControls,
     ArrowControls,
     ViKeys,
@@ -25,7 +26,8 @@ impl Page {
     pub fn prev(&self) -> Option<Self> {
         use self::Page::*;
         match *self {
-            NumpadControls => None,
+            DoseResponse => None,
+            NumpadControls => Some(DoseResponse),
             ArrowControls => Some(NumpadControls),
             ViKeys => Some(ArrowControls),
             HowToPlay => Some(ViKeys),
@@ -35,6 +37,7 @@ impl Page {
     pub fn next(&self) -> Option<Self> {
         use self::Page::*;
         match *self {
+            DoseResponse => Some(NumpadControls),
             NumpadControls => Some(ArrowControls),
             ArrowControls => Some(ViKeys),
             ViKeys => Some(HowToPlay),
@@ -47,6 +50,7 @@ impl Display for Page {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         use self::Page::*;
         let s = match *self {
+            DoseResponse => "Dose Response",
             NumpadControls => "Controls: numpad",
             ArrowControls => "Controls: arrow keys",
             ViKeys => "Controls: Vi keys",
@@ -146,6 +150,16 @@ impl Window {
         lines.push(EmptySpace(1));
 
         match state.current_help_window {
+            Page::DoseResponse => {
+                lines.push(Paragraph("Dose Response is a roguelike: every time you start a game, the map will be different. The items and monsters will be in new places. And when you lose, that's it -- you can't reload and try again. You start from the beginning, with a brand new map. Every life matters."));
+                lines.push(Empty);
+                lines.push(Paragraph("You can't learn the map (because it changes), but you can learn the world. How do the monsters work? What happens when you take two doses at the same time? What's that glowing thing around a dose? What is food good for?"));
+                lines.push(Empty);
+                lines.push(Paragraph("You will lose quickly and often. That's normal. Learn from it! What went wrong? Is there anything you could have done better? Were you saving an item for later that could have helped you?"));
+                lines.push(Empty);
+                lines.push(Paragraph("Each run takes 3 - 10 minutes so you won't lose that much anyway. Experiment!"));
+            }
+
             Page::NumpadControls => {
                 lines.push(Paragraph("You control the @ character. It moves just like the king in Chess: one step in any direction. That means up, down, left, right, but also diagonally."));
                 lines.push(Empty);

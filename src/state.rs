@@ -208,7 +208,7 @@ impl State {
             game_ended: false,
             window_stack: WindowStack::new(Window::Game),
             show_keboard_movement_hints: true,
-            current_help_window: windows::help::Page::NumpadControls,
+            current_help_window: windows::help::Page::DoseResponse,
             show_endscreen_and_uncover_map_during_fadein: false,
             uncovered_map: false,
         }

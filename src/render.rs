@@ -65,6 +65,9 @@ pub fn render_game(
     fps: i32,
     drawcalls: &mut Vec<Draw>,
 ) {
+    let offset_px = Point::zero();
+
+
     if state.player.alive() {
         let fade = formula::mind_fade_value(state.player.mind);
         if fade > 0.0 {
@@ -146,9 +149,9 @@ pub fn render_game(
         }
 
         if in_fov(world_pos) || state.uncovered_map {
-            graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
+            graphics::draw(drawcalls, dt, display_pos, offset_px, &rendered_tile);
         } else if cell.explored || bonus == Bonus::UncoverMap {
-            graphics::draw(drawcalls, dt, display_pos, &rendered_tile);
+            graphics::draw(drawcalls, dt, display_pos, offset_px, &rendered_tile);
             drawcalls.push(Draw::Background(display_pos, color::dim_background));
         } else {
             // It's not visible. Do nothing.
@@ -172,7 +175,7 @@ pub fn render_game(
             || bonus == Bonus::UncoverMap || state.uncovered_map
         {
             for item in cell.items.iter() {
-                graphics::draw(drawcalls, dt, display_pos, item);
+                graphics::draw(drawcalls, dt, display_pos, offset_px, item);
             }
         }
     }
@@ -201,7 +204,7 @@ pub fn render_game(
                         g: color.g.saturating_sub(55),
                         b: color.b.saturating_sub(55),
                     };
-                    drawcalls.push(Draw::Char(trail_pos, glyph, color));
+                    drawcalls.push(Draw::Char(trail_pos, glyph, color, offset_px));
                 }
             }
 
@@ -217,14 +220,14 @@ pub fn render_game(
             if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
                 color = color::npc_dim;
             }
-            drawcalls.push(Draw::Char(display_pos, glyph, color))
+            drawcalls.push(Draw::Char(display_pos, glyph, color, offset_px))
         }
     }
 
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
-        graphics::draw(drawcalls, dt, display_pos, &state.player);
+        graphics::draw(drawcalls, dt, display_pos, offset_px, &state.player);
     }
 
     sidebar_window.render(state, metrics, dt, fps, drawcalls);

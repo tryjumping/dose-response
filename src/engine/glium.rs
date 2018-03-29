@@ -543,7 +543,7 @@ pub fn main_loop(
 
         for drawcall in &drawcalls {
             match drawcall {
-                &Draw::Char(pos, chr, foreground_color) => {
+                &Draw::Char(pos, chr, foreground_color, offset_px) => {
                     if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
                     {
                         let pixel_pos = pixel_from_tile(pos);

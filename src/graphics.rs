@@ -8,13 +8,13 @@ pub trait Render {
     fn render(&self, dt: Duration) -> (char, Color, Option<Color>);
 }
 
-pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>, dt: Duration, pos: Point, render: &R) {
+pub fn draw<R: Render>(drawcalls: &mut Vec<Draw>, dt: Duration, pos: Point, offset_px: Point, render: &R) {
     use engine::Draw::*;
     let (glyph, fg, bg_opt) = render.render(dt);
     if let Some(background) = bg_opt {
         drawcalls.push(Background(pos, background));
     }
-    drawcalls.push(Char(pos, glyph, fg));
+    drawcalls.push(Char(pos, glyph, fg, offset_px));
 }
 
 pub fn progress_bar(

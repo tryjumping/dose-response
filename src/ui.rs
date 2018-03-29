@@ -55,7 +55,7 @@ pub fn render_text_flow(
                 let start_pos = rect.top_left() + ((max_size - text_size) / 2, ypos);
                 for (i, chr) in text.char_indices() {
                     let pos = start_pos + (i as i32, 0);
-                    drawcalls.push(Draw::Char(pos, chr, color::gui_text));
+                    drawcalls.push(Draw::Char(pos, chr, color::gui_text, Point::zero()));
                 }
             }
         }

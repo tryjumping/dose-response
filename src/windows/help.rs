@@ -20,6 +20,7 @@ pub enum Page {
     ArrowControls,
     ViKeys,
     HowToPlay,
+    Legend,
 }
 
 impl Page {
@@ -31,6 +32,7 @@ impl Page {
             ArrowControls => Some(NumpadControls),
             ViKeys => Some(ArrowControls),
             HowToPlay => Some(ViKeys),
+            Legend => Some(HowToPlay),
         }
     }
 
@@ -41,7 +43,8 @@ impl Page {
             NumpadControls => Some(ArrowControls),
             ArrowControls => Some(ViKeys),
             ViKeys => Some(HowToPlay),
-            HowToPlay => None,
+            HowToPlay => Some(Legend),
+            Legend => None,
         }
     }
 }
@@ -55,6 +58,7 @@ impl Display for Page {
             ArrowControls => "Controls: arrow keys",
             ViKeys => "Controls: Vi keys",
             HowToPlay => "How to play",
+            Legend => "Legend",
         };
         f.write_str(s)
     }
@@ -219,6 +223,29 @@ impl Window {
                 lines.push(Paragraph("To progress, your Will needs to get stronger. Defeat enough Anxieties ('a') to make it go up. The Dose or Food \"explosions\" don't count though! Higher Will shrinks the irresistible area around Doses. It also lets you pick them up!"));
                 lines.push(Empty);
                 lines.push(Paragraph("If you see another '@' characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober."));
+            }
+
+            Page::Legend => {
+                lines.push(Paragraph("Monsters:"));
+                lines.push(Paragraph("'a' (anxiety): takes Will away when it hits you. Defeat them to win the game."));
+                lines.push(Paragraph("'D' (depression): moves twice as fast. You lose immediately when it hits you."));
+                lines.push(Paragraph("'h' (hunger): summons other Hungers nearby. Reduces your mind state."));
+                lines.push(Paragraph("'v' (hearing voices): paralyzes you for three turns."));
+                lines.push(Paragraph("'S' (seeing shadows): makes you move randomly for three turns."));
+                lines.push(Paragraph("'@' (friendly): ignores you when High. Bump into them Sober for a bonus."));
+                lines.push(Empty);
+
+                lines.push(Paragraph("Items:"));
+                lines.push(Paragraph("'%' (food): prolongs being Sober or in a Withdrawal. Kills monsters around you."));
+                lines.push(Paragraph("'i' (dose): makes you High. When you're High already, you'll likely Overdose."));
+                lines.push(Paragraph("'+' (cardinal dose): Destroys trees in the horizontal and vertical lines."));
+                lines.push(Paragraph("'x' (diagonal dose): Destroys trees in the diagonal lines."));
+                lines.push(Paragraph("'I' (strong dose): very strong Dose. Don't walk into it by accident."));
+                lines.push(Empty);
+
+                lines.push(Paragraph("Each Dose has a faint glow around it. If you step into it, you will not be able to resist."));
+                lines.push(Empty);
+                lines.push(Paragraph("When the glow disappears completely, you can pick the dose up and use it later. Don't lose Will if you're carrying doses though!"));
             }
         }
 

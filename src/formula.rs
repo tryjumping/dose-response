@@ -216,7 +216,7 @@ pub fn cause_of_death(player: &Player) -> Option<CauseOfDeath> {
 pub fn mind_fade_value(mind: Mind) -> f32 {
     use player::Mind::*;
     match mind {
-        Withdrawal(value) => value.percent() * 0.6 + 0.2,
+        Withdrawal(value) => value.percent() * 0.5 + 0.45,
         Sober(_) | High(_) => 0.0,
     }
 }

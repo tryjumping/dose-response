@@ -94,11 +94,31 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** Maybe increase their strength?
 * The scrolling doesn't feel right                                       :ui:
 ** Always center the camera on the player?
+*** I think this is worse because it's harder to see the monsters move
+**** Because the entire map has moved
+**** So there's no specific perceived motion
+**** We'd have to probably move the monsters with an animation at a later frame
+*** Could we try to just smooth-scroll the one tile transition?
+**** That would require scrolling the map independently of the player though
+***** Could we move the player and then re-center?
+****** Would probably require smooth srolling
+****** TODO Although maybe just making it two-step (move, recenter) is enough
+***** Isn't that what Cardinal Quest does?
+****** CQ processes everything at once and then animates it
+******* The player moves
+******* The monsters move
+******* The screen recenters
+****** All that is animated at the same time
+****** There's no "player moves and then the monsters move"
+**** Also, this would look weird for the diagonal movement
+***** The player would actually be animated crossing walls
+***** Kind of weird right?
 ** Or: implement smooth sclolling?
 *** And maybe nonlinear?
+** Make it optional in the menu?
 * Update the font size in wasm
 * Fix screen fading in wasm
-* "What is a Dose Response?" help page                                   :ui:
+* "What is Dose Response?" help page                                     :ui:
 ** every life matters
 ** you'll be losing a lot
 ** but every death is an opportunity to learn

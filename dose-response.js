@@ -139,12 +139,12 @@ function play_game(canvas, wasm_path) {
                 var x = data[0][0][0];
                 var y = data[0][0][1];
                 var bottom_right = data[0][1];
-                var width = bottom_right[0] - x + 1;
-                var height = bottom_right[1] - y + 1;
+                var rect_width = bottom_right[0] - x + 1;
+                var rect_height = bottom_right[1] - y + 1;
                 var color = data[1];
 
                 ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-                ctx.fillRect(x * squareSize, y * squareSize, width * squareSize, height * squareSize);
+                ctx.fillRect(x * squareSize, y * squareSize, rect_width * squareSize, rect_height * squareSize);
                 break;
 
               case 4: // Fade

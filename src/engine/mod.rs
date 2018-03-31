@@ -11,6 +11,9 @@ use std::time::Duration;
 #[cfg(feature = "opengl")]
 pub mod glium;
 
+#[cfg(feature = "sdl")]
+pub mod sdl;
+
 #[cfg(feature = "piston")]
 pub mod piston;
 

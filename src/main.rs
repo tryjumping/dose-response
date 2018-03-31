@@ -22,10 +22,13 @@ extern crate chrono;
 #[cfg(feature = "opengl")]
 extern crate glium;
 
+#[cfg(feature = "sdl")]
+extern crate sdl2;
+
 #[cfg(feature = "piston")]
 extern crate piston_window;
 
-#[cfg(any(feature = "piston", feature = "opengl"))]
+#[cfg(any(feature = "piston", feature = "opengl", feature = "sdl"))]
 extern crate image;
 
 extern crate num_rational;
@@ -183,17 +186,49 @@ fn run_opengl(
     );
 }
 
+
 #[cfg(not(feature = "opengl"))]
 #[cfg(not(feature = "web"))]
 fn run_opengl(
     _display_size: point::Point,
     _default_background: color::Color,
     _window_title: &str,
-    _state: State,
+    _state: state::State,
     _update: engine::UpdateFn,
 ) {
     println!("The \"opengl\" feature was not compiled in.");
 }
+
+#[cfg(feature = "sdl")]
+fn run_sdl(
+    display_size: point::Point,
+    default_background: color::Color,
+    window_title: &str,
+    state: state::State,
+    update: engine::UpdateFn,
+) {
+    println!("Using the sdl backend");
+    engine::sdl::main_loop(
+        display_size,
+        default_background,
+        window_title,
+        state,
+        update,
+    );
+}
+
+#[cfg(not(feature = "sdl"))]
+#[cfg(not(feature = "web"))]
+fn run_sdl(
+    _display_size: point::Point,
+    _default_background: color::Color,
+    _window_title: &str,
+    _state: state::State,
+    _update: engine::UpdateFn,
+) {
+    println!("The \"sdl\" feature was not compiled in.");
+}
+
 
 #[cfg(feature = "remote")]
 fn run_remote(
@@ -281,6 +316,11 @@ fn process_cli_and_run_game() {
                 .help("Use the Glium (OpenGL) rendering backend"),
         )
         .arg(
+            Arg::with_name("sdl")
+                .long("sdl")
+                .help("Use the SDL2 rendering backend"),
+        )
+        .arg(
             Arg::with_name("terminal")
                 .long("terminal")
                 .help("Use the Rustbox (terminal-only) rendering backend"),
@@ -291,7 +331,7 @@ fn process_cli_and_run_game() {
         ))
         .group(
             ArgGroup::with_name("graphics")
-                .args(&["libtcod", "piston", "opengl", "terminal", "remote"]),
+                .args(&["libtcod", "piston", "opengl", "sdl", "terminal", "remote"]),
         )
         .get_matches();
 
@@ -356,6 +396,14 @@ fn process_cli_and_run_game() {
         run_terminal();
     } else if matches.is_present("remote") {
         run_remote(
+            DISPLAY_SIZE,
+            color::background,
+            GAME_TITLE,
+            state,
+            game::update,
+        );
+    } else if matches.is_present("sdl") {
+        run_sdl(
             DISPLAY_SIZE,
             color::background,
             GAME_TITLE,

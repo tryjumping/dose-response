@@ -64,6 +64,8 @@ pub fn main_loop(
         .expect("SDL window creation failed.");
 
     // NOTE: use `.software()` instead of `.accelerated()` to use software rendering
+    // TODO: test this on more machines but a very simple test seems to be actually faster
+    // with software???
     let mut canvas = window.into_canvas()
         .accelerated()
         .build()
@@ -77,6 +79,18 @@ pub fn main_loop(
         .expect("Loading texture failed.");
 
     let expected_frame_length = Duration::from_millis(1000 / DESIRED_FPS);
+
+
+    let rects = (1..95)
+        .cycle()
+        .take(100_000)
+        .enumerate()
+        .map(|(index, glyph_index)| {
+            (Rect::new(glyph_index as i32 * tilesize as i32, 0, tilesize, tilesize),
+             Rect::new((index as i32 % display_size.x as i32) * tilesize as i32, (index as i32 / display_size.x as i32) * tilesize as i32, tilesize, tilesize))
+        })
+        .collect::<Vec<_>>();
+
 
     let mut running = true;
     while running {
@@ -116,8 +130,7 @@ pub fn main_loop(
         canvas.clear();
         canvas.set_draw_color(sdl2::pixels::Color::RGB(255, 0, 255));
 
-        let rects = &[];
-        for &(src, dst) in rects {
+        for &(src, dst) in rects.iter() {
             // Highlight the sprite's target boundaries
             if let Err(err) = canvas.fill_rect(dst) {
                 println!("WARNING: drawing rectangle {:?} failed:", dst);

@@ -138,7 +138,6 @@ pub fn main_loop(
     // let expected_frame_length = Duration::from_millis(1000 / DESIRED_FPS);
     let mut keys = vec![];
     // We're not using alpha at all for now, but it's passed everywhere.
-    let alpha = 1.0;
     let mut previous_frame_start_time = Instant::now();
     let mut fps_clock = Duration::from_millis(0);
     let mut frames_in_current_second = 0;

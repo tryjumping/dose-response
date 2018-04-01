@@ -190,7 +190,10 @@ pub fn main_loop(
         engine::populate_background_map(&mut background_map, display_size, &drawcalls);
 
         // NOTE: render
-        canvas.set_draw_color(sdl2::pixels::Color::RGB(0, 128, 128));
+        canvas.set_draw_color(
+            sdl2::pixels::Color::RGB(default_background.r,
+                                     default_background.g,
+                                     default_background.b));
         canvas.clear();
         //canvas.set_draw_color(sdl2::pixels::Color::RGB(255, 0, 255));
 

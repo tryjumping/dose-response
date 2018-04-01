@@ -1,8 +1,9 @@
 use color::Color;
-use engine::{self, Draw, Settings, TextMetrics, UpdateFn};
+use engine::{self, Draw, Mouse, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
 use point::Point;
 use state::State;
+use util;
 
 use std::time::{Duration, Instant};
 use std::thread;
@@ -18,6 +19,21 @@ use image;
 
 
 const DESIRED_FPS: u64 = 60;
+
+
+pub struct Metrics {
+    tile_width_px: i32,
+}
+
+impl TextMetrics for Metrics {
+    fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
+        self.tile_width_px
+    }
+
+    fn get_text_width(&self, text_drawcall: &Draw) -> i32 {
+        self.tile_width_px
+    }
+}
 
 
 fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, String> {
@@ -78,24 +94,39 @@ pub fn main_loop(
     let texture = load_texture(&texture_creator)
         .expect("Loading texture failed.");
 
+    let mut mouse = Mouse::new();
+    let mut settings = Settings { fullscreen: false };
+    let mut background_map =
+        vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize];
+    let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let expected_frame_length = Duration::from_millis(1000 / DESIRED_FPS);
-
-
-    let rects = (1..95)
-        .cycle()
-        .take(100_000)
-        .enumerate()
-        .map(|(index, glyph_index)| {
-            (Rect::new(glyph_index as i32 * tilesize as i32, 0, tilesize, tilesize),
-             Rect::new((index as i32 % display_size.x as i32) * tilesize as i32, (index as i32 / display_size.x as i32) * tilesize as i32, tilesize, tilesize))
-        })
-        .collect::<Vec<_>>();
-
-
+    let mut keys = vec![];
+    // We're not using alpha at all for now, but it's passed everywhere.
+    let alpha = 1.0;
+    let mut previous_frame_start_time = Instant::now();
+    let mut fps_clock = Duration::from_millis(0);
+    let mut frames_in_current_second = 0;
+    let mut fps = 0;
+    // NOTE: This will wrap after running continuously for over 64
+    // years at 60 FPS. 32 bits are just fine.
+    let mut current_frame_id: i32 = 0;
     let mut running = true;
+
+
     while running {
-        let clock = Instant::now();
-        canvas.set_draw_color(sdl2::pixels::Color::RGB(0, 128, 128));
+        let frame_start_time = Instant::now();
+        let dt = frame_start_time.duration_since(previous_frame_start_time);
+        previous_frame_start_time = frame_start_time;
+
+        // Calculate FPS
+        fps_clock = fps_clock + dt;
+        frames_in_current_second += 1;
+        current_frame_id += 1;
+        if util::num_milliseconds(fps_clock) > 1000 {
+            fps = frames_in_current_second;
+            frames_in_current_second = 1;
+            fps_clock = Duration::new(0, 0);
+        }
 
         for event in event_pump.poll_iter() {
             match event {
@@ -127,21 +158,60 @@ pub fn main_loop(
             }
         }
 
-        canvas.clear();
-        canvas.set_draw_color(sdl2::pixels::Color::RGB(255, 0, 255));
+        drawcalls.clear();
+        let previous_settings = settings;
 
-        for &(src, dst) in rects.iter() {
-            // Highlight the sprite's target boundaries
-            if let Err(err) = canvas.fill_rect(dst) {
-                println!("WARNING: drawing rectangle {:?} failed:", dst);
-                println!("{}", err);
+
+        let update_result = update(
+            &mut state,
+            dt,
+            display_size,
+            fps,
+            &keys,
+            mouse,
+            &mut settings,
+            &Metrics {
+                tile_width_px: tilesize as i32,
+            },
+            &mut drawcalls,
+        );
+
+        match update_result {
+            RunningState::Running => {}
+            RunningState::NewGame(new_state) => {
+                state = new_state;
             }
+            RunningState::Stopped => break,
+        }
 
-            // Draw the sprite
-            // NOTE: use `copy_ex` to rotate or flip the image
-            if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
-                println!("WARNING: blitting {:?} to {:?} failed:", src, dst);
-                println!("{}", err);
+        keys.clear();
+
+
+        engine::populate_background_map(&mut background_map, display_size, &drawcalls);
+
+        // NOTE: render
+        canvas.set_draw_color(sdl2::pixels::Color::RGB(0, 128, 128));
+        canvas.clear();
+        //canvas.set_draw_color(sdl2::pixels::Color::RGB(255, 0, 255));
+
+        for drawcall in &drawcalls {
+            match drawcall {
+                &Draw::Char(pos, chr, foreground_color, offset_px) => {
+                    let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
+                        .unwrap_or((0, 0));
+                    let src = Rect::new(texture_index_x * tilesize as i32,
+                                        texture_index_y * tilesize as i32,
+                                        tilesize, tilesize);
+                    let dst = Rect::new(pos.x * tilesize as i32 + offset_px.x,
+                                        pos.y * tilesize as i32 + offset_px.y,
+                                        tilesize, tilesize);
+
+                    if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
+                        println!("WARNING: blitting {:?} to {:?} failed:", src, dst);
+                        println!("{}", err);
+                    }
+                }
+                _ => {}
             }
         }
 
@@ -149,7 +219,7 @@ pub fn main_loop(
 
         // println!("Code duration: {:?}ms",
         //          clock.elapsed().subsec_nanos() as f32 / 1_000_000.0);
-        if let Some(sleep_duration) = expected_frame_length.checked_sub(clock.elapsed()) {
+        if let Some(sleep_duration) = expected_frame_length.checked_sub(frame_start_time.elapsed()) {
             thread::sleep(sleep_duration);
         };
         // println!("Total frame duration: {:?}ms",

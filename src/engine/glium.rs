@@ -120,13 +120,6 @@ fn texture_coords_from_char(chr: char) -> (f32, f32) {
     (x as f32, y as f32)
 }
 
-// Calculate the width in pixels of a given text
-fn text_width_px(text: &str, tile_width_px: i32) -> i32 {
-    text.chars()
-        .map(|chr| engine::glyph_advance_width(chr).unwrap_or(tile_width_px as i32))
-        .sum()
-}
-
 fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<MonitorId> {
     for monitor in monitors {
         let monitor_pos = {
@@ -147,37 +140,6 @@ fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<Moni
     monitors.iter().cloned().next()
 }
 
-fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
-    let mut result = vec![];
-    let wrap_width_px = width_tiles * tile_width_px;
-    let space_width = engine::glyph_advance_width(' ').unwrap_or(tile_width_px as i32);
-
-    let mut current_line = String::new();
-    let mut current_width_px = 0;
-
-    let mut words = text.split(' ');
-    if let Some(word) = words.next() {
-        current_width_px += text_width_px(word, tile_width_px);
-        current_line.push_str(word);
-    }
-
-    for word in words {
-        let word_width = text_width_px(word, tile_width_px);
-        if current_width_px + space_width + word_width <= wrap_width_px {
-            current_width_px += space_width + word_width;
-            current_line.push(' ');
-            current_line.push_str(word);
-        } else {
-            result.push(current_line);
-            current_width_px = word_width;
-            current_line = String::from(word);
-        }
-    }
-    result.push(current_line);
-
-    result
-}
-
 struct Metrics {
     tile_width_px: i32,
 }
@@ -189,7 +151,7 @@ impl TextMetrics for Metrics {
                 if options.wrap && options.width > 0 {
                     // TODO: this does a needless allocation by
                     // returning Vec<String> we don't use here.
-                    let lines = wrap_text(&text, options.width, self.tile_width_px);
+                    let lines = engine::wrap_text(&text, options.width, self.tile_width_px);
                     lines.len() as i32
                 } else {
                     1
@@ -206,14 +168,14 @@ impl TextMetrics for Metrics {
             &Draw::Text(_, ref text, _, options) => {
                 let pixel_width = if options.wrap && options.width > 0 {
                     // // TODO: handle text alignment for wrapped text
-                    let lines = wrap_text(text, options.width, self.tile_width_px);
+                    let lines = engine::wrap_text(text, options.width, self.tile_width_px);
                     lines
                         .iter()
-                        .map(|line| text_width_px(line, self.tile_width_px))
+                        .map(|line| engine::text_width_px(line, self.tile_width_px))
                         .max()
                         .unwrap_or(0)
                 } else {
-                    text_width_px(text, self.tile_width_px)
+                    engine::text_width_px(text, self.tile_width_px)
                 };
                 let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
                 tile_width as i32
@@ -705,7 +667,7 @@ pub fn main_loop(
 
                     if options.wrap && options.width > 0 {
                         // TODO: handle text alignment for wrapped text
-                        let lines = wrap_text(text, options.width, tile_width as i32);
+                        let lines = engine::wrap_text(text, options.width, tile_width as i32);
                         for (index, line) in lines.iter().enumerate() {
                             let pos = pixel_from_tile(start_pos + Point::new(0, index as i32));
                             render_line(pos, line);
@@ -716,11 +678,11 @@ pub fn main_loop(
                             Left => pixel_from_tile(start_pos),
                             Right => {
                                 pixel_from_tile(start_pos + (1, 0))
-                                    - Point::new(text_width_px(text, tile_width as i32), 0)
+                                    - Point::new(engine::text_width_px(text, tile_width as i32), 0)
                             }
                             Center => {
                                 let tile_width = tile_width as i32;
-                                let text_width = text_width_px(text, tile_width);
+                                let text_width = engine::text_width_px(text, tile_width);
                                 let max_width = options.width * (tile_width);
                                 if max_width < 1 || (text_width > max_width) {
                                     start_pos

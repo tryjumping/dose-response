@@ -154,6 +154,46 @@ pub trait TextMetrics {
     }
 }
 
+
+// Calculate the width in pixels of a given text
+fn text_width_px(text: &str, tile_width_px: i32) -> i32 {
+    text.chars()
+        .map(|chr| glyph_advance_width(chr).unwrap_or(tile_width_px as i32))
+        .sum()
+}
+
+fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
+    let mut result = vec![];
+    let wrap_width_px = width_tiles * tile_width_px;
+    let space_width = glyph_advance_width(' ').unwrap_or(tile_width_px as i32);
+
+    let mut current_line = String::new();
+    let mut current_width_px = 0;
+
+    let mut words = text.split(' ');
+    if let Some(word) = words.next() {
+        current_width_px += text_width_px(word, tile_width_px);
+        current_line.push_str(word);
+    }
+
+    for word in words {
+        let word_width = text_width_px(word, tile_width_px);
+        if current_width_px + space_width + word_width <= wrap_width_px {
+            current_width_px += space_width + word_width;
+            current_line.push(' ');
+            current_line.push_str(word);
+        } else {
+            result.push(current_line);
+            current_width_px = word_width;
+            current_line = String::from(word);
+        }
+    }
+    result.push(current_line);
+
+    result
+}
+
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Mouse {
     pub tile_pos: Point,

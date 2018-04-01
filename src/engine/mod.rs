@@ -154,7 +154,7 @@ pub trait TextMetrics {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Mouse {
     pub tile_pos: Point,
     pub screen_pos: Point,
@@ -162,14 +162,9 @@ pub struct Mouse {
     pub right: bool,
 }
 
-impl Default for Mouse {
-    fn default() -> Self {
-        Mouse {
-            tile_pos: Point::new(-1, -1),
-            screen_pos: Point::new(-1, -1),
-            left: false,
-            right: false,
-        }
+impl Mouse {
+    pub fn new() -> Self {
+        Default::default()
     }
 }
 

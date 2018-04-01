@@ -2,7 +2,7 @@ use std::cmp::{max, Ordering};
 use std::fmt::{self, Display, Error, Formatter};
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
-#[derive(Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Default, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
@@ -61,12 +61,6 @@ impl Into<Point> for (i32, i32) {
 impl Display for Point {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "({}, {})", self.x, self.y)
-    }
-}
-
-impl Default for Point {
-    fn default() -> Self {
-        Self::new(0, 0)
     }
 }
 

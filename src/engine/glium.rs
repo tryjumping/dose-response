@@ -1,7 +1,7 @@
 use self::vertex::Vertex;
 
 use color::Color;
-use engine::{self, Draw, Settings, TextMetrics, UpdateFn};
+use engine::{self, Draw, Mouse, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
 use state::State;
 
@@ -330,7 +330,7 @@ pub fn main_loop(
              current_monitor.as_ref().map(|m| m.get_position()),
              current_monitor.as_ref().map(|m| m.get_dimensions()));
 
-    let mut mouse = Default::default();
+    let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
     let mut background_map =
         vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize];

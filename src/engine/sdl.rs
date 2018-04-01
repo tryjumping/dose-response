@@ -253,6 +253,72 @@ pub fn main_loop(
                     }
                 }
 
+
+                &Draw::Text(start_pos, ref text, color, options) => {
+                    let mut render_line = |pos_px: Point, line: &str| {
+                        let mut offset_x = 0;
+
+                        // TODO: we need to split this by words or it
+                        // won't do word breaks, split at punctuation,
+                        // etc.
+
+                        // TODO: also, we're no longer calculating the
+                        // line height correctly. Needs to be set on the
+                        // actual result here.
+                        for chr in line.chars() {
+                            let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
+                                .unwrap_or((0, 0));
+
+                            let src = Rect::new(texture_index_x * tilesize as i32,
+                                                texture_index_y * tilesize as i32,
+                                                tilesize, tilesize);
+                            let dst = Rect::new(pos_px.x + offset_x,
+                                                pos_px.y,
+                                                tilesize, tilesize);
+
+                            texture.set_color_mod(color.r, color.g, color.b);
+                            if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
+                                println!("[{}] WARNING: blitting {:?} to {:?} failed:",
+                                         current_frame_id, src, dst);
+                                println!("{}", err);
+                            }
+
+                            let advance_width =
+                                engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+                            offset_x += advance_width;
+                        }
+                    };
+
+                    if options.wrap && options.width > 0 {
+                        // TODO: handle text alignment for wrapped text
+                        let lines = engine::wrap_text(text, options.width, tilesize as i32);
+                        for (index, line) in lines.iter().enumerate() {
+                            let pos = (start_pos + Point::new(0, index as i32)) * tilesize as i32;
+                            render_line(pos, line);
+                        }
+                    } else {
+                        use engine::TextAlign::*;
+                        let pos = match options.align {
+                            Left => start_pos * tilesize as i32,
+                            Right => {
+                                (start_pos + (1, 0)) * tilesize as i32
+                                    - Point::new(engine::text_width_px(text, tilesize as i32), 0)
+                            }
+                            Center => {
+                                let text_width = engine::text_width_px(text, tilesize as i32);
+                                let max_width = options.width * tilesize as i32;
+                                if max_width < 1 || (text_width > max_width) {
+                                    start_pos
+                                } else {
+                                    (start_pos * tilesize as i32)
+                                        + Point::new((max_width - text_width) / 2, 0)
+                                }
+                            }
+                        };
+                        render_line(pos, text);
+                    }
+                }
+
                 _ => {}
             }
         }

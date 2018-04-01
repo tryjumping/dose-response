@@ -27,17 +27,6 @@ fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
     ]
 }
 
-/// If `val` is outside the `min` / `max` limits, set it to the edge value.
-fn clamp(min: i32, val: i32, max: i32) -> i32 {
-    if val < min {
-        min
-    } else if val > max {
-        max
-    } else {
-        val
-    }
-}
-
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
         BackendKey::Return => Some(KeyCode::Enter),
@@ -1043,8 +1032,8 @@ pub fn main_loop(
                             let (x, y) = (x as i32, y as i32);
 
                             let (x, y) = (x - (extra_px[0] / 2.0) as i32, y - (extra_px[1] / 2.0) as i32);
-                            let x = clamp(0, x, display_px[0] as i32 - 1);
-                            let y = clamp(0, y, display_px[1] as i32 - 1);
+                            let x = util::clamp(0, x, display_px[0] as i32 - 1);
+                            let y = util::clamp(0, y, display_px[1] as i32 - 1);
 
                             mouse.screen_pos = Point { x, y };
 

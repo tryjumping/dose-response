@@ -27,6 +27,30 @@ pub fn num_microseconds(duration: Duration) -> Option<u64> {
     None
 }
 
+
+/// If `val` is outside the `min` / `max` limits, set it to the edge value.
+pub fn clamp(min: i32, val: i32, max: i32) -> i32 {
+    if val < min {
+        min
+    } else if val > max {
+        max
+    } else {
+        val
+    }
+}
+
+/// If `val` is outside the `min` / `max` limits, set it to the edge value.
+pub fn clampf(min: f32, val: f32, max: f32) -> f32 {
+    if val < min {
+        min
+    } else if val > max {
+        max
+    } else {
+        val
+    }
+}
+
+
 #[cfg(not(feature = "web"))]
 pub fn random_seed() -> u32 {
     rand::random::<u32>()

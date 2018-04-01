@@ -108,6 +108,7 @@ pub fn main_loop(
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
     let window = video_subsystem.window(window_title, desired_window_width, desired_window_height)
+        .opengl()
         .position_centered()
         .build()
         .expect("SDL window creation failed.");
@@ -117,6 +118,7 @@ pub fn main_loop(
     // with software???
     let mut canvas = window.into_canvas()
         .accelerated()
+        .present_vsync()
         .build()
         .expect("SDL canvas creation failed.");
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);

@@ -231,6 +231,28 @@ pub fn main_loop(
                         println!("{}", err);
                     }
                 }
+
+                &Draw::Background(..) => {
+                    // NOTE: do nothing, all the BG calls have been drawn already
+                }
+
+                &Draw::Rectangle(rect, color) => {
+                    let top_left_px = rect.top_left() * tilesize as i32;
+                    let dimensions_px = rect.size() * tilesize as i32;
+
+                    let rect = Rect::new(top_left_px.x, top_left_px.y,
+                                         dimensions_px.x as u32, dimensions_px.y as u32);
+                    canvas.set_draw_color(
+                        sdl2::pixels::Color::RGB(color.r,
+                                                 color.g,
+                                                 color.b));
+                    if let Err(err) = canvas.fill_rect(rect) {
+                        println!("[{}] WARNING: `Draw::Rectangle` {:?} failed:",
+                                 current_frame_id, rect);
+                        println!("{}", err);
+                    }
+                }
+
                 _ => {}
             }
         }

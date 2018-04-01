@@ -91,7 +91,7 @@ pub fn main_loop(
         .expect("SDL event pump creation failed.");
 
     let texture_creator = canvas.texture_creator();
-    let texture = load_texture(&texture_creator)
+    let mut texture = load_texture(&texture_creator)
         .expect("Loading texture failed.");
 
     let mut mouse = Mouse::new();
@@ -206,6 +206,7 @@ pub fn main_loop(
                                         pos.y * tilesize as i32 + offset_px.y,
                                         tilesize, tilesize);
 
+                    texture.set_color_mod(foreground_color.r, foreground_color.g, foreground_color.b);
                     if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
                         println!("WARNING: blitting {:?} to {:?} failed:", src, dst);
                         println!("{}", err);

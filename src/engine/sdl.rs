@@ -27,11 +27,44 @@ pub struct Metrics {
 
 impl TextMetrics for Metrics {
     fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
-        self.tile_width_px
+        match text_drawcall {
+            &Draw::Text(_pos, ref text, _color, options) => {
+                if options.wrap && options.width > 0 {
+                    // TODO: this does a needless allocation by
+                    // returning Vec<String> we don't use here.
+                    let lines = engine::wrap_text(&text, options.width, self.tile_width_px);
+                    lines.len() as i32
+                } else {
+                    1
+                }
+            }
+            _ => {
+                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
+            }
+        }
     }
 
     fn get_text_width(&self, text_drawcall: &Draw) -> i32 {
-        self.tile_width_px
+        match text_drawcall {
+            &Draw::Text(_, ref text, _, options) => {
+                let pixel_width = if options.wrap && options.width > 0 {
+                    // // TODO: handle text alignment for wrapped text
+                    let lines = engine::wrap_text(text, options.width, self.tile_width_px);
+                    lines
+                        .iter()
+                        .map(|line| engine::text_width_px(line, self.tile_width_px))
+                        .max()
+                        .unwrap_or(0)
+                } else {
+                    engine::text_width_px(text, self.tile_width_px)
+                };
+                let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
+                tile_width as i32
+            }
+            _ => {
+                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
+            }
+        }
     }
 }
 

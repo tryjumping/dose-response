@@ -1,6 +1,7 @@
 use color::Color;
 use engine::{self, Draw, Mouse, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
+use keys::KeyCode;
 use point::Point;
 use state::State;
 use util;
@@ -9,7 +10,7 @@ use std::time::{Duration, Instant};
 
 use sdl2;
 use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
+use sdl2::keyboard::{self, Keycode as BackendKey};
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::{Texture, TextureCreator};
@@ -64,6 +65,84 @@ impl TextMetrics for Metrics {
                 panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
             }
         }
+    }
+}
+
+
+fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
+    match backend_code {
+        BackendKey::Return => Some(KeyCode::Enter),
+        BackendKey::Escape => Some(KeyCode::Esc),
+        BackendKey::Space => Some(KeyCode::Space),
+
+        BackendKey::Num0 => Some(KeyCode::D0),
+        BackendKey::Num1 => Some(KeyCode::D1),
+        BackendKey::Num2 => Some(KeyCode::D2),
+        BackendKey::Num3 => Some(KeyCode::D3),
+        BackendKey::Num4 => Some(KeyCode::D4),
+        BackendKey::Num5 => Some(KeyCode::D5),
+        BackendKey::Num6 => Some(KeyCode::D6),
+        BackendKey::Num7 => Some(KeyCode::D7),
+        BackendKey::Num8 => Some(KeyCode::D8),
+        BackendKey::Num9 => Some(KeyCode::D9),
+
+        BackendKey::A => Some(KeyCode::A),
+        BackendKey::B => Some(KeyCode::B),
+        BackendKey::C => Some(KeyCode::C),
+        BackendKey::D => Some(KeyCode::D),
+        BackendKey::E => Some(KeyCode::E),
+        BackendKey::F => Some(KeyCode::F),
+        BackendKey::G => Some(KeyCode::G),
+        BackendKey::H => Some(KeyCode::H),
+        BackendKey::I => Some(KeyCode::I),
+        BackendKey::J => Some(KeyCode::J),
+        BackendKey::K => Some(KeyCode::K),
+        BackendKey::L => Some(KeyCode::L),
+        BackendKey::M => Some(KeyCode::M),
+        BackendKey::N => Some(KeyCode::N),
+        BackendKey::O => Some(KeyCode::O),
+        BackendKey::P => Some(KeyCode::P),
+        BackendKey::Q => Some(KeyCode::Q),
+        BackendKey::R => Some(KeyCode::R),
+        BackendKey::S => Some(KeyCode::S),
+        BackendKey::T => Some(KeyCode::T),
+        BackendKey::U => Some(KeyCode::U),
+        BackendKey::V => Some(KeyCode::V),
+        BackendKey::W => Some(KeyCode::W),
+        BackendKey::X => Some(KeyCode::X),
+        BackendKey::Y => Some(KeyCode::Y),
+        BackendKey::Z => Some(KeyCode::Z),
+
+        BackendKey::F1 => Some(KeyCode::F1),
+        BackendKey::F2 => Some(KeyCode::F2),
+        BackendKey::F3 => Some(KeyCode::F3),
+        BackendKey::F4 => Some(KeyCode::F4),
+        BackendKey::F5 => Some(KeyCode::F5),
+        BackendKey::F6 => Some(KeyCode::F6),
+        BackendKey::F7 => Some(KeyCode::F7),
+        BackendKey::F8 => Some(KeyCode::F8),
+        BackendKey::F9 => Some(KeyCode::F9),
+        BackendKey::F10 => Some(KeyCode::F10),
+        BackendKey::F11 => Some(KeyCode::F11),
+        BackendKey::F12 => Some(KeyCode::F12),
+
+        BackendKey::Right => Some(KeyCode::Right),
+        BackendKey::Left => Some(KeyCode::Left),
+        BackendKey::Down => Some(KeyCode::Down),
+        BackendKey::Up => Some(KeyCode::Up),
+
+        BackendKey::Kp1 => Some(KeyCode::NumPad1),
+        BackendKey::Kp2 => Some(KeyCode::NumPad2),
+        BackendKey::Kp3 => Some(KeyCode::NumPad3),
+        BackendKey::Kp4 => Some(KeyCode::NumPad4),
+        BackendKey::Kp5 => Some(KeyCode::NumPad5),
+        BackendKey::Kp6 => Some(KeyCode::NumPad6),
+        BackendKey::Kp7 => Some(KeyCode::NumPad7),
+        BackendKey::Kp8 => Some(KeyCode::NumPad8),
+        BackendKey::Kp9 => Some(KeyCode::NumPad9),
+        BackendKey::Kp0 => Some(KeyCode::NumPad0),
+
+        _ => None,
     }
 }
 
@@ -169,7 +248,16 @@ pub fn main_loop(
                     running = false;
                 },
 
-                Event::KeyDown {keycode: Some(Keycode::F), ..} => {
+                Event::KeyDown { keycode: Some(backend_code), keymod, ..} => {
+                    if let Some(code) = key_code_from_backend(backend_code) {
+                        let key = super::Key {
+                            code: code,
+                            alt: keymod.intersects(keyboard::LALTMOD | keyboard::RALTMOD),
+                            ctrl: keymod.intersects(keyboard::LCTRLMOD | keyboard::RCTRLMOD),
+                            shift: keymod.intersects(keyboard::LSHIFTMOD | keyboard::RSHIFTMOD),
+                        };
+                        keys.push(key);
+                    }
                 }
 
                 Event::MouseMotion {x, y, ..} => {

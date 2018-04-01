@@ -316,6 +316,12 @@ pub fn main_loop(
                         println!("{}", err);
                     }
 
+                    // NOTE: Center the glyphs in their cells
+                    let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+                    let x_offset = (tilesize as i32 - glyph_width) / 2;
+                    let mut dst = dst;
+                    dst.offset(x_offset, 0);
+
                     texture.set_color_mod(foreground_color.r, foreground_color.g, foreground_color.b);
                     if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
                         println!("[{}] WARNING: Draw::Char blitting char {:?} at pos {:?} from source {:?} to {:?} failed:",

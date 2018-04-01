@@ -297,37 +297,40 @@ pub fn main_loop(
         for drawcall in &drawcalls {
             match drawcall {
                 &Draw::Char(pos, chr, foreground_color, offset_px) => {
-                    let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
-                        .unwrap_or((0, 0));
-                    let src = Rect::new(texture_index_x * tilesize as i32,
-                                        texture_index_y * tilesize as i32,
-                                        tilesize, tilesize);
-                    let dst = Rect::new(pos.x * tilesize as i32 + offset_px.x,
-                                        pos.y * tilesize as i32 + offset_px.y,
-                                        tilesize, tilesize);
+                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
+                    {
+                        let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
+                            .unwrap_or((0, 0));
+                        let src = Rect::new(texture_index_x * tilesize as i32,
+                                            texture_index_y * tilesize as i32,
+                                            tilesize, tilesize);
+                        let dst = Rect::new(pos.x * tilesize as i32 + offset_px.x,
+                                            pos.y * tilesize as i32 + offset_px.y,
+                                            tilesize, tilesize);
 
-                    let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
-                    canvas.set_draw_color(
-                        sdl2::pixels::Color::RGB(background_color.r,
-                                                 background_color.g,
-                                                 background_color.b));
-                    if let Err(err) = canvas.fill_rect(dst) {
-                        println!("[{}] WARNING: Draw::Char drawing rectangle {:?} failed:",
-                                 current_frame_id, dst);
-                        println!("{}", err);
-                    }
+                        let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
+                        canvas.set_draw_color(
+                            sdl2::pixels::Color::RGB(background_color.r,
+                                                     background_color.g,
+                                                     background_color.b));
+                        if let Err(err) = canvas.fill_rect(dst) {
+                            println!("[{}] WARNING: Draw::Char drawing rectangle {:?} failed:",
+                                     current_frame_id, dst);
+                            println!("{}", err);
+                        }
 
-                    // NOTE: Center the glyphs in their cells
-                    let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                    let x_offset = (tilesize as i32 - glyph_width) / 2;
-                    let mut dst = dst;
-                    dst.offset(x_offset, 0);
+                        // NOTE: Center the glyphs in their cells
+                        let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+                        let x_offset = (tilesize as i32 - glyph_width) / 2;
+                        let mut dst = dst;
+                        dst.offset(x_offset, 0);
 
-                    texture.set_color_mod(foreground_color.r, foreground_color.g, foreground_color.b);
-                    if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
-                        println!("[{}] WARNING: Draw::Char blitting char {:?} at pos {:?} from source {:?} to {:?} failed:",
-                                 current_frame_id, chr, pos, src, dst);
-                        println!("{}", err);
+                        texture.set_color_mod(foreground_color.r, foreground_color.g, foreground_color.b);
+                        if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
+                            println!("[{}] WARNING: Draw::Char blitting char {:?} at pos {:?} from source {:?} to {:?} failed:",
+                                     current_frame_id, chr, pos, src, dst);
+                            println!("{}", err);
+                        }
                     }
                 }
 

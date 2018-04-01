@@ -18,7 +18,8 @@ use sdl2::surface::Surface;
 use image;
 
 
-//const DESIRED_FPS: u64 = 60;
+const DESIRED_FPS: u64 = 60;
+const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
 
 
 pub struct Metrics {
@@ -186,7 +187,7 @@ pub fn main_loop(
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
     let window = video_subsystem.window(window_title, desired_window_width, desired_window_height)
-        .opengl()
+        //.opengl()
         .position_centered()
         .build()
         .expect("SDL window creation failed.");
@@ -196,7 +197,8 @@ pub fn main_loop(
     // with software???
     let mut canvas = window.into_canvas()
         .accelerated()
-        .present_vsync()
+        //NOTE: vsync seems to cause occasional flickering. Keeping it disabled.
+        //.present_vsync()
         .build()
         .expect("SDL canvas creation failed.");
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
@@ -214,7 +216,6 @@ pub fn main_loop(
     let mut background_map =
         vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize];
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
-    // let expected_frame_length = Duration::from_millis(1000 / DESIRED_FPS);
     let mut keys = vec![];
     // We're not using alpha at all for now, but it's passed everywhere.
     let mut previous_frame_start_time = Instant::now();
@@ -543,9 +544,9 @@ pub fn main_loop(
         // println!("Code duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
-        // if let Some(sleep_duration) = expected_frame_length.checked_sub(frame_start_time.elapsed()) {
-        //     ::std::thread::sleep(sleep_duration);
-        // };
+        if let Some(sleep_duration) = EXPECTED_FRAME_LENGTH.checked_sub(frame_start_time.elapsed()) {
+            ::std::thread::sleep(sleep_duration);
+        };
 
         // println!("Total frame duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);

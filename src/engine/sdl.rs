@@ -119,6 +119,8 @@ pub fn main_loop(
         .accelerated()
         .build()
         .expect("SDL canvas creation failed.");
+    canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
+
 
     let mut event_pump = sdl_context.event_pump()
         .expect("SDL event pump creation failed.");
@@ -245,6 +247,8 @@ pub fn main_loop(
             }
         }
 
+        let mut screen_fade = None;
+
         for drawcall in &drawcalls {
             match drawcall {
                 &Draw::Char(pos, chr, foreground_color, offset_px) => {
@@ -352,7 +356,21 @@ pub fn main_loop(
                     }
                 }
 
-                _ => {}
+                &Draw::Fade(fade, color) => {
+                    screen_fade = Some((fade, color));
+                }
+            }
+        }
+
+        if let Some((fade, color)) = screen_fade {
+            let fade = util::clampf(0.0, fade, 1.0);
+            let fade = (fade * 255.0) as u8;
+            let alpha = 255 - fade;
+            canvas.set_draw_color(
+                sdl2::pixels::Color::RGBA(color.r, color.g, color.b, alpha));
+            if let Err(err) = canvas.fill_rect(None) {
+                println!("[{}] WARNING: Fading screen failed:", current_frame_id);
+                println!("{}", err);
             }
         }
 

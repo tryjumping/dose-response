@@ -352,6 +352,14 @@ pub fn main_loop(
         }
 
 
+        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
+            println!(
+                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
+                drawcalls.len(),
+                engine::DRAWCALL_CAPACITY
+            );
+        }
+
         engine::populate_background_map(&mut background_map, display_size, &drawcalls);
 
         // println!("Pre-draw duration: {:?}ms",

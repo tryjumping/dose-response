@@ -6,7 +6,6 @@ use state::State;
 use util;
 
 use std::time::{Duration, Instant};
-use std::thread;
 
 use sdl2;
 use sdl2::event::Event;
@@ -18,7 +17,7 @@ use sdl2::surface::Surface;
 use image;
 
 
-const DESIRED_FPS: u64 = 60;
+//const DESIRED_FPS: u64 = 60;
 
 
 pub struct Metrics {
@@ -136,7 +135,7 @@ pub fn main_loop(
     let mut background_map =
         vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize];
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
-    let expected_frame_length = Duration::from_millis(1000 / DESIRED_FPS);
+    // let expected_frame_length = Duration::from_millis(1000 / DESIRED_FPS);
     let mut keys = vec![];
     // We're not using alpha at all for now, but it's passed everywhere.
     let alpha = 1.0;
@@ -148,7 +147,6 @@ pub fn main_loop(
     // years at 60 FPS. 32 bits are just fine.
     let mut current_frame_id: i32 = 0;
     let mut running = true;
-
 
     while running {
         let frame_start_time = Instant::now();
@@ -225,6 +223,9 @@ pub fn main_loop(
 
 
         engine::populate_background_map(&mut background_map, display_size, &drawcalls);
+
+        // println!("Pre-draw duration: {:?}ms",
+        //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
         // NOTE: render
         canvas.set_draw_color(
@@ -376,14 +377,19 @@ pub fn main_loop(
             }
         }
 
+        // println!("Pre-present duration: {:?}ms",
+        //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
+
         canvas.present();
 
         // println!("Code duration: {:?}ms",
-        //          clock.elapsed().subsec_nanos() as f32 / 1_000_000.0);
-        if let Some(sleep_duration) = expected_frame_length.checked_sub(frame_start_time.elapsed()) {
-            thread::sleep(sleep_duration);
-        };
+        //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
+
+        // if let Some(sleep_duration) = expected_frame_length.checked_sub(frame_start_time.elapsed()) {
+        //     ::std::thread::sleep(sleep_duration);
+        // };
+
         // println!("Total frame duration: {:?}ms",
-        //          clock.elapsed().subsec_nanos() as f32 / 1_000_000.0);
+        //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
     }
 }

@@ -164,9 +164,11 @@ pub fn main_loop(
 
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
+
+                Event::Quit {..} => {
                     running = false;
                 },
+
                 Event::KeyDown {keycode: Some(Keycode::F), ..} => {
                     use sdl2::video::FullscreenType::*;
                     println!("Toggling fullscreen");
@@ -188,6 +190,44 @@ pub fn main_loop(
                     };
                     println!("Fullscreen result: {:?}", result);
                 }
+
+                Event::MouseMotion {x, y, ..} => {
+                    // TODO: calculate this from the real window size
+                    let display_px = [desired_window_width, desired_window_height];
+
+                    let x = util::clamp(0, x, display_px[0] as i32 - 1);
+                    let y = util::clamp(0, y, display_px[1] as i32 - 1);
+                    mouse.screen_pos = Point { x, y };
+
+                    let tile_width = display_px[0] as i32 / display_size.x;
+                    let mouse_tile_x = x / tile_width;
+
+                    let tile_height = display_px[1] as i32 / display_size.y;
+                    let mouse_tile_y = y / tile_height;
+
+                    mouse.tile_pos = Point {
+                        x: mouse_tile_x,
+                        y: mouse_tile_y,
+                    };
+                }
+
+                Event::MouseButtonDown {..} => {
+                    // NOTE: do nothing. We handle everything in the mouse up event
+                }
+
+                Event::MouseButtonUp {mouse_btn, ..} => {
+                    use sdl2::mouse::MouseButton::*;
+                    match mouse_btn {
+                        Left => {
+                            mouse.left = true;
+                        }
+                        Right => {
+                            mouse.right = true;
+                        }
+                        _ => {}
+                    }
+                }
+
                 _ => {}
             }
         }
@@ -218,6 +258,8 @@ pub fn main_loop(
             RunningState::Stopped => break,
         }
 
+        mouse.left = false;
+        mouse.right = false;
         keys.clear();
 
 

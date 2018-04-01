@@ -170,25 +170,6 @@ pub fn main_loop(
                 },
 
                 Event::KeyDown {keycode: Some(Keycode::F), ..} => {
-                    use sdl2::video::FullscreenType::*;
-                    println!("Toggling fullscreen");
-                    let fullscreen_state = canvas.window().fullscreen_state();
-                    println!("Current state: {:?}", fullscreen_state);
-                    let result = match fullscreen_state {
-                        Off => {
-                            println!("Switching to (desktop-type) fullscreen");
-                            canvas.window_mut().set_fullscreen(Desktop)
-                        }
-                        True => {
-                            println!("Switching fullscreen OFF");
-                            canvas.window_mut().set_fullscreen(Off)
-                        }
-                        Desktop => {
-                            println!("Switching fullscreen OFF");
-                            canvas.window_mut().set_fullscreen(Off)
-                        }
-                    };
-                    println!("Fullscreen result: {:?}", result);
                 }
 
                 Event::MouseMotion {x, y, ..} => {
@@ -261,6 +242,26 @@ pub fn main_loop(
         mouse.left = false;
         mouse.right = false;
         keys.clear();
+
+
+        if cfg!(feature = "fullscreen") {
+            use sdl2::video::FullscreenType::*;
+            if previous_settings.fullscreen != settings.fullscreen {
+                if settings.fullscreen {
+                    println!("[{}] Switching to (desktop-type) fullscreen", current_frame_id);
+                    if let Err(err) = canvas.window_mut().set_fullscreen(Desktop) {
+                        println!("[{}] WARNING: Could not switch to fullscreen:", current_frame_id);
+                        println!("{:?}", err);
+                    }
+                } else {
+                    println!("[{}] Switching fullscreen off", current_frame_id);
+                    if let Err(err) = canvas.window_mut().set_fullscreen(Off) {
+                        println!("[{}] WARNING: Could not leave fullscreen:", current_frame_id);
+                        println!("{:?}", err);
+                    }
+                }
+            }
+        }
 
 
         engine::populate_background_map(&mut background_map, display_size, &drawcalls);

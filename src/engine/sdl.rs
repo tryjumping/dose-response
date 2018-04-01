@@ -305,10 +305,21 @@ pub fn main_loop(
                                         pos.y * tilesize as i32 + offset_px.y,
                                         tilesize, tilesize);
 
+                    let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
+                    canvas.set_draw_color(
+                        sdl2::pixels::Color::RGB(background_color.r,
+                                                 background_color.g,
+                                                 background_color.b));
+                    if let Err(err) = canvas.fill_rect(dst) {
+                        println!("[{}] WARNING: Draw::Char drawing rectangle {:?} failed:",
+                                 current_frame_id, dst);
+                        println!("{}", err);
+                    }
+
                     texture.set_color_mod(foreground_color.r, foreground_color.g, foreground_color.b);
                     if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
-                        println!("[{}] WARNING: blitting {:?} to {:?} failed:",
-                                 current_frame_id, src, dst);
+                        println!("[{}] WARNING: Draw::Char blitting char {:?} at pos {:?} from source {:?} to {:?} failed:",
+                                 current_frame_id, chr, pos, src, dst);
                         println!("{}", err);
                     }
                 }

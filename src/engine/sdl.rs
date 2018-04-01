@@ -195,7 +195,22 @@ pub fn main_loop(
                                      default_background.g,
                                      default_background.b));
         canvas.clear();
-        //canvas.set_draw_color(sdl2::pixels::Color::RGB(255, 0, 255));
+        // Render the background tiles separately and before all the other drawcalls.
+        for (index, background_color) in background_map.iter().enumerate() {
+            let pos_x = (index as i32) % display_size.x * tilesize as i32;
+            let pos_y = (index as i32) / display_size.x * tilesize as i32;
+
+            canvas.set_draw_color(
+                sdl2::pixels::Color::RGB(background_color.r,
+                                         background_color.g,
+                                         background_color.b));
+            let rect = Rect::new(pos_x, pos_y, tilesize, tilesize);
+            if let Err(err) = canvas.fill_rect(rect) {
+                println!("[{}] WARNING: drawing rectangle {:?} failed:",
+                         current_frame_id, rect);
+                println!("{}", err);
+            }
+        }
 
         for drawcall in &drawcalls {
             match drawcall {
@@ -211,7 +226,8 @@ pub fn main_loop(
 
                     texture.set_color_mod(foreground_color.r, foreground_color.g, foreground_color.b);
                     if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
-                        println!("WARNING: blitting {:?} to {:?} failed:", src, dst);
+                        println!("[{}] WARNING: blitting {:?} to {:?} failed:",
+                                 current_frame_id, src, dst);
                         println!("{}", err);
                     }
                 }

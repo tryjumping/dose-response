@@ -71,7 +71,6 @@ mod stats;
 mod timer;
 mod ui;
 mod util;
-mod window_stack;
 mod windows;
 mod world;
 

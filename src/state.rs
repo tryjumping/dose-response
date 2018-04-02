@@ -18,7 +18,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
 use timer::Timer;
-use window_stack::WindowStack;
 use windows;
 use world::World;
 
@@ -136,7 +135,7 @@ pub struct State {
     /// show the endgame screen -- uncovered map, the score, etc.
     pub game_ended: bool,
 
-    pub window_stack: WindowStack<Window>,
+    pub window_stack: windows::Windows<Window>,
 
     pub show_keboard_movement_hints: bool,
     pub current_help_window: windows::help::Page,
@@ -208,7 +207,7 @@ impl State {
             paused: false,
             screen_fading: None,
             game_ended: false,
-            window_stack: WindowStack::new(Window::Game),
+            window_stack: windows::Windows::new(Window::Game),
             show_keboard_movement_hints: true,
             current_help_window: windows::help::Page::DoseResponse,
             show_endscreen_and_uncover_map_during_fadein: false,

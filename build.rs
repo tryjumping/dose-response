@@ -55,7 +55,7 @@ fn main() {
 
     let mut lookup_table_contents = String::new();
 
-    lookup_table_contents.push_str(&format!("const TILESIZE: u32 = {};\n", height as u32));
+    lookup_table_contents.push_str(&format!("pub const TILESIZE: u32 = {};\n", height as u32));
 
     lookup_table_contents
         .push_str("fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n");

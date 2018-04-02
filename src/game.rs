@@ -1,7 +1,7 @@
 use animation::{self, AreaOfEffect};
 use blocker::Blocker;
 use color;
-use engine::{Draw, Mouse, Settings, TextMetrics};
+use engine::{TILESIZE, Draw, Mouse, Settings, TextMetrics};
 use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
@@ -214,10 +214,14 @@ fn process_game(
     // get too close to an edge.
     state.pos_timer.update(dt);
     if !state.pos_timer.finished() {
-        let percentage = state.pos_timer.percentage_elapsed();
-        let x = (((state.new_screen_pos.x - state.old_screen_pos.x) as f32) * percentage) as i32;
-        let y = (((state.new_screen_pos.y - state.old_screen_pos.y) as f32) * percentage) as i32;
-        state.screen_position_in_world = state.old_screen_pos + (x, y);
+        let percentage = util::sine_curve(state.pos_timer.percentage_elapsed());
+        let tilesize = TILESIZE as f32;
+        let x = ((state.old_screen_pos.x - state.new_screen_pos.x) as f32) * percentage * tilesize;
+        let y = ((state.old_screen_pos.y - state.new_screen_pos.y) as f32) * percentage * tilesize;
+        state.offset_px = Point::new(x as i32, y as i32);
+    } else {
+        state.screen_position_in_world = state.new_screen_pos;
+        state.offset_px = Point::zero();
     }
 
     let player_was_alive = state.player.alive();
@@ -259,8 +263,6 @@ fn process_game(
 
         spent_turn = command_count > state.commands.len();
     }
-
-    state.screen_position_in_world = state.player.pos;
 
     if spent_turn {
         state.turn += 1;
@@ -372,18 +374,13 @@ fn process_game(
         // TODO: move the screen roughly the same distance along X and Y
         if display_pos.x < exploration_radius
             || display_pos.x >= state.map_size.x - exploration_radius
-        {
-            // change the screen centre to that of the player
-            state.pos_timer = Timer::new(dur);
-            state.old_screen_pos = state.screen_position_in_world;
-            state.new_screen_pos = (state.player.pos.x, state.old_screen_pos.y).into();
-        } else if display_pos.y < exploration_radius
+            || display_pos.y < exploration_radius
             || display_pos.y >= state.map_size.y - exploration_radius
         {
-            // change the screen centre to that of the player
             state.pos_timer = Timer::new(dur);
             state.old_screen_pos = state.screen_position_in_world;
-            state.new_screen_pos = (state.old_screen_pos.x, state.player.pos.y).into();
+            // change the screen centre to that of the player
+            state.new_screen_pos = state.player.pos;
         } else {
             // Do nothing
         }

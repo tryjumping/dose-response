@@ -130,6 +130,7 @@ pub struct State {
     pub old_screen_pos: Point,
     pub new_screen_pos: Point,
     pub screen_fading: Option<ScreenFade>,
+    pub offset_px: Point,
 
     /// Whether the game is over (one way or another) and we should
     /// show the endgame screen -- uncovered map, the score, etc.
@@ -203,6 +204,7 @@ impl State {
             pos_timer: Timer::new(Duration::from_millis(0)),
             old_screen_pos: (0, 0).into(),
             new_screen_pos: (0, 0).into(),
+            offset_px: Point::zero(),
             paused: false,
             screen_fading: None,
             game_ended: false,

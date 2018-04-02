@@ -51,6 +51,17 @@ pub fn clampf(min: f32, val: f32, max: f32) -> f32 {
 }
 
 
+/// Take a floating value from <0.0, 1.0> and get it through a sine
+/// curve processing. The result is <0.0, 1.0> but represented as part
+/// of the sine curve, not a line.
+pub fn sine_curve(percentage: f32) -> f32 {
+    use std::f32::consts;
+    let val = clampf(0.0, percentage, 1.0);
+    let rad = val * consts::PI / 2.0;
+    rad.sin()
+}
+
+
 #[cfg(not(feature = "web"))]
 pub fn random_seed() -> u32 {
     rand::random::<u32>()

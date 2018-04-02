@@ -65,7 +65,7 @@ pub fn render_game(
     fps: i32,
     drawcalls: &mut Vec<Draw>,
 ) {
-    let offset_px = Point::zero();
+    let offset_px = state.offset_px;
 
 
     if state.player.alive() {

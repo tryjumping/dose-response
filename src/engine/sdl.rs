@@ -369,10 +369,15 @@ pub fn main_loop(
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
         // NOTE: render
+        // NOTE: setting clear colour to magenta temporarily to see if the "vsync flickers" are black or bg colou
         canvas.set_draw_color(
-            sdl2::pixels::Color::RGB(default_background.r,
-                                     default_background.g,
-                                     default_background.b));
+            sdl2::pixels::Color::RGB(255,
+                                     0,
+                                     255));
+        // canvas.set_draw_color(
+        //     sdl2::pixels::Color::RGB(default_background.r,
+        //                              default_background.g,
+        //                              default_background.b));
         canvas.clear();
         // Render the background tiles separately and before all the other drawcalls.
         for (index, background_color) in background_map.iter().enumerate() {

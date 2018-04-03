@@ -179,6 +179,152 @@ fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, Strin
 }
 
 
+fn generate_sdl_drawcalls(drawcalls: &[Draw],
+                          background_map: &[Color],
+                          display_size: Point,
+                          tilesize: i32,
+                          sdl_drawcalls: &mut Vec<SDLDrawcall>) {
+    use self::SDLDrawcall::*;
+    assert!(tilesize > 0);
+
+    // Render the background tiles separately and before all the other drawcalls.
+    for (index, background_color) in background_map.iter().enumerate() {
+        let pos_x = (index as i32) % display_size.x * tilesize;
+        let pos_y = (index as i32) / display_size.x * tilesize;
+
+        sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
+                                                                 background_color.g,
+                                                                 background_color.b)));
+        let rect = Rect::new(pos_x, pos_y, tilesize as u32, tilesize as u32);
+        sdl_drawcalls.push(FillRect(Some(rect)));
+    }
+
+    let mut screen_fade = None;
+
+    for drawcall in drawcalls.iter() {
+        match drawcall {
+            &Draw::Char(pos, chr, foreground_color, offset_px) => {
+                if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                    let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
+                        .unwrap_or((0, 0));
+                    let src = Rect::new(texture_index_x * tilesize,
+                                        texture_index_y * tilesize,
+                                        tilesize as u32, tilesize as u32);
+                    let dst = Rect::new(pos.x * tilesize + offset_px.x,
+                                        pos.y * tilesize + offset_px.y,
+                                        tilesize as u32, tilesize as u32);
+
+                    let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
+                    sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
+                                                                             background_color.g,
+                                                                             background_color.b)));
+                    sdl_drawcalls.push(FillRect(Some(dst)));
+
+                    // NOTE: Center the glyphs in their cells
+                    let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize);
+                    let x_offset = (tilesize as i32 - glyph_width) / 2;
+                    let mut dst = dst;
+                    dst.offset(x_offset, 0);
+
+                    sdl_drawcalls.push(SetColorMod(foreground_color.r, foreground_color.g, foreground_color.b));
+                    sdl_drawcalls.push(Copy(src, dst));
+                }
+            }
+
+            &Draw::Background(..) => {
+                // NOTE: do nothing, all the BG calls have been drawn already
+            }
+
+            &Draw::Rectangle(rect, color) => {
+                let top_left_px = rect.top_left() * tilesize;
+                let dimensions_px = rect.size() * tilesize;
+
+                let rect = Rect::new(top_left_px.x, top_left_px.y,
+                                     dimensions_px.x as u32, dimensions_px.y as u32);
+                sdl_drawcalls.push(SetDrawColor(
+                    sdl2::pixels::Color::RGB(color.r,
+                                             color.g,
+                                             color.b)));
+                sdl_drawcalls.push(FillRect(Some(rect)));
+            }
+
+
+            &Draw::Text(start_pos, ref text, color, options) => {
+                let mut render_line = |pos_px: Point, line: &str| {
+                    let mut offset_x = 0;
+
+                    // TODO: we need to split this by words or it
+                    // won't do word breaks, split at punctuation,
+                    // etc.
+
+                    // TODO: also, we're no longer calculating the
+                    // line height correctly. Needs to be set on the
+                    // actual result here.
+                    for chr in line.chars() {
+                        let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
+                            .unwrap_or((0, 0));
+
+                        let src = Rect::new(texture_index_x * tilesize,
+                                            texture_index_y * tilesize,
+                                            tilesize as u32, tilesize as u32);
+                        let dst = Rect::new(pos_px.x + offset_x,
+                                            pos_px.y,
+                                            tilesize as u32, tilesize as u32);
+
+                        sdl_drawcalls.push(SetColorMod(color.r, color.g, color.b));
+                        sdl_drawcalls.push(Copy(src, dst));
+
+                        let advance_width =
+                            engine::glyph_advance_width(chr).unwrap_or(tilesize);
+                        offset_x += advance_width;
+                    }
+                };
+
+                if options.wrap && options.width > 0 {
+                    // TODO: handle text alignment for wrapped text
+                    let lines = engine::wrap_text(text, options.width, tilesize);
+                    for (index, line) in lines.iter().enumerate() {
+                        let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
+                        render_line(pos, line);
+                    }
+                } else {
+                    use engine::TextAlign::*;
+                    let pos = match options.align {
+                        Left => start_pos * tilesize,
+                        Right => {
+                            (start_pos + (1, 0)) * tilesize
+                                - Point::new(engine::text_width_px(text, tilesize), 0)
+                        }
+                        Center => {
+                            let text_width = engine::text_width_px(text, tilesize);
+                            let max_width = options.width * tilesize;
+                            if max_width < 1 || (text_width > max_width) {
+                                start_pos
+                            } else {
+                                (start_pos * tilesize) + Point::new((max_width - text_width) / 2, 0)
+                            }
+                        }
+                    };
+                    render_line(pos, text);
+                }
+            }
+
+            &Draw::Fade(fade, color) => {
+                screen_fade = Some((fade, color));
+            }
+        }
+    }
+
+    if let Some((fade, color)) = screen_fade {
+        let fade = util::clampf(0.0, fade, 1.0);
+        let fade = (fade * 255.0) as u8;
+        let alpha = 255 - fade;
+        sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGBA(color.r, color.g, color.b, alpha)));
+        sdl_drawcalls.push(FillRect(None));
+    }
+}
+
+
 fn sdl_render(canvas: &mut Canvas<Window>,
               texture: &mut Texture,
               clear_color: Color,
@@ -210,7 +356,6 @@ pub fn main_loop(
     mut state: State,
     update: UpdateFn,
 ) {
-    use self::SDLDrawcall::*;
     let tilesize = super::TILESIZE;
     let (desired_window_width, desired_window_height) = (
         display_size.x as u32 * tilesize as u32,
@@ -343,7 +488,6 @@ pub fn main_loop(
         drawcalls.clear();
         let previous_settings = settings;
 
-
         let update_result = update(
             &mut state,
             dt,
@@ -407,8 +551,9 @@ pub fn main_loop(
         // NOTE: Turn the Engine drawcalls into SDL drawcalls.
         //
         // Instead of calling the SDL rendering functions directly,
-        // record the actions would have done (e.g. fill rect, copy,
-        // set draw color) and store them in the `sdl_drawcalls` Vec.
+        // record the actions we would have done (e.g. fill rect,
+        // copy, set draw color) and store them in the `sdl_drawcalls`
+        // Vec.
         //
         // It sounds a little strange, but it isolates calling into C
         // into its own block and hopefully lets the Rust compiler
@@ -420,145 +565,11 @@ pub fn main_loop(
         // functions?
 
         sdl_drawcalls.clear();
-
-        // Render the background tiles separately and before all the other drawcalls.
-        for (index, background_color) in background_map.iter().enumerate() {
-            let pos_x = (index as i32) % display_size.x * tilesize as i32;
-            let pos_y = (index as i32) / display_size.x * tilesize as i32;
-
-            sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
-                                         background_color.g,
-                                         background_color.b)));
-            let rect = Rect::new(pos_x, pos_y, tilesize, tilesize);
-            sdl_drawcalls.push(FillRect(Some(rect)));
-        }
-
-        let mut screen_fade = None;
-
-        for drawcall in &drawcalls {
-            match drawcall {
-                &Draw::Char(pos, chr, foreground_color, offset_px) => {
-                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
-                    {
-                        let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
-                            .unwrap_or((0, 0));
-                        let src = Rect::new(texture_index_x * tilesize as i32,
-                                            texture_index_y * tilesize as i32,
-                                            tilesize, tilesize);
-                        let dst = Rect::new(pos.x * tilesize as i32 + offset_px.x,
-                                            pos.y * tilesize as i32 + offset_px.y,
-                                            tilesize, tilesize);
-
-                        let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
-                        sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
-                                                                                 background_color.g,
-                                                                                 background_color.b)));
-                        sdl_drawcalls.push(FillRect(Some(dst)));
-
-                        // NOTE: Center the glyphs in their cells
-                        let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                        let x_offset = (tilesize as i32 - glyph_width) / 2;
-                        let mut dst = dst;
-                        dst.offset(x_offset, 0);
-
-                        sdl_drawcalls.push(SetColorMod(foreground_color.r, foreground_color.g, foreground_color.b));
-                        sdl_drawcalls.push(Copy(src, dst));
-                    }
-                }
-
-                &Draw::Background(..) => {
-                    // NOTE: do nothing, all the BG calls have been drawn already
-                }
-
-                &Draw::Rectangle(rect, color) => {
-                    let top_left_px = rect.top_left() * tilesize as i32;
-                    let dimensions_px = rect.size() * tilesize as i32;
-
-                    let rect = Rect::new(top_left_px.x, top_left_px.y,
-                                         dimensions_px.x as u32, dimensions_px.y as u32);
-                    sdl_drawcalls.push(SetDrawColor(
-                        sdl2::pixels::Color::RGB(color.r,
-                                                 color.g,
-                                                 color.b)));
-                    sdl_drawcalls.push(FillRect(Some(rect)));
-                }
-
-
-                &Draw::Text(start_pos, ref text, color, options) => {
-                    let mut render_line = |pos_px: Point, line: &str| {
-                        let mut offset_x = 0;
-
-                        // TODO: we need to split this by words or it
-                        // won't do word breaks, split at punctuation,
-                        // etc.
-
-                        // TODO: also, we're no longer calculating the
-                        // line height correctly. Needs to be set on the
-                        // actual result here.
-                        for chr in line.chars() {
-                            let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
-                                .unwrap_or((0, 0));
-
-                            let src = Rect::new(texture_index_x * tilesize as i32,
-                                                texture_index_y * tilesize as i32,
-                                                tilesize, tilesize);
-                            let dst = Rect::new(pos_px.x + offset_x,
-                                                pos_px.y,
-                                                tilesize, tilesize);
-
-                            sdl_drawcalls.push(SetColorMod(color.r, color.g, color.b));
-                            sdl_drawcalls.push(Copy(src, dst));
-
-                            let advance_width =
-                                engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                            offset_x += advance_width;
-                        }
-                    };
-
-                    if options.wrap && options.width > 0 {
-                        // TODO: handle text alignment for wrapped text
-                        let lines = engine::wrap_text(text, options.width, tilesize as i32);
-                        for (index, line) in lines.iter().enumerate() {
-                            let pos = (start_pos + Point::new(0, index as i32)) * tilesize as i32;
-                            render_line(pos, line);
-                        }
-                    } else {
-                        use engine::TextAlign::*;
-                        let pos = match options.align {
-                            Left => start_pos * tilesize as i32,
-                            Right => {
-                                (start_pos + (1, 0)) * tilesize as i32
-                                    - Point::new(engine::text_width_px(text, tilesize as i32), 0)
-                            }
-                            Center => {
-                                let text_width = engine::text_width_px(text, tilesize as i32);
-                                let max_width = options.width * tilesize as i32;
-                                if max_width < 1 || (text_width > max_width) {
-                                    start_pos
-                                } else {
-                                    (start_pos * tilesize as i32)
-                                        + Point::new((max_width - text_width) / 2, 0)
-                                }
-                            }
-                        };
-                        render_line(pos, text);
-                    }
-                }
-
-                &Draw::Fade(fade, color) => {
-                    screen_fade = Some((fade, color));
-                }
-            }
-        }
-
-        if let Some((fade, color)) = screen_fade {
-            let fade = util::clampf(0.0, fade, 1.0);
-            let fade = (fade * 255.0) as u8;
-            let alpha = 255 - fade;
-            sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGBA(color.r, color.g, color.b, alpha)));
-            sdl_drawcalls.push(FillRect(None));
-        }
-
+        generate_sdl_drawcalls(&drawcalls,
+                               &background_map,
+                               display_size,
+                               tilesize as i32,
+                               &mut sdl_drawcalls);
 
         if sdl_drawcalls.len() > SDL_DRAWCALL_CAPACITY {
             println!(
@@ -567,7 +578,6 @@ pub fn main_loop(
                 SDL_DRAWCALL_CAPACITY
             );
         }
-
 
         // println!("Pre-present duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);

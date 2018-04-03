@@ -187,7 +187,7 @@ pub fn main_loop(
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
     let window = video_subsystem.window(window_title, desired_window_width, desired_window_height)
-        //.opengl()
+        .opengl()
         .position_centered()
         .build()
         .expect("SDL window creation failed.");
@@ -197,8 +197,10 @@ pub fn main_loop(
     // with software???
     let mut canvas = window.into_canvas()
         .accelerated()
-        //NOTE: vsync seems to cause occasional flickering. Keeping it disabled.
-        //.present_vsync()
+        //.software()
+        //NOTE: vsync seems to cause occasional flickering. Need to investigate.
+        // Seems to work fine on geralt but have issues with worklaptop.
+        .present_vsync()
         .build()
         .expect("SDL canvas creation failed.");
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
@@ -544,11 +546,12 @@ pub fn main_loop(
         // println!("Code duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
-        if let Some(sleep_duration) = EXPECTED_FRAME_LENGTH.checked_sub(frame_start_time.elapsed()) {
-            ::std::thread::sleep(sleep_duration);
-        };
+        // if let Some(sleep_duration) = EXPECTED_FRAME_LENGTH.checked_sub(frame_start_time.elapsed()) {
+        //     ::std::thread::sleep(sleep_duration);
+        // };
 
         // println!("Total frame duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
+
     }
 }

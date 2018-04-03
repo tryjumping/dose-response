@@ -18,9 +18,9 @@ use sdl2::surface::Surface;
 use image;
 
 
-const DESIRED_FPS: u64 = 60;
-const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
-
+// const DESIRED_FPS: u64 = 60;
+// const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
+const SDL_DRAWCALL_CAPACITY: usize = engine::DRAWCALL_CAPACITY * 2;
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -147,6 +147,17 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     }
 }
 
+/// This represents the SDL rendering calls we're going to make. We
+/// want to run them all in a sincle place rather than intertwined
+/// with the other Rust code. Basically to better measure the
+/// performance.
+enum SDLDrawcall {
+    SetDrawColor(sdl2::pixels::Color),
+    FillRect(Option<Rect>),
+    SetColorMod(u8, u8, u8),
+    Copy(Rect, Rect),
+}
+
 
 fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, String> {
     let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
@@ -174,6 +185,7 @@ pub fn main_loop(
     mut state: State,
     update: UpdateFn,
 ) {
+    use self::SDLDrawcall::*;
     let tilesize = super::TILESIZE;
     let (desired_window_width, desired_window_height) = (
         display_size.x as u32 * tilesize as u32,
@@ -198,8 +210,6 @@ pub fn main_loop(
     let mut canvas = window.into_canvas()
         .accelerated()
         //.software()
-        //NOTE: vsync seems to cause occasional flickering. Need to investigate.
-        // Seems to work fine on geralt but have issues with worklaptop.
         .present_vsync()
         .build()
         .expect("SDL canvas creation failed.");
@@ -218,6 +228,7 @@ pub fn main_loop(
     let mut background_map =
         vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize];
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
+    let mut sdl_drawcalls = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
     let mut keys = vec![];
     // We're not using alpha at all for now, but it's passed everywhere.
     let mut previous_frame_start_time = Instant::now();
@@ -334,6 +345,13 @@ pub fn main_loop(
         mouse.right = false;
         keys.clear();
 
+        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
+            println!(
+                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
+                drawcalls.len(),
+                engine::DRAWCALL_CAPACITY
+            );
+        }
 
         if cfg!(feature = "fullscreen") {
             use sdl2::video::FullscreenType::*;
@@ -355,45 +373,39 @@ pub fn main_loop(
         }
 
 
-        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
-            println!(
-                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
-                drawcalls.len(),
-                engine::DRAWCALL_CAPACITY
-            );
-        }
-
         engine::populate_background_map(&mut background_map, display_size, &drawcalls);
 
         // println!("Pre-draw duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
-        // NOTE: render
-        // NOTE: setting clear colour to magenta temporarily to see if the "vsync flickers" are black or bg colou
-        canvas.set_draw_color(
-            sdl2::pixels::Color::RGB(255,
-                                     0,
-                                     255));
-        // canvas.set_draw_color(
-        //     sdl2::pixels::Color::RGB(default_background.r,
-        //                              default_background.g,
-        //                              default_background.b));
-        canvas.clear();
+
+        // NOTE: Turn the Engine drawcalls into SDL drawcalls.
+        //
+        // Instead of calling the SDL rendering functions directly,
+        // record the actions would have done (e.g. fill rect, copy,
+        // set draw color) and store them in the `sdl_drawcalls` Vec.
+        //
+        // It sounds a little strange, but it isolates calling into C
+        // into its own block and hopefully lets the Rust compiler
+        // optimise the drawcall processing better.
+        //
+        // More importantly, it'll be useful in profiling because
+        // we'll be able to measure where is our "rendering" time
+        // actually spent: drawcall processing or calling SDL
+        // functions?
+
+        sdl_drawcalls.clear();
+
         // Render the background tiles separately and before all the other drawcalls.
         for (index, background_color) in background_map.iter().enumerate() {
             let pos_x = (index as i32) % display_size.x * tilesize as i32;
             let pos_y = (index as i32) / display_size.x * tilesize as i32;
 
-            canvas.set_draw_color(
-                sdl2::pixels::Color::RGB(background_color.r,
+            sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
                                          background_color.g,
-                                         background_color.b));
+                                         background_color.b)));
             let rect = Rect::new(pos_x, pos_y, tilesize, tilesize);
-            if let Err(err) = canvas.fill_rect(rect) {
-                println!("[{}] WARNING: drawing rectangle {:?} failed:",
-                         current_frame_id, rect);
-                println!("{}", err);
-            }
+            sdl_drawcalls.push(FillRect(Some(rect)));
         }
 
         let mut screen_fade = None;
@@ -413,15 +425,10 @@ pub fn main_loop(
                                             tilesize, tilesize);
 
                         let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
-                        canvas.set_draw_color(
-                            sdl2::pixels::Color::RGB(background_color.r,
-                                                     background_color.g,
-                                                     background_color.b));
-                        if let Err(err) = canvas.fill_rect(dst) {
-                            println!("[{}] WARNING: Draw::Char drawing rectangle {:?} failed:",
-                                     current_frame_id, dst);
-                            println!("{}", err);
-                        }
+                        sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
+                                                                                 background_color.g,
+                                                                                 background_color.b)));
+                        sdl_drawcalls.push(FillRect(Some(dst)));
 
                         // NOTE: Center the glyphs in their cells
                         let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
@@ -429,12 +436,8 @@ pub fn main_loop(
                         let mut dst = dst;
                         dst.offset(x_offset, 0);
 
-                        texture.set_color_mod(foreground_color.r, foreground_color.g, foreground_color.b);
-                        if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
-                            println!("[{}] WARNING: Draw::Char blitting char {:?} at pos {:?} from source {:?} to {:?} failed:",
-                                     current_frame_id, chr, pos, src, dst);
-                            println!("{}", err);
-                        }
+                        sdl_drawcalls.push(SetColorMod(foreground_color.r, foreground_color.g, foreground_color.b));
+                        sdl_drawcalls.push(Copy(src, dst));
                     }
                 }
 
@@ -448,15 +451,11 @@ pub fn main_loop(
 
                     let rect = Rect::new(top_left_px.x, top_left_px.y,
                                          dimensions_px.x as u32, dimensions_px.y as u32);
-                    canvas.set_draw_color(
+                    sdl_drawcalls.push(SetDrawColor(
                         sdl2::pixels::Color::RGB(color.r,
                                                  color.g,
-                                                 color.b));
-                    if let Err(err) = canvas.fill_rect(rect) {
-                        println!("[{}] WARNING: `Draw::Rectangle` {:?} failed:",
-                                 current_frame_id, rect);
-                        println!("{}", err);
-                    }
+                                                 color.b)));
+                    sdl_drawcalls.push(FillRect(Some(rect)));
                 }
 
 
@@ -482,12 +481,8 @@ pub fn main_loop(
                                                 pos_px.y,
                                                 tilesize, tilesize);
 
-                            texture.set_color_mod(color.r, color.g, color.b);
-                            if let Err(err) = canvas.copy(&texture, Some(src), Some(dst)) {
-                                println!("[{}] WARNING: blitting {:?} to {:?} failed:",
-                                         current_frame_id, src, dst);
-                                println!("{}", err);
-                            }
+                            sdl_drawcalls.push(SetColorMod(color.r, color.g, color.b));
+                            sdl_drawcalls.push(Copy(src, dst));
 
                             let advance_width =
                                 engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
@@ -535,16 +530,39 @@ pub fn main_loop(
             let fade = util::clampf(0.0, fade, 1.0);
             let fade = (fade * 255.0) as u8;
             let alpha = 255 - fade;
-            canvas.set_draw_color(
-                sdl2::pixels::Color::RGBA(color.r, color.g, color.b, alpha));
-            if let Err(err) = canvas.fill_rect(None) {
-                println!("[{}] WARNING: Fading screen failed:", current_frame_id);
-                println!("{}", err);
-            }
+            sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGBA(color.r, color.g, color.b, alpha)));
+            sdl_drawcalls.push(FillRect(None));
         }
+
+
+        if sdl_drawcalls.len() > SDL_DRAWCALL_CAPACITY {
+            println!(
+                "Warning: SDL drawcall count exceeded initial capacity {}. Current count: {}.",
+                sdl_drawcalls.len(),
+                SDL_DRAWCALL_CAPACITY
+            );
+        }
+
 
         // println!("Pre-present duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
+
+        // NOTE: render
+        canvas.set_draw_color(
+            sdl2::pixels::Color::RGB(default_background.r,
+                                     default_background.g,
+                                     default_background.b));
+        canvas.clear();
+
+        for dc in sdl_drawcalls.iter() {
+            // TODO: collect the results? Or at least the errors?
+            match dc {
+                &SetDrawColor(color) => canvas.set_draw_color(color),
+                &FillRect(rect) => canvas.fill_rect(rect).unwrap(),
+                &SetColorMod(r, g, b) => texture.set_color_mod(r, g, b),
+                &Copy(src, dst) => canvas.copy(&texture, src, dst).unwrap(),
+            }
+        }
 
         canvas.present();
 
@@ -559,4 +577,7 @@ pub fn main_loop(
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
     }
+
+    println!("Engine drawcall count: {}. Capacity: {}.", drawcalls.len(), engine::DRAWCALL_CAPACITY);
+    println!("SDL drawcall count: {}. Capacity: {}.", sdl_drawcalls.len(), SDL_DRAWCALL_CAPACITY);
 }

@@ -13,8 +13,9 @@ use sdl2::event::Event;
 use sdl2::keyboard::{self, Keycode as BackendKey};
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
-use sdl2::render::{Texture, TextureCreator};
+use sdl2::render::{Canvas, Texture, TextureCreator};
 use sdl2::surface::Surface;
+use sdl2::video::Window;
 use image;
 
 
@@ -175,6 +176,30 @@ fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, Strin
 
     texture_creator.create_texture_from_surface(&temp_surface)
         .map_err(|err| format!("Could not create texture from surface: {}", err))
+}
+
+
+fn sdl_render(canvas: &mut Canvas<Window>,
+              texture: &mut Texture,
+              clear_color: Color,
+              drawcalls: &[SDLDrawcall])
+{
+    use self::SDLDrawcall::*;
+    canvas.set_draw_color(
+        sdl2::pixels::Color::RGB(clear_color.r, clear_color.g, clear_color.b));
+    canvas.clear();
+
+    for dc in drawcalls.iter() {
+        // TODO: collect the results? Or at least the errors?
+        match dc {
+            &SetDrawColor(color) => canvas.set_draw_color(color),
+            &FillRect(rect) => canvas.fill_rect(rect).unwrap(),
+            &SetColorMod(r, g, b) => texture.set_color_mod(r, g, b),
+            &Copy(src, dst) => canvas.copy(&texture, src, dst).unwrap(),
+        }
+    }
+
+    canvas.present();
 }
 
 
@@ -548,23 +573,7 @@ pub fn main_loop(
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
         // NOTE: render
-        canvas.set_draw_color(
-            sdl2::pixels::Color::RGB(default_background.r,
-                                     default_background.g,
-                                     default_background.b));
-        canvas.clear();
-
-        for dc in sdl_drawcalls.iter() {
-            // TODO: collect the results? Or at least the errors?
-            match dc {
-                &SetDrawColor(color) => canvas.set_draw_color(color),
-                &FillRect(rect) => canvas.fill_rect(rect).unwrap(),
-                &SetColorMod(r, g, b) => texture.set_color_mod(r, g, b),
-                &Copy(src, dst) => canvas.copy(&texture, src, dst).unwrap(),
-            }
-        }
-
-        canvas.present();
+        sdl_render(&mut canvas, &mut texture, default_background, &sdl_drawcalls);
 
         // println!("Code duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);

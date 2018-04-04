@@ -100,9 +100,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** and it only gets filled in when the scrolling ends
 * Implement proper fullscreen in SDL                                     :ui:
 ** We can switch to fullscreen but it's not stretching the game
-* Keep the control hints on for longer                                   :ui:
-** Now that we've made the map smaller they disappear after the first move
-** Let's make them stick at least for a while longer
 * Move metrics into the engine                                         :code:
 ** We have a more granular control there
 ** We can see exactly how long teh full update took vs drawcall processing vs. sdl
@@ -2271,3 +2268,10 @@ CLOSED: [2018-04-04 Wed 19:00]
 :END:
 *** Even if we don't actually want to move the character at that point
 *** We should still process the keys and add them to the queue
+** DONE Keep the control hints on for longer                            :ui:
+CLOSED: [2018-04-04 Wed 19:04]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-04-04 Wed 19:04
+:END:
+*** Now that we've made the map smaller they disappear after the first move
+*** Let's make them stick at least for a while longer

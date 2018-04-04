@@ -392,7 +392,7 @@ fn process_game(
     // Hide the keyboard movement hints if the player gets too close
     {
         let player_screen_pos = screen_coords_from_world(state.player.pos);
-        let d = 15;
+        let d = 10;
         if player_screen_pos.x < d || player_screen_pos.y < d
             || state.map_size.x - player_screen_pos.x < d
             || state.map_size.y - player_screen_pos.y < d

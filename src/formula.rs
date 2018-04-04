@@ -27,7 +27,7 @@ pub const DOSE_PREFAB: Item = Item {
     irresistible: 2,
     modifier: Modifier::Intoxication {
         state_of_mind: 70,
-        tolerance_increase: 5,
+        tolerance_increase: 4,
     },
 };
 
@@ -35,7 +35,7 @@ pub const STRONG_DOSE_PREFAB: Item = Item {
     kind: Kind::StrongDose,
     irresistible: 4,
     modifier: Modifier::Intoxication {
-        state_of_mind: 160,
+        state_of_mind: 220,
         tolerance_increase: 7,
     },
 };
@@ -44,8 +44,8 @@ pub const CARDINAL_DOSE_PREFAB: Item = Item {
     kind: Kind::CardinalDose,
     irresistible: 3,
     modifier: Modifier::Intoxication {
-        state_of_mind: 120,
-        tolerance_increase: 7,
+        state_of_mind: 130,
+        tolerance_increase: 6,
     },
 };
 
@@ -53,8 +53,8 @@ pub const DIAGONAL_DOSE_PREFAB: Item = Item {
     kind: Kind::DiagonalDose,
     irresistible: 3,
     modifier: Modifier::Intoxication {
-        state_of_mind: 120,
-        tolerance_increase: 7,
+        state_of_mind: 130,
+        tolerance_increase: 6,
     },
 };
 
@@ -175,7 +175,7 @@ pub fn process_hunger(mind: Mind, amount: i32) -> Mind {
 }
 
 pub fn intoxicate(mind: Mind, tolerance: i32, expected_increment: i32) -> Mind {
-    let increment = cmp::max(10, expected_increment - tolerance);
+    let increment = cmp::max(15, expected_increment - tolerance);
 
     // If we're high, the increment adds to the current intoxication
     // value, otherwise we go to high directly, ignoring any

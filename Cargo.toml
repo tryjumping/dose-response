@@ -47,7 +47,7 @@ image = "0.12.2"
 
 [features]
 
-default = ["opengl", "cli", "replay", "rand", "fullscreen", "cheating", "stats"]
+default = ["opengl", "cli", "replay", "rand", "fullscreen", "cheating", "stats", "verifications"]
 
 fullscreen = []
 
@@ -60,6 +60,8 @@ cli = ["clap"]
 web = ["rmp-serde"]
 
 replay = ["chrono"]
+
+verifications = []
 
 piston = ["piston_window", "image"]
 

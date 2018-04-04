@@ -318,14 +318,9 @@ fn process_game(
                 // NOTE: no verifications were loaded. Probably
                 // replaying a release build.
             }
-        } else if cfg!(debug_assertions) {
-            // We're in the debug build, log the verification
+        } else if cfg!(feature = "verifications") {
             let verification = state.verification();
             state::log_verification(&mut state.command_logger, verification);
-        } else {
-            // NOTE: We're in the release build, *DON'T* log the
-            // verification. They take up insane amounts of disk
-            // space!
         }
     }
 

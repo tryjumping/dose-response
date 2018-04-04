@@ -21,7 +21,7 @@ use image;
 
 // const DESIRED_FPS: u64 = 60;
 // const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
-const SDL_DRAWCALL_CAPACITY: usize = engine::DRAWCALL_CAPACITY * 2;
+const SDL_DRAWCALL_CAPACITY: usize = 15_000;
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -204,31 +204,32 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
     for drawcall in drawcalls.iter() {
         match drawcall {
             &Draw::Char(pos, chr, foreground_color, offset_px) => {
+                let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
+                    .unwrap_or((0, 0));
+                let src = Rect::new(texture_index_x * tilesize,
+                                    texture_index_y * tilesize,
+                                    tilesize as u32, tilesize as u32);
+                let dst = Rect::new(pos.x * tilesize + offset_px.x,
+                                    pos.y * tilesize + offset_px.y,
+                                    tilesize as u32, tilesize as u32);
+                // TODO: we must fill in the wider background map as well
+                // And set up a fallback
                 if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
-                    let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
-                        .unwrap_or((0, 0));
-                    let src = Rect::new(texture_index_x * tilesize,
-                                        texture_index_y * tilesize,
-                                        tilesize as u32, tilesize as u32);
-                    let dst = Rect::new(pos.x * tilesize + offset_px.x,
-                                        pos.y * tilesize + offset_px.y,
-                                        tilesize as u32, tilesize as u32);
-
                     let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
                     sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
                                                                              background_color.g,
                                                                              background_color.b)));
                     sdl_drawcalls.push(FillRect(Some(dst)));
-
-                    // NOTE: Center the glyphs in their cells
-                    let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize);
-                    let x_offset = (tilesize as i32 - glyph_width) / 2;
-                    let mut dst = dst;
-                    dst.offset(x_offset, 0);
-
-                    sdl_drawcalls.push(SetColorMod(foreground_color.r, foreground_color.g, foreground_color.b));
-                    sdl_drawcalls.push(Copy(src, dst));
                 }
+
+                // NOTE: Center the glyphs in their cells
+                let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize);
+                let x_offset = (tilesize as i32 - glyph_width) / 2;
+                let mut dst = dst;
+                dst.offset(x_offset, 0);
+
+                sdl_drawcalls.push(SetColorMod(foreground_color.r, foreground_color.g, foreground_color.b));
+                sdl_drawcalls.push(Copy(src, dst));
             }
 
             &Draw::Background(..) => {

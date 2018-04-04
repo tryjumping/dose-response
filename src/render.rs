@@ -98,7 +98,7 @@ pub fn render_game(
     let player_pos = state.player.pos;
     let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
-    let display_area = Rectangle::center(state.screen_position_in_world, state.map_size / 2);
+    let display_area = Rectangle::center(state.screen_position_in_world, state.map_size);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     let total_time_ms = util::num_milliseconds(state.clock) as i64;

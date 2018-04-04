@@ -29,7 +29,7 @@ pub mod remote;
 #[cfg(feature = "web")]
 pub mod wasm;
 
-pub const DRAWCALL_CAPACITY: usize = 5000;
+pub const DRAWCALL_CAPACITY: usize = 8000;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Draw {

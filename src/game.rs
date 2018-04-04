@@ -227,7 +227,15 @@ fn process_game(
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
     let mut spent_turn = false;
-    let no_animations = state.explosion_animation.is_none() && state.pos_timer.finished();
+    // Pause entity processing during animations when replaying (so
+    // it's all easy to see) but allow the keys to be processed when
+    // playing the game normally. I.e. the players can move even
+    // during animations if they so please.
+    let no_animations = if state.replay {
+        state.explosion_animation.is_none() && state.pos_timer.finished()
+    } else {
+        true
+    };
     let simulation_area = Rectangle::center(state.player.pos, state.map_size);
 
     if (running || paused_one_step || timed_step) && state.side != Side::Victory && no_animations {

@@ -100,6 +100,21 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** and it only gets filled in when the scrolling ends
 * Implement proper fullscreen in SDL                                     :ui:
 ** We can switch to fullscreen but it's not stretching the game
+* Simplify engine drawcalls                                            :code:
+** Let the engine just render positioned rectangles and sprites
+** Something similar to the `SDLDrawcalls` situation right now
+** And any higher-level abstraction should live outside of the backend
+*** It could live in engine::mod
+*** Like text text formatting etc.
+** We'd have to update the wasm backend as well
+*** assuming we can render from image as well it should simplify the client
+*** And it will give every backend a unified look
+** Could also improve perf sorta maybe kinda?
+* Figure out the fading timing issue                                     :ui:
+** Sometimes it fades out too quickly
+** Other times it takes its sweet time
+** QUESTION: does this carry through to a replay?
+* Dose glow and unexplored areas should have different colours
 * Move metrics into the engine                                         :code:
 ** We have a more granular control there
 ** We can see exactly how long teh full update took vs drawcall processing vs. sdl

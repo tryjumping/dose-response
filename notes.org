@@ -98,9 +98,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Render the areas being scrolled to
 ** right now when scrolling, the new area is dark
 ** and it only gets filled in when the scrolling ends
-* Process keys during recenter animation                               :code:
-** Even if we don't actually want to move the character at that point
-** We should still process the keys and add them to the queue
 * Implement proper fullscreen in SDL                                     :ui:
 ** We can switch to fullscreen but it's not stretching the game
 * Keep the control hints on for longer                                   :ui:
@@ -2267,3 +2264,10 @@ CLOSED: [2018-04-03 Tue 18:05]
 CLOSED: [2018-04-03 Tue 18:05]
 **** And maybe nonlinear?
 *** Make it optional in the menu?
+** DONE Process keys during recenter animation                        :code:
+CLOSED: [2018-04-04 Wed 19:00]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-04-04 Wed 19:00
+:END:
+*** Even if we don't actually want to move the character at that point
+*** We should still process the keys and add them to the queue

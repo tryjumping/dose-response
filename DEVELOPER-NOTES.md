@@ -1,3 +1,15 @@
+Dose Response Developer Notes
+=============================
+
+Building
+--------
+
+Requires Rust 1.26.
+
+For the SDL backend (planned to become default) you also need the SDL2
+library available wherever your OS looks for libraries.
+
+
 Headless / Remote-controlled Mode
 ---------------------------------
 

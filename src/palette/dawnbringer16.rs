@@ -10,7 +10,7 @@ pub const DARK_GREY: Color = Color { r: 41, g: 39, b: 41 };
 
 pub const BRIGHT_BLUE: Color = Color { r: 109, g: 194, b: 202 };
 pub const BLUE: Color = BRIGHT_BLUE;
-pub const DIM_BLUE: Color = Color { r: 34, g: 32, b: 52 };
+pub const DIM_BLUE: Color = Color { r: 48, g: 52, b: 109 };
 
 pub const BRIGHT_GREEN: Color = Color { r: 109, g: 170, b: 44 };
 pub const DIM_GREEN: Color = Color { r: 52, g: 101, b: 36 };

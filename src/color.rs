@@ -39,13 +39,13 @@ pub const dim_background: Color = DARK_GREY;
 
 pub const dose: Color = BLUE;
 
-pub const dose_glow: Color = BRIGHT_BLUE;
+pub const strong_dose: Color = BRIGHT_BLUE;
 pub const shattering_dose: Color = BRIGHT_BLUE;
 pub const explosion: Color = BRIGHT_BLUE;
 
 pub const window_edge: Color = DIM_BLUE;
 pub const menu_highlight: Color = RED;
-pub const dose_background: Color = DIM_BLUE;
+pub const dose_irresistible_background: Color = DIM_BLUE;
 
 pub const tree_3: Color = NATURAL_GREEN;
 

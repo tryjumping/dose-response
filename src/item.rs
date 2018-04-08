@@ -71,7 +71,7 @@ impl Item {
         match self.kind {
             Food => color::food,
             Dose => color::dose,
-            StrongDose => color::dose_glow,
+            StrongDose => color::strong_dose,
             CardinalDose => color::shattering_dose,
             DiagonalDose => color::shattering_dose,
         }

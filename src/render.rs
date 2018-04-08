@@ -164,7 +164,7 @@ pub fn render_game(
                 for point in SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) || (state.game_ended && state.uncovered_map) {
                         let screen_coords = screen_coords_from_world(point);
-                        drawcalls.push(Draw::Background(screen_coords, color::dose_background));
+                        drawcalls.push(Draw::Background(screen_coords, color::dose_irresistible_background));
                     }
                 }
             }

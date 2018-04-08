@@ -283,8 +283,8 @@ pub fn main_loop(
 
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
-    let mut background_map =
-        vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize];
+    let mut background_map = engine::BackgroundMap::new(
+        display_size, Point::from_i32(display_size.y / 2));
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
@@ -446,15 +446,12 @@ pub fn main_loop(
         // NOTE: last time we tried it it was 3632
         //println!("Drawcall count: {}", drawcalls.len());
 
-        engine::populate_background_map(&mut background_map,
-                                        display_size,
-                                        display_size.y / 2,
-                                        &drawcalls);
+        engine::populate_background_map(&mut background_map, &drawcalls);
 
         // Render the background tiles separately and before all the other drawcalls.
-        for (index, background_color) in background_map.iter().enumerate() {
-            let pos_x = ((index as i32) % display_size.x) as f32;
-            let pos_y = ((index as i32) / display_size.x) as f32;
+        for (pos, background_color) in background_map.points() {
+            let pos_x = pos.x as f32;
+            let pos_y = pos.y as f32;
             let tile_width = tilesize as f32;
             let tile_height = tilesize as f32;
             let tilemap_index = [0.0, 5.0];
@@ -508,7 +505,7 @@ pub fn main_loop(
                         let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
                         let color = gl_color(foreground_color, alpha);
                         let background_color = gl_color(
-                            background_map[(pos.y * display_size.x + pos.x) as usize],
+                            background_map.get(pos),
                             alpha,
                         );
 

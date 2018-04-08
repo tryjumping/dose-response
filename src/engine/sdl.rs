@@ -180,23 +180,18 @@ fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, Strin
 
 
 fn generate_sdl_drawcalls(drawcalls: &[Draw],
-                          background_map: &[Color],
-                          display_size: Point,
+                          background_map: &engine::BackgroundMap,
                           tilesize: i32,
                           sdl_drawcalls: &mut Vec<SDLDrawcall>) {
     use self::SDLDrawcall::*;
     assert!(tilesize > 0);
-    let padding = Point::from_i32(display_size.y / 2);
 
     // Render the background tiles separately and before all the other drawcalls.
-    for (index, background_color) in background_map.iter().enumerate() {
-        let pos_x = (index as i32) % display_size.x * tilesize;
-        let pos_y = (index as i32) / display_size.x * tilesize;
-
+    for (pos, background_color) in background_map.points() {
         sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
                                                                  background_color.g,
                                                                  background_color.b)));
-        let rect = Rect::new(pos_x - padding.x, pos_y - padding.y, tilesize as u32, tilesize as u32);
+        let rect = Rect::new(pos.x, pos.y, tilesize as u32, tilesize as u32);
         sdl_drawcalls.push(FillRect(Some(rect)));
     }
 
@@ -213,11 +208,9 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                 let dst = Rect::new(pos.x * tilesize + offset_px.x,
                                     pos.y * tilesize + offset_px.y,
                                     tilesize as u32, tilesize as u32);
-                // TODO: we must fill in the wider background map as well
-                // And set up a fallback
-                if true {
-                    let pos = pos + padding;
-                    let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
+
+                if background_map.contains(pos) {
+                    let background_color = background_map.get(pos);
                     sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
                                                                              background_color.g,
                                                                              background_color.b)));
@@ -398,8 +391,8 @@ pub fn main_loop(
 
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
-    let mut background_map =
-        vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize * 4];
+    let mut background_map = engine::BackgroundMap::new(
+        display_size, Point::from_i32(display_size.y / 2));
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut sdl_drawcalls = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
     let mut keys = vec![];
@@ -545,10 +538,7 @@ pub fn main_loop(
         }
 
 
-        engine::populate_background_map(&mut background_map,
-                                        display_size,
-                                        display_size.y / 2,
-                                        &drawcalls);
+        engine::populate_background_map(&mut background_map, &drawcalls);
 
         // println!("Pre-draw duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
@@ -573,7 +563,6 @@ pub fn main_loop(
         sdl_drawcalls.clear();
         generate_sdl_drawcalls(&drawcalls,
                                &background_map,
-                               display_size,
                                tilesize as i32,
                                &mut sdl_drawcalls);
 

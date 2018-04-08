@@ -208,39 +208,93 @@ impl Mouse {
     }
 }
 
-pub fn populate_background_map(
-    background_map: &mut Vec<Color>,
-    display_size: Point,
-    padding: i32,
-    drawcalls: &Vec<Draw>,
-) {
-    let padding = Point::from_i32(padding);
-    let size = display_size + (padding * 2);
-    assert!(background_map.len() >= (size.x * size.y) as usize);
 
-    // NOTE: Clear the background_map by setting it to the default colour
-    for color in background_map.iter_mut() {
-        *color = Color { r: 255, g: 0, b: 255 };
+pub struct BackgroundMap {
+    display_size: Point,
+    padding: Point,
+    map: Vec<Color>,
+    default_color: Color,
+}
+
+impl BackgroundMap {
+    pub fn new(display_size: Point, padding: Point) -> Self {
+        assert!(display_size > Point::zero());
+        assert!(padding >= Point::zero());
+        let default_color = Color{r: 255, g: 0, b: 255};
+        let size = display_size + (padding * 2);
+        BackgroundMap {
+            display_size,
+            padding,
+            map: vec![default_color; (size.x * size.y) as usize],
+            default_color,
+        }
     }
 
-    let min = Point::zero() - padding;
-    let max = display_size + padding;
-    let display_width = display_size.x;
+    pub fn clear(&mut self) {
+        for color in self.map.iter_mut() {
+            *color = self.default_color;
+        }
+    }
 
-    // NOTE: generate the background map
+    pub fn size(&self) -> Point {
+        self.display_size + (self.padding * 2)
+    }
+
+    fn index(&self, pos: Point) -> usize {
+        assert!(self.contains(pos));
+        let pos = pos + self.padding;
+        (pos.y * self.size().x + pos.x) as usize
+    }
+
+    pub fn contains(&self, pos: Point) -> bool {
+        let min = Point::zero() - self.padding;
+        let max = self.display_size + self.padding;
+
+        pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y
+    }
+
+    pub fn set(&mut self, pos: Point, color: Color) {
+        let ix = self.index(pos);
+        self.map[ix] = color;
+    }
+
+    pub fn get(&self, pos: Point) -> Color {
+        let ix = self.index(pos);
+        self.map[ix]
+    }
+
+    pub fn points(&self) -> impl Iterator<Item=(Point, &Color)> {
+        let padding = self.padding;
+        let width = self.size().x;
+        self.map
+            .iter()
+            .enumerate()
+            .map(move |(index, color)| {
+                let pos = Point::new(index as i32 % width, index as i32 / width);
+                let pos = pos - padding;
+                (pos, color)
+            })
+    }
+}
+
+
+pub fn populate_background_map(
+    background_map: &mut BackgroundMap,
+    drawcalls: &Vec<Draw>,
+) {
+    background_map.clear();
+
     for drawcall in drawcalls {
         match drawcall {
-            &Draw::Background(pos, background_color) => {
-                if pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y {
-                    let pos = pos + padding;
-                    background_map[(pos.y * display_width + pos.x) as usize] = background_color;
+            &Draw::Background(pos, color) => {
+                if background_map.contains(pos) {
+                    background_map.set(pos, color);
                 }
             }
 
             &Draw::Rectangle(rect, color) => for pos in rect.points() {
-                if pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y {
-                    let pos = pos + padding;
-                    background_map[(pos.y * display_width + pos.x) as usize] = color;
+                if background_map.contains(pos) {
+                    background_map.set(pos, color);
                 }
             },
 

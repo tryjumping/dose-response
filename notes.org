@@ -98,6 +98,10 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Render the areas being scrolled to
 ** right now when scrolling, the new area is dark
 ** and it only gets filled in when the scrolling ends
+* Scrolling to right shows the health/mind bar for a second             :bug:
+** This is an artifact of the background map thingy
+** We're messing something up
+* Pressing `?` doesn't work in SDL                                      :bug:
 * Implement proper fullscreen in SDL                                     :ui:
 ** We can switch to fullscreen but it's not stretching the game
 * Simplify engine drawcalls                                            :code:

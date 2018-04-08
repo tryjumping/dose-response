@@ -193,28 +193,30 @@ pub fn render_game(
             state.uncovered_map
         {
             let display_pos = screen_coords_from_world(monster.position);
-            if let Some(trail_pos) = monster.trail {
-                if cfg!(feature = "cheating") && state.cheating {
-                    let trail_pos = screen_coords_from_world(trail_pos);
-                    let glyph = monster.glyph();
-                    let color = monster.color;
-                    // TODO: show a fading animation of the trail colour
-                    let color = color::Color {
-                        r: color.r.saturating_sub(55),
-                        g: color.g.saturating_sub(55),
-                        b: color.b.saturating_sub(55),
-                    };
-                    drawcalls.push(Draw::Char(trail_pos, glyph, color, offset_px));
-                }
-            }
+            // NOTE: this is the monster trail. It's looking bad and
+            // really confusing, so we turned it off.
+            // if let Some(trail_pos) = monster.trail {
+            //     if cfg!(feature = "cheating") && state.cheating {
+            //         let trail_pos = screen_coords_from_world(trail_pos);
+            //         let glyph = monster.glyph();
+            //         let color = monster.color;
+            //         // TODO: show a fading animation of the trail colour
+            //         let color = color::Color {
+            //             r: color.r.saturating_sub(55),
+            //             g: color.g.saturating_sub(55),
+            //             b: color.b.saturating_sub(55),
+            //         };
+            //         drawcalls.push(Draw::Char(trail_pos, glyph, color, offset_px));
+            //     }
+            // }
 
-            if cfg!(feature = "cheating") && state.cheating {
-                for &point in &monster.path {
-                    let path_pos = screen_coords_from_world(point);
-                    let color = monster.color;
-                    drawcalls.push(Draw::Background(path_pos, color));
-                }
-            }
+            // if cfg!(feature = "cheating") && state.cheating {
+            //     for &point in &monster.path {
+            //         let path_pos = screen_coords_from_world(point);
+            //         let color = monster.color;
+            //         drawcalls.push(Draw::Background(path_pos, color));
+            //     }
+            // }
 
             let glyph = monster.glyph();
             let mut color = monster.color;

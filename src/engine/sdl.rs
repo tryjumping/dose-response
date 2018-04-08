@@ -440,6 +440,18 @@ pub fn main_loop(
                     }
                 }
 
+                Event::TextInput { text, .. } => {
+                    if text.contains('?') {
+                        let key = super::Key {
+                            code: KeyCode::QuestionMark,
+                            alt: false,
+                            ctrl: false,
+                            shift: false,
+                        };
+                        keys.push(key);
+                    }
+                }
+
                 Event::MouseMotion {x, y, ..} => {
                     // TODO: calculate this from the real window size
                     let display_px = [desired_window_width, desired_window_height];

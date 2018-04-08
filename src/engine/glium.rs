@@ -446,7 +446,10 @@ pub fn main_loop(
         // NOTE: last time we tried it it was 3632
         //println!("Drawcall count: {}", drawcalls.len());
 
-        engine::populate_background_map(&mut background_map, display_size, &drawcalls);
+        engine::populate_background_map(&mut background_map,
+                                        display_size,
+                                        display_size.y / 2,
+                                        &drawcalls);
 
         // Render the background tiles separately and before all the other drawcalls.
         for (index, background_color) in background_map.iter().enumerate() {

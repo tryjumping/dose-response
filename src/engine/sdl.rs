@@ -21,7 +21,7 @@ use image;
 
 // const DESIRED_FPS: u64 = 60;
 // const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
-const SDL_DRAWCALL_CAPACITY: usize = 15_000;
+const SDL_DRAWCALL_CAPACITY: usize = 25_000;
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -186,6 +186,7 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                           sdl_drawcalls: &mut Vec<SDLDrawcall>) {
     use self::SDLDrawcall::*;
     assert!(tilesize > 0);
+    let padding = Point::from_i32(display_size.y / 2);
 
     // Render the background tiles separately and before all the other drawcalls.
     for (index, background_color) in background_map.iter().enumerate() {
@@ -195,7 +196,7 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
         sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
                                                                  background_color.g,
                                                                  background_color.b)));
-        let rect = Rect::new(pos_x, pos_y, tilesize as u32, tilesize as u32);
+        let rect = Rect::new(pos_x - padding.x, pos_y - padding.y, tilesize as u32, tilesize as u32);
         sdl_drawcalls.push(FillRect(Some(rect)));
     }
 
@@ -214,7 +215,8 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                                     tilesize as u32, tilesize as u32);
                 // TODO: we must fill in the wider background map as well
                 // And set up a fallback
-                if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+                if true {
+                    let pos = pos + padding;
                     let background_color = background_map[(pos.y * display_size.x + pos.x) as usize];
                     sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
                                                                              background_color.g,
@@ -397,7 +399,7 @@ pub fn main_loop(
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
     let mut background_map =
-        vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize];
+        vec![Color { r: 0, g: 0, b: 0 }; (display_size.x * display_size.y) as usize * 4];
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut sdl_drawcalls = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
     let mut keys = vec![];
@@ -543,7 +545,10 @@ pub fn main_loop(
         }
 
 
-        engine::populate_background_map(&mut background_map, display_size, &drawcalls);
+        engine::populate_background_map(&mut background_map,
+                                        display_size,
+                                        display_size.y / 2,
+                                        &drawcalls);
 
         // println!("Pre-draw duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);

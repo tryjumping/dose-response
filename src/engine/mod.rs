@@ -211,27 +211,36 @@ impl Mouse {
 pub fn populate_background_map(
     background_map: &mut Vec<Color>,
     display_size: Point,
+    padding: i32,
     drawcalls: &Vec<Draw>,
 ) {
-    assert!(background_map.len() >= (display_size.x * display_size.y) as usize);
+    let padding = Point::from_i32(padding);
+    let size = display_size + (padding * 2);
+    assert!(background_map.len() >= (size.x * size.y) as usize);
 
     // NOTE: Clear the background_map by setting it to the default colour
     for color in background_map.iter_mut() {
-        *color = Color { r: 0, g: 0, b: 0 };
+        *color = Color { r: 255, g: 0, b: 255 };
     }
+
+    let min = Point::zero() - padding;
+    let max = display_size + padding;
+    let display_width = display_size.x;
 
     // NOTE: generate the background map
     for drawcall in drawcalls {
         match drawcall {
             &Draw::Background(pos, background_color) => {
-                if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
-                    background_map[(pos.y * display_size.x + pos.x) as usize] = background_color;
+                if pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y {
+                    let pos = pos + padding;
+                    background_map[(pos.y * display_width + pos.x) as usize] = background_color;
                 }
             }
 
             &Draw::Rectangle(rect, color) => for pos in rect.points() {
-                if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
-                    background_map[(pos.y * display_size.x + pos.x) as usize] = color;
+                if pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y {
+                    let pos = pos + padding;
+                    background_map[(pos.y * display_width + pos.x) as usize] = color;
                 }
             },
 

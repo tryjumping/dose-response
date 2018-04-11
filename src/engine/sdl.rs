@@ -180,51 +180,45 @@ fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, Strin
 
 
 fn generate_sdl_drawcalls(drawcalls: &[Draw],
-                          background_map: &engine::BackgroundMap,
+                          map: &engine::BackgroundMap,
                           tilesize: i32,
                           sdl_drawcalls: &mut Vec<SDLDrawcall>) {
     use self::SDLDrawcall::*;
     assert!(tilesize > 0);
 
     // Render the background tiles separately and before all the other drawcalls.
-    for (pos, background_color) in background_map.points() {
-        sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
-                                                                 background_color.g,
-                                                                 background_color.b)));
-        let rect = Rect::new(pos.x, pos.y, tilesize as u32, tilesize as u32);
-        sdl_drawcalls.push(FillRect(Some(rect)));
+    for (pos, cell) in map.cells() {
+        let (texture_index_x, texture_index_y) = super::texture_coords_from_char(cell.glyph)
+            .unwrap_or((0, 0));
+        let src = Rect::new(texture_index_x * tilesize,
+                            texture_index_y * tilesize,
+                            tilesize as u32, tilesize as u32);
+        let dst = Rect::new(pos.x * tilesize + cell.offset_px.x,
+                            pos.y * tilesize + cell.offset_px.y,
+                            tilesize as u32, tilesize as u32);
+
+        // NOTE: Center the glyphs in their cells
+        let glyph_width = engine::glyph_advance_width(cell.glyph).unwrap_or(tilesize);
+        let x_offset = (tilesize as i32 - glyph_width) / 2;
+        let mut dst = dst;
+        dst.offset(x_offset, 0);
+
+        sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(cell.background.r,
+                                                                 cell.background.g,
+                                                                 cell.background.b)));
+        sdl_drawcalls.push(FillRect(Some(dst)));
+        sdl_drawcalls.push(SetColorMod(cell.foreground.r, cell.foreground.g, cell.foreground.b));
+        sdl_drawcalls.push(Copy(src, dst));
+
     }
 
     let mut screen_fade = None;
 
     for drawcall in drawcalls.iter() {
         match drawcall {
-            &Draw::Char(pos, chr, foreground_color, offset_px) => {
-                let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
-                    .unwrap_or((0, 0));
-                let src = Rect::new(texture_index_x * tilesize,
-                                    texture_index_y * tilesize,
-                                    tilesize as u32, tilesize as u32);
-                let dst = Rect::new(pos.x * tilesize + offset_px.x,
-                                    pos.y * tilesize + offset_px.y,
-                                    tilesize as u32, tilesize as u32);
-
-                if background_map.contains(pos) {
-                    let background_color = background_map.get(pos);
-                    sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(background_color.r,
-                                                                             background_color.g,
-                                                                             background_color.b)));
-                    sdl_drawcalls.push(FillRect(Some(dst)));
-                }
-
-                // NOTE: Center the glyphs in their cells
-                let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize);
-                let x_offset = (tilesize as i32 - glyph_width) / 2;
-                let mut dst = dst;
-                dst.offset(x_offset, 0);
-
-                sdl_drawcalls.push(SetColorMod(foreground_color.r, foreground_color.g, foreground_color.b));
-                sdl_drawcalls.push(Copy(src, dst));
+            &Draw::Char(..) => {
+                // NOTE: do nothing, all the Char calls should have been drawn from the map
+                println!("WARNING: Uncaught Char drawcall: {:?}", drawcall);
             }
 
             &Draw::Background(..) => {
@@ -507,6 +501,7 @@ pub fn main_loop(
             &Metrics {
                 tile_width_px: tilesize as i32,
             },
+            &mut background_map,
             &mut drawcalls,
         );
 
@@ -550,7 +545,7 @@ pub fn main_loop(
         }
 
 
-        engine::populate_background_map(&mut background_map, &drawcalls);
+        //engine::populate_background_map(&mut background_map, &drawcalls);
 
         // println!("Pre-draw duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);

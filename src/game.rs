@@ -1,7 +1,7 @@
 use animation::{self, AreaOfEffect};
 use blocker::Blocker;
 use color;
-use engine::{TILESIZE, Draw, Mouse, Settings, TextMetrics};
+use engine::{TILESIZE, BackgroundMap, Draw, Mouse, Settings, TextMetrics};
 use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
@@ -49,6 +49,7 @@ pub fn update(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &TextMetrics,
+    map: &mut BackgroundMap,  // TODO: remove this from the engine and keep a transient state instead
     drawcalls: &mut Vec<Draw>,
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
@@ -114,7 +115,7 @@ pub fn update(
     let update_duration = update_stopwatch.finish();
 
     let drawcall_stopwatch = Stopwatch::start();
-    render::render(&state, dt, fps, metrics, drawcalls);
+    render::render(&state, dt, fps, metrics, map, drawcalls);
     let drawcall_duration = drawcall_stopwatch.finish();
 
     if cfg!(feature = "stats") {

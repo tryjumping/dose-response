@@ -1,5 +1,5 @@
 use color;
-use engine::{Draw, TextMetrics, TextOptions};
+use engine::{BackgroundMap, Draw, TextMetrics, TextOptions};
 use formula;
 use graphics;
 use windows::{endgame, help, main_menu, sidebar};
@@ -18,6 +18,7 @@ pub fn render(
     dt: Duration,
     fps: i32,
     metrics: &TextMetrics,
+    map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     // TODO: This might be inefficient for windows fully covering
@@ -25,19 +26,19 @@ pub fn render(
     for window in state.window_stack.windows() {
         match window {
             &Window::MainMenu => {
-                render_main_menu(state, &main_menu::Window, metrics, drawcalls);
+                render_main_menu(state, &main_menu::Window, metrics, map, drawcalls);
             }
             &Window::Game => {
-                render_game(state, &sidebar::Window, metrics, dt, fps, drawcalls);
+                render_game(state, &sidebar::Window, metrics, dt, fps, map, drawcalls);
             }
             &Window::Help => {
-                render_help_screen(state, &help::Window, metrics, drawcalls);
+                render_help_screen(state, &help::Window, metrics, map, drawcalls);
             }
             &Window::Endgame => {
-                render_endgame_screen(state, &endgame::Window, metrics, drawcalls);
+                render_endgame_screen(state, &endgame::Window, metrics, map, drawcalls);
             }
             &Window::Message(ref text) => {
-                render_message(state, text, metrics, drawcalls);
+                render_message(state, text, metrics, map, drawcalls);
             }
         }
     }
@@ -63,6 +64,7 @@ pub fn render_game(
     metrics: &TextMetrics,
     dt: Duration,
     fps: i32,
+    map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     let offset_px = state.offset_px;
@@ -110,10 +112,8 @@ pub fn render_game(
     let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
     // NOTE: Clear the screen
-    drawcalls.push(Draw::Rectangle(
-        Rectangle::from_point_and_size(Point::from_i32(0), state.display_size),
-        color::background,
-    ));
+    map.clear(color::background);
+
 
     // NOTE: render the cells on the map. That means world geometry and items.
     for (world_pos, cell) in state
@@ -149,10 +149,13 @@ pub fn render_game(
         }
 
         if in_fov(world_pos) || state.uncovered_map {
-            drawcalls.push(Draw::Char(display_pos, rendered_tile.glyph(), rendered_tile.fg_color, offset_px));
+            map.set_glyph(display_pos, rendered_tile.glyph(), rendered_tile.fg_color, offset_px);
         } else if cell.explored || bonus == Bonus::UncoverMap {
-            drawcalls.push(Draw::Char(display_pos, rendered_tile.glyph(), rendered_tile.fg_color, offset_px));
-            drawcalls.push(Draw::Background(display_pos, color::dim_background));
+            map.set(display_pos,
+                    rendered_tile.glyph(),
+                    rendered_tile.fg_color,
+                    color::dim_background,
+                    offset_px);
         } else {
             // It's not visible. Do nothing.
         }
@@ -164,7 +167,7 @@ pub fn render_game(
                 for point in SquareArea::new(world_pos, resist_radius) {
                     if in_fov(point) || (state.game_ended && state.uncovered_map) {
                         let screen_coords = screen_coords_from_world(point);
-                        drawcalls.push(Draw::Background(screen_coords, color::dose_irresistible_background));
+                        map.set_background(screen_coords, color::dose_irresistible_background);
                     }
                 }
             }
@@ -175,15 +178,15 @@ pub fn render_game(
             || bonus == Bonus::UncoverMap || state.uncovered_map
         {
             for item in cell.items.iter() {
-                drawcalls.push(Draw::Char(display_pos, item.glyph(), item.color(), offset_px));
+                map.set_glyph(display_pos, item.glyph(), item.color(), offset_px);
             }
         }
     }
 
     if let Some(ref animation) = state.explosion_animation {
-        drawcalls.extend(animation.tiles().map(|(world_pos, color, _)| {
-            Draw::Background(screen_coords_from_world(world_pos), color)
-        }));
+        for (world_pos, color, _) in animation.tiles() {
+            map.set_background(screen_coords_from_world(world_pos), color);
+        }
     }
 
     // NOTE: render monsters
@@ -223,14 +226,14 @@ pub fn render_game(
             if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
                 color = color::npc_dim;
             }
-            drawcalls.push(Draw::Char(display_pos, glyph, color, offset_px))
+            map.set_glyph(display_pos, glyph, color, offset_px);
         }
     }
 
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
-        drawcalls.push(Draw::Char(display_pos, state.player.glyph(), state.player.color(), offset_px));
+        map.set_glyph(display_pos, state.player.glyph(), state.player.color(), offset_px);
     }
 
     sidebar_window.render(state, metrics, dt, fps, drawcalls);
@@ -248,6 +251,7 @@ fn render_main_menu(
     state: &State,
     window: &main_menu::Window,
     metrics: &TextMetrics,
+    _map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     window.render(state, metrics, drawcalls);
@@ -260,6 +264,7 @@ fn render_help_screen(
     state: &State,
     window: &help::Window,
     metrics: &TextMetrics,
+    _map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     window.render(state, metrics, drawcalls);
@@ -272,6 +277,7 @@ fn render_endgame_screen(
     state: &State,
     window: &endgame::Window,
     metrics: &TextMetrics,
+    _map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     window.render(state, metrics, drawcalls);
@@ -280,7 +286,13 @@ fn render_endgame_screen(
     drawcalls.push(Draw::Fade(1.0, color::BLACK));
 }
 
-fn render_message(state: &State, text: &str, _metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+fn render_message(
+    state: &State,
+    text: &str,
+    _metrics: &TextMetrics,
+    _map: &mut BackgroundMap,
+    drawcalls: &mut Vec<Draw>,
+) {
     let window_size = Point::new(40, 10);
     let window_pos = ((state.display_size - window_size) / 2) - (0, 10);
     let window_rect = Rectangle::from_point_and_size(window_pos, window_size);

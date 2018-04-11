@@ -585,10 +585,6 @@ pub fn main_loop(
                     }
                 }
 
-                &Draw::Background(..) => {
-                    // NOTE: do nothing, all the BG calls have been drawn already
-                }
-
                 &Draw::Text(start_pos, ref text, color, options) => {
                     let color = gl_color(color, alpha);
                     let tile_width = tilesize as f32;

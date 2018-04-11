@@ -238,10 +238,6 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                 sdl_drawcalls.push(Copy(src, dst));
             }
 
-            &Draw::Background(..) => {
-                // NOTE: do nothing, all the BG calls have been drawn already
-            }
-
             &Draw::Rectangle(rect, color) => {
                 let top_left_px = rect.top_left() * tilesize;
                 let dimensions_px = rect.size() * tilesize;

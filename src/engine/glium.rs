@@ -497,93 +497,93 @@ pub fn main_loop(
 
         for drawcall in &drawcalls {
             match drawcall {
-                &Draw::Char(pos, chr, foreground_color, offset_px) => {
-                    if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
-                    {
-                        let pixel_pos = pixel_from_tile(pos) + offset_px;
-                        let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
-                        let tile_width = tilesize as f32;
-                        let tile_height = tilesize as f32;
-                        let fill_tile_tilemap_index = [0.0, 5.0];
-                        let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
-                        let color = gl_color(foreground_color, alpha);
-                        let background_color = gl_color(
-                            background_map.get(pos),
-                            alpha,
-                        );
+                // &Draw::Char(pos, chr, foreground_color, offset_px) => {
+                //     if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
+                //     {
+                //         let pixel_pos = pixel_from_tile(pos) + offset_px;
+                //         let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
+                //         let tile_width = tilesize as f32;
+                //         let tile_height = tilesize as f32;
+                //         let fill_tile_tilemap_index = [0.0, 5.0];
+                //         let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                //         let color = gl_color(foreground_color, alpha);
+                //         let background_color = gl_color(
+                //             background_map.get(pos),
+                //             alpha,
+                //         );
 
-                        // NOTE: fill the tile with the background colour
-                        vertices.push(Vertex {
-                            pos_px: [pos_x, pos_y],
-                            tilemap_index: fill_tile_tilemap_index,
-                            color: background_color,
-                        });
-                        vertices.push(Vertex {
-                            pos_px: [pos_x + tile_width, pos_y],
-                            tilemap_index: fill_tile_tilemap_index,
-                            color: background_color,
-                        });
-                        vertices.push(Vertex {
-                            pos_px: [pos_x, pos_y + tile_height],
-                            tilemap_index: fill_tile_tilemap_index,
-                            color: background_color,
-                        });
+                //         // NOTE: fill the tile with the background colour
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x, pos_y],
+                //             tilemap_index: fill_tile_tilemap_index,
+                //             color: background_color,
+                //         });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x + tile_width, pos_y],
+                //             tilemap_index: fill_tile_tilemap_index,
+                //             color: background_color,
+                //         });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x, pos_y + tile_height],
+                //             tilemap_index: fill_tile_tilemap_index,
+                //             color: background_color,
+                //         });
 
-                        vertices.push(Vertex {
-                            pos_px: [pos_x + tile_width, pos_y],
-                            tilemap_index: fill_tile_tilemap_index,
-                            color: background_color,
-                        });
-                        vertices.push(Vertex {
-                            pos_px: [pos_x, pos_y + tile_height],
-                            tilemap_index: fill_tile_tilemap_index,
-                            color: background_color,
-                        });
-                        vertices.push(Vertex {
-                            pos_px: [pos_x + tile_width, pos_y + tile_height],
-                            tilemap_index: fill_tile_tilemap_index,
-                            color: background_color,
-                        });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x + tile_width, pos_y],
+                //             tilemap_index: fill_tile_tilemap_index,
+                //             color: background_color,
+                //         });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x, pos_y + tile_height],
+                //             tilemap_index: fill_tile_tilemap_index,
+                //             color: background_color,
+                //         });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x + tile_width, pos_y + tile_height],
+                //             tilemap_index: fill_tile_tilemap_index,
+                //             color: background_color,
+                //         });
 
-                        // NOTE: Center the glyphs in their cells
-                        let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                        let x_offset = (tilesize as i32 - glyph_width) / 2;
-                        let pos_x = pos_x + x_offset as f32;
+                //         // NOTE: Center the glyphs in their cells
+                //         let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+                //         let x_offset = (tilesize as i32 - glyph_width) / 2;
+                //         let pos_x = pos_x + x_offset as f32;
 
-                        // NOTE: draw the glyph
-                        vertices.push(Vertex {
-                            pos_px: [pos_x, pos_y],
-                            tilemap_index: [tilemap_x, tilemap_y],
-                            color: color,
-                        });
-                        vertices.push(Vertex {
-                            pos_px: [pos_x + tile_width, pos_y],
-                            tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                            color: color,
-                        });
-                        vertices.push(Vertex {
-                            pos_px: [pos_x, pos_y + tile_height],
-                            tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                            color: color,
-                        });
+                //         // NOTE: draw the glyph
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x, pos_y],
+                //             tilemap_index: [tilemap_x, tilemap_y],
+                //             color: color,
+                //         });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x + tile_width, pos_y],
+                //             tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                //             color: color,
+                //         });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x, pos_y + tile_height],
+                //             tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                //             color: color,
+                //         });
 
-                        vertices.push(Vertex {
-                            pos_px: [pos_x + tile_width, pos_y],
-                            tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                            color: color,
-                        });
-                        vertices.push(Vertex {
-                            pos_px: [pos_x, pos_y + tile_height],
-                            tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                            color: color,
-                        });
-                        vertices.push(Vertex {
-                            pos_px: [pos_x + tile_width, pos_y + tile_height],
-                            tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
-                            color: color,
-                        });
-                    }
-                }
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x + tile_width, pos_y],
+                //             tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                //             color: color,
+                //         });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x, pos_y + tile_height],
+                //             tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                //             color: color,
+                //         });
+                //         vertices.push(Vertex {
+                //             pos_px: [pos_x + tile_width, pos_y + tile_height],
+                //             tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                //             color: color,
+                //         });
+                //     }
+                // }
 
                 &Draw::Text(start_pos, ref text, color, options) => {
                     let color = gl_color(color, alpha);

@@ -216,27 +216,6 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
 
     for drawcall in drawcalls.iter() {
         match drawcall {
-            &Draw::Char(pos, glyph, foreground, offset_px) => {
-                // NOTE: this should now ONLY be used in the UI flows
-
-                // NOTE: Center the glyphs in their cells
-                let glyph_width = engine::glyph_advance_width(glyph).unwrap_or(tilesize);
-                let x_offset = (tilesize as i32 - glyph_width) / 2;
-
-                // Draw the glyph. Iteally we should take this out.
-                let (texture_index_x, texture_index_y) = super::texture_coords_from_char(glyph)
-                    .unwrap_or((0, 0));
-                let src = Rect::new(texture_index_x * tilesize,
-                                    texture_index_y * tilesize,
-                                    tilesize as u32, tilesize as u32);
-                let mut dst = Rect::new(pos.x * tilesize + offset_px.x,
-                                        pos.y * tilesize + offset_px.y,
-                                        tilesize as u32, tilesize as u32);
-                dst.offset(x_offset, 0);
-
-                sdl_drawcalls.push(SetColorMod(foreground.r, foreground.g, foreground.b));
-                sdl_drawcalls.push(Copy(src, dst));
-            }
 
             &Draw::Rectangle(rect, color) => {
                 let top_left_px = rect.top_left() * tilesize;

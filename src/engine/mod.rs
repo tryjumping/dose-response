@@ -33,8 +33,6 @@ pub const DRAWCALL_CAPACITY: usize = 8000;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Draw {
-    /// Tile Position, glyph, color, pixel offset
-    Char(Point, char, Color, Point),
     /// Position, text, colour
     Text(Point, Cow<'static, str>, Color, TextOptions),
     /// Rectangle, color

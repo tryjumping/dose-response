@@ -49,14 +49,19 @@ pub fn render_text_flow(
                 drawcalls.push(dc);
             }
 
+            // NOTE: this is no longer doing anything special! Maybe remove it later on?
+            // Or handle this in engine/text renderer when we produce the characters.
+            // Like, have an option that would always set the advance-width 
+            // to the tile width.
             &SquareTiles(text) => {
-                let text_size = text.chars().count() as i32;
-                let max_size = rect.width();
-                let start_pos = rect.top_left() + ((max_size - text_size) / 2, ypos);
-                for (i, chr) in text.char_indices() {
-                    let pos = start_pos + (i as i32, 0);
-                    drawcalls.push(Draw::Char(pos, chr, color::gui_text, Point::zero()));
-                }
+                let pos = rect.top_left() + Point::new(0, ypos);
+                let dc = Draw::Text(
+                    pos,
+                    text.to_string().into(),
+                    color::gui_text,
+                    TextOptions::align_center(rect.width()),
+                );
+                drawcalls.push(dc);
             }
         }
         ypos += text_height(text, rect, metrics);

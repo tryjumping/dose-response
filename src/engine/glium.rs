@@ -342,6 +342,7 @@ pub fn main_loop(
                 &Metrics {
                     tile_width_px: tilesize as i32,
                 },
+                &mut background_map,
                 &mut drawcalls,
             );
 
@@ -446,49 +447,51 @@ pub fn main_loop(
         // NOTE: last time we tried it it was 3632
         //println!("Drawcall count: {}", drawcalls.len());
 
-        engine::populate_background_map(&mut background_map, &drawcalls);
+        // NOTE: this has been deleted
+        //engine::populate_background_map(&mut background_map, &drawcalls);
 
         // Render the background tiles separately and before all the other drawcalls.
-        for (pos, background_color) in background_map.points() {
-            let pos_x = pos.x as f32;
-            let pos_y = pos.y as f32;
-            let tile_width = tilesize as f32;
-            let tile_height = tilesize as f32;
-            let tilemap_index = [0.0, 5.0];
-            let color = gl_color(*background_color, alpha);
+        // NOTE: use `cells` here
+        // for (pos, background_color) in background_map.points() {
+        //     let pos_x = pos.x as f32;
+        //     let pos_y = pos.y as f32;
+        //     let tile_width = tilesize as f32;
+        //     let tile_height = tilesize as f32;
+        //     let tilemap_index = [0.0, 5.0];
+        //     let color = gl_color(*background_color, alpha);
 
-            vertices.push(Vertex {
-                pos_px: [pos_x, pos_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-            vertices.push(Vertex {
-                pos_px: [pos_x + tile_width, pos_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-            vertices.push(Vertex {
-                pos_px: [pos_x, pos_y + tile_height],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
+        //     vertices.push(Vertex {
+        //         pos_px: [pos_x, pos_y],
+        //         tilemap_index: tilemap_index,
+        //         color: color,
+        //     });
+        //     vertices.push(Vertex {
+        //         pos_px: [pos_x + tile_width, pos_y],
+        //         tilemap_index: tilemap_index,
+        //         color: color,
+        //     });
+        //     vertices.push(Vertex {
+        //         pos_px: [pos_x, pos_y + tile_height],
+        //         tilemap_index: tilemap_index,
+        //         color: color,
+        //     });
 
-            vertices.push(Vertex {
-                pos_px: [pos_x + tile_width, pos_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-            vertices.push(Vertex {
-                pos_px: [pos_x, pos_y + tile_height],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-            vertices.push(Vertex {
-                pos_px: [pos_x + tile_width, pos_y + tile_height],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-        }
+        //     vertices.push(Vertex {
+        //         pos_px: [pos_x + tile_width, pos_y],
+        //         tilemap_index: tilemap_index,
+        //         color: color,
+        //     });
+        //     vertices.push(Vertex {
+        //         pos_px: [pos_x, pos_y + tile_height],
+        //         tilemap_index: tilemap_index,
+        //         color: color,
+        //     });
+        //     vertices.push(Vertex {
+        //         pos_px: [pos_x + tile_width, pos_y + tile_height],
+        //         tilemap_index: tilemap_index,
+        //         color: color,
+        //     });
+        // }
 
         let mut screen_fade = None;
 

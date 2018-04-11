@@ -179,6 +179,7 @@ fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, Strin
 }
 
 
+
 fn generate_sdl_drawcalls(drawcalls: &[Draw],
                           map: &engine::BackgroundMap,
                           tilesize: i32,
@@ -209,16 +210,31 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
         sdl_drawcalls.push(FillRect(Some(dst)));
         sdl_drawcalls.push(SetColorMod(cell.foreground.r, cell.foreground.g, cell.foreground.b));
         sdl_drawcalls.push(Copy(src, dst));
-
     }
 
     let mut screen_fade = None;
 
     for drawcall in drawcalls.iter() {
         match drawcall {
-            &Draw::Char(..) => {
-                // NOTE: do nothing, all the Char calls should have been drawn from the map
-                println!("WARNING: Uncaught Char drawcall: {:?}", drawcall);
+            &Draw::Char(pos, glyph, foreground, offset_px) => {
+                // NOTE: this should now ONLY be used in the UI flows
+                let (texture_index_x, texture_index_y) = super::texture_coords_from_char(glyph)
+                    .unwrap_or((0, 0));
+                let src = Rect::new(texture_index_x * tilesize,
+                                    texture_index_y * tilesize,
+                                    tilesize as u32, tilesize as u32);
+                let dst = Rect::new(pos.x * tilesize + offset_px.x,
+                                    pos.y * tilesize + offset_px.y,
+                                    tilesize as u32, tilesize as u32);
+
+                // NOTE: Center the glyphs in their cells
+                let glyph_width = engine::glyph_advance_width(glyph).unwrap_or(tilesize);
+                let x_offset = (tilesize as i32 - glyph_width) / 2;
+                let mut dst = dst;
+                dst.offset(x_offset, 0);
+
+                sdl_drawcalls.push(SetColorMod(foreground.r, foreground.g, foreground.b));
+                sdl_drawcalls.push(Copy(src, dst));
             }
 
             &Draw::Background(..) => {

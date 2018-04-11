@@ -405,6 +405,8 @@ pub fn main_loop(
         display_size, Point::from_i32(display_size.y / 2));
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut sdl_drawcalls = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
+    let mut overall_max_drawcall_count = 0;
+    let mut overall_max_sdl_drawcall_count = 0;
     let mut keys = vec![];
     // We're not using alpha at all for now, but it's passed everywhere.
     let mut previous_frame_start_time = Instant::now();
@@ -533,6 +535,10 @@ pub fn main_loop(
         mouse.right = false;
         keys.clear();
 
+        if drawcalls.len() > overall_max_drawcall_count {
+            overall_max_drawcall_count = drawcalls.len();
+        }
+
         if drawcalls.len() > engine::DRAWCALL_CAPACITY {
             println!(
                 "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
@@ -589,6 +595,10 @@ pub fn main_loop(
                                tilesize as i32,
                                &mut sdl_drawcalls);
 
+        if sdl_drawcalls.len() > overall_max_sdl_drawcall_count {
+            overall_max_sdl_drawcall_count = sdl_drawcalls.len();
+        }
+
         if sdl_drawcalls.len() > SDL_DRAWCALL_CAPACITY {
             println!(
                 "Warning: SDL drawcall count exceeded initial capacity {}. Current count: {}.",
@@ -615,6 +625,8 @@ pub fn main_loop(
 
     }
 
-    println!("Engine drawcall count: {}. Capacity: {}.", drawcalls.len(), engine::DRAWCALL_CAPACITY);
-    println!("SDL drawcall count: {}. Capacity: {}.", sdl_drawcalls.len(), SDL_DRAWCALL_CAPACITY);
+    println!("Engine drawcall count: {}. Capacity: {}.",
+             overall_max_drawcall_count, engine::DRAWCALL_CAPACITY);
+    println!("SDL drawcall count: {}. Capacity: {}.",
+             overall_max_sdl_drawcall_count, SDL_DRAWCALL_CAPACITY);
 }

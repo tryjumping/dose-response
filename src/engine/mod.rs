@@ -209,30 +209,47 @@ impl Mouse {
 }
 
 
+#[derive(Copy, Clone, Debug)]
+pub struct Cell {
+    pub glyph: char,
+    pub foreground: Color,
+    pub background: Color,
+    pub offset_px: Point,
+}
+
+impl Default for Cell {
+    fn default() -> Self {
+        Cell {
+            glyph: ' ',
+            foreground: Color{ r: 0, g: 0, b: 0},
+            background: Color{ r: 255, g: 0, b: 255},
+            offset_px: Point::zero(),
+        }
+    }
+}
+
+
 pub struct BackgroundMap {
     display_size: Point,
     padding: Point,
-    map: Vec<Color>,
-    default_color: Color,
+    map: Vec<Cell>,
 }
 
 impl BackgroundMap {
     pub fn new(display_size: Point, padding: Point) -> Self {
         assert!(display_size > Point::zero());
         assert!(padding >= Point::zero());
-        let default_color = Color{r: 255, g: 0, b: 255};
         let size = display_size + (padding * 2);
         BackgroundMap {
             display_size,
             padding,
-            map: vec![default_color; (size.x * size.y) as usize],
-            default_color,
+            map: vec![Default::default(); (size.x * size.y) as usize],
         }
     }
 
-    pub fn clear(&mut self) {
-        for color in self.map.iter_mut() {
-            *color = self.default_color;
+    pub fn clear(&mut self, background: Color) {
+        for cell in self.map.iter_mut() {
+            *cell = Cell { background, ..Default::default() };
         }
     }
 
@@ -240,10 +257,13 @@ impl BackgroundMap {
         self.display_size + (self.padding * 2)
     }
 
-    fn index(&self, pos: Point) -> usize {
-        assert!(self.contains(pos));
-        let pos = pos + self.padding;
-        (pos.y * self.size().x + pos.x) as usize
+    fn index(&self, pos: Point) -> Option<usize> {
+        if self.contains(pos) {
+            let pos = pos + self.padding;
+            Some((pos.y * self.size().x + pos.x) as usize)
+        } else {
+            None
+        }
     }
 
     pub fn contains(&self, pos: Point) -> bool {
@@ -253,53 +273,45 @@ impl BackgroundMap {
         pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y
     }
 
-    pub fn set(&mut self, pos: Point, color: Color) {
-        let ix = self.index(pos);
-        self.map[ix] = color;
+    pub fn set(&mut self, pos: Point, glyph: char, foreground: Color, background: Color, offset_px: Point) {
+        if let Some(ix) = self.index(pos) {
+            self.map[ix] = Cell { glyph, foreground, background, offset_px };
+        }
+    }
+
+    pub fn set_glyph(&mut self, pos: Point, glyph: char, foreground: Color, offset_px: Point) {
+        if let Some(ix) = self.index(pos) {
+            self.map[ix].glyph = glyph;
+            self.map[ix].foreground = foreground;
+            self.map[ix].offset_px = offset_px;
+        }
+    }
+
+    pub fn set_background(&mut self, pos: Point, background: Color) {
+        if let Some(ix) = self.index(pos) {
+            self.map[ix].background = background;
+        }
     }
 
     pub fn get(&self, pos: Point) -> Color {
-        let ix = self.index(pos);
-        self.map[ix]
+        if let Some(ix) = self.index(pos) {
+            self.map[ix].background
+        } else {
+            Default::default()
+        }
     }
 
-    pub fn points(&self) -> impl Iterator<Item=(Point, &Color)> {
+    pub fn cells(&self) -> impl Iterator<Item=(Point, &Cell)> {
         let padding = self.padding;
         let width = self.size().x;
         self.map
             .iter()
             .enumerate()
-            .map(move |(index, color)| {
+            .map(move |(index, cell)| {
                 let pos = Point::new(index as i32 % width, index as i32 / width);
                 let pos = pos - padding;
-                (pos, color)
+                (pos, cell)
             })
-    }
-}
-
-
-pub fn populate_background_map(
-    background_map: &mut BackgroundMap,
-    drawcalls: &Vec<Draw>,
-) {
-    background_map.clear();
-
-    for drawcall in drawcalls {
-        match drawcall {
-            &Draw::Background(pos, color) => {
-                if background_map.contains(pos) {
-                    background_map.set(pos, color);
-                }
-            }
-
-            &Draw::Rectangle(rect, color) => for pos in rect.points() {
-                if background_map.contains(pos) {
-                    background_map.set(pos, color);
-                }
-            },
-
-            _ => {}
-        }
     }
 }
 
@@ -322,6 +334,7 @@ pub type UpdateFn = fn(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &TextMetrics,
+    map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) -> RunningState;
 

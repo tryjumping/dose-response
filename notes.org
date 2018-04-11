@@ -95,13 +95,13 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** The smallest doses were actually okay
 **** But the larger ones weren't
 **** Maybe increase their strength?
-* Render the areas being scrolled to
-** right now when scrolling, the new area is dark
-** and it only gets filled in when the scrolling ends
 * Scrolling to right shows the health/mind bar for a second             :bug:
 ** This is an artifact of the background map thingy
 ** We're messing something up
-* Pressing `?` doesn't work in SDL                                      :bug:
+** Make the BackgroundMap a gamestate thing
+** Move all draw::char and draw::background calls to it
+** Iterate over it in the engine
+** Remove the draw::char and draw::background calls
 * Implement proper fullscreen in SDL                                     :ui:
 ** We can switch to fullscreen but it's not stretching the game
 * Simplify engine drawcalls                                            :code:
@@ -2299,3 +2299,15 @@ CLOSED: [2018-04-08 Sun 17:53]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-04-08 Sun 17:53
 :END:
+** DONE Pressing `?` doesn't work in SDL                               :bug:
+CLOSED: [2018-04-11 Wed 18:59]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-04-11 Wed 18:59
+:END:
+** DONE Render the areas being scrolled to
+CLOSED: [2018-04-11 Wed 18:59]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-04-11 Wed 18:59
+:END:
+*** right now when scrolling, the new area is dark
+*** and it only gets filled in when the scrolling ends

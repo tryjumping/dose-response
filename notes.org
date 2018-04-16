@@ -121,6 +121,10 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Move metrics into the engine                                         :code:
 ** We have a more granular control there
 ** We can see exactly how long teh full update took vs drawcall processing vs. sdl
+* Investigate using LTO                                                :code:
+** Set it in profile.release in Cargo.toml
+** Should make compilation longer but speed the binary up
+** Needs testing
 * Consider using a fixed-step game loop?                               :code:
 ** A bunch of people on r/roguelikedev seem to do that
 ** Does that mean we have to decouple game update and render?

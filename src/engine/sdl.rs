@@ -179,9 +179,18 @@ fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, Strin
 }
 
 
+/// Returns `true` if the `Rectangle` intersects the area that starts at `(0, 0)`
+fn sdl_rect_intersects_area(rect: Rect, area: Point) -> bool {
+    rect.right() >= 0 &&
+        rect.left() < area.x &&
+        rect.top() < area.y &&
+        rect.bottom() >= 0
+}
+
 
 fn generate_sdl_drawcalls(drawcalls: &[Draw],
                           map: &engine::BackgroundMap,
+                          display_size_px: Point,
                           tilesize: i32,
                           sdl_drawcalls: &mut Vec<SDLDrawcall>) {
     use self::SDLDrawcall::*;
@@ -204,12 +213,16 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
         let mut glyph_dst = background_dst;
         glyph_dst.offset(x_offset, 0);
 
-        sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(cell.background.r,
-                                                                 cell.background.g,
-                                                                 cell.background.b)));
-        sdl_drawcalls.push(FillRect(Some(background_dst)));
-        sdl_drawcalls.push(SetColorMod(cell.foreground.r, cell.foreground.g, cell.foreground.b));
-        sdl_drawcalls.push(Copy(texture_src, glyph_dst));
+        if sdl_rect_intersects_area(background_dst, display_size_px) {
+            sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(cell.background.r,
+                                                                     cell.background.g,
+                                                                     cell.background.b)));
+            sdl_drawcalls.push(FillRect(Some(background_dst)));
+        }
+        if sdl_rect_intersects_area(glyph_dst, display_size_px) {
+            sdl_drawcalls.push(SetColorMod(cell.foreground.r, cell.foreground.g, cell.foreground.b));
+            sdl_drawcalls.push(Copy(texture_src, glyph_dst));
+        }
     }
 
     let mut screen_fade = None;
@@ -377,6 +390,8 @@ pub fn main_loop(
 
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
+    // TODO: calculate this from the real window size
+    let display_px = Point::new(desired_window_width as i32, desired_window_height as i32);
     let mut background_map = engine::BackgroundMap::new(
         display_size, Point::from_i32(display_size.y / 2));
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
@@ -441,17 +456,14 @@ pub fn main_loop(
                 }
 
                 Event::MouseMotion {x, y, ..} => {
-                    // TODO: calculate this from the real window size
-                    let display_px = [desired_window_width, desired_window_height];
-
-                    let x = util::clamp(0, x, display_px[0] as i32 - 1);
-                    let y = util::clamp(0, y, display_px[1] as i32 - 1);
+                    let x = util::clamp(0, x, display_px.x - 1);
+                    let y = util::clamp(0, y, display_px.y - 1);
                     mouse.screen_pos = Point { x, y };
 
-                    let tile_width = display_px[0] as i32 / display_size.x;
+                    let tile_width = display_px.x / display_size.x;
                     let mouse_tile_x = x / tile_width;
 
-                    let tile_height = display_px[1] as i32 / display_size.y;
+                    let tile_height = display_px.y / display_size.y;
                     let mouse_tile_y = y / tile_height;
 
                     mouse.tile_pos = Point {
@@ -568,6 +580,7 @@ pub fn main_loop(
         sdl_drawcalls.clear();
         generate_sdl_drawcalls(&drawcalls,
                                &background_map,
+                               display_px,
                                tilesize as i32,
                                &mut sdl_drawcalls);
 

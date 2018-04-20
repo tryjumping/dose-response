@@ -61,17 +61,7 @@ impl Rectangle {
 
         // They intersect if self is neither all the way to the left, right,
         // above or below `other`:
-        let result = !(left || right || above || below);
-        debug_assert_eq!(result, self.slow_intersects(other));
-        result
-    }
-
-    /// Same as `intersects` but slow because it tests all the points
-    /// inside one rectangle againts the other.
-    fn slow_intersects(self, other: Rectangle) -> bool {
-        // TODO: remove this once we're confident the main `intersects`
-        // fn is working correctly.
-        other.points().any(|point| self.contains(point))
+        !(left || right || above || below)
     }
 
     pub fn top_left(self) -> Point {

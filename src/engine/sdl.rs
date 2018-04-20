@@ -152,7 +152,7 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
 /// want to run them all in a sincle place rather than intertwined
 /// with the other Rust code. Basically to better measure the
 /// performance.
-enum SDLDrawcall {
+enum Drawcall {
     SetDrawColor(sdl2::pixels::Color),
     FillRect(Option<Rect>),
     SetColorMod(u8, u8, u8),
@@ -192,8 +192,8 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                           map: &engine::BackgroundMap,
                           display_size_px: Point,
                           tilesize: i32,
-                          sdl_drawcalls: &mut Vec<SDLDrawcall>) {
-    use self::SDLDrawcall::*;
+                          sdl_drawcalls: &mut Vec<Drawcall>) {
+    use self::Drawcall::*;
     assert!(tilesize > 0);
 
     // Render the background tiles separately and before all the other drawcalls.
@@ -323,9 +323,9 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
 fn sdl_render(canvas: &mut Canvas<Window>,
               texture: &mut Texture,
               clear_color: Color,
-              drawcalls: &[SDLDrawcall])
+              drawcalls: &[Drawcall])
 {
-    use self::SDLDrawcall::*;
+    use self::Drawcall::*;
     canvas.set_draw_color(
         sdl2::pixels::Color::RGB(clear_color.r, clear_color.g, clear_color.b));
     canvas.clear();

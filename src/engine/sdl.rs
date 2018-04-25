@@ -197,7 +197,6 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                           display_size_px: Point,
                           tilesize: i32,
                           sdl_drawcalls: &mut Vec<Drawcall>) {
-    use self::Drawcall::*;
     assert!(tilesize > 0);
 
     // Render the background tiles separately and before all the other drawcalls.
@@ -218,11 +217,10 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
         let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
 
         if sdl_rect_intersects_area(background_dst, display_size_px) {
-            sdl_drawcalls.push(FillRect(Some(background_dst), cell.background.into()));
+            sdl_drawcalls.push(Drawcall::Rectangle(Some(background_dst), cell.background.into()));
         }
         if sdl_rect_intersects_area(glyph_dst, display_size_px) {
-            sdl_drawcalls.push(SetColorMod(cell.foreground));
-            sdl_drawcalls.push(Copy(texture_src, glyph_dst));
+            sdl_drawcalls.push(Drawcall::Image(texture_src, glyph_dst, cell.foreground));
         }
     }
 
@@ -236,7 +234,7 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                 let dimensions_px = rect.size() * tilesize;
 
                 let rect = Rectangle::from_point_and_size(top_left_px, dimensions_px);
-                sdl_drawcalls.push(FillRect(Some(rect), color.into()));
+                sdl_drawcalls.push(Drawcall::Rectangle(Some(rect), color.into()));
             }
 
 
@@ -262,8 +260,7 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                             pos_px + (offset_x, 0),
                             Point::from_i32(tilesize));
 
-                        sdl_drawcalls.push(SetColorMod(color));
-                        sdl_drawcalls.push(Copy(src, dst));
+                        sdl_drawcalls.push(Drawcall::Image(src, dst, color));
 
                         let advance_width =
                             engine::glyph_advance_width(chr).unwrap_or(tilesize);
@@ -310,7 +307,7 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
         let fade = util::clampf(0.0, fade, 1.0);
         let fade = (fade * 255.0) as u8;
         let alpha = 255 - fade;
-        sdl_drawcalls.push(FillRect(None, color.alpha(alpha)));
+        sdl_drawcalls.push(Drawcall::Rectangle(None, color.alpha(alpha)));
     }
 }
 
@@ -328,14 +325,12 @@ fn sdl_render(canvas: &mut Canvas<Window>,
     for dc in drawcalls.iter() {
         // TODO: collect the results? Or at least the errors?
         match dc {
-            &FillRect(rect, color) => {
+            &Rectangle(rect, color) => {
                 canvas.set_draw_color(color.into());
                 canvas.fill_rect(rect.map(Into::into)).unwrap();
             }
-            &SetColorMod(color) => {
+            &Image(src, dst, color) => {
                 texture.set_color_mod(color.r, color.g, color.b);
-            }
-            &Copy(src, dst) => {
                 canvas.copy(&texture, Some(src.into()), Some(dst.into())).unwrap();
             }
         }

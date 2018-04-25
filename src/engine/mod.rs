@@ -44,9 +44,8 @@ pub enum Draw {
 
 /// The drawcalls that the engine will process and render.
 enum Drawcall {
-    FillRect(Option<Rectangle>, ColorAlpha),
-    SetColorMod(Color),
-    Copy(Rectangle, Rectangle),
+    Rectangle(Option<Rectangle>, ColorAlpha),
+    Image(Rectangle, Rectangle, Color),
 }
 
 

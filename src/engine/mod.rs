@@ -42,7 +42,7 @@ pub enum Draw {
 
 
 /// The drawcalls that the engine will process and render.
-enum Drawcall {
+pub enum Drawcall {
     Rectangle(Option<Rectangle>, ColorAlpha),
     Image(Rectangle, Rectangle, Color),
 }
@@ -330,6 +330,130 @@ impl BackgroundMap {
             })
     }
 }
+
+
+/// Returns `true` if the `Rectangle` intersects the area that starts at `(0, 0)`
+fn rect_intersects_area(rect: Rectangle, area: Point) -> bool {
+    rect.right() >= 0 &&
+        rect.left() < area.x &&
+        rect.top() < area.y &&
+        rect.bottom() >= 0
+}
+
+// TODO: remove game_drawcalls entirely.
+// This should be a method on the `BackgroundMap` (or better a struct called Display)
+// that returns an iterator over the engine drawcalls (self::Drawcall).
+pub fn generate_drawcalls(game_drawcalls: &[Draw],
+                          map: &BackgroundMap,
+                          display_size_px: Point,
+                          tilesize: i32,
+                          drawcalls: &mut Vec<Drawcall>) {
+    assert!(tilesize > 0);
+
+    // Render the background tiles separately and before all the other drawcalls.
+    for (pos, cell) in map.cells() {
+        let (texture_index_x, texture_index_y) = texture_coords_from_char(cell.glyph)
+            .unwrap_or((0, 0));
+        let texture_src = Rectangle::from_point_and_size(
+            Point::new(texture_index_x, texture_index_y) * tilesize,
+            Point::from_i32(tilesize));
+        let background_dst = Rectangle::from_point_and_size(
+            Point::new(pos.x * tilesize + cell.offset_px.x,
+                       pos.y * tilesize + cell.offset_px.y),
+            Point::from_i32(tilesize));
+
+        // NOTE: Center the glyphs in their cells
+        let glyph_width = glyph_advance_width(cell.glyph).unwrap_or(tilesize);
+        let x_offset = (tilesize as i32 - glyph_width) / 2;
+        let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
+
+        if rect_intersects_area(background_dst, display_size_px) {
+            drawcalls.push(Drawcall::Rectangle(Some(background_dst), cell.background.into()));
+        }
+        if rect_intersects_area(glyph_dst, display_size_px) {
+            drawcalls.push(Drawcall::Image(texture_src, glyph_dst, cell.foreground));
+        }
+    }
+
+    for drawcall in game_drawcalls.iter() {
+        match drawcall {
+
+            &Draw::Rectangle(rect, color) => {
+                let top_left_px = rect.top_left() * tilesize;
+                let dimensions_px = rect.size() * tilesize;
+
+                let rect = Rectangle::from_point_and_size(top_left_px, dimensions_px);
+                drawcalls.push(Drawcall::Rectangle(Some(rect), color.into()));
+            }
+
+
+            &Draw::Text(start_pos, ref text, color, options) => {
+                let mut render_line = |pos_px: Point, line: &str| {
+                    let mut offset_x = 0;
+
+                    // TODO: we need to split this by words or it
+                    // won't do word breaks, split at punctuation,
+                    // etc.
+
+                    // TODO: also, we're no longer calculating the
+                    // line height correctly. Needs to be set on the
+                    // actual result here.
+                    for chr in line.chars() {
+                        let (texture_index_x, texture_index_y) = texture_coords_from_char(chr)
+                            .unwrap_or((0, 0));
+
+                        let src = Rectangle::from_point_and_size(
+                            Point::new(texture_index_x, texture_index_y)  * tilesize,
+                            Point::from_i32(tilesize));
+                        let dst = Rectangle::from_point_and_size(
+                            pos_px + (offset_x, 0),
+                            Point::from_i32(tilesize));
+
+                        drawcalls.push(Drawcall::Image(src, dst, color));
+
+                        let advance_width =
+                            glyph_advance_width(chr).unwrap_or(tilesize);
+                        offset_x += advance_width;
+                    }
+                };
+
+                if options.wrap && options.width > 0 {
+                    // TODO: handle text alignment for wrapped text
+                    let lines = wrap_text(text, options.width, tilesize);
+                    for (index, line) in lines.iter().enumerate() {
+                        let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
+                        render_line(pos, line);
+                    }
+                } else {
+                    use engine::TextAlign::*;
+                    let pos = match options.align {
+                        Left => start_pos * tilesize,
+                        Right => {
+                            (start_pos + (1, 0)) * tilesize
+                                - Point::new(text_width_px(text, tilesize), 0)
+                        }
+                        Center => {
+                            let text_width = text_width_px(text, tilesize);
+                            let max_width = options.width * tilesize;
+                            if max_width < 1 || (text_width > max_width) {
+                                start_pos
+                            } else {
+                                (start_pos * tilesize) + Point::new((max_width - text_width) / 2, 0)
+                            }
+                        }
+                    };
+                    render_line(pos, text);
+                }
+            }
+        }
+    }
+
+    if map.fade.alpha > 0 {
+        drawcalls.push(Drawcall::Rectangle(None, map.fade));
+    }
+}
+
+
 
 /// Settings the engine needs to carry.
 ///

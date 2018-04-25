@@ -183,128 +183,6 @@ fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, Strin
 }
 
 
-/// Returns `true` if the `Rectangle` intersects the area that starts at `(0, 0)`
-fn sdl_rect_intersects_area(rect: Rectangle, area: Point) -> bool {
-    rect.right() >= 0 &&
-        rect.left() < area.x &&
-        rect.top() < area.y &&
-        rect.bottom() >= 0
-}
-
-
-fn generate_sdl_drawcalls(drawcalls: &[Draw],
-                          map: &engine::BackgroundMap,
-                          display_size_px: Point,
-                          tilesize: i32,
-                          sdl_drawcalls: &mut Vec<Drawcall>) {
-    assert!(tilesize > 0);
-
-    // TODO: this should happen in the userspace.
-
-    // Render the background tiles separately and before all the other drawcalls.
-    for (pos, cell) in map.cells() {
-        let (texture_index_x, texture_index_y) = super::texture_coords_from_char(cell.glyph)
-            .unwrap_or((0, 0));
-        let texture_src = Rectangle::from_point_and_size(
-            Point::new(texture_index_x, texture_index_y) * tilesize,
-            Point::from_i32(tilesize));
-        let background_dst = Rectangle::from_point_and_size(
-            Point::new(pos.x * tilesize + cell.offset_px.x,
-                       pos.y * tilesize + cell.offset_px.y),
-            Point::from_i32(tilesize));
-
-        // NOTE: Center the glyphs in their cells
-        let glyph_width = engine::glyph_advance_width(cell.glyph).unwrap_or(tilesize);
-        let x_offset = (tilesize as i32 - glyph_width) / 2;
-        let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
-
-        if sdl_rect_intersects_area(background_dst, display_size_px) {
-            sdl_drawcalls.push(Drawcall::Rectangle(Some(background_dst), cell.background.into()));
-        }
-        if sdl_rect_intersects_area(glyph_dst, display_size_px) {
-            sdl_drawcalls.push(Drawcall::Image(texture_src, glyph_dst, cell.foreground));
-        }
-    }
-
-    for drawcall in drawcalls.iter() {
-        match drawcall {
-
-            &Draw::Rectangle(rect, color) => {
-                let top_left_px = rect.top_left() * tilesize;
-                let dimensions_px = rect.size() * tilesize;
-
-                let rect = Rectangle::from_point_and_size(top_left_px, dimensions_px);
-                sdl_drawcalls.push(Drawcall::Rectangle(Some(rect), color.into()));
-            }
-
-
-            &Draw::Text(start_pos, ref text, color, options) => {
-                let mut render_line = |pos_px: Point, line: &str| {
-                    let mut offset_x = 0;
-
-                    // TODO: we need to split this by words or it
-                    // won't do word breaks, split at punctuation,
-                    // etc.
-
-                    // TODO: also, we're no longer calculating the
-                    // line height correctly. Needs to be set on the
-                    // actual result here.
-                    for chr in line.chars() {
-                        let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
-                            .unwrap_or((0, 0));
-
-                        let src = Rectangle::from_point_and_size(
-                            Point::new(texture_index_x, texture_index_y)  * tilesize,
-                            Point::from_i32(tilesize));
-                        let dst = Rectangle::from_point_and_size(
-                            pos_px + (offset_x, 0),
-                            Point::from_i32(tilesize));
-
-                        sdl_drawcalls.push(Drawcall::Image(src, dst, color));
-
-                        let advance_width =
-                            engine::glyph_advance_width(chr).unwrap_or(tilesize);
-                        offset_x += advance_width;
-                    }
-                };
-
-                if options.wrap && options.width > 0 {
-                    // TODO: handle text alignment for wrapped text
-                    let lines = engine::wrap_text(text, options.width, tilesize);
-                    for (index, line) in lines.iter().enumerate() {
-                        let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
-                        render_line(pos, line);
-                    }
-                } else {
-                    use engine::TextAlign::*;
-                    let pos = match options.align {
-                        Left => start_pos * tilesize,
-                        Right => {
-                            (start_pos + (1, 0)) * tilesize
-                                - Point::new(engine::text_width_px(text, tilesize), 0)
-                        }
-                        Center => {
-                            let text_width = engine::text_width_px(text, tilesize);
-                            let max_width = options.width * tilesize;
-                            if max_width < 1 || (text_width > max_width) {
-                                start_pos
-                            } else {
-                                (start_pos * tilesize) + Point::new((max_width - text_width) / 2, 0)
-                            }
-                        }
-                    };
-                    render_line(pos, text);
-                }
-            }
-        }
-    }
-
-    if map.fade.alpha > 0 {
-        sdl_drawcalls.push(Drawcall::Rectangle(None, map.fade));
-    }
-}
-
-
 fn sdl_render(canvas: &mut Canvas<Window>,
               texture: &mut Texture,
               clear_color: Color,
@@ -567,11 +445,11 @@ pub fn main_loop(
         // functions?
 
         sdl_drawcalls.clear();
-        generate_sdl_drawcalls(&drawcalls,
-                               &background_map,
-                               display_px,
-                               tilesize as i32,
-                               &mut sdl_drawcalls);
+        engine::generate_drawcalls(&drawcalls,
+                                   &background_map,
+                                   display_px,
+                                   tilesize as i32,
+                                   &mut sdl_drawcalls);
 
         if sdl_drawcalls.len() > overall_max_sdl_drawcall_count {
             overall_max_sdl_drawcall_count = sdl_drawcalls.len();

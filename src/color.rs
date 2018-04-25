@@ -13,6 +13,29 @@ pub struct Color {
     pub b: u8,
 }
 
+#[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ColorAlpha {
+    pub rgb: Color,
+    pub alpha: u8,
+}
+
+
+impl Color {
+    pub fn alpha(self, alpha: u8) -> ColorAlpha {
+        ColorAlpha {
+            rgb: self,
+            alpha,
+        }
+    }
+}
+
+
+impl Into<ColorAlpha> for Color {
+    fn into(self) -> ColorAlpha {
+        self.alpha(255)
+    }
+}
+
 
 
 // Game colours

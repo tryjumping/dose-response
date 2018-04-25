@@ -36,6 +36,13 @@ impl Rectangle {
         }
     }
 
+    pub fn offset(self, offset: Point) -> Self {
+        Rectangle {
+            top_left: self.top_left + offset,
+            bottom_right: self.bottom_right + offset,
+        }
+    }
+
     pub fn size(self) -> Point {
         self.bottom_right - self.top_left + (1, 1)
     }
@@ -43,6 +50,23 @@ impl Rectangle {
     pub fn width(self) -> i32 {
         self.size().x
     }
+
+    pub fn right(self) -> i32 {
+        self.bottom_right.x
+    }
+
+    pub fn left(self) -> i32 {
+        self.top_left.x
+    }
+
+    pub fn top(self) -> i32 {
+        self.top_left.y
+    }
+
+    pub fn bottom(self) -> i32 {
+        self.bottom_right.y
+    }
+
 
     /// Returns `true` if the point is within the areas specified by
     /// the rectangle. The mach is inclusive, so a `Rectangle`

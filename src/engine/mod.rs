@@ -1,4 +1,4 @@
-use color::Color;
+use color::{Color, ColorAlpha};
 use game::RunningState;
 use keys::Key;
 use point::Point;
@@ -40,6 +40,15 @@ pub enum Draw {
     /// Fade (one minus alpha: 1.0 means no fade, 0.0 means full fade), color
     Fade(f32, Color),
 }
+
+
+/// The drawcalls that the engine will process and render.
+enum Drawcall {
+    FillRect(Option<Rectangle>, ColorAlpha),
+    SetColorMod(Color),
+    Copy(Rectangle, Rectangle),
+}
+
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TextOptions {
@@ -231,6 +240,7 @@ pub struct BackgroundMap {
     map: Vec<Cell>,
 }
 
+#[allow(dead_code)]
 impl BackgroundMap {
     pub fn new(display_size: Point, padding: Point) -> Self {
         assert!(display_size > Point::zero());

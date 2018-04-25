@@ -1,8 +1,9 @@
-use color::Color;
-use engine::{self, Draw, Mouse, Settings, TextMetrics, UpdateFn};
+use color::{Color, ColorAlpha};
+use engine::{self, Draw, Drawcall, Mouse, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
 use keys::KeyCode;
 use point::Point;
+use rect::Rectangle;
 use state::State;
 use util;
 
@@ -11,8 +12,8 @@ use std::time::{Duration, Instant};
 use sdl2;
 use sdl2::event::Event;
 use sdl2::keyboard::{self, Keycode as BackendKey};
-use sdl2::pixels::PixelFormatEnum;
-use sdl2::rect::Rect;
+use sdl2::pixels::{Color as SDLColor, PixelFormatEnum};
+use sdl2::rect::Rect as SDLRect;
 use sdl2::render::{Canvas, Texture, TextureCreator};
 use sdl2::surface::Surface;
 use sdl2::video::Window;
@@ -148,15 +149,18 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     }
 }
 
-/// This represents the SDL rendering calls we're going to make. We
-/// want to run them all in a sincle place rather than intertwined
-/// with the other Rust code. Basically to better measure the
-/// performance.
-enum Drawcall {
-    SetDrawColor(sdl2::pixels::Color),
-    FillRect(Option<Rect>),
-    SetColorMod(u8, u8, u8),
-    Copy(Rect, Rect),
+
+impl Into<SDLRect> for Rectangle {
+    fn into(self) -> SDLRect {
+        SDLRect::new(self.top_left().x, self.top_left().y,
+                     self.size().x as u32, self.size().y as u32)
+    }
+}
+
+impl Into<SDLColor> for ColorAlpha {
+    fn into(self) -> SDLColor {
+        SDLColor::RGBA(self.rgb.r, self.rgb.g, self.rgb.b, self.alpha)
+    }
 }
 
 
@@ -180,7 +184,7 @@ fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, Strin
 
 
 /// Returns `true` if the `Rectangle` intersects the area that starts at `(0, 0)`
-fn sdl_rect_intersects_area(rect: Rect, area: Point) -> bool {
+fn sdl_rect_intersects_area(rect: Rectangle, area: Point) -> bool {
     rect.right() >= 0 &&
         rect.left() < area.x &&
         rect.top() < area.y &&
@@ -200,27 +204,24 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
     for (pos, cell) in map.cells() {
         let (texture_index_x, texture_index_y) = super::texture_coords_from_char(cell.glyph)
             .unwrap_or((0, 0));
-        let texture_src = Rect::new(texture_index_x * tilesize,
-                                    texture_index_y * tilesize,
-                                    tilesize as u32, tilesize as u32);
-        let background_dst = Rect::new(pos.x * tilesize + cell.offset_px.x,
-                                       pos.y * tilesize + cell.offset_px.y,
-                                       tilesize as u32, tilesize as u32);
+        let texture_src = Rectangle::from_point_and_size(
+            Point::new(texture_index_x, texture_index_y) * tilesize,
+            Point::from_i32(tilesize));
+        let background_dst = Rectangle::from_point_and_size(
+            Point::new(pos.x * tilesize + cell.offset_px.x,
+                       pos.y * tilesize + cell.offset_px.y),
+            Point::from_i32(tilesize));
 
         // NOTE: Center the glyphs in their cells
         let glyph_width = engine::glyph_advance_width(cell.glyph).unwrap_or(tilesize);
         let x_offset = (tilesize as i32 - glyph_width) / 2;
-        let mut glyph_dst = background_dst;
-        glyph_dst.offset(x_offset, 0);
+        let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
 
         if sdl_rect_intersects_area(background_dst, display_size_px) {
-            sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGB(cell.background.r,
-                                                                     cell.background.g,
-                                                                     cell.background.b)));
-            sdl_drawcalls.push(FillRect(Some(background_dst)));
+            sdl_drawcalls.push(FillRect(Some(background_dst), cell.background.into()));
         }
         if sdl_rect_intersects_area(glyph_dst, display_size_px) {
-            sdl_drawcalls.push(SetColorMod(cell.foreground.r, cell.foreground.g, cell.foreground.b));
+            sdl_drawcalls.push(SetColorMod(cell.foreground));
             sdl_drawcalls.push(Copy(texture_src, glyph_dst));
         }
     }
@@ -234,13 +235,8 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                 let top_left_px = rect.top_left() * tilesize;
                 let dimensions_px = rect.size() * tilesize;
 
-                let rect = Rect::new(top_left_px.x, top_left_px.y,
-                                     dimensions_px.x as u32, dimensions_px.y as u32);
-                sdl_drawcalls.push(SetDrawColor(
-                    sdl2::pixels::Color::RGB(color.r,
-                                             color.g,
-                                             color.b)));
-                sdl_drawcalls.push(FillRect(Some(rect)));
+                let rect = Rectangle::from_point_and_size(top_left_px, dimensions_px);
+                sdl_drawcalls.push(FillRect(Some(rect), color.into()));
             }
 
 
@@ -259,14 +255,14 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                         let (texture_index_x, texture_index_y) = super::texture_coords_from_char(chr)
                             .unwrap_or((0, 0));
 
-                        let src = Rect::new(texture_index_x * tilesize,
-                                            texture_index_y * tilesize,
-                                            tilesize as u32, tilesize as u32);
-                        let dst = Rect::new(pos_px.x + offset_x,
-                                            pos_px.y,
-                                            tilesize as u32, tilesize as u32);
+                        let src = Rectangle::from_point_and_size(
+                            Point::new(texture_index_x, texture_index_y)  * tilesize,
+                            Point::from_i32(tilesize));
+                        let dst = Rectangle::from_point_and_size(
+                            pos_px + (offset_x, 0),
+                            Point::from_i32(tilesize));
 
-                        sdl_drawcalls.push(SetColorMod(color.r, color.g, color.b));
+                        sdl_drawcalls.push(SetColorMod(color));
                         sdl_drawcalls.push(Copy(src, dst));
 
                         let advance_width =
@@ -314,8 +310,7 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
         let fade = util::clampf(0.0, fade, 1.0);
         let fade = (fade * 255.0) as u8;
         let alpha = 255 - fade;
-        sdl_drawcalls.push(SetDrawColor(sdl2::pixels::Color::RGBA(color.r, color.g, color.b, alpha)));
-        sdl_drawcalls.push(FillRect(None));
+        sdl_drawcalls.push(FillRect(None, color.alpha(alpha)));
     }
 }
 
@@ -333,10 +328,16 @@ fn sdl_render(canvas: &mut Canvas<Window>,
     for dc in drawcalls.iter() {
         // TODO: collect the results? Or at least the errors?
         match dc {
-            &SetDrawColor(color) => canvas.set_draw_color(color),
-            &FillRect(rect) => canvas.fill_rect(rect).unwrap(),
-            &SetColorMod(r, g, b) => texture.set_color_mod(r, g, b),
-            &Copy(src, dst) => canvas.copy(&texture, src, dst).unwrap(),
+            &FillRect(rect, color) => {
+                canvas.set_draw_color(color.into());
+                canvas.fill_rect(rect.map(Into::into)).unwrap();
+            }
+            &SetColorMod(color) => {
+                texture.set_color_mod(color.r, color.g, color.b);
+            }
+            &Copy(src, dst) => {
+                canvas.copy(&texture, Some(src.into()), Some(dst.into())).unwrap();
+            }
         }
     }
 

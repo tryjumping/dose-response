@@ -1,5 +1,5 @@
 use color;
-use engine::{Draw, TextMetrics, TextOptions};
+use engine::{BackgroundMap, Draw, TextMetrics, TextOptions};
 use point::Point;
 use rect::Rectangle;
 use state::State;
@@ -133,20 +133,20 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap, drawcalls: &mut Vec<Draw>) {
         use ui::Text::*;
 
         let layout = self.layout(state, metrics);
 
-        drawcalls.push(Draw::Rectangle(layout.window_rect, color::window_edge));
+        map.draw_rectangle(layout.window_rect, color::window_edge);
 
-        drawcalls.push(Draw::Rectangle(
+        map.draw_rectangle(
             Rectangle::new(
                 layout.window_rect.top_left() + (1, 1),
                 layout.window_rect.bottom_right() - (1, 1),
             ),
             color::background,
-        ));
+        );
 
         let header = format!("{}", state.current_help_window);
         let mut lines = vec![];
@@ -252,7 +252,7 @@ impl Window {
         ui::render_text_flow(&lines, layout.rect, metrics, drawcalls);
 
         if let Some(highlighted_rect) = layout.rect_under_mouse {
-            drawcalls.push(Draw::Rectangle(highlighted_rect, color::menu_highlight));
+            map.draw_rectangle(highlighted_rect, color::menu_highlight);
         }
 
         if let Some(drawcall) = layout.next_page_button {

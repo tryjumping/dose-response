@@ -231,14 +231,14 @@ pub fn render_game(
         map.set_glyph(display_pos, state.player.glyph(), state.player.color(), offset_px);
     }
 
-    sidebar_window.render(state, metrics, dt, fps, drawcalls);
+    sidebar_window.render(state, metrics, dt, fps, map, drawcalls);
     if state.show_keboard_movement_hints && !state.game_ended {
-        render_controls_help(state.map_size, metrics, drawcalls);
+        render_controls_help(state.map_size, metrics, map, drawcalls);
     }
 
     let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
     if mouse_inside_map && state.mouse.right {
-        render_monster_info(state, drawcalls);
+        render_monster_info(state, map, drawcalls);
     }
 }
 
@@ -249,7 +249,7 @@ fn render_main_menu(
     map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
-    window.render(state, metrics, drawcalls);
+    window.render(state, metrics, map, drawcalls);
 
     // Clear any fade set by the gameplay rendering
     map.fade = color::invisible;
@@ -262,7 +262,7 @@ fn render_help_screen(
     map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
-    window.render(state, metrics, drawcalls);
+    window.render(state, metrics, map, drawcalls);
 
     // Clear any fade set by the gameplay rendering
     map.fade = color::invisible;
@@ -275,7 +275,7 @@ fn render_endgame_screen(
     map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
-    window.render(state, metrics, drawcalls);
+    window.render(state, metrics, map, drawcalls);
 
     // Clear any fade set by the gameplay rendering
     map.fade = color::invisible;
@@ -285,7 +285,7 @@ fn render_message(
     state: &State,
     text: &str,
     _metrics: &TextMetrics,
-    _map: &mut BackgroundMap,
+    map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     let window_size = Point::new(40, 10);
@@ -298,15 +298,15 @@ fn render_message(
         window_rect.bottom_right() - padding,
     );
 
-    drawcalls.push(Draw::Rectangle(window_rect, color::window_edge));
+    map.draw_rectangle(window_rect, color::window_edge);
 
-    drawcalls.push(Draw::Rectangle(
+    map.draw_rectangle(
         Rectangle::new(
             window_rect.top_left() + (1, 1),
             window_rect.bottom_right() - (1, 1),
         ),
         color::background,
-    ));
+    );
 
     drawcalls.push(Draw::Text(
         rect.top_left(),
@@ -316,7 +316,7 @@ fn render_message(
     ));
 }
 
-fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
+fn render_monster_info(state: &State, map: &mut BackgroundMap, drawcalls: &mut Vec<Draw>) {
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
     let mouse_world_pos = screen_left_top_corner + state.mouse.tile_pos;
     // TODO: world.monster_on_pos is mutable, let's add an immutable version
@@ -334,13 +334,13 @@ fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
     if let Some(debug_text) = debug_text {
         let height = debug_text.lines().count();
         let width = debug_text.lines().map(|s| s.chars().count()).max().unwrap();
-        drawcalls.push(Draw::Rectangle(
+        map.draw_rectangle(
             Rectangle::from_point_and_size(
                 Point::from_i32(0),
                 Point::new(width as i32, height as i32),
             ),
             color::background,
-        ));
+        );
         for (index, line) in debug_text.lines().enumerate() {
             drawcalls.push(Draw::Text(
                 Point {
@@ -355,7 +355,7 @@ fn render_monster_info(state: &State, drawcalls: &mut Vec<Draw>) {
     }
 }
 
-fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+fn render_controls_help(map_size: Point, metrics: &TextMetrics, map: &mut BackgroundMap, drawcalls: &mut Vec<Draw>) {
     let rect_dim = |lines: &[&str]| {
         let longest_line = lines.iter()
             .map(|l| {
@@ -367,11 +367,11 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         (longest_line, lines.len() as i32)
     };
 
-    fn draw_rect(lines: &[&'static str], start: Point, w: i32, h: i32, drawcalls: &mut Vec<Draw>) {
-        drawcalls.push(Draw::Rectangle(
+    fn draw_rect(lines: &[&'static str], start: Point, w: i32, h: i32, map: &mut BackgroundMap, drawcalls: &mut Vec<Draw>) {
+        map.draw_rectangle(
             Rectangle::from_point_and_size(start, Point::new(w, h)),
             color::dim_background,
-        ));
+        );
         for (index, &line) in lines.iter().enumerate() {
             drawcalls.push(Draw::Text(
                 start + Point::new(0, index as i32),
@@ -390,7 +390,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         x: (map_size.x - width) / 2,
         y: padding,
     };
-    draw_rect(lines, start, width, height, drawcalls);
+    draw_rect(lines, start, width, height, map, drawcalls);
 
     let lines = &["Down", "Num 2", "or: J"];
     let (width, height) = rect_dim(lines);
@@ -398,7 +398,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         x: (map_size.x - width) / 2,
         y: map_size.y - height - padding,
     };
-    draw_rect(lines, start, width, height, drawcalls);
+    draw_rect(lines, start, width, height, map, drawcalls);
 
     let lines = &["Left", "Num 4", "or: H"];
     let (width, height) = rect_dim(lines);
@@ -406,7 +406,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         x: padding,
         y: (map_size.y - height) / 2,
     };
-    draw_rect(lines, start, width, height, drawcalls);
+    draw_rect(lines, start, width, height, map, drawcalls);
 
     let lines = &["Right", "Num 6", "or: L"];
     let (width, height) = rect_dim(lines);
@@ -414,7 +414,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         x: map_size.x - width - padding,
         y: (map_size.y - height) / 2,
     };
-    draw_rect(lines, start, width, height, drawcalls);
+    draw_rect(lines, start, width, height, map, drawcalls);
 
     let lines = &["Shift+Left", "Num 7", "or: Y"];
     let (width, height) = rect_dim(lines);
@@ -422,7 +422,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         x: padding,
         y: padding,
     };
-    draw_rect(lines, start, width, height, drawcalls);
+    draw_rect(lines, start, width, height, map, drawcalls);
 
     let lines = &["Shift+Right", "Num 9", "or: U"];
     let (width, height) = rect_dim(lines);
@@ -430,7 +430,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         x: map_size.x - width - padding,
         y: padding,
     };
-    draw_rect(lines, start, width, height, drawcalls);
+    draw_rect(lines, start, width, height, map, drawcalls);
 
     let lines = &["Ctrl+Left", "Num 1", "or: B"];
     let (width, height) = rect_dim(lines);
@@ -438,7 +438,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         x: padding,
         y: map_size.y - height - padding,
     };
-    draw_rect(lines, start, width, height, drawcalls);
+    draw_rect(lines, start, width, height, map, drawcalls);
 
     let lines = &["Ctrl+Right", "Num 3", "or: N"];
     let (width, height) = rect_dim(lines);
@@ -446,6 +446,6 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, drawcalls: &mut 
         x: map_size.x - width - padding,
         y: map_size.y - height - padding,
     };
-    draw_rect(lines, start, width, height, drawcalls);
+    draw_rect(lines, start, width, height, map, drawcalls);
 
 }

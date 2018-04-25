@@ -1,5 +1,5 @@
 use color;
-use engine::{Draw, TextMetrics};
+use engine::{BackgroundMap, Draw, TextMetrics};
 use point::Point;
 use rect::Rectangle;
 use state::State;
@@ -139,15 +139,15 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap, drawcalls: &mut Vec<Draw>) {
         let layout = self.calculate_layout(state, metrics);
-        drawcalls.push(Draw::Rectangle(layout.window_rect, color::window_edge));
-        drawcalls.push(Draw::Rectangle(layout.inner_window_rect, color::background));
+        map.draw_rectangle(layout.window_rect, color::window_edge);
+        map.draw_rectangle(layout.inner_window_rect, color::background);
 
         let rect = layout.rect;
 
         if let Some(rect) = layout.menu_rect_under_mouse {
-            drawcalls.push(Draw::Rectangle(rect, color::menu_highlight));
+            map.draw_rectangle(rect, color::menu_highlight);
         }
 
         ui::render_text_flow(&layout.text_flow, rect, metrics, drawcalls);

@@ -1,5 +1,5 @@
 use color;
-use engine::{Draw, TextMetrics, TextOptions};
+use engine::{BackgroundMap, Draw, TextMetrics, TextOptions};
 use formula;
 use player::CauseOfDeath;
 use point::Point;
@@ -98,7 +98,7 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, drawcalls: &mut Vec<Draw>) {
+    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap, drawcalls: &mut Vec<Draw>) {
         use self::CauseOfDeath::*;
         use ui::Text::*;
 
@@ -165,12 +165,12 @@ impl Window {
             EmptySpace(2),
         ];
 
-        drawcalls.push(Draw::Rectangle(layout.window_rect, color::background));
+        map.draw_rectangle(layout.window_rect, color::background);
 
         ui::render_text_flow(&lines, layout.rect, metrics, drawcalls);
 
         if let Some(rect) = layout.rect_under_mouse {
-            drawcalls.push(Draw::Rectangle(rect, color::menu_highlight));
+            map.draw_rectangle(rect, color::menu_highlight);
         }
 
         drawcalls.push(layout.new_game_button);

@@ -36,12 +36,11 @@ pub const DRAWCALL_CAPACITY: usize = 8000;
 pub enum Draw {
     /// Position, text, colour
     Text(Point, Cow<'static, str>, Color, TextOptions),
-    /// Rectangle, color
-    Rectangle(Rectangle, Color),
 }
 
 
 /// The drawcalls that the engine will process and render.
+#[derive(Debug, Copy, Clone)]
 pub enum Drawcall {
     Rectangle(Option<Rectangle>, ColorAlpha),
     Image(Rectangle, Rectangle, Color),
@@ -149,10 +148,6 @@ pub trait TextMetrics {
 
                 Rectangle::from_point_and_size(top_left, size)
             }
-
-            _ => {
-                panic!("The argument to `TextMetrics::text_rect` must be `Draw::Text`!");
-            }
         }
     }
 }
@@ -234,22 +229,25 @@ impl Default for Cell {
 
 pub struct BackgroundMap {
     display_size: Point,
+    tilesize: i32,
     padding: Point,
     map: Vec<Cell>,
-    //drawcalls: Vec<Drawcall>,
+    pub drawcalls: Vec<Drawcall>,
     pub fade: ColorAlpha,
 }
 
 #[allow(dead_code)]
 impl BackgroundMap {
-    pub fn new(display_size: Point, padding: Point) -> Self {
+    pub fn new(display_size: Point, padding: Point, tilesize: i32) -> Self {
         assert!(display_size > Point::zero());
         assert!(padding >= Point::zero());
         let size = display_size + (padding * 2);
         BackgroundMap {
             display_size,
             padding,
+            tilesize,
             map: vec![Default::default(); (size.x * size.y) as usize],
+            drawcalls: Vec::with_capacity(DRAWCALL_CAPACITY),
             fade: color::invisible,
         }
     }
@@ -258,6 +256,7 @@ impl BackgroundMap {
         for cell in self.map.iter_mut() {
             *cell = Cell { background, ..Default::default() };
         }
+        self.drawcalls.clear();
         self.fade = color::invisible;
     }
 
@@ -307,6 +306,15 @@ impl BackgroundMap {
         let fade = util::clampf(0.0, fade, 1.0);
         let fade = (fade * 255.0) as u8;
         self.fade = color.alpha(255 - fade);
+    }
+
+    /// Draw a rectangle of the given colour.
+    pub fn draw_rectangle(&mut self, rect: Rectangle, color: Color) {
+        let top_left_px = rect.top_left() * self.tilesize;
+        let dimensions_px = rect.size() * self.tilesize;
+
+        let rect = Rectangle::from_point_and_size(top_left_px, dimensions_px);
+        self.drawcalls.push(Drawcall::Rectangle(Some(rect), color.into()));
     }
 
     pub fn get(&self, pos: Point) -> Color {
@@ -375,16 +383,10 @@ pub fn generate_drawcalls(game_drawcalls: &[Draw],
         }
     }
 
+    drawcalls.extend(map.drawcalls.iter());
+
     for drawcall in game_drawcalls.iter() {
         match drawcall {
-
-            &Draw::Rectangle(rect, color) => {
-                let top_left_px = rect.top_left() * tilesize;
-                let dimensions_px = rect.size() * tilesize;
-
-                let rect = Rectangle::from_point_and_size(top_left_px, dimensions_px);
-                drawcalls.push(Drawcall::Rectangle(Some(rect), color.into()));
-            }
 
 
             &Draw::Text(start_pos, ref text, color, options) => {

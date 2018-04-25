@@ -41,9 +41,6 @@ impl TextMetrics for Metrics {
                     1
                 }
             }
-            _ => {
-                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
-            }
         }
     }
 
@@ -63,9 +60,6 @@ impl TextMetrics for Metrics {
                 };
                 let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
                 tile_width as i32
-            }
-            _ => {
-                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
             }
         }
     }
@@ -260,7 +254,7 @@ pub fn main_loop(
     // TODO: calculate this from the real window size
     let display_px = Point::new(desired_window_width as i32, desired_window_height as i32);
     let mut background_map = engine::BackgroundMap::new(
-        display_size, Point::from_i32(display_size.y / 2));
+        display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut sdl_drawcalls = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
     let mut overall_max_drawcall_count = 0;

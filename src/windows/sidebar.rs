@@ -1,5 +1,5 @@
 use color;
-use engine::{Draw, TextMetrics};
+use engine::{BackgroundMap, Draw, TextMetrics};
 use graphics;
 use game;
 use item;
@@ -140,6 +140,7 @@ impl Window {
         metrics: &TextMetrics,
         dt: Duration,
         fps: i32,
+        map: &mut BackgroundMap,
         drawcalls: &mut Vec<Draw>,
     ) {
         let layout = self.layout(state, metrics);
@@ -149,13 +150,13 @@ impl Window {
         let width = state.panel_width;
 
         let height = state.display_size.y;
-        drawcalls.push(Draw::Rectangle(
+        map.draw_rectangle(
             Rectangle::from_point_and_size(Point::new(x, 0), Point::new(width, height)),
             bg,
-        ));
+        );
 
         if let Some(highlighted) = layout.rect_under_mouse {
-            drawcalls.push(Draw::Rectangle(highlighted, color::menu_highlight));
+            map.draw_rectangle(highlighted, color::menu_highlight);
         }
 
         let player = &state.player;
@@ -184,7 +185,7 @@ impl Window {
         ));
 
         graphics::progress_bar(
-            drawcalls,
+            map,
             mind_val_percent,
             layout.progress_bar_pos,
             bar_width,

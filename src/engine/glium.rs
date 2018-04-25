@@ -146,9 +146,6 @@ impl TextMetrics for Metrics {
                     1
                 }
             }
-            _ => {
-                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
-            }
         }
     }
 
@@ -168,9 +165,6 @@ impl TextMetrics for Metrics {
                 };
                 let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
                 tile_width as i32
-            }
-            _ => {
-                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
             }
         }
     }
@@ -284,7 +278,7 @@ pub fn main_loop(
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
     let mut background_map = engine::BackgroundMap::new(
-        display_size, Point::from_i32(display_size.y / 2));
+        display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
@@ -327,10 +321,9 @@ pub fn main_loop(
         // NOTE: Skip the first frame -- the window isn't set up
         // properly there.
         if current_frame > 1 {
-            drawcalls.push(Draw::Rectangle(
+            background_map.draw_rectangle(
                 Rectangle::from_point_and_size(Point::new(0, 0), display_size),
-                default_background,
-            ));
+                default_background);
             let update_result = update(
                 &mut state,
                 dt,
@@ -684,48 +677,48 @@ pub fn main_loop(
                     }
                 }
 
-                &Draw::Rectangle(rect, color) => {
-                    let top_left = rect.top_left();
-                    let dimensions = rect.size();
-                    let top_left_px = pixel_from_tile(top_left);
-                    let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
-                    let dimensions_px = pixel_from_tile(dimensions);
-                    let (dim_x, dim_y) = (dimensions_px.x as f32, dimensions_px.y as f32);
-                    let tilemap_index = [0.0, 5.0];
-                    let color = gl_color(color, alpha);
+                // &Draw::Rectangle(rect, color) => {
+                //     let top_left = rect.top_left();
+                //     let dimensions = rect.size();
+                //     let top_left_px = pixel_from_tile(top_left);
+                //     let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
+                //     let dimensions_px = pixel_from_tile(dimensions);
+                //     let (dim_x, dim_y) = (dimensions_px.x as f32, dimensions_px.y as f32);
+                //     let tilemap_index = [0.0, 5.0];
+                //     let color = gl_color(color, alpha);
 
-                    vertices.push(Vertex {
-                        pos_px: [pos_x, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        pos_px: [pos_x + dim_x, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        pos_px: [pos_x, pos_y + dim_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
+                //     vertices.push(Vertex {
+                //         pos_px: [pos_x, pos_y],
+                //         tilemap_index: tilemap_index,
+                //         color: color,
+                //     });
+                //     vertices.push(Vertex {
+                //         pos_px: [pos_x + dim_x, pos_y],
+                //         tilemap_index: tilemap_index,
+                //         color: color,
+                //     });
+                //     vertices.push(Vertex {
+                //         pos_px: [pos_x, pos_y + dim_y],
+                //         tilemap_index: tilemap_index,
+                //         color: color,
+                //     });
 
-                    vertices.push(Vertex {
-                        pos_px: [pos_x + dim_x, pos_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        pos_px: [pos_x, pos_y + dim_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                    vertices.push(Vertex {
-                        pos_px: [pos_x + dim_x, pos_y + dim_y],
-                        tilemap_index: tilemap_index,
-                        color: color,
-                    });
-                }
+                //     vertices.push(Vertex {
+                //         pos_px: [pos_x + dim_x, pos_y],
+                //         tilemap_index: tilemap_index,
+                //         color: color,
+                //     });
+                //     vertices.push(Vertex {
+                //         pos_px: [pos_x, pos_y + dim_y],
+                //         tilemap_index: tilemap_index,
+                //         color: color,
+                //     });
+                //     vertices.push(Vertex {
+                //         pos_px: [pos_x + dim_x, pos_y + dim_y],
+                //         tilemap_index: tilemap_index,
+                //         color: color,
+                //     });
+                // }
 
                 // &Draw::Fade(fade, color) => {
                 //     screen_fade = Some((fade, color));

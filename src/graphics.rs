@@ -1,11 +1,11 @@
 use color::Color;
-use engine::Draw;
+use engine::BackgroundMap;
 use point::Point;
 use rect::Rectangle;
 
 
 pub fn progress_bar(
-    drawcalls: &mut Vec<Draw>,
+    map: &mut BackgroundMap,
     percentage: f32,
     pos: Point,
     width: i32,
@@ -22,21 +22,21 @@ pub fn progress_bar(
     }
 
     if highlighted_width > 0 {
-        drawcalls.push(Draw::Rectangle(
+        map.draw_rectangle(
             Rectangle::from_point_and_size(pos, Point::new(highlighted_width, 1)),
             foreground,
-        ));
+        );
     }
 
     let remaining_width = width - highlighted_width;
     if remaining_width > 0 {
-        drawcalls.push(Draw::Rectangle(
+        map.draw_rectangle(
             Rectangle::from_point_and_size(
                 pos + (highlighted_width, 0),
                 Point::new(remaining_width, 1),
             ),
             background,
-        ));
+        );
     }
 }
 

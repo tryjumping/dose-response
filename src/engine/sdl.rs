@@ -199,6 +199,8 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                           sdl_drawcalls: &mut Vec<Drawcall>) {
     assert!(tilesize > 0);
 
+    // TODO: this should happen in the userspace.
+
     // Render the background tiles separately and before all the other drawcalls.
     for (pos, cell) in map.cells() {
         let (texture_index_x, texture_index_y) = super::texture_coords_from_char(cell.glyph)

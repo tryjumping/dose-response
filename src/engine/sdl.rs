@@ -224,8 +224,6 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
         }
     }
 
-    let mut screen_fade = None;
-
     for drawcall in drawcalls.iter() {
         match drawcall {
 
@@ -296,18 +294,11 @@ fn generate_sdl_drawcalls(drawcalls: &[Draw],
                     render_line(pos, text);
                 }
             }
-
-            &Draw::Fade(fade, color) => {
-                screen_fade = Some((fade, color));
-            }
         }
     }
 
-    if let Some((fade, color)) = screen_fade {
-        let fade = util::clampf(0.0, fade, 1.0);
-        let fade = (fade * 255.0) as u8;
-        let alpha = 255 - fade;
-        sdl_drawcalls.push(Drawcall::Rectangle(None, color.alpha(alpha)));
+    if map.fade.alpha > 0 {
+        sdl_drawcalls.push(Drawcall::Rectangle(None, map.fade));
     }
 }
 

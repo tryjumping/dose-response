@@ -21,6 +21,9 @@ pub fn render(
     map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
+    // NOTE: Clear the screen
+    map.clear(color::background);
+
     // TODO: This might be inefficient for windows fully covering
     // other windows.
     for window in state.window_stack.windows() {
@@ -69,15 +72,6 @@ pub fn render_game(
 ) {
     let offset_px = state.offset_px;
 
-
-    if state.player.alive() {
-        let fade = formula::mind_fade_value(state.player.mind);
-        if fade > 0.0 {
-            // TODO: animate the fade from the previous value?
-            drawcalls.push(Draw::Fade(fade, color::BLACK));
-        }
-    }
-
     if let Some(ref animation) = state.screen_fading {
         use animation::ScreenFadePhase;
         let fade = match animation.phase {
@@ -86,7 +80,7 @@ pub fn render_game(
             ScreenFadePhase::FadeIn => animation.timer.percentage_elapsed(),
             ScreenFadePhase::Done => 1.0,
         };
-        drawcalls.push(Draw::Fade(fade, animation.color));
+        map.set_fade(animation.color, fade);
     }
 
     let mut bonus = state.player.bonus;
@@ -111,9 +105,10 @@ pub fn render_game(
     // borrowed the state here as immutable, we wouln't need it.
     let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
-    // NOTE: Clear the screen
-    map.clear(color::background);
-
+    if state.player.alive() {
+        let fade = formula::mind_fade_value(state.player.mind);
+        map.set_fade(color::BLACK, fade);
+    }
 
     // NOTE: render the cells on the map. That means world geometry and items.
     for (world_pos, cell) in state
@@ -251,39 +246,39 @@ fn render_main_menu(
     state: &State,
     window: &main_menu::Window,
     metrics: &TextMetrics,
-    _map: &mut BackgroundMap,
+    map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     window.render(state, metrics, drawcalls);
 
     // Clear any fade set by the gameplay rendering
-    drawcalls.push(Draw::Fade(1.0, color::BLACK));
+    map.fade = color::invisible;
 }
 
 fn render_help_screen(
     state: &State,
     window: &help::Window,
     metrics: &TextMetrics,
-    _map: &mut BackgroundMap,
+    map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     window.render(state, metrics, drawcalls);
 
     // Clear any fade set by the gameplay rendering
-    drawcalls.push(Draw::Fade(1.0, color::BLACK));
+    map.fade = color::invisible;
 }
 
 fn render_endgame_screen(
     state: &State,
     window: &endgame::Window,
     metrics: &TextMetrics,
-    _map: &mut BackgroundMap,
+    map: &mut BackgroundMap,
     drawcalls: &mut Vec<Draw>,
 ) {
     window.render(state, metrics, drawcalls);
 
     // Clear any fade set by the gameplay rendering
-    drawcalls.push(Draw::Fade(1.0, color::BLACK));
+    map.fade = color::invisible;
 }
 
 fn render_message(

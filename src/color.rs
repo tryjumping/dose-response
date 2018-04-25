@@ -15,7 +15,12 @@ pub struct Color {
 
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ColorAlpha {
+    /// RGB components of a colour
     pub rgb: Color,
+
+    /// Transparence value of the colour.
+    /// `0`: fully transparent
+    /// `255`: fully opaque
     pub alpha: u8,
 }
 
@@ -36,6 +41,8 @@ impl Into<ColorAlpha> for Color {
     }
 }
 
+
+pub const invisible: ColorAlpha = ColorAlpha { rgb: Color { r: 0, g: 0, b: 0 }, alpha: 0 };
 
 
 // Game colours

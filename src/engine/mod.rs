@@ -1,11 +1,12 @@
-use color::{Color, ColorAlpha};
+use color::{self, Color, ColorAlpha};
 use game::RunningState;
 use keys::Key;
 use point::Point;
 use rect::Rectangle;
 use state::State;
-use std::borrow::Cow;
+use util;
 
+use std::borrow::Cow;
 use std::time::Duration;
 
 #[cfg(feature = "opengl")]
@@ -37,8 +38,6 @@ pub enum Draw {
     Text(Point, Cow<'static, str>, Color, TextOptions),
     /// Rectangle, color
     Rectangle(Rectangle, Color),
-    /// Fade (one minus alpha: 1.0 means no fade, 0.0 means full fade), color
-    Fade(f32, Color),
 }
 
 
@@ -237,6 +236,8 @@ pub struct BackgroundMap {
     display_size: Point,
     padding: Point,
     map: Vec<Cell>,
+    //drawcalls: Vec<Drawcall>,
+    pub fade: ColorAlpha,
 }
 
 #[allow(dead_code)]
@@ -249,6 +250,7 @@ impl BackgroundMap {
             display_size,
             padding,
             map: vec![Default::default(); (size.x * size.y) as usize],
+            fade: color::invisible,
         }
     }
 
@@ -256,6 +258,7 @@ impl BackgroundMap {
         for cell in self.map.iter_mut() {
             *cell = Cell { background, ..Default::default() };
         }
+        self.fade = color::invisible;
     }
 
     pub fn size(&self) -> Point {
@@ -296,6 +299,14 @@ impl BackgroundMap {
         if let Some(ix) = self.index(pos) {
             self.map[ix].background = background;
         }
+    }
+
+    /// Set the value (RGBA) to fade the screen with.
+    /// Unlike alpha, the `fade` argument is inverted: 1.0 means no fade, 0.0 means fully faded.
+    pub fn set_fade(&mut self, color: Color, fade: f32) {
+        let fade = util::clampf(0.0, fade, 1.0);
+        let fade = (fade * 255.0) as u8;
+        self.fade = color.alpha(255 - fade);
     }
 
     pub fn get(&self, pos: Point) -> Color {

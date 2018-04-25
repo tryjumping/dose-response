@@ -493,7 +493,7 @@ pub fn main_loop(
         //     });
         // }
 
-        let mut screen_fade = None;
+        let screen_fade = None;
 
         for drawcall in &drawcalls {
             match drawcall {
@@ -727,9 +727,10 @@ pub fn main_loop(
                     });
                 }
 
-                &Draw::Fade(fade, color) => {
-                    screen_fade = Some((fade, color));
-                }
+                // &Draw::Fade(fade, color) => {
+                //     screen_fade = Some((fade, color));
+                // }
+
             }
         }
 

@@ -34,12 +34,12 @@ pub fn render_text_flow(
                     width: rect.width(),
                     ..Default::default()
                 };
-                map.render_text(pos, text, color::gui_text, options);
+                map.draw_text(pos, text, color::gui_text, options);
             }
 
             &Centered(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                map.render_text(
+                map.draw_text(
                     pos,
                     text,
                     color::gui_text,
@@ -53,7 +53,7 @@ pub fn render_text_flow(
             // to the tile width.
             &SquareTiles(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                map.render_text(
+                map.draw_text(
                     pos,
                     text,
                     color::gui_text,

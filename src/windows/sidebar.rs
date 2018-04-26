@@ -181,10 +181,10 @@ impl Window {
             color::gui_progress_bar_bg,
         );
 
-        map.render_text(layout.stats_pos,
-                        &format!("Will: {}", player.will.to_int()),
-                        fg,
-                        Default::default());
+        map.draw_text(layout.stats_pos,
+                      &format!("Will: {}", player.will.to_int()),
+                      fg,
+                      Default::default());
 
         let mut lines: Vec<Cow<'static, str>> = vec![];
 
@@ -262,7 +262,7 @@ impl Window {
         }
 
         for (y, line) in lines.into_iter().enumerate() {
-            map.render_text(
+            map.draw_text(
                 Point {
                     x: x + 1,
                     y: y as i32 + layout.inventory_pos.y + 1,
@@ -277,7 +277,7 @@ impl Window {
         map.draw_button(&layout.help_button);
 
         if state.cheating {
-            map.render_text(
+            map.draw_text(
                 Point {
                     x: x + 1,
                     y: layout.bottom - 1,
@@ -286,7 +286,7 @@ impl Window {
                 fg,
                 Default::default(),
             );
-            map.render_text(
+            map.draw_text(
                 Point {
                     x: x + 1,
                     y: layout.bottom,

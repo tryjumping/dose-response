@@ -312,11 +312,11 @@ impl BackgroundMap {
 
     /// Draw a Button
     pub fn draw_button(&mut self, button: &Button) {
-        self.render_text(button.pos, &button.text, button.color, button.text_options);
+        self.draw_text(button.pos, &button.text, button.color, button.text_options);
     }
 
-    pub fn render_text(&mut self, start_pos: Point, text: &str,
-                       color: Color, options: TextOptions)
+    pub fn draw_text(&mut self, start_pos: Point, text: &str,
+                     color: Color, options: TextOptions)
     {
         let tilesize = self.tilesize;
         let mut render_line = |pos_px: Point, line: &str| {

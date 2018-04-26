@@ -302,7 +302,7 @@ fn render_message(
         color::background,
     );
 
-    map.render_text(
+    map.draw_text(
         rect.top_left(),
         text,
         color::gui_text,
@@ -336,7 +336,7 @@ fn render_monster_info(state: &State, map: &mut BackgroundMap) {
             color::background,
         );
         for (index, line) in debug_text.lines().enumerate() {
-            map.render_text(
+            map.draw_text(
                 Point {
                     x: 0,
                     y: 0 + index as i32,
@@ -366,7 +366,7 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, map: &mut Backgr
             color::dim_background,
         );
         for (index, &line) in lines.iter().enumerate() {
-            map.render_text(
+            map.draw_text(
                 start + Point::new(0, index as i32),
                 line,
                 color::gui_text,

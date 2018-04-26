@@ -394,9 +394,6 @@ pub fn main_loop(
             }
         }
 
-
-        //engine::populate_background_map(&mut background_map, &drawcalls);
-
         // println!("Pre-draw duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 

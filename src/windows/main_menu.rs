@@ -1,5 +1,5 @@
 use color;
-use engine::{BackgroundMap, TextMetrics};
+use engine::{Display, TextMetrics};
 use point::Point;
 use rect::Rectangle;
 use state::State;
@@ -139,18 +139,18 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap) {
+    pub fn render(&self, state: &State, metrics: &TextMetrics, display: &mut Display) {
         let layout = self.calculate_layout(state, metrics);
-        map.draw_rectangle(layout.window_rect, color::window_edge);
-        map.draw_rectangle(layout.inner_window_rect, color::background);
+        display.draw_rectangle(layout.window_rect, color::window_edge);
+        display.draw_rectangle(layout.inner_window_rect, color::background);
 
         let rect = layout.rect;
 
         if let Some(rect) = layout.menu_rect_under_mouse {
-            map.draw_rectangle(rect, color::menu_highlight);
+            display.draw_rectangle(rect, color::menu_highlight);
         }
 
-        ui::render_text_flow(&layout.text_flow, rect, metrics, map);
+        ui::render_text_flow(&layout.text_flow, rect, metrics, display);
     }
 
     pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<MenuItem> {

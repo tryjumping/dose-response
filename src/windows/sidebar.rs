@@ -1,5 +1,5 @@
 use color;
-use engine::{BackgroundMap, TextMetrics};
+use engine::{Display, TextMetrics};
 use graphics;
 use game;
 use item;
@@ -134,7 +134,7 @@ impl Window {
         metrics: &TextMetrics,
         dt: Duration,
         fps: i32,
-        map: &mut BackgroundMap,
+        display: &mut Display,
     ) {
         let layout = self.layout(state, metrics);
         let x = layout.x;
@@ -143,13 +143,13 @@ impl Window {
         let width = state.panel_width;
 
         let height = state.display_size.y;
-        map.draw_rectangle(
+        display.draw_rectangle(
             Rectangle::from_point_and_size(Point::new(x, 0), Point::new(width, height)),
             bg,
         );
 
         if let Some(highlighted) = layout.rect_under_mouse {
-            map.draw_rectangle(highlighted, color::menu_highlight);
+            display.draw_rectangle(highlighted, color::menu_highlight);
         }
 
         let player = &state.player;
@@ -170,10 +170,10 @@ impl Window {
             Mind::High(val) => ("High", val.percent()),
         };
 
-        map.draw_button(&Button::new(layout.mind_pos, &mind_str).color(fg));
+        display.draw_button(&Button::new(layout.mind_pos, &mind_str).color(fg));
 
         graphics::progress_bar(
-            map,
+            display,
             mind_val_percent,
             layout.progress_bar_pos,
             bar_width,
@@ -181,7 +181,7 @@ impl Window {
             color::gui_progress_bar_bg,
         );
 
-        map.draw_text(layout.stats_pos,
+        display.draw_text(layout.stats_pos,
                       &format!("Will: {}", player.will.to_int()),
                       fg,
                       Default::default());
@@ -189,7 +189,7 @@ impl Window {
         let mut lines: Vec<Cow<'static, str>> = vec![];
 
         if layout.inventory.len() > 0 {
-            map.draw_button(&Button::new(layout.inventory_pos, "Inventory").color(fg));
+            display.draw_button(&Button::new(layout.inventory_pos, "Inventory").color(fg));
 
             for kind in item::Kind::iter() {
                 if let Some(count) = layout.inventory.get(&kind) {
@@ -262,7 +262,7 @@ impl Window {
         }
 
         for (y, line) in lines.into_iter().enumerate() {
-            map.draw_text(
+            display.draw_text(
                 Point {
                     x: x + 1,
                     y: y as i32 + layout.inventory_pos.y + 1,
@@ -273,11 +273,11 @@ impl Window {
             );
         }
 
-        map.draw_button(&layout.main_menu_button);
-        map.draw_button(&layout.help_button);
+        display.draw_button(&layout.main_menu_button);
+        display.draw_button(&layout.help_button);
 
         if state.cheating {
-            map.draw_text(
+            display.draw_text(
                 Point {
                     x: x + 1,
                     y: layout.bottom - 1,
@@ -286,7 +286,7 @@ impl Window {
                 fg,
                 Default::default(),
             );
-            map.draw_text(
+            display.draw_text(
                 Point {
                     x: x + 1,
                     y: layout.bottom,

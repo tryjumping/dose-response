@@ -1,7 +1,7 @@
 use animation::{self, AreaOfEffect};
 use blocker::Blocker;
 use color;
-use engine::{TILESIZE, BackgroundMap, Mouse, Settings, TextMetrics};
+use engine::{TILESIZE, Display, Mouse, Settings, TextMetrics};
 use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
@@ -12,20 +12,21 @@ use pathfinding;
 use player;
 use point::Point;
 use ranged_int::{InclusiveRange, Ranged};
-
-use rand::Rng;
 use rect::Rectangle;
 use render;
 use state::{self, Command, Side, State, Window};
 use stats::{FrameStats, Stats};
+use timer::{Stopwatch, Timer};
+use util;
+use world::World;
+
 use std::collections::{HashMap, VecDeque};
 use std::u64;
 use std::io::Write;
 use std::iter::FromIterator;
 use std::time::Duration;
-use timer::{Stopwatch, Timer};
-use util;
-use world::World;
+
+use rand::Rng;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Action {
@@ -49,7 +50,7 @@ pub fn update(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &TextMetrics,
-    map: &mut BackgroundMap,  // TODO: remove this from the engine and keep a transient state instead
+    display: &mut Display,  // TODO: remove this from the engine and keep a transient state instead
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
     state.clock = state.clock + dt;
@@ -114,7 +115,7 @@ pub fn update(
     let update_duration = update_stopwatch.finish();
 
     let drawcall_stopwatch = Stopwatch::start();
-    render::render(&state, dt, fps, metrics, map);
+    render::render(&state, dt, fps, metrics, display);
     let drawcall_duration = drawcall_stopwatch.finish();
 
     if cfg!(feature = "stats") {

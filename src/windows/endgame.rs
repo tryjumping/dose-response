@@ -1,5 +1,5 @@
 use color;
-use engine::{BackgroundMap, TextMetrics};
+use engine::{Display, TextMetrics};
 use formula;
 use player::CauseOfDeath;
 use point::Point;
@@ -86,7 +86,7 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap) {
+    pub fn render(&self, state: &State, metrics: &TextMetrics, display: &mut Display) {
         use self::CauseOfDeath::*;
         use ui::Text::*;
 
@@ -153,17 +153,17 @@ impl Window {
             EmptySpace(2),
         ];
 
-        map.draw_rectangle(layout.window_rect, color::background);
+        display.draw_rectangle(layout.window_rect, color::background);
 
-        ui::render_text_flow(&lines, layout.rect, metrics, map);
+        ui::render_text_flow(&lines, layout.rect, metrics, display);
 
         if let Some(rect) = layout.rect_under_mouse {
-            map.draw_rectangle(rect, color::menu_highlight);
+            display.draw_rectangle(rect, color::menu_highlight);
         }
 
-        map.draw_button(&layout.new_game_button);
-        map.draw_button(&layout.help_button);
-        map.draw_button(&layout.menu_button);
+        display.draw_button(&layout.new_game_button);
+        display.draw_button(&layout.help_button);
+        display.draw_button(&layout.menu_button);
     }
 
     pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<Action> {

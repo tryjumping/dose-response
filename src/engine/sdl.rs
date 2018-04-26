@@ -247,7 +247,7 @@ pub fn main_loop(
     let mut settings = Settings { fullscreen: false };
     // TODO: calculate this from the real window size
     let display_px = Point::new(desired_window_width as i32, desired_window_height as i32);
-    let mut background_map = engine::BackgroundMap::new(
+    let mut display = engine::Display::new(
         display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
     let mut sdl_drawcalls = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
     let overall_max_drawcall_count = 0;
@@ -360,7 +360,7 @@ pub fn main_loop(
             &Metrics {
                 tile_width_px: tilesize as i32,
             },
-            &mut background_map,
+            &mut display,
         );
 
         match update_result {
@@ -415,9 +415,7 @@ pub fn main_loop(
         // functions?
 
         sdl_drawcalls.clear();
-        background_map.push_drawcalls(display_px,
-                                      tilesize as i32,
-                                      &mut sdl_drawcalls);
+        display.push_drawcalls(display_px, tilesize as i32, &mut sdl_drawcalls);
 
         if sdl_drawcalls.len() > overall_max_sdl_drawcall_count {
             overall_max_sdl_drawcall_count = sdl_drawcalls.len();

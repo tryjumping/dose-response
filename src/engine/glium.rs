@@ -266,7 +266,7 @@ pub fn main_loop(
 
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
-    let mut background_map = engine::BackgroundMap::new(
+    let mut engine_display = engine::Display::new(
         display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
@@ -305,7 +305,7 @@ pub fn main_loop(
         // NOTE: Skip the first frame -- the window isn't set up
         // properly there.
         if current_frame > 1 {
-            background_map.draw_rectangle(
+            engine_display.draw_rectangle(
                 Rectangle::from_point_and_size(Point::new(0, 0), display_size),
                 default_background);
             let update_result = update(
@@ -319,7 +319,7 @@ pub fn main_loop(
                 &Metrics {
                     tile_width_px: tilesize as i32,
                 },
-                &mut background_map,
+                &mut engine_display,
             );
 
             match update_result {

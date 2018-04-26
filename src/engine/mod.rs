@@ -220,22 +220,22 @@ impl Default for Cell {
 }
 
 
-pub struct BackgroundMap {
+pub struct Display {
     display_size: Point,
     tilesize: i32,
     padding: Point,
     map: Vec<Cell>,
-    pub drawcalls: Vec<Drawcall>,
+    drawcalls: Vec<Drawcall>,
     pub fade: ColorAlpha,
 }
 
 #[allow(dead_code)]
-impl BackgroundMap {
+impl Display {
     pub fn new(display_size: Point, padding: Point, tilesize: i32) -> Self {
         assert!(display_size > Point::zero());
         assert!(padding >= Point::zero());
         let size = display_size + (padding * 2);
-        BackgroundMap {
+        Display {
             display_size,
             padding,
             tilesize,
@@ -468,7 +468,7 @@ pub type UpdateFn = fn(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &TextMetrics,
-    map: &mut BackgroundMap,
+    display: &mut Display,
 ) -> RunningState;
 
 // NOTE:

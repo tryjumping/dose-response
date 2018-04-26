@@ -1,11 +1,11 @@
 use color;
-use engine::{BackgroundMap, TextMetrics};
+use engine::{Display, TextMetrics};
 use point::Point;
 use rect::Rectangle;
 use state::State;
 use ui::{self, Button};
 
-use std::fmt::{Display, Error, Formatter};
+use std::fmt::{Display as FmtDisplay, Error, Formatter};
 
 
 pub enum Action {
@@ -49,7 +49,7 @@ impl Page {
     }
 }
 
-impl Display for Page {
+impl FmtDisplay for Page {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         use self::Page::*;
         let s = match *self {
@@ -123,14 +123,14 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap) {
+    pub fn render(&self, state: &State, metrics: &TextMetrics, display: &mut Display) {
         use ui::Text::*;
 
         let layout = self.layout(state, metrics);
 
-        map.draw_rectangle(layout.window_rect, color::window_edge);
+        display.draw_rectangle(layout.window_rect, color::window_edge);
 
-        map.draw_rectangle(
+        display.draw_rectangle(
             Rectangle::new(
                 layout.window_rect.top_left() + (1, 1),
                 layout.window_rect.bottom_right() - (1, 1),
@@ -239,18 +239,18 @@ impl Window {
             }
         }
 
-        ui::render_text_flow(&lines, layout.rect, metrics, map);
+        ui::render_text_flow(&lines, layout.rect, metrics, display);
 
         if let Some(highlighted_rect) = layout.rect_under_mouse {
-            map.draw_rectangle(highlighted_rect, color::menu_highlight);
+            display.draw_rectangle(highlighted_rect, color::menu_highlight);
         }
 
         if let Some(button) = layout.next_page_button {
-            map.draw_button(&button)
+            display.draw_button(&button)
         }
 
         if let Some(button) = layout.prev_page_button {
-            map.draw_button(&button)
+            display.draw_button(&button)
         }
     }
 

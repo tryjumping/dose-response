@@ -418,10 +418,9 @@ pub fn main_loop(
         // functions?
 
         sdl_drawcalls.clear();
-        engine::generate_drawcalls(&background_map,
-                                   display_px,
-                                   tilesize as i32,
-                                   &mut sdl_drawcalls);
+        background_map.push_drawcalls(display_px,
+                                      tilesize as i32,
+                                      &mut sdl_drawcalls);
 
         if sdl_drawcalls.len() > overall_max_sdl_drawcall_count {
             overall_max_sdl_drawcall_count = sdl_drawcalls.len();

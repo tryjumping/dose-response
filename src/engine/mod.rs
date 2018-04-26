@@ -397,6 +397,45 @@ impl BackgroundMap {
                 (pos, cell)
             })
     }
+
+    pub fn push_drawcalls(&self,
+                          display_size_px: Point,
+                          tilesize: i32,
+                          drawcalls: &mut Vec<Drawcall>) {
+        assert!(tilesize > 0);
+
+        // Render the background tiles separately and before all the other drawcalls.
+        for (pos, cell) in self.cells() {
+            let (texture_index_x, texture_index_y) = texture_coords_from_char(cell.glyph)
+                .unwrap_or((0, 0));
+            let texture_src = Rectangle::from_point_and_size(
+                Point::new(texture_index_x, texture_index_y) * tilesize,
+                Point::from_i32(tilesize));
+            let background_dst = Rectangle::from_point_and_size(
+                Point::new(pos.x * tilesize + cell.offset_px.x,
+                           pos.y * tilesize + cell.offset_px.y),
+                Point::from_i32(tilesize));
+
+            // NOTE: Center the glyphs in their cells
+            let glyph_width = glyph_advance_width(cell.glyph).unwrap_or(tilesize);
+            let x_offset = (tilesize as i32 - glyph_width) / 2;
+            let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
+
+            if rect_intersects_area(background_dst, display_size_px) {
+                drawcalls.push(Drawcall::Rectangle(Some(background_dst), cell.background.into()));
+            }
+            if rect_intersects_area(glyph_dst, display_size_px) {
+                drawcalls.push(Drawcall::Image(texture_src, glyph_dst, cell.foreground));
+            }
+        }
+
+        drawcalls.extend(self.drawcalls.iter());
+
+        if self.fade.alpha > 0 {
+            drawcalls.push(Drawcall::Rectangle(None, self.fade));
+        }
+    }
+
 }
 
 
@@ -406,47 +445,6 @@ fn rect_intersects_area(rect: Rectangle, area: Point) -> bool {
         rect.left() < area.x &&
         rect.top() < area.y &&
         rect.bottom() >= 0
-}
-
-// TODO: remove game_drawcalls entirely.
-// This should be a method on the `BackgroundMap` (or better a struct called Display)
-// that returns an iterator over the engine drawcalls (self::Drawcall).
-pub fn generate_drawcalls(map: &BackgroundMap,
-                          display_size_px: Point,
-                          tilesize: i32,
-                          drawcalls: &mut Vec<Drawcall>) {
-    assert!(tilesize > 0);
-
-    // Render the background tiles separately and before all the other drawcalls.
-    for (pos, cell) in map.cells() {
-        let (texture_index_x, texture_index_y) = texture_coords_from_char(cell.glyph)
-            .unwrap_or((0, 0));
-        let texture_src = Rectangle::from_point_and_size(
-            Point::new(texture_index_x, texture_index_y) * tilesize,
-            Point::from_i32(tilesize));
-        let background_dst = Rectangle::from_point_and_size(
-            Point::new(pos.x * tilesize + cell.offset_px.x,
-                       pos.y * tilesize + cell.offset_px.y),
-            Point::from_i32(tilesize));
-
-        // NOTE: Center the glyphs in their cells
-        let glyph_width = glyph_advance_width(cell.glyph).unwrap_or(tilesize);
-        let x_offset = (tilesize as i32 - glyph_width) / 2;
-        let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
-
-        if rect_intersects_area(background_dst, display_size_px) {
-            drawcalls.push(Drawcall::Rectangle(Some(background_dst), cell.background.into()));
-        }
-        if rect_intersects_area(glyph_dst, display_size_px) {
-            drawcalls.push(Drawcall::Image(texture_src, glyph_dst, cell.foreground));
-        }
-    }
-
-    drawcalls.extend(map.drawcalls.iter());
-
-    if map.fade.alpha > 0 {
-        drawcalls.push(Drawcall::Rectangle(None, map.fade));
-    }
 }
 
 

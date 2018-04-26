@@ -234,6 +234,7 @@ impl Display {
     pub fn new(display_size: Point, padding: Point, tilesize: i32) -> Self {
         assert!(display_size > Point::zero());
         assert!(padding >= Point::zero());
+        assert!(tilesize > 0);
         let size = display_size + (padding * 2);
         Display {
             display_size,
@@ -400,9 +401,8 @@ impl Display {
 
     pub fn push_drawcalls(&self,
                           display_size_px: Point,
-                          tilesize: i32,
                           drawcalls: &mut Vec<Drawcall>) {
-        assert!(tilesize > 0);
+        let tilesize = self.tilesize;
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {

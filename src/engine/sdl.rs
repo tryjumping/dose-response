@@ -415,7 +415,7 @@ pub fn main_loop(
         // functions?
 
         sdl_drawcalls.clear();
-        display.push_drawcalls(display_px, tilesize as i32, &mut sdl_drawcalls);
+        display.push_drawcalls(display_px, &mut sdl_drawcalls);
 
         if sdl_drawcalls.len() > overall_max_sdl_drawcall_count {
             overall_max_sdl_drawcall_count = sdl_drawcalls.len();

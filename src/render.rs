@@ -91,8 +91,8 @@ pub fn render_game(
 
     let player_pos = state.player.pos;
     let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
-    let screen_left_top_corner = state.screen_position_in_world - (state.display_size / 2);
-    let display_area = Rectangle::center(state.screen_position_in_world, state.display_size);
+    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+    let display_area = Rectangle::center(state.screen_position_in_world, state.map_size);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     let total_time_ms = util::num_milliseconds(state.clock) as i64;
@@ -231,11 +231,11 @@ pub fn render_game(
 
     sidebar_window.render(state, metrics, dt, fps, display);
     if state.show_keboard_movement_hints && !state.game_ended {
-        render_controls_help(state.display_size, metrics, display);
+        render_controls_help(state.map_size, metrics, display);
     }
 
-    let mouse_inside_display = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.display_size;
-    if mouse_inside_display && state.mouse.right {
+    let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
+    if mouse_inside_map && state.mouse.right {
         render_monster_info(state, display);
     }
 }
@@ -311,7 +311,7 @@ fn render_message(
 }
 
 fn render_monster_info(state: &State, display: &mut Display) {
-    let screen_left_top_corner = state.screen_position_in_world - (state.display_size / 2);
+    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
     let mouse_world_pos = screen_left_top_corner + state.mouse.tile_pos;
     // TODO: world.monster_on_pos is mutable, let's add an immutable version
     let monster_area = Rectangle::from_point_and_size(mouse_world_pos, (1, 1).into());
@@ -349,7 +349,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
     }
 }
 
-fn render_controls_help(display_size: Point, metrics: &TextMetrics, display: &mut Display) {
+fn render_controls_help(map_size: Point, metrics: &TextMetrics, display: &mut Display) {
     let rect_dim = |lines: &[&str]| {
         let longest_line = lines.iter()
             .map(|l| {
@@ -380,7 +380,7 @@ fn render_controls_help(display_size: Point, metrics: &TextMetrics, display: &mu
     let lines = &["Up", "Num 8", "or: K"];
     let (width, height) = rect_dim(lines);
     let start = Point {
-        x: (display_size.x - width) / 2,
+        x: (map_size.x - width) / 2,
         y: padding,
     };
     draw_rect(lines, start, width, height, display);
@@ -388,8 +388,8 @@ fn render_controls_help(display_size: Point, metrics: &TextMetrics, display: &mu
     let lines = &["Down", "Num 2", "or: J"];
     let (width, height) = rect_dim(lines);
     let start = Point {
-        x: (display_size.x - width) / 2,
-        y: display_size.y - height - padding,
+        x: (map_size.x - width) / 2,
+        y: map_size.y - height - padding,
     };
     draw_rect(lines, start, width, height, display);
 
@@ -397,15 +397,15 @@ fn render_controls_help(display_size: Point, metrics: &TextMetrics, display: &mu
     let (width, height) = rect_dim(lines);
     let start = Point {
         x: padding,
-        y: (display_size.y - height) / 2,
+        y: (map_size.y - height) / 2,
     };
     draw_rect(lines, start, width, height, display);
 
     let lines = &["Right", "Num 6", "or: L"];
     let (width, height) = rect_dim(lines);
     let start = Point {
-        x: display_size.x - width - padding,
-        y: (display_size.y - height) / 2,
+        x: map_size.x - width - padding,
+        y: (map_size.y - height) / 2,
     };
     draw_rect(lines, start, width, height, display);
 
@@ -420,7 +420,7 @@ fn render_controls_help(display_size: Point, metrics: &TextMetrics, display: &mu
     let lines = &["Shift+Right", "Num 9", "or: U"];
     let (width, height) = rect_dim(lines);
     let start = Point {
-        x: display_size.x - width - padding,
+        x: map_size.x - width - padding,
         y: padding,
     };
     draw_rect(lines, start, width, height, display);
@@ -429,15 +429,15 @@ fn render_controls_help(display_size: Point, metrics: &TextMetrics, display: &mu
     let (width, height) = rect_dim(lines);
     let start = Point {
         x: padding,
-        y: display_size.y - height - padding,
+        y: map_size.y - height - padding,
     };
     draw_rect(lines, start, width, height, display);
 
     let lines = &["Ctrl+Right", "Num 3", "or: N"];
     let (width, height) = rect_dim(lines);
     let start = Point {
-        x: display_size.x - width - padding,
-        y: display_size.y - height - padding,
+        x: map_size.x - width - padding,
+        y: map_size.y - height - padding,
     };
     draw_rect(lines, start, width, height, display);
 

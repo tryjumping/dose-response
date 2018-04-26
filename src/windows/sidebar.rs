@@ -1,5 +1,5 @@
 use color;
-use engine::{BackgroundMap, Draw, TextMetrics};
+use engine::{BackgroundMap, TextMetrics};
 use graphics;
 use game;
 use item;
@@ -7,6 +7,7 @@ use player::Mind;
 use point::Point;
 use rect::Rectangle;
 use state::State;
+use ui::Button;
 use util;
 
 use std::borrow::Cow;
@@ -33,8 +34,8 @@ struct Layout {
     stats_pos: Point,
     inventory_pos: Point,
     inventory: HashMap<item::Kind, i32>,
-    main_menu_button: Draw,
-    help_button: Draw,
+    main_menu_button: Button,
+    help_button: Button,
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
 }
@@ -84,30 +85,23 @@ impl Window {
 
         let mut bottom = state.display_size.y - 2;
 
-        let main_menu_button = Draw::Text(
-            Point::new(x + 1, bottom),
-            "[Esc] Main Menu".into(),
-            fg,
-            Default::default(),
-        );
+        let main_menu_button = Button::new(Point::new(x + 1, bottom), "[Esc] Main Menu")
+            .color(fg);
 
         bottom -= 2;
 
-        let help_button = Draw::Text(
-            Point::new(x + 1, bottom),
-            "[?] Help".into(),
-            fg,
-            Default::default(),
-        );
+        let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help".into())
+            .color(fg);
+
         bottom -= 1;
 
-        let main_menu_rect = metrics.text_rect(&main_menu_button);
+        let main_menu_rect = metrics.button_rect(&main_menu_button);
         if main_menu_rect.contains(state.mouse.tile_pos) {
             action_under_mouse = Some(Action::MainMenu);
             rect_under_mouse = Some(main_menu_rect);
         }
 
-        let help_rect = metrics.text_rect(&help_button);
+        let help_rect = metrics.button_rect(&help_button);
         if help_rect.contains(state.mouse.tile_pos) {
             action_under_mouse = Some(Action::Help);
             rect_under_mouse = Some(help_rect);
@@ -141,7 +135,6 @@ impl Window {
         dt: Duration,
         fps: i32,
         map: &mut BackgroundMap,
-        drawcalls: &mut Vec<Draw>,
     ) {
         let layout = self.layout(state, metrics);
         let x = layout.x;
@@ -177,12 +170,7 @@ impl Window {
             Mind::High(val) => ("High", val.percent()),
         };
 
-        drawcalls.push(Draw::Text(
-            layout.mind_pos,
-            mind_str.into(),
-            fg,
-            Default::default(),
-        ));
+        map.draw_button(&Button::new(layout.mind_pos, &mind_str).color(fg));
 
         graphics::progress_bar(
             map,
@@ -193,22 +181,15 @@ impl Window {
             color::gui_progress_bar_bg,
         );
 
-        drawcalls.push(Draw::Text(
-            layout.stats_pos,
-            format!("Will: {}", player.will.to_int()).into(),
-            fg,
-            Default::default(),
-        ));
+        map.render_text(layout.stats_pos,
+                        &format!("Will: {}", player.will.to_int()),
+                        fg,
+                        Default::default());
 
         let mut lines: Vec<Cow<'static, str>> = vec![];
 
         if layout.inventory.len() > 0 {
-            drawcalls.push(Draw::Text(
-                layout.inventory_pos,
-                "Inventory".into(),
-                fg,
-                Default::default(),
-            ));
+            map.draw_button(&Button::new(layout.inventory_pos, "Inventory").color(fg));
 
             for kind in item::Kind::iter() {
                 if let Some(count) = layout.inventory.get(&kind) {
@@ -281,39 +262,39 @@ impl Window {
         }
 
         for (y, line) in lines.into_iter().enumerate() {
-            drawcalls.push(Draw::Text(
+            map.render_text(
                 Point {
                     x: x + 1,
                     y: y as i32 + layout.inventory_pos.y + 1,
                 },
-                line.into(),
+                &line,
                 fg,
                 Default::default(),
-            ));
+            );
         }
 
-        drawcalls.push(layout.main_menu_button);
-        drawcalls.push(layout.help_button);
+        map.draw_button(&layout.main_menu_button);
+        map.draw_button(&layout.help_button);
 
         if state.cheating {
-            drawcalls.push(Draw::Text(
+            map.render_text(
                 Point {
                     x: x + 1,
                     y: layout.bottom - 1,
                 },
-                format!("dt: {}ms", util::num_milliseconds(dt)).into(),
+                &format!("dt: {}ms", util::num_milliseconds(dt)),
                 fg,
                 Default::default(),
-            ));
-            drawcalls.push(Draw::Text(
+            );
+            map.render_text(
                 Point {
                     x: x + 1,
                     y: layout.bottom,
                 },
-                format!("FPS: {}", fps).into(),
+                &format!("FPS: {}", fps),
                 fg,
                 Default::default(),
-            ));
+            );
         }
     }
 }

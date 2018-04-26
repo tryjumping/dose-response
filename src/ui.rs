@@ -1,5 +1,5 @@
-use color;
-use engine::{Draw, TextMetrics, TextOptions};
+use color::{self, Color};
+use engine::{BackgroundMap, TextMetrics, TextOptions};
 use point::Point;
 use rect::Rectangle;
 
@@ -16,7 +16,7 @@ pub fn render_text_flow(
     text_flow: &[Text],
     rect: Rectangle,
     metrics: &TextMetrics,
-    drawcalls: &mut Vec<Draw>,
+    map: &mut BackgroundMap,
 ) {
     use self::Text::*;
 
@@ -34,34 +34,31 @@ pub fn render_text_flow(
                     width: rect.width(),
                     ..Default::default()
                 };
-                let dc = Draw::Text(pos, text.to_string().into(), color::gui_text, options);
-                drawcalls.push(dc);
+                map.render_text(pos, text, color::gui_text, options);
             }
 
             &Centered(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                let dc = Draw::Text(
+                map.render_text(
                     pos,
-                    text.to_string().into(),
+                    text,
                     color::gui_text,
                     TextOptions::align_center(rect.width()),
                 );
-                drawcalls.push(dc);
             }
 
             // NOTE: this is no longer doing anything special! Maybe remove it later on?
             // Or handle this in engine/text renderer when we produce the characters.
-            // Like, have an option that would always set the advance-width 
+            // Like, have an option that would always set the advance-width
             // to the tile width.
             &SquareTiles(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                let dc = Draw::Text(
+                map.render_text(
                     pos,
-                    text.to_string().into(),
+                    text,
                     color::gui_text,
                     TextOptions::align_center(rect.width()),
                 );
-                drawcalls.push(dc);
             }
         }
         ypos += text_height(text, rect, metrics);
@@ -74,14 +71,12 @@ fn text_height(text: &Text, rect: Rectangle, metrics: &TextMetrics) -> i32 {
         &Empty => 1,
         &EmptySpace(number_of_lines) => number_of_lines,
         &Paragraph(text) => {
-            let pos = rect.top_left();
             let options = TextOptions {
                 wrap: true,
                 width: rect.width(),
                 ..Default::default()
             };
-            let dc = Draw::Text(pos, text.to_string().into(), color::gui_text, options);
-            metrics.get_text_height(&dc)
+            metrics.get_text_height(text, options)
         }
         &Centered(_text) => 1,
         &SquareTiles(_text) => 1,
@@ -102,4 +97,52 @@ pub fn text_rect(text: &Text, rect: Rectangle, metrics: &TextMetrics) -> Rectang
         rect.top_left(),
         Point::new(rect.bottom_right().x, rect.top_left().y + height - 1),
     )
+}
+
+
+#[derive(Clone, Default)]
+pub struct Button {
+    pub pos: Point,
+    pub text: String,
+    pub color: Color,
+    pub text_options: TextOptions,
+}
+
+impl Button {
+    pub fn new(pos: Point, text: &str) -> Self {
+        Button {
+            pos,
+            text: text.into(),
+            color: color::gui_text,
+            .. Default::default()
+        }
+    }
+
+    pub fn color(self, color: Color) -> Self {
+        Button {
+            color,
+            .. self
+        }
+    }
+
+    pub fn align_left(self) -> Self {
+        Button {
+            text_options: TextOptions::align_left(),
+            .. self
+        }
+    }
+
+    pub fn align_right(self) -> Self {
+        Button {
+            text_options: TextOptions::align_right(),
+            .. self
+        }
+    }
+
+    pub fn align_center(self, width: i32) -> Self {
+        Button {
+            text_options: TextOptions::align_center(width),
+            .. self
+        }
+    }
 }

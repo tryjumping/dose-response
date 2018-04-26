@@ -1,7 +1,7 @@
 use self::vertex::Vertex;
 
 use color::Color;
-use engine::{self, Draw, Mouse, Settings, TextMetrics, UpdateFn};
+use engine::{self, Mouse, Settings, TextMetrics, TextOptions, UpdateFn};
 use game::RunningState;
 use state::State;
 
@@ -104,11 +104,6 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     }
 }
 
-fn texture_coords_from_char(chr: char) -> (f32, f32) {
-    let (x, y) = super::texture_coords_from_char(chr).unwrap_or((0, 0));
-    (x as f32, y as f32)
-}
-
 fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<MonitorId> {
     for monitor in monitors {
         let monitor_pos = {
@@ -134,40 +129,34 @@ struct Metrics {
 }
 
 impl TextMetrics for Metrics {
-    fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
-        match text_drawcall {
-            &Draw::Text(_pos, ref text, _color, options) => {
-                if options.wrap && options.width > 0 {
-                    // TODO: this does a needless allocation by
-                    // returning Vec<String> we don't use here.
-                    let lines = engine::wrap_text(&text, options.width, self.tile_width_px);
-                    lines.len() as i32
-                } else {
-                    1
-                }
-            }
+
+    fn get_text_height(&self, text: &str, options: TextOptions) -> i32 {
+        if options.wrap && options.width > 0 {
+            // TODO: this does a needless allocation by
+            // returning Vec<String> we don't use here.
+            let lines = engine::wrap_text(&text, options.width, self.tile_width_px);
+            lines.len() as i32
+        } else {
+            1
         }
     }
 
-    fn get_text_width(&self, text_drawcall: &Draw) -> i32 {
-        match text_drawcall {
-            &Draw::Text(_, ref text, _, options) => {
-                let pixel_width = if options.wrap && options.width > 0 {
-                    // // TODO: handle text alignment for wrapped text
-                    let lines = engine::wrap_text(text, options.width, self.tile_width_px);
-                    lines
-                        .iter()
-                        .map(|line| engine::text_width_px(line, self.tile_width_px))
-                        .max()
-                        .unwrap_or(0)
-                } else {
-                    engine::text_width_px(text, self.tile_width_px)
-                };
-                let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
-                tile_width as i32
-            }
-        }
+    fn get_text_width(&self, text: &str, options: TextOptions) -> i32 {
+        let pixel_width = if options.wrap && options.width > 0 {
+            // // TODO: handle text alignment for wrapped text
+            let lines = engine::wrap_text(text, options.width, self.tile_width_px);
+            lines
+                .iter()
+                .map(|line| engine::text_width_px(line, self.tile_width_px))
+                .max()
+                .unwrap_or(0)
+        } else {
+            engine::text_width_px(text, self.tile_width_px)
+        };
+        let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
+        tile_width as i32
     }
+
 }
 
 #[allow(unsafe_code)]
@@ -279,7 +268,6 @@ pub fn main_loop(
     let mut settings = Settings { fullscreen: false };
     let mut background_map = engine::BackgroundMap::new(
         display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
-    let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
     let mut lalt_pressed = false;
@@ -288,8 +276,6 @@ pub fn main_loop(
     let mut rshift_pressed = false;
     let mut vertices = Vec::with_capacity(VERTICES_CAPACITY);
     let mut keys = vec![];
-    // We're not using alpha at all for now, but it's passed everywhere.
-    let alpha = 1.0;
     let mut previous_frame_time = Instant::now();
     let mut fps_clock = Duration::from_millis(0);
     let mut frame_counter = 0;
@@ -314,8 +300,6 @@ pub fn main_loop(
             fps_clock = Duration::from_millis(0);
         }
 
-        drawcalls.clear();
-
         let previous_settings = settings;
 
         // NOTE: Skip the first frame -- the window isn't set up
@@ -336,7 +320,6 @@ pub fn main_loop(
                     tile_width_px: tilesize as i32,
                 },
                 &mut background_map,
-                &mut drawcalls,
             );
 
             match update_result {
@@ -488,8 +471,8 @@ pub fn main_loop(
 
         let screen_fade = None;
 
-        for drawcall in &drawcalls {
-            match drawcall {
+        // for drawcall in &drawcalls {
+        //     match drawcall {
                 // &Draw::Char(pos, chr, foreground_color, offset_px) => {
                 //     if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
                 //     {
@@ -578,104 +561,104 @@ pub fn main_loop(
                 //     }
                 // }
 
-                &Draw::Text(start_pos, ref text, color, options) => {
-                    let color = gl_color(color, alpha);
-                    let tile_width = tilesize as f32;
-                    let tile_height = tilesize as f32;
+                // &Draw::Text(start_pos, ref text, color, options) => {
+                //     let color = gl_color(color, alpha);
+                //     let tile_width = tilesize as f32;
+                //     let tile_height = tilesize as f32;
 
-                    let mut render_line = |pos_px: Point, line: &str| {
-                        let pos_x = pos_px.x as f32;
-                        let pos_y = pos_px.y as f32;
+                //     let mut render_line = |pos_px: Point, line: &str| {
+                //         let pos_x = pos_px.x as f32;
+                //         let pos_y = pos_px.y as f32;
 
-                        let mut offset_x = 0.0;
-                        //let mut offset_y = 0.0;
+                //         let mut offset_x = 0.0;
+                //         //let mut offset_y = 0.0;
 
-                        // TODO: we need to split this by words or it
-                        // won't do word breaks, split at punctuation,
-                        // etc.
+                //         // TODO: we need to split this by words or it
+                //         // won't do word breaks, split at punctuation,
+                //         // etc.
 
-                        // TODO: also, we're no longer calculating the
-                        // line height correctly. Needs to be set on the
-                        // actual result here.
-                        for chr in line.chars() {
-                            let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
-                            // if options.wrap && options.width > 0 {
-                            //     if offset_x >= (options.width as f32 * tile_width) {
-                            //         offset_y += tile_height;
-                            //         offset_x = 0.0;
-                            //     }
-                            // }
-                            let pos_x = pos_x + offset_x;
-                            //let pos_y = pos_y + offset_y;
+                //         // TODO: also, we're no longer calculating the
+                //         // line height correctly. Needs to be set on the
+                //         // actual result here.
+                //         for chr in line.chars() {
+                //             let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+                //             // if options.wrap && options.width > 0 {
+                //             //     if offset_x >= (options.width as f32 * tile_width) {
+                //             //         offset_y += tile_height;
+                //             //         offset_x = 0.0;
+                //             //     }
+                //             // }
+                //             let pos_x = pos_x + offset_x;
+                //             //let pos_y = pos_y + offset_y;
 
-                            vertices.push(Vertex {
-                                pos_px: [pos_x, pos_y],
-                                tilemap_index: [tilemap_x, tilemap_y],
-                                color: color,
-                            });
-                            vertices.push(Vertex {
-                                pos_px: [pos_x + tile_width, pos_y],
-                                tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                                color: color,
-                            });
-                            vertices.push(Vertex {
-                                pos_px: [pos_x, pos_y + tile_height],
-                                tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                                color: color,
-                            });
+                //             vertices.push(Vertex {
+                //                 pos_px: [pos_x, pos_y],
+                //                 tilemap_index: [tilemap_x, tilemap_y],
+                //                 color: color,
+                //             });
+                //             vertices.push(Vertex {
+                //                 pos_px: [pos_x + tile_width, pos_y],
+                //                 tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                //                 color: color,
+                //             });
+                //             vertices.push(Vertex {
+                //                 pos_px: [pos_x, pos_y + tile_height],
+                //                 tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                //                 color: color,
+                //             });
 
-                            vertices.push(Vertex {
-                                pos_px: [pos_x + tile_width, pos_y],
-                                tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                                color: color,
-                            });
-                            vertices.push(Vertex {
-                                pos_px: [pos_x, pos_y + tile_height],
-                                tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                                color: color,
-                            });
-                            vertices.push(Vertex {
-                                pos_px: [pos_x + tile_width, pos_y + tile_height],
-                                tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
-                                color: color,
-                            });
+                //             vertices.push(Vertex {
+                //                 pos_px: [pos_x + tile_width, pos_y],
+                //                 tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                //                 color: color,
+                //             });
+                //             vertices.push(Vertex {
+                //                 pos_px: [pos_x, pos_y + tile_height],
+                //                 tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                //                 color: color,
+                //             });
+                //             vertices.push(Vertex {
+                //                 pos_px: [pos_x + tile_width, pos_y + tile_height],
+                //                 tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                //                 color: color,
+                //             });
 
-                            let advance_width =
-                                engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                            offset_x += advance_width as f32;
-                        }
-                    };
+                //             let advance_width =
+                //                 engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+                //             offset_x += advance_width as f32;
+                //         }
+                //     };
 
-                    if options.wrap && options.width > 0 {
-                        // TODO: handle text alignment for wrapped text
-                        let lines = engine::wrap_text(text, options.width, tile_width as i32);
-                        for (index, line) in lines.iter().enumerate() {
-                            let pos = pixel_from_tile(start_pos + Point::new(0, index as i32));
-                            render_line(pos, line);
-                        }
-                    } else {
-                        use engine::TextAlign::*;
-                        let pos = match options.align {
-                            Left => pixel_from_tile(start_pos),
-                            Right => {
-                                pixel_from_tile(start_pos + (1, 0))
-                                    - Point::new(engine::text_width_px(text, tile_width as i32), 0)
-                            }
-                            Center => {
-                                let tile_width = tile_width as i32;
-                                let text_width = engine::text_width_px(text, tile_width);
-                                let max_width = options.width * (tile_width);
-                                if max_width < 1 || (text_width > max_width) {
-                                    start_pos
-                                } else {
-                                    pixel_from_tile(start_pos)
-                                        + Point::new((max_width - text_width) / 2, 0)
-                                }
-                            }
-                        };
-                        render_line(pos, text);
-                    }
-                }
+                //     if options.wrap && options.width > 0 {
+                //         // TODO: handle text alignment for wrapped text
+                //         let lines = engine::wrap_text(text, options.width, tile_width as i32);
+                //         for (index, line) in lines.iter().enumerate() {
+                //             let pos = pixel_from_tile(start_pos + Point::new(0, index as i32));
+                //             render_line(pos, line);
+                //         }
+                //     } else {
+                //         use engine::TextAlign::*;
+                //         let pos = match options.align {
+                //             Left => pixel_from_tile(start_pos),
+                //             Right => {
+                //                 pixel_from_tile(start_pos + (1, 0))
+                //                     - Point::new(engine::text_width_px(text, tile_width as i32), 0)
+                //             }
+                //             Center => {
+                //                 let tile_width = tile_width as i32;
+                //                 let text_width = engine::text_width_px(text, tile_width);
+                //                 let max_width = options.width * (tile_width);
+                //                 if max_width < 1 || (text_width > max_width) {
+                //                     start_pos
+                //                 } else {
+                //                     pixel_from_tile(start_pos)
+                //                         + Point::new((max_width - text_width) / 2, 0)
+                //                 }
+                //             }
+                //         };
+                //         render_line(pos, text);
+                //     }
+                // }
 
                 // &Draw::Rectangle(rect, color) => {
                 //     let top_left = rect.top_left();
@@ -724,8 +707,8 @@ pub fn main_loop(
                 //     screen_fade = Some((fade, color));
                 // }
 
-            }
-        }
+        //     }
+        // }
 
         // NOTE: render the fade overlay
         if let Some((mut fade, color)) = screen_fade {
@@ -772,14 +755,6 @@ pub fn main_loop(
                 tilemap_index: tilemap_index,
                 color: color,
             });
-        }
-
-        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
-            println!(
-                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
-                drawcalls.len(),
-                engine::DRAWCALL_CAPACITY
-            );
         }
 
         if vertices.len() > VERTICES_CAPACITY {

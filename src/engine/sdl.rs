@@ -1,5 +1,5 @@
 use color::{Color, ColorAlpha};
-use engine::{self, Draw, Drawcall, Mouse, Settings, TextMetrics, UpdateFn};
+use engine::{self, Drawcall, Mouse, Settings, TextMetrics, TextOptions, UpdateFn};
 use game::RunningState;
 use keys::KeyCode;
 use point::Point;
@@ -29,40 +29,34 @@ pub struct Metrics {
 }
 
 impl TextMetrics for Metrics {
-    fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
-        match text_drawcall {
-            &Draw::Text(_pos, ref text, _color, options) => {
-                if options.wrap && options.width > 0 {
-                    // TODO: this does a needless allocation by
-                    // returning Vec<String> we don't use here.
-                    let lines = engine::wrap_text(&text, options.width, self.tile_width_px);
-                    lines.len() as i32
-                } else {
-                    1
-                }
-            }
+
+    fn get_text_height(&self, text: &str, options: TextOptions) -> i32 {
+        if options.wrap && options.width > 0 {
+            // TODO: this does a needless allocation by
+            // returning Vec<String> we don't use here.
+            let lines = engine::wrap_text(&text, options.width, self.tile_width_px);
+            lines.len() as i32
+        } else {
+            1
         }
     }
 
-    fn get_text_width(&self, text_drawcall: &Draw) -> i32 {
-        match text_drawcall {
-            &Draw::Text(_, ref text, _, options) => {
-                let pixel_width = if options.wrap && options.width > 0 {
-                    // // TODO: handle text alignment for wrapped text
-                    let lines = engine::wrap_text(text, options.width, self.tile_width_px);
-                    lines
-                        .iter()
-                        .map(|line| engine::text_width_px(line, self.tile_width_px))
-                        .max()
-                        .unwrap_or(0)
-                } else {
-                    engine::text_width_px(text, self.tile_width_px)
-                };
-                let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
-                tile_width as i32
-            }
-        }
+    fn get_text_width(&self, text: &str, options: TextOptions) -> i32 {
+        let pixel_width = if options.wrap && options.width > 0 {
+            // // TODO: handle text alignment for wrapped text
+            let lines = engine::wrap_text(text, options.width, self.tile_width_px);
+            lines
+                .iter()
+                .map(|line| engine::text_width_px(line, self.tile_width_px))
+                .max()
+                .unwrap_or(0)
+        } else {
+            engine::text_width_px(text, self.tile_width_px)
+        };
+        let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
+        tile_width as i32
     }
+
 }
 
 
@@ -255,9 +249,8 @@ pub fn main_loop(
     let display_px = Point::new(desired_window_width as i32, desired_window_height as i32);
     let mut background_map = engine::BackgroundMap::new(
         display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
-    let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     let mut sdl_drawcalls = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
-    let mut overall_max_drawcall_count = 0;
+    let overall_max_drawcall_count = 0;
     let mut overall_max_sdl_drawcall_count = 0;
     let mut keys = vec![];
     // We're not using alpha at all for now, but it's passed everywhere.
@@ -354,7 +347,6 @@ pub fn main_loop(
             }
         }
 
-        drawcalls.clear();
         let previous_settings = settings;
 
         let update_result = update(
@@ -369,7 +361,6 @@ pub fn main_loop(
                 tile_width_px: tilesize as i32,
             },
             &mut background_map,
-            &mut drawcalls,
         );
 
         match update_result {
@@ -383,18 +374,6 @@ pub fn main_loop(
         mouse.left = false;
         mouse.right = false;
         keys.clear();
-
-        if drawcalls.len() > overall_max_drawcall_count {
-            overall_max_drawcall_count = drawcalls.len();
-        }
-
-        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
-            println!(
-                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
-                drawcalls.len(),
-                engine::DRAWCALL_CAPACITY
-            );
-        }
 
         if cfg!(feature = "fullscreen") {
             use sdl2::video::FullscreenType::*;
@@ -439,8 +418,7 @@ pub fn main_loop(
         // functions?
 
         sdl_drawcalls.clear();
-        engine::generate_drawcalls(&drawcalls,
-                                   &background_map,
+        engine::generate_drawcalls(&background_map,
                                    display_px,
                                    tilesize as i32,
                                    &mut sdl_drawcalls);

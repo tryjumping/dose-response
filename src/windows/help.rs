@@ -1,9 +1,9 @@
 use color;
-use engine::{BackgroundMap, Draw, TextMetrics, TextOptions};
+use engine::{BackgroundMap, TextMetrics};
 use point::Point;
 use rect::Rectangle;
 use state::State;
-use ui;
+use ui::{self, Button};
 
 use std::fmt::{Display, Error, Formatter};
 
@@ -65,8 +65,8 @@ impl Display for Page {
 }
 
 struct Layout {
-    next_page_button: Option<Draw>,
-    prev_page_button: Option<Draw>,
+    next_page_button: Option<Button>,
+    prev_page_button: Option<Button>,
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
     window_rect: Rectangle,
@@ -93,34 +93,24 @@ impl Window {
 
         let next_page_button = state.current_help_window.next().map(|text| {
             let text = format!("[->] {}", text);
-            let drawcall = Draw::Text(
-                rect.bottom_right(),
-                text.into(),
-                color::gui_text,
-                TextOptions::align_right(),
-            );
-            let text_rect = metrics.text_rect(&drawcall);
-            if text_rect.contains(state.mouse.tile_pos) {
+            let button = Button::new(rect.bottom_right(), &text).align_right();
+            let button_rect = metrics.button_rect(&button);
+            if button_rect.contains(state.mouse.tile_pos) {
                 action_under_mouse = Some(Action::NextPage);
-                rect_under_mouse = Some(text_rect);
+                rect_under_mouse = Some(button_rect);
             }
-            drawcall
+            button
         });
 
         let prev_page_button = state.current_help_window.prev().map(|text| {
             let text = format!("{} [<-]", text);
-            let drawcall = Draw::Text(
-                rect.bottom_left(),
-                text.into(),
-                color::gui_text,
-                Default::default(),
-            );
-            let text_rect = metrics.text_rect(&drawcall);
-            if text_rect.contains(state.mouse.tile_pos) {
+            let button = Button::new(rect.bottom_left(), &text);
+            let button_rect = metrics.button_rect(&button);
+            if button_rect.contains(state.mouse.tile_pos) {
                 action_under_mouse = Some(Action::PrevPage);
-                rect_under_mouse = Some(text_rect);
+                rect_under_mouse = Some(button_rect);
             }
-            drawcall
+            button
         });
 
         Layout {
@@ -133,7 +123,7 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap, drawcalls: &mut Vec<Draw>) {
+    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap) {
         use ui::Text::*;
 
         let layout = self.layout(state, metrics);
@@ -249,18 +239,18 @@ impl Window {
             }
         }
 
-        ui::render_text_flow(&lines, layout.rect, metrics, drawcalls);
+        ui::render_text_flow(&lines, layout.rect, metrics, map);
 
         if let Some(highlighted_rect) = layout.rect_under_mouse {
             map.draw_rectangle(highlighted_rect, color::menu_highlight);
         }
 
-        if let Some(drawcall) = layout.next_page_button {
-            drawcalls.push(drawcall)
+        if let Some(button) = layout.next_page_button {
+            map.draw_button(&button)
         }
 
-        if let Some(drawcall) = layout.prev_page_button {
-            drawcalls.push(drawcall)
+        if let Some(button) = layout.prev_page_button {
+            map.draw_button(&button)
         }
     }
 

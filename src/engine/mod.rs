@@ -4,9 +4,9 @@ use keys::Key;
 use point::Point;
 use rect::Rectangle;
 use state::State;
+use ui::Button;
 use util;
 
-use std::borrow::Cow;
 use std::time::Duration;
 
 #[cfg(feature = "opengl")]
@@ -31,12 +31,6 @@ pub mod remote;
 pub mod wasm;
 
 pub const DRAWCALL_CAPACITY: usize = 8000;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Draw {
-    /// Position, text, colour
-    Text(Point, Cow<'static, str>, Color, TextOptions),
-}
 
 
 /// The drawcalls that the engine will process and render.
@@ -104,51 +98,50 @@ pub trait TextMetrics {
     /// Return the height in tiles of the given text.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
-    fn get_text_height(&self, text_drawcall: &Draw) -> i32;
+    fn get_text_height(&self, text: &str, options: TextOptions) -> i32;
 
     /// Return the width in tiles of the given text.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
-    fn get_text_width(&self, text_drawcall: &Draw) -> i32;
+    fn get_text_width(&self, text: &str, options: TextOptions) -> i32;
 
     /// Return the width and height of the given text in tiles.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
-    fn text_size(&self, text_drawcall: &Draw) -> Point {
+    fn text_size(&self, text: &str, options: TextOptions) -> Point {
         Point::new(
-            self.get_text_width(text_drawcall),
-            self.get_text_height(text_drawcall),
+            self.get_text_width(text, options),
+            self.get_text_height(text, options),
         )
     }
 
     /// Return the rectangle the text will be rendered in.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
-    fn text_rect(&self, text_drawcall: &Draw) -> Rectangle {
-        match text_drawcall {
-            &Draw::Text(start_pos, _, _, options) => {
-                let size = self.text_size(text_drawcall);
-
-                let top_left = if options.wrap && options.width > 0 {
-                    start_pos
-                } else {
-                    use engine::TextAlign::*;
-                    match options.align {
-                        Left => start_pos,
-                        Right => start_pos + (1 - size.x, 0),
-                        Center => {
-                            if options.width < 1 || (size.x > options.width) {
-                                start_pos
-                            } else {
-                                start_pos + Point::new((options.width - size.x) / 2, 0)
-                            }
-                        }
+    fn text_rect(&self, start_pos: Point, text: &str, options: TextOptions) -> Rectangle {
+        let size = self.text_size(text, options);
+        let top_left = if options.wrap && options.width > 0 {
+            start_pos
+        } else {
+            use engine::TextAlign::*;
+            match options.align {
+                Left => start_pos,
+                Right => start_pos + (1 - size.x, 0),
+                Center => {
+                    if options.width < 1 || (size.x > options.width) {
+                        start_pos
+                    } else {
+                        start_pos + Point::new((options.width - size.x) / 2, 0)
                     }
-                };
-
-                Rectangle::from_point_and_size(top_left, size)
+                }
             }
-        }
+        };
+
+        Rectangle::from_point_and_size(top_left, size)
+    }
+
+    fn button_rect(&self, button: &Button) -> Rectangle {
+        self.text_rect(button.pos, &button.text, button.text_options)
     }
 }
 
@@ -317,6 +310,73 @@ impl BackgroundMap {
         self.drawcalls.push(Drawcall::Rectangle(Some(rect), color.into()));
     }
 
+    /// Draw a Button
+    pub fn draw_button(&mut self, button: &Button) {
+        self.render_text(button.pos, &button.text, button.color, button.text_options);
+    }
+
+    pub fn render_text(&mut self, start_pos: Point, text: &str,
+                       color: Color, options: TextOptions)
+    {
+        let tilesize = self.tilesize;
+        let mut render_line = |pos_px: Point, line: &str| {
+            let mut offset_x = 0;
+
+            // TODO: we need to split this by words or it
+            // won't do word breaks, split at punctuation,
+            // etc.
+
+            // TODO: also, we're no longer calculating the
+            // line height correctly. Needs to be set on the
+            // actual result here.
+            for chr in line.chars() {
+                let (texture_index_x, texture_index_y) = texture_coords_from_char(chr)
+                    .unwrap_or((0, 0));
+
+                let src = Rectangle::from_point_and_size(
+                    Point::new(texture_index_x, texture_index_y) * self.tilesize,
+                    Point::from_i32(self.tilesize));
+                let dst = Rectangle::from_point_and_size(
+                    pos_px + (offset_x, 0),
+                    Point::from_i32(self.tilesize));
+
+                self.drawcalls.push(Drawcall::Image(src, dst, color));
+
+                let advance_width =
+                    glyph_advance_width(chr).unwrap_or(self.tilesize);
+                offset_x += advance_width;
+            }
+        };
+
+        if options.wrap && options.width > 0 {
+            // TODO: handle text alignment for wrapped text
+            let lines = wrap_text(text, options.width, tilesize);
+            for (index, line) in lines.iter().enumerate() {
+                let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
+                render_line(pos, line);
+            }
+        } else {
+            use engine::TextAlign::*;
+            let pos = match options.align {
+                Left => start_pos * tilesize,
+                Right => {
+                    (start_pos + (1, 0)) * tilesize
+                        - Point::new(text_width_px(text, tilesize), 0)
+                }
+                Center => {
+                    let text_width = text_width_px(text, tilesize);
+                    let max_width = options.width * tilesize;
+                    if max_width < 1 || (text_width > max_width) {
+                        start_pos
+                    } else {
+                        (start_pos * tilesize) + Point::new((max_width - text_width) / 2, 0)
+                    }
+                }
+            };
+            render_line(pos, text);
+        }
+    }
+
     pub fn get(&self, pos: Point) -> Color {
         if let Some(ix) = self.index(pos) {
             self.map[ix].background
@@ -351,8 +411,7 @@ fn rect_intersects_area(rect: Rectangle, area: Point) -> bool {
 // TODO: remove game_drawcalls entirely.
 // This should be a method on the `BackgroundMap` (or better a struct called Display)
 // that returns an iterator over the engine drawcalls (self::Drawcall).
-pub fn generate_drawcalls(game_drawcalls: &[Draw],
-                          map: &BackgroundMap,
+pub fn generate_drawcalls(map: &BackgroundMap,
                           display_size_px: Point,
                           tilesize: i32,
                           drawcalls: &mut Vec<Drawcall>) {
@@ -385,71 +444,6 @@ pub fn generate_drawcalls(game_drawcalls: &[Draw],
 
     drawcalls.extend(map.drawcalls.iter());
 
-    for drawcall in game_drawcalls.iter() {
-        match drawcall {
-
-
-            &Draw::Text(start_pos, ref text, color, options) => {
-                let mut render_line = |pos_px: Point, line: &str| {
-                    let mut offset_x = 0;
-
-                    // TODO: we need to split this by words or it
-                    // won't do word breaks, split at punctuation,
-                    // etc.
-
-                    // TODO: also, we're no longer calculating the
-                    // line height correctly. Needs to be set on the
-                    // actual result here.
-                    for chr in line.chars() {
-                        let (texture_index_x, texture_index_y) = texture_coords_from_char(chr)
-                            .unwrap_or((0, 0));
-
-                        let src = Rectangle::from_point_and_size(
-                            Point::new(texture_index_x, texture_index_y)  * tilesize,
-                            Point::from_i32(tilesize));
-                        let dst = Rectangle::from_point_and_size(
-                            pos_px + (offset_x, 0),
-                            Point::from_i32(tilesize));
-
-                        drawcalls.push(Drawcall::Image(src, dst, color));
-
-                        let advance_width =
-                            glyph_advance_width(chr).unwrap_or(tilesize);
-                        offset_x += advance_width;
-                    }
-                };
-
-                if options.wrap && options.width > 0 {
-                    // TODO: handle text alignment for wrapped text
-                    let lines = wrap_text(text, options.width, tilesize);
-                    for (index, line) in lines.iter().enumerate() {
-                        let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
-                        render_line(pos, line);
-                    }
-                } else {
-                    use engine::TextAlign::*;
-                    let pos = match options.align {
-                        Left => start_pos * tilesize,
-                        Right => {
-                            (start_pos + (1, 0)) * tilesize
-                                - Point::new(text_width_px(text, tilesize), 0)
-                        }
-                        Center => {
-                            let text_width = text_width_px(text, tilesize);
-                            let max_width = options.width * tilesize;
-                            if max_width < 1 || (text_width > max_width) {
-                                start_pos
-                            } else {
-                                (start_pos * tilesize) + Point::new((max_width - text_width) / 2, 0)
-                            }
-                        }
-                    };
-                    render_line(pos, text);
-                }
-            }
-        }
-    }
-
     if map.fade.alpha > 0 {
         drawcalls.push(Drawcall::Rectangle(None, map.fade));
     }
@@ -477,7 +471,6 @@ pub type UpdateFn = fn(
     settings: &mut Settings,
     metrics: &TextMetrics,
     map: &mut BackgroundMap,
-    drawcalls: &mut Vec<Draw>,
 ) -> RunningState;
 
 // NOTE:

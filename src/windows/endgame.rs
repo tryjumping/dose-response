@@ -1,11 +1,11 @@
 use color;
-use engine::{BackgroundMap, Draw, TextMetrics, TextOptions};
+use engine::{BackgroundMap, TextMetrics};
 use formula;
 use player::CauseOfDeath;
 use point::Point;
 use rect::Rectangle;
 use state::{Side, State};
-use ui;
+use ui::{self, Button};
 
 pub enum Action {
     NewGame,
@@ -18,9 +18,9 @@ struct Layout {
     rect: Rectangle,
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
-    new_game_button: Draw,
-    help_button: Draw,
-    menu_button: Draw,
+    new_game_button: Button,
+    help_button: Button,
+    menu_button: Button,
 }
 
 pub struct Window;
@@ -44,34 +44,22 @@ impl Window {
             window_rect.bottom_right() - padding,
         );
 
-        let new_game_button = Draw::Text(
-            rect.bottom_left(),
-            "[N]ew Game".into(),
-            color::gui_text,
-            TextOptions::align_left(),
-        );
+        let new_game_button = Button::new(rect.bottom_left(), "[N]ew Game")
+            .align_left();
 
-        let help_button = Draw::Text(
-            rect.bottom_left(),
-            "[?] Help".into(),
-            color::gui_text,
-            TextOptions::align_center(rect.width()),
-        );
+        let help_button = Button::new(rect.bottom_left(), "[?] Help")
+            .align_center(rect.width());
 
-        let menu_button = Draw::Text(
-            rect.bottom_right(),
-            "[Esc] Main Menu".into(),
-            color::gui_text,
-            TextOptions::align_right(),
-        );
+        let menu_button = Button::new(rect.bottom_right(), "[Esc] Main Menu")
+            .align_right();
 
-        let text_rect = metrics.text_rect(&new_game_button);
+        let text_rect = metrics.button_rect(&new_game_button);
         if text_rect.contains(state.mouse.tile_pos) {
             action_under_mouse = Some(Action::NewGame);
             rect_under_mouse = Some(text_rect);
         }
 
-        let text_rect = metrics.text_rect(&help_button);
+        let text_rect = metrics.button_rect(&help_button);
         // NOTE(shadower): This is a fixup for the discrepancy between
         // the text width in pixels and how it maps to the tile
         // coordinates. It just looks better 1 tile wider.
@@ -81,7 +69,7 @@ impl Window {
             rect_under_mouse = Some(text_rect);
         }
 
-        let text_rect = metrics.text_rect(&menu_button);
+        let text_rect = metrics.button_rect(&menu_button);
         if text_rect.contains(state.mouse.tile_pos) {
             action_under_mouse = Some(Action::Menu);
             rect_under_mouse = Some(text_rect);
@@ -98,7 +86,7 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap, drawcalls: &mut Vec<Draw>) {
+    pub fn render(&self, state: &State, metrics: &TextMetrics, map: &mut BackgroundMap) {
         use self::CauseOfDeath::*;
         use ui::Text::*;
 
@@ -167,15 +155,15 @@ impl Window {
 
         map.draw_rectangle(layout.window_rect, color::background);
 
-        ui::render_text_flow(&lines, layout.rect, metrics, drawcalls);
+        ui::render_text_flow(&lines, layout.rect, metrics, map);
 
         if let Some(rect) = layout.rect_under_mouse {
             map.draw_rectangle(rect, color::menu_highlight);
         }
 
-        drawcalls.push(layout.new_game_button);
-        drawcalls.push(layout.help_button);
-        drawcalls.push(layout.menu_button);
+        map.draw_button(&layout.new_game_button);
+        map.draw_button(&layout.help_button);
+        map.draw_button(&layout.menu_button);
     }
 
     pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<Action> {

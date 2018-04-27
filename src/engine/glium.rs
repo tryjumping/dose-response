@@ -173,6 +173,10 @@ mod vertex {
         pub pos_px: [f32; 2],
 
         /// Pixel position in the tile map / sprite sheet.
+        ///
+        /// If both values are negative, no texture will be rendered.
+        /// Instead, the colour will be used to fill the background.
+        /// That's how render rectangles.
         pub tile_pos_px: [f32; 2],
 
         /// Colour of the glyph. The glyphs are greyscale, so this is how
@@ -196,7 +200,7 @@ fn build_vertices(display_size_px: Point, drawcalls: &[Drawcall], vertices: &mut
                 let size_px = rect.size();
                 let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
                 let (dim_x, dim_y) = (size_px.x as f32, size_px.y as f32);
-                let tile_pos_px = [0.0, 5.0];
+                let tile_pos_px = [-1.0, -1.0];
                 let color = color.into();
 
                 vertices.push(Vertex {

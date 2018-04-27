@@ -5,7 +5,7 @@ release:
 	scripts/prep-release.sh
 
 wasm:
-	cargo +nightly build --release --target wasm32-unknown-unknown --no-default-features --features web
+	cargo build --release --target wasm32-unknown-unknown --no-default-features --features web
 
 wasm-release: wasm
 	scripts/wasm-release.sh

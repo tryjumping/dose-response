@@ -30,12 +30,12 @@ Webassembly
 
 Install the wasm toolchain:
 
-    rustup update nightly
-    rustup target add wasm32-unknown-unknown --toolchain=nightly
+    rustup update beta
+    rustup target add wasm32-unknown-unknown --toolchain=beta
 
 Compile:
 
-    cargo +nightly build --release --target wasm32-unknown-unknown --no-default-features
+    cargo +beta build --release --target wasm32-unknown-unknown --no-default-features
 
 The compiled file will be created in: `target/wasm32-unknown-unknown/release/dose-response.wasm`
 

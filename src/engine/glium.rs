@@ -1,7 +1,7 @@
 use self::vertex::Vertex;
 
 use color::{Color, ColorAlpha};
-use engine::{self, Drawcall, Mouse, Settings, TextMetrics, TextOptions, UpdateFn};
+use engine::{self, Drawcall, Mouse, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
 use state::State;
 
@@ -132,35 +132,11 @@ struct Metrics {
 }
 
 impl TextMetrics for Metrics {
-
-    fn get_text_height(&self, text: &str, options: TextOptions) -> i32 {
-        if options.wrap && options.width > 0 {
-            // TODO: this does a needless allocation by
-            // returning Vec<String> we don't use here.
-            let lines = engine::wrap_text(&text, options.width, self.tile_width_px);
-            lines.len() as i32
-        } else {
-            1
-        }
+    fn tile_width_px(&self) -> i32 {
+        self.tile_width_px
     }
-
-    fn get_text_width(&self, text: &str, options: TextOptions) -> i32 {
-        let pixel_width = if options.wrap && options.width > 0 {
-            // // TODO: handle text alignment for wrapped text
-            let lines = engine::wrap_text(text, options.width, self.tile_width_px);
-            lines
-                .iter()
-                .map(|line| engine::text_width_px(line, self.tile_width_px))
-                .max()
-                .unwrap_or(0)
-        } else {
-            engine::text_width_px(text, self.tile_width_px)
-        };
-        let tile_width = (pixel_width as f32 / self.tile_width_px as f32).ceil();
-        tile_width as i32
-    }
-
 }
+
 
 #[allow(unsafe_code)]
 mod vertex {

@@ -95,15 +95,40 @@ pub enum TextAlign {
 }
 
 pub trait TextMetrics {
+    fn tile_width_px(&self) -> i32;
+
     /// Return the height in tiles of the given text.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
-    fn get_text_height(&self, text: &str, options: TextOptions) -> i32;
+    fn get_text_height(&self, text: &str, options: TextOptions) -> i32 {
+        if options.wrap && options.width > 0 {
+            // TODO: this does a needless allocation by
+            // returning Vec<String> we don't use here.
+            let lines = wrap_text(&text, options.width, self.tile_width_px());
+            lines.len() as i32
+        } else {
+            1
+        }
+    }
 
     /// Return the width in tiles of the given text.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
-    fn get_text_width(&self, text: &str, options: TextOptions) -> i32;
+    fn get_text_width(&self, text: &str, options: TextOptions) -> i32 {
+        let pixel_width = if options.wrap && options.width > 0 {
+            // // TODO: handle text alignment for wrapped text
+            let lines = wrap_text(text, options.width, self.tile_width_px());
+            lines
+                .iter()
+                .map(|line| text_width_px(line, self.tile_width_px()))
+                .max()
+                .unwrap_or(0)
+        } else {
+            text_width_px(text, self.tile_width_px())
+        };
+        let tile_width = (pixel_width as f32 / self.tile_width_px() as f32).ceil();
+        tile_width as i32
+    }
 
     /// Return the width and height of the given text in tiles.
     ///
@@ -473,5 +498,4 @@ pub type UpdateFn = fn(
 
 // NOTE:
 // fn texture_coords_from_char(chr: char) -> Option<(i32, i32)>
-#[cfg(not(feature = "web"))]
 include!(concat!(env!("OUT_DIR"), "/glyph_lookup_table.rs"));

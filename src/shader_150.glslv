@@ -12,14 +12,14 @@ uniform vec2 display_px;
 uniform vec2 extra_px;
 
 in vec2 pos_px;
-in vec2 tilemap_index;
+in vec2 tile_pos_px;
 in vec4 color;
 
-out vec2 v_tilemap_index;
+out vec2 v_tile_pos_px;
 out vec4 v_color;
 
 void main() {
-    v_tilemap_index = tilemap_index;
+    v_tile_pos_px = tile_pos_px;
     v_color = color;
 
     // This is the full size of the rendered area (window / screen) in pixels

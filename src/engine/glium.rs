@@ -1,6 +1,6 @@
 use self::vertex::Vertex;
 
-use color::Color;
+use color::{Color, ColorAlpha};
 use engine::{self, Drawcall, Mouse, Settings, TextMetrics, TextOptions, UpdateFn};
 use game::RunningState;
 use state::State;
@@ -19,13 +19,15 @@ use util;
 const DRAWCALL_CAPACITY: usize = 10_000;
 const VERTICES_CAPACITY: usize = 50_000;
 
-fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
-    [
-        color.r as f32 / 255.0,
-        color.g as f32 / 255.0,
-        color.b as f32 / 255.0,
-        alpha,
-    ]
+impl Into<[f32; 4]> for ColorAlpha {
+    fn into(self) -> [f32; 4] {
+        [
+            self.rgb.r as f32 / 255.0,
+            self.rgb.g as f32 / 255.0,
+            self.rgb.b as f32 / 255.0,
+            self.alpha as f32 / 255.0,
+        ]
+    }
 }
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
@@ -185,8 +187,111 @@ mod vertex {
 }
 
 
-fn build_vertices(_drawcalls: &[Drawcall], _vertices: &mut Vec<Vertex>) {
-    unimplemented!()
+fn build_vertices(display_size_px: Point, drawcalls: &[Drawcall], vertices: &mut Vec<Vertex>) {
+    for drawcall in drawcalls {
+        match drawcall {
+            // NOTE: (Option<Rectangle>, ColorAlpha)
+            &Drawcall::Rectangle(rect, color) => {
+                let rect = rect.unwrap_or(
+                    Rectangle::from_point_and_size(Point::zero(),
+                                                   display_size_px));
+
+                let top_left_px = rect.top_left();
+                let size_px = rect.size();
+                let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
+                let (dim_x, dim_y) = (size_px.x as f32, size_px.y as f32);
+                let tilemap_index = [0.0, 5.0];
+                let color = color.into();
+
+                vertices.push(Vertex {
+                    pos_px: [pos_x, pos_y],
+                    tilemap_index: tilemap_index,
+                    color: color,
+                });
+                vertices.push(Vertex {
+                    pos_px: [pos_x + dim_x, pos_y],
+                    tilemap_index: tilemap_index,
+                    color: color,
+                });
+                vertices.push(Vertex {
+                    pos_px: [pos_x, pos_y + dim_y],
+                    tilemap_index: tilemap_index,
+                    color: color,
+                });
+
+                vertices.push(Vertex {
+                    pos_px: [pos_x + dim_x, pos_y],
+                    tilemap_index: tilemap_index,
+                    color: color,
+                });
+                vertices.push(Vertex {
+                    pos_px: [pos_x, pos_y + dim_y],
+                    tilemap_index: tilemap_index,
+                    color: color,
+                });
+                vertices.push(Vertex {
+                    pos_px: [pos_x + dim_x, pos_y + dim_y],
+                    tilemap_index: tilemap_index,
+                    color: color,
+                });
+            }
+
+            // NOTE: (Rectangle, Rectangle, Color)
+            &Drawcall::Image(_src, _dst, _color) => {
+            //     let pixel_pos = pixel_from_tile(pos) + offset_px;
+            //     let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
+            //     let tile_width = tilesize as f32;
+            //     let tile_height = tilesize as f32;
+            //     let fill_tile_tilemap_index = [0.0, 5.0];
+            //     let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
+            //     let color = gl_color(foreground_color, alpha);
+            //     let background_color = gl_color(
+            //         background_map.get(pos),
+            //         alpha,
+            //     );
+
+            //     // NOTE: Center the glyphs in their cells
+            //     let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
+            //     let x_offset = (tilesize as i32 - glyph_width) / 2;
+            //     let pos_x = pos_x + x_offset as f32;
+
+            //     // NOTE: draw the glyph
+            //     vertices.push(Vertex {
+            //         pos_px: [pos_x, pos_y],
+            //         tilemap_index: [tilemap_x, tilemap_y],
+            //         color: color,
+            //     });
+            //     vertices.push(Vertex {
+            //         pos_px: [pos_x + tile_width, pos_y],
+            //         tilemap_index: [tilemap_x + 1.0, tilemap_y],
+            //         color: color,
+            //     });
+            //     vertices.push(Vertex {
+            //         pos_px: [pos_x, pos_y + tile_height],
+            //         tilemap_index: [tilemap_x, tilemap_y + 1.0],
+            //         color: color,
+            //     });
+
+            //     vertices.push(Vertex {
+            //         pos_px: [pos_x + tile_width, pos_y],
+            //         tilemap_index: [tilemap_x + 1.0, tilemap_y],
+            //         color: color,
+            //     });
+            //     vertices.push(Vertex {
+            //         pos_px: [pos_x, pos_y + tile_height],
+            //         tilemap_index: [tilemap_x, tilemap_y + 1.0],
+            //         color: color,
+            //     });
+            //     vertices.push(Vertex {
+            //         pos_px: [pos_x + tile_width, pos_y + tile_height],
+            //         tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+            //         color: color,
+            //     });
+            // }
+            }
+
+        }
+    }
 }
 
 
@@ -372,404 +477,13 @@ pub fn main_loop(
             }
         }
 
-        // Return a pixel position from the given tile position
-        let pixel_from_tile = |tile_pos: Point| -> Point {
-            tile_pos * (tilesize as i32)
-        };
-
         // Process drawcalls
         drawcalls.clear();
-        engine_display.push_drawcalls(
-            Point::new(desired_window_width as i32, desired_window_height as i32),
-            &mut drawcalls);
+        let display_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
+        engine_display.push_drawcalls(display_size_px, &mut drawcalls);
 
         vertices.clear();
-        build_vertices(&drawcalls, &mut vertices);
-
-        // NOTE: So the rendering is a little more involved than I
-        // initially planned.
-        //
-        // Here's the problem, we want to be able to set the
-        // background colour independently and possibly *after*
-        // setting the glyph.
-        //
-        // It might also be interspersed by the `Rectangle` drawcalls
-        // which will clear the given area.
-        //
-        // On top of that, we only want to render the topmost glyph on
-        // any given tile.
-        //
-        // I could not figure out how to do this by merely sorting the
-        // drawcalls with a custom ordering closure. It may yet be
-        // possible but I don't know.
-        //
-        // So what we do instead is a three-phase render:
-        //
-        // First, we'll build a map of the background tiles. We do
-        // this by going through all drawcalls and recording the
-        // colour for each `Background` or `Rectangle` call.
-        //
-        // Second, we render all the backgrounds by iterating over the
-        // entires in the background map. This makes sure that we've
-        // rendered all background tiles even if there was no
-        // corresponding glyph there.
-        //
-        // Third, we render everything *except* for the `Background`
-        // tiles. They've been rendered already so let's not do it
-        // again. This handles the situation where a later background
-        // would overwrite a glyph.
-        //
-        // Also, when we render `Glyph`s, we will first clear the tile
-        // to the background in the map. This will make sure that any
-        // previously rendered glyphs will be overwritten.
-        //
-        // Furthermore, we still DO render the `Rectangle`s, because
-        // they should still clear all the areas they cover.
-        // Basically, we pre-render the background and then have
-        // OpenGL handle the rest.
-        //
-        // Finally, we do NOT render the `Fade` during the rendering
-        // pass, but record the fade colour and value and render it
-        // after all the other drawcalls have been processed. That
-        // way, it will not be overwritten by any subsequent
-        // drawcalls.
-
-        // NOTE: last time we tried it it was 3632
-        //println!("Drawcall count: {}", drawcalls.len());
-
-        // NOTE: this has been deleted
-        //engine::populate_background_map(&mut background_map, &drawcalls);
-
-        // Render the background tiles separately and before all the other drawcalls.
-        // NOTE: use `cells` here
-        // for (pos, background_color) in background_map.points() {
-        //     let pos_x = pos.x as f32;
-        //     let pos_y = pos.y as f32;
-        //     let tile_width = tilesize as f32;
-        //     let tile_height = tilesize as f32;
-        //     let tilemap_index = [0.0, 5.0];
-        //     let color = gl_color(*background_color, alpha);
-
-        //     vertices.push(Vertex {
-        //         pos_px: [pos_x, pos_y],
-        //         tilemap_index: tilemap_index,
-        //         color: color,
-        //     });
-        //     vertices.push(Vertex {
-        //         pos_px: [pos_x + tile_width, pos_y],
-        //         tilemap_index: tilemap_index,
-        //         color: color,
-        //     });
-        //     vertices.push(Vertex {
-        //         pos_px: [pos_x, pos_y + tile_height],
-        //         tilemap_index: tilemap_index,
-        //         color: color,
-        //     });
-
-        //     vertices.push(Vertex {
-        //         pos_px: [pos_x + tile_width, pos_y],
-        //         tilemap_index: tilemap_index,
-        //         color: color,
-        //     });
-        //     vertices.push(Vertex {
-        //         pos_px: [pos_x, pos_y + tile_height],
-        //         tilemap_index: tilemap_index,
-        //         color: color,
-        //     });
-        //     vertices.push(Vertex {
-        //         pos_px: [pos_x + tile_width, pos_y + tile_height],
-        //         tilemap_index: tilemap_index,
-        //         color: color,
-        //     });
-        // }
-
-        let screen_fade = None;
-
-        // for drawcall in &drawcalls {
-        //     match drawcall {
-                // &Draw::Char(pos, chr, foreground_color, offset_px) => {
-                //     if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y
-                //     {
-                //         let pixel_pos = pixel_from_tile(pos) + offset_px;
-                //         let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
-                //         let tile_width = tilesize as f32;
-                //         let tile_height = tilesize as f32;
-                //         let fill_tile_tilemap_index = [0.0, 5.0];
-                //         let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
-                //         let color = gl_color(foreground_color, alpha);
-                //         let background_color = gl_color(
-                //             background_map.get(pos),
-                //             alpha,
-                //         );
-
-                //         // NOTE: fill the tile with the background colour
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x, pos_y],
-                //             tilemap_index: fill_tile_tilemap_index,
-                //             color: background_color,
-                //         });
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x + tile_width, pos_y],
-                //             tilemap_index: fill_tile_tilemap_index,
-                //             color: background_color,
-                //         });
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x, pos_y + tile_height],
-                //             tilemap_index: fill_tile_tilemap_index,
-                //             color: background_color,
-                //         });
-
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x + tile_width, pos_y],
-                //             tilemap_index: fill_tile_tilemap_index,
-                //             color: background_color,
-                //         });
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x, pos_y + tile_height],
-                //             tilemap_index: fill_tile_tilemap_index,
-                //             color: background_color,
-                //         });
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x + tile_width, pos_y + tile_height],
-                //             tilemap_index: fill_tile_tilemap_index,
-                //             color: background_color,
-                //         });
-
-                //         // NOTE: Center the glyphs in their cells
-                //         let glyph_width = engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                //         let x_offset = (tilesize as i32 - glyph_width) / 2;
-                //         let pos_x = pos_x + x_offset as f32;
-
-                //         // NOTE: draw the glyph
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x, pos_y],
-                //             tilemap_index: [tilemap_x, tilemap_y],
-                //             color: color,
-                //         });
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x + tile_width, pos_y],
-                //             tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                //             color: color,
-                //         });
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x, pos_y + tile_height],
-                //             tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                //             color: color,
-                //         });
-
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x + tile_width, pos_y],
-                //             tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                //             color: color,
-                //         });
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x, pos_y + tile_height],
-                //             tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                //             color: color,
-                //         });
-                //         vertices.push(Vertex {
-                //             pos_px: [pos_x + tile_width, pos_y + tile_height],
-                //             tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
-                //             color: color,
-                //         });
-                //     }
-                // }
-
-                // &Draw::Text(start_pos, ref text, color, options) => {
-                //     let color = gl_color(color, alpha);
-                //     let tile_width = tilesize as f32;
-                //     let tile_height = tilesize as f32;
-
-                //     let mut render_line = |pos_px: Point, line: &str| {
-                //         let pos_x = pos_px.x as f32;
-                //         let pos_y = pos_px.y as f32;
-
-                //         let mut offset_x = 0.0;
-                //         //let mut offset_y = 0.0;
-
-                //         // TODO: we need to split this by words or it
-                //         // won't do word breaks, split at punctuation,
-                //         // etc.
-
-                //         // TODO: also, we're no longer calculating the
-                //         // line height correctly. Needs to be set on the
-                //         // actual result here.
-                //         for chr in line.chars() {
-                //             let (tilemap_x, tilemap_y) = texture_coords_from_char(chr);
-                //             // if options.wrap && options.width > 0 {
-                //             //     if offset_x >= (options.width as f32 * tile_width) {
-                //             //         offset_y += tile_height;
-                //             //         offset_x = 0.0;
-                //             //     }
-                //             // }
-                //             let pos_x = pos_x + offset_x;
-                //             //let pos_y = pos_y + offset_y;
-
-                //             vertices.push(Vertex {
-                //                 pos_px: [pos_x, pos_y],
-                //                 tilemap_index: [tilemap_x, tilemap_y],
-                //                 color: color,
-                //             });
-                //             vertices.push(Vertex {
-                //                 pos_px: [pos_x + tile_width, pos_y],
-                //                 tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                //                 color: color,
-                //             });
-                //             vertices.push(Vertex {
-                //                 pos_px: [pos_x, pos_y + tile_height],
-                //                 tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                //                 color: color,
-                //             });
-
-                //             vertices.push(Vertex {
-                //                 pos_px: [pos_x + tile_width, pos_y],
-                //                 tilemap_index: [tilemap_x + 1.0, tilemap_y],
-                //                 color: color,
-                //             });
-                //             vertices.push(Vertex {
-                //                 pos_px: [pos_x, pos_y + tile_height],
-                //                 tilemap_index: [tilemap_x, tilemap_y + 1.0],
-                //                 color: color,
-                //             });
-                //             vertices.push(Vertex {
-                //                 pos_px: [pos_x + tile_width, pos_y + tile_height],
-                //                 tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
-                //                 color: color,
-                //             });
-
-                //             let advance_width =
-                //                 engine::glyph_advance_width(chr).unwrap_or(tilesize as i32);
-                //             offset_x += advance_width as f32;
-                //         }
-                //     };
-
-                //     if options.wrap && options.width > 0 {
-                //         // TODO: handle text alignment for wrapped text
-                //         let lines = engine::wrap_text(text, options.width, tile_width as i32);
-                //         for (index, line) in lines.iter().enumerate() {
-                //             let pos = pixel_from_tile(start_pos + Point::new(0, index as i32));
-                //             render_line(pos, line);
-                //         }
-                //     } else {
-                //         use engine::TextAlign::*;
-                //         let pos = match options.align {
-                //             Left => pixel_from_tile(start_pos),
-                //             Right => {
-                //                 pixel_from_tile(start_pos + (1, 0))
-                //                     - Point::new(engine::text_width_px(text, tile_width as i32), 0)
-                //             }
-                //             Center => {
-                //                 let tile_width = tile_width as i32;
-                //                 let text_width = engine::text_width_px(text, tile_width);
-                //                 let max_width = options.width * (tile_width);
-                //                 if max_width < 1 || (text_width > max_width) {
-                //                     start_pos
-                //                 } else {
-                //                     pixel_from_tile(start_pos)
-                //                         + Point::new((max_width - text_width) / 2, 0)
-                //                 }
-                //             }
-                //         };
-                //         render_line(pos, text);
-                //     }
-                // }
-
-                // &Draw::Rectangle(rect, color) => {
-                //     let top_left = rect.top_left();
-                //     let dimensions = rect.size();
-                //     let top_left_px = pixel_from_tile(top_left);
-                //     let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
-                //     let dimensions_px = pixel_from_tile(dimensions);
-                //     let (dim_x, dim_y) = (dimensions_px.x as f32, dimensions_px.y as f32);
-                //     let tilemap_index = [0.0, 5.0];
-                //     let color = gl_color(color, alpha);
-
-                //     vertices.push(Vertex {
-                //         pos_px: [pos_x, pos_y],
-                //         tilemap_index: tilemap_index,
-                //         color: color,
-                //     });
-                //     vertices.push(Vertex {
-                //         pos_px: [pos_x + dim_x, pos_y],
-                //         tilemap_index: tilemap_index,
-                //         color: color,
-                //     });
-                //     vertices.push(Vertex {
-                //         pos_px: [pos_x, pos_y + dim_y],
-                //         tilemap_index: tilemap_index,
-                //         color: color,
-                //     });
-
-                //     vertices.push(Vertex {
-                //         pos_px: [pos_x + dim_x, pos_y],
-                //         tilemap_index: tilemap_index,
-                //         color: color,
-                //     });
-                //     vertices.push(Vertex {
-                //         pos_px: [pos_x, pos_y + dim_y],
-                //         tilemap_index: tilemap_index,
-                //         color: color,
-                //     });
-                //     vertices.push(Vertex {
-                //         pos_px: [pos_x + dim_x, pos_y + dim_y],
-                //         tilemap_index: tilemap_index,
-                //         color: color,
-                //     });
-                // }
-
-                // &Draw::Fade(fade, color) => {
-                //     screen_fade = Some((fade, color));
-                // }
-
-        //     }
-        // }
-
-        // NOTE: render the fade overlay
-        if let Some((mut fade, color)) = screen_fade {
-            if fade < 0.0 {
-                fade = 0.0;
-            }
-            if fade > 1.0 {
-                fade = 1.0;
-            }
-            let (pos_x, pos_y) = (0.0, 0.0);
-            let display_size_px = pixel_from_tile(display_size);
-            let (dim_x, dim_y) = (display_size_px.x as f32, display_size_px.y as f32);
-            let tilemap_index = [0.0, 5.0];
-            let color = gl_color(color, 1.0 - fade);
-
-            vertices.push(Vertex {
-                pos_px: [pos_x, pos_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-            vertices.push(Vertex {
-                pos_px: [pos_x + dim_x, pos_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-            vertices.push(Vertex {
-                pos_px: [pos_x, pos_y + dim_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-
-            vertices.push(Vertex {
-                pos_px: [pos_x + dim_x, pos_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-            vertices.push(Vertex {
-                pos_px: [pos_x, pos_y + dim_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-            vertices.push(Vertex {
-                pos_px: [pos_x + dim_x, pos_y + dim_y],
-                tilemap_index: tilemap_index,
-                color: color,
-            });
-        }
+        build_vertices(display_size_px, &drawcalls, &mut vertices);
 
         if vertices.len() > VERTICES_CAPACITY {
             println!(

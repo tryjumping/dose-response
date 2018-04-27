@@ -253,28 +253,28 @@ fn build_vertices(display_size_px: Point, drawcalls: &[Drawcall], vertices: &mut
                 });
                 vertices.push(Vertex {
                     pos_px: [pos_x + tile_width, pos_y],
-                    tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                    tilemap_index: [tilemap_x + tile_width, tilemap_y],
                     color: color,
                 });
                 vertices.push(Vertex {
                     pos_px: [pos_x, pos_y + tile_height],
-                    tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                    tilemap_index: [tilemap_x, tilemap_y + tile_height],
                     color: color,
                 });
 
                 vertices.push(Vertex {
                     pos_px: [pos_x + tile_width, pos_y],
-                    tilemap_index: [tilemap_x + 1.0, tilemap_y],
+                    tilemap_index: [tilemap_x + tile_width, tilemap_y],
                     color: color,
                 });
                 vertices.push(Vertex {
                     pos_px: [pos_x, pos_y + tile_height],
-                    tilemap_index: [tilemap_x, tilemap_y + 1.0],
+                    tilemap_index: [tilemap_x, tilemap_y + tile_height],
                     color: color,
                 });
                 vertices.push(Vertex {
                     pos_px: [pos_x + tile_width, pos_y + tile_height],
-                    tilemap_index: [tilemap_x + 1.0, tilemap_y + 1.0],
+                    tilemap_index: [tilemap_x + tile_width, tilemap_y + tile_height],
                     color: color,
                 });
 
@@ -299,7 +299,6 @@ pub fn main_loop(
 
     println!("Requested display in tiles: {} x {}", display_size.x, display_size.y);
     println!("Desired window size: {} x {}", desired_window_width, desired_window_height);
-
     let mut window_width = desired_window_width;
     let mut window_height = desired_window_height;
 
@@ -340,9 +339,7 @@ pub fn main_loop(
         glium::texture::SrgbTexture2d::new(&display, image).unwrap()
     };
 
-    let (tex_width_px, tex_height_px) = texture.dimensions();
-    let texture_tile_count_x = tex_width_px as f32 / tilesize as f32;
-    let texture_tile_count_y = tex_height_px as f32 / tilesize as f32;
+    let (tex_width_px, tex_height_px) = (texture.dimensions().0 as f32, texture.dimensions().1 as f32);
 
     // Main loop
     let mut window_pos = {
@@ -545,8 +542,7 @@ pub fn main_loop(
             native_display_px: native_display_px,
             display_px: display_px,
             extra_px: extra_px,
-            texture_gl_dimensions: [1.0 / texture_tile_count_x,
-                                    1.0 / texture_tile_count_y],
+            texture_size_px: [tex_width_px, tex_height_px],
         };
 
         // Render

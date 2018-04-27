@@ -51,6 +51,10 @@ impl Rectangle {
         self.size().x
     }
 
+    pub fn height(self) -> i32 {
+        self.size().y
+    }
+
     pub fn right(self) -> i32 {
         self.bottom_right.x
     }

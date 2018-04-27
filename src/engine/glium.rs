@@ -1,7 +1,7 @@
 use self::vertex::Vertex;
 
 use color::Color;
-use engine::{self, Mouse, Settings, TextMetrics, TextOptions, UpdateFn};
+use engine::{self, Drawcall, Mouse, Settings, TextMetrics, TextOptions, UpdateFn};
 use game::RunningState;
 use state::State;
 
@@ -16,6 +16,7 @@ use rect::Rectangle;
 use std::time::{Duration, Instant};
 use util;
 
+const DRAWCALL_CAPACITY: usize = 10_000;
 const VERTICES_CAPACITY: usize = 50_000;
 
 fn gl_color(color: Color, alpha: f32) -> [f32; 4] {
@@ -183,6 +184,12 @@ mod vertex {
     implement_vertex!(Vertex, pos_px, tilemap_index, color);
 }
 
+
+fn build_vertices(_drawcalls: &[Drawcall], _vertices: &mut Vec<Vertex>) {
+    unimplemented!()
+}
+
+
 pub fn main_loop(
     display_size: Point,
     default_background: Color,
@@ -274,6 +281,7 @@ pub fn main_loop(
     let mut ralt_pressed = false;
     let mut lshift_pressed = false;
     let mut rshift_pressed = false;
+    let mut drawcalls = Vec::with_capacity(DRAWCALL_CAPACITY);
     let mut vertices = Vec::with_capacity(VERTICES_CAPACITY);
     let mut keys = vec![];
     let mut previous_frame_time = Instant::now();
@@ -370,7 +378,13 @@ pub fn main_loop(
         };
 
         // Process drawcalls
+        drawcalls.clear();
+        engine_display.push_drawcalls(
+            Point::new(desired_window_width as i32, desired_window_height as i32),
+            &mut drawcalls);
+
         vertices.clear();
+        build_vertices(&drawcalls, &mut vertices);
 
         // NOTE: So the rendering is a little more involved than I
         // initially planned.

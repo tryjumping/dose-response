@@ -22,7 +22,7 @@ use image;
 
 // const DESIRED_FPS: u64 = 60;
 // const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
-const SDL_DRAWCALL_CAPACITY: usize = 25_000;
+const SDL_DRAWCALL_CAPACITY: usize = 10_000;
 
 pub struct Metrics {
     tile_width_px: i32,

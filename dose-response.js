@@ -51,6 +51,7 @@ function play_game(canvas, wasm_path) {
       return WebAssembly.instantiate(bytes, {
         env: {
           random: Math.random,
+          sin: Math.sin,
           draw: function(ptr, len) {
             memory = new Uint8Array(wasm_instance.exports.memory.buffer, ptr, len);
 

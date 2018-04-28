@@ -34,7 +34,7 @@ pub const DRAWCALL_CAPACITY: usize = 8000;
 
 
 /// The drawcalls that the engine will process and render.
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Drawcall {
     Rectangle(Option<Rectangle>, ColorAlpha),
     Image(Rectangle, Rectangle, Color),

@@ -1,5 +1,4 @@
-use color::Color;
-use engine::{self, Draw, Mouse, Settings, TextMetrics};
+use engine::{self, Display, Drawcall, Mouse, Settings, TextMetrics};
 use game::{self, RunningState};
 use keys::{Key, KeyCode};
 use point::Point;
@@ -17,6 +16,7 @@ const JS_DRAWCALL_CAPACITY: usize = 80_000;
 extern "C" {
     fn draw(nums: *const u8, len: usize);
     pub fn random() -> f32;
+    pub fn sin(rad: f32) -> f32;
     fn wrapped_text_height_in_tiles(
         text_ptr: *const u8,
         text_len: usize,
@@ -141,43 +141,13 @@ fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {
     }
 }
 
-struct Metrics;
+struct Metrics {
+    tile_width_px: i32,
+}
 
 impl TextMetrics for Metrics {
-    fn get_text_height(&self, text_drawcall: &Draw) -> i32 {
-        match text_drawcall {
-            &Draw::Text(_pos, ref text, _color, options) => {
-                if options.wrap && options.width > 0 {
-                    #[allow(unsafe_code)]
-                    unsafe {
-                        wrapped_text_height_in_tiles(text.as_ptr(), text.len(), options.width)
-                    }
-                } else {
-                    1
-                }
-            }
-            _ => {
-                panic!("The argument to `TextMetrics::get_text_height` must be `Draw::Text`!");
-            }
-        }
-    }
-
-    fn get_text_width(&self, text_drawcall: &Draw) -> i32 {
-        match text_drawcall {
-            &Draw::Text(_pos, ref text, _color, options) => {
-                let width = if options.wrap {
-                    options.width
-                } else {
-                    text.chars().count() as i32
-                };
-                #[allow(unsafe_code)]
-                unsafe { wrapped_text_width_in_tiles(text.as_ptr(), text.len(), width) }
-                //10
-            }
-            _ => {
-                panic!("The argument to `TextMetrics::get_text_width` must be `Draw::Text`!");
-            }
-        }
+    fn tile_width_px(&self) -> i32 {
+        self.tile_width_px
     }
 }
 
@@ -186,9 +156,9 @@ impl TextMetrics for Metrics {
 pub struct Wasm {
     state: *mut State,
     buffer: *mut Vec<u8>,
-    drawcalls: *mut Vec<Draw>,
+    drawcalls: *mut Vec<Drawcall>,
     js_drawcalls: *mut Vec<u8>,
-    background_map: *mut Vec<Color>,
+    display: *mut Display,
 }
 
 #[allow(unsafe_code)]
@@ -232,24 +202,26 @@ pub extern "C" fn initialise() -> *mut Wasm {
     let buffer = Box::new(Vec::with_capacity(BUFFER_CAPACITY));
     let drawcalls = Box::new(Vec::with_capacity(engine::DRAWCALL_CAPACITY));
     let js_drawcalls = Box::new(Vec::with_capacity(JS_DRAWCALL_CAPACITY));
-    let background_map = Box::new(vec![
-        Color { r: 0, g: 0, b: 0 };
-        (::DISPLAY_SIZE.x * ::DISPLAY_SIZE.y) as usize
-    ]);
+    let display_size = ::DISPLAY_SIZE;
+    let display = Box::new(
+        engine::Display::new(display_size,
+                             Point::from_i32(display_size.y / 2),
+                             super::TILESIZE as i32));
+
     let wasm = {
         Box::new(Wasm {
             state: Box::into_raw(state),
             buffer: Box::into_raw(buffer),
             drawcalls: Box::into_raw(drawcalls),
             js_drawcalls: Box::into_raw(js_drawcalls),
-            background_map: Box::into_raw(background_map),
+            display: Box::into_raw(display),
         })
     };
 
     Box::into_raw(wasm)
 }
 
-fn serialise_drawcall(drawcall: &Draw, buffer: &mut Vec<u8>, js_drawcalls: &mut Vec<u8>) {
+fn serialise_drawcall(drawcall: &Drawcall, buffer: &mut Vec<u8>, js_drawcalls: &mut Vec<u8>) {
     buffer.clear();
     drawcall
         .serialize(&mut Serializer::new(&mut *buffer))
@@ -272,9 +244,9 @@ pub extern "C" fn update(
     let wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
     let mut state: Box<State> = unsafe { Box::from_raw(wasm.state) };
     let mut buffer: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.buffer) };
-    let mut drawcalls: Box<Vec<Draw>> = unsafe { Box::from_raw(wasm.drawcalls) };
+    let mut drawcalls: Box<Vec<Drawcall>> = unsafe { Box::from_raw(wasm.drawcalls) };
     let mut js_drawcalls: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.js_drawcalls) };
-    let mut background_map: Box<Vec<Color>> = unsafe { Box::from_raw(wasm.background_map) };
+    let mut display: Box<Display> = unsafe { Box::from_raw(wasm.display) };
 
     drawcalls.clear();
     js_drawcalls.clear();
@@ -290,6 +262,9 @@ pub extern "C" fn update(
         right: mouse_right,
     };
     let mut settings = Settings { fullscreen: false };
+    let metrics = Metrics {
+        tile_width_px: super::TILESIZE as i32,
+    };
 
     let result = game::update(
         &mut state,
@@ -299,8 +274,8 @@ pub extern "C" fn update(
         &keys,
         mouse,
         &mut settings,
-        &mut Metrics,
-        &mut drawcalls,
+        &metrics,
+        &mut display,
     );
 
     match result {
@@ -311,83 +286,81 @@ pub extern "C" fn update(
         RunningState::Stopped => {}
     }
 
-    engine::populate_background_map(&mut background_map, display_size, &drawcalls);
+    // // Send the background drawcalls first
+    // for (index, background_color) in background_map.iter().enumerate() {
+    //     let pos = Point::new(
+    //         (index as i32) % display_size.x,
+    //         (index as i32) / display_size.x,
+    //     );
+    //     let drawcall = Draw::Background(pos, *background_color);
+    //     serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
+    // }
 
-    // Send the background drawcalls first
-    for (index, background_color) in background_map.iter().enumerate() {
-        let pos = Point::new(
-            (index as i32) % display_size.x,
-            (index as i32) / display_size.x,
-        );
-        let drawcall = Draw::Background(pos, *background_color);
-        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
-    }
+    // let mut screen_fade = None;
 
-    let mut screen_fade = None;
+    // for drawcall in drawcalls.iter() {
+    //     match drawcall {
+    //         &Draw::Background(..) => {}
+    //         &Draw::Fade(color, fade) => {
+    //             screen_fade = Some(Draw::Fade(color, fade));
+    //         }
 
-    for drawcall in drawcalls.iter() {
-        match drawcall {
-            &Draw::Background(..) => {}
-            &Draw::Fade(color, fade) => {
-                screen_fade = Some(Draw::Fade(color, fade));
-            }
+    //         &Draw::Char(pos, _glyph, _color) => {
+    //             if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
+    //                 // Clear the background
+    //                 let bg_dc = Draw::Background(
+    //                     pos,
+    //                     background_map[(pos.y * display_size.x + pos.x) as usize],
+    //                 );
+    //                 serialise_drawcall(&bg_dc, &mut buffer, &mut js_drawcalls);
 
-            &Draw::Char(pos, _glyph, _color) => {
-                if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
-                    // Clear the background
-                    let bg_dc = Draw::Background(
-                        pos,
-                        background_map[(pos.y * display_size.x + pos.x) as usize],
-                    );
-                    serialise_drawcall(&bg_dc, &mut buffer, &mut js_drawcalls);
+    //                 // Send the glyph
+    //                 serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
+    //             }
+    //         }
 
-                    // Send the glyph
-                    serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
-                }
-            }
-
-            _ => {
-                serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
-            }
-        }
-    }
+    //         _ => {
+    //             serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
+    //         }
+    //     }
+    // }
 
     if state.cheating {
-        // NOTE: render buffer size:
-        let drawcall = Draw::Text(
-            display_size - (5, 5),
-            format!("Buffer cap: {}", buffer.capacity()).into(),
-            ::color::gui_text,
-            engine::TextOptions::align_right(),
-        );
-        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
+        // // NOTE: render buffer size:
+        // let drawcall = Draw::Text(
+        //     display_size - (5, 5),
+        //     format!("Buffer cap: {}", buffer.capacity()).into(),
+        //     ::color::gui_text,
+        //     engine::TextOptions::align_right(),
+        // );
+        // serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
 
-        // NOTE: render js drawcall size
-        let drawcall = Draw::Text(
-            display_size - (5, 4),
-            format!("js_drawcall len: {}", js_drawcalls.len()).into(),
-            ::color::gui_text,
-            engine::TextOptions::align_right(),
-        );
-        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
+        // // NOTE: render js drawcall size
+        // let drawcall = Draw::Text(
+        //     display_size - (5, 4),
+        //     format!("js_drawcall len: {}", js_drawcalls.len()).into(),
+        //     ::color::gui_text,
+        //     engine::TextOptions::align_right(),
+        // );
+        // serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
 
-        // NOTE: render js drawcall size
-        let drawcall = Draw::Text(
-            display_size - (5, 3),
-            format!("drawcall len: {}", drawcalls.len()).into(),
-            ::color::gui_text,
-            engine::TextOptions::align_right(),
-        );
-        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
+        // // NOTE: render js drawcall size
+        // let drawcall = Draw::Text(
+        //     display_size - (5, 3),
+        //     format!("drawcall len: {}", drawcalls.len()).into(),
+        //     ::color::gui_text,
+        //     engine::TextOptions::align_right(),
+        // );
+        // serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
 
         // TODO: print out warning when we exceed the capacity to the
         // JS console.
     }
 
-    // Send the Fade drawcall last
-    if let Some(drawcall) = screen_fade {
-        serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
-    }
+    // // Send the Fade drawcall last
+    // if let Some(drawcall) = screen_fade {
+    //     serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
+    // }
 
     // TODO
 
@@ -395,7 +368,7 @@ pub extern "C" fn update(
         draw(js_drawcalls.as_ptr(), js_drawcalls.len());
     }
 
-    mem::forget(background_map);
+    mem::forget(display);
     mem::forget(js_drawcalls);
     mem::forget(drawcalls);
     mem::forget(buffer);

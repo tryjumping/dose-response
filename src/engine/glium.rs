@@ -163,15 +163,11 @@ mod vertex {
 }
 
 
-fn build_vertices(display_size_px: Point, drawcalls: &[Drawcall], vertices: &mut Vec<Vertex>) {
+fn build_vertices(drawcalls: &[Drawcall], vertices: &mut Vec<Vertex>) {
     for drawcall in drawcalls {
         match drawcall {
-            // NOTE: (Option<Rectangle>, ColorAlpha)
+            // NOTE: Rectangle, ColorAlpha)
             &Drawcall::Rectangle(rect, color) => {
-                let rect = rect.unwrap_or(
-                    Rectangle::from_point_and_size(Point::zero(),
-                                                   display_size_px));
-
                 let top_left_px = rect.top_left();
                 let size_px = rect.size();
                 let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
@@ -441,11 +437,10 @@ pub fn main_loop(
 
         // Process drawcalls
         drawcalls.clear();
-        let display_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
         engine_display.push_drawcalls(&mut drawcalls);
 
         vertices.clear();
-        build_vertices(display_size_px, &drawcalls, &mut vertices);
+        build_vertices(&drawcalls, &mut vertices);
 
         if vertices.len() > VERTICES_CAPACITY {
             println!(

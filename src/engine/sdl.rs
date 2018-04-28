@@ -161,7 +161,7 @@ fn sdl_render(canvas: &mut Canvas<Window>,
         match dc {
             &Rectangle(rect, color) => {
                 canvas.set_draw_color(color.into());
-                canvas.fill_rect(rect.map(Into::into)).unwrap();
+                canvas.fill_rect(Some(rect.into())).unwrap();
             }
             &Image(src, dst, color) => {
                 texture.set_color_mod(color.r, color.g, color.b);

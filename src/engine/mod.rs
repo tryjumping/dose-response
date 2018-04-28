@@ -36,7 +36,7 @@ pub const DRAWCALL_CAPACITY: usize = 8000;
 /// The drawcalls that the engine will process and render.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Drawcall {
-    Rectangle(Option<Rectangle>, ColorAlpha),
+    Rectangle(Rectangle, ColorAlpha),
     Image(Rectangle, Rectangle, Color),
 }
 
@@ -333,7 +333,7 @@ impl Display {
         let dimensions_px = rect.size() * self.tilesize;
 
         let rect = Rectangle::from_point_and_size(top_left_px, dimensions_px);
-        self.drawcalls.push(Drawcall::Rectangle(Some(rect), color.into()));
+        self.drawcalls.push(Drawcall::Rectangle(rect, color.into()));
     }
 
     /// Draw a Button
@@ -446,7 +446,7 @@ impl Display {
             let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
 
             if rect_intersects_area(background_dst, display_size_px) {
-                drawcalls.push(Drawcall::Rectangle(Some(background_dst), cell.background.into()));
+                drawcalls.push(Drawcall::Rectangle(background_dst, cell.background.into()));
             }
             if rect_intersects_area(glyph_dst, display_size_px) {
                 drawcalls.push(Drawcall::Image(texture_src, glyph_dst, cell.foreground));
@@ -456,7 +456,8 @@ impl Display {
         drawcalls.extend(self.drawcalls.iter());
 
         if self.fade.alpha > 0 {
-            drawcalls.push(Drawcall::Rectangle(None, self.fade));
+            let full_screen_rect = Rectangle::from_point_and_size(Point::zero(), display_size_px);
+            drawcalls.push(Drawcall::Rectangle(full_screen_rect, self.fade));
         }
     }
 

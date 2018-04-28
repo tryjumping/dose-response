@@ -442,7 +442,7 @@ pub fn main_loop(
         // Process drawcalls
         drawcalls.clear();
         let display_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
-        engine_display.push_drawcalls(display_size_px, &mut drawcalls);
+        engine_display.push_drawcalls(&mut drawcalls);
 
         vertices.clear();
         build_vertices(display_size_px, &drawcalls, &mut vertices);

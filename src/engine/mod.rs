@@ -424,10 +424,9 @@ impl Display {
             })
     }
 
-    pub fn push_drawcalls(&self,
-                          display_size_px: Point,
-                          drawcalls: &mut Vec<Drawcall>) {
+    pub fn push_drawcalls(&self, drawcalls: &mut Vec<Drawcall>) {
         let tilesize = self.tilesize;
+        let display_size_px = self.display_size * tilesize;
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {

@@ -248,9 +248,6 @@ pub extern "C" fn update(
     let mut js_drawcalls: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.js_drawcalls) };
     let mut display: Box<Display> = unsafe { Box::from_raw(wasm.display) };
 
-    drawcalls.clear();
-    js_drawcalls.clear();
-
     let dt = Duration::from_millis(dt_ms as u64);
     let display_size = state.display_size;
     let fps = 60;
@@ -286,44 +283,14 @@ pub extern "C" fn update(
         RunningState::Stopped => {}
     }
 
-    // // Send the background drawcalls first
-    // for (index, background_color) in background_map.iter().enumerate() {
-    //     let pos = Point::new(
-    //         (index as i32) % display_size.x,
-    //         (index as i32) / display_size.x,
-    //     );
-    //     let drawcall = Draw::Background(pos, *background_color);
-    //     serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
-    // }
 
-    // let mut screen_fade = None;
+    drawcalls.clear();
+    display.push_drawcalls(&mut drawcalls);
 
-    // for drawcall in drawcalls.iter() {
-    //     match drawcall {
-    //         &Draw::Background(..) => {}
-    //         &Draw::Fade(color, fade) => {
-    //             screen_fade = Some(Draw::Fade(color, fade));
-    //         }
-
-    //         &Draw::Char(pos, _glyph, _color) => {
-    //             if pos.x >= 0 && pos.y >= 0 && pos.x < display_size.x && pos.y < display_size.y {
-    //                 // Clear the background
-    //                 let bg_dc = Draw::Background(
-    //                     pos,
-    //                     background_map[(pos.y * display_size.x + pos.x) as usize],
-    //                 );
-    //                 serialise_drawcall(&bg_dc, &mut buffer, &mut js_drawcalls);
-
-    //                 // Send the glyph
-    //                 serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
-    //             }
-    //         }
-
-    //         _ => {
-    //             serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
-    //         }
-    //     }
-    // }
+    js_drawcalls.clear();
+    for drawcall in drawcalls.iter() {
+        serialise_drawcall(drawcall, &mut buffer, &mut js_drawcalls);
+    }
 
     if state.cheating {
         // // NOTE: render buffer size:
@@ -356,13 +323,6 @@ pub extern "C" fn update(
         // TODO: print out warning when we exceed the capacity to the
         // JS console.
     }
-
-    // // Send the Fade drawcall last
-    // if let Some(drawcall) = screen_fade {
-    //     serialise_drawcall(&drawcall, &mut buffer, &mut js_drawcalls);
-    // }
-
-    // TODO
 
     unsafe {
         draw(js_drawcalls.as_ptr(), js_drawcalls.len());

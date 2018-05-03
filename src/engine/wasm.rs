@@ -288,8 +288,88 @@ pub extern "C" fn update(
     display.push_drawcalls(&mut drawcalls);
 
     js_drawcalls.clear();
-    for drawcall in drawcalls.iter() {
-        serialise_drawcall(drawcall, &mut buffer, &mut js_drawcalls);
+    // for drawcall in drawcalls.iter() {
+    //     serialise_drawcall(drawcall, &mut buffer, &mut js_drawcalls);
+    // }
+    let tile_idx = 6.0;
+    let tilesize_px = 21.0;
+
+  let data: &[f32] = &[
+    // NOTE: Background
+    0.0, tilesize_px,  // xy
+    -1.0, -1.0,
+    0.0, 0.0, 0.0, 1.0,  // rgba
+
+    //-1.0, 1.0,  // xy
+    0.0, 0.0,  // xy
+    -1.0, -1.0,
+    0.0, 0.0, 0.0, 1.0,  // rgba
+
+    //1.0, 1.0,  // xy
+    tilesize_px, 0.0,  // xy
+    -1.0, -1.0,
+    0.0, 0.0, 0.0, 1.0,  // rgba
+
+    //-1.0, -1.0,  // xy
+    0.0, tilesize_px,  // xy
+    -1.0, -1.0,
+    0.0, 0.0, 0.0, 1.0,  // rgba
+
+    //1.0, 1.0,  // xy
+    tilesize_px, 0.0,  // xy
+    -1.0, -1.0,
+    0.0, 0.0, 0.0, 1.0,  // rgba
+
+    //1.0, -1.0,  // xy
+    tilesize_px, tilesize_px,  // xy
+    -1.0, -1.0,
+    0.0, 0.0, 0.0, 1.0,  // rgba
+
+
+
+    //-1.0, -1.0,  // xy
+    0.0, tilesize_px,  // xy
+    tile_idx * tilesize_px, tilesize_px,   // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
+
+    //-1.0, 1.0,  // xy
+    0.0, 0.0,  // xy
+    tile_idx * tilesize_px, 0.0,  // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
+
+    //1.0, 1.0,  // xy
+    tilesize_px, 0.0,  // xy
+    (tile_idx + 1.0) * tilesize_px, 0.0,  // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
+
+    //-1.0, -1.0,  // xy
+    0.0, tilesize_px,  // xy
+    tile_idx * tilesize_px, tilesize_px,    // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
+
+    //1.0, 1.0,  // xy
+    tilesize_px, 0.0,  // xy
+    (tile_idx + 1.0) * tilesize_px, 0.0,  // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
+
+    //1.0, -1.0,  // xy
+    tilesize_px, tilesize_px,  // xy
+    (tile_idx + 1.0) * tilesize_px, tilesize_px,  // uv
+    1.0, 1.0, 1.0, 1.0 // rgba
+  ];
+    for &float_num in data.iter() {
+        let bits: u32 = float_num.to_bits();
+        // NOTE: WASM specifies little endian ordering
+        let x = bits.to_le();
+        let b1 : u8 = (x & 0xff) as u8;
+        let b2 : u8 = ((x >> 8) & 0xff) as u8;
+        let b3 : u8 = ((x >> 16) & 0xff) as u8;
+        let b4 : u8 = ((x >> 24) & 0xff) as u8;
+
+        js_drawcalls.push(b1);
+        js_drawcalls.push(b2);
+        js_drawcalls.push(b3);
+        js_drawcalls.push(b4);
     }
 
     if state.cheating {

@@ -6,43 +6,44 @@ function renderWebGL(canvas) {
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   const programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 
+  // TODO: we must be passing the right URL here
   const texture = twgl.createTexture(gl, {src: "target/wasm32-unknown-unknown/release/build/dose-response-4dd4bb781a4647a3/out/font.png"});
 
-  var tex_width_px = 1995.0;
-  var tilesize_px = 21.0;
-  var gl_tex_width = tilesize_px / tex_width_px;
+  const tilesize_px = 21.0;
+  // TODO: we should read this from the texture image
+  const texture_size_px = [1995.0, tilesize_px];
   var tile_idx = 6.0;
 
   var data = new Float32Array([
     //-1.0, -1.0,  // xy
     0, tilesize_px,  // xy
-    tile_idx * gl_tex_width, 1.0,   // uv
-    1.0, 0, 0, 1.0,  // rgba
+    tile_idx * tilesize_px, tilesize_px,   // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
 
     //-1.0, 1.0,  // xy
     0, 0,  // xy
-    tile_idx * gl_tex_width, 0.0,  // uv
-    0.0, 1.0, 0.0, 1.0,  // rgba
+    tile_idx * tilesize_px, 0.0,  // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
 
     //1.0, 1.0,  // xy
     tilesize_px, 0,  // xy
-    (tile_idx + 1) * gl_tex_width, 0.0,  // uv
-    0.0, 0.0, 1.0, 1.0,  // rgba
+    (tile_idx + 1) * tilesize_px, 0.0,  // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
 
     //-1.0, -1.0,  // xy
     0, tilesize_px,  // xy
-    tile_idx * gl_tex_width, 1.0,    // uv
-    1.0, 0, 0, 1.0,  // rgba
+    tile_idx * tilesize_px, tilesize_px,    // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
 
     //1.0, 1.0,  // xy
     tilesize_px, 0,  // xy
-    (tile_idx + 1) * gl_tex_width, 0.0,  // uv
-    0.0, 1.0, 0.0, 1.0,  // rgba
+    (tile_idx + 1) * tilesize_px, 0.0,  // uv
+    1.0, 1.0, 1.0, 1.0,  // rgba
 
     //1.0, -1.0,  // xy
     tilesize_px, tilesize_px,  // xy
-    (tile_idx + 1) * gl_tex_width, 1.0,  // uv
-    0.0, 0.0, 1.0, 1.0 // rgba
+    (tile_idx + 1) * tilesize_px, tilesize_px,  // uv
+    1.0, 1.0, 1.0, 1.0 // rgba
   ]);
 
   const packedBuffer = twgl.createBufferFromTypedArray(gl, data);
@@ -68,6 +69,7 @@ function renderWebGL(canvas) {
 
     const uniforms = {
       native_display_px: [gl.canvas.width, gl.canvas.height],
+      texture_size_px: texture_size_px,
       tex: texture
     };
 
@@ -103,15 +105,28 @@ function wrapText(ctx, text, maxWidth) {
 
 
 function play_game(canvas, wasm_path) {
-  renderWebGL(canvas);
-  return;
+  // renderWebGL(canvas);
+  // return;
 
   var width = 47;
   var height = 30;
   var squareSize = 18;
 
   var c = canvas;
-  var ctx = c.getContext('2d');
+  //var ctx = c.getContext('2d');
+  const gl = canvas.getContext("webgl");
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  const programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
+
+  // TODO: we must be passing the right URL here
+  const texture = twgl.createTexture(gl, {src: "target/wasm32-unknown-unknown/release/build/dose-response-4dd4bb781a4647a3/out/font.png"});
+
+  const tilesize_px = 21.0;
+  // TODO: we should read this from the texture image
+  const texture_size_px = [1995.0, tilesize_px];
+
+
 
   var wasm_instance;
   var gamestate_ptr;
@@ -140,139 +155,39 @@ function play_game(canvas, wasm_path) {
           random: Math.random,
           sin: Math.sin,
           draw: function(ptr, len) {
-            memory = new Uint8Array(wasm_instance.exports.memory.buffer, ptr, len);
+            const bytesInFloat = 4;
 
-            var image = document.getElementById("spritesheet");
+            // NOTE: both ptr and len are assuming a byte array. So we
+            // have to divide by 4 to get the floats.
+            const memory = new Float32Array(wasm_instance.exports.memory.buffer, ptr, len / bytesInFloat);
+            const packedBuffer = twgl.createBufferFromTypedArray(gl, memory);
 
-            ctx.clearRect(0, 0, width * squareSize, height * squareSize);
-
-            var decoder = new msgpack.Decoder();
-            decoder.on("data", function(chunk) {
-
-              var discriminant = chunk[0];
-              var data = chunk[1];
-
-              switch(discriminant) {
-              case 0:  // Rectangle
-                var rect = data[0];
-                var x = rect[0][0];
-                var y = rect[0][1];
-                var width = x - rect[1][0] - 1;
-                var height = y - rect[1][1] - 1;
-
-                var color = data[1][0];
-                var alpha = data[1][1];
-                ctx.fillStyle = "rgba(" + color[0] + "," + color[1] + "," + color[2] + "," + alpha + ")";
-                //ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-                ctx.fillRect(x, y, width, height);
-                break;
-
-              case 1: // Image
-                //console.log(data);
-
-                var src_top_left = data[0][0];
-                var src_bottom_right = data[0][1];
-
-                var src_w = src_bottom_right[0] - src_top_left[0] + 1;
-                var src_h = src_bottom_right[1] - src_top_left[1] + 1;
-
-                var dst_top_left = data[1][0];
-                var dst_bottom_right = data[1][1];
-                var dst_w = dst_bottom_right[0] - dst_top_left[0] + 1;
-                var dst_h = dst_bottom_right[1] - dst_top_left[1] + 1;
-
-                var color = data[2];
-                // var x = data[0][0];
-                // var y = data[0][1];
-                // var color = data[1];
-
-                //ctx.drawImage(image, 21, 0, 21, 21, 10, 10, 21, 21);
-                // ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-                ctx.fillStyle = "rgb(255, 0, 0)";
-                ctx.drawImage(image,
-                              src_top_left[0], src_top_left[1], src_w, src_h,
-                              dst_top_left[0], dst_top_left[1], dst_w, dst_h);
-
-                // ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
-                break;
-
-              case 2: // Text
-                // var x = data[0][0];
-                // var y = data[0][1];
-                // var text = data[1];
-                // var color = data[2];
-
-                // var text_options = data[3];
-                // var align = text_options[0][0];
-                // var wrap = text_options[1];
-                // var text_width = text_options[2];
-
-
-                // // TODO: implement fit_to_grid rendering!
-                // var fit_to_grid = text_options[3];
-
-                // switch(align) {
-                // case 0:
-                //   ctx.textAlign = "left";
-                //   break;
-                // case 1:
-                //   ctx.textAlign = "right";
-                //   break;
-                // case 2:
-                //   if(text_width > 0) {
-                //     ctx.textAlign = "center";
-                //     x += text_width / 2;
-                //   }
-                //   break;
-                // default:
-                //   ctx.textAlign = "left";
-                // }
-
-                // ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-                // var x_fudge = 0;
-                // var y_fudge = 15;
-
-                // if(wrap && text_width > 0) {
-                //   var lines = wrapText(ctx, text, text_width * squareSize);
-                //   // TODO: this duplicates the height calculation in `wrapped_text_height_in_tiles`!
-                //   var font_height_px = parseInt(ctx.font.match(/\d+/), 10);
-                //   var line_height_px = font_height_px * 1.3;
-                //   var line_height = Math.ceil(line_height_px / squareSize);
-                //   for(let i = 0; i < lines.length; i++) {
-                //     ctx.fillText(lines[i], x * squareSize + x_fudge, y * squareSize + y_fudge + (line_height_px * i));
-                //   }
-                // } else {
-                //   ctx.fillText(text, x * squareSize + x_fudge, y * squareSize + y_fudge);
-                // }
-                break;
-
-              case 3: // Rectangle
-                // var x = data[0][0][0];
-                // var y = data[0][0][1];
-                // var bottom_right = data[0][1];
-                // var rect_width = bottom_right[0] - x + 1;
-                // var rect_height = bottom_right[1] - y + 1;
-                // var color = data[1];
-
-                // ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-                // ctx.fillRect(x * squareSize, y * squareSize, rect_width * squareSize, rect_height * squareSize);
-                break;
-
-              case 4: // Fade
-                // var alpha = 1 - data[0];
-                // var color = data[1];
-
-                // ctx.fillStyle = "rgba(" + color[0] + "," + color[1] + "," + color[2] + "," + alpha + ")";
-                // ctx.fillRect(0, 0, width * squareSize, height * squareSize);
-                break;
-
-              default:
-                console.log("Unknown drawcall type:", discriminant);
+            const floatsPerElement = 8;
+            const stride = floatsPerElement * bytesInFloat;
+            const bufferInfo = {
+              numElements: memory.length / floatsPerElement,
+              attribs: {
+                pos_px: { buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 0 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
+                tile_pos_px: {buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 2 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
+                color:  { buffer: packedBuffer, numComponents: 4, type: gl.FLOAT, stride: stride, offset: 4 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
               }
-            });
+            };
 
-            decoder.decode(memory);
-            decoder.end();
+            twgl.resizeCanvasToDisplaySize(gl.canvas);
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            gl.clearColor(1.0, 0.0, 1.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            const uniforms = {
+              native_display_px: [gl.canvas.width, gl.canvas.height],
+              texture_size_px: texture_size_px,
+              tex: texture
+            };
+
+            gl.useProgram(programInfo.program);
+            twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+            twgl.setUniforms(programInfo, uniforms);
+            twgl.drawBufferInfo(gl, bufferInfo);
           },
           wrapped_text_height_in_tiles: function(text_ptr, text_len, max_width_in_tiles) {
             let buffer = new Uint8Array(wasm_instance.exports.memory.buffer, text_ptr, text_len);
@@ -305,7 +220,7 @@ function play_game(canvas, wasm_path) {
       console.log("Setting up the canvas", c);
       c.width = width*squareSize;
       c.height = height*squareSize;
-      ctx.font = '16px mononoki';
+      //ctx.font = '16px mononoki';
 
       document.addEventListener('keydown', function(event) {
         let key = normalize_key(event);

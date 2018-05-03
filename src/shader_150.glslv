@@ -1,6 +1,5 @@
 #version 150 core
 
-uniform vec2 tile_count;
 // Window size (rendering area) in pixels
 uniform vec2 native_display_px;
 // Actual display size in pixels. Has the same aspect ratio as

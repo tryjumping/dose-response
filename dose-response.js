@@ -2,36 +2,43 @@ function renderWebGL(canvas) {
   canvas.width = 800;
   canvas.height = 600;
   const gl = canvas.getContext("webgl");
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   const programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 
   const texture = twgl.createTexture(gl, {src: "target/wasm32-unknown-unknown/release/build/dose-response-4dd4bb781a4647a3/out/font.png"});
 
+  var tex_width_px = 1995.0;
+  var tilesize_px = 21.0;
+  var gl_tex_width = tilesize_px / tex_width_px;
+  var tile_idx = 6.0;
+
   var data = new Float32Array([
-  -1.0, 1.0,  // xy
-  0.0, 0.0,   // uv
-  1.0, 0, 0, 1.0,  // rgba
+    -1.0, -1.0,  // xy
+    tile_idx * gl_tex_width, 1.0,   // uv
+    1.0, 0, 0, 1.0,  // rgba
 
-  1.0, 1.0,  // xy
-  1.0, 0.0,  // uv
-  0.0, 1.0, 0.0, 1.0,  // rgba
+    -1.0, 1.0,  // xy
+    tile_idx * gl_tex_width, 0.0,  // uv
+    0.0, 1.0, 0.0, 1.0,  // rgba
 
-  0.0, 0.0,  // xy
-  0.5, 1.0,  // uv
-  0.0, 0.0, 1.0, 1.0,  // rgba
+    1.0, 1.0,  // xy
+    (tile_idx + 1) * gl_tex_width, 0.0,  // uv
+    0.0, 0.0, 1.0, 1.0,  // rgba
 
-  -1.0, -1.0,  // xy
-  0.9, 0.9,    // uv
-  1.0, 0, 0, 1.0,  // rgba
+    -1.0, -1.0,  // xy
+    tile_idx * gl_tex_width, 1.0,    // uv
+    1.0, 0, 0, 1.0,  // rgba
 
-  1.0, -1.0,  // xy
-  0.9, 0.9,  // uv
-  0.0, 1.0, 0.0, 1.0,  // rgba
+    1.0, 1.0,  // xy
+    (tile_idx + 1) * gl_tex_width, 0.0,  // uv
+    0.0, 1.0, 0.0, 1.0,  // rgba
 
-  0.0, 0.0,  // xy
-  0.9, 0.9,  // uv
-  0.0, 0.0, 1.0, 1.0 // rgba
-
+    1.0, -1.0,  // xy
+    (tile_idx + 1) * gl_tex_width, 1.0,  // uv
+    0.0, 0.0, 1.0, 1.0 // rgba
   ]);
+
   const packedBuffer = twgl.createBufferFromTypedArray(gl, data);
 
   const floatsPerElement = 8;

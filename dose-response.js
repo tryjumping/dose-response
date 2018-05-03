@@ -14,27 +14,33 @@ function renderWebGL(canvas) {
   var tile_idx = 6.0;
 
   var data = new Float32Array([
-    -1.0, -1.0,  // xy
+    //-1.0, -1.0,  // xy
+    0, tilesize_px,  // xy
     tile_idx * gl_tex_width, 1.0,   // uv
     1.0, 0, 0, 1.0,  // rgba
 
-    -1.0, 1.0,  // xy
+    //-1.0, 1.0,  // xy
+    0, 0,  // xy
     tile_idx * gl_tex_width, 0.0,  // uv
     0.0, 1.0, 0.0, 1.0,  // rgba
 
-    1.0, 1.0,  // xy
+    //1.0, 1.0,  // xy
+    tilesize_px, 0,  // xy
     (tile_idx + 1) * gl_tex_width, 0.0,  // uv
     0.0, 0.0, 1.0, 1.0,  // rgba
 
-    -1.0, -1.0,  // xy
+    //-1.0, -1.0,  // xy
+    0, tilesize_px,  // xy
     tile_idx * gl_tex_width, 1.0,    // uv
     1.0, 0, 0, 1.0,  // rgba
 
-    1.0, 1.0,  // xy
+    //1.0, 1.0,  // xy
+    tilesize_px, 0,  // xy
     (tile_idx + 1) * gl_tex_width, 0.0,  // uv
     0.0, 1.0, 0.0, 1.0,  // rgba
 
-    1.0, -1.0,  // xy
+    //1.0, -1.0,  // xy
+    tilesize_px, tilesize_px,  // xy
     (tile_idx + 1) * gl_tex_width, 1.0,  // uv
     0.0, 0.0, 1.0, 1.0 // rgba
   ]);
@@ -47,7 +53,7 @@ function renderWebGL(canvas) {
   const bufferInfo = {
       numElements: data.length / floatsPerElement,
       attribs: {
-        position: { buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 0 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
+        pos_px: { buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 0 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
         tile_pos_px: {buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 2 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
         color:  { buffer: packedBuffer, numComponents: 4, type: gl.FLOAT, stride: stride, offset: 4 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
       },
@@ -61,8 +67,8 @@ function renderWebGL(canvas) {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     const uniforms = {
+      native_display_px: [gl.canvas.width, gl.canvas.height],
       tex: texture
-      //resolution: [gl.canvas.width, gl.canvas.height],
     };
 
     gl.useProgram(programInfo.program);

@@ -1,5 +1,5 @@
 use color::{Color, ColorAlpha};
-use engine::{self, Drawcall, Mouse, Vertex, Settings, TextMetrics, UpdateFn};
+use engine::{self, Mouse, Vertex, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
 use state::State;
 
@@ -140,99 +140,6 @@ impl TextMetrics for Metrics {
 mod vertex {
     use super::Vertex;
     implement_vertex!(Vertex, pos_px, tile_pos_px, color);
-}
-
-
-fn build_vertices(drawcalls: &[Drawcall], vertices: &mut Vec<Vertex>) {
-    for drawcall in drawcalls {
-        match drawcall {
-            // NOTE: Rectangle, ColorAlpha)
-            &Drawcall::Rectangle(rect, color) => {
-                let top_left_px = rect.top_left();
-                let size_px = rect.size();
-                let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
-                let (dim_x, dim_y) = (size_px.x as f32, size_px.y as f32);
-                let tile_pos_px = [-1.0, -1.0];
-                let color = color.into();
-
-                vertices.push(Vertex {
-                    pos_px: [pos_x, pos_y],
-                    tile_pos_px,
-                    color,
-                });
-                vertices.push(Vertex {
-                    pos_px: [pos_x + dim_x, pos_y],
-                    tile_pos_px,
-                    color,
-                });
-                vertices.push(Vertex {
-                    pos_px: [pos_x, pos_y + dim_y],
-                    tile_pos_px,
-                    color,
-                });
-
-                vertices.push(Vertex {
-                    pos_px: [pos_x + dim_x, pos_y],
-                    tile_pos_px,
-                    color,
-                });
-                vertices.push(Vertex {
-                    pos_px: [pos_x, pos_y + dim_y],
-                    tile_pos_px,
-                    color,
-                });
-                vertices.push(Vertex {
-                    pos_px: [pos_x + dim_x, pos_y + dim_y],
-                    tile_pos_px,
-                    color,
-                });
-            }
-
-            // NOTE: (Rectangle, Rectangle, Color)
-            &Drawcall::Image(src, dst, color) => {
-                let pixel_pos = dst.top_left();
-                let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
-                let (tile_width, tile_height) = (dst.width() as f32, dst.height() as f32);
-                let (tilemap_x, tilemap_y) = (src.top_left().x as f32, src.top_left().y as f32);
-                let rgba: ColorAlpha = color.into();
-                let color = rgba.into();
-
-                // NOTE: draw the glyph
-                vertices.push(Vertex {
-                    pos_px: [pos_x, pos_y],
-                    tile_pos_px: [tilemap_x, tilemap_y],
-                    color: color,
-                });
-                vertices.push(Vertex {
-                    pos_px: [pos_x + tile_width, pos_y],
-                    tile_pos_px: [tilemap_x + tile_width, tilemap_y],
-                    color: color,
-                });
-                vertices.push(Vertex {
-                    pos_px: [pos_x, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x, tilemap_y + tile_height],
-                    color: color,
-                });
-
-                vertices.push(Vertex {
-                    pos_px: [pos_x + tile_width, pos_y],
-                    tile_pos_px: [tilemap_x + tile_width, tilemap_y],
-                    color: color,
-                });
-                vertices.push(Vertex {
-                    pos_px: [pos_x, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x, tilemap_y + tile_height],
-                    color: color,
-                });
-                vertices.push(Vertex {
-                    pos_px: [pos_x + tile_width, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x + tile_width, tilemap_y + tile_height],
-                    color: color,
-                });
-
-            }
-        }
-    }
 }
 
 
@@ -420,7 +327,7 @@ pub fn main_loop(
         engine_display.push_drawcalls(&mut drawcalls);
 
         vertices.clear();
-        build_vertices(&drawcalls, &mut vertices);
+        engine::build_vertices(&drawcalls, &mut vertices);
 
         if vertices.len() > VERTICES_CAPACITY {
             println!(

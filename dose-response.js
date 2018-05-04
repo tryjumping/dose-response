@@ -62,9 +62,30 @@ function play_game(canvas, wasm_path) {
             const bufferInfo = {
               numElements: memory.length / floatsPerElement,
               attribs: {
-                pos_px: { buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 0 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
-                tile_pos_px: {buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 2 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
-                color:  { buffer: packedBuffer, numComponents: 4, type: gl.FLOAT, stride: stride, offset: 4 * bytesInFloat, drawType: gl.DYNAMIC_DRAW }
+                pos_px: {
+                  buffer: packedBuffer,
+                  numComponents: 2,
+                  type: gl.FLOAT,
+                  stride: stride,
+                  offset: 0 * bytesInFloat,
+                  drawType: gl.DYNAMIC_DRAW
+                },
+                tile_pos_px: {
+                  buffer: packedBuffer,
+                  numComponents: 2,
+                  type: gl.FLOAT,
+                  stride: stride,
+                  offset: 2 * bytesInFloat,
+                  drawType: gl.DYNAMIC_DRAW
+                },
+                color:  {
+                  buffer: packedBuffer,
+                  numComponents: 4,
+                  type: gl.FLOAT,
+                  stride: stride,
+                  offset: 4 * bytesInFloat,
+                  drawType: gl.DYNAMIC_DRAW
+                }
               }
             };
 

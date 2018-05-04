@@ -1,4 +1,4 @@
-use engine::{self, Display, Drawcall, Mouse, Settings, TextMetrics};
+use engine::{self, Display, Drawcall, Mouse, Vertex, Settings, TextMetrics};
 use game::{self, RunningState};
 use keys::{Key, KeyCode};
 use point::Point;
@@ -7,26 +7,15 @@ use state::State;
 use std::mem;
 use std::time::Duration;
 
-use serde::Serialize;
-use rmps::Serializer;
 
-const BUFFER_CAPACITY: usize = 400;
+const VERTEX_BUFFER_CAPACITY: usize = 32;  // NOTE: 6 should actually be all we need here
 const JS_DRAWCALL_CAPACITY: usize = 80_000;
 
 extern "C" {
     fn draw(nums: *const u8, len: usize);
     pub fn random() -> f32;
+    // TODO: this shouldn't be necessary once Rust's sin in STD works.
     pub fn sin(rad: f32) -> f32;
-    fn wrapped_text_height_in_tiles(
-        text_ptr: *const u8,
-        text_len: usize,
-        max_width_in_tiles: i32,
-    ) -> i32;
-    fn wrapped_text_width_in_tiles(
-        text_ptr: *const u8,
-        text_len: usize,
-        max_width_in_tiles: i32,
-    ) -> i32;
 }
 
 fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {
@@ -155,7 +144,7 @@ impl TextMetrics for Metrics {
 /// preallocate is here.
 pub struct Wasm {
     state: *mut State,
-    buffer: *mut Vec<u8>,
+    vertex_buffer: *mut Vec<Vertex>,
     drawcalls: *mut Vec<Drawcall>,
     js_drawcalls: *mut Vec<u8>,
     display: *mut Display,
@@ -199,7 +188,7 @@ pub extern "C" fn initialise() -> *mut Wasm {
         None,  // replay file
         false, // invincible
     ));
-    let buffer = Box::new(Vec::with_capacity(BUFFER_CAPACITY));
+    let vertex_buffer = Box::new(Vec::with_capacity(VERTEX_BUFFER_CAPACITY));
     let drawcalls = Box::new(Vec::with_capacity(engine::DRAWCALL_CAPACITY));
     let js_drawcalls = Box::new(Vec::with_capacity(JS_DRAWCALL_CAPACITY));
     let display_size = ::DISPLAY_SIZE;
@@ -211,7 +200,7 @@ pub extern "C" fn initialise() -> *mut Wasm {
     let wasm = {
         Box::new(Wasm {
             state: Box::into_raw(state),
-            buffer: Box::into_raw(buffer),
+            vertex_buffer: Box::into_raw(vertex_buffer),
             drawcalls: Box::into_raw(drawcalls),
             js_drawcalls: Box::into_raw(js_drawcalls),
             display: Box::into_raw(display),
@@ -221,12 +210,39 @@ pub extern "C" fn initialise() -> *mut Wasm {
     Box::into_raw(wasm)
 }
 
-fn serialise_drawcall(drawcall: &Drawcall, buffer: &mut Vec<u8>, js_drawcalls: &mut Vec<u8>) {
-    buffer.clear();
-    drawcall
-        .serialize(&mut Serializer::new(&mut *buffer))
-        .unwrap();
-    js_drawcalls.extend(buffer.iter());
+fn serialise_drawcall(drawcall: &Drawcall, vertex_buffer: &mut Vec<Vertex>, js_drawcalls: &mut Vec<u8>) {
+    fn push_f32_as_wasm_bytes(value: f32, bytes: &mut Vec<u8>) {
+        // NOTE: WASM specifies the little endian ordering
+        let bits: u32 = value.to_bits().to_le();
+        let b1 : u8 = (bits & 0xff) as u8;
+        let b2 : u8 = ((bits >> 8) & 0xff) as u8;
+        let b3 : u8 = ((bits >> 16) & 0xff) as u8;
+        let b4 : u8 = ((bits >> 24) & 0xff) as u8;
+
+        bytes.push(b1);
+        bytes.push(b2);
+        bytes.push(b3);
+        bytes.push(b4);
+    }
+
+    fn push_vertex_as_wasm_bytes(vertex: &Vertex, bytes: &mut Vec<u8>) {
+        push_f32_as_wasm_bytes(vertex.pos_px[0], bytes);
+        push_f32_as_wasm_bytes(vertex.pos_px[1], bytes);
+
+        push_f32_as_wasm_bytes(vertex.tile_pos_px[0], bytes);
+        push_f32_as_wasm_bytes(vertex.tile_pos_px[1], bytes);
+
+        push_f32_as_wasm_bytes(vertex.color[0], bytes);
+        push_f32_as_wasm_bytes(vertex.color[1], bytes);
+        push_f32_as_wasm_bytes(vertex.color[2], bytes);
+        push_f32_as_wasm_bytes(vertex.color[3], bytes);
+    }
+
+    vertex_buffer.clear();
+    engine::build_vertices(&[*drawcall], vertex_buffer);
+    for vertex in vertex_buffer {
+        push_vertex_as_wasm_bytes(vertex, js_drawcalls);
+    }
 }
 
 #[allow(unsafe_code)]
@@ -243,7 +259,7 @@ pub extern "C" fn update(
 ) {
     let wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
     let mut state: Box<State> = unsafe { Box::from_raw(wasm.state) };
-    let mut buffer: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.buffer) };
+    let mut vertex_buffer: Box<Vec<Vertex>> = unsafe { Box::from_raw(wasm.vertex_buffer) };
     let mut drawcalls: Box<Vec<Drawcall>> = unsafe { Box::from_raw(wasm.drawcalls) };
     let mut js_drawcalls: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.js_drawcalls) };
     let mut display: Box<Display> = unsafe { Box::from_raw(wasm.display) };
@@ -288,88 +304,8 @@ pub extern "C" fn update(
     display.push_drawcalls(&mut drawcalls);
 
     js_drawcalls.clear();
-    // for drawcall in drawcalls.iter() {
-    //     serialise_drawcall(drawcall, &mut buffer, &mut js_drawcalls);
-    // }
-    let tile_idx = 6.0;
-    let tilesize_px = 21.0;
-
-  let data: &[f32] = &[
-    // NOTE: Background
-    0.0, tilesize_px,  // xy
-    -1.0, -1.0,
-    0.0, 0.0, 0.0, 1.0,  // rgba
-
-    //-1.0, 1.0,  // xy
-    0.0, 0.0,  // xy
-    -1.0, -1.0,
-    0.0, 0.0, 0.0, 1.0,  // rgba
-
-    //1.0, 1.0,  // xy
-    tilesize_px, 0.0,  // xy
-    -1.0, -1.0,
-    0.0, 0.0, 0.0, 1.0,  // rgba
-
-    //-1.0, -1.0,  // xy
-    0.0, tilesize_px,  // xy
-    -1.0, -1.0,
-    0.0, 0.0, 0.0, 1.0,  // rgba
-
-    //1.0, 1.0,  // xy
-    tilesize_px, 0.0,  // xy
-    -1.0, -1.0,
-    0.0, 0.0, 0.0, 1.0,  // rgba
-
-    //1.0, -1.0,  // xy
-    tilesize_px, tilesize_px,  // xy
-    -1.0, -1.0,
-    0.0, 0.0, 0.0, 1.0,  // rgba
-
-
-
-    //-1.0, -1.0,  // xy
-    0.0, tilesize_px,  // xy
-    tile_idx * tilesize_px, tilesize_px,   // uv
-    1.0, 1.0, 1.0, 1.0,  // rgba
-
-    //-1.0, 1.0,  // xy
-    0.0, 0.0,  // xy
-    tile_idx * tilesize_px, 0.0,  // uv
-    1.0, 1.0, 1.0, 1.0,  // rgba
-
-    //1.0, 1.0,  // xy
-    tilesize_px, 0.0,  // xy
-    (tile_idx + 1.0) * tilesize_px, 0.0,  // uv
-    1.0, 1.0, 1.0, 1.0,  // rgba
-
-    //-1.0, -1.0,  // xy
-    0.0, tilesize_px,  // xy
-    tile_idx * tilesize_px, tilesize_px,    // uv
-    1.0, 1.0, 1.0, 1.0,  // rgba
-
-    //1.0, 1.0,  // xy
-    tilesize_px, 0.0,  // xy
-    (tile_idx + 1.0) * tilesize_px, 0.0,  // uv
-    1.0, 1.0, 1.0, 1.0,  // rgba
-
-    //1.0, -1.0,  // xy
-    tilesize_px, tilesize_px,  // xy
-    (tile_idx + 1.0) * tilesize_px, tilesize_px,  // uv
-    1.0, 1.0, 1.0, 1.0 // rgba
-  ];
-    for &float_num in data.iter() {
-        let bits: u32 = float_num.to_bits();
-        // NOTE: WASM specifies little endian ordering
-        let x = bits.to_le();
-        let b1 : u8 = (x & 0xff) as u8;
-        let b2 : u8 = ((x >> 8) & 0xff) as u8;
-        let b3 : u8 = ((x >> 16) & 0xff) as u8;
-        let b4 : u8 = ((x >> 24) & 0xff) as u8;
-
-        js_drawcalls.push(b1);
-        js_drawcalls.push(b2);
-        js_drawcalls.push(b3);
-        js_drawcalls.push(b4);
+    for drawcall in drawcalls.iter() {
+        serialise_drawcall(drawcall, &mut vertex_buffer, &mut js_drawcalls);
     }
 
     if state.cheating {
@@ -411,7 +347,7 @@ pub extern "C" fn update(
     mem::forget(display);
     mem::forget(js_drawcalls);
     mem::forget(drawcalls);
-    mem::forget(buffer);
+    mem::forget(vertex_buffer);
     mem::forget(state);
     mem::forget(wasm);
 }

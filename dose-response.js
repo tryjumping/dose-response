@@ -82,27 +82,6 @@ function play_game(canvas, wasm_path) {
             twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
             twgl.setUniforms(programInfo, uniforms);
             twgl.drawBufferInfo(gl, bufferInfo);
-          },
-          wrapped_text_height_in_tiles: function(text_ptr, text_len, max_width_in_tiles) {
-            let buffer = new Uint8Array(wasm_instance.exports.memory.buffer, text_ptr, text_len);
-            let decoder = new TextDecoder();
-            let text = decoder.decode(buffer);
-            let lines = wrapText(ctx, text, max_width_in_tiles * squareSize);
-            return lines.length;
-          },
-          wrapped_text_width_in_tiles: function(text_ptr, text_len, max_width_in_tiles) {
-            let buffer = new Uint8Array(wasm_instance.exports.memory.buffer, text_ptr, text_len);
-            let decoder = new TextDecoder();
-            let text = decoder.decode(buffer);
-            let lines = wrapText(ctx, text, max_width_in_tiles * squareSize);
-            var maxWidthPx = 0;
-            for(let i = 0; i < lines.length; i++) {
-              let width = ctx.measureText(lines[i]).width;
-              if(maxWidthPx < width) {
-                maxWidthPx = width;
-              }
-            }
-            return Math.ceil( maxWidthPx / squareSize);
           }
         }
       });
@@ -114,7 +93,6 @@ function play_game(canvas, wasm_path) {
       console.log("Setting up the canvas", c);
       c.width = width*squareSize;
       c.height = height*squareSize;
-      //ctx.font = '16px mononoki';
 
       document.addEventListener('keydown', function(event) {
         let key = normalize_key(event);

@@ -1,7 +1,5 @@
-use self::vertex::Vertex;
-
 use color::{Color, ColorAlpha};
-use engine::{self, Drawcall, Mouse, Settings, TextMetrics, UpdateFn};
+use engine::{self, Drawcall, Mouse, Vertex, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
 use state::State;
 
@@ -140,25 +138,7 @@ impl TextMetrics for Metrics {
 
 #[allow(unsafe_code)]
 mod vertex {
-    #[derive(Copy, Clone, Debug)]
-    pub struct Vertex {
-        /// Position in the tile coordinates.
-        ///
-        /// Note that this doesn't have to be an integer, so you can
-        /// implement smooth positioning by using a fractional value.
-        pub pos_px: [f32; 2],
-
-        /// Pixel position in the tile map / sprite sheet.
-        ///
-        /// If both values are negative, no texture will be rendered.
-        /// Instead, the colour will be used to fill the background.
-        /// That's how render rectangles.
-        pub tile_pos_px: [f32; 2],
-
-        /// Colour of the glyph. The glyphs are greyscale, so this is how
-        /// we set the final colour.
-        pub color: [f32; 4],
-    }
+    use super::Vertex;
     implement_vertex!(Vertex, pos_px, tile_pos_px, color);
 }
 

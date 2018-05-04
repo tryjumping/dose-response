@@ -16,7 +16,7 @@ function play_game(canvas, wasm_path) {
   const programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 
   // TODO: we must be passing the right URL here
-  const texture = twgl.createTexture(gl, {src: "target/wasm32-unknown-unknown/release/build/dose-response-4dd4bb781a4647a3/out/font.png"});
+  const texture = twgl.createTexture(gl, {src: "font.png"});
 
   const tilesize_px = 21.0;
   // TODO: we should read this from the texture image

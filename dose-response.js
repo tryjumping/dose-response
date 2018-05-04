@@ -7,7 +7,9 @@ function play_game(canvas, wasm_path) {
   var squareSize = 21;
 
   var c = canvas;
-  //var ctx = c.getContext('2d');
+  console.log("Setting up the canvas", c);
+  c.width = width*squareSize;
+  c.height = height*squareSize;
   const gl = canvas.getContext("webgl");
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -19,7 +21,6 @@ function play_game(canvas, wasm_path) {
   const tilesize_px = 21.0;
   // TODO: we should read this from the texture image
   const texture_size_px = [1995.0, tilesize_px];
-
 
 
   var wasm_instance;
@@ -63,7 +64,7 @@ function play_game(canvas, wasm_path) {
               attribs: {
                 pos_px: { buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 0 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
                 tile_pos_px: {buffer: packedBuffer, numComponents: 2, type: gl.FLOAT, stride: stride, offset: 2 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
-                color:  { buffer: packedBuffer, numComponents: 4, type: gl.FLOAT, stride: stride, offset: 4 * bytesInFloat, drawType: gl.DYNAMIC_DRAW },
+                color:  { buffer: packedBuffer, numComponents: 4, type: gl.FLOAT, stride: stride, offset: 4 * bytesInFloat, drawType: gl.DYNAMIC_DRAW }
               }
             };
 
@@ -90,9 +91,6 @@ function play_game(canvas, wasm_path) {
     .then(function(results) {
       console.log("Wasm loaded.");
 
-      console.log("Setting up the canvas", c);
-      c.width = width*squareSize;
-      c.height = height*squareSize;
 
       document.addEventListener('keydown', function(event) {
         let key = normalize_key(event);

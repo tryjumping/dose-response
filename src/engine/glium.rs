@@ -1,4 +1,4 @@
-use color::{Color, ColorAlpha};
+use color::Color;
 use engine::{self, Mouse, Vertex, Settings, TextMetrics, UpdateFn};
 use game::RunningState;
 use state::State;
@@ -16,17 +16,6 @@ use util;
 
 const DRAWCALL_CAPACITY: usize = 10_000;
 const VERTICES_CAPACITY: usize = 50_000;
-
-impl Into<[f32; 4]> for ColorAlpha {
-    fn into(self) -> [f32; 4] {
-        [
-            self.rgb.r as f32 / 255.0,
-            self.rgb.g as f32 / 255.0,
-            self.rgb.b as f32 / 255.0,
-            self.alpha as f32 / 255.0,
-        ]
-    }
-}
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {

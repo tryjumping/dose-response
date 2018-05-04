@@ -61,6 +61,17 @@ pub struct Vertex {
 }
 
 
+impl Into<[f32; 4]> for ColorAlpha {
+    fn into(self) -> [f32; 4] {
+        [
+            self.rgb.r as f32 / 255.0,
+            self.rgb.g as f32 / 255.0,
+            self.rgb.b as f32 / 255.0,
+            self.alpha as f32 / 255.0,
+        ]
+    }
+}
+
 fn build_vertices(drawcalls: &[Drawcall], vertices: &mut Vec<Vertex>) {
     for drawcall in drawcalls {
         match drawcall {

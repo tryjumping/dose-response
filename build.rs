@@ -7,16 +7,18 @@ use rusttype::{point, FontCollection, PositionedGlyph, Scale};
 use std::env;
 use std::fs::File;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir);
 
+    let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+
     {
         // Store the OUT_DIR value to the `out-dir-path` file so it's
         // accessible to scripts that run after the build.
-        let path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("out-dir-path");
+        let path = Path::new(&cargo_manifest_dir).join("out-dir-path");
         let mut file = File::create(path).unwrap();
         writeln!(file, "{}", out_dir.display()).unwrap();
         file.sync_all().unwrap();
@@ -139,4 +141,17 @@ fn main() {
     if let Err(e) = fontmap.save(out_dir.join("font.png")) {
         println!("Error while saving the font map: '{}'", e);
     }
+
+    // NOTE: this is a hack to save the font file next to the produced build binary
+    let target_triple = env::var("TARGET").unwrap();
+    let host_triple = env::var("HOST").unwrap();
+    let mut target_dir = PathBuf::new();
+    target_dir.push(cargo_manifest_dir);
+    target_dir.push("target");
+    if target_triple != host_triple {
+        target_dir.push(target_triple)
+    }
+    target_dir.push(env::var("PROFILE").unwrap());
+    target_dir.push("font.png");
+    let _ = fontmap.save(target_dir);
 }

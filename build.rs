@@ -13,6 +13,16 @@ fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir);
 
+    {
+        // Store the OUT_DIR value to the `out-dir-path` file so it's
+        // accessible to scripts that run after the build.
+        let path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("out-dir-path");
+        let mut file = File::create(path).unwrap();
+        writeln!(file, "{}", out_dir.display()).unwrap();
+        file.sync_all().unwrap();
+    }
+
+
     // let font_data = include_bytes!("../Arial Unicode.ttf");
     let font_data = include_bytes!("fonts/mononoki-Regular.ttf");
     let collection = FontCollection::from_bytes(font_data as &[u8]);

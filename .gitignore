@@ -12,3 +12,4 @@ dose-response
 test-dose-response
 /target/
 /SAVEDGAME.sav
+/out-dir-path

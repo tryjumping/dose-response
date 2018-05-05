@@ -1,4 +1,10 @@
 function play_game(canvas, wasm_path) {
+  if(arguments.length === 3) {
+    var loaded_callback = arguments[2];
+  } else {
+    var loaded_callback = null;
+  }
+
   // Width and Height in tiles:
   var width = 47;
   var height = 30;
@@ -112,6 +118,9 @@ function play_game(canvas, wasm_path) {
     .then(function(results) {
       console.log("Wasm loaded.");
 
+      if(loaded_callback) {
+        loaded_callback();
+      }
 
       document.addEventListener('keydown', function(event) {
         let key = normalize_key(event);

@@ -369,6 +369,7 @@ impl Default for Cell {
 }
 
 
+#[derive(Default)]
 pub struct Display {
     display_size: Point,
     tilesize: i32,
@@ -393,7 +394,7 @@ impl Display {
             map: vec![Default::default(); (size.x * size.y) as usize],
             drawcalls: Vec::with_capacity(DRAWCALL_CAPACITY),
             fade: color::invisible,
-            clear_background_color: None,
+            .. Default::default()
         }
     }
 

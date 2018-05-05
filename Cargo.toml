@@ -1,6 +1,6 @@
 [package]
 name = "dose-response"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
 license = "GPL-3.0"
 build = "build.rs"

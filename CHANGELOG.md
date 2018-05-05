@@ -6,6 +6,19 @@ desperately looking for the next fix.
 
 ## [Unreleased]
 
+## [0.8.0] - 2017-05-05
+- The monsters now have names visible in the game
+- Described how to use items in the help pages
+- Fixed glyph position in the opengl backend
+- Fixed the spacing between paragraphs in the help pages
+- Increased the font size
+- Fixed mouse position issues on fullscreen
+- Increased the AoE radius of the Diagonal and Cardinal doses
+- Added a What's Dose Response help page
+- Added smooth scrolling when centering the screen
+- The player can now move even when an animation is playing
+- Switched the web version to use WebGL
+
 
 ## [0.7.0] - 2018-03-10
 - Added mouse support to the web version

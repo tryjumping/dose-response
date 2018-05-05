@@ -27,6 +27,16 @@ fn copy_output_artifacts(cargo_manifest_dir: &str, fontmap: &RgbaImage) -> Resul
     Ok(())
 }
 
+fn save_out_dir(cargo_manifest_dir: &str, out_dir: &Path) -> Result<(), Box<Error>> {
+    // Store the OUT_DIR value to the `out-dir-path` file so it's
+    // accessible to scripts that run after the build.
+    let path = Path::new(&cargo_manifest_dir).join("out-dir-path");
+    let mut file = File::create(path)?;
+    writeln!(file, "{}", out_dir.display())?;
+    file.sync_all()?;
+    Ok(())
+}
+
 
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
@@ -34,14 +44,7 @@ fn main() {
 
     let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
-    {
-        // Store the OUT_DIR value to the `out-dir-path` file so it's
-        // accessible to scripts that run after the build.
-        let path = Path::new(&cargo_manifest_dir).join("out-dir-path");
-        let mut file = File::create(path).unwrap();
-        writeln!(file, "{}", out_dir.display()).unwrap();
-        file.sync_all().unwrap();
-    }
+    let _ = save_out_dir(&cargo_manifest_dir, out_dir);
 
 
     // let font_data = include_bytes!("../Arial Unicode.ttf");

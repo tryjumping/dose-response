@@ -5,9 +5,28 @@ use image::{Rgba, RgbaImage};
 
 use rusttype::{point, FontCollection, PositionedGlyph, Scale};
 use std::env;
+use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+
+
+fn copy_output_artifacts(cargo_manifest_dir: &str, fontmap: &RgbaImage) -> Result<(), Box<Error>> {
+    // NOTE: this is a hack to save the font file next to the produced build binary
+    let target_triple = env::var("TARGET")?;
+    let host_triple = env::var("HOST")?;
+    let mut target_dir = PathBuf::new();
+    target_dir.push(cargo_manifest_dir);
+    target_dir.push("target");
+    if target_triple != host_triple {
+        target_dir.push(target_triple)
+    }
+    target_dir.push(env::var("PROFILE")?);
+    target_dir.push("font.png");
+    fontmap.save(target_dir)?;
+    Ok(())
+}
+
 
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
@@ -142,16 +161,8 @@ fn main() {
         println!("Error while saving the font map: '{}'", e);
     }
 
-    // NOTE: this is a hack to save the font file next to the produced build binary
-    let target_triple = env::var("TARGET").unwrap();
-    let host_triple = env::var("HOST").unwrap();
-    let mut target_dir = PathBuf::new();
-    target_dir.push(cargo_manifest_dir);
-    target_dir.push("target");
-    if target_triple != host_triple {
-        target_dir.push(target_triple)
+    if let Err(e) = copy_output_artifacts(&cargo_manifest_dir, &fontmap) {
+        println!("Warning: could not copy output artifacts to the target directory.");
+        println!("{:?}", e);
     }
-    target_dir.push(env::var("PROFILE").unwrap());
-    target_dir.push("font.png");
-    let _ = fontmap.save(target_dir);
 }

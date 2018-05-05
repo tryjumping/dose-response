@@ -114,6 +114,12 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** assuming we can render from image as well it should simplify the client
 *** And it will give every backend a unified look
 ** Could also improve perf sorta maybe kinda?
+* Move the webgl shaders out of html
+** otherwise we have to copy them manually to the website every time we change them
+* Load the texture image size from within the webgl/js instead of hardcoding it
+* Read the tilesize in px value in webgl/js instead of hardcoding it
+* Build a SDL + OpenGL backend
+** See if that resolves the flicker worklaptop issue
 * Figure out the fading timing issue                                     :ui:
 ** Sometimes it fades out too quickly
 ** Other times it takes its sweet time

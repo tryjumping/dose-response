@@ -376,6 +376,7 @@ pub struct Display {
     map: Vec<Cell>,
     drawcalls: Vec<Drawcall>,
     pub fade: ColorAlpha,
+    clear_background_color: Option<Color>,
 }
 
 #[allow(dead_code)]
@@ -392,6 +393,7 @@ impl Display {
             map: vec![Default::default(); (size.x * size.y) as usize],
             drawcalls: Vec::with_capacity(DRAWCALL_CAPACITY),
             fade: color::invisible,
+            clear_background_color: None,
         }
     }
 
@@ -401,6 +403,7 @@ impl Display {
         }
         self.drawcalls.clear();
         self.fade = color::invisible;
+        self.clear_background_color = Some(background);
     }
 
     pub fn size(&self) -> Point {
@@ -551,6 +554,11 @@ impl Display {
     pub fn push_drawcalls(&self, drawcalls: &mut Vec<Drawcall>) {
         let tilesize = self.tilesize;
         let display_size_px = self.display_size * tilesize;
+
+        if let Some(bg) = self.clear_background_color {
+            let full_screen_rect = Rectangle::from_point_and_size(Point::zero(), display_size_px);
+            drawcalls.push(Drawcall::Rectangle(full_screen_rect, bg.into()));
+        }
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {

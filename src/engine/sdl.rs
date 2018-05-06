@@ -297,6 +297,54 @@ fn check_gl_error(source: &str) {
 }
 
 
+#[derive(Default)]
+struct SdlApp {
+    program: GLuint,
+    vertex_shader: GLuint,
+    fragment_shader: GLuint,
+    vao: GLuint,
+    vbo: GLuint,
+    texture: GLuint,
+}
+
+impl SdlApp {
+    fn new(vertex_source: &str, fragment_source: &str) -> Self {
+        let mut app: SdlApp = Default::default();
+
+        app.vertex_shader = compile_shader(vertex_source, gl::VERTEX_SHADER);
+        app.fragment_shader = compile_shader(fragment_source, gl::FRAGMENT_SHADER);
+        app.program = link_program(app.vertex_shader, app.fragment_shader);
+
+        unsafe {
+            gl::GenVertexArrays(1, &mut app.vao);
+            check_gl_error("GenVertexArrays");
+
+            gl::GenBuffers(1, &mut app.vbo);
+            check_gl_error("GenBuffers");
+
+            gl::GenTextures(1, &mut app.texture);
+            check_gl_error("GenTextures");
+        }
+
+        app
+    }
+}
+
+impl Drop for SdlApp {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteProgram(self.program);
+            gl::DeleteShader(self.fragment_shader);
+            gl::DeleteShader(self.vertex_shader);
+            gl::DeleteBuffers(1, &self.vbo);
+            gl::DeleteVertexArrays(1, &self.vao);
+            gl::DeleteTextures(1, &self.texture);
+        }
+    }
+}
+
+
+
 pub fn main_loop(
     display_size: Point,
     default_background: Color,
@@ -344,16 +392,9 @@ pub fn main_loop(
     let image_width = image.width();
     let image_height = image.height();
 
-    // Create GLSL shaders
     let vs_source = include_str!("../shader_150.glslv");
     let fs_source = include_str!("../shader_150.glslf");
-    let vs = compile_shader(vs_source, gl::VERTEX_SHADER);
-    let fs = compile_shader(fs_source, gl::FRAGMENT_SHADER);
-    let program = link_program(vs, fs);
-
-    let mut vao = 0;
-    let mut vbo = 0;
-    let mut texture = 0;
+    let sdl_app = SdlApp::new(vs_source, fs_source);
 
     unsafe {
         gl::Enable(gl::BLEND);
@@ -362,26 +403,19 @@ pub fn main_loop(
         check_gl_error("BlendFunc");
 
         // Create Vertex Array Object
-        gl::GenVertexArrays(1, &mut vao);
-        check_gl_error("GenVertexArrays");
-        gl::BindVertexArray(vao);
+        gl::BindVertexArray(sdl_app.vao);
         check_gl_error("BindVertexArray");
 
-        // Create a Vertex Buffer Object
-        gl::GenBuffers(1, &mut vbo);
-        check_gl_error("GenBuffers");
 
         // Use shader program
-        gl::UseProgram(program);
+        gl::UseProgram(sdl_app.program);
         check_gl_error("UseProgram");
-        gl::BindFragDataLocation(program, 0,
+        gl::BindFragDataLocation(sdl_app.program, 0,
                                  CString::new("out_color").unwrap().as_ptr());
         check_gl_error("BindFragDataLocation");
 
 
-        gl::GenTextures(1, &mut texture);
-        check_gl_error("GenTextures");
-        gl::BindTexture(gl::TEXTURE_2D, texture);
+        gl::BindTexture(gl::TEXTURE_2D, sdl_app.texture);
         check_gl_error("BindTexture");
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         check_gl_error("TexParameteri MIN FILTER");
@@ -588,10 +622,10 @@ pub fn main_loop(
             tilesize);
 
         render(&mut window,
-               program,
-               texture,
+               sdl_app.program,
+               sdl_app.texture,
                default_background,
-               vbo,
+               sdl_app.vbo,
                display_info,
                [image_width as f32, image_height as f32],
                &vertex_buffer);
@@ -607,16 +641,6 @@ pub fn main_loop(
         // println!("Total frame duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
-    }
-
-
-    // Cleanup
-    unsafe {
-        gl::DeleteProgram(program);
-        gl::DeleteShader(fs);
-        gl::DeleteShader(vs);
-        gl::DeleteBuffers(1, &vbo);
-        gl::DeleteVertexArrays(1, &vao);
     }
 
 

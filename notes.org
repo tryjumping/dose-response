@@ -160,6 +160,14 @@ Ctrl-c
 ** Link to the website
 ** Link to the repo
 ** Email address
+* Release hardening
+** Don't panic
+*** Check for all `unwrap` calls
+*** Check for all `except` calls
+*** Check for all array access calls
+** Find out the maximum drawcall count
+*** And update the vec capacities
+** Put real timing metrics in
 * Translate the game?                                                    :ui:
 ** I mean English is nice but it means my family won't be able to play it
 ** And the game did end up with much more text than I thought it would

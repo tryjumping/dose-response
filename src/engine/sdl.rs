@@ -210,20 +210,25 @@ fn render(window: &mut Window,
         let rgba: ColorAlpha = clear_color.into();
         let glcolor: [f32; 4] = rgba.into();
         gl::ClearColor(glcolor[0], glcolor[1], glcolor[2], 1.0);
+        check_gl_error("ClearColor");
         gl::Clear(gl::COLOR_BUFFER_BIT);
+        check_gl_error("Clear");
 
-
+        //println!("{}\t{}", vertex_count, vertex_buffer.len());
         // Copy data to the vertex buffer
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        check_gl_error("BindBuffer");
         // TODO: look at BufferSubData here -- that should reuse the allocation
         gl::BufferData(gl::ARRAY_BUFFER,
                        (vertex_buffer.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
                        vertex_buffer.as_ptr() as *const os::raw::c_void,
-                       gl::STREAM_DRAW);
+                       gl::DYNAMIC_DRAW);
+        check_gl_error("BufferData");
 
 
         gl::ActiveTexture(gl::TEXTURE0);
         gl::BindTexture(gl::TEXTURE_2D, texture);
+        check_gl_error("BindTexture");
         let texture_index = 0;  // NOTE: hardcoded -- we only have 1 texture.
         gl::Uniform1i(gl::GetUniformLocation(program,
                                              CString::new("tex").unwrap().as_ptr()),
@@ -250,10 +255,19 @@ fn render(window: &mut Window,
             texture_size_px[0], texture_size_px[1]);
 
         gl::DrawArrays(gl::TRIANGLES, 0, vertex_count as i32);
+        //gl::DrawElements(gl::TRIANGLES, vertex_count as i32, gl::UNSIGNED_BYTE, ptr::null());
+        check_gl_error("DrawArrays");
 
+        window.gl_swap_window();
     }
+}
 
-    window.gl_swap_window();
+
+fn check_gl_error(source: &str) {
+    let err = unsafe{gl::GetError()};
+    if err != gl::NO_ERROR {
+        println!("GL error [{}]: {:?}", source, err);
+    }
 }
 
 
@@ -278,8 +292,8 @@ pub fn main_loop(
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
     gl_attr.set_context_version(3, 3);
-    gl_attr.set_double_buffer(true);
-    gl_attr.set_depth_size(0);
+    // gl_attr.set_double_buffer(true);
+    // gl_attr.set_depth_size(0);
 
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
@@ -292,10 +306,6 @@ pub fn main_loop(
     let _ctx = window.gl_create_context()
         .expect("SDL GL context creation failed.");
     gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
-
-
-
-    // TODO: SRGB
 
 
     let image = {
@@ -321,55 +331,75 @@ pub fn main_loop(
 
     unsafe {
         gl::Enable(gl::BLEND);
+        check_gl_error("Enable");
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        check_gl_error("BlendFunc");
 
         // Create Vertex Array Object
         gl::GenVertexArrays(1, &mut vao);
+        check_gl_error("GenVertexArrays");
         gl::BindVertexArray(vao);
+        check_gl_error("BindVertexArray");
 
         // Create a Vertex Buffer Object
         gl::GenBuffers(1, &mut vbo);
-
+        check_gl_error("GenBuffers");
 
         // Use shader program
         gl::UseProgram(program);
+        check_gl_error("UseProgram");
         gl::BindFragDataLocation(program, 0,
                                  CString::new("out_color").unwrap().as_ptr());
+        check_gl_error("BindFragDataLocation");
 
         // Specify the layout of the vertex data
         let stride = 8 * mem::size_of::<GLfloat>() as i32;
         let pos_attr = gl::GetAttribLocation(program,
                                              CString::new("pos_px").unwrap().as_ptr());
+        check_gl_error("GetAttribLocation pos_px");
         gl::EnableVertexAttribArray(pos_attr as GLuint);
+        check_gl_error("EnableVertexAttribArray pos_px");
         gl::VertexAttribPointer(pos_attr as GLuint, 2,
                                 gl::FLOAT, gl::FALSE as GLboolean,
                                 stride,
                                 ptr::null());
+        check_gl_error("VertexAttribPointer pos_xp");
 
         let tex_coord_attr = gl::GetAttribLocation(program,
                                                    CString::new("tile_pos_px").unwrap().as_ptr());
+        check_gl_error("GetAttribLocation tile_pos_px");
         gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
+        check_gl_error("EnableVertexAttribArray tile_pos_px");
         gl::VertexAttribPointer(tex_coord_attr as GLuint, 2,
                                 gl::FLOAT, gl::FALSE as GLboolean,
                                 stride,
                                 (2 * mem::size_of::<GLfloat>()) as *const GLvoid);
+        check_gl_error("VertexAttribPointer tile_pos_px");
 
         let color_attr = gl::GetAttribLocation(program,
                                                CString::new("color").unwrap().as_ptr());
+        check_gl_error("GetAttribLocation color");
         gl::EnableVertexAttribArray(color_attr as GLuint);
+        check_gl_error("EnableVertexAttribArray color");
         gl::VertexAttribPointer(color_attr as GLuint, 4,
                                 gl::FLOAT, gl::FALSE as GLboolean,
                                 stride,
                                 (4 * mem::size_of::<GLfloat>()) as *const GLvoid);
+        check_gl_error("VertexAttribPointer color");
 
 
         gl::GenTextures(1, &mut texture);
+        check_gl_error("GenTextures");
         gl::BindTexture(gl::TEXTURE_2D, texture);
+        check_gl_error("BindTexture");
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+        check_gl_error("TexParameteri MIN FILTER");
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        check_gl_error("TexParameteri MAG FILTER");
         let (w, h) = image.dimensions();
         gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, w as i32, h as i32, 0, gl::RGBA,
                        gl::UNSIGNED_BYTE, image.into_raw().as_ptr() as *const os::raw::c_void);
+        check_gl_error("TexImage2D");
     }
 
     let mut event_pump = sdl_context.event_pump()
@@ -577,12 +607,6 @@ pub fn main_loop(
 
         // NOTE: render
 
-        // TODO: create the vertex buffer
-
-        // TODO: prepare the uniforms
-
-        // TODO: draw
-
         // TODO: see if we can generate the vertex buffer either
         // directly from the `vertices` Vec or instead of creating the
         // Vector.
@@ -598,7 +622,7 @@ pub fn main_loop(
             [desired_window_width as f32, desired_window_height as f32],
             display_size,
             tilesize);
-
+//println!("{}\t{}\t{}\t{}", vertices.capacity(), vertex_buffer.capacity(), vertices.len(), vertex_buffer.len());
         render(&mut window,
                program,
                texture,

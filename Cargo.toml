@@ -26,6 +26,7 @@ piston_window = { version = "0.63.0", optional = true }
 image = { version = "0.12.2", optional = true }
 glium = { version = "0.20", optional = true }
 sdl2 = { version = "0.31.0", optional = true }
+gl = { version = "0.10", optional = true }
 rmp-serde = { version = "0.13.7", optional = true }
 zmq = { version = "0.8", optional = true }
 
@@ -67,7 +68,7 @@ piston = ["piston_window", "image"]
 
 opengl = ["glium", "image"]
 
-sdl = ["sdl2", "image"]
+sdl = ["sdl2", "gl", "image"]
 
 terminal = ["rustbox"]
 

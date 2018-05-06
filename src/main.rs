@@ -25,6 +25,9 @@ extern crate glium;
 #[cfg(feature = "sdl")]
 extern crate sdl2;
 
+#[cfg(feature = "sdl")]
+extern crate gl;
+
 #[cfg(feature = "piston")]
 extern crate piston_window;
 

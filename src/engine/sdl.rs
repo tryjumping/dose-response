@@ -1,22 +1,25 @@
+#![allow(unsafe_code)]
+
 use color::{Color, ColorAlpha};
-use engine::{self, Drawcall, Mouse, Settings, TextMetrics, UpdateFn};
+use engine::{self, DisplayInfo, Drawcall, Mouse, Settings, TextMetrics, UpdateFn, Vertex};
 use game::RunningState;
 use keys::KeyCode;
 use point::Point;
-use rect::Rectangle;
 use state::State;
 use util;
 
+use std::ffi::CString;
+use std::mem;
+use std::os;
+use std::ptr;
 use std::time::{Duration, Instant};
 
 use sdl2;
 use sdl2::event::Event;
 use sdl2::keyboard::{self, Keycode as BackendKey};
-use sdl2::pixels::{Color as SDLColor, PixelFormatEnum};
-use sdl2::rect::Rect as SDLRect;
-use sdl2::render::{Canvas, Texture, TextureCreator};
-use sdl2::surface::Surface;
 use sdl2::video::Window;
+use gl;
+use gl::types::*;
 use image;
 
 
@@ -113,64 +116,144 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
 }
 
 
-impl Into<SDLRect> for Rectangle {
-    fn into(self) -> SDLRect {
-        SDLRect::new(self.top_left().x, self.top_left().y,
-                     self.size().x as u32, self.size().y as u32)
-    }
-}
 
-impl Into<SDLColor> for ColorAlpha {
-    fn into(self) -> SDLColor {
-        SDLColor::RGBA(self.rgb.r, self.rgb.g, self.rgb.b, self.alpha)
-    }
-}
+fn compile_shader(src: &str, ty: GLenum) -> GLuint {
+    let shader;
+    unsafe {
+        shader = gl::CreateShader(ty);
+        // Attempt to compile the shader
+        let c_str = CString::new(src.as_bytes()).unwrap();
+        gl::ShaderSource(shader, 1, &c_str.as_ptr(), ptr::null());
+        gl::CompileShader(shader);
 
+        // Get the compile status
+        let mut status = gl::FALSE as GLint;
+        gl::GetShaderiv(shader, gl::COMPILE_STATUS, &mut status);
 
-fn load_texture<T>(texture_creator: &TextureCreator<T>) -> Result<Texture, String> {
-    let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
-    let image = image::load_from_memory(data)
-        .map_err(|err| format!("Error loading image: {}", err))?.to_rgba();
-    let (width, height) = image.dimensions();
-    // Pitch is the length of the row in bytes. We have 4 bytes (RGBA, each is a u8):
-    let pitch = width * 4;
-    // NOTE: I think `SDL2` and `Image` differ in endianness and
-    // that's why we have to say ABGR instead of RGBA here
-    let format = PixelFormatEnum::ABGR8888;
-
-    let raw_image = &mut image.into_raw();
-    let temp_surface = Surface::from_data(raw_image, width, height, pitch, format)?;
-
-    texture_creator.create_texture_from_surface(&temp_surface)
-        .map_err(|err| format!("Could not create texture from surface: {}", err))
-}
-
-
-fn sdl_render(canvas: &mut Canvas<Window>,
-              texture: &mut Texture,
-              clear_color: Color,
-              drawcalls: &[Drawcall])
-{
-    use self::Drawcall::*;
-    canvas.set_draw_color(
-        sdl2::pixels::Color::RGB(clear_color.r, clear_color.g, clear_color.b));
-    canvas.clear();
-
-    for dc in drawcalls.iter() {
-        // TODO: collect the results? Or at least the errors?
-        match dc {
-            &Rectangle(rect, color) => {
-                canvas.set_draw_color(color.into());
-                canvas.fill_rect(Some(rect.into())).unwrap();
-            }
-            &Image(src, dst, color) => {
-                texture.set_color_mod(color.r, color.g, color.b);
-                canvas.copy(&texture, Some(src.into()), Some(dst.into())).unwrap();
-            }
+        // Fail on error
+        if status != (gl::TRUE as GLint) {
+            let mut len = 0;
+            gl::GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut len);
+            let mut buf = Vec::with_capacity(len as usize);
+            buf.set_len((len as usize) - 1); // subtract 1 to skip the trailing null character
+            gl::GetShaderInfoLog(
+                shader,
+                len,
+                ptr::null_mut(),
+                buf.as_mut_ptr() as *mut GLchar,
+            );
+            panic!(
+                "{}",
+                ::std::str::from_utf8(&buf)
+                    .ok()
+                    .expect("ShaderInfoLog not valid utf8")
+            );
         }
     }
+    shader
+}
 
-    canvas.present();
+
+fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
+    unsafe {
+        let program = gl::CreateProgram();
+        gl::AttachShader(program, vs);
+        gl::AttachShader(program, fs);
+        gl::LinkProgram(program);
+        // Get the link status
+        let mut status = gl::FALSE as GLint;
+        gl::GetProgramiv(program, gl::LINK_STATUS, &mut status);
+
+        // Fail on error
+        if status != (gl::TRUE as GLint) {
+            let mut len: GLint = 0;
+            gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut len);
+            let mut buf = Vec::with_capacity(len as usize);
+            buf.set_len((len as usize) - 1); // subtract 1 to skip the trailing null character
+            gl::GetProgramInfoLog(
+                program,
+                len,
+                ptr::null_mut(),
+                buf.as_mut_ptr() as *mut GLchar,
+            );
+            panic!(
+                "{}",
+                ::std::str::from_utf8(&buf)
+                    .ok()
+                    .expect("ProgramInfoLog not valid utf8")
+            );
+        }
+        program
+    }
+}
+
+
+fn build_vertex_buffer(vertices: &[Vertex], vertex_buffer: &mut Vec<f32>) {
+    //vertex_buffer.extend(vertices.iter().map(to_f32_array));
+    for vertex in vertices {
+        vertex_buffer.extend(&vertex.to_f32_array());
+    }
+}
+
+
+fn render(window: &mut Window,
+          program: GLuint,
+          texture: GLuint,
+          clear_color: Color,
+          vbo: GLuint,
+          display_info: DisplayInfo,
+          texture_size_px: [f32; 2],
+          vertex_count: usize,
+          vertex_buffer: &[f32])
+{
+    unsafe {
+        let rgba: ColorAlpha = clear_color.into();
+        let glcolor: [f32; 4] = rgba.into();
+        gl::ClearColor(glcolor[0], glcolor[1], glcolor[2], 1.0);
+        gl::Clear(gl::COLOR_BUFFER_BIT);
+
+
+        // Copy data to the vertex buffer
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        // TODO: look at BufferSubData here -- that should reuse the allocation
+        gl::BufferData(gl::ARRAY_BUFFER,
+                       (vertex_buffer.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+                       vertex_buffer.as_ptr() as *const os::raw::c_void,
+                       gl::STREAM_DRAW);
+
+
+        gl::ActiveTexture(gl::TEXTURE0);
+        gl::BindTexture(gl::TEXTURE_2D, texture);
+        let texture_index = 0;  // NOTE: hardcoded -- we only have 1 texture.
+        gl::Uniform1i(gl::GetUniformLocation(program,
+                                             CString::new("tex").unwrap().as_ptr()),
+                      texture_index);
+
+        gl::Uniform2f(
+            gl::GetUniformLocation(program,
+                                   CString::new("native_display_px").unwrap().as_ptr()),
+            display_info.native_display_px[0], display_info.native_display_px[1]);
+
+        gl::Uniform2f(
+            gl::GetUniformLocation(program,
+                                   CString::new("display_px").unwrap().as_ptr()),
+            display_info.display_px[0], display_info.display_px[1]);
+
+        gl::Uniform2f(
+            gl::GetUniformLocation(program,
+                                   CString::new("extra_px").unwrap().as_ptr()),
+            display_info.extra_px[0], display_info.extra_px[1]);
+
+        gl::Uniform2f(
+            gl::GetUniformLocation(program,
+                                   CString::new("texture_size_px").unwrap().as_ptr()),
+            texture_size_px[0], texture_size_px[1]);
+
+        gl::DrawArrays(gl::TRIANGLES, 0, vertex_count as i32);
+
+    }
+
+    window.gl_swap_window();
 }
 
 
@@ -192,31 +275,105 @@ pub fn main_loop(
     let video_subsystem = sdl_context.video()
         .expect("SDL video subsystem creation failed.");
 
+    let gl_attr = video_subsystem.gl_attr();
+    gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
+    gl_attr.set_context_version(3, 3);
+    gl_attr.set_double_buffer(true);
+    gl_attr.set_depth_size(0);
+
+
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
-    let window = video_subsystem.window(window_title, desired_window_width, desired_window_height)
+    let mut window = video_subsystem.window(window_title, desired_window_width, desired_window_height)
         .opengl()
         .position_centered()
         .build()
         .expect("SDL window creation failed.");
 
-    // NOTE: use `.software()` instead of `.accelerated()` to use software rendering
-    // TODO: test this on more machines but a very simple test seems to be actually faster
-    // with software???
-    let mut canvas = window.into_canvas()
-        .accelerated()
-        //.software()
-        .present_vsync()
-        .build()
-        .expect("SDL canvas creation failed.");
-    canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
+    let _ctx = window.gl_create_context()
+        .expect("SDL GL context creation failed.");
+    gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
 
+
+
+    // TODO: SRGB
+
+
+    let image = {
+        use std::io::Cursor;
+        let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
+        let img = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
+        img
+    };
+
+    let image_width = image.width();
+    let image_height = image.height();
+
+    // Create GLSL shaders
+    let vs_source = include_str!("../shader_150.glslv");
+    let fs_source = include_str!("../shader_150.glslf");
+    let vs = compile_shader(vs_source, gl::VERTEX_SHADER);
+    let fs = compile_shader(fs_source, gl::FRAGMENT_SHADER);
+    let program = link_program(vs, fs);
+
+    let mut vao = 0;
+    let mut vbo = 0;
+    let mut texture = 0;
+
+    unsafe {
+        gl::Enable(gl::BLEND);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+
+        // Create Vertex Array Object
+        gl::GenVertexArrays(1, &mut vao);
+        gl::BindVertexArray(vao);
+
+        // Create a Vertex Buffer Object
+        gl::GenBuffers(1, &mut vbo);
+
+
+        // Use shader program
+        gl::UseProgram(program);
+        gl::BindFragDataLocation(program, 0,
+                                 CString::new("out_color").unwrap().as_ptr());
+
+        // Specify the layout of the vertex data
+        let stride = 8 * mem::size_of::<GLfloat>() as i32;
+        let pos_attr = gl::GetAttribLocation(program,
+                                             CString::new("pos_px").unwrap().as_ptr());
+        gl::EnableVertexAttribArray(pos_attr as GLuint);
+        gl::VertexAttribPointer(pos_attr as GLuint, 2,
+                                gl::FLOAT, gl::FALSE as GLboolean,
+                                stride,
+                                ptr::null());
+
+        let tex_coord_attr = gl::GetAttribLocation(program,
+                                                   CString::new("tile_pos_px").unwrap().as_ptr());
+        gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
+        gl::VertexAttribPointer(tex_coord_attr as GLuint, 2,
+                                gl::FLOAT, gl::FALSE as GLboolean,
+                                stride,
+                                (2 * mem::size_of::<GLfloat>()) as *const GLvoid);
+
+        let color_attr = gl::GetAttribLocation(program,
+                                               CString::new("color").unwrap().as_ptr());
+        gl::EnableVertexAttribArray(color_attr as GLuint);
+        gl::VertexAttribPointer(color_attr as GLuint, 4,
+                                gl::FLOAT, gl::FALSE as GLboolean,
+                                stride,
+                                (4 * mem::size_of::<GLfloat>()) as *const GLvoid);
+
+
+        gl::GenTextures(1, &mut texture);
+        gl::BindTexture(gl::TEXTURE_2D, texture);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        let (w, h) = image.dimensions();
+        gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, w as i32, h as i32, 0, gl::RGBA,
+                       gl::UNSIGNED_BYTE, image.into_raw().as_ptr() as *const os::raw::c_void);
+    }
 
     let mut event_pump = sdl_context.event_pump()
         .expect("SDL event pump creation failed.");
-
-    let texture_creator = canvas.texture_creator();
-    let mut texture = load_texture(&texture_creator)
-        .expect("Loading texture failed.");
 
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
@@ -224,11 +381,11 @@ pub fn main_loop(
     let display_px = Point::new(desired_window_width as i32, desired_window_height as i32);
     let mut display = engine::Display::new(
         display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
-    let mut sdl_drawcalls = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
-    let overall_max_drawcall_count = 0;
-    let mut overall_max_sdl_drawcall_count = 0;
+    let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
+    let mut vertices: Vec<Vertex> = Vec::with_capacity(engine::VERTEX_CAPACITY);
+    let mut vertex_buffer: Vec<f32> = Vec::with_capacity(8 * engine::VERTEX_CAPACITY);
+    let mut overall_max_drawcall_count = 0;
     let mut keys = vec![];
-    // We're not using alpha at all for now, but it's passed everywhere.
     let mut previous_frame_start_time = Instant::now();
     let mut fps_clock = Duration::from_millis(0);
     let mut frames_in_current_second = 0;
@@ -355,13 +512,13 @@ pub fn main_loop(
             if previous_settings.fullscreen != settings.fullscreen {
                 if settings.fullscreen {
                     println!("[{}] Switching to (desktop-type) fullscreen", current_frame_id);
-                    if let Err(err) = canvas.window_mut().set_fullscreen(Desktop) {
+                    if let Err(err) = window.set_fullscreen(Desktop) {
                         println!("[{}] WARNING: Could not switch to fullscreen:", current_frame_id);
                         println!("{:?}", err);
                     }
                 } else {
                     println!("[{}] Switching fullscreen off", current_frame_id);
-                    if let Err(err) = canvas.window_mut().set_fullscreen(Off) {
+                    if let Err(err) = window.set_fullscreen(Off) {
                         println!("[{}] WARNING: Could not leave fullscreen:", current_frame_id);
                         println!("{:?}", err);
                     }
@@ -377,7 +534,7 @@ pub fn main_loop(
         //
         // Instead of calling the SDL rendering functions directly,
         // record the actions we would have done (e.g. fill rect,
-        // copy, set draw color) and store them in the `sdl_drawcalls`
+        // copy, set draw color) and store them in the `drawcalls`
         // Vec.
         //
         // It sounds a little strange, but it isolates calling into C
@@ -389,18 +546,29 @@ pub fn main_loop(
         // actually spent: drawcall processing or calling SDL
         // functions?
 
-        sdl_drawcalls.clear();
-        display.push_drawcalls(&mut sdl_drawcalls);
+        drawcalls.clear();
+        display.push_drawcalls(&mut drawcalls);
 
-        if sdl_drawcalls.len() > overall_max_sdl_drawcall_count {
-            overall_max_sdl_drawcall_count = sdl_drawcalls.len();
+        if drawcalls.len() > overall_max_drawcall_count {
+            overall_max_drawcall_count = drawcalls.len();
         }
 
-        if sdl_drawcalls.len() > SDL_DRAWCALL_CAPACITY {
+        if drawcalls.len() > SDL_DRAWCALL_CAPACITY {
             println!(
                 "Warning: SDL drawcall count exceeded initial capacity {}. Current count: {}.",
-                sdl_drawcalls.len(),
+                drawcalls.len(),
                 SDL_DRAWCALL_CAPACITY
+            );
+        }
+
+        vertices.clear();
+        engine::build_vertices(&drawcalls, &mut vertices);
+
+        if vertices.len() > engine::VERTEX_CAPACITY {
+            println!(
+                "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
+                vertices.len(),
+                engine::VERTEX_CAPACITY
             );
         }
 
@@ -408,7 +576,38 @@ pub fn main_loop(
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
         // NOTE: render
-        sdl_render(&mut canvas, &mut texture, default_background, &sdl_drawcalls);
+
+        // TODO: create the vertex buffer
+
+        // TODO: prepare the uniforms
+
+        // TODO: draw
+
+        // TODO: see if we can generate the vertex buffer either
+        // directly from the `vertices` Vec or instead of creating the
+        // Vector.
+        //
+        // Right now, we're basically populating and storing the same data twice.
+        //
+        // Can we e.g. transmute it (with setting the right attributes like packed and whatnot)?
+        // But let's build it manually first and then verify if it's necessary
+        vertex_buffer.clear();
+        build_vertex_buffer(&vertices, &mut vertex_buffer);
+
+        let display_info = engine::calculate_display_info(
+            [desired_window_width as f32, desired_window_height as f32],
+            display_size,
+            tilesize);
+
+        render(&mut window,
+               program,
+               texture,
+               default_background,
+               vbo,
+               display_info,
+               [image_width as f32, image_height as f32],
+               vertices.len(), &
+               vertex_buffer);
 
         // println!("Code duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
@@ -422,8 +621,19 @@ pub fn main_loop(
 
     }
 
+
+    // Cleanup
+    unsafe {
+        gl::DeleteProgram(program);
+        gl::DeleteShader(fs);
+        gl::DeleteShader(vs);
+        gl::DeleteBuffers(1, &vbo);
+        gl::DeleteVertexArrays(1, &vao);
+    }
+
+
     println!("Engine drawcall count: {}. Capacity: {}.",
              overall_max_drawcall_count, engine::DRAWCALL_CAPACITY);
     println!("SDL drawcall count: {}. Capacity: {}.",
-             overall_max_sdl_drawcall_count, SDL_DRAWCALL_CAPACITY);
+             overall_max_drawcall_count, SDL_DRAWCALL_CAPACITY);
 }

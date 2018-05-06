@@ -331,6 +331,39 @@ impl SdlApp {
 
         app
     }
+
+    #[allow(unsafe_code)]
+    fn initialise(&self, image_width: u32, image_height: u32, image_data: *const u8) {
+        unsafe {
+            gl::Enable(gl::BLEND);
+            check_gl_error("Enable");
+            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+            check_gl_error("BlendFunc");
+
+            // Create Vertex Array Object
+            gl::BindVertexArray(self.vao);
+            check_gl_error("BindVertexArray");
+
+            // Use shader program
+            gl::UseProgram(self.program);
+            check_gl_error("UseProgram");
+            gl::BindFragDataLocation(self.program, 0,
+                                     CString::new("out_color").unwrap().as_ptr());
+            check_gl_error("BindFragDataLocation");
+
+            // Bind the texture
+            gl::BindTexture(gl::TEXTURE_2D, self.texture);
+            check_gl_error("BindTexture");
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            check_gl_error("TexParameteri MIN FILTER");
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            check_gl_error("TexParameteri MAG FILTER");
+            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32,
+                           image_width as i32, image_height as i32, 0, gl::RGBA,
+                           gl::UNSIGNED_BYTE, image_data as *const os::raw::c_void);
+            check_gl_error("TexImage2D");
+        }
+    }
 }
 
 impl Drop for SdlApp {
@@ -399,38 +432,7 @@ pub fn main_loop(
     let vs_source = include_str!("../shader_150.glslv");
     let fs_source = include_str!("../shader_150.glslf");
     let sdl_app = SdlApp::new(vs_source, fs_source);
-
-    #[allow(unsafe_code)]
-    unsafe {
-        gl::Enable(gl::BLEND);
-        check_gl_error("Enable");
-        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        check_gl_error("BlendFunc");
-
-        // Create Vertex Array Object
-        gl::BindVertexArray(sdl_app.vao);
-        check_gl_error("BindVertexArray");
-
-
-        // Use shader program
-        gl::UseProgram(sdl_app.program);
-        check_gl_error("UseProgram");
-        gl::BindFragDataLocation(sdl_app.program, 0,
-                                 CString::new("out_color").unwrap().as_ptr());
-        check_gl_error("BindFragDataLocation");
-
-
-        gl::BindTexture(gl::TEXTURE_2D, sdl_app.texture);
-        check_gl_error("BindTexture");
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-        check_gl_error("TexParameteri MIN FILTER");
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-        check_gl_error("TexParameteri MAG FILTER");
-        let (w, h) = image.dimensions();
-        gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, w as i32, h as i32, 0, gl::RGBA,
-                       gl::UNSIGNED_BYTE, image.into_raw().as_ptr() as *const os::raw::c_void);
-        check_gl_error("TexImage2D");
-    }
+    sdl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
 
     let mut event_pump = sdl_context.event_pump()
         .expect("SDL event pump creation failed.");

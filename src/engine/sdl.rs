@@ -214,7 +214,6 @@ fn render(window: &mut Window,
         gl::Clear(gl::COLOR_BUFFER_BIT);
         check_gl_error("Clear");
 
-        //println!("{}\t{}", vertex_count, vertex_buffer.len());
         // Copy data to the vertex buffer
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         check_gl_error("BindBuffer");
@@ -224,6 +223,42 @@ fn render(window: &mut Window,
                        vertex_buffer.as_ptr() as *const os::raw::c_void,
                        gl::DYNAMIC_DRAW);
         check_gl_error("BufferData");
+
+        // Specify the layout of the vertex data
+        // NOTE: this must happen only after the BufferData call
+        let stride = 8 * mem::size_of::<GLfloat>() as i32;
+        let pos_attr = gl::GetAttribLocation(program,
+                                             CString::new("pos_px").unwrap().as_ptr());
+        check_gl_error("GetAttribLocation pos_px");
+        gl::EnableVertexAttribArray(pos_attr as GLuint);
+        check_gl_error("EnableVertexAttribArray pos_px");
+        gl::VertexAttribPointer(pos_attr as GLuint, 2,
+                                gl::FLOAT, gl::FALSE as GLboolean,
+                                stride,
+                                ptr::null());
+        check_gl_error("VertexAttribPointer pos_xp");
+
+        let tex_coord_attr = gl::GetAttribLocation(program,
+                                                   CString::new("tile_pos_px").unwrap().as_ptr());
+        check_gl_error("GetAttribLocation tile_pos_px");
+        gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
+        check_gl_error("EnableVertexAttribArray tile_pos_px");
+        gl::VertexAttribPointer(tex_coord_attr as GLuint, 2,
+                                gl::FLOAT, gl::FALSE as GLboolean,
+                                stride,
+                                (2 * mem::size_of::<GLfloat>()) as *const GLvoid);
+        check_gl_error("VertexAttribPointer tile_pos_px");
+
+        let color_attr = gl::GetAttribLocation(program,
+                                               CString::new("color").unwrap().as_ptr());
+        check_gl_error("GetAttribLocation color");
+        gl::EnableVertexAttribArray(color_attr as GLuint);
+        check_gl_error("EnableVertexAttribArray color");
+        gl::VertexAttribPointer(color_attr as GLuint, 4,
+                                gl::FLOAT, gl::FALSE as GLboolean,
+                                stride,
+                                (4 * mem::size_of::<GLfloat>()) as *const GLvoid);
+        check_gl_error("VertexAttribPointer color");
 
 
         gl::ActiveTexture(gl::TEXTURE0);
@@ -254,8 +289,9 @@ fn render(window: &mut Window,
                                    CString::new("texture_size_px").unwrap().as_ptr()),
             texture_size_px[0], texture_size_px[1]);
 
+        // TODO: we can calculate the vertex coust -- no need to pass it in.
+        assert_eq!(vertex_count, vertex_buffer.len() / 8);
         gl::DrawArrays(gl::TRIANGLES, 0, vertex_count as i32);
-        //gl::DrawElements(gl::TRIANGLES, vertex_count as i32, gl::UNSIGNED_BYTE, ptr::null());
         check_gl_error("DrawArrays");
 
         window.gl_swap_window();
@@ -292,8 +328,8 @@ pub fn main_loop(
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
     gl_attr.set_context_version(3, 3);
-    // gl_attr.set_double_buffer(true);
-    // gl_attr.set_depth_size(0);
+    gl_attr.set_double_buffer(true);
+    gl_attr.set_depth_size(0);
 
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
@@ -351,41 +387,6 @@ pub fn main_loop(
         gl::BindFragDataLocation(program, 0,
                                  CString::new("out_color").unwrap().as_ptr());
         check_gl_error("BindFragDataLocation");
-
-        // Specify the layout of the vertex data
-        let stride = 8 * mem::size_of::<GLfloat>() as i32;
-        let pos_attr = gl::GetAttribLocation(program,
-                                             CString::new("pos_px").unwrap().as_ptr());
-        check_gl_error("GetAttribLocation pos_px");
-        gl::EnableVertexAttribArray(pos_attr as GLuint);
-        check_gl_error("EnableVertexAttribArray pos_px");
-        gl::VertexAttribPointer(pos_attr as GLuint, 2,
-                                gl::FLOAT, gl::FALSE as GLboolean,
-                                stride,
-                                ptr::null());
-        check_gl_error("VertexAttribPointer pos_xp");
-
-        let tex_coord_attr = gl::GetAttribLocation(program,
-                                                   CString::new("tile_pos_px").unwrap().as_ptr());
-        check_gl_error("GetAttribLocation tile_pos_px");
-        gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
-        check_gl_error("EnableVertexAttribArray tile_pos_px");
-        gl::VertexAttribPointer(tex_coord_attr as GLuint, 2,
-                                gl::FLOAT, gl::FALSE as GLboolean,
-                                stride,
-                                (2 * mem::size_of::<GLfloat>()) as *const GLvoid);
-        check_gl_error("VertexAttribPointer tile_pos_px");
-
-        let color_attr = gl::GetAttribLocation(program,
-                                               CString::new("color").unwrap().as_ptr());
-        check_gl_error("GetAttribLocation color");
-        gl::EnableVertexAttribArray(color_attr as GLuint);
-        check_gl_error("EnableVertexAttribArray color");
-        gl::VertexAttribPointer(color_attr as GLuint, 4,
-                                gl::FLOAT, gl::FALSE as GLboolean,
-                                stride,
-                                (4 * mem::size_of::<GLfloat>()) as *const GLvoid);
-        check_gl_error("VertexAttribPointer color");
 
 
         gl::GenTextures(1, &mut texture);

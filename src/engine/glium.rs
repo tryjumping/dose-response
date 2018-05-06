@@ -14,8 +14,6 @@ use rect::Rectangle;
 use std::time::{Duration, Instant};
 use util;
 
-const DRAWCALL_CAPACITY: usize = 10_000;
-const VERTICES_CAPACITY: usize = 50_000;
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
@@ -220,8 +218,8 @@ pub fn main_loop(
     let mut ralt_pressed = false;
     let mut lshift_pressed = false;
     let mut rshift_pressed = false;
-    let mut drawcalls = Vec::with_capacity(DRAWCALL_CAPACITY);
-    let mut vertices = Vec::with_capacity(VERTICES_CAPACITY);
+    let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
+    let mut vertices = Vec::with_capacity(engine::VERTEX_CAPACITY);
     let mut keys = vec![];
     let mut previous_frame_time = Instant::now();
     let mut fps_clock = Duration::from_millis(0);
@@ -318,64 +316,20 @@ pub fn main_loop(
         vertices.clear();
         engine::build_vertices(&drawcalls, &mut vertices);
 
-        if vertices.len() > VERTICES_CAPACITY {
+        if vertices.len() > engine::VERTEX_CAPACITY {
             println!(
                 "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
                 vertices.len(),
-                VERTICES_CAPACITY
+                engine::VERTEX_CAPACITY
             );
         }
 
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
 
-        // Calculate the dimensions to provide the largest display
-        // area while maintaining the aspect ratio (and letterbox the
-        // display).
-        let (native_display_px, display_px, extra_px) = {
-            let window_width = window_width as f32;
-            let window_height = window_height as f32;
-            let tilecount_x = display_size.x as f32;
-            let tilecount_y = display_size.y as f32;
-
-            let unscaled_game_width = tilecount_x * tilesize as f32;
-            let unscaled_game_height = tilecount_y * tilesize as f32;
-
-            // println!("window w x h: {:?}", (window_width, window_height));
-            // println!("unscaled game {:?}", (unscaled_game_width, unscaled_game_height));
-
-            // TODO: we're assuming that the unscaled dimensions
-            // already fit into the display. So the game is only going
-            // to be scaled up, not down.
-
-
-
-            // NOTE: try if the hight should fill the display area
-            let scaled_tilesize = (window_height / tilecount_y).floor();
-            let scaled_width = scaled_tilesize * tilecount_x;
-            let scaled_height = scaled_tilesize * tilecount_y;
-            let (final_scaled_width, final_scaled_height) = if scaled_width <= window_width {
-                (scaled_width, scaled_height)
-            } else {
-                // NOTE: try if the width should fill the display area
-                let scaled_tilesize = (window_width / tilecount_x).floor();
-            let scaled_width = scaled_tilesize * tilecount_x;
-            let scaled_height = scaled_tilesize * tilecount_y;
-
-                if scaled_height <= window_height {
-                    // NOTE: we're good
-                } else {
-                    println!("Can't scale neither to width nor height wtf.");
-                }
-                (scaled_width, scaled_height)
-            };
-            //println!("Final scaled: {} x {}", final_scaled_width, final_scaled_height);
-
-            let native_display_px = [unscaled_game_width, unscaled_game_height];
-            let display_px = [final_scaled_width, final_scaled_height];
-            let extra_px = [window_width - final_scaled_width, window_height - final_scaled_height];
-            //println!("{:?}", (native_display_px, display_px, extra_px));
-            (native_display_px, display_px, extra_px)
-        };
+        let display_info = engine::calculate_display_info(
+            [window_width as f32, window_height as f32],
+            display_size,
+            tilesize);
 
         // TODO: Once we support multiple font sizes, we can adjust it
         // here. We could also potentially only allow resizes in steps
@@ -384,11 +338,10 @@ pub fn main_loop(
 
         let uniforms = uniform! {
             tex: &texture,
-            tile_count: [display_size.x as f32, display_size.y as f32],
             // TODO: pass this from the block above
-            native_display_px: native_display_px,
-            display_px: display_px,
-            extra_px: extra_px,
+            native_display_px: display_info.native_display_px,
+            display_px: display_info.display_px,
+            extra_px: display_info.extra_px,
             texture_size_px: [tex_width_px, tex_height_px],
         };
 
@@ -559,16 +512,16 @@ pub fn main_loop(
                             // println!("screen width/height: {:?}", (screen_width, screen_height));
                             let (x, y) = (x as i32, y as i32);
 
-                            let (x, y) = (x - (extra_px[0] / 2.0) as i32, y - (extra_px[1] / 2.0) as i32);
-                            let x = util::clamp(0, x, display_px[0] as i32 - 1);
-                            let y = util::clamp(0, y, display_px[1] as i32 - 1);
+                            let (x, y) = (x - (display_info.extra_px[0] / 2.0) as i32, y - (display_info.extra_px[1] / 2.0) as i32);
+                            let x = util::clamp(0, x, display_info.display_px[0] as i32 - 1);
+                            let y = util::clamp(0, y, display_info.display_px[1] as i32 - 1);
 
                             mouse.screen_pos = Point { x, y };
 
-                            let tile_width = display_px[0] as i32 / display_size.x;
+                            let tile_width = display_info.display_px[0] as i32 / display_size.x;
                             let mouse_tile_x = x / tile_width;
 
-                            let tile_height = display_px[1] as i32 / display_size.y;
+                            let tile_height = display_info.display_px[1] as i32 / display_size.y;
                             let mouse_tile_y = y / tile_height;
 
                             mouse.tile_pos = Point {

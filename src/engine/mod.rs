@@ -31,6 +31,7 @@ pub mod remote;
 pub mod wasm;
 
 pub const DRAWCALL_CAPACITY: usize = 8000;
+pub const VERTEX_CAPACITY: usize = 50_000;
 
 
 /// The drawcalls that the engine will process and render.
@@ -58,6 +59,23 @@ pub struct Vertex {
     /// Colour of the glyph. The glyphs are greyscale, so this is how
     /// we set the final colour.
     pub color: [f32; 4],
+}
+
+
+impl Vertex {
+    #[allow(dead_code)]
+    fn to_f32_array(&self) -> [f32; 8] {
+        [
+            self.pos_px[0],
+            self.pos_px[1],
+            self.tile_pos_px[0],
+            self.tile_pos_px[1],
+            self.color[0],
+            self.color[1],
+            self.color[2],
+            self.color[3],
+        ]
+    }
 }
 
 
@@ -331,6 +349,60 @@ fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
     result.push(current_line);
 
     result
+}
+
+
+struct DisplayInfo {
+    native_display_px: [f32; 2],
+    display_px: [f32; 2],
+    extra_px: [f32; 2],
+}
+
+
+/// Calculate the dimensions to provide the largest display
+/// area while maintaining the aspect ratio (and letterbox the
+/// display).
+fn calculate_display_info(window_size_px: [f32; 2],
+                          display_size_tiles: Point,
+                          tilesize_px: u32) -> DisplayInfo {
+    let window_width = window_size_px[0] as f32;
+    let window_height = window_size_px[1] as f32;
+    let tilecount_x = display_size_tiles.x as f32;
+    let tilecount_y = display_size_tiles.y as f32;
+    let tilesize = tilesize_px as f32;
+
+    let unscaled_game_width = tilecount_x * tilesize;
+    let unscaled_game_height = tilecount_y * tilesize;
+
+    // TODO: we're assuming that the unscaled dimensions
+    // already fit into the display. So the game is only going
+    // to be scaled up, not down.
+
+    // NOTE: try if the hight should fill the display area
+    let scaled_tilesize = (window_height / tilecount_y).floor();
+    let scaled_width = scaled_tilesize * tilecount_x;
+    let scaled_height = scaled_tilesize * tilecount_y;
+    let (final_scaled_width, final_scaled_height) = if scaled_width <= window_width {
+        (scaled_width, scaled_height)
+    } else {
+        // NOTE: try if the width should fill the display area
+        let scaled_tilesize = (window_width / tilecount_x).floor();
+        let scaled_width = scaled_tilesize * tilecount_x;
+        let scaled_height = scaled_tilesize * tilecount_y;
+
+        if scaled_height <= window_height {
+            // NOTE: we're good
+        } else {
+            println!("Can't scale neither to width nor height wtf.");
+        }
+        (scaled_width, scaled_height)
+    };
+
+    let native_display_px = [unscaled_game_width, unscaled_game_height];
+    let display_px = [final_scaled_width, final_scaled_height];
+    let extra_px = [window_width - final_scaled_width, window_height - final_scaled_height];
+
+    DisplayInfo { native_display_px, display_px, extra_px }
 }
 
 

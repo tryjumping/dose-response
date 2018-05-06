@@ -1,5 +1,3 @@
-#![allow(unsafe_code)]
-
 use color::{Color, ColorAlpha};
 use engine::{self, DisplayInfo, Drawcall, Mouse, Settings, TextMetrics, UpdateFn, Vertex};
 use game::RunningState;
@@ -118,6 +116,7 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
 
 
 
+#[allow(unsafe_code)]
 fn compile_shader(src: &str, ty: GLenum) -> GLuint {
     let shader;
     unsafe {
@@ -155,6 +154,7 @@ fn compile_shader(src: &str, ty: GLenum) -> GLuint {
 }
 
 
+#[allow(unsafe_code)]
 fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
     unsafe {
         let program = gl::CreateProgram();
@@ -189,6 +189,7 @@ fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
 }
 
 
+#[allow(unsafe_code)]
 fn render(window: &mut Window,
           program: GLuint,
           texture: GLuint,
@@ -289,6 +290,7 @@ fn render(window: &mut Window,
 }
 
 
+#[allow(unsafe_code)]
 fn check_gl_error(source: &str) {
     let err = unsafe{gl::GetError()};
     if err != gl::NO_ERROR {
@@ -308,6 +310,7 @@ struct SdlApp {
 }
 
 impl SdlApp {
+    #[allow(unsafe_code)]
     fn new(vertex_source: &str, fragment_source: &str) -> Self {
         let mut app: SdlApp = Default::default();
 
@@ -331,6 +334,7 @@ impl SdlApp {
 }
 
 impl Drop for SdlApp {
+    #[allow(unsafe_code)]
     fn drop(&mut self) {
         unsafe {
             gl::DeleteProgram(self.program);
@@ -396,6 +400,7 @@ pub fn main_loop(
     let fs_source = include_str!("../shader_150.glslf");
     let sdl_app = SdlApp::new(vs_source, fs_source);
 
+    #[allow(unsafe_code)]
     unsafe {
         gl::Enable(gl::BLEND);
         check_gl_error("Enable");

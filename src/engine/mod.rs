@@ -42,6 +42,7 @@ pub enum Drawcall {
 }
 
 #[derive(Copy, Clone, Debug)]
+#[repr(C)]
 pub struct Vertex {
     /// Position in the tile coordinates.
     ///
@@ -90,7 +91,26 @@ impl Into<[f32; 4]> for ColorAlpha {
     }
 }
 
-fn build_vertices(drawcalls: &[Drawcall], vertices: &mut Vec<Vertex>) {
+
+trait VertexStore {
+    fn push(&mut self, Vertex);
+}
+
+impl VertexStore for Vec<Vertex> {
+    fn push(&mut self, vertex: Vertex) {
+        self.push(vertex)
+    }
+}
+
+
+impl VertexStore for Vec<f32> {
+    fn push(&mut self, vertex: Vertex) {
+        self.extend(&vertex.to_f32_array())
+    }
+}
+
+
+fn build_vertices<T: VertexStore>(drawcalls: &[Drawcall], vertices: &mut T) {
     for drawcall in drawcalls {
         match drawcall {
             // NOTE: Rectangle, ColorAlpha)

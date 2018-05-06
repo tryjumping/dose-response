@@ -219,7 +219,7 @@ pub fn main_loop(
     let mut lshift_pressed = false;
     let mut rshift_pressed = false;
     let mut drawcalls = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
-    let mut vertices = Vec::with_capacity(engine::VERTEX_CAPACITY);
+    let mut vertices: Vec<Vertex> = Vec::with_capacity(engine::VERTEX_CAPACITY);
     let mut keys = vec![];
     let mut previous_frame_time = Instant::now();
     let mut fps_clock = Duration::from_millis(0);

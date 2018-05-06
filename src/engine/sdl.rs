@@ -25,7 +25,8 @@ use image;
 
 // const DESIRED_FPS: u64 = 60;
 // const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
-const SDL_DRAWCALL_CAPACITY: usize = 10_000;
+const VERTEX_COMPONENT_COUNT: usize = 8;
+const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -188,14 +189,6 @@ fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
 }
 
 
-fn build_vertex_buffer(vertices: &[Vertex], vertex_buffer: &mut Vec<f32>) {
-    //vertex_buffer.extend(vertices.iter().map(to_f32_array));
-    for vertex in vertices {
-        vertex_buffer.extend(&vertex.to_f32_array());
-    }
-}
-
-
 fn render(window: &mut Window,
           program: GLuint,
           texture: GLuint,
@@ -203,7 +196,6 @@ fn render(window: &mut Window,
           vbo: GLuint,
           display_info: DisplayInfo,
           texture_size_px: [f32; 2],
-          vertex_count: usize,
           vertex_buffer: &[f32])
 {
     unsafe {
@@ -226,7 +218,7 @@ fn render(window: &mut Window,
 
         // Specify the layout of the vertex data
         // NOTE: this must happen only after the BufferData call
-        let stride = 8 * mem::size_of::<GLfloat>() as i32;
+        let stride = VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
         let pos_attr = gl::GetAttribLocation(program,
                                              CString::new("pos_px").unwrap().as_ptr());
         check_gl_error("GetAttribLocation pos_px");
@@ -289,9 +281,7 @@ fn render(window: &mut Window,
                                    CString::new("texture_size_px").unwrap().as_ptr()),
             texture_size_px[0], texture_size_px[1]);
 
-        // TODO: we can calculate the vertex coust -- no need to pass it in.
-        assert_eq!(vertex_count, vertex_buffer.len() / 8);
-        gl::DrawArrays(gl::TRIANGLES, 0, vertex_count as i32);
+        gl::DrawArrays(gl::TRIANGLES, 0, (vertex_buffer.len() / VERTEX_COMPONENT_COUNT) as i32);
         check_gl_error("DrawArrays");
 
         window.gl_swap_window();
@@ -412,9 +402,9 @@ pub fn main_loop(
     let display_px = Point::new(desired_window_width as i32, desired_window_height as i32);
     let mut display = engine::Display::new(
         display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
-    let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(SDL_DRAWCALL_CAPACITY);
-    let mut vertices: Vec<Vertex> = Vec::with_capacity(engine::VERTEX_CAPACITY);
-    let mut vertex_buffer: Vec<f32> = Vec::with_capacity(8 * engine::VERTEX_CAPACITY);
+    let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
+    assert_eq!(mem::size_of::<Vertex>(), VERTEX_COMPONENT_COUNT * 4);
+    let mut vertex_buffer: Vec<f32> = Vec::with_capacity(VERTEX_BUFFER_CAPACITY);
     let mut overall_max_drawcall_count = 0;
     let mut keys = vec![];
     let mut previous_frame_start_time = Instant::now();
@@ -561,22 +551,6 @@ pub fn main_loop(
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
 
-        // NOTE: Turn the Engine drawcalls into SDL drawcalls.
-        //
-        // Instead of calling the SDL rendering functions directly,
-        // record the actions we would have done (e.g. fill rect,
-        // copy, set draw color) and store them in the `drawcalls`
-        // Vec.
-        //
-        // It sounds a little strange, but it isolates calling into C
-        // into its own block and hopefully lets the Rust compiler
-        // optimise the drawcall processing better.
-        //
-        // More importantly, it'll be useful in profiling because
-        // we'll be able to measure where is our "rendering" time
-        // actually spent: drawcall processing or calling SDL
-        // functions?
-
         drawcalls.clear();
         display.push_drawcalls(&mut drawcalls);
 
@@ -584,22 +558,22 @@ pub fn main_loop(
             overall_max_drawcall_count = drawcalls.len();
         }
 
-        if drawcalls.len() > SDL_DRAWCALL_CAPACITY {
+        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
             println!(
-                "Warning: SDL drawcall count exceeded initial capacity {}. Current count: {}.",
+                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
+                engine::DRAWCALL_CAPACITY,
                 drawcalls.len(),
-                SDL_DRAWCALL_CAPACITY
             );
         }
 
-        vertices.clear();
-        engine::build_vertices(&drawcalls, &mut vertices);
+        vertex_buffer.clear();
+        engine::build_vertices(&drawcalls, &mut vertex_buffer);
 
-        if vertices.len() > engine::VERTEX_CAPACITY {
+        if vertex_buffer.len() > VERTEX_BUFFER_CAPACITY {
             println!(
                 "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
-                vertices.len(),
-                engine::VERTEX_CAPACITY
+                VERTEX_BUFFER_CAPACITY,
+                vertex_buffer.len(),
             );
         }
 
@@ -608,22 +582,11 @@ pub fn main_loop(
 
         // NOTE: render
 
-        // TODO: see if we can generate the vertex buffer either
-        // directly from the `vertices` Vec or instead of creating the
-        // Vector.
-        //
-        // Right now, we're basically populating and storing the same data twice.
-        //
-        // Can we e.g. transmute it (with setting the right attributes like packed and whatnot)?
-        // But let's build it manually first and then verify if it's necessary
-        vertex_buffer.clear();
-        build_vertex_buffer(&vertices, &mut vertex_buffer);
-
         let display_info = engine::calculate_display_info(
             [desired_window_width as f32, desired_window_height as f32],
             display_size,
             tilesize);
-//println!("{}\t{}\t{}\t{}", vertices.capacity(), vertex_buffer.capacity(), vertices.len(), vertex_buffer.len());
+
         render(&mut window,
                program,
                texture,
@@ -631,8 +594,8 @@ pub fn main_loop(
                vbo,
                display_info,
                [image_width as f32, image_height as f32],
-               vertices.len(), &
-               vertex_buffer);
+               &vertex_buffer);
+
 
         // println!("Code duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
@@ -657,8 +620,6 @@ pub fn main_loop(
     }
 
 
-    println!("Engine drawcall count: {}. Capacity: {}.",
+    println!("Drawcall count: {}. Capacity: {}.",
              overall_max_drawcall_count, engine::DRAWCALL_CAPACITY);
-    println!("SDL drawcall count: {}. Capacity: {}.",
-             overall_max_drawcall_count, SDL_DRAWCALL_CAPACITY);
 }

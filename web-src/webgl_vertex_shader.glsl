@@ -1,5 +1,13 @@
+
 // Window size (rendering area) in pixels
 uniform vec2 native_display_px;
+// Actual display size in pixels. Has the same aspect ratio as
+//`native_display_px`, but can be bigger say on fullscreen.
+uniform vec2 display_px;
+// Additional empty space. If the final rendering area has a different
+// aspect ratio, this contains the extra space so we can letterbox or
+// whatever.
+uniform vec2 extra_px;
 
 attribute vec2 pos_px;
 attribute vec2 tile_pos_px;
@@ -9,13 +17,24 @@ varying vec2 v_tile_pos_px;
 varying vec4 v_color;
 
 void main() {
-  v_color = color;
-  v_tile_pos_px = tile_pos_px;
+    v_tile_pos_px = tile_pos_px;
+    v_color = color;
 
-  // Convert the pixel position to the (0, 1) coordinate space:
-  vec2 pos_01 = pos_px / native_display_px;
+    // This is the full size of the rendered area (window / screen) in pixels
+    vec2 full_dimension_px = display_px + extra_px;
 
-  // Convert pos to the GL coordinate space (-1, 1), y grows up:
-  vec2 pos_gl = vec2(1.0, -1.0) * (2.0 * pos_01 - 1.0);
-  gl_Position = vec4(pos_gl, 0.0, 1.0);
+    // `pos_px / native_display_px` converts the coordinates to (0, 1)
+    // in the native pixel-perfect space. This stretches the image to
+    // fit the entire window.
+    //
+    // `* (display_px / full_dimension_px)` fixes the aspect ratio.
+	//
+	// `+ (0.5 * extra_px / full_dimension_px)` centeres the image,
+	// letterboxing it.
+    vec2 pos_fit_to_screen = pos_px / native_display_px * (display_px / full_dimension_px) + (0.5 * extra_px / full_dimension_px);
+
+	// Convert the y-is-down (0, 1) coordinate system to OpenGl's
+	// y-is-up, (-1, 1)
+    vec2 pos = vec2(1.0, -1.0) * (2.0 * pos_fit_to_screen - 1.0);
+    gl_Position = vec4(pos, 0.0, 1.0);
 }

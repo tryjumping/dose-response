@@ -6,8 +6,8 @@ uniform vec2 native_display_px;
 //`native_display_px`, but can be bigger say on fullscreen.
 uniform vec2 display_px;
 // Additional empty space. If the final rendering area has a different
-//aspect ratio, this contains the extra space so we can letterbox or
-//whatever.
+// aspect ratio, this contains the extra space so we can letterbox or
+// whatever.
 uniform vec2 extra_px;
 
 in vec2 pos_px;

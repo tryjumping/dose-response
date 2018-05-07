@@ -266,6 +266,7 @@ Reason: '{}'.",
     }
 
     #[cfg(not(feature = "replay"))]
+    #[allow(dead_code)]
     pub fn replay_game(
         world_size: Point,
         map_size: i32,

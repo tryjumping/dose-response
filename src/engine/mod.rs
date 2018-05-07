@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use color::{self, Color, ColorAlpha};
 use game::RunningState;
 use keys::Key;
@@ -747,6 +749,4 @@ pub type UpdateFn = fn(
     display: &mut Display,
 ) -> RunningState;
 
-// NOTE:
-// fn texture_coords_from_char(chr: char) -> Option<(i32, i32)>
 include!(concat!(env!("OUT_DIR"), "/glyph_lookup_table.rs"));

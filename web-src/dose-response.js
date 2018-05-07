@@ -1,10 +1,34 @@
-function play_game(canvas) {
-  if(arguments.length === 3) {
-    var loaded_callback = arguments[2];
-  } else {
-    var loaded_callback = null;
-  }
+function loadJS(url) {
+  return new Promise(function(resolve, reject) {
+    var scriptTag = document.createElement('script');
+    scriptTag.onload = resolve;
+    scriptTag.onreadystatechange = resolve;
+    scriptTag.src = url;
+    document.head.appendChild(scriptTag);
+  });
+}
 
+
+function loadScripts(scripts, callback) {
+  const promises = scripts.map(loadJS);
+  Promise.all(promises).then(callback);
+}
+
+
+function play_game(canvas, loaded_callback) {
+  const scripts = [
+    "twgl.min.js",
+    "normalize_key.js"
+  ];
+
+  loadScripts(scripts, function() {
+    console.log("All scripts loaded");
+    actually_play_game(canvas, loaded_callback);
+  });
+}
+
+
+function actually_play_game(canvas, loaded_callback) {
   // Width and Height in tiles:
   var width = 47;
   var height = 30;

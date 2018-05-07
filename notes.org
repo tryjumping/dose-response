@@ -97,7 +97,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** Maybe increase their strength?
 * Move the webgl shaders out of html
 ** otherwise we have to copy them manually to the website every time we change them
-* Load the texture image size from within the webgl/js instead of hardcoding it
 * Deduplicate the glium and webgl shaders
 ** Their structure should be identical
 ** But some of the syntax isn't
@@ -105,7 +104,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
 ** Would also test our build.rs tilesize generation to JS
-* Read the tilesize in px value in webgl/js instead of hardcoding it
 * Move metrics into the engine                                         :code:
 ** We have a more granular control there
 ** We can see exactly how long teh full update took vs drawcall processing vs. sdl
@@ -2365,3 +2363,8 @@ CLOSED: [2018-05-07 Mon 11:25]
 :END:
 *** This seems to go like crazy when I'm playing a video from the GDC vault
 *** Using SDL+OpenGL fixed it
+** DONE Load the texture image size from within the webgl/js instead of hardcoding it
+CLOSED: [2018-05-07 Mon 12:05]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-05-07 Mon 12:05
+:END:

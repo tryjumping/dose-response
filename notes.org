@@ -95,8 +95,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** The smallest doses were actually okay
 **** But the larger ones weren't
 **** Maybe increase their strength?
-* Move the webgl shaders out of html
-** otherwise we have to copy them manually to the website every time we change them
 * Deduplicate the glium and webgl shaders
 ** Their structure should be identical
 ** But some of the syntax isn't
@@ -2368,3 +2366,9 @@ CLOSED: [2018-05-07 Mon 12:05]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-05-07 Mon 12:05
 :END:
+** DONE Move the webgl shaders out of html
+CLOSED: [2018-05-07 Mon 14:01]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-05-07 Mon 14:01
+:END:
+*** otherwise we have to copy them manually to the website every time we change them

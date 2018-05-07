@@ -391,8 +391,10 @@ fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
 }
 
 
+#[derive(Debug)]
 struct DisplayInfo {
     native_display_px: [f32; 2],
+    window_size_px: [f32; 2],
     display_px: [f32; 2],
     extra_px: [f32; 2],
 }
@@ -441,7 +443,12 @@ fn calculate_display_info(window_size_px: [f32; 2],
     let display_px = [final_scaled_width, final_scaled_height];
     let extra_px = [window_width - final_scaled_width, window_height - final_scaled_height];
 
-    DisplayInfo { native_display_px, display_px, extra_px }
+    DisplayInfo {
+        native_display_px,
+        window_size_px,
+        display_px,
+        extra_px,
+    }
 }
 
 

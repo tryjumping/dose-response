@@ -13,7 +13,7 @@ use std::ptr;
 use std::time::{Duration, Instant};
 
 use sdl2;
-use sdl2::event::Event;
+use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::{self, Keycode as BackendKey};
 use sdl2::video::Window;
 use gl;
@@ -199,6 +199,10 @@ fn render(window: &mut Window,
           vertex_buffer: &[f32])
 {
     unsafe {
+        gl::Viewport(0, 0,
+                     display_info.window_size_px[0] as i32, display_info.window_size_px[1] as i32);
+        check_gl_error("Viewport");
+
         let rgba: ColorAlpha = clear_color.into();
         let glcolor: [f32; 4] = rgba.into();
         gl::ClearColor(glcolor[0], glcolor[1], glcolor[2], 1.0);
@@ -438,8 +442,7 @@ pub fn main_loop(
 
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
-    // TODO: calculate this from the real window size
-    let display_px = Point::new(desired_window_width as i32, desired_window_height as i32);
+    let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
     let mut display = engine::Display::new(
         display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
     let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
@@ -503,14 +506,14 @@ pub fn main_loop(
                 }
 
                 Event::MouseMotion {x, y, ..} => {
-                    let x = util::clamp(0, x, display_px.x - 1);
-                    let y = util::clamp(0, y, display_px.y - 1);
+                    let x = util::clamp(0, x, window_size_px.x - 1);
+                    let y = util::clamp(0, y, window_size_px.y - 1);
                     mouse.screen_pos = Point { x, y };
 
-                    let tile_width = display_px.x / display_size.x;
+                    let tile_width = window_size_px.x / display_size.x;
                     let mouse_tile_x = x / tile_width;
 
-                    let tile_height = display_px.y / display_size.y;
+                    let tile_height = window_size_px.y / display_size.y;
                     let mouse_tile_y = y / tile_height;
 
                     mouse.tile_pos = Point {
@@ -534,6 +537,11 @@ pub fn main_loop(
                         }
                         _ => {}
                     }
+                }
+
+                Event::Window { win_event: WindowEvent::Resized(width, height), .. } => {
+                    println!("Window resized to: {}x{}", width, height);
+                    window_size_px = Point::new(width, height);
                 }
 
                 _ => {}
@@ -623,7 +631,7 @@ pub fn main_loop(
         // NOTE: render
 
         let display_info = engine::calculate_display_info(
-            [desired_window_width as f32, desired_window_height as f32],
+            [window_size_px.x as f32, window_size_px.y as f32],
             display_size,
             tilesize);
 

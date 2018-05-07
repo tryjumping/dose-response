@@ -12,6 +12,7 @@ function play_game(canvas, wasm_path) {
   // determined to fit in the smaller laptops.
   var squareSize = 21;
 
+
   var c = canvas;
   console.log("Setting up the canvas", c);
   c.width = width*squareSize;
@@ -19,11 +20,10 @@ function play_game(canvas, wasm_path) {
   const gl = canvas.getContext("webgl");
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  const programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
-
   const texture = twgl.createTexture(gl, {src: "font.png"});
 
 
+  var programInfo = null;
   var wasm_instance;
   var gamestate_ptr;
   var pressed_keys = [];
@@ -38,84 +38,116 @@ function play_game(canvas, wasm_path) {
   var left_pressed_this_frame = false;
   var right_pressed_this_frame = false;
 
-  console.log("Fetching: ", wasm_path);
 
-  fetch(wasm_path)
+  var wasm_env = {
+    random: Math.random,
+    sin: Math.sin,
+    draw: function(ptr, len, texture_width_px, texture_height_px) {
+      const bytesInFloat = 4;
+
+      // NOTE: both ptr and len are assuming a byte array. So we
+      // have to divide by 4 to get the floats.
+      const memory = new Float32Array(wasm_instance.exports.memory.buffer, ptr, len / bytesInFloat);
+      const packedBuffer = twgl.createBufferFromTypedArray(gl, memory);
+
+      const floatsPerElement = 8;
+      const stride = floatsPerElement * bytesInFloat;
+      const bufferInfo = {
+        numElements: memory.length / floatsPerElement,
+        attribs: {
+          pos_px: {
+            buffer: packedBuffer,
+            numComponents: 2,
+            type: gl.FLOAT,
+            stride: stride,
+            offset: 0 * bytesInFloat,
+            drawType: gl.DYNAMIC_DRAW
+          },
+          tile_pos_px: {
+            buffer: packedBuffer,
+            numComponents: 2,
+            type: gl.FLOAT,
+            stride: stride,
+            offset: 2 * bytesInFloat,
+            drawType: gl.DYNAMIC_DRAW
+          },
+          color:  {
+            buffer: packedBuffer,
+            numComponents: 4,
+            type: gl.FLOAT,
+            stride: stride,
+            offset: 4 * bytesInFloat,
+            drawType: gl.DYNAMIC_DRAW
+          }
+        }
+      };
+
+      twgl.resizeCanvasToDisplaySize(gl.canvas);
+      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      const uniforms = {
+        native_display_px: [gl.canvas.width, gl.canvas.height],
+        texture_size_px: [texture_width_px, texture_height_px],
+        tex: texture
+      };
+
+      gl.useProgram(programInfo.program);
+      twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+      twgl.setUniforms(programInfo, uniforms);
+      twgl.drawBufferInfo(gl, bufferInfo);
+    }
+  };
+
+
+  console.log("Fetching resources: ", wasm_path);
+
+  let wasm_promise = fetch(wasm_path)
     .then(function(response) {
       return response.arrayBuffer();
     })
-
     .then(function(bytes) {
       return WebAssembly.instantiate(bytes, {
-        env: {
-          random: Math.random,
-          sin: Math.sin,
-          draw: function(ptr, len, texture_width_px, texture_height_px) {
-            const bytesInFloat = 4;
-
-            // NOTE: both ptr and len are assuming a byte array. So we
-            // have to divide by 4 to get the floats.
-            const memory = new Float32Array(wasm_instance.exports.memory.buffer, ptr, len / bytesInFloat);
-            const packedBuffer = twgl.createBufferFromTypedArray(gl, memory);
-
-            const floatsPerElement = 8;
-            const stride = floatsPerElement * bytesInFloat;
-            const bufferInfo = {
-              numElements: memory.length / floatsPerElement,
-              attribs: {
-                pos_px: {
-                  buffer: packedBuffer,
-                  numComponents: 2,
-                  type: gl.FLOAT,
-                  stride: stride,
-                  offset: 0 * bytesInFloat,
-                  drawType: gl.DYNAMIC_DRAW
-                },
-                tile_pos_px: {
-                  buffer: packedBuffer,
-                  numComponents: 2,
-                  type: gl.FLOAT,
-                  stride: stride,
-                  offset: 2 * bytesInFloat,
-                  drawType: gl.DYNAMIC_DRAW
-                },
-                color:  {
-                  buffer: packedBuffer,
-                  numComponents: 4,
-                  type: gl.FLOAT,
-                  stride: stride,
-                  offset: 4 * bytesInFloat,
-                  drawType: gl.DYNAMIC_DRAW
-                }
-              }
-            };
-
-            twgl.resizeCanvasToDisplaySize(gl.canvas);
-            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-
-            const uniforms = {
-              native_display_px: [gl.canvas.width, gl.canvas.height],
-              texture_size_px: [texture_width_px, texture_height_px],
-              tex: texture
-            };
-
-            gl.useProgram(programInfo.program);
-            twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
-            twgl.setUniforms(programInfo, uniforms);
-            twgl.drawBufferInfo(gl, bufferInfo);
-          }
-        }
+        env: wasm_env
       });
-    })
+    });
 
+
+  let vertex_shader_promise = fetch("webgl_vertex_shader.glsl")
+      .then(function(response) {
+        return response.text();
+      })
+      .then(function(text) {
+        console.log("Leaded vertex shader text.");
+        return text;
+      });
+
+
+  let fragment_shader_promise = fetch("webgl_fragment_shader.glsl")
+      .then(function(response) {
+        return response.text();
+      })
+      .then(function(text) {
+        console.log("Leaded fragment shader text.");
+        return text;
+      });
+
+  Promise.all([wasm_promise, vertex_shader_promise, fragment_shader_promise])
     .then(function(results) {
-      console.log("Wasm loaded.");
+      console.log("All resources loaded.");
+      const wasm_result = results[0];
+      const vertex_shader = results[1];
+      const fragment_shader = results[2];
 
       if(loaded_callback) {
         loaded_callback();
       }
+
+      wasm_instance = wasm_result.instance;
+      gamestate_ptr = wasm_result.instance.exports.initialise();
+      programInfo = twgl.createProgramInfo(gl, [vertex_shader, fragment_shader]);
+
 
       document.addEventListener('keydown', function(event) {
         let key = normalize_key(event);
@@ -193,10 +225,6 @@ function play_game(canvas, wasm_path) {
         }
       });
 
-
-      wasm_instance = results.instance;
-      gamestate_ptr = results.instance.exports.initialise();
-
       var previous_frame_timestamp = 0;
 
       function update(timestamp) {
@@ -213,7 +241,7 @@ function play_game(canvas, wasm_path) {
         }
         pressed_keys = [];
 
-        results.instance.exports.update(
+        wasm_result.instance.exports.update(
           gamestate_ptr, dt,
           mouse.tile_x, mouse.tile_y, mouse.pixel_x, mouse.pixel_y,
           mouse.left, mouse.right);

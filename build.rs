@@ -11,20 +11,81 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 
-fn copy_output_artifacts(cargo_manifest_dir: &str, fontmap: &RgbaImage) -> Result<(), Box<Error>> {
+fn copy_output_artifacts_internal(filename: &str) -> Result<(), Box<Error>> {
     // NOTE: this is a hack to save the font file next to the produced build binary
     let target_triple = env::var("TARGET")?;
     let host_triple = env::var("HOST")?;
-    let mut target_dir = PathBuf::new();
-    target_dir.push(cargo_manifest_dir);
-    target_dir.push("target");
+    let out_dir = env::var("OUT_DIR")?;
+    let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR")?;
+
+    let mut src = PathBuf::new();
+    src.push(out_dir);
+    src.push(filename);
+
+    let mut dst = PathBuf::new();
+    dst.push(cargo_manifest_dir);
+    dst.push("target");
     if target_triple != host_triple {
-        target_dir.push(target_triple)
+        dst.push(target_triple)
     }
-    target_dir.push(env::var("PROFILE")?);
-    target_dir.push("font.png");
-    fontmap.save(target_dir)?;
+    dst.push(env::var("PROFILE")?);
+    dst.push(filename);
+
+    ::std::fs::copy(src, dst)?;
     Ok(())
+}
+
+fn copy_output_artifacts_to_target(filename: &str) {
+    println!("Attempting to copy {}", filename);
+    if let Err(e) = copy_output_artifacts_internal(filename) {
+        println!("Warning: could not copy output artifacts to the target directory.");
+        println!("{:?}", e);
+    }
+}
+
+fn webgl_from_desktop(desktop_shader: &str, replacements: &[(&str, &str)]) -> String {
+    let mut tmp: String = desktop_shader.into();
+    for (pattern, replacement) in replacements {
+        tmp = tmp.replace(pattern, replacement);
+    }
+
+    tmp
+}
+
+fn generate_webgl_shaders(out_dir: &Path, vertex_src: &str, fragment_src: &str) -> Result<(PathBuf, PathBuf), Box<Error>> {
+    let vertex_replacements = &[
+        ("#version 150 core\n", ""),
+        ("in vec2",  "attribute vec2"),
+        ("in vec3",  "attribute vec3"),
+        ("in vec4",  "attribute vec4"),
+        ("out vec2", "varying vec2"),
+        ("out vec3", "varying vec3"),
+        ("out vec4", "varying vec4"),
+    ];
+
+    let fragment_replacements = &[
+        ("#version 150 core", "precision mediump float;"),
+        ("in vec2",  "varying vec2"),
+        ("in vec3",  "varying vec3"),
+        ("in vec4",  "varying vec4"),
+        ("out vec2", "varying vec2"),
+        ("out vec3", "varying vec3"),
+        ("out vec4", "varying vec4"),
+    ];
+
+    let shader = webgl_from_desktop(vertex_src, vertex_replacements);
+    let vs_path = out_dir.join("webgl_vertex_shader.glsl");
+    let mut file = File::create(&vs_path)?;
+    file.write_all(shader.as_bytes())?;
+    file.sync_all()?;
+
+    let shader = webgl_from_desktop(fragment_src, fragment_replacements);
+    let fs_path = out_dir.join("webgl_fragment_shader.glsl");
+    let mut file = File::create(&fs_path)?;
+    file.write_all(shader.as_bytes())?;
+    file.sync_all()?;
+
+    Ok((vs_path, fs_path))
 }
 
 fn save_out_dir(cargo_manifest_dir: &str, out_dir: &Path) -> Result<(), Box<Error>> {
@@ -156,12 +217,16 @@ fn main() {
         }
     }
 
-    if let Err(e) = fontmap.save(out_dir.join("font.png")) {
-        println!("Error while saving the font map: '{}'", e);
-    }
+    fontmap.save(out_dir.join("font.png")).unwrap();
 
-    if let Err(e) = copy_output_artifacts(&cargo_manifest_dir, &fontmap) {
-        println!("Warning: could not copy output artifacts to the target directory.");
-        println!("{:?}", e);
-    }
+    let vertex_src = include_str!("src/shader_150.glslv");
+    let fragment_src = include_str!("src/shader_150.glslf");
+    generate_webgl_shaders(out_dir, vertex_src, fragment_src).unwrap();
+
+
+    // We want these artifacts in the target dir right next to the
+    // binaries, not just in the hard-to-find out-dir
+    copy_output_artifacts_to_target("font.png");
+    copy_output_artifacts_to_target("webgl_vertex_shader.glsl");
+    copy_output_artifacts_to_target("webgl_fragment_shader.glsl");
 }

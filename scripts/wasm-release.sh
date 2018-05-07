@@ -17,5 +17,7 @@ fi
 
 mkdir -p "$TARGET_WEB_DIR"
 cp "$WASM_GC_TARGET" "$TARGET_WEB_DIR"/dose-response.wasm
-cp *.js *.css "$TARGET_WEB_DIR"
-cp "$WASM_BUILD_DIR"/font.png "$TARGET_WEB_DIR"
+cp web-src/*.js "$TARGET_WEB_DIR"
+cp web-src/*.css "$TARGET_WEB_DIR"
+cp web-src/*.png "$TARGET_WEB_DIR"
+cp web-src/*.glsl "$TARGET_WEB_DIR"

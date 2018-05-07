@@ -95,10 +95,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** The smallest doses were actually okay
 **** But the larger ones weren't
 **** Maybe increase their strength?
-* Deduplicate the glium and webgl shaders
-** Their structure should be identical
-** But some of the syntax isn't
-** Can we translate one into the other with the build script?
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
 ** Would also test our build.rs tilesize generation to JS
@@ -153,6 +149,11 @@ Ctrl-c
 ** Find out the maximum drawcall count
 *** And update the vec capacities
 ** Put real timing metrics in
+** Look over all the engine modules
+*** Glium
+*** Sdl
+*** Wasm
+** Remove the unused backends
 * Consider using a fixed-step game loop?                               :code:
 ** A bunch of people on r/roguelikedev seem to do that
 ** Does that mean we have to decouple game update and render?
@@ -2372,3 +2373,11 @@ CLOSED: [2018-05-07 Mon 14:01]
 :ARCHIVE_TIME: 2018-05-07 Mon 14:01
 :END:
 *** otherwise we have to copy them manually to the website every time we change them
+** DONE Deduplicate the glium and webgl shaders
+CLOSED: [2018-05-07 Mon 19:52]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-05-07 Mon 19:52
+:END:
+*** Their structure should be identical
+*** But some of the syntax isn't
+*** Can we translate one into the other with the build script?

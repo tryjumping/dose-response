@@ -357,9 +357,9 @@ impl SdlApp {
             // Bind the texture
             gl::BindTexture(gl::TEXTURE_2D, self.texture);
             check_gl_error("BindTexture");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
             check_gl_error("TexParameteri MIN FILTER");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
             check_gl_error("TexParameteri MAG FILTER");
             gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32,
                            image_width as i32, image_height as i32, 0, gl::RGBA,

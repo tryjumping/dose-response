@@ -87,9 +87,27 @@ fn main() {
             .advance_width
     });
 
+    let glyphs: Vec<PositionedGlyph> = lookup_table
+        .iter()
+        .map(|&(index, chr)| {
+            font.glyph(chr)
+                .unwrap()
+                .scaled(scale)
+                .positioned(point(height * index as f32, v_metrics.ascent))
+        })
+        .collect();
+
+    let texture_width = pixel_height * glyphs.iter().count();
+    let texture_height = pixel_height;
+
+    println!("texture width: {}, texture height: {}", texture_width, texture_height);
+
     let mut lookup_table_contents = String::new();
 
+
     lookup_table_contents.push_str(&format!("pub const TILESIZE: u32 = {};\n", height as u32));
+    lookup_table_contents.push_str(&format!("pub const TEXTURE_WIDTH: u32 = {};\n", texture_width as u32));
+    lookup_table_contents.push_str(&format!("pub const TEXTURE_HEIGHT: u32 = {};\n", texture_height as u32));
 
     lookup_table_contents
         .push_str("fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n");
@@ -118,29 +136,7 @@ fn main() {
     let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs")).unwrap();
     lt_file.write_all(lookup_table_contents.as_bytes()).unwrap();
 
-    let glyphs: Vec<PositionedGlyph> = lookup_table
-        .iter()
-        .map(|&(index, chr)| {
-            font.glyph(chr)
-                .unwrap()
-                .scaled(scale)
-                .positioned(point(height * index as f32, v_metrics.ascent))
-        })
-        .collect();
-
-    let width = pixel_height * glyphs.iter().count();
-
-    // TODO: when rendering a layd out text:
-    // Find the most visually pleasing width to display
-    // let width = glyphs.iter().rev()
-    //     .filter_map(|g| g.pixel_bounding_box()
-    //                 .map(|b| b.min.x as f32 +
-    //                          g.unpositioned().h_metrics().advance_width))
-    //     .next().unwrap_or(0.0).ceil() as usize;
-
-    println!("width: {}, height: {}", width, pixel_height);
-
-    let mut fontmap = RgbaImage::new(width as u32, pixel_height as u32);
+    let mut fontmap = RgbaImage::new(texture_width as u32, texture_height as u32);
 
     for g in glyphs {
         if let Some(bb) = g.pixel_bounding_box() {
@@ -149,7 +145,7 @@ fn main() {
                 let y = y as i32 + bb.min.y;
                 // There's still a possibility that the glyph clips
                 // the boundaries of the bitmap
-                if x >= 0 && x < width as i32 && y >= 0 && y < pixel_height as i32 {
+                if x >= 0 && x < texture_width as i32 && y >= 0 && y < texture_height as i32 {
                     let alpha = (v * 255.0) as u8;
                     let pixel = Rgba {
                         data: [255, 255, 255, alpha],

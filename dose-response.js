@@ -21,12 +21,7 @@ function play_game(canvas, wasm_path) {
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   const programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 
-  // TODO: we must be passing the right URL here
   const texture = twgl.createTexture(gl, {src: "font.png"});
-
-  const tilesize_px = 21.0;
-  // TODO: we should read this from the texture image
-  const texture_size_px = [1995.0, tilesize_px];
 
 
   var wasm_instance;
@@ -55,7 +50,7 @@ function play_game(canvas, wasm_path) {
         env: {
           random: Math.random,
           sin: Math.sin,
-          draw: function(ptr, len) {
+          draw: function(ptr, len, texture_width_px, texture_height_px) {
             const bytesInFloat = 4;
 
             // NOTE: both ptr and len are assuming a byte array. So we
@@ -102,7 +97,7 @@ function play_game(canvas, wasm_path) {
 
             const uniforms = {
               native_display_px: [gl.canvas.width, gl.canvas.height],
-              texture_size_px: texture_size_px,
+              texture_size_px: [texture_width_px, texture_height_px],
               tex: texture
             };
 

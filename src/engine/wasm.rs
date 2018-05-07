@@ -11,7 +11,7 @@ use std::time::Duration;
 const VERTEX_CAPACITY: usize = mem::size_of::<f32>() * engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
 
 extern "C" {
-    fn draw(nums: *const u8, len: usize);
+    fn draw(nums: *const u8, len: usize, texture_width_px: i32, texture_height_px: i32);
     pub fn random() -> f32;
     // TODO: this shouldn't be necessary once Rust's sin in STD works.
     pub fn sin(rad: f32) -> f32;
@@ -300,7 +300,8 @@ pub extern "C" fn update(
     }
 
     unsafe {
-        draw(vertices.as_ptr(), vertices.len());
+        draw(vertices.as_ptr(), vertices.len(),
+             engine::TEXTURE_WIDTH as i32, engine::TEXTURE_HEIGHT as i32);
     }
 
     mem::forget(display);

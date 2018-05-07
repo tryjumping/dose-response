@@ -23,8 +23,7 @@ use image;
 
 // const DESIRED_FPS: u64 = 60;
 // const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
-const VERTEX_COMPONENT_COUNT: usize = 8;
-const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
+const VERTEX_BUFFER_CAPACITY: usize = engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -219,7 +218,7 @@ fn render(window: &mut Window,
 
         // Specify the layout of the vertex data
         // NOTE: this must happen only after the BufferData call
-        let stride = VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
+        let stride = engine::VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
         let pos_attr = gl::GetAttribLocation(program,
                                              CString::new("pos_px").unwrap().as_ptr());
         check_gl_error("GetAttribLocation pos_px");
@@ -282,7 +281,7 @@ fn render(window: &mut Window,
                                    CString::new("texture_size_px").unwrap().as_ptr()),
             texture_size_px[0], texture_size_px[1]);
 
-        gl::DrawArrays(gl::TRIANGLES, 0, (vertex_buffer.len() / VERTEX_COMPONENT_COUNT) as i32);
+        gl::DrawArrays(gl::TRIANGLES, 0, (vertex_buffer.len() / engine::VERTEX_COMPONENT_COUNT) as i32);
         check_gl_error("DrawArrays");
 
         window.gl_swap_window();
@@ -444,7 +443,7 @@ pub fn main_loop(
     let mut display = engine::Display::new(
         display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
     let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
-    assert_eq!(mem::size_of::<Vertex>(), VERTEX_COMPONENT_COUNT * 4);
+    assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
     let mut vertex_buffer: Vec<f32> = Vec::with_capacity(VERTEX_BUFFER_CAPACITY);
     let mut overall_max_drawcall_count = 0;
     let mut keys = vec![];

@@ -32,7 +32,7 @@ pub mod wasm;
 
 pub const DRAWCALL_CAPACITY: usize = 8000;
 pub const VERTEX_CAPACITY: usize = 50_000;
-
+pub const VERTEX_COMPONENT_COUNT: usize = 8;
 
 /// The drawcalls that the engine will process and render.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -106,6 +106,25 @@ impl VertexStore for Vec<Vertex> {
 impl VertexStore for Vec<f32> {
     fn push(&mut self, vertex: Vertex) {
         self.extend(&vertex.to_f32_array())
+    }
+}
+
+
+impl VertexStore for Vec<u8> {
+    fn push(&mut self, vertex: Vertex) {
+        for value in &vertex.to_f32_array() {
+            // NOTE: WASM specifies the little endian ordering
+            let bits: u32 = value.to_bits().to_le();
+            let b1 : u8 = (bits & 0xff) as u8;
+            let b2 : u8 = ((bits >> 8) & 0xff) as u8;
+            let b3 : u8 = ((bits >> 16) & 0xff) as u8;
+            let b4 : u8 = ((bits >> 24) & 0xff) as u8;
+
+            self.push(b1);
+            self.push(b2);
+            self.push(b3);
+            self.push(b4);
+        }
     }
 }
 

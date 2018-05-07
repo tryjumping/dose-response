@@ -1,4 +1,4 @@
-use engine::{self, Display, Drawcall, Mouse, Vertex, Settings, TextMetrics};
+use engine::{self, Display, Drawcall, Mouse, Settings, TextMetrics};
 use game::{self, RunningState};
 use keys::{Key, KeyCode};
 use point::Point;
@@ -8,8 +8,7 @@ use std::mem;
 use std::time::Duration;
 
 
-const VERTEX_BUFFER_CAPACITY: usize = 32;  // NOTE: 6 should actually be all we need here
-const JS_DRAWCALL_CAPACITY: usize = 80_000;
+const VERTEX_CAPACITY: usize = mem::size_of::<f32>() * engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
 
 extern "C" {
     fn draw(nums: *const u8, len: usize);
@@ -144,9 +143,8 @@ impl TextMetrics for Metrics {
 /// preallocate is here.
 pub struct Wasm {
     state: *mut State,
-    vertex_buffer: *mut Vec<Vertex>,
     drawcalls: *mut Vec<Drawcall>,
-    js_drawcalls: *mut Vec<u8>,
+    vertices: *mut Vec<u8>,
     display: *mut Display,
 }
 
@@ -188,9 +186,8 @@ pub extern "C" fn initialise() -> *mut Wasm {
         None,  // replay file
         false, // invincible
     ));
-    let vertex_buffer = Box::new(Vec::with_capacity(VERTEX_BUFFER_CAPACITY));
     let drawcalls = Box::new(Vec::with_capacity(engine::DRAWCALL_CAPACITY));
-    let js_drawcalls = Box::new(Vec::with_capacity(JS_DRAWCALL_CAPACITY));
+    let vertices = Box::new(Vec::with_capacity(VERTEX_CAPACITY));
     let display_size = ::DISPLAY_SIZE;
     let display = Box::new(
         engine::Display::new(display_size,
@@ -200,9 +197,8 @@ pub extern "C" fn initialise() -> *mut Wasm {
     let wasm = {
         Box::new(Wasm {
             state: Box::into_raw(state),
-            vertex_buffer: Box::into_raw(vertex_buffer),
             drawcalls: Box::into_raw(drawcalls),
-            js_drawcalls: Box::into_raw(js_drawcalls),
+            vertices: Box::into_raw(vertices),
             display: Box::into_raw(display),
         })
     };
@@ -210,40 +206,6 @@ pub extern "C" fn initialise() -> *mut Wasm {
     Box::into_raw(wasm)
 }
 
-fn serialise_drawcall(drawcall: &Drawcall, vertex_buffer: &mut Vec<Vertex>, js_drawcalls: &mut Vec<u8>) {
-    fn push_f32_as_wasm_bytes(value: f32, bytes: &mut Vec<u8>) {
-        // NOTE: WASM specifies the little endian ordering
-        let bits: u32 = value.to_bits().to_le();
-        let b1 : u8 = (bits & 0xff) as u8;
-        let b2 : u8 = ((bits >> 8) & 0xff) as u8;
-        let b3 : u8 = ((bits >> 16) & 0xff) as u8;
-        let b4 : u8 = ((bits >> 24) & 0xff) as u8;
-
-        bytes.push(b1);
-        bytes.push(b2);
-        bytes.push(b3);
-        bytes.push(b4);
-    }
-
-    fn push_vertex_as_wasm_bytes(vertex: &Vertex, bytes: &mut Vec<u8>) {
-        push_f32_as_wasm_bytes(vertex.pos_px[0], bytes);
-        push_f32_as_wasm_bytes(vertex.pos_px[1], bytes);
-
-        push_f32_as_wasm_bytes(vertex.tile_pos_px[0], bytes);
-        push_f32_as_wasm_bytes(vertex.tile_pos_px[1], bytes);
-
-        push_f32_as_wasm_bytes(vertex.color[0], bytes);
-        push_f32_as_wasm_bytes(vertex.color[1], bytes);
-        push_f32_as_wasm_bytes(vertex.color[2], bytes);
-        push_f32_as_wasm_bytes(vertex.color[3], bytes);
-    }
-
-    vertex_buffer.clear();
-    engine::build_vertices(&[*drawcall], vertex_buffer);
-    for vertex in vertex_buffer {
-        push_vertex_as_wasm_bytes(vertex, js_drawcalls);
-    }
-}
 
 #[allow(unsafe_code)]
 #[no_mangle]
@@ -259,9 +221,8 @@ pub extern "C" fn update(
 ) {
     let wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
     let mut state: Box<State> = unsafe { Box::from_raw(wasm.state) };
-    let mut vertex_buffer: Box<Vec<Vertex>> = unsafe { Box::from_raw(wasm.vertex_buffer) };
     let mut drawcalls: Box<Vec<Drawcall>> = unsafe { Box::from_raw(wasm.drawcalls) };
-    let mut js_drawcalls: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.js_drawcalls) };
+    let mut vertices: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.vertices) };
     let mut display: Box<Display> = unsafe { Box::from_raw(wasm.display) };
 
     let dt = Duration::from_millis(dt_ms as u64);
@@ -303,10 +264,8 @@ pub extern "C" fn update(
     drawcalls.clear();
     display.push_drawcalls(&mut drawcalls);
 
-    js_drawcalls.clear();
-    for drawcall in drawcalls.iter() {
-        serialise_drawcall(drawcall, &mut vertex_buffer, &mut js_drawcalls);
-    }
+    vertices.clear();
+    engine::build_vertices(&drawcalls, &mut *vertices);
 
     if state.cheating {
         // // NOTE: render buffer size:
@@ -341,13 +300,12 @@ pub extern "C" fn update(
     }
 
     unsafe {
-        draw(js_drawcalls.as_ptr(), js_drawcalls.len());
+        draw(vertices.as_ptr(), vertices.len());
     }
 
     mem::forget(display);
-    mem::forget(js_drawcalls);
     mem::forget(drawcalls);
-    mem::forget(vertex_buffer);
+    mem::forget(vertices);
     mem::forget(state);
     mem::forget(wasm);
 }

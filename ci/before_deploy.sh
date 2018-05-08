@@ -17,10 +17,11 @@ main() {
 
     test -f Cargo.lock || cargo generate-lockfile
 
-    cross rustc --target $TARGET --release --no-default-features --features "opengl cli rand fullscreen" -- -C lto
+    cross rustc --target $TARGET --release --no-default-features --features "opengl sdl cli rand fullscreen" -- -C lto
 
     mkdir -p $stage/"Dose Response"
     cp target/$TARGET/release/dose-response $stage/"Dose Response"
+    cp -r target/$TARGET/release/build $stage/"Dose Response"
     cp README.md $stage/"Dose Response"/README.txt
     cp COPYING.txt $stage/"Dose Response"/LICENSE.txt
     echo "Version: $TRAVIS_TAG" >> $stage/"Dose Response"/VERSION.txt

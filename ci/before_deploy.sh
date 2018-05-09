@@ -17,6 +17,7 @@ main() {
 
     test -f Cargo.lock || cargo generate-lockfile
 
+    export LD_RUN_PATH='$ORIGIN/lib'
     cross rustc --target $TARGET --release --no-default-features --features "opengl sdl cli rand fullscreen" -- -C lto
 
     mkdir -p $stage/"Dose Response"

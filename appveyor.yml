@@ -48,8 +48,14 @@ before_deploy:
   - ps: >-
       If ($Env:TARGET -eq 'x86_64-pc-windows-gnu') {
         $Env:PATH += ';C:\msys64\mingw64\bin'
+        $Env:CMAKE_MAKE_PROGRAM = 'mingw32-make.exe'
+        $Env:CMAKE_C_COMPILER = 'gcc.exe'
+        $Env:CMAKE_AR = 'gcc-ar.exe'
       } ElseIf ($Env:TARGET -eq 'i686-pc-windows-gnu') {
         $Env:PATH += ';C:\msys64\mingw32\bin'
+        $Env:CMAKE_MAKE_PROGRAM = 'mingw32-make.exe'
+        $Env:CMAKE_C_COMPILER = 'i686-w64-mingw32-gcc.exe'
+        $Env:CMAKE_AR = 'i686-w64-mingw32-gcc-ar.exe'
       }
   - dir "C:\msys64\mingw32\bin"
   - echo %PATH%

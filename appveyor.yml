@@ -51,6 +51,9 @@ before_deploy:
       } ElseIf ($Env:TARGET -eq 'i686-pc-windows-gnu') {
         $Env:PATH += ';C:\msys64\mingw32\bin'
       }
+  - dir "C:\msys64\mingw32\bin"
+  - echo %PATH%
+  - set
   # TODO Update this to build the artifacts that matter to you
   # - cargo rustc --target %TARGET% --release --bin hello -- -C lto
   - cargo rustc --target %TARGET% --release  --no-default-features --features "opengl sdl cli rand fullscreen"

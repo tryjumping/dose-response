@@ -9,10 +9,11 @@ environment:
 
   matrix:
     # MinGW
-    - TARGET: i686-pc-windows-gnu
-      RUST_VERSION: nightly
-    - TARGET: x86_64-pc-windows-gnu
-      RUST_VERSION: nightly
+    # NOTE: The sdl building + mingw doesn't work right now. Disabling it for now.
+    # - TARGET: i686-pc-windows-gnu
+    #   RUST_VERSION: nightly
+    # - TARGET: x86_64-pc-windows-gnu
+    #   RUST_VERSION: nightly
 
     # MSVC
     - TARGET: i686-pc-windows-msvc

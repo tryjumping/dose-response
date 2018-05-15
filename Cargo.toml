@@ -20,18 +20,14 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 
+# We use this to serialise the game save state into a binary format
 bincode = "1.0"
 chrono = { version = "0.4.0", optional = true }
-tcod = { git = "https://github.com/tomassedovic/tcod-rs", optional = true }
-rustbox = { version = "0.9.0", optional = true }
-piston_window = { version = "0.63.0", optional = true }
 image = { version = "0.12.2", optional = true }
 glium = { version = "0.20", optional = true }
 sdl2 = { version = "0.31.0", features = ["bundled"], optional = true }
 gl = { version = "0.10", optional = true }
-rmp-serde = { version = "0.13.7", optional = true }
 zmq = { version = "0.8", optional = true }
-
 
 [dependencies.num-rational]
 version = "0.1.40"
@@ -60,21 +56,15 @@ stats = []
 
 cli = ["clap"]
 
-web = ["rmp-serde"]
+web = []
 
 replay = ["chrono"]
 
 verifications = []
 
-piston = ["piston_window", "image"]
-
 opengl = ["glium", "image"]
 
 sdl = ["sdl2", "gl", "image"]
-
-terminal = ["rustbox"]
-
-libtcod = ["tcod"]
 
 remote = ["zmq"]
 

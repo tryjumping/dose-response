@@ -17,15 +17,6 @@ pub mod glium;
 #[cfg(feature = "sdl")]
 pub mod sdl;
 
-#[cfg(feature = "piston")]
-pub mod piston;
-
-#[cfg(feature = "libtcod")]
-pub mod tcod;
-
-#[cfg(feature = "terminal")]
-pub mod rustbox;
-
 #[cfg(feature = "remote")]
 pub mod remote;
 

@@ -10,9 +10,6 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 
-#[cfg(feature = "web")]
-extern crate rmp_serde as rmps;
-
 #[cfg(feature = "cli")]
 extern crate clap;
 
@@ -29,19 +26,10 @@ extern crate sdl2;
 #[cfg(feature = "sdl")]
 extern crate gl;
 
-#[cfg(feature = "piston")]
-extern crate piston_window;
-
-#[cfg(any(feature = "piston", feature = "opengl", feature = "sdl"))]
+#[cfg(any(feature = "opengl", feature = "sdl"))]
 extern crate image;
 
 extern crate num_rational;
-
-#[cfg(feature = "libtcod")]
-pub extern crate tcod;
-
-#[cfg(feature = "terminal")]
-extern crate rustbox;
 
 #[cfg(feature = "remote")]
 extern crate zmq;
@@ -99,77 +87,6 @@ const WORLD_SIZE: point::Point = point::Point {
 };
 
 const GAME_TITLE: &str = "Dose Response";
-
-#[cfg(feature = "libtcod")]
-fn run_libtcod(
-    display_size: point::Point,
-    default_background: color::Color,
-    window_title: &str,
-    font_path: &std::path::Path,
-    state: state::State,
-) {
-    println!("Using the libtcod backend.");
-    let mut engine =
-        engine::tcod::Engine::new(display_size, default_background, window_title, &font_path);
-    engine.main_loop(state, update);
-}
-
-#[cfg(not(feature = "libtcod"))]
-#[cfg(not(feature = "web"))]
-fn run_libtcod(
-    _display_size: point::Point,
-    _default_background: color::Color,
-    _window_title: &str,
-    _font_path: &std::path::Path,
-    _state: state::State,
-) {
-    println!("The \"libtcod\" feature was not compiled in.");
-}
-
-#[cfg(feature = "piston")]
-fn run_piston(
-    display_size: point::Point,
-    default_background: color::Color,
-    window_title: &str,
-    font_path: &std::path::Path,
-    state: state::State,
-    update: engine::UpdateFn<State>,
-) {
-    println!("Using the piston backend.");
-    engine::piston::main_loop(
-        display_size,
-        default_background,
-        window_title,
-        &font_path,
-        state,
-        update,
-    );
-}
-
-#[cfg(not(feature = "piston"))]
-#[cfg(not(feature = "web"))]
-fn run_piston(
-    _display_size: point::Point,
-    _default_background: color::Color,
-    _window_title: &str,
-    _font_path: &std::path::Path,
-    _state: state::State,
-    _update: engine::UpdateFn,
-) {
-    println!("The \"piston\" feature was not compiled in.");
-}
-
-#[cfg(feature = "terminal")]
-fn run_terminal() {
-    println!("Using the rustbox backend.\n  "
-             "TODO: this is not implemented yet.");
-}
-
-#[cfg(not(feature = "terminal"))]
-#[cfg(not(feature = "web"))]
-fn run_terminal() {
-    println!("The \"terminal\" feature was not compiled in.");
-}
 
 #[cfg(feature = "opengl")]
 fn run_opengl(
@@ -378,26 +295,7 @@ fn process_cli_and_run_game() {
         )
     };
 
-    if matches.is_present("libtcod") {
-        run_libtcod(
-            DISPLAY_SIZE,
-            color::background,
-            GAME_TITLE,
-            &std::path::Path::new(""),
-            state,
-        );
-    } else if matches.is_present("piston") {
-        run_piston(
-            DISPLAY_SIZE,
-            color::background,
-            GAME_TITLE,
-            &std::path::Path::new(""),
-            state,
-            game::update,
-        );
-    } else if matches.is_present("terminal") {
-        run_terminal();
-    } else if matches.is_present("remote") {
+    if matches.is_present("remote") {
         run_remote(
             DISPLAY_SIZE,
             color::background,

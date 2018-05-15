@@ -157,6 +157,12 @@ note: Run with `RUST_BACKTRACE=1` for a backtrace.
 *** Or maybe mac
 *** Check out the libtcod instructions and Jared's blog post?
 *** And also google "using sdl on the mac"
+* Test winit fullscreen on windows
+** We've updated Glium + winit to 0.12
+*** TODO does it help?
+** TODO Try cargo patching a newer winit version (the latest is 0.14)
+** NOTE: we still need to ship SDL glium/glutin/winit still fails on wayland
+*** TODO try patching those and using the latest source??
 * Log errors to a file?
 ** this would help us debug stuff on windows where we don't show the console anymore
 ** https://crates.io/crates/log

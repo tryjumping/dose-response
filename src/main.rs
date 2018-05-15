@@ -88,7 +88,7 @@ const WORLD_SIZE: point::Point = point::Point {
 
 const GAME_TITLE: &str = "Dose Response";
 
-#[cfg(feature = "opengl")]
+#[allow(unused_variables)]
 fn run_opengl(
     display_size: point::Point,
     default_background: color::Color,
@@ -97,6 +97,8 @@ fn run_opengl(
     update: engine::UpdateFn,
 ) {
     println!("Using the default backend: opengl");
+
+    #[cfg(feature = "opengl")]
     engine::glium::main_loop(
         display_size,
         default_background,
@@ -104,22 +106,13 @@ fn run_opengl(
         state,
         update,
     );
-}
 
-
-#[cfg(not(feature = "opengl"))]
-#[cfg(not(feature = "web"))]
-fn run_opengl(
-    _display_size: point::Point,
-    _default_background: color::Color,
-    _window_title: &str,
-    _state: state::State,
-    _update: engine::UpdateFn,
-) {
+    #[cfg(not(feature = "opengl"))]
     println!("The \"opengl\" feature was not compiled in.");
 }
 
-#[cfg(feature = "sdl")]
+
+#[allow(unused_variables)]
 fn run_sdl(
     display_size: point::Point,
     default_background: color::Color,
@@ -128,6 +121,8 @@ fn run_sdl(
     update: engine::UpdateFn,
 ) {
     println!("Using the sdl backend");
+
+    #[cfg(feature = "sdl")]
     engine::sdl::main_loop(
         display_size,
         default_background,
@@ -135,29 +130,21 @@ fn run_sdl(
         state,
         update,
     );
-}
 
-#[cfg(not(feature = "sdl"))]
-#[cfg(not(feature = "web"))]
-fn run_sdl(
-    _display_size: point::Point,
-    _default_background: color::Color,
-    _window_title: &str,
-    _state: state::State,
-    _update: engine::UpdateFn,
-) {
+    #[cfg(not(feature = "sdl"))]
     println!("The \"sdl\" feature was not compiled in.");
 }
 
 
-#[cfg(feature = "remote")]
+#[allow(unused_variables)]
 fn run_remote(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
-    state: State,
-    update: engine::UpdateFn<State>,
+    state: state::State,
+    update: engine::UpdateFn,
 ) {
+    #[cfg(feature = "remote")]
     engine::remote::main_loop(
         display_size,
         default_background,
@@ -165,17 +152,8 @@ fn run_remote(
         state,
         update,
     );
-}
 
-#[cfg(not(feature = "remote"))]
-#[cfg(not(feature = "web"))]
-fn run_remote(
-    _display_size: point::Point,
-    _default_background: color::Color,
-    _window_title: &str,
-    _state: state::State,
-    _update: engine::UpdateFn,
-) {
+    #[cfg(not(feature = "remote"))]
     println!("The \"remote\" feature was not compiled in.");
 }
 
@@ -221,16 +199,6 @@ fn process_cli_and_run_game() {
                 .long("invincible"),
         )
         .arg(
-            Arg::with_name("libtcod")
-                .long("libtcod")
-                .help("Use the libtcod rendering backend"),
-        )
-        .arg(
-            Arg::with_name("piston")
-                .long("piston")
-                .help("Use the Piston rendering backend"),
-        )
-        .arg(
             Arg::with_name("opengl")
                 .long("opengl")
                 .help("Use the Glium (OpenGL) rendering backend"),
@@ -240,18 +208,13 @@ fn process_cli_and_run_game() {
                 .long("sdl")
                 .help("Use the SDL2 rendering backend"),
         )
-        .arg(
-            Arg::with_name("terminal")
-                .long("terminal")
-                .help("Use the Rustbox (terminal-only) rendering backend"),
-        )
         .arg(Arg::with_name("remote").long("remote").help(
             "Don't create a game window. The input and output is \
              controled via ZeroMQ.",
         ))
         .group(
             ArgGroup::with_name("graphics")
-                .args(&["libtcod", "piston", "opengl", "sdl", "terminal", "remote"]),
+                .args(&["opengl", "sdl", "remote"]),
         )
         .get_matches();
 

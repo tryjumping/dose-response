@@ -95,6 +95,30 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** The smallest doses were actually okay
 **** But the larger ones weren't
 **** Maybe increase their strength?
+* Test winit fullscreen on windows
+** We've updated Glium + winit to 0.12
+*** TODO does it help?
+** TODO Try cargo patching a newer winit version (the latest is 0.14)
+** NOTE: we still need to ship SDL glium/glutin/winit still fails on wayland
+*** TODO try patching those and using the latest source??
+* Log errors to a file?
+** this would help us debug stuff on windows where we don't show the console anymore
+** https://crates.io/crates/log
+* The Opera Web version seems to eat all memory                         :bug:
+** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
+** See if the same is true on chromium/firefox
+** Try to debug it
+* The order of keys and doses in the inventory is wrong                 :bug:
+** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
+** Apparently the strong dose appears before diagonal and cardinal in the list
+** But the keys to use them don't reflect that...
+* Full turn taking is confusing to players                              :bug:
+** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
+** When we have 2 action points, people expect the PC to take one, then depression take one then the player take the one,...
+** This didn't fit my initial mental model but it's probably in line with their expectations
+** And it shouldn't break the game
+* It doesn't say anywhere that you can only have 1 bonus                :bug:
+** We should add it to the help page
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
 ** Would also test our build.rs tilesize generation to JS
@@ -157,36 +181,6 @@ note: Run with `RUST_BACKTRACE=1` for a backtrace.
 *** Or maybe mac
 *** Check out the libtcod instructions and Jared's blog post?
 *** And also google "using sdl on the mac"
-* Test winit fullscreen on windows
-** We've updated Glium + winit to 0.12
-*** TODO does it help?
-** TODO Try cargo patching a newer winit version (the latest is 0.14)
-** NOTE: we still need to ship SDL glium/glutin/winit still fails on wayland
-*** TODO try patching those and using the latest source??
-* Log errors to a file?
-** this would help us debug stuff on windows where we don't show the console anymore
-** https://crates.io/crates/log
-* DONE Test SDL fullscreen on windows
-CLOSED: [2018-05-10 Thu 09:19]
-** Make sure you run it with the --sdl backend
-** YEP! WORKY
-* The Opera Web version seems to eat all memory                         :bug:
-** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
-** See if the same is true on chromium/firefox
-** Try to debug it
-* The order of keys and doses in the inventory is wrong                 :bug:
-** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
-** Apparently the strong dose appears before diagonal and cardinal in the list
-** But the keys to use them don't reflect that...
-* Full turn taking is confusing to players                              :bug:
-** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
-** When we have 2 action points, people expect the PC to take one, then depression take one then the player take the one,...
-** This didn't fit my initial mental model but it's probably in line with their expectations
-** And it shouldn't break the game
-* It doesn't say anywhere that you can only have 1 bonus                :bug:
-** We should add it to the help page
-* Update the Glium/Glutin/Winit libs
-** Test they still work on windows & linux
 * Set the default rendering backend to SDL
 ** At least on Linux and Windows
 * Investigate using LTO                                                :code:
@@ -231,6 +225,7 @@ Ctrl-c
 *** Check for all `unwrap` calls
 *** Check for all `except` calls
 *** Check for all array access calls
+** Profile the wasm version under supported browsers
 ** Find out the maximum drawcall count
 *** And update the vec capacities
 ** Put real timing metrics in
@@ -2467,3 +2462,16 @@ CLOSED: [2018-05-07 Mon 19:52]
 *** Their structure should be identical
 *** But some of the syntax isn't
 *** Can we translate one into the other with the build script?
+** DONE Update the Glium/Glutin/Winit libs
+CLOSED: [2018-05-15 Tue 23:30]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-05-15 Tue 23:30
+:END:
+*** Test they still work on windows & linux
+** DONE Test SDL fullscreen on windows
+CLOSED: [2018-05-10 Thu 09:19]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-05-15 Tue 23:30
+:END:
+*** Make sure you run it with the --sdl backend
+*** YEP! WORKY

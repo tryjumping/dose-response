@@ -8,7 +8,10 @@ use player::{Modifier, PlayerInfo};
 use point::Point;
 use ranged_int::{InclusiveRange, Ranged};
 
-use rand::{Rand, Rng};
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng
+};
 use world::World;
 
 use std::fmt::{Display, Error, Formatter};
@@ -64,10 +67,8 @@ impl Display for CompanionBonus {
 }
 
 
-// TODO: use a rand_derive or something.
-// I tried it 2017-07-28 and it wasn't working then.
-impl Rand for CompanionBonus {
-    fn rand<R: Rng>(rng: &mut R) -> Self {
+impl Distribution<CompanionBonus> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CompanionBonus {
         use self::CompanionBonus::*;
         match rng.gen_range(0, 3) {
             0 => DoubleWillGrowth,

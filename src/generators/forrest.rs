@@ -8,7 +8,7 @@ use monster::{Kind, Monster};
 use player::Modifier;
 use point::Point;
 use rand::Rng;
-use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
+use rand::distributions::{Distribution, Weighted, WeightedChoice};
 
 // TODO: Instead of `map_size`, use a Rectangle with the world
 // positions here. We want to expose the non-world coordinates in as
@@ -41,7 +41,7 @@ fn generate_map<R: Rng, G: Rng>(
             // Player always starts at an empty space:
             let kind = match player_pos == (x, y) {
                 true => TileKind::Empty,
-                false => opts.ind_sample(rng),
+                false => opts.sample(rng),
             };
 
             let mut tile = Tile::new(kind);
@@ -96,7 +96,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
         if tile.kind != TileKind::Empty {
             continue;
         }
-        if let Some(kind) = opts.ind_sample(rng) {
+        if let Some(kind) = opts.sample(rng) {
             let mut monster = Monster::new(kind, pos);
             match kind {
                 Kind::Npc => {
@@ -216,7 +216,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Ite
                 // Occupied tile, do nothing.
             }
             TileKind::Empty => {
-                if let Some(kind) = generator.ind_sample(rng) {
+                if let Some(kind) = generator.sample(rng) {
                     result.push((pos, new_item(kind, rng)));
                 }
             }

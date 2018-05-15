@@ -4,7 +4,9 @@ version = "0.8.2"
 authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
 license = "GPL-3.0"
 build = "build.rs"
-exclude = ["scripts/*", "replays/*", "screenshots/*", "notes.org", "*.js", "*.css", "*.html"]
+exclude = ["scripts/*", "replays/*", "screenshots/*", "ci/*",
+           "web-src/*", "*.js", "*.css", "*.html",
+           "notes.org", "SAVEDGAME.sav", "out-dir-path"]
 
 [[bin]]
 name = "dose-response"

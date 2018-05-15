@@ -118,6 +118,26 @@ CLOSED: [2018-05-09 Wed 19:18]
 *** NOTE: MSVC still shows the commandline window, we need to remove that
 **** DONE That should be fixed by setting the windows_subsystem crate attribute
 CLOSED: [2018-05-09 Wed 22:40]
+** On MINGW
+*** CI fails with this error
+#+BEGIN_SRC
+error: failed to run custom build command for `sdl2-sys v0.31.0`
+process didn't exit successfully: `C:\projects\dose-response\target\release\build\sdl2-sys-d7148815df13b761\build-script-build` (exit code: 101)
+--- stdout
+running: "cmake" "C:\\projects\\dose-response\\target\\x86_64-pc-windows-gnu\\release\\build\\sdl2-sys-69f452340499d82b\\out\\SDL2-2.0.5" "-G" "MSYS Makefiles" "-DSDL_SHARED=ON" "-DSDL_STATIC=OFF" "-DCMAKE_INSTALL_PREFIX=C:\\projects\\dose-response\\target\\x86_64-pc-windows-gnu\\release\\build\\sdl2-sys-69f452340499d82b\\out" "-DCMAKE_C_FLAGS= -ffunction-sections -fdata-sections -m64" "-DCMAKE_CXX_FLAGS= -ffunction-sections -fdata-sections -m64" "-DCMAKE_BUILD_TYPE=Release"
+-- Configuring incomplete, errors occurred!
+
+--- stderr
+CMake Error: CMake was unable to find a build program corresponding to "MSYS Makefiles".  CMAKE_MAKE_PROGRAM is not set.  You probably need to select a different build tool.
+CMake Error: CMake was unable to find a build program corresponding to "MSYS Makefiles".  CMAKE_MAKE_PROGRAM is not set.  You probably need to select a different build tool.
+CMake Error: CMAKE_C_COMPILER not set, after EnableLanguage
+CMake Error: CMAKE_AR was not found, please set to archive program.
+thread 'main' panicked at '
+command did not execute successfully, got: exit code: 1
+
+build script failed, must exit now', C:\Users\appveyor\.cargo\registry\src\github.com-1ecc6299db9ec823\cmake-0.1.31\src\lib.rs:643:5
+note: Run with `RUST_BACKTRACE=1` for a backtrace.
+#+END_SRC
 ** On OSX
 *** the SDL downloaded from the website has a DMG extension
 **** Figure out what is that
@@ -127,11 +147,42 @@ CLOSED: [2018-05-09 Wed 22:40]
 ****** Which seems to contain the necessary files maybe kind of somehow?
 ****** It's a binary but when I looked into it it seemed to have the necessary bits
 ***** Read up on how does Mac do dylibs
+****** Do they do LD_LIBRARY_PATH as well?
+****** Do they do rpath?
+*** Try renting https://www.macincloud.com/
 *** TODO Test the built & official binaries somewhere
 ** Remove the built library deps if they're not needed?
 *** Although they may be useful for post-processing
 *** Maybe for the windows case or something
 *** Or maybe mac
+*** Check out the libtcod instructions and Jared's blog post?
+*** And also google "using sdl on the mac"
+* Log errors to a file?
+** this would help us debug stuff on windows where we don't show the console anymore
+** https://crates.io/crates/log
+* DONE Test SDL fullscreen on windows
+CLOSED: [2018-05-10 Thu 09:19]
+** Make sure you run it with the --sdl backend
+** YEP! WORKY
+* The Opera Web version seems to eat all memory                         :bug:
+** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
+** See if the same is true on chromium/firefox
+** Try to debug it
+* The order of keys and doses in the inventory is wrong                 :bug:
+** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
+** Apparently the strong dose appears before diagonal and cardinal in the list
+** But the keys to use them don't reflect that...
+* Full turn taking is confusing to players                              :bug:
+** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
+** When we have 2 action points, people expect the PC to take one, then depression take one then the player take the one,...
+** This didn't fit my initial mental model but it's probably in line with their expectations
+** And it shouldn't break the game
+* It doesn't say anywhere that you can only have 1 bonus                :bug:
+** We should add it to the help page
+* Update the Glium/Glutin/Winit libs
+** Test they still work on windows & linux
+* Set the default rendering backend to SDL
+** At least on Linux and Windows
 * Investigate using LTO                                                :code:
 ** Set it in profile.release in Cargo.toml
 ** Should make compilation longer but speed the binary up

@@ -371,7 +371,7 @@ pub fn main_loop(
                     event,
                 } => {
                     match event {
-                        WindowEvent::Closed => running = false,
+                        WindowEvent::CloseRequested => running = false,
                         WindowEvent::Resized(width, height) => {
                             println!("[FRAME {}] Window resized to: {} x {}",
                                      current_frame, width, height);

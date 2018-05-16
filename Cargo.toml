@@ -6,7 +6,7 @@ license = "GPL-3.0"
 build = "build.rs"
 exclude = ["scripts/*", "replays/*", "screenshots/*", "ci/*",
            "web-src/*", "*.js", "*.css", "*.html",
-           "notes.org", "SAVEDGAME.sav", "out-dir-path"]
+           "notes.org", "SAVEDGAME.sav", "out-dir-path", "dose-response.log"]
 
 [[bin]]
 name = "dose-response"
@@ -22,6 +22,8 @@ serde_json = "1.0"
 
 # We use this to serialise the game save state into a binary format
 bincode = "1.0"
+log = { version = "0.4.1" }
+simplelog = { version = "0.5.2", default-features = false, features = [], optional = true }
 chrono = { version = "0.4.0", optional = true }
 image = { version = "0.12.2", optional = true }
 #glium = { version = "0.21", optional = true }
@@ -55,7 +57,7 @@ cheating = []
 
 stats = []
 
-cli = ["clap"]
+cli = ["clap", "simplelog"]
 
 web = []
 

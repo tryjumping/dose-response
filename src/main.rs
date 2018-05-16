@@ -4,7 +4,11 @@
 extern crate bincode;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate log;
 extern crate rand;
+#[cfg(feature = "cli")]
+extern crate simplelog;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -96,7 +100,7 @@ fn run_opengl(
     state: state::State,
     update: engine::UpdateFn,
 ) {
-    println!("Using the default backend: opengl");
+    info!("Using the glium+opengl backend");
 
     #[cfg(feature = "opengl")]
     engine::glium::main_loop(
@@ -108,7 +112,7 @@ fn run_opengl(
     );
 
     #[cfg(not(feature = "opengl"))]
-    println!("The \"opengl\" feature was not compiled in.");
+    error!("The \"opengl\" feature was not compiled in.");
 }
 
 
@@ -120,7 +124,7 @@ fn run_sdl(
     state: state::State,
     update: engine::UpdateFn,
 ) {
-    println!("Using the sdl backend");
+    info!("Using the sdl backend");
 
     #[cfg(feature = "sdl")]
     engine::sdl::main_loop(
@@ -132,7 +136,7 @@ fn run_sdl(
     );
 
     #[cfg(not(feature = "sdl"))]
-    println!("The \"sdl\" feature was not compiled in.");
+    error!("The \"sdl\" feature was not compiled in.");
 }
 
 
@@ -154,12 +158,24 @@ fn run_remote(
     );
 
     #[cfg(not(feature = "remote"))]
-    println!("The \"remote\" feature was not compiled in.");
+    error!("The \"remote\" feature was not compiled in.");
 }
 
 #[cfg(feature = "cli")]
 fn process_cli_and_run_game() {
+    use std::fs::File;
     use clap::{App, Arg, ArgGroup};
+    use simplelog::{CombinedLogger, Config, LevelFilter, SimpleLogger, SharedLogger, WriteLogger};
+
+    let mut loggers = vec![
+        SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<SharedLogger>,
+    ];
+    if let Ok(logfile) = File::create("dose-response.log") {
+        loggers.push(WriteLogger::new(LevelFilter::Info, Config::default(), logfile));
+    }
+    // NOTE: ignore the loggers if we can't initialise them. The game
+    // should still be able to function.
+    let _ = CombinedLogger::init(loggers);
 
     let matches = App::new(GAME_TITLE)
         .author("Tomas Sedovic <tomas@sedovic.cz>")

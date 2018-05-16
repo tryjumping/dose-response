@@ -176,7 +176,7 @@ pub extern "C" fn key_pressed(
 
 #[no_mangle]
 pub extern "C" fn initialise() -> *mut Wasm {
-    println!("Initialising {} for WebAssembly", ::GAME_TITLE);
+    info!("Initialising {} for WebAssembly", ::GAME_TITLE);
     let state = Box::new(State::new_game(
         ::WORLD_SIZE,
         ::DISPLAYED_MAP_SIZE,

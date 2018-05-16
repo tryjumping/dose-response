@@ -178,7 +178,7 @@ impl Monster {
     pub fn spend_ap(&mut self, count: i32) {
         let ap = self.ap.to_int();
         if !(count <= ap) {
-            // println!("bad assert: {:?}", self);
+            // error!("bad assert: {:?}", self);
         }
         assert!(count <= ap);
         self.ap -= count;

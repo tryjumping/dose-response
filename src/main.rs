@@ -171,7 +171,7 @@ fn process_cli_and_run_game() {
         SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<SharedLogger>,
     ];
     if let Ok(logfile) = File::create("dose-response.log") {
-        loggers.push(WriteLogger::new(LevelFilter::Info, Config::default(), logfile));
+        loggers.push(WriteLogger::new(LevelFilter::Trace, Config::default(), logfile));
     }
     // NOTE: ignore the loggers if we can't initialise them. The game
     // should still be able to function.

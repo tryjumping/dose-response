@@ -297,7 +297,7 @@ fn render(window: &mut Window,
 fn check_gl_error(source: &str) {
     let err = unsafe{gl::GetError()};
     if err != gl::NO_ERROR {
-        println!("GL error [{}]: {:?}", source, err);
+        error!("GL error [{}]: {:?}", source, err);
     }
 }
 
@@ -540,7 +540,7 @@ pub fn main_loop(
                 }
 
                 Event::Window { win_event: WindowEvent::Resized(width, height), .. } => {
-                    println!("Window resized to: {}x{}", width, height);
+                    info!("Window resized to: {}x{}", width, height);
                     window_size_px = Point::new(width, height);
                 }
 
@@ -580,22 +580,22 @@ pub fn main_loop(
             use sdl2::video::FullscreenType::*;
             if previous_settings.fullscreen != settings.fullscreen {
                 if settings.fullscreen {
-                    println!("[{}] Switching to (desktop-type) fullscreen", current_frame_id);
+                    info!("[{}] Switching to (desktop-type) fullscreen", current_frame_id);
                     if let Err(err) = window.set_fullscreen(Desktop) {
-                        println!("[{}] WARNING: Could not switch to fullscreen:", current_frame_id);
-                        println!("{:?}", err);
+                        warn!("[{}]: Could not switch to fullscreen:", current_frame_id);
+                        warn!("{:?}", err);
                     }
                 } else {
-                    println!("[{}] Switching fullscreen off", current_frame_id);
+                    info!("[{}] Switching fullscreen off", current_frame_id);
                     if let Err(err) = window.set_fullscreen(Off) {
-                        println!("[{}] WARNING: Could not leave fullscreen:", current_frame_id);
-                        println!("{:?}", err);
+                        warn!("[{}]: Could not leave fullscreen:", current_frame_id);
+                        warn!("{:?}", err);
                     }
                 }
             }
         }
 
-        // println!("Pre-draw duration: {:?}ms",
+        // debug!("Pre-draw duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
 
@@ -607,7 +607,7 @@ pub fn main_loop(
         }
 
         if drawcalls.len() > engine::DRAWCALL_CAPACITY {
-            println!(
+            warn!(
                 "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
                 engine::DRAWCALL_CAPACITY,
                 drawcalls.len(),
@@ -618,14 +618,14 @@ pub fn main_loop(
         engine::build_vertices(&drawcalls, &mut vertex_buffer);
 
         if vertex_buffer.len() > VERTEX_BUFFER_CAPACITY {
-            println!(
+            warn!(
                 "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
                 VERTEX_BUFFER_CAPACITY,
                 vertex_buffer.len(),
             );
         }
 
-        // println!("Pre-present duration: {:?}ms",
+        // debug!("Pre-present duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
         // NOTE: render
@@ -645,19 +645,19 @@ pub fn main_loop(
                &vertex_buffer);
 
 
-        // println!("Code duration: {:?}ms",
+        // debug!("Code duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
         // if let Some(sleep_duration) = EXPECTED_FRAME_LENGTH.checked_sub(frame_start_time.elapsed()) {
         //     ::std::thread::sleep(sleep_duration);
         // };
 
-        // println!("Total frame duration: {:?}ms",
+        // debug!("Total frame duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
     }
 
 
-    println!("Drawcall count: {}. Capacity: {}.",
+    debug!("Drawcall count: {}. Capacity: {}.",
              overall_max_drawcall_count, engine::DRAWCALL_CAPACITY);
 }

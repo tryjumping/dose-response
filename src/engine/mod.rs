@@ -427,7 +427,7 @@ fn calculate_display_info(window_size_px: [f32; 2],
         if scaled_height <= window_height {
             // NOTE: we're good
         } else {
-            println!("Can't scale neither to width nor height wtf.");
+            error!("Can't scale neither to width nor height wtf.");
         }
         (scaled_width, scaled_height)
     };

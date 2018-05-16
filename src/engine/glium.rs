@@ -143,8 +143,8 @@ pub fn main_loop(
         display_size.y as u32 * tilesize as u32,
     );
 
-    println!("Requested display in tiles: {} x {}", display_size.x, display_size.y);
-    println!("Desired window size: {} x {}", desired_window_width, desired_window_height);
+    debug!("Requested display in tiles: {} x {}", display_size.x, display_size.y);
+    debug!("Desired window size: {} x {}", desired_window_width, desired_window_height);
     let mut window_width = desired_window_width;
     let mut window_height = desired_window_height;
 
@@ -194,16 +194,16 @@ pub fn main_loop(
             None => Default::default(),
         }
     };
-    println!("Window pos: {:?}", window_pos);
+    debug!("Window pos: {:?}", window_pos);
     let mut pre_fullscreen_window_pos = window_pos;
 
     let mut current_monitor = get_current_monitor(&monitors, window_pos);
-    println!("All monitors:");
+    debug!("All monitors:");
     for monitor in &monitors {
-        println!("* {:?}, pos: {:?}, size: {:?}",
+        debug!("* {:?}, pos: {:?}, size: {:?}",
                  monitor.get_name(), monitor.get_position(), monitor.get_dimensions());
     }
-    println!("Current monitor: {:?}, pos: {:?}, size: {:?}",
+    debug!("Current monitor: {:?}, pos: {:?}, size: {:?}",
              current_monitor.as_ref().map(|m| m.get_name()),
              current_monitor.as_ref().map(|m| m.get_position()),
              current_monitor.as_ref().map(|m| m.get_dimensions()));
@@ -286,10 +286,10 @@ pub fn main_loop(
         if cfg!(feature = "fullscreen") {
             if previous_settings.fullscreen != settings.fullscreen {
                 if settings.fullscreen {
-                    println!("Switching to fullscreen.");
+                    info!("Switching to fullscreen.");
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
-                        println!(
+                        debug!(
                             "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
                             monitor.get_name(),
                             monitor.get_position(),
@@ -297,13 +297,13 @@ pub fn main_loop(
                         );
                         display.gl_window().set_fullscreen(Some(monitor.clone()));
                     } else {
-                        println!("`current_monitor` is not set!??");
+                        debug!("`current_monitor` is not set!??");
                     }
                 } else {
-                    println!("Switched from fullscreen.");
+                    info!("Switched from fullscreen.");
                     display.gl_window().set_fullscreen(None);
                     let pos = display.gl_window().get_position();
-                    println!("New window position: {:?}", pos);
+                    debug!("New window position: {:?}", pos);
                     switched_from_fullscreen = true;
                 }
             }
@@ -317,7 +317,7 @@ pub fn main_loop(
         engine::build_vertices(&drawcalls, &mut vertices);
 
         if vertices.len() > engine::VERTEX_CAPACITY {
-            println!(
+            warn!(
                 "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
                 vertices.len(),
                 engine::VERTEX_CAPACITY
@@ -364,7 +364,7 @@ pub fn main_loop(
 
         // Process events
         events_loop.poll_events(|ev| {
-            //println!("{:?}", ev);
+            //debug!("{:?}", ev);
             match ev {
                 Event::WindowEvent {
                     window_id: _,
@@ -373,7 +373,7 @@ pub fn main_loop(
                     match event {
                         WindowEvent::CloseRequested => running = false,
                         WindowEvent::Resized(width, height) => {
-                            println!("[FRAME {}] Window resized to: {} x {}",
+                            debug!("[FRAME {}] Window resized to: {} x {}",
                                      current_frame, width, height);
                             window_width = width;
                             window_height = height;
@@ -388,12 +388,12 @@ pub fn main_loop(
                                 // So we restore the previous position
                                 // manually instead.
                             } else {
-                                println!("[FRAME {}] Window moved to: {}, {}",
+                                debug!("[FRAME {}] Window moved to: {}, {}",
                                          current_frame, x, y);
                                 window_pos.x = x;
                                 window_pos.y = y;
                                 current_monitor = get_current_monitor(&monitors, window_pos);
-                                println!("Current monitor: {:?}, pos: {:?}, size: {:?}",
+                                debug!("Current monitor: {:?}, pos: {:?}, size: {:?}",
                                          current_monitor.as_ref().map(|m| m.get_name()),
                                          current_monitor.as_ref().map(|m| m.get_position()),
                                          current_monitor.as_ref().map(|m| m.get_dimensions()));
@@ -423,8 +423,8 @@ pub fn main_loop(
                                 Released => false,
                             };
 
-                            // println!("KeyboardInput event!");
-                            // println!("{:?}", input);
+                            // debug!("KeyboardInput event!");
+                            // debug!("{:?}", input);
 
                             // TODO: this is a temp fix for a
                             // glutin/winit bug where the keypress
@@ -470,7 +470,7 @@ pub fn main_loop(
                                                 ctrl: lctrl_pressed || rctrl_pressed || input.modifiers.ctrl,
                                                 shift: lshift_pressed || rshift_pressed || input.modifiers.shift,
                                             };
-                                            // println!("Pushing {:?}", key);
+                                            // debug!("Pushing {:?}", key);
                                             keys.push(key);
                                         }
                                     }
@@ -496,7 +496,7 @@ pub fn main_loop(
                                                 ctrl: lctrl_pressed || rctrl_pressed || input.modifiers.ctrl,
                                                 shift: lshift_pressed || rshift_pressed || input.modifiers.shift,
                                             };
-                                            // println!("Pushing {:?}", key);
+                                            // debug!("Pushing {:?}", key);
                                             keys.push(key);
                                         }
                                     }
@@ -506,10 +506,10 @@ pub fn main_loop(
                         WindowEvent::CursorMoved {
                             position: (x, y), ..
                         } => {
-                            // println!("Extra px: {:?}", extra_px);
-                            // println!("Display px: {:?}", display_px);
-                            // println!("Native display px: {:?}", native_display_px);
-                            // println!("screen width/height: {:?}", (screen_width, screen_height));
+                            // debug!("Extra px: {:?}", extra_px);
+                            // debug!("Display px: {:?}", display_px);
+                            // debug!("Native display px: {:?}", native_display_px);
+                            // debug!("screen width/height: {:?}", (screen_width, screen_height));
                             let (x, y) = (x as i32, y as i32);
 
                             let (x, y) = (x - (display_info.extra_px[0] / 2.0) as i32, y - (display_info.extra_px[1] / 2.0) as i32);
@@ -570,7 +570,7 @@ pub fn main_loop(
             // it gets resized. We can detect it because this event
             // fires on the first frame. So we ask it to resize to the
             // expected size again and leave it at that.
-            println!("Current monitor: {:?}", current_monitor.as_ref().map(|m| m.get_dimensions()));
+            debug!("Current monitor: {:?}", current_monitor.as_ref().map(|m| m.get_dimensions()));
 
             if desired_window_width != window_width || desired_window_height != window_height {
                 if let Some(ref monitor) = current_monitor {
@@ -578,12 +578,12 @@ pub fn main_loop(
                     if desired_window_width <= monitor_width &&
                         desired_window_height <= monitor_height
                     {
-                        println!("Resetting the window to its expected size: {} x {}.",
+                        debug!("Resetting the window to its expected size: {} x {}.",
                                  desired_window_width, desired_window_height);
                         display.gl_window().set_inner_size(
                             desired_window_width, desired_window_height);
                     } else {
-                        println!("TODO: try to resize but maintain aspect ratio.");
+                        debug!("TODO: try to resize but maintain aspect ratio.");
                     }
                 }
             }

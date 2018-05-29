@@ -106,8 +106,12 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** https://crates.io/crates/log
 * The Opera Web version seems to eat all memory                         :bug:
 ** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
-** See if the same is true on chromium/firefox
-** Try to debug it
+** Repro on Chromium
+** Repro on Firefox
+** All that's necessary is to just leave the game running, no need to do anything to it
+** Try commenting out the rendering part but keep running wasm
+*** Is it the new opengl stuff?
+** TODO Publish a new version on the project play website
 * The order of keys and doses in the inventory is wrong                 :bug:
 ** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
 ** Apparently the strong dose appears before diagonal and cardinal in the list

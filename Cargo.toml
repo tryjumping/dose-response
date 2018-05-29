@@ -37,10 +37,10 @@ version = "0.1.40"
 default-features = false
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rand = { version = "0.5.0-pre.2", features = ["serde1"], optional = true }
+rand = { version = "0.5", features = ["serde1"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-rand = { version = "0.5.0-pre.2", default-features = false, features = ["serde1"] }
+rand = { version = "0.5", default-features = false, features = ["serde1"] }
 
 [build-dependencies]
 rusttype = "0.2.1"

@@ -68,12 +68,10 @@ function actually_play_game(canvas, loaded_callback) {
     sin: Math.sin,
     draw: function(ptr, len, texture_width_px, texture_height_px) {
       const bytesInFloat = 4;
-
       // NOTE: both ptr and len are assuming a byte array. So we
       // have to divide by 4 to get the floats.
       const memory = new Float32Array(wasm_instance.exports.memory.buffer, ptr, len / bytesInFloat);
       const packedBuffer = twgl.createBufferFromTypedArray(gl, memory);
-
       const floatsPerElement = 8;
       const stride = floatsPerElement * bytesInFloat;
       const bufferInfo = {
@@ -123,6 +121,10 @@ function actually_play_game(canvas, loaded_callback) {
       twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
       twgl.setUniforms(programInfo, uniforms);
       twgl.drawBufferInfo(gl, bufferInfo);
+
+      // NOTE: We must delete the buffer or it will stay in memory
+      // forever and will leak more and more every tick.
+      gl.deleteBuffer(packedBuffer);
     }
   };
 

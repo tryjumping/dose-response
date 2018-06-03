@@ -290,8 +290,16 @@ fn process_cli_and_run_game() {
             state,
             game::update,
         );
-    } else {
+    } else if matches.is_present("opengl") {
         run_opengl(
+            DISPLAY_SIZE,
+            color::background,
+            GAME_TITLE,
+            state,
+            game::update,
+        );
+    } else {
+        run_sdl(
             DISPLAY_SIZE,
             color::background,
             GAME_TITLE,

@@ -66,7 +66,7 @@ before_deploy:
   - set CMAKE_MAKE_PROGRAM = 'mingw32-make.exe'
   - set CMAKE_C_COMPILER = 'gcc.exe'
   - set CMAKE_AR = 'gcc-ar.exe'
-  - cargo rustc --target %TARGET% --release  --no-default-features --features "opengl sdl cli rand fullscreen"
+  - cargo rustc --target %TARGET% --release  --no-default-features --features "opengl sdl sdl-static-link cli rand fullscreen"
   - ps: ci\before_deploy.ps1
 
 deploy:

@@ -4,20 +4,23 @@ set -ex
 
 main() {
     local src=$(pwd) \
-          stage=
+          stage= \
+          extra_features=
 
     case $TRAVIS_OS_NAME in
         linux)
             stage=$(mktemp -d)
+            extra_features=""
             ;;
         osx)
             stage=$(mktemp -d -t tmp)
+            extra_features="sdl-static-link"
             ;;
     esac
 
     test -f Cargo.lock || cargo generate-lockfile
 
-    cross rustc --target $TARGET --release --no-default-features --features "opengl sdl cli rand fullscreen" -- -C lto
+    cross rustc --target $TARGET --release --no-default-features --features "opengl sdl cli rand fullscreen $extra_features" -- -C lto
 
     mkdir -p $stage/"Dose Response"
     cp target/$TARGET/release/dose-response $stage/"Dose Response"

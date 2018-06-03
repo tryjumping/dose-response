@@ -64,6 +64,7 @@ fn generate_webgl_shaders(out_dir: &Path, vertex_src: &str, fragment_src: &str) 
     ];
 
     let fragment_replacements = &[
+        ("out vec4 out_color;", ""),
         ("#version 150 core", "precision mediump float;"),
         ("in vec2",  "varying vec2"),
         ("in vec3",  "varying vec3"),
@@ -71,6 +72,8 @@ fn generate_webgl_shaders(out_dir: &Path, vertex_src: &str, fragment_src: &str) 
         ("out vec2", "varying vec2"),
         ("out vec3", "varying vec3"),
         ("out vec4", "varying vec4"),
+        ("out_color", "gl_FragColor"),
+        ("texture(", "texture2D("),
     ];
 
     let shader = webgl_from_desktop(vertex_src, vertex_replacements);

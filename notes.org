@@ -178,7 +178,23 @@ note: Run with `RUST_BACKTRACE=1` for a backtrace.
 ****** Do they do LD_LIBRARY_PATH as well?
 ****** Do they do rpath?
 *** Try renting https://www.macincloud.com/
-*** TODO Test the built & official binaries somewhere
+*** DONE Test the built & official binaries somewhere
+CLOSED: [2018-06-03 Sun 21:33]
+**** see if we could just install libsndio there and build the image?
+*** I've tried to use the "static-link" feature of SDL
+**** It doesn't work on linux because it needs to link sndio
+**** But it builds on Windows and Mac
+**** DONE Test the static Windows binaries
+CLOSED: [2018-06-03 Sun 17:45]
+***** seems to work fine on windows
+**** DONE Test the static OSX binaries
+CLOSED: [2018-06-03 Sun 21:33]
+***** Asked people around my social circles
+***** Huge help by: https://icosahedron.website/@cpsdqs
+**** DONE If it works, try switching to SDL + bundled as default
+CLOSED: [2018-06-03 Sun 21:33]
+***** and build an image for linux
+***** or disable it there
 ** Remove the built library deps if they're not needed?
 *** Although they may be useful for post-processing
 *** Maybe for the windows case or something

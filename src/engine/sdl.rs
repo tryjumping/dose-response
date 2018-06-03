@@ -412,6 +412,7 @@ pub fn main_loop(
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
     let mut window = video_subsystem.window(window_title, desired_window_width, desired_window_height)
+        .resizable()
         .opengl()
         .position_centered()
         .build()

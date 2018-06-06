@@ -70,7 +70,7 @@ before_deploy:
   - ps: ci\before_deploy.ps1
 
 deploy:
-  artifact: /.*\.zip/
+  artifact: /.*\.tar.gz/
   auth_token:
     secure: "/ItkeB7N8x3jUWjM0NWJhVPjx5jaEcEGgTC1GYWUGCHQSQwKcQ/tUqoGj7+HwaCk"
   description: ''

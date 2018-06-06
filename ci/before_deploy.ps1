@@ -10,7 +10,8 @@ New-Item -Type Directory -Name "$STAGE\Dose Response"
 Set-Location $STAGE
 
 #$ZIP = "$SRC_DIR\$($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET).zip"
-$TARBALL = "$SRC_DIR\$($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET).tar.gz"
+$TARFILE = "$SRC_DIR\$($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET).tar"
+$TARBALL = "$TARFILE.gz"
 
 Copy-Item "$SRC_DIR\target\$($Env:TARGET)\release\dose-response.exe" '.\Dose Response\Dose Response.exe'
 # NOTE(shadower): we're bundling things statically now, don't upload the full build directory anymore:
@@ -23,8 +24,9 @@ Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Version: $($Env:APPVEYOR
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Full Version: $($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET)"
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Commit: $($Env:APPVEYOR_REPO_COMMIT)"
 
-# 7z a "$ZIP" *
-tar -czf "$TARBALL" *
+#7z a "$ZIP" *
+7z a "$TARFILE" *
+7z a "$TARBALL" "$TARFILE"
 
 # Push-AppveyorArtifact "$ZIP"
 Push-AppveyorArtifact "$TARBALL"

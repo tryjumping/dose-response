@@ -212,7 +212,7 @@ impl Window {
                 lines.push(Empty);
                 lines.push(Paragraph("To progress, your Will needs to get stronger. Defeat enough Anxieties ('a') to make it go up. The Dose or Food \"explosions\" don't count though! Higher Will shrinks the irresistible area around Doses. It also lets you pick them up!"));
                 lines.push(Empty);
-                lines.push(Paragraph("If you see another '@' characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober."));
+                lines.push(Paragraph("If you see another '@' characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober. You can have only one bonus active at a time."));
             }
 
             Page::Legend => {

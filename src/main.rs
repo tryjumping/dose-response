@@ -1,4 +1,5 @@
 #![deny(overflowing_literals, unsafe_code)]
+#![deny(warnings)]
 #![windows_subsystem = "windows"]
 
 extern crate bincode;

@@ -74,9 +74,9 @@ impl Window {
                     action_under_mouse = Some(match kind {
                         item::Kind::Food => Action::UseFood,
                         item::Kind::Dose => Action::UseDose,
-                        item::Kind::StrongDose => Action::UseStrongDose,
                         item::Kind::CardinalDose => Action::UseCardinalDose,
                         item::Kind::DiagonalDose => Action::UseDiagonalDose,
+                        item::Kind::StrongDose => Action::UseStrongDose,
                     });
                 }
                 item_y_offset += 1;

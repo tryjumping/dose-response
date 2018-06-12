@@ -7,9 +7,9 @@ use player::Modifier;
 pub enum Kind {
     Food,
     Dose,
-    StrongDose,
     CardinalDose,
     DiagonalDose,
+    StrongDose,
 }
 
 impl Kind {
@@ -32,10 +32,10 @@ impl Iterator for KindIterator {
         let current = self.current;
         self.current = match current {
             Some(Food) => Some(Dose),
-            Some(Dose) => Some(StrongDose),
-            Some(StrongDose) => Some(CardinalDose),
+            Some(Dose) => Some(CardinalDose),
             Some(CardinalDose) => Some(DiagonalDose),
-            Some(DiagonalDose) => None,
+            Some(DiagonalDose) => Some(StrongDose),
+            Some(StrongDose) => None,
             None => None,
         };
         current

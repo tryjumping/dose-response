@@ -104,10 +104,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Simplify the CI build scripts
 ** Move readme etc. generation to the process-artifacts.py script
 ** The CI should produce just the binary *maybe* with a readme pointing to the proper releases
-* The order of keys and doses in the inventory is wrong                 :bug:
-** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
-** Apparently the strong dose appears before diagonal and cardinal in the list
-** But the keys to use them don't reflect that...
 * Full turn taking is confusing to players                              :bug:
 ** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
 ** When we have 2 action points, people expect the PC to take one, then depression take one then the player take the one,...
@@ -2519,3 +2515,11 @@ CLOSED: [2018-06-08 Fri 11:32]
 :END:
 *** this would help us debug stuff on windows where we don't show the console anymore
 *** https://crates.io/crates/log
+** DONE The order of keys and doses in the inventory is wrong          :bug:
+CLOSED: [2018-06-12 Tue 13:53]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-06-12 Tue 13:53
+:END:
+*** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
+*** Apparently the strong dose appears before diagonal and cardinal in the list
+*** But the keys to use them don't reflect that...

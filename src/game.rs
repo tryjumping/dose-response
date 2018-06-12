@@ -1132,14 +1132,14 @@ fn inventory_commands(key: Key) -> Option<Command> {
 }
 
 pub fn inventory_key(kind: item::Kind) -> u8 {
-    use item::Kind::*;
-    match kind {
-        Food => 1,
-        Dose => 2,
-        CardinalDose => 3,
-        DiagonalDose => 4,
-        StrongDose => 5,
+    // NOTE: use the order defined in `Kind::iter` so the keys always
+    // correspond to the order we display the items in.
+    for (index, current_kind) in item::Kind::iter().enumerate() {
+        if current_kind == kind {
+            return (index + 1) as u8
+        }
     }
+    unreachable!()
 }
 
 fn kill_monster(monster_position: Point, world: &mut World) {

@@ -189,7 +189,7 @@ impl Window {
         let mut lines: Vec<Cow<'static, str>> = vec![];
 
         if layout.inventory.len() > 0 {
-            display.draw_button(&Button::new(layout.inventory_pos, "Inventory").color(fg));
+            display.draw_button(&Button::new(layout.inventory_pos, "Inventory:").color(fg));
 
             for kind in item::Kind::iter() {
                 if let Some(count) = layout.inventory.get(&kind) {
@@ -208,9 +208,9 @@ impl Window {
         }
 
         if !player.bonuses.is_empty() {
-            lines.push("Bonus:".into());
+            lines.push("Active bonus:".into());
             for bonus in &player.bonuses {
-                lines.push(format!("* {}", bonus).into());
+                lines.push(format!("{}", bonus).into());
             }
             lines.push("".into());
         }

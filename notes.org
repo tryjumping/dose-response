@@ -109,8 +109,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** When we have 2 action points, people expect the PC to take one, then depression take one then the player take the one,...
 ** This didn't fit my initial mental model but it's probably in line with their expectations
 ** And it shouldn't break the game
-* It doesn't say anywhere that you can only have 1 bonus                :bug:
-** We should add it to the help page
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
 ** Would also test our build.rs tilesize generation to JS
@@ -2523,3 +2521,9 @@ CLOSED: [2018-06-12 Tue 13:53]
 *** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
 *** Apparently the strong dose appears before diagonal and cardinal in the list
 *** But the keys to use them don't reflect that...
+** DONE It doesn't say anywhere that you can only have 1 bonus         :bug:
+CLOSED: [2018-06-12 Tue 16:48]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-06-12 Tue 16:48
+:END:
+*** We should add it to the help page

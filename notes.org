@@ -104,11 +104,30 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Simplify the CI build scripts
 ** Move readme etc. generation to the process-artifacts.py script
 ** The CI should produce just the binary *maybe* with a readme pointing to the proper releases
-* Full turn taking is confusing to players                              :bug:
+* TODO Full turn taking is confusing to players                         :bug:
 ** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
 ** When we have 2 action points, people expect the PC to take one, then depression take one then the player take the one,...
 ** This didn't fit my initial mental model but it's probably in line with their expectations
 ** And it shouldn't break the game
+* Fullscreen shows an extra column of the map glyphs to the left        :bug:
+* Consider defaulting to X11 when running in Wayland
+** https://github.com/tomaka/winit/issues/305
+** do this before starting the window:
+#+BEGIN_SRC
+std::env::set_var("WINIT_UNIX_BACKEND", "x11");
+#+END_SRC
+** look if there's a way of setting this without the env vars?
+** Anyway, this fixes our issues on Wayland Fedora 27
+* Add an option to set the graphics backend in the settings
+** This will mean closing and reopenning the window
+*** Or maybe we show "restart the game"
+** Also, persisting the options somewhere
+** We could ask people to try this out and say which should be the default
+* Screen scrolling is jagged on Windows in Fullscreen
+* Try winit + raw opengl on Windows
+** Using the same code path as the SDL backend
+** Does this result in the same scrolling jaggedness as with SDL fullscreen?
+** This way we can figure out if it's our opengl code or the SDL backend itself
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
 ** Would also test our build.rs tilesize generation to JS

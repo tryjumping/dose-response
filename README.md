@@ -1,7 +1,7 @@
 Dose Response
 =============
 
-Dose Response is an open-world roguelike where you play an addict.
+Dose Response is an open-world roguelike where you play a drug addict.
 Avoid the dangers threatening your mind and body while desperately
 looking for the next fix.
 
@@ -12,26 +12,25 @@ You control the `@` character on the screen. You can move in the four
 **cardinal directions** (up, down, left and right) and four **diagonal
 directions** (north-east, south-east, north-west, south-west).
 
-For the in-game help click on the `Help` button or press `?` (question
-mark) while playing.
+For in-game help click on the `Help` button or press `?` while playing.
 
-Whenever you see a `%` it's a food that you can pick up and use later.
-If you move onto it, you pick it up automatically.
+`%` represents food that you can pick up and use later.
+Stepping into food will pick it up automatically.
 
-`i` is a dose and your character uses it as soon as you step on it. It
+`i` is a dose and the player consumes it when stepping on it. It
 destroys nearby monsters and expands your field of view.
 
-When your come down from the effect of the dose, you'll go into a
-withdrawal. Eventually, you'll lose of exhaustion.
+When coming off a dose high, you'll enter into a withdrawal state.
+In this state exhaustion starts increasing, too much exhaustion and you lose.
 
-You can eat food (or find another dose) to stave off the effects.
+You can eat food (or find another dose) to stave off the effects of withdrawal.
 
-When you have an item you can use (such as food) it will appear in
+When you have an item you can use it will appear in
 your inventory in the sidebar next to a numeric key. You use it by
-pressing the key.
+pressing the corresponding key.
 
 
-Remember:
+Quick Tips:
 * At the beginning, you can overdose very easily
 * Doses differ in purity, sometimes you come across a weak one and
   other times it's the bomb
@@ -46,18 +45,21 @@ you can use:
 
 ### Numpad (recommended)
 
-Most desktop computers have a numpad, but a lot of laptops don't. If
-you have it, you can use its keys to move around:
+The Numpad is the simplest control scheme to understand, each key
+corresponds to its 8-way movement counterpart.
 
-Use `8`, `2`, `4` and `6` keys to move up/down/left/right.
+Use `8`, `2`, `4` and `6` keys to move up,down,left or right.
 
 To move diagonally, use `7`, `9`, `1` and `3` to move north-west,
 north-east, south-west and south-east.
 
+If you have a laptop or a keyboard without a numpad the following
+keyboard schemes are available.
+
 ### Arrows keys + `ctrl`/`shift`
 
 Use your `up`, `down`, `left` and `right` keys to move
-up/down/left/right.
+in those directions.
 
 To move diagonally, pressing `control` and `left`/`right` means "north"
 and pressing `shift` means "south".
@@ -67,7 +69,7 @@ south-west you hold `shift` and press `left`.
 
 ### Vi-keys
 
-Use `k`, `j`, `h` and `l` to move up/down/left/right.
+Use `k`, `j`, `h` and `l` to move up,down,left or right.
 
 To move diagonally, press `y`, `b`, `u` and `n` to move north-west,
 south-west, north-east and south-west.

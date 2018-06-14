@@ -48,7 +48,7 @@ you can use:
 The Numpad is the simplest control scheme to understand, each key
 corresponds to its 8-way movement counterpart.
 
-Use `8`, `2`, `4` and `6` keys to move up,down,left or right.
+Use `8`, `2`, `4` and `6` keys to move up, down, left or right.
 
 To move diagonally, use `7`, `9`, `1` and `3` to move north-west,
 north-east, south-west and south-east.
@@ -69,7 +69,7 @@ south-west you hold `shift` and press `left`.
 
 ### Vi-keys
 
-Use `k`, `j`, `h` and `l` to move up,down,left or right.
+Use `k`, `j`, `h` and `l` to move up, down, left or right.
 
 To move diagonally, press `y`, `b`, `u` and `n` to move north-west,
 south-west, north-east and south-west.

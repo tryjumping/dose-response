@@ -256,6 +256,11 @@ fn process_game(
 
         let command_count = state.commands.len();
 
+        // TODO: see if we can process these turn by turn
+        // instead of player doing all turns and then monsters all theirs
+        // this will require some prioritisation on the monster side:
+        // e.g. depression moves first, then second turn everyone else does
+
         // NOTE: Process player
         process_player(state, simulation_area);
 

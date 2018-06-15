@@ -122,7 +122,12 @@ impl VertexStore for Vec<u8> {
 }
 
 
-fn build_vertices<T: VertexStore>(drawcalls: &[Drawcall], vertices: &mut T) {
+fn build_vertices<T: VertexStore>(
+    drawcalls: &[Drawcall],
+    vertices: &mut T,
+    display_size: [f32; 2])
+{
+    let (display_size_x, display_size_y) = (display_size[0], display_size[1]);
     for drawcall in drawcalls {
         match drawcall {
             // NOTE: Rectangle, ColorAlpha)
@@ -131,6 +136,29 @@ fn build_vertices<T: VertexStore>(drawcalls: &[Drawcall], vertices: &mut T) {
                 let size_px = rect.size();
                 let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
                 let (dim_x, dim_y) = (size_px.x as f32, size_px.y as f32);
+
+                // NOTE: cut off the area that's not in the display.
+                //
+                // Any drawcalls that would be entirely invisible will
+                // have been filtered by now. But we still need to
+                // process drawcalls that are only partially visible.
+                // So this fixes the rendered position and height to
+                // do just that.
+                let (pos_x, dim_x) = if pos_x < 0.0 {
+                    (0.0, dim_x + pos_x)
+                } else if pos_x + dim_x >= display_size_x {
+                    (pos_x, display_size_x - pos_x)
+                } else {
+                    (pos_x, dim_x)
+                };
+                let (pos_y, dim_y) = if pos_y < 0.0 {
+                    (0.0, dim_y + pos_y)
+                } else if pos_y + dim_y >= display_size_y {
+                    (pos_y, display_size_y - pos_y)
+                } else {
+                    (pos_y, dim_y)
+                };
+
                 let tile_pos_px = [-1.0, -1.0];
                 let color = color.into();
 
@@ -173,6 +201,32 @@ fn build_vertices<T: VertexStore>(drawcalls: &[Drawcall], vertices: &mut T) {
                 let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
                 let (tile_width, tile_height) = (dst.width() as f32, dst.height() as f32);
                 let (tilemap_x, tilemap_y) = (src.top_left().x as f32, src.top_left().y as f32);
+
+                // NOTE: cut off the area that's not in the display.
+                //
+                // Any drawcalls that would be entirely invisible will
+                // have been filtered by now. But we still need to
+                // process drawcalls that are only partially visible.
+                // So this fixes the rendered position and height to
+                // do just that.
+                let (pos_x, tilemap_x, tile_width) = if pos_x < 0.0 {
+                    (0.0, tilemap_x + (0.0 - pos_x), tile_width + pos_x)
+                } else if pos_x + tile_width >= display_size_x {
+                    (pos_x, tilemap_x, display_size_x - pos_x)
+                } else {
+                    (pos_x, tilemap_x, tile_width)
+                };
+                let (pos_y, tilemap_y, tile_height) = if pos_y < 0.0 {
+                    (0.0, tilemap_y + (0.0 - pos_y), tile_height + pos_y)
+                } else if pos_y + tile_height >= display_size_y {
+                    (pos_y, tilemap_y, display_size_y - pos_y)
+                } else {
+                    (pos_y, tilemap_y, tile_height)
+                };
+
+
+
+
                 let rgba: ColorAlpha = color.into();
                 let color = rgba.into();
 
@@ -691,8 +745,6 @@ impl Display {
 
             if rect_intersects_area(background_dst, display_size_px) {
                 drawcalls.push(Drawcall::Rectangle(background_dst, cell.background.into()));
-            }
-            if rect_intersects_area(glyph_dst, display_size_px) {
                 drawcalls.push(Drawcall::Image(texture_src, glyph_dst, cell.foreground));
             }
         }

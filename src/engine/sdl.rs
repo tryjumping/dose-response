@@ -615,8 +615,13 @@ pub fn main_loop(
             );
         }
 
+        let display_info = engine::calculate_display_info(
+            [window_size_px.x as f32, window_size_px.y as f32],
+            display_size,
+            tilesize);
+
         vertex_buffer.clear();
-        engine::build_vertices(&drawcalls, &mut vertex_buffer);
+        engine::build_vertices(&drawcalls, &mut vertex_buffer, display_info.native_display_px);
 
         if vertex_buffer.len() > VERTEX_BUFFER_CAPACITY {
             warn!(
@@ -630,11 +635,6 @@ pub fn main_loop(
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
 
         // NOTE: render
-
-        let display_info = engine::calculate_display_info(
-            [window_size_px.x as f32, window_size_px.y as f32],
-            display_size,
-            tilesize);
 
         render(&mut window,
                sdl_app.program,

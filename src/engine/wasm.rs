@@ -260,12 +260,16 @@ pub extern "C" fn update(
         RunningState::Stopped => {}
     }
 
+    let native_display_size_px = [
+        display_size.x as f32 * super::TILESIZE as f32,
+        display_size.y as f32 * super::TILESIZE as f32,
+    ];
 
     drawcalls.clear();
     display.push_drawcalls(&mut drawcalls);
 
     vertices.clear();
-    engine::build_vertices(&drawcalls, &mut *vertices);
+    engine::build_vertices(&drawcalls, &mut *vertices, native_display_size_px);
 
     if state.cheating {
         // // NOTE: render buffer size:

@@ -309,12 +309,17 @@ pub fn main_loop(
             }
         }
 
+        let display_info = engine::calculate_display_info(
+            [window_width as f32, window_height as f32],
+            display_size,
+            tilesize);
+
         // Process drawcalls
         drawcalls.clear();
         engine_display.push_drawcalls(&mut drawcalls);
 
         vertices.clear();
-        engine::build_vertices(&drawcalls, &mut vertices);
+        engine::build_vertices(&drawcalls, &mut vertices, display_info.native_display_px);
 
         if vertices.len() > engine::VERTEX_CAPACITY {
             warn!(
@@ -325,11 +330,6 @@ pub fn main_loop(
         }
 
         let vertex_buffer = glium::VertexBuffer::new(&display, &vertices).unwrap();
-
-        let display_info = engine::calculate_display_info(
-            [window_width as f32, window_height as f32],
-            display_size,
-            tilesize);
 
         // TODO: Once we support multiple font sizes, we can adjust it
         // here. We could also potentially only allow resizes in steps

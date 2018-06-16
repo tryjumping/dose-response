@@ -93,7 +93,7 @@ const WORLD_SIZE: point::Point = point::Point {
 
 const GAME_TITLE: &str = "Dose Response";
 
-#[allow(unused_variables)]
+#[allow(unused_variables, dead_code)]
 fn run_opengl(
     display_size: point::Point,
     default_background: color::Color,
@@ -117,7 +117,7 @@ fn run_opengl(
 }
 
 
-#[allow(unused_variables)]
+#[allow(unused_variables, dead_code)]
 fn run_sdl(
     display_size: point::Point,
     default_background: color::Color,
@@ -141,7 +141,7 @@ fn run_sdl(
 }
 
 
-#[allow(unused_variables)]
+#[allow(unused_variables, dead_code)]
 fn run_remote(
     display_size: point::Point,
     default_background: color::Color,

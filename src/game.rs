@@ -227,7 +227,7 @@ fn process_game(
 
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
-    let mut spent_turn = false;
+    let mut player_took_action = false;
     // Pause entity processing during animations when replaying (so
     // it's all easy to see) but allow the keys to be processed when
     // playing the game normally. I.e. the players can move even
@@ -281,15 +281,15 @@ fn process_game(
             }
         }
 
-        spent_turn = command_count > state.commands.len();
+        player_took_action = command_count > state.commands.len();
     }
 
-    if spent_turn {
+    if player_took_action {
         state.turn += 1;
     }
 
     // NOTE: Load up new chunks if necessary
-    if spent_turn {
+    if player_took_action {
         for pos in simulation_area.points() {
             state.world.ensure_chunk_at_pos(pos);
         }
@@ -311,7 +311,7 @@ fn process_game(
     }
 
     // Log or check verifications
-    if spent_turn {
+    if player_took_action {
         if state.replay {
             if let Some(expected) = state.verifications.pop_front() {
                 let actual = state.verification();

@@ -118,12 +118,16 @@ std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 #+END_SRC
 ** look if there's a way of setting this without the env vars?
 ** Anyway, this fixes our issues on Wayland Fedora 27
+* Consider using GFX for both winit and sdl?
+** That way we can verify whether the jaggedness is because of SDL or our code
 * Add an option to set the graphics backend in the settings
 ** This will mean closing and reopenning the window
 *** Or maybe we show "restart the game"
 ** Also, persisting the options somewhere
 ** We could ask people to try this out and say which should be the default
 * Screen scrolling is jagged on Windows in Fullscreen
+** hm, I can no longer reproduce this???
+** let's just drop it for now and focus on the real stuff
 * Try winit + raw opengl on Windows
 ** Using the same code path as the SDL backend
 ** Does this result in the same scrolling jaggedness as with SDL fullscreen?

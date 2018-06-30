@@ -33,6 +33,8 @@ gl = { version = "0.10", optional = true }
 zmq = { version = "0.8", optional = true }
 
 [dependencies.num-rational]
+# TODO: update to "0.2.1" which supports Serde 1.0. Problem is, image doesn't
+# support it yet and the two versions conflict?
 version = "0.1.40"
 default-features = false
 

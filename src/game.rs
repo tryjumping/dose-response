@@ -256,23 +256,29 @@ fn process_game(
 
         let command_count = state.commands.len();
 
-        // TODO: see if we can process these turn by turn
-        // instead of player doing all turns and then monsters all theirs
-        // this will require some prioritisation on the monster side:
-        // e.g. depression moves first, then second turn everyone else does
-
-        // NOTE: Process player
+        // NOTE: Process 1 action point of the player and then 1 AP of
+        // all monsters. This means that their turns will alternate.
+        // E.g. if the player has 2 APs and they're close to a
+        // Depression, the player will move 1 turn first, then
+        // Depression 1 etc.
         process_player(state, simulation_area);
-
-        // NOTE: Process monsters
-        if state.player.ap() <= 0 && state.explosion_animation.is_none() {
+        if state.explosion_animation.is_none() {
             process_monsters(
                 &mut state.world,
                 &mut state.player,
                 simulation_area,
                 &mut state.rng,
             );
+        }
+
+        // Reset all action points only after everyone is at zero:
+        let player_turn_ended = !state.player.has_ap(1);
+        let monster_turn_ended = state.world.monsters(simulation_area).filter(|m| m.has_ap(1)).count() == 0;
+        if player_turn_ended && monster_turn_ended {
             state.player.new_turn();
+            for monster in state.world.monsters_mut(simulation_area) {
+                monster.new_turn();
+            }
         }
 
         spent_turn = command_count > state.commands.len();
@@ -621,20 +627,17 @@ fn process_monsters<R: Rng>(
     // NOTE: one quarter of the map area should be a decent overestimate
     let monster_count_estimate = area.size().x * area.size().y / 4;
     assert!(monster_count_estimate > 0);
-    let mut monster_positions_vec = world.monsters(area).map(|m| m.position).collect::<Vec<_>>();
+    let mut monster_positions_vec = world.monsters(area)
+        .filter(|m| m.has_ap(1))
+        .map(|m| (m.ap.to_int(), m.position))
+        .collect::<Vec<_>>();
     // TODO: Sort by how far it is from the player?
     // NOTE: `world.monsters` does not give a stable result so we need to sort
     // it here to ensure correct replays.
-    monster_positions_vec.sort_by_key(|pos| (pos.x, pos.y));
+    monster_positions_vec.sort_by_key(|&(ap, pos)| (ap, pos.x, pos.y));
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
 
-    for &pos in monster_positions_to_process.iter() {
-        if let Some(monster) = world.monster_on_pos(pos) {
-            monster.new_turn();
-        }
-    }
-
-    while let Some(mut monster_position) = monster_positions_to_process.pop_front() {
+    while let Some((_, monster_position)) = monster_positions_to_process.pop_front() {
         let monster_readonly = world
             .monster_on_pos(monster_position)
             .expect("Monster should exist on this position")
@@ -698,7 +701,6 @@ fn process_monsters<R: Rng>(
                         monster.trail = Some(newpos);
                     }
                 }
-                monster_position = newpos;
             }
 
             Action::Attack(target_pos, damage) => {
@@ -715,13 +717,6 @@ fn process_monsters<R: Rng>(
             }
 
             Action::Use(_) => unreachable!(),
-        }
-
-        if world
-            .monster_on_pos(monster_position)
-            .map_or(false, |m| m.has_ap(1))
-        {
-            monster_positions_to_process.push_back(monster_position);
         }
     }
 }

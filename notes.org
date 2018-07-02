@@ -110,6 +110,9 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** This didn't fit my initial mental model but it's probably in line with their expectations
 ** And it shouldn't break the game
 * Replays are broken with alternating the turns                         :bug:
+** Actually, the crash seems to occur precisely at the time we take a dose
+** test if we can prolong it with food
+** check if this is a new thing or happens on earlier commits too
 * Fullscreen shows an extra column of the map glyphs to the left        :bug:
 * Consider defaulting to X11 when running in Wayland
 ** https://github.com/tomaka/winit/issues/305

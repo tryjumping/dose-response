@@ -121,11 +121,33 @@ std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 ** Anyway, this fixes our issues on Wayland Fedora 27
 * Consider using GFX for both winit and sdl?
 ** That way we can verify whether the jaggedness is because of SDL or our code
+* Figure out scrolling glitches
+** Slow the scrolling down so they're easily visible
+** Play the game & see what looks wrong
+** IIRC some of the explored areas have a weird background or something
+** There are some weird little bands around some glyphs
 * Add an option to set the graphics backend in the settings
 ** This will mean closing and reopenning the window
 *** Or maybe we show "restart the game"
 ** Also, persisting the options somewhere
 ** We could ask people to try this out and say which should be the default
+* Add a permanently updated savefile to protect against crashes
+** E.g. something that would protect against the panic when we switch to fullscreen
+*** that's solved right now in the latest winit and SDL
+*** but things like that could still happen
+** So this would be kind of like an autosave
+*** prolly don't want to write to the disk every time something moves
+*** but maybe creating a state every minute or w/e
+*** and then differential updates on every state change
+** Or maybe just fuck it and save the file on every update?
+*** see if that's feasible
+** Ideally, we'd just rename this file on "save & quit"
+*** so we've got a single codepath for both explicit save and crash recovery
+** If the starts and it sees a crash file, show "recover from crash" in the menu
+*** prolly want to delete the crash file on clean exit
+* Add a settings/config file
+** Use json (ugh) because that's a serialisation format we already have in the code
+** And we'll primarily use it from within the game
 * Screen scrolling is jagged on Windows in Fullscreen
 ** hm, I can no longer reproduce this???
 ** let's just drop it for now and focus on the real stuff
@@ -1764,7 +1786,6 @@ CLOSED: [2018-01-28 Sun 11:25]
 **** And then improve by using that bitmap the square grid, too
 **** And leave properly kerned variable width to other games
 **** We don't want to be using different fonts anyway
-<<<<<<< HEAD
 ** DONE Center the generated font bitmap                                :ui:
 CLOSED: [2018-01-25 Thu 23:41]
 :PROPERTIES:

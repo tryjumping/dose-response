@@ -26,6 +26,8 @@ log = { version = "0.4.1" }
 simplelog = { version = "0.5.2", default-features = false, features = [], optional = true }
 chrono = { version = "0.4.0", optional = true }
 image = { version = "0.12.2", optional = true }
+# NOTE: this clone exists to try the latest winit. When glium supports
+# winit >= 15 we can switch back.
 #glium = { version = "0.21", optional = true }
 glium = { git = "https://github.com/tomassedovic/glium", optional = true }
 sdl2 = { version = "0.31.0", features = ["bundled"], optional = true }

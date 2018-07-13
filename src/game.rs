@@ -227,7 +227,8 @@ fn process_game(
 
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
-    let mut player_took_action = false;
+    let mut _player_took_action = false;
+    let mut entire_turn_ended = false;
     // Pause entity processing during animations when replaying (so
     // it's all easy to see) but allow the keys to be processed when
     // playing the game normally. I.e. the players can move even
@@ -261,7 +262,18 @@ fn process_game(
         // E.g. if the player has 2 APs and they're close to a
         // Depression, the player will move 1 turn first, then
         // Depression 1 etc.
-        process_player(state, simulation_area);
+        if state.player.has_ap(1) {
+            process_player(state, simulation_area);
+        }
+        // TODO: is it because of the animation here?
+        // NOTE: yeah! But why? And what to do about it?
+
+        // OH CRAP
+        //
+        // This is because in the replay we process plaer, then skip monsters and then
+        // process player immediately again? Hm although at that point the player should
+        // have no action points
+        //
         if state.explosion_animation.is_none() {
             process_monsters(
                 &mut state.world,
@@ -276,42 +288,17 @@ fn process_game(
         let monster_turn_ended = state.world.monsters(simulation_area).filter(|m| m.has_ap(1)).count() == 0;
         if player_turn_ended && monster_turn_ended {
             state.player.new_turn();
+            entire_turn_ended = true;
             for monster in state.world.monsters_mut(simulation_area) {
                 monster.new_turn();
             }
         }
 
-        player_took_action = command_count > state.commands.len();
-    }
-
-    if player_took_action {
-        state.turn += 1;
-    }
-
-    // NOTE: Load up new chunks if necessary
-    if player_took_action {
-        for pos in simulation_area.points() {
-            state.world.ensure_chunk_at_pos(pos);
-        }
-    }
-
-    // Run the dose explosion effect here:
-    if let Some(ref anim) = state.explosion_animation {
-        for (pos, _, effect) in anim.tiles() {
-            if effect.contains(animation::TileEffect::KILL) {
-                kill_monster(pos, &mut state.world);
-            }
-            if effect.contains(animation::TileEffect::SHATTER) {
-                if let Some(cell) = state.world.cell_mut(pos) {
-                    cell.tile.kind = TileKind::Empty;
-                    cell.items.clear();
-                }
-            }
-        }
+        _player_took_action = command_count > state.commands.len();
     }
 
     // Log or check verifications
-    if player_took_action {
+    if entire_turn_ended {
         if state.replay {
             if let Some(expected) = state.verifications.pop_front() {
                 let actual = state.verification();
@@ -333,6 +320,33 @@ fn process_game(
         } else if cfg!(feature = "verifications") {
             let verification = state.verification();
             state::log_verification(&mut state.command_logger, verification);
+        }
+    }
+
+    if entire_turn_ended {
+        info!("Turn {} has ended.", state.turn);
+        state.turn += 1;
+    }
+
+    // NOTE: Load up new chunks if necessary
+    // if player_took_action && entire_turn_ended {
+    //     for pos in simulation_area.points() {
+    //         state.world.ensure_chunk_at_pos(pos);
+    //     }
+    // }
+
+    // Run the dose explosion effect here:
+    if let Some(ref anim) = state.explosion_animation {
+        for (pos, _, effect) in anim.tiles() {
+            if effect.contains(animation::TileEffect::KILL) {
+                kill_monster(pos, &mut state.world);
+            }
+            if effect.contains(animation::TileEffect::SHATTER) {
+                if let Some(cell) = state.world.cell_mut(pos) {
+                    cell.tile.kind = TileKind::Empty;
+                    cell.items.clear();
+                }
+            }
         }
     }
 
@@ -643,6 +657,7 @@ fn process_monsters<R: Rng>(
             .expect("Monster should exist on this position")
             .clone();
         let action = {
+            info!("{:?}, {:?}", monster_readonly.position, monster_readonly.kind);
             let (update, action) = monster_readonly.act(player.info(), world, rng);
             if let Some(monster) = world.monster_on_pos(monster_position) {
                 monster.ai_state = update.ai_state;

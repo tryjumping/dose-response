@@ -1,12 +1,11 @@
 use animation::{self, AreaOfEffect};
 use blocker::Blocker;
 use color;
-use engine::{TILESIZE, Display, Mouse, Settings, TextMetrics};
+use engine::{Display, Mouse, Settings, TextMetrics, TILESIZE};
 use formula;
 use item;
 use keys::{Key, KeyCode, Keys};
 use level::TileKind;
-use windows::{endgame, help, main_menu, sidebar};
 use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
@@ -18,13 +17,14 @@ use state::{self, Command, Side, State, Window};
 use stats::{FrameStats, Stats};
 use timer::{Stopwatch, Timer};
 use util;
+use windows::{endgame, help, main_menu, sidebar};
 use world::World;
 
 use std::collections::{HashMap, VecDeque};
-use std::u64;
 use std::io::Write;
 use std::iter::FromIterator;
 use std::time::Duration;
+use std::u64;
 
 use rand::Rng;
 
@@ -50,7 +50,7 @@ pub fn update(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &TextMetrics,
-    display: &mut Display,  // TODO: remove this from the engine and keep a transient state instead
+    display: &mut Display, // TODO: remove this from the engine and keep a transient state instead
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
     state.clock = state.clock + dt;
@@ -125,7 +125,7 @@ pub fn update(
         });
     }
 
-    if let RunningState::Stopped = game_update_result  {
+    if let RunningState::Stopped = game_update_result {
         if cfg!(feature = "stats") {
             show_exit_stats(&state.stats);
         }
@@ -142,6 +142,7 @@ fn process_game(
 ) -> RunningState {
     use self::sidebar::Action;
 
+    println!("TICK");
     let mut option = None;
 
     if state.mouse.left {
@@ -171,7 +172,8 @@ fn process_game(
     }
 
     // Show the endgame screen on any pressed key:
-    if state.game_ended && state.screen_fading.is_none()
+    if state.game_ended
+        && state.screen_fading.is_none()
         && (state.keys.matches(|_| true) || state.mouse.right)
     {
         state.window_stack.push(Window::Endgame);
@@ -202,7 +204,8 @@ fn process_game(
     };
 
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
-    let timed_step = if state.replay && !state.paused
+    let timed_step = if state.replay
+        && !state.paused
         && (util::num_milliseconds(state.replay_step) >= 50 || state.replay_full_speed)
     {
         state.replay_step = Duration::new(0, 0);
@@ -262,7 +265,7 @@ fn process_game(
         // E.g. if the player has 2 APs and they're close to a
         // Depression, the player will move 1 turn first, then
         // Depression 1 etc.
-        if state.player.has_ap(1) {
+        if state.player.ap() >= 1 {
             process_player(state, simulation_area);
         }
         // TODO: is it because of the animation here?
@@ -274,6 +277,16 @@ fn process_game(
         // process player immediately again? Hm although at that point the player should
         // have no action points
         //
+        //
+        // So looks like until we encounter monsters nothing's wrong. But as soon as we kill one
+        // things start to go off.
+        //
+        // But apparently using a dose also triggers the crash.
+        //
+        // TODO: See if this is a validation artifact. Stop checking for monster positions and just
+        // verify the player's one.
+        // NOTE: it's not just validation, the replay desyncs pretty quickly. Question is, why?
+        // Is there a nondeterminism introduced in the monster processing?
         if state.explosion_animation.is_none() {
             process_monsters(
                 &mut state.world,
@@ -285,14 +298,13 @@ fn process_game(
 
         // Reset all action points only after everyone is at zero:
         let player_turn_ended = !state.player.has_ap(1);
-        let monster_turn_ended = state.world.monsters(simulation_area).filter(|m| m.has_ap(1)).count() == 0;
-        if player_turn_ended && monster_turn_ended {
-            state.player.new_turn();
-            entire_turn_ended = true;
-            for monster in state.world.monsters_mut(simulation_area) {
-                monster.new_turn();
-            }
-        }
+        let monster_turn_ended = state
+            .world
+            .monsters(simulation_area)
+            .filter(|m| m.has_ap(1))
+            .count() == 0;
+
+        entire_turn_ended = player_turn_ended && monster_turn_ended;
 
         _player_took_action = command_count > state.commands.len();
     }
@@ -320,6 +332,16 @@ fn process_game(
         } else if cfg!(feature = "verifications") {
             let verification = state.verification();
             state::log_verification(&mut state.command_logger, verification);
+        }
+    }
+
+    // Reset the player & monster action points
+    // NOTE: doing this only after we've logged the validations. Actually maybe we want to do this
+    // before we start turn processing??
+    if entire_turn_ended {
+        state.player.new_turn();
+        for monster in state.world.monsters_mut(simulation_area) {
+            monster.new_turn();
         }
     }
 
@@ -419,7 +441,8 @@ fn process_game(
     {
         let player_screen_pos = screen_coords_from_world(state.player.pos);
         let d = 10;
-        if player_screen_pos.x < d || player_screen_pos.y < d
+        if player_screen_pos.x < d
+            || player_screen_pos.y < d
             || state.map_size.x - player_screen_pos.x < d
             || state.map_size.y - player_screen_pos.y < d
         {
@@ -559,13 +582,17 @@ fn process_help_window(
 
     match action {
         Some(Action::NextPage) => {
-            let new_help_window = state.current_help_window.next()
+            let new_help_window = state
+                .current_help_window
+                .next()
                 .unwrap_or(state.current_help_window);
             state.current_help_window = new_help_window;
         }
 
         Some(Action::PrevPage) => {
-            let new_help_window = state.current_help_window.prev()
+            let new_help_window = state
+                .current_help_window
+                .prev()
                 .unwrap_or(state.current_help_window);
             state.current_help_window = new_help_window;
         }
@@ -641,13 +668,16 @@ fn process_monsters<R: Rng>(
     // NOTE: one quarter of the map area should be a decent overestimate
     let monster_count_estimate = area.size().x * area.size().y / 4;
     assert!(monster_count_estimate > 0);
-    let mut monster_positions_vec = world.monsters(area)
+    let mut monster_positions_vec = world
+        .monsters(area)
         .filter(|m| m.has_ap(1))
         .map(|m| (m.ap.to_int(), m.position))
         .collect::<Vec<_>>();
     // TODO: Sort by how far it is from the player?
     // NOTE: `world.monsters` does not give a stable result so we need to sort
     // it here to ensure correct replays.
+    // NOTE: there's always at most one monster at a given position so this should always produce
+    // the same ordering.
     monster_positions_vec.sort_by_key(|&(ap, pos)| (ap, pos.x, pos.y));
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
 
@@ -657,7 +687,10 @@ fn process_monsters<R: Rng>(
             .expect("Monster should exist on this position")
             .clone();
         let action = {
-            info!("{:?}, {:?}", monster_readonly.position, monster_readonly.kind);
+            info!(
+                "Processing monster {:?}, {:?}",
+                monster_readonly.position, monster_readonly.kind
+            );
             let (update, action) = monster_readonly.act(player.info(), world, rng);
             if let Some(monster) = world.monster_on_pos(monster_position) {
                 monster.ai_state = update.ai_state;
@@ -668,6 +701,7 @@ fn process_monsters<R: Rng>(
 
                 monster.spend_ap(1);
             }
+            info!("Action: {:?}", action);
             action
         };
 
@@ -751,8 +785,9 @@ fn process_player_action<R, W>(
     if !player.alive() || !player.has_ap(1) {
         return;
     }
-
+    println!("Process player action.");
     if let Some(command) = commands.pop_front() {
+        println!("Player command: {:?}", command);
         state::log_command(command_logger, command);
         let mut action = match command {
             Command::N => Action::Move(player.pos + (0, -1)),
@@ -1115,8 +1150,8 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
 }
 
 fn inventory_commands(key: Key) -> Option<Command> {
-    use keys::KeyCode::*;
     use item::Kind;
+    use keys::KeyCode::*;
 
     for kind in Kind::iter() {
         let num_key = match inventory_key(kind) {
@@ -1151,7 +1186,7 @@ pub fn inventory_key(kind: item::Kind) -> u8 {
     // correspond to the order we display the items in.
     for (index, current_kind) in item::Kind::iter().enumerate() {
         if current_kind == kind {
-            return (index + 1) as u8
+            return (index + 1) as u8;
         }
     }
     unreachable!()
@@ -1176,8 +1211,9 @@ fn use_dose(
     explosion_animation: &mut Option<Box<AreaOfEffect>>,
     item: item::Item,
 ) {
-    use player::Modifier::*;
     use item::Kind::*;
+    use player::Modifier::*;
+    println!("Using dose");
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = match state_of_mind <= 100 {
@@ -1215,22 +1251,24 @@ fn use_dose(
 }
 
 fn show_exit_stats(stats: &Stats) {
-    debug!("\nSlowest update durations: {:?}\n",
-           stats
-           .longest_update_durations()
-           .iter()
-           .map(|dur| util::num_microseconds(*dur).unwrap_or(u64::MAX))
-           .map(|us| us as f32 / 1000.0)
-           .collect::<Vec<_>>(),
+    debug!(
+        "\nSlowest update durations: {:?}\n",
+        stats
+            .longest_update_durations()
+            .iter()
+            .map(|dur| util::num_microseconds(*dur).unwrap_or(u64::MAX))
+            .map(|us| us as f32 / 1000.0)
+            .collect::<Vec<_>>(),
     );
 
-    debug!("\nSlowest drawcall durations: {:?}\n",
-           stats
-           .longest_drawcall_durations()
-           .iter()
-           .map(|dur| util::num_microseconds(*dur).unwrap_or(u64::MAX))
-           .map(|us| us as f32 / 1000.0)
-           .collect::<Vec<_>>(),
+    debug!(
+        "\nSlowest drawcall durations: {:?}\n",
+        stats
+            .longest_drawcall_durations()
+            .iter()
+            .map(|dur| util::num_microseconds(*dur).unwrap_or(u64::MAX))
+            .map(|us| us as f32 / 1000.0)
+            .collect::<Vec<_>>(),
     );
 
     debug!(

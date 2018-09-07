@@ -27,7 +27,8 @@ impl ZeroMQ {
         if poll_status == 0 {
             Ok(None)
         } else {
-            let key_data = self.socket
+            let key_data = self
+                .socket
                 .recv_bytes(0)
                 .map(|bytes| String::from_utf8(bytes))??;
             let key = serde_json::from_str(&key_data)?;

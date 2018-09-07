@@ -19,7 +19,7 @@ pub struct Stats {
 
 impl Stats {
     pub fn new(frames: usize, updates: usize, drawcalls: usize) -> Self {
-       Stats {
+        Stats {
             size: frames,
             frame_stats: VecDeque::with_capacity(frames),
             longest_updates: Vec::with_capacity(updates),
@@ -29,7 +29,7 @@ impl Stats {
 
     pub fn push(&mut self, frame_stats: FrameStats) {
         if cfg!(not(feature = "stats")) {
-            return
+            return;
         }
         if self.frame_stats.len() == self.size {
             self.frame_stats.pop_front();

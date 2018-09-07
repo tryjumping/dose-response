@@ -55,7 +55,6 @@ pub struct Vertex {
     pub color: [f32; 4],
 }
 
-
 impl Vertex {
     #[allow(dead_code)]
     fn to_f32_array(&self) -> [f32; 8] {
@@ -72,7 +71,6 @@ impl Vertex {
     }
 }
 
-
 impl Into<[f32; 4]> for ColorAlpha {
     fn into(self) -> [f32; 4] {
         [
@@ -84,7 +82,6 @@ impl Into<[f32; 4]> for ColorAlpha {
     }
 }
 
-
 trait VertexStore {
     fn push(&mut self, Vertex);
 }
@@ -95,23 +92,21 @@ impl VertexStore for Vec<Vertex> {
     }
 }
 
-
 impl VertexStore for Vec<f32> {
     fn push(&mut self, vertex: Vertex) {
         self.extend(&vertex.to_f32_array())
     }
 }
 
-
 impl VertexStore for Vec<u8> {
     fn push(&mut self, vertex: Vertex) {
         for value in &vertex.to_f32_array() {
             // NOTE: WASM specifies the little endian ordering
             let bits: u32 = value.to_bits().to_le();
-            let b1 : u8 = (bits & 0xff) as u8;
-            let b2 : u8 = ((bits >> 8) & 0xff) as u8;
-            let b3 : u8 = ((bits >> 16) & 0xff) as u8;
-            let b4 : u8 = ((bits >> 24) & 0xff) as u8;
+            let b1: u8 = (bits & 0xff) as u8;
+            let b2: u8 = ((bits >> 8) & 0xff) as u8;
+            let b3: u8 = ((bits >> 16) & 0xff) as u8;
+            let b4: u8 = ((bits >> 24) & 0xff) as u8;
 
             self.push(b1);
             self.push(b2);
@@ -121,12 +116,11 @@ impl VertexStore for Vec<u8> {
     }
 }
 
-
 fn build_vertices<T: VertexStore>(
     drawcalls: &[Drawcall],
     vertices: &mut T,
-    display_size: [f32; 2])
-{
+    display_size: [f32; 2],
+) {
     let (display_size_x, display_size_y) = (display_size[0], display_size[1]);
     for drawcall in drawcalls {
         match drawcall {
@@ -224,9 +218,6 @@ fn build_vertices<T: VertexStore>(
                     (pos_y, tilemap_y, tile_height)
                 };
 
-
-
-
                 let rgba: ColorAlpha = color.into();
                 let color = rgba.into();
 
@@ -262,12 +253,10 @@ fn build_vertices<T: VertexStore>(
                     tile_pos_px: [tilemap_x + tile_width, tilemap_y + tile_height],
                     color: color,
                 });
-
             }
         }
     }
 }
-
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TextOptions {
@@ -398,7 +387,6 @@ pub trait TextMetrics {
     }
 }
 
-
 // Calculate the width in pixels of a given text
 fn text_width_px(text: &str, tile_width_px: i32) -> i32 {
     text.chars()
@@ -437,7 +425,6 @@ fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
     result
 }
 
-
 #[derive(Debug)]
 struct DisplayInfo {
     native_display_px: [f32; 2],
@@ -446,13 +433,14 @@ struct DisplayInfo {
     extra_px: [f32; 2],
 }
 
-
 /// Calculate the dimensions to provide the largest display
 /// area while maintaining the aspect ratio (and letterbox the
 /// display).
-fn calculate_display_info(window_size_px: [f32; 2],
-                          display_size_tiles: Point,
-                          tilesize_px: u32) -> DisplayInfo {
+fn calculate_display_info(
+    window_size_px: [f32; 2],
+    display_size_tiles: Point,
+    tilesize_px: u32,
+) -> DisplayInfo {
     let window_width = window_size_px[0] as f32;
     let window_height = window_size_px[1] as f32;
     let tilecount_x = display_size_tiles.x as f32;
@@ -488,7 +476,10 @@ fn calculate_display_info(window_size_px: [f32; 2],
 
     let native_display_px = [unscaled_game_width, unscaled_game_height];
     let display_px = [final_scaled_width, final_scaled_height];
-    let extra_px = [window_width - final_scaled_width, window_height - final_scaled_height];
+    let extra_px = [
+        window_width - final_scaled_width,
+        window_height - final_scaled_height,
+    ];
 
     DisplayInfo {
         native_display_px,
@@ -497,7 +488,6 @@ fn calculate_display_info(window_size_px: [f32; 2],
         extra_px,
     }
 }
-
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Mouse {
@@ -513,7 +503,6 @@ impl Mouse {
     }
 }
 
-
 #[derive(Copy, Clone, Debug)]
 pub struct Cell {
     pub glyph: char,
@@ -526,13 +515,16 @@ impl Default for Cell {
     fn default() -> Self {
         Cell {
             glyph: ' ',
-            foreground: Color{ r: 0, g: 0, b: 0},
-            background: Color{ r: 255, g: 0, b: 255},
+            foreground: Color { r: 0, g: 0, b: 0 },
+            background: Color {
+                r: 255,
+                g: 0,
+                b: 255,
+            },
             offset_px: Point::zero(),
         }
     }
 }
-
 
 #[derive(Default)]
 pub struct Display {
@@ -559,13 +551,16 @@ impl Display {
             map: vec![Default::default(); (size.x * size.y) as usize],
             drawcalls: Vec::with_capacity(DRAWCALL_CAPACITY),
             fade: color::invisible,
-            .. Default::default()
+            ..Default::default()
         }
     }
 
     pub fn clear(&mut self, background: Color) {
         for cell in self.map.iter_mut() {
-            *cell = Cell { background, ..Default::default() };
+            *cell = Cell {
+                background,
+                ..Default::default()
+            };
         }
         self.drawcalls.clear();
         self.fade = color::invisible;
@@ -592,9 +587,21 @@ impl Display {
         pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y
     }
 
-    pub fn set(&mut self, pos: Point, glyph: char, foreground: Color, background: Color, offset_px: Point) {
+    pub fn set(
+        &mut self,
+        pos: Point,
+        glyph: char,
+        foreground: Color,
+        background: Color,
+        offset_px: Point,
+    ) {
         if let Some(ix) = self.index(pos) {
-            self.map[ix] = Cell { glyph, foreground, background, offset_px };
+            self.map[ix] = Cell {
+                glyph,
+                foreground,
+                background,
+                offset_px,
+            };
         }
     }
 
@@ -634,9 +641,7 @@ impl Display {
         self.draw_text(button.pos, &button.text, button.color, button.text_options);
     }
 
-    pub fn draw_text(&mut self, start_pos: Point, text: &str,
-                     color: Color, options: TextOptions)
-    {
+    pub fn draw_text(&mut self, start_pos: Point, text: &str, color: Color, options: TextOptions) {
         let tilesize = self.tilesize;
         let mut render_line = |pos_px: Point, line: &str| {
             let mut offset_x = 0;
@@ -649,20 +654,21 @@ impl Display {
             // line height correctly. Needs to be set on the
             // actual result here.
             for chr in line.chars() {
-                let (texture_index_x, texture_index_y) = texture_coords_from_char(chr)
-                    .unwrap_or((0, 0));
+                let (texture_index_x, texture_index_y) =
+                    texture_coords_from_char(chr).unwrap_or((0, 0));
 
                 let src = Rectangle::from_point_and_size(
                     Point::new(texture_index_x, texture_index_y) * self.tilesize,
-                    Point::from_i32(self.tilesize));
+                    Point::from_i32(self.tilesize),
+                );
                 let dst = Rectangle::from_point_and_size(
                     pos_px + (offset_x, 0),
-                    Point::from_i32(self.tilesize));
+                    Point::from_i32(self.tilesize),
+                );
 
                 self.drawcalls.push(Drawcall::Image(src, dst, color));
 
-                let advance_width =
-                    glyph_advance_width(chr).unwrap_or(self.tilesize);
+                let advance_width = glyph_advance_width(chr).unwrap_or(self.tilesize);
                 offset_x += advance_width;
             }
         };
@@ -679,8 +685,7 @@ impl Display {
             let pos = match options.align {
                 Left => start_pos * tilesize,
                 Right => {
-                    (start_pos + (1, 0)) * tilesize
-                        - Point::new(text_width_px(text, tilesize), 0)
+                    (start_pos + (1, 0)) * tilesize - Point::new(text_width_px(text, tilesize), 0)
                 }
                 Center => {
                     let text_width = text_width_px(text, tilesize);
@@ -704,17 +709,14 @@ impl Display {
         }
     }
 
-    pub fn cells(&self) -> impl Iterator<Item=(Point, &Cell)> {
+    pub fn cells(&self) -> impl Iterator<Item = (Point, &Cell)> {
         let padding = self.padding;
         let width = self.size().x;
-        self.map
-            .iter()
-            .enumerate()
-            .map(move |(index, cell)| {
-                let pos = Point::new(index as i32 % width, index as i32 / width);
-                let pos = pos - padding;
-                (pos, cell)
-            })
+        self.map.iter().enumerate().map(move |(index, cell)| {
+            let pos = Point::new(index as i32 % width, index as i32 / width);
+            let pos = pos - padding;
+            (pos, cell)
+        })
     }
 
     pub fn push_drawcalls(&self, drawcalls: &mut Vec<Drawcall>) {
@@ -728,15 +730,19 @@ impl Display {
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
-            let (texture_index_x, texture_index_y) = texture_coords_from_char(cell.glyph)
-                .unwrap_or((0, 0));
+            let (texture_index_x, texture_index_y) =
+                texture_coords_from_char(cell.glyph).unwrap_or((0, 0));
             let texture_src = Rectangle::from_point_and_size(
                 Point::new(texture_index_x, texture_index_y) * tilesize,
-                Point::from_i32(tilesize));
+                Point::from_i32(tilesize),
+            );
             let background_dst = Rectangle::from_point_and_size(
-                Point::new(pos.x * tilesize + cell.offset_px.x,
-                           pos.y * tilesize + cell.offset_px.y),
-                Point::from_i32(tilesize));
+                Point::new(
+                    pos.x * tilesize + cell.offset_px.x,
+                    pos.y * tilesize + cell.offset_px.y,
+                ),
+                Point::from_i32(tilesize),
+            );
 
             // NOTE: Center the glyphs in their cells
             let glyph_width = glyph_advance_width(cell.glyph).unwrap_or(tilesize);
@@ -756,19 +762,12 @@ impl Display {
             drawcalls.push(Drawcall::Rectangle(full_screen_rect, self.fade));
         }
     }
-
 }
-
 
 /// Returns `true` if the `Rectangle` intersects the area that starts at `(0, 0)`
 fn rect_intersects_area(rect: Rectangle, area: Point) -> bool {
-    rect.right() >= 0 &&
-        rect.left() < area.x &&
-        rect.top() < area.y &&
-        rect.bottom() >= 0
+    rect.right() >= 0 && rect.left() < area.x && rect.top() < area.y && rect.bottom() >= 0
 }
-
-
 
 /// Settings the engine needs to carry.
 ///

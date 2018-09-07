@@ -99,7 +99,6 @@ pub fn text_rect(text: &Text, rect: Rectangle, metrics: &TextMetrics) -> Rectang
     )
 }
 
-
 #[derive(Clone, Default)]
 pub struct Button {
     pub pos: Point,
@@ -114,35 +113,32 @@ impl Button {
             pos,
             text: text.into(),
             color: color::gui_text,
-            .. Default::default()
+            ..Default::default()
         }
     }
 
     pub fn color(self, color: Color) -> Self {
-        Button {
-            color,
-            .. self
-        }
+        Button { color, ..self }
     }
 
     pub fn align_left(self) -> Self {
         Button {
             text_options: TextOptions::align_left(),
-            .. self
+            ..self
         }
     }
 
     pub fn align_right(self) -> Self {
         Button {
             text_options: TextOptions::align_right(),
-            .. self
+            ..self
         }
     }
 
     pub fn align_center(self, width: i32) -> Self {
         Button {
             text_options: TextOptions::align_center(width),
-            .. self
+            ..self
         }
     }
 }

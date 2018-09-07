@@ -10,12 +10,11 @@ use ranged_int::{InclusiveRange, Ranged};
 
 use rand::{
     distributions::{Distribution, Standard},
-    Rng
+    Rng,
 };
 use world::World;
 
 use std::fmt::{Display, Error, Formatter};
-
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Monster {
@@ -53,7 +52,6 @@ pub enum CompanionBonus {
     ExtraActionPoint,
 }
 
-
 impl Display for CompanionBonus {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         use self::CompanionBonus::*;
@@ -65,7 +63,6 @@ impl Display for CompanionBonus {
         f.write_str(s)
     }
 }
-
 
 impl Distribution<CompanionBonus> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CompanionBonus {
@@ -220,5 +217,4 @@ impl Monster {
             Npc => "NPC",
         }
     }
-
 }

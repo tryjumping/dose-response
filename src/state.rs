@@ -4,8 +4,8 @@ use keys::Keys;
 use monster;
 use player::Player;
 use point::Point;
-use util;
 use rand::IsaacRng;
+use util;
 
 use stats::Stats;
 use std::collections::VecDeque;
@@ -277,7 +277,15 @@ Reason: '{}'.",
         _replay_full_speed: bool,
         exit_after: bool,
     ) -> State {
-        Self::new_game(world_size, map_size, panel_width, display_size, exit_after, None, invincible)
+        Self::new_game(
+            world_size,
+            map_size,
+            panel_width,
+            display_size,
+            exit_after,
+            None,
+            invincible,
+        )
     }
 
     #[cfg(feature = "replay")]
@@ -291,8 +299,8 @@ Reason: '{}'.",
         replay_full_speed: bool,
         exit_after: bool,
     ) -> State {
-        use std::io::{BufRead, BufReader};
         use serde_json;
+        use std::io::{BufRead, BufReader};
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();
         let seed: u32;

@@ -7,7 +7,6 @@ use ui::{self, Button};
 
 use std::fmt::{Display as FmtDisplay, Error, Formatter};
 
-
 pub enum Action {
     NextPage,
     PrevPage,
@@ -151,7 +150,9 @@ impl Window {
                 lines.push(Empty);
                 lines.push(Paragraph("You will lose quickly and often. That's normal. Learn from it! What went wrong? Is there anything you could have done better? Were you saving an item for later that could have helped you?"));
                 lines.push(Empty);
-                lines.push(Paragraph("Each run takes 3 - 10 minutes so you won't lose that much anyway. Experiment!"));
+                lines.push(Paragraph(
+                    "Each run takes 3 - 10 minutes so you won't lose that much anyway. Experiment!",
+                ));
             }
 
             Page::NumpadControls => {
@@ -217,20 +218,40 @@ impl Window {
 
             Page::Legend => {
                 lines.push(Paragraph("Monsters:"));
-                lines.push(Paragraph("'a' (anxiety): takes Will away when it hits you. Defeat them to win the game."));
-                lines.push(Paragraph("'D' (depression): moves twice as fast. You lose immediately when it hits you."));
-                lines.push(Paragraph("'h' (hunger): summons other Hungers nearby. Reduces your mind state."));
-                lines.push(Paragraph("'v' (hearing voices): paralyzes you for three turns."));
-                lines.push(Paragraph("'S' (seeing shadows): makes you move randomly for three turns."));
-                lines.push(Paragraph("'@' (friendly): ignores you when High. Bump into them Sober for a bonus."));
+                lines.push(Paragraph(
+                    "'a' (anxiety): takes Will away when it hits you. Defeat them to win the game.",
+                ));
+                lines.push(Paragraph(
+                    "'D' (depression): moves twice as fast. You lose immediately when it hits you.",
+                ));
+                lines.push(Paragraph(
+                    "'h' (hunger): summons other Hungers nearby. Reduces your mind state.",
+                ));
+                lines.push(Paragraph(
+                    "'v' (hearing voices): paralyzes you for three turns.",
+                ));
+                lines.push(Paragraph(
+                    "'S' (seeing shadows): makes you move randomly for three turns.",
+                ));
+                lines.push(Paragraph(
+                    "'@' (friendly): ignores you when High. Bump into them Sober for a bonus.",
+                ));
                 lines.push(Empty);
 
                 lines.push(Paragraph("Items:"));
                 lines.push(Paragraph("'%' (food): prolongs being Sober or in a Withdrawal. Kills monsters around you."));
-                lines.push(Paragraph("'i' (dose): makes you High. When you're High already, you'll likely Overdose."));
-                lines.push(Paragraph("'+' (cardinal dose): Destroys trees in the horizontal and vertical lines."));
-                lines.push(Paragraph("'x' (diagonal dose): Destroys trees in the diagonal lines."));
-                lines.push(Paragraph("'I' (strong dose): very strong Dose. Don't walk into it by accident."));
+                lines.push(Paragraph(
+                    "'i' (dose): makes you High. When you're High already, you'll likely Overdose.",
+                ));
+                lines.push(Paragraph(
+                    "'+' (cardinal dose): Destroys trees in the horizontal and vertical lines.",
+                ));
+                lines.push(Paragraph(
+                    "'x' (diagonal dose): Destroys trees in the diagonal lines.",
+                ));
+                lines.push(Paragraph(
+                    "'I' (strong dose): very strong Dose. Don't walk into it by accident.",
+                ));
                 lines.push(Empty);
 
                 lines.push(Paragraph("Each Dose has a faint glow around it. If you step into it, you will not be able to resist."));

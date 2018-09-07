@@ -29,7 +29,6 @@ pub fn num_microseconds(duration: Duration) -> Option<u64> {
     None
 }
 
-
 /// If `val` is outside the `min` / `max` limits, set it to the edge value.
 pub fn clamp(min: i32, val: i32, max: i32) -> i32 {
     if val < min {
@@ -52,7 +51,6 @@ pub fn clampf(min: f32, val: f32, max: f32) -> f32 {
     }
 }
 
-
 /// Take a floating value from <0.0, 1.0> and get it through a sine
 /// curve processing. The result is <0.0, 1.0> but represented as part
 /// of the sine curve, not a line.
@@ -70,7 +68,9 @@ pub fn sine_curve(percentage: f32) -> f32 {
     let val = clampf(0.0, percentage, 1.0);
     let rad = val * consts::PI / 2.0;
     #[allow(unsafe_code)]
-    unsafe { ::engine::wasm::sin(rad) }
+    unsafe {
+        ::engine::wasm::sin(rad)
+    }
 }
 
 #[cfg(not(feature = "web"))]

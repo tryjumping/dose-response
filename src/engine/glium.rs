@@ -1,19 +1,18 @@
 use color::Color;
-use engine::{self, Mouse, Vertex, Settings, TextMetrics, UpdateFn};
+use engine::{self, Mouse, Settings, TextMetrics, UpdateFn, Vertex};
 use game::RunningState;
 use state::State;
 
-use glium::{self, Surface};
 use glium::draw_parameters::DrawParameters;
-use glium::glutin::{Event, EventsLoop, MonitorId, WindowBuilder, WindowEvent};
 use glium::glutin::VirtualKeyCode as BackendKey;
+use glium::glutin::{Event, EventsLoop, MonitorId, WindowBuilder, WindowEvent};
+use glium::{self, Surface};
 use image;
 use keys::{Key, KeyCode};
 use point::Point;
 use rect::Rectangle;
 use std::time::{Duration, Instant};
 use util;
-
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
@@ -122,13 +121,11 @@ impl TextMetrics for Metrics {
     }
 }
 
-
 #[allow(unsafe_code)]
 mod vertex {
     use super::Vertex;
     implement_vertex!(Vertex, pos_px, tile_pos_px, color);
 }
-
 
 pub fn main_loop(
     display_size: Point,
@@ -143,8 +140,14 @@ pub fn main_loop(
         display_size.y as u32 * tilesize as u32,
     );
 
-    debug!("Requested display in tiles: {} x {}", display_size.x, display_size.y);
-    debug!("Desired window size: {} x {}", desired_window_width, desired_window_height);
+    debug!(
+        "Requested display in tiles: {} x {}",
+        display_size.x, display_size.y
+    );
+    debug!(
+        "Desired window size: {} x {}",
+        desired_window_width, desired_window_height
+    );
     let mut window_width = desired_window_width;
     let mut window_height = desired_window_height;
 
@@ -185,7 +188,8 @@ pub fn main_loop(
         glium::texture::SrgbTexture2d::new(&display, image).unwrap()
     };
 
-    let (tex_width_px, tex_height_px) = (texture.dimensions().0 as f32, texture.dimensions().1 as f32);
+    let (tex_width_px, tex_height_px) =
+        (texture.dimensions().0 as f32, texture.dimensions().1 as f32);
 
     // Main loop
     let mut window_pos = {
@@ -200,18 +204,27 @@ pub fn main_loop(
     let mut current_monitor = get_current_monitor(&monitors, window_pos);
     debug!("All monitors:");
     for monitor in &monitors {
-        debug!("* {:?}, pos: {:?}, size: {:?}",
-                 monitor.get_name(), monitor.get_position(), monitor.get_dimensions());
+        debug!(
+            "* {:?}, pos: {:?}, size: {:?}",
+            monitor.get_name(),
+            monitor.get_position(),
+            monitor.get_dimensions()
+        );
     }
-    debug!("Current monitor: {:?}, pos: {:?}, size: {:?}",
-             current_monitor.as_ref().map(|m| m.get_name()),
-             current_monitor.as_ref().map(|m| m.get_position()),
-             current_monitor.as_ref().map(|m| m.get_dimensions()));
+    debug!(
+        "Current monitor: {:?}, pos: {:?}, size: {:?}",
+        current_monitor.as_ref().map(|m| m.get_name()),
+        current_monitor.as_ref().map(|m| m.get_position()),
+        current_monitor.as_ref().map(|m| m.get_dimensions())
+    );
 
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
     let mut engine_display = engine::Display::new(
-        display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
+        display_size,
+        Point::from_i32(display_size.y / 2),
+        tilesize as i32,
+    );
     let mut lctrl_pressed = false;
     let mut rctrl_pressed = false;
     let mut lalt_pressed = false;
@@ -252,7 +265,8 @@ pub fn main_loop(
         if current_frame > 1 {
             engine_display.draw_rectangle(
                 Rectangle::from_point_and_size(Point::new(0, 0), display_size),
-                default_background);
+                default_background,
+            );
             let update_result = update(
                 &mut state,
                 dt,
@@ -312,7 +326,8 @@ pub fn main_loop(
         let display_info = engine::calculate_display_info(
             [window_width as f32, window_height as f32],
             display_size,
-            tilesize);
+            tilesize,
+        );
 
         // Process drawcalls
         drawcalls.clear();
@@ -373,8 +388,10 @@ pub fn main_loop(
                     match event {
                         WindowEvent::CloseRequested => running = false,
                         WindowEvent::Resized(width, height) => {
-                            debug!("[FRAME {}] Window resized to: {} x {}",
-                                     current_frame, width, height);
+                            debug!(
+                                "[FRAME {}] Window resized to: {} x {}",
+                                current_frame, width, height
+                            );
                             window_width = width;
                             window_height = height;
                         }
@@ -388,15 +405,16 @@ pub fn main_loop(
                                 // So we restore the previous position
                                 // manually instead.
                             } else {
-                                debug!("[FRAME {}] Window moved to: {}, {}",
-                                         current_frame, x, y);
+                                debug!("[FRAME {}] Window moved to: {}, {}", current_frame, x, y);
                                 window_pos.x = x;
                                 window_pos.y = y;
                                 current_monitor = get_current_monitor(&monitors, window_pos);
-                                debug!("Current monitor: {:?}, pos: {:?}, size: {:?}",
-                                         current_monitor.as_ref().map(|m| m.get_name()),
-                                         current_monitor.as_ref().map(|m| m.get_position()),
-                                         current_monitor.as_ref().map(|m| m.get_dimensions()));
+                                debug!(
+                                    "Current monitor: {:?}, pos: {:?}, size: {:?}",
+                                    current_monitor.as_ref().map(|m| m.get_name()),
+                                    current_monitor.as_ref().map(|m| m.get_position()),
+                                    current_monitor.as_ref().map(|m| m.get_dimensions())
+                                );
                             }
                         }
                         WindowEvent::ReceivedCharacter(chr) => {
@@ -466,9 +484,15 @@ pub fn main_loop(
                                         if let Some(code) = key_code_from_backend(key_code) {
                                             let key = Key {
                                                 code: code,
-                                                alt: lalt_pressed || ralt_pressed || input.modifiers.alt,
-                                                ctrl: lctrl_pressed || rctrl_pressed || input.modifiers.ctrl,
-                                                shift: lshift_pressed || rshift_pressed || input.modifiers.shift,
+                                                alt: lalt_pressed
+                                                    || ralt_pressed
+                                                    || input.modifiers.alt,
+                                                ctrl: lctrl_pressed
+                                                    || rctrl_pressed
+                                                    || input.modifiers.ctrl,
+                                                shift: lshift_pressed
+                                                    || rshift_pressed
+                                                    || input.modifiers.shift,
                                             };
                                             // debug!("Pushing {:?}", key);
                                             keys.push(key);
@@ -492,9 +516,15 @@ pub fn main_loop(
                                         if let Some(code) = code {
                                             let key = Key {
                                                 code: code,
-                                                alt: lalt_pressed || ralt_pressed || input.modifiers.alt,
-                                                ctrl: lctrl_pressed || rctrl_pressed || input.modifiers.ctrl,
-                                                shift: lshift_pressed || rshift_pressed || input.modifiers.shift,
+                                                alt: lalt_pressed
+                                                    || ralt_pressed
+                                                    || input.modifiers.alt,
+                                                ctrl: lctrl_pressed
+                                                    || rctrl_pressed
+                                                    || input.modifiers.ctrl,
+                                                shift: lshift_pressed
+                                                    || rshift_pressed
+                                                    || input.modifiers.shift,
                                             };
                                             // debug!("Pushing {:?}", key);
                                             keys.push(key);
@@ -512,7 +542,10 @@ pub fn main_loop(
                             // debug!("screen width/height: {:?}", (screen_width, screen_height));
                             let (x, y) = (x as i32, y as i32);
 
-                            let (x, y) = (x - (display_info.extra_px[0] / 2.0) as i32, y - (display_info.extra_px[1] / 2.0) as i32);
+                            let (x, y) = (
+                                x - (display_info.extra_px[0] / 2.0) as i32,
+                                y - (display_info.extra_px[1] / 2.0) as i32,
+                            );
                             let x = util::clamp(0, x, display_info.display_px[0] as i32 - 1);
                             let y = util::clamp(0, y, display_info.display_px[1] as i32 - 1);
 
@@ -530,8 +563,8 @@ pub fn main_loop(
                             };
                         }
                         WindowEvent::MouseInput { state, button, .. } => {
-                            use glium::glutin::MouseButton::*;
                             use glium::glutin::ElementState::*;
+                            use glium::glutin::MouseButton::*;
 
                             match (state, button) {
                                 (Released, Left) => {
@@ -570,26 +603,30 @@ pub fn main_loop(
             // it gets resized. We can detect it because this event
             // fires on the first frame. So we ask it to resize to the
             // expected size again and leave it at that.
-            debug!("Current monitor: {:?}", current_monitor.as_ref().map(|m| m.get_dimensions()));
+            debug!(
+                "Current monitor: {:?}",
+                current_monitor.as_ref().map(|m| m.get_dimensions())
+            );
 
             if desired_window_width != window_width || desired_window_height != window_height {
                 if let Some(ref monitor) = current_monitor {
                     let (monitor_width, monitor_height) = monitor.get_dimensions();
-                    if desired_window_width <= monitor_width &&
-                        desired_window_height <= monitor_height
+                    if desired_window_width <= monitor_width
+                        && desired_window_height <= monitor_height
                     {
-                        debug!("Resetting the window to its expected size: {} x {}.",
-                                 desired_window_width, desired_window_height);
-                        display.gl_window().set_inner_size(
-                            desired_window_width, desired_window_height);
+                        debug!(
+                            "Resetting the window to its expected size: {} x {}.",
+                            desired_window_width, desired_window_height
+                        );
+                        display
+                            .gl_window()
+                            .set_inner_size(desired_window_width, desired_window_height);
                     } else {
                         debug!("TODO: try to resize but maintain aspect ratio.");
                     }
                 }
             }
-
         }
-
 
         // If we just switched from fullscreen back to a windowed
         // mode, restore the window position we had before. We do this

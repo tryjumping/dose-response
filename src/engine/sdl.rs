@@ -12,14 +12,13 @@ use std::os;
 use std::ptr;
 use std::time::{Duration, Instant};
 
+use gl;
+use gl::types::*;
+use image;
 use sdl2;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::{self, Keycode as BackendKey};
 use sdl2::video::Window;
-use gl;
-use gl::types::*;
-use image;
-
 
 // const DESIRED_FPS: u64 = 60;
 // const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
@@ -34,7 +33,6 @@ impl TextMetrics for Metrics {
         self.tile_width_px
     }
 }
-
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
@@ -113,8 +111,6 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     }
 }
 
-
-
 #[allow(unsafe_code)]
 fn compile_shader(src: &str, ty: GLenum) -> GLuint {
     let shader;
@@ -152,7 +148,6 @@ fn compile_shader(src: &str, ty: GLenum) -> GLuint {
     shader
 }
 
-
 #[allow(unsafe_code)]
 fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
     unsafe {
@@ -187,20 +182,24 @@ fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
     }
 }
 
-
 #[allow(unsafe_code)]
-fn render(window: &mut Window,
-          program: GLuint,
-          texture: GLuint,
-          clear_color: Color,
-          vbo: GLuint,
-          display_info: DisplayInfo,
-          texture_size_px: [f32; 2],
-          vertex_buffer: &[f32])
-{
+fn render(
+    window: &mut Window,
+    program: GLuint,
+    texture: GLuint,
+    clear_color: Color,
+    vbo: GLuint,
+    display_info: DisplayInfo,
+    texture_size_px: [f32; 2],
+    vertex_buffer: &[f32],
+) {
     unsafe {
-        gl::Viewport(0, 0,
-                     display_info.window_size_px[0] as i32, display_info.window_size_px[1] as i32);
+        gl::Viewport(
+            0,
+            0,
+            display_info.window_size_px[0] as i32,
+            display_info.window_size_px[1] as i32,
+        );
         check_gl_error("Viewport");
 
         let rgba: ColorAlpha = clear_color.into();
@@ -214,93 +213,111 @@ fn render(window: &mut Window,
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         check_gl_error("BindBuffer");
         // TODO: look at BufferSubData here -- that should reuse the allocation
-        gl::BufferData(gl::ARRAY_BUFFER,
-                       (vertex_buffer.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-                       vertex_buffer.as_ptr() as *const os::raw::c_void,
-                       gl::DYNAMIC_DRAW);
+        gl::BufferData(
+            gl::ARRAY_BUFFER,
+            (vertex_buffer.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+            vertex_buffer.as_ptr() as *const os::raw::c_void,
+            gl::DYNAMIC_DRAW,
+        );
         check_gl_error("BufferData");
 
         // Specify the layout of the vertex data
         // NOTE: this must happen only after the BufferData call
         let stride = engine::VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
-        let pos_attr = gl::GetAttribLocation(program,
-                                             CString::new("pos_px").unwrap().as_ptr());
+        let pos_attr = gl::GetAttribLocation(program, CString::new("pos_px").unwrap().as_ptr());
         check_gl_error("GetAttribLocation pos_px");
         gl::EnableVertexAttribArray(pos_attr as GLuint);
         check_gl_error("EnableVertexAttribArray pos_px");
-        gl::VertexAttribPointer(pos_attr as GLuint, 2,
-                                gl::FLOAT, gl::FALSE as GLboolean,
-                                stride,
-                                ptr::null());
+        gl::VertexAttribPointer(
+            pos_attr as GLuint,
+            2,
+            gl::FLOAT,
+            gl::FALSE as GLboolean,
+            stride,
+            ptr::null(),
+        );
         check_gl_error("VertexAttribPointer pos_xp");
 
-        let tex_coord_attr = gl::GetAttribLocation(program,
-                                                   CString::new("tile_pos_px").unwrap().as_ptr());
+        let tex_coord_attr =
+            gl::GetAttribLocation(program, CString::new("tile_pos_px").unwrap().as_ptr());
         check_gl_error("GetAttribLocation tile_pos_px");
         gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
         check_gl_error("EnableVertexAttribArray tile_pos_px");
-        gl::VertexAttribPointer(tex_coord_attr as GLuint, 2,
-                                gl::FLOAT, gl::FALSE as GLboolean,
-                                stride,
-                                (2 * mem::size_of::<GLfloat>()) as *const GLvoid);
+        gl::VertexAttribPointer(
+            tex_coord_attr as GLuint,
+            2,
+            gl::FLOAT,
+            gl::FALSE as GLboolean,
+            stride,
+            (2 * mem::size_of::<GLfloat>()) as *const GLvoid,
+        );
         check_gl_error("VertexAttribPointer tile_pos_px");
 
-        let color_attr = gl::GetAttribLocation(program,
-                                               CString::new("color").unwrap().as_ptr());
+        let color_attr = gl::GetAttribLocation(program, CString::new("color").unwrap().as_ptr());
         check_gl_error("GetAttribLocation color");
         gl::EnableVertexAttribArray(color_attr as GLuint);
         check_gl_error("EnableVertexAttribArray color");
-        gl::VertexAttribPointer(color_attr as GLuint, 4,
-                                gl::FLOAT, gl::FALSE as GLboolean,
-                                stride,
-                                (4 * mem::size_of::<GLfloat>()) as *const GLvoid);
+        gl::VertexAttribPointer(
+            color_attr as GLuint,
+            4,
+            gl::FLOAT,
+            gl::FALSE as GLboolean,
+            stride,
+            (4 * mem::size_of::<GLfloat>()) as *const GLvoid,
+        );
         check_gl_error("VertexAttribPointer color");
-
 
         gl::ActiveTexture(gl::TEXTURE0);
         gl::BindTexture(gl::TEXTURE_2D, texture);
         check_gl_error("BindTexture");
-        let texture_index = 0;  // NOTE: hardcoded -- we only have 1 texture.
-        gl::Uniform1i(gl::GetUniformLocation(program,
-                                             CString::new("tex").unwrap().as_ptr()),
-                      texture_index);
+        let texture_index = 0; // NOTE: hardcoded -- we only have 1 texture.
+        gl::Uniform1i(
+            gl::GetUniformLocation(program, CString::new("tex").unwrap().as_ptr()),
+            texture_index,
+        );
 
         gl::Uniform2f(
-            gl::GetUniformLocation(program,
-                                   CString::new("native_display_px").unwrap().as_ptr()),
-            display_info.native_display_px[0], display_info.native_display_px[1]);
+            gl::GetUniformLocation(program, CString::new("native_display_px").unwrap().as_ptr()),
+            display_info.native_display_px[0],
+            display_info.native_display_px[1],
+        );
 
         gl::Uniform2f(
-            gl::GetUniformLocation(program,
-                                   CString::new("display_px").unwrap().as_ptr()),
-            display_info.display_px[0], display_info.display_px[1]);
+            gl::GetUniformLocation(program, CString::new("display_px").unwrap().as_ptr()),
+            display_info.display_px[0],
+            display_info.display_px[1],
+        );
 
         gl::Uniform2f(
-            gl::GetUniformLocation(program,
-                                   CString::new("extra_px").unwrap().as_ptr()),
-            display_info.extra_px[0], display_info.extra_px[1]);
+            gl::GetUniformLocation(program, CString::new("extra_px").unwrap().as_ptr()),
+            display_info.extra_px[0],
+            display_info.extra_px[1],
+        );
 
         gl::Uniform2f(
-            gl::GetUniformLocation(program,
-                                   CString::new("texture_size_px").unwrap().as_ptr()),
-            texture_size_px[0], texture_size_px[1]);
+            gl::GetUniformLocation(program, CString::new("texture_size_px").unwrap().as_ptr()),
+            texture_size_px[0],
+            texture_size_px[1],
+        );
 
-        gl::DrawArrays(gl::TRIANGLES, 0, (vertex_buffer.len() / engine::VERTEX_COMPONENT_COUNT) as i32);
+        gl::DrawArrays(
+            gl::TRIANGLES,
+            0,
+            (vertex_buffer.len() / engine::VERTEX_COMPONENT_COUNT) as i32,
+        );
         check_gl_error("DrawArrays");
 
         window.gl_swap_window();
     }
 }
 
-
 #[allow(unsafe_code)]
 fn check_gl_error(source: &str) {
-    let err = unsafe{gl::GetError()};
+    let err = unsafe { gl::GetError() };
     if err != gl::NO_ERROR {
         error!("GL error [{}]: {:?}", source, err);
     }
 }
-
 
 #[derive(Default)]
 struct SdlApp {
@@ -350,8 +367,7 @@ impl SdlApp {
             // Use shader program
             gl::UseProgram(self.program);
             check_gl_error("UseProgram");
-            gl::BindFragDataLocation(self.program, 0,
-                                     CString::new("out_color").unwrap().as_ptr());
+            gl::BindFragDataLocation(self.program, 0, CString::new("out_color").unwrap().as_ptr());
             check_gl_error("BindFragDataLocation");
 
             // Bind the texture
@@ -361,9 +377,17 @@ impl SdlApp {
             check_gl_error("TexParameteri MIN FILTER");
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
             check_gl_error("TexParameteri MAG FILTER");
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32,
-                           image_width as i32, image_height as i32, 0, gl::RGBA,
-                           gl::UNSIGNED_BYTE, image_data as *const os::raw::c_void);
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as i32,
+                image_width as i32,
+                image_height as i32,
+                0,
+                gl::RGBA,
+                gl::UNSIGNED_BYTE,
+                image_data as *const os::raw::c_void,
+            );
             check_gl_error("TexImage2D");
         }
     }
@@ -383,8 +407,6 @@ impl Drop for SdlApp {
     }
 }
 
-
-
 pub fn main_loop(
     display_size: Point,
     default_background: Color,
@@ -398,9 +420,9 @@ pub fn main_loop(
         display_size.y as u32 * tilesize as u32,
     );
 
-    let sdl_context = sdl2::init()
-        .expect("SDL context creation failed.");
-    let video_subsystem = sdl_context.video()
+    let sdl_context = sdl2::init().expect("SDL context creation failed.");
+    let video_subsystem = sdl_context
+        .video()
         .expect("SDL video subsystem creation failed.");
 
     let gl_attr = video_subsystem.gl_attr();
@@ -409,24 +431,26 @@ pub fn main_loop(
     gl_attr.set_double_buffer(true);
     gl_attr.set_depth_size(0);
 
-
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
-    let mut window = video_subsystem.window(window_title, desired_window_width, desired_window_height)
+    let mut window = video_subsystem
+        .window(window_title, desired_window_width, desired_window_height)
         .resizable()
         .opengl()
         .position_centered()
         .build()
         .expect("SDL window creation failed.");
 
-    let _ctx = window.gl_create_context()
+    let _ctx = window
+        .gl_create_context()
         .expect("SDL GL context creation failed.");
     gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
-
 
     let image = {
         use std::io::Cursor;
         let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
-        let img = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
+        let img = image::load(Cursor::new(data), image::PNG)
+            .unwrap()
+            .to_rgba();
         img
     };
 
@@ -438,14 +462,18 @@ pub fn main_loop(
     let sdl_app = SdlApp::new(vs_source, fs_source);
     sdl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
 
-    let mut event_pump = sdl_context.event_pump()
+    let mut event_pump = sdl_context
+        .event_pump()
         .expect("SDL event pump creation failed.");
 
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
     let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
     let mut display = engine::Display::new(
-        display_size, Point::from_i32(display_size.y / 2), tilesize as i32);
+        display_size,
+        Point::from_i32(display_size.y / 2),
+        tilesize as i32,
+    );
     let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
     let mut vertex_buffer: Vec<f32> = Vec::with_capacity(VERTEX_BUFFER_CAPACITY);
@@ -477,12 +505,15 @@ pub fn main_loop(
 
         for event in event_pump.poll_iter() {
             match event {
-
-                Event::Quit {..} => {
+                Event::Quit { .. } => {
                     running = false;
-                },
+                }
 
-                Event::KeyDown { keycode: Some(backend_code), keymod, ..} => {
+                Event::KeyDown {
+                    keycode: Some(backend_code),
+                    keymod,
+                    ..
+                } => {
                     if let Some(code) = key_code_from_backend(backend_code) {
                         let key = super::Key {
                             code: code,
@@ -506,7 +537,7 @@ pub fn main_loop(
                     }
                 }
 
-                Event::MouseMotion {x, y, ..} => {
+                Event::MouseMotion { x, y, .. } => {
                     let x = util::clamp(0, x, window_size_px.x - 1);
                     let y = util::clamp(0, y, window_size_px.y - 1);
                     mouse.screen_pos = Point { x, y };
@@ -523,11 +554,11 @@ pub fn main_loop(
                     };
                 }
 
-                Event::MouseButtonDown {..} => {
+                Event::MouseButtonDown { .. } => {
                     // NOTE: do nothing. We handle everything in the mouse up event
                 }
 
-                Event::MouseButtonUp {mouse_btn, ..} => {
+                Event::MouseButtonUp { mouse_btn, .. } => {
                     use sdl2::mouse::MouseButton::*;
                     match mouse_btn {
                         Left => {
@@ -540,7 +571,10 @@ pub fn main_loop(
                     }
                 }
 
-                Event::Window { win_event: WindowEvent::Resized(width, height), .. } => {
+                Event::Window {
+                    win_event: WindowEvent::Resized(width, height),
+                    ..
+                } => {
                     info!("Window resized to: {}x{}", width, height);
                     window_size_px = Point::new(width, height);
                 }
@@ -581,7 +615,10 @@ pub fn main_loop(
             use sdl2::video::FullscreenType::*;
             if previous_settings.fullscreen != settings.fullscreen {
                 if settings.fullscreen {
-                    info!("[{}] Switching to (desktop-type) fullscreen", current_frame_id);
+                    info!(
+                        "[{}] Switching to (desktop-type) fullscreen",
+                        current_frame_id
+                    );
                     if let Err(err) = window.set_fullscreen(Desktop) {
                         warn!("[{}]: Could not switch to fullscreen:", current_frame_id);
                         warn!("{:?}", err);
@@ -598,7 +635,6 @@ pub fn main_loop(
 
         // debug!("Pre-draw duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
-
 
         drawcalls.clear();
         display.push_drawcalls(&mut drawcalls);
@@ -618,10 +654,15 @@ pub fn main_loop(
         let display_info = engine::calculate_display_info(
             [window_size_px.x as f32, window_size_px.y as f32],
             display_size,
-            tilesize);
+            tilesize,
+        );
 
         vertex_buffer.clear();
-        engine::build_vertices(&drawcalls, &mut vertex_buffer, display_info.native_display_px);
+        engine::build_vertices(
+            &drawcalls,
+            &mut vertex_buffer,
+            display_info.native_display_px,
+        );
 
         if vertex_buffer.len() > VERTEX_BUFFER_CAPACITY {
             warn!(
@@ -636,15 +677,16 @@ pub fn main_loop(
 
         // NOTE: render
 
-        render(&mut window,
-               sdl_app.program,
-               sdl_app.texture,
-               default_background,
-               sdl_app.vbo,
-               display_info,
-               [image_width as f32, image_height as f32],
-               &vertex_buffer);
-
+        render(
+            &mut window,
+            sdl_app.program,
+            sdl_app.texture,
+            default_background,
+            sdl_app.vbo,
+            display_info,
+            [image_width as f32, image_height as f32],
+            &vertex_buffer,
+        );
 
         // debug!("Code duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
@@ -655,10 +697,11 @@ pub fn main_loop(
 
         // debug!("Total frame duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
-
     }
 
-
-    debug!("Drawcall count: {}. Capacity: {}.",
-             overall_max_drawcall_count, engine::DRAWCALL_CAPACITY);
+    debug!(
+        "Drawcall count: {}. Capacity: {}.",
+        overall_max_drawcall_count,
+        engine::DRAWCALL_CAPACITY
+    );
 }

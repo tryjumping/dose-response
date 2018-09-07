@@ -7,8 +7,8 @@ use state::State;
 use std::mem;
 use std::time::Duration;
 
-
-const VERTEX_CAPACITY: usize = mem::size_of::<f32>() * engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
+const VERTEX_CAPACITY: usize =
+    mem::size_of::<f32>() * engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
 
 extern "C" {
     fn draw(nums: *const u8, len: usize, texture_width_px: i32, texture_height_px: i32);
@@ -189,10 +189,11 @@ pub extern "C" fn initialise() -> *mut Wasm {
     let drawcalls = Box::new(Vec::with_capacity(engine::DRAWCALL_CAPACITY));
     let vertices = Box::new(Vec::with_capacity(VERTEX_CAPACITY));
     let display_size = ::DISPLAY_SIZE;
-    let display = Box::new(
-        engine::Display::new(display_size,
-                             Point::from_i32(display_size.y / 2),
-                             super::TILESIZE as i32));
+    let display = Box::new(engine::Display::new(
+        display_size,
+        Point::from_i32(display_size.y / 2),
+        super::TILESIZE as i32,
+    ));
 
     let wasm = {
         Box::new(Wasm {
@@ -205,7 +206,6 @@ pub extern "C" fn initialise() -> *mut Wasm {
 
     Box::into_raw(wasm)
 }
-
 
 #[allow(unsafe_code)]
 #[no_mangle]
@@ -304,8 +304,12 @@ pub extern "C" fn update(
     }
 
     unsafe {
-        draw(vertices.as_ptr(), vertices.len(),
-             engine::TEXTURE_WIDTH as i32, engine::TEXTURE_HEIGHT as i32);
+        draw(
+            vertices.as_ptr(),
+            vertices.len(),
+            engine::TEXTURE_WIDTH as i32,
+            engine::TEXTURE_HEIGHT as i32,
+        );
     }
 
     mem::forget(display);

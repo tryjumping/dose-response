@@ -7,8 +7,8 @@ use level::{Tile, TileKind};
 use monster::{Kind, Monster};
 use player::Modifier;
 use point::Point;
-use rand::Rng;
 use rand::distributions::{Distribution, Weighted, WeightedChoice};
+use rand::Rng;
 
 // TODO: Instead of `map_size`, use a Rectangle with the world
 // positions here. We want to expose the non-world coordinates in as
@@ -100,8 +100,8 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
             let mut monster = Monster::new(kind, pos);
             match kind {
                 Kind::Npc => {
-                    use monster::CompanionBonus::*;
                     use color;
+                    use monster::CompanionBonus::*;
                     let bonus = rng.gen();
                     monster.companion_bonus = Some(bonus);
                     monster.color = match bonus {

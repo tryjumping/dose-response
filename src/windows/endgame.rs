@@ -44,14 +44,11 @@ impl Window {
             window_rect.bottom_right() - padding,
         );
 
-        let new_game_button = Button::new(rect.bottom_left(), "[N]ew Game")
-            .align_left();
+        let new_game_button = Button::new(rect.bottom_left(), "[N]ew Game").align_left();
 
-        let help_button = Button::new(rect.bottom_left(), "[?] Help")
-            .align_center(rect.width());
+        let help_button = Button::new(rect.bottom_left(), "[?] Help").align_center(rect.width());
 
-        let menu_button = Button::new(rect.bottom_right(), "[Esc] Main Menu")
-            .align_right();
+        let menu_button = Button::new(rect.bottom_right(), "[Esc] Main Menu").align_right();
 
         let text_rect = metrics.button_rect(&new_game_button);
         if text_rect.contains(state.mouse.tile_pos) {
@@ -106,16 +103,21 @@ impl Window {
 
         let endgame_description = match (cause_of_death, perpetrator) {
             (Some(Exhausted), None) => "Exhausted".into(),
-            (Some(Exhausted), Some(monster)) => {
-                format!("Exhausted because of {} ({})", monster.name(), monster.glyph())
-            }
+            (Some(Exhausted), Some(monster)) => format!(
+                "Exhausted because of {} ({})",
+                monster.name(),
+                monster.glyph()
+            ),
             (Some(Overdosed), _) => "Overdosed".into(),
-            (Some(LostWill), Some(monster)) => {
-                format!("Lost all Will due to {} ({})", monster.name(), monster.glyph())
-            }
+            (Some(LostWill), Some(monster)) => format!(
+                "Lost all Will due to {} ({})",
+                monster.name(),
+                monster.glyph()
+            ),
             (Some(LostWill), None) => unreachable!(),
-            (Some(Killed), Some(monster)) => format!("Defeated by {} ({})",
-                                                     monster.name(), monster.glyph()),
+            (Some(Killed), Some(monster)) => {
+                format!("Defeated by {} ({})", monster.name(), monster.glyph())
+            }
             (Some(Killed), None) => unreachable!(),
             (None, _) => "".into(), // Victory
         };
@@ -172,8 +174,8 @@ impl Window {
 }
 
 fn endgame_tip(state: &State) -> String {
-    use rand::Rng;
     use self::CauseOfDeath::*;
+    use rand::Rng;
     let mut throwavay_rng = state.rng.clone();
 
     let overdosed_tips = &[
@@ -182,18 +184,14 @@ fn endgame_tip(state: &State) -> String {
         "The `+`, `x` and `I` doses are much stronger. Early on, you'll likely overdose on them.",
     ];
 
-    let food_tips = &[
-        "Eat food (by pressing [1]) or use a dose to stave off withdrawal.",
-    ];
+    let food_tips = &["Eat food (by pressing [1]) or use a dose to stave off withdrawal."];
 
     let hunger_tips = &[
         "Being hit by `h` will quickly get you into a withdrawal.",
         "The `h` monsters can swarm you.",
     ];
 
-    let anxiety_tips = &[
-        "Being hit by `a` reduces your Will. You lose when it reaches zero.",
-    ];
+    let anxiety_tips = &["Being hit by `a` reduces your Will. You lose when it reaches zero."];
 
     let unsorted_tips = &[
         "As you use doses, you slowly build up tolerance.",

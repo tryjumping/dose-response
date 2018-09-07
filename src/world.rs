@@ -27,7 +27,8 @@ impl Chunk {
         // NOTE: `x` and `y` overflow on negative values here, but all
         // we care about is having a distinct value for each position
         // so our seeds don't repeat. So this is fine here.
-        let seed = Wrapping(world_seed as u64) + (Wrapping(13) * Wrapping(pos.x as u64))
+        let seed = Wrapping(world_seed as u64)
+            + (Wrapping(13) * Wrapping(pos.x as u64))
             + (Wrapping(17) * Wrapping(pos.y as u64));
 
         // TODO: Monsters in different chunks will now have identical
@@ -394,7 +395,9 @@ impl World {
     /// some sort of upper limit on the positions it's able to
     /// support.
     pub fn within_bounds(&self, pos: Point) -> bool {
-        pos.x < self.max_half_size && pos.x > -self.max_half_size && pos.y < self.max_half_size
+        pos.x < self.max_half_size
+            && pos.x > -self.max_half_size
+            && pos.y < self.max_half_size
             && pos.y > -self.max_half_size
     }
 
@@ -404,7 +407,8 @@ impl World {
     /// `blockers` option controls can influence the logic: are
     /// monster treated as blocking or not?
     pub fn walkable(&self, pos: Point, blockers: Blocker, player_pos: Point) -> bool {
-        let level_cell_walkable = self.chunk(pos)
+        let level_cell_walkable = self
+            .chunk(pos)
             .map(|chunk| {
                 let blocks_player = blockers.contains(Blocker::PLAYER) && pos == player_pos;
                 let level_position = chunk.level_position(pos);
@@ -611,7 +615,8 @@ impl World {
                 rng.gen_range(-range.1, range.1 + 1),
             );
             let candidate = starting_position + offset;
-            if offset.x.abs() > range.0 && offset.y.abs() > range.0
+            if offset.x.abs() > range.0
+                && offset.y.abs() > range.0
                 && self.walkable(candidate, blockers, player_position)
             {
                 return Some(candidate);

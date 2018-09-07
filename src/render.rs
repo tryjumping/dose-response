@@ -2,24 +2,18 @@ use color;
 use engine::{Display, TextMetrics, TextOptions};
 use formula;
 use graphics;
-use windows::{endgame, help, main_menu, sidebar};
 use monster;
 use player::Bonus;
 use point::{Point, SquareArea};
 use rect::Rectangle;
 use state::{State, Window};
 use util;
+use windows::{endgame, help, main_menu, sidebar};
 use world::Chunk;
 
 use std::time::Duration;
 
-pub fn render(
-    state: &State,
-    dt: Duration,
-    fps: i32,
-    metrics: &TextMetrics,
-    display: &mut Display,
-) {
+pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, display: &mut Display) {
     // NOTE: Clear the screen
     display.clear(color::background);
 
@@ -44,7 +38,6 @@ pub fn render(
             }
         }
     }
-
 
     // NOTE: This renders the game's icon. Change the tilesize to an
     // appropriate value.
@@ -142,13 +135,20 @@ pub fn render_game(
         }
 
         if in_fov(world_pos) || state.uncovered_map {
-            display.set_glyph(display_pos, rendered_tile.glyph(), rendered_tile.fg_color, offset_px);
+            display.set_glyph(
+                display_pos,
+                rendered_tile.glyph(),
+                rendered_tile.fg_color,
+                offset_px,
+            );
         } else if cell.explored || bonus == Bonus::UncoverMap {
-            display.set(display_pos,
-                    rendered_tile.glyph(),
-                    rendered_tile.fg_color,
-                    color::dim_background,
-                    offset_px);
+            display.set(
+                display_pos,
+                rendered_tile.glyph(),
+                rendered_tile.fg_color,
+                color::dim_background,
+                offset_px,
+            );
         } else {
             // It's not visible. Do nothing.
         }
@@ -167,8 +167,11 @@ pub fn render_game(
         }
 
         // Render the items
-        if in_fov(world_pos) || cell.explored || bonus == Bonus::SeeMonstersAndItems
-            || bonus == Bonus::UncoverMap || state.uncovered_map
+        if in_fov(world_pos)
+            || cell.explored
+            || bonus == Bonus::SeeMonstersAndItems
+            || bonus == Bonus::UncoverMap
+            || state.uncovered_map
         {
             for item in cell.items.iter() {
                 display.set_glyph(display_pos, item.glyph(), item.color(), offset_px);
@@ -185,8 +188,10 @@ pub fn render_game(
     // NOTE: render monsters
     for monster in state.world.monsters(display_area) {
         let visible = monster.position.distance(state.player.pos) < (radius as f32);
-        if visible || bonus == Bonus::UncoverMap || bonus == Bonus::SeeMonstersAndItems ||
-            state.uncovered_map
+        if visible
+            || bonus == Bonus::UncoverMap
+            || bonus == Bonus::SeeMonstersAndItems
+            || state.uncovered_map
         {
             let display_pos = screen_coords_from_world(monster.position);
             // NOTE: this is the monster trail. It's looking bad and
@@ -226,7 +231,12 @@ pub fn render_game(
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
-        display.set_glyph(display_pos, state.player.glyph(), state.player.color(), offset_px);
+        display.set_glyph(
+            display_pos,
+            state.player.glyph(),
+            state.player.color(),
+            offset_px,
+        );
     }
 
     sidebar_window.render(state, metrics, dt, fps, display);
@@ -276,12 +286,7 @@ fn render_endgame_screen(
     display.fade = color::invisible;
 }
 
-fn render_message(
-    state: &State,
-    text: &str,
-    _metrics: &TextMetrics,
-    display: &mut Display,
-) {
+fn render_message(state: &State, text: &str, _metrics: &TextMetrics, display: &mut Display) {
     let window_size = Point::new(40, 10);
     let window_pos = ((state.display_size - window_size) / 2) - (0, 10);
     let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
@@ -351,10 +356,9 @@ fn render_monster_info(state: &State, display: &mut Display) {
 
 fn render_controls_help(map_size: Point, metrics: &TextMetrics, display: &mut Display) {
     let rect_dim = |lines: &[&str]| {
-        let longest_line = lines.iter()
-            .map(|l| {
-                metrics.get_text_width(l, Default::default())
-            })
+        let longest_line = lines
+            .iter()
+            .map(|l| metrics.get_text_width(l, Default::default()))
             .max()
             .unwrap();
         (longest_line, lines.len() as i32)
@@ -440,5 +444,4 @@ fn render_controls_help(map_size: Point, metrics: &TextMetrics, display: &mut Di
         y: map_size.y - height - padding,
     };
     draw_rect(lines, start, width, height, display);
-
 }

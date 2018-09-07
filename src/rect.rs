@@ -71,7 +71,6 @@ impl Rectangle {
         self.bottom_right.y
     }
 
-
     /// Returns `true` if the point is within the areas specified by
     /// the rectangle. The mach is inclusive, so a `Rectangle`
     /// contains its `top_left` and `bottom_right` corners.

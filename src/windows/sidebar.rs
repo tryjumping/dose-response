@@ -1,7 +1,7 @@
 use color;
 use engine::{Display, TextMetrics};
-use graphics;
 use game;
+use graphics;
 use item;
 use player::Mind;
 use point::Point;
@@ -85,13 +85,11 @@ impl Window {
 
         let mut bottom = state.display_size.y - 2;
 
-        let main_menu_button = Button::new(Point::new(x + 1, bottom), "[Esc] Main Menu")
-            .color(fg);
+        let main_menu_button = Button::new(Point::new(x + 1, bottom), "[Esc] Main Menu").color(fg);
 
         bottom -= 2;
 
-        let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help".into())
-            .color(fg);
+        let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help".into()).color(fg);
 
         bottom -= 1;
 
@@ -181,10 +179,12 @@ impl Window {
             color::gui_progress_bar_bg,
         );
 
-        display.draw_text(layout.stats_pos,
-                      &format!("Will: {}", player.will.to_int()),
-                      fg,
-                      Default::default());
+        display.draw_text(
+            layout.stats_pos,
+            &format!("Will: {}", player.will.to_int()),
+            fg,
+            Default::default(),
+        );
 
         let mut lines: Vec<Cow<'static, str>> = vec![];
 

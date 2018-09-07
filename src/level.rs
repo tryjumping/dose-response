@@ -57,7 +57,6 @@ impl Tile {
     }
 }
 
-
 #[derive(Serialize, Deserialize)]
 pub struct Level {
     dimensions: point::Point,
@@ -128,8 +127,8 @@ impl Level {
     }
 
     pub fn walkable(&self, pos: LevelPosition, blockers: blocker::Blocker) -> bool {
-        use blocker::Blocker;
         use self::TileKind::Empty;
+        use blocker::Blocker;
         // We don't have the player's position here so we can't check that here.
         assert!(!blockers.contains(Blocker::PLAYER));
         let pos = pos.into();

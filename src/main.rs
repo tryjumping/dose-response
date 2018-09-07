@@ -8,9 +8,9 @@ extern crate bitflags;
 #[macro_use]
 extern crate log;
 extern crate rand;
+extern crate serde;
 #[cfg(feature = "cli")]
 extern crate simplelog;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
@@ -116,7 +116,6 @@ fn run_opengl(
     error!("The \"opengl\" feature was not compiled in.");
 }
 
-
 #[allow(unused_variables, dead_code)]
 fn run_sdl(
     display_size: point::Point,
@@ -139,7 +138,6 @@ fn run_sdl(
     #[cfg(not(feature = "sdl"))]
     error!("The \"sdl\" feature was not compiled in.");
 }
-
 
 #[allow(unused_variables, dead_code)]
 fn run_remote(
@@ -164,15 +162,18 @@ fn run_remote(
 
 #[cfg(feature = "cli")]
 fn process_cli_and_run_game() {
-    use std::fs::File;
     use clap::{App, Arg, ArgGroup};
-    use simplelog::{CombinedLogger, Config, LevelFilter, SimpleLogger, SharedLogger, WriteLogger};
+    use simplelog::{CombinedLogger, Config, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
+    use std::fs::File;
 
-    let mut loggers = vec![
-        SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<SharedLogger>,
-    ];
+    let mut loggers =
+        vec![SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<SharedLogger>];
     if let Ok(logfile) = File::create("dose-response.log") {
-        loggers.push(WriteLogger::new(LevelFilter::Trace, Config::default(), logfile));
+        loggers.push(WriteLogger::new(
+            LevelFilter::Trace,
+            Config::default(),
+            logfile,
+        ));
     }
     // NOTE: ignore the loggers if we can't initialise them. The game
     // should still be able to function.
@@ -229,10 +230,7 @@ fn process_cli_and_run_game() {
             "Don't create a game window. The input and output is \
              controled via ZeroMQ.",
         ))
-        .group(
-            ArgGroup::with_name("graphics")
-                .args(&["opengl", "sdl", "remote"]),
-        )
+        .group(ArgGroup::with_name("graphics").args(&["opengl", "sdl", "remote"]))
         .get_matches();
 
     let state = if let Some(replay) = matches.value_of("replay") {

@@ -10,7 +10,6 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-
 fn copy_output_artifacts_internal(filename: &str) -> Result<(), Box<Error>> {
     // NOTE: this is a hack to save the font file next to the produced build binary
     let target_triple = env::var("TARGET")?;
@@ -52,12 +51,16 @@ fn webgl_from_desktop(desktop_shader: &str, replacements: &[(&str, &str)]) -> St
     tmp
 }
 
-fn generate_webgl_shaders(out_dir: &Path, vertex_src: &str, fragment_src: &str) -> Result<(PathBuf, PathBuf), Box<Error>> {
+fn generate_webgl_shaders(
+    out_dir: &Path,
+    vertex_src: &str,
+    fragment_src: &str,
+) -> Result<(PathBuf, PathBuf), Box<Error>> {
     let vertex_replacements = &[
         ("#version 150 core\n", ""),
-        ("in vec2",  "attribute vec2"),
-        ("in vec3",  "attribute vec3"),
-        ("in vec4",  "attribute vec4"),
+        ("in vec2", "attribute vec2"),
+        ("in vec3", "attribute vec3"),
+        ("in vec4", "attribute vec4"),
         ("out vec2", "varying vec2"),
         ("out vec3", "varying vec3"),
         ("out vec4", "varying vec4"),
@@ -66,9 +69,9 @@ fn generate_webgl_shaders(out_dir: &Path, vertex_src: &str, fragment_src: &str) 
     let fragment_replacements = &[
         ("out vec4 out_color;", ""),
         ("#version 150 core", "precision mediump float;"),
-        ("in vec2",  "varying vec2"),
-        ("in vec3",  "varying vec3"),
-        ("in vec4",  "varying vec4"),
+        ("in vec2", "varying vec2"),
+        ("in vec3", "varying vec3"),
+        ("in vec4", "varying vec4"),
         ("out vec2", "varying vec2"),
         ("out vec3", "varying vec3"),
         ("out vec4", "varying vec4"),
@@ -101,7 +104,6 @@ fn save_out_dir(cargo_manifest_dir: &str, out_dir: &Path) -> Result<(), Box<Erro
     Ok(())
 }
 
-
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir);
@@ -109,7 +111,6 @@ fn main() {
     let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     let _ = save_out_dir(&cargo_manifest_dir, out_dir);
-
 
     // let font_data = include_bytes!("../Arial Unicode.ttf");
     let font_data = include_bytes!("fonts/mononoki-Regular.ttf");
@@ -164,14 +165,22 @@ fn main() {
     let texture_width = pixel_height * glyphs.iter().count();
     let texture_height = pixel_height;
 
-    println!("texture width: {}, texture height: {}", texture_width, texture_height);
+    println!(
+        "texture width: {}, texture height: {}",
+        texture_width, texture_height
+    );
 
     let mut lookup_table_contents = String::new();
 
-
     lookup_table_contents.push_str(&format!("pub const TILESIZE: u32 = {};\n", height as u32));
-    lookup_table_contents.push_str(&format!("pub const TEXTURE_WIDTH: u32 = {};\n", texture_width as u32));
-    lookup_table_contents.push_str(&format!("pub const TEXTURE_HEIGHT: u32 = {};\n", texture_height as u32));
+    lookup_table_contents.push_str(&format!(
+        "pub const TEXTURE_WIDTH: u32 = {};\n",
+        texture_width as u32
+    ));
+    lookup_table_contents.push_str(&format!(
+        "pub const TEXTURE_HEIGHT: u32 = {};\n",
+        texture_height as u32
+    ));
 
     lookup_table_contents
         .push_str("fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n");
@@ -225,7 +234,6 @@ fn main() {
     let vertex_src = include_str!("src/shader_150.glslv");
     let fragment_src = include_str!("src/shader_150.glslf");
     generate_webgl_shaders(out_dir, vertex_src, fragment_src).unwrap();
-
 
     // We want these artifacts in the target dir right next to the
     // binaries, not just in the hard-to-find out-dir

@@ -1,9 +1,9 @@
 use item::{Item, Kind};
-use player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
 use monster::CompanionBonus;
+use num_rational::{Ratio, Rational32};
+use player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
 use ranged_int::{InclusiveRange, Ranged};
 use std::cmp;
-use num_rational::{Ratio, Rational32};
 
 pub const INITIAL_SAFE_RADIUS: i32 = 25;
 pub const INITIAL_EASY_RADIUS: i32 = 40;

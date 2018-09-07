@@ -3,7 +3,6 @@ use engine::Display;
 use point::Point;
 use rect::Rectangle;
 
-
 pub fn progress_bar(
     display: &mut Display,
     percentage: f32,

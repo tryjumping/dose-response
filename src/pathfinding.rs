@@ -48,8 +48,7 @@ impl Path {
                 .map(|&d| current + d)
                 .filter(|&point| {
                     world.within_bounds(point) && world.walkable(point, blockers, player_position)
-                })
-                .collect::<Vec<_>>()
+                }).collect::<Vec<_>>()
         };
 
         let cost = |current: Point, next: Point| -> f32 {
@@ -423,7 +422,8 @@ s..........
             (7, 3),
             (7, 2),
             (7, 1),
-        ].iter()
+        ]
+            .iter()
             .cloned()
             .map(Into::into)
             .collect::<Vec<Point>>();

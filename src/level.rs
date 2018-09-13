@@ -77,8 +77,7 @@ impl Level {
                     tile: Tile::new(TileKind::Empty),
                     items: vec![],
                     explored: false,
-                })
-                .collect(),
+                }).collect(),
         }
     }
 

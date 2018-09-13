@@ -122,7 +122,7 @@ impl Window {
                 Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()),
                 metrics,
             ).size()
-                .y;
+            .y;
         }
 
         text_flow.push(EmptySpace(3));

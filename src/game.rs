@@ -61,7 +61,8 @@ pub fn update(
 
     // Quit the game when Q is pressed or on replay and requested
     if (!state.player.alive() && state.exit_after)
-        || (state.replay && state.exit_after
+        || (state.replay
+            && state.exit_after
             && (state.commands.is_empty()
                 || (!state.player.alive() && state.screen_fading.is_none())))
     {
@@ -302,7 +303,8 @@ fn process_game(
             .world
             .monsters(simulation_area)
             .filter(|m| m.has_ap(1))
-            .count() == 0;
+            .count()
+            == 0;
 
         entire_turn_ended = player_turn_ended && monster_turn_ended;
 
@@ -721,27 +723,27 @@ fn process_monsters<R: Rng>(
                 // path in `monster.path`. If the precalculated path
                 // is blocked or there is none, calculate a new one
                 // and cache it. Otherwise, just walk it.
-                let (newpos, newpath) = if monster_readonly.path.is_empty() || path_changed
-                    || !world.walkable(
+                let (newpos, newpath) =
+                    if monster_readonly.path.is_empty() || path_changed || !world.walkable(
                         monster_readonly.path[0],
                         monster_readonly.blockers,
                         player.pos,
                     ) {
-                    // Calculate a new path or recalculate the existing one.
-                    let mut path = pathfinding::Path::find(
-                        pos,
-                        destination,
-                        world,
-                        monster_readonly.blockers,
-                        player.pos,
-                    );
-                    let newpos = path.next().unwrap_or(pos);
-                    // Cache the path-finding result
-                    let newpath = path.collect();
-                    (newpos, newpath)
-                } else {
-                    (monster_readonly.path[0], monster_readonly.path[1..].into())
-                };
+                        // Calculate a new path or recalculate the existing one.
+                        let mut path = pathfinding::Path::find(
+                            pos,
+                            destination,
+                            world,
+                            monster_readonly.blockers,
+                            player.pos,
+                        );
+                        let newpos = path.next().unwrap_or(pos);
+                        // Cache the path-finding result
+                        let newpath = path.collect();
+                        (newpos, newpath)
+                    } else {
+                        (monster_readonly.path[0], monster_readonly.path[1..].into())
+                    };
 
                 world.move_monster(pos, newpos, player.pos);
                 if let Some(monster) = world.monster_on_pos(newpos) {
@@ -842,8 +844,7 @@ fn process_player_action<R, W>(
             .find(|i| {
                 i.is_dose()
                     && formula::player_resist_radius(i.irresistible, player.will.to_int()) > 0
-            })
-            .map(|i| i.kind);
+            }).map(|i| i.kind);
         if let Some(kind) = carried_irresistible_dose {
             action = Action::Use(kind);
         }
@@ -1030,8 +1031,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
             .monsters(simulation_area)
             .filter(|m| {
                 m.kind == monster::Kind::Npc && m.accompanying_player && m.companion_bonus.is_some()
-            })
-            .map(|m| m.companion_bonus.unwrap());
+            }).map(|m| m.companion_bonus.unwrap());
         player.bonuses.clear();
         player.bonuses.extend(npc_bonuses);
     }

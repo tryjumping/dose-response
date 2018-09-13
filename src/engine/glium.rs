@@ -373,8 +373,7 @@ pub fn main_loop(
                     blend: glium::Blend::alpha_blending(),
                     ..Default::default()
                 },
-            )
-            .unwrap();
+            ).unwrap();
         target.finish().unwrap();
 
         // Process events

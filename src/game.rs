@@ -143,7 +143,6 @@ fn process_game(
 ) -> RunningState {
     use self::sidebar::Action;
 
-    println!("TICK");
     let mut option = None;
 
     if state.mouse.left {
@@ -787,7 +786,6 @@ fn process_player_action<R, W>(
     if !player.alive() || !player.has_ap(1) {
         return;
     }
-    println!("Process player action.");
     if let Some(command) = commands.pop_front() {
         println!("Player command: {:?}", command);
         state::log_command(command_logger, command);
@@ -848,7 +846,7 @@ fn process_player_action<R, W>(
         if let Some(kind) = carried_irresistible_dose {
             action = Action::Use(kind);
         }
-
+        println!("Player action: {:?}", action);
         match action {
             Action::Move(dest) => {
                 let dest_walkable =

@@ -104,15 +104,64 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Simplify the CI build scripts
 ** Move readme etc. generation to the process-artifacts.py script
 ** The CI should produce just the binary *maybe* with a readme pointing to the proper releases
+* Replays are broken with alternating the turns                         :bug:
+** Actually, the crash seems to occur precisely at the time we take a dose
+** test if we can prolong it with food
+** check if this is a new thing or happens on earlier commits too
+** the player/monster order is swapped in replay
+*** This is a play session:
+17:28:36 [INFO] Recording the gameplay to 'replays/replay-2018-09-13T11-28-36.280'
+17:28:36 [INFO] Using the sdl backend
+Player command: NE
+Player action: Move(Point{x: 1, y: -1})
+17:28:38 [INFO] Turn 0 has ended.
+17:28:38 [INFO] Processing monster Point{x: -27, y: -7}, Shadows
+17:28:38 [INFO] Action: Move(Point{x: -21, y: -2})
+17:28:38 [INFO] Processing monster Point{x: -23, y: -27}, Voices
+17:28:38 [INFO] Action: Move(Point{x: -19, y: -20})
+17:28:38 [INFO] Processing monster Point{x: -9, y: 27}, Voices
+17:28:38 [INFO] Action: Move(Point{x: -2, y: 30})
+17:28:38 [INFO] Processing monster Point{x: 1, y: -27}, Voices
+17:28:38 [INFO] Action: Move(Point{x: 1, y: -28})
+17:28:38 [INFO] Processing monster Point{x: 26, y: 12}, Shadows
+17:28:38 [INFO] Action: Move(Point{x: 22, y: 17})
+17:28:38 [INFO] Processing monster Point{x: 27, y: 22}, Voices
+17:28:38 [INFO] Action: Move(Point{x: 30, y: 16})
+17:28:38 [INFO] Processing monster Point{x: 29, y: -16}, Voices
+17:28:38 [INFO] Action: Move(Point{x: 26, y: -13})
+Player command: E
+Player action: Move(Point{x: 2, y: -1})
+17:28:39 [INFO] Turn 1 has ended.
+*** This is a replay session:
+17:29:01 [INFO] Replaying game log: 'replays/replay-2018-09-13T11-28-36.280'
+17:29:01 [INFO] Using the sdl backend
+Player command: NE
+Player action: Move(Point{x: 1, y: -1})
+17:29:01 [INFO] Turn 0 has ended.
+Player command: E
+Player action: Move(Point{x: 2, y: -1})
+17:29:01 [INFO] Processing monster Point{x: -27, y: -7}, Shadows
+17:29:01 [INFO] Action: Move(Point{x: -21, y: -2})
+17:29:01 [INFO] Processing monster Point{x: -23, y: -27}, Voices
+17:29:01 [INFO] Action: Move(Point{x: -19, y: -20})
+17:29:01 [INFO] Processing monster Point{x: -9, y: 27}, Voices
+17:29:01 [INFO] Action: Move(Point{x: -2, y: 30})
+17:29:01 [INFO] Processing monster Point{x: 1, y: -27}, Voices
+17:29:01 [INFO] Action: Move(Point{x: 1, y: -28})
+17:29:01 [INFO] Processing monster Point{x: 26, y: 12}, Shadows
+17:29:01 [INFO] Action: Move(Point{x: 22, y: 17})
+17:29:01 [INFO] Processing monster Point{x: 27, y: 22}, Voices
+17:29:01 [INFO] Action: Move(Point{x: 30, y: 16})
+17:29:01 [INFO] Processing monster Point{x: 29, y: -16}, Voices
+17:29:01 [INFO] Action: Move(Point{x: 26, y: -13})
+17:29:01 [INFO] Turn 1 has ended.
+*** In the game session, the monsters go first and then the player takes turn
+*** In the replay session, the player goes first and then the monsters take turn
 * TODO Full turn taking is confusing to players                         :bug:
 ** https://www.reddit.com/r/roguelikedev/comments/8iscq1/sharing_saturday_206/dyx2fgo/
 ** When we have 2 action points, people expect the PC to take one, then depression take one then the player take the one,...
 ** This didn't fit my initial mental model but it's probably in line with their expectations
 ** And it shouldn't break the game
-* Replays are broken with alternating the turns                         :bug:
-** Actually, the crash seems to occur precisely at the time we take a dose
-** test if we can prolong it with food
-** check if this is a new thing or happens on earlier commits too
 * Fullscreen shows an extra column of the map glyphs to the left        :bug:
 * Consider defaulting to X11 when running in Wayland
 ** https://github.com/tomaka/winit/issues/305

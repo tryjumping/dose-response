@@ -230,7 +230,6 @@ fn process_game(
 
     let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
-    let mut _player_took_action = false;
     let mut entire_turn_ended = false;
     // Pause entity processing during animations when replaying (so
     // it's all easy to see) but allow the keys to be processed when
@@ -244,6 +243,25 @@ fn process_game(
     let simulation_area = Rectangle::center(state.player.pos, state.map_size);
 
     if (running || paused_one_step || timed_step) && state.side != Side::Victory && no_animations {
+        let monster_count = state.world.monsters(simulation_area).count();
+        let monster_with_ap_count = state
+            .world
+            .monsters(simulation_area)
+            .filter(|m| m.has_ap(1))
+            .count();
+        let monster_cumulative_ap: i32 = state
+            .world
+            .monsters(simulation_area)
+            .map(|m| m.ap.to_int())
+            .sum();
+        debug!(
+            "Player AP: {}, monsters: {}, active mon: {}, total mon AP: {}",
+            state.player.ap(),
+            monster_count,
+            monster_with_ap_count,
+            monster_cumulative_ap
+        );
+
         process_keys(&mut state.keys, &mut state.commands);
         let mouse_command = match option {
             Some(Action::UseFood) => Some(Command::UseFood),
@@ -258,42 +276,32 @@ fn process_game(
             state.commands.push_front(command);
         }
 
-        let command_count = state.commands.len();
-
         // NOTE: Process 1 action point of the player and then 1 AP of
         // all monsters. This means that their turns will alternate.
         // E.g. if the player has 2 APs and they're close to a
         // Depression, the player will move 1 turn first, then
         // Depression 1 etc.
+
+        let player_ap = state.player.ap();
         if state.player.ap() >= 1 {
             process_player(state, simulation_area);
         }
-        // TODO: is it because of the animation here?
-        // NOTE: yeah! But why? And what to do about it?
+        let player_took_action = player_ap > state.player.ap();
+        let monsters_can_move = state.player.ap() == 0 || player_took_action;
 
-        // OH CRAP
-        //
-        // This is because in the replay we process plaer, then skip monsters and then
-        // process player immediately again? Hm although at that point the player should
-        // have no action points
-        //
-        //
-        // So looks like until we encounter monsters nothing's wrong. But as soon as we kill one
-        // things start to go off.
-        //
-        // But apparently using a dose also triggers the crash.
-        //
-        // TODO: See if this is a validation artifact. Stop checking for monster positions and just
-        // verify the player's one.
-        // NOTE: it's not just validation, the replay desyncs pretty quickly. Question is, why?
-        // Is there a nondeterminism introduced in the monster processing?
         if state.explosion_animation.is_none() {
-            process_monsters(
-                &mut state.world,
-                &mut state.player,
-                simulation_area,
-                &mut state.rng,
-            );
+            if monsters_can_move {
+                process_monsters(
+                    &mut state.world,
+                    &mut state.player,
+                    simulation_area,
+                    &mut state.rng,
+                );
+            } else {
+                debug!("Monsters waiting for player.");
+            }
+        } else {
+            debug!("Monster's waiting for the explosion to end.");
         }
 
         // Reset all action points only after everyone is at zero:
@@ -306,8 +314,6 @@ fn process_game(
             == 0;
 
         entire_turn_ended = player_turn_ended && monster_turn_ended;
-
-        _player_took_action = command_count > state.commands.len();
     }
 
     // Log or check verifications
@@ -340,6 +346,7 @@ fn process_game(
     // NOTE: doing this only after we've logged the validations. Actually maybe we want to do this
     // before we start turn processing??
     if entire_turn_ended {
+        debug!("Starting new turn for player and monsters.");
         state.player.new_turn();
         for monster in state.world.monsters_mut(simulation_area) {
             monster.new_turn();
@@ -347,7 +354,7 @@ fn process_game(
     }
 
     if entire_turn_ended {
-        info!("Turn {} has ended.", state.turn);
+        debug!("Turn {} has ended.", state.turn);
         state.turn += 1;
     }
 
@@ -688,7 +695,7 @@ fn process_monsters<R: Rng>(
             .expect("Monster should exist on this position")
             .clone();
         let action = {
-            info!(
+            debug!(
                 "Processing monster {:?}, {:?}",
                 monster_readonly.position, monster_readonly.kind
             );
@@ -702,7 +709,7 @@ fn process_monsters<R: Rng>(
 
                 monster.spend_ap(1);
             }
-            info!("Action: {:?}", action);
+            debug!("Monster Action: {:?}", action);
             action
         };
 
@@ -783,11 +790,18 @@ fn process_player_action<R, W>(
     R: Rng,
     W: Write,
 {
-    if !player.alive() || !player.has_ap(1) {
+    if !player.alive() {
+        debug!("Proccessing player action, but the player is dead.");
+        return;
+    }
+    if !player.has_ap(1) {
+        debug!(
+            "Proccessing player action, but the player has no AP: {}",
+            player.ap()
+        );
         return;
     }
     if let Some(command) = commands.pop_front() {
-        println!("Player command: {:?}", command);
         state::log_command(command_logger, command);
         let mut action = match command {
             Command::N => Action::Move(player.pos + (0, -1)),
@@ -846,7 +860,6 @@ fn process_player_action<R, W>(
         if let Some(kind) = carried_irresistible_dose {
             action = Action::Use(kind);
         }
-        println!("Player action: {:?}", action);
         match action {
             Action::Move(dest) => {
                 let dest_walkable =
@@ -1035,7 +1048,6 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
     }
 
     let previous_action_points = state.player.ap();
-
     process_player_action(
         &mut state.player,
         &mut state.commands,
@@ -1211,7 +1223,7 @@ fn use_dose(
 ) {
     use item::Kind::*;
     use player::Modifier::*;
-    println!("Using dose");
+    debug!("Using dose");
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = match state_of_mind <= 100 {

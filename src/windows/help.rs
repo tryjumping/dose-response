@@ -23,9 +23,9 @@ pub enum Page {
 }
 
 impl Page {
-    pub fn prev(&self) -> Option<Self> {
+    pub fn prev(self) -> Option<Self> {
         use self::Page::*;
-        match *self {
+        match self {
             DoseResponse => None,
             NumpadControls => Some(DoseResponse),
             ArrowControls => Some(NumpadControls),
@@ -35,9 +35,9 @@ impl Page {
         }
     }
 
-    pub fn next(&self) -> Option<Self> {
+    pub fn next(self) -> Option<Self> {
         use self::Page::*;
-        match *self {
+        match self {
             DoseResponse => Some(NumpadControls),
             NumpadControls => Some(ArrowControls),
             ArrowControls => Some(ViKeys),

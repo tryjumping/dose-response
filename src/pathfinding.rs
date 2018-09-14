@@ -43,8 +43,7 @@ impl Path {
                 (1, 0).into(),
                 (1, 1).into(),
             ];
-            dp.clone()
-                .iter()
+            dp.iter()
                 .map(|&d| current + d)
                 .filter(|&point| {
                     world.within_bounds(point) && world.walkable(point, blockers, player_position)
@@ -88,7 +87,7 @@ impl Path {
                 calculation_steps += 1;
             }
             let neigh = neighbors(current.position);
-            for &next in neigh.iter() {
+            for &next in &neigh {
                 let new_cost = cost_so_far[&current.position] + cost(current.position, next);
                 let val = cost_so_far.entry(next).or_insert(f32::MAX);
                 if new_cost < *val {
@@ -128,7 +127,7 @@ impl Path {
         };
 
         assert_eq!(None, path.iter().find(|&&p| p == from));
-        Path { path: path }
+        Path { path }
     }
 
     /// The number of steps to necessary to reach the destination. If
@@ -162,10 +161,8 @@ impl Ord for State {
             Ordering::Greater
         } else if other.cost < self.cost {
             Ordering::Less
-        } else if other.cost == self.cost {
-            Ordering::Equal
         } else {
-            unreachable!()
+            Ordering::Equal
         }
     }
 }

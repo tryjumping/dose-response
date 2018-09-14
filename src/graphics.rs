@@ -16,7 +16,7 @@ pub fn progress_bar(
     let mut highlighted_width = (width as f32 * percentage) as i32;
     if percentage > 0.0 && highlighted_width == 0 {
         highlighted_width = 1;
-    } else if percentage == 1.0 {
+    } else if percentage >= 1.0 {
         highlighted_width = width;
     }
 
@@ -44,7 +44,7 @@ pub fn lerp_f32(from: f32, to: f32, t: f32) -> f32 {
 }
 
 pub fn lerp_u8(from: u8, to: u8, t: f32) -> u8 {
-    lerp_f32(from as f32, to as f32, t) as u8
+    lerp_f32(f32::from(from), f32::from(to), t) as u8
 }
 
 pub fn fade_color(from: Color, to: Color, progress: f32) -> Color {

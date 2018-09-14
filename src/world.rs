@@ -27,7 +27,7 @@ impl Chunk {
         // NOTE: `x` and `y` overflow on negative values here, but all
         // we care about is having a distinct value for each position
         // so our seeds don't repeat. So this is fine here.
-        let seed = Wrapping(world_seed as u64)
+        let seed = Wrapping(u64::from(world_seed))
             + (Wrapping(13) * Wrapping(pos.x as u64))
             + (Wrapping(17) * Wrapping(pos.y as u64));
 
@@ -56,7 +56,7 @@ impl Chunk {
 
     fn populate(&mut self, generated_world: GeneratedWorld) {
         let (map, generated_monsters, items) = generated_world;
-        for &(pos, item) in map.iter() {
+        for &(pos, item) in &map {
             let pos = self.level.level_position(pos);
             self.level.set_tile(pos, item);
         }
@@ -71,7 +71,7 @@ impl Chunk {
             self.level.set_monster(pos, index);
             assert!(!self.level.walkable(pos, Blocker::WALL | Blocker::MONSTER));
         }
-        for &(pos, item) in items.iter() {
+        for &(pos, item) in &items {
             let pos = self.level.level_position(pos);
             assert!(self.level.walkable(pos, Blocker::WALL));
             self.level.add_item(pos, item);
@@ -98,7 +98,7 @@ impl Chunk {
         self.monsters.iter()
     }
 
-    pub fn monsters_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut Monster> {
+    pub fn monsters_mut(&mut self) -> impl Iterator<Item = &mut Monster> {
         self.monsters.iter_mut()
     }
 }
@@ -265,10 +265,11 @@ impl World {
                 }
 
                 // Bail if another dose is in the resist area
-                if resist_area.points().any(|irresistable_point| {
+                let irresistable_dose = resist_area.points().any(|irresistable_point| {
                     self.cell(irresistable_point)
                         .map_or(false, |cell| cell.items.iter().any(|item| item.is_dose()))
-                }) {
+                });
+                if irresistable_dose {
                     continue;
                 }
 
@@ -628,7 +629,7 @@ impl World {
     /// area.
     ///
     /// NOTE: The order of the chunks is not specified.
-    pub fn chunks<'a>(&'a self, area: Rectangle) -> impl Iterator<Item = &'a Chunk> {
+    pub fn chunks(&self, area: Rectangle) -> impl Iterator<Item = &Chunk> {
         let chunk_size = self.chunk_size;
         self.chunks
             .iter()
@@ -643,7 +644,7 @@ impl World {
     /// given area.
     ///
     /// NOTE: The order of the chunks is not specified.
-    pub fn chunks_mut<'a>(&'a mut self, area: Rectangle) -> impl Iterator<Item = &'a mut Chunk> {
+    pub fn chunks_mut(&mut self, area: Rectangle) -> impl Iterator<Item = &mut Chunk> {
         let chunk_size = self.chunk_size;
         self.chunks
             .iter_mut()
@@ -657,7 +658,7 @@ impl World {
     /// Return an iterator over all monsters in the given area.
     ///
     /// NOTE: The order of the monsters is not specified.
-    pub fn monsters<'a>(&'a self, area: Rectangle) -> impl Iterator<Item = &'a Monster> {
+    pub fn monsters(&self, area: Rectangle) -> impl Iterator<Item = &Monster> {
         self.chunks(area)
             .flat_map(Chunk::monsters)
             .filter(move |m| m.alive() && area.contains(m.position))
@@ -666,10 +667,7 @@ impl World {
     /// Return a mutable iterator over all monsters in the given area.
     ///
     /// NOTE: The order of the monsters is not specified.
-    pub fn monsters_mut<'a>(
-        &'a mut self,
-        area: Rectangle,
-    ) -> impl Iterator<Item = &'a mut Monster> {
+    pub fn monsters_mut(&mut self, area: Rectangle) -> impl Iterator<Item = &mut Monster> {
         self.chunks_mut(area)
             .flat_map(Chunk::monsters_mut)
             .filter(move |m| m.alive() && area.contains(m.position))

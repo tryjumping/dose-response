@@ -1,5 +1,13 @@
 #![deny(overflowing_literals, unsafe_code)]
 #![deny(warnings)]
+#![allow(
+    unknown_lints,
+    match_wild_err_arm,
+    too_many_arguments,
+    cyclomatic_complexity,
+    expect_fun_call,
+    or_fun_call,
+)]
 #![windows_subsystem = "windows"]
 
 extern crate bincode;
@@ -93,7 +101,7 @@ const WORLD_SIZE: point::Point = point::Point {
 
 const GAME_TITLE: &str = "Dose Response";
 
-#[allow(unused_variables, dead_code)]
+#[allow(unused_variables, dead_code, needless_pass_by_value)]
 fn run_opengl(
     display_size: point::Point,
     default_background: color::Color,
@@ -139,7 +147,7 @@ fn run_sdl(
     error!("The \"sdl\" feature was not compiled in.");
 }
 
-#[allow(unused_variables, dead_code)]
+#[allow(unused_variables, dead_code, needless_pass_by_value)]
 fn run_remote(
     display_size: point::Point,
     default_background: color::Color,

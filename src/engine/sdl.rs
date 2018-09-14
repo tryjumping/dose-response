@@ -122,11 +122,11 @@ fn compile_shader(src: &str, ty: GLenum) -> GLuint {
         gl::CompileShader(shader);
 
         // Get the compile status
-        let mut status = gl::FALSE as GLint;
+        let mut status = i32::from(gl::FALSE);
         gl::GetShaderiv(shader, gl::COMPILE_STATUS, &mut status);
 
         // Fail on error
-        if status != (gl::TRUE as GLint) {
+        if status != i32::from(gl::TRUE) {
             let mut len = 0;
             gl::GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut len);
             let mut buf = Vec::with_capacity(len as usize);
@@ -139,9 +139,7 @@ fn compile_shader(src: &str, ty: GLenum) -> GLuint {
             );
             panic!(
                 "{}",
-                ::std::str::from_utf8(&buf)
-                    .ok()
-                    .expect("ShaderInfoLog not valid utf8")
+                ::std::str::from_utf8(&buf).expect("ShaderInfoLog not valid utf8")
             );
         }
     }
@@ -156,11 +154,11 @@ fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
         gl::AttachShader(program, fs);
         gl::LinkProgram(program);
         // Get the link status
-        let mut status = gl::FALSE as GLint;
+        let mut status = i32::from(gl::FALSE);
         gl::GetProgramiv(program, gl::LINK_STATUS, &mut status);
 
         // Fail on error
-        if status != (gl::TRUE as GLint) {
+        if status != i32::from(gl::TRUE) {
             let mut len: GLint = 0;
             gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut len);
             let mut buf = Vec::with_capacity(len as usize);
@@ -173,16 +171,14 @@ fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
             );
             panic!(
                 "{}",
-                ::std::str::from_utf8(&buf)
-                    .ok()
-                    .expect("ProgramInfoLog not valid utf8")
+                ::std::str::from_utf8(&buf).expect("ProgramInfoLog not valid utf8")
             );
         }
         program
     }
 }
 
-#[allow(unsafe_code)]
+#[allow(unsafe_code, too_many_arguments)]
 fn render(
     window: &mut Window,
     program: GLuint,
@@ -224,7 +220,8 @@ fn render(
         // Specify the layout of the vertex data
         // NOTE: this must happen only after the BufferData call
         let stride = engine::VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
-        let pos_attr = gl::GetAttribLocation(program, CString::new("pos_px").unwrap().as_ptr());
+        let pos_px_cstr = CString::new("pos_px").unwrap();
+        let pos_attr = gl::GetAttribLocation(program, pos_px_cstr.as_ptr());
         check_gl_error("GetAttribLocation pos_px");
         gl::EnableVertexAttribArray(pos_attr as GLuint);
         check_gl_error("EnableVertexAttribArray pos_px");
@@ -238,8 +235,8 @@ fn render(
         );
         check_gl_error("VertexAttribPointer pos_xp");
 
-        let tex_coord_attr =
-            gl::GetAttribLocation(program, CString::new("tile_pos_px").unwrap().as_ptr());
+        let tile_pos_px_cstr = CString::new("tile_pos_px").unwrap();
+        let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_px_cstr.as_ptr());
         check_gl_error("GetAttribLocation tile_pos_px");
         gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
         check_gl_error("EnableVertexAttribArray tile_pos_px");
@@ -253,7 +250,8 @@ fn render(
         );
         check_gl_error("VertexAttribPointer tile_pos_px");
 
-        let color_attr = gl::GetAttribLocation(program, CString::new("color").unwrap().as_ptr());
+        let color_cstr = CString::new("color").unwrap();
+        let color_attr = gl::GetAttribLocation(program, color_cstr.as_ptr());
         check_gl_error("GetAttribLocation color");
         gl::EnableVertexAttribArray(color_attr as GLuint);
         check_gl_error("EnableVertexAttribArray color");
@@ -271,31 +269,36 @@ fn render(
         gl::BindTexture(gl::TEXTURE_2D, texture);
         check_gl_error("BindTexture");
         let texture_index = 0; // NOTE: hardcoded -- we only have 1 texture.
+        let tex_cstr = CString::new("tex").unwrap();
         gl::Uniform1i(
-            gl::GetUniformLocation(program, CString::new("tex").unwrap().as_ptr()),
+            gl::GetUniformLocation(program, tex_cstr.as_ptr()),
             texture_index,
         );
 
+        let native_display_px_cstr = CString::new("native_display_px").unwrap();
         gl::Uniform2f(
-            gl::GetUniformLocation(program, CString::new("native_display_px").unwrap().as_ptr()),
+            gl::GetUniformLocation(program, native_display_px_cstr.as_ptr()),
             display_info.native_display_px[0],
             display_info.native_display_px[1],
         );
 
+        let display_px_cstr = CString::new("display_px").unwrap();
         gl::Uniform2f(
-            gl::GetUniformLocation(program, CString::new("display_px").unwrap().as_ptr()),
+            gl::GetUniformLocation(program, display_px_cstr.as_ptr()),
             display_info.display_px[0],
             display_info.display_px[1],
         );
 
+        let extra_px_cstr = CString::new("extra_px").unwrap();
         gl::Uniform2f(
-            gl::GetUniformLocation(program, CString::new("extra_px").unwrap().as_ptr()),
+            gl::GetUniformLocation(program, extra_px_cstr.as_ptr()),
             display_info.extra_px[0],
             display_info.extra_px[1],
         );
 
+        let texture_size_px_cstr = CString::new("texture_size_px").unwrap();
         gl::Uniform2f(
-            gl::GetUniformLocation(program, CString::new("texture_size_px").unwrap().as_ptr()),
+            gl::GetUniformLocation(program, texture_size_px_cstr.as_ptr()),
             texture_size_px[0],
             texture_size_px[1],
         );
@@ -367,7 +370,8 @@ impl SdlApp {
             // Use shader program
             gl::UseProgram(self.program);
             check_gl_error("UseProgram");
-            gl::BindFragDataLocation(self.program, 0, CString::new("out_color").unwrap().as_ptr());
+            let out_color_cstr = CString::new("out_color").unwrap();
+            gl::BindFragDataLocation(self.program, 0, out_color_cstr.as_ptr());
             check_gl_error("BindFragDataLocation");
 
             // Bind the texture
@@ -407,6 +411,7 @@ impl Drop for SdlApp {
     }
 }
 
+#[allow(cyclomatic_complexity)]
 pub fn main_loop(
     display_size: Point,
     default_background: Color,
@@ -448,10 +453,9 @@ pub fn main_loop(
     let image = {
         use std::io::Cursor;
         let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
-        let img = image::load(Cursor::new(data), image::PNG)
+        image::load(Cursor::new(data), image::PNG)
             .unwrap()
-            .to_rgba();
-        img
+            .to_rgba()
     };
 
     let image_width = image.width();
@@ -494,7 +498,7 @@ pub fn main_loop(
         previous_frame_start_time = frame_start_time;
 
         // Calculate FPS
-        fps_clock = fps_clock + dt;
+        fps_clock += dt;
         frames_in_current_second += 1;
         current_frame_id += 1;
         if util::num_milliseconds(fps_clock) > 1000 {
@@ -516,7 +520,7 @@ pub fn main_loop(
                 } => {
                     if let Some(code) = key_code_from_backend(backend_code) {
                         let key = super::Key {
-                            code: code,
+                            code,
                             alt: keymod.intersects(keyboard::LALTMOD | keyboard::RALTMOD),
                             ctrl: keymod.intersects(keyboard::LCTRLMOD | keyboard::RCTRLMOD),
                             shift: keymod.intersects(keyboard::LSHIFTMOD | keyboard::RSHIFTMOD),

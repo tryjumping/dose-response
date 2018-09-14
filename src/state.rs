@@ -175,7 +175,7 @@ impl State {
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
         let player = Player::new(player_position, invincible);
-        let mut rng = IsaacRng::new_from_u64(seed as u64);
+        let mut rng = IsaacRng::new_from_u64(u64::from(seed));
         let world = World::new(&mut rng, seed, world_size.x, 32, player.info());
 
         State {
@@ -460,7 +460,7 @@ pub fn log_command<W: Write>(writer: &mut W, command: Command) {
     writeln!(writer, "{}", json_command).unwrap();
 }
 
-pub fn log_verification<W: Write>(writer: &mut W, verification: Verification) {
+pub fn log_verification<W: Write>(writer: &mut W, verification: &Verification) {
     use serde_json;
     let json = serde_json::to_string(&verification).expect(&format!(
         "Could not \

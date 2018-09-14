@@ -28,23 +28,23 @@ impl Point {
         Point::new(0, 0)
     }
 
-    pub fn distance<P: Into<Point>>(&self, other: P) -> f32 {
+    pub fn distance<P: Into<Point>>(self, other: P) -> f32 {
         let other = other.into();
         let a = (self.x - other.x).pow(2);
         let b = (self.y - other.y).pow(2);
         ((a + b) as f32).sqrt()
     }
 
-    pub fn tile_distance<P: Into<Point>>(&self, other: P) -> i32 {
+    pub fn tile_distance<P: Into<Point>>(self, other: P) -> i32 {
         let other = other.into();
         max((self.x - other.x).abs(), (self.y - other.y).abs())
     }
 
-    pub fn circular_area(&self, radius: i32) -> CircularArea {
-        CircularArea::new(*self, radius)
+    pub fn circular_area(self, radius: i32) -> CircularArea {
+        CircularArea::new(self, radius)
     }
 
-    pub fn tuple(&self) -> (i32, i32) {
+    pub fn tuple(self) -> (i32, i32) {
         (self.x, self.y)
     }
 }
@@ -202,8 +202,8 @@ impl CircularArea {
         let center = center.into();
         CircularArea {
             pos: center - (radius, radius),
-            center: center,
-            radius: radius,
+            center,
+            radius,
             initial_x: center.x - radius,
             max: center + (radius, radius),
         }
@@ -273,7 +273,7 @@ impl Iterator for SquareArea {
             self.pos.y += 1;
             self.pos.x = self.min_x;
         }
-        return Some(current_point);
+        Some(current_point)
     }
 }
 

@@ -36,7 +36,7 @@ pub enum Mind {
 impl Mind {
     pub fn is_high(&self) -> bool {
         match self {
-            &Mind::High(_) => true,
+            Mind::High(_) => true,
             _ => false,
         }
     }

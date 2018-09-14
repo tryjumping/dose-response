@@ -74,10 +74,10 @@ impl Vertex {
 impl Into<[f32; 4]> for ColorAlpha {
     fn into(self) -> [f32; 4] {
         [
-            self.rgb.r as f32 / 255.0,
-            self.rgb.g as f32 / 255.0,
-            self.rgb.b as f32 / 255.0,
-            self.alpha as f32 / 255.0,
+            f32::from(self.rgb.r) / 255.0,
+            f32::from(self.rgb.g) / 255.0,
+            f32::from(self.rgb.b) / 255.0,
+            f32::from(self.alpha) / 255.0,
         ]
     }
 }
@@ -125,7 +125,7 @@ fn build_vertices<T: VertexStore>(
     for drawcall in drawcalls {
         match drawcall {
             // NOTE: Rectangle, ColorAlpha)
-            &Drawcall::Rectangle(rect, color) => {
+            Drawcall::Rectangle(rect, color) => {
                 let top_left_px = rect.top_left();
                 let size_px = rect.size();
                 let (pos_x, pos_y) = (top_left_px.x as f32, top_left_px.y as f32);
@@ -154,7 +154,7 @@ fn build_vertices<T: VertexStore>(
                 };
 
                 let tile_pos_px = [-1.0, -1.0];
-                let color = color.into();
+                let color = (*color).into();
 
                 vertices.push(Vertex {
                     pos_px: [pos_x, pos_y],
@@ -190,7 +190,7 @@ fn build_vertices<T: VertexStore>(
             }
 
             // NOTE: (Rectangle, Rectangle, Color)
-            &Drawcall::Image(src, dst, color) => {
+            Drawcall::Image(src, dst, color) => {
                 let pixel_pos = dst.top_left();
                 let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
                 let (tile_width, tile_height) = (dst.width() as f32, dst.height() as f32);
@@ -218,40 +218,40 @@ fn build_vertices<T: VertexStore>(
                     (pos_y, tilemap_y, tile_height)
                 };
 
-                let rgba: ColorAlpha = color.into();
+                let rgba: ColorAlpha = (*color).into();
                 let color = rgba.into();
 
                 // NOTE: draw the glyph
                 vertices.push(Vertex {
                     pos_px: [pos_x, pos_y],
                     tile_pos_px: [tilemap_x, tilemap_y],
-                    color: color,
+                    color,
                 });
                 vertices.push(Vertex {
                     pos_px: [pos_x + tile_width, pos_y],
                     tile_pos_px: [tilemap_x + tile_width, tilemap_y],
-                    color: color,
+                    color,
                 });
                 vertices.push(Vertex {
                     pos_px: [pos_x, pos_y + tile_height],
                     tile_pos_px: [tilemap_x, tilemap_y + tile_height],
-                    color: color,
+                    color,
                 });
 
                 vertices.push(Vertex {
                     pos_px: [pos_x + tile_width, pos_y],
                     tile_pos_px: [tilemap_x + tile_width, tilemap_y],
-                    color: color,
+                    color,
                 });
                 vertices.push(Vertex {
                     pos_px: [pos_x, pos_y + tile_height],
                     tile_pos_px: [tilemap_x, tilemap_y + tile_height],
-                    color: color,
+                    color,
                 });
                 vertices.push(Vertex {
                     pos_px: [pos_x + tile_width, pos_y + tile_height],
                     tile_pos_px: [tilemap_x + tile_width, tilemap_y + tile_height],
-                    color: color,
+                    color,
                 });
             }
         }
@@ -288,7 +288,7 @@ impl TextOptions {
     pub fn align_center(width: i32) -> TextOptions {
         TextOptions {
             align: TextAlign::Center,
-            width: width,
+            width,
             ..Default::default()
         }
     }
@@ -425,7 +425,7 @@ fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
     result
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 struct DisplayInfo {
     native_display_px: [f32; 2],
     window_size_px: [f32; 2],
@@ -556,7 +556,7 @@ impl Display {
     }
 
     pub fn clear(&mut self, background: Color) {
-        for cell in self.map.iter_mut() {
+        for cell in &mut self.map {
             *cell = Cell {
                 background,
                 ..Default::default()

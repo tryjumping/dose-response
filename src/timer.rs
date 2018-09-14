@@ -33,7 +33,7 @@ impl Timer {
         if dt > self.current {
             self.current = Duration::new(0, 0);
         } else {
-            self.current = self.current - dt;
+            self.current -= dt;
         }
     }
 

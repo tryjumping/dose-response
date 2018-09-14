@@ -23,11 +23,11 @@ pub fn render_text_flow(
     let mut ypos = 0;
     for text in text_flow.iter() {
         match text {
-            &Empty => {}
+            Empty => {}
 
-            &EmptySpace(_) => {}
+            EmptySpace(_) => {}
 
-            &Paragraph(text) => {
+            Paragraph(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
                 let options = TextOptions {
                     wrap: true,
@@ -37,7 +37,7 @@ pub fn render_text_flow(
                 display.draw_text(pos, text, color::gui_text, options);
             }
 
-            &Centered(text) => {
+            Centered(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
                 display.draw_text(
                     pos,
@@ -51,7 +51,7 @@ pub fn render_text_flow(
             // Or handle this in engine/text renderer when we produce the characters.
             // Like, have an option that would always set the advance-width
             // to the tile width.
-            &SquareTiles(text) => {
+            SquareTiles(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
                 display.draw_text(
                     pos,
@@ -68,9 +68,9 @@ pub fn render_text_flow(
 fn text_height(text: &Text, rect: Rectangle, metrics: &TextMetrics) -> i32 {
     use self::Text::*;
     match text {
-        &Empty => 1,
-        &EmptySpace(number_of_lines) => number_of_lines,
-        &Paragraph(text) => {
+        Empty => 1,
+        EmptySpace(number_of_lines) => *number_of_lines,
+        Paragraph(text) => {
             let options = TextOptions {
                 wrap: true,
                 width: rect.width(),
@@ -78,8 +78,8 @@ fn text_height(text: &Text, rect: Rectangle, metrics: &TextMetrics) -> i32 {
             };
             metrics.get_text_height(text, options)
         }
-        &Centered(_text) => 1,
-        &SquareTiles(_text) => 1,
+        Centered(_text) => 1,
+        SquareTiles(_text) => 1,
     }
 }
 

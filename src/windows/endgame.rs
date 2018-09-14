@@ -133,7 +133,7 @@ impl Window {
         let carrying_doses_text = if doses_in_inventory > 0 {
             format!("Carrying {} doses", doses_in_inventory)
         } else {
-            format!("You've never managed to save a dose for a later fix.")
+            "You've never managed to save a dose for a later fix.".to_string()
         };
         let high_streak_text = format!(
             "Longest High streak: {} turns",

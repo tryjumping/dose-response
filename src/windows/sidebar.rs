@@ -57,14 +57,14 @@ impl Window {
         let mut rect_under_mouse = None;
 
         let mut inventory = HashMap::new();
-        for item in state.player.inventory.iter() {
+        for item in &state.player.inventory {
             let count = inventory.entry(item.kind).or_insert(0);
             *count += 1;
         }
 
         let mut item_y_offset = 0;
         for kind in item::Kind::iter() {
-            if let Some(_) = inventory.get(&kind) {
+            if inventory.get(&kind).is_some() {
                 let rect = Rectangle::from_point_and_size(
                     inventory_pos + Point::new(-1, item_y_offset + 1),
                     Point::new(state.panel_width, 1),
@@ -89,7 +89,7 @@ impl Window {
 
         bottom -= 2;
 
-        let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help".into()).color(fg);
+        let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help").color(fg);
 
         bottom -= 1;
 
@@ -188,7 +188,7 @@ impl Window {
 
         let mut lines: Vec<Cow<'static, str>> = vec![];
 
-        if layout.inventory.len() > 0 {
+        if !layout.inventory.is_empty() {
             display.draw_button(&Button::new(layout.inventory_pos, "Inventory:").color(fg));
 
             for kind in item::Kind::iter() {

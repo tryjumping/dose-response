@@ -20,7 +20,7 @@ use rand::Rng;
 pub struct InclusiveRange(pub i32, pub i32);
 
 impl InclusiveRange {
-    pub fn random<R: Rng>(&self, rng: &mut R) -> i32 {
+    pub fn random<R: Rng>(self, rng: &mut R) -> i32 {
         rng.gen_range(self.0, self.1 + 1)
     }
 }
@@ -162,7 +162,7 @@ impl Add<Rational32> for Ranged {
 
 impl AddAssign<Rational32> for Ranged {
     fn add_assign(&mut self, other: Rational32) {
-        *self = self.clone() + other
+        *self = *self + other
     }
 }
 
@@ -176,7 +176,7 @@ impl Add<i32> for Ranged {
 
 impl AddAssign<i32> for Ranged {
     fn add_assign(&mut self, other: i32) {
-        *self = self.clone() + other
+        *self = *self + other
     }
 }
 
@@ -198,7 +198,7 @@ impl Sub<i32> for Ranged {
 
 impl SubAssign<i32> for Ranged {
     fn sub_assign(&mut self, other: i32) {
-        *self = self.clone() - other
+        *self = *self - other
     }
 }
 

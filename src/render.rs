@@ -21,19 +21,19 @@ pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, disp
     // other windows.
     for window in state.window_stack.windows() {
         match window {
-            &Window::MainMenu => {
+            Window::MainMenu => {
                 render_main_menu(state, &main_menu::Window, metrics, display);
             }
-            &Window::Game => {
+            Window::Game => {
                 render_game(state, &sidebar::Window, metrics, dt, fps, display);
             }
-            &Window::Help => {
+            Window::Help => {
                 render_help_screen(state, &help::Window, metrics, display);
             }
-            &Window::Endgame => {
+            Window::Endgame => {
                 render_endgame_screen(state, &endgame::Window, metrics, display);
             }
-            &Window::Message(ref text) => {
+            Window::Message(ref text) => {
                 render_message(state, text, metrics, display);
             }
         }
@@ -74,12 +74,13 @@ pub fn render_game(
         display.set_fade(animation.color, fade);
     }
 
-    let mut bonus = state.player.bonus;
-    // TODO: setting this as a bonus is a hack. Pass it to all renderers
-    // directly instead.
-    if cfg!(feature = "cheating") && state.cheating {
-        bonus = Bonus::UncoverMap;
-    }
+    let bonus = if cfg!(feature = "cheating") && state.cheating {
+        // TODO: setting this as a bonus is a hack. Pass it to all renderers
+        // directly instead.
+        Bonus::UncoverMap
+    } else {
+        state.player.bonus
+    };
     let radius = formula::exploration_radius(state.player.mind);
 
     let player_pos = state.player.pos;
@@ -116,8 +117,8 @@ pub fn render_game(
         if show_intoxication_effect {
             // TODO: try to move this calculation of this loop and see
             // what it does to our speed.
-            let pos_x: i64 = (world_pos.x + world_size.x) as i64;
-            let pos_y: i64 = (world_pos.y + world_size.y) as i64;
+            let pos_x: i64 = i64::from(world_pos.x + world_size.x);
+            let pos_y: i64 = i64::from(world_pos.y + world_size.y);
             assert!(pos_x >= 0);
             assert!(pos_y >= 0);
             let half_cycle_ms = 700 + ((pos_x * pos_y) % 100) * 5;
@@ -154,7 +155,7 @@ pub fn render_game(
         }
 
         // Render the irresistible background of a dose
-        for item in cell.items.iter() {
+        for item in &cell.items {
             if item.is_dose() {
                 let resist_radius = formula::player_resist_radius(item.irresistible, player_will);
                 for point in SquareArea::new(world_pos, resist_radius) {
@@ -173,7 +174,7 @@ pub fn render_game(
             || bonus == Bonus::UncoverMap
             || state.uncovered_map
         {
-            for item in cell.items.iter() {
+            for item in &cell.items {
                 display.set_glyph(display_pos, item.glyph(), item.color(), offset_px);
             }
         }
@@ -220,10 +221,11 @@ pub fn render_game(
             // }
 
             let glyph = monster.glyph();
-            let mut color = monster.color;
-            if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
-                color = color::npc_dim;
-            }
+            let mut color = if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
+                color::npc_dim
+            } else {
+                monster.color
+            };
             display.set_glyph(display_pos, glyph, color, offset_px);
         }
     }
@@ -344,7 +346,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
             display.draw_text(
                 Point {
                     x: 0,
-                    y: 0 + index as i32,
+                    y: index as i32,
                 },
                 line,
                 color::gui_text,

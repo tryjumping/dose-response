@@ -48,7 +48,7 @@ impl Tile {
         }
     }
 
-    pub fn glyph(&self) -> char {
+    pub fn glyph(self) -> char {
         use self::TileKind::*;
         match self.kind {
             Empty => '.',
@@ -88,7 +88,7 @@ impl Level {
         assert!(pos.y >= 0);
         assert!(pos.x < self.dimensions.x);
         assert!(pos.y < self.dimensions.y);
-        LevelPosition { pos: pos }
+        LevelPosition { pos }
     }
 
     fn index(&self, pos: LevelPosition) -> usize {
@@ -96,12 +96,12 @@ impl Level {
     }
 
     pub fn cell(&self, pos: LevelPosition) -> &Cell {
-        let index = self.index(pos.into());
+        let index = self.index(pos);
         &self.map[index]
     }
 
     pub fn cell_mut(&mut self, pos: LevelPosition) -> &mut Cell {
-        let index = self.index(pos.into());
+        let index = self.index(pos);
         &mut self.map[index]
     }
 
@@ -114,7 +114,7 @@ impl Level {
     }
 
     pub fn monster_on_pos(&self, pos: LevelPosition) -> Option<usize> {
-        self.monsters.get(&pos.into()).cloned()
+        self.monsters.get(&pos).cloned()
     }
 
     pub fn add_item(&mut self, pos: LevelPosition, item: Item) {
@@ -130,7 +130,6 @@ impl Level {
         use blocker::Blocker;
         // We don't have the player's position here so we can't check that here.
         assert!(!blockers.contains(Blocker::PLAYER));
-        let pos = pos.into();
         let blocked_by_wall = blockers.contains(Blocker::WALL) && self.cell(pos).tile.kind != Empty;
         let blocked_by_monster =
             blockers.contains(Blocker::MONSTER) && self.monster_on_pos(pos).is_some();
@@ -146,12 +145,10 @@ impl Level {
                  already occupied.",
                 monster_position, destination
             );
+        } else if let Some(monster_index) = self.monsters.remove(&monster_position) {
+            self.monsters.insert(destination, monster_index);
         } else {
-            if let Some(monster_index) = self.monsters.remove(&monster_position) {
-                self.monsters.insert(destination, monster_index);
-            } else {
-                panic!("Moving a monster that doesn't exist");
-            }
+            panic!("Moving a monster that doesn't exist");
         }
     }
 
@@ -175,7 +172,7 @@ impl<'a> Iterator for Cells<'a> {
 
     fn next(&mut self) -> Option<(LevelPosition, &'a Cell)> {
         let pos = (self.index % self.width, self.index / self.width).into();
-        let level_position = LevelPosition { pos: pos };
+        let level_position = LevelPosition { pos };
         self.index += 1;
         match self.inner.next() {
             Some(cell) => Some((level_position, cell)),

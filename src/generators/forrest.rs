@@ -39,9 +39,10 @@ fn generate_map<R: Rng, G: Rng>(
             // every chunk but the one the player is in.
             //
             // Player always starts at an empty space:
-            let kind = match player_pos == (x, y) {
-                true => TileKind::Empty,
-                false => opts.sample(rng),
+            let kind = if player_pos == (x, y) {
+                TileKind::Empty
+            } else {
+                opts.sample(rng)
             };
 
             let mut tile = Tile::new(kind);
@@ -98,19 +99,16 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
         }
         if let Some(kind) = opts.sample(rng) {
             let mut monster = Monster::new(kind, pos);
-            match kind {
-                Kind::Npc => {
-                    use color;
-                    use monster::CompanionBonus::*;
-                    let bonus = rng.gen();
-                    monster.companion_bonus = Some(bonus);
-                    monster.color = match bonus {
-                        DoubleWillGrowth => color::npc_will,
-                        HalveExhaustion => color::npc_mind,
-                        ExtraActionPoint => color::npc_speed,
-                    };
-                }
-                _ => (),
+            if kind == Kind::Npc {
+                use color;
+                use monster::CompanionBonus::*;
+                let bonus = rng.gen();
+                monster.companion_bonus = Some(bonus);
+                monster.color = match bonus {
+                    DoubleWillGrowth => color::npc_will,
+                    HalveExhaustion => color::npc_mind,
+                    ExtraActionPoint => color::npc_speed,
+                };
             };
             result.push(monster);
         }
@@ -123,53 +121,45 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
     match kind {
         Dose => {
             let mut item = formula::DOSE_PREFAB;
-            match item.modifier {
-                Modifier::Intoxication {
-                    ref mut state_of_mind,
-                    ..
-                } => {
-                    *state_of_mind += formula::DOSE_MIND_VARIANCE.random(rng);
-                }
-                _ => {}
+            if let Modifier::Intoxication {
+                ref mut state_of_mind,
+                ..
+            } = item.modifier
+            {
+                *state_of_mind += formula::DOSE_MIND_VARIANCE.random(rng);
             };
             item
         }
         StrongDose => {
             let mut item = formula::STRONG_DOSE_PREFAB;
-            match item.modifier {
-                Modifier::Intoxication {
-                    ref mut state_of_mind,
-                    ..
-                } => {
-                    *state_of_mind += formula::STRONG_DOSE_MIND_VARIANCE.random(rng);
-                }
-                _ => {}
+            if let Modifier::Intoxication {
+                ref mut state_of_mind,
+                ..
+            } = item.modifier
+            {
+                *state_of_mind += formula::STRONG_DOSE_MIND_VARIANCE.random(rng);
             };
             item
         }
         CardinalDose => {
             let mut item = formula::CARDINAL_DOSE_PREFAB;
-            match item.modifier {
-                Modifier::Intoxication {
-                    ref mut state_of_mind,
-                    ..
-                } => {
-                    *state_of_mind += formula::CARDINAL_DOSE_MIND_VARIANCE.random(rng);
-                }
-                _ => {}
+            if let Modifier::Intoxication {
+                ref mut state_of_mind,
+                ..
+            } = item.modifier
+            {
+                *state_of_mind += formula::CARDINAL_DOSE_MIND_VARIANCE.random(rng);
             };
             item
         }
         DiagonalDose => {
             let mut item = formula::DIAGONAL_DOSE_PREFAB;
-            match item.modifier {
-                Modifier::Intoxication {
-                    ref mut state_of_mind,
-                    ..
-                } => {
-                    *state_of_mind += formula::DIAGONAL_DOSE_MIND_VARIANCE.random(rng);
-                }
-                _ => {}
+            if let Modifier::Intoxication {
+                ref mut state_of_mind,
+                ..
+            } = item.modifier
+            {
+                *state_of_mind += formula::DIAGONAL_DOSE_MIND_VARIANCE.random(rng);
             };
             item
         }

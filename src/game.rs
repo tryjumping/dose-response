@@ -41,6 +41,7 @@ pub enum RunningState {
     NewGame(State),
 }
 
+#[allow(too_many_arguments)]
 pub fn update(
     state: &mut State,
     dt: Duration,
@@ -53,8 +54,8 @@ pub fn update(
     display: &mut Display, // TODO: remove this from the engine and keep a transient state instead
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
-    state.clock = state.clock + dt;
-    state.replay_step = state.replay_step + dt;
+    state.clock += dt;
+    state.replay_step += dt;
 
     state.keys.extend(new_keys.iter().cloned());
     state.mouse = mouse;
@@ -70,12 +71,10 @@ pub fn update(
         return RunningState::Stopped;
     }
 
-    if cfg!(feature = "fullscreen") {
-        // Full screen on Alt-Enter
-        if state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
-            info!("Pressed Alt+Enter, toggling fullscreen.");
-            settings.fullscreen = !settings.fullscreen;
-        }
+    // Full screen on Alt-Enter
+    if cfg!(feature = "fullscreen") && state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
+        info!("Pressed Alt+Enter, toggling fullscreen.");
+        settings.fullscreen = !settings.fullscreen;
     }
 
     let current_window = state.window_stack.top();
@@ -100,11 +99,12 @@ pub fn update(
             let new_phase = anim.phase;
             // TODO: this is a bit hacky, but we want to uncover the screen only
             // after we've faded out:
-            if (prev_phase != new_phase) && prev_phase == ScreenFadePhase::FadeOut {
-                if state.show_endscreen_and_uncover_map_during_fadein {
-                    state.uncovered_map = true;
-                    state.window_stack.push(Window::Endgame);
-                }
+            if (prev_phase != new_phase)
+                && prev_phase == ScreenFadePhase::FadeOut
+                && state.show_endscreen_and_uncover_map_during_fadein
+            {
+                state.uncovered_map = true;
+                state.window_stack.push(Window::Endgame);
             }
             state.screen_fading = Some(anim);
         }
@@ -143,11 +143,11 @@ fn process_game(
 ) -> RunningState {
     use self::sidebar::Action;
 
-    let mut option = None;
-
-    if state.mouse.left {
-        option = window.hovered(&state, metrics);
-    }
+    let mut option = if state.mouse.left {
+        window.hovered(&state, metrics)
+    } else {
+        None
+    };
 
     if option.is_none() {
         option = if state.keys.matches_code(KeyCode::Esc) {
@@ -321,16 +321,14 @@ fn process_game(
         if state.replay {
             if let Some(expected) = state.verifications.pop_front() {
                 let actual = state.verification();
-                verify_states(expected, actual);
+                verify_states(&expected, &actual);
 
-                if player_was_alive && !state.player.alive() {
-                    if !state.commands.is_empty() {
-                        panic!(
-                            "Game quit too early -- there are still {} \
-                             commands queued up.",
-                            state.commands.len()
-                        );
-                    }
+                if player_was_alive && !state.player.alive() && !state.commands.is_empty() {
+                    panic!(
+                        "Game quit too early -- there are still {} \
+                         commands queued up.",
+                        state.commands.len()
+                    );
                 }
             } else {
                 // NOTE: no verifications were loaded. Probably
@@ -338,7 +336,7 @@ fn process_game(
             }
         } else if cfg!(feature = "verifications") {
             let verification = state.verification();
-            state::log_verification(&mut state.command_logger, verification);
+            state::log_verification(&mut state.command_logger, &verification);
         }
     }
 
@@ -469,16 +467,17 @@ fn process_main_menu(
 ) -> RunningState {
     use windows::main_menu::MenuItem::*;
 
-    let mut option = None;
-
-    if state.mouse.left {
-        option = window.hovered(&state, metrics);
-    }
+    let mut option = if state.mouse.left {
+        window.hovered(&state, metrics)
+    } else {
+        None
+    };
 
     if option.is_none() {
-        if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::R) {
-            option = Some(Resume);
-        } else if state.mouse.right {
+        if state.keys.matches_code(KeyCode::Esc)
+            || state.keys.matches_code(KeyCode::R)
+            || state.mouse.right
+        {
             option = Some(Resume);
         } else if state.keys.matches_code(KeyCode::N) {
             option = Some(NewGame);
@@ -574,11 +573,11 @@ fn process_help_window(
         return RunningState::Running;
     }
 
-    let mut action = None;
-
-    if state.mouse.left {
-        action = window.hovered(&state, metrics);
-    }
+    let mut action = if state.mouse.left {
+        window.hovered(&state, metrics)
+    } else {
+        None
+    };
 
     if action.is_none() {
         if state.keys.matches_code(KeyCode::Right) {
@@ -618,20 +617,20 @@ fn process_endgame_window(
 ) -> RunningState {
     use windows::endgame::Action::*;
 
-    let mut action = None;
-
-    if state.mouse.left {
-        action = window.hovered(&state, metrics);
-    }
+    let mut action = if state.mouse.left {
+        window.hovered(&state, metrics)
+    } else {
+        None
+    };
 
     if action.is_none() {
         if state.keys.matches_code(KeyCode::N) {
             action = Some(NewGame);
         } else if state.keys.matches_code(KeyCode::Esc) {
             action = Some(Menu);
-        } else if state.keys.matches_code(KeyCode::QuestionMark) {
-            action = Some(Help);
-        } else if state.keys.matches_code(KeyCode::H) {
+        } else if state.keys.matches_code(KeyCode::QuestionMark)
+            || state.keys.matches_code(KeyCode::H)
+        {
             action = Some(Help);
         }
     }
@@ -778,6 +777,7 @@ fn process_monsters<R: Rng>(
     }
 }
 
+#[allow(cyclomatic_complexity)]
 fn process_player_action<R, W>(
     player: &mut player::Player,
     commands: &mut VecDeque<Command>,
@@ -1151,9 +1151,8 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
                 commands.push_back(Command::UseFood);
             }
 
-            _ => match inventory_commands(key) {
-                Some(command) => commands.push_back(command),
-                None => (),
+            _ => if let Some(command) = inventory_commands(key) {
+                commands.push_back(command)
             },
         }
     }
@@ -1226,10 +1225,7 @@ fn use_dose(
     debug!("Using dose");
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
-        let radius = match state_of_mind <= 100 {
-            true => 4,
-            false => 6,
-        };
+        let radius = if state_of_mind <= 100 { 4 } else { 6 };
         player.take_effect(item.modifier);
         let animation: Box<AreaOfEffect> = match item.kind {
             Dose | StrongDose => Box::new(animation::SquareExplosion::new(
@@ -1288,7 +1284,7 @@ fn show_exit_stats(stats: &Stats) {
     );
 }
 
-fn verify_states(expected: state::Verification, actual: state::Verification) {
+fn verify_states(expected: &state::Verification, actual: &state::Verification) {
     if expected.chunk_count != actual.chunk_count {
         error!(
             "Expected chunks: {}, actual: {}",

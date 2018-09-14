@@ -120,7 +120,7 @@ impl Keys {
             }
             processed += 1;
         }
-        return found;
+        found
     }
 
     /// Return true if any key has the specified key code.

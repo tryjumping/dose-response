@@ -416,7 +416,7 @@ pub fn main_loop(
     display_size: Point,
     default_background: Color,
     window_title: &str,
-    mut state: State,
+    mut state: Box<State>,
     update: UpdateFn,
 ) {
     let tilesize = super::TILESIZE;

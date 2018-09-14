@@ -38,7 +38,7 @@ pub enum Action {
 pub enum RunningState {
     Running,
     Stopped,
-    NewGame(State),
+    NewGame(Box<State>),
 }
 
 #[allow(too_many_arguments)]
@@ -506,7 +506,7 @@ fn process_main_menu(
             NewGame => {
                 // TODO: when this is the first run, this should resume the game that's already
                 // loaded in the background.
-                return RunningState::NewGame(create_new_game_state(state));
+                return RunningState::NewGame(Box::new(create_new_game_state(state)));
             }
 
             Help => {
@@ -636,7 +636,7 @@ fn process_endgame_window(
     }
 
     match action {
-        Some(NewGame) => RunningState::NewGame(create_new_game_state(state)),
+        Some(NewGame) => RunningState::NewGame(Box::new(create_new_game_state(state))),
         Some(Menu) => {
             state.window_stack.push(Window::MainMenu);
             RunningState::Running

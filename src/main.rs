@@ -139,7 +139,7 @@ fn run_sdl(
         display_size,
         default_background,
         window_title,
-        state,
+        Box::new(state),
         update,
     );
 

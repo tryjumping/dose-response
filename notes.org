@@ -90,8 +90,28 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** Did that, is it okay now?
 * Debug entity info is broken                                           :bug:
 ** Right-click on a player, the info flickers and then disappears
+** Also alt-enter seems to just flicker instead of staying full screen
+** Is that only the case in SDL?
+*** try test it with winit
+*** it's possible our keyboard handling is messed up with the sdl backend
 * Apparently can reach the edge of the map??                            :bug:
 ** replays/replay-2018-09-13T14-34-57.075
+* Scrolling glitches                                                    :bug:
+** Slow the scrolling down so they're easily visible
+** Play the game & see what looks wrong
+** IIRC some of the explored areas have a weird background or something
+** There are some weird little bands around some glyphs
+* Endgame
+** Generate a Final NPC
+** Uncover tiles with the straight line leading to the NPC
+*** maybe also glow them or something in case they're already uncovered
+*** or just keep that part always visible (without fog of war)
+**** that means even if you've uncovered the map you can see the way through
+**** maybe like a 3-tile always visible line
+**** and a 2-3 tile fog of war padding
+** Briefly scroll towards the NPC and then back to the player
+** The NPC is stationary
+** When the PC bumps into the NPC, they win
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
@@ -99,11 +119,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 **** The smallest doses were actually okay
 **** But the larger ones weren't
 **** Maybe increase their strength?
-* Scrolling glitches                                                    :bug:
-** Slow the scrolling down so they're easily visible
-** Play the game & see what looks wrong
-** IIRC some of the explored areas have a weird background or something
-** There are some weird little bands around some glyphs
 * Test winit fullscreen on windows
 ** We've updated Glium + winit to 0.12
 *** TODO does it help?

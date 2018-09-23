@@ -357,11 +357,11 @@ fn process_game(
     }
 
     // NOTE: Load up new chunks if necessary
-    // if player_took_action && entire_turn_ended {
-    //     for pos in simulation_area.points() {
-    //         state.world.ensure_chunk_at_pos(pos);
-    //     }
-    // }
+    if entire_turn_ended {
+        for pos in simulation_area.points() {
+            state.world.ensure_chunk_at_pos(pos);
+        }
+    }
 
     // Run the dose explosion effect here:
     if let Some(ref anim) = state.explosion_animation {

@@ -247,7 +247,7 @@ pub fn render_game(
     }
 
     let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
-    if mouse_inside_map && state.mouse.right {
+    if mouse_inside_map && state.mouse.right_is_down {
         render_monster_info(state, display);
     }
 }

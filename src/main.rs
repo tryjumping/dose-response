@@ -116,7 +116,7 @@ fn run_opengl(
         display_size,
         default_background,
         window_title,
-        state,
+        Box::new(state),
         update,
     );
 

@@ -493,8 +493,14 @@ fn calculate_display_info(
 pub struct Mouse {
     pub tile_pos: Point,
     pub screen_pos: Point,
-    pub left: bool,
-    pub right: bool,
+    /// The left button has clicked. I.e. pressed and released.
+    pub left_clicked: bool,
+    /// The Right button was clicked, i.e. pressed and released.
+    pub right_clicked: bool,
+    /// The left button is being held down.
+    pub left_is_down: bool,
+    /// The right button is being held down.
+    pub right_is_down: bool,
 }
 
 impl Mouse {

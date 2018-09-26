@@ -558,18 +558,29 @@ pub fn main_loop(
                     };
                 }
 
-                Event::MouseButtonDown { .. } => {
-                    // NOTE: do nothing. We handle everything in the mouse up event
+                Event::MouseButtonDown { mouse_btn, .. } => {
+                    use sdl2::mouse::MouseButton::*;
+                    match mouse_btn {
+                        Left => {
+                            mouse.left_is_down = true;
+                        }
+                        Right => {
+                            mouse.right_is_down = true;
+                        }
+                        _ => {}
+                    }
                 }
 
                 Event::MouseButtonUp { mouse_btn, .. } => {
                     use sdl2::mouse::MouseButton::*;
                     match mouse_btn {
                         Left => {
-                            mouse.left = true;
+                            mouse.left_clicked = true;
+                            mouse.left_is_down = false;
                         }
                         Right => {
-                            mouse.right = true;
+                            mouse.right_clicked = true;
+                            mouse.right_is_down = false;
                         }
                         _ => {}
                     }
@@ -611,8 +622,8 @@ pub fn main_loop(
             RunningState::Stopped => break,
         }
 
-        mouse.left = false;
-        mouse.right = false;
+        mouse.left_clicked = false;
+        mouse.right_clicked = false;
         keys.clear();
 
         if cfg!(feature = "fullscreen") {

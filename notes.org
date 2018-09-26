@@ -88,12 +88,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
 **** Did that, is it okay now?
-* TODO Debug entity info is broken                                      :bug:
-** Right-click on a player, the info flickers and then disappears
-** Also alt-enter seems to just flicker instead of staying full screen
-** Is that only the case in SDL?
-*** try test it with winit
-*** it's possible our keyboard handling is messed up with the sdl backend
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong
@@ -2691,3 +2685,15 @@ CLOSED: [2018-09-23 Sun 11:19]
 :ARCHIVE_TIME: 2018-09-23 Sun 11:19
 :END:
 *** replays/replay-2018-09-13T14-34-57.075
+** DONE Debug entity info is broken                                    :bug:
+CLOSED: [2018-09-26 Wed 14:51]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-09-26 Wed 14:51
+:END:
+*** Right-click on a player, the info flickers and then disappears
+*** Also alt-enter seems to just flicker instead of staying full screen
+*** Is that only the case in SDL?
+**** try test it with winit
+**** it's possible our keyboard handling is messed up with the sdl backend
+*** So click down doesn't register at all
+**** only

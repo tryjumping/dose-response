@@ -131,7 +131,7 @@ pub fn main_loop(
     display_size: Point,
     default_background: Color,
     window_title: &str,
-    mut state: State,
+    mut state: Box<State>,
     update: UpdateFn,
 ) {
     let tilesize = super::TILESIZE;
@@ -290,8 +290,8 @@ pub fn main_loop(
             }
         }
 
-        mouse.left = false;
-        mouse.right = false;
+        mouse.left_clicked = false;
+        mouse.right_clicked = false;
 
         keys.clear();
 
@@ -566,11 +566,19 @@ pub fn main_loop(
                             use glium::glutin::MouseButton::*;
 
                             match (state, button) {
+                                (Pressed, Left) => {
+                                    mouse.left_is_down = true;
+                                }
+                                (Pressed, Right) => {
+                                    mouse.right_is_down = true;
+                                }
                                 (Released, Left) => {
-                                    mouse.left = true;
+                                    mouse.left_clicked = true;
+                                    mouse.left_is_down = false;
                                 }
                                 (Released, Right) => {
-                                    mouse.right = true;
+                                    mouse.right_clicked = true;
+                                    mouse.right_is_down = false;
                                 }
                                 _ => {}
                             }

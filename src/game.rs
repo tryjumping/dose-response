@@ -143,7 +143,7 @@ fn process_game(
 ) -> RunningState {
     use self::sidebar::Action;
 
-    let mut option = if state.mouse.left {
+    let mut option = if state.mouse.left_clicked {
         window.hovered(&state, metrics)
     } else {
         None
@@ -174,7 +174,7 @@ fn process_game(
     // Show the endgame screen on any pressed key:
     if state.game_ended
         && state.screen_fading.is_none()
-        && (state.keys.matches(|_| true) || state.mouse.right)
+        && (state.keys.matches(|_| true) || state.mouse.right_clicked)
     {
         state.window_stack.push(Window::Endgame);
         return RunningState::Running;
@@ -467,7 +467,7 @@ fn process_main_menu(
 ) -> RunningState {
     use windows::main_menu::MenuItem::*;
 
-    let mut option = if state.mouse.left {
+    let mut option = if state.mouse.left_clicked {
         window.hovered(&state, metrics)
     } else {
         None
@@ -476,7 +476,7 @@ fn process_main_menu(
     if option.is_none() {
         if state.keys.matches_code(KeyCode::Esc)
             || state.keys.matches_code(KeyCode::R)
-            || state.mouse.right
+            || state.mouse.right_clicked
         {
             option = Some(Resume);
         } else if state.keys.matches_code(KeyCode::N) {
@@ -568,12 +568,12 @@ fn process_help_window(
 ) -> RunningState {
     use self::help::Action;
 
-    if state.keys.matches_code(KeyCode::Esc) || state.mouse.right {
+    if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
         state.window_stack.pop();
         return RunningState::Running;
     }
 
-    let mut action = if state.mouse.left {
+    let mut action = if state.mouse.left_clicked {
         window.hovered(&state, metrics)
     } else {
         None
@@ -617,7 +617,7 @@ fn process_endgame_window(
 ) -> RunningState {
     use windows::endgame::Action::*;
 
-    let mut action = if state.mouse.left {
+    let mut action = if state.mouse.left_clicked {
         window.hovered(&state, metrics)
     } else {
         None
@@ -646,7 +646,7 @@ fn process_endgame_window(
             RunningState::Running
         }
         None => {
-            if state.keys.get().is_some() || state.mouse.right {
+            if state.keys.get().is_some() || state.mouse.right_clicked {
                 state.window_stack.pop();
             }
             RunningState::Running
@@ -655,7 +655,7 @@ fn process_endgame_window(
 }
 
 fn process_message_window(state: &mut State) -> RunningState {
-    if state.keys.get().is_some() || state.mouse.left || state.mouse.right {
+    if state.keys.get().is_some() || state.mouse.left_clicked || state.mouse.right_clicked {
         state.window_stack.pop();
         return RunningState::Running;
     }

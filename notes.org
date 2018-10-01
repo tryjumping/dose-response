@@ -93,17 +93,25 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** Play the game & see what looks wrong
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
-* Endgame
-** Generate a Final NPC
-** Uncover tiles with the straight line leading to the NPC
-*** maybe also glow them or something in case they're already uncovered
-*** or just keep that part always visible (without fog of war)
-**** that means even if you've uncovered the map you can see the way through
-**** maybe like a 3-tile always visible line
-**** and a 2-3 tile fog of war padding
-** Briefly scroll towards the NPC and then back to the player
-** The NPC is stationary
-** When the PC bumps into the NPC, they win
+* Menu doesn't show the "Quit Without Saving" option                    :bug:
+** It only shows "Save and Quit" but sometimes you don't want that
+* TODO Add Victory NPC
+** It doesn't move
+** When bumped into, win the game
+** Same colour as the Player?
+* Place Victory NPC in the Endgame
+** Put it some distance away from the Player
+*** Maybe 80 - 120 tiles?
+** Highlight path from player's position towards it
+** Briefly scroll towards the NPC and back?
+* Delete Victory NPC when High
+** What about the highlighted path?
+** If we keep it, people would still try to follow up
+*** and be dismayed when they don't find anything there
+** Maybe add an explanation text on the tile?
+*** "Sober up, junkie!"
+*** "Get sober and stay sober."
+* Remove the sobriety counter from the game
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses

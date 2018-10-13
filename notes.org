@@ -95,15 +95,10 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** There are some weird little bands around some glyphs
 * Menu doesn't show the "Quit Without Saving" option                    :bug:
 ** It only shows "Save and Quit" but sometimes you don't want that
-* TODO Add Victory NPC
-** It doesn't move
-** When bumped into, win the game
-** Same colour as the Player?
-* Place Victory NPC in the Endgame
-** Put it some distance away from the Player
-*** Maybe 80 - 120 tiles?
-** Highlight path from player's position towards it
-** Briefly scroll towards the NPC and back?
+* Place Victory NPC with a cheat command
+** pressing 'v' in a cheat mode will spawn the NPC
+** that way the basic game is not distracted
+** we can test things like the screen scrolling animation with it
 * Delete Victory NPC when High
 ** What about the highlighted path?
 ** If we keep it, people would still try to follow up
@@ -111,6 +106,12 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** Maybe add an explanation text on the tile?
 *** "Sober up, junkie!"
 *** "Get sober and stay sober."
+* Place Victory NPC in the Endgame
+** Put it some distance away from the Player
+*** Maybe 80 - 120 tiles?
+* Highlight the way to a Victory NPC
+** Highlight path from player's position towards it
+** Briefly scroll towards the NPC and back?
 * Remove the sobriety counter from the game
 * Balance the late game
 ** So I think the early to mid game is good
@@ -2705,3 +2706,11 @@ CLOSED: [2018-09-26 Wed 14:51]
 **** it's possible our keyboard handling is messed up with the sdl backend
 *** So click down doesn't register at all
 **** only
+** DONE Add Victory NPC
+CLOSED: [2018-10-13 Sat 12:46]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-13 Sat 12:46
+:END:
+*** It doesn't move
+*** When bumped into, win the game
+*** Same colour as the Player?

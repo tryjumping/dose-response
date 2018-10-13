@@ -95,10 +95,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** There are some weird little bands around some glyphs
 * Menu doesn't show the "Quit Without Saving" option                    :bug:
 ** It only shows "Save and Quit" but sometimes you don't want that
-* Place Victory NPC with a cheat command
-** pressing 'v' in a cheat mode will spawn the NPC
-** that way the basic game is not distracted
-** we can test things like the screen scrolling animation with it
 * Delete Victory NPC when High
 ** What about the highlighted path?
 ** If we keep it, people would still try to follow up
@@ -2714,3 +2710,11 @@ CLOSED: [2018-10-13 Sat 12:46]
 *** It doesn't move
 *** When bumped into, win the game
 *** Same colour as the Player?
+** DONE Place Victory NPC with a cheat command
+CLOSED: [2018-10-13 Sat 15:06]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-13 Sat 15:06
+:END:
+*** pressing 'v' in a cheat mode will spawn the NPC
+*** that way the basic game is not distracted
+*** we can test things like the screen scrolling animation with it

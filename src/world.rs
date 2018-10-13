@@ -60,15 +60,14 @@ impl Chunk {
             let pos = self.level.level_position(pos);
             self.level.set_tile(pos, item);
         }
-        for (index, mut monster) in generated_monsters.into_iter().enumerate() {
+        for mut monster in generated_monsters.into_iter() {
             // TODO: the pos conversion would not be necessary if the
             // worldgen operated with world positions in the first
             // place.
             let pos = self.level.level_position(monster.position);
             assert!(self.level.walkable(pos, Blocker::WALL | Blocker::MONSTER));
             monster.position = self.world_position(pos);
-            self.monsters.push(monster);
-            self.level.set_monster(pos, index);
+            self.add_monster(monster);
             assert!(!self.level.walkable(pos, Blocker::WALL | Blocker::MONSTER));
         }
         for &(pos, item) in &items {
@@ -92,6 +91,14 @@ impl Chunk {
             chunk_position: self.position,
             cells: self.level.iter(),
         }
+    }
+
+    pub fn add_monster(&mut self, monster: Monster) {
+        let monster_level_position = self.level_position(monster.position);
+        let monster_index = self.monsters.len();
+        self.monsters.push(monster);
+        self.level
+            .set_monster(monster_level_position, monster_index);
     }
 
     pub fn monsters(&self) -> ::std::slice::Iter<Monster> {
@@ -317,23 +324,6 @@ impl World {
         if let Some(cell) = self.cell_mut(player_info.pos) {
             cell.items.clear();
         }
-
-        // NOTE: generate a victory NPC
-        // TODO: do this after we're sober
-        {
-            let pos = player_info.pos + (0, 1);
-            if let Some(chunk) = self.chunk_mut(pos) {
-                let mut monster = ::monster::Monster::new(::monster::Kind::Npc, pos);
-                monster.companion_bonus = Some(::monster::CompanionBonus::Victory);
-                monster.color = ::color::victory_npc;
-                monster.ai_state = ::ai::AIState::NoOp;
-                let level_position = chunk.level_position(monster.position);
-                chunk.monsters.push(monster);
-                chunk
-                    .level
-                    .set_monster(level_position, chunk.monsters.len() - 1);
-            }
-        }
     }
 
     /// Return the ChunkPosition for a given point within the chunk.
@@ -528,12 +518,7 @@ impl World {
                      exist.",
                     destination
                 ));
-                let new_monster_index = destination_chunk.monsters.len();
-                destination_chunk.monsters.push(new_monster);
-                let destination_level_position = destination_chunk.level_position(destination);
-                destination_chunk
-                    .level
-                    .set_monster(destination_level_position, new_monster_index);
+                destination_chunk.add_monster(new_monster);
             }
 
             assert!(!self.walkable(destination, Blocker::MONSTER, player_position));

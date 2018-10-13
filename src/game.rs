@@ -197,6 +197,19 @@ fn process_game(
         state.player.inventory.push(formula::FOOD_PREFAB);
     }
 
+    if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::V) && state.cheating {
+        info!("Generating the Victory NPC!");
+        // TODO: Make sure we place the NPC into an unoccupied space
+        let pos = state.player.pos + (0, 1);
+        if let Some(chunk) = state.world.chunk_mut(pos) {
+            let mut monster = monster::Monster::new(monster::Kind::Npc, pos);
+            monster.companion_bonus = Some(CompanionBonus::Victory);
+            monster.color = color::victory_npc;
+            monster.ai_state = ::ai::AIState::NoOp;
+            chunk.add_monster(monster);
+        }
+    }
+
     state.paused = if state.replay && state.keys.matches_code(KeyCode::Space) {
         !state.paused
     } else {

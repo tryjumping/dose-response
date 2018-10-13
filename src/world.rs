@@ -317,6 +317,23 @@ impl World {
         if let Some(cell) = self.cell_mut(player_info.pos) {
             cell.items.clear();
         }
+
+        // NOTE: generate a victory NPC
+        // TODO: do this after we're sober
+        {
+            let pos = player_info.pos + (0, 1);
+            if let Some(chunk) = self.chunk_mut(pos) {
+                let mut monster = ::monster::Monster::new(::monster::Kind::Npc, pos);
+                monster.companion_bonus = Some(::monster::CompanionBonus::Victory);
+                monster.color = ::color::victory_npc;
+                monster.ai_state = ::ai::AIState::NoOp;
+                let level_position = chunk.level_position(monster.position);
+                chunk.monsters.push(monster);
+                chunk
+                    .level
+                    .set_monster(level_position, chunk.monsters.len() - 1);
+            }
+        }
     }
 
     /// Return the ChunkPosition for a given point within the chunk.

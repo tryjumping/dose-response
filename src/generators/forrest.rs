@@ -108,6 +108,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
                     DoubleWillGrowth => color::npc_will,
                     HalveExhaustion => color::npc_mind,
                     ExtraActionPoint => color::npc_speed,
+                    Victory => unreachable!(),
                 };
             };
             result.push(monster);

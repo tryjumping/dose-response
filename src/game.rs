@@ -1077,8 +1077,8 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         }
     }
 
-    // NOTE: The player has stayed sober long enough. Victory! \o/
-    if state.player.sobriety_counter.is_max() {
+    // NOTE: The player has reached the Victory NPC. Win the game! \o/
+    if state.player.bonuses.contains(&CompanionBonus::Victory) {
         state.side = Side::Victory;
         state.game_ended = true;
         state.uncovered_map = true;

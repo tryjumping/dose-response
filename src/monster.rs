@@ -19,6 +19,7 @@ use std::fmt::{Display, Error, Formatter};
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Monster {
     pub kind: Kind,
+    /// The *world position* of the monster
     pub position: Point,
     pub dead: bool,
     pub die_after_attack: bool,
@@ -50,6 +51,7 @@ pub enum CompanionBonus {
     DoubleWillGrowth,
     HalveExhaustion,
     ExtraActionPoint,
+    Victory,
 }
 
 impl Display for CompanionBonus {
@@ -59,6 +61,7 @@ impl Display for CompanionBonus {
             DoubleWillGrowth => "Doubled Will Increase",
             HalveExhaustion => "Slow Exhaustion Rate",
             ExtraActionPoint => "Extra Action Point",
+            Victory => "Victory",
         };
         f.write_str(s)
     }
@@ -71,6 +74,7 @@ impl Distribution<CompanionBonus> for Standard {
             0 => DoubleWillGrowth,
             1 => HalveExhaustion,
             2 => ExtraActionPoint,
+            // NOTE: we will never generate the `Victory` companion bonus directly
             _ => unreachable!(),
         }
     }
@@ -169,6 +173,7 @@ impl Monster {
             Behavior::LoneAttacker => ai::lone_attacker_act(self, player_info, world, rng),
             Behavior::PackAttacker => ai::pack_attacker_act(self, player_info, world, rng),
             Behavior::Friendly => ai::friendly_act(self, player_info, world, rng),
+            Behavior::Immobile => ai::noop_act(self, player_info, world, rng),
         }
     }
 

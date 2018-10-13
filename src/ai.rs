@@ -13,6 +13,7 @@ pub enum Behavior {
     LoneAttacker,
     PackAttacker,
     Friendly,
+    Immobile,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -20,6 +21,7 @@ pub enum AIState {
     Idle,
     Chasing,
     CheckingOut(Point),
+    NoOp,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -36,6 +38,9 @@ pub fn lone_attacker_act<R: Rng>(
     world: &mut World,
     rng: &mut R,
 ) -> (Update, Action) {
+    if actor.ai_state == AIState::NoOp {
+        return noop_action(actor);
+    }
     let distance = actor.position.tile_distance(player_info.pos);
     let ai_state = if distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
@@ -55,6 +60,7 @@ pub fn lone_attacker_act<R: Rng>(
             Action::Move(destination)
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
+        AIState::NoOp => unreachable!(),
     };
     (update, action)
 }
@@ -65,6 +71,9 @@ pub fn pack_attacker_act<R: Rng>(
     world: &mut World,
     rng: &mut R,
 ) -> (Update, Action) {
+    if actor.ai_state == AIState::NoOp {
+        return noop_action(actor);
+    }
     let player_distance = actor.position.tile_distance(player_info.pos);
     let ai_state = if player_distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
@@ -103,6 +112,7 @@ pub fn pack_attacker_act<R: Rng>(
             Action::Move(destination)
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
+        AIState::NoOp => unreachable!(),
     };
     (update, action)
 }
@@ -113,6 +123,9 @@ pub fn friendly_act<R: Rng>(
     world: &mut World,
     rng: &mut R,
 ) -> (Update, Action) {
+    if actor.ai_state == AIState::NoOp {
+        return noop_action(actor);
+    }
     let player_is_nearby =
         player_info.pos.distance(actor.position) <= formula::FRIENDLY_NPC_FREEZE_RADIUS;
 
@@ -146,6 +159,24 @@ pub fn friendly_act<R: Rng>(
     };
 
     let action = Action::Move(destination);
+    (update, action)
+}
+
+pub fn noop_act<R: Rng>(
+    actor: &Monster,
+    _player_info: PlayerInfo,
+    _world: &mut World,
+    _rng: &mut R,
+) -> (Update, Action) {
+    noop_action(actor)
+}
+
+pub fn noop_action(actor: &Monster) -> (Update, Action) {
+    let update = Update {
+        ai_state: actor.ai_state,
+        max_ap: actor.ap.max(),
+    };
+    let action = Action::Move(actor.position);
     (update, action)
 }
 

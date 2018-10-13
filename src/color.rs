@@ -52,6 +52,7 @@ pub const exhaustion_animation: Color = BLACK;
 pub const gui_text: Color = WHITE;
 pub const overdose_animation: Color = WHITE;
 pub const player: Color = WHITE;
+pub const victory_npc: Color = WHITE;
 
 pub const death_animation: Color = RED;
 
@@ -96,5 +97,3 @@ pub const food: Color = BROWN;
 
 pub const high: Color = FUNKY_BLUE;
 pub const high_to: Color = FUNKY_RED;
-
-//pub const npc_golden: Color = Color { r: 193, g: 193, b: 68 };

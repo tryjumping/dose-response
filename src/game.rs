@@ -317,6 +317,14 @@ fn process_game(
             debug!("Monster's waiting for the explosion to end.");
         }
 
+        if player_took_action && player_is_high {
+            if let Some(victory_npc_id) = state.victory_npc_id.take() {
+                info!("Player got High, the Victory NPC dissapears!");
+                let victory_npc = world.monster(victory_npc_id);
+                state.world.remove_monster(victory_npc.position);
+            }
+        }
+
         // Reset all action points only after everyone is at zero:
         let player_turn_ended = !state.player.has_ap(1);
         let monster_turn_ended = state

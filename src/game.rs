@@ -200,13 +200,20 @@ fn process_game(
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::V) && state.cheating {
         info!("Generating the Victory NPC!");
         // TODO: Make sure we place the NPC into an unoccupied space
+        let mut previous_victory_npc_id = None;
         let pos = state.player.pos + (0, 1);
         if let Some(chunk) = state.world.chunk_mut(pos) {
+            previous_victory_npc_id = state.victory_npc_id;
             let mut monster = monster::Monster::new(monster::Kind::Npc, pos);
             monster.companion_bonus = Some(CompanionBonus::Victory);
             monster.color = color::victory_npc;
             monster.ai_state = ::ai::AIState::NoOp;
-            chunk.add_monster(monster);
+            let id = chunk.add_monster(monster);
+            state.victory_npc_id = Some(id);
+        }
+        if let Some(prev_npc_id) = previous_victory_npc_id {
+            warn!("Replacing an existing NPC! {:?}", prev_npc_id);
+            state.world.remove_monster_by_id(prev_npc_id);
         }
     }
 
@@ -317,11 +324,10 @@ fn process_game(
             debug!("Monster's waiting for the explosion to end.");
         }
 
-        if player_took_action && player_is_high {
+        if player_took_action && state.player.mind.is_high() {
             if let Some(victory_npc_id) = state.victory_npc_id.take() {
                 info!("Player got High, the Victory NPC dissapears!");
-                let victory_npc = world.monster(victory_npc_id);
-                state.world.remove_monster(victory_npc.position);
+                state.world.remove_monster_by_id(victory_npc_id);
             }
         }
 

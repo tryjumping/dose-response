@@ -19,7 +19,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 use timer::Timer;
 use windows;
-use world::World;
+use world::{MonsterId, World};
 
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the
@@ -138,6 +138,7 @@ pub struct State {
     /// Whether the game is over (one way or another) and we should
     /// show the endgame screen -- uncovered map, the score, etc.
     pub game_ended: bool,
+    pub victory_npc_id: Option<MonsterId>,
 
     pub window_stack: windows::Windows<Window>,
 
@@ -211,6 +212,7 @@ impl State {
             paused: false,
             screen_fading: None,
             game_ended: false,
+            victory_npc_id: None,
             window_stack: windows::Windows::new(Window::Game),
             show_keboard_movement_hints: true,
             current_help_window: windows::help::Page::DoseResponse,

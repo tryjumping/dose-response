@@ -12,6 +12,12 @@ use ranged_int::InclusiveRange;
 use rect::Rectangle;
 use std::collections::HashMap;
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct MonsterId {
+    chunk_position: ChunkPosition,
+    monster_index: usize,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Chunk {
     position: Point,
@@ -93,12 +99,18 @@ impl Chunk {
         }
     }
 
-    pub fn add_monster(&mut self, monster: Monster) {
+    pub fn add_monster(&mut self, monster: Monster) -> MonsterId {
         let monster_level_position = self.level_position(monster.position);
         let monster_index = self.monsters.len();
         self.monsters.push(monster);
         self.level
             .set_monster(monster_level_position, monster_index);
+        MonsterId {
+            chunk_position: ChunkPosition {
+                position: self.position,
+            },
+            monster_index: monster_index,
+        }
     }
 
     pub fn monsters(&self) -> ::std::slice::Iter<Monster> {
@@ -438,7 +450,7 @@ impl World {
         }
     }
 
-    /// If there's a monster at the given tile, return its ID.
+    /// If there's a monster at the given tile, return its mutable reference.
     ///
     /// Returns `None` if there is no monster or if `pos` is out of bounds.
     pub fn monster_on_pos(&mut self, world_pos: Point) -> Option<&mut Monster> {
@@ -455,6 +467,12 @@ impl World {
         } else {
             None
         }
+    }
+
+    /// Return a reference to a `Monster` given its `MonsterId`.
+    pub fn monster(&self, id: MonsterId) -> Option<&Monster> {
+        self.chunk(id.chunk_position.position)
+            .and_then(|chunk| chunk.monsters.get(id.monster_index))
     }
 
     /// Move the monster from one place in the world to the destination.
@@ -536,6 +554,16 @@ impl World {
             if let Some(index) = index {
                 chunk.monsters[index].dead = true;
             }
+        }
+    }
+
+    pub fn remove_monster_by_id(&mut self, id: MonsterId) {
+        // TODO: this should prolly be the primary way of removing
+        // monsters rather than calling `remove_monster` with the
+        // position here.
+        let monster_pos = self.monster(id).map(|monster| monster.position);
+        if let Some(monster_pos) = monster_pos {
+            self.remove_monster(monster_pos);
         }
     }
 

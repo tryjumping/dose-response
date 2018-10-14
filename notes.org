@@ -95,19 +95,23 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** There are some weird little bands around some glyphs
 * Menu doesn't show the "Quit Without Saving" option                    :bug:
 ** It only shows "Save and Quit" but sometimes you don't want that
-* Delete Victory NPC when High
+* DONE Delete Victory NPC when High
+CLOSED: [2018-10-14 Sun 14:05]
 ** What about the highlighted path?
 ** If we keep it, people would still try to follow up
 *** and be dismayed when they don't find anything there
-** Maybe add an explanation text on the tile?
-*** "Sober up, junkie!"
-*** "Get sober and stay sober."
 * Place Victory NPC in the Endgame
 ** Put it some distance away from the Player
 *** Maybe 80 - 120 tiles?
 * Highlight the way to a Victory NPC
 ** Highlight path from player's position towards it
 ** Briefly scroll towards the NPC and back?
+* Add a signpost when deleting a Victory NPC on High
+** bumping into it, you will see an explanation text
+*** "Sober up, junkie!"
+*** "Get sober and stay sober."
+** That way the highlighted path can stay there
+** and the player will be able to learn what happened
 * Remove the sobriety counter from the game
 * Balance the late game
 ** So I think the early to mid game is good

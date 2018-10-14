@@ -22,6 +22,7 @@ pub struct Cell {
     pub tile: Tile,
     pub items: Vec<Item>,
     pub explored: bool,
+    pub always_visible: bool,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -77,6 +78,7 @@ impl Level {
                     tile: Tile::new(TileKind::Empty),
                     items: vec![],
                     explored: false,
+                    always_visible: false,
                 }).collect(),
         }
     }

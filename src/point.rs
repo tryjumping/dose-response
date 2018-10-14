@@ -277,6 +277,49 @@ impl Iterator for SquareArea {
     }
 }
 
+pub struct Line {
+    from: Point,
+    to: Point,
+    current: Point,
+    error: f32,
+    // TODO: width?
+}
+
+impl Line {
+    pub fn new<P: Into<Point>, Q: Into<Point>>(from: P, to: Q) -> Self {
+        let from = from.into();
+        Line {
+            from: from,
+            to: to.into(),
+            current: from,
+            error: 0.0,
+        }
+    }
+}
+
+impl Iterator for Line {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Point> {
+        let dx = self.to.x - self.from.x;
+        let dy = self.to.y - self.from.y;
+        // TODO: handle `dx == 0` i.e. vertical line!
+        let de = (dy as f32 / dx as f32).abs();
+        self.current.x += 1;
+        if self.current.x > self.to.x {
+            None
+        } else {
+            let result = Point::new(self.current.x, self.current.y);
+            self.error += de;
+            if self.error >= 0.5 {
+                self.current.y += dy.signum();
+                self.error -= 1.0;
+            }
+            Some(result)
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::{Point, SquareArea};

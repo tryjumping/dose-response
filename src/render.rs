@@ -135,7 +135,7 @@ pub fn render_game(
             };
         }
 
-        if in_fov(world_pos) || state.uncovered_map {
+        if in_fov(world_pos) || cell.always_visible || state.uncovered_map {
             display.set_glyph(
                 display_pos,
                 rendered_tile.glyph(),
@@ -170,6 +170,7 @@ pub fn render_game(
         // Render the items
         if in_fov(world_pos)
             || cell.explored
+            || cell.always_visible
             || bonus == Bonus::SeeMonstersAndItems
             || bonus == Bonus::UncoverMap
             || state.uncovered_map
@@ -188,8 +189,13 @@ pub fn render_game(
 
     // NOTE: render monsters
     for monster in state.world.monsters(display_area) {
-        let visible = monster.position.distance(state.player.pos) < (radius as f32);
-        if visible
+        let monster_visible = monster.position.distance(state.player.pos) < (radius as f32);
+        let cell_visible = state
+            .world
+            .cell(monster.position)
+            .map_or(false, |cell| cell.always_visible);
+        if monster_visible
+            || cell_visible
             || bonus == Bonus::UncoverMap
             || bonus == Bonus::SeeMonstersAndItems
             || state.uncovered_map

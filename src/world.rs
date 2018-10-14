@@ -389,7 +389,7 @@ impl World {
             .or_insert_with(|| Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()));
     }
 
-    fn cell(&self, world_pos: Point) -> Option<&Cell> {
+    pub fn cell(&self, world_pos: Point) -> Option<&Cell> {
         let chunk = self.chunk(world_pos);
         // NOTE: the positions within a chunk/level start from zero so
         // we need to de-offset them with the chunk position.
@@ -573,6 +573,18 @@ impl World {
             if self.within_bounds(pos) {
                 if let Some(cell) = self.cell_mut(pos) {
                     cell.explored = true;
+                }
+            }
+        }
+    }
+
+    /// Set cells within the given radius as always_visible.
+    pub fn always_visible(&mut self, centre: Point, radius: i32) {
+        for pos in CircularArea::new(centre, radius) {
+            if self.within_bounds(pos) {
+                if let Some(cell) = self.cell_mut(pos) {
+                    cell.explored = true;
+                    cell.always_visible = true;
                 }
             }
         }

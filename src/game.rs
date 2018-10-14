@@ -9,7 +9,7 @@ use level::TileKind;
 use monster::{self, CompanionBonus};
 use pathfinding;
 use player;
-use point::Point;
+use point::{self, Point};
 use ranged_int::{InclusiveRange, Ranged};
 use rect::Rectangle;
 use render;
@@ -201,7 +201,7 @@ fn process_game(
         info!("Generating the Victory NPC!");
         // TODO: Make sure we place the NPC into an unoccupied space
         let mut previous_victory_npc_id = None;
-        let pos = state.player.pos + (0, 1);
+        let pos = state.player.pos + (25, 20);
         if let Some(chunk) = state.world.chunk_mut(pos) {
             previous_victory_npc_id = state.victory_npc_id;
             let mut monster = monster::Monster::new(monster::Kind::Npc, pos);
@@ -211,6 +211,26 @@ fn process_game(
             let id = chunk.add_monster(monster);
             state.victory_npc_id = Some(id);
         }
+
+        // NOTE: Uncover the map leading to the Victory NPC position
+        // TODO: make the line wider
+        let positions = point::Line::new(state.player.pos, pos);
+        for cell_pos in positions {
+            if let Some(cell) = state.world.cell_mut(cell_pos) {
+                cell.explored = true;
+                cell.always_visible = true;
+            }
+        }
+        state.world.explore(pos, 5);
+        state.world.always_visible(pos, 2);
+
+        // NOTE: Scroll to the Victory NPC position
+        {
+            state.pos_timer = Timer::new(Duration::from_millis(2000));
+            state.old_screen_pos = state.screen_position_in_world;
+            state.new_screen_pos = pos;
+        }
+
         if let Some(prev_npc_id) = previous_victory_npc_id {
             warn!("Replacing an existing NPC! {:?}", prev_npc_id);
             state.world.remove_monster_by_id(prev_npc_id);

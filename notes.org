@@ -95,17 +95,28 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** There are some weird little bands around some glyphs
 * Menu doesn't show the "Quit Without Saving" option                    :bug:
 ** It only shows "Save and Quit" but sometimes you don't want that
-* DONE Delete Victory NPC when High
-CLOSED: [2018-10-14 Sun 14:05]
-** What about the highlighted path?
-** If we keep it, people would still try to follow up
-*** and be dismayed when they don't find anything there
-* Place Victory NPC in the Endgame
-** Put it some distance away from the Player
-*** Maybe 80 - 120 tiles?
+* Pressing Alt+Enter doesn't work                                       :bug:
+** The screen flickers and then goes back
+** Looking at the log, looks like the press is registered twice:
+#+BEGIN_SRC
+cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.13s
+     Running `target/debug/dose-response`
+12:04:55 [INFO] Recording the gameplay to 'replays/replay-2018-10-14T14-04-55.032'
+12:04:55 [INFO] Using the sdl backend
+12:04:57 [INFO] Pressed Alt+Enter, toggling fullscreen.
+12:04:57 [INFO] [151] Switching to (desktop-type) fullscreen
+12:04:57 [INFO] Window resized to: 3840x2160
+12:04:57 [INFO] Pressed Alt+Enter, toggling fullscreen.
+12:04:57 [INFO] [152] Switching fullscreen off
+12:04:57 [INFO] Window resized to: 987x630
+#+END_SRC
 * Highlight the way to a Victory NPC
 ** Highlight path from player's position towards it
 ** Briefly scroll towards the NPC and back?
+* Place Victory NPC in the Endgame
+** Put it some distance away from the Player
+*** Maybe 80 - 120 tiles?
 * Add a signpost when deleting a Victory NPC on High
 ** bumping into it, you will see an explanation text
 *** "Sober up, junkie!"
@@ -2722,3 +2733,11 @@ CLOSED: [2018-10-13 Sat 15:06]
 *** pressing 'v' in a cheat mode will spawn the NPC
 *** that way the basic game is not distracted
 *** we can test things like the screen scrolling animation with it
+** DONE Delete Victory NPC when High
+CLOSED: [2018-10-14 Sun 14:05]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-14 Sun 14:15
+:END:
+*** What about the highlighted path?
+*** If we keep it, people would still try to follow up
+**** and be dismayed when they don't find anything there

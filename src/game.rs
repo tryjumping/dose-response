@@ -200,10 +200,13 @@ fn process_game(
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::V) && state.cheating {
         info!("Generating the Victory NPC!");
         // TODO: Make sure we place the NPC into an unoccupied space
-        let mut previous_victory_npc_id = None;
-        let pos = state.player.pos + (25, 20);
+        if let Some(prev_npc_id) = state.victory_npc_id.take() {
+            warn!("Replacing an existing NPC! {:?}", prev_npc_id);
+            state.world.remove_monster_by_id(prev_npc_id);
+        }
+
+        let pos = state.player.pos + (-25, 20);
         if let Some(chunk) = state.world.chunk_mut(pos) {
-            previous_victory_npc_id = state.victory_npc_id;
             let mut monster = monster::Monster::new(monster::Kind::Npc, pos);
             monster.companion_bonus = Some(CompanionBonus::Victory);
             monster.color = color::victory_npc;
@@ -229,11 +232,6 @@ fn process_game(
             state.pos_timer = Timer::new(Duration::from_millis(2000));
             state.old_screen_pos = state.screen_position_in_world;
             state.new_screen_pos = pos;
-        }
-
-        if let Some(prev_npc_id) = previous_victory_npc_id {
-            warn!("Replacing an existing NPC! {:?}", prev_npc_id);
-            state.world.remove_monster_by_id(prev_npc_id);
         }
     }
 

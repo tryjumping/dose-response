@@ -113,12 +113,12 @@ impl Chunk {
         }
     }
 
-    pub fn monsters(&self) -> ::std::slice::Iter<Monster> {
-        self.monsters.iter()
+    pub fn monsters(&self) -> impl Iterator<Item = &Monster> {
+        self.monsters.iter().filter(|m| !m.dead)
     }
 
     pub fn monsters_mut(&mut self) -> impl Iterator<Item = &mut Monster> {
-        self.monsters.iter_mut()
+        self.monsters.iter_mut().filter(|m| !m.dead)
     }
 }
 

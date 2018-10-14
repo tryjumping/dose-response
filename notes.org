@@ -111,8 +111,6 @@ cargo run
 12:04:57 [INFO] [152] Switching fullscreen off
 12:04:57 [INFO] Window resized to: 987x630
 #+END_SRC
-* Make the highlighted path to the Victory NPC easier to notice
-** like, say 3 cells wide or something
 * Make sure the Victory NPC is reachable
 ** It must have a path form the player
 ** And it must be at a tile that's not occupied
@@ -2750,3 +2748,9 @@ CLOSED: [2018-10-14 Sun 22:18]
 :END:
 *** Highlight path from player's position towards it
 *** Briefly scroll towards the NPC and back?
+** DONE Make the highlighted path to the Victory NPC easier to notice
+CLOSED: [2018-10-14 Sun 23:00]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-14 Sun 23:00
+:END:
+*** like, say 3 cells wide or something

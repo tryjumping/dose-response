@@ -216,13 +216,10 @@ fn process_game(
         }
 
         // NOTE: Uncover the map leading to the Victory NPC position
-        // TODO: make the line wider
         let positions = point::Line::new(state.player.pos, pos);
         for cell_pos in positions {
-            if let Some(cell) = state.world.cell_mut(cell_pos) {
-                cell.explored = true;
-                cell.always_visible = true;
-            }
+            state.world.always_visible(cell_pos, 2);
+            state.world.explore(cell_pos, 4);
         }
         state.world.explore(pos, 5);
         state.world.always_visible(pos, 2);

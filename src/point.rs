@@ -277,6 +277,7 @@ impl Iterator for SquareArea {
     }
 }
 
+#[derive(Clone)]
 pub struct Line {
     from: Point,
     to: Point,
@@ -288,9 +289,15 @@ pub struct Line {
 impl Line {
     pub fn new<P: Into<Point>, Q: Into<Point>>(from: P, to: Q) -> Self {
         let from = from.into();
+        let to = to.into();
+        let (from, to) = if from.x <= to.x {
+            (from, to)
+        } else {
+            (to, from)
+        };
         Line {
-            from: from,
-            to: to.into(),
+            from,
+            to,
             current: from,
             error: 0.0,
         }
@@ -303,9 +310,23 @@ impl Iterator for Line {
     fn next(&mut self) -> Option<Point> {
         let dx = self.to.x - self.from.x;
         let dy = self.to.y - self.from.y;
-        // TODO: handle `dx == 0` i.e. vertical line!
+        // NOTE: handle `dx == 0` i.e. vertical line
+        if dx == 0 {
+            let past_target = if self.from.y <= self.to.y {
+                self.current.y > self.to.y
+            } else {
+                self.current.y < self.to.y
+            };
+            return if past_target {
+                None
+            } else {
+                let result = Point::new(self.current.x, self.current.y);
+                self.current.y += dy.signum();
+                Some(result)
+            };
+        }
         let de = (dy as f32 / dx as f32).abs();
-        self.current.x += 1;
+        self.current.x += dx.signum();
         if self.current.x > self.to.x {
             None
         } else {

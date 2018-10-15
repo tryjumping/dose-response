@@ -307,6 +307,9 @@ impl Line {
 impl Iterator for Line {
     type Item = Point;
 
+    /// Draw a line between two points. Uses .Bresenham's line
+    /// algorithm.
+    /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
     fn next(&mut self) -> Option<Point> {
         let dx = self.to.x - self.from.x;
         let dy = self.to.y - self.from.y;

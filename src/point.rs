@@ -284,22 +284,19 @@ pub struct Line {
     current: Point,
     error: f32,
     // TODO: width?
+    done: bool,
 }
 
 impl Line {
     pub fn new<P: Into<Point>, Q: Into<Point>>(from: P, to: Q) -> Self {
         let from = from.into();
         let to = to.into();
-        let (from, to) = if from.x <= to.x {
-            (from, to)
-        } else {
-            (to, from)
-        };
         Line {
             from,
             to,
             current: from,
             error: 0.0,
+            done: false,
         }
     }
 }
@@ -307,14 +304,20 @@ impl Line {
 impl Iterator for Line {
     type Item = Point;
 
-    // TODO: add unit tests for this!!
-
-    /// Draw a line between two points. Uses .Bresenham's line
-    /// algorithm.
+    /// Draw a line between two points. Uses Bresenham's line
+    /// algorithm:
     /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
     fn next(&mut self) -> Option<Point> {
+        if self.done {
+            return None;
+        }
+        if self.current == self.to {
+            self.done = true;
+        }
+
         let dx = self.to.x - self.from.x;
         let dy = self.to.y - self.from.y;
+
         // NOTE: handle `dx == 0` i.e. vertical line
         if dx == 0 {
             let past_target = if self.from.y <= self.to.y {
@@ -329,13 +332,10 @@ impl Iterator for Line {
                 self.current.y += dy.signum();
                 Some(result)
             };
-        }
-        let de = (dy as f32 / dx as f32).abs();
-        self.current.x += dx.signum();
-        if self.current.x > self.to.x {
-            None
         } else {
-            let result = Point::new(self.current.x, self.current.y);
+            let de = (dy as f32 / dx as f32).abs();
+            let result = self.current;
+            self.current.x += dx.signum();
             self.error += de;
             if self.error >= 0.5 {
                 self.current.y += dy.signum();
@@ -348,7 +348,7 @@ impl Iterator for Line {
 
 #[cfg(test)]
 mod test {
-    use super::{Point, SquareArea};
+    use super::{Line, Point, SquareArea};
     use std::f32::EPSILON;
     use std::iter::FromIterator;
 
@@ -517,5 +517,101 @@ mod test {
         assert_eq!(within_bounds(Point::new(1, 10)), false);
         assert_eq!(within_bounds(Point::new(10, 1)), false);
         assert_eq!(within_bounds(Point::new(10, 10)), false);
+    }
+
+    #[test]
+    fn test_zero_length_line() {
+        let pos = Point::new(0, 0);
+        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
+        let pos = Point::new(5, 8);
+        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
+        let pos = Point::new(-3, 6);
+        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
+        let pos = Point::new(9, -8);
+        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
+        let pos = Point::new(-78, -5);
+        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
+    }
+
+    #[test]
+    fn test_single_length_line() {
+        let start = Point::new(0, 0);
+
+        let end = Point::new(1, 0);
+        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
+        let end = Point::new(1, 1);
+        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
+        let end = Point::new(1, -1);
+        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
+
+        let end = Point::new(-1, 0);
+        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
+        let end = Point::new(-1, 1);
+        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
+        let end = Point::new(-1, -1);
+        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
+
+        let end = Point::new(0, 1);
+        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
+        let end = Point::new(0, -1);
+        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
+    }
+
+    #[test]
+    fn test_simple_lines() {
+        let start = Point::new(0, 0);
+
+        let end = Point::new(4, 0);
+        assert_eq!(
+            Line::new(start, end).collect::<Vec<_>>(),
+            [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)]
+        );
+        let end = Point::new(-4, 0);
+        assert_eq!(
+            Line::new(start, end).collect::<Vec<_>>(),
+            [(0, 0), (-1, 0), (-2, 0), (-3, 0), (-4, 0)]
+        );
+
+        let end = Point::new(0, 4);
+        assert_eq!(
+            Line::new(start, end).collect::<Vec<_>>(),
+            [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]
+        );
+        let end = Point::new(0, -4);
+        assert_eq!(
+            Line::new(start, end).collect::<Vec<_>>(),
+            [(0, 0), (0, -1), (0, -2), (0, -3), (0, -4)]
+        );
+
+        let end = Point::new(4, 4);
+        assert_eq!(
+            Line::new(start, end).collect::<Vec<_>>(),
+            [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)]
+        );
+        let end = Point::new(4, -4);
+        assert_eq!(
+            Line::new(start, end).collect::<Vec<_>>(),
+            [(0, 0), (1, -1), (2, -2), (3, -3), (4, -4)]
+        );
+
+        let end = Point::new(-4, 4);
+        assert_eq!(
+            Line::new(start, end).collect::<Vec<_>>(),
+            [(0, 0), (-1, 1), (-2, 2), (-3, 3), (-4, 4)]
+        );
+        let end = Point::new(-4, -4);
+        assert_eq!(
+            Line::new(start, end).collect::<Vec<_>>(),
+            [(0, 0), (-1, -1), (-2, -2), (-3, -3), (-4, -4)]
+        );
+    }
+
+    #[test]
+    fn test_complex_lines() {
+        let start = Point::new(0, 0);
+        let end = Point::new(2, 3);
+
+        let line = Line::new(start, end).collect::<Vec<_>>();
+        assert_eq!(line.len(), 20);
     }
 }

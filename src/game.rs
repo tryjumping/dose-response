@@ -214,6 +214,7 @@ fn process_game(
             y: (direction_rad.sin() * distance) as i32,
         };
         let pos = state.player.pos + offset;
+        info!("start: {:?}, destination: {:?}", state.player.pos, pos);
         if let Some(chunk) = state.world.chunk_mut(pos) {
             let mut monster = monster::Monster::new(monster::Kind::Npc, pos);
             monster.companion_bonus = Some(CompanionBonus::Victory);

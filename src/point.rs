@@ -277,14 +277,8 @@ impl Iterator for SquareArea {
     }
 }
 
-#[derive(Clone)]
 pub struct Line {
-    from: Point,
-    to: Point,
-    current: Point,
-    error: f32,
-    // TODO: width?
-    done: bool,
+    inner: line_drawing::Bresenham<i32>,
 }
 
 impl Line {
@@ -292,11 +286,7 @@ impl Line {
         let from = from.into();
         let to = to.into();
         Line {
-            from,
-            to,
-            current: from,
-            error: 0.0,
-            done: false,
+            inner: line_drawing::Bresenham::new((from.x, from.y), (to.x, to.y)),
         }
     }
 }
@@ -308,41 +298,7 @@ impl Iterator for Line {
     /// algorithm:
     /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
     fn next(&mut self) -> Option<Point> {
-        if self.done {
-            return None;
-        }
-        if self.current == self.to {
-            self.done = true;
-        }
-
-        let dx = self.to.x - self.from.x;
-        let dy = self.to.y - self.from.y;
-
-        // NOTE: handle `dx == 0` i.e. vertical line
-        if dx == 0 {
-            let past_target = if self.from.y <= self.to.y {
-                self.current.y > self.to.y
-            } else {
-                self.current.y < self.to.y
-            };
-            return if past_target {
-                None
-            } else {
-                let result = Point::new(self.current.x, self.current.y);
-                self.current.y += dy.signum();
-                Some(result)
-            };
-        } else {
-            let de = (dy as f32 / dx as f32).abs();
-            let result = self.current;
-            self.current.x += dx.signum();
-            self.error += de;
-            if self.error >= 0.5 {
-                self.current.y += dy.signum();
-                self.error -= 1.0;
-            }
-            Some(result)
-        }
+        self.inner.next().map(Into::into)
     }
 }
 
@@ -612,6 +568,6 @@ mod test {
         let end = Point::new(2, 3);
 
         let line = Line::new(start, end).collect::<Vec<_>>();
-        assert_eq!(line.len(), 20);
+        assert_eq!(line.len(), 4);
     }
 }

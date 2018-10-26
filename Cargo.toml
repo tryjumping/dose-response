@@ -22,6 +22,7 @@ serde_json = "1.0"
 
 # We use this to serialise the game save state into a binary format
 bincode = "1.0"
+line_drawing = "0.7"
 log = { version = "0.4.1" }
 simplelog = { version = "0.5.2", default-features = false, features = [], optional = true }
 chrono = { version = "0.4.0", optional = true }

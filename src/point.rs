@@ -304,7 +304,7 @@ impl Iterator for Line {
 
 #[cfg(test)]
 mod test {
-    use super::{Line, Point, SquareArea};
+    use super::{Point, SquareArea};
     use std::f32::EPSILON;
     use std::iter::FromIterator;
 
@@ -473,101 +473,5 @@ mod test {
         assert_eq!(within_bounds(Point::new(1, 10)), false);
         assert_eq!(within_bounds(Point::new(10, 1)), false);
         assert_eq!(within_bounds(Point::new(10, 10)), false);
-    }
-
-    #[test]
-    fn test_zero_length_line() {
-        let pos = Point::new(0, 0);
-        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
-        let pos = Point::new(5, 8);
-        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
-        let pos = Point::new(-3, 6);
-        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
-        let pos = Point::new(9, -8);
-        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
-        let pos = Point::new(-78, -5);
-        assert_eq!(Line::new(pos, pos).collect::<Vec<_>>(), [pos]);
-    }
-
-    #[test]
-    fn test_single_length_line() {
-        let start = Point::new(0, 0);
-
-        let end = Point::new(1, 0);
-        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
-        let end = Point::new(1, 1);
-        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
-        let end = Point::new(1, -1);
-        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
-
-        let end = Point::new(-1, 0);
-        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
-        let end = Point::new(-1, 1);
-        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
-        let end = Point::new(-1, -1);
-        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
-
-        let end = Point::new(0, 1);
-        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
-        let end = Point::new(0, -1);
-        assert_eq!(Line::new(start, end).collect::<Vec<_>>(), [start, end]);
-    }
-
-    #[test]
-    fn test_simple_lines() {
-        let start = Point::new(0, 0);
-
-        let end = Point::new(4, 0);
-        assert_eq!(
-            Line::new(start, end).collect::<Vec<_>>(),
-            [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)]
-        );
-        let end = Point::new(-4, 0);
-        assert_eq!(
-            Line::new(start, end).collect::<Vec<_>>(),
-            [(0, 0), (-1, 0), (-2, 0), (-3, 0), (-4, 0)]
-        );
-
-        let end = Point::new(0, 4);
-        assert_eq!(
-            Line::new(start, end).collect::<Vec<_>>(),
-            [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]
-        );
-        let end = Point::new(0, -4);
-        assert_eq!(
-            Line::new(start, end).collect::<Vec<_>>(),
-            [(0, 0), (0, -1), (0, -2), (0, -3), (0, -4)]
-        );
-
-        let end = Point::new(4, 4);
-        assert_eq!(
-            Line::new(start, end).collect::<Vec<_>>(),
-            [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)]
-        );
-        let end = Point::new(4, -4);
-        assert_eq!(
-            Line::new(start, end).collect::<Vec<_>>(),
-            [(0, 0), (1, -1), (2, -2), (3, -3), (4, -4)]
-        );
-
-        let end = Point::new(-4, 4);
-        assert_eq!(
-            Line::new(start, end).collect::<Vec<_>>(),
-            [(0, 0), (-1, 1), (-2, 2), (-3, 3), (-4, 4)]
-        );
-        let end = Point::new(-4, -4);
-        assert_eq!(
-            Line::new(start, end).collect::<Vec<_>>(),
-            [(0, 0), (-1, -1), (-2, -2), (-3, -3), (-4, -4)]
-        );
-    }
-
-    #[test]
-    fn test_complex_lines() {
-        let start = Point::new(0, 0);
-        let end = Point::new(2, 3);
-
-        let line = Line::new(start, end).collect::<Vec<_>>();
-        assert_eq!(line.len(), 4);
     }
 }

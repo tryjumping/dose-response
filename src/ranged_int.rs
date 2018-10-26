@@ -184,7 +184,14 @@ impl Sub<Rational32> for Ranged {
     type Output = Ranged;
 
     fn sub(self, other: Rational32) -> Self::Output {
-        self + (-other)
+        match other.numer().checked_neg() {
+            Some(_negative_numerator) => self + (-other),
+            None => {
+                let mut result = self;
+                result.set_to_max();
+                result
+            }
+        }
     }
 }
 
@@ -204,135 +211,237 @@ impl SubAssign<i32> for Ranged {
 
 #[cfg(test)]
 mod test {
-    use super::Ranged;
+    use super::{InclusiveRange, Ranged};
     use std::i32::{MAX, MIN};
 
     #[test]
     fn new() {
-        assert_eq!(*Ranged::new(1, 1, 1), 1);
-        assert_eq!(*Ranged::new(3, -3, 3), 3);
-        assert_eq!(*Ranged::new(-3, -3, 3), -3);
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(1, 1)),
+            Ranged {
+                val: 1.into(),
+                min: 1.into(),
+                max: 1.into(),
+            }
+        );
+        assert_eq!(
+            Ranged::new(3, InclusiveRange(-3, 3)),
+            Ranged {
+                val: 3.into(),
+                min: (-3).into(),
+                max: 3.into(),
+            }
+        );
+        assert_eq!(
+            Ranged::new(-3, InclusiveRange(-3, 3)),
+            Ranged {
+                val: (-3).into(),
+                min: (-3).into(),
+                max: 3.into(),
+            }
+        );
     }
 
     #[test]
     fn new_outside_range() {
-        assert_eq!(Ranged::new(-1, 0, 1), Ranged::new(0, 0, 1));
-        assert_eq!(Ranged::new(5, 10, 20), Ranged::new(10, 10, 20));
-        assert_eq!(Ranged::new(10, 1, 2), Ranged::new(2, 1, 2));
+        assert_eq!(
+            Ranged::new(-1, InclusiveRange(0, 1)),
+            Ranged::new(0, InclusiveRange(0, 1))
+        );
+        assert_eq!(
+            Ranged::new(5, InclusiveRange(10, 20)),
+            Ranged::new(10, InclusiveRange(10, 20))
+        );
+        assert_eq!(
+            Ranged::new(10, InclusiveRange(1, 2)),
+            Ranged::new(2, InclusiveRange(1, 2))
+        );
     }
 
     #[test]
     fn adding_positive() {
-        assert_eq!(Ranged::new(1, -5, 5) + 3, Ranged::new(4, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + 4, Ranged::new(5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + 5, Ranged::new(5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + 6, Ranged::new(5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + 2938, Ranged::new(5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + MAX, Ranged::new(5, -5, 5));
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + 3,
+            Ranged::new(4, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + 4,
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + 5,
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + 6,
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + 2938,
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + MAX,
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
     }
 
     #[test]
     fn adding_negative() {
-        assert_eq!(Ranged::new(1, -5, 5) + (-1), Ranged::new(0, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + (-5), Ranged::new(-4, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + (-6), Ranged::new(-5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + (-7), Ranged::new(-5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + (-9328), Ranged::new(-5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) + MIN, Ranged::new(-5, -5, 5));
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + (-1),
+            Ranged::new(0, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + (-5),
+            Ranged::new(-4, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + (-6),
+            Ranged::new(-5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + (-7),
+            Ranged::new(-5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + (-9328),
+            Ranged::new(-5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) + MIN,
+            Ranged::new(-5, InclusiveRange(-5, 5))
+        );
     }
 
     #[test]
     fn subtracting_positive() {
-        assert_eq!(Ranged::new(1, -5, 5) - 1, Ranged::new(0, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - 5, Ranged::new(-4, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - 6, Ranged::new(-5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - 7, Ranged::new(-5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - 9328, Ranged::new(-5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - MAX, Ranged::new(-5, -5, 5));
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - 1,
+            Ranged::new(0, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - 5,
+            Ranged::new(-4, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - 6,
+            Ranged::new(-5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - 7,
+            Ranged::new(-5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - 9328,
+            Ranged::new(-5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - MAX,
+            Ranged::new(-5, InclusiveRange(-5, 5))
+        );
     }
 
     #[test]
     fn subtracting_negative() {
-        assert_eq!(Ranged::new(1, -5, 5) - (-3), Ranged::new(4, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - (-4), Ranged::new(5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - (-5), Ranged::new(5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - (-6), Ranged::new(5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - (-2938), Ranged::new(5, -5, 5));
-        assert_eq!(Ranged::new(1, -5, 5) - MIN, Ranged::new(5, -5, 5));
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - (-3),
+            Ranged::new(4, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - (-4),
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - (-5),
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - (-6),
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - (-2938),
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
+        assert_eq!(
+            Ranged::new(1, InclusiveRange(-5, 5)) - MIN,
+            Ranged::new(5, InclusiveRange(-5, 5))
+        );
     }
 
     #[test]
     fn add_assign_positive() {
-        let mut a = Ranged::new(1, -5, 5);
+        let mut a = Ranged::new(1, InclusiveRange(-5, 5));
         a += 3;
-        assert_eq!(a, Ranged::new(4, -5, 5));
+        assert_eq!(a, Ranged::new(4, InclusiveRange(-5, 5)));
         a += 1;
-        assert_eq!(a, Ranged::new(5, -5, 5));
+        assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
         a += 1;
-        assert_eq!(a, Ranged::new(5, -5, 5));
+        assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
         a += 23898923;
-        assert_eq!(a, Ranged::new(5, -5, 5));
+        assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
         a += MAX;
-        assert_eq!(a, Ranged::new(5, -5, 5));
+        assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
     }
 
     #[test]
     fn add_assign_negative() {
-        let mut b = Ranged::new(1, -5, 5);
+        let mut b = Ranged::new(1, InclusiveRange(-5, 5));
         b += -5;
-        assert_eq!(b, Ranged::new(-4, -5, 5));
+        assert_eq!(b, Ranged::new(-4, InclusiveRange(-5, 5)));
         b += -1;
-        assert_eq!(b, Ranged::new(-5, -5, 5));
+        assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
         b += -1;
-        assert_eq!(b, Ranged::new(-5, -5, 5));
+        assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
         b += -23898923;
-        assert_eq!(b, Ranged::new(-5, -5, 5));
+        assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
         b += MIN;
-        assert_eq!(b, Ranged::new(-5, -5, 5));
+        assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
     }
 
     #[test]
     fn sub_assign_positive() {
-        let mut a = Ranged::new(1, -5, 5);
+        let mut a = Ranged::new(1, InclusiveRange(-5, 5));
         a -= 5;
-        assert_eq!(a, Ranged::new(-4, -5, 5));
+        assert_eq!(a, Ranged::new(-4, InclusiveRange(-5, 5)));
         a -= 1;
-        assert_eq!(a, Ranged::new(-5, -5, 5));
+        assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
         a -= 1;
-        assert_eq!(a, Ranged::new(-5, -5, 5));
+        assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
         a -= 389832;
-        assert_eq!(a, Ranged::new(-5, -5, 5));
+        assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
         a -= MAX;
-        assert_eq!(a, Ranged::new(-5, -5, 5));
+        assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
     }
 
     #[test]
     fn sub_assign_negative() {
-        let mut b = Ranged::new(1, -5, 5);
+        let mut b = Ranged::new(1, InclusiveRange(-5, 5));
         b -= -3;
-        assert_eq!(b, Ranged::new(4, -5, 5));
+        assert_eq!(b, Ranged::new(4, InclusiveRange(-5, 5)));
         b -= -1;
-        assert_eq!(b, Ranged::new(5, -5, 5));
+        assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
         b -= -1;
-        assert_eq!(b, Ranged::new(5, -5, 5));
+        assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
         b -= -389832;
-        assert_eq!(b, Ranged::new(5, -5, 5));
+        assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
         b -= MIN;
-        assert_eq!(b, Ranged::new(5, -5, 5));
+        assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
     }
 
     #[test]
     fn percent() {
-        assert_eq!(Ranged::new(0, 0, 1).percent(), 0.0);
-        assert_eq!(Ranged::new(1, 0, 1).percent(), 1.0);
+        assert_eq!(Ranged::new(0, InclusiveRange(0, 1)).percent(), 0.0);
+        assert_eq!(Ranged::new(1, InclusiveRange(0, 1)).percent(), 1.0);
 
-        assert_eq!(Ranged::new(0, 0, 2).percent(), 0.0);
-        assert_eq!(Ranged::new(1, 0, 2).percent(), 0.5);
-        assert_eq!(Ranged::new(2, 0, 2).percent(), 1.0);
+        assert_eq!(Ranged::new(0, InclusiveRange(0, 2)).percent(), 0.0);
+        assert_eq!(Ranged::new(1, InclusiveRange(0, 2)).percent(), 0.5);
+        assert_eq!(Ranged::new(2, InclusiveRange(0, 2)).percent(), 1.0);
 
-        assert_eq!(Ranged::new(0, 0, 10).percent(), 0.0);
-        assert_eq!(Ranged::new(1, 0, 10).percent(), 0.1);
-        assert_eq!(Ranged::new(9, 0, 10).percent(), 0.9);
-        assert_eq!(Ranged::new(10, 0, 10).percent(), 1.0);
+        assert_eq!(Ranged::new(0, InclusiveRange(0, 10)).percent(), 0.0);
+        assert_eq!(Ranged::new(1, InclusiveRange(0, 10)).percent(), 0.1);
+        assert_eq!(Ranged::new(9, InclusiveRange(0, 10)).percent(), 0.9);
+        assert_eq!(Ranged::new(10, InclusiveRange(0, 10)).percent(), 1.0);
     }
 }

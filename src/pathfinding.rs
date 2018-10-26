@@ -176,13 +176,15 @@ impl PartialOrd for State {
 #[cfg(test)]
 mod test {
     use super::Path;
-    use level::{Level, Walkability};
+    use blocker::Blocker;
+    use player::{Mind, PlayerInfo};
     use point::Point;
+    use world::World;
 
     struct Board {
         start: Point,
         destination: Point,
-        level: Level,
+        world: World,
     }
 
     fn make_board(text: &str) -> Board {
@@ -200,7 +202,26 @@ mod test {
         assert!(width > 0);
         assert!(lines.iter().all(|line| line.chars().count() == width));
 
-        let mut level = Level::new(width as i32, height as i32);
+        let mut rng = rand::IsaacRng::new_from_u64(0);
+        let player_info = PlayerInfo {
+            pos: Point::new(0, 0),
+            mind: Mind::Sober(crate::ranged_int::Ranged::new_max(crate::formula::SOBER)),
+            max_ap: 1,
+            will: 3,
+        };
+        let mut world = World::new(&mut rng, 0, 64, 32, player_info);
+        // clear out the world
+        for x in 0..16 {
+            for y in 0..16 {
+                let pos = Point::new(x, y);
+                world.remove_monster(pos);
+                if let Some(cell) = world.cell_mut(pos) {
+                    cell.tile.kind = Empty;
+                }
+                assert_eq!(world.monster_on_pos(pos), None);
+                assert!(world.walkable(pos, Blocker::WALL, player_info.pos));
+            }
+        }
 
         for line in lines {
             for c in line.chars() {
@@ -226,13 +247,13 @@ mod test {
                     'x' => Tree,
                     _ => unreachable!(),
                 };
-                level.set_tile(
-                    Point {
-                        x: x as i32,
-                        y: y as i32,
-                    },
-                    Tile::new(tile_kind),
-                );
+                let pos = Point {
+                    x: x as i32,
+                    y: y as i32,
+                };
+                if let Some(cell) = world.cell_mut(pos) {
+                    cell.tile = Tile::new(tile_kind);
+                }
 
                 x += 1;
             }
@@ -246,13 +267,13 @@ mod test {
         Board {
             start: start,
             destination: destination,
-            level: level,
+            world: world,
         }
     }
 
     #[test]
     fn test_neighbor() {
-        let board = make_board(
+        let mut board = make_board(
             "
 ...........
 .sd........
@@ -263,8 +284,9 @@ mod test {
         let path: Path = Path::find(
             board.start,
             board.destination,
-            &board.level,
-            Walkability::WalkthroughMonsters,
+            &mut board.world,
+            Blocker::WALL,
+            Point::new(0, 0),
         );
         assert_eq!(1, path.len());
         let expected = [(2, 1)]
@@ -289,8 +311,9 @@ mod test {
         let path: Path = Path::find(
             board.start,
             board.destination,
-            &board.level,
-            Walkability::WalkthroughMonsters,
+            &mut board.world,
+            Blocker::WALL,
+            Point::new(0, 0),
         );
         assert_eq!(0, path.len());
         let expected: Vec<Point> = vec![];
@@ -299,7 +322,7 @@ mod test {
 
     #[test]
     fn test_straight_path() {
-        let board = make_board(
+        let mut board = make_board(
             "
 ...........
 .s******d..
@@ -310,8 +333,9 @@ mod test {
         let path: Path = Path::find(
             board.start,
             board.destination,
-            &board.level,
-            Walkability::WalkthroughMonsters,
+            &mut board.world,
+            Blocker::WALL,
+            Point::new(0, 0),
         );
         assert_eq!(7, path.len());
         let expected = [(2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)]
@@ -324,7 +348,7 @@ mod test {
 
     #[test]
     fn test_diagonal_path() {
-        let board = make_board(
+        let mut board = make_board(
             "
 s..........
 .*.........
@@ -335,8 +359,9 @@ s..........
         let path: Path = Path::find(
             board.start,
             board.destination,
-            &board.level,
-            Walkability::WalkthroughMonsters,
+            &mut board.world,
+            Blocker::WALL,
+            Point::new(0, 0),
         );
         assert_eq!(3, path.len());
         let expected = [(1, 1), (2, 2), (3, 3)]
@@ -349,26 +374,27 @@ s..........
 
     #[test]
     fn test_no_path() {
-        let board = make_board(
+        let mut board = make_board(
             "
-....x......
-.s..x...d..
-....x......
-....x......
+xxxxx......
+xs..x...d..
+x...x......
+xxxxx......
 ",
         );
         let path: Path = Path::find(
             board.start,
             board.destination,
-            &board.level,
-            Walkability::WalkthroughMonsters,
+            &mut board.world,
+            Blocker::WALL,
+            Point::new(0, 0),
         );
         assert_eq!(0, path.len());
     }
 
     #[test]
     fn test_line_obstacle() {
-        let board = make_board(
+        let mut board = make_board(
             "
 ....x......
 .s..x......
@@ -379,8 +405,9 @@ s..........
         let path: Path = Path::find(
             board.start,
             board.destination,
-            &board.level,
-            Walkability::WalkthroughMonsters,
+            &mut board.world,
+            Blocker::WALL,
+            Point::new(0, 0),
         );
         assert_eq!(7, path.len());
         let expected = [(2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
@@ -393,8 +420,12 @@ s..........
 
     #[test]
     fn test_concave_obstacle() {
-        let board = make_board(
+        let mut board = make_board(
             "
+......x....
+......x....
+......x....
+......x....
 ......x....
 .s....xd...
 ..*...x*...
@@ -405,20 +436,21 @@ s..........
         let path: Path = Path::find(
             board.start,
             board.destination,
-            &board.level,
-            Walkability::WalkthroughMonsters,
+            &mut board.world,
+            Blocker::WALL,
+            Point::new(0, 0),
         );
         assert_eq!(9, path.len());
         let expected = [
-            (2, 2),
-            (2, 3),
-            (3, 4),
-            (4, 4),
-            (5, 4),
-            (6, 4),
-            (7, 3),
-            (7, 2),
-            (7, 1),
+            (2, 6),
+            (2, 7),
+            (3, 8),
+            (4, 8),
+            (5, 8),
+            (6, 8),
+            (7, 7),
+            (7, 6),
+            (7, 5),
         ]
             .iter()
             .cloned()

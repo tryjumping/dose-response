@@ -307,6 +307,8 @@ impl Line {
 impl Iterator for Line {
     type Item = Point;
 
+    // TODO: add unit tests for this!!
+
     /// Draw a line between two points. Uses .Bresenham's line
     /// algorithm.
     /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -414,12 +416,19 @@ mod test {
     #[test]
     fn test_points_within_radius_of_zero() {
         let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((3, 3), 0));
-        assert_eq!(actual, [(3, 3)]);
+        let expected: [Point; 0] = [];
+        assert_eq!(actual, expected);
     }
 
     #[test]
     fn test_points_within_radius_of_one() {
-        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 1));
+        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((3, 3), 1));
+        assert_eq!(actual, [(3, 3)]);
+    }
+
+    #[test]
+    fn test_points_within_radius_of_two() {
+        let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 2));
         let expected = [
             (-1, -1),
             (0, -1),
@@ -439,8 +448,8 @@ mod test {
         let actual: Vec<Point> = FromIterator::from_iter(SquareArea::new((0, 0), 5));
 
         let mut expected = Vec::new();
-        for y in -5..6 {
-            for x in -5..6 {
+        for y in -4..5 {
+            for x in -4..5 {
                 expected.push(Point { x: x, y: y });
             }
         }

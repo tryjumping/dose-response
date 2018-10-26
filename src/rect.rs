@@ -145,22 +145,22 @@ mod tests {
     #[test]
     fn smallest_rect() {
         let rect = Rectangle::from_point_and_size((0, 0).into(), (1, 1).into());
-        assert_eq!(rect.dimensions(), Point::new(1, 1));
+        assert_eq!(rect.size(), Point::new(1, 1));
         assert_eq!(rect.points().collect::<Vec<_>>().len(), 1);
 
         let rect = Rectangle::from_point_and_size((5, 7).into(), (1, 1).into());
-        assert_eq!(rect.dimensions(), Point::new(1, 1));
+        assert_eq!(rect.size(), Point::new(1, 1));
         assert_eq!(rect.points().collect::<Vec<_>>().len(), 1);
     }
 
     #[test]
     fn rect_size_2() {
         let rect = Rectangle::from_point_and_size((0, 0).into(), (2, 2).into());
-        assert_eq!(rect.dimensions(), Point::new(2, 2));
+        assert_eq!(rect.size(), Point::new(2, 2));
         assert_eq!(rect.points().collect::<Vec<_>>().len(), 4);
 
         let rect = Rectangle::from_point_and_size((5, 7).into(), (2, 2).into());
-        assert_eq!(rect.dimensions(), Point::new(2, 2));
+        assert_eq!(rect.size(), Point::new(2, 2));
         assert_eq!(rect.points().collect::<Vec<_>>().len(), 4);
     }
 

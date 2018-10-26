@@ -88,6 +88,11 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** Yea, I just won the game and I never had to use any of the strong stuff
 *** Need to increase it
 **** Did that, is it okay now?
+* Marketing
+** no crafting!
+** no levels!
+** no waiting!
+** no orcs!
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong

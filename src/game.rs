@@ -215,6 +215,17 @@ fn process_game(
         };
         let pos = state.player.pos + offset;
         info!("start: {:?}, destination: {:?}", state.player.pos, pos);
+
+        // NOTE: Uncover the map leading to the Victory NPC position
+        let positions = point::Line::new(state.player.pos, pos);
+        for cell_pos in positions {
+            state.world.ensure_chunk_at_pos(cell_pos);
+            state.world.always_visible(cell_pos, 2);
+            state.world.explore(cell_pos, 4);
+        }
+        state.world.explore(pos, 5);
+        state.world.always_visible(pos, 2);
+
         if let Some(chunk) = state.world.chunk_mut(pos) {
             let mut monster = monster::Monster::new(monster::Kind::Npc, pos);
             monster.companion_bonus = Some(CompanionBonus::Victory);
@@ -223,15 +234,6 @@ fn process_game(
             let id = chunk.add_monster(monster);
             state.victory_npc_id = Some(id);
         }
-
-        // NOTE: Uncover the map leading to the Victory NPC position
-        let positions = point::Line::new(state.player.pos, pos);
-        for cell_pos in positions {
-            state.world.always_visible(cell_pos, 2);
-            state.world.explore(cell_pos, 4);
-        }
-        state.world.explore(pos, 5);
-        state.world.always_visible(pos, 2);
 
         // NOTE: Scroll to the Victory NPC position
         {

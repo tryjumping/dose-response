@@ -232,8 +232,10 @@ pub extern "C" fn update(
     let mouse = Mouse {
         tile_pos: Point::new(mouse_tile_x, mouse_tile_y),
         screen_pos: Point::new(mouse_pixel_x, mouse_pixel_y),
-        left: mouse_left,
-        right: mouse_right,
+        left_clicked: mouse_left,
+        right_clicked: mouse_right,
+        left_is_down: false,
+        right_is_down: false,
     };
     let mut settings = Settings { fullscreen: false };
     let metrics = Metrics {

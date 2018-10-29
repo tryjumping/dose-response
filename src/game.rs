@@ -205,8 +205,31 @@ fn process_game(
             state.world.remove_monster_by_id(prev_npc_id);
         }
 
-        let vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
-        info!("start: {:?}, destination: {:?}", state.player.pos, vnpc_pos);
+        // NOTE: Compute path to Victory NPC that is reachable by the
+        // player. This may take several attempts. Leave the position
+        // immutable at the end.
+        let mut vnpc_pos;
+        loop {
+            vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
+            info!(
+                "player pos: {:?}, vnpc pos: {:?}",
+                state.player.pos, vnpc_pos
+            );
+            let path_to_vnpc = pathfinding::Path::find(
+                state.player.pos,
+                vnpc_pos,
+                &mut state.world,
+                Blocker::WALL,
+                state.player.pos,
+            );
+            if path_to_vnpc.len() == 0 {
+                warn!("Failed to find path from player to Victory NPC!")
+            } else {
+                info!("Path to Victory NPC takes {} steps", path_to_vnpc.len());
+                break;
+            }
+        }
+        let vnpc_pos = vnpc_pos;
 
         // NOTE: Uncover the map leading to the Victory NPC position
         let positions = point::Line::new(state.player.pos, vnpc_pos);

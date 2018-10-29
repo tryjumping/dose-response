@@ -116,9 +116,6 @@ cargo run
 12:04:57 [INFO] [152] Switching fullscreen off
 12:04:57 [INFO] Window resized to: 987x630
 #+END_SRC
-* Make sure the Victory NPC is reachable
-** It must have a path form the player
-** And it must be at a tile that's not occupied
 * Place Victory NPC in the Endgame
 ** Put it some distance away from the Player
 *** Maybe 80 - 120 tiles?
@@ -2759,3 +2756,10 @@ CLOSED: [2018-10-14 Sun 23:00]
 :ARCHIVE_TIME: 2018-10-14 Sun 23:00
 :END:
 *** like, say 3 cells wide or something
+** DONE Make sure the Victory NPC is reachable
+CLOSED: [2018-10-29 Mon 08:29]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-29 Mon 08:29
+:END:
+*** It must have a path form the player
+*** And it must be at a tile that's not occupied

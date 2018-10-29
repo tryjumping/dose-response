@@ -205,21 +205,21 @@ fn process_game(
             state.world.remove_monster_by_id(prev_npc_id);
         }
 
-        let pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
-        info!("start: {:?}, destination: {:?}", state.player.pos, pos);
+        let vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
+        info!("start: {:?}, destination: {:?}", state.player.pos, vnpc_pos);
 
         // NOTE: Uncover the map leading to the Victory NPC position
-        let positions = point::Line::new(state.player.pos, pos);
+        let positions = point::Line::new(state.player.pos, vnpc_pos);
         for cell_pos in positions {
             state.world.ensure_chunk_at_pos(cell_pos);
             state.world.always_visible(cell_pos, 2);
             state.world.explore(cell_pos, 4);
         }
-        state.world.explore(pos, 5);
-        state.world.always_visible(pos, 2);
+        state.world.explore(vnpc_pos, 5);
+        state.world.always_visible(vnpc_pos, 2);
 
-        if let Some(chunk) = state.world.chunk_mut(pos) {
-            let mut monster = monster::Monster::new(monster::Kind::Npc, pos);
+        if let Some(chunk) = state.world.chunk_mut(vnpc_pos) {
+            let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos);
             monster.companion_bonus = Some(CompanionBonus::Victory);
             monster.color = color::victory_npc;
             monster.ai_state = ::ai::AIState::NoOp;
@@ -231,7 +231,7 @@ fn process_game(
         {
             state.pos_timer = Timer::new(Duration::from_millis(2000));
             state.old_screen_pos = state.screen_position_in_world;
-            state.new_screen_pos = pos;
+            state.new_screen_pos = vnpc_pos;
         }
     }
 

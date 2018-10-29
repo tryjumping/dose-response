@@ -205,15 +205,7 @@ fn process_game(
             state.world.remove_monster_by_id(prev_npc_id);
         }
 
-        // TODO: we may have to add `cos` to wasm
-        // TODO: read this from the formula
-        let distance = state.rng.gen_range(20.0, 30.0);
-        let direction_rad: f32 = state.rng.gen_range(0.0, 2.0 * ::std::f32::consts::PI);
-        let offset = Point {
-            x: (direction_rad.cos() * distance) as i32,
-            y: (direction_rad.sin() * distance) as i32,
-        };
-        let pos = state.player.pos + offset;
+        let pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
         info!("start: {:?}, destination: {:?}", state.player.pos, pos);
 
         // NOTE: Uncover the map leading to the Victory NPC position

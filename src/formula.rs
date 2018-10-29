@@ -2,8 +2,12 @@ use item::{Item, Kind};
 use monster::CompanionBonus;
 use num_rational::{Ratio, Rational32};
 use player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
+use point::Point;
 use ranged_int::{InclusiveRange, Ranged};
+
 use std::cmp;
+
+use rand::Rng;
 
 pub const INITIAL_SAFE_RADIUS: i32 = 25;
 pub const INITIAL_EASY_RADIUS: i32 = 40;
@@ -219,4 +223,15 @@ pub fn mind_fade_value(mind: Mind) -> f32 {
         Withdrawal(value) => value.percent() * 0.5 + 0.45,
         Sober(_) | High(_) => 1.0,
     }
+}
+
+pub fn victory_npc_position<R: Rng>(rng: &mut R, player_pos: Point) -> Point {
+    let distance = rng.gen_range(20.0, 30.0);
+    let direction_rad: f32 = rng.gen_range(0.0, 2.0 * ::std::f32::consts::PI);
+    let offset = Point {
+        // TODO: we may have to add `cos` to wasm
+        x: (direction_rad.cos() * distance) as i32,
+        y: (direction_rad.sin() * distance) as i32,
+    };
+    player_pos + offset
 }

@@ -1,5 +1,5 @@
 use crate::color::{self, Color};
-use crate::formula::{self, ANXIETIES_PER_WILL, SOBRIETY_COUNTER, WILL, WITHDRAWAL};
+use crate::formula::{self, ANXIETIES_PER_WILL, WILL, WITHDRAWAL};
 use crate::item::Item;
 use crate::monster::{CompanionBonus, Monster};
 use crate::point::Point;
@@ -97,8 +97,6 @@ pub struct Player {
     // TODO: merge this with the other bonuses
     pub bonus: Bonus,
     pub bonuses: Vec<CompanionBonus>,
-    /// How many turns after max Will to achieve victory
-    pub sobriety_counter: Ranged,
     pub current_high_streak: i32,
     pub longest_high_streak: i32,
 
@@ -129,7 +127,6 @@ impl Player {
             ap: formula::PLAYER_BASE_AP,
             bonus: Bonus::None,
             bonuses: Vec::with_capacity(10),
-            sobriety_counter: Ranged::new_min(SOBRIETY_COUNTER),
             current_high_streak: 0,
             longest_high_streak: 0,
         }
@@ -193,9 +190,6 @@ impl Player {
                 state_of_mind,
             } => {
                 self.will += will;
-                if !self.will.is_max() {
-                    self.sobriety_counter.set_to_min();
-                }
                 self.mind = formula::process_hunger(self.mind, state_of_mind);
             }
             Intoxication {
@@ -204,7 +198,6 @@ impl Player {
             } => {
                 self.mind = formula::intoxicate(self.mind, self.tolerance, state_of_mind);
                 self.tolerance += tolerance_increase;
-                self.sobriety_counter.set_to_min();
             }
             Panic(turns) => {
                 self.panic += turns;

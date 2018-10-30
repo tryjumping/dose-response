@@ -1086,9 +1086,6 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         state.pos_timer = Timer::new(Duration::from_millis(2000));
         state.old_screen_pos = state.screen_position_in_world;
         state.new_screen_pos = vnpc_pos;
-
-        // TODO: remove sobriety counter
-        state.player.sobriety_counter += 1;
     }
 
     // Set the longest high streak

@@ -81,7 +81,6 @@ pub const DIAGONAL_DOSE_MIND_VARIANCE: InclusiveRange = InclusiveRange(-10, 10);
 
 pub const PLAYER_BASE_AP: i32 = 1;
 pub const PLAYER_STARTING_WILL: i32 = 2;
-pub const SOBRIETY_COUNTER: InclusiveRange = InclusiveRange(0, 100);
 pub const PANIC_TURNS: InclusiveRange = InclusiveRange(0, 10);
 pub const STUN_TURNS: InclusiveRange = InclusiveRange(0, 10);
 

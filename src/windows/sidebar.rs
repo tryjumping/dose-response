@@ -202,9 +202,16 @@ impl Window {
 
         lines.push("".into());
 
-        if player.will.is_max() {
-            lines.push(format!("Sobriety: {}", player.sobriety_counter.percent()).into());
-            lines.push("".into());
+        if let Some(vnpc_id) = state.victory_npc_id {
+            if let Some(vnpc_pos) = state.world.monster(vnpc_id).map(|m| m.position) {
+                let distance = {
+                    let dx = (player.pos.x - vnpc_pos.x) as f32;
+                    let dy = (player.pos.y - vnpc_pos.y) as f32;
+                    dx.abs().max(dy.abs()) as i32
+                };
+                lines.push(format!("Distance to Victory NPC: {}", distance).into());
+                lines.push("".into());
+            }
         }
 
         if !player.bonuses.is_empty() {

@@ -130,7 +130,6 @@ cargo run
 *** "Get sober and stay sober."
 ** That way the highlighted path can stay there
 ** and the player will be able to learn what happened
-* Remove the sobriety counter from the game
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
@@ -2775,3 +2774,8 @@ CLOSED: [2018-10-30 Tue 20:44]
 :END:
 *** Put it some distance away from the Player
 **** Maybe 80 - 120 tiles?
+** DONE Remove the sobriety counter from the game
+CLOSED: [2018-10-30 Tue 21:03]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-30 Tue 21:03
+:END:

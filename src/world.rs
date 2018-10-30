@@ -92,7 +92,7 @@ impl Chunk {
         self.position + level_position
     }
 
-    pub fn cells(&self) -> ChunkCells {
+    pub fn cells(&self) -> ChunkCells<'_> {
         ChunkCells {
             chunk_position: self.position,
             cells: self.level.iter(),

@@ -84,7 +84,7 @@ pub struct Verification {
 pub struct State {
     pub player: Player,
     #[serde(skip_serializing, skip_deserializing)]
-    pub explosion_animation: Option<Box<AreaOfEffect>>,
+    pub explosion_animation: Option<Box<dyn AreaOfEffect>>,
 
     /// The actual size of the game world in tiles. Could be infinite
     /// but we're limiting it for performance reasons for now.
@@ -117,7 +117,7 @@ pub struct State {
         skip_deserializing,
         default = "empty_command_logger"
     )]
-    pub command_logger: Box<Write>,
+    pub command_logger: Box<dyn Write>,
     pub side: Side,
     pub turn: i32,
     pub cheating: bool,
@@ -233,7 +233,7 @@ impl State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
         let seed = util::random_seed();
-        let mut writer: Box<Write> = if let Some(replay_path) = replay_path {
+        let mut writer: Box<dyn Write> = if let Some(replay_path) = replay_path {
             match File::create(&replay_path) {
                 Ok(f) => {
                     info!("Recording the gameplay to '{}'", replay_path.display());
@@ -395,7 +395,7 @@ Reason: '{}'.",
         }
     }
 
-    pub fn save_to_file(&self) -> Result<(), Box<Error>> {
+    pub fn save_to_file(&self) -> Result<(), Box<dyn Error>> {
         use bincode::serialize;
 
         // TODO: select the filename dynamicaly!
@@ -411,7 +411,7 @@ Reason: '{}'.",
         Ok(())
     }
 
-    pub fn load_from_file() -> Result<State, Box<Error>> {
+    pub fn load_from_file() -> Result<State, Box<dyn Error>> {
         use bincode::deserialize;
         use std::io::Read;
 
@@ -443,7 +443,7 @@ pub enum Window {
     Message(String),
 }
 
-fn empty_command_logger() -> Box<Write> {
+fn empty_command_logger() -> Box<dyn Write> {
     Box::new(io::sink())
 }
 

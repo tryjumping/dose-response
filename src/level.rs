@@ -155,7 +155,7 @@ impl Level {
         }
     }
 
-    pub fn iter(&self) -> Cells {
+    pub fn iter(&self) -> Cells<'_> {
         Cells {
             index: 0,
             width: self.dimensions.x,

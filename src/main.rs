@@ -10,39 +10,17 @@
 )]
 #![windows_subsystem = "windows"]
 
-extern crate bincode;
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
 extern crate log;
-extern crate rand;
-extern crate serde;
-#[cfg(feature = "cli")]
-extern crate simplelog;
+
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-
-#[cfg(feature = "cli")]
-extern crate clap;
-
-#[cfg(feature = "replay")]
-extern crate chrono;
 
 #[macro_use]
 #[cfg(feature = "opengl")]
 extern crate glium;
-
-#[cfg(feature = "sdl")]
-extern crate sdl2;
-
-#[cfg(feature = "sdl")]
-extern crate gl;
-
-#[cfg(any(feature = "opengl", feature = "sdl"))]
-extern crate image;
-
-extern crate num_rational;
 
 #[cfg(feature = "remote")]
 extern crate zmq;
@@ -175,7 +153,7 @@ fn process_cli_and_run_game() {
     use std::fs::File;
 
     let mut loggers =
-        vec![SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<SharedLogger>];
+        vec![SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<dyn SharedLogger>];
     if let Ok(logfile) = File::create("dose-response.log") {
         loggers.push(WriteLogger::new(
             LevelFilter::Trace,

@@ -62,7 +62,7 @@ pub struct Ranged {
 
 // NOTE: Custom formatter that's always on 1 line even when pretty-printing
 impl ::std::fmt::Debug for Ranged {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
         write!(f, "{} in <{}..{}>", self.val, self.min, self.max)
     }
 }

@@ -793,7 +793,7 @@ pub type UpdateFn = fn(
     keys: &[Key],
     mouse: Mouse,
     settings: &mut Settings,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
     display: &mut Display,
 ) -> RunningState;
 

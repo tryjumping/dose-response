@@ -55,7 +55,7 @@ pub enum CompanionBonus {
 }
 
 impl Display for CompanionBonus {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         use self::CompanionBonus::*;
         let s = match *self {
             DoubleWillGrowth => "Doubled Will Increase",

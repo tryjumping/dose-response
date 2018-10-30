@@ -10,7 +10,7 @@ pub struct Point {
 
 // NOTE: Custom formatter that's always on 1 line even when pretty-printing
 impl fmt::Debug for Point {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Point{{x: {}, y: {}}}", self.x, self.y)
     }
 }
@@ -59,7 +59,7 @@ impl Into<Point> for (i32, i32) {
 }
 
 impl Display for Point {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "({}, {})", self.x, self.y)
     }
 }

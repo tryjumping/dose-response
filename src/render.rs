@@ -13,7 +13,13 @@ use crate::world::Chunk;
 
 use std::time::Duration;
 
-pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, display: &mut Display) {
+pub fn render(
+    state: &State,
+    dt: Duration,
+    fps: i32,
+    metrics: &dyn TextMetrics,
+    display: &mut Display,
+) {
     // NOTE: Clear the screen
     display.clear(color::background);
 
@@ -56,7 +62,7 @@ pub fn render(state: &State, dt: Duration, fps: i32, metrics: &TextMetrics, disp
 pub fn render_game(
     state: &State,
     sidebar_window: &sidebar::Window,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
     dt: Duration,
     fps: i32,
     display: &mut Display,
@@ -265,7 +271,7 @@ pub fn render_game(
 fn render_main_menu(
     state: &State,
     window: &main_menu::Window,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
     display: &mut Display,
 ) {
     window.render(state, metrics, display);
@@ -277,7 +283,7 @@ fn render_main_menu(
 fn render_help_screen(
     state: &State,
     window: &help::Window,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
     display: &mut Display,
 ) {
     window.render(state, metrics, display);
@@ -289,7 +295,7 @@ fn render_help_screen(
 fn render_endgame_screen(
     state: &State,
     window: &endgame::Window,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
     display: &mut Display,
 ) {
     window.render(state, metrics, display);
@@ -298,7 +304,7 @@ fn render_endgame_screen(
     display.fade = color::invisible;
 }
 
-fn render_message(state: &State, text: &str, _metrics: &TextMetrics, display: &mut Display) {
+fn render_message(state: &State, text: &str, _metrics: &dyn TextMetrics, display: &mut Display) {
     let window_size = Point::new(40, 10);
     let window_pos = ((state.display_size - window_size) / 2) - (0, 10);
     let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
@@ -366,7 +372,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
     }
 }
 
-fn render_controls_help(map_size: Point, metrics: &TextMetrics, display: &mut Display) {
+fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mut Display) {
     let rect_dim = |lines: &[&str]| {
         let longest_line = lines
             .iter()

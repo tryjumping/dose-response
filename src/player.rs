@@ -47,7 +47,7 @@ impl Mind {
 }
 
 impl Display for Mind {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         use self::Mind::*;
         let s = match *self {
             Withdrawal(_) => "Withdrawal",

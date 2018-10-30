@@ -49,7 +49,7 @@ impl Page {
 }
 
 impl FmtDisplay for Page {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         use self::Page::*;
         let s = match *self {
             DoseResponse => "Dose Response",
@@ -75,7 +75,7 @@ struct Layout {
 pub struct Window;
 
 impl Window {
-    fn layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
+    fn layout(&self, state: &State, metrics: &dyn TextMetrics) -> Layout {
         let screen_padding = Point::from_i32(2);
         let window_rect = Rectangle::from_point_and_size(
             screen_padding,
@@ -122,7 +122,7 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, display: &mut Display) {
+    pub fn render(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) {
         use crate::ui::Text::*;
 
         let layout = self.layout(state, metrics);
@@ -275,7 +275,7 @@ impl Window {
         }
     }
 
-    pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<Action> {
+    pub fn hovered(&self, state: &State, metrics: &dyn TextMetrics) -> Option<Action> {
         self.layout(state, metrics).action_under_mouse
     }
 }

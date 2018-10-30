@@ -45,7 +45,7 @@ pub struct Layout<'a> {
 pub struct Window;
 
 impl Window {
-    fn calculate_layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
+    fn calculate_layout(&self, state: &State, metrics: &dyn TextMetrics) -> Layout<'_> {
         use crate::ui::Text::*;
 
         let window_pos = Point::new(0, 0);
@@ -135,7 +135,7 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &TextMetrics, display: &mut Display) {
+    pub fn render(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) {
         let layout = self.calculate_layout(state, metrics);
         display.draw_rectangle(layout.window_rect, color::window_edge);
         display.draw_rectangle(layout.inner_window_rect, color::background);
@@ -149,7 +149,7 @@ impl Window {
         ui::render_text_flow(&layout.text_flow, rect, metrics, display);
     }
 
-    pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<MenuItem> {
+    pub fn hovered(&self, state: &State, metrics: &dyn TextMetrics) -> Option<MenuItem> {
         self.calculate_layout(state, metrics).menu_item_under_mouse
     }
 }

@@ -43,7 +43,7 @@ struct Layout {
 pub struct Window;
 
 impl Window {
-    fn layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
+    fn layout(&self, state: &State, metrics: &dyn TextMetrics) -> Layout {
         let x = state.map_size.x;
         let fg = color::gui_text;
         let bg = color::dim_background;
@@ -122,14 +122,14 @@ impl Window {
         }
     }
 
-    pub fn hovered(&self, state: &State, metrics: &TextMetrics) -> Option<Action> {
+    pub fn hovered(&self, state: &State, metrics: &dyn TextMetrics) -> Option<Action> {
         self.layout(state, metrics).action_under_mouse
     }
 
     pub fn render(
         &self,
         state: &State,
-        metrics: &TextMetrics,
+        metrics: &dyn TextMetrics,
         dt: Duration,
         fps: i32,
         display: &mut Display,

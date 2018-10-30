@@ -7,7 +7,7 @@ use std::time::Duration;
 pub trait AreaOfEffect {
     fn update(&mut self, dt: Duration);
     fn finished(&self) -> bool;
-    fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>>;
+    fn tiles(&self) -> Box<dyn Iterator<Item = (Point, Color, TileEffect)>>;
 }
 
 bitflags! {
@@ -65,7 +65,7 @@ impl AreaOfEffect for SquareExplosion {
         self.timer.finished()
     }
 
-    fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>> {
+    fn tiles(&self) -> Box<dyn Iterator<Item = (Point, Color, TileEffect)>> {
         let color = self.color;
         Box::new(
             SquareArea::new(self.center, self.current_radius + 1)
@@ -130,7 +130,7 @@ impl AreaOfEffect for CardinalExplosion {
         self.timer.finished()
     }
 
-    fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>> {
+    fn tiles(&self) -> Box<dyn Iterator<Item = (Point, Color, TileEffect)>> {
         let kill_color = self.kill_color;
         let killzone_area =
             SquareArea::new(self.center, 3).map(move |pos| (pos, kill_color, TileEffect::KILL));
@@ -251,7 +251,7 @@ impl AreaOfEffect for DiagonalExplosion {
         self.timer.finished()
     }
 
-    fn tiles(&self) -> Box<Iterator<Item = (Point, Color, TileEffect)>> {
+    fn tiles(&self) -> Box<dyn Iterator<Item = (Point, Color, TileEffect)>> {
         let kill_color = self.kill_color;
         let killzone_area =
             SquareArea::new(self.center, 3).map(move |pos| (pos, kill_color, TileEffect::KILL));

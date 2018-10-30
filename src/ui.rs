@@ -13,9 +13,9 @@ pub enum Text<'a> {
 }
 
 pub fn render_text_flow(
-    text_flow: &[Text],
+    text_flow: &[Text<'_>],
     rect: Rectangle,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
     display: &mut Display,
 ) {
     use self::Text::*;
@@ -65,7 +65,7 @@ pub fn render_text_flow(
     }
 }
 
-fn text_height(text: &Text, rect: Rectangle, metrics: &TextMetrics) -> i32 {
+fn text_height(text: &Text<'_>, rect: Rectangle, metrics: &dyn TextMetrics) -> i32 {
     use self::Text::*;
     match text {
         Empty => 1,
@@ -83,7 +83,11 @@ fn text_height(text: &Text, rect: Rectangle, metrics: &TextMetrics) -> i32 {
     }
 }
 
-pub fn text_flow_rect(text_flow: &[Text], rect: Rectangle, metrics: &TextMetrics) -> Rectangle {
+pub fn text_flow_rect(
+    text_flow: &[Text<'_>],
+    rect: Rectangle,
+    metrics: &dyn TextMetrics,
+) -> Rectangle {
     let height = text_flow
         .iter()
         .map(|text| text_height(text, rect, metrics))
@@ -91,7 +95,7 @@ pub fn text_flow_rect(text_flow: &[Text], rect: Rectangle, metrics: &TextMetrics
     Rectangle::new(rect.top_left(), rect.top_left() + (0, height))
 }
 
-pub fn text_rect(text: &Text, rect: Rectangle, metrics: &TextMetrics) -> Rectangle {
+pub fn text_rect(text: &Text<'_>, rect: Rectangle, metrics: &dyn TextMetrics) -> Rectangle {
     let height = text_height(text, rect, metrics);
     Rectangle::new(
         rect.top_left(),

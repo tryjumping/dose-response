@@ -50,7 +50,7 @@ pub fn update(
     new_keys: &[Key],
     mouse: Mouse,
     settings: &mut Settings,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
     display: &mut Display, // TODO: remove this from the engine and keep a transient state instead
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
@@ -138,7 +138,7 @@ pub fn update(
 fn process_game(
     state: &mut State,
     window: &sidebar::Window,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
     dt: Duration,
 ) -> RunningState {
     use self::sidebar::Action;
@@ -481,7 +481,7 @@ fn process_main_menu(
     state: &mut State,
     settings: &mut Settings,
     window: &main_menu::Window,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
 ) -> RunningState {
     use crate::windows::main_menu::MenuItem::*;
 
@@ -582,7 +582,7 @@ fn process_main_menu(
 fn process_help_window(
     state: &mut State,
     window: &help::Window,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
 ) -> RunningState {
     use self::help::Action;
 
@@ -631,7 +631,7 @@ fn process_help_window(
 fn process_endgame_window(
     state: &mut State,
     window: &endgame::Window,
-    metrics: &TextMetrics,
+    metrics: &dyn TextMetrics,
 ) -> RunningState {
     use crate::windows::endgame::Action::*;
 
@@ -801,7 +801,7 @@ fn process_player_action<R, W>(
     commands: &mut VecDeque<Command>,
     world: &mut World,
     simulation_area: Rectangle,
-    explosion_animation: &mut Option<Box<AreaOfEffect>>,
+    explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
     rng: &mut R,
     command_logger: &mut W,
 ) where
@@ -1237,7 +1237,7 @@ fn kill_monster(monster_position: Point, world: &mut World) {
 
 fn use_dose(
     player: &mut player::Player,
-    explosion_animation: &mut Option<Box<AreaOfEffect>>,
+    explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
     item: item::Item,
 ) {
     use crate::item::Kind::*;
@@ -1247,7 +1247,7 @@ fn use_dose(
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = if state_of_mind <= 100 { 4 } else { 6 };
         player.take_effect(item.modifier);
-        let animation: Box<AreaOfEffect> = match item.kind {
+        let animation: Box<dyn AreaOfEffect> = match item.kind {
             Dose | StrongDose => Box::new(animation::SquareExplosion::new(
                 player.pos,
                 radius,

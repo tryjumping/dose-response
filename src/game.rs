@@ -1078,8 +1078,16 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
 
     let spent_ap_this_turn = previous_action_points > state.player.ap();
 
-    // Increase the sobriety counter if the player behaved themself.
-    if spent_ap_this_turn && !state.player.mind.is_high() && state.player.will.is_max() {
+    // Place the Victory NPC if the player behaved themself.
+    if state.player.will.is_max() && !state.player.mind.is_high() && state.victory_npc_id.is_none()
+    {
+        let vnpc_pos = place_victory_npc(state);
+        // NOTE: Scroll to the Victory NPC position
+        state.pos_timer = Timer::new(Duration::from_millis(2000));
+        state.old_screen_pos = state.screen_position_in_world;
+        state.new_screen_pos = vnpc_pos;
+
+        // TODO: remove sobriety counter
         state.player.sobriety_counter += 1;
     }
 

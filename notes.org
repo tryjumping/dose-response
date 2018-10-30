@@ -124,6 +124,9 @@ cargo run
 ** That way we can just instruct people to send us that file
 *** and we'll have all the info
 ** Make sure this is in readme
+* Create all the chunks leading to a VNPC
+** Otherwise the path to the farther ones will never be found at first
+** We should "ensure chunk" for everything on the line to VNPC pos
 * Add a signpost when deleting a Victory NPC on High
 ** bumping into it, you will see an explanation text
 *** "Sober up, junkie!"

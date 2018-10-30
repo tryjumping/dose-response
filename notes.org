@@ -124,9 +124,6 @@ cargo run
 ** That way we can just instruct people to send us that file
 *** and we'll have all the info
 ** Make sure this is in readme
-* Place Victory NPC in the Endgame
-** Put it some distance away from the Player
-*** Maybe 80 - 120 tiles?
 * Add a signpost when deleting a Victory NPC on High
 ** bumping into it, you will see an explanation text
 *** "Sober up, junkie!"
@@ -2771,3 +2768,10 @@ CLOSED: [2018-10-29 Mon 08:29]
 :END:
 *** It must have a path form the player
 *** And it must be at a tile that's not occupied
+** DONE Place Victory NPC in the Endgame
+CLOSED: [2018-10-30 Tue 20:44]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-30 Tue 20:44
+:END:
+*** Put it some distance away from the Player
+**** Maybe 80 - 120 tiles?

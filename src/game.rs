@@ -1105,10 +1105,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
 
     // NOTE: The player has reached the Victory NPC. Win the game! \o/
     if state.player.bonuses.contains(&CompanionBonus::Victory) {
-        state.side = Side::Victory;
-        state.game_ended = true;
-        state.uncovered_map = true;
-        state.window_stack.push(Window::Endgame);
+        win_the_game(state);
     }
 
     state.world.explore(
@@ -1388,6 +1385,7 @@ fn create_new_game_state(state: &State) -> State {
 
 fn place_victory_npc(state: &mut State) -> Point {
     info!("Generating the Victory NPC!");
+    let mut distance_range = formula::VICTORY_NPC_DISTANCE;
     // NOTE: Compute path to Victory NPC that is reachable by the
     // player. This may take several attempts. Leave the position
     // immutable at the end.
@@ -1396,11 +1394,25 @@ fn place_victory_npc(state: &mut State) -> Point {
     loop {
         if attempts <= 0 {
             // TODO: generate VNPC at a shorter distance instead of crashing?
-            panic!("Could not find a viable Victory NPC position in 250 tries.");
+            warn!("Could not find a viable Victory NPC position in 250 tries.");
+            let min = distance_range.0 - 20;
+            let max = distance_range.1 - 20;
+            if min > 5 && max > 5 {
+                distance_range = InclusiveRange(min, max);
+                attempts = 20;
+                info!("Reduced VNPC spawn range to: {:?}.", distance_range);
+            } else {
+                warn!(
+                    "Could not find a viable Victory NPC position anywhere! Winning game instead."
+                );
+                state.player.bonuses.push(monster::CompanionBonus::Victory);
+                win_the_game(state);
+                return state.player.pos;
+            }
         } else {
             attempts -= 1;
         }
-        vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
+        vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos, distance_range);
         info!(
             "player pos: {:?}, vnpc pos: {:?}",
             state.player.pos, vnpc_pos
@@ -1447,4 +1459,11 @@ fn place_victory_npc(state: &mut State) -> Point {
     }
 
     vnpc_pos
+}
+
+fn win_the_game(state: &mut State) {
+    state.side = Side::Victory;
+    state.game_ended = true;
+    state.uncovered_map = true;
+    state.window_stack.push(Window::Endgame);
 }

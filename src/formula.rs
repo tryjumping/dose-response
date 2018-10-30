@@ -26,6 +26,8 @@ pub const WITHDRAWAL: InclusiveRange = InclusiveRange(0, 15);
 pub const SOBER: InclusiveRange = InclusiveRange(0, 20);
 pub const HIGH: InclusiveRange = InclusiveRange(0, 80);
 
+pub const VICTORY_NPC_DISTANCE: InclusiveRange = InclusiveRange(80, 120);
+
 pub const DOSE_PREFAB: Item = Item {
     kind: Kind::Dose,
     irresistible: 2,
@@ -225,8 +227,12 @@ pub fn mind_fade_value(mind: Mind) -> f32 {
     }
 }
 
-pub fn victory_npc_position<R: Rng>(rng: &mut R, player_pos: Point) -> Point {
-    let distance = rng.gen_range(20.0, 30.0);
+pub fn victory_npc_position<R: Rng>(
+    rng: &mut R,
+    player_pos: Point,
+    distance_range: InclusiveRange,
+) -> Point {
+    let distance = distance_range.random(rng) as f32;
     let direction_rad: f32 = rng.gen_range(0.0, 2.0 * ::std::f32::consts::PI);
     let offset = Point {
         // TODO: we may have to add `cos` to wasm

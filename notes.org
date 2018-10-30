@@ -116,6 +116,14 @@ cargo run
 12:04:57 [INFO] [152] Switching fullscreen off
 12:04:57 [INFO] Window resized to: 987x630
 #+END_SRC
+* Put build information in dose-response.log                     :code:debug:
+** Make sure the following information is printed in the game's log
+*** commit hash
+*** version
+*** target triple
+** That way we can just instruct people to send us that file
+*** and we'll have all the info
+** Make sure this is in readme
 * Place Victory NPC in the Endgame
 ** Put it some distance away from the Player
 *** Maybe 80 - 120 tiles?

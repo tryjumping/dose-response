@@ -133,6 +133,15 @@ cargo run
 *** "Get sober and stay sober."
 ** That way the highlighted path can stay there
 ** and the player will be able to learn what happened
+* Rename `dir/mod.rs` to `dir.rs`                                      :code:
+** Got introduced in 2018 edition
+* Use nested imports :code:
+https://rust-lang-nursery.github.io/edition-guide/rust-2018/module-system/nested-imports-with-use.html
+** This will help reduce all the `crate::` prefixes now
+* Remove `[macro_use]`                                                 :code:
+https://rust-lang-nursery.github.io/edition-guide/rust-2018/macros/macro-changes.html
+** the 2018 edition allows you to `use` macros
+** this should remove all the remaining `extern crate` stuff
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses

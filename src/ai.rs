@@ -3,10 +3,10 @@ use crate::game::Action;
 use crate::monster::Monster;
 use crate::player::PlayerInfo;
 use crate::point::Point;
-use rand::Rng;
 use crate::ranged_int::InclusiveRange;
 use crate::rect::Rectangle;
 use crate::world::World;
+use rand::Rng;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {

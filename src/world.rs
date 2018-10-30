@@ -7,9 +7,9 @@ use crate::monster::Monster;
 use crate::player::{self, PlayerInfo};
 use crate::point::{CircularArea, Point, SquareArea};
 
-use rand::{IsaacRng, Rng};
 use crate::ranged_int::InclusiveRange;
 use crate::rect::Rectangle;
+use rand::{IsaacRng, Rng};
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

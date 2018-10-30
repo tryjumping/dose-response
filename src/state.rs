@@ -4,10 +4,13 @@ use crate::keys::Keys;
 use crate::monster;
 use crate::player::Player;
 use crate::point::Point;
-use rand::IsaacRng;
 use crate::util;
+use rand::IsaacRng;
 
 use crate::stats::Stats;
+use crate::timer::Timer;
+use crate::windows;
+use crate::world::{MonsterId, World};
 use std::collections::VecDeque;
 use std::error::Error;
 #[cfg(feature = "replay")]
@@ -17,9 +20,6 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
-use crate::timer::Timer;
-use crate::windows;
-use crate::world::{MonsterId, World};
 
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the

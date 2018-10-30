@@ -1,9 +1,9 @@
 use crate::blocker;
 use crate::point::Point;
+use crate::world::World;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 use std::f32;
-use crate::world::World;
 
 #[derive(Debug)]
 pub struct Path {

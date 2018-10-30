@@ -8,11 +8,11 @@ use crate::player::{Modifier, PlayerInfo};
 use crate::point::Point;
 use crate::ranged_int::{InclusiveRange, Ranged};
 
+use crate::world::World;
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
 };
-use crate::world::World;
 
 use std::fmt::{Display, Error, Formatter};
 

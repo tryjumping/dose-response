@@ -1,9 +1,9 @@
 use crate::item::{Item, Kind};
 use crate::monster::CompanionBonus;
-use num_rational::{Ratio, Rational32};
 use crate::player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
 use crate::point::Point;
 use crate::ranged_int::{InclusiveRange, Ranged};
+use num_rational::{Ratio, Rational32};
 
 use std::cmp;
 

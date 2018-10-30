@@ -2,7 +2,7 @@ use std::time::Duration;
 #[cfg(not(feature = "web"))]
 use std::time::Instant;
 
-use util;
+use crate::util;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Timer {

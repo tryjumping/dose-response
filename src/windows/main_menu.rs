@@ -1,9 +1,9 @@
-use color;
-use engine::{Display, TextMetrics};
-use point::Point;
-use rect::Rectangle;
-use state::State;
-use ui::{self, Text};
+use crate::color;
+use crate::engine::{Display, TextMetrics};
+use crate::point::Point;
+use crate::rect::Rectangle;
+use crate::state::State;
+use crate::ui::{self, Text};
 
 #[derive(Debug)]
 pub enum MenuItem {
@@ -46,7 +46,7 @@ pub struct Window;
 
 impl Window {
     fn calculate_layout(&self, state: &State, metrics: &TextMetrics) -> Layout {
-        use ui::Text::*;
+        use crate::ui::Text::*;
 
         let window_pos = Point::new(0, 0);
         let window_size = state.display_size;

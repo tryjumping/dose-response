@@ -2,6 +2,7 @@
 name = "dose-response"
 version = "0.8.4"
 authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
+edition = "2018"
 license = "GPL-3.0"
 build = "build.rs"
 exclude = ["scripts/*", "replays/*", "screenshots/*", "ci/*",

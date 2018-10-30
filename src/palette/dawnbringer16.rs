@@ -1,4 +1,4 @@
-use color::Color;
+use crate::color::Color;
 
 // Haphazardly put together with the help of the DawnBringer 16bit palette:
 // http://pixeljoint.com/forum/forum_posts.asp?TID=12795

@@ -1,4 +1,4 @@
-use point::Point;
+use crate::point::Point;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rectangle {
@@ -140,7 +140,7 @@ impl Iterator for RectangleIterator {
 #[cfg(test)]
 mod tests {
     use super::Rectangle;
-    use point::Point;
+    use crate::point::Point;
 
     #[test]
     fn smallest_rect() {

@@ -1,13 +1,13 @@
 #![allow(dead_code)]
 
-use color::{self, Color, ColorAlpha};
-use game::RunningState;
-use keys::Key;
-use point::Point;
-use rect::Rectangle;
-use state::State;
-use ui::Button;
-use util;
+use crate::color::{self, Color, ColorAlpha};
+use crate::game::RunningState;
+use crate::keys::Key;
+use crate::point::Point;
+use crate::rect::Rectangle;
+use crate::state::State;
+use crate::ui::Button;
+use crate::util;
 
 use std::time::Duration;
 
@@ -83,7 +83,7 @@ impl Into<[f32; 4]> for ColorAlpha {
 }
 
 trait VertexStore {
-    fn push(&mut self, Vertex);
+    fn push(&mut self, _: Vertex);
 }
 
 impl VertexStore for Vec<Vertex> {
@@ -365,7 +365,7 @@ pub trait TextMetrics {
         let top_left = if options.wrap && options.width > 0 {
             start_pos
         } else {
-            use engine::TextAlign::*;
+            use crate::engine::TextAlign::*;
             match options.align {
                 Left => start_pos,
                 Right => start_pos + (1 - size.x, 0),
@@ -687,7 +687,7 @@ impl Display {
                 render_line(pos, line);
             }
         } else {
-            use engine::TextAlign::*;
+            use crate::engine::TextAlign::*;
             let pos = match options.align {
                 Left => start_pos * tilesize,
                 Right => {

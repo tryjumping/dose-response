@@ -1,11 +1,11 @@
-use color;
-use engine::{Display, TextMetrics};
-use formula;
-use player::CauseOfDeath;
-use point::Point;
-use rect::Rectangle;
-use state::{Side, State};
-use ui::{self, Button};
+use crate::color;
+use crate::engine::{Display, TextMetrics};
+use crate::formula;
+use crate::player::CauseOfDeath;
+use crate::point::Point;
+use crate::rect::Rectangle;
+use crate::state::{Side, State};
+use crate::ui::{self, Button};
 
 pub enum Action {
     NewGame,
@@ -85,7 +85,7 @@ impl Window {
 
     pub fn render(&self, state: &State, metrics: &TextMetrics, display: &mut Display) {
         use self::CauseOfDeath::*;
-        use ui::Text::*;
+        use crate::ui::Text::*;
 
         let layout = self.layout(state, metrics);
 

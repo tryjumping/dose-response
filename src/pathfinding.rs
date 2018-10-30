@@ -1,9 +1,9 @@
-use blocker;
-use point::Point;
+use crate::blocker;
+use crate::point::Point;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 use std::f32;
-use world::World;
+use crate::world::World;
 
 #[derive(Debug)]
 pub struct Path {
@@ -176,10 +176,10 @@ impl PartialOrd for State {
 #[cfg(test)]
 mod test {
     use super::Path;
-    use blocker::Blocker;
-    use player::{Mind, PlayerInfo};
-    use point::Point;
-    use world::World;
+    use crate::blocker::Blocker;
+    use crate::player::{Mind, PlayerInfo};
+    use crate::point::Point;
+    use crate::world::World;
 
     struct Board {
         start: Point,
@@ -188,8 +188,8 @@ mod test {
     }
 
     fn make_board(text: &str) -> Board {
-        use level::Tile;
-        use level::TileKind::{Empty, Tree};
+        use crate::level::Tile;
+        use crate::level::TileKind::{Empty, Tree};
         let mut start = Point { x: 0, y: 0 };
         let mut destination = Point { x: 0, y: 0 };
         let mut x = 0;

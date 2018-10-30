@@ -1,12 +1,12 @@
-use formula;
-use game::Action;
-use monster::Monster;
-use player::PlayerInfo;
-use point::Point;
+use crate::formula;
+use crate::game::Action;
+use crate::monster::Monster;
+use crate::player::PlayerInfo;
+use crate::point::Point;
 use rand::Rng;
-use ranged_int::InclusiveRange;
-use rect::Rectangle;
-use world::World;
+use crate::ranged_int::InclusiveRange;
+use crate::rect::Rectangle;
+use crate::world::World;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {

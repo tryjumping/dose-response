@@ -1,12 +1,12 @@
-use generators::GeneratedWorld;
+use crate::generators::GeneratedWorld;
 
-use color;
-use formula;
-use item::{self, Item};
-use level::{Tile, TileKind};
-use monster::{Kind, Monster};
-use player::Modifier;
-use point::Point;
+use crate::color;
+use crate::formula;
+use crate::item::{self, Item};
+use crate::level::{Tile, TileKind};
+use crate::monster::{Kind, Monster};
+use crate::player::Modifier;
+use crate::point::Point;
 use rand::distributions::{Distribution, Weighted, WeightedChoice};
 use rand::Rng;
 
@@ -100,8 +100,8 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
         if let Some(kind) = opts.sample(rng) {
             let mut monster = Monster::new(kind, pos);
             if kind == Kind::Npc {
-                use color;
-                use monster::CompanionBonus::*;
+                use crate::color;
+                use crate::monster::CompanionBonus::*;
                 let bonus = rng.gen();
                 monster.companion_bonus = Some(bonus);
                 monster.color = match bonus {
@@ -118,7 +118,7 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
 }
 
 fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
-    use item::Kind::*;
+    use crate::item::Kind::*;
     match kind {
         Dose => {
             let mut item = formula::DOSE_PREFAB;
@@ -169,7 +169,7 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
 }
 
 fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Item)> {
-    use item::Kind::*;
+    use crate::item::Kind::*;
 
     let mut weights = [
         Weighted {

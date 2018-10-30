@@ -1,8 +1,8 @@
-use color::Color;
-use point::{Point, SquareArea};
+use crate::color::Color;
+use crate::point::{Point, SquareArea};
 
 use std::time::Duration;
-use timer::Timer;
+use crate::timer::Timer;
 
 pub trait AreaOfEffect {
     fn update(&mut self, dt: Duration);

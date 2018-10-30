@@ -1,18 +1,18 @@
 use self::Kind::*;
 
-use ai::{self, AIState, Behavior, Update};
-use blocker::Blocker;
-use color::{self, Color};
-use game::Action;
-use player::{Modifier, PlayerInfo};
-use point::Point;
-use ranged_int::{InclusiveRange, Ranged};
+use crate::ai::{self, AIState, Behavior, Update};
+use crate::blocker::Blocker;
+use crate::color::{self, Color};
+use crate::game::Action;
+use crate::player::{Modifier, PlayerInfo};
+use crate::point::Point;
+use crate::ranged_int::{InclusiveRange, Ranged};
 
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
 };
-use world::World;
+use crate::world::World;
 
 use std::fmt::{Display, Error, Formatter};
 
@@ -140,7 +140,7 @@ impl Monster {
     }
 
     pub fn attack_damage(&self) -> Modifier {
-        use player::Modifier::*;
+        use crate::player::Modifier::*;
         match self.kind {
             Anxiety => Attribute {
                 will: -1,

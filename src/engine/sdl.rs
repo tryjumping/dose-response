@@ -1,10 +1,10 @@
-use color::{Color, ColorAlpha};
-use engine::{self, DisplayInfo, Drawcall, Mouse, Settings, TextMetrics, UpdateFn, Vertex};
-use game::RunningState;
-use keys::KeyCode;
-use point::Point;
-use state::State;
-use util;
+use crate::color::{Color, ColorAlpha};
+use crate::engine::{self, DisplayInfo, Drawcall, Mouse, Settings, TextMetrics, UpdateFn, Vertex};
+use crate::game::RunningState;
+use crate::keys::KeyCode;
+use crate::point::Point;
+use crate::state::State;
+use crate::util;
 
 use std::ffi::CString;
 use std::mem;

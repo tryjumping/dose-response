@@ -1,15 +1,15 @@
-use blocker::Blocker;
-use formula;
-use generators::{self, GeneratedWorld};
-use item::{self, Item};
-use level::{self, Cell, Level};
-use monster::Monster;
-use player::{self, PlayerInfo};
-use point::{CircularArea, Point, SquareArea};
+use crate::blocker::Blocker;
+use crate::formula;
+use crate::generators::{self, GeneratedWorld};
+use crate::item::{self, Item};
+use crate::level::{self, Cell, Level};
+use crate::monster::Monster;
+use crate::player::{self, PlayerInfo};
+use crate::point::{CircularArea, Point, SquareArea};
 
 use rand::{IsaacRng, Rng};
-use ranged_int::InclusiveRange;
-use rect::Rectangle;
+use crate::ranged_int::InclusiveRange;
+use crate::rect::Rectangle;
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -199,7 +199,7 @@ impl World {
         // Remove monsters from the starting area
         for pos in easy_area.points() {
             let remove_monster = self.monster_on_pos(pos).map_or(false, |m| {
-                use monster::Kind::*;
+                use crate::monster::Kind::*;
                 let easy_monster = match m.kind {
                     Shadows | Voices => false,
                     Hunger | Anxiety | Depression | Npc => true,
@@ -237,7 +237,7 @@ impl World {
         for pos in no_lethal_dose_area.points() {
             if let Some(cell) = self.cell_mut(pos) {
                 for index in (0..cell.items.len()).rev() {
-                    use item::Kind::*;
+                    use crate::item::Kind::*;
                     let lethal_dose = match cell.items[index].kind {
                         Food | Dose => false,
                         StrongDose | CardinalDose | DiagonalDose => true,

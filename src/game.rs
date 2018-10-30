@@ -1,24 +1,24 @@
-use animation::{self, AreaOfEffect};
-use blocker::Blocker;
-use color;
-use engine::{Display, Mouse, Settings, TextMetrics, TILESIZE};
-use formula;
-use item;
-use keys::{Key, KeyCode, Keys};
-use level::TileKind;
-use monster::{self, CompanionBonus};
-use pathfinding;
-use player;
-use point::{self, Point};
-use ranged_int::{InclusiveRange, Ranged};
-use rect::Rectangle;
-use render;
-use state::{self, Command, Side, State, Window};
-use stats::{FrameStats, Stats};
-use timer::{Stopwatch, Timer};
-use util;
-use windows::{endgame, help, main_menu, sidebar};
-use world::World;
+use crate::animation::{self, AreaOfEffect};
+use crate::blocker::Blocker;
+use crate::color;
+use crate::engine::{Display, Mouse, Settings, TextMetrics, TILESIZE};
+use crate::formula;
+use crate::item;
+use crate::keys::{Key, KeyCode, Keys};
+use crate::level::TileKind;
+use crate::monster::{self, CompanionBonus};
+use crate::pathfinding;
+use crate::player;
+use crate::point::{self, Point};
+use crate::ranged_int::{InclusiveRange, Ranged};
+use crate::rect::Rectangle;
+use crate::render;
+use crate::state::{self, Command, Side, State, Window};
+use crate::stats::{FrameStats, Stats};
+use crate::timer::{Stopwatch, Timer};
+use crate::util;
+use crate::windows::{endgame, help, main_menu, sidebar};
+use crate::world::World;
 
 use std::collections::{HashMap, VecDeque};
 use std::io::Write;
@@ -93,7 +93,7 @@ pub fn update(
         if anim.timer.finished() {
             state.screen_fading = None;
         } else {
-            use animation::ScreenFadePhase;
+            use crate::animation::ScreenFadePhase;
             let prev_phase = anim.phase;
             anim.update(dt);
             let new_phase = anim.phase;
@@ -245,7 +245,7 @@ fn process_game(
             let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos);
             monster.companion_bonus = Some(CompanionBonus::Victory);
             monster.color = color::victory_npc;
-            monster.ai_state = ::ai::AIState::NoOp;
+            monster.ai_state = crate::ai::AIState::NoOp;
             let id = chunk.add_monster(monster);
             state.victory_npc_id = Some(id);
         }
@@ -448,7 +448,7 @@ fn process_game(
 
     // Set the fadeout animation on death
     if player_was_alive && !state.player.alive() {
-        use player::CauseOfDeath::*;
+        use crate::player::CauseOfDeath::*;
         let cause_of_death = formula::cause_of_death(&state.player);
         let fade_color = match cause_of_death {
             Some(Exhausted) => color::exhaustion_animation,
@@ -533,7 +533,7 @@ fn process_main_menu(
     window: &main_menu::Window,
     metrics: &TextMetrics,
 ) -> RunningState {
-    use windows::main_menu::MenuItem::*;
+    use crate::windows::main_menu::MenuItem::*;
 
     let mut option = if state.mouse.left_clicked {
         window.hovered(&state, metrics)
@@ -683,7 +683,7 @@ fn process_endgame_window(
     window: &endgame::Window,
     metrics: &TextMetrics,
 ) -> RunningState {
-    use windows::endgame::Action::*;
+    use crate::windows::endgame::Action::*;
 
     let mut action = if state.mouse.left_clicked {
         window.hovered(&state, metrics)
@@ -988,7 +988,7 @@ fn process_player_action<R, W>(
                     player.spend_ap(1);
                     player.move_to(dest);
                     while let Some(item) = world.pickup_item(dest) {
-                        use item::Kind::*;
+                        use crate::item::Kind::*;
                         match item.kind {
                             Food => player.inventory.push(item),
                             Dose | StrongDose | CardinalDose | DiagonalDose => {
@@ -1160,7 +1160,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
 }
 
 fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
-    use keys::KeyCode::*;
+    use crate::keys::KeyCode::*;
     while let Some(key) = keys.get() {
         match key {
             // Numpad (8246 for cardinal and 7193 for diagonal movement)
@@ -1227,8 +1227,8 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
 }
 
 fn inventory_commands(key: Key) -> Option<Command> {
-    use item::Kind;
-    use keys::KeyCode::*;
+    use crate::item::Kind;
+    use crate::keys::KeyCode::*;
 
     for kind in Kind::iter() {
         let num_key = match inventory_key(kind) {
@@ -1288,8 +1288,8 @@ fn use_dose(
     explosion_animation: &mut Option<Box<AreaOfEffect>>,
     item: item::Item,
 ) {
-    use item::Kind::*;
-    use player::Modifier::*;
+    use crate::item::Kind::*;
+    use crate::player::Modifier::*;
     debug!("Using dose");
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {

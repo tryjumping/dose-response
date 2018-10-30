@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::time::Duration;
 
-use util;
+use crate::util;
 
 #[derive(Clone, Debug, Default)]
 pub struct FrameStats {

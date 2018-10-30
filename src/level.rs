@@ -1,7 +1,7 @@
-use blocker;
-use color::{self, Color};
-use item::Item;
-use point;
+use crate::blocker;
+use crate::color::{self, Color};
+use crate::item::Item;
+use crate::point;
 
 use std::collections::HashMap;
 
@@ -129,7 +129,7 @@ impl Level {
 
     pub fn walkable(&self, pos: LevelPosition, blockers: blocker::Blocker) -> bool {
         use self::TileKind::Empty;
-        use blocker::Blocker;
+        use crate::blocker::Blocker;
         // We don't have the player's position here so we can't check that here.
         assert!(!blockers.contains(Blocker::PLAYER));
         let blocked_by_wall = blockers.contains(Blocker::WALL) && self.cell(pos).tile.kind != Empty;

@@ -1,9 +1,9 @@
-use item::{Item, Kind};
-use monster::CompanionBonus;
+use crate::item::{Item, Kind};
+use crate::monster::CompanionBonus;
 use num_rational::{Ratio, Rational32};
-use player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
-use point::Point;
-use ranged_int::{InclusiveRange, Ranged};
+use crate::player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
+use crate::point::Point;
+use crate::ranged_int::{InclusiveRange, Ranged};
 
 use std::cmp;
 
@@ -91,7 +91,7 @@ pub const ESTRANGED_NPC_MAX_AP: i32 = 2;
 pub const FRIENDLY_NPC_FREEZE_RADIUS: f32 = 3.0;
 
 pub fn exploration_radius(mental_state: Mind) -> i32 {
-    use player::Mind::*;
+    use crate::player::Mind::*;
     match mental_state {
         Withdrawal(value) => if value.to_int() >= value.middle() {
             5
@@ -218,7 +218,7 @@ pub fn cause_of_death(player: &Player) -> Option<CauseOfDeath> {
 }
 
 pub fn mind_fade_value(mind: Mind) -> f32 {
-    use player::Mind::*;
+    use crate::player::Mind::*;
     match mind {
         Withdrawal(value) => value.percent() * 0.5 + 0.45,
         Sober(_) | High(_) => 1.0,

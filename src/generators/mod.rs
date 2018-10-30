@@ -1,7 +1,7 @@
-use item::Item;
-use level::Tile;
-use monster::Monster;
-use point::Point;
+use crate::item::Item;
+use crate::level::Tile;
+use crate::monster::Monster;
+use crate::point::Point;
 
 pub mod forrest;
 

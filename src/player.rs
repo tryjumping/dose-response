@@ -1,9 +1,9 @@
-use color::{self, Color};
-use formula::{self, ANXIETIES_PER_WILL, SOBRIETY_COUNTER, WILL, WITHDRAWAL};
-use item::Item;
-use monster::{CompanionBonus, Monster};
-use point::Point;
-use ranged_int::Ranged;
+use crate::color::{self, Color};
+use crate::formula::{self, ANXIETIES_PER_WILL, SOBRIETY_COUNTER, WILL, WITHDRAWAL};
+use crate::item::Item;
+use crate::monster::{CompanionBonus, Monster};
+use crate::point::Point;
+use crate::ranged_int::Ranged;
 use std::fmt::{Display, Error, Formatter};
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]

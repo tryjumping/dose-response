@@ -1,13 +1,13 @@
-use animation::{AreaOfEffect, ScreenFade};
-use engine::Mouse;
-use keys::Keys;
-use monster;
-use player::Player;
-use point::Point;
+use crate::animation::{AreaOfEffect, ScreenFade};
+use crate::engine::Mouse;
+use crate::keys::Keys;
+use crate::monster;
+use crate::player::Player;
+use crate::point::Point;
 use rand::IsaacRng;
-use util;
+use crate::util;
 
-use stats::Stats;
+use crate::stats::Stats;
 use std::collections::VecDeque;
 use std::error::Error;
 #[cfg(feature = "replay")]
@@ -17,9 +17,9 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
-use timer::Timer;
-use windows;
-use world::{MonsterId, World};
+use crate::timer::Timer;
+use crate::windows;
+use crate::world::{MonsterId, World};
 
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the

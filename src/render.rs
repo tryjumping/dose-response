@@ -1,15 +1,15 @@
-use color;
-use engine::{Display, TextMetrics, TextOptions};
-use formula;
-use graphics;
-use monster;
-use player::Bonus;
-use point::{Point, SquareArea};
-use rect::Rectangle;
-use state::{State, Window};
-use util;
-use windows::{endgame, help, main_menu, sidebar};
-use world::Chunk;
+use crate::color;
+use crate::engine::{Display, TextMetrics, TextOptions};
+use crate::formula;
+use crate::graphics;
+use crate::monster;
+use crate::player::Bonus;
+use crate::point::{Point, SquareArea};
+use crate::rect::Rectangle;
+use crate::state::{State, Window};
+use crate::util;
+use crate::windows::{endgame, help, main_menu, sidebar};
+use crate::world::Chunk;
 
 use std::time::Duration;
 
@@ -64,7 +64,7 @@ pub fn render_game(
     let offset_px = state.offset_px;
 
     if let Some(ref animation) = state.screen_fading {
-        use animation::ScreenFadePhase;
+        use crate::animation::ScreenFadePhase;
         let fade = match animation.phase {
             ScreenFadePhase::FadeOut => animation.timer.percentage_remaining(),
             ScreenFadePhase::Wait => 0.0,
@@ -231,7 +231,7 @@ pub fn render_game(
             // }
 
             let glyph = monster.glyph();
-            let mut color = if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
+            let color = if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
                 color::npc_dim
             } else {
                 monster.color

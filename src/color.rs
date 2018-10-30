@@ -3,7 +3,7 @@
 
 //pub use palette::original::*;
 //pub use palette::dawnbringer32::*;
-pub use palette::dawnbringer16::*;
+pub use crate::palette::dawnbringer16::*;
 
 
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]

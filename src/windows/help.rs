@@ -1,9 +1,9 @@
-use color;
-use engine::{Display, TextMetrics};
-use point::Point;
-use rect::Rectangle;
-use state::State;
-use ui::{self, Button};
+use crate::color;
+use crate::engine::{Display, TextMetrics};
+use crate::point::Point;
+use crate::rect::Rectangle;
+use crate::state::State;
+use crate::ui::{self, Button};
 
 use std::fmt::{Display as FmtDisplay, Error, Formatter};
 
@@ -123,7 +123,7 @@ impl Window {
     }
 
     pub fn render(&self, state: &State, metrics: &TextMetrics, display: &mut Display) {
-        use ui::Text::*;
+        use crate::ui::Text::*;
 
         let layout = self.layout(state, metrics);
 

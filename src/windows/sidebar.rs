@@ -1,14 +1,14 @@
-use color;
-use engine::{Display, TextMetrics};
-use game;
-use graphics;
-use item;
-use player::Mind;
-use point::Point;
-use rect::Rectangle;
-use state::State;
-use ui::Button;
-use util;
+use crate::color;
+use crate::engine::{Display, TextMetrics};
+use crate::game;
+use crate::graphics;
+use crate::item;
+use crate::player::Mind;
+use crate::point::Point;
+use crate::rect::Rectangle;
+use crate::state::State;
+use crate::ui::Button;
+use crate::util;
 
 use std::borrow::Cow;
 use std::collections::HashMap;

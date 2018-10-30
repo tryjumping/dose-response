@@ -198,57 +198,7 @@ fn process_game(
     }
 
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::V) && state.cheating {
-        info!("Generating the Victory NPC!");
-        // TODO: Make sure we place the NPC into an unoccupied space
-        if let Some(prev_npc_id) = state.victory_npc_id.take() {
-            warn!("Replacing an existing NPC! {:?}", prev_npc_id);
-            state.world.remove_monster_by_id(prev_npc_id);
-        }
-
-        // NOTE: Compute path to Victory NPC that is reachable by the
-        // player. This may take several attempts. Leave the position
-        // immutable at the end.
-        let mut vnpc_pos;
-        loop {
-            vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
-            info!(
-                "player pos: {:?}, vnpc pos: {:?}",
-                state.player.pos, vnpc_pos
-            );
-            let path_to_vnpc = pathfinding::Path::find(
-                state.player.pos,
-                vnpc_pos,
-                &mut state.world,
-                Blocker::WALL,
-                state.player.pos,
-            );
-            if path_to_vnpc.len() == 0 {
-                warn!("Failed to find path from player to Victory NPC!")
-            } else {
-                info!("Path to Victory NPC takes {} steps", path_to_vnpc.len());
-                break;
-            }
-        }
-        let vnpc_pos = vnpc_pos;
-
-        // NOTE: Uncover the map leading to the Victory NPC position
-        let positions = point::Line::new(state.player.pos, vnpc_pos);
-        for cell_pos in positions {
-            state.world.ensure_chunk_at_pos(cell_pos);
-            state.world.always_visible(cell_pos, 2);
-            state.world.explore(cell_pos, 4);
-        }
-        state.world.explore(vnpc_pos, 5);
-        state.world.always_visible(vnpc_pos, 2);
-
-        if let Some(chunk) = state.world.chunk_mut(vnpc_pos) {
-            let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos);
-            monster.companion_bonus = Some(CompanionBonus::Victory);
-            monster.color = color::victory_npc;
-            monster.ai_state = crate::ai::AIState::NoOp;
-            let id = chunk.add_monster(monster);
-            state.victory_npc_id = Some(id);
-        }
+        let vnpc_pos = place_victory_npc(state);
 
         // NOTE: Scroll to the Victory NPC position
         {
@@ -1426,4 +1376,59 @@ fn create_new_game_state(state: &State) -> State {
         state::generate_replay_path(),
         state.player.invincible,
     )
+}
+
+fn place_victory_npc(state: &mut State) -> Point {
+    info!("Generating the Victory NPC!");
+    // NOTE: Compute path to Victory NPC that is reachable by the
+    // player. This may take several attempts. Leave the position
+    // immutable at the end.
+    let mut vnpc_pos;
+    loop {
+        vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
+        info!(
+            "player pos: {:?}, vnpc pos: {:?}",
+            state.player.pos, vnpc_pos
+        );
+        let path_to_vnpc = pathfinding::Path::find(
+            state.player.pos,
+            vnpc_pos,
+            &mut state.world,
+            Blocker::WALL,
+            state.player.pos,
+        );
+        if path_to_vnpc.len() == 0 {
+            warn!("Failed to find path from player to Victory NPC!")
+        } else {
+            info!("Path to Victory NPC takes {} steps", path_to_vnpc.len());
+            break;
+        }
+    }
+    let vnpc_pos = vnpc_pos;
+
+    if let Some(prev_npc_id) = state.victory_npc_id.take() {
+        warn!("Replacing an existing NPC! {:?}", prev_npc_id);
+        state.world.remove_monster_by_id(prev_npc_id);
+    }
+
+    // NOTE: Uncover the map leading to the Victory NPC position
+    let positions = point::Line::new(state.player.pos, vnpc_pos);
+    for cell_pos in positions {
+        state.world.ensure_chunk_at_pos(cell_pos);
+        state.world.always_visible(cell_pos, 2);
+        state.world.explore(cell_pos, 4);
+    }
+    state.world.explore(vnpc_pos, 5);
+    state.world.always_visible(vnpc_pos, 2);
+
+    if let Some(chunk) = state.world.chunk_mut(vnpc_pos) {
+        let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos);
+        monster.companion_bonus = Some(CompanionBonus::Victory);
+        monster.color = color::victory_npc;
+        monster.ai_state = crate::ai::AIState::NoOp;
+        let id = chunk.add_monster(monster);
+        state.victory_npc_id = Some(id);
+    }
+
+    vnpc_pos
 }

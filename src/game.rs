@@ -1392,12 +1392,20 @@ fn place_victory_npc(state: &mut State) -> Point {
     // player. This may take several attempts. Leave the position
     // immutable at the end.
     let mut vnpc_pos;
+    let mut attempts = 250;
     loop {
+        if attempts <= 0 {
+            // TODO: generate VNPC at a shorter distance instead of crashing?
+            panic!("Could not find a viable Victory NPC position in 250 tries.");
+        } else {
+            attempts -= 1;
+        }
         vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos);
         info!(
             "player pos: {:?}, vnpc pos: {:?}",
             state.player.pos, vnpc_pos
         );
+        // TODO: make sure the world chunks exist before trying to find path
         let path_to_vnpc = pathfinding::Path::find(
             state.player.pos,
             vnpc_pos,

@@ -93,6 +93,23 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** no levels!
 ** no waiting!
 ** no orcs!
+* Create all the chunks leading to a VNPC
+** Otherwise the path to the farther ones will never be found at first
+** We should "ensure chunk" for everything on the line to VNPC pos
+* Add a signpost when deleting a Victory NPC on High
+** bumping into it, you will see an explanation text
+*** "Sober up, junkie!"
+*** "Get sober and stay sober."
+** That way the highlighted path can stay there
+** and the player will be able to learn what happened
+* Put build information in dose-response.log                     :code:debug:
+** Make sure the following information is printed in the game's log
+*** commit hash
+*** version
+*** target triple
+** That way we can just instruct people to send us that file
+*** and we'll have all the info
+** Make sure this is in readme
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong
@@ -116,23 +133,6 @@ cargo run
 12:04:57 [INFO] [152] Switching fullscreen off
 12:04:57 [INFO] Window resized to: 987x630
 #+END_SRC
-* Put build information in dose-response.log                     :code:debug:
-** Make sure the following information is printed in the game's log
-*** commit hash
-*** version
-*** target triple
-** That way we can just instruct people to send us that file
-*** and we'll have all the info
-** Make sure this is in readme
-* Create all the chunks leading to a VNPC
-** Otherwise the path to the farther ones will never be found at first
-** We should "ensure chunk" for everything on the line to VNPC pos
-* Add a signpost when deleting a Victory NPC on High
-** bumping into it, you will see an explanation text
-*** "Sober up, junkie!"
-*** "Get sober and stay sober."
-** That way the highlighted path can stay there
-** and the player will be able to learn what happened
 * Rename `dir/mod.rs` to `dir.rs`                                      :code:
 ** Got introduced in 2018 edition
 * Use nested imports :code:

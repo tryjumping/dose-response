@@ -27,7 +27,7 @@ extern crate zmq;
 
 // NOTE: the external functions must be available in crate root:
 #[cfg(feature = "web")]
-pub use engine::wasm::{initialise, key_pressed, update};
+pub use crate::engine::wasm::{initialise, key_pressed, update};
 
 mod ai;
 mod animation;
@@ -138,7 +138,7 @@ fn run_remote(
         display_size,
         default_background,
         window_title,
-        state,
+        Box::new(state),
         update,
     );
 

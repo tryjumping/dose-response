@@ -1,18 +1,25 @@
-use color::Color;
-use engine::{self, Mouse, Settings, TextMetrics, UpdateFn, Vertex};
-use game::RunningState;
-use state::State;
+use crate::{
+    color::Color,
+    engine::{self, Mouse, Settings, TextMetrics, UpdateFn, Vertex},
+    game::RunningState,
+    keys::{Key, KeyCode},
+    point::Point,
+    rect::Rectangle,
+    state::State,
+    util,
+};
 
-use glium::draw_parameters::DrawParameters;
-use glium::glutin::VirtualKeyCode as BackendKey;
-use glium::glutin::{Event, EventsLoop, MonitorId, WindowBuilder, WindowEvent};
-use glium::{self, Surface};
-use image;
-use keys::{Key, KeyCode};
-use point::Point;
-use rect::Rectangle;
 use std::time::{Duration, Instant};
-use util;
+
+use glium::{
+    self,
+    draw_parameters::DrawParameters,
+    glutin::VirtualKeyCode as BackendKey,
+    glutin::{Event, EventsLoop, MonitorId, WindowBuilder, WindowEvent},
+    Surface,
+};
+
+use image;
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {

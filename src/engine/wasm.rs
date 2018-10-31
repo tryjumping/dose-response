@@ -1,11 +1,12 @@
-use engine::{self, Display, Drawcall, Mouse, Settings, TextMetrics};
-use game::{self, RunningState};
-use keys::{Key, KeyCode};
-use point::Point;
-use state::State;
+use crate::{
+    engine::{self, Display, Drawcall, Mouse, Settings, TextMetrics},
+    game::{self, RunningState},
+    keys::{Key, KeyCode},
+    point::Point,
+    state::State,
+};
 
-use std::mem;
-use std::time::Duration;
+use std::{mem, time::Duration};
 
 const VERTEX_CAPACITY: usize =
     mem::size_of::<f32>() * engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
@@ -18,7 +19,7 @@ extern "C" {
 }
 
 fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {
-    use keys::KeyCode::*;
+    use crate::keys::KeyCode::*;
     // NOTE: these values correspond to:
     // https://git.gnome.org/browse/gtk+/plain/gdk/gdkkeysyms.h
     match js_keycode {
@@ -176,20 +177,20 @@ pub extern "C" fn key_pressed(
 
 #[no_mangle]
 pub extern "C" fn initialise() -> *mut Wasm {
-    info!("Initialising {} for WebAssembly", ::GAME_TITLE);
+    info!("Initialising {} for WebAssembly", crate::GAME_TITLE);
     let state = Box::new(State::new_game(
-        ::WORLD_SIZE,
-        ::DISPLAYED_MAP_SIZE,
-        ::PANEL_WIDTH,
-        ::DISPLAY_SIZE,
+        crate::WORLD_SIZE,
+        crate::DISPLAYED_MAP_SIZE,
+        crate::PANEL_WIDTH,
+        crate::DISPLAY_SIZE,
         false, // exit-after
         None,  // replay file
         false, // invincible
     ));
-    let drawcalls = Box::new(Vec::with_capacity(engine::DRAWCALL_CAPACITY));
+    let drawcalls = Box::new(Vec::with_capacity(crate::engine::DRAWCALL_CAPACITY));
     let vertices = Box::new(Vec::with_capacity(VERTEX_CAPACITY));
-    let display_size = ::DISPLAY_SIZE;
-    let display = Box::new(engine::Display::new(
+    let display_size = crate::DISPLAY_SIZE;
+    let display = Box::new(crate::engine::Display::new(
         display_size,
         Point::from_i32(display_size.y / 2),
         super::TILESIZE as i32,
@@ -271,7 +272,7 @@ pub extern "C" fn update(
     display.push_drawcalls(&mut drawcalls);
 
     vertices.clear();
-    engine::build_vertices(&drawcalls, &mut *vertices, native_display_size_px);
+    crate::engine::build_vertices(&drawcalls, &mut *vertices, native_display_size_px);
 
     if state.cheating {
         // // NOTE: render buffer size:
@@ -309,8 +310,8 @@ pub extern "C" fn update(
         draw(
             vertices.as_ptr(),
             vertices.len(),
-            engine::TEXTURE_WIDTH as i32,
-            engine::TEXTURE_HEIGHT as i32,
+            crate::engine::TEXTURE_WIDTH as i32,
+            crate::engine::TEXTURE_HEIGHT as i32,
         );
     }
 

@@ -69,7 +69,7 @@ pub fn sine_curve(percentage: f32) -> f32 {
     let rad = val * consts::PI / 2.0;
     #[allow(unsafe_code)]
     unsafe {
-        ::engine::wasm::sin(rad)
+        crate::engine::wasm::sin(rad)
     }
 }
 
@@ -82,6 +82,6 @@ pub fn random_seed() -> u32 {
 pub fn random_seed() -> u32 {
     #[allow(unsafe_code)]
     // NOTE: this comes from `Math.random` and returns a float in the <0, 1> range:
-    let random_float = unsafe { ::engine::wasm::random() };
-    (random_float * ::std::u32::MAX as f32) as u32
+    let random_float = unsafe { crate::engine::wasm::random() };
+    (random_float * std::u32::MAX as f32) as u32
 }

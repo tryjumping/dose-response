@@ -1,12 +1,15 @@
-use color::Color;
-use engine::{Draw, Settings, UpdateFn};
-use keys::Key;
-use point::Point;
-use serde_json;
-use std::error::Error;
-use std::thread;
-use time::Duration;
+use crate::{
+    color::Color,
+    engine::{Display, Mouse, Settings, TextMetrics, UpdateFn},
+    game::RunningState,
+    keys::Key,
+    point::Point,
+    state::State,
+};
 
+use std::{error::Error, thread, time::Duration};
+
+use serde_json;
 use zmq;
 
 struct ZeroMQ {
@@ -36,7 +39,7 @@ impl ZeroMQ {
         }
     }
 
-    fn send_display(&self, display: &Display) -> Result<(), Box<Error>> {
+    fn send_display(&self, display: &RemoteDisplay) -> Result<(), Box<Error>> {
         let message = serde_json::to_string(display)?;
         self.socket.send(message.as_bytes(), 0)?;
 
@@ -44,16 +47,26 @@ impl ZeroMQ {
     }
 }
 
+pub struct Metrics {
+    tile_width_px: i32,
+}
+
+impl TextMetrics for Metrics {
+    fn tile_width_px(&self) -> i32 {
+        self.tile_width_px
+    }
+}
+
 #[derive(Serialize, Deserialize)]
-struct Display {
+struct RemoteDisplay {
     pub width: i32,
     pub height: i32,
     pub cells: Vec<char>,
 }
 
-impl Display {
+impl RemoteDisplay {
     fn new(width: i32, height: i32) -> Self {
-        Display {
+        RemoteDisplay {
             width: width,
             height: height,
             cells: vec![' '; (width * height) as usize],
@@ -73,27 +86,32 @@ impl Display {
     }
 }
 
-pub fn main_loop<T>(
+pub fn main_loop(
     display_size: Point,
     _default_background: Color,
     _window_title: &str,
-    mut state: T,
-    update: UpdateFn<T>,
+    mut state: Box<State>,
+    update: UpdateFn,
 ) {
     let ipc = match ZeroMQ::new("ipc:///tmp/dose-response.ipc") {
         Ok(ipc) => ipc,
         Err(err) => panic!("Could not create a ZeroMQ socket: {:?}", err),
     };
 
-    let settings = Settings { fullscreen: false };
+    let tilesize = super::TILESIZE;
+    let mouse = Mouse::new();
+    let mut settings = Settings { fullscreen: false };
     let mut keys = vec![];
-    let mut drawcalls = Vec::with_capacity(4000);
-    let mut display = Display::new(display_size.x, display_size.y);
+    let mut display = Display::new(
+        display_size,
+        Point::from_i32(display_size.y / 2),
+        tilesize as i32,
+    );
+    let mut remote_display = RemoteDisplay::new(display_size.x, display_size.y);
 
     loop {
         keys.clear();
-        drawcalls.clear();
-        display.clear();
+        remote_display.clear();
 
         match ipc.try_read_key() {
             Ok(Some(key)) => {
@@ -104,38 +122,34 @@ pub fn main_loop<T>(
         };
 
         match update(
-            state,
-            Duration::milliseconds(16),
+            &mut state,
+            Duration::from_millis(16),
             display_size,
             60,
             &keys,
-            settings,
-            &mut drawcalls,
+            mouse,
+            &mut settings,
+            &Metrics {
+                tile_width_px: tilesize as i32,
+            },
+            &mut display,
         ) {
-            Some((_new_settings, new_state)) => {
-                state = new_state;
-                for drawcall in &drawcalls {
-                    match drawcall {
-                        &Draw::Char(pos, chr, _foreground_color) => {
-                            display.set(pos, chr);
-                        }
-                        &Draw::Background(_pos, _background_color) => {}
-                        &Draw::Text(_start_pos, ref _text, _color) => {}
-                        &Draw::Rectangle(_top_left, _dimensions, _color) => {}
-                        &Draw::Fade(_fade, _color) => {}
-                    }
+            RunningState::Running => {
+                for (pos, cell) in display.cells() {
+                    remote_display.set(pos, cell.glyph);
                 }
                 // NOTE: if the client is sleeping, this will fail but
                 // we don't mind. We ran the update, that's all we
                 // wanted to do.
-                let _ = ipc.send_display(&display);
+                let _ = ipc.send_display(&remote_display);
             }
-            None => {
+            RunningState::NewGame(_new_state) => unimplemented!(),
+            RunningState::Stopped => {
                 // TODO: send a QUIT message here
                 break;
             }
         };
 
-        thread::sleep(Duration::milliseconds(16).to_std().unwrap());
+        thread::sleep(Duration::from_millis(16));
     }
 }

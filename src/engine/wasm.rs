@@ -14,8 +14,6 @@ const VERTEX_CAPACITY: usize =
 extern "C" {
     fn draw(nums: *const u8, len: usize, texture_width_px: i32, texture_height_px: i32);
     pub fn random() -> f32;
-    // TODO: this shouldn't be necessary once Rust's sin in STD works.
-    pub fn sin(rad: f32) -> f32;
 }
 
 fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {

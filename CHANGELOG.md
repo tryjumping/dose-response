@@ -6,7 +6,39 @@ desperately looking for the next fix.
 
 ## [Unreleased]
 
-## [0.8.0] - 2017-05-05
+
+## [0.9.0] - 2018-11-03
+- Fixed the dose ordering in the sidebar
+- Updated the help messages
+- Player and monsters now alternate their turns
+  - this is only really visible if the player has more than 1 Action Point
+  - previously, the player would use up all their APs and then monsters would do the same
+  - now, the player uses 1 AP, then the monsters use 1 and so on
+- Added Victory NPCs
+  - This is the proper endgame sequence
+  - Once the player can resist all doses, a new NPC will spawn
+  - Upon reaching it, the game ends
+- Show a path to the Victory NPC when they appear
+- The camera briefly scrolls to Victory NPC when they appear
+- Removed the "sobriety counter" placeholder endgame sequence
+- Ported the code to Rust 2018 edition
+
+## [0.8.4] - 2018-06-8
+- Defaulted to the SDL backend everywhere
+- Fixed the OSX build
+- Added logging to the dose-response.log file
+
+## [0.8.3] - 2018-05-15
+- Added OpenGL implementation for the SDL backend
+- Lots of internal code changes
+
+## [0.8.2] - 2018-05-05
+- Minor build script fixes
+
+## [0.8.1] - 2018-05-05
+- Minor build script fixes
+
+## [0.8.0] - 2018-05-05
 - The monsters now have names visible in the game
 - Described how to use items in the help pages
 - Fixed glyph position in the opengl backend

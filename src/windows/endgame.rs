@@ -90,10 +90,14 @@ impl Window {
         let layout = self.layout(state, metrics);
 
         let cause_of_death = formula::cause_of_death(&state.player);
+
         let endgame_reason_text = if state.side == Side::Victory {
-            // TODO: remove Side entirely for now.
-            assert!(state.player.alive());
-            assert!(cause_of_death.is_none());
+            if !state.player.alive() {
+                warn!("The player appears to be dead on victory screen.");
+            }
+            if cause_of_death.is_some() {
+                warn!("The player has active cause of dead on victory screen.");
+            }
             "You won!"
         } else {
             "You lost:"

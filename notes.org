@@ -49,6 +49,7 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** Localisation?
 * Release checklist                                         :notes:checklist:
 - [ ] Create a new release in CHANGELOG.md
+  - `git log --oneline v0.8.0..`
 - [ ] Take a screenshot
 - [ ] Move the screenshot to Dose Response's screenshots directory
 - [ ] Commit the screenshot in the repo
@@ -96,6 +97,8 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Create all the chunks leading to a VNPC
 ** Otherwise the path to the farther ones will never be found at first
 ** We should "ensure chunk" for everything on the line to VNPC pos
+* Wasm restart games are broken
+** something with keys or something?
 * Add a signpost when deleting a Victory NPC on High
 ** bumping into it, you will see an explanation text
 *** "Sober up, junkie!"
@@ -110,11 +113,14 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** That way we can just instruct people to send us that file
 *** and we'll have all the info
 ** Make sure this is in readme
+* Make the dose-response.log less noisy
+** it's spewing out a ton of stuff that's not really that useful right now
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
+* Replace asserts with errors in the log
 * Menu doesn't show the "Quit Without Saving" option                    :bug:
 ** It only shows "Save and Quit" but sometimes you don't want that
 * Pressing Alt+Enter doesn't work                                       :bug:

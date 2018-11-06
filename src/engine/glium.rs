@@ -102,11 +102,11 @@ fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<Moni
     for monitor in monitors {
         let monitor_pos = {
             let pos = monitor.get_position();
-            Point::new(pos.0 as i32, pos.1 as i32)
+            Point::new(pos.x as i32, pos.y as i32)
         };
         let monitor_dimensions = {
             let dim = monitor.get_dimensions();
-            Point::new(dim.0 as i32, dim.1 as i32)
+            Point::new(dim.width as i32, dim.height as i32)
         };
 
         let monitor_bottom_left = monitor_pos + monitor_dimensions;
@@ -165,9 +165,14 @@ pub fn main_loop(
     // We'll just assume the monitors won't change throughout the game.
     let monitors: Vec<_> = events_loop.get_available_monitors().collect();
 
+    let desired_dimensions = glium::glutin::dpi::LogicalSize {
+        width: desired_window_width.into(),
+        height: desired_window_height.into(),
+    };
+
     let window = WindowBuilder::new()
         .with_title(window_title)
-        .with_dimensions(desired_window_width, desired_window_height);
+        .with_dimensions(desired_dimensions);
 
     let context = glium::glutin::ContextBuilder::new().with_vsync(true);
 
@@ -201,7 +206,7 @@ pub fn main_loop(
     // Main loop
     let mut window_pos = {
         match display.gl_window().get_position() {
-            Some((x, y)) => Point::new(x as i32, y as i32),
+            Some(glium::glutin::dpi::LogicalPosition { x, y }) => Point::new(x as i32, y as i32),
             None => Default::default(),
         }
     };
@@ -393,15 +398,15 @@ pub fn main_loop(
                 } => {
                     match event {
                         WindowEvent::CloseRequested => running = false,
-                        WindowEvent::Resized(width, height) => {
+                        WindowEvent::Resized(new_size) => {
                             debug!(
-                                "[FRAME {}] Window resized to: {} x {}",
-                                current_frame, width, height
+                                "[FRAME {}] Window resized to: {:?}",
+                                current_frame, new_size
                             );
-                            window_width = width;
-                            window_height = height;
+                            window_width = new_size.width as u32;
+                            window_height = new_size.height as u32;
                         }
-                        WindowEvent::Moved(x, y) => {
+                        WindowEvent::Moved(new_pos) => {
                             if settings.fullscreen || switched_from_fullscreen {
                                 // Don't update the window position
                                 //
@@ -411,9 +416,9 @@ pub fn main_loop(
                                 // So we restore the previous position
                                 // manually instead.
                             } else {
-                                debug!("[FRAME {}] Window moved to: {}, {}", current_frame, x, y);
-                                window_pos.x = x;
-                                window_pos.y = y;
+                                debug!("[FRAME {}] Window moved to: {:?}", current_frame, new_pos);
+                                window_pos.x = new_pos.x as i32;
+                                window_pos.y = new_pos.y as i32;
                                 current_monitor = get_current_monitor(&monitors, window_pos);
                                 debug!(
                                     "Current monitor: {:?}, pos: {:?}, size: {:?}",
@@ -540,13 +545,14 @@ pub fn main_loop(
                             }
                         }
                         WindowEvent::CursorMoved {
-                            position: (x, y), ..
+                            position: cursor_pos,
+                            ..
                         } => {
                             // debug!("Extra px: {:?}", extra_px);
                             // debug!("Display px: {:?}", display_px);
                             // debug!("Native display px: {:?}", native_display_px);
                             // debug!("screen width/height: {:?}", (screen_width, screen_height));
-                            let (x, y) = (x as i32, y as i32);
+                            let (x, y) = (cursor_pos.x as i32, cursor_pos.y as i32);
 
                             let (x, y) = (
                                 x - (display_info.extra_px[0] / 2.0) as i32,
@@ -624,7 +630,9 @@ pub fn main_loop(
 
             if desired_window_width != window_width || desired_window_height != window_height {
                 if let Some(ref monitor) = current_monitor {
-                    let (monitor_width, monitor_height) = monitor.get_dimensions();
+                    let dim = monitor.get_dimensions();
+                    let monitor_width = dim.width as u32;
+                    let monitor_height = dim.height as u32;
                     if desired_window_width <= monitor_width
                         && desired_window_height <= monitor_height
                     {
@@ -634,7 +642,10 @@ pub fn main_loop(
                         );
                         display
                             .gl_window()
-                            .set_inner_size(desired_window_width, desired_window_height);
+                            .set_inner_size(glium::glutin::dpi::LogicalSize {
+                                width: desired_window_width.into(),
+                                height: desired_window_height.into(),
+                            });
                     } else {
                         debug!("TODO: try to resize but maintain aspect ratio.");
                     }

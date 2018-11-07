@@ -1388,6 +1388,7 @@ fn place_victory_npc(state: &mut State) -> Point {
     // immutable at the end.
     let mut vnpc_pos;
     let mut attempts = 250;
+    let blockers = Blocker::WALL | Blocker::MONSTER;
     loop {
         if attempts <= 0 {
             // TODO: generate VNPC at a shorter distance instead of crashing?
@@ -1409,7 +1410,35 @@ fn place_victory_npc(state: &mut State) -> Point {
         } else {
             attempts -= 1;
         }
+
+        // NOTE: this is a little convoluted. We test if the Victory
+        // NPC position is walkable. And if it's not, we try other
+        // positions in its immadiate vicinity instead of generating a
+        // new candidade position via `formula::victory_npc_position`.
+        //
+        // We do this, because the walkability test requires we have a
+        // World Chunk in place and generating these can be expensive.
+        // So if we picked a completely random position every time, we
+        // could end up generating a lot of chunks for no immediate
+        // reason.
+        //
+        // What we do instead is generate one Chunk for the given
+        // position and then try nearby areas (which will be
+        // overwhelmingly likely in the same Chunk).
         vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos, distance_range);
+        info!("Trying to find test NPC position {:?}", vnpc_pos);
+        state.world.ensure_chunk_at_pos(vnpc_pos);
+        if let Some(pos) = walkable_place_nearby(&state.world, vnpc_pos, blockers, state.player.pos) {
+            info!("Position {:?} is walkable!", pos);
+            vnpc_pos = pos;
+            for cell_pos in point::Line::new(state.player.pos, vnpc_pos) {
+                state.world.ensure_chunk_at_pos(cell_pos);
+            }
+        } else {
+            warn!("Failed to find empty place around the candidate VNPC position {:?}", vnpc_pos);
+            continue;
+        }
+
         info!(
             "player pos: {:?}, vnpc pos: {:?}",
             state.player.pos, vnpc_pos
@@ -1419,7 +1448,7 @@ fn place_victory_npc(state: &mut State) -> Point {
             state.player.pos,
             vnpc_pos,
             &mut state.world,
-            Blocker::WALL,
+            blockers,
             state.player.pos,
         );
         if path_to_vnpc.len() == 0 {
@@ -1463,4 +1492,12 @@ fn win_the_game(state: &mut State) {
     state.game_ended = true;
     state.uncovered_map = true;
     state.window_stack.push(Window::Endgame);
+}
+
+
+/// Return a point close to the given one that is walkable.
+fn walkable_place_nearby(world: &World, pos: Point, blockers: Blocker, player_pos: Point) -> Option<Point> {
+    // Radius `2` means the central point and the eight surroinding ones.
+    point::SquareArea::new(pos, 2)
+        .find(|&point| world.walkable(point, blockers, player_pos))
 }

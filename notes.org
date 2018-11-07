@@ -94,9 +94,11 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Create all the chunks leading to a VNPC
-** Otherwise the path to the farther ones will never be found at first
-** We should "ensure chunk" for everything on the line to VNPC pos
+* Show scrolled area on the way to VNPC
+** when the game scrolls to the vnpc, it's all blank
+** even though we ensure the chunks exist
+** I think this is because it falls out of the simulation area?
+*** which means we might have to change the way we render stuff?
 * Wasm restart games are broken
 ** something with keys or something?
 * Add a signpost when deleting a Victory NPC on High
@@ -2797,3 +2799,10 @@ CLOSED: [2018-10-30 Tue 21:03]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-10-30 Tue 21:03
 :END:
+** DONE Create all the chunks leading to a VNPC
+CLOSED: [2018-11-07 Wed 13:43]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-07 Wed 13:44
+:END:
+*** Otherwise the path to the farther ones will never be found at first
+*** We should "ensure chunk" for everything on the line to VNPC pos

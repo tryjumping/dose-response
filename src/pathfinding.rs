@@ -71,10 +71,13 @@ impl Path {
         came_from.insert(from, None);
         cost_so_far.insert(from, 0.0);
 
-        // NOTE: the map is effectively infinite. We need to limit the
-        // calculations or the algorithm will try to explore the
-        // entire world before it decides that no path exists.
-        let calculation_limit = 50;
+        // NOTE: as the map grows, the path finding can take a long
+        // and winding road. So we limit how many calculations the
+        // algorithm can take. Empiricaly, `500` is enough for most
+        // Victory NPC calculations.
+        //
+        // Ideally thought, this should be configurable.
+        let calculation_limit = 500;
         let mut calculation_steps = 0;
 
         while let Some(current) = frontier.pop() {
@@ -101,6 +104,7 @@ impl Path {
                 }
             }
         }
+        info!("Pathfinding calculation steps: {:?}", calculation_steps);
 
         let path = {
             let mut current = to;

@@ -104,7 +104,6 @@ impl Path {
                 }
             }
         }
-        info!("Pathfinding calculation steps: {:?}", calculation_steps);
 
         let path = {
             let mut current = to;

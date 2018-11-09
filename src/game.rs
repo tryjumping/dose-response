@@ -712,10 +712,6 @@ fn process_monsters<R: Rng>(
             .expect("Monster should exist on this position")
             .clone();
         let action = {
-            debug!(
-                "Processing monster {:?}, {:?}",
-                monster_readonly.position, monster_readonly.kind
-            );
             let (update, action) = monster_readonly.act(player.info(), world, rng);
             if let Some(monster) = world.monster_on_pos(monster_position) {
                 monster.ai_state = update.ai_state;
@@ -726,7 +722,6 @@ fn process_monsters<R: Rng>(
 
                 monster.spend_ap(1);
             }
-            debug!("Monster Action: {:?}", action);
             action
         };
 

@@ -535,7 +535,7 @@ impl Default for Cell {
 #[derive(Default)]
 pub struct Display {
     display_size: Point,
-    tilesize: i32,
+    pub tilesize: i32,
     padding: Point,
     map: Vec<Cell>,
     drawcalls: Vec<Drawcall>,

@@ -1469,6 +1469,15 @@ fn place_victory_npc(state: &mut State) -> Point {
     let positions = point::Line::new(state.player.pos, vnpc_pos);
     for cell_pos in positions {
         state.world.ensure_chunk_at_pos(cell_pos);
+        let display_half_size = state.map_size / 2;
+        // NOTE: make sure every cell that will be shown has a chunk.
+        //
+        // If we didn't do this, we would get blank places when the line would cross a boundary
+        // of two chunks, but the surrounding chunks were not brought in.
+        state.world.ensure_chunk_at_pos(cell_pos + (display_half_size.x, display_half_size.y));
+        state.world.ensure_chunk_at_pos(cell_pos + (-display_half_size.x, display_half_size.y));
+        state.world.ensure_chunk_at_pos(cell_pos + (display_half_size.x, -display_half_size.y));
+        state.world.ensure_chunk_at_pos(cell_pos + (-display_half_size.x, -display_half_size.y));
         state.world.always_visible(cell_pos, 2);
         state.world.explore(cell_pos, 4);
     }

@@ -67,7 +67,20 @@ pub fn render_game(
     fps: i32,
     display: &mut Display,
 ) {
-    let offset_px = state.offset_px;
+    let mut offset_px = state.offset_px;
+
+    // NOTE: Transfer `offset_px` into the screen position in the
+    // world, and only keep the sub-tile remainder for smooth
+    // scrolling.
+    //
+    // We do this to select the display area correctly. Even if we
+    // scroll far away from the player, we still want to show the map
+    // if it exists there.
+    let mut screen_position_in_world = state.screen_position_in_world;
+    screen_position_in_world.x -= offset_px.x / display.tilesize;
+    screen_position_in_world.y -= offset_px.y / display.tilesize;
+    offset_px.x = offset_px.x % display.tilesize;
+    offset_px.y = offset_px.y % display.tilesize;
 
     if let Some(ref animation) = state.screen_fading {
         use crate::animation::ScreenFadePhase;
@@ -91,8 +104,8 @@ pub fn render_game(
 
     let player_pos = state.player.pos;
     let in_fov = |pos| player_pos.distance(pos) < (radius as f32);
-    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
-    let display_area = Rectangle::center(state.screen_position_in_world, state.map_size);
+    let screen_left_top_corner = screen_position_in_world - (state.map_size / 2);
+    let display_area = Rectangle::center(screen_position_in_world, state.map_size);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
     let total_time_ms = util::num_milliseconds(state.clock) as i64;

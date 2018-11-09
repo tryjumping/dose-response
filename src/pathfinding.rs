@@ -17,6 +17,7 @@ impl Path {
         world: &mut World,
         blockers: blocker::Blocker,
         player_position: Point,
+        calculation_limit: i32,
     ) -> Self {
         if from == to {
             return Path { path: vec![] };
@@ -71,13 +72,6 @@ impl Path {
         came_from.insert(from, None);
         cost_so_far.insert(from, 0.0);
 
-        // NOTE: as the map grows, the path finding can take a long
-        // and winding road. So we limit how many calculations the
-        // algorithm can take. Empiricaly, `500` is enough for most
-        // Victory NPC calculations.
-        //
-        // Ideally thought, this should be configurable.
-        let calculation_limit = 500;
         let mut calculation_steps = 0;
 
         while let Some(current) = frontier.pop() {

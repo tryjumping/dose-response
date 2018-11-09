@@ -759,6 +759,7 @@ fn process_monsters<R: Rng>(
                             world,
                             monster_readonly.blockers,
                             player.pos,
+                            formula::PATHFINDING_MONSTER_LIMIT,
                         );
                         let newpos = path.next().unwrap_or(pos);
                         // Cache the path-finding result
@@ -849,8 +850,14 @@ fn process_player_action<R, W>(
             let resist_radius =
                 formula::player_resist_radius(dose.irresistible, player.will.to_int()) as usize;
             if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
-                let mut path =
-                    pathfinding::Path::find(player.pos, dose_pos, world, Blocker::WALL, player.pos);
+                let mut path = pathfinding::Path::find(
+                    player.pos,
+                    dose_pos,
+                    world,
+                    Blocker::WALL,
+                    player.pos,
+                    formula::PATHFINDING_DOSE_RESIST_LIMIT,
+                );
 
                 let new_pos_opt = if path.len() <= resist_radius {
                     path.next()
@@ -1428,14 +1435,18 @@ fn place_victory_npc(state: &mut State) -> Point {
         vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos, distance_range);
         info!("Trying to find test NPC position {:?}", vnpc_pos);
         state.world.ensure_chunk_at_pos(vnpc_pos);
-        if let Some(pos) = walkable_place_nearby(&state.world, vnpc_pos, blockers, state.player.pos) {
+        if let Some(pos) = walkable_place_nearby(&state.world, vnpc_pos, blockers, state.player.pos)
+        {
             info!("Position {:?} is walkable!", pos);
             vnpc_pos = pos;
             for cell_pos in point::Line::new(state.player.pos, vnpc_pos) {
                 state.world.ensure_chunk_at_pos(cell_pos);
             }
         } else {
-            warn!("Failed to find empty place around the candidate VNPC position {:?}", vnpc_pos);
+            warn!(
+                "Failed to find empty place around the candidate VNPC position {:?}",
+                vnpc_pos
+            );
             continue;
         }
 
@@ -1450,6 +1461,7 @@ fn place_victory_npc(state: &mut State) -> Point {
             &mut state.world,
             blockers,
             state.player.pos,
+            formula::PATHFINDING_VNPC_REACHABILITY_LIMIT,
         );
         if path_to_vnpc.len() == 0 {
             warn!("Failed to find path from player to Victory NPC!")
@@ -1474,10 +1486,18 @@ fn place_victory_npc(state: &mut State) -> Point {
         //
         // If we didn't do this, we would get blank places when the line would cross a boundary
         // of two chunks, but the surrounding chunks were not brought in.
-        state.world.ensure_chunk_at_pos(cell_pos + (display_half_size.x, display_half_size.y));
-        state.world.ensure_chunk_at_pos(cell_pos + (-display_half_size.x, display_half_size.y));
-        state.world.ensure_chunk_at_pos(cell_pos + (display_half_size.x, -display_half_size.y));
-        state.world.ensure_chunk_at_pos(cell_pos + (-display_half_size.x, -display_half_size.y));
+        state
+            .world
+            .ensure_chunk_at_pos(cell_pos + (display_half_size.x, display_half_size.y));
+        state
+            .world
+            .ensure_chunk_at_pos(cell_pos + (-display_half_size.x, display_half_size.y));
+        state
+            .world
+            .ensure_chunk_at_pos(cell_pos + (display_half_size.x, -display_half_size.y));
+        state
+            .world
+            .ensure_chunk_at_pos(cell_pos + (-display_half_size.x, -display_half_size.y));
         state.world.always_visible(cell_pos, 2);
         state.world.explore(cell_pos, 4);
     }
@@ -1503,10 +1523,13 @@ fn win_the_game(state: &mut State) {
     state.window_stack.push(Window::Endgame);
 }
 
-
 /// Return a point close to the given one that is walkable.
-fn walkable_place_nearby(world: &World, pos: Point, blockers: Blocker, player_pos: Point) -> Option<Point> {
+fn walkable_place_nearby(
+    world: &World,
+    pos: Point,
+    blockers: Blocker,
+    player_pos: Point,
+) -> Option<Point> {
     // Radius `2` means the central point and the eight surroinding ones.
-    point::SquareArea::new(pos, 2)
-        .find(|&point| world.walkable(point, blockers, player_pos))
+    point::SquareArea::new(pos, 2).find(|&point| world.walkable(point, blockers, player_pos))
 }

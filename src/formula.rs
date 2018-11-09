@@ -91,6 +91,10 @@ pub const ESTRANGED_NPC_MAX_AP: i32 = 2;
 
 pub const FRIENDLY_NPC_FREEZE_RADIUS: f32 = 3.0;
 
+pub const PATHFINDING_MONSTER_LIMIT: i32 = 50;
+pub const PATHFINDING_DOSE_RESIST_LIMIT: i32 = 50;
+pub const PATHFINDING_VNPC_REACHABILITY_LIMIT: i32 = 500;
+
 pub fn exploration_radius(mental_state: Mind) -> i32 {
     use crate::player::Mind::*;
     match mental_state {

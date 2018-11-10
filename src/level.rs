@@ -79,7 +79,8 @@ impl Level {
                     items: vec![],
                     explored: false,
                     always_visible: false,
-                }).collect(),
+                })
+                .collect(),
         }
     }
 

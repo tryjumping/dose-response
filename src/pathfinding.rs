@@ -48,7 +48,8 @@ impl Path {
                 .map(|&d| current + d)
                 .filter(|&point| {
                     world.within_bounds(point) && world.walkable(point, blockers, player_position)
-                }).collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>()
         };
 
         let cost = |current: Point, next: Point| -> f32 {
@@ -449,10 +450,10 @@ xxxxx......
             (7, 6),
             (7, 5),
         ]
-            .iter()
-            .cloned()
-            .map(Into::into)
-            .collect::<Vec<Point>>();
+        .iter()
+        .cloned()
+        .map(Into::into)
+        .collect::<Vec<Point>>();
         assert_eq!(expected, path.collect::<Vec<_>>());
     }
 }

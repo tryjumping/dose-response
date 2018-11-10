@@ -98,17 +98,21 @@ pub const PATHFINDING_VNPC_REACHABILITY_LIMIT: i32 = 500;
 pub fn exploration_radius(mental_state: Mind) -> i32 {
     use crate::player::Mind::*;
     match mental_state {
-        Withdrawal(value) => if value.to_int() >= value.middle() {
-            5
-        } else {
-            4
-        },
+        Withdrawal(value) => {
+            if value.to_int() >= value.middle() {
+                5
+            } else {
+                4
+            }
+        }
         Sober(_) => 6,
-        High(value) => if value.to_int() >= value.middle() {
-            8
-        } else {
-            7
-        },
+        High(value) => {
+            if value.to_int() >= value.middle() {
+                8
+            } else {
+                7
+            }
+        }
     }
 }
 

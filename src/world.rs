@@ -436,7 +436,8 @@ impl World {
                     .level
                     .walkable(level_position, blockers - Blocker::PLAYER)
                     && !blocks_player
-            }).unwrap_or(false);
+            })
+            .unwrap_or(false);
         self.within_bounds(pos) && level_cell_walkable
     }
 
@@ -679,7 +680,8 @@ impl World {
                 let chunk_area =
                     Rectangle::from_point_and_size(pos.position, Point::from_i32(chunk_size));
                 area.intersects(chunk_area)
-            }).map(move |(_pos, chunk)| chunk)
+            })
+            .map(move |(_pos, chunk)| chunk)
     }
 
     /// Returns a mutable iterator over chunks that intersect with the
@@ -694,7 +696,8 @@ impl World {
                 let chunk_area =
                     Rectangle::from_point_and_size(pos.position, Point::from_i32(chunk_size));
                 area.intersects(chunk_area)
-            }).map(move |(_pos, chunk)| chunk)
+            })
+            .map(move |(_pos, chunk)| chunk)
     }
 
     /// Return an iterator over all monsters in the given area.

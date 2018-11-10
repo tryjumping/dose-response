@@ -139,7 +139,8 @@ pub fn friendly_act<R: Rng>(
                 10,
                 actor.blockers,
                 player_info.pos,
-            ).unwrap_or(player_info.pos)
+            )
+            .unwrap_or(player_info.pos)
     } else if player_is_nearby && !player_info.mind.is_high() {
         // If the NPC is approachable and nearby, make it stop
         // wandering about so it's easier to actually approach by the
@@ -196,7 +197,8 @@ fn idle_destination<R: Rng>(
                 10,
                 actor.blockers,
                 player_position,
-            ).unwrap_or_else(|| {
+            )
+            .unwrap_or_else(|| {
                 world.random_neighbour_position(
                     rng,
                     actor.position,

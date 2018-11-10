@@ -185,7 +185,8 @@ pub fn main_loop(
                                vertex: include_str!("../shader_150.glslv"),
                                fragment: include_str!("../shader_150.glslf")
                            }
-        ).unwrap();
+        )
+    .unwrap();
 
     let texture = {
         use std::io::Cursor;
@@ -385,7 +386,8 @@ pub fn main_loop(
                     blend: glium::Blend::alpha_blending(),
                     ..Default::default()
                 },
-            ).unwrap();
+            )
+            .unwrap();
         target.finish().unwrap();
 
         // Process events

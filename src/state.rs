@@ -112,11 +112,7 @@ pub struct State {
     pub commands: VecDeque<Command>,
     #[serde(skip_serializing, skip_deserializing)]
     pub verifications: VecDeque<Verification>,
-    #[serde(
-        skip_serializing,
-        skip_deserializing,
-        default = "empty_command_logger"
-    )]
+    #[serde(skip_serializing, skip_deserializing, default = "empty_command_logger")]
     pub command_logger: Box<dyn Write>,
     pub side: Side,
     pub turn: i32,

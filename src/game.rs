@@ -741,28 +741,29 @@ fn process_monsters<R: Rng>(
                 // path in `monster.path`. If the precalculated path
                 // is blocked or there is none, calculate a new one
                 // and cache it. Otherwise, just walk it.
-                let (newpos, newpath) =
-                    if monster_readonly.path.is_empty() || path_changed || !world.walkable(
+                let (newpos, newpath) = if monster_readonly.path.is_empty()
+                    || path_changed
+                    || !world.walkable(
                         monster_readonly.path[0],
                         monster_readonly.blockers,
                         player.pos,
                     ) {
-                        // Calculate a new path or recalculate the existing one.
-                        let mut path = pathfinding::Path::find(
-                            pos,
-                            destination,
-                            world,
-                            monster_readonly.blockers,
-                            player.pos,
-                            formula::PATHFINDING_MONSTER_LIMIT,
-                        );
-                        let newpos = path.next().unwrap_or(pos);
-                        // Cache the path-finding result
-                        let newpath = path.collect();
-                        (newpos, newpath)
-                    } else {
-                        (monster_readonly.path[0], monster_readonly.path[1..].into())
-                    };
+                    // Calculate a new path or recalculate the existing one.
+                    let mut path = pathfinding::Path::find(
+                        pos,
+                        destination,
+                        world,
+                        monster_readonly.blockers,
+                        player.pos,
+                        formula::PATHFINDING_MONSTER_LIMIT,
+                    );
+                    let newpos = path.next().unwrap_or(pos);
+                    // Cache the path-finding result
+                    let newpath = path.collect();
+                    (newpos, newpath)
+                } else {
+                    (monster_readonly.path[0], monster_readonly.path[1..].into())
+                };
 
                 world.move_monster(pos, newpos, player.pos);
                 if let Some(monster) = world.monster_on_pos(newpos) {
@@ -876,7 +877,8 @@ fn process_player_action<R, W>(
             .find(|i| {
                 i.is_dose()
                     && formula::player_resist_radius(i.irresistible, player.will.to_int()) > 0
-            }).map(|i| i.kind);
+            })
+            .map(|i| i.kind);
         if let Some(kind) = carried_irresistible_dose {
             action = Action::Use(kind);
         }
@@ -1062,7 +1064,8 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
             .monsters(simulation_area)
             .filter(|m| {
                 m.kind == monster::Kind::Npc && m.accompanying_player && m.companion_bonus.is_some()
-            }).map(|m| m.companion_bonus.unwrap());
+            })
+            .map(|m| m.companion_bonus.unwrap());
         player.bonuses.clear();
         player.bonuses.extend(npc_bonuses);
     }
@@ -1173,9 +1176,11 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
                 commands.push_back(Command::UseFood);
             }
 
-            _ => if let Some(command) = inventory_commands(key) {
-                commands.push_back(command)
-            },
+            _ => {
+                if let Some(command) = inventory_commands(key) {
+                    commands.push_back(command)
+                }
+            }
         }
     }
 }

@@ -251,20 +251,23 @@ impl Window {
                         "upd: {}, dc: {}",
                         util::num_milliseconds(frame_stat.update),
                         util::num_milliseconds(frame_stat.drawcalls)
-                    ).into(),
+                    )
+                    .into(),
                 );
             }
             lines.push(
                 format!(
                     "longest upd: {}",
                     util::num_milliseconds(state.stats.longest_update())
-                ).into(),
+                )
+                .into(),
             );
             lines.push(
                 format!(
                     "longest dc: {}",
                     util::num_milliseconds(state.stats.longest_drawcalls())
-                ).into(),
+                )
+                .into(),
             );
         }
 

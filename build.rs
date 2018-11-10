@@ -159,7 +159,8 @@ fn main() {
                 .unwrap()
                 .scaled(scale)
                 .positioned(point(height * index as f32, v_metrics.ascent))
-        }).collect();
+        })
+        .collect();
 
     let texture_width = pixel_height * glyphs.iter().count();
     let texture_height = pixel_height;

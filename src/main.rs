@@ -6,7 +6,7 @@
     too_many_arguments,
     cyclomatic_complexity,
     expect_fun_call,
-    or_fun_call,
+    or_fun_call
 )]
 #![windows_subsystem = "windows"]
 
@@ -174,39 +174,49 @@ fn process_cli_and_run_game() {
                 .help(
                     "Replay this file instead of starting and playing a new \
                      game",
-                ).takes_value(true),
-        ).arg(
+                )
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("replay-full-speed")
                 .help(
                     "Don't slow the replay down (useful for getting accurate \
                      measurements)",
-                ).long("replay-full-speed"),
-        ).arg(
+                )
+                .long("replay-full-speed"),
+        )
+        .arg(
             Arg::with_name("replay-file")
                 .help("Path where to store the replay log.")
                 .long("replay-file")
                 .value_name("FILE")
                 .takes_value(true),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("exit-after")
                 .help("Exit after the game or replay has finished")
                 .long("exit-after"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("invincible")
                 .help("Makes the player character invincible. They do not die.")
                 .long("invincible"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("opengl")
                 .long("opengl")
                 .help("Use the Glium (OpenGL) rendering backend"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("sdl")
                 .long("sdl")
                 .help("Use the SDL2 rendering backend"),
-        ).arg(Arg::with_name("remote").long("remote").help(
+        )
+        .arg(Arg::with_name("remote").long("remote").help(
             "Don't create a game window. The input and output is \
              controled via ZeroMQ.",
-        )).group(ArgGroup::with_name("graphics").args(&["opengl", "sdl", "remote"]))
+        ))
+        .group(ArgGroup::with_name("graphics").args(&["opengl", "sdl", "remote"]))
         .get_matches();
 
     let state = if let Some(replay) = matches.value_of("replay") {

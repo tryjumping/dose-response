@@ -117,7 +117,8 @@ impl Window {
                 &Empty,
                 Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()),
                 metrics,
-            ).size()
+            )
+            .size()
             .y;
         }
 

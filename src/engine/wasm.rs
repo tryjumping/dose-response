@@ -256,7 +256,7 @@ pub extern "C" fn update(
     match result {
         RunningState::Running => {}
         RunningState::NewGame(new_state) => {
-            state = new_state;
+            *state = *new_state;
         }
         RunningState::Stopped => {}
     }

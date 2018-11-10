@@ -2834,3 +2834,10 @@ wasm-00a3d5da-385:2 Uncaught RuntimeError: unreachable
     at update (wasm-function[173]:204)
     at update (http://localhost:8000/dose-response.js:272:38)
 #+END_SRC
+** DONE Add an "About Dose Response" help window
+CLOSED: [2018-11-10 Sat 18:54]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-10 Sat 18:54
+:END:
+*** Including the release version, git commit etc.
+*** That way we can verify what version is running there

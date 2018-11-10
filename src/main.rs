@@ -166,8 +166,9 @@ fn process_cli_and_run_game() {
     let _ = CombinedLogger::init(loggers);
 
     let matches = App::new(GAME_TITLE)
-        .author("Tomas Sedovic <tomas@sedovic.cz>")
-        .about("Roguelike game about addiction")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
         .arg(
             Arg::with_name("replay")
                 .value_name("FILE")
@@ -218,6 +219,10 @@ fn process_cli_and_run_game() {
         ))
         .group(ArgGroup::with_name("graphics").args(&["opengl", "sdl", "remote"]))
         .get_matches();
+
+    info!("{} version: {}", GAME_TITLE, env!("CARGO_PKG_VERSION"));
+    info!("By: {}", env!("CARGO_PKG_AUTHORS"));
+    info!(env!("CARGO_PKG_HOMEPAGE"));
 
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {

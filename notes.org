@@ -102,16 +102,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** "Get sober and stay sober."
 ** That way the highlighted path can stay there
 ** and the player will be able to learn what happened
-* Put build information in dose-response.log                     :code:debug:
-** Make sure the following information is printed in the game's log
-*** commit hash
-*** version
-*** target triple
-** That way we can just instruct people to send us that file
-*** and we'll have all the info
-** Make sure this is in readme
-* Make the dose-response.log less noisy
-** it's spewing out a ton of stuff that's not really that useful right now
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong
@@ -2810,3 +2800,21 @@ CLOSED: [2018-11-09 Fri 19:45]
 *** even though we ensure the chunks exist
 *** I think this is because it falls out of the simulation area?
 **** which means we might have to change the way we render stuff?
+** DONE Make the dose-response.log less noisy
+CLOSED: [2018-11-10 Sat 12:07]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-10 Sat 12:07
+:END:
+*** it's spewing out a ton of stuff that's not really that useful right now
+** DONE Put build information in dose-response.log              :code:debug:
+CLOSED: [2018-11-10 Sat 14:48]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-10 Sat 14:48
+:END:
+*** Make sure the following information is printed in the game's log
+**** commit hash
+**** version
+**** target triple
+*** That way we can just instruct people to send us that file
+**** and we'll have all the info
+*** Make sure this is in readme

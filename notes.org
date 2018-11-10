@@ -94,8 +94,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Wasm restart games are broken
-** something with keys or something?
 * Add a signpost when deleting a Victory NPC on High
 ** bumping into it, you will see an explanation text
 *** "Sober up, junkie!"
@@ -128,7 +126,7 @@ cargo run
 #+END_SRC
 * Rename `dir/mod.rs` to `dir.rs`                                      :code:
 ** Got introduced in 2018 edition
-* Use nested imports :code:
+* Use nested imports                                                   :code:
 https://rust-lang-nursery.github.io/edition-guide/rust-2018/module-system/nested-imports-with-use.html
 ** This will help reduce all the `crate::` prefixes now
 * Remove `[macro_use]`                                                 :code:
@@ -2818,3 +2816,21 @@ CLOSED: [2018-11-10 Sat 14:48]
 *** That way we can just instruct people to send us that file
 **** and we'll have all the info
 *** Make sure this is in readme
+** DONE Wasm restart games are broken
+CLOSED: [2018-11-10 Sat 18:04]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-10 Sat 18:04
+:END:
+*** something with keys or something?
+*** console log error
+#+BEGIN_SRC js
+wasm-00a3d5da-385:2 Uncaught RuntimeError: unreachable
+    at __rust_start_panic (wasm-function[385]:1)
+    at rust_panic (wasm-function[381]:38)
+    at std::panicking::rust_panic_with_hook::h05743d0d3c4d2c93 (wasm-function[376]:500)
+    at std::panicking::begin_panic::hb49806ed02af270c (wasm-function[29]:49)
+    at dose_response::windows::main_menu::Window::calculate_layout::hf201e72e360f6b9d (wasm-function[185]:311)
+    at dose_response::game::update::hcf4f29594b927903 (wasm-function[174]:18638)
+    at update (wasm-function[173]:204)
+    at update (http://localhost:8000/dose-response.js:272:38)
+#+END_SRC

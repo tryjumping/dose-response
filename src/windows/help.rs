@@ -20,6 +20,7 @@ pub enum Page {
     ViKeys,
     HowToPlay,
     Legend,
+    About,
 }
 
 impl Page {
@@ -32,6 +33,7 @@ impl Page {
             ViKeys => Some(ArrowControls),
             HowToPlay => Some(ViKeys),
             Legend => Some(HowToPlay),
+            About => Some(Legend),
         }
     }
 
@@ -43,7 +45,8 @@ impl Page {
             ArrowControls => Some(ViKeys),
             ViKeys => Some(HowToPlay),
             HowToPlay => Some(Legend),
-            Legend => None,
+            Legend => Some(About),
+            About => None,
         }
     }
 }
@@ -58,6 +61,7 @@ impl FmtDisplay for Page {
             ViKeys => "Controls: Vi keys",
             HowToPlay => "How to play",
             Legend => "Legend",
+            About => "About Dose Response",
         };
         f.write_str(s)
     }
@@ -138,6 +142,18 @@ impl Window {
         );
 
         let header = format!("{}", state.current_help_window);
+        let version = format!(
+            "{} version: {}",
+            crate::GAME_TITLE,
+            env!("CARGO_PKG_VERSION")
+        );
+
+        let copyright = format!("Copyright 2013-2018 {}", env!("CARGO_PKG_AUTHORS"));
+        let homepage = format!("Homepage: {}", env!("CARGO_PKG_HOMEPAGE"));
+
+        let git_hash = env!("DR_GIT_HASH");
+        let git_msg = format!("Git commit: {}", git_hash);
+
         let mut lines = vec![];
         lines.push(Centered(&header));
         lines.push(EmptySpace(1));
@@ -257,6 +273,22 @@ impl Window {
                 lines.push(Paragraph("Each Dose has a faint glow around it. If you step into it, you will not be able to resist."));
                 lines.push(Empty);
                 lines.push(Paragraph("When the glow disappears completely, you can pick the dose up and use it later. Don't lose Will if you're carrying doses though!"));
+            }
+
+            Page::About => {
+                lines.push(Paragraph(&version));
+                lines.push(Paragraph(&homepage));
+                lines.push(Empty);
+
+                if !git_hash.trim().is_empty() {
+                    lines.push(Paragraph(&git_msg));
+                    lines.push(Empty);
+                }
+
+                lines.push(Paragraph("Dose Response is a Free and Open Source software provided under the terms of GNU General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:"));
+                lines.push(Paragraph("https://www.gnu.org/licenses/gpl-3.0.en.html"));
+                lines.push(Empty);
+                lines.push(Paragraph(&copyright));
             }
         }
 

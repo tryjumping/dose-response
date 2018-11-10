@@ -9,6 +9,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 fn copy_output_artifacts_internal(filename: &str) -> Result<(), Box<Error>> {
     // NOTE: this is a hack to save the font file next to the produced build binary
@@ -104,7 +105,26 @@ fn save_out_dir(cargo_manifest_dir: &str, out_dir: &Path) -> Result<(), Box<Erro
     Ok(())
 }
 
+fn current_git_commit() -> Option<String> {
+    Command::new("git")
+        .args(&["rev-parse", "HEAD"])
+        .output()
+        .ok()
+        .and_then(|output| String::from_utf8(output.stdout).ok())
+}
+
 fn main() {
+    let git_hash = env::var_os("APPVEYOR_REPO_COMMIT")
+        .or(env::var_os("TRAVIS_COMMIT"))
+        .and_then(|s| s.into_string().ok())
+        .or_else(current_git_commit)
+        .unwrap_or_default();
+    println!("cargo:rustc-env=DR_GIT_HASH={}", git_hash);
+    println!(
+        "cargo:rustc-env=DR_TARGET_TRIPLE={}",
+        env::var("TARGET").unwrap_or_default()
+    );
+
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir);
 

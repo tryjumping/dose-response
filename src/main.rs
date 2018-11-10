@@ -224,6 +224,15 @@ fn process_cli_and_run_game() {
     info!("By: {}", env!("CARGO_PKG_AUTHORS"));
     info!(env!("CARGO_PKG_HOMEPAGE"));
 
+    let git_hash = env!("DR_GIT_HASH");
+    if !git_hash.trim().is_empty() {
+        info!("Git commit: {}", git_hash);
+    }
+    let target_triple = env!("DR_TARGET_TRIPLE");
+    if !target_triple.trim().is_empty() {
+        info!("Target triple: {}", target_triple);
+    }
+
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
             panic!(

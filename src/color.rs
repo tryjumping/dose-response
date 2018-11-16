@@ -53,6 +53,7 @@ pub const gui_text: Color = WHITE;
 pub const overdose_animation: Color = WHITE;
 pub const player: Color = WHITE;
 pub const victory_npc: Color = WHITE;
+pub const signpost: Color = WHITE;
 
 pub const death_animation: Color = RED;
 

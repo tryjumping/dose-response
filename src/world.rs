@@ -203,6 +203,7 @@ impl World {
                 let easy_monster = match m.kind {
                     Shadows | Voices => false,
                     Hunger | Anxiety | Depression | Npc => true,
+                    Signpost => true, // NOTE: should never be generated on its own
                 };
                 safe_area.contains(pos) || easy_monster
             });
@@ -474,6 +475,12 @@ impl World {
     pub fn monster(&self, id: MonsterId) -> Option<&Monster> {
         self.chunk(id.chunk_position.position)
             .and_then(|chunk| chunk.monsters.get(id.monster_index))
+    }
+
+    /// Return a mutable reference to a `Monster` given its `MonsterId`.
+    pub fn monster_mut(&mut self, id: MonsterId) -> Option<&mut Monster> {
+        self.chunk_mut(id.chunk_position.position)
+            .and_then(|chunk| chunk.monsters.get_mut(id.monster_index))
     }
 
     /// Move the monster from one place in the world to the destination.

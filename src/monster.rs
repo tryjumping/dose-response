@@ -36,6 +36,9 @@ pub struct Monster {
     pub ap: Ranged,
 }
 
+// TODO: we should make the various behaviours dependent on data
+// assigned to the entity, rather then matching over the entity type
+// every time.
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Kind {
     Anxiety,
@@ -44,6 +47,7 @@ pub enum Kind {
     Shadows,
     Voices,
     Npc,
+    Signpost,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -84,12 +88,13 @@ impl Monster {
     pub fn new(kind: Kind, position: Point) -> Monster {
         let die_after_attack = match kind {
             Shadows | Voices => true,
-            Anxiety | Depression | Hunger | Npc => false,
+            Anxiety | Depression | Hunger | Npc | Signpost => false,
         };
 
         let max_ap = match kind {
             Depression => 2,
             Anxiety | Hunger | Shadows | Voices | Npc => 1,
+            Signpost => 0,
         };
 
         let behavior = match kind {
@@ -99,10 +104,11 @@ impl Monster {
             Shadows => Behavior::LoneAttacker,
             Voices => Behavior::LoneAttacker,
             Npc => Behavior::Friendly,
+            Signpost => Behavior::Immobile,
         };
 
         let invincible = match kind {
-            Npc => true,
+            Npc | Signpost => true,
             _ => false,
         };
 
@@ -119,6 +125,7 @@ impl Monster {
             Shadows => color::shadows,
             Voices => color::voices,
             Npc => color::npc_speed,
+            Signpost => color::signpost,
         };
 
         Monster {
@@ -153,7 +160,7 @@ impl Monster {
             },
             Shadows => Panic(4),
             Voices => Stun(4),
-            Npc => Attribute {
+            Npc | Signpost => Attribute {
                 will: 0,
                 state_of_mind: 0,
             }, // NOTE: no-op
@@ -206,6 +213,7 @@ impl Monster {
             Shadows => 'S',
             Voices => 'v',
             Npc => '@',
+            Signpost => '!',
         }
     }
 
@@ -217,6 +225,7 @@ impl Monster {
             Shadows => "Shadows",
             Voices => "Voices",
             Npc => "NPC",
+            Signpost => "signpost",
         }
     }
 }

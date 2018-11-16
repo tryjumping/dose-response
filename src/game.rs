@@ -1,3 +1,4 @@
+use crate::ai;
 use crate::animation::{self, AreaOfEffect};
 use crate::blocker::Blocker;
 use crate::color;
@@ -318,7 +319,14 @@ fn process_game(
         if player_took_action && state.player.mind.is_high() {
             if let Some(victory_npc_id) = state.victory_npc_id.take() {
                 info!("Player got High, the Victory NPC dissapears!");
-                state.world.remove_monster_by_id(victory_npc_id);
+                if let Some(vnpc) = state.world.monster_mut(victory_npc_id) {
+                    // TODO: move this (and other init stuff from
+                    // Monster::new) to custom functions?
+                    vnpc.kind = monster::Kind::Signpost;
+                    vnpc.color = color::signpost;
+                    vnpc.behavior = ai::Behavior::Immobile;
+                    vnpc.ai_state = ai::AIState::NoOp
+                }
             }
         }
 
@@ -801,6 +809,7 @@ fn process_player_action<R, W>(
     explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
     rng: &mut R,
     command_logger: &mut W,
+    window_stack: &mut crate::windows::Windows<Window>,
 ) where
     R: Rng,
     W: Write,
@@ -934,6 +943,14 @@ fn process_player_action<R, W>(
                                     }
                                 }
                             }
+
+                            monster::Kind::Signpost => {
+                                info!("Bumped into a signpost!");
+                                window_stack.push(
+                                    Window::Message(
+                                        "\"I thought you are going to stay sober for good. I was wrong. Goodbye.\"".into()));
+                            }
+
                             _ => {}
                         }
                         kill_monster(dest, world);
@@ -1079,6 +1096,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         &mut state.explosion_animation,
         &mut state.rng,
         &mut state.command_logger,
+        &mut state.window_stack,
     );
 
     let spent_ap_this_turn = previous_action_points > state.player.ap();
@@ -1508,7 +1526,7 @@ fn place_victory_npc(state: &mut State) -> Point {
         let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos);
         monster.companion_bonus = Some(CompanionBonus::Victory);
         monster.color = color::victory_npc;
-        monster.ai_state = crate::ai::AIState::NoOp;
+        monster.ai_state = ai::AIState::NoOp;
         let id = chunk.add_monster(monster);
         state.victory_npc_id = Some(id);
     }

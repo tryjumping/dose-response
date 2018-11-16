@@ -94,12 +94,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Add a signpost when deleting a Victory NPC on High
-** bumping into it, you will see an explanation text
-*** "Sober up, junkie!"
-*** "Get sober and stay sober."
-** That way the highlighted path can stay there
-** and the player will be able to learn what happened
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong
@@ -2841,3 +2835,13 @@ CLOSED: [2018-11-10 Sat 18:54]
 :END:
 *** Including the release version, git commit etc.
 *** That way we can verify what version is running there
+** DONE Add a signpost when deleting a Victory NPC on High
+CLOSED: [2018-11-16 Fri 21:31]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-16 Fri 21:31
+:END:
+*** bumping into it, you will see an explanation text
+**** "Sober up, junkie!"
+**** "Get sober and stay sober."
+*** That way the highlighted path can stay there
+*** and the player will be able to learn what happened

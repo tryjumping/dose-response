@@ -99,6 +99,9 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** Play the game & see what looks wrong
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
+* Update Rand to 0.6
+https://github.com/rust-random/rand/blob/master/CHANGELOG.md
+https://crates.io/crates/rand/0.6.0
 * Replace asserts with errors in the log
 * Menu doesn't show the "Quit Without Saving" option                    :bug:
 ** It only shows "Save and Quit" but sometimes you don't want that

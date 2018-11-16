@@ -70,4 +70,4 @@ And then pass `--remote` to the `dose-response` executable.
 [sdl]: https://www.libsdl.org/
 [winit]: https://crates.io/crates/winit
 [glium]: https://crates.io/crates/glutin
-[glutin]: https://crates.io/crates/glutin
+[glutin]: https://crates.io/crates/glium

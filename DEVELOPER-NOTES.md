@@ -69,5 +69,5 @@ And then pass `--remote` to the `dose-response` executable.
 [edition]: https://rust-lang-nursery.github.io/edition-guide/rust-2018/index.html
 [sdl]: https://www.libsdl.org/
 [winit]: https://crates.io/crates/winit
-[glium]: https://crates.io/crates/glutin
-[glutin]: https://crates.io/crates/glium
+[glium]: https://crates.io/crates/glium
+[glutin]: https://crates.io/crates/glutin

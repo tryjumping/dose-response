@@ -5,6 +5,14 @@ Dose Response is an open-world roguelike where you play an addict.
 Avoid the dangers threatening your mind and body while desperately
 looking for the next fix.
 
+Building The Code
+-----------------
+
+Have a look at the `DEVELOPER-NOTES.md` file in this repo or:
+
+https://github.com/tomassedovic/dose-response/blob/master/DEVELOPER-NOTES.md
+
+
 How To Play
 -----------
 

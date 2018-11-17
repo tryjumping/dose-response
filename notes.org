@@ -94,6 +94,8 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** no levels!
 ** no waiting!
 ** no orcs!
+* Double AP NPC should also keep the same amount of APs              :design:
+** otherwise, the player can outrun them and lose the bonus
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong

@@ -318,7 +318,7 @@ fn process_game(
 
         if player_took_action && state.player.mind.is_high() {
             if let Some(victory_npc_id) = state.victory_npc_id.take() {
-                info!("Player got High, the Victory NPC dissapears!");
+                info!("Player got High, the Victory NPC disappears!");
                 if let Some(vnpc) = state.world.monster_mut(victory_npc_id) {
                     // TODO: move this (and other init stuff from
                     // Monster::new) to custom functions?

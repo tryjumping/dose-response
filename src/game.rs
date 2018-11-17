@@ -190,12 +190,18 @@ fn process_game(
     // sync. We can pass `--invincible` while running the replay
     // though and that should always work, I think.
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::I) && state.cheating {
-        info!("Making the player invincible!");
+        info!("Making the player invincible, you cheat!");
         state.player.invincible = true;
     }
 
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::F) && state.cheating {
+        info!("Adding one Food, you cheat!");
         state.player.inventory.push(formula::FOOD_PREFAB);
+    }
+
+    if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::W) && state.cheating {
+        info!("Increasing Will by one, you cheat!");
+        state.player.will += 1;
     }
 
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::V) && state.cheating {

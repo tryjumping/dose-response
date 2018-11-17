@@ -948,7 +948,7 @@ fn process_player_action<R, W>(
                                 info!("Bumped into a signpost!");
                                 window_stack.push(
                                     Window::Message(
-                                        "\"I thought you are going to stay sober for good. I was wrong. Goodbye.\"".into()));
+                                        "\"I thought you were going to stay sober for good. I was wrong. Goodbye.\"".into()));
                             }
 
                             _ => {}

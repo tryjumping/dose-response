@@ -248,3 +248,11 @@ pub fn victory_npc_position<R: Rng>(
     };
     player_pos + offset
 }
+
+pub fn player_max_ap(bonuses: &[CompanionBonus]) -> i32 {
+    if bonuses.contains(&CompanionBonus::ExtraActionPoint) {
+        PLAYER_BASE_AP + 1
+    } else {
+        PLAYER_BASE_AP
+    }
+}

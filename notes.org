@@ -94,13 +94,13 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Double AP NPC should also keep the same amount of APs              :design:
-** otherwise, the player can outrun them and lose the bonus
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
+* Consider always sobering the player with food?                     :design:
+** basically making the food strong enough to always cure withdrawal
 * Update Rand to 0.6
 https://github.com/rust-random/rand/blob/master/CHANGELOG.md
 https://crates.io/crates/rand/0.6.0
@@ -2850,3 +2850,9 @@ CLOSED: [2018-11-16 Fri 21:31]
 **** "Get sober and stay sober."
 *** That way the highlighted path can stay there
 *** and the player will be able to learn what happened
+** DONE Double AP NPC should also keep the same amount of APs       :design:
+CLOSED: [2018-11-17 Sat 13:14]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-17 Sat 13:14
+:END:
+*** otherwise, the player can outrun them and lose the bonus

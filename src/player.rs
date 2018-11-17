@@ -104,8 +104,6 @@ pub struct Player {
     pub invincible: bool,
     pub perpetrator: Option<Monster>,
 
-    // TODO: Use a Ranged here?
-    pub base_max_ap: i32,
     ap: i32,
 }
 
@@ -123,7 +121,6 @@ impl Player {
             dead: false,
             invincible,
             perpetrator: None,
-            base_max_ap: formula::PLAYER_BASE_AP,
             ap: formula::PLAYER_BASE_AP,
             bonus: Bonus::None,
             bonuses: Vec::with_capacity(10),
@@ -134,7 +131,7 @@ impl Player {
 
     pub fn info(&self) -> PlayerInfo {
         PlayerInfo {
-            max_ap: self.base_max_ap,
+            max_ap: self.max_ap(),
             mind: self.mind,
             pos: self.pos,
             will: self.will.to_int(),
@@ -170,11 +167,7 @@ impl Player {
     }
 
     pub fn max_ap(&self) -> i32 {
-        if self.bonuses.contains(&CompanionBonus::ExtraActionPoint) {
-            self.base_max_ap + 1
-        } else {
-            self.base_max_ap
-        }
+        formula::player_max_ap(&self.bonuses)
     }
 
     pub fn alive(&self) -> bool {

@@ -1073,10 +1073,9 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
 
         let world = &state.world;
 
-        // TODO: this will stop the bonus from working once the
-        // companion NPC leaves the simulation_area. Which is
-        // currently possible because it doesn't follow the player
-        // around.
+        // NOTE: if the player manages to outrun the NPC (they follow
+        // the player but it still can happen), the bonus will
+        // disappear.
         let npc_bonuses = world
             .monsters(simulation_area)
             .filter(|m| {

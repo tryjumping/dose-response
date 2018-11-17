@@ -1,10 +1,10 @@
 use crate::blocker::Blocker;
 use crate::formula;
 use crate::generators::{self, GeneratedWorld};
-use crate::item::{self, Item};
+use crate::item::Item;
 use crate::level::{self, Cell, Level};
 use crate::monster::Monster;
-use crate::player::{self, PlayerInfo};
+use crate::player::PlayerInfo;
 use crate::point::{CircularArea, Point, SquareArea};
 
 use crate::ranged_int::InclusiveRange;
@@ -266,14 +266,7 @@ impl World {
                     continue;
                 }
 
-                let dose = Item {
-                    kind: item::Kind::Dose,
-                    modifier: player::Modifier::Intoxication {
-                        state_of_mind: 70,
-                        tolerance_increase: 1,
-                    },
-                    irresistible: 2,
-                };
+                let dose = formula::DOSE_PREFAB;
 
                 let resist_radius =
                     formula::player_resist_radius(dose.irresistible, player_info.will);
@@ -311,14 +304,7 @@ impl World {
             };
             let pos = player_info.pos + offset;
             if self.walkable(pos, Blocker::WALL, player_info.pos) {
-                let food = Item {
-                    kind: item::Kind::Food,
-                    modifier: player::Modifier::Attribute {
-                        state_of_mind: 10,
-                        will: 0,
-                    },
-                    irresistible: 0,
-                };
+                let food = formula::FOOD_PREFAB;
                 if let Some(chunk) = self.chunk_mut(pos) {
                     let level_position = chunk.level_position(pos);
                     if chunk.level.cell(level_position).items.is_empty() {

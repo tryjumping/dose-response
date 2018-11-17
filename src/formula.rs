@@ -68,7 +68,7 @@ pub const FOOD_PREFAB: Item = Item {
     kind: Kind::Food,
     irresistible: 0,
     modifier: Modifier::Attribute {
-        state_of_mind: 10,
+        state_of_mind: 20,
         will: 0,
     },
 };
@@ -158,7 +158,7 @@ pub fn process_hunger(mind: Mind, amount: i32) -> Mind {
         Mind::Withdrawal(val) => {
             if (val.to_int() + amount) > val.max() {
                 let new_val = Ranged::new_min(SOBER);
-                Mind::Sober(new_val + (val.max() - val.to_int() + amount))
+                Mind::Sober(new_val + (amount - (val.max() - val.to_int())))
             } else {
                 Mind::Withdrawal(val + amount)
             }

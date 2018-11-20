@@ -14,9 +14,11 @@ CLOSED: [2018-02-03 Sat 08:23]
 ** DONE Fullscreen with correct aspect-ratio handling
 CLOSED: [2018-02-04 Sun 10:09]
 *** This was done but we broke it when adding font handling
-** More balanced gameplay
+** DONE More balanced gameplay
+CLOSED: [2018-11-19 Mon 16:35]
 *** including safe starting areas (no overdose risks)
-** Ending: finding a special NPC who gets generated after max Will
+** DONE Ending: finding a special NPC who gets generated after max Will
+CLOSED: [2018-11-19 Mon 16:35]
 *** immobile
 *** Must disappear when high
 *** Should show a direction towards them

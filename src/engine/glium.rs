@@ -141,6 +141,20 @@ pub fn main_loop(
     mut state: Box<State>,
     update: UpdateFn,
 ) {
+    // Force the DPI factor to be 1.0
+    // https://docs.rs/glium/0.22.0/glium/glutin/dpi/index.html
+    //
+    // NOTE: without this, the window size and contents will be scaled
+    // by some heuristic the OS will do. For now, that means blurry
+    // fonts and so on. I think once we add support for multiple font
+    // sizes, this can be handled gracefully. Until then though, let's
+    // just force 1.0. The players can always resize the window
+    // manually.
+    //
+    // Apparently, the only way to set the DPI factor is via this
+    // environment variable.
+    std::env::set_var("WINIT_HIDPI_FACTOR", "1.0");
+
     let tilesize = super::TILESIZE;
     let (desired_window_width, desired_window_height) = (
         display_size.x as u32 * tilesize as u32,
@@ -165,14 +179,16 @@ pub fn main_loop(
     // We'll just assume the monitors won't change throughout the game.
     let monitors: Vec<_> = events_loop.get_available_monitors().collect();
 
-    let desired_dimensions = glium::glutin::dpi::LogicalSize {
+    let desired_dimensions = glium::glutin::dpi::PhysicalSize {
         width: desired_window_width.into(),
         height: desired_window_height.into(),
     };
 
     let window = WindowBuilder::new()
         .with_title(window_title)
-        .with_dimensions(desired_dimensions);
+        // NOTE: ensure a DPI 1.0 factor, otherwise the game is not
+        // pixel-perfect. Which looks bad.
+        .with_dimensions(desired_dimensions.to_logical(1.0));
 
     let context = glium::glutin::ContextBuilder::new().with_vsync(true);
 

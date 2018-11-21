@@ -102,14 +102,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
 ** Test if the same thing happens with glium
-* Consider dropping `glium`                                            :code:
-** its glutin & winit version often lags behind
-** which is unfortunate when we want to test the latest fixes
-** and we've already got a "raw opengl" codepath with `gl` and `sdl`
-* combine all the `crate::` use imports together                       :code:
-* rename the `opengl` feature to `glutin`                              :code:
-** both sdl and winit use opengl
-* Replace asserts with errors in the log
 * Menu doesn't show the "Quit Without Saving" option                    :bug:
 ** It only shows "Save and Quit" but sometimes you don't want that
 * Pressing Alt+Enter doesn't work                                       :bug:
@@ -128,15 +120,21 @@ cargo run
 12:04:57 [INFO] [152] Switching fullscreen off
 12:04:57 [INFO] Window resized to: 987x630
 #+END_SRC
+** seems to be a local SDL issue
+*** works on winit
+** test on a release linux build
+* Consider dropping `glium`                                            :code:
+** its glutin & winit version often lags behind
+** which is unfortunate when we want to test the latest fixes
+** and we've already got a "raw opengl" codepath with `gl` and `sdl`
+* rename the `opengl` feature to `glutin`                              :code:
+** both sdl and winit use opengl so it's misleading
+** but since "glutin" is a crate name, maybe we'll have to check a different feature name
+** e.g. `sdl-backend` and `glutin-backend`??
+* Replace asserts with errors in the log
+** don't want the game to crash in production
 * Rename `dir/mod.rs` to `dir.rs`                                      :code:
 ** Got introduced in 2018 edition
-* Use nested imports                                                   :code:
-https://rust-lang-nursery.github.io/edition-guide/rust-2018/module-system/nested-imports-with-use.html
-** This will help reduce all the `crate::` prefixes now
-* Remove `[macro_use]`                                                 :code:
-https://rust-lang-nursery.github.io/edition-guide/rust-2018/macros/macro-changes.html
-** the 2018 edition allows you to `use` macros
-** this should remove all the remaining `extern crate` stuff
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
@@ -153,9 +151,6 @@ https://rust-lang-nursery.github.io/edition-guide/rust-2018/macros/macro-changes
 * Simplify the CI build scripts
 ** Move readme etc. generation to the process-artifacts.py script
 ** The CI should produce just the binary *maybe* with a readme pointing to the proper releases
-* Fullscreen shows an extra column of the map glyphs to the left        :bug:
-** should be fixed now?
-** slow scrolling down & see
 * Consider defaulting to X11 when running in Wayland
 ** https://github.com/tomaka/winit/issues/305
 ** do this before starting the window:
@@ -2883,3 +2878,32 @@ CLOSED: [2018-11-21 Wed 23:08]
 Guessed window DPI factor: 1.1666666666666667
 *** looks like that's the issue
 *** that message is printed by `let display = glium::Display::new(...)`
+** DONE combine all the `crate::` use imports together                :code:
+CLOSED: [2018-11-21 Wed 23:52]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-21 Wed 23:53
+:END:
+*** mostly done
+*** we can fix the rest as we touch the files
+** DONE Remove `[macro_use]`                                          :code:
+CLOSED: [2018-11-21 Wed 23:55]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-21 Wed 23:55
+:END:
+https://rust-lang-nursery.github.io/edition-guide/rust-2018/macros/macro-changes.html
+*** the 2018 edition allows you to `use` macros
+*** this should remove all the remaining `extern crate` stuff
+** DONE Use nested imports                                            :code:
+CLOSED: [2018-11-21 Wed 23:55]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-21 Wed 23:55
+:END:
+https://rust-lang-nursery.github.io/edition-guide/rust-2018/module-system/nested-imports-with-use.html
+*** This will help reduce all the `crate::` prefixes now
+** DONE Fullscreen shows an extra column of the map glyphs to the left :bug:
+CLOSED: [2018-11-21 Wed 23:55]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-21 Wed 23:55
+:END:
+*** should be fixed now?
+*** slow scrolling down & see

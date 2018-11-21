@@ -7,8 +7,8 @@ use crate::level::{Tile, TileKind};
 use crate::monster::{Kind, Monster};
 use crate::player::Modifier;
 use crate::point::Point;
-use rand::distributions::{Distribution, Weighted, WeightedChoice};
-use rand::Rng;
+
+use rand::{seq::SliceRandom, Rng};
 
 // TODO: Instead of `map_size`, use a Rectangle with the world
 // positions here. We want to expose the non-world coordinates in as
@@ -19,17 +19,7 @@ fn generate_map<R: Rng, G: Rng>(
     map_size: Point,
     player_pos: Point,
 ) -> Vec<(Point, Tile)> {
-    let mut weights = [
-        Weighted {
-            weight: 610,
-            item: TileKind::Empty,
-        },
-        Weighted {
-            weight: 390,
-            item: TileKind::Tree,
-        },
-    ];
-    let opts = WeightedChoice::new(&mut weights);
+    let choices = [(TileKind::Empty, 610), (TileKind::Tree, 390)];
     let mut result = vec![];
     // NOTE: starting with `y` seems weird but it'll generate the right pattern:
     // start at top left corner, moving to the right
@@ -42,13 +32,16 @@ fn generate_map<R: Rng, G: Rng>(
             let kind = if player_pos == (x, y) {
                 TileKind::Empty
             } else {
-                opts.sample(rng)
+                choices
+                    .choose_weighted(rng, |item| item.1)
+                    .map(|result| result.0)
+                    .unwrap_or(TileKind::Empty)
             };
 
             let mut tile = Tile::new(kind);
             if tile.kind == TileKind::Tree {
                 let options = [color::tree_1, color::tree_2, color::tree_3];
-                tile.fg_color = *throwavay_rng.choose(&options).unwrap();
+                tile.fg_color = *options.choose(throwavay_rng).unwrap();
             }
 
             result.push((Point::new(x, y), tile));
@@ -58,46 +51,28 @@ fn generate_map<R: Rng, G: Rng>(
 }
 
 fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster> {
-    // 3% chance a monster gets spawned
     let monster_count = 5;
     let monster_chance = 30;
-    let mut weights = [
-        Weighted {
-            weight: 1000 - monster_chance,
-            item: None,
-        },
-        Weighted {
-            weight: monster_chance / monster_count,
-            item: Some(Kind::Anxiety),
-        },
-        Weighted {
-            weight: monster_chance / monster_count,
-            item: Some(Kind::Depression),
-        },
-        Weighted {
-            weight: monster_chance / monster_count,
-            item: Some(Kind::Hunger),
-        },
-        Weighted {
-            weight: monster_chance / monster_count,
-            item: Some(Kind::Shadows),
-        },
-        Weighted {
-            weight: monster_chance / monster_count,
-            item: Some(Kind::Voices),
-        },
-        Weighted {
-            weight: 2,
-            item: Some(Kind::Npc),
-        },
+    let options = [
+        (None, 1000 - monster_chance),
+        (Some(Kind::Anxiety), monster_chance / monster_count),
+        (Some(Kind::Depression), monster_chance / monster_count),
+        (Some(Kind::Hunger), monster_chance / monster_count),
+        (Some(Kind::Shadows), monster_chance / monster_count),
+        (Some(Kind::Voices), monster_chance / monster_count),
+        (Some(Kind::Npc), 2),
     ];
-    let opts = WeightedChoice::new(&mut weights);
+
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
         if tile.kind != TileKind::Empty {
             continue;
         }
-        if let Some(kind) = opts.sample(rng) {
+        let kind = options
+            .choose_weighted(rng, |item| item.1)
+            .map(|result| result.0)
+            .unwrap_or(None);
+        if let Some(kind) = kind {
             let mut monster = Monster::new(kind, pos);
             if kind == Kind::Npc {
                 use crate::color;
@@ -171,34 +146,14 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
 fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Item)> {
     use crate::item::Kind::*;
 
-    let mut weights = [
-        Weighted {
-            weight: 1000,
-            item: None,
-        },
-        Weighted {
-            weight: 8,
-            item: Some(Dose),
-        },
-        Weighted {
-            weight: 3,
-            item: Some(StrongDose),
-        },
-        Weighted {
-            weight: 2,
-            item: Some(CardinalDose),
-        },
-        Weighted {
-            weight: 2,
-            item: Some(DiagonalDose),
-        },
-        Weighted {
-            weight: 5,
-            item: Some(Food),
-        },
+    let options = [
+        (None, 1000),
+        (Some(Dose), 8),
+        (Some(StrongDose), 3),
+        (Some(CardinalDose), 2),
+        (Some(DiagonalDose), 2),
+        (Some(Food), 5),
     ];
-
-    let generator = WeightedChoice::new(&mut weights);
 
     let mut result = vec![];
     for &(pos, tile) in map.iter() {
@@ -207,7 +162,11 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Ite
                 // Occupied tile, do nothing.
             }
             TileKind::Empty => {
-                if let Some(kind) = generator.sample(rng) {
+                let kind = options
+                    .choose_weighted(rng, |item| item.1)
+                    .map(|result| result.0)
+                    .unwrap_or(None);
+                if let Some(kind) = kind {
                     result.push((pos, new_item(kind, rng)));
                 }
             }

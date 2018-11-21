@@ -4,8 +4,8 @@ use crate::keys::Keys;
 use crate::monster;
 use crate::player::Player;
 use crate::point::Point;
+use crate::random::{self, Random};
 use crate::util;
-use rand::IsaacRng;
 
 use crate::stats::Stats;
 use crate::timer::Timer;
@@ -106,7 +106,7 @@ pub struct State {
     pub display_size: Point,
     pub screen_position_in_world: Point,
     pub seed: u32,
-    pub rng: IsaacRng,
+    pub rng: Random,
     pub keys: Keys,
     pub mouse: Mouse,
     pub commands: VecDeque<Command>,
@@ -172,7 +172,7 @@ impl State {
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
         let player = Player::new(player_position, invincible);
-        let mut rng = IsaacRng::new_from_u64(u64::from(seed));
+        let mut rng = random::from_seed(u64::from(seed));
         let world = World::new(&mut rng, seed, world_size.x, 32, player.info());
 
         State {

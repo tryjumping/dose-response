@@ -46,6 +46,7 @@ mod palette;
 mod pathfinding;
 mod player;
 mod point;
+mod random;
 mod ranged_int;
 mod rect;
 mod render;

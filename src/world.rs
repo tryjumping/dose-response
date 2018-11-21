@@ -6,11 +6,13 @@ use crate::level::{self, Cell, Level};
 use crate::monster::Monster;
 use crate::player::PlayerInfo;
 use crate::point::{CircularArea, Point, SquareArea};
-
+use crate::random::{self, Random};
 use crate::ranged_int::InclusiveRange;
 use crate::rect::Rectangle;
-use rand::{IsaacRng, Rng};
+
 use std::collections::HashMap;
+
+use rand::{seq::SliceRandom, Rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct MonsterId {
@@ -21,7 +23,7 @@ pub struct MonsterId {
 #[derive(Serialize, Deserialize)]
 pub struct Chunk {
     position: Point,
-    pub rng: IsaacRng,
+    pub rng: Random,
     pub level: Level,
     monsters: Vec<Monster>,
 }
@@ -42,7 +44,7 @@ impl Chunk {
 
         let mut chunk = Chunk {
             position: pos,
-            rng: IsaacRng::new_from_u64(seed.0),
+            rng: random::from_seed(seed.0),
             level: Level::new(size, size),
             monsters: vec![],
         };
@@ -630,7 +632,7 @@ impl World {
                 walkables.push(pos)
             }
         }
-        match rng.choose(&walkables) {
+        match walkables.choose(rng) {
             Some(&random_pos) => random_pos,
             None => starting_pos, // Nowhere to go
         }

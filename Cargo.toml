@@ -35,6 +35,8 @@ glium = { version = "0.22", optional = true }
 sdl2 = { version = "0.31.0", features = ["bundled"], optional = true }
 gl = { version = "0.10", optional = true }
 zmq = { version = "0.8", optional = true }
+rand = { version = "0.6", features = ["serde1"] }
+rand_isaac = { version = "0.1.0"}
 
 [dependencies.num-rational]
 # TODO: update to "0.2.1" which supports Serde 1.0. Problem is, image doesn't
@@ -42,11 +44,6 @@ zmq = { version = "0.8", optional = true }
 version = "0.1.40"
 default-features = false
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rand = { version = "0.5", features = ["serde1"], optional = true }
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-rand = { version = "0.5", default-features = false, features = ["serde1"] }
 
 [build-dependencies]
 rusttype = "0.2.1"
@@ -54,8 +51,7 @@ image = "0.12.2"
 
 
 [features]
-
-default = ["sdl", "cli", "replay", "rand", "fullscreen", "cheating", "stats", "verifications"]
+default = ["sdl", "cli", "replay", "fullscreen", "cheating", "stats", "verifications"]
 
 fullscreen = []
 

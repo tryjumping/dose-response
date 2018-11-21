@@ -101,6 +101,13 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** Play the game & see what looks wrong
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
+* Consider dropping `glium`                                            :code:
+** its glutin & winit version often lags behind
+** which is unfortunate when we want to test the latest fixes
+** and we've already got a "raw opengl" codepath with `gl` and `sdl`
+* combine all the `crate::` use imports together                       :code:
+* rename the `opengl` feature to `glutin`                              :code:
+** both sdl and winit use opengl
 * Replace asserts with errors in the log
 * Menu doesn't show the "Quit Without Saving" option                    :bug:
 ** It only shows "Save and Quit" but sometimes you don't want that

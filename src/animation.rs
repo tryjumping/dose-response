@@ -4,6 +4,7 @@ use crate::{
     timer::Timer,
 };
 
+use serde_derive::{Deserialize, Serialize};
 use std::time::Duration;
 
 pub trait AreaOfEffect {
@@ -12,7 +13,7 @@ pub trait AreaOfEffect {
     fn tiles(&self) -> Box<dyn Iterator<Item = (Point, Color, TileEffect)>>;
 }
 
-bitflags! {
+bitflags::bitflags! {
     pub struct TileEffect: u32 {
         const KILL    = 0b0000_0001;
         const SHATTER = 0b0000_0010;

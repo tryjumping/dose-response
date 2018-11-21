@@ -1,15 +1,14 @@
-extern crate image;
-extern crate rusttype;
+use std::{
+    env,
+    error::Error,
+    fs::File,
+    io::Write,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use image::{Rgba, RgbaImage};
-
 use rusttype::{point, FontCollection, PositionedGlyph, Scale};
-use std::env;
-use std::error::Error;
-use std::fs::File;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::Command;
 
 fn copy_output_artifacts_internal(filename: &str) -> Result<(), Box<Error>> {
     // NOTE: this is a hack to save the font file next to the produced build binary

@@ -1,11 +1,15 @@
-use crate::color;
-use crate::engine::{Display, TextMetrics};
-use crate::point::Point;
-use crate::rect::Rectangle;
-use crate::state::State;
-use crate::ui::{self, Button};
+use crate::{
+    color,
+    engine::{Display, TextMetrics},
+    point::Point,
+    rect::Rectangle,
+    state::State,
+    ui::{self, Button},
+};
 
 use std::fmt::{Display as FmtDisplay, Error, Formatter};
+
+use serde_derive::{Deserialize, Serialize};
 
 pub enum Action {
     NextPage,

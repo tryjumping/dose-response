@@ -10,19 +10,6 @@
 )]
 #![windows_subsystem = "windows"]
 
-#[macro_use]
-extern crate bitflags;
-
-#[macro_use]
-extern crate serde_derive;
-
-#[macro_use]
-#[cfg(feature = "opengl")]
-extern crate glium;
-
-#[cfg(feature = "remote")]
-extern crate zmq;
-
 // NOTE: the external functions must be available in crate root:
 #[cfg(feature = "web")]
 pub use crate::engine::wasm::{initialise, key_pressed, update};
@@ -121,7 +108,7 @@ fn run_sdl(
     );
 
     #[cfg(not(feature = "sdl"))]
-    error!("The \"sdl\" feature was not compiled in.");
+    log::error!("The \"sdl\" feature was not compiled in.");
 }
 
 #[allow(unused_variables, dead_code, needless_pass_by_value)]

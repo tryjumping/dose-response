@@ -1,5 +1,7 @@
 use std::{collections::VecDeque, iter::IntoIterator};
 
+use serde_derive::{Deserialize, Serialize};
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Key {
     pub code: KeyCode,

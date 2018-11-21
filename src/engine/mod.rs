@@ -13,6 +13,8 @@ use crate::{
 
 use std::time::Duration;
 
+use serde_derive::{Deserialize, Serialize};
+
 #[cfg(feature = "opengl")]
 pub mod glium;
 

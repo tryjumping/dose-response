@@ -18,6 +18,8 @@ use rand::{
     Rng,
 };
 
+use serde_derive::{Deserialize, Serialize};
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Monster {
     pub kind: Kind,

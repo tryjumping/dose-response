@@ -4,6 +4,8 @@ use std::{
     ops::{Add, AddAssign, Div, Mul, Sub},
 };
 
+use serde_derive::{Deserialize, Serialize};
+
 #[derive(Copy, Clone, Default, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Point {
     pub x: i32,

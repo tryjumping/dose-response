@@ -1,4 +1,6 @@
-bitflags! {
+use serde_derive::{Deserialize, Serialize};
+
+bitflags::bitflags! {
     #[derive(Serialize, Deserialize)]
     /// Flag to indicate features that block pathfinding/walking.
     pub struct Blocker: u32 {

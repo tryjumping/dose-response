@@ -1,8 +1,10 @@
+use crate::util;
+
 use std::time::Duration;
 #[cfg(not(feature = "web"))]
 use std::time::Instant;
 
-use crate::util;
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Timer {

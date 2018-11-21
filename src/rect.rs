@@ -1,5 +1,7 @@
 use crate::point::Point;
 
+use serde_derive::{Deserialize, Serialize};
+
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rectangle {
     top_left: Point,

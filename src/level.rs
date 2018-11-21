@@ -7,6 +7,8 @@ use crate::{
 
 use std::collections::HashMap;
 
+use serde_derive::{Deserialize, Serialize};
+
 /// Position within a level. Ensured to be always within bounds.
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LevelPosition {

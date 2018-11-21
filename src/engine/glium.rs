@@ -16,7 +16,7 @@ use glium::{
     draw_parameters::DrawParameters,
     glutin::VirtualKeyCode as BackendKey,
     glutin::{Event, EventsLoop, MonitorId, WindowBuilder, WindowEvent},
-    Surface,
+    program, uniform, Surface,
 };
 
 use image;
@@ -131,7 +131,7 @@ impl TextMetrics for Metrics {
 #[allow(unsafe_code)]
 mod vertex {
     use super::Vertex;
-    implement_vertex!(Vertex, pos_px, tile_pos_px, color);
+    glium::implement_vertex!(Vertex, pos_px, tile_pos_px, color);
 }
 
 pub fn main_loop(
@@ -161,13 +161,15 @@ pub fn main_loop(
         display_size.y as u32 * tilesize as u32,
     );
 
-    debug!(
+    log::debug!(
         "Requested display in tiles: {} x {}",
-        display_size.x, display_size.y
+        display_size.x,
+        display_size.y
     );
-    debug!(
+    log::debug!(
         "Desired window size: {} x {}",
-        desired_window_width, desired_window_height
+        desired_window_width,
+        desired_window_height
     );
     let mut window_width = desired_window_width;
     let mut window_height = desired_window_height;
@@ -227,20 +229,20 @@ pub fn main_loop(
             None => Default::default(),
         }
     };
-    debug!("Window pos: {:?}", window_pos);
+    log::debug!("Window pos: {:?}", window_pos);
     let mut pre_fullscreen_window_pos = window_pos;
 
     let mut current_monitor = get_current_monitor(&monitors, window_pos);
-    debug!("All monitors:");
+    log::debug!("All monitors:");
     for monitor in &monitors {
-        debug!(
+        log::debug!(
             "* {:?}, pos: {:?}, size: {:?}",
             monitor.get_name(),
             monitor.get_position(),
             monitor.get_dimensions()
         );
     }
-    debug!(
+    log::debug!(
         "Current monitor: {:?}, pos: {:?}, size: {:?}",
         current_monitor.as_ref().map(|m| m.get_name()),
         current_monitor.as_ref().map(|m| m.get_position()),
@@ -329,10 +331,10 @@ pub fn main_loop(
         if cfg!(feature = "fullscreen") {
             if previous_settings.fullscreen != settings.fullscreen {
                 if settings.fullscreen {
-                    info!("Switching to fullscreen.");
+                    log::info!("Switching to fullscreen.");
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
-                        debug!(
+                        log::debug!(
                             "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
                             monitor.get_name(),
                             monitor.get_position(),
@@ -340,13 +342,13 @@ pub fn main_loop(
                         );
                         display.gl_window().set_fullscreen(Some(monitor.clone()));
                     } else {
-                        debug!("`current_monitor` is not set!??");
+                        log::debug!("`current_monitor` is not set!??");
                     }
                 } else {
-                    info!("Switched from fullscreen.");
+                    log::info!("Switched from fullscreen.");
                     display.gl_window().set_fullscreen(None);
                     let pos = display.gl_window().get_position();
-                    debug!("New window position: {:?}", pos);
+                    log::debug!("New window position: {:?}", pos);
                     switched_from_fullscreen = true;
                 }
             }
@@ -366,7 +368,7 @@ pub fn main_loop(
         engine::build_vertices(&drawcalls, &mut vertices, display_info.native_display_px);
 
         if vertices.len() > engine::VERTEX_CAPACITY {
-            warn!(
+            log::warn!(
                 "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
                 vertices.len(),
                 engine::VERTEX_CAPACITY
@@ -417,9 +419,10 @@ pub fn main_loop(
                     match event {
                         WindowEvent::CloseRequested => running = false,
                         WindowEvent::Resized(new_size) => {
-                            debug!(
+                            log::debug!(
                                 "[FRAME {}] Window resized to: {:?}",
-                                current_frame, new_size
+                                current_frame,
+                                new_size
                             );
                             window_width = new_size.width as u32;
                             window_height = new_size.height as u32;
@@ -434,11 +437,15 @@ pub fn main_loop(
                                 // So we restore the previous position
                                 // manually instead.
                             } else {
-                                debug!("[FRAME {}] Window moved to: {:?}", current_frame, new_pos);
+                                log::debug!(
+                                    "[FRAME {}] Window moved to: {:?}",
+                                    current_frame,
+                                    new_pos
+                                );
                                 window_pos.x = new_pos.x as i32;
                                 window_pos.y = new_pos.y as i32;
                                 current_monitor = get_current_monitor(&monitors, window_pos);
-                                debug!(
+                                log::debug!(
                                     "Current monitor: {:?}, pos: {:?}, size: {:?}",
                                     current_monitor.as_ref().map(|m| m.get_name()),
                                     current_monitor.as_ref().map(|m| m.get_position()),
@@ -641,7 +648,7 @@ pub fn main_loop(
             // it gets resized. We can detect it because this event
             // fires on the first frame. So we ask it to resize to the
             // expected size again and leave it at that.
-            debug!(
+            log::debug!(
                 "Current monitor: {:?}",
                 current_monitor.as_ref().map(|m| m.get_dimensions())
             );
@@ -654,9 +661,10 @@ pub fn main_loop(
                     if desired_window_width <= monitor_width
                         && desired_window_height <= monitor_height
                     {
-                        debug!(
+                        log::debug!(
                             "Resetting the window to its expected size: {} x {}.",
-                            desired_window_width, desired_window_height
+                            desired_window_width,
+                            desired_window_height
                         );
                         display
                             .gl_window()
@@ -665,7 +673,7 @@ pub fn main_loop(
                                 height: desired_window_height.into(),
                             });
                     } else {
-                        debug!("TODO: try to resize but maintain aspect ratio.");
+                        log::debug!("TODO: try to resize but maintain aspect ratio.");
                     }
                 }
             }

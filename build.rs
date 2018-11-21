@@ -134,7 +134,7 @@ fn main() {
 
     // let font_data = include_bytes!("../Arial Unicode.ttf");
     let font_data = include_bytes!("fonts/mononoki-Regular.ttf");
-    let collection = FontCollection::from_bytes(font_data as &[u8]);
+    let collection = FontCollection::from_bytes(font_data as &[u8]).unwrap();
 
     // only succeeds if collection consists of one font
     let font = collection.into_font().unwrap();
@@ -164,19 +164,14 @@ fn main() {
         .map(|(index, ascii_code)| (index, ascii_code as char))
         .collect::<Vec<_>>();
 
-    let h_metrics = lookup_table.iter().map(|&(_index, chr)| {
-        font.glyph(chr)
-            .unwrap()
-            .scaled(scale)
-            .h_metrics()
-            .advance_width
-    });
+    let h_metrics = lookup_table
+        .iter()
+        .map(|&(_index, chr)| font.glyph(chr).scaled(scale).h_metrics().advance_width);
 
     let glyphs: Vec<PositionedGlyph> = lookup_table
         .iter()
         .map(|&(index, chr)| {
             font.glyph(chr)
-                .unwrap()
                 .scaled(scale)
                 .positioned(point(height * index as f32, v_metrics.ascent))
         })

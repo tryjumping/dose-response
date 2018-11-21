@@ -17,58 +17,45 @@ name = "dose-response"
 path = "src/main.rs"
 
 [dependencies]
+bincode = "1.0"  # For serialising the game save state into a binary format
 bitflags = "1.0"
-
 clap = { version = "2.20.1", optional = true }
+chrono = { version = "0.4.0", optional = true }
+gl = { version = "0.10", optional = true }
+glium = { version = "0.22", optional = true }
+image = { version = "0.20", optional = true }
+line_drawing = "0.7"
+log = "0.4.1"
+num-rational = { version = "0.2.1", default-features = false, features = ["serde"] }
+rand = { version = "0.6", features = ["serde1"] }
+rand_isaac = "0.1.0"
+sdl2 = { version = "0.31.0", features = ["bundled"], optional = true }
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-
-# We use this to serialise the game save state into a binary format
-bincode = "1.0"
-line_drawing = "0.7"
-log = "0.4.1"
 simplelog = { version = "0.5.2", default-features = false, features = [], optional = true }
-chrono = { version = "0.4.0", optional = true }
-image = { version = "0.12.2", optional = true }
-glium = { version = "0.22", optional = true }
-sdl2 = { version = "0.31.0", features = ["bundled"], optional = true }
-gl = { version = "0.10", optional = true }
 zmq = { version = "0.8", optional = true }
-rand = { version = "0.6", features = ["serde1"] }
-rand_isaac = "0.1.0"
-num-rational = { version = "0.2.1", default-features = false, features = ["serde"] }
 
 
 [build-dependencies]
-rusttype = "0.2.1"
-image = "0.12.2"
+rusttype = "0.7"
+image = "0.20"
 
 
 [features]
 default = ["sdl", "cli", "replay", "fullscreen", "cheating", "stats", "verifications"]
 
-fullscreen = []
-
 cheating = []
-
-stats = []
-
 cli = ["clap", "simplelog"]
-
-web = []
-
-replay = ["chrono"]
-
-verifications = []
-
+fullscreen = []
 opengl = ["glium", "image"]
-
-sdl = ["sdl2", "gl", "image"]
-
-sdl-static-link = ["sdl2", "sdl2/static-link"]
-
 remote = ["zmq"]
+replay = ["chrono"]
+sdl = ["sdl2", "gl", "image"]
+sdl-static-link = ["sdl2", "sdl2/static-link"]
+stats = []
+verifications = []
+web = []
 
 
 [profile.release]

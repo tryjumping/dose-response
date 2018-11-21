@@ -27,7 +27,7 @@ serde_json = "1.0"
 # We use this to serialise the game save state into a binary format
 bincode = "1.0"
 line_drawing = "0.7"
-log = { version = "0.4.1" }
+log = "0.4.1"
 simplelog = { version = "0.5.2", default-features = false, features = [], optional = true }
 chrono = { version = "0.4.0", optional = true }
 image = { version = "0.12.2", optional = true }
@@ -36,13 +36,8 @@ sdl2 = { version = "0.31.0", features = ["bundled"], optional = true }
 gl = { version = "0.10", optional = true }
 zmq = { version = "0.8", optional = true }
 rand = { version = "0.6", features = ["serde1"] }
-rand_isaac = { version = "0.1.0"}
-
-[dependencies.num-rational]
-# TODO: update to "0.2.1" which supports Serde 1.0. Problem is, image doesn't
-# support it yet and the two versions conflict?
-version = "0.1.40"
-default-features = false
+rand_isaac = "0.1.0"
+num-rational = { version = "0.2.1", default-features = false, features = ["serde"] }
 
 
 [build-dependencies]

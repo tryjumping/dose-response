@@ -25,23 +25,6 @@ impl InclusiveRange {
     }
 }
 
-// NOTE: This provides a "custom" ser/de implementations until
-// num-rational supports serde 1.0.
-#[derive(Serialize, Deserialize)]
-#[serde(remote = "Rational32")]
-struct RationalDef {
-    #[serde(getter = "Rational32::numer")]
-    numer: i32,
-    #[serde(getter = "Rational32::denom")]
-    denom: i32,
-}
-
-impl From<RationalDef> for Rational32 {
-    fn from(def: RationalDef) -> Rational32 {
-        Rational32::new(def.numer, def.denom)
-    }
-}
-
 /// A bounded, fractional value.
 ///
 /// The value carries a specified minimum and maximum (always i32)
@@ -52,11 +35,8 @@ impl From<RationalDef> for Rational32 {
 /// floating point weirdness).
 #[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ranged {
-    #[serde(with = "RationalDef")]
     val: Rational32,
-    #[serde(with = "RationalDef")]
     min: Rational32,
-    #[serde(with = "RationalDef")]
     max: Rational32,
 }
 

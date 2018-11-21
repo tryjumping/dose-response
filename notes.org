@@ -101,6 +101,7 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** Play the game & see what looks wrong
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
+** Test if the same thing happens with glium
 * Consider dropping `glium`                                            :code:
 ** its glutin & winit version often lags behind
 ** which is unfortunate when we want to test the latest fixes
@@ -2873,3 +2874,12 @@ CLOSED: [2018-11-21 Wed 18:32]
 :END:
 https://github.com/rust-random/rand/blob/master/CHANGELOG.md
 https://crates.io/crates/rand/0.6.0
+** DONE Winit scales the game unnecessarily                            :bug:
+CLOSED: [2018-11-21 Wed 23:08]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-21 Wed 23:08
+:END:
+*** the log shows this:
+Guessed window DPI factor: 1.1666666666666667
+*** looks like that's the issue
+*** that message is printed by `let display = glium::Display::new(...)`

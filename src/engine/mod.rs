@@ -1,13 +1,15 @@
 #![allow(dead_code)]
 
-use crate::color::{self, Color, ColorAlpha};
-use crate::game::RunningState;
-use crate::keys::Key;
-use crate::point::Point;
-use crate::rect::Rectangle;
-use crate::state::State;
-use crate::ui::Button;
-use crate::util;
+use crate::{
+    color::{self, Color, ColorAlpha},
+    game::RunningState,
+    keys::Key,
+    point::Point,
+    rect::Rectangle,
+    state::State,
+    ui::Button,
+    util,
+};
 
 use std::time::Duration;
 
@@ -469,7 +471,7 @@ fn calculate_display_info(
         if scaled_height <= window_height {
             // NOTE: we're good
         } else {
-            error!("Can't scale neither to width nor height wtf.");
+            log::error!("Can't scale neither to width nor height wtf.");
         }
         (scaled_width, scaled_height)
     };

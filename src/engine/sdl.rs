@@ -1,24 +1,25 @@
-use crate::color::{Color, ColorAlpha};
-use crate::engine::{self, DisplayInfo, Drawcall, Mouse, Settings, TextMetrics, UpdateFn, Vertex};
-use crate::game::RunningState;
-use crate::keys::KeyCode;
-use crate::point::Point;
-use crate::state::State;
-use crate::util;
+use crate::{
+    color::{Color, ColorAlpha},
+    engine::{self, DisplayInfo, Drawcall, Mouse, Settings, TextMetrics, UpdateFn, Vertex},
+    game::RunningState,
+    keys::KeyCode,
+    point::Point,
+    state::State,
+    util,
+};
 
-use std::ffi::CString;
-use std::mem;
-use std::os;
-use std::ptr;
-use std::time::{Duration, Instant};
+use std::{
+    ffi::CString,
+    mem, os, ptr,
+    time::{Duration, Instant},
+};
 
-use gl;
 use gl::types::*;
-use image;
-use sdl2;
-use sdl2::event::{Event, WindowEvent};
-use sdl2::keyboard::{self, Keycode as BackendKey};
-use sdl2::video::Window;
+use sdl2::{
+    event::{Event, WindowEvent},
+    keyboard::{self, Keycode as BackendKey},
+    video::Window,
+};
 
 // const DESIRED_FPS: u64 = 60;
 // const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
@@ -318,7 +319,7 @@ fn render(
 fn check_gl_error(source: &str) {
     let err = unsafe { gl::GetError() };
     if err != gl::NO_ERROR {
-        error!("GL error [{}]: {:?}", source, err);
+        log::error!("GL error [{}]: {:?}", source, err);
     }
 }
 
@@ -590,7 +591,7 @@ pub fn main_loop(
                     win_event: WindowEvent::Resized(width, height),
                     ..
                 } => {
-                    info!("Window resized to: {}x{}", width, height);
+                    log::info!("Window resized to: {}x{}", width, height);
                     window_size_px = Point::new(width, height);
                 }
 
@@ -630,19 +631,19 @@ pub fn main_loop(
             use sdl2::video::FullscreenType::*;
             if previous_settings.fullscreen != settings.fullscreen {
                 if settings.fullscreen {
-                    info!(
+                    log::info!(
                         "[{}] Switching to (desktop-type) fullscreen",
                         current_frame_id
                     );
                     if let Err(err) = window.set_fullscreen(Desktop) {
-                        warn!("[{}]: Could not switch to fullscreen:", current_frame_id);
-                        warn!("{:?}", err);
+                        log::warn!("[{}]: Could not switch to fullscreen:", current_frame_id);
+                        log::warn!("{:?}", err);
                     }
                 } else {
-                    info!("[{}] Switching fullscreen off", current_frame_id);
+                    log::info!("[{}] Switching fullscreen off", current_frame_id);
                     if let Err(err) = window.set_fullscreen(Off) {
-                        warn!("[{}]: Could not leave fullscreen:", current_frame_id);
-                        warn!("{:?}", err);
+                        log::warn!("[{}]: Could not leave fullscreen:", current_frame_id);
+                        log::warn!("{:?}", err);
                     }
                 }
             }
@@ -659,7 +660,7 @@ pub fn main_loop(
         }
 
         if drawcalls.len() > engine::DRAWCALL_CAPACITY {
-            warn!(
+            log::warn!(
                 "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
                 engine::DRAWCALL_CAPACITY,
                 drawcalls.len(),
@@ -680,7 +681,7 @@ pub fn main_loop(
         );
 
         if vertex_buffer.len() > VERTEX_BUFFER_CAPACITY {
-            warn!(
+            log::warn!(
                 "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
                 VERTEX_BUFFER_CAPACITY,
                 vertex_buffer.len(),
@@ -714,7 +715,7 @@ pub fn main_loop(
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
     }
 
-    debug!(
+    log::debug!(
         "Drawcall count: {}. Capacity: {}.",
         overall_max_drawcall_count,
         engine::DRAWCALL_CAPACITY

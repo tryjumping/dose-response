@@ -12,8 +12,6 @@
 
 #[macro_use]
 extern crate bitflags;
-#[macro_use]
-extern crate log;
 
 #[macro_use]
 extern crate serde_derive;
@@ -88,7 +86,7 @@ fn run_opengl(
     state: state::State,
     update: engine::UpdateFn,
 ) {
-    info!("Using the glium+opengl backend");
+    log::info!("Using the glium+opengl backend");
 
     #[cfg(feature = "opengl")]
     engine::glium::main_loop(
@@ -100,7 +98,7 @@ fn run_opengl(
     );
 
     #[cfg(not(feature = "opengl"))]
-    error!("The \"opengl\" feature was not compiled in.");
+    log::error!("The \"opengl\" feature was not compiled in.");
 }
 
 #[allow(unused_variables, dead_code)]
@@ -111,7 +109,7 @@ fn run_sdl(
     state: state::State,
     update: engine::UpdateFn,
 ) {
-    info!("Using the sdl backend");
+    log::info!("Using the sdl backend");
 
     #[cfg(feature = "sdl")]
     engine::sdl::main_loop(
@@ -144,7 +142,7 @@ fn run_remote(
     );
 
     #[cfg(not(feature = "remote"))]
-    error!("The \"remote\" feature was not compiled in.");
+    log::error!("The \"remote\" feature was not compiled in.");
 }
 
 #[cfg(feature = "cli")]
@@ -221,17 +219,17 @@ fn process_cli_and_run_game() {
         .group(ArgGroup::with_name("graphics").args(&["opengl", "sdl", "remote"]))
         .get_matches();
 
-    info!("{} version: {}", GAME_TITLE, env!("CARGO_PKG_VERSION"));
-    info!("By: {}", env!("CARGO_PKG_AUTHORS"));
-    info!(env!("CARGO_PKG_HOMEPAGE"));
+    log::info!("{} version: {}", GAME_TITLE, env!("CARGO_PKG_VERSION"));
+    log::info!("By: {}", env!("CARGO_PKG_AUTHORS"));
+    log::info!(env!("CARGO_PKG_HOMEPAGE"));
 
     let git_hash = env!("DR_GIT_HASH");
     if !git_hash.trim().is_empty() {
-        info!("Git commit: {}", git_hash);
+        log::info!("Git commit: {}", git_hash);
     }
     let target_triple = env!("DR_TARGET_TRIPLE");
     if !target_triple.trim().is_empty() {
-        info!("Target triple: {}", target_triple);
+        log::info!("Target triple: {}", target_triple);
     }
 
     let state = if let Some(replay) = matches.value_of("replay") {

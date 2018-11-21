@@ -2,9 +2,6 @@
 
 use std::time::Duration;
 
-#[cfg(not(feature = "web"))]
-use rand;
-
 /// The number of nanoseconds in a microsecond.
 const NANOS_PER_MICRO: u32 = 1000;
 /// The number of nanoseconds in a millisecond.

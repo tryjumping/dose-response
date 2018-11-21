@@ -76,7 +76,7 @@ pub fn update(
 
     // Full screen on Alt-Enter
     if cfg!(feature = "fullscreen") && state.keys.matches(|k| k.alt && k.code == KeyCode::Enter) {
-        info!("Pressed Alt+Enter, toggling fullscreen.");
+        log::info!("Pressed Alt+Enter, toggling fullscreen.");
         settings.fullscreen = !settings.fullscreen;
     }
 
@@ -192,17 +192,17 @@ fn process_game(
     // sync. We can pass `--invincible` while running the replay
     // though and that should always work, I think.
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::I) && state.cheating {
-        info!("Making the player invincible, you cheat!");
+        log::info!("Making the player invincible, you cheat!");
         state.player.invincible = true;
     }
 
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::F) && state.cheating {
-        info!("Adding one Food, you cheat!");
+        log::info!("Adding one Food, you cheat!");
         state.player.inventory.push(formula::FOOD_PREFAB);
     }
 
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::W) && state.cheating {
-        info!("Increasing Will by one, you cheat!");
+        log::info!("Increasing Will by one, you cheat!");
         state.player.will += 1;
     }
 
@@ -274,7 +274,7 @@ fn process_game(
             .monsters(simulation_area)
             .map(|m| m.ap.to_int())
             .sum();
-        debug!(
+        log::debug!(
             "Player AP: {}, monsters: {}, active mon: {}, total mon AP: {}",
             state.player.ap(),
             monster_count,
@@ -318,15 +318,15 @@ fn process_game(
                     &mut state.rng,
                 );
             } else {
-                debug!("Monsters waiting for player.");
+                log::debug!("Monsters waiting for player.");
             }
         } else {
-            debug!("Monster's waiting for the explosion to end.");
+            log::debug!("Monster's waiting for the explosion to end.");
         }
 
         if player_took_action && state.player.mind.is_high() {
             if let Some(victory_npc_id) = state.victory_npc_id.take() {
-                info!("Player got High, the Victory NPC disappears!");
+                log::info!("Player got High, the Victory NPC disappears!");
                 if let Some(vnpc) = state.world.monster_mut(victory_npc_id) {
                     // TODO: move this (and other init stuff from
                     // Monster::new) to custom functions?
@@ -378,7 +378,7 @@ fn process_game(
     // NOTE: doing this only after we've logged the validations. Actually maybe we want to do this
     // before we start turn processing??
     if entire_turn_ended {
-        debug!("Starting new turn for player and monsters.");
+        log::debug!("Starting new turn for player and monsters.");
         state.player.new_turn();
         for monster in state.world.monsters_mut(simulation_area) {
             monster.new_turn();
@@ -386,7 +386,7 @@ fn process_game(
     }
 
     if entire_turn_ended {
-        debug!("Turn {} has ended.", state.turn);
+        log::debug!("Turn {} has ended.", state.turn);
         state.turn += 1;
     }
 
@@ -441,7 +441,7 @@ fn process_game(
             Duration::from_millis(300),
             fade_percentage,
         ));
-        debug!("Game real time: {:?}", state.clock);
+        log::debug!("Game real time: {:?}", state.clock);
     }
 
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
@@ -559,7 +559,7 @@ fn process_main_menu(
                         Ok(()) => return RunningState::Stopped,
                         Err(error) => {
                             // NOTE: we couldn't save the game so we'll keep going
-                            error!("Error saving the game: {:?}", error);
+                            log::error!("Error saving the game: {:?}", error);
                             state
                                 .window_stack
                                 .push(Window::Message("Error: could not save the game.".into()));
@@ -578,7 +578,7 @@ fn process_main_menu(
                     return RunningState::Running;
                 }
                 Err(error) => {
-                    error!("Error loading the game: {:?}", error);
+                    log::error!("Error loading the game: {:?}", error);
                     state
                         .window_stack
                         .push(Window::Message("Error: could not load the game.".into()));
@@ -823,11 +823,11 @@ fn process_player_action<R, W>(
     W: Write,
 {
     if !player.alive() {
-        debug!("Proccessing player action, but the player is dead.");
+        log::debug!("Proccessing player action, but the player is dead.");
         return;
     }
     if !player.has_ap(1) {
-        debug!(
+        log::debug!(
             "Proccessing player action, but the player has no AP: {}",
             player.ap()
         );
@@ -910,7 +910,7 @@ fn process_player_action<R, W>(
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
                             monster::Kind::Anxiety => {
-                                info!(
+                                log::info!(
                                     "Bumped into anxiety! Current anxiety counter: {:?}",
                                     player.anxiety_counter
                                 );
@@ -920,18 +920,18 @@ fn process_player_action<R, W>(
                                     } else {
                                         1
                                     };
-                                info!("Anxiety increment: {:?}", increment);
+                                log::info!("Anxiety increment: {:?}", increment);
                                 player.anxiety_counter += increment;
-                                info!("New anxiety counter: {:?}", player.anxiety_counter);
+                                log::info!("New anxiety counter: {:?}", player.anxiety_counter);
                                 if player.anxiety_counter.is_max() {
-                                    info!("Increasing player's will");
+                                    log::info!("Increasing player's will");
                                     player.will += 1;
                                     player.anxiety_counter.set_to_min();
                                 }
                             }
                             // NOTE: NPCs don't give bonuses or accompany the player when high.
                             monster::Kind::Npc if player.mind.is_sober() => {
-                                info!("Bumped into NPC: {:?}", world.monster_on_pos(dest));
+                                log::info!("Bumped into NPC: {:?}", world.monster_on_pos(dest));
                                 // Clear any existing monsters accompanying the player. The player
                                 // can have only one companion at a time right now.
                                 //
@@ -942,18 +942,18 @@ fn process_player_action<R, W>(
                                     .filter(|m| m.kind == monster::Kind::Npc);
                                 for npc in npcs {
                                     if npc.position == dest {
-                                        info!("NPC {:?} accompanies the player.", npc);
+                                        log::info!("NPC {:?} accompanies the player.", npc);
                                         npc.accompanying_player = true;
                                         assert!(npc.companion_bonus.is_some());
                                     } else if npc.accompanying_player {
-                                        info!("NPC {:?} leaves the player.", npc);
+                                        log::info!("NPC {:?} leaves the player.", npc);
                                         npc.accompanying_player = false;
                                     }
                                 }
                             }
 
                             monster::Kind::Signpost => {
-                                info!("Bumped into a signpost!");
+                                log::info!("Bumped into a signpost!");
                                 window_stack.push(
                                     Window::Message(
                                         "\"I thought you were going to stay sober for good. I was wrong. Goodbye.\"".into()));
@@ -1074,7 +1074,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
                 m.kind == monster::Kind::Npc && m.accompanying_player && m.companion_bonus.is_some()
             });
             for npc in npcs {
-                info!("{:?} will not accompany an intoxicated player.", npc);
+                log::info!("{:?} will not accompany an intoxicated player.", npc);
                 npc.accompanying_player = false;
             }
         }
@@ -1274,7 +1274,7 @@ fn use_dose(
 ) {
     use crate::item::Kind::*;
     use crate::player::Modifier::*;
-    debug!("Using dose");
+    log::debug!("Using dose");
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = if state_of_mind <= 100 { 4 } else { 6 };
@@ -1309,7 +1309,7 @@ fn use_dose(
 }
 
 fn show_exit_stats(stats: &Stats) {
-    debug!(
+    log::debug!(
         "\nSlowest update durations: {:?}\n",
         stats
             .longest_update_durations()
@@ -1319,7 +1319,7 @@ fn show_exit_stats(stats: &Stats) {
             .collect::<Vec<_>>(),
     );
 
-    debug!(
+    log::debug!(
         "\nSlowest drawcall durations: {:?}\n",
         stats
             .longest_drawcall_durations()
@@ -1329,7 +1329,7 @@ fn show_exit_stats(stats: &Stats) {
             .collect::<Vec<_>>(),
     );
 
-    debug!(
+    log::debug!(
         "\nMean update duration: {} ms\nMean drawcall duration: {} ms",
         stats.mean_update(),
         stats.mean_drawcalls()
@@ -1338,19 +1338,21 @@ fn show_exit_stats(stats: &Stats) {
 
 fn verify_states(expected: &state::Verification, actual: &state::Verification) {
     if expected.chunk_count != actual.chunk_count {
-        error!(
+        log::error!(
             "Expected chunks: {}, actual: {}",
-            expected.chunk_count, actual.chunk_count
+            expected.chunk_count,
+            actual.chunk_count
         );
     }
     if expected.player_pos != actual.player_pos {
-        error!(
+        log::error!(
             "Expected player position: {}, actual: {}",
-            expected.player_pos, actual.player_pos
+            expected.player_pos,
+            actual.player_pos
         );
     }
     if expected.monsters.len() != actual.monsters.len() {
-        error!(
+        log::error!(
             "Expected monster count: {}, actual: {}",
             expected.monsters.len(),
             actual.monsters.len()
@@ -1374,18 +1376,21 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
             match actual_monsters.get(pos) {
                 Some(actual) => {
                     if expected != actual {
-                        error!(
+                        log::error!(
                             "Monster at {} differ. Expected: {:?}, \
                              actual: {:?}",
-                            pos, expected, actual
+                            pos,
+                            expected,
+                            actual
                         );
                     }
                 }
                 None => {
-                    error!(
+                    log::error!(
                         "Monster expected at {}: {:?}, but it's not \
                          there.",
-                        pos, expected
+                        pos,
+                        expected
                     );
                 }
             }
@@ -1393,7 +1398,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
 
         for (pos, actual) in &actual_monsters {
             if expected_monsters.get(pos).is_none() {
-                error!("There is an unexpected monster at: {}: {:?}.", pos, actual);
+                log::error!("There is an unexpected monster at: {}: {:?}.", pos, actual);
             }
         }
     }
@@ -1413,7 +1418,7 @@ fn create_new_game_state(state: &State) -> State {
 }
 
 fn place_victory_npc(state: &mut State) -> Point {
-    info!("Generating the Victory NPC!");
+    log::info!("Generating the Victory NPC!");
     let mut distance_range = formula::VICTORY_NPC_DISTANCE;
     // NOTE: Compute path to Victory NPC that is reachable by the
     // player. This may take several attempts. Leave the position
@@ -1424,15 +1429,15 @@ fn place_victory_npc(state: &mut State) -> Point {
     loop {
         if attempts <= 0 {
             // TODO: generate VNPC at a shorter distance instead of crashing?
-            warn!("Could not find a viable Victory NPC position in 250 tries.");
+            log::warn!("Could not find a viable Victory NPC position in 250 tries.");
             let min = distance_range.0 - 20;
             let max = distance_range.1 - 20;
             if min > 5 && max > 5 {
                 distance_range = InclusiveRange(min, max);
                 attempts = 20;
-                info!("Reduced VNPC spawn range to: {:?}.", distance_range);
+                log::info!("Reduced VNPC spawn range to: {:?}.", distance_range);
             } else {
-                warn!(
+                log::warn!(
                     "Could not find a viable Victory NPC position anywhere! Winning game instead."
                 );
                 state.player.bonuses.push(monster::CompanionBonus::Victory);
@@ -1458,26 +1463,27 @@ fn place_victory_npc(state: &mut State) -> Point {
         // position and then try nearby areas (which will be
         // overwhelmingly likely in the same Chunk).
         vnpc_pos = formula::victory_npc_position(&mut state.rng, state.player.pos, distance_range);
-        info!("Trying to find test NPC position {:?}", vnpc_pos);
+        log::info!("Trying to find test NPC position {:?}", vnpc_pos);
         state.world.ensure_chunk_at_pos(vnpc_pos);
         if let Some(pos) = walkable_place_nearby(&state.world, vnpc_pos, blockers, state.player.pos)
         {
-            info!("Position {:?} is walkable!", pos);
+            log::info!("Position {:?} is walkable!", pos);
             vnpc_pos = pos;
             for cell_pos in point::Line::new(state.player.pos, vnpc_pos) {
                 state.world.ensure_chunk_at_pos(cell_pos);
             }
         } else {
-            warn!(
+            log::warn!(
                 "Failed to find empty place around the candidate VNPC position {:?}",
                 vnpc_pos
             );
             continue;
         }
 
-        info!(
+        log::info!(
             "player pos: {:?}, vnpc pos: {:?}",
-            state.player.pos, vnpc_pos
+            state.player.pos,
+            vnpc_pos
         );
         // TODO: make sure the world chunks exist before trying to find path
         let path_to_vnpc = pathfinding::Path::find(
@@ -1489,16 +1495,16 @@ fn place_victory_npc(state: &mut State) -> Point {
             formula::PATHFINDING_VNPC_REACHABILITY_LIMIT,
         );
         if path_to_vnpc.len() == 0 {
-            warn!("Failed to find path from player to Victory NPC!")
+            log::warn!("Failed to find path from player to Victory NPC!")
         } else {
-            info!("Path to Victory NPC takes {} steps", path_to_vnpc.len());
+            log::info!("Path to Victory NPC takes {} steps", path_to_vnpc.len());
             break;
         }
     }
     let vnpc_pos = vnpc_pos;
 
     if let Some(prev_npc_id) = state.victory_npc_id.take() {
-        warn!("Replacing an existing NPC! {:?}", prev_npc_id);
+        log::warn!("Replacing an existing NPC! {:?}", prev_npc_id);
         state.world.remove_monster_by_id(prev_npc_id);
     }
 

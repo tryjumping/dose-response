@@ -236,7 +236,7 @@ impl State {
         let mut writer: Box<dyn Write> = if let Some(replay_path) = replay_path {
             match File::create(&replay_path) {
                 Ok(f) => {
-                    info!("Recording the gameplay to '{}'", replay_path.display());
+                    log::info!("Recording the gameplay to '{}'", replay_path.display());
                     Box::new(f)
                 }
                 Err(msg) => panic!(
@@ -352,7 +352,7 @@ Reason: '{}'.",
                 msg
             ),
         }
-        info!("Replaying game log: '{}'", replay_path.display());
+        log::info!("Replaying game log: '{}'", replay_path.display());
         let cheating = true;
         let invincible = invincible;
         let replay = true;
@@ -424,7 +424,7 @@ Reason: '{}'.",
         };
 
         if let Err(error) = ::std::fs::remove_file(filename) {
-            error!(
+            log::error!(
                 "Failed to delete the successfully loaded savegame. Error: {:?}",
                 error
             );

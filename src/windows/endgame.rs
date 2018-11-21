@@ -95,10 +95,10 @@ impl Window {
 
         let endgame_reason_text = if state.side == Side::Victory {
             if !state.player.alive() {
-                warn!("The player appears to be dead on victory screen.");
+                log::warn!("The player appears to be dead on victory screen.");
             }
             if cause_of_death.is_some() {
-                warn!("The player has active cause of dead on victory screen.");
+                log::warn!("The player has active cause of dead on victory screen.");
             }
             "You won!"
         } else {

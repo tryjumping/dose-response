@@ -1,7 +1,9 @@
-use crate::color::Color;
-use crate::point::{Point, SquareArea};
+use crate::{
+    color::Color,
+    point::{Point, SquareArea},
+    timer::Timer,
+};
 
-use crate::timer::Timer;
 use std::time::Duration;
 
 pub trait AreaOfEffect {

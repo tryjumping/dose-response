@@ -1,7 +1,9 @@
-use crate::blocker;
-use crate::color::{self, Color};
-use crate::item::Item;
-use crate::point;
+use crate::{
+    blocker,
+    color::{self, Color},
+    item::Item,
+    point,
+};
 
 use std::collections::HashMap;
 

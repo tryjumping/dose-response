@@ -1,15 +1,15 @@
-use crate::color;
-use crate::engine::{Display, TextMetrics, TextOptions};
-use crate::formula;
-use crate::graphics;
-use crate::monster;
-use crate::player::Bonus;
-use crate::point::{Point, SquareArea};
-use crate::rect::Rectangle;
-use crate::state::{State, Window};
-use crate::util;
-use crate::windows::{endgame, help, main_menu, sidebar};
-use crate::world::Chunk;
+use crate::{
+    color,
+    engine::{Display, TextMetrics, TextOptions},
+    formula, graphics, monster,
+    player::Bonus,
+    point::{Point, SquareArea},
+    rect::Rectangle,
+    state::{State, Window},
+    util,
+    windows::{endgame, help, main_menu, sidebar},
+    world::Chunk,
+};
 
 use std::time::Duration;
 

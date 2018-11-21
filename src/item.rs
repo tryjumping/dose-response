@@ -1,7 +1,9 @@
 use self::Kind::*;
 
-use crate::color::{self, Color};
-use crate::player::Modifier;
+use crate::{
+    color::{self, Color},
+    player::Modifier,
+};
 
 #[derive(Clone, Copy, PartialEq, Debug, Eq, Hash, Serialize, Deserialize)]
 pub enum Kind {

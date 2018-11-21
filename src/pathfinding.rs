@@ -1,9 +1,10 @@
-use crate::blocker;
-use crate::point::Point;
-use crate::world::World;
-use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashMap};
-use std::f32;
+use crate::{blocker, point::Point, world::World};
+
+use std::{
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap},
+    f32,
+};
 
 #[derive(Debug)]
 pub struct Path {

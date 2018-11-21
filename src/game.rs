@@ -1,31 +1,33 @@
-use crate::ai;
-use crate::animation::{self, AreaOfEffect};
-use crate::blocker::Blocker;
-use crate::color;
-use crate::engine::{Display, Mouse, Settings, TextMetrics, TILESIZE};
-use crate::formula;
-use crate::item;
-use crate::keys::{Key, KeyCode, Keys};
-use crate::level::TileKind;
-use crate::monster::{self, CompanionBonus};
-use crate::pathfinding;
-use crate::player;
-use crate::point::{self, Point};
-use crate::ranged_int::{InclusiveRange, Ranged};
-use crate::rect::Rectangle;
-use crate::render;
-use crate::state::{self, Command, Side, State, Window};
-use crate::stats::{FrameStats, Stats};
-use crate::timer::{Stopwatch, Timer};
-use crate::util;
-use crate::windows::{endgame, help, main_menu, sidebar};
-use crate::world::World;
+use crate::{
+    ai,
+    animation::{self, AreaOfEffect},
+    blocker::Blocker,
+    color,
+    engine::{Display, Mouse, Settings, TextMetrics, TILESIZE},
+    formula, item,
+    keys::{Key, KeyCode, Keys},
+    level::TileKind,
+    monster::{self, CompanionBonus},
+    pathfinding, player,
+    point::{self, Point},
+    ranged_int::{InclusiveRange, Ranged},
+    rect::Rectangle,
+    render,
+    state::{self, Command, Side, State, Window},
+    stats::{FrameStats, Stats},
+    timer::{Stopwatch, Timer},
+    util,
+    windows::{endgame, help, main_menu, sidebar},
+    world::World,
+};
 
-use std::collections::{HashMap, VecDeque};
-use std::io::Write;
-use std::iter::FromIterator;
-use std::time::Duration;
-use std::u64;
+use std::{
+    collections::{HashMap, VecDeque},
+    io::Write,
+    iter::FromIterator,
+    time::Duration,
+    u64,
+};
 
 use rand::Rng;
 

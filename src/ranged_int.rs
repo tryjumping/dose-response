@@ -1,5 +1,7 @@
-use std::cmp;
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::{
+    cmp,
+    ops::{Add, AddAssign, Sub, SubAssign},
+};
 
 use num_rational::{Ratio, Rational32};
 use rand::Rng;

@@ -1,20 +1,22 @@
 use self::Kind::*;
 
-use crate::ai::{self, AIState, Behavior, Update};
-use crate::blocker::Blocker;
-use crate::color::{self, Color};
-use crate::game::Action;
-use crate::player::{Modifier, PlayerInfo};
-use crate::point::Point;
-use crate::ranged_int::{InclusiveRange, Ranged};
+use crate::{
+    ai::{self, AIState, Behavior, Update},
+    blocker::Blocker,
+    color::{self, Color},
+    game::Action,
+    player::{Modifier, PlayerInfo},
+    point::Point,
+    ranged_int::{InclusiveRange, Ranged},
+    world::World,
+};
 
-use crate::world::World;
+use std::fmt::{Display, Error, Formatter};
+
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
 };
-
-use std::fmt::{Display, Error, Formatter};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Monster {

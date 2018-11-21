@@ -1,5 +1,4 @@
-use std::collections::VecDeque;
-use std::iter::IntoIterator;
+use std::{collections::VecDeque, iter::IntoIterator};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Key {

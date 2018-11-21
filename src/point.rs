@@ -1,6 +1,8 @@
-use std::cmp::{max, Ordering};
-use std::fmt::{self, Display, Error, Formatter};
-use std::ops::{Add, AddAssign, Div, Mul, Sub};
+use std::{
+    cmp::{max, Ordering},
+    fmt::{self, Display, Error, Formatter},
+    ops::{Add, AddAssign, Div, Mul, Sub},
+};
 
 #[derive(Copy, Clone, Default, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Point {

@@ -1,12 +1,14 @@
-use crate::item::{Item, Kind};
-use crate::monster::CompanionBonus;
-use crate::player::{Bonus, CauseOfDeath, Mind, Modifier, Player};
-use crate::point::Point;
-use crate::ranged_int::{InclusiveRange, Ranged};
-use num_rational::{Ratio, Rational32};
+use crate::{
+    item::{Item, Kind},
+    monster::CompanionBonus,
+    player::{Bonus, CauseOfDeath, Mind, Modifier, Player},
+    point::Point,
+    ranged_int::{InclusiveRange, Ranged},
+};
 
 use std::cmp;
 
+use num_rational::{Ratio, Rational32};
 use rand::Rng;
 
 pub const INITIAL_SAFE_RADIUS: i32 = 25;

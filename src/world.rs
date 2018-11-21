@@ -1,14 +1,16 @@
-use crate::blocker::Blocker;
-use crate::formula;
-use crate::generators::{self, GeneratedWorld};
-use crate::item::Item;
-use crate::level::{self, Cell, Level};
-use crate::monster::Monster;
-use crate::player::PlayerInfo;
-use crate::point::{CircularArea, Point, SquareArea};
-use crate::random::{self, Random};
-use crate::ranged_int::InclusiveRange;
-use crate::rect::Rectangle;
+use crate::{
+    blocker::Blocker,
+    formula,
+    generators::{self, GeneratedWorld},
+    item::Item,
+    level::{self, Cell, Level},
+    monster::Monster,
+    player::PlayerInfo,
+    point::{CircularArea, Point, SquareArea},
+    random::{self, Random},
+    ranged_int::InclusiveRange,
+    rect::Rectangle,
+};
 
 use std::collections::HashMap;
 

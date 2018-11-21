@@ -1,7 +1,9 @@
-use crate::color::{self, Color};
-use crate::engine::{Display, TextMetrics, TextOptions};
-use crate::point::Point;
-use crate::rect::Rectangle;
+use crate::{
+    color::{self, Color},
+    engine::{Display, TextMetrics, TextOptions},
+    point::Point,
+    rect::Rectangle,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Text<'a> {

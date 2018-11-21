@@ -1,7 +1,4 @@
-use crate::color::Color;
-use crate::engine::Display;
-use crate::point::Point;
-use crate::rect::Rectangle;
+use crate::{color::Color, engine::Display, point::Point, rect::Rectangle};
 
 pub fn progress_bar(
     display: &mut Display,

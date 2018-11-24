@@ -26,9 +26,7 @@ impl MenuItem {
             ToggleFullscreen => "[F]ullscreen",
             SaveAndQuit => "[S]ave and Quit",
             Load => "[L]oad game",
-            // TODO:
-            // "[Q]uit without saving"
-            Quit => "[Q]uit",
+            Quit => "[Q]uit without saving",
         }
     }
 }
@@ -88,11 +86,10 @@ impl Window {
             options.push(MenuItem::ToggleFullscreen);
         }
 
-        if state.game_ended {
-            options.push(MenuItem::Quit);
-        } else {
+        if !state.game_ended {
             options.push(MenuItem::SaveAndQuit);
         }
+        options.push(MenuItem::Quit);
 
         let header_rect = ui::text_flow_rect(&text_flow, rect, metrics);
 

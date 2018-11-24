@@ -99,11 +99,10 @@ CLOSED: [2018-02-04 Sun 17:48]
 * Scrolling glitches                                                    :bug:
 ** Slow the scrolling down so they're easily visible
 ** Play the game & see what looks wrong
+*** Test if the same thing happens with glium
+*** and with wasm
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
-** Test if the same thing happens with glium
-* Menu doesn't show the "Quit Without Saving" option                    :bug:
-** It only shows "Save and Quit" but sometimes you don't want that
 * Pressing Alt+Enter doesn't work                                       :bug:
 ** The screen flickers and then goes back
 ** Looking at the log, looks like the press is registered twice:
@@ -2907,3 +2906,9 @@ CLOSED: [2018-11-21 Wed 23:55]
 :END:
 *** should be fixed now?
 *** slow scrolling down & see
+** DONE Menu doesn't show the "Quit Without Saving" option             :bug:
+CLOSED: [2018-11-24 Sat 18:50]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-24 Sat 18:50
+:END:
+*** It only shows "Save and Quit" but sometimes you don't want that

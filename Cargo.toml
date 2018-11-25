@@ -43,15 +43,15 @@ image = "0.20"
 
 
 [features]
-default = ["sdl", "cli", "replay", "fullscreen", "cheating", "stats", "verifications"]
+default = ["sdl-backend", "cli", "replay", "fullscreen", "cheating", "stats", "verifications"]
 
 cheating = []
 cli = ["clap", "simplelog"]
 fullscreen = []
-opengl = ["glium", "image"]
+glium-backend = ["glium", "image"]
 remote = ["zmq"]
 replay = ["chrono"]
-sdl = ["sdl2", "gl", "image"]
+sdl-backend = ["sdl2", "gl", "image"]
 sdl-static-link = ["sdl2", "sdl2/static-link"]
 stats = []
 verifications = []

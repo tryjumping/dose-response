@@ -21,11 +21,11 @@ If you want to try the pure Rust graphics backend
 ([winit][winit], [glutin][glutin] & [glium][glium]), compile the
 project like so:
 
-    $ cargo build --no-default-features --features 'cli replay rand fullscreen cheating stats verifications opengl'
+    $ cargo build --no-default-features --features 'cli replay rand fullscreen cheating stats verifications glium-backend'
 
-To run the built binary, you must pass the `--opengl` command line argument:
+To run the built binary, you must pass the `--glium` command line argument:
 
-    $ ./target/debug/dose-response --opengl
+    $ ./target/debug/dose-response --glium
 
 Webassembly
 -----------

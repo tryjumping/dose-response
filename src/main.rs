@@ -66,16 +66,16 @@ const WORLD_SIZE: point::Point = point::Point {
 const GAME_TITLE: &str = "Dose Response";
 
 #[allow(unused_variables, dead_code, needless_pass_by_value)]
-fn run_opengl(
+fn run_glium(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
     state: state::State,
     update: engine::UpdateFn,
 ) {
-    log::info!("Using the glium+opengl backend");
+    log::info!("Using the glium backend");
 
-    #[cfg(feature = "opengl")]
+    #[cfg(feature = "glium-backend")]
     engine::glium::main_loop(
         display_size,
         default_background,
@@ -84,8 +84,8 @@ fn run_opengl(
         update,
     );
 
-    #[cfg(not(feature = "opengl"))]
-    log::error!("The \"opengl\" feature was not compiled in.");
+    #[cfg(not(feature = "glium-backend"))]
+    log::error!("The \"glium-backend\" feature was not compiled in.");
 }
 
 #[allow(unused_variables, dead_code)]
@@ -98,7 +98,7 @@ fn run_sdl(
 ) {
     log::info!("Using the sdl backend");
 
-    #[cfg(feature = "sdl")]
+    #[cfg(feature = "sdl-backend")]
     engine::sdl::main_loop(
         display_size,
         default_background,
@@ -107,8 +107,8 @@ fn run_sdl(
         update,
     );
 
-    #[cfg(not(feature = "sdl"))]
-    log::error!("The \"sdl\" feature was not compiled in.");
+    #[cfg(not(feature = "sdl-backend"))]
+    log::error!("The \"sdl-backend\" feature was not compiled in.");
 }
 
 #[allow(unused_variables, dead_code, needless_pass_by_value)]
@@ -190,9 +190,9 @@ fn process_cli_and_run_game() {
                 .long("invincible"),
         )
         .arg(
-            Arg::with_name("opengl")
-                .long("opengl")
-                .help("Use the Glium (OpenGL) rendering backend"),
+            Arg::with_name("glium")
+                .long("glium")
+                .help("Use the Glium rendering backend"),
         )
         .arg(
             Arg::with_name("sdl")
@@ -203,7 +203,7 @@ fn process_cli_and_run_game() {
             "Don't create a game window. The input and output is \
              controled via ZeroMQ.",
         ))
-        .group(ArgGroup::with_name("graphics").args(&["opengl", "sdl", "remote"]))
+        .group(ArgGroup::with_name("graphics").args(&["glium", "sdl", "remote"]))
         .get_matches();
 
     log::info!("{} version: {}", GAME_TITLE, env!("CARGO_PKG_VERSION"));
@@ -275,8 +275,8 @@ fn process_cli_and_run_game() {
             state,
             game::update,
         );
-    } else if matches.is_present("opengl") {
-        run_opengl(
+    } else if matches.is_present("glium") {
+        run_glium(
             DISPLAY_SIZE,
             color::background,
             GAME_TITLE,

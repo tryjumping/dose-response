@@ -140,11 +140,11 @@ def key_from_command(command):
 
 
 # Run the game server:
-# cargo run --features="remote opengl" -- --exit-after --invincible --replay-file ~/tmp/replay.txt --remote
+# cargo run --features="remote glium-backend" -- --exit-after --invincible --replay-file ~/tmp/replay.txt --remote
 # Replay:
-# cargo run --features="remote opengl" -- --invincible ~/tmp/replay.txt
+# cargo run --features="remote glium-backend" -- --invincible ~/tmp/replay.txt
 # Headless replay:
-# cargo run --features="remote opengl" -- --invincible ~/tmp/replay.txt --exit-after --remote
+# cargo run --features="remote glium-backend" -- --invincible ~/tmp/replay.txt --exit-after --remote
 
 
 def run_game():

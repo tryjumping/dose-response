@@ -103,6 +103,10 @@ CLOSED: [2018-02-04 Sun 17:48]
 *** and with wasm
 ** IIRC some of the explored areas have a weird background or something
 ** There are some weird little bands around some glyphs
+* Consider dropping `glium`                                            :code:
+** its glutin & winit version often lags behind
+** which is unfortunate when we want to test the latest fixes
+** and we've already got a "raw opengl" codepath with `gl` and `sdl`
 * Pressing Alt+Enter doesn't work                                       :bug:
 ** The screen flickers and then goes back
 ** Looking at the log, looks like the press is registered twice:
@@ -2912,3 +2916,11 @@ CLOSED: [2018-11-24 Sat 18:50]
 :ARCHIVE_TIME: 2018-11-24 Sat 18:50
 :END:
 *** It only shows "Save and Quit" but sometimes you don't want that
+** DONE rename the `opengl` feature to `glutin`                       :code:
+CLOSED: [2018-11-25 Sun 15:13]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-25 Sun 15:13
+:END:
+*** both sdl and winit use opengl so it's misleading
+*** but since "glutin" is a crate name, maybe we'll have to check a different feature name
+*** e.g. `sdl-backend` and `glutin-backend`??

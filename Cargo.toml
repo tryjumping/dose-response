@@ -44,7 +44,9 @@ image = "0.20"
 
 
 [features]
-default = ["sdl-backend", "cli", "replay", "fullscreen", "cheating", "stats", "verifications"]
+default = ["dev"]
+dev = ["cheating", "cli", "fullscreen", "replay", "sdl-backend", "stats", "verifications"]
+prod = ["cli", "fullscreen", "glium-backend", "sdl-backend"]
 
 cheating = []
 cli = ["clap", "simplelog"]

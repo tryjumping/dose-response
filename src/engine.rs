@@ -18,6 +18,9 @@ use serde_derive::{Deserialize, Serialize};
 #[cfg(feature = "glium-backend")]
 pub mod glium;
 
+#[cfg(feature = "glutin-backend")]
+pub mod glutin;
+
 #[cfg(feature = "sdl-backend")]
 pub mod sdl;
 

@@ -23,6 +23,7 @@ clap = { version = "2.20.1", optional = true }
 chrono = { version = "0.4.0", optional = true }
 gl = { version = "0.10", optional = true }
 glium = { version = "0.22", optional = true }
+glutin = { version = "0.19.0", optional = true }
 image = { version = "0.20", optional = true }
 line_drawing = "0.7"
 log = "0.4.1"
@@ -49,6 +50,7 @@ cheating = []
 cli = ["clap", "simplelog"]
 fullscreen = []
 glium-backend = ["glium", "image"]
+glutin-backend = ["glutin", "gl", "image"]
 remote = ["zmq"]
 replay = ["chrono"]
 sdl-backend = ["sdl2", "gl", "image"]

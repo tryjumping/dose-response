@@ -88,6 +88,29 @@ fn run_glium(
     log::error!("The \"glium-backend\" feature was not compiled in.");
 }
 
+#[allow(unused_variables, dead_code, needless_pass_by_value)]
+fn run_glutin(
+    display_size: point::Point,
+    default_background: color::Color,
+    window_title: &str,
+    state: state::State,
+    update: engine::UpdateFn,
+) {
+    log::info!("Using the glutin backend");
+
+    #[cfg(feature = "glutin-backend")]
+    engine::glutin::main_loop(
+        display_size,
+        default_background,
+        window_title,
+        Box::new(state),
+        update,
+    );
+
+    #[cfg(not(feature = "glutin-backend"))]
+    log::error!("The \"glutin-backend\" feature was not compiled in.");
+}
+
 #[allow(unused_variables, dead_code)]
 fn run_sdl(
     display_size: point::Point,
@@ -195,6 +218,11 @@ fn process_cli_and_run_game() {
                 .help("Use the Glium rendering backend"),
         )
         .arg(
+            Arg::with_name("glutin")
+                .long("glutin")
+                .help("Use the glutin rendering backend"),
+        )
+        .arg(
             Arg::with_name("sdl")
                 .long("sdl")
                 .help("Use the SDL2 rendering backend"),
@@ -203,7 +231,7 @@ fn process_cli_and_run_game() {
             "Don't create a game window. The input and output is \
              controled via ZeroMQ.",
         ))
-        .group(ArgGroup::with_name("graphics").args(&["glium", "sdl", "remote"]))
+        .group(ArgGroup::with_name("graphics").args(&["glium", "glutin", "sdl", "remote"]))
         .get_matches();
 
     log::info!("{} version: {}", GAME_TITLE, env!("CARGO_PKG_VERSION"));
@@ -277,6 +305,14 @@ fn process_cli_and_run_game() {
         );
     } else if matches.is_present("glium") {
         run_glium(
+            DISPLAY_SIZE,
+            color::background,
+            GAME_TITLE,
+            state,
+            game::update,
+        );
+    } else if matches.is_present("glutin") {
+        run_glutin(
             DISPLAY_SIZE,
             color::background,
             GAME_TITLE,

@@ -32,7 +32,9 @@ pub fn main_loop(
     //
     // Here are the current issues under wayland:
     // 1. The window decorations look different from the rest of the system
-    // 2. The full screen just maximises the window. (TODO: Need to test this with glutin)
+    // 2. The full screen just maximises the window -- the decorations are still visible.
+    //    - NOTE: we can use `window.set_decorations(false)` to fix it
+    //    - still, feels like we shouldn't have to
     //
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");

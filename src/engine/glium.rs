@@ -166,7 +166,9 @@ pub fn main_loop(
     //
     // Here are the current issues under wayland:
     // 1. The window decorations look different from the rest of the system
-    // 2. The full screen just maximises the window.
+    // 2. The full screen leaves the window's top bar in
+    //    - NOTE: we can use `window.set_decorations(false)` to fix it
+    //    - still, feels like we shouldn't have to
     //
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
@@ -348,6 +350,7 @@ pub fn main_loop(
             if previous_settings.fullscreen != settings.fullscreen {
                 if settings.fullscreen {
                     log::info!("Switching to fullscreen.");
+                    display.gl_window().set_decorations(false);
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
                         log::debug!(
@@ -365,6 +368,7 @@ pub fn main_loop(
                     display.gl_window().set_fullscreen(None);
                     let pos = display.gl_window().get_position();
                     log::debug!("New window position: {:?}", pos);
+                    display.gl_window().set_decorations(true);
                     switched_from_fullscreen = true;
                 }
             }

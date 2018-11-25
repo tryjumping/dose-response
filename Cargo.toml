@@ -45,7 +45,7 @@ image = "0.20"
 
 [features]
 default = ["dev"]
-dev = ["cheating", "cli", "fullscreen", "replay", "sdl-backend", "stats", "verifications"]
+dev = ["cheating", "cli", "fullscreen", "glium-backend", "glutin-backend", "replay", "sdl-backend", "stats", "verifications"]
 prod = ["cli", "fullscreen", "glium-backend", "sdl-backend"]
 
 cheating = []

@@ -145,14 +145,6 @@ cargo run
 * Simplify the CI build scripts
 ** Move readme etc. generation to the process-artifacts.py script
 ** The CI should produce just the binary *maybe* with a readme pointing to the proper releases
-* Consider defaulting to X11 when running in Wayland
-** https://github.com/tomaka/winit/issues/305
-** do this before starting the window:
-#+BEGIN_SRC
-std::env::set_var("WINIT_UNIX_BACKEND", "x11");
-#+END_SRC
-** look if there's a way of setting this without the env vars?
-** Anyway, this fixes our issues on Wayland Fedora 27
 * Consider using GFX for both winit and sdl?
 ** That way we can verify whether the jaggedness is because of SDL or our code
 * Add an option to set the graphics backend in the settings
@@ -2921,3 +2913,15 @@ CLOSED: [2018-11-25 Sun 15:21]
 :ARCHIVE_TIME: 2018-11-25 Sun 15:21
 :END:
 *** Got introduced in 2018 edition
+** DONE Consider defaulting to X11 when running in Wayland
+CLOSED: [2018-11-25 Sun 15:29]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-25 Sun 15:29
+:END:
+*** https://github.com/tomaka/winit/issues/305
+*** do this before starting the window:
+#+BEGIN_SRC
+std::env::set_var("WINIT_UNIX_BACKEND", "x11");
+#+END_SRC
+*** look if there's a way of setting this without the env vars?
+*** Anyway, this fixes our issues on Wayland Fedora 27

@@ -155,6 +155,22 @@ pub fn main_loop(
     // environment variable.
     std::env::set_var("WINIT_HIDPI_FACTOR", "1.0");
 
+    // Force winit unix backend to X11.
+    //
+    // Right now, this produces better results on Wayland (Fedora 28).
+    // Ideally, we should remove this once winit looks better. We're
+    // using `winit 0.16.2` since that's the latest thing supported by
+    // the latest glium (0.22). Glium always lags behind, so maybe the
+    // best way to test this is to drop it in favour of glutin+gl
+    // which tends to use the latest winit pretty quickly.
+    //
+    // Here are the current issues under wayland:
+    // 1. The window decorations look different from the rest of the system
+    // 2. The full screen just maximises the window.
+    //
+    // Both are fixed with the line below:
+    std::env::set_var("WINIT_UNIX_BACKEND", "x11");
+
     let tilesize = super::TILESIZE;
     let (desired_window_width, desired_window_height) = (
         display_size.x as u32 * tilesize as u32,

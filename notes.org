@@ -129,8 +129,6 @@ cargo run
 ** test on a release linux build
 * Replace asserts with errors in the log
 ** don't want the game to crash in production
-* Rename `dir/mod.rs` to `dir.rs`                                      :code:
-** Got introduced in 2018 edition
 * Balance the late game
 ** So I think the early to mid game is good
 *** Until you start being able to collect doses
@@ -2917,3 +2915,9 @@ CLOSED: [2018-11-25 Sun 15:13]
 *** both sdl and winit use opengl so it's misleading
 *** but since "glutin" is a crate name, maybe we'll have to check a different feature name
 *** e.g. `sdl-backend` and `glutin-backend`??
+** DONE Rename `dir/mod.rs` to `dir.rs`                               :code:
+CLOSED: [2018-11-25 Sun 15:21]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-25 Sun 15:21
+:END:
+*** Got introduced in 2018 edition

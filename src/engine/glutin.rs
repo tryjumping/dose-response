@@ -22,6 +22,9 @@ pub fn main_loop(
     //
     // Apparently, the only way to set the DPI factor is via this
     // environment variable.
+    //
+    // This PR might fix it?
+    // https://github.com/tomaka/winit/pull/606/files
     std::env::set_var("WINIT_HIDPI_FACTOR", "1.0");
 
     // Force winit unix backend to X11.

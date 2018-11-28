@@ -1,46 +1,3 @@
-* Tentative roadmap to 1.0.0
-** DONE NPCs
-CLOSED: [2018-01-25 Thu 13:05]
-** DONE Menu
-CLOSED: [2018-01-30 Tue 09:51]
-*** Implied by Save/Load
-*** Or is it? Maybe we could just always load if there is a saved game...
-*** But we should have a menu anyway
-*** On `Esc`
-** DONE Don't abort on `Q` keypress
-CLOSED: [2018-01-29 Mon 20:27]
-** DONE Save/load game
-CLOSED: [2018-02-03 Sat 08:23]
-** DONE Fullscreen with correct aspect-ratio handling
-CLOSED: [2018-02-04 Sun 10:09]
-*** This was done but we broke it when adding font handling
-** DONE More balanced gameplay
-CLOSED: [2018-11-19 Mon 16:35]
-*** including safe starting areas (no overdose risks)
-** DONE Ending: finding a special NPC who gets generated after max Will
-CLOSED: [2018-11-19 Mon 16:35]
-*** immobile
-*** Must disappear when high
-*** Should show a direction towards them
-*** Spawn a ton of extra monsters?
-**** just on the direct route though?
-**** so a longer route would be safer
-*** bug-glyph-misaligned.png
-** DONE Integrated help
-CLOSED: [2018-01-25 Thu 13:05]
-*** When you press `?`
-*** Should show
-**** Controls
-**** How to play
-**** Tips
-** DONE Nice colours
-CLOSED: [2018-03-24 Sat 14:35]
-*** good colour palette
-*** distinct colours (so they're visible while High, too)
-*** The `S` and `v` monsters are hard to spot
-*** The blue doses are hard to see when High
-** DONE Icon for the executable
-CLOSED: [2018-03-29 Thu 16:02]
 * Nice-to-have post 1.0.0
 ** Reasonable AI
 *** monsters further away should not freak out when another monster is in the way
@@ -77,30 +34,97 @@ CLOSED: [2018-02-24 Sat 16:56]
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* Game balance notes:
-** DONE starting doses overlap
-CLOSED: [2018-02-04 Sun 16:33]
-** Immediatelly within starting doses' area
-** DONE food can spawn at the player's location
-CLOSED: [2018-02-04 Sun 16:33]
-** DONE too many NPCs
-CLOSED: [2018-02-04 Sun 17:48]
-** Is the tolerance progression okay?
-*** I have a feeling it builds up too slowly
-*** But we definitely need to play some more and actually get to the endgame
-*** Yea, I just won the game and I never had to use any of the strong stuff
-*** Need to increase it
-**** Did that, is it okay now?
 * Marketing
 ** no crafting!
 ** no levels!
 ** no waiting!
 ** no orcs!
+* Add an icon to the generated executable on Windows
+** window execs can have an icon embedded
+** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
+* Investigate using LTO                                                :code:
+** Set it in profile.release in Cargo.toml
+** Should make compilation longer but speed the binary up
+** Needs testing
+** Apparently we set it in the CI release builds
+* Make the textures power of two
+** It may not be required by anything any more but it feels safer
+** Would also test our build.rs tilesize generation to JS
+* Make sure we're accessible to colour blind people                      :ui:
+** need to make the palettes configurable
+** test with the phone app for several blindnesses
+** add a black and white mode?
+* Allow for variable font sizes                                        :code:
+* Add a settings/config file
+** Use json (ugh) because that's a serialisation format we already have in the code
+** And we'll primarily use it from within the game
+** Options
+*** Window size
+*** Graphics backend
+*** Fullscreen
+* Write a glutin+gl backend                                            :code:
+** Using the same code path as the SDL backend
+** possibly remove glium
+* Add an option to set the graphics backend in the settings              :ui:
+** This will mean closing and reopenning the window
+*** Or maybe we show "restart the game"
+** Also, persisting the options somewhere
+** We could ask people to try this out and say which should be the default
+* Create an itch.io page
+- [ ] Game description
+- [ ] Colour scheme
+- [ ] Font
+- [ ] Lets play/trailer
+- [ ] Cover image
+- [ ] Icon/Logo for Try Jumping
+- [ ] Icon/Logo for Dose Response
+- [ ] Builds
+- [ ] Link to the online version
+* Create "organisation" github & gitlab pages
+** Set up redirects
+** Fix links on my blog
+* Set up an org email address
+** info@tryjumping.com
+* Create a tryjumping.com page
+** Use a Rust or Go-based static site generator
+** https://gohugo.io/getting-started/quick-start/
+** http://cobalt-org.github.io/getting-started/
+* Release hardening
+** Don't panic
+*** Check for all `unwrap` calls
+*** Check for all `except` calls
+*** Check for all array access calls
+** Profile the wasm version under supported browsers
+** Find out the maximum drawcall count
+*** And update the vec capacities
+** Replace asserts with errors in the log
+*** don't want the game to crash in production
+** Put real timing metrics in
+** Look over all the engine modules
+*** Glium
+*** Sdl
+*** Wasm
+** Remove the unused backends
+** Make all the default opengl background colours nice and consistent
+* Performance-tune the game
+** minimise drawcalls and data transmission
+** try to make sure we never have to grow our vectors
+* Don't allow suicide (if there's a way to avoid it)                     :ui:
+** e.g. fatfingering the arrow when the Depression is near
 * Consider dropping `glium`                                            :code:
 ** its glutin & winit version often lags behind
 ** which is unfortunate when we want to test the latest fixes
 ** and we've already got a "raw opengl" codepath with `gl` and `sdl`
-* Pressing Alt+Enter doesn't work                                       :bug:
+* Record a let's play
+** would be nice to show the game in action
+** people can watch it and see whether it's interesting for them
+** Steps:
+cargo run --release
+xwininfo  # find the Window ID
+recordmydesktop --windowid <window id>
+record
+Ctrl-c
+* Pressing Alt+Enter doesn't work (only on geralt)                      :bug:
 ** The screen flickers and then goes back
 ** Looking at the log, looks like the press is registered twice:
 #+BEGIN_SRC
@@ -122,25 +146,68 @@ cargo run
 *** yeah this only happens in dev on geralt
 **** when testing a properly released version, the issue is not there
 **** even on geralt
-* Replace asserts with errors in the log
-** don't want the game to crash in production
-* Balance the late game
-** So I think the early to mid game is good
-*** Until you start being able to collect doses
-*** Tried to increase it too much and it didn't quite work out
-**** The smallest doses were actually okay
-**** But the larger ones weren't
-**** Maybe increase their strength?
+* Show the anxiety counter in the UI                                :ui:idea:
+** this will make it clearer to figure out that you want to keep hunting the Wills
+** We can start by showing will with a decimal counter
+** Or a "next will" progress bar
 * Simplify the CI build scripts
 ** Move readme etc. generation to the process-artifacts.py script
 ** The CI should produce just the binary *maybe* with a readme pointing to the proper releases
-* Consider using GFX for both winit and sdl?
-** That way we can verify whether the jaggedness is because of SDL or our code
-* Add an option to set the graphics backend in the settings
-** This will mean closing and reopenning the window
-*** Or maybe we show "restart the game"
-** Also, persisting the options somewhere
-** We could ask people to try this out and say which should be the default
+* Write a "call for artists" post?
+** Here's what I'd like to see (in this order)
+*** Icon
+*** Colours
+*** Font
+*** Tiles
+** Should post a demo
+** Would prefer open formats
+*** To keep with the open source spirit of the game
+*** Something like CC-BY-SA sounds good
+*** Must be available for commercial use (or at least licensed as such for me)
+*** Expect zero profit but open to revenue sharing
+** Post to:
+*** website
+*** twitter
+*** g+
+*** mastodon
+*** maybe reddit?
+* Add console printing to the wasm module
+* Split out the rendering functionality into a its own crate           :code:
+** Call it "Charmed, I'm sure."
+** Crates.io will be called "charmed"
+** Do we want to?
+*** I guess it's working fine now?
+*** IDK -- let's do this if we start another text-based roguelike
+* Change player's colour on stunned/panicked                             :ui:
+* Effects when being hit/death                                           :ui:
+** colour fade (or something) on stun, removed will, death, etc.
+** sound
+* Change the rate of the `High` animation based on intoxication          :ui:
+** (very high: fast-paced, should slow down on the way to sobriety)
+* Smooth-out animations for the fade-out when growing Withdrawn          :ui:
+** right now, they are discrete: from fade 50 to 45 in one frame
+** better make it a fade animation of say 50ms or so
+* Fade out Shadows & Voices when dying after attack                      :ui:
+** fade to Color{r: 0, g: 0, b: 0} in 400ms
+* Doses should show a glowing animation                                  :ui:
+** i.e. moving between two corolurs
+* Better display the movement of D monsters                              :ui:
+** they're moving too fast currently (FPS dependent)
+** we should show a path trail
+** and also slow them down (visually -- so like they move every say 200ms, not every tick)
+** this works now in the cheat mode but it's ugly
+** we'll probably need to fade the "trail" out or something
+* Pure terminal renderer                                                 :ui:
+** We've already added a PoC using Rustbox
+** Alternative library: Termion
+*** http://ticki.github.io/blog/making-terminal-applications-in-rust-with-termion/
+** TODO Refresh the screen on restart
+** TODO Refresh the screen on motion
+** TODO Add colours
+** TODO Make the engines switchable (instead of running side by side)
+** TODO Handle debug messages
+*** Write them to log or something?
+*** Or maybe just ignore that issue once the terminal is an optional thing
 * Add a permanently updated savefile to protect against crashes
 ** E.g. something that would protect against the panic when we switch to fullscreen
 *** that's solved right now in the latest winit and SDL
@@ -155,74 +222,9 @@ cargo run
 *** so we've got a single codepath for both explicit save and crash recovery
 ** If the starts and it sees a crash file, show "recover from crash" in the menu
 *** prolly want to delete the crash file on clean exit
-* Add a settings/config file
-** Use json (ugh) because that's a serialisation format we already have in the code
-** And we'll primarily use it from within the game
-* Screen scrolling is jagged on Windows in Fullscreen
-** hm, I can no longer reproduce this???
-** let's just drop it for now and focus on the real stuff
-* Try winit + raw opengl on Windows
-** Using the same code path as the SDL backend
-** Does this result in the same scrolling jaggedness as with SDL fullscreen?
-** This way we can figure out if it's our opengl code or the SDL backend itself
-* Make the textures power of two
-** It may not be required by anything any more but it feels safer
-** Would also test our build.rs tilesize generation to JS
 * Move metrics into the engine                                         :code:
 ** We have a more granular control there
 ** We can see exactly how long teh full update took vs drawcall processing vs. sdl
-* Investigate using LTO                                                :code:
-** Set it in profile.release in Cargo.toml
-** Should make compilation longer but speed the binary up
-** Needs testing
-** Apparently we set it in the CI release builds
-* Record a let's play
-** would be nice to show the game in action
-** people can watch it and see whether it's interesting for them
-** Steps:
-cargo run --release
-xwininfo  # find the Window ID
-recordmydesktop --windowid <window id>
-record
-Ctrl-c
-* Create an itch.io page
-- [ ] Game description
-- [ ] Colour scheme
-- [ ] Font
-- [ ] Lets play/trailer
-- [ ] Cover image
-- [ ] Icon/Logo for Try Jumping
-- [ ] Icon/Logo for Dose Response
-- [ ] Builds
-- [ ] Link to the online version
-* Create "organisation" github & gitlab pages
-** Set up redirects
-** Fix links on my blog
-* Set up an org email address
-** info@example.com
-* Create a tryjumping.com page
-** Use a Rust or Go-based static site generator
-** https://gohugo.io/getting-started/quick-start/
-** http://cobalt-org.github.io/getting-started/
-* Add the code & contact info into the readme
-** Link to the website
-** Link to the repo
-** Email address
-* Release hardening
-** Don't panic
-*** Check for all `unwrap` calls
-*** Check for all `except` calls
-*** Check for all array access calls
-** Profile the wasm version under supported browsers
-** Find out the maximum drawcall count
-*** And update the vec capacities
-** Put real timing metrics in
-** Look over all the engine modules
-*** Glium
-*** Sdl
-*** Wasm
-** Remove the unused backends
-** Make all the default opengl background colours nice and consistent
 * Consider using a fixed-step game loop?                               :code:
 ** A bunch of people on r/roguelikedev seem to do that
 ** Does that mean we have to decouple game update and render?
@@ -243,118 +245,6 @@ Ctrl-c
 **** So maybe start with that?
 **** Then again, for localisation, we'll have access to all strings
 **** So we can build the bitmap font during compilation, too
-* Consider uploading binaries to AWS or something
-** Instead of having them on github
-** Should make nightlies easier, too maybe?
-* Look into trying the rust-sdl2's "bundled" feature
-** Seems to be broken on Fedora 27 + Wayland
-*** The bundled build just doesn't work
-*** But the steamrt one (version 2.4 only; 2.6 is broken) does
-*** Go to: http://repo.steamstatic.com/steamrt/pool/main/libs/libsdl2/
-**** Download 'libsdl2_2.0.4+steamrt2+srt1_amd64.deb'
-**** http://repo.steamstatic.com/steamrt/pool/main/libs/libsdl2/libsdl2_2.0.4+steamrt2+srt1_amd64.deb
-*** Put it in a 'lib' directory
-*** cp lib/libSDL2-2.0.so.0.4.0 lib/libSDL2-2.0.so.1
-*** run code with: LD_LIBRARY_PATH=lib target/release/binary
-*** Actually now I'm getting the examples build staticaly??
-**** We need to create a SDL project and test this properly
-** https://github.com/Rust-SDL2/rust-sdl2#bundled-feature
-** It seems to build SDL2 as needed
-** Maybe that can be almost as easy as using a pure rust solution?
-*** Build dependencies:
-**** cmake openssl-devel
-*** We'll still need to handle runtime linking though (sigh)
-**** RPATH in the release?
-*** Test the controller examples
-*** Test windows examples
-*** Test ttf and image examples
-**** require the "ttf" and "image" features
-*** Check the drawing API
-**** can we just use this?
-**** could we use the TTF feature for fonts directly?
-**** should be interesting as an optional backend
-*** Pros:
-**** Nice & robust drawing API?
-**** Nice & robust font rendering API?
-**** Joystick and gamepad support!
-**** More robust keyboard support (afaict so far)
-*** Cons:
-**** Harder setup for coders (no longer just git clone && cargo run)
-***** Maybe we could keep glium as the default feature
-***** And use SDL for the shipped releases?
-**** Extra deployment steps to ship the SDL libraries and link them
-**** An entirely new set of bugs and missing features?
-***** I mean it should be robust but idk
-* Fullscreen crashes on Windows                                          :ui:
-** Adding fullscreen to main menu crashes with this:
-Switching to fullscreen.
-Monitor: Some("\\\\.\\DISPLAY1"), pos: (0, 0), dimensions: (1920, 1080)
-thread 'main' panicked at 'not yet implemented', C:\Users\appveyor\.cargo\registry\src\github.com-1ecc6299db9ec823\winit-0.10.0\src\platform\windows\window.rs:289:9
-note: Run with `RUST_BACKTRACE=1` for a backtrace.
-** https://github.com/tomaka/winit/blob/d92666c1880bad27d624dbbda2e14adc2b72e557/src/platform/windows/window.rs#L288
-** https://github.com/tomaka/winit/issues/37
-** https://github.com/tomaka/winit/issues/72
-** Trying to initialise the fullscreen directly during window creation fails too
-** So does doing "fullscreen" manually by setting the window size
-*** again, not implemented
-** DONE Consider making fullscreen a cargo feature and disabling it on windows
-CLOSED: [2018-03-06 Tue 22:04]
-** DONE Also, try handling panics on fullscreen so we don't crash
-CLOSED: [2018-03-06 Tue 22:04]
-*** Yea so there's catch_unwind:
-**** https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
-**** except it doesn't compile with the Display type /o\
-**** Because of the interior mutability inside that type
-** TODO Also, see if we can just vendor winit/glutin/glium and fix it locally
-*** and obviously upstreaming the changes
-*** see how SDL does it?
-*** Check out this article by Raymond Chen
-**** https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353/
-** I've disabled fullscreen on windows for now
-*** but we need to fix this
-* Test Quicksilver fullscreen
-** https://github.com/ryanisaacg/quicksilver/commit/4705ff8a2baaa9d69b74dcef5f8b4186d920d6dc
-** It seems to be working maybe?
-** It's not running any of the dangerous calls afaics
-** Give it a go
-* Write a "call for artists" post?
-** Here's what I'd like to see (in this order)
-*** Icon
-*** Colours
-*** Font
-*** Tiles
-** Should post a demo
-** Would prefer open formats
-*** To keep with the open source spirit of the game
-*** Something like CC-BY-SA sounds good
-*** Must be available for commercial use (or at least licensed as such for me)
-*** Expect zero profit but open to revenue sharing
-** Post to:
-*** website
-*** twitter
-*** g+
-*** mastodon
-*** maybe reddit?
-* Select the final font / fonts                                          :ui:
-** http://programmingfonts.org/list
-** FYI Hero Trap uses "Dejavu Sans, monospace" and it looks pretty neat
-* Add an icon to the generated executable on Windows
-** window execs can have an icon embedded
-** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
-* Make the game less dark
-** It is actually really hard to see what's going on in withdrawal
-** Ease off on the darkness fade somewhat
-* Build nightlies
-** Or have a way to build windows on my machine
-*** Using wine
-*** Or a VM
-*** or cross-compile
-* Consider using proper logging with in-game debug console             :code:
-** The "no console" option for mingw seems to disable println entirely
-** Even when we run the game from the console
-** So: we should log to a file or some internal structure and print it out
-* Show the current game build version in the main menu                   :ui:
-** https://doc.rust-lang.org/cargo/reference/environment-variables.html
 * Investigate terminal backend
 ** Libraries:
 *** https://crates.io/crates/termion
@@ -364,26 +254,9 @@ CLOSED: [2018-03-06 Tue 22:04]
 ** Should be cross-platform
 ** Ideally no C deps (though I could live with that tbh)
 * Use rect::Rectangle for Point::areas                                 :code:
-* Split out the rendering functionality into a proper crate            :code:
-** Call it "Charmed, I'm sure."
-** Crates.io will be called "charmed"
-* Add console printing to the wasm module
-* Print out warnings if the js drawcalls and buffer capacities are exceeded
-* Performance-tune the game
-** minimise drawcalls and data transmission
-** try to make sure we never have to grow our vectors
 * NPCs should ignore monsters and destroy them when stepping on one    :idea:
 ** So this would make NPCs more like not even aware there are any monsters here
 ** But only when they are accompanying the player
-* Pre-allocate the wasm drawcalls vecs better                          :code:
-* Make the canvas drawing more performant                              :code:
-** https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
-** Think about reducing the Draw::Rectangle and Draw::Fade data footprint
-*** by like emulating an enum or something
-* Consider uploading "nightlies" somewhere
-** We run CI on every push, let's copy the binaries somewhere
-** So we can always get the latest build out to folks
-** Theoretically, this could be super easy with wasm
 * Make it more obvious when the player would overdose :design:ui:
 ** https://www.reddit.com/r/roguelikedev/comments/686dey/sharing_saturday_152/dgwl1go/
 ** see alphabetr's comment in that thread
@@ -394,18 +267,6 @@ CLOSED: [2018-03-06 Tue 22:04]
 *** let's use it
 *** say when you stand next to a dose, it will blink between it's colour and white
 *** and the rate of blinking will identify the likelihood that the dose will kill you
-* Consider replacing Action Points with energy-based approach          :code:
-** Basically, we'll want to be able to have NPCs move more slowly than the player
-** So we need a speed system
-** One such is described here:
-*** http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
-** It's not necessarily about AP/Energy-based
-*** we just need a way to be able to "build" some action up across turns
-*** but it does kind of seem to me that maybe AP is not the right mental model here
-*** because you don't generally store up APs (with a few exceptions)
-** One place to use this would be: friendly NPCs more half as slow to be more approachable
-*** Right now we just stop them when they're nearby
-*** But it would be more lively/dynamic if they still moved just more slowly
 * Have Anxieties be able to destroy the terrain                        :idea:
 ** I'd love to have a monster that does that
 ** And Anxiety is already red (the colour of the shattering explosion)
@@ -427,35 +288,11 @@ moving in that direction.
 * Make the NPCs "angry" when you "hit" them                            :idea:
 ** Right now, nothing happens when you bump into them
 ** So instead, let's make them faded like when you get High for a few turns
-* Irresistible doses don't always atract                           :bug:idea:
-** Seems that when there is a normal dose in the irresistible area we can break free
-** I'll need to test the exact parameters of this
-** But maybe we'll want to keep it there as an "easter egg rule"?
 * Rework the animation system                                          :code:
 ** Right now it's a bunch of boxed traits and we have to match on dose type
 ** It would be easier if we could just specify the type of animation to the dose and have a function produce the right struct
 ** We could also support multiple animations, which would let us compose a cross animation by:
 *** square explosion of 1 diagonal area + 2 (or 4) horizontal animation lines
-* The screen sometimes scrolls earlier than it should                   :bug:
-** I've noticed this with horizontal scrolls, but it may be vertical too?
-* Need to keep moving while waiting on the victory counter           :design:
-** Right now, the best strategy is to dance around a save spot, doing nothing
-** We need to force the player to keep moving
-** Some ideas:
-*** Get the monsters into a frenzy and start attacking the player
-*** Only count "sobriety points" when a new ground is explored
-**** This is hard to discover so I'm not keen
-*** Give the player a goal they can achieve only while sober
-**** Say talking to a family NPC
-**** Show an arrow to the NPC?
-* Change the High colours/effect
-** Using the same colour as the doses makes them easy to miss
-** Consider adding some orange or whatnot instead
-** some inspiration: http://www.printmag.com/design-inspiration/acid-aesthetic-history-of-psychedelic-design/
-* Show the anxiety counter in the UI                                :ui:idea:
-** this will make it clearer to figure out that you want to keep hunting the Wills
-** We can start by showing will with a decimal counter
-** Or a "next will" progress bar
 * Investigate adding sound to the game                                 :code:
 ** Not sure about ambient music, but sound effects might be neat
 ** We can look at rodio
@@ -488,7 +325,7 @@ black box atm).
 *** so maybe you're still withdrawn, but the screen wouldn't go dark so much
 *** and the fov would not reduce so much
 *** and it'd take more time for you to die (or maybe you wouldn't die at all, just transition to sober)
-* Spending a long time in the "normal" state can add Will :idea:
+* Spending a long time in the "normal" state can add Will              :idea:
 * Adding a bad trip                                                    :idea:
 ** Small chance of that happening
 ** But would make things actually worse for the duration of the dose
@@ -522,28 +359,6 @@ and psychonaut websites are gonna be a goldmine, I'd say :p
 ** Explore the world?
 ** Maybe find something that you wouldn't be able to otherwise
 ** "I've stopped smoking but I have a cigarette once a year"
-* Make the doses more interesting                                    :design:
-** Right now they're kind of bland: just increase SoM
-** from strike:
-#+BEGIN_QUOTE
-perhaps pick one really interesting (or invent a new hypothetical one)
-that has useable body and mind feedback for gameplay - sky's the
-limit. But a generic "something you're addicted to" is too 'meh' for a
-game. Some backstory would add a lot to the experience, too.
-#+END_QUOTE
-* Mouse support                                                        :idea:
-** Click on an inventory item to use it
-** Click on a path to step one way towards it?
-* Consider using just the cardinal movement                            :idea:
-** Diagonals are hard on the beginners
-** Maybe a mouse?
-* Add a tutorial or something                                          :idea:
-** Either a help doc or a tutorial or something to help the beginners
-* Medication or sobriety badges                                        :idea:
-** Instead of the 12-step bullshit
-** You could come visit these centres
-*** they'd feed you and somehow help you to combat the addiction
-*** you could get sobriety bonuses (e.g. will increase, etc.)
 * Effects for gaining/losing will                                        :ui:
 ** graphics (render it as a bar)
 ** consider displaying the partial will
@@ -560,129 +375,20 @@ game. Some backstory would add a lot to the experience, too.
 ** Could encourage players to seek them out
 ** But it's obviously dangerous
 ** And it may cost you food if you overestimate (which fits fighting hunger)
-* Ideas about the main scope / goals of the game                     :design:
-Finding out food and collecting it is good. More items to collect? Maybe stuff
-that changes the gameplay in some way? Like the items in spelunky.
-
-We should have some endgoal. Thematically, I can only thinking of curing the
-addiction, but that seems like something of an optional difficult goal (e.g.
-Hell in Spelunky). And anyway, how are we going to deal with this? Some items to
-find/pick up? I was thinking something like the 12 step program but that isn't
-bullshit.
-
-Maybe finding people and getting their forgiveness/acceptance? And/or more
-generally: dealing with your past.
-
-Maybe in terms of the non-curing way... I don't know. What does an addict want?
-Read through the wiki and some real stories? Despite the Marla Daniels quote,
-I'd like there to be a way to complete the game. Something that keeps you exploring.
-
-Or let's make it a survival/exploration sim. That would put a lot of the game
-into the worldgen (and systems) but it seems like it could fit this. Consider
-e.g. removing almost all monsters from an area, see how it plays.
-
-Anyway, let's start with making the world bigger then one screen without actually
-changing anything else at the moment. And then play it for a while and see what happens.
-
-* Depression only moves by 2 squares when following the player         :idea:
-** When idle, it would only have 1 action point
-** This ties into a more general idea of idle monsters and more complex AI
 * Monsters that can modify the environment                             :idea:
 ** unblock passages
 ** block passages
 ** teleport the player?
-* Gameplay beyond the first screen
-** We need a greater pressure for exploration and leaving the area.
-*** In my current playthroughs I just never care enough to leave.
-*** consider tweaking the intoxication gain and drop to create stronger pressure
-** Add different worlds the player can go to when leaving the map
-*** this could either be completely random
-*** or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two other worlds, then three different worlds, etc.)
-*** Some notes on different world generation:
-http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
-** consider restricting the possible ways to leave the map
-** Split a large map into sections generaded from the initial seed and their positions from center
-*** My (probably fast) ad-hoc concoction:
-#+BEGIN_SRC
-fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
-    let high = (x as u16) as u32;
-    let low = (y as u16) as u32;
-    let encoded_pos = high << 16 | low;
-    initial_seed ^ encoded_pos
-}
-#+END_SRC
-**** fast but produces low values for low inputs
-*** Better: just feed the inputs through a hash
-*** Maybe use the integer hash function by Thomas Wang
-*** http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
-* More effects on High                                                 :idea:
-** monsters get weaker (Dempression moving by one step per turn)
-** dynamic / changing environment?
-* Don't allow suicide (if there's a way to avoid it)                     :ui:
-** e.g. fatfingering the arrow when the Depression is near
 * Display the player's explored area on death                            :ui:
 ** As in, how many tiles they've explored
 ** Might be a bit tricky to calculate
 ** But it's another neat potential score thingy
 ** Isn't this more or less the same thing as the number of turns?
 *** Not really -- this penalizes staying on the same place too long
-* Pure terminal renderer                                                 :ui:
-** We've already added a PoC using Rustbox
-** Alternative library: Termion
-*** http://ticki.github.io/blog/making-terminal-applications-in-rust-with-termion/
-** TODO Refresh the screen on restart
-** TODO Refresh the screen on motion
-** TODO Add colours
-** TODO Make the engines switchable (instead of running side by side)
-** TODO Handle debug messages
-*** Write them to log or something?
-*** Or maybe just ignore that issue once the terminal is an optional thing
-* Fade out Shadows & Voices when dying after attack                      :ui:
-** fade to Color{r: 0, g: 0, b: 0} in 400ms
-* Doses should show a glowing animation                                  :ui:
-** i.e. moving between two corolurs
-* Better display the movement of D monsters                              :ui:
-** they're moving too fast currently (FPS dependent)
-** we should show a path trail
-** and also slow them down (visually -- so like they move every say 200ms, not every tick)
-** this works now in the cheat mode but it's ugly
-** we'll probably need to fade the "trail" out or something
-* Smooth-out animations for the fade-out when growing Withdrawn          :ui:
-** right now, they are discrete: from fade 50 to 45 in one frame
-** better make it a fade animation of say 50ms or so
-* Change the rate of the `High` animation based on intoxication          :ui:
-** (very high: fast-paced, should slow down on the way to sobriety)
 * Make the graphics on Overdose death glitchy                            :ui:
-* Better radious / FoV calculation                                     :code:
-Instead of looking at the points' coordinates, look at the actual (pixel) space
-each tile represents. The tiles are not points but squares with an area. This
-should provide a visually better result (but will be harder to compute).
-* Effects when being hit/death                                           :ui:
-** colour fade (or something) on stun, removed will, death, etc.
-** sound
-* Change player's colour on stunned/panicked                             :ui:
-* Make sure we're accessible to colour blind people                      :ui:
+* Make sure we're accessible to blind people                             :ui:
 ** Means a terminal mode
 ** Make sure the cursor always stays at the player character's position
-* Use a config file                                                    :code:
-** The game's configuration will be portable and relatively easy to modify
-** We could use libtcod's config
-*** http://doryen.eptalys.net/data/libtcod/doc/1.5.1/html2/parser_run.html?c=true
-*** not portable if we ever switch to other backengs (like glium)
-**** which we did
-** Probably something like TOML instead
-*** Has a solid Rust implementation (because Cargo)
-*** Supports comments
-*** Fairly easy to read & edit
-*** Can we update it while preserving comments?
-** Examples:
-*** font path
-*** font size
-*** fullscreen (yes/no)
-*** key bindings
-*** colour-blind mode (yes/no)
-*** location to the replays
-*** location to the saved games?
 * Notes on screen casts/recording
 ** Use Kazam
 ** Make sure the FPS are set to 60
@@ -2955,3 +2661,483 @@ CLOSED: [2018-11-28 Wed 18:10]
 **** so it's basically almost certain that it's something in the vertex code
 *** IIRC some of the explored areas have a weird background or something
 *** There are some weird little bands around some glyphs
+** DONE Consider using GFX for both winit and sdl?
+CLOSED: [2018-11-28 Wed 21:59]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 21:59
+:END:
+*** That way we can verify whether the jaggedness is because of SDL or our code
+*** I think this is no longer necessary, both backends work fine
+** DONE Screen scrolling is jagged on Windows in Fullscreen
+CLOSED: [2018-11-28 Wed 21:59]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 21:59
+:END:
+*** hm, I can no longer reproduce this???
+*** let's just drop it for now and focus on the real stuff
+*** can't reproduce
+** DONE Consider uploading binaries to AWS or something
+CLOSED: [2018-11-28 Wed 22:03]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:03
+:END:
+*** Instead of having them on github
+*** Should make nightlies easier, too maybe?
+*** We're uploading them on the game's website
+**** should be enough
+** DONE Look into trying the rust-sdl2's "bundled" feature
+CLOSED: [2018-11-28 Wed 22:04]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:05
+:END:
+*** NOTE: we bundle on windows and osx
+**** and we ship steamrt's version on linux
+*** Seems to be broken on Fedora 27 + Wayland
+**** The bundled build just doesn't work
+**** But the steamrt one (version 2.4 only; 2.6 is broken) does
+**** Go to: http://repo.steamstatic.com/steamrt/pool/main/libs/libsdl2/
+***** Download 'libsdl2_2.0.4+steamrt2+srt1_amd64.deb'
+***** http://repo.steamstatic.com/steamrt/pool/main/libs/libsdl2/libsdl2_2.0.4+steamrt2+srt1_amd64.deb
+**** Put it in a 'lib' directory
+**** cp lib/libSDL2-2.0.so.0.4.0 lib/libSDL2-2.0.so.1
+**** run code with: LD_LIBRARY_PATH=lib target/release/binary
+**** Actually now I'm getting the examples build staticaly??
+***** We need to create a SDL project and test this properly
+*** https://github.com/Rust-SDL2/rust-sdl2#bundled-feature
+*** It seems to build SDL2 as needed
+*** Maybe that can be almost as easy as using a pure rust solution?
+**** Build dependencies:
+***** cmake openssl-devel
+**** We'll still need to handle runtime linking though (sigh)
+***** RPATH in the release?
+**** Test the controller examples
+**** Test windows examples
+**** Test ttf and image examples
+***** require the "ttf" and "image" features
+**** Check the drawing API
+***** can we just use this?
+***** could we use the TTF feature for fonts directly?
+***** should be interesting as an optional backend
+**** Pros:
+***** Nice & robust drawing API?
+***** Nice & robust font rendering API?
+***** Joystick and gamepad support!
+***** More robust keyboard support (afaict so far)
+**** Cons:
+***** Harder setup for coders (no longer just git clone && cargo run)
+****** Maybe we could keep glium as the default feature
+****** And use SDL for the shipped releases?
+***** Extra deployment steps to ship the SDL libraries and link them
+***** An entirely new set of bugs and missing features?
+****** I mean it should be robust but idk
+** DONE Fullscreen crashes on Windows                                   :ui:
+CLOSED: [2018-11-28 Wed 22:05]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:05
+:END:
+*** no longer repro
+*** Adding fullscreen to main menu crashes with this:
+Switching to fullscreen.
+Monitor: Some("\\\\.\\DISPLAY1"), pos: (0, 0), dimensions: (1920, 1080)
+thread 'main' panicked at 'not yet implemented', C:\Users\appveyor\.cargo\registry\src\github.com-1ecc6299db9ec823\winit-0.10.0\src\platform\windows\window.rs:289:9
+note: Run with `RUST_BACKTRACE=1` for a backtrace.
+*** https://github.com/tomaka/winit/blob/d92666c1880bad27d624dbbda2e14adc2b72e557/src/platform/windows/window.rs#L288
+*** https://github.com/tomaka/winit/issues/37
+*** https://github.com/tomaka/winit/issues/72
+*** Trying to initialise the fullscreen directly during window creation fails too
+*** So does doing "fullscreen" manually by setting the window size
+**** again, not implemented
+*** DONE Consider making fullscreen a cargo feature and disabling it on windows
+CLOSED: [2018-03-06 Tue 22:04]
+*** DONE Also, try handling panics on fullscreen so we don't crash
+CLOSED: [2018-03-06 Tue 22:04]
+**** Yea so there's catch_unwind:
+***** https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
+***** except it doesn't compile with the Display type /o\
+***** Because of the interior mutability inside that type
+*** TODO Also, see if we can just vendor winit/glutin/glium and fix it locally
+**** and obviously upstreaming the changes
+**** see how SDL does it?
+**** Check out this article by Raymond Chen
+***** https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353/
+*** I've disabled fullscreen on windows for now
+**** but we need to fix this
+** DONE Test Quicksilver fullscreen
+CLOSED: [2018-11-28 Wed 22:07]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:07
+:END:
+*** no longer care
+*** https://github.com/ryanisaacg/quicksilver/commit/4705ff8a2baaa9d69b74dcef5f8b4186d920d6dc
+*** It seems to be working maybe?
+*** It's not running any of the dangerous calls afaics
+*** Give it a go
+** DONE Select the final font / fonts                                   :ui:
+CLOSED: [2018-11-28 Wed 22:09]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:09
+:END:
+*** I'm very happy with Mononoki, it's licensed under "SIL Open Font License 1.1"
+*** http://programmingfonts.org/list
+*** FYI Hero Trap uses "Dejavu Sans, monospace" and it looks pretty neat
+** DONE Make the game less dark
+CLOSED: [2018-11-28 Wed 22:09]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:09
+:END:
+*** It is actually really hard to see what's going on in withdrawal
+*** Ease off on the darkness fade somewhat
+** DONE Build nightlies
+CLOSED: [2018-11-28 Wed 22:10]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:10
+:END:
+*** Or have a way to build windows on my machine
+**** Using wine
+**** Or a VM
+**** or cross-compile
+*** We have no automated process, but we can easily push non-release wasm builds
+** DONE Show the current game build version in the main menu            :ui:
+CLOSED: [2018-11-28 Wed 22:10]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:10
+:END:
+*** https://doc.rust-lang.org/cargo/reference/environment-variables.html
+** DONE Print out warnings if the js drawcalls and buffer capacities are exceeded
+CLOSED: [2018-11-28 Wed 22:11]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:11
+:END:
+** DONE Consider uploading "nightlies" somewhere
+CLOSED: [2018-11-28 Wed 22:11]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:11
+:END:
+*** We run CI on every push, let's copy the binaries somewhere
+*** So we can always get the latest build out to folks
+*** Theoretically, this could be super easy with wasm
+*** Yea no automated process, I don't think we actually need/want one
+** DONE Make the canvas drawing more performant                       :code:
+CLOSED: [2018-11-28 Wed 22:12]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:12
+:END:
+*** https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
+*** Think about reducing the Draw::Rectangle and Draw::Fade data footprint
+**** by like emulating an enum or something
+*** we're using webgl now, I don't think this applies any more
+** DONE Consider replacing Action Points with energy-based approach   :code:
+CLOSED: [2018-11-28 Wed 22:13]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:13
+:END:
+*** Nah, we're just using multiples of APs
+**** might not be the best but it works
+*** Basically, we'll want to be able to have NPCs move more slowly than the player
+*** So we need a speed system
+*** One such is described here:
+**** http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
+*** It's not necessarily about AP/Energy-based
+**** we just need a way to be able to "build" some action up across turns
+**** but it does kind of seem to me that maybe AP is not the right mental model here
+**** because you don't generally store up APs (with a few exceptions)
+*** One place to use this would be: friendly NPCs more half as slow to be more approachable
+**** Right now we just stop them when they're nearby
+**** But it would be more lively/dynamic if they still moved just more slowly
+** DONE Irresistible doses don't always atract                    :bug:idea:
+CLOSED: [2018-11-28 Wed 22:14]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:14
+:END:
+*** I don't recall this recently, closing: no repro
+**** Unless you mean because we can't find a short enough path
+**** in which case sure
+*** Seems that when there is a normal dose in the irresistible area we can break free
+*** I'll need to test the exact parameters of this
+*** But maybe we'll want to keep it there as an "easter egg rule"?
+** DONE The screen sometimes scrolls earlier than it should            :bug:
+CLOSED: [2018-11-28 Wed 22:14]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:14
+:END:
+*** I've noticed this with horizontal scrolls, but it may be vertical too?
+*** seems to be all working fine now
+** DONE Need to keep moving while waiting on the victory counter    :design:
+CLOSED: [2018-11-28 Wed 22:14]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:14
+:END:
+*** Right now, the best strategy is to dance around a save spot, doing nothing
+*** We need to force the player to keep moving
+*** Some ideas:
+**** Get the monsters into a frenzy and start attacking the player
+**** Only count "sobriety points" when a new ground is explored
+***** This is hard to discover so I'm not keen
+**** Give the player a goal they can achieve only while sober
+***** Say talking to a family NPC
+***** Show an arrow to the NPC?
+***** This is implemented now
+** DONE Change the High colours/effect
+CLOSED: [2018-11-28 Wed 22:15]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:15
+:END:
+*** Using the same colour as the doses makes them easy to miss
+*** Consider adding some orange or whatnot instead
+*** some inspiration: http://www.printmag.com/design-inspiration/acid-aesthetic-history-of-psychedelic-design/
+*** I actually like that the doses are harder to see, closing this
+** DONE Make the doses more interesting                             :design:
+CLOSED: [2018-11-28 Wed 22:16]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:16
+:END:
+*** Right now they're kind of bland: just increase SoM
+*** from strike:
+#+BEGIN_QUOTE
+perhaps pick one really interesting (or invent a new hypothetical one)
+that has useable body and mind feedback for gameplay - sky's the
+limit. But a generic "something you're addicted to" is too 'meh' for a
+game. Some backstory would add a lot to the experience, too.
+#+END_QUOTE
+*** We've got the shattering doses now
+**** I don't feel the need to add anything else at this point
+** DONE Mouse support                                                 :idea:
+CLOSED: [2018-11-28 Wed 22:17]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:17
+:END:
+*** Click on an inventory item to use it
+**** This is done
+*** Click on a path to step one way towards it?
+**** This is prolly out. We can re-add if we change our mind later
+** DONE Consider using just the cardinal movement                     :idea:
+CLOSED: [2018-11-28 Wed 22:17]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:17
+:END:
+*** Diagonals are hard on the beginners
+*** Maybe a mouse?
+*** Nope, the ship has sailed for this one. But it's something to consider for the next game
+**** or, you know, hexes
+** DONE Add a tutorial or something                                   :idea:
+CLOSED: [2018-11-28 Wed 22:17]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:17
+:END:
+*** Either a help doc or a tutorial or something to help the beginners
+*** the starting area is now easier and we have in-game docs
+** DONE Medication or sobriety badges                                 :idea:
+CLOSED: [2018-11-28 Wed 22:18]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:18
+:END:
+*** Instead of the 12-step bullshit
+*** You could come visit these centres
+**** they'd feed you and somehow help you to combat the addiction
+**** you could get sobriety bonuses (e.g. will increase, etc.)
+*** nah, the current systems works well enough
+** DONE Ideas about the main scope / goals of the game              :design:
+CLOSED: [2018-11-28 Wed 22:19]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:19
+:END:
+Finding out food and collecting it is good. More items to collect? Maybe stuff
+that changes the gameplay in some way? Like the items in spelunky.
+
+We should have some endgoal. Thematically, I can only thinking of curing the
+addiction, but that seems like something of an optional difficult goal (e.g.
+Hell in Spelunky). And anyway, how are we going to deal with this? Some items to
+find/pick up? I was thinking something like the 12 step program but that isn't
+bullshit.
+
+Maybe finding people and getting their forgiveness/acceptance? And/or more
+generally: dealing with your past.
+
+Maybe in terms of the non-curing way... I don't know. What does an addict want?
+Read through the wiki and some real stories? Despite the Marla Daniels quote,
+I'd like there to be a way to complete the game. Something that keeps you exploring.
+
+Or let's make it a survival/exploration sim. That would put a lot of the game
+into the worldgen (and systems) but it seems like it could fit this. Consider
+e.g. removing almost all monsters from an area, see how it plays.
+
+Anyway, let's start with making the world bigger then one screen without actually
+changing anything else at the moment. And then play it for a while and see what happens.
+*** closing this, we've got a clear direction now
+** DONE Depression only moves by 2 squares when following the player  :idea:
+CLOSED: [2018-11-28 Wed 22:19]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:19
+:END:
+*** When idle, it would only have 1 action point
+*** This ties into a more general idea of idle monsters and more complex AI
+*** no need. We do have idle monsters now tho
+** DONE Gameplay beyond the first screen
+CLOSED: [2018-11-28 Wed 22:19]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:19
+:END:
+*** closing, we've got a full game now
+*** We need a greater pressure for exploration and leaving the area.
+**** In my current playthroughs I just never care enough to leave.
+**** consider tweaking the intoxication gain and drop to create stronger pressure
+*** Add different worlds the player can go to when leaving the map
+**** this could either be completely random
+**** or there may be a fixed or semi-fixed sequence (e.g. 2 tree worlds, than two other worlds, then three different worlds, etc.)
+**** Some notes on different world generation:
+http://gamedev.stackexchange.com/questions/31241/random-map-generation/31245#31245
+*** consider restricting the possible ways to leave the map
+*** Split a large map into sections generaded from the initial seed and their positions from center
+**** My (probably fast) ad-hoc concoction:
+#+BEGIN_SRC
+fn position_based_seed(initial_seed: u32, x: i32, y: i32) -> u32 {
+    let high = (x as u16) as u32;
+    let low = (y as u16) as u32;
+    let encoded_pos = high << 16 | low;
+    initial_seed ^ encoded_pos
+}
+#+END_SRC
+***** fast but produces low values for low inputs
+**** Better: just feed the inputs through a hash
+**** Maybe use the integer hash function by Thomas Wang
+**** http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
+** DONE More effects on High                                          :idea:
+CLOSED: [2018-11-28 Wed 22:20]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:20
+:END:
+*** monsters get weaker (Dempression moving by one step per turn)
+*** dynamic / changing environment?
+*** I think we're fine the way it is now
+** DONE Better radious / FoV calculation                              :code:
+CLOSED: [2018-11-28 Wed 22:21]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:21
+:END:
+Instead of looking at the points' coordinates, look at the actual (pixel) space
+each tile represents. The tiles are not points but squares with an area. This
+should provide a visually better result (but will be harder to compute).
+*** I think the current stuff is okay?
+** DONE Use a config file                                             :code:
+CLOSED: [2018-11-28 Wed 22:22]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:22
+:END:
+*** We've got another task for this
+*** The game's configuration will be portable and relatively easy to modify
+*** We could use libtcod's config
+**** http://doryen.eptalys.net/data/libtcod/doc/1.5.1/html2/parser_run.html?c=true
+**** not portable if we ever switch to other backengs (like glium)
+***** which we did
+*** Probably something like TOML instead
+**** Has a solid Rust implementation (because Cargo)
+**** Supports comments
+**** Fairly easy to read & edit
+**** Can we update it while preserving comments?
+*** Examples:
+**** font path
+**** font size
+**** fullscreen (yes/no)
+**** key bindings
+**** colour-blind mode (yes/no)
+**** location to the replays
+**** location to the saved games?
+** DONE Add the code & contact info into the readme
+CLOSED: [2018-11-28 Wed 22:23]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:23
+:END:
+*** Link to the website
+*** Link to the repo
+*** Email address
+*** It's in the game now
+** DONE Balance the late game
+CLOSED: [2018-11-28 Wed 22:27]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:27
+:END:
+*** So I think the early to mid game is good
+**** Until you start being able to collect doses
+**** Tried to increase it too much and it didn't quite work out
+***** The smallest doses were actually okay
+***** But the larger ones weren't
+***** Maybe increase their strength?
+*** No need for a special task any more
+**** if we find specific issues we'll create new entries
+** DONE Tentative roadmap to 1.0.0
+CLOSED: [2018-11-28 Wed 22:32]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:32
+:END:
+*** Done all these
+**** We're basically ready now!
+**** But there's always stuff we can add
+*** DONE NPCs
+CLOSED: [2018-01-25 Thu 13:05]
+*** DONE Menu
+CLOSED: [2018-01-30 Tue 09:51]
+**** Implied by Save/Load
+**** Or is it? Maybe we could just always load if there is a saved game...
+**** But we should have a menu anyway
+**** On `Esc`
+*** DONE Don't abort on `Q` keypress
+CLOSED: [2018-01-29 Mon 20:27]
+*** DONE Save/load game
+CLOSED: [2018-02-03 Sat 08:23]
+*** DONE Fullscreen with correct aspect-ratio handling
+CLOSED: [2018-02-04 Sun 10:09]
+**** This was done but we broke it when adding font handling
+*** DONE More balanced gameplay
+CLOSED: [2018-11-19 Mon 16:35]
+**** including safe starting areas (no overdose risks)
+*** DONE Ending: finding a special NPC who gets generated after max Will
+CLOSED: [2018-11-19 Mon 16:35]
+**** immobile
+**** Must disappear when high
+**** Should show a direction towards them
+**** Spawn a ton of extra monsters?
+***** just on the direct route though?
+***** so a longer route would be safer
+**** bug-glyph-misaligned.png
+*** DONE Integrated help
+CLOSED: [2018-01-25 Thu 13:05]
+**** When you press `?`
+**** Should show
+***** Controls
+***** How to play
+***** Tips
+*** DONE Nice colours
+CLOSED: [2018-03-24 Sat 14:35]
+**** good colour palette
+**** distinct colours (so they're visible while High, too)
+**** The `S` and `v` monsters are hard to spot
+**** The blue doses are hard to see when High
+*** DONE Icon for the executable
+CLOSED: [2018-03-29 Thu 16:02]
+** DONE Game balance notes:
+CLOSED: [2018-11-28 Wed 22:32]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:32
+:END:
+*** DONE starting doses overlap
+CLOSED: [2018-02-04 Sun 16:33]
+*** Immediatelly within starting doses' area
+*** DONE food can spawn at the player's location
+CLOSED: [2018-02-04 Sun 16:33]
+*** DONE too many NPCs
+CLOSED: [2018-02-04 Sun 17:48]
+*** Is the tolerance progression okay?
+**** I have a feeling it builds up too slowly
+**** But we definitely need to play some more and actually get to the endgame
+**** Yea, I just won the game and I never had to use any of the strong stuff
+**** Need to increase it
+***** Did that, is it okay now?
+** DONE Consider using proper logging with in-game debug console      :code:
+CLOSED: [2018-11-28 Wed 22:35]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 22:35
+:END:
+*** The "no console" option for mingw seems to disable println entirely
+*** Even when we run the game from the console
+*** So: we should log to a file or some internal structure and print it out
+*** We're logging to a file (dose-response.log) now, closing this

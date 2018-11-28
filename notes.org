@@ -96,13 +96,6 @@ CLOSED: [2018-02-04 Sun 17:48]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Scrolling glitches                                                    :bug:
-** Slow the scrolling down so they're easily visible
-** Play the game & see what looks wrong
-*** Test if the same thing happens with glium
-*** and with wasm
-** IIRC some of the explored areas have a weird background or something
-** There are some weird little bands around some glyphs
 * Consider dropping `glium`                                            :code:
 ** its glutin & winit version often lags behind
 ** which is unfortunate when we want to test the latest fixes
@@ -136,12 +129,6 @@ cargo run
 **** The smallest doses were actually okay
 **** But the larger ones weren't
 **** Maybe increase their strength?
-* Test winit fullscreen on windows
-** We've updated Glium + winit to 0.12
-*** TODO does it help?
-** TODO Try cargo patching a newer winit version (the latest is 0.14)
-** NOTE: we still need to ship SDL glium/glutin/winit still fails on wayland
-*** TODO try patching those and using the latest source??
 * Simplify the CI build scripts
 ** Move readme etc. generation to the process-artifacts.py script
 ** The CI should produce just the binary *maybe* with a readme pointing to the proper releases
@@ -2925,3 +2912,44 @@ std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 #+END_SRC
 *** look if there's a way of setting this without the env vars?
 *** Anyway, this fixes our issues on Wayland Fedora 27
+** DONE Test winit fullscreen on windows
+CLOSED: [2018-11-26 Mon 20:15]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-26 Mon 20:15
+:END:
+*** NOTE: tested with Dose Response 0.9
+**** it ships SDL as well as winit support
+**** Fullscreen works fine in both
+*** We've updated Glium + winit to 0.12
+**** DONE does it help?
+CLOSED: [2018-11-26 Mon 20:14]
+*** DONE Try cargo patching a newer winit version (the latest is 0.14)
+CLOSED: [2018-11-26 Mon 20:14]
+*** NOTE: we still need to ship SDL glium/glutin/winit still fails on wayland
+**** DONE try patching those and using the latest source??
+CLOSED: [2018-11-26 Mon 20:14]
+** DONE Scrolling glitches                                             :bug:
+CLOSED: [2018-11-28 Wed 18:10]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-11-28 Wed 18:14
+:END:
+*** NOTE: the glitches show up during replays
+*** NOTE: the glitches don't appear when the map is uncovered
+*** NOTE: they only appear to be visible at the edge of the field of view
+*** Play the game & see what looks wrong
+**** Test if the same thing happens with glium
+***** yep, same thing there
+**** and with wasm
+***** yep, same thing there
+*** So that means it's probably to do with the vertices we generate
+**** rather than any particular backend
+**** or it could be the shaders too
+*** TODO Slow the scrolling down so they're easily visible
+*** TODO Produce a minimal repro example
+**** remove text, dose effects and anything else that's not necessary form render.rs
+*** NOTE: It's about the edge of the uncovered map, not FOV!!
+*** NOTE: now we're only rendering the map, which is 1 cell per pos
+**** and it still happens
+**** so it's basically almost certain that it's something in the vertex code
+*** IIRC some of the explored areas have a weird background or something
+*** There are some weird little bands around some glyphs

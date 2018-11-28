@@ -521,7 +521,6 @@ pub struct Cell {
     pub glyph: char,
     pub foreground: Color,
     pub background: Color,
-    pub offset_px: Point,
 }
 
 impl Default for Cell {
@@ -534,7 +533,6 @@ impl Default for Cell {
                 g: 0,
                 b: 255,
             },
-            offset_px: Point::zero(),
         }
     }
 }
@@ -543,6 +541,7 @@ impl Default for Cell {
 pub struct Display {
     display_size: Point,
     pub tilesize: i32,
+    pub offset_px: Point,
     padding: Point,
     map: Vec<Cell>,
     drawcalls: Vec<Drawcall>,
@@ -600,29 +599,20 @@ impl Display {
         pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y
     }
 
-    pub fn set(
-        &mut self,
-        pos: Point,
-        glyph: char,
-        foreground: Color,
-        background: Color,
-        offset_px: Point,
-    ) {
+    pub fn set(&mut self, pos: Point, glyph: char, foreground: Color, background: Color) {
         if let Some(ix) = self.index(pos) {
             self.map[ix] = Cell {
                 glyph,
                 foreground,
                 background,
-                offset_px,
             };
         }
     }
 
-    pub fn set_glyph(&mut self, pos: Point, glyph: char, foreground: Color, offset_px: Point) {
+    pub fn set_glyph(&mut self, pos: Point, glyph: char, foreground: Color) {
         if let Some(ix) = self.index(pos) {
             self.map[ix].glyph = glyph;
             self.map[ix].foreground = foreground;
-            self.map[ix].offset_px = offset_px;
         }
     }
 
@@ -733,6 +723,7 @@ impl Display {
     }
 
     pub fn push_drawcalls(&self, drawcalls: &mut Vec<Drawcall>) {
+        let offset_px = self.offset_px;
         let tilesize = self.tilesize;
         let display_size_px = self.display_size * tilesize;
 
@@ -751,8 +742,8 @@ impl Display {
             );
             let background_dst = Rectangle::from_point_and_size(
                 Point::new(
-                    pos.x * tilesize + cell.offset_px.x,
-                    pos.y * tilesize + cell.offset_px.y,
+                    pos.x * tilesize + offset_px.x,
+                    pos.y * tilesize + offset_px.y,
                 ),
                 Point::from_i32(tilesize),
             );

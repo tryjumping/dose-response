@@ -121,6 +121,10 @@ pub fn render_game(
         display.set_fade(color::BLACK, fade);
     }
 
+    // TODO: I THIN THIS FIXED IT \O/
+    // UNCOMMENT ALL THE OTHER STUFF AND VERIFY
+    display.offset_px = offset_px;
+
     // NOTE: render the cells on the display. That means world geometry and items.
     for (world_pos, cell) in state
         .world
@@ -155,19 +159,13 @@ pub fn render_game(
         }
 
         if in_fov(world_pos) || cell.always_visible || state.uncovered_map {
-            display.set_glyph(
-                display_pos,
-                rendered_tile.glyph(),
-                rendered_tile.fg_color,
-                offset_px,
-            );
+            display.set_glyph(display_pos, rendered_tile.glyph(), rendered_tile.fg_color);
         } else if cell.explored || bonus == Bonus::UncoverMap {
             display.set(
                 display_pos,
                 rendered_tile.glyph(),
                 rendered_tile.fg_color,
                 color::dim_background,
-                offset_px,
             );
         } else {
             // It's not visible. Do nothing.
@@ -199,7 +197,7 @@ pub fn render_game(
             || state.uncovered_map
         {
             for item in &cell.items {
-                display.set_glyph(display_pos, item.glyph(), item.color(), offset_px);
+                display.set_glyph(display_pos, item.glyph(), item.color());
             }
         }
     }
@@ -255,19 +253,14 @@ pub fn render_game(
             } else {
                 monster.color
             };
-            display.set_glyph(display_pos, glyph, color, offset_px);
+            display.set_glyph(display_pos, glyph, color);
         }
     }
 
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
-        display.set_glyph(
-            display_pos,
-            state.player.glyph(),
-            state.player.color(),
-            offset_px,
-        );
+        display.set_glyph(display_pos, state.player.glyph(), state.player.color());
     }
 
     sidebar_window.render(state, metrics, dt, fps, display);

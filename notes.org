@@ -119,7 +119,9 @@ cargo run
 ** seems to be a local SDL issue
 *** works on winit
 *** also works on worklaptop
-** test on a release linux build
+*** yeah this only happens in dev on geralt
+**** when testing a properly released version, the issue is not there
+**** even on geralt
 * Replace asserts with errors in the log
 ** don't want the game to crash in production
 * Balance the late game

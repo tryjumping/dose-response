@@ -7,6 +7,16 @@ desperately looking for the next fix.
 ## [Unreleased]
 
 
+## [0.10.0] - 2018-11-30
+- Fixed crash when restarting the game in the browser
+- Fixed a visual glitch when scrolling the map
+- Victory NPCs leave an explanation when they leave because the player got high
+- Companion NPCs now move as fast as the player and can't be easily left behind
+- Added an About page to the in-game help
+- Added version, homepage and git commit to the the game log (dose-response.log)
+- Added version to the main menu
+- Fixed the display size in the glium backend
+
 ## [0.9.0] - 2018-11-03
 - Fixed the dose ordering in the sidebar
 - Updated the help messages

@@ -1,5 +1,5 @@
 use crate::color;
-use crate::engine::{Display, TextMetrics};
+use crate::engine::{Display, TextMetrics, TextOptions};
 use crate::point::Point;
 use crate::rect::Rectangle;
 use crate::state::State;
@@ -145,6 +145,14 @@ impl Window {
         }
 
         ui::render_text_flow(&layout.text_flow, rect, metrics, display);
+
+        // NOTE: draw the version explicitly
+        display.draw_text(
+            layout.inner_window_rect.bottom_right() - (1, 1),
+            &format!("Version: {}", env!("CARGO_PKG_VERSION")),
+            color::gui_text,
+            TextOptions::align_right(),
+        );
     }
 
     pub fn hovered(&self, state: &State, metrics: &dyn TextMetrics) -> Option<MenuItem> {

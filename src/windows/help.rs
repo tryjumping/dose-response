@@ -142,7 +142,7 @@ impl Window {
                 layout.window_rect.top_left() + (1, 1),
                 layout.window_rect.bottom_right() - (1, 1),
             ),
-            color::background,
+            color::window_background,
         );
 
         let header = format!("{}", state.current_help_window);

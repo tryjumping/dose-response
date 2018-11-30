@@ -287,46 +287,21 @@ fn process_cli_and_run_game() {
         )
     };
 
+    let display_size = DISPLAY_SIZE;
+    let background = color::unexplored_background;
+    let game_title = GAME_TITLE;
+    let game_update = game::update;
+
     if matches.is_present("remote") {
-        run_remote(
-            DISPLAY_SIZE,
-            color::background,
-            GAME_TITLE,
-            state,
-            game::update,
-        );
+        run_remote(display_size, background, game_title, state, game_update);
     } else if matches.is_present("sdl") {
-        run_sdl(
-            DISPLAY_SIZE,
-            color::background,
-            GAME_TITLE,
-            state,
-            game::update,
-        );
+        run_sdl(display_size, background, game_title, state, game_update);
     } else if matches.is_present("glium") {
-        run_glium(
-            DISPLAY_SIZE,
-            color::background,
-            GAME_TITLE,
-            state,
-            game::update,
-        );
+        run_glium(display_size, background, game_title, state, game_update);
     } else if matches.is_present("glutin") {
-        run_glutin(
-            DISPLAY_SIZE,
-            color::background,
-            GAME_TITLE,
-            state,
-            game::update,
-        );
+        run_glutin(display_size, background, game_title, state, game_update);
     } else {
-        run_sdl(
-            DISPLAY_SIZE,
-            color::background,
-            GAME_TITLE,
-            state,
-            game::update,
-        );
+        run_sdl(display_size, background, game_title, state, game_update);
     }
 }
 

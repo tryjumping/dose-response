@@ -48,7 +48,8 @@ pub const invisible: ColorAlpha = ColorAlpha { rgb: Color { r: 0, g: 0, b: 0 }, 
 
 
 // Game colours
-pub const background: Color = BLACK;
+pub const explored_background: Color = BLACK;
+pub const unexplored_background: Color = BLACK;
 pub const exhaustion_animation: Color = BLACK;
 
 pub const gui_text: Color = WHITE;
@@ -78,6 +79,7 @@ pub const shattering_dose: Color = BRIGHT_BLUE;
 pub const explosion: Color = BRIGHT_BLUE;
 
 pub const window_edge: Color = DIM_BLUE;
+pub const window_background: Color = BLACK;
 pub const menu_highlight: Color = RED;
 pub const dose_irresistible_background: Color = DIM_BLUE;
 

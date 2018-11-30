@@ -136,7 +136,7 @@ impl Window {
     pub fn render(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) {
         let layout = self.calculate_layout(state, metrics);
         display.draw_rectangle(layout.window_rect, color::window_edge);
-        display.draw_rectangle(layout.inner_window_rect, color::background);
+        display.draw_rectangle(layout.inner_window_rect, color::window_background);
 
         let rect = layout.rect;
 

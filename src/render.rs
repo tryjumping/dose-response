@@ -21,7 +21,7 @@ pub fn render(
     display: &mut Display,
 ) {
     // NOTE: Clear the screen
-    display.clear(color::background);
+    display.clear(color::unexplored_background);
 
     // TODO: This might be inefficient for windows fully covering
     // other windows.
@@ -159,7 +159,12 @@ pub fn render_game(
         }
 
         if in_fov(world_pos) || cell.always_visible || state.uncovered_map {
-            display.set_glyph(display_pos, rendered_tile.glyph(), rendered_tile.fg_color);
+            display.set(
+                display_pos,
+                rendered_tile.glyph(),
+                rendered_tile.fg_color,
+                color::explored_background,
+            );
         } else if cell.explored || bonus == Bonus::UncoverMap {
             display.set(
                 display_pos,
@@ -171,6 +176,26 @@ pub fn render_game(
             // It's not visible. Do nothing.
         }
 
+        // Render the items
+        if in_fov(world_pos)
+            || cell.explored
+            || cell.always_visible
+            || bonus == Bonus::SeeMonstersAndItems
+            || bonus == Bonus::UncoverMap
+            || state.uncovered_map
+        {
+            for item in &cell.items {
+                display.set_glyph(display_pos, item.glyph(), item.color());
+            }
+        }
+    }
+
+    for (world_pos, cell) in state
+        .world
+        .chunks(display_area)
+        .flat_map(Chunk::cells)
+        .filter(|&(pos, _)| display_area.contains(pos))
+    {
         // Render the irresistible background of a dose
         for item in &cell.items {
             if item.is_dose() {
@@ -185,19 +210,6 @@ pub fn render_game(
                         display.set_background(screen_coords, color::dose_irresistible_background);
                     }
                 }
-            }
-        }
-
-        // Render the items
-        if in_fov(world_pos)
-            || cell.explored
-            || cell.always_visible
-            || bonus == Bonus::SeeMonstersAndItems
-            || bonus == Bonus::UncoverMap
-            || state.uncovered_map
-        {
-            for item in &cell.items {
-                display.set_glyph(display_pos, item.glyph(), item.color());
             }
         }
     }
@@ -328,7 +340,7 @@ fn render_message(state: &State, text: &str, _metrics: &dyn TextMetrics, display
             window_rect.top_left() + (1, 1),
             window_rect.bottom_right() - (1, 1),
         ),
-        color::background,
+        color::window_background,
     );
 
     display.draw_text(
@@ -362,7 +374,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
                 Point::from_i32(0),
                 Point::new(width as i32, height as i32),
             ),
-            color::background,
+            color::window_background,
         );
         for (index, line) in debug_text.lines().enumerate() {
             display.draw_text(

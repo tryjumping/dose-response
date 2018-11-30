@@ -161,7 +161,7 @@ impl Window {
             EmptySpace(2),
         ];
 
-        display.draw_rectangle(layout.window_rect, color::background);
+        display.draw_rectangle(layout.window_rect, color::window_background);
 
         ui::render_text_flow(&lines, layout.rect, metrics, display);
 

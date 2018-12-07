@@ -219,12 +219,12 @@ pub fn main_loop(
         .expect("dose response ERROR: Could not create the display.");
 
     let program = program!(&display,
-                           150 => {
-                               outputs_srgb: true,
-                               vertex: include_str!("../shader_150.glslv"),
-                               fragment: include_str!("../shader_150.glslf")
-                           }
-        )
+                       150 => {
+                           outputs_srgb: true,
+                           vertex: include_str!("../shader_150.glslv"),
+                           fragment: include_str!("../shader_150.glslf")
+                       }
+    )
     .unwrap();
 
     let texture = {

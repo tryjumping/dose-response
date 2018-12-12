@@ -39,14 +39,9 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Give the game a non-black background?
-** Unexplored areas
-** So the window doesn't blend in with black
 * Add an icon to the generated executable on Windows
 ** window execs can have an icon embedded
 ** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
-* Update all github links to github.com/tryjumping
-* Update all website links to tryjumping.com
 * Display the game version on the title screen as well
 ** We show it in help, but that's hidden
 ** People should have a simple way to figure out if there's an update
@@ -91,15 +86,9 @@ CLOSED: [2018-02-24 Sat 16:56]
 - [ ] Icon/Logo for Dose Response
 - [ ] Builds
 - [ ] Link to the online version
-* Create "organisation" github & gitlab pages
-** Set up redirects
-** Fix links on my blog
-* Set up an org email address
-** info@tryjumping.com
-* Create a tryjumping.com page
-** Use a Rust or Go-based static site generator
-** https://gohugo.io/getting-started/quick-start/
-** http://cobalt-org.github.io/getting-started/
+* Give the game a non-black background?
+** Unexplored areas
+** So the window doesn't blend in with black
 * Release hardening
 ** Don't panic
 *** Check for all `unwrap` calls
@@ -3159,3 +3148,34 @@ CLOSED: [2018-12-12 Wed 11:52]
 :END:
 *** Create a small hand-written HTML site to host the releases
 *** Just copy everything from aimlesslygoingforward.com
+** DONE Create a tryjumping.com page
+CLOSED: [2018-12-12 Wed 12:07]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-12 Wed 12:07
+:END:
+*** Use a Rust or Go-based static site generator
+*** https://gohugo.io/getting-started/quick-start/
+*** http://cobalt-org.github.io/getting-started/
+** DONE Set up an org email address
+CLOSED: [2018-12-12 Wed 12:07]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-12 Wed 12:07
+:END:
+*** info@tryjumping.com
+** DONE Create "organisation" github & gitlab pages
+CLOSED: [2018-12-12 Wed 12:17]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-12 Wed 12:17
+:END:
+*** Set up redirects
+*** Fix links on my blog
+** DONE Update all github links to github.com/tryjumping
+CLOSED: [2018-12-12 Wed 12:22]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-12 Wed 12:22
+:END:
+** DONE Update all website links to tryjumping.com
+CLOSED: [2018-12-12 Wed 12:22]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-12 Wed 12:22
+:END:

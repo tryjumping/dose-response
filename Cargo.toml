@@ -42,6 +42,10 @@ zmq = { version = "0.8", optional = true }
 rusttype = "0.7"
 image = "0.20"
 
+# Only compile winres on Windows targets.
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
+
 
 [features]
 default = ["dev"]

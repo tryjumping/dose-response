@@ -10,6 +10,19 @@ use std::{
 use image::{Rgba, RgbaImage};
 use rusttype::{point, FontCollection, PositionedGlyph, Scale};
 
+#[cfg(windows)]
+fn set_exe_icon() {
+    let mut res = winres::WindowsResource::new();
+    res.set_icon("assets/icon.ico");
+    res.compile().unwrap();
+}
+
+#[cfg(not(windows))]
+fn set_exe_icon() {
+    // NOTE: do nothing. We're not on Windos so we're not going to set
+    // the icon.
+}
+
 fn copy_output_artifacts_internal(filename: &str) -> Result<(), Box<Error>> {
     // NOTE: this is a hack to save the font file next to the produced build binary
     let target_triple = env::var("TARGET")?;
@@ -254,4 +267,6 @@ fn main() {
     copy_output_artifacts_to_target("font.png");
     copy_output_artifacts_to_target("webgl_vertex_shader.glsl");
     copy_output_artifacts_to_target("webgl_fragment_shader.glsl");
+
+    set_exe_icon();
 }

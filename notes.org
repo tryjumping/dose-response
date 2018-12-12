@@ -39,9 +39,21 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Add an icon to the generated executable on Windows
-** window execs can have an icon embedded
-** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
+* Make the windows icon support multiple sizes?
+** ImageMagick's `convert` tool lets you do it
+convert 16.png 32.png 48.png 128.png 256.png -colors 256 icon.ico
+*** source: https://superuser.com/questions/491180/how-do-i-embed-multiple-sizes-in-an-ico-file
+** Also, apparently, you can do it with GIMP
+*** Put each icon in a separate layer
+** Full size of icon files:
+*** 16x16
+*** 32x32
+*** 48x48
+*** 256x256
+* Include files in the game release
+** Add the windows icon
+** Add the png icons
+** Copy from assets
 * Display the game version on the title screen as well
 ** We show it in help, but that's hidden
 ** People should have a simple way to figure out if there's an update
@@ -3179,3 +3191,10 @@ CLOSED: [2018-12-12 Wed 12:22]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-12-12 Wed 12:22
 :END:
+** DONE Add an icon to the generated executable on Windows
+CLOSED: [2018-12-12 Wed 16:13]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-12 Wed 16:13
+:END:
+*** window execs can have an icon embedded
+*** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable

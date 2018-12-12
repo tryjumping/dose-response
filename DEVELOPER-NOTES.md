@@ -32,12 +32,12 @@ Webassembly
 
 Install the wasm toolchain:
 
-    rustup update beta
-    rustup target add wasm32-unknown-unknown --toolchain=beta
+    rustup update stable
+    rustup target add wasm32-unknown-unknown
 
 Compile:
 
-    cargo +beta build --release --target wasm32-unknown-unknown --no-default-features
+    cargo build --release --target wasm32-unknown-unknown --no-default-features --features web
 
 The compiled file will be created in: `target/wasm32-unknown-unknown/release/dose-response.wasm`
 
@@ -48,7 +48,7 @@ this should work if you've got `python3` installed:
     $ python3 -m http.server
     Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 
-Now open [http://0.0.0.0:8000/][http://0.0.0.0:8000/] in your web
+Now open [http://0.0.0.0:8000/](http://0.0.0.0:8000/) in your web
 browser.
 
 

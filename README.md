@@ -10,7 +10,7 @@ Building The Code
 
 Have a look at the `DEVELOPER-NOTES.md` file in this repo or:
 
-https://github.com/tomassedovic/dose-response/blob/master/DEVELOPER-NOTES.md
+https://github.com/tryjumping/dose-response/blob/master/DEVELOPER-NOTES.md
 
 
 How To Play

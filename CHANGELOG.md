@@ -101,7 +101,7 @@ desperately looking for the next fix.
   - The bonus goes away if the player gets High again
 - WebAssembly support!
   - The game can now be played (in a modern up-to-date browser) at:
-  - https://aimlesslygoingforward.com/projects/dose-response-roguelike/play.html
+  - https://tryjumping.com/dose-response-roguelike/play/
 - Different ways of losing the game now fade in different colours
 
 
@@ -180,8 +180,8 @@ Will by one point. Once you're there, you need to last for 100 turns
 without getting high, losing will or (of course) dying.
 
 
-[Unreleased]: https://github.com/tomassedovic/dose-response/compare/v0.4.3...HEAD
-[0.4.3]: https://github.com/tomassedovic/dose-response/compare/v0.4.2...v0.4.3
-[0.4.2]: https://github.com/tomassedovic/dose-response/compare/v0.4.1...v0.4.2
-[0.4.1]: https://github.com/tomassedovic/dose-response/compare/v0.4.0...v0.4.1
-[0.4.0]: https://github.com/tomassedovic/dose-response/compare/v0.3.0...v0.4.0
+[Unreleased]: https://github.com/tryjumping/dose-response/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/tryjumping/dose-response/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/tryjumping/dose-response/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/tryjumping/dose-response/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/tryjumping/dose-response/compare/v0.3.0...v0.4.0

@@ -47,7 +47,7 @@ def input_filename(target, version):
 
 
 def remote_url(target, version):
-    return ("https://github.com/tomassedovic/dose-response/releases/download/"
+    return ("https://github.com/tryjumping/dose-response/releases/download/"
            "{version}/dose-response-{version}-{triple}.tar.gz").format(
         version=version,
         triple=target['triple'],

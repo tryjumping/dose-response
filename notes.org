@@ -39,15 +39,14 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Post releases at tryjumping.org
-** Create a small hand-written HTML site to host the releases
-** Just copy everything from aimlesslygoingforward.com
 * Give the game a non-black background?
 ** Unexplored areas
 ** So the window doesn't blend in with black
 * Add an icon to the generated executable on Windows
 ** window execs can have an icon embedded
 ** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
+* Update all github links to github.com/tryjumping
+* Update all website links to tryjumping.com
 * Display the game version on the title screen as well
 ** We show it in help, but that's hidden
 ** People should have a simple way to figure out if there's an update
@@ -3153,3 +3152,10 @@ CLOSED: [2018-11-28 Wed 22:35]
 *** Even when we run the game from the console
 *** So: we should log to a file or some internal structure and print it out
 *** We're logging to a file (dose-response.log) now, closing this
+** DONE Post releases at tryjumping.com
+CLOSED: [2018-12-12 Wed 11:52]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-12 Wed 11:52
+:END:
+*** Create a small hand-written HTML site to host the releases
+*** Just copy everything from aimlesslygoingforward.com

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from ConfigParser import SafeConfigParser
+from glob import glob
 import os
 import shutil
 from sys import argv
@@ -107,6 +108,13 @@ def mkdir_p(directory):
     return directory
 
 
+def add_icons(target, version, sources):
+    icons_destination_path = os.path.join(sources, 'Dose Response', 'icons')
+    mkdir_p(icons_destination_path)
+    for filename in glob('assets/icon*'):
+        shutil.copy(filename, icons_destination_path)
+
+
 if __name__ == '__main__':
     if len(argv) > 1:
         version = argv[1]
@@ -135,6 +143,8 @@ if __name__ == '__main__':
         sources = extract_file(downloaded_path)
         print "Extracted to: '{}'".format(sources)
         target['process'](target, version, sources)
+        print "Adding icons..."
+        add_icons(target, version, sources)
         artifact_path = package_sources(target, version, sources)
         print "Build created in: '{}'".format(artifact_path)
         shutil.rmtree(sources)

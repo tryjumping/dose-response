@@ -45,18 +45,21 @@ pub fn render(
         }
     }
 
-    // NOTE: This renders the game's icon. Change the tilesize to an
-    // appropriate value.
-    //
-    // let origin = Point::new(15, 15);
-    // drawcalls.push(Draw::Char(origin, 'D', color::depression));
-    // drawcalls.push(Draw::Char(origin + (1, 0), 'r', color::anxiety));
-    // drawcalls.push(Draw::Char(origin + (0, 1), '@', color::player));
-    // drawcalls.push(Draw::Char(origin + (1, 1), 'i', color::dose));
-    // drawcalls.push(Draw::Fade(1.0, color::BLACK));
+    // // NOTE: This renders the game's icon. Change the tilesize to an
+    // // appropriate value.
+    // //
+    // let origin = Point::new(0, 0);
+    // display.set_glyph(origin, 'D', color::depression);
+    // display.set_glyph(origin + (1, 0), 'r', color::anxiety);
+    // display.set_glyph(origin + (0, 1), '@', color::player);
+    // display.set_glyph(origin + (1, 1), 'i', color::dose);
+    // display.set_fade(color::BLACK, 1.0);
 
-    // Show the tile under mouse pointer:
-    // drawcalls.push(Draw::Rectangle(::rect::Rectangle::from_point_and_size(state.mouse.tile_pos, Point::from_i32(1)), color::gui_text));
+    // // NOTE: DEBUG: Show the tile under mouse pointer:
+    // display.draw_rectangle(
+    //     Rectangle::from_point_and_size(state.mouse.tile_pos, Point::from_i32(1)),
+    //     color::gui_text,
+    // );
 }
 
 pub fn render_game(

@@ -6,7 +6,8 @@
     too_many_arguments,
     cyclomatic_complexity,
     expect_fun_call,
-    or_fun_call
+    or_fun_call,
+    unused_macros
 )]
 #![windows_subsystem = "windows"]
 

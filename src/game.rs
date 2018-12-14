@@ -211,7 +211,7 @@ fn process_game(
 
         // NOTE: Scroll to the Victory NPC position
         {
-            state.pos_timer = Timer::new(Duration::from_millis(2000));
+            state.pos_timer = Timer::new(Duration::from_millis(3000));
             state.old_screen_pos = state.screen_position_in_world;
             state.new_screen_pos = vnpc_pos;
         }

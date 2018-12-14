@@ -19,6 +19,7 @@ mod animation;
 mod blocker;
 mod color;
 mod engine;
+mod error;
 mod formula;
 mod game;
 mod generators;
@@ -270,6 +271,7 @@ fn process_cli_and_run_game() {
             matches.is_present("replay-full-speed"),
             matches.is_present("exit-after"),
         )
+        .expect("Could not load the replay file")
     } else {
         if matches.is_present("replay-full-speed") {
             panic!(

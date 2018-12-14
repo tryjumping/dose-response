@@ -310,97 +310,77 @@ Reason: '{}'.",
         invincible: bool,
         replay_full_speed: bool,
         exit_after: bool,
-    ) -> State {
+    ) -> Result<State, Box<dyn Error>> {
         use serde_json;
         use std::io::{BufRead, BufReader};
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();
         let seed: u32;
-        match File::open(replay_path) {
-            Ok(file) => {
-                let mut lines = BufReader::new(file).lines();
-                match lines.next() {
-                    Some(Ok(seed_str)) => match seed_str.parse() {
-                        Ok(parsed_seed) => seed = parsed_seed,
-                        Err(_) => panic!("The seed must be a number."),
-                    },
-                    Some(Err(error)) => {
-                        log::error!("Could not read replay seed: {:?}", error);
-                        panic!("Reading replay file failed.");
-                    }
-                    None => panic!("The replay file is empty."),
-                };
+        let file = File::open(replay_path)?;
+        let mut lines = BufReader::new(file).lines();
+        match lines.next() {
+            Some(seed_str) => seed = seed_str?.parse()?,
+            None => return Err(crate::error::boxed("The replay file is empty.")),
+        };
 
-                match lines.next() {
-                    Some(Ok(version)) => {
-                        if version != crate::metadata::VERSION {
-                            log::warn!(
-                                "The replay file's version is: {}, but the program is: {}",
-                                version,
-                                crate::metadata::VERSION
-                            );
-                        }
-                    }
-                    Some(Err(error)) => {
-                        log::error!("Could not read replay version: {:?}", error);
-                        panic!("Reading replay file failed.");
-                    }
-                    None => panic!("The replay file is missing the version."),
-                };
-
-                match lines.next() {
-                    Some(Ok(commit)) => {
-                        if commit != crate::metadata::GIT_HASH {
-                            log::warn!(
-                                "The replay file's commit is: {}, but the program is: {}.",
-                                commit,
-                                crate::metadata::GIT_HASH
-                            );
-                        }
-                    }
-                    Some(Err(error)) => {
-                        log::error!("Could not read replay commit: {:?}", error);
-                        panic!("Reading replay file failed.");
-                    }
-                    None => panic!("The replay file is missing the commit hash."),
-                };
-
-                loop {
-                    match lines.next() {
-                        Some(Ok(line)) => {
-                            let command = serde_json::from_str(&line);
-                            if let Ok(command) = command {
-                                commands.push_back(command);
-                            } else {
-                                let verification = serde_json::from_str(&line).expect(&format!(
-                                    "Couldn't load the \
-                                     command or \
-                                     verification: '{}'.",
-                                    line
-                                ));
-                                verifications.push_back(verification);
-                            }
-                        }
-                        Some(Err(err)) => panic!(
-                            "Error reading a line from the replay \
-                             file: {:?}.",
-                            err
-                        ),
-                        None => break,
-                    }
+        match lines.next() {
+            Some(version) => {
+                let version = version?;
+                if version != crate::metadata::VERSION {
+                    log::warn!(
+                        "The replay file's version is: {}, but the program is: {}",
+                        version,
+                        crate::metadata::VERSION
+                    );
                 }
             }
-            Err(msg) => panic!(
-                "Failed to read the replay file: {}. Reason: {}",
-                replay_path.display(),
-                msg
-            ),
+            None => {
+                return Err(crate::error::boxed(
+                    "The replay file is missing the version.",
+                ))
+            }
+        };
+
+        match lines.next() {
+            Some(commit) => {
+                let commit = commit?;
+                if commit != crate::metadata::GIT_HASH {
+                    log::warn!(
+                        "The replay file's commit is: {}, but the program is: {}.",
+                        commit,
+                        crate::metadata::GIT_HASH
+                    );
+                }
+            }
+            None => {
+                return Err(crate::error::boxed(
+                    "The replay file is missing the commit hash.",
+                ))
+            }
+        };
+
+        loop {
+            match lines.next() {
+                Some(line) => {
+                    let line = line?;
+                    let command = serde_json::from_str(&line);
+                    // Try parsing it as a command, otherwise it's a verification
+                    if let Ok(command) = command {
+                        commands.push_back(command);
+                    } else {
+                        let verification = serde_json::from_str(&line)?;
+                        verifications.push_back(verification);
+                    }
+                }
+                None => break,
+            }
         }
+
         log::info!("Replaying game log: '{}'", replay_path.display());
         let cheating = cheating;
         let invincible = invincible;
         let replay = true;
-        State::new(
+        Ok(State::new(
             world_size,
             map_size,
             panel_width,
@@ -414,7 +394,7 @@ Reason: '{}'.",
             replay,
             replay_full_speed,
             exit_after,
-        )
+        ))
     }
 
     pub fn verification(&self) -> Verification {

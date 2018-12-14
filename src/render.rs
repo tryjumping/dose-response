@@ -231,6 +231,7 @@ pub fn render_game(
             .cell(monster.position)
             .map_or(false, |cell| cell.always_visible);
         if monster_visible
+            || monster.accompanying_player
             || cell_visible
             || bonus == Bonus::UncoverMap
             || bonus == Bonus::SeeMonstersAndItems

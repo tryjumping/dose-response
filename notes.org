@@ -44,7 +44,6 @@ CLOSED: [2018-02-24 Sat 16:56]
 * Add a `--uncover-map` feature to replay
 ** turned off by default
 ** so that we can actually produce viable replays
-* Remove the anxiety-related messages from the log
 * Increase map scroll speed during replays
 * Allow for variable font sizes                                        :code:
 * Display the game version on the title screen as well
@@ -3234,3 +3233,8 @@ CLOSED: [2018-12-14 Fri 13:37]
 *** this will make it clearer to figure out that you want to keep hunting the Wills
 *** We can start by showing will with a decimal counter
 *** Or a "next will" progress bar
+** DONE Remove the anxiety-related messages from the log
+CLOSED: [2018-12-14 Fri 14:09]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 14:09
+:END:

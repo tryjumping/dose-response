@@ -466,7 +466,8 @@ fn process_game(
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
         let display_pos = state.player.pos - screen_left_top_corner;
-        let dur = Duration::from_millis(400);
+        let ms = if state.replay_full_speed { 100 } else { 400 };
+        let dur = Duration::from_millis(ms);
         let exploration_radius = formula::exploration_radius(state.player.mind);
         // TODO: move the screen roughly the same distance along X and Y
         if display_pos.x < exploration_radius

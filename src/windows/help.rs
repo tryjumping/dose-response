@@ -146,17 +146,15 @@ impl Window {
         );
 
         let header = format!("{}", state.current_help_window);
-        let version = format!(
+        let version = &format!(
             "{} version: {}",
-            crate::GAME_TITLE,
-            env!("CARGO_PKG_VERSION")
+            crate::metadata::TITLE,
+            crate::metadata::VERSION
         );
 
-        let copyright = format!("Copyright 2013-2018 {}", env!("CARGO_PKG_AUTHORS"));
-        let homepage = format!("Homepage: {}", env!("CARGO_PKG_HOMEPAGE"));
-
-        let git_hash = env!("DR_GIT_HASH");
-        let git_msg = format!("Git commit: {}", git_hash);
+        let copyright = format!("Copyright 2013-2018 {}", crate::metadata::AUTHORS);
+        let homepage = &format!("Homepage: {}", crate::metadata::HOMEPAGE);
+        let git_msg = &format!("Git commit: {}", crate::metadata::GIT_HASH);
 
         let mut lines = vec![];
         lines.push(Centered(&header));
@@ -280,12 +278,12 @@ impl Window {
             }
 
             Page::About => {
-                lines.push(Paragraph(&version));
-                lines.push(Paragraph(&homepage));
+                lines.push(Paragraph(version));
+                lines.push(Paragraph(homepage));
                 lines.push(Empty);
 
-                if !git_hash.trim().is_empty() {
-                    lines.push(Paragraph(&git_msg));
+                if !crate::metadata::GIT_HASH.trim().is_empty() {
+                    lines.push(Paragraph(git_msg));
                     lines.push(Empty);
                 }
 

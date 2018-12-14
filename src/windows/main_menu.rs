@@ -149,7 +149,7 @@ impl Window {
         // NOTE: draw the version explicitly
         display.draw_text(
             layout.inner_window_rect.bottom_right() - (1, 1),
-            &format!("Version: {}", env!("CARGO_PKG_VERSION")),
+            &format!("Version: {}", crate::metadata::VERSION),
             color::gui_text,
             TextOptions::align_right(),
         );

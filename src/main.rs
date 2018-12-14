@@ -26,6 +26,7 @@ mod graphics;
 mod item;
 mod keys;
 mod level;
+mod metadata;
 mod monster;
 mod palette;
 mod pathfinding;
@@ -62,8 +63,6 @@ const WORLD_SIZE: point::Point = point::Point {
     x: 1_073_741_824,
     y: 1_073_741_824,
 };
-
-const GAME_TITLE: &str = "Dose Response";
 
 #[allow(unused_variables, dead_code, needless_pass_by_value)]
 fn run_glium(
@@ -174,10 +173,10 @@ fn process_cli_and_run_game() {
     // should still be able to function.
     let _ = CombinedLogger::init(loggers);
 
-    let matches = App::new(GAME_TITLE)
-        .version(env!("CARGO_PKG_VERSION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
+    let matches = App::new(metadata::TITLE)
+        .version(metadata::VERSION)
+        .author(metadata::AUTHORS)
+        .about(metadata::DESCRIPTION)
         .arg(
             Arg::with_name("replay")
                 .value_name("FILE")
@@ -239,16 +238,16 @@ fn process_cli_and_run_game() {
         .group(ArgGroup::with_name("graphics").args(&["glium", "glutin", "sdl", "remote"]))
         .get_matches();
 
-    log::info!("{} version: {}", GAME_TITLE, env!("CARGO_PKG_VERSION"));
-    log::info!("By: {}", env!("CARGO_PKG_AUTHORS"));
-    log::info!(env!("CARGO_PKG_HOMEPAGE"));
+    log::info!("{} version: {}", metadata::TITLE, metadata::VERSION);
+    log::info!("By: {}", metadata::AUTHORS);
+    log::info!("{}", metadata::HOMEPAGE);
 
-    let git_hash = env!("DR_GIT_HASH");
-    if !git_hash.trim().is_empty() {
-        log::info!("Git commit: {}", git_hash);
+    let hash = metadata::GIT_HASH.trim();
+    if !hash.is_empty() {
+        log::info!("Git commit: {}", hash);
     }
-    let target_triple = env!("DR_TARGET_TRIPLE");
-    if !target_triple.trim().is_empty() {
+    let target_triple = metadata::TARGET_TRIPLE.trim();
+    if !target_triple.is_empty() {
         log::info!("Target triple: {}", target_triple);
     }
 
@@ -295,7 +294,7 @@ fn process_cli_and_run_game() {
 
     let display_size = DISPLAY_SIZE;
     let background = color::unexplored_background;
-    let game_title = GAME_TITLE;
+    let game_title = metadata::TITLE;
     let game_update = game::update;
 
     if matches.is_present("remote") {

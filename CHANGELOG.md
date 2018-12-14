@@ -8,7 +8,7 @@ desperately looking for the next fix.
 
 [Unreleased]: https://github.com/tryjumping/dose-response/compare/v0.11.0...HEAD
 
-## [0.11.0] - 2018-12-14
+## [0.11.1] - 2018-12-14
 - Updated all in-game links to use the new https://tryjumping.com website
 - Added icon to the Windows executables
 - Migrated code repository to https://github.com/tryjumping/dose-response
@@ -18,7 +18,7 @@ desperately looking for the next fix.
 - The game now shows the main menu on start
   - Previously, the player was dumped straight into the game
 
-[0.11.0]: https://github.com/tryjumping/dose-response/compare/v0.10.0...v0.11.0
+[0.11.1]: https://github.com/tryjumping/dose-response/compare/v0.10.0...v0.11.1
 
 
 ## [0.10.0] - 2018-11-30

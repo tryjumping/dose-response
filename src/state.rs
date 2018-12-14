@@ -145,6 +145,7 @@ pub struct State {
     pub window_stack: windows::Windows<Window>,
 
     pub show_keboard_movement_hints: bool,
+    pub show_anxiety_counter: bool,
     pub current_help_window: windows::help::Page,
 
     /// Whether we should push the Endscreen window and uncover the
@@ -217,6 +218,7 @@ impl State {
             victory_npc_id: None,
             window_stack: windows::Windows::new(Window::Game),
             show_keboard_movement_hints: true,
+            show_anxiety_counter: false,
             current_help_window: windows::help::Page::DoseResponse,
             show_endscreen_and_uncover_map_during_fadein: false,
             uncovered_map: false,

@@ -324,6 +324,12 @@ fn process_game(
             log::debug!("Monster's waiting for the explosion to end.");
         }
 
+        // NOTE: the anxiety counter bar is hidden at the start, but
+        // we want to show it as soon as it increases.
+        if player_took_action && !state.player.anxiety_counter.is_min() {
+            state.show_anxiety_counter = true;
+        }
+
         if player_took_action && state.player.mind.is_high() {
             if let Some(victory_npc_id) = state.victory_npc_id.take() {
                 log::info!("Player got High, the Victory NPC disappears!");

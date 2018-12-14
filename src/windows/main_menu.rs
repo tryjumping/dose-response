@@ -69,7 +69,7 @@ impl Window {
 
         let mut options = vec![];
 
-        if !state.game_ended {
+        if !state.game_ended && !state.first_game_already_generated {
             options.push(MenuItem::Resume);
         }
 

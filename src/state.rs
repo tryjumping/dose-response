@@ -402,31 +402,42 @@ Reason: '{}'.",
     }
 
     pub fn save_to_file(&self) -> Result<(), Box<dyn Error>> {
-        use bincode::serialize;
-
         // TODO: select the filename dynamicaly!
         let filename = "SAVEDGAME.sav";
-        let buffer = serialize(self)?;
+        let version_data = bincode::serialize(crate::metadata::VERSION)?;
+        let commit_data = bincode::serialize(crate::metadata::GIT_HASH)?;
+        let state_data = bincode::serialize(self)?;
 
         // TODO: this can be compressed nicely!
 
         let mut file = File::create(filename)?;
-        file.write_all(&buffer)?;
+        file.write_all(&version_data)?;
+        file.write_all(&commit_data)?;
+        file.write_all(&state_data)?;
         file.flush()?;
 
         Ok(())
     }
 
     pub fn load_from_file() -> Result<State, Box<dyn Error>> {
-        use bincode::deserialize;
-        use std::io::Read;
-
         let filename = "SAVEDGAME.sav";
         let state = {
-            let mut buffer = Vec::with_capacity(1_000_000);
-            let mut file = File::open(filename)?;
-            file.read_to_end(&mut buffer)?;
-            deserialize(&buffer[..])?
+            let file = File::open(filename)?;
+            let version: String = bincode::deserialize_from(&file)?;
+            log::info!("Savefile version {}", version);
+            if version != crate::metadata::VERSION {
+                log::warn!("The game was saved in a different version: {}. This release has version: {}. The game might not load properly.",
+                           version,
+                           crate::metadata::VERSION);
+            }
+            let commit: String = bincode::deserialize_from(&file)?;
+            log::info!("Savefile commit {}", commit);
+            if commit != crate::metadata::GIT_HASH {
+                log::warn!("The game was saved in a different commit: {}. This release has commit: {}. The game might not load properly.",
+                           commit,
+                crate::metadata::GIT_HASH);
+            }
+            bincode::deserialize_from(&file)?
         };
 
         if let Err(error) = ::std::fs::remove_file(filename) {

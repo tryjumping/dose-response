@@ -7,14 +7,14 @@
 CLOSED: [2018-02-24 Sat 16:56]
 ** Localisation?
 * Release checklist                                         :notes:checklist:
+- [ ] Run: `cargo check; cargo build; cargo build --release; make wasm-release`
+- [ ] Test the wasm version
 - [ ] Create a new release in CHANGELOG.md
   - `git log --oneline v0.8.0..`
 - [ ] Take a screenshot
 - [ ] Move the screenshot to Dose Response's screenshots directory
 - [ ] Commit the screenshot in the repo
 - [ ] Bump the version in Cargo.toml
-- [ ] Run: `cargo check; cargo build; cargo build --release; make wasm-release`
-- [ ] Test the wasm version
 - [ ] Run: `make release`
 - [ ] cp target/web/* files to the project website
 - [ ] Copy the screenshot to the project website

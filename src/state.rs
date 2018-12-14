@@ -283,6 +283,7 @@ Reason: '{}'.",
         panel_width: i32,
         display_size: Point,
         _replay_path: &Path,
+        cheating: bool,
         invincible: bool,
         _replay_full_speed: bool,
         exit_after: bool,
@@ -305,6 +306,7 @@ Reason: '{}'.",
         panel_width: i32,
         display_size: Point,
         replay_path: &Path,
+        cheating: bool,
         invincible: bool,
         replay_full_speed: bool,
         exit_after: bool,
@@ -357,7 +359,7 @@ Reason: '{}'.",
             ),
         }
         log::info!("Replaying game log: '{}'", replay_path.display());
-        let cheating = true;
+        let cheating = cheating;
         let invincible = invincible;
         let replay = true;
         State::new(

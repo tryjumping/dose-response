@@ -208,6 +208,11 @@ fn process_cli_and_run_game() {
                 .long("exit-after"),
         )
         .arg(
+            Arg::with_name("cheating")
+                .help("Opens the cheat mode on start. Uncovers the map.")
+                .long("cheating"),
+        )
+        .arg(
             Arg::with_name("invincible")
                 .help("Makes the player character invincible. They do not die.")
                 .long("invincible"),
@@ -261,6 +266,7 @@ fn process_cli_and_run_game() {
             PANEL_WIDTH,
             DISPLAY_SIZE,
             &replay_path,
+            matches.is_present("cheating"),
             matches.is_present("invincible"),
             matches.is_present("replay-full-speed"),
             matches.is_present("exit-after"),

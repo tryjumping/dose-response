@@ -1,4 +1,8 @@
-all: release wasm-release
+build-all:
+	cargo check
+	cargo build
+	cargo build --release --no-default-features --features prod
+	cargo build --release --target wasm32-unknown-unknown --no-default-features --features web
 
 replay:
 	cargo run -- `find replays -type f -name 'replay-*' | sort | tail -n 1`

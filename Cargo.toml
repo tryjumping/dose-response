@@ -68,5 +68,4 @@ web = []
 
 [profile.release]
 codegen-units = 1
-# NOTE: this should make the binaries smaller and faster at some compile time cost. Read up on it, profile, verify!
-#lto = true
+lto = true

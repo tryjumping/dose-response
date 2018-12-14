@@ -233,3 +233,11 @@ impl Monster {
         }
     }
 }
+
+impl std::fmt::Display for Monster {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(f, "Monster {{")?;
+        write!(f, "name: {}, position: {:?}", self.name(), self.position)?;
+        write!(f, "}}")
+    }
+}

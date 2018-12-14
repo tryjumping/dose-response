@@ -916,7 +916,7 @@ fn process_player_action<R, W>(
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
                             monster::Kind::Anxiety => {
-                                log::info!(
+                                log::debug!(
                                     "Bumped into anxiety! Current anxiety counter: {:?}",
                                     player.anxiety_counter
                                 );
@@ -926,9 +926,9 @@ fn process_player_action<R, W>(
                                     } else {
                                         1
                                     };
-                                log::info!("Anxiety increment: {:?}", increment);
+                                log::debug!("Anxiety increment: {:?}", increment);
                                 player.anxiety_counter += increment;
-                                log::info!("New anxiety counter: {:?}", player.anxiety_counter);
+                                log::debug!("New anxiety counter: {:?}", player.anxiety_counter);
                                 if player.anxiety_counter.is_max() {
                                     log::info!("Increasing player's will");
                                     player.will += 1;
@@ -937,7 +937,10 @@ fn process_player_action<R, W>(
                             }
                             // NOTE: NPCs don't give bonuses or accompany the player when high.
                             monster::Kind::Npc if player.mind.is_sober() => {
-                                log::info!("Bumped into NPC: {:?}", world.monster_on_pos(dest));
+                                if let Some(monster) = world.monster_on_pos(dest) {
+                                    log::info!("Bumped into NPC: {}", monster);
+                                }
+
                                 // Clear any existing monsters accompanying the player. The player
                                 // can have only one companion at a time right now.
                                 //
@@ -948,11 +951,11 @@ fn process_player_action<R, W>(
                                     .filter(|m| m.kind == monster::Kind::Npc);
                                 for npc in npcs {
                                     if npc.position == dest {
-                                        log::info!("NPC {:?} accompanies the player.", npc);
+                                        log::info!("NPC {} accompanies the player.", npc);
                                         npc.accompanying_player = true;
                                         assert!(npc.companion_bonus.is_some());
                                     } else if npc.accompanying_player {
-                                        log::info!("NPC {:?} leaves the player.", npc);
+                                        log::info!("NPC {} leaves the player.", npc);
                                         npc.accompanying_player = false;
                                     }
                                 }

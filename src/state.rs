@@ -285,12 +285,12 @@ Reason: '{}'.",
         panel_width: i32,
         display_size: Point,
         _replay_path: &Path,
-        cheating: bool,
+        _cheating: bool,
         invincible: bool,
         _replay_full_speed: bool,
         exit_after: bool,
-    ) -> State {
-        Self::new_game(
+    ) -> Result<State, Box<dyn Error>> {
+        Ok(Self::new_game(
             world_size,
             map_size,
             panel_width,
@@ -298,7 +298,7 @@ Reason: '{}'.",
             exit_after,
             None,
             invincible,
-        )
+        ))
     }
 
     #[cfg(feature = "replay")]

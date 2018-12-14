@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 pub const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 pub const GIT_HASH: &str = env!("DR_GIT_HASH");

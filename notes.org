@@ -39,15 +39,7 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Always show companion NPC
-** even when they're behind the fog of war
 * Allow for variable font sizes                                        :code:
-* Display the game version on the title screen as well
-** We show it in help, but that's hidden
-** People should have a simple way to figure out if there's an update
-* Save game version and commit to the save file
-** so we have at least a chance of knowing it's an older version
-* Save game version and commit to the replay file
 * Figure out how to generate a video out of a replay
 ** And use that as a trailer
 ** `replays/replay-2018-12-13T13-22-17.286` might be good
@@ -3246,3 +3238,37 @@ CLOSED: [2018-12-14 Fri 14:27]
 :END:
 *** turned off by default
 *** so that we can actually produce viable replays
+** DONE Always show companion NPC
+CLOSED: [2018-12-14 Fri 15:20]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 15:20
+:END:
+*** even when they're behind the fog of war
+** DONE Display the game version on the title screen as well
+CLOSED: [2018-12-14 Fri 15:49]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 15:49
+:END:
+*** We show it in help, but that's hidden
+*** People should have a simple way to figure out if there's an update
+** DONE Save game version and commit to the save file
+CLOSED: [2018-12-14 Fri 17:01]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 17:01
+:END:
+*** so we have at least a chance of knowing it's an older version
+** DONE Save game version and commit to the replay file
+CLOSED: [2018-12-14 Fri 17:55]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 17:55
+:END:
+** DONE Start the game with the main menu
+CLOSED: [2018-12-14 Fri 18:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 18:57
+:END:
+*** I don't want to
+*** But it is probably better
+**** At least when there is a file saved already?
+*** All games work like this
+**** People expect it, they can check out the settings, help etc.

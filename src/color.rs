@@ -87,6 +87,9 @@ pub const tree_3: Color = NATURAL_GREEN;
 
 pub const gui_progress_bar_bg: Color = DIM_GREEN;
 
+pub const anxiety_progress_bar_fg: Color = RED;
+pub const anxiety_progress_bar_bg: Color = BROWN;
+
 pub const tree_1: Color = DIM_GREEN;
 
 pub const anxiety: Color = RED;

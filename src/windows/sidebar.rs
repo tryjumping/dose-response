@@ -179,11 +179,18 @@ impl Window {
             color::gui_progress_bar_bg,
         );
 
-        display.draw_text(
-            layout.stats_pos,
-            &format!("Will: {}", player.will.to_int()),
-            fg,
-            Default::default(),
+        let will_text = format!("Will: {}", player.will.to_int());
+        let will_text_options = Default::default();
+        display.draw_text(layout.stats_pos, &will_text, fg, will_text_options);
+
+        // Show the anxiety counter as a progress bar next to the `Will` number
+        graphics::progress_bar(
+            display,
+            state.player.anxiety_counter.percent(),
+            layout.stats_pos + (metrics.get_text_width(&will_text, will_text_options), 0),
+            state.player.anxiety_counter.max(),
+            color::anxiety_progress_bar_fg,
+            color::anxiety_progress_bar_bg,
         );
 
         let mut lines: Vec<Cow<'static, str>> = vec![];

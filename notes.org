@@ -39,32 +39,28 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Make the windows icon support multiple sizes?
-** ImageMagick's `convert` tool lets you do it
-convert 16.png 32.png 48.png 128.png 256.png -colors 256 icon.ico
-*** source: https://superuser.com/questions/491180/how-do-i-embed-multiple-sizes-in-an-ico-file
-** Also, apparently, you can do it with GIMP
-*** Put each icon in a separate layer
-** Full size of icon files:
-*** 16x16
-*** 32x32
-*** 48x48
-*** 256x256
-* Include files in the game release
-** Add the windows icon
-** Add the png icons
-** Copy from assets
+* Always show companion NPC
+** even when they're behind the fog of war
+* Add a `--uncover-map` feature to replay
+** turned off by default
+** so that we can actually produce viable replays
+* Remove the anxiety-related messages from the log
+* Increase map scroll speed during replays
+* Allow for variable font sizes                                        :code:
 * Display the game version on the title screen as well
 ** We show it in help, but that's hidden
 ** People should have a simple way to figure out if there's an update
 * Save game version and commit to the save file
 ** so we have at least a chance of knowing it's an older version
 * Save game version and commit to the replay file
-* Investigate using LTO                                                :code:
-** Set it in profile.release in Cargo.toml
-** Should make compilation longer but speed the binary up
-** Needs testing
-** Apparently we set it in the CI release builds
+* Figure out how to generate a video out of a replay
+** And use that as a trailer
+** `replays/replay-2018-12-13T13-22-17.286` might be good
+*** also `replays/replay-2018-12-14T13-09-00.898` (it's my first victory run)
+** Looks like you can generate PNG images and then use ffmpeg
+http://electron.mit.edu/~gsteele/ffmpeg/
+** You can also pipe bitmaps directly to ffmpeg apparently?
+https://github.com/acg/generating-video-demo
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
 ** Would also test our build.rs tilesize generation to JS
@@ -72,7 +68,11 @@ convert 16.png 32.png 48.png 128.png 256.png -colors 256 icon.ico
 ** need to make the palettes configurable
 ** test with the phone app for several blindnesses
 ** add a black and white mode?
-* Allow for variable font sizes                                        :code:
+* Consider adding the human_panic crate
+https://github.com/rust-clique/human-panic
+** It catches panics and prints out a message
+** though you won't see this in the GUI programs I think?
+** Can we set up our own panic hook?
 * Add a settings/config file
 ** Use json (ugh) because that's a serialisation format we already have in the code
 ** And we'll primarily use it from within the game
@@ -158,10 +158,6 @@ cargo run
 *** yeah this only happens in dev on geralt
 **** when testing a properly released version, the issue is not there
 **** even on geralt
-* Show the anxiety counter in the UI                                :ui:idea:
-** this will make it clearer to figure out that you want to keep hunting the Wills
-** We can start by showing will with a decimal counter
-** Or a "next will" progress bar
 * Simplify the CI build scripts
 ** Move readme etc. generation to the process-artifacts.py script
 ** The CI should produce just the binary *maybe* with a readme pointing to the proper releases
@@ -3198,3 +3194,43 @@ CLOSED: [2018-12-12 Wed 16:13]
 :END:
 *** window execs can have an icon embedded
 *** http://stackoverflow.com/questions/708238/how-do-i-add-an-icon-to-a-mingw-gcc-compiled-executable
+** DONE Make the windows icon support multiple sizes?
+CLOSED: [2018-12-13 Thu 12:11]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-13 Thu 12:11
+:END:
+*** ImageMagick's `convert` tool lets you do it
+convert 16.png 32.png 48.png 128.png 256.png -colors 256 icon.ico
+**** source: https://superuser.com/questions/491180/how-do-i-embed-multiple-sizes-in-an-ico-file
+*** Also, apparently, you can do it with GIMP
+**** Put each icon in a separate layer
+*** Full size of icon files:
+**** 16x16
+**** 32x32
+**** 48x48
+**** 256x256
+** DONE Include files in the game release
+CLOSED: [2018-12-13 Thu 12:29]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-13 Thu 12:29
+:END:
+*** Add the windows icon
+*** Add the png icons
+*** Copy from assets
+** DONE Investigate using LTO                                         :code:
+CLOSED: [2018-12-13 Thu 13:43]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-13 Thu 13:43
+:END:
+*** Set it in profile.release in Cargo.toml
+*** Should make compilation longer but speed the binary up
+*** Needs testing
+*** Apparently we set it in the CI release builds
+** DONE Show the anxiety counter in the UI                         :ui:idea:
+CLOSED: [2018-12-14 Fri 13:37]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 13:37
+:END:
+*** this will make it clearer to figure out that you want to keep hunting the Wills
+*** We can start by showing will with a decimal counter
+*** Or a "next will" progress bar

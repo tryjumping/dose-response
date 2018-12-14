@@ -6,7 +6,19 @@ desperately looking for the next fix.
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/tryjumping/dose-response/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/tryjumping/dose-response/compare/v0.11.0...HEAD
+
+## [0.11.0] - 2018-12-14
+- Updated all in-game links to use the new https://tryjumping.com website
+- Added icon to the Windows executables
+- Migrated code repository to https://github.com/tryjumping/dose-response
+- Added counter showing progress on increasing the Will stat
+- Companion NPCs are now always visible -- even when behind a fog of war or unexplored tile
+- Save files now store the game version and log a warning if it doesn't match
+- The game now shows the main menu on start
+  - Previously, the player was dumped straight into the game
+
+[0.11.0]: https://github.com/tryjumping/dose-response/compare/v0.10.0...v0.11.0
 
 
 ## [0.10.0] - 2018-11-30

@@ -21,6 +21,8 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-pub fn boxed(message: &str) -> Box<Error> {
-    Box::new(Error::new(message))
+macro_rules! error {
+    ($message:expr) => {
+        return core::result::Result::Err(std::boxed::Box::new(crate::error::Error::new($message)));
+    };
 }

@@ -320,7 +320,7 @@ Reason: '{}'.",
         let mut lines = BufReader::new(file).lines();
         match lines.next() {
             Some(seed_str) => seed = seed_str?.parse()?,
-            None => return Err(crate::error::boxed("The replay file is empty.")),
+            None => error!("The replay file is empty."),
         };
 
         match lines.next() {
@@ -334,11 +334,7 @@ Reason: '{}'.",
                     );
                 }
             }
-            None => {
-                return Err(crate::error::boxed(
-                    "The replay file is missing the version.",
-                ))
-            }
+            None => error!("The replay file is missing the version."),
         };
 
         match lines.next() {
@@ -352,11 +348,7 @@ Reason: '{}'.",
                     );
                 }
             }
-            None => {
-                return Err(crate::error::boxed(
-                    "The replay file is missing the commit hash.",
-                ))
-            }
+            None => error!("The replay file is missing the commit hash."),
         };
 
         loop {

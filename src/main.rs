@@ -19,6 +19,7 @@ mod animation;
 mod blocker;
 mod color;
 mod engine;
+#[macro_use]
 mod error;
 mod formula;
 mod game;

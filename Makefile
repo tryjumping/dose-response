@@ -1,3 +1,5 @@
+all: release wasm-release
+
 replay:
 	cargo run -- `find replays -type f -name 'replay-*' | sort | tail -n 1`
 
@@ -23,4 +25,4 @@ wasm-release: wasm
 windows-icon: assets/icon_16x16.png assets/icon_32x32.png assets/icon_48x48.png assets/icon_64x64.png assets/icon_256x256.png
 	convert assets/icon_16x16.png assets/icon_32x32.png assets/icon_48x48.png assets/icon_64x64.png assets/icon_256x256.png -colors 256 assets/icon.ico
 
-.PHONY: replay release wasm wasm-release
+.PHONY: all replay release wasm wasm-release

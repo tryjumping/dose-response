@@ -545,9 +545,15 @@ fn process_main_menu(
             }
 
             NewGame => {
-                // TODO: when this is the first run, this should resume the game that's already
-                // loaded in the background.
-                return RunningState::NewGame(Box::new(create_new_game_state(state)));
+                // NOTE: When this is the first run, we resume the
+                // game that's already loaded in the background.
+                if state.first_game_already_generated {
+                    state.window_stack.pop();
+                    state.first_game_already_generated = false;
+                    return RunningState::Running;
+                } else {
+                    return RunningState::NewGame(Box::new(create_new_game_state(state)));
+                }
             }
 
             Help => {

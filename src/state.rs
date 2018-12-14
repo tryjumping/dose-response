@@ -144,6 +144,7 @@ pub struct State {
 
     pub window_stack: windows::Windows<Window>,
 
+    pub first_game_already_generated: bool,
     pub show_keboard_movement_hints: bool,
     pub show_anxiety_counter: bool,
     pub current_help_window: windows::help::Page,
@@ -217,6 +218,7 @@ impl State {
             game_ended: false,
             victory_npc_id: None,
             window_stack: windows::Windows::new(Window::Game),
+            first_game_already_generated: false,
             show_keboard_movement_hints: true,
             show_anxiety_counter: false,
             current_help_window: windows::help::Page::DoseResponse,

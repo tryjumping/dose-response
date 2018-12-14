@@ -284,7 +284,7 @@ fn process_cli_and_run_game() {
             Some(file) => Some(file.into()),
             None => state::generate_replay_path(),
         };
-        state::State::new_game(
+        let mut state = state::State::new_game(
             WORLD_SIZE,
             DISPLAYED_MAP_SIZE,
             PANEL_WIDTH,
@@ -292,7 +292,10 @@ fn process_cli_and_run_game() {
             matches.is_present("exit-after"),
             replay_file,
             matches.is_present("invincible"),
-        )
+        );
+        state.window_stack.push(state::Window::MainMenu);
+        state.first_game_already_generated = true;
+        state
     };
 
     let display_size = DISPLAY_SIZE;

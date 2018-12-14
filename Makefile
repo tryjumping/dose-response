@@ -1,10 +1,13 @@
 replay:
 	cargo run -- `find replays -type f -name 'replay-*' | sort | tail -n 1`
 
+replay-debug-fast:
+	cargo run -- --replay-full-speed `find replays -type f -name 'replay-*' | sort | tail -n 1`
+
 replay-release:
 	cargo run --release -- `find replays -type f -name 'replay-*' | sort | tail -n 1`
 
-replay-full-speed:
+replay-release-fast:
 	cargo run --release -- --replay-full-speed `find replays -type f -name 'replay-*' | sort | tail -n 1`
 
 release:

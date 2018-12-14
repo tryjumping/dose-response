@@ -6,6 +6,8 @@ desperately looking for the next fix.
 
 ## [Unreleased]
 
+[Unreleased]: https://github.com/tryjumping/dose-response/compare/v0.10.0...HEAD
+
 
 ## [0.10.0] - 2018-11-30
 - Fixed crash when restarting the game in the browser
@@ -16,6 +18,8 @@ desperately looking for the next fix.
 - Added version, homepage and git commit to the the game log (dose-response.log)
 - Added version to the main menu
 - Fixed the display size in the glium backend
+
+[0.10.0]: https://github.com/tryjumping/dose-response/compare/v0.9.0...v0.10.0
 
 ## [0.9.0] - 2018-11-03
 - Fixed the dose ordering in the sidebar
@@ -33,20 +37,35 @@ desperately looking for the next fix.
 - Removed the "sobriety counter" placeholder endgame sequence
 - Ported the code to Rust 2018 edition
 
+[0.9.0]: https://github.com/tryjumping/dose-response/compare/v0.8.4...v0.9.0
+
+
 ## [0.8.4] - 2018-06-8
 - Defaulted to the SDL backend everywhere
 - Fixed the OSX build
 - Added logging to the dose-response.log file
 
+[0.8.4]: https://github.com/tryjumping/dose-response/compare/v0.8.3...v0.8.4
+
+
 ## [0.8.3] - 2018-05-15
 - Added OpenGL implementation for the SDL backend
 - Lots of internal code changes
 
+[0.8.3]: https://github.com/tryjumping/dose-response/compare/v0.8.2...v0.8.3
+
+
 ## [0.8.2] - 2018-05-05
 - Minor build script fixes
 
+[0.8.2]: https://github.com/tryjumping/dose-response/compare/v0.8.1...v0.8.2
+
+
 ## [0.8.1] - 2018-05-05
 - Minor build script fixes
+
+[0.8.1]: https://github.com/tryjumping/dose-response/compare/v0.8.0...v0.8.1
+
 
 ## [0.8.0] - 2018-05-05
 - The monsters now have names visible in the game
@@ -61,6 +80,8 @@ desperately looking for the next fix.
 - The player can now move even when an animation is playing
 - Switched the web version to use WebGL
 
+[0.8.0]: https://github.com/tryjumping/dose-response/compare/v0.7.0...v0.8.0
+
 
 ## [0.7.0] - 2018-03-10
 - Added mouse support to the web version
@@ -72,6 +93,8 @@ desperately looking for the next fix.
 - Removed fog-of-war at the endgame screen
 - Included Readme and License files with the game
 
+[0.7.0]: https://github.com/tryjumping/dose-response/compare/v0.6.0...v0.7.0
+
 
 ## [0.6.0] - 2018-02-16
 - Added saving and loading
@@ -82,16 +105,22 @@ desperately looking for the next fix.
 - Basic mouse support in the main menu
 - Increased the rate at which the player develops tolerance
 
+[0.6.0]: https://github.com/tryjumping/dose-response/compare/v0.5.2...v0.6.0
+
 
 ## [0.5.2] - 2018-01-29
 - Added Help screen (press `?` to open it)
 - Added Main menu (press `Esc` to open it)
 - Added variable-width text rendering (used in the menus and help)
 
+[0.5.2]: https://github.com/tryjumping/dose-response/compare/v0.5.1...v0.5.2
+
 
 ## [0.5.1] - 2018-01-11
 - Added hints to the end game screen
 - Fixed the Vi keys
+
+[0.5.1]: https://github.com/tryjumping/dose-response/compare/v0.5.0...v0.5.1
 
 
 ## [0.5.0] - 2017-12-30
@@ -103,6 +132,8 @@ desperately looking for the next fix.
   - The game can now be played (in a modern up-to-date browser) at:
   - https://tryjumping.com/dose-response-roguelike/play/
 - Different ways of losing the game now fade in different colours
+
+[0.5.0]: https://github.com/tryjumping/dose-response/compare/v0.4.3...v0.5.0
 
 
 ## [0.4.3] - 2017-04-28
@@ -124,6 +155,8 @@ desperately looking for the next fix.
 - The endgame screens shows why the player lost t
 - The Windows version no longer shows the command line console
 
+[0.4.3]: https://github.com/tryjumping/dose-response/compare/v0.4.2...v0.4.3
+
 
 ## [0.4.2] - 2017-03-18
 
@@ -132,10 +165,14 @@ desperately looking for the next fix.
 - The keys for movements are shown every new game (and disappear when you get
   close to them so as not to interfere)
 
+[0.4.2]: https://github.com/tryjumping/dose-response/compare/v0.4.1...v0.4.2
+
 
 ## [0.4.1] - 2017-02-26
 
 - Made the shattering doses destroy the environment
+
+[0.4.1]: https://github.com/tryjumping/dose-response/compare/v0.4.0...v0.4.1
 
 
 ## [0.4.0] - 2017-02-25
@@ -150,6 +187,8 @@ desperately looking for the next fix.
 - Two new dose types are added. Their strength is between the existing
   two types, but they shoot cardinal or diagonal rays that destroy
   walls
+
+[0.4.0]: https://github.com/tryjumping/dose-response/compare/v0.3.0...v0.4.0
 
 
 ## [0.3.0] - 2016-12-14
@@ -178,10 +217,3 @@ To win the game, you must defeat enough a monsters to increase your
 Will to the maximum value (5). You need to defeat 7 as to increase the
 Will by one point. Once you're there, you need to last for 100 turns
 without getting high, losing will or (of course) dying.
-
-
-[Unreleased]: https://github.com/tryjumping/dose-response/compare/v0.4.3...HEAD
-[0.4.3]: https://github.com/tryjumping/dose-response/compare/v0.4.2...v0.4.3
-[0.4.2]: https://github.com/tryjumping/dose-response/compare/v0.4.1...v0.4.2
-[0.4.1]: https://github.com/tryjumping/dose-response/compare/v0.4.0...v0.4.1
-[0.4.0]: https://github.com/tryjumping/dose-response/compare/v0.3.0...v0.4.0

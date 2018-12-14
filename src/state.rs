@@ -254,7 +254,7 @@ Reason: '{}'.",
             Box::new(io::sink())
         };
 
-        log_seed(&mut writer, seed);
+        log_header(&mut writer, seed);
         let cheating = false;
         let replay = false;
         let replay_full_speed = false;
@@ -320,12 +320,50 @@ Reason: '{}'.",
             Ok(file) => {
                 let mut lines = BufReader::new(file).lines();
                 match lines.next() {
-                    Some(seed_str) => match seed_str.unwrap().parse() {
+                    Some(Ok(seed_str)) => match seed_str.parse() {
                         Ok(parsed_seed) => seed = parsed_seed,
                         Err(_) => panic!("The seed must be a number."),
                     },
+                    Some(Err(error)) => {
+                        log::error!("Could not read replay seed: {:?}", error);
+                        panic!("Reading replay file failed.");
+                    }
                     None => panic!("The replay file is empty."),
-                }
+                };
+
+                match lines.next() {
+                    Some(Ok(version)) => {
+                        if version != crate::metadata::VERSION {
+                            log::warn!(
+                                "The replay file's version is: {}, but the program is: {}",
+                                version,
+                                crate::metadata::VERSION
+                            );
+                        }
+                    }
+                    Some(Err(error)) => {
+                        log::error!("Could not read replay version: {:?}", error);
+                        panic!("Reading replay file failed.");
+                    }
+                    None => panic!("The replay file is missing the version."),
+                };
+
+                match lines.next() {
+                    Some(Ok(commit)) => {
+                        if commit != crate::metadata::GIT_HASH {
+                            log::warn!(
+                                "The replay file's commit is: {}, but the program is: {}.",
+                                commit,
+                                crate::metadata::GIT_HASH
+                            );
+                        }
+                    }
+                    Some(Err(error)) => {
+                        log::error!("Could not read replay commit: {:?}", error);
+                        panic!("Reading replay file failed.");
+                    }
+                    None => panic!("The replay file is missing the commit hash."),
+                };
 
                 loop {
                     match lines.next() {
@@ -464,8 +502,10 @@ fn empty_command_logger() -> Box<dyn Write> {
     Box::new(io::sink())
 }
 
-pub fn log_seed<W: Write>(writer: &mut W, seed: u32) {
+pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
     writeln!(writer, "{}", seed).unwrap();
+    writeln!(writer, "{}", crate::metadata::VERSION).unwrap();
+    writeln!(writer, "{}", crate::metadata::GIT_HASH).unwrap();
 }
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {

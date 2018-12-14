@@ -41,10 +41,6 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no orcs!
 * Always show companion NPC
 ** even when they're behind the fog of war
-* Add a `--uncover-map` feature to replay
-** turned off by default
-** so that we can actually produce viable replays
-* Increase map scroll speed during replays
 * Allow for variable font sizes                                        :code:
 * Display the game version on the title screen as well
 ** We show it in help, but that's hidden
@@ -3238,3 +3234,15 @@ CLOSED: [2018-12-14 Fri 14:09]
 :PROPERTIES:
 :ARCHIVE_TIME: 2018-12-14 Fri 14:09
 :END:
+** DONE Increase map scroll speed during replays
+CLOSED: [2018-12-14 Fri 14:16]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 14:16
+:END:
+** DONE Add a `--uncover-map` feature to replay
+CLOSED: [2018-12-14 Fri 14:27]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-14 Fri 14:27
+:END:
+*** turned off by default
+*** so that we can actually produce viable replays

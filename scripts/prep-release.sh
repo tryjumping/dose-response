@@ -13,7 +13,7 @@ verify_repo_is_clean
 VERSION=$(grep '^version\s\+' Cargo.toml | head -n 1 | awk '{gsub(/"/, "", $3); print $3}')
 echo Version: $VERSION
 
-cargo build --release
+cargo build --release --no-default-features --features prod
 verify_repo_is_clean
 git tag -a -m "Release version v${VERSION}" "v${VERSION}"
 git push --tags --follow-tags origin master

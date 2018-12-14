@@ -7,6 +7,7 @@
 CLOSED: [2018-02-24 Sat 16:56]
 ** Localisation?
 * Release checklist                                         :notes:checklist:
+- [ ] Run: `make`
 - [ ] Run: `cargo check; cargo build; cargo build --release; make wasm-release`
 - [ ] Test the wasm version
 - [ ] Create a new release in CHANGELOG.md

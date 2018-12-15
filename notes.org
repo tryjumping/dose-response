@@ -8,7 +8,6 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** Localisation?
 * Release checklist                                         :notes:checklist:
 - [ ] Run: `make`
-- [ ] Run: `cargo check; cargo build; cargo build --release; make wasm-release`
 - [ ] Test the wasm version
 - [ ] Create a new release in CHANGELOG.md
   - `git log --oneline v0.8.0..`
@@ -17,9 +16,13 @@ CLOSED: [2018-02-24 Sat 16:56]
 - [ ] Commit the screenshot in the repo
 - [ ] Bump the version in Cargo.toml
 - [ ] Run: `make release`
-- [ ] cp target/web/* files to the project website
-- [ ] Copy the screenshot to the project website
 - [ ] Verify the binaries get created in the github release page
+- [ ] Run: `scripts/process-artifacts.py`
+- [ ] Copy wasm files to the project website
+  - cp target/web/* ../tryjumping.com/content/dose-response-roguelike/play/
+- [ ] Copy release artefacts to the website's download directory
+  - cp target/publish/v0.11.1/dose-response-*.* ../tryjumping.com/content/downloads/
+- [ ] Copy the screenshot to the project website
 - [ ] Test the builds [0/3]
   - [ ] Test all the Windows Builds
   - [ ] Test the linux builds on geralt

@@ -138,6 +138,8 @@ pub fn main_loop(
     display_size: Point,
     default_background: Color,
     window_title: &str,
+    fixed_fps: Option<i32>,
+    record_replay_dir: Option<&str>,
     mut state: Box<State>,
     update: UpdateFn,
 ) {
@@ -297,7 +299,9 @@ pub fn main_loop(
 
     while running {
         let now = Instant::now();
-        let dt = now.duration_since(previous_frame_time);
+        let dt = fixed_fps
+            .map(|fps| Duration::from_millis((1000.0 / fps as f32) as u64))
+            .unwrap_or(now.duration_since(previous_frame_time));
         previous_frame_time = now;
 
         // Calculate FPS
@@ -416,7 +420,7 @@ pub fn main_loop(
 
         // Render
         let mut target = display.draw();
-        target.clear_color_srgb(0.1, 0.0, 0.1, 1.0);
+        target.clear_color_srgb(0.0, 0.0, 0.0, 1.0);
         target
             .draw(
                 &vertex_buffer,
@@ -430,6 +434,23 @@ pub fn main_loop(
             )
             .unwrap();
         target.finish().unwrap();
+
+        // Record screenshots
+        if let Some(record_replay_dir) = record_replay_dir {
+            if current_frame > 1 {
+                // reading the front buffer into an image
+                let image: glium::texture::RawImage2d<u8> = display.read_front_buffer();
+                let image = image::ImageBuffer::from_raw(
+                    image.width,
+                    image.height,
+                    image.data.into_owned(),
+                )
+                .unwrap();
+                let image = image::DynamicImage::ImageRgba8(image).flipv();
+                let path = format!("{}/img{:06}.png", record_replay_dir, current_frame);
+                image.save(&path).unwrap();
+            }
+        }
 
         // Process events
         events_loop.poll_events(|ev| {

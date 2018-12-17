@@ -72,16 +72,25 @@ fn run_glium(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
+    record_replay: bool,
     state: state::State,
     update: engine::UpdateFn,
 ) {
     log::info!("Using the glium backend");
+
+    let (fixed_fps, replay_dir) = if record_replay {
+        (Some(60), Some("/home/thomas/tmp/dose-response-recording"))
+    } else {
+        (None, None)
+    };
 
     #[cfg(feature = "glium-backend")]
     engine::glium::main_loop(
         display_size,
         default_background,
         window_title,
+        fixed_fps,
+        replay_dir,
         Box::new(state),
         update,
     );
@@ -190,6 +199,11 @@ fn process_cli_and_run_game() {
                 .long("replay-file")
                 .value_name("FILE")
                 .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("record-frames")
+                .long("record-frames")
+                .help("Whether to record the frames and save them on disk."),
         )
         .arg(
             Arg::with_name("exit-after")
@@ -321,7 +335,14 @@ fn process_cli_and_run_game() {
     } else if matches.is_present("sdl") {
         run_sdl(display_size, background, game_title, state, game_update);
     } else if matches.is_present("glium") {
-        run_glium(display_size, background, game_title, state, game_update);
+        run_glium(
+            display_size,
+            background,
+            game_title,
+            matches.is_present("record-frames"),
+            state,
+            game_update,
+        );
     } else if matches.is_present("glutin") {
         run_glutin(display_size, background, game_title, state, game_update);
     } else {

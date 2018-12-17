@@ -43,15 +43,16 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
+* Record a replay
+** Use this recording
+replays/keep/trailer-2018-12-13T13-22-17.286
+** Update endgame screen to show the marla daniels quote
+** and tryjumping.com
+** also adjust replay timings
+* Compile out unused CLI arguments on publish
+** stuff like replays, invincible etc.
+** if you can't use it, don't surface it
 * Allow for variable font sizes                                        :code:
-* Figure out how to generate a video out of a replay
-** And use that as a trailer
-** `replays/replay-2018-12-13T13-22-17.286` might be good
-*** also `replays/replay-2018-12-14T13-09-00.898` (it's my first victory run)
-** Looks like you can generate PNG images and then use ffmpeg
-http://electron.mit.edu/~gsteele/ffmpeg/
-** You can also pipe bitmaps directly to ffmpeg apparently?
-https://github.com/acg/generating-video-demo
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
 ** Would also test our build.rs tilesize generation to JS
@@ -3276,3 +3277,56 @@ CLOSED: [2018-12-14 Fri 18:57]
 **** At least when there is a file saved already?
 *** All games work like this
 **** People expect it, they can check out the settings, help etc.
+** DONE Figure out how to generate a video out of a replay
+CLOSED: [2018-12-17 Mon 15:45]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-17 Mon 15:45
+:END:
+*** And use that as a trailer
+*** `replays/replay-2018-12-13T13-22-17.286` might be good
+**** also `replays/replay-2018-12-14T13-09-00.898` (it's my first victory run)
+*** Looks like you can generate PNG images and then use ffmpeg
+http://electron.mit.edu/~gsteele/ffmpeg/
+*** You can also pipe bitmaps directly to ffmpeg apparently?
+https://github.com/acg/generating-video-demo
+*** This command works:
+cat *.png | ffmpeg -framerate 5 -f image2pipe -i - output.mp4
+**** Or with podman
+cat *.png | podman run -v $PWD:/out:z --rm -i jrottenberg/ffmpeg -framerate 5 -f image2pipe -i - /out/output.mp4
+*** Command to run with dose response:
+cargo run --quiet -- --quiet --replay-full-speed --replay-screen-to-stdout xxx > ~/tmp/dose-response-video.raw
+*** Getting the pixel data:
+**** in glium
+https://github.com/glium/glium/blob/master/examples/screenshot.rs
+**** with GL
+https://stackoverflow.com/questions/20233469/how-do-i-take-and-save-a-bmp-screenshot-in-sdl-2
+https://docs.rs/gl/0.11.0/gl/fn.ReadPixels.html
+**** with SDL
+https://docs.rs/sdl2/0.30.0/sdl2/render/struct.Canvas.html#method.read_pixels
+*** something about the timing is off
+- [X] build releaes
+- [X] print dt without screenshots
+  - around 16ms but only after frame 5 or so
+- [ ] print dt with screenshots
+- [ ] compare
+- [ ] git grep for places where we use Instant or Duration directly
+*** numbers
+**** debug, no screenshot
+frame: 000033, dt: 16.471969ms
+pre render dt: 13.716434ms
+pre screenshot dt: 16.789007ms
+screenshot_dt: 56ns
+post screenshot dt: 16.81089ms
+post events dt: 16.863299ms
+frame: 000034, dt: 16.951566ms
+pre render dt: 13.784389ms
+pre screenshot dt: 16.296501ms
+screenshot_dt: 48ns
+post screenshot dt: 16.30627ms
+post events dt: 16.328912ms
+frame: 000035, dt: 16.394912ms
+pre render dt: 7.169936ms
+pre screenshot dt: 16.652501ms
+screenshot_dt: 55ns
+post screenshot dt: 16.672801ms
+post events dt: 16.712803ms

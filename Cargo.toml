@@ -50,8 +50,9 @@ winres = "0.1"
 
 [features]
 default = ["dev"]
-dev = ["cheating", "cli", "fullscreen", "glium-backend", "glutin-backend", "replay", "sdl-backend", "stats", "verifications"]
 prod = ["cli", "fullscreen", "glium-backend", "sdl-backend"]
+dev = ["prod", "cheating", "replay", "sdl-backend", "stats", "verifications"]
+recording = ["prod", "replay"]
 
 cheating = []
 cli = ["clap", "simplelog"]

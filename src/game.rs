@@ -437,16 +437,21 @@ fn process_game(
     if player_was_alive && !state.player.alive() {
         use crate::player::CauseOfDeath::*;
         let cause_of_death = formula::cause_of_death(&state.player);
-        let fade_color = match cause_of_death {
-            Some(Exhausted) => color::exhaustion_animation,
-            Some(Overdosed) => color::overdose_animation,
-            Some(_) => color::death_animation,
-            None => {
-                // NOTE: this shouldn't happen (there should always be
-                // a cause of death) but if it deas, we won't crash
-                color::death_animation
+        let fade_color = if cfg!(feature = "recording") {
+            color::fade_to_black_animation
+        } else {
+            match cause_of_death {
+                Some(Exhausted) => color::exhaustion_animation,
+                Some(Overdosed) => color::overdose_animation,
+                Some(_) => color::death_animation,
+                None => {
+                    // NOTE: this shouldn't happen (there should always be
+                    // a cause of death) but if it deas, we won't crash
+                    color::death_animation
+                }
             }
         };
+
         let fade = formula::mind_fade_value(state.player.mind);
 
         let fade_out_ms = if cfg!(feature = "recording") {
@@ -521,6 +526,10 @@ fn process_game(
             || state.map_size.x - player_screen_pos.x < d
             || state.map_size.y - player_screen_pos.y < d
         {
+            state.show_keboard_movement_hints = false;
+        }
+
+        if cfg!(feature = "recording") {
             state.show_keboard_movement_hints = false;
         }
     }

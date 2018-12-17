@@ -322,6 +322,13 @@ fn render_endgame_screen(
 ) {
     window.render(state, metrics, display);
 
+    // // NOTE: uncomment this to show the "call to action" window in
+    // // place of the normal endgame one.
+    // //
+    // // In general, this is only useful when rendering a trailer video.
+    // let window = crate::windows::call_to_action::Window;
+    // window.render(state, metrics, display);
+
     // Clear any fade set by the gameplay rendering.
     //
     // Normally, the fadeout animation ends up setting the fade to 0.

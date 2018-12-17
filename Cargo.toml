@@ -10,7 +10,8 @@ license = "GPL-3.0"
 build = "build.rs"
 exclude = ["scripts/*", "replays/*", "screenshots/*", "ci/*",
            "web-src/*", "*.js", "*.css", "*.html",
-           "notes.org", "SAVEDGAME.sav", "out-dir-path", "dose-response.log"]
+           "notes.org", "SAVEDGAME.sav", "out-dir-path", "dose-response.log",
+           "videos/*", "*.mp4 "]
 
 [[bin]]
 name = "dose-response"

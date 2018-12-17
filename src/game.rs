@@ -875,7 +875,7 @@ fn process_player_action<R, W>(
         return;
     }
     if let Some(command) = commands.pop_front() {
-        state::log_command(command_logger, command);
+        state::log_command(command_logger, command.clone());
         let mut action = match command {
             Command::N => Action::Move(player.pos + (0, -1)),
             Command::S => Action::Move(player.pos + (0, 1)),

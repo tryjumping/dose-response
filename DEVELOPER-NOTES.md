@@ -69,7 +69,7 @@ Steps:
 2. `mkdir /home/thomas/tmp/dose-response-recording`
    * yep, it's hardcoded
 3. `cargo build --release`
-4. `cargo run -- --glium --record`
+4. `cargo run -- --glium --record-frames`
    * replays work as well
 5. `cd /home/thomas/tmp/dose-response-recording; ls`
 6. `ffmpeg -framerate 60 -i "img%06d.png" output.mp4`

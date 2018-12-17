@@ -433,19 +433,17 @@ fn process_game(
             }
         };
         let fade = formula::mind_fade_value(state.player.mind);
-        let (fade_percentage, fade_duration) = if fade > 0.0 {
-            (1.0 - fade, 2500)
-        } else {
-            (0.0, 500)
-        };
+        let fade_out_ms = if state.replay_full_speed { 500 } else { 2500 };
+        let fade_in_ms = if state.replay_full_speed { 200 } else { 500 };
+        let initial_fade_percentage = 1.0 - fade;
         state.game_ended = true;
         state.show_endscreen_and_uncover_map_during_fadein = true;
         state.screen_fading = Some(animation::ScreenFade::new(
             fade_color,
-            Duration::from_millis(fade_duration),
+            Duration::from_millis(fade_out_ms),
             Duration::from_millis(200),
-            Duration::from_millis(300),
-            fade_percentage,
+            Duration::from_millis(fade_in_ms),
+            initial_fade_percentage,
         ));
         log::debug!("Game real time: {:?}", state.clock);
     }

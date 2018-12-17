@@ -346,14 +346,14 @@ impl ScreenFade {
         fade_out: Duration,
         wait: Duration,
         fade_in: Duration,
-        fade_percentage: f32,
+        initial_fade_percentage: f32,
     ) -> Self {
         ScreenFade {
             color,
             fade_out_time: fade_out,
             wait_time: wait,
             fade_in_time: fade_in,
-            timer: Timer::new_elapsed(fade_out, fade_percentage),
+            timer: Timer::new_elapsed(fade_out, initial_fade_percentage),
             phase: ScreenFadePhase::FadeOut,
         }
     }

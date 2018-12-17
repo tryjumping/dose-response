@@ -322,8 +322,17 @@ fn render_endgame_screen(
 ) {
     window.render(state, metrics, display);
 
-    // Clear any fade set by the gameplay rendering
-    display.fade = color::invisible;
+    // Clear any fade set by the gameplay rendering.
+    //
+    // Normally, the fadeout animation ends up setting the fade to 0.
+    // But if we show the endgame screen without the animation (e.g.
+    // on Victory), we need to clear any excess fade (e.g. via
+    // withdrawal) manually here.
+    //
+    // Otherwise, the victory screen would be faded.
+    if state.screen_fading.is_none() {
+        display.fade = color::invisible;
+    }
 }
 
 fn render_message(state: &State, text: &str, _metrics: &dyn TextMetrics, display: &mut Display) {

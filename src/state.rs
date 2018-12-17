@@ -8,7 +8,9 @@ use crate::{
     random::{self, Random},
     stats::Stats,
     timer::Timer,
-    util, windows,
+    util,
+    window::Window,
+    windows,
     world::{MonsterId, World},
 };
 
@@ -39,7 +41,7 @@ pub enum Side {
 // TODO: rename this to Input or something like that. This represents the raw
 // commands from the player or AI abstracted from keyboard, joystick or
 // whatever. But they shouldn't carry any context or data.
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Command {
     N,
     E,
@@ -54,6 +56,7 @@ pub enum Command {
     UseCardinalDose,
     UseDiagonalDose,
     UseStrongDose,
+    ShowMessageBox { ttl: Duration, message: String },
 }
 
 #[cfg(feature = "replay")]
@@ -461,15 +464,6 @@ Reason: '{}'.",
 
         Ok(state)
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum Window {
-    MainMenu,
-    Game,
-    Help,
-    Endgame,
-    Message(String),
 }
 
 fn empty_command_logger() -> Box<dyn Write> {

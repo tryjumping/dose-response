@@ -5,8 +5,9 @@ use crate::{
     player::Bonus,
     point::{Point, SquareArea},
     rect::Rectangle,
-    state::{State, Window},
+    state::State,
     util,
+    window::Window,
     windows::{endgame, help, main_menu, sidebar},
     world::Chunk,
 };
@@ -39,8 +40,8 @@ pub fn render(
             Window::Endgame => {
                 render_endgame_screen(state, &endgame::Window, metrics, display);
             }
-            Window::Message(ref text) => {
-                render_message(state, text, metrics, display);
+            Window::Message { ref message, .. } => {
+                render_message(state, message, metrics, display);
             }
         }
     }

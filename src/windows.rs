@@ -6,6 +6,10 @@ pub mod help;
 pub mod main_menu;
 pub mod sidebar;
 
+/// A stack of windows.
+///
+/// There's always at least one Window present and there's always at
+/// least one that's active ("on top").
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Windows<T> {
     stack: Vec<T>,
@@ -30,6 +34,11 @@ impl<T: Clone> Windows<T> {
 
     pub fn top(&self) -> T {
         self.stack.last().unwrap().clone()
+    }
+
+    pub fn top_mut(&mut self) -> &mut T {
+        let idx = self.stack.len() - 1;
+        &mut self.stack[idx]
     }
 
     pub fn windows(&self) -> impl Iterator<Item = &T> {

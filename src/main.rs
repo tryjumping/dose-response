@@ -44,6 +44,7 @@ mod stats;
 mod timer;
 mod ui;
 mod util;
+mod window;
 mod windows;
 mod world;
 
@@ -320,7 +321,7 @@ fn process_cli_and_run_game() {
             replay_file,
             matches.is_present("invincible"),
         );
-        state.window_stack.push(state::Window::MainMenu);
+        state.window_stack.push(window::Window::MainMenu);
         state.first_game_already_generated = true;
         state
     };

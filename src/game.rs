@@ -13,10 +13,11 @@ use crate::{
     ranged_int::{InclusiveRange, Ranged},
     rect::Rectangle,
     render,
-    state::{self, Command, Side, State, Window},
+    state::{self, Command, Side, State},
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
     util,
+    window::{self, Window},
     windows::{endgame, help, main_menu, sidebar},
     world::World,
 };
@@ -80,13 +81,27 @@ pub fn update(
         settings.fullscreen = !settings.fullscreen;
     }
 
+    // Hide the timed message box if it ran out
+    let mut window_timed_out = false;
+    if let Window::Message { ref mut ttl, .. } = state.window_stack.top_mut() {
+        if let Some(ref mut ttl) = ttl {
+            *ttl = util::duration_sub_or_zero(*ttl, dt);
+        }
+        window_timed_out = ttl
+            .map(|ttl| util::num_milliseconds(ttl) == 0)
+            .unwrap_or(false);
+    }
+    if window_timed_out {
+        state.window_stack.pop();
+    }
+
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
         Window::MainMenu => process_main_menu(state, settings, &main_menu::Window, metrics),
         Window::Game => process_game(state, &sidebar::Window, metrics, dt),
         Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
-        Window::Message(_) => process_message_window(state),
+        Window::Message { .. } => process_message_window(state),
     };
 
     // NOTE: process the screen fading animation animation.
@@ -588,7 +603,7 @@ fn process_main_menu(
                             log::error!("Error saving the game: {:?}", error);
                             state
                                 .window_stack
-                                .push(Window::Message("Error: could not save the game.".into()));
+                                .push(window::message_box("Error: could not save the game."));
                         }
                     }
                 }
@@ -607,7 +622,7 @@ fn process_main_menu(
                     log::error!("Error loading the game: {:?}", error);
                     state
                         .window_stack
-                        .push(Window::Message("Error: could not load the game.".into()));
+                        .push(window::message_box("Error: could not load the game."));
                     return RunningState::Running;
                 }
             },
@@ -877,6 +892,11 @@ fn process_player_action<R, W>(
             Command::UseCardinalDose => Action::Use(item::Kind::CardinalDose),
             Command::UseDiagonalDose => Action::Use(item::Kind::DiagonalDose),
             Command::UseStrongDose => Action::Use(item::Kind::StrongDose),
+
+            Command::ShowMessageBox { ttl, message } => {
+                window_stack.push(window::timed_message_box(message, ttl));
+                return;
+            }
         };
 
         if player.stun.to_int() > 0 {
@@ -984,8 +1004,8 @@ fn process_player_action<R, W>(
                             monster::Kind::Signpost => {
                                 log::info!("Bumped into a signpost!");
                                 window_stack.push(
-                                    Window::Message(
-                                        "\"I thought you were going to stay sober for good. I was wrong. Goodbye.\"".into()));
+                                    window::message_box(
+                                        "\"I thought you were going to stay sober for good. I was wrong. Goodbye.\""));
                             }
 
                             _ => {}

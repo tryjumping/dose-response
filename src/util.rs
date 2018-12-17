@@ -26,6 +26,12 @@ pub fn num_microseconds(duration: Duration) -> Option<u64> {
     None
 }
 
+/// Calculate `duration - other`, but if we got an overflow or a
+/// negative value, return a zero Duration instead.
+pub fn duration_sub_or_zero(duration: Duration, other: Duration) -> Duration {
+    duration.checked_sub(other).unwrap_or(Duration::new(0, 0))
+}
+
 /// If `val` is outside the `min` / `max` limits, set it to the edge value.
 pub fn clamp(min: i32, val: i32, max: i32) -> i32 {
     if val < min {

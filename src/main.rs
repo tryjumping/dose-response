@@ -163,19 +163,6 @@ fn process_cli_and_run_game() {
     use simplelog::{CombinedLogger, Config, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
 
-    let mut loggers =
-        vec![SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<dyn SharedLogger>];
-    if let Ok(logfile) = File::create("dose-response.log") {
-        loggers.push(WriteLogger::new(
-            LevelFilter::Trace,
-            Config::default(),
-            logfile,
-        ));
-    }
-    // NOTE: ignore the loggers if we can't initialise them. The game
-    // should still be able to function.
-    let _ = CombinedLogger::init(loggers);
-
     let matches = App::new(metadata::TITLE)
         .version(metadata::VERSION)
         .author(metadata::AUTHORS)
@@ -238,8 +225,33 @@ fn process_cli_and_run_game() {
             "Don't create a game window. The input and output is \
              controled via ZeroMQ.",
         ))
+        .arg(
+            Arg::with_name("quiet")
+                .short("q")
+                .long("quiet")
+                .help("Don't write any messages to stdout."),
+        )
         .group(ArgGroup::with_name("graphics").args(&["glium", "glutin", "sdl", "remote"]))
         .get_matches();
+
+    let mut loggers = vec![];
+
+    if !matches.is_present("quiet") {
+        loggers
+            .push(SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<dyn SharedLogger>);
+    }
+
+    if let Ok(logfile) = File::create("dose-response.log") {
+        loggers.push(WriteLogger::new(
+            LevelFilter::Trace,
+            Config::default(),
+            logfile,
+        ));
+    }
+
+    // NOTE: ignore the loggers if we can't initialise them. The game
+    // should still be able to function.
+    let _ = CombinedLogger::init(loggers);
 
     log::info!("{} version: {}", metadata::TITLE, metadata::VERSION);
     log::info!("By: {}", metadata::AUTHORS);

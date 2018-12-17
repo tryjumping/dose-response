@@ -435,6 +435,11 @@ fn process_game(
         let fade = formula::mind_fade_value(state.player.mind);
         let fade_out_ms = if state.replay_full_speed { 500 } else { 2500 };
         let fade_in_ms = if state.replay_full_speed { 200 } else { 500 };
+
+        // // NOTE: use these when recording the trailer videos:
+        // let fade_out_ms = 700;
+        // let fade_in_ms = 700;
+
         let initial_fade_percentage = 1.0 - fade;
         state.game_ended = true;
         state.show_endscreen_and_uncover_map_during_fadein = true;

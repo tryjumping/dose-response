@@ -52,6 +52,33 @@ Now open [http://0.0.0.0:8000/](http://0.0.0.0:8000/) in your web
 browser.
 
 
+Recording a video
+-----------------
+
+The game is able to save all the frames as images on disk. This can be
+used to "record" a gameplay video.
+
+Currently, only the glium backend is able to do this. In addition,
+it's veeeery slow and you really want to do this in the release mode
+(debug records about 1 frame per second). To produce the final video,
+you'll want to have `ffmpeg` installed.
+
+Steps:
+
+1. Install ffmpeg
+2. `mkdir /home/thomas/tmp/dose-response-recording`
+   * yep, it's hardcoded
+3. `cargo build --release`
+4. `cargo run -- --glium --record`
+   * replays work as well
+5. `cd /home/thomas/tmp/dose-response-recording; ls`
+6. `ffmpeg -framerate 60 -i "img%06d.png" output.mp4`
+
+You can also use a containerised `ffmpeg` if you want:
+
+    podman run -v $PWD:/out:z --rm -i jrottenberg/ffmpeg -framerate 60 -i "/out/img%06d.png" /out/output.mp4
+
+
 Headless / Remote-controlled Mode
 ---------------------------------
 

@@ -162,10 +162,11 @@ impl Window {
             bar_width = max_val;
         }
 
-        let (mind_str, mind_val_percent) = match player.mind {
-            Mind::Withdrawal(val) => ("Withdrawal", val.percent()),
-            Mind::Sober(val) => ("Sober", val.percent()),
-            Mind::High(val) => ("High", val.percent()),
+        let (mind_str, mind_val_percent) = match (player.alive(), player.mind) {
+            (true, Mind::Withdrawal(val)) => ("Withdrawal", val.percent()),
+            (true, Mind::Sober(val)) => ("Sober", val.percent()),
+            (true, Mind::High(val)) => ("High", val.percent()),
+            (false, _) => ("Lost", 0.0),
         };
 
         display.draw_button(&Button::new(layout.mind_pos, &mind_str).color(fg));

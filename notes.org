@@ -43,12 +43,25 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Record a replay
-** Use this recording
-replays/keep/trailer-2018-12-13T13-22-17.286
-** Update endgame screen to show the marla daniels quote
-** and tryjumping.com
-** also adjust replay timings
+* Record a scripted trailer
+** Needs a way to insert messages into the replay log
+** Still has to be built around a single (failed) gameplay
+*** Should lose via Depression so we get the proper full-length fadeout
+** Replay config
+*** Don't show movement hints
+*** Customise fade out/in delays
+*** Show "call to action" window at the end
+** Script
+*** Start the game, take a longer way towards a dose
+*** MSGBOX "I'm an addict"
+*** Take dose, show High effect for a few turns
+*** MSGBOX "And it's fantastic!"
+*** Run around, play until you get deep into a withdrawal
+*** MSGBOX "Until it's not..."
+*** Keep playing some more
+*** MSGBOX "How can I get out?"
+*** Play, lose to a Depression
+*** Fade out to Call to Action
 * Compile out unused CLI arguments on publish
 ** stuff like replays, invincible etc.
 ** if you can't use it, don't surface it
@@ -3330,3 +3343,27 @@ pre screenshot dt: 16.652501ms
 screenshot_dt: 55ns
 post screenshot dt: 16.672801ms
 post events dt: 16.712803ms
+** DONE Record a replay
+CLOSED: [2018-12-17 Mon 19:08]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-17 Mon 19:08
+:END:
+*** Use this recording
+replays/keep/trailer-2018-12-13T13-22-17.286
+*** Update endgame screen to show the marla daniels quote
+*** and tryjumping.com
+*** also adjust replay timings
+rm ~/tmp/dose-response-recording/*
+cargo build --release
+cargo run --release -- --glium --replay-full-speed --record-frames replays/keep/trailer-2018-12-13T13-22-17.286
+** DONE Add option to show messages in replays
+CLOSED: [2018-12-17 Mon 21:36]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-17 Mon 21:36
+:END:
+*** Something like this format:
+MSGBOX 2.6s Hello, world!
+*** Or maybe as a json?
+{"ShowMessageBox":{"ttl":{"secs":5,"nanos":600000000},"message":"Hello, world!"}}
+*** Needs to be easy to parse, easy to add, easy to edit
+*** Will pause the keyboard input until the message runs out

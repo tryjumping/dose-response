@@ -79,6 +79,15 @@ You can also use a containerised `ffmpeg` if you want:
     podman run -v $PWD:/out:z --rm -i jrottenberg/ffmpeg -framerate 60 -i "/out/img%06d.png" /out/output.mp4
 
 
+Adding messages into the replay log
+-----------------------------------
+
+If you want to pause a replay and show a message, you can put it in
+the log manually. Timed message boxes have the following format:
+
+    {"ShowMessageBox":{"ttl":{"secs":5,"nanos":6},"message":"Hello, world!"}}
+
+
 Headless / Remote-controlled Mode
 ---------------------------------
 

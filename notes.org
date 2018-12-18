@@ -6,6 +6,15 @@
 ** DONE Non-square fonts for text
 CLOSED: [2018-02-24 Sat 16:56]
 ** Localisation?
+* Meta
+** History
+*** First ever commit: Mon Jun 17 22:38:17 2013 +0200
+*** It was called Hedonic Hypothesis back then
+*** Written in Clojure
+~/code/shelved/clj-hedonic-hypothesis
+*** Then moved to Python with libtcod
+*** Then to Rust with tcod-rs I wrote for it
+*** Then just plain old OpenGL
 * Release checklist                                         :notes:checklist:
 - [ ] Run: `make`
 - [ ] Test the wasm version

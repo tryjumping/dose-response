@@ -4,6 +4,7 @@ die() { echo "$@" 1>&2 ; exit 1; }
 
 verify_repo_is_clean() {
     git diff-files --quiet || die "The repo is dirty. Commit everything before pushing a release.";
+    test -z "$(git status --porcelain)" || die "The repo has staged but uncommited files."
 }
 
 set -eux

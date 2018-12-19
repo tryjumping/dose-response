@@ -52,9 +52,6 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Make the "safe" area a bit smaller
-** We definitely want it
-** But right now it takes a long time to get into some action
 * Detect lack of WASM and WebGL and show message
 ** Right now the game's just stuck in loading
 ** We should show a message instead
@@ -3393,3 +3390,10 @@ CLOSED: [2018-12-19 Wed 19:24]
 :END:
 *** stuff like replays, invincible etc.
 *** if you can't use it, don't surface it
+** DONE Make the "safe" area a bit smaller
+CLOSED: [2018-12-19 Wed 22:11]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-19 Wed 22:11
+:END:
+*** We definitely want it
+*** But right now it takes a long time to get into some action

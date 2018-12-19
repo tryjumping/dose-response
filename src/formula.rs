@@ -14,12 +14,12 @@ use rand::Rng;
 #[cfg(feature = "recording")]
 pub const INITIAL_SAFE_RADIUS: i32 = 7;
 #[cfg(not(feature = "recording"))]
-pub const INITIAL_SAFE_RADIUS: i32 = 25;
+pub const INITIAL_SAFE_RADIUS: i32 = 15;
 
 #[cfg(feature = "recording")]
 pub const INITIAL_EASY_RADIUS: i32 = 13;
 #[cfg(not(feature = "recording"))]
-pub const INITIAL_EASY_RADIUS: i32 = 40;
+pub const INITIAL_EASY_RADIUS: i32 = 25;
 
 pub const NO_LETHAL_DOSE_RADIUS: i32 = 6;
 

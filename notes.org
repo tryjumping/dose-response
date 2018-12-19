@@ -52,9 +52,6 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
-* Compile out unused CLI arguments on publish
-** stuff like replays, invincible etc.
-** if you can't use it, don't surface it
 * Allow for variable font sizes                                        :code:
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
@@ -3381,3 +3378,10 @@ replays/keep/trailer-02-2018-12-17T21-41-33.551
 **** MSGBOX "How can I get out?"
 **** Play, lose to a Depression
 **** Fade out to Call to Action
+** DONE Compile out unused CLI arguments on publish
+CLOSED: [2018-12-19 Wed 19:24]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-19 Wed 19:24
+:END:
+*** stuff like replays, invincible etc.
+*** if you can't use it, don't surface it

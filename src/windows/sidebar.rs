@@ -244,8 +244,6 @@ impl Window {
             if player.panic.to_int() > 0 {
                 lines.push(format!("Panicking({})", player.panic.to_int()).into());
             }
-        } else {
-            lines.push("Dead".into());
         }
 
         if state.cheating {

@@ -52,6 +52,10 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** no levels!
 ** no waiting!
 ** no orcs!
+* Detect lack of WASM and WebGL and show message
+** Right now the game's just stuck in loading
+** We should show a message instead
+** Make sure this works on tryjumping.com as well
 * Allow for variable font sizes                                        :code:
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
@@ -81,13 +85,14 @@ https://github.com/rust-clique/human-panic
 ** Also, persisting the options somewhere
 ** We could ask people to try this out and say which should be the default
 * Create an itch.io page
-- [ ] Game description
-- [ ] Colour scheme
-- [ ] Font
+- [X] Game description
+- [X] Colour scheme
+- [X] Font
 - [ ] Lets play/trailer
-- [ ] Cover image
-- [ ] Icon/Logo for Try Jumping
-- [ ] Icon/Logo for Dose Response
+- [X] Cover image
+- [X] Icon/Logo for Try Jumping
+- [X] Icon/Logo for Dose Response
+  - it's the same logo for now
 - [ ] Builds
 - [ ] Link to the online version
 * Give the game a non-black background?

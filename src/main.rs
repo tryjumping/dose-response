@@ -173,81 +173,117 @@ fn process_cli_and_run_game() {
     use simplelog::{CombinedLogger, Config, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
 
-    let matches = App::new(metadata::TITLE)
+    let mut graphics_backends = vec![];
+
+    let mut app = App::new(metadata::TITLE)
         .version(metadata::VERSION)
         .author(metadata::AUTHORS)
         .about(metadata::DESCRIPTION)
-        .arg(
-            Arg::with_name("replay")
-                .value_name("FILE")
-                .help(
-                    "Replay this file instead of starting and playing a new \
-                     game",
-                )
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("replay-full-speed")
-                .help(
-                    "Don't slow the replay down (useful for getting accurate \
-                     measurements)",
-                )
-                .long("replay-full-speed"),
-        )
-        .arg(
-            Arg::with_name("replay-file")
-                .help("Path where to store the replay log.")
-                .long("replay-file")
-                .value_name("FILE")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("record-frames")
-                .long("record-frames")
-                .help("Whether to record the frames and save them on disk."),
-        )
         .arg(
             Arg::with_name("exit-after")
                 .help("Exit after the game or replay has finished")
                 .long("exit-after"),
         )
         .arg(
-            Arg::with_name("cheating")
-                .help("Opens the cheat mode on start. Uncovers the map.")
-                .long("cheating"),
-        )
-        .arg(
-            Arg::with_name("invincible")
-                .help("Makes the player character invincible. They do not die.")
-                .long("invincible"),
-        )
-        .arg(
-            Arg::with_name("glium")
-                .long("glium")
-                .help("Use the Glium rendering backend"),
-        )
-        .arg(
-            Arg::with_name("glutin")
-                .long("glutin")
-                .help("Use the glutin rendering backend"),
-        )
-        .arg(
-            Arg::with_name("sdl")
-                .long("sdl")
-                .help("Use the SDL2 rendering backend"),
-        )
-        .arg(Arg::with_name("remote").long("remote").help(
-            "Don't create a game window. The input and output is \
-             controled via ZeroMQ.",
-        ))
-        .arg(
             Arg::with_name("quiet")
                 .short("q")
                 .long("quiet")
                 .help("Don't write any messages to stdout."),
-        )
-        .group(ArgGroup::with_name("graphics").args(&["glium", "glutin", "sdl", "remote"]))
-        .get_matches();
+        );
+
+    if cfg!(feature = "cheating") {
+        app = app
+            .arg(
+                Arg::with_name("cheating")
+                    .help("Opens the cheat mode on start. Uncovers the map.")
+                    .long("cheating"),
+            )
+            .arg(
+                Arg::with_name("invincible")
+                    .help("Makes the player character invincible. They do not die.")
+                    .long("invincible"),
+            );
+    }
+
+    if cfg!(feature = "remote") {
+        app = app.arg(Arg::with_name("remote").long("remote").help(
+            "Don't create a game window. The input and output is \
+             controled via ZeroMQ.",
+        ));
+        graphics_backends.push("remote");
+    }
+
+    if cfg!(feature = "glium-backend") {
+        app = app.arg(
+            Arg::with_name("glium")
+                .long("glium")
+                .help("Use the Glium rendering backend"),
+        );
+        graphics_backends.push("glium");
+    }
+
+    if cfg!(feature = "glutin-backend") {
+        app = app.arg(
+            Arg::with_name("glutin")
+                .long("glutin")
+                .help("Use the glutin rendering backend"),
+        );
+        graphics_backends.push("glutin");
+    }
+
+    if cfg!(feature = "sdl-backend") {
+        app = app.arg(
+            Arg::with_name("sdl")
+                .long("sdl")
+                .help("Use the SDL2 rendering backend"),
+        );
+        graphics_backends.push("sdl");
+    }
+
+    // Make sure only one of the backends can be set at a time
+    app = app.group(ArgGroup::with_name("graphics").args(&graphics_backends));
+
+    if cfg!(feature = "replay") {
+        app = app
+            // NOTE: this is a positional argument, because it doesn't
+            // have `.short` or `.long` set. It looks similar to a
+            // "keyword" arguments that take values (such as
+            // --replay-file) but it's different.
+            .arg(
+                Arg::with_name("replay")
+                    .value_name("FILE")
+                    .help(
+                        "Replay this file instead of starting and playing a new \
+                         game",
+                    )
+                    .takes_value(true),
+            )
+            .arg(
+                Arg::with_name("replay-full-speed")
+                    .help(
+                        "Don't slow the replay down (useful for getting accurate \
+                         measurements)",
+                    )
+                    .long("replay-full-speed"),
+            )
+            .arg(
+                Arg::with_name("replay-file")
+                    .help("Path where to store the replay log.")
+                    .long("replay-file")
+                    .value_name("FILE")
+                    .takes_value(true),
+            );
+    }
+
+    if cfg!(feature = "recording") {
+        app = app.arg(
+            Arg::with_name("record-frames")
+                .long("record-frames")
+                .help("Whether to record the frames and save them on disk."),
+        );
+    }
+
+    let matches = app.get_matches();
 
     let mut loggers = vec![];
 

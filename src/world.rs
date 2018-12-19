@@ -256,7 +256,8 @@ impl World {
         }
 
         // Generate a usable dose nearby, give up after 50 attempts
-        for _ in 0..50 {
+        let attempts = if cfg!(feature = "recording") { 1 } else { 50 };
+        for _ in 0..attempts {
             let offset = Point {
                 x: rng.gen_range(-3, 4),
                 y: rng.gen_range(-3, 4),

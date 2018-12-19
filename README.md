@@ -88,7 +88,7 @@ south-west, north-east and south-west.
 License
 -------
 
-Copyright (C) 2016 Tomas Sedovic
+Copyright (C) 2013-2018 Tomas Sedovic
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

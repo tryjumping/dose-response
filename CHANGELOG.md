@@ -1,12 +1,33 @@
 # Change Log
 
-Dose Response is roguelike game (currently in development) where you
-play an addict. Avoid the dangers threatening your mind and body while
-desperately looking for the next fix.
+Dose Response is roguelike game where you play an addict. Avoid the
+dangers threatening your mind and body while desperately looking for
+the next fix.
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/tryjumping/dose-response/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/tryjumping/dose-response/compare/v1.0.0...HEAD
+
+## [1.0.0] - 2018-12-19
+- Made the initial safe area smaller
+- Stopped showing commandline options that are not compiled in
+- Recorded a few teaser/trailer attempts (check out the `videos/` folder)
+- Replaced the "Dead" message in the sidebar with "Lost"
+- Added support for message boxes with timeouts
+  - they're not used anywhere in the game, but they're in the trailers
+- Add a "call to action" alternative to the endgame window
+  - not useful in the game, but will used in the trailer
+- Fix broken screen fade in on losing the game
+  - after the fadeout, the screen went bright immediately instead of fading in
+- Add an optional "recording" Cargo feature
+  - We use this to record the trailer
+  - It changes a bunch of timings and gameplay configs
+  - It allows saving each game frame to a file
+  - It shows the "call to action" window
+  - It hides the keyboard hints in the early game
+
+[1.0.0]: https://github.com/tryjumping/dose-response/compare/v0.11.1...v1.0.0
+
 
 ## [0.11.1] - 2018-12-14
 - Updated all in-game links to use the new https://tryjumping.com website

@@ -56,19 +56,13 @@ CLOSED: [2018-02-24 Sat 16:56]
 ** Right now the game's just stuck in loading
 ** We should show a message instead
 ** Make sure this works on tryjumping.com as well
+* Don't show tips on the victory screen
+** If you've won the game, you don't need our help
 * Allow for variable font sizes                                        :code:
-* Make the textures power of two
-** It may not be required by anything any more but it feels safer
-** Would also test our build.rs tilesize generation to JS
 * Make sure we're accessible to colour blind people                      :ui:
 ** need to make the palettes configurable
 ** test with the phone app for several blindnesses
 ** add a black and white mode?
-* Consider adding the human_panic crate
-https://github.com/rust-clique/human-panic
-** It catches panics and prints out a message
-** though you won't see this in the GUI programs I think?
-** Can we set up our own panic hook?
 * Add a settings/config file
 ** Use json (ugh) because that's a serialisation format we already have in the code
 ** And we'll primarily use it from within the game
@@ -76,6 +70,14 @@ https://github.com/rust-clique/human-panic
 *** Window size
 *** Graphics backend
 *** Fullscreen
+* Make the textures power of two
+** It may not be required by anything any more but it feels safer
+** Would also test our build.rs tilesize generation to JS
+* Consider adding the human_panic crate
+https://github.com/rust-clique/human-panic
+** It catches panics and prints out a message
+** though you won't see this in the GUI programs I think?
+** Can we set up our own panic hook?
 * Write a glutin+gl backend                                            :code:
 ** Using the same code path as the SDL backend
 ** possibly remove glium

@@ -509,6 +509,7 @@ pub fn main_loop(
         }
 
         for event in event_pump.poll_iter() {
+            log::debug!("{:?}", event);
             match event {
                 Event::Quit { .. } => {
                     running = false;
@@ -516,9 +517,16 @@ pub fn main_loop(
 
                 Event::KeyDown {
                     keycode: Some(backend_code),
+                    scancode,
                     keymod,
                     ..
                 } => {
+                    log::debug!(
+                        "KeyDown backend_code: {:?}, scancode: {:?}, keymod bits: {:?}",
+                        backend_code,
+                        scancode,
+                        keymod.bits(),
+                    );
                     if let Some(code) = key_code_from_backend(backend_code) {
                         let key = super::Key {
                             code,
@@ -526,6 +534,7 @@ pub fn main_loop(
                             ctrl: keymod.intersects(keyboard::LCTRLMOD | keyboard::RCTRLMOD),
                             shift: keymod.intersects(keyboard::LSHIFTMOD | keyboard::RSHIFTMOD),
                         };
+                        log::debug!("Detected key {:?}", key);
                         keys.push(key);
                     }
                 }
@@ -538,6 +547,7 @@ pub fn main_loop(
                             ctrl: false,
                             shift: false,
                         };
+                        log::debug!("Detected key {:?}", key);
                         keys.push(key);
                     }
                 }

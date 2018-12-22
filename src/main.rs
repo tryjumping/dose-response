@@ -189,6 +189,11 @@ fn process_cli_and_run_game() {
                 .short("q")
                 .long("quiet")
                 .help("Don't write any messages to stdout."),
+        )
+        .arg(
+            Arg::with_name("debug")
+                .long("debug")
+                .help("Print debug-level info. This can be really verbose."),
         );
 
     if cfg!(feature = "cheating") {

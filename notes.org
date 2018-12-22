@@ -59,6 +59,22 @@ CLOSED: [2018-02-24 Sat 16:56]
 * Don't show tips on the victory screen
 ** If you've won the game, you don't need our help
 * Allow for variable font sizes                                        :code:
+** We should support the common video dimensions
+*** 1920x1080 (1080p)
+**** font size: 36
+*** 1280x720 (720p)
+**** font size: 24
+*** 854x480 (480p)
+**** font size: 16
+*** 640x360 (360p)
+**** 12
+* Ctrl+arrows don't work on the mac                                     :bug:
+** https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
+* We're including TWGL three times in the repo
+** This is taking up space and confuses GH's language stats
+** Apparently, we're 45% JS
+** Remove the extra ones
+*** And consider doing webgl directly?
 * Make sure we're accessible to colour blind people                      :ui:
 ** need to make the palettes configurable
 ** test with the phone app for several blindnesses

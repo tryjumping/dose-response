@@ -78,6 +78,30 @@ You can also use a containerised `ffmpeg` if you want:
 
     podman run -v $PWD:/out:z --rm -i jrottenberg/ffmpeg -framerate 60 -i "/out/img%06d.png" /out/output.mp4
 
+If you want to letterbox the video to a specific format, you can add this to ffmpeg:
+
+    -vf "scale=(iw*sar)*min(1280/(iw*sar)\,720/ih):ih*min(1280/(iw*sar)\,720/ih), pad=1280:720:(1280-iw*min(1280/iw\,720/ih))/2:(720-ih*min(1280/iw\,720/ih))/2"
+
+    -vf "scale=(iw*sar)*min(1280/(iw*sar)\,720/ih):ih*min(1280/(iw*sar)\,720/ih), pad=1280:720:(1280-iw*min(1280/iw\,720/ih)):(720-ih*min(1280/iw\,720/ih))/2"
+
+The first option will centre the contents, the second one will move it
+all the way to the right (under the assumption that the black bar is
+looking better on the left-hand side where it can blend into the
+unexplored area).
+
+### Common Video dimensions
+
+- 1920x1080 (1080p)
+- 1280x720 (720p)
+- 854x480 (480p)
+- 640x360 (360p)
+
+Settings for 720p:
+
+* `height: f32 = 24.0` in `build.rs`
+* `PANEL_WIDTH: i32 = 19` in `main.rs`
+
+
 
 Adding messages into the replay log
 -----------------------------------

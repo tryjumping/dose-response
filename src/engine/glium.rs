@@ -454,7 +454,7 @@ pub fn main_loop(
 
         // Process events
         events_loop.poll_events(|ev| {
-            //debug!("{:?}", ev);
+            log::debug!("{:?}", ev);
             match ev {
                 Event::WindowEvent {
                     window_id: _,
@@ -521,8 +521,7 @@ pub fn main_loop(
                                 Released => false,
                             };
 
-                            // debug!("KeyboardInput event!");
-                            // debug!("{:?}", input);
+                            log::debug!("KeyboardInput event! {:?}", input);
 
                             // TODO: this is a temp fix for a
                             // glutin/winit bug where the keypress
@@ -574,7 +573,7 @@ pub fn main_loop(
                                                     || rshift_pressed
                                                     || input.modifiers.shift,
                                             };
-                                            // debug!("Pushing {:?}", key);
+                                            log::debug!("Pushing {:?}", key);
                                             keys.push(key);
                                         }
                                     }
@@ -606,7 +605,7 @@ pub fn main_loop(
                                                     || rshift_pressed
                                                     || input.modifiers.shift,
                                             };
-                                            // debug!("Pushing {:?}", key);
+                                            log::debug!("Pushing {:?}", key);
                                             keys.push(key);
                                         }
                                     }

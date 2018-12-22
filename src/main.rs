@@ -287,17 +287,18 @@ fn process_cli_and_run_game() {
 
     let mut loggers = vec![];
 
+    let log_level = if matches.is_present("debug") {
+        LevelFilter::Trace
+    } else {
+        LevelFilter::Info
+    };
+
     if !matches.is_present("quiet") {
-        loggers
-            .push(SimpleLogger::new(LevelFilter::Info, Config::default()) as Box<dyn SharedLogger>);
+        loggers.push(SimpleLogger::new(log_level, Config::default()) as Box<dyn SharedLogger>);
     }
 
     if let Ok(logfile) = File::create("dose-response.log") {
-        loggers.push(WriteLogger::new(
-            LevelFilter::Trace,
-            Config::default(),
-            logfile,
-        ));
+        loggers.push(WriteLogger::new(log_level, Config::default(), logfile));
     }
 
     // NOTE: ignore the loggers if we can't initialise them. The game

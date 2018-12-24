@@ -1,19 +1,31 @@
 use crate::{
     color::Color,
-    engine::{OpenGlApp, UpdateFn},
+    engine::{self, Drawcall, Mouse, OpenGlApp, Settings, TextMetrics, UpdateFn, Vertex},
     point::Point,
     state::State,
 };
 
+use std::mem;
+
 use glutin::{dpi::*, GlContext};
+
+pub struct Metrics {
+    tile_width_px: i32,
+}
+
+impl TextMetrics for Metrics {
+    fn tile_width_px(&self) -> i32 {
+        self.tile_width_px
+    }
+}
 
 #[allow(cyclomatic_complexity, unsafe_code)]
 pub fn main_loop(
-    _display_size: Point,
-    _default_background: Color,
-    _window_title: &str,
-    mut _state: Box<State>,
-    _update: UpdateFn,
+    display_size: Point,
+    default_background: Color,
+    window_title: &str,
+    mut state: Box<State>,
+    update: UpdateFn,
 ) {
     // Force the DPI factor to be 1.0
     // https://docs.rs/glium/0.22.0/glium/glutin/dpi/index.html
@@ -47,10 +59,19 @@ pub fn main_loop(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
+    let tilesize = super::TILESIZE;
+    let (desired_window_width, desired_window_height) = (
+        display_size.x as u32 * tilesize as u32,
+        display_size.y as u32 * tilesize as u32,
+    );
+
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new()
-        .with_title("Hello, world!")
-        .with_dimensions(LogicalSize::new(1024.0, 768.0));
+        .with_title(window_title)
+        .with_dimensions(LogicalSize::new(
+            desired_window_width.into(),
+            desired_window_height.into(),
+        ));
     let context = glutin::ContextBuilder::new().with_vsync(true);
     let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
 
@@ -76,27 +97,104 @@ pub fn main_loop(
 
     let vs_source = include_str!("../shader_150.glslv");
     let fs_source = include_str!("../shader_150.glslf");
-    let sdl_app = OpenGlApp::new(vs_source, fs_source);
-    sdl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
+    let opengl_app = OpenGlApp::new(vs_source, fs_source);
+    opengl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
+
+    let mouse = Mouse::new();
+    let mut settings = Settings { fullscreen: false };
+    let window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
+
+    let mut display = engine::Display::new(
+        display_size,
+        Point::from_i32(display_size.y / 2),
+        tilesize as i32,
+    );
+    let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
+    assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
+    let mut vertex_buffer: Vec<f32> = Vec::with_capacity(engine::VERTEX_BUFFER_CAPACITY);
+    let mut overall_max_drawcall_count = 0;
+    let keys = vec![];
 
     let mut running = true;
     while running {
-        events_loop.poll_events(|event| match event {
-            glutin::Event::WindowEvent { event, .. } => match event {
-                glutin::WindowEvent::CloseRequested => running = false,
-                glutin::WindowEvent::Resized(logical_size) => {
-                    let dpi_factor = gl_window.get_hidpi_factor();
-                    gl_window.resize(logical_size.to_physical(dpi_factor));
-                }
+        events_loop.poll_events(|event| {
+            log::debug!("{:?}", event);
+            match event {
+                glutin::Event::WindowEvent { event, .. } => match event {
+                    glutin::WindowEvent::CloseRequested => running = false,
+                    glutin::WindowEvent::Resized(logical_size) => {
+                        let dpi_factor = gl_window.get_hidpi_factor();
+                        gl_window.resize(logical_size.to_physical(dpi_factor));
+                    }
+                    _ => (),
+                },
                 _ => (),
-            },
-            _ => (),
+            }
         });
 
-        unsafe {
-            gl::Clear(gl::COLOR_BUFFER_BIT);
+        // TODO: calculate this properly!
+        let dt = std::time::Duration::from_millis(16);
+        let fps = 60;
+
+        let _update_result = update(
+            &mut state,
+            dt,
+            display_size,
+            fps,
+            &keys,
+            mouse,
+            &mut settings,
+            &Metrics {
+                tile_width_px: tilesize as i32,
+            },
+            &mut display,
+        );
+
+        drawcalls.clear();
+        display.push_drawcalls(&mut drawcalls);
+
+        if drawcalls.len() > overall_max_drawcall_count {
+            overall_max_drawcall_count = drawcalls.len();
         }
 
+        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
+            log::warn!(
+                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
+                engine::DRAWCALL_CAPACITY,
+                drawcalls.len(),
+            );
+        }
+
+        let display_info = engine::calculate_display_info(
+            [window_size_px.x as f32, window_size_px.y as f32],
+            display_size,
+            tilesize,
+        );
+
+        vertex_buffer.clear();
+        engine::build_vertices(
+            &drawcalls,
+            &mut vertex_buffer,
+            display_info.native_display_px,
+        );
+
+        if vertex_buffer.len() > engine::VERTEX_BUFFER_CAPACITY {
+            log::warn!(
+                "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
+                engine::VERTEX_BUFFER_CAPACITY,
+                vertex_buffer.len(),
+            );
+        }
+
+        engine::opengl_render(
+            opengl_app.program,
+            opengl_app.texture,
+            default_background,
+            opengl_app.vbo,
+            display_info,
+            [image_width as f32, image_height as f32],
+            &vertex_buffer,
+        );
         gl_window.swap_buffers().unwrap();
     }
 }

@@ -20,7 +20,6 @@ use sdl2::{
 
 // const DESIRED_FPS: u64 = 60;
 // const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
-const VERTEX_BUFFER_CAPACITY: usize = engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -178,7 +177,7 @@ pub fn main_loop(
     );
     let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
-    let mut vertex_buffer: Vec<f32> = Vec::with_capacity(VERTEX_BUFFER_CAPACITY);
+    let mut vertex_buffer: Vec<f32> = Vec::with_capacity(engine::VERTEX_BUFFER_CAPACITY);
     let mut overall_max_drawcall_count = 0;
     let mut keys = vec![];
     let mut previous_frame_start_time = Instant::now();
@@ -387,10 +386,10 @@ pub fn main_loop(
             display_info.native_display_px,
         );
 
-        if vertex_buffer.len() > VERTEX_BUFFER_CAPACITY {
+        if vertex_buffer.len() > engine::VERTEX_BUFFER_CAPACITY {
             log::warn!(
                 "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
-                VERTEX_BUFFER_CAPACITY,
+                engine::VERTEX_BUFFER_CAPACITY,
                 vertex_buffer.len(),
             );
         }

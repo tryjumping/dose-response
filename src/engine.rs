@@ -34,6 +34,7 @@ pub mod wasm;
 pub const DRAWCALL_CAPACITY: usize = 8000;
 pub const VERTEX_CAPACITY: usize = 50_000;
 pub const VERTEX_COMPONENT_COUNT: usize = 8;
+const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * VERTEX_CAPACITY;
 
 /// The drawcalls that the engine will process and render.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]

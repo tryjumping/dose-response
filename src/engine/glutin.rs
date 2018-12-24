@@ -1,4 +1,9 @@
-use crate::{color::Color, engine::UpdateFn, point::Point, state::State};
+use crate::{
+    color::Color,
+    engine::{OpenGlApp, UpdateFn},
+    point::Point,
+    state::State,
+};
 
 use glutin::{dpi::*, GlContext};
 
@@ -57,6 +62,22 @@ pub fn main_loop(
         gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         gl::ClearColor(0.0, 1.0, 0.0, 1.0);
     }
+
+    let image = {
+        use std::io::Cursor;
+        let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
+        image::load(Cursor::new(data), image::PNG)
+            .unwrap()
+            .to_rgba()
+    };
+
+    let image_width = image.width();
+    let image_height = image.height();
+
+    let vs_source = include_str!("../shader_150.glslv");
+    let fs_source = include_str!("../shader_150.glslf");
+    let sdl_app = OpenGlApp::new(vs_source, fs_source);
+    sdl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
 
     let mut running = true;
     while running {

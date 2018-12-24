@@ -324,7 +324,7 @@ fn check_gl_error(source: &str) {
 }
 
 #[derive(Default)]
-struct SdlApp {
+struct OpenGlApp {
     program: GLuint,
     vertex_shader: GLuint,
     fragment_shader: GLuint,
@@ -333,10 +333,10 @@ struct SdlApp {
     texture: GLuint,
 }
 
-impl SdlApp {
+impl OpenGlApp {
     #[allow(unsafe_code)]
     fn new(vertex_source: &str, fragment_source: &str) -> Self {
-        let mut app: SdlApp = Default::default();
+        let mut app: OpenGlApp = Default::default();
 
         app.vertex_shader = compile_shader(vertex_source, gl::VERTEX_SHADER);
         app.fragment_shader = compile_shader(fragment_source, gl::FRAGMENT_SHADER);
@@ -398,7 +398,7 @@ impl SdlApp {
     }
 }
 
-impl Drop for SdlApp {
+impl Drop for OpenGlApp {
     #[allow(unsafe_code)]
     fn drop(&mut self) {
         unsafe {
@@ -464,7 +464,7 @@ pub fn main_loop(
 
     let vs_source = include_str!("../shader_150.glslv");
     let fs_source = include_str!("../shader_150.glslf");
-    let sdl_app = SdlApp::new(vs_source, fs_source);
+    let sdl_app = OpenGlApp::new(vs_source, fs_source);
     sdl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
 
     let mut event_pump = sdl_context

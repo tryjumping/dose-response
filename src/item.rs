@@ -5,7 +5,7 @@ use crate::{
     player::Modifier,
 };
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, PartialEq, Debug, Eq, Hash, Serialize, Deserialize)]
 pub enum Kind {

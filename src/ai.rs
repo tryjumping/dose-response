@@ -4,7 +4,7 @@ use crate::{
 };
 
 use rand::Rng;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {

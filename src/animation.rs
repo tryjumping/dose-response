@@ -4,7 +4,7 @@ use crate::{
     timer::Timer,
 };
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 pub trait AreaOfEffect {

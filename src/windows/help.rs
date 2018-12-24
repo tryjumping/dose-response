@@ -9,7 +9,7 @@ use crate::{
 
 use std::fmt::{Display as FmtDisplay, Error, Formatter};
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 pub enum Action {
     NextPage,

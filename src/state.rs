@@ -27,7 +27,7 @@ use std::{
 #[cfg(feature = "replay")]
 use std::fs;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 /// An enum of windows in the game.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

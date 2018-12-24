@@ -9,7 +9,7 @@ use crate::{
 
 use std::fmt::{Display, Error, Formatter};
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Modifier {

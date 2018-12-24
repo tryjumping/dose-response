@@ -5,7 +5,7 @@ use std::{
 
 use num_rational::{Ratio, Rational32};
 use rand::Rng;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 // TODO: Basically the reason we do this instead of `std::ops::Range`
 // is that Range is non-copy. I'd also prefer to use the inclusive

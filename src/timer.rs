@@ -4,7 +4,7 @@ use std::time::Duration;
 #[cfg(not(feature = "web"))]
 use std::time::Instant;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Timer {

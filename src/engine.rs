@@ -13,7 +13,7 @@ use crate::{
 
 use std::time::Duration;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "glium-backend")]
 pub mod glium;

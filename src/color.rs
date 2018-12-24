@@ -5,7 +5,7 @@
 //pub use palette::dawnbringer32::*;
 pub use crate::palette::dawnbringer16::*;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]

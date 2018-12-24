@@ -15,7 +15,7 @@ use crate::{
 use std::collections::HashMap;
 
 use rand::{seq::SliceRandom, Rng};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct MonsterId {

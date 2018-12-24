@@ -47,33 +47,31 @@ CLOSED: [2018-02-24 Sat 16:56]
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* Marketing
-** no crafting!
-** no levels!
-** no waiting!
-** no orcs!
-* Core dump on Ubuntu                                                   :bug:
+* core dump on ubuntu                                                   :bug:
 ** reported by u/brutelumpen
 https://www.reddit.com/r/rust/comments/a8be46/dose_response_roguelike_game_written_in_rust/ecayv5e/
 ** output
-dbus[13506]: arguments to dbus_type_is_basic() were incorrect, assertion "dbus_type_is_valid (typecode) || typecode == DBUS_TYPE_INVALID" failed in file ../../../dbus/dbus-signature.c line 323.
+dbus[13506]: arguments to dbus_type_is_basic() were incorrect, assertion "dbus_type_is_valid (typecode) || typecode == dbus_type_invalid" failed in file ../../../dbus/dbus-signature.c line 323.
 
-This is normally a bug in some application using the D-Bus library.
+this is normally a bug in some application using the d-bus library.
 
 
 
-D-Bus not built with -rdynamic so unable to print a backtrace
+d-bus not built with -rdynamic so unable to print a backtrace
 
-Aborted (core dumped)
-* Consider adding an easier mode
-** See this comment by u/critiqjo
+aborted (core dumped)
+* windows crash :bug:
+** see this comment by u/vacn
+https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ecbbb5k/
+* consider adding an easier mode
+** see this comment by u/critiqjo
 https://www.reddit.com/r/rust/comments/a8be46/dose_response_roguelike_game_written_in_rust/ecamn2d/
-** If we do spawn more food or something
+** if we do spawn more food or something
 *** maybe ease off on the strong doses early on
 *** maybe add an extra life
-* Windows crash :bug:
-** See this comment by u/VACN
-https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ecbbb5k/
+* consider adding a harder mode
+** see this comment by u/Tranquil_Suit
+https://www.reddit.com/r/roguelikes/comments/a8aosa/dose_response_a_roguelike_where_youre_an_addict/ecdpw41/
 * Try available backends one-by-one instead of crashing
 ** Have each backend return a `Result<State, Error>` and try a different one if it fails
 * Handle panics and print out a "here's what to do next" message
@@ -3440,3 +3438,11 @@ CLOSED: [2018-12-19 Wed 22:11]
 :END:
 *** We definitely want it
 *** But right now it takes a long time to get into some action
+** marketing
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-24 Mon 23:46
+:END:
+*** no crafting!
+*** no levels!
+*** no waiting!
+*** no orcs!

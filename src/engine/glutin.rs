@@ -15,7 +15,8 @@ use std::{
 };
 
 use glutin::{
-    dpi::*, ElementState, GlContext, KeyboardInput, MonitorId, VirtualKeyCode as BackendKey,
+    dpi::{LogicalPosition, LogicalSize},
+    ElementState, GlContext, KeyboardInput, MonitorId, VirtualKeyCode as BackendKey,
 };
 
 pub struct Metrics {

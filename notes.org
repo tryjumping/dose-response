@@ -79,6 +79,20 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 ** Apparently, we're 45% JS
 ** Remove the extra ones
 *** And consider doing webgl directly?
+* Try to discover and log user's OS info
+** which platform + version
+** 32/64 bits
+** anything else we could find out
+** make sure this is in the logs users would send us on crash or something
+* Add a "debug" batch/sh scripts that would collect the debug info?
+** easier to say "please run debug-dose-response.bat" than "pass --debug --quiet to CLI args"
+*** especially for folks who aren't devs
+** those should work with relative directories
+*** e.g. "./dose-response.exe --quiet --debug"
+*** unlike Windows shortcuts
+** if this works, consider doing the same thing for the non-default backend?
+*** may be glutin or SDL, not sure yet
+*** just so people can run that easily
 * Detect lack of WASM and WebGL and show message
 ** Right now the game's just stuck in loading
 ** We should show a message instead

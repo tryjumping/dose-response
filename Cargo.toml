@@ -48,8 +48,9 @@ winres = "0.1"
 
 [features]
 default = ["dev"]
-prod = ["cli", "fullscreen", "glutin-backend", "sdl-backend"]
-dev = ["prod", "cheating", "replay", "stats", "verifications"]
+prod = ["desktop", "glutin-backend", "sdl-backend"]
+dev = ["desktop", "glutin-backend", "cheating", "replay", "stats", "verifications"]
+desktop = ["cli", "fullscreen"]
 recording = ["prod", "replay"]
 # TODO: add a "trailer" feature for the gameplay (not UI) changes under "recording"?
 # So you can record a normal game / replay too.

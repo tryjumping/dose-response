@@ -346,7 +346,8 @@ fn process_cli_and_run_game() {
     } else if matches.is_present("glutin") {
         run_glutin(display_size, background, game_title, state, game_update);
     } else {
-        run_sdl(display_size, background, game_title, state, game_update);
+        // NOTE: This is the default backend
+        run_glutin(display_size, background, game_title, state, game_update);
     }
 }
 

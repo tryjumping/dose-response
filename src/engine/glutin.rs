@@ -3,6 +3,7 @@ use crate::{
     engine::{
         self, Drawcall, Mouse, OpenGlApp, RunningState, Settings, TextMetrics, UpdateFn, Vertex,
     },
+    keys::KeyCode,
     point::Point,
     state::State,
     util,
@@ -10,7 +11,7 @@ use crate::{
 
 use std::mem;
 
-use glutin::{dpi::*, ElementState, GlContext};
+use glutin::{dpi::*, ElementState, GlContext, KeyboardInput, VirtualKeyCode as BackendKey};
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -19,6 +20,83 @@ pub struct Metrics {
 impl TextMetrics for Metrics {
     fn tile_width_px(&self) -> i32 {
         self.tile_width_px
+    }
+}
+
+fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
+    match backend_code {
+        BackendKey::Return => Some(KeyCode::Enter),
+        BackendKey::Escape => Some(KeyCode::Esc),
+        BackendKey::Space => Some(KeyCode::Space),
+
+        BackendKey::Key0 => Some(KeyCode::D0),
+        BackendKey::Key1 => Some(KeyCode::D1),
+        BackendKey::Key2 => Some(KeyCode::D2),
+        BackendKey::Key3 => Some(KeyCode::D3),
+        BackendKey::Key4 => Some(KeyCode::D4),
+        BackendKey::Key5 => Some(KeyCode::D5),
+        BackendKey::Key6 => Some(KeyCode::D6),
+        BackendKey::Key7 => Some(KeyCode::D7),
+        BackendKey::Key8 => Some(KeyCode::D8),
+        BackendKey::Key9 => Some(KeyCode::D9),
+
+        BackendKey::A => Some(KeyCode::A),
+        BackendKey::B => Some(KeyCode::B),
+        BackendKey::C => Some(KeyCode::C),
+        BackendKey::D => Some(KeyCode::D),
+        BackendKey::E => Some(KeyCode::E),
+        BackendKey::F => Some(KeyCode::F),
+        BackendKey::G => Some(KeyCode::G),
+        BackendKey::H => Some(KeyCode::H),
+        BackendKey::I => Some(KeyCode::I),
+        BackendKey::J => Some(KeyCode::J),
+        BackendKey::K => Some(KeyCode::K),
+        BackendKey::L => Some(KeyCode::L),
+        BackendKey::M => Some(KeyCode::M),
+        BackendKey::N => Some(KeyCode::N),
+        BackendKey::O => Some(KeyCode::O),
+        BackendKey::P => Some(KeyCode::P),
+        BackendKey::Q => Some(KeyCode::Q),
+        BackendKey::R => Some(KeyCode::R),
+        BackendKey::S => Some(KeyCode::S),
+        BackendKey::T => Some(KeyCode::T),
+        BackendKey::U => Some(KeyCode::U),
+        BackendKey::V => Some(KeyCode::V),
+        BackendKey::W => Some(KeyCode::W),
+        BackendKey::X => Some(KeyCode::X),
+        BackendKey::Y => Some(KeyCode::Y),
+        BackendKey::Z => Some(KeyCode::Z),
+
+        BackendKey::F1 => Some(KeyCode::F1),
+        BackendKey::F2 => Some(KeyCode::F2),
+        BackendKey::F3 => Some(KeyCode::F3),
+        BackendKey::F4 => Some(KeyCode::F4),
+        BackendKey::F5 => Some(KeyCode::F5),
+        BackendKey::F6 => Some(KeyCode::F6),
+        BackendKey::F7 => Some(KeyCode::F7),
+        BackendKey::F8 => Some(KeyCode::F8),
+        BackendKey::F9 => Some(KeyCode::F9),
+        BackendKey::F10 => Some(KeyCode::F10),
+        BackendKey::F11 => Some(KeyCode::F11),
+        BackendKey::F12 => Some(KeyCode::F12),
+
+        BackendKey::Right => Some(KeyCode::Right),
+        BackendKey::Left => Some(KeyCode::Left),
+        BackendKey::Down => Some(KeyCode::Down),
+        BackendKey::Up => Some(KeyCode::Up),
+
+        BackendKey::Numpad1 => Some(KeyCode::NumPad1),
+        BackendKey::Numpad2 => Some(KeyCode::NumPad2),
+        BackendKey::Numpad3 => Some(KeyCode::NumPad3),
+        BackendKey::Numpad4 => Some(KeyCode::NumPad4),
+        BackendKey::Numpad5 => Some(KeyCode::NumPad5),
+        BackendKey::Numpad6 => Some(KeyCode::NumPad6),
+        BackendKey::Numpad7 => Some(KeyCode::NumPad7),
+        BackendKey::Numpad8 => Some(KeyCode::NumPad8),
+        BackendKey::Numpad9 => Some(KeyCode::NumPad9),
+        BackendKey::Numpad0 => Some(KeyCode::NumPad0),
+
+        _ => None,
     }
 }
 
@@ -129,6 +207,35 @@ pub fn main_loop(
                     glutin::WindowEvent::Resized(logical_size) => {
                         let dpi_factor = gl_window.get_hidpi_factor();
                         gl_window.resize(logical_size.to_physical(dpi_factor));
+                    }
+
+                    glutin::WindowEvent::KeyboardInput {
+                        input:
+                            KeyboardInput {
+                                virtual_keycode: Some(backend_code),
+                                state: ElementState::Pressed,
+                                scancode,
+                                modifiers,
+                                ..
+                            },
+                        ..
+                    } => {
+                        log::debug!(
+                            "KeyDown backend_code: {:?}, scancode: {:?}, modifiers: {:?}",
+                            backend_code,
+                            scancode,
+                            modifiers,
+                        );
+                        if let Some(code) = key_code_from_backend(backend_code) {
+                            let key = super::Key {
+                                code,
+                                alt: modifiers.alt,
+                                ctrl: modifiers.ctrl,
+                                shift: modifiers.shift,
+                            };
+                            log::debug!("Detected key {:?}", key);
+                            keys.push(key);
+                        }
                     }
 
                     glutin::WindowEvent::CursorMoved { position, .. } => {

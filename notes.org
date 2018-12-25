@@ -60,9 +60,46 @@ this is normally a bug in some application using the d-bus library.
 d-bus not built with -rdynamic so unable to print a backtrace
 
 aborted (core dumped)
-* windows crash :bug:
+* windows crash                                                         :bug:
 ** see this comment by u/vacn
 https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ecbbb5k/
+* Ctrl+arrows don't work on the mac                                     :bug:
+https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
+** maybe try allowing alt/option for this as well?
+* Mouse highlight not calculated properly on fullscreen                 :bug:
+** Repro:
+*** Switch to fullscreen on a wide-screen monitor
+**** so there's letter boxing shown
+*** Play until you lose
+*** Move to the "New game" button from the right direction
+*** It only gets highlighted/clickable about halfway through
+** We're probably ignoring letter-boxing there or something
+* We're including TWGL three times in the repo
+** This is taking up space and confuses GH's language stats
+** Apparently, we're 45% JS
+** Remove the extra ones
+*** And consider doing webgl directly?
+* Detect lack of WASM and WebGL and show message
+** Right now the game's just stuck in loading
+** We should show a message instead
+** Make sure this works on tryjumping.com as well
+* Add a settings/config file
+** Use json (ugh) because that's a serialisation format we already have in the code
+** And we'll primarily use it from within the game
+** Options
+*** Window size
+*** Graphics backend
+*** Fullscreen
+* Allow for variable font sizes                                        :code:
+** We should support the common video dimensions
+*** 1920x1080 (1080p)
+**** font size: 36
+*** 1280x720 (720p)
+**** font size: 24
+*** 854x480 (480p)
+**** font size: 16
+*** 640x360 (360p)
+**** 12
 * consider adding an easier mode
 ** see this comment by u/critiqjo
 https://www.reddit.com/r/rust/comments/a8be46/dose_response_roguelike_game_written_in_rust/ecamn2d/
@@ -75,40 +112,16 @@ https://www.reddit.com/r/roguelikes/comments/a8aosa/dose_response_a_roguelike_wh
 * Try available backends one-by-one instead of crashing
 ** Have each backend return a `Result<State, Error>` and try a different one if it fails
 * Handle panics and print out a "here's what to do next" message
-* Detect lack of WASM and WebGL and show message
-** Right now the game's just stuck in loading
-** We should show a message instead
-** Make sure this works on tryjumping.com as well
+* Productise the `replays` feature
+** Detect and warn about version mismatches
+** Warn but don't crash when unable to create a replay file
+** Make sure it doesn't generate verification data
 * Don't show tips on the victory screen
 ** If you've won the game, you don't need our help
-* Allow for variable font sizes                                        :code:
-** We should support the common video dimensions
-*** 1920x1080 (1080p)
-**** font size: 36
-*** 1280x720 (720p)
-**** font size: 24
-*** 854x480 (480p)
-**** font size: 16
-*** 640x360 (360p)
-**** 12
-* Ctrl+arrows don't work on the mac                                     :bug:
-** https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
-* We're including TWGL three times in the repo
-** This is taking up space and confuses GH's language stats
-** Apparently, we're 45% JS
-** Remove the extra ones
-*** And consider doing webgl directly?
 * Make sure we're accessible to colour blind people                      :ui:
 ** need to make the palettes configurable
 ** test with the phone app for several blindnesses
 ** add a black and white mode?
-* Add a settings/config file
-** Use json (ugh) because that's a serialisation format we already have in the code
-** And we'll primarily use it from within the game
-** Options
-*** Window size
-*** Graphics backend
-*** Fullscreen
 * Make the textures power of two
 ** It may not be required by anything any more but it feels safer
 ** Would also test our build.rs tilesize generation to JS
@@ -117,9 +130,6 @@ https://github.com/rust-clique/human-panic
 ** It catches panics and prints out a message
 ** though you won't see this in the GUI programs I think?
 ** Can we set up our own panic hook?
-* Write a glutin+gl backend                                            :code:
-** Using the same code path as the SDL backend
-** possibly remove glium
 * Add an option to set the graphics backend in the settings              :ui:
 ** This will mean closing and reopenning the window
 *** Or maybe we show "restart the game"
@@ -161,10 +171,6 @@ https://github.com/rust-clique/human-panic
 ** try to make sure we never have to grow our vectors
 * Don't allow suicide (if there's a way to avoid it)                     :ui:
 ** e.g. fatfingering the arrow when the Depression is near
-* Consider dropping `glium`                                            :code:
-** its glutin & winit version often lags behind
-** which is unfortunate when we want to test the latest fixes
-** and we've already got a "raw opengl" codepath with `gl` and `sdl`
 * Record a let's play
 ** would be nice to show the game in action
 ** people can watch it and see whether it's interesting for them
@@ -224,6 +230,7 @@ cargo run
 ** Do we want to?
 *** I guess it's working fine now?
 *** IDK -- let's do this if we start another text-based roguelike
+*** It would be awesome for 7drl + wasm
 * Change player's colour on stunned/panicked                             :ui:
 * Effects when being hit/death                                           :ui:
 ** colour fade (or something) on stun, removed will, death, etc.
@@ -3446,3 +3453,18 @@ CLOSED: [2018-12-19 Wed 22:11]
 *** no levels!
 *** no waiting!
 *** no orcs!
+** DONE Write a glutin+gl backend                                     :code:
+CLOSED: [2018-12-25 Tue 17:15]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-25 Tue 17:15
+:END:
+*** Using the same code path as the SDL backend
+*** possibly remove glium
+** DONE Consider dropping `glium`                                     :code:
+CLOSED: [2018-12-25 Tue 17:16]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-25 Tue 17:16
+:END:
+*** its glutin & winit version often lags behind
+*** which is unfortunate when we want to test the latest fixes
+*** and we've already got a "raw opengl" codepath with `gl` and `sdl`

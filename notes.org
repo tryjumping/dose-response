@@ -105,6 +105,12 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 *** Graphics backend
 *** Fullscreen
 * Allow for variable font sizes                                        :code:
+** Check out the Steam HW survey for suggested sizes
+https://store.steampowered.com/hwsurvey/
+*** 1920x1080 is overwhelmingly common (60%)
+*** 1366x768 the next one (13%)
+*** the rest is under four percent
+**** which doesn't mean we need to ignore them necessarily!
 ** We should support the common video dimensions
 *** 1920x1080 (1080p)
 **** font size: 36

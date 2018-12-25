@@ -238,6 +238,20 @@ pub fn main_loop(
                         }
                     }
 
+                    glutin::WindowEvent::ReceivedCharacter(chr) => {
+                        log::debug!("Received character: {:?}", chr);
+                        if chr == '?' {
+                            let key = super::Key {
+                                code: KeyCode::QuestionMark,
+                                alt: false,
+                                ctrl: false,
+                                shift: false,
+                            };
+                            log::debug!("Detected key {:?}", key);
+                            keys.push(key);
+                        }
+                    }
+
                     glutin::WindowEvent::CursorMoved { position, .. } => {
                         let x = util::clamp(0, position.x as i32, window_size_px.x - 1);
                         let y = util::clamp(0, position.y as i32, window_size_px.y - 1);

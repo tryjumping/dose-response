@@ -9,9 +9,14 @@ use crate::{
     util,
 };
 
-use std::mem;
+use std::{
+    mem,
+    time::{Duration, Instant},
+};
 
-use glutin::{dpi::*, ElementState, GlContext, KeyboardInput, VirtualKeyCode as BackendKey};
+use glutin::{
+    dpi::*, ElementState, GlContext, KeyboardInput, MonitorId, VirtualKeyCode as BackendKey,
+};
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -100,6 +105,26 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     }
 }
 
+fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<MonitorId> {
+    for monitor in monitors {
+        let monitor_pos = {
+            let pos = monitor.get_position();
+            Point::new(pos.x as i32, pos.y as i32)
+        };
+        let monitor_dimensions = {
+            let dim = monitor.get_dimensions();
+            Point::new(dim.width as i32, dim.height as i32)
+        };
+
+        let monitor_bottom_left = monitor_pos + monitor_dimensions;
+        if window_pos >= monitor_pos && window_pos < monitor_bottom_left {
+            return Some(monitor.clone());
+        }
+    }
+
+    monitors.iter().cloned().next()
+}
+
 #[allow(cyclomatic_complexity, unsafe_code)]
 pub fn main_loop(
     display_size: Point,
@@ -146,6 +171,17 @@ pub fn main_loop(
         display_size.y as u32 * tilesize as u32,
     );
 
+    log::debug!(
+        "Requested display in tiles: {} x {}",
+        display_size.x,
+        display_size.y
+    );
+    log::debug!(
+        "Desired window size: {} x {}",
+        desired_window_width,
+        desired_window_height
+    );
+
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new()
         .with_title(window_title)
@@ -158,12 +194,11 @@ pub fn main_loop(
 
     unsafe {
         gl_window.make_current().unwrap();
+        gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
     }
 
-    unsafe {
-        gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
-        gl::ClearColor(0.0, 1.0, 0.0, 1.0);
-    }
+    // We'll just assume the monitors won't change throughout the game.
+    let monitors: Vec<_> = events_loop.get_available_monitors().collect();
 
     let image = {
         use std::io::Cursor;
@@ -181,9 +216,36 @@ pub fn main_loop(
     let opengl_app = OpenGlApp::new(vs_source, fs_source);
     opengl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
 
+    // Main loop
+    let mut window_pos = {
+        match gl_window.get_position() {
+            Some(LogicalPosition { x, y }) => Point::new(x as i32, y as i32),
+            None => Default::default(),
+        }
+    };
+    log::debug!("Window pos: {:?}", window_pos);
+    let mut pre_fullscreen_window_pos = window_pos;
+
+    let mut current_monitor = get_current_monitor(&monitors, window_pos);
+    log::debug!("All monitors:");
+    for monitor in &monitors {
+        log::debug!(
+            "* {:?}, pos: {:?}, size: {:?}",
+            monitor.get_name(),
+            monitor.get_position(),
+            monitor.get_dimensions()
+        );
+    }
+    log::debug!(
+        "Current monitor: {:?}, pos: {:?}, size: {:?}",
+        current_monitor.as_ref().map(|m| m.get_name()),
+        current_monitor.as_ref().map(|m| m.get_position()),
+        current_monitor.as_ref().map(|m| m.get_dimensions())
+    );
+
     let mut mouse = Mouse::new();
     let mut settings = Settings { fullscreen: false };
-    let window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
+    let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
 
     let mut display = engine::Display::new(
         display_size,
@@ -195,18 +257,69 @@ pub fn main_loop(
     let mut vertex_buffer: Vec<f32> = Vec::with_capacity(engine::VERTEX_BUFFER_CAPACITY);
     let mut overall_max_drawcall_count = 0;
     let mut keys = vec![];
-
+    let mut previous_frame_start_time = Instant::now();
+    let mut switched_from_fullscreen = false;
+    let mut fps_clock = Duration::from_millis(0);
+    let mut frames_in_current_second = 0;
+    let mut fps = 0;
+    // NOTE: This will wrap after running continuously for over 64
+    // years at 60 FPS. 32 bits are just fine.
+    let mut current_frame_id: i32 = 0;
     let mut running = true;
+
     while running {
+        let frame_start_time = Instant::now();
+        let dt = frame_start_time.duration_since(previous_frame_start_time);
+        previous_frame_start_time = frame_start_time;
+
+        // Calculate FPS
+        fps_clock += dt;
+        frames_in_current_second += 1;
+        current_frame_id += 1;
+        if util::num_milliseconds(fps_clock) > 1000 {
+            fps = frames_in_current_second;
+            frames_in_current_second = 1;
+            fps_clock = Duration::new(0, 0);
+        }
+
         events_loop.poll_events(|event| {
             log::debug!("{:?}", event);
             match event {
                 glutin::Event::WindowEvent { event, .. } => match event {
                     glutin::WindowEvent::CloseRequested => running = false,
 
-                    glutin::WindowEvent::Resized(logical_size) => {
-                        let dpi_factor = gl_window.get_hidpi_factor();
-                        gl_window.resize(logical_size.to_physical(dpi_factor));
+                    glutin::WindowEvent::Resized(LogicalSize { width, height }) => {
+                        // let dpi_factor = gl_window.get_hidpi_factor();
+                        // gl_window.resize(logical_size.to_physical(dpi_factor));
+                        log::info!("Window resized to: {}x{}", width, height);
+                        window_size_px = Point::new(width as i32, height as i32);
+                    }
+
+                    glutin::WindowEvent::Moved(new_pos) => {
+                        if settings.fullscreen || switched_from_fullscreen {
+                            // Don't update the window position
+                            //
+                            // Even after we switch from
+                            // fullscreen, the `Moved` event has a
+                            // wrong value that messes things up.
+                            // So we restore the previous position
+                            // manually instead.
+                        } else {
+                            log::debug!(
+                                "[FRAME {}] Window moved to: {:?}",
+                                current_frame_id,
+                                new_pos
+                            );
+                            window_pos.x = new_pos.x as i32;
+                            window_pos.y = new_pos.y as i32;
+                            current_monitor = get_current_monitor(&monitors, window_pos);
+                            log::debug!(
+                                "Current monitor: {:?}, pos: {:?}, size: {:?}",
+                                current_monitor.as_ref().map(|m| m.get_name()),
+                                current_monitor.as_ref().map(|m| m.get_position()),
+                                current_monitor.as_ref().map(|m| m.get_dimensions())
+                            );
+                        }
                     }
 
                     glutin::WindowEvent::KeyboardInput {
@@ -311,9 +424,7 @@ pub fn main_loop(
             }
         });
 
-        // TODO: calculate this properly!
-        let dt = std::time::Duration::from_millis(16);
-        let fps = 60;
+        let previous_settings = settings;
 
         let update_result = update(
             &mut state,
@@ -340,6 +451,34 @@ pub fn main_loop(
         mouse.left_clicked = false;
         mouse.right_clicked = false;
         keys.clear();
+
+        if cfg!(feature = "fullscreen") {
+            if previous_settings.fullscreen != settings.fullscreen {
+                if settings.fullscreen {
+                    log::info!("[{}] Switching to fullscreen", current_frame_id);
+                    gl_window.set_decorations(false);
+                    if let Some(ref monitor) = current_monitor {
+                        pre_fullscreen_window_pos = window_pos;
+                        log::debug!(
+                            "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
+                            monitor.get_name(),
+                            monitor.get_position(),
+                            monitor.get_dimensions()
+                        );
+                        gl_window.set_fullscreen(Some(monitor.clone()));
+                    } else {
+                        log::debug!("`current_monitor` is not set!??");
+                    }
+                } else {
+                    log::info!("[{}] Switching fullscreen off", current_frame_id);
+                    gl_window.set_fullscreen(None);
+                    let pos = gl_window.get_position();
+                    log::debug!("New window position: {:?}", pos);
+                    gl_window.set_decorations(true);
+                    switched_from_fullscreen = true;
+                }
+            }
+        }
 
         drawcalls.clear();
         display.push_drawcalls(&mut drawcalls);
@@ -387,5 +526,65 @@ pub fn main_loop(
             &vertex_buffer,
         );
         gl_window.swap_buffers().unwrap();
+
+        if current_frame_id == 1 {
+            // NOTE: We should have the proper window position and
+            // monitor info at this point but not sooner.
+
+            // NOTE: If the primary monitor is different from the
+            // monitor the window actually spawns at (this happens on
+            // my dev machine where the primary monitor is in the
+            // portrait orientation and therefore more narrow, but the
+            // game window normally spawns on my landscape monitor),
+            // it gets resized. We can detect it because this event
+            // fires on the first frame. So we ask it to resize to the
+            // expected size again and leave it at that.
+            log::debug!(
+                "Current monitor: {:?}",
+                current_monitor.as_ref().map(|m| m.get_dimensions())
+            );
+
+            if desired_window_width != window_size_px.x as u32
+                || desired_window_height != window_size_px.y as u32
+            {
+                if let Some(ref monitor) = current_monitor {
+                    let dim = monitor.get_dimensions();
+                    let monitor_width = dim.width as u32;
+                    let monitor_height = dim.height as u32;
+                    if desired_window_width <= monitor_width
+                        && desired_window_height <= monitor_height
+                    {
+                        log::debug!(
+                            "Resetting the window to its expected size: {} x {}.",
+                            desired_window_width,
+                            desired_window_height
+                        );
+                        gl_window.set_inner_size(LogicalSize {
+                            width: desired_window_width.into(),
+                            height: desired_window_height.into(),
+                        });
+                    } else {
+                        log::debug!("TODO: try to resize but maintain aspect ratio.");
+                    }
+                }
+            }
+        }
+
+        // If we just switched from fullscreen back to a windowed
+        // mode, restore the window position we had before. We do this
+        // because the `Moved` event fires with an incorrect value
+        // when coming back from full screen.
+        //
+        // This ensures that we can switch full screen back and fort
+        // on a multi monitor setup.
+        if switched_from_fullscreen {
+            window_pos = pre_fullscreen_window_pos;
+        }
     }
+
+    log::debug!(
+        "Drawcall count: {}. Capacity: {}.",
+        overall_max_drawcall_count,
+        engine::DRAWCALL_CAPACITY
+    );
 }

@@ -16,9 +16,6 @@ use std::{ffi::CString, mem, os, ptr, time::Duration};
 use gl::types::*;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "glium-backend")]
-pub mod glium;
-
 #[cfg(feature = "glutin-backend")]
 pub mod glutin;
 

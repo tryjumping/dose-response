@@ -69,38 +69,6 @@ const WORLD_SIZE: point::Point = point::Point {
 };
 
 #[allow(unused_variables, dead_code, needless_pass_by_value)]
-fn run_glium(
-    display_size: point::Point,
-    default_background: color::Color,
-    window_title: &str,
-    record_replay: bool,
-    state: state::State,
-    update: engine::UpdateFn,
-) {
-    log::info!("Using the glium backend");
-
-    let (fixed_fps, replay_dir) = if record_replay {
-        (Some(60), Some("/home/thomas/tmp/dose-response-recording"))
-    } else {
-        (None, None)
-    };
-
-    #[cfg(feature = "glium-backend")]
-    engine::glium::main_loop(
-        display_size,
-        default_background,
-        window_title,
-        fixed_fps,
-        replay_dir,
-        Box::new(state),
-        update,
-    );
-
-    #[cfg(not(feature = "glium-backend"))]
-    log::error!("The \"glium-backend\" feature was not compiled in.");
-}
-
-#[allow(unused_variables, dead_code, needless_pass_by_value)]
 fn run_glutin(
     display_size: point::Point,
     default_background: color::Color,
@@ -109,6 +77,13 @@ fn run_glutin(
     update: engine::UpdateFn,
 ) {
     log::info!("Using the glutin backend");
+
+    // // TODO: figure out how to record screenshots with glutin!
+    // let (fixed_fps, replay_dir) = if record_replay {
+    //     (Some(60), Some("/home/thomas/tmp/dose-response-recording"))
+    // } else {
+    //     (None, None)
+    // };
 
     #[cfg(feature = "glutin-backend")]
     engine::glutin::main_loop(
@@ -216,15 +191,6 @@ fn process_cli_and_run_game() {
              controled via ZeroMQ.",
         ));
         graphics_backends.push("remote");
-    }
-
-    if cfg!(feature = "glium-backend") {
-        app = app.arg(
-            Arg::with_name("glium")
-                .long("glium")
-                .help("Use the Glium rendering backend"),
-        );
-        graphics_backends.push("glium");
     }
 
     if cfg!(feature = "glutin-backend") {
@@ -377,15 +343,6 @@ fn process_cli_and_run_game() {
         run_remote(display_size, background, game_title, state, game_update);
     } else if matches.is_present("sdl") {
         run_sdl(display_size, background, game_title, state, game_update);
-    } else if matches.is_present("glium") {
-        run_glium(
-            display_size,
-            background,
-            game_title,
-            matches.is_present("record-frames"),
-            state,
-            game_update,
-        );
     } else if matches.is_present("glutin") {
         run_glutin(display_size, background, game_title, state, game_update);
     } else {

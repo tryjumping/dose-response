@@ -18,14 +18,14 @@ By default, Dose Response uses [SDL2][sdl] as the graphics backend. This
 requires having the SDL2 libraries installed on your system.
 
 If you want to try the pure Rust graphics backend
-([winit][winit], [glutin][glutin] & [glium][glium]), compile the
+([winit][winit] & [glutin][glutin]), compile the
 project like so:
 
-    $ cargo build --no-default-features --features 'cli replay rand fullscreen cheating stats verifications glium-backend'
+    $ cargo build --no-default-features --features 'cli replay rand fullscreen cheating stats verifications glutin-backend'
 
-To run the built binary, you must pass the `--glium` command line argument:
+To run the built binary, you must pass the `--glutin` command line argument:
 
-    $ ./target/debug/dose-response --glium
+    $ ./target/debug/dose-response --glutin
 
 Webassembly
 -----------

@@ -197,23 +197,27 @@ fn main() {
     ));
 
     lookup_table_contents
-        .push_str("fn texture_coords_from_char(chr: char) -> Option<(i32, i32)> {\n");
-    lookup_table_contents.push_str("match chr {\n");
+        .push_str("fn texture_coords_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n");
+    lookup_table_contents.push_str("match (size, chr) {\n");
     for &(index, chr) in &lookup_table {
-        lookup_table_contents.push_str(&format!("  {:?} => Some(({}, 0)),\n", chr, index));
+        lookup_table_contents.push_str(&format!(
+            "  ({:?}, {:?}) => Some(({}, 0)),\n",
+            height as u32, chr, index
+        ));
     }
     lookup_table_contents.push_str("_ => None,\n}\n}\n\n");
 
     // NOTE: uncomment this if we need this. For now we always align lines to the tiles.
     //lookup_table_contents.push_str(&format!("pub const VERTICAL_ASCENT: i32 = {};\n\n", v_metrics.ascent as i32));
 
-    lookup_table_contents.push_str("pub fn glyph_advance_width(chr: char) -> Option<i32> {\n");
-    lookup_table_contents.push_str("match chr {\n");
+    lookup_table_contents
+        .push_str("pub fn glyph_advance_width(size: u32, chr: char) -> Option<i32> {\n");
+    lookup_table_contents.push_str("match (size, chr) {\n");
 
     for (&(_index, chr), advance_width) in lookup_table.iter().zip(h_metrics) {
         lookup_table_contents.push_str(&format!(
-            "    {:?} => Some({}),\n",
-            chr, advance_width as i32
+            "    ({:?}, {:?}) => Some({}),\n",
+            height as u32, chr, advance_width as i32
         ));
     }
 

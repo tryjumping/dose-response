@@ -275,6 +275,8 @@ pub struct TextOptions {
     /// If less than `1`, ignore it. Used for text wrapping and
     /// centering.
     pub width: i32,
+
+    pub height: i32,
 }
 
 impl TextOptions {
@@ -306,6 +308,7 @@ impl Default for TextOptions {
             align: TextAlign::Left,
             wrap: false,
             width: 0,
+            height: 1,
         }
     }
 }
@@ -325,9 +328,10 @@ pub trait TextMetrics {
     /// Panics when `text_drawcall` is not `Draw::Text`
     fn get_text_height(&self, text: &str, options: TextOptions) -> i32 {
         if options.wrap && options.width > 0 {
+            let font_size = self.tile_width_px() as u32;
             // TODO: this does a needless allocation by
             // returning Vec<String> we don't use here.
-            let lines = wrap_text(&text, options.width, self.tile_width_px());
+            let lines = wrap_text(&text, font_size, options.width, self.tile_width_px());
             lines.len() as i32
         } else {
             1
@@ -338,16 +342,17 @@ pub trait TextMetrics {
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
     fn get_text_width(&self, text: &str, options: TextOptions) -> i32 {
+        let font_size = self.tile_width_px() as u32;
         let pixel_width = if options.wrap && options.width > 0 {
             // // TODO: handle text alignment for wrapped text
-            let lines = wrap_text(text, options.width, self.tile_width_px());
+            let lines = wrap_text(text, font_size, options.width, self.tile_width_px());
             lines
                 .iter()
-                .map(|line| text_width_px(line, self.tile_width_px()))
+                .map(|line| text_width_px(line, font_size, self.tile_width_px()))
                 .max()
                 .unwrap_or(0)
         } else {
-            text_width_px(text, self.tile_width_px())
+            text_width_px(text, font_size, self.tile_width_px())
         };
         let tile_width = (pixel_width as f32 / self.tile_width_px() as f32).ceil();
         tile_width as i32
@@ -394,28 +399,29 @@ pub trait TextMetrics {
 }
 
 // Calculate the width in pixels of a given text
-fn text_width_px(text: &str, tile_width_px: i32) -> i32 {
+fn text_width_px(text: &str, font_size: u32, tile_width_px: i32) -> i32 {
     text.chars()
-        .map(|chr| glyph_advance_width(chr).unwrap_or(tile_width_px as i32))
+        .map(|chr| glyph_advance_width(font_size, chr).unwrap_or(tile_width_px as i32))
         .sum()
 }
 
-fn wrap_text(text: &str, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
+fn wrap_text(text: &str, font_size: u32, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
     let mut result = vec![];
     let wrap_width_px = width_tiles * tile_width_px;
-    let space_width = glyph_advance_width(' ').unwrap_or(tile_width_px as i32);
+    let space_width = glyph_advance_width(font_size, ' ').unwrap_or(tile_width_px as i32);
+    let font_size = tile_width_px as u32;
 
     let mut current_line = String::new();
     let mut current_width_px = 0;
 
     let mut words = text.split(' ');
     if let Some(word) = words.next() {
-        current_width_px += text_width_px(word, tile_width_px);
+        current_width_px += text_width_px(word, font_size, tile_width_px);
         current_line.push_str(word);
     }
 
     for word in words {
-        let word_width = text_width_px(word, tile_width_px);
+        let word_width = text_width_px(word, font_size, tile_width_px);
         if current_width_px + space_width + word_width <= wrap_width_px {
             current_width_px += space_width + word_width;
             current_line.push(' ');
@@ -645,6 +651,7 @@ impl Display {
 
     pub fn draw_text(&mut self, start_pos: Point, text: &str, color: Color, options: TextOptions) {
         let tilesize = self.tilesize;
+        let font_size = tilesize as u32;
         let mut render_line = |pos_px: Point, line: &str| {
             let mut offset_x = 0;
 
@@ -657,7 +664,7 @@ impl Display {
             // actual result here.
             for chr in line.chars() {
                 let (texture_index_x, texture_index_y) =
-                    texture_coords_from_char(chr).unwrap_or((0, 0));
+                    texture_coords_from_char(font_size, chr).unwrap_or((0, 0));
 
                 let src = Rectangle::from_point_and_size(
                     Point::new(texture_index_x, texture_index_y) * self.tilesize,
@@ -670,14 +677,14 @@ impl Display {
 
                 self.drawcalls.push(Drawcall::Image(src, dst, color));
 
-                let advance_width = glyph_advance_width(chr).unwrap_or(self.tilesize);
+                let advance_width = glyph_advance_width(font_size, chr).unwrap_or(self.tilesize);
                 offset_x += advance_width;
             }
         };
 
         if options.wrap && options.width > 0 {
             // TODO: handle text alignment for wrapped text
-            let lines = wrap_text(text, options.width, tilesize);
+            let lines = wrap_text(text, font_size, options.width, tilesize);
             for (index, line) in lines.iter().enumerate() {
                 let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
                 render_line(pos, line);
@@ -687,10 +694,11 @@ impl Display {
             let pos = match options.align {
                 Left => start_pos * tilesize,
                 Right => {
-                    (start_pos + (1, 0)) * tilesize - Point::new(text_width_px(text, tilesize), 0)
+                    (start_pos + (1, 0)) * tilesize
+                        - Point::new(text_width_px(text, font_size, tilesize), 0)
                 }
                 Center => {
-                    let text_width = text_width_px(text, tilesize);
+                    let text_width = text_width_px(text, font_size, tilesize);
                     let max_width = options.width * tilesize;
                     if max_width < 1 || (text_width > max_width) {
                         start_pos
@@ -724,6 +732,7 @@ impl Display {
     pub fn push_drawcalls(&self, drawcalls: &mut Vec<Drawcall>) {
         let offset_px = self.offset_px;
         let tilesize = self.tilesize;
+        let font_size = tilesize as u32;
         let display_size_px = self.display_size * tilesize;
 
         if let Some(bg) = self.clear_background_color {
@@ -734,7 +743,7 @@ impl Display {
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
             let (texture_index_x, texture_index_y) =
-                texture_coords_from_char(cell.glyph).unwrap_or((0, 0));
+                texture_coords_from_char(font_size, cell.glyph).unwrap_or((0, 0));
             let texture_src = Rectangle::from_point_and_size(
                 Point::new(texture_index_x, texture_index_y) * tilesize,
                 Point::from_i32(tilesize),
@@ -748,7 +757,7 @@ impl Display {
             );
 
             // NOTE: Center the glyphs in their cells
-            let glyph_width = glyph_advance_width(cell.glyph).unwrap_or(tilesize);
+            let glyph_width = glyph_advance_width(font_size, cell.glyph).unwrap_or(tilesize);
             let x_offset = (tilesize as i32 - glyph_width) / 2;
             let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
 

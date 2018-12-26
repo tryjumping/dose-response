@@ -167,6 +167,7 @@ fn main() {
         .iter()
         .map(|&(_index, chr)| font.glyph(chr).scaled(scale).h_metrics().advance_width);
 
+    // NOTE: recardless of what value we set here, always keep it power of two!
     let texture_width = 1024;
     let texture_height = 1024;
 

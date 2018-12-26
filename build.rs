@@ -144,7 +144,6 @@ fn main() {
 
     let _ = save_out_dir(&cargo_manifest_dir, out_dir);
 
-    // let font_data = include_bytes!("../Arial Unicode.ttf");
     let font_data = include_bytes!("fonts/mononoki-Regular.ttf");
     let collection = FontCollection::from_bytes(font_data as &[u8]).unwrap();
 
@@ -156,19 +155,7 @@ fn main() {
     let pixel_height = height.ceil() as usize;
 
     let scale = Scale::uniform(height);
-
-    // The origin of a line of text is at the baseline (roughly where
-    // non-descending letters sit). We don't want to clip the text, so
-    // we shift it down with an offset when laying it out.
-    // v_metrics.ascent is the distance between the baseline and the
-    // highest edge of any glyph in the font. That's enough to
-    // guarantee that there's no clipping.
     let v_metrics = font.v_metrics(scale);
-
-    // NOTE: To lay out text, use the `font.layout` call below. It
-    // should handle glyph positioning, kerning, etc.: let offset =
-    // point(0.0, v_metrics.ascent); let glyphs: Vec<PositionedGlyph>
-    // = font.layout("RustType", scale, offset).collect();
 
     // Lookup table for the printable ASCII chars (32 to 126)
     let lookup_table = (32u8..127)

@@ -74,6 +74,31 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 *** Move to the "New game" button from the right direction
 *** It only gets highlighted/clickable about halfway through
 ** We're probably ignoring letter-boxing there or something
+* Pack multiple font sizes
+** Simple texture packing algorithm
+https://gamedev.stackexchange.com/a/2839
+*** Description:
+ Collect all the input items. Sort them by total pixels consumed,
+ large-to-small. Lay them out in your texture in scanline order, just
+ testing stuff from the topleft pixel to the topright pixel, moving
+ down a line, and repeating, resetting to the topleft pixel after
+ every successful placement.
+*** Size estimate:
+**** 95 glyphs
+**** 1 full 4K (72x72 px) set plus one more for the remaining font maps
+**** 4 bytes / pixel
+**** 95 * 72 * 72 * 2 * 4 ~> 3 939 840 bytes ~ 4MB
+***** ~ 1MB pixels ~ 1024x1024 px matrix
+***** be nice if we could fit under 512x512 px tho
+*** Reducing the full size
+**** Only store the alpha channel
+***** should reduce total memory/disk size to ~1MB
+***** pixel count will remain the same tho
+**** Test how many pixels past 4K do we actually need
+***** maybe reserving two full 4K sets is a gross overestimate
+**** Drop 4K?
+***** That'll cut our size to 2MB (four channels) or 500KB (only alpha)
+***** That would still get us to about 720x720 tileset though
 * We're including TWGL three times in the repo
 ** This is taking up space and confuses GH's language stats
 ** Apparently, we're 45% JS
@@ -112,6 +137,8 @@ https://store.steampowered.com/hwsurvey/
 *** the rest is under four percent
 **** which doesn't mean we need to ignore them necessarily!
 ** We should support the common video dimensions
+*** 3840x2160 (4K)
+**** font size: 72
 *** 1920x1080 (1080p)
 **** font size: 36
 *** 1280x720 (720p)

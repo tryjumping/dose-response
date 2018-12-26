@@ -152,7 +152,6 @@ fn main() {
 
     // Desired font pixel height
     let height: f32 = 21.0;
-    let pixel_height = height.ceil() as usize;
 
     let scale = Scale::uniform(height);
     let v_metrics = font.v_metrics(scale);
@@ -176,8 +175,8 @@ fn main() {
         })
         .collect();
 
-    let texture_width = pixel_height * glyphs.iter().count();
-    let texture_height = pixel_height;
+    let texture_width = 1024;
+    let texture_height = 1024;
 
     println!(
         "texture width: {}, texture height: {}",

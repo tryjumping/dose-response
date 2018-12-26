@@ -151,7 +151,8 @@ fn main() {
     let font = collection.into_font().unwrap();
 
     // Desired font pixel height
-    let height: f32 = 21.0;
+    let tilesize: u32 = 21;
+    let height: f32 = tilesize as f32;
 
     let scale = Scale::uniform(height);
     let v_metrics = font.v_metrics(scale);
@@ -166,15 +167,6 @@ fn main() {
         .iter()
         .map(|&(_index, chr)| font.glyph(chr).scaled(scale).h_metrics().advance_width);
 
-    let glyphs: Vec<PositionedGlyph> = lookup_table
-        .iter()
-        .map(|&(index, chr)| {
-            font.glyph(chr)
-                .scaled(scale)
-                .positioned(point(height * index as f32, v_metrics.ascent))
-        })
-        .collect();
-
     let texture_width = 1024;
     let texture_height = 1024;
 
@@ -185,7 +177,7 @@ fn main() {
 
     let mut lookup_table_contents = String::new();
 
-    lookup_table_contents.push_str(&format!("pub const TILESIZE: u32 = {};\n", height as u32));
+    lookup_table_contents.push_str(&format!("pub const TILESIZE: u32 = {};\n", tilesize));
     lookup_table_contents.push_str(&format!(
         "pub const TEXTURE_WIDTH: u32 = {};\n",
         texture_width as u32
@@ -194,17 +186,6 @@ fn main() {
         "pub const TEXTURE_HEIGHT: u32 = {};\n",
         texture_height as u32
     ));
-
-    lookup_table_contents
-        .push_str("fn texture_coords_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n");
-    lookup_table_contents.push_str("match (size, chr) {\n");
-    for &(index, chr) in &lookup_table {
-        lookup_table_contents.push_str(&format!(
-            "  ({:?}, {:?}) => Some(({}, 0)),\n",
-            height as u32, chr, index
-        ));
-    }
-    lookup_table_contents.push_str("_ => None,\n}\n}\n\n");
 
     // NOTE: uncomment this if we need this. For now we always align lines to the tiles.
     //lookup_table_contents.push_str(&format!("pub const VERTICAL_ASCENT: i32 = {};\n\n", v_metrics.ascent as i32));
@@ -223,12 +204,42 @@ fn main() {
     lookup_table_contents.push_str("_ => None,\n}\n\n");
     lookup_table_contents.push_str("}\n");
 
+    let tiles_per_texture_width: u32 = texture_width / tilesize;
+
+    let glyphs: Vec<(usize, PositionedGlyph, char, u32, u32)> = lookup_table
+        .iter()
+        .map(|&(index, chr)| {
+            let column = index as u32 % tiles_per_texture_width;
+            let line = index as u32 / tiles_per_texture_width;
+            let glyph = font.glyph(chr).scaled(scale).positioned(point(
+                (column * tilesize) as f32,
+                (line * tilesize) as f32 + v_metrics.ascent,
+            ));
+            (index, glyph, chr, column, line)
+        })
+        .collect();
+
+    // TODO: this result can't be a "tilemap" index as soon as we add different font sizes.
+    // We'll have to switch to this returning pixels in the tilemap instead. Which means
+    // changing the shaders.
+    lookup_table_contents
+        .push_str("fn texture_coords_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n");
+    lookup_table_contents.push_str("match (size, chr) {\n");
+    for &(_index, ref _glyph, chr, column, line) in &glyphs {
+        lookup_table_contents.push_str(&format!(
+            "  ({:?}, {:?}) => Some(({}, {})),\n",
+            tilesize, chr, column, line
+        ));
+    }
+
+    lookup_table_contents.push_str("_ => None,\n}\n}\n\n");
+
     let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs")).unwrap();
     lt_file.write_all(lookup_table_contents.as_bytes()).unwrap();
 
     let mut fontmap = RgbaImage::new(texture_width as u32, texture_height as u32);
 
-    for g in glyphs {
+    for (_index, g, _chr, _column, _line) in glyphs {
         if let Some(bb) = g.pixel_bounding_box() {
             g.draw(|x, y, v| {
                 let x = x as i32 + bb.min.x;

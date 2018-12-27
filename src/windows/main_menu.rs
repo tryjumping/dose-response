@@ -10,7 +10,6 @@ pub enum MenuItem {
     Resume,
     NewGame,
     Help,
-    ToggleFullscreen,
     Options,
     SaveAndQuit,
     Load,
@@ -24,7 +23,6 @@ impl MenuItem {
             Resume => "[R]esume",
             NewGame => "[N]ew Game",
             Help => "[H]elp",
-            ToggleFullscreen => "[F]ullscreen",
             Options => "[O]ptions",
             SaveAndQuit => "[S]ave and Quit",
             Load => "[L]oad game",
@@ -83,10 +81,6 @@ impl Window {
         options.push(MenuItem::Load);
 
         options.push(MenuItem::Help);
-
-        if cfg!(feature = "fullscreen") {
-            options.push(MenuItem::ToggleFullscreen);
-        }
 
         options.push(MenuItem::Options);
 

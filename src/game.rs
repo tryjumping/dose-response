@@ -97,9 +97,9 @@ pub fn update(
 
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
-        Window::MainMenu => process_main_menu(state, settings, &main_menu::Window, metrics),
+        Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
         Window::Game => process_game(state, &sidebar::Window, metrics, dt),
-        Window::Options => process_options_window(state, &options::Window, metrics),
+        Window::Options => process_options_window(state, settings, &options::Window, metrics),
         Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
         Window::Message { .. } => process_message_window(state),
@@ -540,7 +540,6 @@ fn process_game(
 
 fn process_main_menu(
     state: &mut State,
-    settings: &mut Settings,
     window: &main_menu::Window,
     metrics: &dyn TextMetrics,
 ) -> RunningState {
@@ -564,8 +563,6 @@ fn process_main_menu(
             || state.keys.matches_code(KeyCode::H)
         {
             option = Some(Help);
-        } else if state.keys.matches_code(KeyCode::F) {
-            option = Some(ToggleFullscreen);
         } else if state.keys.matches_code(KeyCode::O) {
             option = Some(Options);
         } else if state.keys.matches_code(KeyCode::S) {
@@ -598,11 +595,6 @@ fn process_main_menu(
 
             Help => {
                 state.window_stack.push(Window::Help);
-                return RunningState::Running;
-            }
-
-            ToggleFullscreen => {
-                settings.fullscreen = !settings.fullscreen;
                 return RunningState::Running;
             }
 
@@ -655,12 +647,41 @@ fn process_main_menu(
 
 fn process_options_window(
     state: &mut State,
-    _window: &options::Window,
-    _metrics: &dyn TextMetrics,
+    settings: &mut Settings,
+    window: &options::Window,
+    metrics: &dyn TextMetrics,
 ) -> RunningState {
+    use crate::windows::options::OptionItem::*;
+
     if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
         state.window_stack.pop();
         return RunningState::Running;
+    }
+
+    let mut option = if state.mouse.left_clicked {
+        window.hovered(&state, metrics)
+    } else {
+        None
+    };
+
+    if option.is_none() {
+        if state.keys.matches_code(KeyCode::F) {
+            option = Some(Fullscreen);
+        } else if state.keys.matches_code(KeyCode::W) {
+            option = Some(Window);
+        }
+    }
+
+    if let Some(option) = option {
+        match option {
+            Fullscreen => {
+                settings.fullscreen = true;
+            }
+
+            Window => {
+                settings.fullscreen = false;
+            }
+        }
     }
 
     RunningState::Running

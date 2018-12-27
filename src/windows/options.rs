@@ -7,6 +7,11 @@ use crate::{
     ui,
 };
 
+pub enum OptionItem {
+    Fullscreen,
+    Window,
+}
+
 struct Layout {
     window_rect: Rectangle,
     rect: Rectangle,
@@ -38,7 +43,7 @@ impl Window {
         let lines = vec![
             Centered("Options"),
             Empty,
-            Centered("TODO: add settings here"),
+            Centered("[F]ullscreen / [W]indow"),
         ];
 
         display.draw_rectangle(layout.window_rect, color::window_edge);
@@ -52,5 +57,9 @@ impl Window {
         );
 
         ui::render_text_flow(&lines, layout.rect, metrics, display);
+    }
+
+    pub fn hovered(&self, _state: &State, _fwmetrics: &dyn TextMetrics) -> Option<OptionItem> {
+        None
     }
 }

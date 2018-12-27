@@ -162,7 +162,7 @@ fn main() {
 
     let default_tilesize = 21;
 
-    let font_sizes = [
+    let mut font_sizes = [
         72,               // 4k i.e. QuadHD i.e. 3840x2160
         36,               // 1920x1080 (1080p)
         24,               // 1280x720 (720p)
@@ -176,6 +176,11 @@ fn main() {
 
     let tilemap_offset_x = 0;
     let mut tilemap_offset_y = 0;
+
+    // NOTE: the packing can be made more efficient if we place the
+    // biggest glyphs first.
+    font_sizes.sort_by(|a, b| b.cmp(a));
+
     for &font_size in &font_sizes {
         // Desired font pixel height
         let tilesize: u32 = font_size as u32;

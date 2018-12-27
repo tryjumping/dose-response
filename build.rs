@@ -163,12 +163,12 @@ fn main() {
     let default_tilesize = 21;
 
     let mut font_sizes = [
-        72,               // 4k i.e. QuadHD i.e. 3840x2160
-        36,               // 1920x1080 (1080p)
-        24,               // 1280x720 (720p)
-        default_tilesize, // "Dose Response default"
-        16,               // 854x480 (480p)
-        12,               // 640x360 (360p)
+        72, // 4k i.e. QuadHD i.e. 3840x2160
+        36, // 1920x1080 (1080p)
+        24, // 1280x720 (720p)
+        21, // "Dose Response default"
+        16, // 854x480 (480p)
+        12, // 640x360 (360p)
     ];
 
     let mut glyph_advance_width_entries = vec![];

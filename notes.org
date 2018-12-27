@@ -122,6 +122,11 @@ https://gamedev.stackexchange.com/a/2839
 ** TODO Does switching back "infects" the previously good size?
 ** TODO Does this happen with SDL?
 ** TODO What if we start the game fullscreen with that resolution?
+*** that seems to be working fine
+*** so if we add font switching to the game, we should see this in the other resolutions, too
+*** Yes, so when I've resized the window to 720p, I saw the same glitch
+**** And that was windowed
+**** I thin we're probably not updating some piece of data that we need to
 * We're including TWGL three times in the repo
 ** This is taking up space and confuses GH's language stats
 ** Apparently, we're 45% JS

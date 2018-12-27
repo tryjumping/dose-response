@@ -179,18 +179,20 @@ fn main() {
         glyph_advance_width_entries.push((height as u32, chr, advance_width as i32));
     }
 
-    let tiles_per_texture_width: u32 = texture_width / tilesize;
+    let tiles_per_texture_width: i32 = texture_width / tilesize as i32;
 
-    let glyphs: Vec<(usize, PositionedGlyph, char, u32, u32)> = lookup_table
+    let glyphs: Vec<(usize, PositionedGlyph, char, i32, i32)> = lookup_table
         .iter()
         .map(|&(index, chr)| {
-            let column = index as u32 % tiles_per_texture_width;
-            let line = index as u32 / tiles_per_texture_width;
-            let glyph = font.glyph(chr).scaled(scale).positioned(point(
-                (column * tilesize) as f32,
-                (line * tilesize) as f32 + v_metrics.ascent,
-            ));
-            (index, glyph, chr, column, line)
+            let column = index as i32 % tiles_per_texture_width;
+            let line = index as i32 / tiles_per_texture_width;
+            let tilepos_x = column * tilesize as i32;
+            let tilepos_y = line * tilesize as i32;
+            let glyph = font
+                .glyph(chr)
+                .scaled(scale)
+                .positioned(point(tilepos_x as f32, tilepos_y as f32 + v_metrics.ascent));
+            (index, glyph, chr, tilepos_x, tilepos_y)
         })
         .collect();
 
@@ -227,16 +229,13 @@ fn main() {
 
     // NOTE: Generate the `texture_coords_from_char` query function
 
-    // TODO: this result can't be a "tilemap" index as soon as we add different font sizes.
-    // We'll have to switch to this returning pixels in the tilemap instead. Which means
-    // changing the shaders.
     lookup_table_contents
-        .push_str("fn texture_coords_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n");
+        .push_str("fn texture_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n");
     lookup_table_contents.push_str("match (size, chr) {\n");
-    for &(_index, ref _glyph, chr, column, line) in &glyphs {
+    for &(_index, ref _glyph, chr, tilepos_x, tilepos_y) in &glyphs {
         lookup_table_contents.push_str(&format!(
             "  ({:?}, {:?}) => Some(({}, {})),\n",
-            tilesize, chr, column, line
+            tilesize, chr, tilepos_x, tilepos_y
         ));
     }
 

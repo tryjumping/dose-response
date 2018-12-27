@@ -663,11 +663,11 @@ impl Display {
             // line height correctly. Needs to be set on the
             // actual result here.
             for chr in line.chars() {
-                let (texture_index_x, texture_index_y) =
-                    texture_coords_from_char(font_size, chr).unwrap_or((0, 0));
+                let (texture_px_x, texture_px_y) =
+                    texture_coords_px_from_char(font_size, chr).unwrap_or((0, 0));
 
                 let src = Rectangle::from_point_and_size(
-                    Point::new(texture_index_x, texture_index_y) * self.tilesize,
+                    Point::new(texture_px_x, texture_px_y),
                     Point::from_i32(self.tilesize),
                 );
                 let dst = Rectangle::from_point_and_size(
@@ -742,10 +742,10 @@ impl Display {
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
-            let (texture_index_x, texture_index_y) =
-                texture_coords_from_char(font_size, cell.glyph).unwrap_or((0, 0));
+            let (texture_px_x, texture_px_y) =
+                texture_coords_px_from_char(font_size, cell.glyph).unwrap_or((0, 0));
             let texture_src = Rectangle::from_point_and_size(
-                Point::new(texture_index_x, texture_index_y) * tilesize,
+                Point::new(texture_px_x, texture_px_y),
                 Point::from_i32(tilesize),
             );
             let background_dst = Rectangle::from_point_and_size(

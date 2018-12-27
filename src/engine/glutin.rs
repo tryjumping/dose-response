@@ -243,7 +243,10 @@ pub fn main_loop(
     );
 
     let mut mouse = Mouse::new();
-    let mut settings = Settings { fullscreen: false };
+    let mut settings = Settings {
+        fullscreen: false,
+        font_size: tilesize as i32,
+    };
     let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
 
     let mut display = engine::Display::new(

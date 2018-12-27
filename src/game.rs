@@ -135,7 +135,7 @@ pub fn update(
     let update_duration = update_stopwatch.finish();
 
     let drawcall_stopwatch = Stopwatch::start();
-    render::render(&state, dt, fps, metrics, display);
+    render::render(&state, settings, dt, fps, metrics, display);
     let drawcall_duration = drawcall_stopwatch.finish();
 
     if cfg!(feature = "stats") {

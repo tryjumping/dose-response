@@ -1087,6 +1087,7 @@ fn check_gl_error(source: &str) {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Settings {
     pub fullscreen: bool,
+    pub font_size: i32,
 }
 
 #[allow(dead_code)]

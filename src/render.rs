@@ -1,6 +1,6 @@
 use crate::{
     color,
-    engine::{Display, TextMetrics, TextOptions},
+    engine::{Display, Settings, TextMetrics, TextOptions},
     formula, graphics, monster,
     player::Bonus,
     point::{Point, SquareArea},
@@ -16,6 +16,7 @@ use std::time::Duration;
 
 pub fn render(
     state: &State,
+    settings: &Settings,
     dt: Duration,
     fps: i32,
     metrics: &dyn TextMetrics,
@@ -35,7 +36,7 @@ pub fn render(
                 render_game(state, &sidebar::Window, metrics, dt, fps, display);
             }
             Window::Options => {
-                render_options(state, &options::Window, metrics, display);
+                render_options(state, settings, &options::Window, metrics, display);
             }
             Window::Help => {
                 render_help_screen(state, &help::Window, metrics, display);
@@ -308,11 +309,12 @@ fn render_main_menu(
 
 fn render_options(
     state: &State,
+    settings: &Settings,
     window: &options::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
 ) {
-    window.render(state, metrics, display);
+    window.render(state, settings, metrics, display);
 
     // Clear any fade set by the gameplay rendering
     display.fade = color::invisible;

@@ -1,6 +1,6 @@
 use crate::{
     color,
-    engine::{Display, TextMetrics},
+    engine::{Display, Settings, TextMetrics},
     point::Point,
     rect::Rectangle,
     state::State,
@@ -35,15 +35,35 @@ impl Window {
         Layout { window_rect, rect }
     }
 
-    pub fn render(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) {
+    pub fn render(
+        &self,
+        state: &State,
+        settings: &Settings,
+        metrics: &dyn TextMetrics,
+        display: &mut Display,
+    ) {
         use crate::ui::Text::*;
 
         let layout = self.layout(state, metrics);
 
+        let font_size = format!("Font size (current: {}):", settings.font_size);
+        let sizes_str = crate::engine::AVAILABLE_FONT_SIZES
+            .iter()
+            .map(|num| num.to_string())
+            .collect::<Vec<_>>();
+        let sizes = sizes_str.join(" / ");
+
         let lines = vec![
             Centered("Options"),
             Empty,
+            Centered("Display:"),
             Centered("[F]ullscreen / [W]indow"),
+            Empty,
+            Centered(&font_size),
+            Centered(&sizes),
+            Empty,
+            Centered("Graphics backend (TODO):"),
+            Centered("Glutin / SDL"),
         ];
 
         display.draw_rectangle(layout.window_rect, color::window_edge);

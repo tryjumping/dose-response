@@ -289,6 +289,11 @@ fn process_cli_and_run_game() {
         log::info!("Target triple: {}", target_triple);
     }
 
+    log::info!(
+        "Available font sizes: {:?}",
+        crate::engine::AVAILABLE_FONT_SIZES
+    );
+
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
             panic!(

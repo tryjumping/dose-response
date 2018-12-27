@@ -229,6 +229,12 @@ fn main() {
         texture_height as u32
     ));
 
+    lookup_table_contents.push_str(&format!(
+        "pub const AVAILABLE_FONT_SIZES: [i32; {}] = {:?};\n",
+        font_sizes.len(),
+        font_sizes,
+    ));
+
     // NOTE: Generate the `glyph_advance_width` query function
     lookup_table_contents
         .push_str("pub fn glyph_advance_width(size: u32, chr: char) -> Option<i32> {\n");

@@ -166,11 +166,9 @@ pub fn main_loop(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    let tilesize = super::TILESIZE;
-    let (desired_window_width, desired_window_height) = (
-        display_size.x as u32 * tilesize as u32,
-        display_size.y as u32 * tilesize as u32,
-    );
+    let mut tilesize = super::TILESIZE;
+    let mut desired_window_width = display_size.x as u32 * tilesize as u32;
+    let mut desired_window_height = display_size.y as u32 * tilesize as u32;
 
     log::debug!(
         "Requested display in tiles: {} x {}",
@@ -292,8 +290,29 @@ pub fn main_loop(
                     glutin::WindowEvent::Resized(LogicalSize { width, height }) => {
                         // let dpi_factor = gl_window.get_hidpi_factor();
                         // gl_window.resize(logical_size.to_physical(dpi_factor));
+                        let height = height as i32;
+                        let width = width as i32;
                         log::info!("Window resized to: {}x{}", width, height);
-                        window_size_px = Point::new(width as i32, height as i32);
+                        let new_window_size_px = Point::new(width, height);
+                        if window_size_px != new_window_size_px {
+                            window_size_px = new_window_size_px;
+
+                            // NOTE: Update the tilesize if we get a perfect match
+                            if height > 0 && height % crate::DISPLAY_SIZE.y == 0 {
+                                let new_tilesize = height / crate::DISPLAY_SIZE.y;
+                                if crate::engine::AVAILABLE_FONT_SIZES.contains(&new_tilesize) {
+                                    log::info!(
+                                        "Changing tilesize from {} to {}",
+                                        tilesize,
+                                        new_tilesize
+                                    );
+                                    tilesize = new_tilesize as u32;
+                                    desired_window_width = display_size.x as u32 * tilesize;
+                                    desired_window_height = display_size.y as u32 * tilesize;
+                                    display.tilesize = new_tilesize;
+                                };
+                            }
+                        }
                     }
 
                     glutin::WindowEvent::Moved(new_pos) => {

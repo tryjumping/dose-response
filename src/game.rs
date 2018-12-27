@@ -565,6 +565,8 @@ fn process_main_menu(
             option = Some(Help);
         } else if state.keys.matches_code(KeyCode::F) {
             option = Some(ToggleFullscreen);
+        } else if state.keys.matches_code(KeyCode::O) {
+            option = Some(Options);
         } else if state.keys.matches_code(KeyCode::S) {
             option = Some(SaveAndQuit);
         } else if state.keys.matches_code(KeyCode::Q) {
@@ -600,6 +602,13 @@ fn process_main_menu(
 
             ToggleFullscreen => {
                 settings.fullscreen = !settings.fullscreen;
+                return RunningState::Running;
+            }
+
+            Options => {
+                state
+                    .window_stack
+                    .push(window::message_box("TODO: show settings here"));
                 return RunningState::Running;
             }
 

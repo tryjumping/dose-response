@@ -8,6 +8,7 @@ pub enum Window {
     MainMenu,
     Game,
     Help,
+    Options,
     Endgame,
     Message {
         message: String,

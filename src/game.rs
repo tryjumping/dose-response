@@ -18,7 +18,7 @@ use crate::{
     timer::{Stopwatch, Timer},
     util,
     window::{self, Window},
-    windows::{endgame, help, main_menu, sidebar},
+    windows::{endgame, help, main_menu, options, sidebar},
     world::World,
 };
 
@@ -99,6 +99,7 @@ pub fn update(
     let game_update_result = match current_window {
         Window::MainMenu => process_main_menu(state, settings, &main_menu::Window, metrics),
         Window::Game => process_game(state, &sidebar::Window, metrics, dt),
+        Window::Options => process_options_window(state, &options::Window, metrics),
         Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
         Window::Message { .. } => process_message_window(state),
@@ -606,9 +607,7 @@ fn process_main_menu(
             }
 
             Options => {
-                state
-                    .window_stack
-                    .push(window::message_box("TODO: show settings here"));
+                state.window_stack.push(Window::Options);
                 return RunningState::Running;
             }
 
@@ -649,6 +648,19 @@ fn process_main_menu(
                 return RunningState::Stopped;
             }
         }
+    }
+
+    RunningState::Running
+}
+
+fn process_options_window(
+    state: &mut State,
+    _window: &options::Window,
+    _metrics: &dyn TextMetrics,
+) -> RunningState {
+    if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
+        state.window_stack.pop();
+        return RunningState::Running;
     }
 
     RunningState::Running

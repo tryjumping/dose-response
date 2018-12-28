@@ -74,6 +74,10 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 *** Move to the "New game" button from the right direction
 *** It only gets highlighted/clickable about halfway through
 ** We're probably ignoring letter-boxing there or something
+* Use `settings.font_size` as the single source of truth everywhere
+** change `engine::TILESIZE` to `engine::DEFAULT_TILESIZE`
+** impl `Default` for settings
+** Make sure every bit of code uses settings rather than the constant
 * Pack multiple font sizes
 ** Simple texture packing algorithm
 https://gamedev.stackexchange.com/a/2839
@@ -111,22 +115,6 @@ https://gamedev.stackexchange.com/a/2839
 - [ ] Pack the textures more effectively
 - [ ] Try switching to an alpha-only channel for the texture atlas
 - [ ] Try using a smaller hardcoded texture dimensions
-* Choppy screen scrolling on 1080p with appropriate texture
-** Open this on a 1080p screen
-** Switch to fullscreen
-** The font size will change from 21 to 36
-** Walk toward the edge so you get recentered
-** The animation is choppy (even on release)
-*** seems to be introduced in commit af2a91e9e4dbca622c4e1b1c17c35bbefbfd185c
-*** which added the custom fonts
-** TODO Does switching back "infects" the previously good size?
-** TODO Does this happen with SDL?
-** TODO What if we start the game fullscreen with that resolution?
-*** that seems to be working fine
-*** so if we add font switching to the game, we should see this in the other resolutions, too
-*** Yes, so when I've resized the window to 720p, I saw the same glitch
-**** And that was windowed
-**** I thin we're probably not updating some piece of data that we need to
 * We're including TWGL three times in the repo
 ** This is taking up space and confuses GH's language stats
 ** Apparently, we're 45% JS
@@ -3543,3 +3531,23 @@ CLOSED: [2018-12-25 Tue 17:16]
 *** its glutin & winit version often lags behind
 *** which is unfortunate when we want to test the latest fixes
 *** and we've already got a "raw opengl" codepath with `gl` and `sdl`
+** DONE Choppy screen scrolling on 1080p with appropriate texture
+CLOSED: [2018-12-28 Fri 11:18]
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-12-28 Fri 11:18
+:END:
+*** Open this on a 1080p screen
+*** Switch to fullscreen
+*** The font size will change from 21 to 36
+*** Walk toward the edge so you get recentered
+*** The animation is choppy (even on release)
+**** seems to be introduced in commit af2a91e9e4dbca622c4e1b1c17c35bbefbfd185c
+**** which added the custom fonts
+*** TODO Does switching back "infects" the previously good size?
+*** TODO Does this happen with SDL?
+*** TODO What if we start the game fullscreen with that resolution?
+**** that seems to be working fine
+**** so if we add font switching to the game, we should see this in the other resolutions, too
+**** Yes, so when I've resized the window to 720p, I saw the same glitch
+***** And that was windowed
+***** I thin we're probably not updating some piece of data that we need to

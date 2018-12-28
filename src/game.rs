@@ -3,7 +3,7 @@ use crate::{
     animation::{self, AreaOfEffect},
     blocker::Blocker,
     color,
-    engine::{Display, Mouse, Settings, TextMetrics, TILESIZE},
+    engine::{Display, Mouse, Settings, TextMetrics},
     formula, item,
     keys::{Key, KeyCode, Keys},
     level::TileKind,
@@ -98,7 +98,7 @@ pub fn update(
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
         Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
-        Window::Game => process_game(state, &sidebar::Window, metrics, dt),
+        Window::Game => process_game(state, settings, &sidebar::Window, metrics, dt),
         Window::Options => process_options_window(state, settings, &options::Window, metrics),
         Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
@@ -156,6 +156,7 @@ pub fn update(
 
 fn process_game(
     state: &mut State,
+    settings: &Settings,
     window: &sidebar::Window,
     metrics: &dyn TextMetrics,
     dt: Duration,
@@ -254,8 +255,8 @@ fn process_game(
     // get too close to an edge.
     state.pos_timer.update(dt);
     if !state.pos_timer.finished() {
+        let tilesize = settings.font_size as f32;
         let percentage = util::sine_curve(state.pos_timer.percentage_elapsed());
-        let tilesize = TILESIZE as f32;
         let x = ((state.old_screen_pos.x - state.new_screen_pos.x) as f32) * percentage * tilesize;
         let y = ((state.old_screen_pos.y - state.new_screen_pos.y) as f32) * percentage * tilesize;
         state.offset_px = Point::new(x as i32, y as i32);

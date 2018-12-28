@@ -313,6 +313,7 @@ pub fn main_loop(
                                     desired_window_width = display_size.x as u32 * tilesize;
                                     desired_window_height = display_size.y as u32 * tilesize;
                                     display.tilesize = new_tilesize;
+                                    settings.font_size = new_tilesize;
                                 };
                             }
                         }

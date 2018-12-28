@@ -216,6 +216,13 @@ fn main() {
         let full_font_width_px = lookup_table.len() as i32 * font_size;
         let lines = (full_font_width_px as f32 / texture_width as f32).ceil() as i32;
         tilemap_offset_y += font_size * lines;
+
+        if tilemap_offset_y >= texture_height {
+            panic!(
+                "The texture size ({}x{}) is not sufficient. Current height: {}",
+                texture_width, texture_height, tilemap_offset_y
+            );
+        }
     }
 
     // NOTE: generate the constants

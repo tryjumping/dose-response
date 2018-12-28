@@ -157,18 +157,24 @@ fn main() {
         .collect::<Vec<_>>();
 
     // NOTE: recardless of what value we set here, always keep it power of two!
-    let texture_width = 1024;
-    let texture_height = 1024;
+    let texture_width = 512;
+    let texture_height = 512;
 
     let default_tilesize = 21;
 
+    // NOTE: If we want to add any other resolutions, we'll probably
+    // have to change the texture to 1024x1024. Notably, 4K needs it
+    // even if it's the only size in town.
+    //
+    // Let's cap it to whatever currently fits 512x512 and see if we
+    // need to change this later.
+
     let mut font_sizes = [
-        72, // 4k i.e. QuadHD i.e. 3840x2160
+        //72, // 4k i.e. QuadHD i.e. 3840x2160
         36, // 1920x1080 (1080p)
         24, // 1280x720 (720p)
         21, // "Dose Response default"
         16, // 854x480 (480p)
-        12, // 640x360 (360p)
     ];
 
     let mut glyph_advance_width_entries = vec![];

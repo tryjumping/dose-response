@@ -660,7 +660,7 @@ fn process_options_window(
     }
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, settings, metrics)
     } else {
         None
     };

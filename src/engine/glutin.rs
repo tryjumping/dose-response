@@ -1,7 +1,8 @@
 use crate::{
     color::Color,
     engine::{
-        self, Drawcall, Mouse, OpenGlApp, RunningState, Settings, TextMetrics, UpdateFn, Vertex,
+        self, Display, Drawcall, Mouse, OpenGlApp, RunningState, Settings, TextMetrics, UpdateFn,
+        Vertex,
     },
     keys::KeyCode,
     point::Point,
@@ -124,6 +125,20 @@ fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<Moni
     }
 
     monitors.iter().cloned().next()
+}
+
+fn change_tilesize(
+    new_tilesize: u32,
+    tilesize: &mut u32,
+    display: &mut Display,
+    desired_window_width: &mut u32,
+    desired_window_height: &mut u32,
+) {
+    log::info!("Changing tilesize from {} to {}", tilesize, new_tilesize);
+    *tilesize = new_tilesize;
+    *desired_window_width = display.display_size.x as u32 * new_tilesize;
+    *desired_window_height = display.display_size.y as u32 * new_tilesize;
+    display.tilesize = new_tilesize as i32;
 }
 
 #[allow(cyclomatic_complexity, unsafe_code)]
@@ -303,18 +318,14 @@ pub fn main_loop(
                             // NOTE: Update the tilesize if we get a perfect match
                             if height > 0 && height % crate::DISPLAY_SIZE.y == 0 {
                                 let new_tilesize = height / crate::DISPLAY_SIZE.y;
-                                if crate::engine::AVAILABLE_FONT_SIZES.contains(&new_tilesize) {
-                                    log::info!(
-                                        "Changing tilesize from {} to {}",
-                                        tilesize,
-                                        new_tilesize
-                                    );
-                                    tilesize = new_tilesize as u32;
-                                    desired_window_width = display_size.x as u32 * tilesize;
-                                    desired_window_height = display_size.y as u32 * tilesize;
-                                    display.tilesize = new_tilesize;
-                                    settings.font_size = new_tilesize;
-                                };
+                                if crate::engine::AVAILABLE_FONT_SIZES.contains(&new_tilesize) {};
+                                change_tilesize(
+                                    new_tilesize as u32,
+                                    &mut tilesize,
+                                    &mut display,
+                                    &mut desired_window_width,
+                                    &mut desired_window_height,
+                                );
                             }
                         }
                     }

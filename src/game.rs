@@ -673,6 +673,28 @@ fn process_settings_window(
         }
     }
 
+    if option.is_none() {
+        for (index, &size) in crate::engine::AVAILABLE_FONT_SIZES.iter().enumerate() {
+            let code = match index + 1 {
+                1 => Some(KeyCode::D1),
+                2 => Some(KeyCode::D2),
+                3 => Some(KeyCode::D3),
+                4 => Some(KeyCode::D4),
+                5 => Some(KeyCode::D5),
+                6 => Some(KeyCode::D6),
+                7 => Some(KeyCode::D7),
+                8 => Some(KeyCode::D8),
+                9 => Some(KeyCode::D9),
+                _ => None,
+            };
+            if let Some(code) = code {
+                if state.keys.matches_code(code) {
+                    option = Some(FontSize(size));
+                }
+            }
+        }
+    }
+
     if let Some(option) = option {
         match option {
             Fullscreen => {
@@ -681,6 +703,10 @@ fn process_settings_window(
 
             Window => {
                 settings.fullscreen = false;
+            }
+
+            FontSize(font_size) => {
+                settings.font_size = font_size;
             }
 
             Back => {

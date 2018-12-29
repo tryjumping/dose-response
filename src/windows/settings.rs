@@ -10,6 +10,7 @@ use crate::{
 pub enum Action {
     Fullscreen,
     Window,
+    FontSize(i32),
     Back,
 }
 
@@ -20,6 +21,7 @@ struct Layout {
     rect_under_mouse: Option<Rectangle>,
     fullscreen_button: Button,
     window_button: Button,
+    font_size_options: Vec<(i32, Button)>,
     back_button: Button,
 }
 
@@ -44,7 +46,7 @@ impl Window {
         let fullscreen_button = Button::new(rect.top_left() + (13, 3), "[F]ullscreen");
         let window_button = Button::new(rect.top_left() + (20, 3), "[W]indow");
         let back_button =
-            Button::new(rect.top_left() + (0, 11), "[Esc] Back").align_center(rect.width());
+            Button::new(rect.top_left() + (0, 15), "[Esc] Back").align_center(rect.width());
 
         let button_rect = metrics.button_rect(&fullscreen_button);
         if button_rect.contains(state.mouse.tile_pos) {
@@ -64,6 +66,33 @@ impl Window {
             rect_under_mouse = Some(button_rect);
         }
 
+        let font_size_options = crate::engine::AVAILABLE_FONT_SIZES
+            .iter()
+            .enumerate()
+            .map(|(index, &font_size)| {
+                let window = crate::DISPLAY_SIZE * font_size;
+                let button = Button::new(
+                    rect.top_left() + (14, 6 + index as i32),
+                    &format!(
+                        "[{}] {}px ({}x{})",
+                        index + 1,
+                        font_size,
+                        window.x,
+                        window.y
+                    ),
+                );
+                (font_size, button)
+            })
+            .collect::<Vec<_>>();
+
+        for (size, button) in &font_size_options {
+            let button_rect = metrics.button_rect(&button);
+            if button_rect.contains(state.mouse.tile_pos) {
+                option_under_mouse = Some(Action::FontSize(*size));
+                rect_under_mouse = Some(button_rect);
+            }
+        }
+
         Layout {
             window_rect,
             rect,
@@ -71,6 +100,7 @@ impl Window {
             rect_under_mouse,
             fullscreen_button,
             window_button,
+            font_size_options,
             back_button,
         }
     }
@@ -96,12 +126,7 @@ impl Window {
             color::window_background,
         );
 
-        let font_size = format!("Font size (current: {}):", settings.font_size);
-        let sizes_str = crate::engine::AVAILABLE_FONT_SIZES
-            .iter()
-            .map(|num| num.to_string())
-            .collect::<Vec<_>>();
-        let sizes = sizes_str.join(" / ");
+        let font_size = format!("Font size (current: {}px):", settings.font_size);
 
         let lines = vec![
             Centered("Settings"),
@@ -110,7 +135,7 @@ impl Window {
             Centered("/"), // Fullscreen / Window
             Empty,
             Centered(&font_size),
-            Centered(&sizes),
+            EmptySpace(crate::engine::AVAILABLE_FONT_SIZES.len() as i32),
             Empty,
             Centered("Graphics backend:"),
             Centered("Glutin / SDL"),
@@ -126,6 +151,10 @@ impl Window {
 
         display.draw_button(&layout.fullscreen_button);
         display.draw_button(&layout.window_button);
+        for (_, button) in &layout.font_size_options {
+            display.draw_button(button)
+        }
+
         display.draw_button(&layout.back_button);
     }
 

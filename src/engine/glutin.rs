@@ -515,6 +515,21 @@ pub fn main_loop(
             }
         }
 
+        if previous_settings.font_size != settings.font_size {
+            change_tilesize(
+                settings.font_size as u32,
+                &mut tilesize,
+                &mut display,
+                &mut desired_window_width,
+                &mut desired_window_height,
+            );
+            if !settings.fullscreen {
+                let size: LogicalSize = (desired_window_width, desired_window_height).into();
+                gl_window.set_inner_size(size);
+                gl_window.resize(size.to_physical(gl_window.get_hidpi_factor()));
+            }
+        }
+
         drawcalls.clear();
         display.push_drawcalls(&mut drawcalls);
 

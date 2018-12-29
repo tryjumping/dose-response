@@ -7,7 +7,7 @@ use crate::{
     ui::{self, Button},
 };
 
-pub enum OptionItem {
+pub enum Setting {
     Fullscreen,
     Window,
 }
@@ -15,7 +15,7 @@ pub enum OptionItem {
 struct Layout {
     window_rect: Rectangle,
     rect: Rectangle,
-    option_under_mouse: Option<OptionItem>,
+    option_under_mouse: Option<Setting>,
     rect_under_mouse: Option<Rectangle>,
     fullscreen_button: Button,
     window_button: Button,
@@ -44,13 +44,13 @@ impl Window {
 
         let button_rect = metrics.button_rect(&fullscreen_button);
         if button_rect.contains(state.mouse.tile_pos) {
-            option_under_mouse = Some(OptionItem::Fullscreen);
+            option_under_mouse = Some(Setting::Fullscreen);
             rect_under_mouse = Some(button_rect);
         }
 
         let button_rect = metrics.button_rect(&window_button);
         if button_rect.contains(state.mouse.tile_pos) {
-            option_under_mouse = Some(OptionItem::Window);
+            option_under_mouse = Some(Setting::Window);
             rect_under_mouse = Some(button_rect);
         }
 
@@ -122,7 +122,7 @@ impl Window {
         state: &State,
         settings: &Settings,
         metrics: &dyn TextMetrics,
-    ) -> Option<OptionItem> {
+    ) -> Option<Setting> {
         self.layout(state, settings, metrics).option_under_mouse
     }
 }

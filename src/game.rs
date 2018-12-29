@@ -18,7 +18,7 @@ use crate::{
     timer::{Stopwatch, Timer},
     util,
     window::{self, Window},
-    windows::{endgame, help, main_menu, options, sidebar},
+    windows::{endgame, help, main_menu, settings, sidebar},
     world::World,
 };
 
@@ -99,7 +99,7 @@ pub fn update(
     let game_update_result = match current_window {
         Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
         Window::Game => process_game(state, settings, &sidebar::Window, metrics, dt),
-        Window::Options => process_options_window(state, settings, &options::Window, metrics),
+        Window::Settings => process_settings_window(state, settings, &settings::Window, metrics),
         Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
         Window::Message { .. } => process_message_window(state),
@@ -564,8 +564,8 @@ fn process_main_menu(
             || state.keys.matches_code(KeyCode::H)
         {
             option = Some(Help);
-        } else if state.keys.matches_code(KeyCode::O) {
-            option = Some(Options);
+        } else if state.keys.matches_code(KeyCode::E) {
+            option = Some(Settings);
         } else if state.keys.matches_code(KeyCode::S) {
             option = Some(SaveAndQuit);
         } else if state.keys.matches_code(KeyCode::Q) {
@@ -599,8 +599,8 @@ fn process_main_menu(
                 return RunningState::Running;
             }
 
-            Options => {
-                state.window_stack.push(Window::Options);
+            Settings => {
+                state.window_stack.push(Window::Settings);
                 return RunningState::Running;
             }
 
@@ -646,13 +646,13 @@ fn process_main_menu(
     RunningState::Running
 }
 
-fn process_options_window(
+fn process_settings_window(
     state: &mut State,
     settings: &mut Settings,
-    window: &options::Window,
+    window: &settings::Window,
     metrics: &dyn TextMetrics,
 ) -> RunningState {
-    use crate::windows::options::OptionItem::*;
+    use crate::windows::settings::Setting::*;
 
     if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
         state.window_stack.pop();

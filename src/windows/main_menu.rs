@@ -10,7 +10,7 @@ pub enum MenuItem {
     Resume,
     NewGame,
     Help,
-    Options,
+    Settings,
     SaveAndQuit,
     Load,
     Quit,
@@ -23,7 +23,7 @@ impl MenuItem {
             Resume => "[R]esume",
             NewGame => "[N]ew Game",
             Help => "[H]elp",
-            Options => "[O]ptions",
+            Settings => "S[e]ttings",
             SaveAndQuit => "[S]ave and Quit",
             Load => "[L]oad game",
             Quit => "[Q]uit without saving",
@@ -82,7 +82,7 @@ impl Window {
 
         options.push(MenuItem::Help);
 
-        options.push(MenuItem::Options);
+        options.push(MenuItem::Settings);
 
         if !state.game_ended {
             options.push(MenuItem::SaveAndQuit);

@@ -8,7 +8,7 @@ use crate::{
     state::State,
     util,
     window::Window,
-    windows::{endgame, help, main_menu, options, sidebar},
+    windows::{endgame, help, main_menu, settings, sidebar},
     world::Chunk,
 };
 
@@ -35,8 +35,8 @@ pub fn render(
             Window::Game => {
                 render_game(state, &sidebar::Window, metrics, dt, fps, display);
             }
-            Window::Options => {
-                render_options(state, settings, &options::Window, metrics, display);
+            Window::Settings => {
+                render_settings(state, settings, &settings::Window, metrics, display);
             }
             Window::Help => {
                 render_help_screen(state, &help::Window, metrics, display);
@@ -307,10 +307,10 @@ fn render_main_menu(
     display.fade = color::invisible;
 }
 
-fn render_options(
+fn render_settings(
     state: &State,
     settings: &Settings,
-    window: &options::Window,
+    window: &settings::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
 ) {

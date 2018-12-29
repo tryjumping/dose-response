@@ -4,7 +4,7 @@ pub mod call_to_action;
 pub mod endgame;
 pub mod help;
 pub mod main_menu;
-pub mod options;
+pub mod settings;
 pub mod sidebar;
 
 /// A stack of windows.

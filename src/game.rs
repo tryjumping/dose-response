@@ -652,7 +652,7 @@ fn process_settings_window(
     window: &settings::Window,
     metrics: &dyn TextMetrics,
 ) -> RunningState {
-    use crate::windows::settings::Setting::*;
+    use crate::windows::settings::Action::*;
 
     if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
         state.window_stack.pop();
@@ -681,6 +681,10 @@ fn process_settings_window(
 
             Window => {
                 settings.fullscreen = false;
+            }
+
+            Back => {
+                state.window_stack.pop();
             }
         }
     }

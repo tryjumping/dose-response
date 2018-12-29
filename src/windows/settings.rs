@@ -7,18 +7,20 @@ use crate::{
     ui::{self, Button},
 };
 
-pub enum Setting {
+pub enum Action {
     Fullscreen,
     Window,
+    Back,
 }
 
 struct Layout {
     window_rect: Rectangle,
     rect: Rectangle,
-    option_under_mouse: Option<Setting>,
+    option_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
     fullscreen_button: Button,
     window_button: Button,
+    back_button: Button,
 }
 
 pub struct Window;
@@ -41,16 +43,24 @@ impl Window {
 
         let fullscreen_button = Button::new(rect.top_left() + (13, 3), "[F]ullscreen");
         let window_button = Button::new(rect.top_left() + (20, 3), "[W]indow");
+        let back_button =
+            Button::new(rect.top_left() + (0, 11), "[Esc] Back").align_center(rect.width());
 
         let button_rect = metrics.button_rect(&fullscreen_button);
         if button_rect.contains(state.mouse.tile_pos) {
-            option_under_mouse = Some(Setting::Fullscreen);
+            option_under_mouse = Some(Action::Fullscreen);
             rect_under_mouse = Some(button_rect);
         }
 
         let button_rect = metrics.button_rect(&window_button);
         if button_rect.contains(state.mouse.tile_pos) {
-            option_under_mouse = Some(Setting::Window);
+            option_under_mouse = Some(Action::Window);
+            rect_under_mouse = Some(button_rect);
+        }
+
+        let button_rect = metrics.button_rect(&back_button);
+        if button_rect.contains(state.mouse.tile_pos) {
+            option_under_mouse = Some(Action::Back);
             rect_under_mouse = Some(button_rect);
         }
 
@@ -61,6 +71,7 @@ impl Window {
             rect_under_mouse,
             fullscreen_button,
             window_button,
+            back_button,
         }
     }
 
@@ -96,7 +107,7 @@ impl Window {
             Centered("Settings"),
             Empty,
             Centered("Display:"),
-            Centered("/"),
+            Centered("/"), // Fullscreen / Window
             Empty,
             Centered(&font_size),
             Centered(&sizes),
@@ -104,7 +115,7 @@ impl Window {
             Centered("Graphics backend:"),
             Centered("Glutin / SDL"),
             Empty,
-            Centered("Back"),
+            Empty, // Back
         ];
 
         ui::render_text_flow(&lines, layout.rect, metrics, display);
@@ -115,6 +126,7 @@ impl Window {
 
         display.draw_button(&layout.fullscreen_button);
         display.draw_button(&layout.window_button);
+        display.draw_button(&layout.back_button);
     }
 
     pub fn hovered(
@@ -122,7 +134,7 @@ impl Window {
         state: &State,
         settings: &Settings,
         metrics: &dyn TextMetrics,
-    ) -> Option<Setting> {
+    ) -> Option<Action> {
         self.layout(state, settings, metrics).option_under_mouse
     }
 }

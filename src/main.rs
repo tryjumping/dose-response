@@ -256,6 +256,13 @@ fn process_cli_and_run_game() {
 
     let matches = app.get_matches();
 
+    let default_graphics_backend = if graphics_backends.contains(&"glutin") {
+        "glutin"
+    } else {
+        graphics_backends[0]
+    };
+    assert!(graphics_backends.contains(&default_graphics_backend));
+
     let mut loggers = vec![];
 
     let log_level = if matches.is_present("debug") {
@@ -313,7 +320,7 @@ fn process_cli_and_run_game() {
         .collect::<Vec<_>>()
         .join(", ");
     settings.push_str(&format!("# Options: {}\n", backends_str));
-    settings.push_str("backend = \"glutin\"\n");
+    settings.push_str(&format!("backend = \"{}\"\n", default_graphics_backend));
     log::info!("Default settings:");
     println!("{}", settings);
 
@@ -367,15 +374,23 @@ fn process_cli_and_run_game() {
     let game_title = metadata::TITLE;
     let game_update = game::update;
 
-    if matches.is_present("remote") {
-        run_remote(display_size, background, game_title, state, game_update);
+    let backend = if matches.is_present("remote") {
+        "remote"
     } else if matches.is_present("sdl") {
-        run_sdl(display_size, background, game_title, state, game_update);
+        "sdl"
     } else if matches.is_present("glutin") {
-        run_glutin(display_size, background, game_title, state, game_update);
+        "glutin"
     } else {
-        // NOTE: This is the default backend
-        run_glutin(display_size, background, game_title, state, game_update);
+        default_graphics_backend
+    };
+
+    match backend {
+        "remote" => run_remote(display_size, background, game_title, state, game_update),
+        "sdl" => run_sdl(display_size, background, game_title, state, game_update),
+        "glutin" => run_glutin(display_size, background, game_title, state, game_update),
+        _ => {
+            log::error!("Unknown backend: {}", backend);
+        }
     }
 }
 

@@ -324,6 +324,31 @@ fn process_cli_and_run_game() {
     log::info!("Default settings:");
     println!("{}", settings);
 
+    let loaded_settings = settings
+        .parse::<toml_edit::Document>()
+        .expect("Couldn't load settings.");
+    log::info!("Loaded settings:");
+    println!("{}", loaded_settings.to_string());
+
+    log::info!(
+        "display: {:?}",
+        loaded_settings["display"]
+            .as_str()
+            .expect("The `display` setting must be a string.")
+    );
+    log::info!(
+        "font size: {:?}",
+        loaded_settings["font_size"]
+            .as_integer()
+            .expect("The `font_size` setting must be an integer.")
+    );
+    log::info!(
+        "graphics backend: {:?}",
+        loaded_settings["backend"]
+            .as_str()
+            .expect("The `backend` setting must be a string.")
+    );
+
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
             panic!(

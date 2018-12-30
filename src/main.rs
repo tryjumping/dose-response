@@ -294,6 +294,29 @@ fn process_cli_and_run_game() {
         crate::engine::AVAILABLE_FONT_SIZES
     );
 
+    // NOTE: Generate the default settings file contents
+    let mut settings = String::with_capacity(1000);
+    settings.push_str("# Options: \"fullscreen\" or \"window\"\n");
+    settings.push_str("display = \"window\"\n\n");
+
+    let font_sizes_str = crate::engine::AVAILABLE_FONT_SIZES
+        .iter()
+        .map(|num| num.to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
+    settings.push_str(&format!("# Options: {}\n", font_sizes_str));
+    settings.push_str(&format!("font_size = {}\n\n", crate::engine::TILESIZE));
+
+    let backends_str = graphics_backends
+        .iter()
+        .map(|b| format!("\"{}\"", b))
+        .collect::<Vec<_>>()
+        .join(", ");
+    settings.push_str(&format!("# Options: {}\n", backends_str));
+    settings.push_str("backend = \"glutin\"\n");
+    log::info!("Default settings:");
+    println!("{}", settings);
+
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
             panic!(

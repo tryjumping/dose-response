@@ -83,6 +83,13 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 ** if this works, consider doing the same thing for the non-default backend?
 *** may be glutin or SDL, not sure yet
 *** just so people can run that easily
+* Make Dose Response playable on the web
+** We could make the "keyboard hints" clickable
+** Also, swipe to move
+* Detect lack of WASM and WebGL and show message
+** Right now the game's just stuck in loading
+** We should show a message instead
+** Make sure this works on tryjumping.com as well
 * Add a settings/config file
 ** Use json (ugh) because that's a serialisation format we already have in the code
 ** And we'll primarily use it from within the game
@@ -3556,3 +3563,10 @@ https://gamedev.stackexchange.com/a/2839
 - [ ] Pack the textures more effectively
 - [ ] Try switching to an alpha-only channel for the texture atlas
 - [ ] Try using a smaller hardcoded texture dimensions
+** DONE Fullscreen messes up Fullscreen on geralt
+CLOSED: [2019-01-03 Thu 17:35]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-01-03 Thu 17:35
+:END:
+*** but not worklaptop, wtf
+*** hah, it's because we were checking the available font sizes but did nothing in the `if` block lol

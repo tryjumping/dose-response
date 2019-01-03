@@ -134,11 +134,19 @@ fn change_tilesize(
     desired_window_width: &mut u32,
     desired_window_height: &mut u32,
 ) {
-    log::info!("Changing tilesize from {} to {}", tilesize, new_tilesize);
-    *tilesize = new_tilesize;
-    *desired_window_width = display.display_size.x as u32 * new_tilesize;
-    *desired_window_height = display.display_size.y as u32 * new_tilesize;
-    display.tilesize = new_tilesize as i32;
+    if crate::engine::AVAILABLE_FONT_SIZES.contains(&(new_tilesize as i32)) {
+        log::info!("Changing tilesize from {} to {}", tilesize, new_tilesize);
+        *tilesize = new_tilesize;
+        *desired_window_width = display.display_size.x as u32 * new_tilesize;
+        *desired_window_height = display.display_size.y as u32 * new_tilesize;
+        display.tilesize = new_tilesize as i32;
+    } else {
+        log::warn!(
+            "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
+            new_tilesize,
+            crate::engine::AVAILABLE_FONT_SIZES
+        );
+    }
 }
 
 #[allow(cyclomatic_complexity, unsafe_code)]
@@ -318,7 +326,6 @@ pub fn main_loop(
                             // NOTE: Update the tilesize if we get a perfect match
                             if height > 0 && height % crate::DISPLAY_SIZE.y == 0 {
                                 let new_tilesize = height / crate::DISPLAY_SIZE.y;
-                                if crate::engine::AVAILABLE_FONT_SIZES.contains(&new_tilesize) {};
                                 change_tilesize(
                                     new_tilesize as u32,
                                     &mut tilesize,
@@ -326,7 +333,7 @@ pub fn main_loop(
                                     &mut desired_window_width,
                                     &mut desired_window_height,
                                 );
-                            }
+                            };
                         }
                     }
 

@@ -46,7 +46,7 @@ impl Window {
         let fullscreen_button = Button::new(rect.top_left() + (13, 3), "[F]ullscreen");
         let window_button = Button::new(rect.top_left() + (20, 3), "[W]indow");
         let back_button =
-            Button::new(rect.top_left() + (0, 15), "[Esc] Back").align_center(rect.width());
+            Button::new(rect.bottom_left() + (0, -1), "[Esc] Back").align_center(rect.width());
 
         let button_rect = metrics.button_rect(&fullscreen_button);
         if button_rect.contains(state.mouse.tile_pos) {

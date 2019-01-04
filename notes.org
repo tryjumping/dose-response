@@ -3570,3 +3570,16 @@ CLOSED: [2019-01-03 Thu 17:35]
 :END:
 *** but not worklaptop, wtf
 *** hah, it's because we were checking the available font sizes but did nothing in the `if` block lol
+** DONE Generate `GRAPHICS_BACKENDS` array during compile time?
+CLOSED: [2019-01-04 Fri 20:40]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-01-04 Fri 20:40
+:END:
+*** It's immutable within the program itself
+*** And it would let us read it from the settings UI and only show the relevant backends
+*** Also simplify main.rs
+*** Question is: can we read Cargo features from the build script?
+**** Seems so: `CARGO_FEATURE_<name>` (with dashes replaced with underscores)
+**** So we could enumerate all `CARGO_FEATURE_*_BACKEND` env vars
+**** And build a list of them
+**** `std::env::vars_os`: https://doc.rust-lang.org/std/env/fn.vars_os.html

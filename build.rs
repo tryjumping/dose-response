@@ -253,6 +253,23 @@ fn main() {
         font_sizes,
     ));
 
+    let mut backends = vec![];
+    for (key, _value) in std::env::vars_os() {
+        if let Some(var) = key.to_str() {
+            if var.starts_with("CARGO_FEATURE_") && var.ends_with("_BACKEND") {
+                let mut words: Vec<&str> = var.split('_').collect();
+                words.pop();
+                backends.push(words[2..].join("_").to_lowercase().to_string());
+            }
+        }
+    }
+
+    lookup_table_contents.push_str(&format!(
+        "pub const AVAILABLE_BACKENDS: [&'static str; {}] = {:?};\n",
+        backends.len(),
+        backends,
+    ));
+
     // NOTE: Generate the `glyph_advance_width` query function
     lookup_table_contents
         .push_str("pub fn glyph_advance_width(size: u32, chr: char) -> Option<i32> {\n");

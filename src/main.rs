@@ -148,8 +148,6 @@ fn process_cli_and_run_game() {
     use simplelog::{CombinedLogger, Config, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
 
-    let mut graphics_backends = vec![];
-
     let mut app = App::new(metadata::TITLE)
         .version(metadata::VERSION)
         .author(metadata::AUTHORS)
@@ -185,13 +183,13 @@ fn process_cli_and_run_game() {
             );
     }
 
-    if cfg!(feature = "remote") {
-        app = app.arg(Arg::with_name("remote").long("remote").help(
-            "Don't create a game window. The input and output is \
-             controled via ZeroMQ.",
-        ));
-        graphics_backends.push("remote");
-    }
+    // if cfg!(feature = "remote") {
+    //     app = app.arg(Arg::with_name("remote").long("remote").help(
+    //         "Don't create a game window. The input and output is \
+    //          controled via ZeroMQ.",
+    //     ));
+    //     graphics_backends.push("remote");
+    // }
 
     if cfg!(feature = "glutin-backend") {
         app = app.arg(
@@ -199,7 +197,9 @@ fn process_cli_and_run_game() {
                 .long("glutin")
                 .help("Use the glutin rendering backend"),
         );
-        graphics_backends.push("glutin");
+        if !crate::engine::AVAILABLE_BACKENDS.contains(&"glutin") {
+            log::error!("The `glutin` backend is enabled, but not set by the build script?");
+        }
     }
 
     if cfg!(feature = "sdl-backend") {
@@ -208,11 +208,13 @@ fn process_cli_and_run_game() {
                 .long("sdl")
                 .help("Use the SDL2 rendering backend"),
         );
-        graphics_backends.push("sdl");
+        if !crate::engine::AVAILABLE_BACKENDS.contains(&"sdl") {
+            log::error!("The `sdl` backend is enabled, but not set by the build script?");
+        }
     }
 
     // Make sure only one of the backends can be set at a time
-    app = app.group(ArgGroup::with_name("graphics").args(&graphics_backends));
+    app = app.group(ArgGroup::with_name("graphics").args(&crate::engine::AVAILABLE_BACKENDS));
 
     if cfg!(feature = "replay") {
         app = app
@@ -256,12 +258,12 @@ fn process_cli_and_run_game() {
 
     let matches = app.get_matches();
 
-    let default_graphics_backend = if graphics_backends.contains(&"glutin") {
+    let default_graphics_backend = if crate::engine::AVAILABLE_BACKENDS.contains(&"glutin") {
         "glutin"
     } else {
-        graphics_backends[0]
+        crate::engine::AVAILABLE_BACKENDS[0]
     };
-    assert!(graphics_backends.contains(&default_graphics_backend));
+    assert!(crate::engine::AVAILABLE_BACKENDS.contains(&default_graphics_backend));
 
     let mut loggers = vec![];
 
@@ -301,6 +303,11 @@ fn process_cli_and_run_game() {
         crate::engine::AVAILABLE_FONT_SIZES
     );
 
+    log::info!(
+        "Available graphics backends: {:?}",
+        crate::engine::AVAILABLE_BACKENDS
+    );
+
     // NOTE: Generate the default settings file contents
     let mut settings = String::with_capacity(1000);
     settings.push_str("# Options: \"fullscreen\" or \"window\"\n");
@@ -314,7 +321,7 @@ fn process_cli_and_run_game() {
     settings.push_str(&format!("# Options: {}\n", font_sizes_str));
     settings.push_str(&format!("font_size = {}\n\n", crate::engine::TILESIZE));
 
-    let backends_str = graphics_backends
+    let backends_str = crate::engine::AVAILABLE_BACKENDS
         .iter()
         .map(|b| format!("\"{}\"", b))
         .collect::<Vec<_>>()

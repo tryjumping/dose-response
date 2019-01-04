@@ -149,8 +149,19 @@ impl Window {
             display.draw_rectangle(rect, color::menu_highlight);
         }
 
+        // Highlight the active Fullscreen or Window option
+        {
+            let rect = if settings.fullscreen {
+                metrics.button_rect(&layout.fullscreen_button)
+            } else {
+                metrics.button_rect(&layout.window_button)
+            };
+            display.draw_rectangle(rect, color::dim_background);
+        }
+
         display.draw_button(&layout.fullscreen_button);
         display.draw_button(&layout.window_button);
+
         for (_, button) in &layout.font_size_options {
             display.draw_button(button)
         }

@@ -162,7 +162,12 @@ impl Window {
         display.draw_button(&layout.fullscreen_button);
         display.draw_button(&layout.window_button);
 
-        for (_, button) in &layout.font_size_options {
+        for (size, button) in &layout.font_size_options {
+            // Highlight the active font size
+            if *size == settings.font_size {
+                let rect = metrics.button_rect(button);
+                display.draw_rectangle(rect, color::dim_background);
+            }
             display.draw_button(button)
         }
 

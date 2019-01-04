@@ -131,6 +131,7 @@ fn change_tilesize(
     new_tilesize: u32,
     tilesize: &mut u32,
     display: &mut Display,
+    settings: &mut Settings,
     desired_window_width: &mut u32,
     desired_window_height: &mut u32,
 ) {
@@ -140,6 +141,7 @@ fn change_tilesize(
         *desired_window_width = display.display_size.x as u32 * new_tilesize;
         *desired_window_height = display.display_size.y as u32 * new_tilesize;
         display.tilesize = new_tilesize as i32;
+        settings.font_size = new_tilesize as i32;
     } else {
         log::warn!(
             "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
@@ -330,6 +332,7 @@ pub fn main_loop(
                                     new_tilesize as u32,
                                     &mut tilesize,
                                     &mut display,
+                                    &mut settings,
                                     &mut desired_window_width,
                                     &mut desired_window_height,
                                 );
@@ -527,6 +530,7 @@ pub fn main_loop(
                 settings.font_size as u32,
                 &mut tilesize,
                 &mut display,
+                &mut settings,
                 &mut desired_window_width,
                 &mut desired_window_height,
             );

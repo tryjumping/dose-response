@@ -207,6 +207,7 @@ pub fn main_loop(
     );
 
     let mut events_loop = glutin::EventsLoop::new();
+    log::debug!("Created events loop: {:?}", events_loop);
     let window = glutin::WindowBuilder::new()
         .with_title(window_title)
         .with_dimensions(LogicalSize::new(
@@ -214,16 +215,26 @@ pub fn main_loop(
             desired_window_height.into(),
         ))
         .with_resizable(false);
+    log::debug!("Created window builder: {:?}", window);
     let context = glutin::ContextBuilder::new().with_vsync(true);
-    let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
+    log::debug!("Created context.");
+    let gl_window = match glutin::GlWindow::new(window, context, &events_loop) {
+        Ok(gl_window) => gl_window,
+        Err(error) => {
+            log::error!("Could not create `glutin::GlWindow`: {:?}", error);
+            panic!("Aborting!");
+        }
+    };
 
     unsafe {
         gl_window.make_current().unwrap();
         gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
     }
+    log::debug!("Loaded OpenGL symbols.");
 
     // We'll just assume the monitors won't change throughout the game.
     let monitors: Vec<_> = events_loop.get_available_monitors().collect();
+    log::debug!("Got all available monitors: {:?}", monitors);
 
     let image = {
         use std::io::Cursor;
@@ -232,6 +243,7 @@ pub fn main_loop(
             .unwrap()
             .to_rgba()
     };
+    log::debug!("Loaded font image.");
 
     let image_width = image.width();
     let image_height = image.height();
@@ -239,7 +251,9 @@ pub fn main_loop(
     let vs_source = include_str!("../shader_150.glslv");
     let fs_source = include_str!("../shader_150.glslf");
     let opengl_app = OpenGlApp::new(vs_source, fs_source);
+    log::debug!("Created opengl app.");
     opengl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
+    log::debug!("Initialised opengl app.");
 
     // Main loop
     let mut window_pos = {

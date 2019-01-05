@@ -9,7 +9,8 @@
     or_fun_call,
     unused_macros
 )]
-#![windows_subsystem = "windows"]
+// NOTE: temporarily disabling windows_subsystem for easier debugging
+//#![windows_subsystem = "windows"]
 
 // NOTE: the external functions must be available in crate root:
 #[cfg(feature = "web")]
@@ -267,11 +268,7 @@ fn process_cli_and_run_game() {
 
     let mut loggers = vec![];
 
-    let log_level = if matches.is_present("debug") {
-        LevelFilter::Trace
-    } else {
-        LevelFilter::Info
-    };
+    let log_level = LevelFilter::Trace;
 
     if !matches.is_present("quiet") {
         loggers.push(SimpleLogger::new(log_level, Config::default()) as Box<dyn SharedLogger>);

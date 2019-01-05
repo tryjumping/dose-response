@@ -63,6 +63,8 @@ aborted (core dumped)
 * windows crash                                                         :bug:
 ** see this comment by u/vacn
 https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ecbbb5k/
+** Seems to be a Windows 10 thing
+*** I've got a repro on my Windows 10 VM
 * Ctrl+arrows don't work on the mac                                     :bug:
 https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
 ** maybe try allowing alt/option for this as well?

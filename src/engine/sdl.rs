@@ -1,6 +1,6 @@
 use crate::{
     color::Color,
-    engine::{self, Drawcall, Mouse, OpenGlApp, Settings, TextMetrics, UpdateFn, Vertex},
+    engine::{self, Drawcall, Mouse, Settings, TextMetrics, UpdateFn, Vertex},
     game::RunningState,
     keys::KeyCode,
     point::Point,
@@ -160,7 +160,7 @@ pub fn main_loop(
 
     let vs_source = include_str!("../shader_150.glslv");
     let fs_source = include_str!("../shader_150.glslf");
-    let sdl_app = OpenGlApp::new(vs_source, fs_source);
+    let sdl_app = engine::opengl::OpenGlApp::new(vs_source, fs_source);
     sdl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
 
     let mut event_pump = sdl_context
@@ -399,7 +399,7 @@ pub fn main_loop(
 
         // NOTE: render
 
-        engine::opengl_render(
+        engine::opengl::render(
             sdl_app.program,
             sdl_app.texture,
             default_background,

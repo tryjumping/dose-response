@@ -1,8 +1,8 @@
 use crate::{
     color::Color,
     engine::{
-        self, Display, Drawcall, Mouse, OpenGlApp, RunningState, Settings, TextMetrics, UpdateFn,
-        Vertex,
+        self, opengl::OpenGlApp, Display, Drawcall, Mouse, RunningState, Settings, TextMetrics,
+        UpdateFn, Vertex,
     },
     keys::KeyCode,
     point::Point,
@@ -591,7 +591,7 @@ pub fn main_loop(
             );
         }
 
-        engine::opengl_render(
+        engine::opengl::render(
             opengl_app.program,
             opengl_app.texture,
             default_background,

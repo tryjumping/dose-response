@@ -216,7 +216,10 @@ pub fn main_loop(
         ))
         .with_resizable(false);
     log::debug!("Created window builder: {:?}", window);
-    let context = glutin::ContextBuilder::new().with_vsync(true);
+    let context = glutin::ContextBuilder::new()
+        .with_vsync(true)
+        // See: https://github.com/PistonDevelopers/conrod/pull/1032/
+        .with_multisampling(4);;
     log::debug!("Created context.");
     let gl_window = match glutin::GlWindow::new(window, context, &events_loop) {
         Ok(gl_window) => gl_window,

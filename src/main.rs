@@ -284,6 +284,8 @@ fn process_cli_and_run_game() {
     // should still be able to function.
     let _ = CombinedLogger::init(loggers);
 
+    log_panics::init();
+
     log::info!("{} version: {}", metadata::TITLE, metadata::VERSION);
     log::info!("By: {}", metadata::AUTHORS);
     log::info!("{}", metadata::HOMEPAGE);

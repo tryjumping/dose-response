@@ -43,14 +43,6 @@ impl Point {
         let other = other.into();
         max((self.x - other.x).abs(), (self.y - other.y).abs())
     }
-
-    pub fn circular_area(self, radius: i32) -> CircularArea {
-        CircularArea::new(self, radius)
-    }
-
-    pub fn tuple(self) -> (i32, i32) {
-        (self.x, self.y)
-    }
 }
 
 impl Into<Point> for (i32, i32) {

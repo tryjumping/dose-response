@@ -213,8 +213,7 @@ pub fn main_loop(
         .with_dimensions(LogicalSize::new(
             desired_window_width.into(),
             desired_window_height.into(),
-        ))
-        .with_resizable(false);
+        ));
     log::debug!("Created window builder: {:?}", window);
     let context = glutin::ContextBuilder::new().with_vsync(true);
     log::debug!("Created context.");
@@ -517,7 +516,6 @@ pub fn main_loop(
                 if settings.fullscreen {
                     log::info!("[{}] Switching to fullscreen", current_frame_id);
                     gl_window.set_decorations(false);
-                    gl_window.set_resizable(true);
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
                         log::debug!(
@@ -532,7 +530,6 @@ pub fn main_loop(
                     }
                 } else {
                     log::info!("[{}] Switching fullscreen off", current_frame_id);
-                    gl_window.set_resizable(true);
                     gl_window.set_fullscreen(None);
                     let pos = gl_window.get_position();
                     log::debug!("New window position: {:?}", pos);
@@ -551,7 +548,6 @@ pub fn main_loop(
                 &mut desired_window_width,
                 &mut desired_window_height,
             );
-            gl_window.set_resizable(true);
             if !settings.fullscreen {
                 let size: LogicalSize = (desired_window_width, desired_window_height).into();
                 gl_window.set_inner_size(size);
@@ -659,8 +655,6 @@ pub fn main_loop(
         if switched_from_fullscreen {
             window_pos = pre_fullscreen_window_pos;
         }
-
-        gl_window.set_resizable(false);
     }
 
     log::debug!(

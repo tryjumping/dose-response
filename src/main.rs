@@ -1,5 +1,4 @@
 #![deny(overflowing_literals, unsafe_code)]
-#![deny(warnings)]
 #![allow(
     unknown_lints,
     match_wild_err_arm,

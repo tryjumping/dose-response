@@ -68,6 +68,13 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 * Ctrl+arrows don't work on the mac                                     :bug:
 https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
 ** maybe try allowing alt/option for this as well?
+* Glium backend hanging on fullscreen on Win 7
+** This only happens in the v1.0.0-?-debug builds
+** Not in the v1.0.0-12-debug though
+*** There doesn't seem to be any real difference there?
+**** Actually, making the window not resizable might be the problem
+*** Maybe it's the debug output or something?
+**** TODO TRY that, we can pass --debug to the build
 * Mouse highlight not calculated properly on fullscreen                 :bug:
 ** Repro:
 *** Switch to fullscreen on a wide-screen monitor

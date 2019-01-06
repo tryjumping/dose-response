@@ -218,7 +218,7 @@ pub fn main_loop(
     log::debug!("Created window builder: {:?}", window);
     let context = glutin::ContextBuilder::new()
         .with_vsync(true)
-        with_gl_debug_flag(true);
+        .with_gl_debug_flag(true);
     log::debug!("Created context.");
     let gl_window = match glutin::GlWindow::new(window, context, &events_loop) {
         Ok(gl_window) => gl_window,

@@ -60,23 +60,6 @@ this is normally a bug in some application using the d-bus library.
 d-bus not built with -rdynamic so unable to print a backtrace
 
 aborted (core dumped)
-* windows crash                                                         :bug:
-** see this comment by u/vacn
-https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ecbbb5k/
-** Seems to be a Windows 10 thing
-*** I've got a repro on my Windows 10 VM
-* Ctrl+arrows don't work on the mac                                     :bug:
-https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
-** maybe try allowing alt/option for this as well?
-* Add a "debug" batch/sh scripts that would collect the debug info?
-** easier to say "please run debug-dose-response.bat" than "pass --debug --quiet to CLI args"
-*** especially for folks who aren't devs
-** those should work with relative directories
-*** e.g. "./dose-response.exe --quiet --debug"
-*** unlike Windows shortcuts
-** if this works, consider doing the same thing for the non-default backend?
-*** may be glutin or SDL, not sure yet
-*** just so people can run that easily
 * Switching back from fullscreen doesn't restore the position right on Windows 7
 ** Repro:
 1. Run game
@@ -86,6 +69,15 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 ** We should store the previous font size, window size and position
 *** And just use them
 *** Or possibly just store the font size and calculate the rest
+* windows crash                                                         :bug:
+** see this comment by u/vacn
+https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ecbbb5k/
+** Seems to be a Windows 10 thing
+*** Turns out, I can't test this in a VM because its opengl is ancient
+*** Need to get a Windows 10 somehow, sigh
+* Ctrl+arrows don't work on the mac                                     :bug:
+https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
+** maybe try allowing alt/option for this as well?
 * Mouse highlight not calculated properly on fullscreen                 :bug:
 ** Repro:
 *** Switch to fullscreen on a wide-screen monitor
@@ -94,13 +86,6 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 *** Move to the "New game" button from the right direction
 *** It only gets highlighted/clickable about halfway through
 ** We're probably ignoring letter-boxing there or something
-* Make Dose Response playable on the web
-** We could make the "keyboard hints" clickable
-** Also, swipe to move
-* Detect lack of WASM and WebGL and show message
-** Right now the game's just stuck in loading
-** We should show a message instead
-** Make sure this works on tryjumping.com as well
 * Add a settings/config file
 ** Use json (ugh) because that's a serialisation format we already have in the code
 ** And we'll primarily use it from within the game
@@ -108,6 +93,14 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 *** Window size
 *** Graphics backend
 *** Fullscreen
+* Make Dose Response playable on the mobile web
+** No mouse
+** We could make the "keyboard hints" clickable
+** Also, swipe to move
+* Detect lack of WASM and WebGL and show message
+** Right now the game's just stuck in loading
+** We should show a message instead
+** Make sure this works on tryjumping.com as well
 * Try to discover and log user's OS info
 ** which platform + version
 ** 32/64 bits
@@ -117,11 +110,6 @@ https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_
 ** change `engine::TILESIZE` to `engine::DEFAULT_TILESIZE`
 ** impl `Default` for settings
 ** Make sure every bit of code uses settings rather than the constant
-* We're including TWGL three times in the repo
-** This is taking up space and confuses GH's language stats
-** Apparently, we're 45% JS
-** Remove the extra ones
-*** And consider doing webgl directly?
 * Detect lack of WASM and WebGL and show message
 ** Right now the game's just stuck in loading
 ** We should show a message instead
@@ -3607,3 +3595,25 @@ CLOSED: [2019-01-06 Sun 23:42]
 ****** Reverting the "disable resizability" commit fixed it
 ******* and with evenything BUT the revert you can't do it properly
 **** Maybe it's the debug output or something?
+** DONE Add a "debug" batch/sh scripts that would collect the debug info?
+CLOSED: [2019-01-13 Sun 15:34]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-01-13 Sun 15:34
+:END:
+*** easier to say "please run debug-dose-response.bat" than "pass --debug --quiet to CLI args"
+**** especially for folks who aren't devs
+*** those should work with relative directories
+**** e.g. "./dose-response.exe --quiet --debug"
+**** unlike Windows shortcuts
+*** if this works, consider doing the same thing for the non-default backend?
+**** may be glutin or SDL, not sure yet
+**** just so people can run that easily
+** DONE We're including TWGL three times in the repo
+CLOSED: [2019-01-13 Sun 15:35]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-01-13 Sun 15:35
+:END:
+*** This is taking up space and confuses GH's language stats
+*** Apparently, we're 45% JS
+*** Remove the extra ones
+**** And consider doing webgl directly?

@@ -20,6 +20,8 @@ Copy-Item "$SRC_DIR\target\$($Env:TARGET)\release\dose-response.exe" '.\Dose Res
 Get-Content "$SRC_DIR\README.md" | Set-Content '.\Dose Response\README.txt'
 Get-Content "$SRC_DIR\COPYING.txt" | Set-Content '.\Dose Response\LICENSE.txt'
 
+Copy-Item "$SRC_DIR\Debug.bat" '.\Dose Response\Debug.bat'
+
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Version: $($Env:APPVEYOR_REPO_TAG_NAME)"
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Full Version: $($Env:CRATE_NAME)-$($Env:APPVEYOR_REPO_TAG_NAME)-$($Env:TARGET)"
 Add-Content -Path '.\Dose Response\VERSION.txt' -Value "Commit: $($Env:APPVEYOR_REPO_COMMIT)"

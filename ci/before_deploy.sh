@@ -28,6 +28,9 @@ main() {
     #cp -r target/$TARGET/release/build $stage/"Dose Response"
     cp README.md $stage/"Dose Response"/README.txt
     cp COPYING.txt $stage/"Dose Response"/LICENSE.txt
+
+    cp debug.sh $stage/"Dose Response"/debug.sh
+
     echo "Version: $TRAVIS_TAG" >> $stage/"Dose Response"/VERSION.txt
     echo "Full Version: $CRATE_NAME-$TRAVIS_TAG-$TARGET" >> $stage/"Dose Response"/VERSION.txt
     echo "Commit: $TRAVIS_COMMIT" >> $stage/"Dose Response"/VERSION.txt

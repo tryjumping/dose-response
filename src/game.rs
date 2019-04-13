@@ -255,7 +255,7 @@ fn process_game(
     // get too close to an edge.
     state.pos_timer.update(dt);
     if !state.pos_timer.finished() {
-        let tilesize = settings.font_size as f32;
+        let tilesize = settings.tile_size as f32;
         let percentage = util::sine_curve(state.pos_timer.percentage_elapsed());
         let x = ((state.old_screen_pos.x - state.new_screen_pos.x) as f32) * percentage * tilesize;
         let y = ((state.old_screen_pos.y - state.new_screen_pos.y) as f32) * percentage * tilesize;
@@ -689,7 +689,7 @@ fn process_settings_window(
             };
             if let Some(code) = code {
                 if state.keys.matches_code(code) {
-                    option = Some(FontSize(size));
+                    option = Some(TileSize(size));
                 }
             }
         }
@@ -705,8 +705,8 @@ fn process_settings_window(
                 settings.fullscreen = false;
             }
 
-            FontSize(font_size) => {
-                settings.font_size = font_size;
+            TileSize(tile_size) => {
+                settings.tile_size = tile_size;
             }
 
             Back => {

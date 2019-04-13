@@ -90,7 +90,6 @@ this is normally a bug in some application using the d-bus library.
 d-bus not built with -rdynamic so unable to print a backtrace
 
 aborted (core dumped)
-* Rename "Font Size" to "Tile Size" in Settings
 * Generate default settings
 * Persist settings in a file
 ** Load settings at the startup
@@ -3656,3 +3655,8 @@ CLOSED: [2019-03-25 Mon 22:39]
   - it's the same logo for now
 - [X] Builds
 - [X] Link to the online version
+** DONE Rename "Font Size" to "Tile Size" in Settings
+CLOSED: [2019-04-13 Sat 15:23]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-04-13 Sat 15:23
+:END:

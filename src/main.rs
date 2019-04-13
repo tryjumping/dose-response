@@ -314,13 +314,13 @@ fn process_cli_and_run_game() {
     settings.push_str("# Options: \"fullscreen\" or \"window\"\n");
     settings.push_str("display = \"window\"\n\n");
 
-    let font_sizes_str = crate::engine::AVAILABLE_FONT_SIZES
+    let tile_sizes_str = crate::engine::AVAILABLE_FONT_SIZES
         .iter()
         .map(|num| num.to_string())
         .collect::<Vec<_>>()
         .join(", ");
-    settings.push_str(&format!("# Options: {}\n", font_sizes_str));
-    settings.push_str(&format!("font_size = {}\n\n", crate::engine::TILESIZE));
+    settings.push_str(&format!("# Options: {}\n", tile_sizes_str));
+    settings.push_str(&format!("tile_size = {}\n\n", crate::engine::TILESIZE));
 
     let backends_str = crate::engine::AVAILABLE_BACKENDS
         .iter()
@@ -345,10 +345,10 @@ fn process_cli_and_run_game() {
             .expect("The `display` setting must be a string.")
     );
     log::info!(
-        "font size: {:?}",
-        loaded_settings["font_size"]
+        "tile size: {:?}",
+        loaded_settings["tile_size"]
             .as_integer()
-            .expect("The `font_size` setting must be an integer.")
+            .expect("The `tile_size` setting must be an integer.")
     );
     log::info!(
         "graphics backend: {:?}",

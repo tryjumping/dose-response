@@ -790,7 +790,7 @@ fn rect_intersects_area(rect: Rectangle, area: Point) -> bool {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Settings {
     pub fullscreen: bool,
-    pub font_size: i32,
+    pub tile_size: i32,
 }
 
 #[allow(dead_code)]

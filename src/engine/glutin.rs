@@ -141,7 +141,7 @@ fn change_tilesize(
         *desired_window_width = display.display_size.x as u32 * new_tilesize;
         *desired_window_height = display.display_size.y as u32 * new_tilesize;
         display.tilesize = new_tilesize as i32;
-        settings.font_size = new_tilesize as i32;
+        settings.tile_size = new_tilesize as i32;
     } else {
         log::warn!(
             "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
@@ -284,7 +284,7 @@ pub fn main_loop(
     let mut mouse = Mouse::new();
     let mut settings = Settings {
         fullscreen: false,
-        font_size: tilesize as i32,
+        tile_size: tilesize as i32,
     };
     let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
 
@@ -539,9 +539,9 @@ pub fn main_loop(
             }
         }
 
-        if previous_settings.font_size != settings.font_size {
+        if previous_settings.tile_size != settings.tile_size {
             change_tilesize(
-                settings.font_size as u32,
+                settings.tile_size as u32,
                 &mut tilesize,
                 &mut display,
                 &mut settings,

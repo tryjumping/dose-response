@@ -10,7 +10,7 @@ use crate::{
 pub enum Action {
     Fullscreen,
     Window,
-    FontSize(i32),
+    TileSize(i32),
     Back,
 }
 
@@ -21,7 +21,7 @@ struct Layout {
     rect_under_mouse: Option<Rectangle>,
     fullscreen_button: Button,
     window_button: Button,
-    font_size_options: Vec<(i32, Button)>,
+    tile_size_options: Vec<(i32, Button)>,
     back_button: Button,
 }
 
@@ -66,29 +66,29 @@ impl Window {
             rect_under_mouse = Some(button_rect);
         }
 
-        let font_size_options = crate::engine::AVAILABLE_FONT_SIZES
+        let tile_size_options = crate::engine::AVAILABLE_FONT_SIZES
             .iter()
             .enumerate()
-            .map(|(index, &font_size)| {
-                let window = crate::DISPLAY_SIZE * font_size;
+            .map(|(index, &tile_size)| {
+                let window = crate::DISPLAY_SIZE * tile_size;
                 let button = Button::new(
                     rect.top_left() + (14, 6 + index as i32),
                     &format!(
                         "[{}] {}px ({}x{})",
                         index + 1,
-                        font_size,
+                        tile_size,
                         window.x,
                         window.y
                     ),
                 );
-                (font_size, button)
+                (tile_size, button)
             })
             .collect::<Vec<_>>();
 
-        for (size, button) in &font_size_options {
+        for (size, button) in &tile_size_options {
             let button_rect = metrics.button_rect(&button);
             if button_rect.contains(state.mouse.tile_pos) {
-                option_under_mouse = Some(Action::FontSize(*size));
+                option_under_mouse = Some(Action::TileSize(*size));
                 rect_under_mouse = Some(button_rect);
             }
         }
@@ -100,7 +100,7 @@ impl Window {
             rect_under_mouse,
             fullscreen_button,
             window_button,
-            font_size_options,
+            tile_size_options,
             back_button,
         }
     }
@@ -126,7 +126,7 @@ impl Window {
             color::window_background,
         );
 
-        let font_size = format!("Font size (current: {}px):", settings.font_size);
+        let tile_size = format!("Tile size (current: {}px):", settings.tile_size);
 
         let lines = vec![
             Centered("Settings"),
@@ -134,7 +134,7 @@ impl Window {
             Centered("Display:"),
             Centered("/"), // Fullscreen / Window
             Empty,
-            Centered(&font_size),
+            Centered(&tile_size),
             EmptySpace(crate::engine::AVAILABLE_FONT_SIZES.len() as i32),
             Empty,
             // TODO: read values from: `crate::engine::AVAILABLE_BACKENDS`
@@ -163,9 +163,9 @@ impl Window {
         display.draw_button(&layout.fullscreen_button);
         display.draw_button(&layout.window_button);
 
-        for (size, button) in &layout.font_size_options {
-            // Highlight the active font size
-            if *size == settings.font_size {
+        for (size, button) in &layout.tile_size_options {
+            // Highlight the active tile size
+            if *size == settings.tile_size {
                 let rect = metrics.button_rect(button);
                 display.draw_rectangle(rect, color::dim_background);
             }

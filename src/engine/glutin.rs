@@ -129,15 +129,17 @@ fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<Moni
 
 fn change_tilesize(
     new_tilesize: i32,
-    tilesize: &mut i32,
     display: &mut Display,
     settings: &mut Settings,
     desired_window_width: &mut u32,
     desired_window_height: &mut u32,
 ) {
     if crate::engine::AVAILABLE_FONT_SIZES.contains(&(new_tilesize as i32)) {
-        log::info!("Changing tilesize from {} to {}", tilesize, new_tilesize);
-        *tilesize = new_tilesize;
+        log::info!(
+            "Changing tilesize from {} to {}",
+            settings.tile_size,
+            new_tilesize
+        );
         *desired_window_width = display.display_size.x as u32 * new_tilesize as u32;
         *desired_window_height = display.display_size.y as u32 * new_tilesize as u32;
         display.tilesize = new_tilesize;
@@ -191,9 +193,9 @@ pub fn main_loop(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    let mut tilesize = super::TILESIZE;
-    let mut desired_window_width = display_size.x as u32 * tilesize as u32;
-    let mut desired_window_height = display_size.y as u32 * tilesize as u32;
+    let mut settings = Settings::default();
+    let mut desired_window_width = display_size.x as u32 * settings.tile_size as u32;
+    let mut desired_window_height = display_size.y as u32 * settings.tile_size as u32;
 
     log::debug!(
         "Requested display in tiles: {} x {}",
@@ -282,16 +284,12 @@ pub fn main_loop(
     );
 
     let mut mouse = Mouse::new();
-    let mut settings = Settings {
-        fullscreen: false,
-        tile_size: tilesize as i32,
-    };
     let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
 
     let mut display = engine::Display::new(
         display_size,
         Point::from_i32(display_size.y / 2),
-        tilesize as i32,
+        settings.tile_size,
     );
     let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
@@ -344,7 +342,6 @@ pub fn main_loop(
                                 let new_tilesize = height / crate::DISPLAY_SIZE.y;
                                 change_tilesize(
                                     new_tilesize,
-                                    &mut tilesize,
                                     &mut display,
                                     &mut settings,
                                     &mut desired_window_width,
@@ -485,6 +482,7 @@ pub fn main_loop(
 
         let previous_settings = settings;
 
+        let tile_width_px = settings.tile_size;
         let update_result = update(
             &mut state,
             dt,
@@ -493,9 +491,7 @@ pub fn main_loop(
             &keys,
             mouse,
             &mut settings,
-            &Metrics {
-                tile_width_px: tilesize as i32,
-            },
+            &Metrics { tile_width_px },
             &mut display,
         );
 
@@ -542,7 +538,6 @@ pub fn main_loop(
         if previous_settings.tile_size != settings.tile_size {
             change_tilesize(
                 settings.tile_size,
-                &mut tilesize,
                 &mut display,
                 &mut settings,
                 &mut desired_window_width,
@@ -573,7 +568,7 @@ pub fn main_loop(
         let display_info = engine::calculate_display_info(
             [window_size_px.x as f32, window_size_px.y as f32],
             display_size,
-            tilesize as u32,
+            settings.tile_size,
         );
 
         vertex_buffer.clear();

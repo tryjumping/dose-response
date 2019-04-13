@@ -312,6 +312,7 @@ fn process_cli_and_run_game() {
 
     // NOTE: Generate the default settings file contents
     let mut settings = String::with_capacity(1000);
+    // TODO: get these values from `Settings::Default`
     settings.push_str("# Options: \"fullscreen\" or \"window\"\n");
     settings.push_str("display = \"window\"\n\n");
 
@@ -321,7 +322,10 @@ fn process_cli_and_run_game() {
         .collect::<Vec<_>>()
         .join(", ");
     settings.push_str(&format!("# Options: {}\n", tile_sizes_str));
-    settings.push_str(&format!("tile_size = {}\n\n", crate::engine::TILESIZE));
+    settings.push_str(&format!(
+        "tile_size = {}\n\n",
+        crate::settings::Settings::default().tile_size
+    ));
 
     let backends_str = crate::engine::AVAILABLE_BACKENDS
         .iter()

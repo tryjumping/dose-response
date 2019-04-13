@@ -454,7 +454,7 @@ pub struct DisplayInfo {
 fn calculate_display_info(
     window_size_px: [f32; 2],
     display_size_tiles: Point,
-    tilesize_px: u32,
+    tilesize_px: i32,
 ) -> DisplayInfo {
     let window_width = window_size_px[0] as f32;
     let window_height = window_size_px[1] as f32;

@@ -9,3 +9,12 @@ pub struct Settings {
     pub fullscreen: bool,
     pub tile_size: i32,
 }
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            fullscreen: false,
+            tile_size: crate::engine::TILESIZE,
+        }
+    }
+}

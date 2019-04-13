@@ -128,8 +128,8 @@ fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<Moni
 }
 
 fn change_tilesize(
-    new_tilesize: u32,
-    tilesize: &mut u32,
+    new_tilesize: i32,
+    tilesize: &mut i32,
     display: &mut Display,
     settings: &mut Settings,
     desired_window_width: &mut u32,
@@ -138,10 +138,10 @@ fn change_tilesize(
     if crate::engine::AVAILABLE_FONT_SIZES.contains(&(new_tilesize as i32)) {
         log::info!("Changing tilesize from {} to {}", tilesize, new_tilesize);
         *tilesize = new_tilesize;
-        *desired_window_width = display.display_size.x as u32 * new_tilesize;
-        *desired_window_height = display.display_size.y as u32 * new_tilesize;
-        display.tilesize = new_tilesize as i32;
-        settings.tile_size = new_tilesize as i32;
+        *desired_window_width = display.display_size.x as u32 * new_tilesize as u32;
+        *desired_window_height = display.display_size.y as u32 * new_tilesize as u32;
+        display.tilesize = new_tilesize;
+        settings.tile_size = new_tilesize;
     } else {
         log::warn!(
             "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
@@ -343,7 +343,7 @@ pub fn main_loop(
                             if height > 0 && height % crate::DISPLAY_SIZE.y == 0 {
                                 let new_tilesize = height / crate::DISPLAY_SIZE.y;
                                 change_tilesize(
-                                    new_tilesize as u32,
+                                    new_tilesize,
                                     &mut tilesize,
                                     &mut display,
                                     &mut settings,
@@ -541,7 +541,7 @@ pub fn main_loop(
 
         if previous_settings.tile_size != settings.tile_size {
             change_tilesize(
-                settings.tile_size as u32,
+                settings.tile_size,
                 &mut tilesize,
                 &mut display,
                 &mut settings,
@@ -573,7 +573,7 @@ pub fn main_loop(
         let display_info = engine::calculate_display_info(
             [window_size_px.x as f32, window_size_px.y as f32],
             display_size,
-            tilesize,
+            tilesize as u32,
         );
 
         vertex_buffer.clear();

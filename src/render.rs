@@ -1,10 +1,11 @@
 use crate::{
     color,
-    engine::{Display, Settings, TextMetrics, TextOptions},
+    engine::{Display, TextMetrics, TextOptions},
     formula, graphics, monster,
     player::Bonus,
     point::{Point, SquareArea},
     rect::Rectangle,
+    settings::Settings,
     state::State,
     util,
     window::Window,

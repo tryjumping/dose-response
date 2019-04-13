@@ -38,6 +38,7 @@ mod random;
 mod ranged_int;
 mod rect;
 mod render;
+mod settings;
 mod state;
 mod stats;
 mod timer;

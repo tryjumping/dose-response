@@ -6,6 +6,7 @@ use crate::{
     keys::Key,
     point::Point,
     rect::Rectangle,
+    settings::Settings,
     state::State,
     ui::Button,
     util,
@@ -781,16 +782,6 @@ impl Display {
 /// Returns `true` if the `Rectangle` intersects the area that starts at `(0, 0)`
 fn rect_intersects_area(rect: Rectangle, area: Point) -> bool {
     rect.right() >= 0 && rect.left() < area.x && rect.top() < area.y && rect.bottom() >= 0
-}
-
-/// Settings the engine needs to carry.
-///
-/// Things such as the fullscreen/windowed display, font size, font
-/// type, etc.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct Settings {
-    pub fullscreen: bool,
-    pub tile_size: i32,
 }
 
 #[allow(dead_code)]

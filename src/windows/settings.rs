@@ -1,8 +1,9 @@
 use crate::{
     color,
-    engine::{Display, Settings, TextMetrics},
+    engine::{Display, TextMetrics},
     point::Point,
     rect::Rectangle,
+    settings::Settings,
     state::State,
     ui::{self, Button},
 };

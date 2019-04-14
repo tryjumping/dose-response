@@ -31,7 +31,7 @@ impl Default for Settings {
 
         let settings = Self {
             fullscreen: false,
-            tile_size: crate::engine::TILESIZE,
+            tile_size: crate::engine::DEFAULT_TILESIZE,
             backend: backend.into(),
         };
 

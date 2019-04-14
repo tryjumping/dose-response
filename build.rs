@@ -235,7 +235,7 @@ fn main() {
     let mut lookup_table_contents = String::new();
 
     lookup_table_contents.push_str(&format!(
-        "pub const TILESIZE: i32 = {};\n",
+        "pub const DEFAULT_TILESIZE: i32 = {};\n",
         default_tilesize
     ));
     lookup_table_contents.push_str(&format!(

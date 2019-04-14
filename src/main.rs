@@ -144,7 +144,7 @@ fn run_remote(
 
 #[cfg(feature = "cli")]
 fn process_cli_and_run_game() {
-    use clap::{App, Arg, ArgGroup};
+    use clap::{App, Arg};
     use simplelog::{CombinedLogger, Config, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
 
@@ -182,39 +182,6 @@ fn process_cli_and_run_game() {
                     .long("invincible"),
             );
     }
-
-    // if cfg!(feature = "remote") {
-    //     app = app.arg(Arg::with_name("remote").long("remote").help(
-    //         "Don't create a game window. The input and output is \
-    //          controled via ZeroMQ.",
-    //     ));
-    //     graphics_backends.push("remote");
-    // }
-
-    if cfg!(feature = "glutin-backend") {
-        app = app.arg(
-            Arg::with_name("glutin")
-                .long("glutin")
-                .help("Use the glutin rendering backend"),
-        );
-        if !crate::engine::AVAILABLE_BACKENDS.contains(&"glutin") {
-            log::error!("The `glutin` backend is enabled, but not set by the build script?");
-        }
-    }
-
-    if cfg!(feature = "sdl-backend") {
-        app = app.arg(
-            Arg::with_name("sdl")
-                .long("sdl")
-                .help("Use the SDL2 rendering backend"),
-        );
-        if !crate::engine::AVAILABLE_BACKENDS.contains(&"sdl") {
-            log::error!("The `sdl` backend is enabled, but not set by the build script?");
-        }
-    }
-
-    // Make sure only one of the backends can be set at a time
-    app = app.group(ArgGroup::with_name("graphics").args(&crate::engine::AVAILABLE_BACKENDS));
 
     if cfg!(feature = "replay") {
         app = app
@@ -353,16 +320,8 @@ fn process_cli_and_run_game() {
     let game_title = metadata::TITLE;
     let game_update = game::update;
 
-    // TODO: do we want to keep these switches or just rely on settings wholesale?
-    let backend: String = if matches.is_present("remote") {
-        "remote".into()
-    } else if matches.is_present("sdl") {
-        "sdl".into()
-    } else if matches.is_present("glutin") {
-        "glutin".into()
-    } else {
-        settings::Settings::default().backend
-    };
+    // TODO: Read the actual settings value here, no the default one:
+    let backend = settings::Settings::default().backend;
 
     match backend.as_str() {
         "remote" => run_remote(display_size, background, game_title, state, game_update),

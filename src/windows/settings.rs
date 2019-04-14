@@ -147,12 +147,6 @@ impl Window {
             Empty,
             Centered(&tile_size),
             EmptySpace(crate::engine::AVAILABLE_FONT_SIZES.len() as i32),
-            Empty,
-            // TODO: read values from: `crate::engine::AVAILABLE_BACKENDS`
-            Centered("Graphics backend:"),
-            Centered("Glutin / SDL"),
-            Empty,
-            Empty, // Back
         ];
 
         ui::render_text_flow(&lines, layout.rect, metrics, display);

@@ -35,13 +35,21 @@ impl Default for Settings {
             backend: backend.into(),
         };
 
-        assert!(settings.valid());
+        debug_assert!(settings.valid());
         settings
     }
 }
 
 impl Settings {
     pub fn valid(&self) -> bool {
+        self.valid_tile_size() && self.valid_backend()
+    }
+
+    pub fn valid_tile_size(&self) -> bool {
+        crate::engine::AVAILABLE_FONT_SIZES.contains(&self.tile_size)
+    }
+
+    pub fn valid_backend(&self) -> bool {
         crate::engine::AVAILABLE_BACKENDS.contains(&self.backend.as_str())
     }
 
@@ -151,6 +159,8 @@ impl Store {
             }
             None => log::error!("Missing `backend` entry."),
         }
+
+        debug_assert!(settings.valid());
 
         settings
     }

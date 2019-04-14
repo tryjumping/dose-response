@@ -73,6 +73,7 @@ fn run_glutin(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
+    settings_store: settings::Store,
     state: state::State,
     update: engine::UpdateFn,
 ) {
@@ -90,6 +91,7 @@ fn run_glutin(
         display_size,
         default_background,
         window_title,
+        settings_store,
         Box::new(state),
         update,
     );
@@ -103,6 +105,7 @@ fn run_sdl(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
+    settings_store: settings::Store,
     state: state::State,
     update: engine::UpdateFn,
 ) {
@@ -113,6 +116,7 @@ fn run_sdl(
         display_size,
         default_background,
         window_title,
+        settings_store,
         Box::new(state),
         update,
     );
@@ -126,6 +130,7 @@ fn run_remote(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
+    settings_store: settings::Store,
     state: state::State,
     update: engine::UpdateFn,
 ) {
@@ -134,6 +139,7 @@ fn run_remote(
         display_size,
         default_background,
         window_title,
+        settings_store,
         Box::new(state),
         update,
     );
@@ -320,13 +326,34 @@ fn process_cli_and_run_game() {
     let game_title = metadata::TITLE;
     let game_update = game::update;
 
-    // TODO: Read the actual settings value here, no the default one:
-    let backend = settings::Settings::default().backend;
+    let settings_store = settings::Store::new();
+    let backend = settings_store.load().backend;
 
     match backend.as_str() {
-        "remote" => run_remote(display_size, background, game_title, state, game_update),
-        "sdl" => run_sdl(display_size, background, game_title, state, game_update),
-        "glutin" => run_glutin(display_size, background, game_title, state, game_update),
+        "remote" => run_remote(
+            display_size,
+            background,
+            game_title,
+            settings_store,
+            state,
+            game_update,
+        ),
+        "sdl" => run_sdl(
+            display_size,
+            background,
+            game_title,
+            settings_store,
+            state,
+            game_update,
+        ),
+        "glutin" => run_glutin(
+            display_size,
+            background,
+            game_title,
+            settings_store,
+            state,
+            game_update,
+        ),
         _ => {
             log::error!("Unknown backend: {}", backend);
         }

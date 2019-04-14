@@ -158,6 +158,7 @@ pub fn main_loop(
     display_size: Point,
     default_background: Color,
     window_title: &str,
+    mut settings_store: SettingsStore,
     mut state: Box<State>,
     update: UpdateFn,
 ) {
@@ -193,7 +194,6 @@ pub fn main_loop(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    let mut settings_store = SettingsStore::new();
     let mut settings = settings_store.load();
     let mut desired_window_width = display_size.x as u32 * settings.tile_size as u32;
     let mut desired_window_height = display_size.y as u32 * settings.tile_size as u32;

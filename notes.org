@@ -92,8 +92,6 @@ this is normally a bug in some application using the d-bus library.
 d-bus not built with -rdynamic so unable to print a backtrace
 
 aborted (core dumped)
-* Hide backend from the Settings screen for now
-* Remove backend-setting CLI options?
 * Consider adding the keyboard hints to the sidebar?                     :ui:
 ** Just like in the help file
 ** This could be always on without being annoying
@@ -3684,3 +3682,13 @@ CLOSED: [2019-04-14 Sun 19:54]
 *** Right now the effect is immediate
 *** But the settings don't persist unless Applied
 *** We should set the value and then only actually make the change on Apply
+** DONE Hide backend from the Settings screen for now
+CLOSED: [2019-04-14 Sun 20:13]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-04-14 Sun 20:13
+:END:
+** DONE Remove backend-setting CLI options?
+CLOSED: [2019-04-14 Sun 20:13]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-04-14 Sun 20:13
+:END:

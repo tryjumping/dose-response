@@ -717,6 +717,7 @@ fn process_settings_window(
             }
 
             Back => {
+                *settings = store.load();
                 state.window_stack.pop();
             }
 

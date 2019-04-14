@@ -137,7 +137,7 @@ fn change_tilesize(
     if crate::engine::AVAILABLE_FONT_SIZES.contains(&(new_tilesize as i32)) {
         log::info!(
             "Changing tilesize from {} to {}",
-            settings.tile_size,
+            display.tilesize,
             new_tilesize
         );
         *desired_window_width = display.display_size.x as u32 * new_tilesize as u32;

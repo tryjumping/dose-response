@@ -13,7 +13,7 @@ use crate::{
     ranged_int::{InclusiveRange, Ranged},
     rect::Rectangle,
     render,
-    settings::Settings,
+    settings::{Settings, Store as SettingsStore},
     state::{self, Command, Side, State},
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
@@ -56,6 +56,7 @@ pub fn update(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &dyn TextMetrics,
+    settings_store: &mut SettingsStore,
     display: &mut Display, // TODO: remove this from the engine and keep a transient state instead
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
@@ -100,7 +101,9 @@ pub fn update(
     let game_update_result = match current_window {
         Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
         Window::Game => process_game(state, settings, &sidebar::Window, metrics, dt),
-        Window::Settings => process_settings_window(state, settings, &settings::Window, metrics),
+        Window::Settings => {
+            process_settings_window(state, settings, &settings::Window, metrics, settings_store)
+        }
         Window::Help => process_help_window(state, &help::Window, metrics),
         Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
         Window::Message { .. } => process_message_window(state),
@@ -652,6 +655,7 @@ fn process_settings_window(
     settings: &mut Settings,
     window: &settings::Window,
     metrics: &dyn TextMetrics,
+    store: &mut SettingsStore,
 ) -> RunningState {
     use crate::windows::settings::Action::*;
 
@@ -671,6 +675,8 @@ fn process_settings_window(
             option = Some(Fullscreen);
         } else if state.keys.matches_code(KeyCode::W) {
             option = Some(Window);
+        } else if state.keys.matches_code(KeyCode::A) {
+            option = Some(Apply);
         }
     }
 
@@ -712,6 +718,10 @@ fn process_settings_window(
 
             Back => {
                 state.window_stack.pop();
+            }
+
+            Apply => {
+                store.persist(settings);
             }
         }
     }

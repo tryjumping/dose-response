@@ -1,8 +1,8 @@
 use crate::{
     color::Color,
     engine::{
-        self, opengl::OpenGlApp, Display, Drawcall, Mouse, RunningState, Settings, TextMetrics,
-        UpdateFn, Vertex,
+        self, opengl::OpenGlApp, Display, Drawcall, Mouse, RunningState, Settings, SettingsStore,
+        TextMetrics, UpdateFn, Vertex,
     },
     keys::KeyCode,
     point::Point,
@@ -193,7 +193,8 @@ pub fn main_loop(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    let mut settings = Settings::default();
+    let mut settings_store = SettingsStore::new();
+    let mut settings = settings_store.load();
     let mut desired_window_width = display_size.x as u32 * settings.tile_size as u32;
     let mut desired_window_height = display_size.y as u32 * settings.tile_size as u32;
 
@@ -480,7 +481,7 @@ pub fn main_loop(
             }
         });
 
-        let previous_settings = settings;
+        let previous_settings = settings.clone();
 
         let tile_width_px = settings.tile_size;
         let update_result = update(
@@ -492,6 +493,7 @@ pub fn main_loop(
             mouse,
             &mut settings,
             &Metrics { tile_width_px },
+            &mut settings_store,
             &mut display,
         );
 

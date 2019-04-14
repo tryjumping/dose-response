@@ -6,7 +6,7 @@ use crate::{
     keys::Key,
     point::Point,
     rect::Rectangle,
-    settings::Settings,
+    settings::{Settings, Store as SettingsStore},
     state::State,
     ui::Button,
     util,
@@ -794,6 +794,7 @@ pub type UpdateFn = fn(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &dyn TextMetrics,
+    settings_store: &mut SettingsStore,
     display: &mut Display,
 ) -> RunningState;
 

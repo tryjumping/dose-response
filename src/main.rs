@@ -258,13 +258,6 @@ fn process_cli_and_run_game() {
 
     let matches = app.get_matches();
 
-    let default_graphics_backend = if crate::engine::AVAILABLE_BACKENDS.contains(&"glutin") {
-        "glutin"
-    } else {
-        crate::engine::AVAILABLE_BACKENDS[0]
-    };
-    assert!(crate::engine::AVAILABLE_BACKENDS.contains(&default_graphics_backend));
-
     let mut loggers = vec![];
 
     let log_level = if matches.is_present("debug") {
@@ -308,58 +301,6 @@ fn process_cli_and_run_game() {
     log::info!(
         "Available graphics backends: {:?}",
         crate::engine::AVAILABLE_BACKENDS
-    );
-
-    // NOTE: Generate the default settings file contents
-    let mut settings = String::with_capacity(1000);
-    // TODO: get these values from `Settings::Default`
-    settings.push_str("# Options: \"fullscreen\" or \"window\"\n");
-    settings.push_str("display = \"window\"\n\n");
-
-    let tile_sizes_str = crate::engine::AVAILABLE_FONT_SIZES
-        .iter()
-        .map(|num| num.to_string())
-        .collect::<Vec<_>>()
-        .join(", ");
-    settings.push_str(&format!("# Options: {}\n", tile_sizes_str));
-    settings.push_str(&format!(
-        "tile_size = {}\n\n",
-        crate::settings::Settings::default().tile_size
-    ));
-
-    let backends_str = crate::engine::AVAILABLE_BACKENDS
-        .iter()
-        .map(|b| format!("\"{}\"", b))
-        .collect::<Vec<_>>()
-        .join(", ");
-    settings.push_str(&format!("# Options: {}\n", backends_str));
-    settings.push_str(&format!("backend = \"{}\"\n", default_graphics_backend));
-    log::info!("Default settings:");
-    println!("{}", settings);
-
-    let loaded_settings = settings
-        .parse::<toml_edit::Document>()
-        .expect("Couldn't load settings.");
-    log::info!("Loaded settings:");
-    println!("{}", loaded_settings.to_string());
-
-    log::info!(
-        "display: {:?}",
-        loaded_settings["display"]
-            .as_str()
-            .expect("The `display` setting must be a string.")
-    );
-    log::info!(
-        "tile size: {:?}",
-        loaded_settings["tile_size"]
-            .as_integer()
-            .expect("The `tile_size` setting must be an integer.")
-    );
-    log::info!(
-        "graphics backend: {:?}",
-        loaded_settings["backend"]
-            .as_str()
-            .expect("The `backend` setting must be a string.")
     );
 
     let state = if let Some(replay) = matches.value_of("replay") {
@@ -412,17 +353,18 @@ fn process_cli_and_run_game() {
     let game_title = metadata::TITLE;
     let game_update = game::update;
 
-    let backend = if matches.is_present("remote") {
-        "remote"
+    // TODO: do we want to keep these switches or just rely on settings wholesale?
+    let backend: String = if matches.is_present("remote") {
+        "remote".into()
     } else if matches.is_present("sdl") {
-        "sdl"
+        "sdl".into()
     } else if matches.is_present("glutin") {
-        "glutin"
+        "glutin".into()
     } else {
-        default_graphics_backend
+        settings::Settings::default().backend
     };
 
-    match backend {
+    match backend.as_str() {
         "remote" => run_remote(display_size, background, game_title, state, game_update),
         "sdl" => run_sdl(display_size, background, game_title, state, game_update),
         "glutin" => run_glutin(display_size, background, game_title, state, game_update),

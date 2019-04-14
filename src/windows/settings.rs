@@ -13,6 +13,7 @@ pub enum Action {
     Window,
     TileSize(i32),
     Back,
+    Apply,
 }
 
 struct Layout {
@@ -24,6 +25,7 @@ struct Layout {
     window_button: Button,
     tile_size_options: Vec<(i32, Button)>,
     back_button: Button,
+    apply_button: Button,
 }
 
 pub struct Window;
@@ -46,8 +48,9 @@ impl Window {
 
         let fullscreen_button = Button::new(rect.top_left() + (13, 3), "[F]ullscreen");
         let window_button = Button::new(rect.top_left() + (20, 3), "[W]indow");
-        let back_button =
-            Button::new(rect.bottom_left() + (0, -1), "[Esc] Back").align_center(rect.width());
+        let apply_button =
+            Button::new(rect.bottom_right() + (0, -1), "[A]pply settings").align_right();
+        let back_button = Button::new(rect.bottom_left() + (0, -1), "[Esc] Back").align_left();
 
         let button_rect = metrics.button_rect(&fullscreen_button);
         if button_rect.contains(state.mouse.tile_pos) {
@@ -64,6 +67,12 @@ impl Window {
         let button_rect = metrics.button_rect(&back_button);
         if button_rect.contains(state.mouse.tile_pos) {
             option_under_mouse = Some(Action::Back);
+            rect_under_mouse = Some(button_rect);
+        }
+
+        let button_rect = metrics.button_rect(&apply_button);
+        if button_rect.contains(state.mouse.tile_pos) {
+            option_under_mouse = Some(Action::Apply);
             rect_under_mouse = Some(button_rect);
         }
 
@@ -103,6 +112,7 @@ impl Window {
             window_button,
             tile_size_options,
             back_button,
+            apply_button,
         }
     }
 
@@ -174,6 +184,7 @@ impl Window {
         }
 
         display.draw_button(&layout.back_button);
+        display.draw_button(&layout.apply_button);
     }
 
     pub fn hovered(

@@ -92,6 +92,19 @@ this is normally a bug in some application using the d-bus library.
 d-bus not built with -rdynamic so unable to print a backtrace
 
 aborted (core dumped)
+* DPI factor can be different from 1 on Windows and macOS               :bug:
+** The `WINIT_HIDPI_FACTOR` env var only works on X11
+https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
+** Running Glutin + Retina display on macOS is broken
+*** The game will be rendered into a 1/4th of the window
+*** And it can't be forced to a 1.0 DPI
+** So we need to handle the generic case
+*** We should be able to get the physical size
+*** And then render stuff as we want
+*** But we will need to be using logical units
+** Right now, we're just scaling it to whatever the actual window size is
+** But this is probably broken in a lot of places and not working well
+** Check the TODOs in `engine/glutin.rs`
 * Consider adding the keyboard hints to the sidebar?                     :ui:
 ** Just like in the help file
 ** This could be always on without being annoying
@@ -115,6 +128,14 @@ aborted (core dumped)
 ** Right now the game's just stuck in loading
 ** We should show a message instead
 ** Make sure this works on tryjumping.com as well
+* Add Accessibility settings window
+** And put stuff like difficulty there?
+*** let people configure it
+*** Instead of easy/medium/hard
+** Ideas
+*** Multiple lives
+*** Spawn rate of food / doses / monsters
+*** Speed of Depression
 * Vary the density of the World chunks                             :worldgen:
 ** This might provide more variety with little coding effor
 * More World chunk patterns                                        :worldgen:

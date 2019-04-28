@@ -397,7 +397,13 @@ pub trait TextMetrics {
     }
 
     fn button_rect(&self, button: &Button) -> Rectangle {
-        self.text_rect(button.pos, &button.text, button.text_options)
+        let rect = self.text_rect(button.pos, &button.text, button.text_options);
+        if rect.height() < button.text_options.height {
+            let new_size = rect.size() + (0, button.text_options.height - rect.height());
+            Rectangle::from_point_and_size(rect.top_left(), new_size)
+        } else {
+            rect
+        }
     }
 }
 

@@ -17,7 +17,7 @@ use std::{
 
 use glutin::{
     dpi::{LogicalPosition, LogicalSize},
-    ElementState, GlContext, KeyboardInput, MonitorId, VirtualKeyCode as BackendKey,
+    ElementState, KeyboardInput, MonitorId, VirtualKeyCode as BackendKey,
 };
 
 pub struct Metrics {
@@ -218,21 +218,37 @@ pub fn main_loop(
             desired_window_height.into(),
         ));
     log::debug!("Created window builder: {:?}", window);
-    let context = glutin::ContextBuilder::new().with_vsync(true);
-    log::debug!("Created context.");
-    let gl_window = match glutin::GlWindow::new(window, context, &events_loop) {
-        Ok(gl_window) => gl_window,
+    let context = glutin::ContextBuilder::new()
+        .with_vsync(true)
+        .build_windowed(window, &events_loop);
+    log::debug!("Created context: {:?}", context);
+    let context = match context {
+        Ok(context) => context,
         Err(error) => {
-            log::error!("Could not create `glutin::GlWindow`: {:?}", error);
+            log::error!("Could not create context: {:?}", error);
             panic!("Aborting!");
         }
     };
 
-    unsafe {
-        gl_window.make_current().unwrap();
-        gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
-    }
+    log::info!(
+        "Window HIDPI factor: {:?}",
+        context.window().get_hidpi_factor()
+    );
+
+    log::debug!("Making context current.");
+    let context = unsafe {
+        match context.make_current() {
+            Ok(context) => context,
+            Err(error) => {
+                log::error!("Could not make context current: {:?}", error);
+                panic!("Aborting!");
+            }
+        }
+    };
+
     log::debug!("Loaded OpenGL symbols.");
+    gl::load_with(|symbol| context.get_proc_address(symbol) as *const _);
+    log::info!("Window is ready.");
 
     // We'll just assume the monitors won't change throughout the game.
     let monitors: Vec<_> = events_loop.get_available_monitors().collect();
@@ -259,7 +275,7 @@ pub fn main_loop(
 
     // Main loop
     let mut window_pos = {
-        match gl_window.get_position() {
+        match context.window().get_position() {
             Some(LogicalPosition { x, y }) => Point::new(x as i32, y as i32),
             None => Default::default(),
         }
@@ -513,7 +529,7 @@ pub fn main_loop(
             if previous_settings.fullscreen != settings.fullscreen {
                 if settings.fullscreen {
                     log::info!("[{}] Switching to fullscreen", current_frame_id);
-                    gl_window.set_decorations(false);
+                    context.window().set_decorations(false);
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
                         log::debug!(
@@ -522,16 +538,17 @@ pub fn main_loop(
                             monitor.get_position(),
                             monitor.get_dimensions()
                         );
-                        gl_window.set_fullscreen(Some(monitor.clone()));
+                        context.window().set_fullscreen(Some(monitor.clone()));
                     } else {
                         log::debug!("`current_monitor` is not set!??");
                     }
                 } else {
                     log::info!("[{}] Switching fullscreen off", current_frame_id);
-                    gl_window.set_fullscreen(None);
-                    let pos = gl_window.get_position();
+                    let window = context.window();
+                    window.set_fullscreen(None);
+                    let pos = window.get_position();
                     log::debug!("New window position: {:?}", pos);
-                    gl_window.set_decorations(true);
+                    window.set_decorations(true);
                     switched_from_fullscreen = true;
                 }
             }
@@ -547,8 +564,9 @@ pub fn main_loop(
             );
             if !settings.fullscreen {
                 let size: LogicalSize = (desired_window_width, desired_window_height).into();
-                gl_window.set_inner_size(size);
-                gl_window.resize(size.to_physical(gl_window.get_hidpi_factor()));
+                let window = context.window();
+                window.set_inner_size(size);
+                context.resize(size.to_physical(window.get_hidpi_factor()));
             }
         }
 
@@ -597,7 +615,7 @@ pub fn main_loop(
             [image_width as f32, image_height as f32],
             &vertex_buffer,
         );
-        gl_window.swap_buffers().unwrap();
+        context.swap_buffers().unwrap();
 
         if current_frame_id == 1 {
             // NOTE: We should have the proper window position and
@@ -631,7 +649,7 @@ pub fn main_loop(
                             desired_window_width,
                             desired_window_height
                         );
-                        gl_window.set_inner_size(LogicalSize {
+                        context.window().set_inner_size(LogicalSize {
                             width: desired_window_width.into(),
                             height: desired_window_height.into(),
                         });

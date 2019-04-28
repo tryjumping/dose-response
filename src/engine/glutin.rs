@@ -162,25 +162,6 @@ pub fn main_loop(
     mut state: Box<State>,
     update: UpdateFn,
 ) {
-    // Force the DPI factor to be 1.0
-    // https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
-    //
-    // NOTE: without this, the window size and contents will be scaled
-    // by some heuristic the OS will do. For now, that means blurry
-    // fonts and so on. I think once we add support for multiple font
-    // sizes, this can be handled gracefully. Until then though, let's
-    // just force 1.0. The players can always resize the window
-    // manually.
-    //
-    // Apparently, the only way to set the DPI factor is via this
-    // environment variable.
-    //
-    // NOTE: The `WINIT_HIDPI_FACTOR` variable only works on X11
-    // according to the docs above!
-    //
-    // See also this issue: https://github.com/rust-windowing/winit/issues/837
-    std::env::set_var("WINIT_HIDPI_FACTOR", "1.0");
-
     // Force winit unix backend to X11.
     //
     // Right now, this produces better results on Wayland (Fedora 28).
@@ -365,9 +346,11 @@ pub fn main_loop(
                 glutin::Event::WindowEvent { event, .. } => match event {
                     glutin::WindowEvent::CloseRequested => running = false,
 
-                    glutin::WindowEvent::Resized(LogicalSize { width, height }) => {
+                    glutin::WindowEvent::Resized(size) => {
+                        let LogicalSize { width, height } = size;
                         // let dpi_factor = gl_window.get_hidpi_factor();
                         // gl_window.resize(logical_size.to_physical(dpi_factor));
+                        context.resize(size.to_physical(context.window().get_hidpi_factor()));
                         let height = height as i32;
                         let width = width as i32;
                         log::info!("Window resized to: {}x{}", width, height);
@@ -606,8 +589,14 @@ pub fn main_loop(
             );
         }
 
+        // TODO(shadower): is this the right way to use the `dpi`? I'm
+        // guessing we should just be honest about `window_size_px`
+        // everywhere.
         let display_info = engine::calculate_display_info(
-            [window_size_px.x as f32, window_size_px.y as f32],
+            [
+                window_size_px.x as f32 * dpi as f32,
+                window_size_px.y as f32 * dpi as f32,
+            ],
             display_size,
             settings.tile_size,
         );

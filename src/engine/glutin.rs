@@ -163,7 +163,7 @@ pub fn main_loop(
     update: UpdateFn,
 ) {
     // Force the DPI factor to be 1.0
-    // https://docs.rs/glium/0.22.0/glium/glutin/dpi/index.html
+    // https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
     //
     // NOTE: without this, the window size and contents will be scaled
     // by some heuristic the OS will do. For now, that means blurry
@@ -175,8 +175,10 @@ pub fn main_loop(
     // Apparently, the only way to set the DPI factor is via this
     // environment variable.
     //
-    // This PR might fix it?
-    // https://github.com/tomaka/winit/pull/606/files
+    // NOTE: The `WINIT_HIDPI_FACTOR` variable only works on X11
+    // according to the docs above!
+    //
+    // See also this issue: https://github.com/rust-windowing/winit/issues/837
     std::env::set_var("WINIT_HIDPI_FACTOR", "1.0");
 
     // Force winit unix backend to X11.

@@ -36,6 +36,7 @@ struct Layout {
     inventory: HashMap<item::Kind, i32>,
     main_menu_button: Button,
     help_button: Button,
+    top_left_button: Button,
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
 }
@@ -91,7 +92,10 @@ impl Window {
 
         let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help").color(fg);
 
-        bottom -= 1;
+        bottom -= 5;
+
+        let mut top_left_button = Button::new(Point::new(x + 1, bottom), "BTN").color(fg);
+        top_left_button.text_options.height = 3;
 
         let main_menu_rect = metrics.button_rect(&main_menu_button);
         if main_menu_rect.contains(state.mouse.tile_pos) {
@@ -103,6 +107,11 @@ impl Window {
         if help_rect.contains(state.mouse.tile_pos) {
             action_under_mouse = Some(Action::Help);
             rect_under_mouse = Some(help_rect);
+        }
+
+        let top_left_rect = metrics.button_rect(&top_left_button);
+        if top_left_rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(top_left_rect);
         }
 
         Layout {
@@ -118,6 +127,7 @@ impl Window {
             rect_under_mouse,
             main_menu_button,
             help_button,
+            top_left_button,
             bottom,
         }
     }
@@ -232,10 +242,39 @@ impl Window {
             lines.push("".into());
         }
 
-        if state.cheating {
-            lines.push("CHEATING".into());
-            lines.push("".into());
+        // TODO: center, add square lines, make clickable
+        lines.push("Numpad movement:".into());
+        lines.push("".into());
+
+        {
+            #![cfg_attr(rustfmt, rustfmt_skip)]
+            let controls = [
+                r"7 8 9",
+                r" \|/ ",
+                r"4-@-6",
+                r" /|\ ",
+                r"1 2 3",
+            ];
+
+            for &control_line in &controls {
+                let indent = (width as usize - control_line.chars().count()) / 2;
+                // NOTE: this will not centre perfectly, because we're
+                // rendering text, but `width` is in tiles not
+                // characters. For proper centering, we should convert
+                // this to using our ui layout code.
+                let line = format!("{:>2$}{}", "", control_line, indent);
+                lines.push(line.into());
+            }
         }
+
+        // lines.push(SquareTiles(r"7 8 9"));
+        // lines.push(SquareTiles(r" \|/ "));
+        // lines.push(SquareTiles(r"4-@-6"));
+        // lines.push(SquareTiles(r" /|\ "));
+        // lines.push(SquareTiles(r"1 2 3"));
+
+        lines.push("".into());
+        lines.push("See Help [?] for more.".into());
 
         if player.alive() {
             if player.stun.to_int() > 0 {
@@ -247,6 +286,9 @@ impl Window {
         }
 
         if state.cheating {
+            lines.push("CHEATING".into());
+            lines.push("".into());
+
             if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.display_size {
                 lines.push(format!("Mouse px: {}", state.mouse.screen_pos).into());
                 lines.push(format!("Mouse: {}", state.mouse.tile_pos).into());
@@ -293,6 +335,7 @@ impl Window {
 
         display.draw_button(&layout.main_menu_button);
         display.draw_button(&layout.help_button);
+        display.draw_button(&layout.top_left_button);
 
         if state.cheating {
             display.draw_text(

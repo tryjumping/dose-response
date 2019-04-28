@@ -230,11 +230,6 @@ pub fn main_loop(
         }
     };
 
-    log::info!(
-        "Window HIDPI factor: {:?}",
-        context.window().get_hidpi_factor()
-    );
-
     log::debug!("Making context current.");
     let context = unsafe {
         match context.make_current() {
@@ -249,6 +244,30 @@ pub fn main_loop(
     log::debug!("Loaded OpenGL symbols.");
     gl::load_with(|symbol| context.get_proc_address(symbol) as *const _);
     log::info!("Window is ready.");
+
+    let dpi = context.window().get_hidpi_factor();
+    log::info!("Window HIDPI factor: {:?}", dpi);
+    match context.window().get_inner_size() {
+        Some(logical_size) => {
+            log::info!("Window inner size (logical): {:?}", logical_size);
+            log::info!(
+                "Window inner size (physical): {:?}",
+                logical_size.to_physical(dpi)
+            );
+        }
+        None => log::warn!("Window inner size is `None`."),
+    }
+
+    match context.window().get_outer_size() {
+        Some(logical_size) => {
+            log::info!("Window outer size (logical): {:?}", logical_size);
+            log::info!(
+                "Window outer size (physical): {:?}",
+                logical_size.to_physical(dpi)
+            );
+        }
+        None => log::warn!("Window outer size is `None`."),
+    }
 
     // We'll just assume the monitors won't change throughout the game.
     let monitors: Vec<_> = events_loop.get_available_monitors().collect();

@@ -36,7 +36,14 @@ struct Layout {
     inventory: HashMap<item::Kind, i32>,
     main_menu_button: Button,
     help_button: Button,
-    top_left_button: Button,
+    nw_button: Button,
+    n_button: Button,
+    ne_button: Button,
+    w_button: Button,
+    e_button: Button,
+    sw_button: Button,
+    s_button: Button,
+    se_button: Button,
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
 }
@@ -92,10 +99,31 @@ impl Window {
 
         let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help").color(fg);
 
-        bottom -= 5;
+        bottom -= 17;
 
-        let mut top_left_button = Button::new(Point::new(x + 1, bottom), "BTN").color(fg);
-        top_left_button.text_options.height = 3;
+        let mut nw_button = Button::new(Point::new(x + 1, bottom), "BTN").color(fg);
+        nw_button.text_options.height = 2;
+
+        let mut n_button = Button::new(Point::new(x + 3, bottom), "BTN").color(fg);
+        n_button.text_options.height = 2;
+
+        let mut ne_button = Button::new(Point::new(x + 5, bottom), "BTN").color(fg);
+        ne_button.text_options.height = 2;
+
+        let mut e_button = Button::new(Point::new(x + 1, bottom + 2), "BTN").color(fg);
+        e_button.text_options.height = 2;
+
+        let mut w_button = Button::new(Point::new(x + 5, bottom + 2), "BTN").color(fg);
+        w_button.text_options.height = 2;
+
+        let mut sw_button = Button::new(Point::new(x + 1, bottom + 4), "BTN").color(fg);
+        sw_button.text_options.height = 2;
+
+        let mut s_button = Button::new(Point::new(x + 3, bottom + 4), "BTN").color(fg);
+        s_button.text_options.height = 2;
+
+        let mut se_button = Button::new(Point::new(x + 5, bottom + 4), "BTN").color(fg);
+        se_button.text_options.height = 2;
 
         let main_menu_rect = metrics.button_rect(&main_menu_button);
         if main_menu_rect.contains(state.mouse.tile_pos) {
@@ -109,9 +137,44 @@ impl Window {
             rect_under_mouse = Some(help_rect);
         }
 
-        let top_left_rect = metrics.button_rect(&top_left_button);
-        if top_left_rect.contains(state.mouse.tile_pos) {
-            rect_under_mouse = Some(top_left_rect);
+        let rect = metrics.button_rect(&nw_button);
+        if rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(rect);
+        }
+
+        let rect = metrics.button_rect(&n_button);
+        if rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(rect);
+        }
+
+        let rect = metrics.button_rect(&ne_button);
+        if rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(rect);
+        }
+
+        let rect = metrics.button_rect(&w_button);
+        if rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(rect);
+        }
+
+        let rect = metrics.button_rect(&e_button);
+        if rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(rect);
+        }
+
+        let rect = metrics.button_rect(&sw_button);
+        if rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(rect);
+        }
+
+        let rect = metrics.button_rect(&s_button);
+        if rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(rect);
+        }
+
+        let rect = metrics.button_rect(&se_button);
+        if rect.contains(state.mouse.tile_pos) {
+            rect_under_mouse = Some(rect);
         }
 
         Layout {
@@ -127,7 +190,14 @@ impl Window {
             rect_under_mouse,
             main_menu_button,
             help_button,
-            top_left_button,
+            nw_button,
+            n_button,
+            ne_button,
+            w_button,
+            e_button,
+            sw_button,
+            s_button,
+            se_button,
             bottom,
         }
     }
@@ -257,12 +327,15 @@ impl Window {
             ];
 
             for &control_line in &controls {
-                let indent = (width as usize - control_line.chars().count()) / 2;
+                //let indent = (width as usize - control_line.chars().count()) / 2;
+                let indent = 3;
                 // NOTE: this will not centre perfectly, because we're
                 // rendering text, but `width` is in tiles not
                 // characters. For proper centering, we should convert
                 // this to using our ui layout code.
                 let line = format!("{:>2$}{}", "", control_line, indent);
+                // TODO: make this independent of lines so the layout is not messed up when
+                // new items appear in the inventory or whatnot
                 lines.push(line.into());
             }
         }
@@ -335,7 +408,14 @@ impl Window {
 
         display.draw_button(&layout.main_menu_button);
         display.draw_button(&layout.help_button);
-        display.draw_button(&layout.top_left_button);
+        display.draw_button(&layout.nw_button);
+        display.draw_button(&layout.n_button);
+        display.draw_button(&layout.ne_button);
+        display.draw_button(&layout.w_button);
+        display.draw_button(&layout.e_button);
+        display.draw_button(&layout.sw_button);
+        display.draw_button(&layout.s_button);
+        display.draw_button(&layout.se_button);
 
         if state.cheating {
             display.draw_text(

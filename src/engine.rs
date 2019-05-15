@@ -326,6 +326,12 @@ pub enum TextAlign {
 pub trait TextMetrics {
     fn tile_width_px(&self) -> i32;
 
+    fn advance_width_px(&self, glyph: char) -> i32 {
+        // NOTE: we're assuming that font_size and tilesize always match!
+        let font_size = self.tile_width_px() as u32;
+        glyph_advance_width(font_size, glyph).unwrap_or(self.tile_width_px())
+    }
+
     /// Return the height in tiles of the given text.
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
@@ -656,6 +662,24 @@ impl Display {
     /// Draw a Button
     pub fn draw_button(&mut self, button: &Button) {
         self.draw_text(button.pos, &button.text, button.color, button.text_options);
+    }
+
+    /// Draw a glyph at the given pixel position.
+    ///
+    /// No offset or tile structure is applied. This is a raw command
+    /// for when you really need to position a character precisely.
+    pub fn draw_glyph_abs_px(&mut self, x: i32, y: i32, glyph: char, color: Color) {
+        let font_size = self.tilesize as u32;
+        let (texture_px_x, texture_px_y) =
+            texture_coords_px_from_char(font_size, glyph).unwrap_or((0, 0));
+
+        let src = Rectangle::from_point_and_size(
+            Point::new(texture_px_x, texture_px_y),
+            Point::from_i32(self.tilesize),
+        );
+        let dst = Rectangle::from_point_and_size(Point::new(x, y), Point::from_i32(self.tilesize));
+
+        self.drawcalls.push(Drawcall::Image(src, dst, color));
     }
 
     pub fn draw_text(&mut self, start_pos: Point, text: &str, color: Color, options: TextOptions) {

@@ -99,31 +99,35 @@ impl Window {
 
         let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help").color(fg);
 
+        // Position of the movement/numpad buttons
         bottom -= 17;
 
-        let mut nw_button = Button::new(Point::new(x + 1, bottom), "BTN").color(fg);
-        nw_button.text_options.height = 2;
+        // NOTE: since text width and tile width don't really match, the number of spaces
+        // here was determined empirically and will not hold for different fonts.
+        // TODO: These aren't really buttons more like rects so we should just draw those.
+        let mut nw_button = Button::new(Point::new(x + 1, bottom), "     ").color(fg);
+        nw_button.text_options.height = 3;
 
-        let mut n_button = Button::new(Point::new(x + 3, bottom), "BTN").color(fg);
-        n_button.text_options.height = 2;
+        let mut n_button = Button::new(Point::new(x + 4, bottom), "     ").color(fg);
+        n_button.text_options.height = 3;
 
-        let mut ne_button = Button::new(Point::new(x + 5, bottom), "BTN").color(fg);
-        ne_button.text_options.height = 2;
+        let mut ne_button = Button::new(Point::new(x + 7, bottom), "     ").color(fg);
+        ne_button.text_options.height = 3;
 
-        let mut e_button = Button::new(Point::new(x + 1, bottom + 2), "BTN").color(fg);
-        e_button.text_options.height = 2;
+        let mut e_button = Button::new(Point::new(x + 1, bottom + 3), "     ").color(fg);
+        e_button.text_options.height = 3;
 
-        let mut w_button = Button::new(Point::new(x + 5, bottom + 2), "BTN").color(fg);
-        w_button.text_options.height = 2;
+        let mut w_button = Button::new(Point::new(x + 7, bottom + 3), "     ").color(fg);
+        w_button.text_options.height = 3;
 
-        let mut sw_button = Button::new(Point::new(x + 1, bottom + 4), "BTN").color(fg);
-        sw_button.text_options.height = 2;
+        let mut sw_button = Button::new(Point::new(x + 1, bottom + 6), "     ").color(fg);
+        sw_button.text_options.height = 3;
 
-        let mut s_button = Button::new(Point::new(x + 3, bottom + 4), "BTN").color(fg);
-        s_button.text_options.height = 2;
+        let mut s_button = Button::new(Point::new(x + 4, bottom + 6), "     ").color(fg);
+        s_button.text_options.height = 3;
 
-        let mut se_button = Button::new(Point::new(x + 5, bottom + 4), "BTN").color(fg);
-        se_button.text_options.height = 2;
+        let mut se_button = Button::new(Point::new(x + 7, bottom + 6), "     ").color(fg);
+        se_button.text_options.height = 3;
 
         let main_menu_rect = metrics.button_rect(&main_menu_button);
         if main_menu_rect.contains(state.mouse.tile_pos) {
@@ -312,43 +316,6 @@ impl Window {
             lines.push("".into());
         }
 
-        // TODO: center, add square lines, make clickable
-        lines.push("Numpad movement:".into());
-        lines.push("".into());
-
-        {
-            #![cfg_attr(rustfmt, rustfmt_skip)]
-            let controls = [
-                r"7 8 9",
-                r" \|/ ",
-                r"4-@-6",
-                r" /|\ ",
-                r"1 2 3",
-            ];
-
-            for &control_line in &controls {
-                //let indent = (width as usize - control_line.chars().count()) / 2;
-                let indent = 3;
-                // NOTE: this will not centre perfectly, because we're
-                // rendering text, but `width` is in tiles not
-                // characters. For proper centering, we should convert
-                // this to using our ui layout code.
-                let line = format!("{:>2$}{}", "", control_line, indent);
-                // TODO: make this independent of lines so the layout is not messed up when
-                // new items appear in the inventory or whatnot
-                lines.push(line.into());
-            }
-        }
-
-        // lines.push(SquareTiles(r"7 8 9"));
-        // lines.push(SquareTiles(r" \|/ "));
-        // lines.push(SquareTiles(r"4-@-6"));
-        // lines.push(SquareTiles(r" /|\ "));
-        // lines.push(SquareTiles(r"1 2 3"));
-
-        lines.push("".into());
-        lines.push("See Help [?] for more.".into());
-
         if player.alive() {
             if player.stun.to_int() > 0 {
                 lines.push(format!("Stunned({})", player.stun.to_int()).into());
@@ -416,6 +383,27 @@ impl Window {
         display.draw_button(&layout.sw_button);
         display.draw_button(&layout.s_button);
         display.draw_button(&layout.se_button);
+
+        // Draw the clickable controls help
+        {
+            display.draw_text(
+                Point::new(x + 1, 8),
+                "Numpad movement:",
+                layout.fg,
+                crate::engine::TextOptions::align_left(),
+            );
+
+            // Draw a glyph in the centre of the button, ignoring the tile grid.
+            // All we care about is that it's visually centered.
+            let tilesize = metrics.tile_width_px();
+            let offset_px = (tilesize - metrics.advance_width_px('X')) / 2;
+            display.draw_glyph_abs_px(
+                (x + 2) * tilesize + offset_px,
+                10 * tilesize,
+                'X',
+                color::WHITE,
+            );
+        }
 
         if state.cheating {
             display.draw_text(

@@ -136,7 +136,7 @@ impl Window {
             .count();
 
         let turns_text = format!("Turns: {}", state.turn);
-        let carrying_doses_text = if doses_in_inventory > 0 {
+        let carrying_doses_text = if state.player_picked_up_a_dose {
             format!("Carrying {} doses", doses_in_inventory)
         } else {
             "You've never managed to save a dose for a later fix.".to_string()

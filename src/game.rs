@@ -1261,6 +1261,12 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         &mut state.window_stack,
     );
 
+    // If the player ever picks up a dose, mark it in this variable:
+    let player_picked_up_a_dose = state.player.inventory.iter().any(item::Item::is_dose);
+    if player_picked_up_a_dose {
+        state.player_picked_up_a_dose = true;
+    }
+
     let spent_ap_this_turn = previous_action_points > state.player.ap();
 
     // Place the Victory NPC if the player behaved themself.

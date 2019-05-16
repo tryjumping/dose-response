@@ -150,6 +150,7 @@ pub struct State {
     pub first_game_already_generated: bool,
     pub show_keboard_movement_hints: bool,
     pub show_anxiety_counter: bool,
+    pub player_picked_up_a_dose: bool,
     pub current_help_window: windows::help::Page,
 
     /// Whether we should push the Endscreen window and uncover the
@@ -228,6 +229,7 @@ impl State {
             // some point.
             show_keboard_movement_hints: false,
             show_anxiety_counter: false,
+            player_picked_up_a_dose: false,
             current_help_window: windows::help::Page::DoseResponse,
             show_endscreen_and_uncover_map_during_fadein: false,
             uncovered_map: false,

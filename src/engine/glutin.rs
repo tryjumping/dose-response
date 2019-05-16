@@ -340,6 +340,18 @@ pub fn main_loop(
             fps_clock = Duration::new(0, 0);
         }
 
+        // TODO(shadower): is this the right way to use the `dpi`? I'm
+        // guessing we should just be honest about `window_size_px`
+        // everywhere.
+        let display_info = engine::calculate_display_info(
+            [
+                window_size_px.x as f32 * dpi as f32,
+                window_size_px.y as f32 * dpi as f32,
+            ],
+            display_size,
+            settings.tile_size,
+        );
+
         events_loop.poll_events(|event| {
             log::debug!("{:?}", event);
             match event {
@@ -443,14 +455,21 @@ pub fn main_loop(
                     }
 
                     glutin::WindowEvent::CursorMoved { position, .. } => {
-                        let x = util::clamp(0, position.x as i32, window_size_px.x - 1);
-                        let y = util::clamp(0, position.y as i32, window_size_px.y - 1);
+                        let (x, y) = (position.x as i32, position.y as i32);
+
+                        let (x, y) = (
+                            x - (display_info.extra_px[0] / 2.0) as i32,
+                            y - (display_info.extra_px[1] / 2.0) as i32,
+                        );
+                        let x = util::clamp(0, x, display_info.display_px[0] as i32 - 1);
+                        let y = util::clamp(0, y, display_info.display_px[1] as i32 - 1);
+
                         mouse.screen_pos = Point { x, y };
 
-                        let tile_width = window_size_px.x / display_size.x;
+                        let tile_width = display_info.display_px[0] as i32 / display_size.x;
                         let mouse_tile_x = x / tile_width;
 
-                        let tile_height = window_size_px.y / display_size.y;
+                        let tile_height = display_info.display_px[1] as i32 / display_size.y;
                         let mouse_tile_y = y / tile_height;
 
                         mouse.tile_pos = Point {
@@ -588,18 +607,6 @@ pub fn main_loop(
                 drawcalls.len(),
             );
         }
-
-        // TODO(shadower): is this the right way to use the `dpi`? I'm
-        // guessing we should just be honest about `window_size_px`
-        // everywhere.
-        let display_info = engine::calculate_display_info(
-            [
-                window_size_px.x as f32 * dpi as f32,
-                window_size_px.y as f32 * dpi as f32,
-            ],
-            display_size,
-            settings.tile_size,
-        );
 
         vertex_buffer.clear();
         engine::build_vertices(

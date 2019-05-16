@@ -48,40 +48,8 @@
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* WASM is broken                                                        :bug:
 * Fullscreen does not work if set in the settings file                  :bug:
 ** The game still starts in a windowed mode
-* Switching back from fullscreen doesn't restore the position right on Windows 7 :bug:
-** Repro:
-1. Run game
-2. Switch to fullscreen
-3. Switch back
-** The game's back to windowed mode, but the size and position are wrong
-** We should store the previous font size, window size and position
-*** And just use them
-*** Or possibly just store the font size and calculate the rest
-* Reported Ctrl+arrows don't work on the mac                            :bug:
-https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
-** maybe try allowing alt/option for this as well?
-* Reported windows crash                                                :bug:
-** see this comment by u/vacn
-https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ecbbb5k/
-** Seems to be a Windows 10 thing
-*** Turns out, I can't test this in a VM because its opengl is ancient
-*** Need to get a Windows 10 somehow, sigh
-* Reported core dump on ubuntu                                          :bug:
-** reported by u/brutelumpen
-https://www.reddit.com/r/rust/comments/a8be46/dose_response_roguelike_game_written_in_rust/ecayv5e/
-** output
-dbus[13506]: arguments to dbus_type_is_basic() were incorrect, assertion "dbus_type_is_valid (typecode) || typecode == dbus_type_invalid" failed in file ../../../dbus/dbus-signature.c line 323.
-
-this is normally a bug in some application using the d-bus library.
-
-
-
-d-bus not built with -rdynamic so unable to print a backtrace
-
-aborted (core dumped)
 * DPI factor can be different from 1 on Windows and macOS               :bug:
 ** The `WINIT_HIDPI_FACTOR` env var only works on X11
 https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
@@ -95,19 +63,15 @@ https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
 ** Right now, we're just scaling it to whatever the actual window size is
 ** But this is probably broken in a lot of places and not working well
 ** Check the TODOs in `engine/glutin.rs`
+* Drop letterboxing                                                      :ui:
+** Instead, show more of the map (or blank area)
+** Letterboxing is ugly and forces us to only preset window ratios
+* WASM is broken                                                        :bug:
 * Make Dose Response playable on the mobile web                          :ui:
 ** No mouse
 ** We could make the "keyboard hints" clickable
 ** Also, swipe to move
 ** Basically, whatever "Rudimentary Mouse support" we've got, enable that
-* Add option to keep keyboard hints always / hidden to Settings          :ui:
-** When used with mouse, they should be always on
-** But some players might not like them
-* Full Mouse support                                                     :ui:
-** The game should be completely playable by mouse
-* Drop letterboxing                                                      :ui:
-** Instead, show more of the map (or blank area)
-** Letterboxing is ugly and forces us to only preset window ratios
 * Detect lack of WASM and WebGL and show message
 ** Right now the game's just stuck in loading
 ** We should show a message instead
@@ -125,8 +89,6 @@ https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
 * More World chunk patterns                                        :worldgen:
 ** might be full-fledged "biomes"
 ** or just patterns different from the "random forest"
-* Improve AI pathfinding                                            :code:ai:
-** monsters further away should not freak out when another monster is in the way
 * consider adding an easier mode                                   :gameplay:
 ** see this comment by u/critiqjo
 https://www.reddit.com/r/rust/comments/a8be46/dose_response_roguelike_game_written_in_rust/ecamn2d/
@@ -161,10 +123,6 @@ https://store.steampowered.com/hwsurvey/
 *** 640x360 (360p)
 **** font size: 12
 ** NOTE: 12 and 16 are too small actually
-* Make sure we're accessible to colour blind people                      :ui:
-** need to make the palettes configurable
-** test with the phone app for several blindnesses
-** add a black and white mode?
 * Write a "call for artists" post?
 ** Here's what I'd like to see (in this order)
 *** Icon
@@ -183,6 +141,57 @@ https://store.steampowered.com/hwsurvey/
 *** g+
 *** mastodon
 *** maybe reddit?
+* Improve AI pathfinding                                            :code:ai:
+** monsters further away should not freak out when another monster is in the way
+* Make sure we're accessible to colour blind people                      :ui:
+** need to make the palettes configurable
+** test with the phone app for several blindnesses
+** add a black and white mode?
+* Reported windows crash                                                :bug:
+** see this comment by u/vacn
+https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ecbbb5k/
+** Seems to be a Windows 10 thing
+*** Turns out, I can't test this in a VM because its opengl is ancient
+*** Need to get a Windows 10 somehow, sigh
+* Switching back from fullscreen doesn't restore the position right on Windows 7 :bug:
+** Repro:
+1. Run game
+2. Switch to fullscreen
+3. Switch back
+** The game's back to windowed mode, but the size and position are wrong
+** We should store the previous font size, window size and position
+*** And just use them
+*** Or possibly just store the font size and calculate the rest
+* Reported Ctrl+arrows don't work on the mac                            :bug:
+https://www.reddit.com/r/roguelikedev/comments/a8ai3l/dose_response_a_roguelike_where_youre_an_addict/ec9ypq6/
+** maybe try allowing alt/option for this as well?
+* Reported core dump on ubuntu                                          :bug:
+** reported by u/brutelumpen
+https://www.reddit.com/r/rust/comments/a8be46/dose_response_roguelike_game_written_in_rust/ecayv5e/
+** output
+dbus[13506]: arguments to dbus_type_is_basic() were incorrect, assertion "dbus_type_is_valid (typecode) || typecode == dbus_type_invalid" failed in file ../../../dbus/dbus-signature.c line 323.
+
+this is normally a bug in some application using the d-bus library.
+
+
+
+d-bus not built with -rdynamic so unable to print a backtrace
+
+aborted (core dumped)
+* Record a let's play
+** would be nice to show the game in action
+** people can watch it and see whether it's interesting for them
+** Steps:
+cargo run --release
+xwininfo  # find the Window ID
+recordmydesktop --windowid <window id>
+record
+Ctrl-c
+* Add option to keep keyboard hints always / hidden to Settings          :ui:
+** When used with mouse, they should be always on
+** But some players might not like them
+* Full Mouse support                                                     :ui:
+** The game should be completely playable by mouse
 * Handle panics and print out a "here's what to do next" message
 * Consider adding the human_panic crate
 https://github.com/rust-clique/human-panic
@@ -231,16 +240,7 @@ https://github.com/rust-clique/human-panic
 * Performance-tune the game
 ** minimise drawcalls and data transmission
 ** try to make sure we never have to grow our vectors
-* Record a let's play
-** would be nice to show the game in action
-** people can watch it and see whether it's interesting for them
-** Steps:
-cargo run --release
-xwininfo  # find the Window ID
-recordmydesktop --windowid <window id>
-record
-Ctrl-c
-* Pressing Alt+Enter doesn't work (only on geralt)                      :bug:
+* Pressing Alt+Enter doesn't work (only on SDL + geralt)                :bug:
 ** The screen flickers and then goes back
 ** Looking at the log, looks like the press is registered twice:
 #+BEGIN_SRC

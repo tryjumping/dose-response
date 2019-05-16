@@ -105,11 +105,6 @@ https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
 ** Right now, we're just scaling it to whatever the actual window size is
 ** But this is probably broken in a lot of places and not working well
 ** Check the TODOs in `engine/glutin.rs`
-* Highlight the potential destination on movement button hover           :ui:
-** When you hover over a clickable sidebar button that moves the character
-*** it would highlight the tile the character would move to
-** That would make the connection with the buttons even more obvious
-** We could use different highlight colours for movement vs. attack
 * Make Dose Response playable on the mobile web                          :ui:
 ** No mouse
 ** We could make the "keyboard hints" clickable
@@ -3738,3 +3733,12 @@ CLOSED: [2019-05-16 Thu 13:40]
 **** In the numpad schematic in the sidebar
 *** Hovering over any clickable portion (the number button or line) would highlight the whole thing
 *** Might look weird but useable
+** DONE Highlight the potential destination on movement button hover    :ui:
+CLOSED: [2019-05-16 Thu 14:17]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-16 Thu 14:17
+:END:
+*** When you hover over a clickable sidebar button that moves the character
+**** it would highlight the tile the character would move to
+*** That would make the connection with the buttons even more obvious
+*** We could use different highlight colours for movement vs. attack

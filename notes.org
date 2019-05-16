@@ -115,13 +115,6 @@ https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
 ** We could make the "keyboard hints" clickable
 ** Also, swipe to move
 ** Basically, whatever "Rudimentary Mouse support" we've got, enable that
-* Make the lines around the sidebar player clickable as well             :ui:
-** To improve Fitt's Law
-** And reduce the distance necessary to move the mouse
-** We should make the little lines connecting the player and number clickable too
-*** In the numpad schematic in the sidebar
-** Hovering over any clickable portion (the number button or line) would highlight the whole thing
-** Might look weird but useable
 * Add option to keep keyboard hints always / hidden to Settings          :ui:
 ** When used with mouse, they should be always on
 ** But some players might not like them
@@ -3734,3 +3727,14 @@ CLOSED: [2019-05-16 Thu 12:31]
 *** NOTE: Closing in favour of the sidebar buttons
 *** Make the keyboard hints clickable
 *** They should not disappear
+** DONE Make the lines around the sidebar player clickable as well      :ui:
+CLOSED: [2019-05-16 Thu 13:40]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-16 Thu 13:40
+:END:
+*** To improve Fitt's Law
+*** And reduce the distance necessary to move the mouse
+*** We should make the little lines connecting the player and number clickable too
+**** In the numpad schematic in the sidebar
+*** Hovering over any clickable portion (the number button or line) would highlight the whole thing
+*** Might look weird but useable

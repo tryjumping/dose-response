@@ -378,37 +378,32 @@ impl Window {
 
         // Draw the clickable controls help
         display.draw_text(
-            Point::new(x + 1, layout.n_button.pos.y - 2),
+            Point::new(x + 1, layout.n_button.pos.y - 1),
             "Movement controls (numpad):",
             layout.fg,
             crate::engine::TextOptions::align_left(),
         );
 
-        // TODO: consider moving each label closer to the centre? The
-        // button area would stay the same, but the whole numpad-like
-        // graphics should visually look better with the numbers close
-        // to player symbol.
         let numpad_buttons = [
-            (&layout.nw_button, '7'),
-            (&layout.n_button, '8'),
-            (&layout.ne_button, '9'),
-            (&layout.w_button, '4'),
-            (&layout.e_button, '6'),
-            (&layout.sw_button, '1'),
-            (&layout.s_button, '2'),
-            (&layout.se_button, '3'),
+            (&layout.nw_button, '7', (1, 1)),
+            (&layout.n_button, '8', (0, 1)),
+            (&layout.ne_button, '9', (-1, 1)),
+            (&layout.w_button, '4', (1, 0)),
+            (&layout.e_button, '6', (-1, 0)),
+            (&layout.sw_button, '1', (1, -1)),
+            (&layout.s_button, '2', (0, -1)),
+            (&layout.se_button, '3', (-1, -1)),
         ];
 
         let tilesize = metrics.tile_width_px();
-        for (button, glyph) in &numpad_buttons {
-            let glyph = *glyph;
+        for &(ref button, glyph, tile_offset) in &numpad_buttons {
             display.draw_button(button);
 
             // Offset to center the glyph. The font width is different from tilesize so we need
             // sub-tile (pixel-precise) positioning here:
             let x_offset_px = (tilesize - metrics.advance_width_px(glyph)) / 2;
 
-            let tilepos_px = (button.pos + (1, 1)) * tilesize;
+            let tilepos_px = (button.pos + (1, 1) + tile_offset) * tilesize;
             display.draw_glyph_abs_px(
                 tilepos_px.x + x_offset_px,
                 tilepos_px.y,

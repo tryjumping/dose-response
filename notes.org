@@ -48,14 +48,7 @@
 - [ ] Deploy the project website
 - [ ] Optional: Write a release update blog post
 - [ ] Optional: Record a lets play
-* Mouse highlight not calculated properly on fullscreen                 :bug:
-** Repro:
-*** Switch to fullscreen on a wide-screen monitor
-**** so there's letter boxing shown
-*** Play until you lose
-*** Move to the "New game" button from the right direction
-*** It only gets highlighted/clickable about halfway through
-** We're probably ignoring letter-boxing there or something
+* WASM is broken                                                        :bug:
 * Fullscreen does not work if set in the settings file                  :bug:
 ** The game still starts in a windowed mode
 * Switching back from fullscreen doesn't restore the position right on Windows 7 :bug:
@@ -149,10 +142,6 @@ https://www.reddit.com/r/roguelikes/comments/a8aosa/dose_response_a_roguelike_wh
 ** 32/64 bits
 ** anything else we could find out
 ** make sure this is in the logs users would send us on crash or something
-* Detect lack of WASM and WebGL and show message
-** Right now the game's just stuck in loading
-** We should show a message instead
-** Make sure this works on tryjumping.com as well
 * Select the final font sizes to be shipped                            :code:
 ** Check out the Steam HW survey for suggested sizes
 https://store.steampowered.com/hwsurvey/
@@ -207,7 +196,6 @@ https://github.com/rust-clique/human-panic
 * Add console printing to the wasm module
 * Consider adding "one in a million" world changes                 :worldgen:
 ** Like a playthrough with wayyy more food than normal
-* Localisation?
 * Try available backends one-by-one instead of crashing
 ** Have each backend return a `Result<State, Error>` and try a different one if it fails
 * Productise the `replays` feature
@@ -215,9 +203,6 @@ https://github.com/rust-clique/human-panic
 ** Warn but don't crash when unable to create a replay file
 ** Make sure it doesn't generate verification data
 * Monsters and player able to shatter walls
-* Make the textures power of two
-** It may not be required by anything any more but it feels safer
-** Would also test our build.rs tilesize generation to JS
 * Add an option to set the graphics backend in the settings              :ui:
 ** This will mean closing and reopenning the window
 *** Or maybe we show "restart the game"
@@ -468,13 +453,6 @@ and psychonaut websites are gonna be a goldmine, I'd say :p
 ** Explore the world?
 ** Maybe find something that you wouldn't be able to otherwise
 ** "I've stopped smoking but I have a cigarette once a year"
-* Effects for gaining/losing will                                        :ui:
-** graphics (render it as a bar)
-** consider displaying the partial will
-*** say you have `Will = 5` but you've also killed three Anxieties, so your Will is more like `5.3`
-*** maybe display the equivalent of the `.3` portion as a lighter bit on the Will progress bar
-*** and as it gets closer to `1.0` its colour would get closer and closer to the "real Will colour"
-** sound
 * Longer-term developments of the addiction/state of mind            :design:
 ** like what can you do if you put off getting doses for long
 ** what happens when your tolerance builds up
@@ -3746,3 +3724,33 @@ CLOSED: [2019-05-16 Thu 23:23]
 :END:
 *** This is not true if you did end up carrying doses but not when you lost
 *** We should keep track of this as a flag that gets set once you carry a dose
+** DONE Make the textures power of two
+CLOSED: [2019-05-16 Thu 23:33]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-16 Thu 23:33
+:END:
+*** It may not be required by anything any more but it feels safer
+*** Would also test our build.rs tilesize generation to JS
+** DONE Effects for gaining/losing will                                 :ui:
+CLOSED: [2019-05-16 Thu 23:36]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-16 Thu 23:36
+:END:
+*** graphics (render it as a bar)
+*** consider displaying the partial will
+**** say you have `Will = 5` but you've also killed three Anxieties, so your Will is more like `5.3`
+**** maybe display the equivalent of the `.3` portion as a lighter bit on the Will progress bar
+**** and as it gets closer to `1.0` its colour would get closer and closer to the "real Will colour"
+*** sound
+** DONE Mouse highlight not calculated properly on fullscreen          :bug:
+CLOSED: [2019-05-16 Thu 23:56]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-16 Thu 23:56
+:END:
+*** Repro:
+**** Switch to fullscreen on a wide-screen monitor
+***** so there's letter boxing shown
+**** Play until you lose
+**** Move to the "New game" button from the right direction
+**** It only gets highlighted/clickable about halfway through
+*** We're probably ignoring letter-boxing there or something

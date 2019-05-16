@@ -105,17 +105,23 @@ https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
 ** Right now, we're just scaling it to whatever the actual window size is
 ** But this is probably broken in a lot of places and not working well
 ** Check the TODOs in `engine/glutin.rs`
-* Consider adding the keyboard hints to the sidebar?                     :ui:
-** Just like in the help file
-** This could be always on without being annoying
-* Rudimentary Mouse support                                              :ui:
-** Make the keyboard hints clickable
-** They should not disappear
+* Highlight the potential destination on movement button hover           :ui:
+** When you hover over a clickable sidebar button that moves the character
+*** it would highlight the tile the character would move to
+** That would make the connection with the buttons even more obvious
+** We could use different highlight colours for movement vs. attack
 * Make Dose Response playable on the mobile web                          :ui:
 ** No mouse
 ** We could make the "keyboard hints" clickable
 ** Also, swipe to move
 ** Basically, whatever "Rudimentary Mouse support" we've got, enable that
+* Make the lines around the sidebar player clickable as well             :ui:
+** To improve Fitt's Law
+** And reduce the distance necessary to move the mouse
+** We should make the little lines connecting the player and number clickable too
+*** In the numpad schematic in the sidebar
+** Hovering over any clickable portion (the number button or line) would highlight the whole thing
+** Might look weird but useable
 * Add option to keep keyboard hints always / hidden to Settings          :ui:
 ** When used with mouse, they should be always on
 ** But some players might not like them
@@ -3713,3 +3719,18 @@ CLOSED: [2019-04-14 Sun 20:13]
 :PROPERTIES:
 :ARCHIVE_TIME: 2019-04-14 Sun 20:13
 :END:
+** DONE Consider adding the keyboard hints to the sidebar?              :ui:
+CLOSED: [2019-05-16 Thu 12:30]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-16 Thu 12:30
+:END:
+*** Just like in the help file
+*** This could be always on without being annoying
+** DONE Rudimentary Mouse support                                       :ui:
+CLOSED: [2019-05-16 Thu 12:31]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-16 Thu 12:31
+:END:
+*** NOTE: Closing in favour of the sidebar buttons
+*** Make the keyboard hints clickable
+*** They should not disappear

@@ -100,7 +100,7 @@ impl Window {
         let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help").color(fg);
 
         // Position of the movement/numpad buttons
-        bottom -= 17;
+        bottom -= 10;
 
         // NOTE: since text width and tile width don't really match, the number of spaces
         // here was determined empirically and will not hold for different fonts.
@@ -114,11 +114,11 @@ impl Window {
         let mut ne_button = Button::new(Point::new(x + 7, bottom), "     ").color(fg);
         ne_button.text_options.height = 3;
 
-        let mut e_button = Button::new(Point::new(x + 1, bottom + 3), "     ").color(fg);
-        e_button.text_options.height = 3;
-
-        let mut w_button = Button::new(Point::new(x + 7, bottom + 3), "     ").color(fg);
+        let mut w_button = Button::new(Point::new(x + 1, bottom + 3), "     ").color(fg);
         w_button.text_options.height = 3;
+
+        let mut e_button = Button::new(Point::new(x + 7, bottom + 3), "     ").color(fg);
+        e_button.text_options.height = 3;
 
         let mut sw_button = Button::new(Point::new(x + 1, bottom + 6), "     ").color(fg);
         sw_button.text_options.height = 3;
@@ -375,33 +375,61 @@ impl Window {
 
         display.draw_button(&layout.main_menu_button);
         display.draw_button(&layout.help_button);
-        display.draw_button(&layout.nw_button);
-        display.draw_button(&layout.n_button);
-        display.draw_button(&layout.ne_button);
-        display.draw_button(&layout.w_button);
-        display.draw_button(&layout.e_button);
-        display.draw_button(&layout.sw_button);
-        display.draw_button(&layout.s_button);
-        display.draw_button(&layout.se_button);
 
         // Draw the clickable controls help
-        {
-            display.draw_text(
-                Point::new(x + 1, 8),
-                "Numpad movement:",
-                layout.fg,
-                crate::engine::TextOptions::align_left(),
-            );
+        display.draw_text(
+            Point::new(x + 1, layout.n_button.pos.y - 2),
+            "Movement controls (numpad):",
+            layout.fg,
+            crate::engine::TextOptions::align_left(),
+        );
 
-            // Draw a glyph in the centre of the button, ignoring the tile grid.
-            // All we care about is that it's visually centered.
-            let tilesize = metrics.tile_width_px();
-            let offset_px = (tilesize - metrics.advance_width_px('X')) / 2;
+        // TODO: consider moving each label closer to the centre? The
+        // button area would stay the same, but the whole numpad-like
+        // graphics should visually look better with the numbers close
+        // to player symbol.
+        let numpad_buttons = [
+            (&layout.nw_button, '7'),
+            (&layout.n_button, '8'),
+            (&layout.ne_button, '9'),
+            (&layout.w_button, '4'),
+            (&layout.e_button, '6'),
+            (&layout.sw_button, '1'),
+            (&layout.s_button, '2'),
+            (&layout.se_button, '3'),
+        ];
+
+        let tilesize = metrics.tile_width_px();
+        for (button, glyph) in &numpad_buttons {
+            let glyph = *glyph;
+            display.draw_button(button);
+
+            // Offset to center the glyph. The font width is different from tilesize so we need
+            // sub-tile (pixel-precise) positioning here:
+            let x_offset_px = (tilesize - metrics.advance_width_px(glyph)) / 2;
+
+            let tilepos_px = (button.pos + (1, 1)) * tilesize;
             display.draw_glyph_abs_px(
-                (x + 2) * tilesize + offset_px,
-                10 * tilesize,
-                'X',
-                color::WHITE,
+                tilepos_px.x + x_offset_px,
+                tilepos_px.y,
+                glyph,
+                button.color,
+            );
+        }
+
+        // Draw the `@` character in the middle of the controls diagram:
+        {
+            let glyph = '@';
+            let x_offset_px = (tilesize - metrics.advance_width_px(glyph)) / 2;
+            // The centre tile doesn't have its own button but we can
+            // calculate it from the surrounding tiles:
+            let middle_tile_pos = Point::new(layout.n_button.pos.x, layout.w_button.pos.y);
+            let tilepos_px = (middle_tile_pos + (1, 1)) * tilesize;
+            display.draw_glyph_abs_px(
+                tilepos_px.x + x_offset_px,
+                tilepos_px.y,
+                glyph,
+                layout.n_button.color,
             );
         }
 

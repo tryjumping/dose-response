@@ -244,6 +244,32 @@ impl Window {
 
         if let Some(highlighted) = layout.rect2_under_mouse {
             display.draw_rectangle(highlighted, color::menu_highlight);
+
+            // Calculate player offset a move action would cause:
+            let offset = match layout.action_under_mouse {
+                Some(Action::MoveN) => Some((0, -1)),
+                Some(Action::MoveS) => Some((0, 1)),
+                Some(Action::MoveW) => Some((-1, 0)),
+                Some(Action::MoveE) => Some((1, 0)),
+
+                Some(Action::MoveNW) => Some((-1, -1)),
+                Some(Action::MoveNE) => Some((1, -1)),
+                Some(Action::MoveSW) => Some((-1, 1)),
+                Some(Action::MoveSE) => Some((1, 1)),
+
+                _ => None,
+            };
+
+            // Highlight the target tile the player would walk to if clicked in the sidebar numpad:
+            if let Some(offset) = offset {
+                let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+                let player_screen_pos = state.player.pos - screen_left_top_corner;
+                // Only highlight when we're not re-centering the
+                // screen (because that looks weird)
+                if state.pos_timer.finished() {
+                    display.set_background(player_screen_pos + offset, color::player);
+                }
+            }
         }
 
         let player = &state.player;

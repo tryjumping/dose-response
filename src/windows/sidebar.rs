@@ -14,6 +14,7 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::time::Duration;
 
+#[derive(Copy, Clone)]
 pub enum Action {
     MainMenu,
     Help,
@@ -59,6 +60,7 @@ struct Layout {
 
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
+    rect2_under_mouse: Option<Rectangle>,
 }
 
 pub struct Window;
@@ -76,6 +78,7 @@ impl Window {
 
         let mut action_under_mouse = None;
         let mut rect_under_mouse = None;
+        let mut rect2_under_mouse = None;
 
         let mut inventory = HashMap::new();
         for item in &state.player.inventory {
@@ -120,27 +123,35 @@ impl Window {
         // TODO: These aren't really buttons more like rects so we should just draw those.
         let mut nw_button = Button::new(Point::new(x + 1, bottom), "     ").color(fg);
         nw_button.text_options.height = 3;
+        let nw_button_small = Button::new(Point::new(x + 4, bottom + 3), " ").color(fg);
 
         let mut n_button = Button::new(Point::new(x + 4, bottom), "     ").color(fg);
         n_button.text_options.height = 3;
+        let n_button_small = Button::new(Point::new(x + 5, bottom + 3), " ").color(fg);
 
         let mut ne_button = Button::new(Point::new(x + 7, bottom), "     ").color(fg);
         ne_button.text_options.height = 3;
+        let ne_button_small = Button::new(Point::new(x + 6, bottom + 3), " ").color(fg);
 
         let mut w_button = Button::new(Point::new(x + 1, bottom + 3), "     ").color(fg);
         w_button.text_options.height = 3;
+        let w_button_small = Button::new(Point::new(x + 4, bottom + 4), " ").color(fg);
 
         let mut e_button = Button::new(Point::new(x + 7, bottom + 3), "     ").color(fg);
         e_button.text_options.height = 3;
+        let e_button_small = Button::new(Point::new(x + 6, bottom + 4), " ").color(fg);
 
         let mut sw_button = Button::new(Point::new(x + 1, bottom + 6), "     ").color(fg);
         sw_button.text_options.height = 3;
+        let sw_button_small = Button::new(Point::new(x + 4, bottom + 5), " ").color(fg);
 
         let mut s_button = Button::new(Point::new(x + 4, bottom + 6), "     ").color(fg);
         s_button.text_options.height = 3;
+        let s_button_small = Button::new(Point::new(x + 5, bottom + 5), " ").color(fg);
 
         let mut se_button = Button::new(Point::new(x + 7, bottom + 6), "     ").color(fg);
         se_button.text_options.height = 3;
+        let se_button_small = Button::new(Point::new(x + 6, bottom + 5), " ").color(fg);
 
         let main_menu_rect = metrics.button_rect(&main_menu_button);
         if main_menu_rect.contains(state.mouse.tile_pos) {
@@ -154,52 +165,27 @@ impl Window {
             rect_under_mouse = Some(help_rect);
         }
 
-        let rect = metrics.button_rect(&nw_button);
-        if rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::MoveNW);
-            rect_under_mouse = Some(rect);
-        }
+        let buttons = [
+            (&n_button, n_button_small, Action::MoveN),
+            (&s_button, s_button_small, Action::MoveS),
+            (&w_button, w_button_small, Action::MoveW),
+            (&e_button, e_button_small, Action::MoveE),
+            (&nw_button, nw_button_small, Action::MoveNW),
+            (&ne_button, ne_button_small, Action::MoveNE),
+            (&sw_button, sw_button_small, Action::MoveSW),
+            (&se_button, se_button_small, Action::MoveSE),
+        ];
 
-        let rect = metrics.button_rect(&n_button);
-        if rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::MoveN);
-            rect_under_mouse = Some(rect);
-        }
+        for (button_big, button_small, action) in &buttons {
+            let rect_big = metrics.button_rect(button_big);
+            let rect_small = metrics.button_rect(button_small);
 
-        let rect = metrics.button_rect(&ne_button);
-        if rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::MoveNE);
-            rect_under_mouse = Some(rect);
-        }
-
-        let rect = metrics.button_rect(&w_button);
-        if rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::MoveW);
-            rect_under_mouse = Some(rect);
-        }
-
-        let rect = metrics.button_rect(&e_button);
-        if rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::MoveE);
-            rect_under_mouse = Some(rect);
-        }
-
-        let rect = metrics.button_rect(&sw_button);
-        if rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::MoveSW);
-            rect_under_mouse = Some(rect);
-        }
-
-        let rect = metrics.button_rect(&s_button);
-        if rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::MoveS);
-            rect_under_mouse = Some(rect);
-        }
-
-        let rect = metrics.button_rect(&se_button);
-        if rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::MoveSE);
-            rect_under_mouse = Some(rect);
+            if rect_big.contains(state.mouse.tile_pos) || rect_small.contains(state.mouse.tile_pos)
+            {
+                action_under_mouse = Some(*action);
+                rect_under_mouse = Some(rect_big);
+                rect2_under_mouse = Some(rect_small);
+            }
         }
 
         Layout {
@@ -213,6 +199,7 @@ impl Window {
             inventory,
             action_under_mouse,
             rect_under_mouse,
+            rect2_under_mouse,
             main_menu_button,
             help_button,
             nw_button,
@@ -252,6 +239,10 @@ impl Window {
         );
 
         if let Some(highlighted) = layout.rect_under_mouse {
+            display.draw_rectangle(highlighted, color::menu_highlight);
+        }
+
+        if let Some(highlighted) = layout.rect2_under_mouse {
             display.draw_rectangle(highlighted, color::menu_highlight);
         }
 

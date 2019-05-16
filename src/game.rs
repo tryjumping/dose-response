@@ -310,6 +310,16 @@ fn process_game(
             Some(Action::UseCardinalDose) => Some(Command::UseCardinalDose),
             Some(Action::UseDiagonalDose) => Some(Command::UseDiagonalDose),
             Some(Action::UseStrongDose) => Some(Command::UseStrongDose),
+
+            Some(Action::MoveN) => Some(Command::N),
+            Some(Action::MoveS) => Some(Command::S),
+            Some(Action::MoveW) => Some(Command::W),
+            Some(Action::MoveE) => Some(Command::E),
+
+            Some(Action::MoveNW) => Some(Command::NW),
+            Some(Action::MoveNE) => Some(Command::NE),
+            Some(Action::MoveSW) => Some(Command::SW),
+            Some(Action::MoveSE) => Some(Command::SE),
             _ => None,
         };
 

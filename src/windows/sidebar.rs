@@ -22,6 +22,16 @@ pub enum Action {
     UseCardinalDose,
     UseDiagonalDose,
     UseStrongDose,
+
+    MoveN,
+    MoveS,
+    MoveW,
+    MoveE,
+
+    MoveNW,
+    MoveNE,
+    MoveSW,
+    MoveSE,
 }
 
 struct Layout {
@@ -143,41 +153,49 @@ impl Window {
 
         let rect = metrics.button_rect(&nw_button);
         if rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MoveNW);
             rect_under_mouse = Some(rect);
         }
 
         let rect = metrics.button_rect(&n_button);
         if rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MoveN);
             rect_under_mouse = Some(rect);
         }
 
         let rect = metrics.button_rect(&ne_button);
         if rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MoveNE);
             rect_under_mouse = Some(rect);
         }
 
         let rect = metrics.button_rect(&w_button);
         if rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MoveW);
             rect_under_mouse = Some(rect);
         }
 
         let rect = metrics.button_rect(&e_button);
         if rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MoveE);
             rect_under_mouse = Some(rect);
         }
 
         let rect = metrics.button_rect(&sw_button);
         if rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MoveSW);
             rect_under_mouse = Some(rect);
         }
 
         let rect = metrics.button_rect(&s_button);
         if rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MoveS);
             rect_under_mouse = Some(rect);
         }
 
         let rect = metrics.button_rect(&se_button);
         if rect.contains(state.mouse.tile_pos) {
+            action_under_mouse = Some(Action::MoveSE);
             rect_under_mouse = Some(rect);
         }
 

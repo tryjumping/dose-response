@@ -418,13 +418,25 @@ impl Window {
         }
 
         // Draw the `@` character in the middle of the controls diagram:
-        {
-            let glyph = '@';
+        // glyphs and their tile offset from centre
+        let offset_glyphs = [
+            ('@', (0, 0)),
+            ('-', (-1, 0)),
+            ('-', (1, 0)),
+            ('|', (0, -1)),
+            ('|', (0, 1)),
+            ('\\', (-1, -1)),
+            ('\\', (1, 1)),
+            ('/', (1, -1)),
+            ('/', (-1, 1)),
+        ];
+
+        // The centre tile doesn't have its own button but we can
+        // calculate it from the surrounding tiles:
+        let centre = Point::new(layout.n_button.pos.x, layout.w_button.pos.y) + (1, 1);
+        for &(glyph, offset) in &offset_glyphs {
             let x_offset_px = (tilesize - metrics.advance_width_px(glyph)) / 2;
-            // The centre tile doesn't have its own button but we can
-            // calculate it from the surrounding tiles:
-            let middle_tile_pos = Point::new(layout.n_button.pos.x, layout.w_button.pos.y);
-            let tilepos_px = (middle_tile_pos + (1, 1)) * tilesize;
+            let tilepos_px = (centre + offset) * tilesize;
             display.draw_glyph_abs_px(
                 tilepos_px.x + x_offset_px,
                 tilepos_px.y,

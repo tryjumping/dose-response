@@ -46,14 +46,17 @@ struct Layout {
     inventory: HashMap<item::Kind, i32>,
     main_menu_button: Button,
     help_button: Button,
-    nw_button: Button,
+
     n_button: Button,
-    ne_button: Button,
+    s_button: Button,
     w_button: Button,
     e_button: Button,
+
+    nw_button: Button,
+    ne_button: Button,
     sw_button: Button,
-    s_button: Button,
     se_button: Button,
+
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
 }

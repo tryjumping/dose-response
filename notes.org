@@ -58,9 +58,6 @@
 ** We're probably ignoring letter-boxing there or something
 * Fullscreen does not work if set in the settings file                  :bug:
 ** The game still starts in a windowed mode
-* The "You've never managed to save a dose for a later fix"             :bug:
-** This is not true if you did end up carrying doses but not when you lost
-** We should keep track of this as a flag that gets set once you carry a dose
 * Switching back from fullscreen doesn't restore the position right on Windows 7 :bug:
 ** Repro:
 1. Run game
@@ -3742,3 +3739,10 @@ CLOSED: [2019-05-16 Thu 14:17]
 **** it would highlight the tile the character would move to
 *** That would make the connection with the buttons even more obvious
 *** We could use different highlight colours for movement vs. attack
+** DONE The "You've never managed to save a dose for a later fix"      :bug:
+CLOSED: [2019-05-16 Thu 23:23]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-16 Thu 23:23
+:END:
+*** This is not true if you did end up carrying doses but not when you lost
+*** We should keep track of this as a flag that gets set once you carry a dose

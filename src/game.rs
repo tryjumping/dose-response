@@ -535,6 +535,8 @@ fn process_game(
 
     // Hide the keyboard movement hints if the player gets too close
     {
+        // NOTE: this is no longer having any effect. Hints are disabled in `State::new`.
+
         let player_screen_pos = screen_coords_from_world(state.player.pos);
         let d = 10;
         if player_screen_pos.x < d

@@ -222,7 +222,11 @@ impl State {
             victory_npc_id: None,
             window_stack: windows::Windows::new(Window::Game),
             first_game_already_generated: false,
-            show_keboard_movement_hints: true,
+            // NOTE: Since we've got the mouse support and the numpad
+            // hints in the sidebar, let's see if we can just show
+            // them never. We might even remove the whole thing at
+            // some point.
+            show_keboard_movement_hints: false,
             show_anxiety_counter: false,
             current_help_window: windows::help::Page::DoseResponse,
             show_endscreen_and_uncover_map_during_fadein: false,

@@ -19,11 +19,11 @@ fn generate_map<R: Rng, G: Rng>(
     map_size: Point,
     player_pos: Point,
 ) -> Vec<(Point, Tile)> {
-    let empty_percent_default = 61;
-    let empty_percent = empty_percent_default + rng.gen_range(-35, 15);
+    let baseline_empty_count = (formula::CHUNK_EMPTY_TILE_PERCENTAGE * 100.0) as i32;
+    let empty_count = baseline_empty_count + rng.gen_range(-20, 20);
     let choices = [
-        (TileKind::Empty, empty_percent),
-        (TileKind::Tree, 100 - empty_percent),
+        (TileKind::Empty, empty_count),
+        (TileKind::Tree, 100 - empty_count),
     ];
     let mut result = vec![];
     // NOTE: starting with `y` seems weird but it'll generate the right pattern:

@@ -150,7 +150,6 @@ fn new_item<R: Rng>(kind: item::Kind, rng: &mut R) -> Item {
 
 fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Item)> {
     use crate::item::Kind::*;
-
     let options = [
         (None, 1000),
         (Some(Dose), 8),
@@ -160,8 +159,25 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Ite
         (Some(Food), 5),
     ];
 
+    // NOTE: this calculates how many items we need to place. It
+    // calculates the baseline number of empty tiles and the average
+    // chance of an item appearing on an empty tile. Then we ensure we
+    // actually hit that number.
+    let item_count: i32 = options
+        .iter()
+        .filter(|(kind, _)| kind.is_some())
+        .map(|(_, count)| count)
+        .sum();
+    let total_count: i32 = options.iter().map(|i| i.1).sum();
+    let item_percentage = item_count as f32 / total_count as f32;
+    let empty_tile_count = (map.len() as f32 * formula::CHUNK_EMPTY_TILE_PERCENTAGE).ceil();
+
+    let mut items_to_place = (empty_tile_count * item_percentage) as i32;
     let mut result = vec![];
-    for &(pos, tile) in map.iter() {
+    for &(pos, tile) in map.iter().cycle() {
+        if items_to_place <= 0 {
+            break;
+        }
         match tile.kind {
             TileKind::Tree => {
                 // Occupied tile, do nothing.
@@ -173,6 +189,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Ite
                     .unwrap_or(None);
                 if let Some(kind) = kind {
                     result.push((pos, new_item(kind, rng)));
+                    items_to_place -= 1;
                 }
             }
         }

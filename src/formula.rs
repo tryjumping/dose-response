@@ -38,6 +38,8 @@ pub const HIGH: InclusiveRange = InclusiveRange(0, 80);
 
 pub const VICTORY_NPC_DISTANCE: InclusiveRange = InclusiveRange(80, 120);
 
+pub const CHUNK_EMPTY_TILE_PERCENTAGE: f32 = 0.61;
+
 #[cfg(feature = "recording")]
 pub const DOSE_PREFAB: Item = Item {
     kind: Kind::Dose,

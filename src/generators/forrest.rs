@@ -19,12 +19,12 @@ fn generate_map<R: Rng, G: Rng>(
     map_size: Point,
     player_pos: Point,
 ) -> Vec<(Point, Tile)> {
-    let baseline_empty_count = (formula::BASELINE_CHUNK_EMPTY_TILE_PERCENTAGE * 100.0) as i32;
-    let empty_count = baseline_empty_count
+    let density = formula::CHUNK_BASELINE_DENSITY
         + rng.gen_range(
-            -formula::CHUNK_EMPTY_TILE_VARIABILITY,
-            formula::CHUNK_EMPTY_TILE_VARIABILITY,
+            -formula::CHUNK_DENSITY_VARIABILITY,
+            formula::CHUNK_DENSITY_VARIABILITY,
         );
+    let empty_count = (density * 100.0) as i32;
     let choices = [
         (TileKind::Empty, empty_count),
         (TileKind::Tree, 100 - empty_count),
@@ -174,8 +174,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Ite
         .sum();
     let total_count: i32 = options.iter().map(|i| i.1).sum();
     let item_percentage = item_count as f32 / total_count as f32;
-    let empty_tile_count =
-        (map.len() as f32 * formula::BASELINE_CHUNK_EMPTY_TILE_PERCENTAGE).ceil();
+    let empty_tile_count = (map.len() as f32 * formula::CHUNK_BASELINE_DENSITY).ceil();
 
     let mut items_to_place = (empty_tile_count * item_percentage) as i32;
     let mut result = vec![];

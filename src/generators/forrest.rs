@@ -19,15 +19,19 @@ fn generate_map<R: Rng, G: Rng>(
     map_size: Point,
     player_pos: Point,
 ) -> Vec<(Point, Tile)> {
+    assert!(formula::CHUNK_DENSITY_VARIABILITY.0 < formula::CHUNK_DENSITY_VARIABILITY.1);
+    assert!(formula::CHUNK_BASELINE_DENSITY + formula::CHUNK_DENSITY_VARIABILITY.0 > 0.0);
+    assert!(formula::CHUNK_BASELINE_DENSITY + formula::CHUNK_DENSITY_VARIABILITY.1 < 1.0);
+
     let density = formula::CHUNK_BASELINE_DENSITY
         + rng.gen_range(
-            -formula::CHUNK_DENSITY_VARIABILITY,
-            formula::CHUNK_DENSITY_VARIABILITY,
+            formula::CHUNK_DENSITY_VARIABILITY.0,
+            formula::CHUNK_DENSITY_VARIABILITY.1,
         );
-    let empty_count = (density * 100.0) as i32;
+    let occupied_count = (density * 100.0) as i32;
     let choices = [
-        (TileKind::Empty, empty_count),
-        (TileKind::Tree, 100 - empty_count),
+        (TileKind::Empty, 100 - occupied_count),
+        (TileKind::Tree, occupied_count),
     ];
     let mut result = vec![];
     // NOTE: starting with `y` seems weird but it'll generate the right pattern:
@@ -174,7 +178,7 @@ fn generate_items<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<(Point, Ite
         .sum();
     let total_count: i32 = options.iter().map(|i| i.1).sum();
     let item_percentage = item_count as f32 / total_count as f32;
-    let empty_tile_count = (map.len() as f32 * formula::CHUNK_BASELINE_DENSITY).ceil();
+    let empty_tile_count = (map.len() as f32 * (1.0 - formula::CHUNK_BASELINE_DENSITY)).ceil();
 
     let mut items_to_place = (empty_tile_count * item_percentage) as i32;
     let mut result = vec![];

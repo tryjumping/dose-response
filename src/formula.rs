@@ -38,8 +38,8 @@ pub const HIGH: InclusiveRange = InclusiveRange(0, 80);
 
 pub const VICTORY_NPC_DISTANCE: InclusiveRange = InclusiveRange(80, 120);
 
-pub const CHUNK_BASELINE_DENSITY: f32 = 0.61;
-pub const CHUNK_DENSITY_VARIABILITY: f32 = 0.20;
+pub const CHUNK_BASELINE_DENSITY: f32 = 0.39;
+pub const CHUNK_DENSITY_VARIABILITY: (f32, f32) = (-0.20, 0.15);
 
 #[cfg(feature = "recording")]
 pub const DOSE_PREFAB: Item = Item {

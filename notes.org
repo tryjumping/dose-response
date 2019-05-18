@@ -66,6 +66,10 @@ https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
 * Drop letterboxing                                                      :ui:
 ** Instead, show more of the map (or blank area)
 ** Letterboxing is ugly and forces us to only preset window ratios
+* Get a small amount of "food effect" (SoM points when not high) on killing a Hunger :idea:
+** Could encourage players to seek them out
+** But it's obviously dangerous
+** And it may cost you food if you overestimate (which fits fighting hunger)
 * WASM is broken                                                        :bug:
 * Make Dose Response playable on the mobile web                          :ui:
 ** No mouse
@@ -84,11 +88,6 @@ https://docs.rs/glutin/0.21.0/glutin/dpi/index.html
 *** Multiple lives
 *** Spawn rate of food / doses / monsters
 *** Speed of Depression
-* Vary the density of the World chunks                             :worldgen:
-** This might provide more variety with little coding effor
-* More World chunk patterns                                        :worldgen:
-** might be full-fledged "biomes"
-** or just patterns different from the "random forest"
 * consider adding an easier mode                                   :gameplay:
 ** see this comment by u/critiqjo
 https://www.reddit.com/r/rust/comments/a8be46/dose_response_roguelike_game_written_in_rust/ecamn2d/
@@ -98,6 +97,9 @@ https://www.reddit.com/r/rust/comments/a8be46/dose_response_roguelike_game_writt
 * consider adding a harder mode                                    :gameplay:
 ** see this comment by u/Tranquil_Suit
 https://www.reddit.com/r/roguelikes/comments/a8aosa/dose_response_a_roguelike_where_youre_an_addict/ecdpw41/
+* More World chunk patterns                                        :worldgen:
+** might be full-fledged "biomes"
+** or just patterns different from the "random forest"
 * Test on Windows 10
 * Try to discover and log user's OS info
 ** which platform + version
@@ -187,9 +189,6 @@ xwininfo  # find the Window ID
 recordmydesktop --windowid <window id>
 record
 Ctrl-c
-* Add option to keep keyboard hints always / hidden to Settings          :ui:
-** When used with mouse, they should be always on
-** But some players might not like them
 * Full Mouse support                                                     :ui:
 ** The game should be completely playable by mouse
 * Handle panics and print out a "here's what to do next" message
@@ -458,10 +457,6 @@ and psychonaut websites are gonna be a goldmine, I'd say :p
 ** what happens when your tolerance builds up
 ** ideally, I'd like the gameplay to change substantially as you progress based on how you play
 ** also ideally with like different "gameplay curves" -- but all systems driven
-* Get a small amount of "food effect" (SoM points when not high) on killing a Hunger :idea:
-** Could encourage players to seek them out
-** But it's obviously dangerous
-** And it may cost you food if you overestimate (which fits fighting hunger)
 * Monsters that can modify the environment                             :idea:
 ** unblock passages
 ** block passages
@@ -3754,3 +3749,17 @@ CLOSED: [2019-05-16 Thu 23:56]
 **** Move to the "New game" button from the right direction
 **** It only gets highlighted/clickable about halfway through
 *** We're probably ignoring letter-boxing there or something
+** DONE Vary the density of the World chunks                      :worldgen:
+CLOSED: [2019-05-18 Sat 18:31]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-18 Sat 18:31
+:END:
+*** This might provide more variety with little coding effor
+** DONE Add option to keep keyboard hints always / hidden to Settings   :ui:
+CLOSED: [2019-05-18 Sat 18:32]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-18 Sat 18:32
+:END:
+*** Closing: we'll use the sidebar hints/buttons instead
+*** When used with mouse, they should be always on
+*** But some players might not like them

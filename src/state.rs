@@ -322,7 +322,6 @@ Reason: '{}'.",
         replay_full_speed: bool,
         exit_after: bool,
     ) -> Result<State, Box<dyn Error>> {
-        use serde_json;
         use std::io::{BufRead, BufReader};
         let mut commands = VecDeque::new();
         let mut verifications = VecDeque::new();
@@ -483,7 +482,6 @@ pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
 }
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
-    use serde_json;
     let json_command = serde_json::to_string(&command).expect(&format!(
         "Could not \
          serialise {:?} to \
@@ -494,7 +492,6 @@ pub fn log_command<W: Write>(writer: &mut W, command: Command) {
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: &Verification) {
-    use serde_json;
     let json = serde_json::to_string(&verification).expect(&format!(
         "Could not \
          serialise \

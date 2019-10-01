@@ -88,7 +88,6 @@ fn generate_monsters<R: Rng>(rng: &mut R, map: &[(Point, Tile)]) -> Vec<Monster>
         if let Some(kind) = kind {
             let mut monster = Monster::new(kind, pos);
             if kind == Kind::Npc {
-                use crate::color;
                 use crate::monster::CompanionBonus::*;
                 let bonus = rng.gen();
                 monster.companion_bonus = Some(bonus);

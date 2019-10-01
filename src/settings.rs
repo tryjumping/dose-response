@@ -165,7 +165,7 @@ impl Store {
         settings
     }
 
-    fn read_settings_toml(path: &Path) -> Result<TomlDocument, Box<Error>> {
+    fn read_settings_toml(path: &Path) -> Result<TomlDocument, Box<dyn Error>> {
         let mut f = File::open(path)?;
         let mut buffer = String::with_capacity(1000);
         f.read_to_string(&mut buffer)?;
@@ -174,7 +174,7 @@ impl Store {
         Ok(toml)
     }
 
-    fn write_settings_toml(path: &Path, toml: &TomlDocument) -> Result<(), Box<Error>> {
+    fn write_settings_toml(path: &Path, toml: &TomlDocument) -> Result<(), Box<dyn Error>> {
         let contents = format!("{}", toml);
         std::fs::write(path, contents)?;
         Ok(())

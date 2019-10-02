@@ -23,7 +23,7 @@ fn set_exe_icon() {
     // the icon.
 }
 
-fn copy_output_artifacts_internal(filename: &str) -> Result<(), Box<Error>> {
+fn copy_output_artifacts_internal(filename: &str) -> Result<(), Box<dyn Error>> {
     // NOTE: this is a hack to save the font file next to the produced build binary
     let target_triple = env::var("TARGET")?;
     let host_triple = env::var("HOST")?;
@@ -68,7 +68,7 @@ fn generate_webgl_shaders(
     out_dir: &Path,
     vertex_src: &str,
     fragment_src: &str,
-) -> Result<(PathBuf, PathBuf), Box<Error>> {
+) -> Result<(PathBuf, PathBuf), Box<dyn Error>> {
     let vertex_replacements = &[
         ("#version 150 core\n", ""),
         ("in vec2", "attribute vec2"),
@@ -107,7 +107,7 @@ fn generate_webgl_shaders(
     Ok((vs_path, fs_path))
 }
 
-fn save_out_dir(cargo_manifest_dir: &str, out_dir: &Path) -> Result<(), Box<Error>> {
+fn save_out_dir(cargo_manifest_dir: &str, out_dir: &Path) -> Result<(), Box<dyn Error>> {
     // Store the OUT_DIR value to the `out-dir-path` file so it's
     // accessible to scripts that run after the build.
     let path = Path::new(&cargo_manifest_dir).join("out-dir-path");

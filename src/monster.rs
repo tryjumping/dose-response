@@ -7,16 +7,12 @@ use crate::{
     game::Action,
     player::{Modifier, PlayerInfo},
     point::Point,
+    random::Random,
     ranged_int::{InclusiveRange, Ranged},
     world::World,
 };
 
 use std::fmt::{Display, Error, Formatter};
-
-use rand::{
-    distributions::{Distribution, Standard},
-    Rng,
-};
 
 use serde::{Deserialize, Serialize};
 
@@ -62,6 +58,18 @@ pub enum CompanionBonus {
     Victory,
 }
 
+impl CompanionBonus {
+    pub fn random(rng: &mut Random) -> CompanionBonus {
+        use self::CompanionBonus::*;
+        match rng.range_inclusive(0, 2) {
+            0 => DoubleWillGrowth,
+            1 => HalveExhaustion,
+            2 => ExtraActionPoint,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl Display for CompanionBonus {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         use self::CompanionBonus::*;
@@ -72,19 +80,6 @@ impl Display for CompanionBonus {
             Victory => "Victory",
         };
         f.write_str(s)
-    }
-}
-
-impl Distribution<CompanionBonus> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CompanionBonus {
-        use self::CompanionBonus::*;
-        match rng.gen_range(0, 3) {
-            0 => DoubleWillGrowth,
-            1 => HalveExhaustion,
-            2 => ExtraActionPoint,
-            // NOTE: we will never generate the `Victory` companion bonus directly
-            _ => unreachable!(),
-        }
     }
 }
 
@@ -171,11 +166,11 @@ impl Monster {
         }
     }
 
-    pub fn act<R: Rng>(
+    pub fn act(
         &self,
         player_info: PlayerInfo,
         world: &mut World,
-        rng: &mut R,
+        rng: &mut Random,
     ) -> (Update, Action) {
         if self.dead {
             panic!(format!("{:?} is dead, cannot run actions on it.", self));

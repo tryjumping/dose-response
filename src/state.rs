@@ -5,7 +5,7 @@ use crate::{
     monster,
     player::Player,
     point::Point,
-    random::{self, Random},
+    random::Random,
     stats::Stats,
     timer::Timer,
     util,
@@ -184,7 +184,7 @@ impl State {
         assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
         let player = Player::new(player_position, invincible);
-        let mut rng = random::from_seed(u64::from(seed));
+        let mut rng = Random::from_seed(u64::from(seed));
         let world = World::new(&mut rng, seed, world_size.x, 32, player.info());
 
         State {

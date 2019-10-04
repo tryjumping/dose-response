@@ -7,8 +7,6 @@ use crate::rect::Rectangle;
 use crate::state::{Side, State};
 use crate::ui::{self, Button};
 
-use rand::seq::SliceRandom;
-
 pub enum Action {
     NewGame,
     Help,
@@ -218,12 +216,12 @@ fn endgame_tip(state: &State) -> String {
     let cause_of_death = formula::cause_of_death(&state.player);
     let perpetrator = state.player.perpetrator.as_ref();
     let selected_tip = match (cause_of_death, perpetrator) {
-        (Some(Overdosed), _) => overdosed_tips.choose(throwavay_rng).unwrap(),
-        (Some(Exhausted), Some(_monster)) => hunger_tips.choose(throwavay_rng).unwrap(),
-        (Some(Exhausted), None) => food_tips.choose(throwavay_rng).unwrap(),
-        (Some(LostWill), Some(_monster)) => anxiety_tips.choose(throwavay_rng).unwrap(),
-        _ => all_tips.choose(throwavay_rng).unwrap(),
+        (Some(Overdosed), _) => *throwavay_rng.choose(overdosed_tips).unwrap(),
+        (Some(Exhausted), Some(_monster)) => *throwavay_rng.choose(hunger_tips).unwrap(),
+        (Some(Exhausted), None) => *throwavay_rng.choose(food_tips).unwrap(),
+        (Some(LostWill), Some(_monster)) => *throwavay_rng.choose(anxiety_tips).unwrap(),
+        _ => *throwavay_rng.choose(&all_tips).unwrap(),
     };
 
-    String::from(*selected_tip)
+    String::from(selected_tip)
 }

@@ -1,9 +1,8 @@
 use crate::{
-    formula, game::Action, monster::Monster, player::PlayerInfo, point::Point,
+    formula, game::Action, monster::Monster, player::PlayerInfo, point::Point, random::Random,
     ranged_int::InclusiveRange, rect::Rectangle, world::World,
 };
 
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -30,11 +29,11 @@ pub struct Update {
     pub max_ap: i32,
 }
 
-pub fn lone_attacker_act<R: Rng>(
+pub fn lone_attacker_act(
     actor: &Monster,
     player_info: PlayerInfo,
     world: &mut World,
-    rng: &mut R,
+    rng: &mut Random,
 ) -> (Update, Action) {
     if actor.ai_state == AIState::NoOp {
         return noop_action(actor);
@@ -63,11 +62,11 @@ pub fn lone_attacker_act<R: Rng>(
     (update, action)
 }
 
-pub fn pack_attacker_act<R: Rng>(
+pub fn pack_attacker_act(
     actor: &Monster,
     player_info: PlayerInfo,
     world: &mut World,
-    rng: &mut R,
+    rng: &mut Random,
 ) -> (Update, Action) {
     if actor.ai_state == AIState::NoOp {
         return noop_action(actor);
@@ -115,11 +114,11 @@ pub fn pack_attacker_act<R: Rng>(
     (update, action)
 }
 
-pub fn friendly_act<R: Rng>(
+pub fn friendly_act(
     actor: &Monster,
     player_info: PlayerInfo,
     world: &mut World,
-    rng: &mut R,
+    rng: &mut Random,
 ) -> (Update, Action) {
     if actor.ai_state == AIState::NoOp {
         return noop_action(actor);
@@ -161,11 +160,11 @@ pub fn friendly_act<R: Rng>(
     (update, action)
 }
 
-pub fn noop_act<R: Rng>(
+pub fn noop_act(
     actor: &Monster,
     _player_info: PlayerInfo,
     _world: &mut World,
-    _rng: &mut R,
+    _rng: &mut Random,
 ) -> (Update, Action) {
     noop_action(actor)
 }
@@ -179,10 +178,10 @@ pub fn noop_action(actor: &Monster) -> (Update, Action) {
     (update, action)
 }
 
-fn idle_destination<R: Rng>(
+fn idle_destination(
     actor: &Monster,
     world: &World,
-    rng: &mut R,
+    rng: &mut Random,
     player_position: Point,
 ) -> Point {
     if actor.path.is_empty() {

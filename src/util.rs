@@ -66,7 +66,10 @@ pub fn sine_curve(percentage: f32) -> f32 {
 
 #[cfg(not(feature = "web"))]
 pub fn random_seed() -> u32 {
-    rand::random::<u32>()
+    use chrono::prelude::*;
+    let local_time = Local::now();
+    // Poor man's RNG: get the least signifigant digits from the current time:
+    local_time.timestamp_subsec_nanos()
 }
 
 #[cfg(feature = "web")]

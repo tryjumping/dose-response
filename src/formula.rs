@@ -3,13 +3,13 @@ use crate::{
     monster::CompanionBonus,
     player::{Bonus, CauseOfDeath, Mind, Modifier, Player},
     point::Point,
+    random::Random,
     ranged_int::{InclusiveRange, Ranged},
 };
 
 use std::cmp;
 
 use num_rational::{Ratio, Rational32};
-use rand::Rng;
 
 #[cfg(feature = "recording")]
 pub const INITIAL_SAFE_RADIUS: i32 = 7;
@@ -258,13 +258,13 @@ pub fn mind_fade_value(mind: Mind) -> f32 {
     }
 }
 
-pub fn victory_npc_position<R: Rng>(
-    rng: &mut R,
+pub fn victory_npc_position(
+    rng: &mut Random,
     player_pos: Point,
     distance_range: InclusiveRange,
 ) -> Point {
     let distance = distance_range.random(rng) as f32;
-    let direction_rad: f32 = rng.gen_range(0.0, 2.0 * ::std::f32::consts::PI);
+    let direction_rad: f32 = rng.rand_float() * 2.0 * ::std::f32::consts::PI;
     let offset = Point {
         // TODO: we may have to add `cos` to wasm
         x: (direction_rad.cos() * distance) as i32,

@@ -7,14 +7,13 @@ use crate::{
     monster::Monster,
     player::PlayerInfo,
     point::{CircularArea, Point, SquareArea},
-    random::{self, Random},
+    random::Random,
     ranged_int::InclusiveRange,
     rect::Rectangle,
 };
 
 use std::collections::HashMap;
 
-use rand::{seq::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -47,7 +46,7 @@ impl Chunk {
 
         let mut chunk = Chunk {
             position: pos,
-            rng: random::from_seed(seed.0),
+            rng: Random::from_seed(seed.0),
             level: Level::new(size, size),
             monsters: vec![],
         };
@@ -157,8 +156,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new<R: Rng>(
-        rng: &mut R,
+    pub fn new(
+        rng: &mut Random,
         seed: u32,
         dimension: i32,
         chunk_size: i32,
@@ -184,7 +183,7 @@ impl World {
 
     /// Remove some of the monsters from player's initial vicinity,
     /// place some food nearby and a dose in sight.
-    fn prepare_initial_playing_area<R: Rng>(&mut self, player_info: PlayerInfo, rng: &mut R) {
+    fn prepare_initial_playing_area(&mut self, player_info: PlayerInfo, rng: &mut Random) {
         assert!(formula::INITIAL_SAFE_RADIUS <= formula::INITIAL_EASY_RADIUS);
 
         let safe_area = Rectangle::center(
@@ -259,8 +258,8 @@ impl World {
         let attempts = if cfg!(feature = "recording") { 1 } else { 100 };
         for _ in 0..attempts {
             let offset = Point {
-                x: rng.gen_range(-3, 4),
-                y: rng.gen_range(-3, 4),
+                x: rng.range_inclusive(-3, 3),
+                y: rng.range_inclusive(-3, 3),
             };
             if offset == (0, 0) {
                 continue;
@@ -302,11 +301,11 @@ impl World {
         }
 
         // Generate food near the starting area, bail after 50 attempts
-        let mut amount_of_food_to_generate = rng.gen_range(1, 4);
+        let mut amount_of_food_to_generate = rng.range_inclusive(1, 3);
         for _ in 0..50 {
             let offset = Point {
-                x: rng.gen_range(-5, 6),
-                y: rng.gen_range(-5, 6),
+                x: rng.range_inclusive(-5, 5),
+                y: rng.range_inclusive(-5, 5),
             };
             let pos = player_info.pos + offset;
             if self.walkable(pos, Blocker::WALL, player_info.pos) {
@@ -623,9 +622,9 @@ impl World {
     /// Return a random walkable position next to the given point.
     ///
     /// If there is no such position available, return `starting_pos`.
-    pub fn random_neighbour_position<T: Rng>(
+    pub fn random_neighbour_position(
         &self,
-        rng: &mut T,
+        rng: &mut Random,
         starting_pos: Point,
         blockers: Blocker,
         player_position: Point,
@@ -636,15 +635,15 @@ impl World {
                 walkables.push(pos)
             }
         }
-        match walkables.choose(rng) {
+        match rng.choose(&walkables) {
             Some(&random_pos) => random_pos,
             None => starting_pos, // Nowhere to go
         }
     }
 
-    pub fn random_position_in_range<T: Rng>(
+    pub fn random_position_in_range(
         &self,
-        rng: &mut T,
+        rng: &mut Random,
         starting_position: Point,
         range: InclusiveRange,
         max_tries: u32,
@@ -653,8 +652,8 @@ impl World {
     ) -> Option<Point> {
         for _ in 0..max_tries {
             let offset = Point::new(
-                rng.gen_range(-range.1, range.1 + 1),
-                rng.gen_range(-range.1, range.1 + 1),
+                rng.range_inclusive(-range.1, range.1),
+                rng.range_inclusive(-range.1, range.1),
             );
             let candidate = starting_position + offset;
             if offset.x.abs() > range.0

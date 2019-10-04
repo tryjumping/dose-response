@@ -1,10 +1,11 @@
+use crate::random::Random;
+
 use std::{
     cmp,
     ops::{Add, AddAssign, Sub, SubAssign},
 };
 
 use num_rational::{Ratio, Rational32};
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 // TODO: Basically the reason we do this instead of `std::ops::Range`
@@ -23,8 +24,8 @@ use serde::{Deserialize, Serialize};
 pub struct InclusiveRange(pub i32, pub i32);
 
 impl InclusiveRange {
-    pub fn random<R: Rng>(self, rng: &mut R) -> i32 {
-        rng.gen_range(self.0, self.1 + 1)
+    pub fn random(self, rng: &mut Random) -> i32 {
+        rng.range_inclusive(self.0, self.1)
     }
 }
 

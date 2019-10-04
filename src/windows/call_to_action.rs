@@ -8,8 +8,6 @@ use crate::rect::Rectangle;
 use crate::state::{Side, State};
 use crate::ui::{self, Button};
 
-use rand::seq::SliceRandom;
-
 struct Layout {
     window_rect: Rectangle,
     rect: Rectangle,

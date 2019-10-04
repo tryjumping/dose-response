@@ -10,6 +10,7 @@ use crate::{
     monster::{self, CompanionBonus},
     pathfinding, player,
     point::{self, Point},
+    random::Random,
     ranged_int::{InclusiveRange, Ranged},
     rect::Rectangle,
     render,
@@ -30,8 +31,6 @@ use std::{
     time::Duration,
     u64,
 };
-
-use rand::Rng;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Action {
@@ -844,11 +843,11 @@ fn process_message_window(state: &mut State) -> RunningState {
     RunningState::Running
 }
 
-fn process_monsters<R: Rng>(
+fn process_monsters(
     world: &mut World,
     player: &mut player::Player,
     area: Rectangle,
-    rng: &mut R,
+    rng: &mut Random,
 ) {
     if !player.alive() {
         return;
@@ -956,17 +955,16 @@ fn process_monsters<R: Rng>(
 }
 
 #[allow(cyclomatic_complexity)]
-fn process_player_action<R, W>(
+fn process_player_action<W>(
     player: &mut player::Player,
     commands: &mut VecDeque<Command>,
     world: &mut World,
     simulation_area: Rectangle,
     explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
-    rng: &mut R,
+    rng: &mut Random,
     command_logger: &mut W,
     window_stack: &mut crate::windows::Windows<Window>,
 ) where
-    R: Rng,
     W: Write,
 {
     if !player.alive() {

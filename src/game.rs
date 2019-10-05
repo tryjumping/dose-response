@@ -666,7 +666,7 @@ fn process_settings_window(
     settings: &mut Settings,
     window: &settings::Window,
     metrics: &dyn TextMetrics,
-    store: &mut SettingsStore,
+    store: &mut dyn SettingsStore,
 ) -> RunningState {
     use crate::windows::settings::Action::*;
 

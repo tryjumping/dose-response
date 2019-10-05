@@ -254,6 +254,7 @@ pub extern "C" fn update(
         mouse,
         &mut settings,
         &metrics,
+        &mut crate::settings::NoOpStore,
         &mut display,
     );
 

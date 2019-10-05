@@ -26,7 +26,7 @@ impl Default for Settings {
         let backend = if crate::engine::AVAILABLE_BACKENDS.contains(&"glutin") {
             "glutin"
         } else {
-            crate::engine::AVAILABLE_BACKENDS[0]
+            crate::engine::AVAILABLE_BACKENDS.get(0).unwrap_or(&"none")
         };
 
         let settings = Self {
@@ -40,6 +40,7 @@ impl Default for Settings {
     }
 }
 
+#[allow(dead_code)]
 impl Settings {
     pub fn valid(&self) -> bool {
         self.valid_tile_size() && self.valid_backend()
@@ -93,6 +94,7 @@ pub struct FileSystemStore {
     toml: TomlDocument,
 }
 
+#[allow(dead_code)]
 impl FileSystemStore {
     /// Create a new `Settings` store backed by a TOML document on the
     /// filesystem. If the file does not exist, it will be created.
@@ -202,4 +204,15 @@ impl Store for FileSystemStore {
             log::error!("Could not write settings to the storage: {:?}", err);
         }
     }
+}
+
+#[allow(dead_code)]
+pub struct NoOpStore;
+
+impl Store for NoOpStore {
+    fn load(&self) -> Settings {
+        Default::default()
+    }
+
+    fn save(&mut self, _settings: &Settings) {}
 }

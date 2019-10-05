@@ -824,7 +824,7 @@ pub type UpdateFn = fn(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &dyn TextMetrics,
-    settings_store: &mut SettingsStore,
+    settings_store: &mut dyn SettingsStore,
     display: &mut Display,
 ) -> RunningState;
 

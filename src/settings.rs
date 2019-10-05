@@ -79,19 +79,23 @@ impl Settings {
     }
 }
 
-/// Backend that handles saving and loading the `Settings` to whatever
-/// underlying storage solution. Right now, that's a TOML file on the
-/// drive in the current directory, but it could be the browser's
-/// local storage, registy or whatnot later.
-pub struct Store {
+/// Trait that handles saving and loading the `Settings` to whatever
+/// underlying storage solution. Could be a TOML file on the drive in
+/// the current directory, browser's local storage, Windows Registy or
+/// whatever else.
+pub trait Store {
+    fn load(&self) -> Settings;
+    fn save(&mut self, settings: &Settings);
+}
+
+pub struct FileSystemStore {
     path: PathBuf,
     toml: TomlDocument,
 }
 
-impl Store {
-    /// Create a new `Settings` store. It is mapped to a storage
-    /// backend that will save the settings. If the backing storage (a
-    /// settings TOML file) does not exist, it will be created.
+impl FileSystemStore {
+    /// Create a new `Settings` store backed by a TOML document on the
+    /// filesystem. If the file does not exist, it will be created.
     pub fn new() -> Self {
         let filename = "settings.toml";
         let mut path = std::env::current_exe()
@@ -100,13 +104,13 @@ impl Store {
         path.set_file_name(filename);
         log::info!("Settings will be stored at: '{}'", path.display());
 
-        let toml = Store::read_settings_toml(&path).unwrap_or_else(|err| {
+        let toml = Self::read_settings_toml(&path).unwrap_or_else(|err| {
             log::error!("Could not open settings: {:?}", err);
             log::info!("Falling back to default settings.");
             let toml = Settings::default().as_toml().parse().unwrap();
 
             log::info!("Creating settings file at: {}", path.display());
-            if let Err(err) = Store::write_settings_toml(&path, &toml) {
+            if let Err(err) = Self::write_settings_toml(&path, &toml) {
                 log::error!("Could not write settings: {:?}.", err);
             }
 
@@ -116,7 +120,24 @@ impl Store {
         Self { path, toml }
     }
 
-    pub fn load(&self) -> Settings {
+    fn read_settings_toml(path: &Path) -> Result<TomlDocument, Box<dyn Error>> {
+        let mut f = File::open(path)?;
+        let mut buffer = String::with_capacity(1000);
+        f.read_to_string(&mut buffer)?;
+        let toml = buffer.parse::<TomlDocument>()?;
+
+        Ok(toml)
+    }
+
+    fn write_settings_toml(path: &Path, toml: &TomlDocument) -> Result<(), Box<dyn Error>> {
+        let contents = format!("{}", toml);
+        std::fs::write(path, contents)?;
+        Ok(())
+    }
+}
+
+impl Store for FileSystemStore {
+    fn load(&self) -> Settings {
         let mut settings = Settings::default();
 
         match self.toml["display"].as_str() {
@@ -165,22 +186,7 @@ impl Store {
         settings
     }
 
-    fn read_settings_toml(path: &Path) -> Result<TomlDocument, Box<dyn Error>> {
-        let mut f = File::open(path)?;
-        let mut buffer = String::with_capacity(1000);
-        f.read_to_string(&mut buffer)?;
-        let toml = buffer.parse::<TomlDocument>()?;
-
-        Ok(toml)
-    }
-
-    fn write_settings_toml(path: &Path, toml: &TomlDocument) -> Result<(), Box<dyn Error>> {
-        let contents = format!("{}", toml);
-        std::fs::write(path, contents)?;
-        Ok(())
-    }
-
-    pub fn persist(&mut self, settings: &Settings) {
+    fn save(&mut self, settings: &Settings) {
         log::info!("Saving new settings to file {}", self.path.display());
         let display = match settings.fullscreen {
             true => "fullscreen",
@@ -192,7 +198,7 @@ impl Store {
 
         self.toml["backend"] = toml_edit::value(settings.backend.clone());
 
-        if let Err(err) = Store::write_settings_toml(&self.path, &self.toml) {
+        if let Err(err) = Self::write_settings_toml(&self.path, &self.toml) {
             log::error!("Could not write settings to the storage: {:?}", err);
         }
     }

@@ -73,7 +73,7 @@ fn run_glutin(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
-    settings_store: settings::Store,
+    settings_store: settings::FileSystemStore,
     state: state::State,
     update: engine::UpdateFn,
 ) {
@@ -105,7 +105,7 @@ fn run_sdl(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
-    settings_store: settings::Store,
+    settings_store: settings::FileSystemStore,
     state: state::State,
     update: engine::UpdateFn,
 ) {
@@ -130,7 +130,7 @@ fn run_remote(
     display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
-    settings_store: settings::Store,
+    settings_store: settings::FileSystemStore,
     state: state::State,
     update: engine::UpdateFn,
 ) {
@@ -150,6 +150,7 @@ fn run_remote(
 
 #[cfg(feature = "cli")]
 fn process_cli_and_run_game() {
+    use crate::settings::Store;
     use clap::{App, Arg};
     use simplelog::{CombinedLogger, Config, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
@@ -326,7 +327,7 @@ fn process_cli_and_run_game() {
     let game_title = metadata::TITLE;
     let game_update = game::update;
 
-    let settings_store = settings::Store::new();
+    let settings_store = settings::FileSystemStore::new();
     let backend = settings_store.load().backend;
 
     match backend.as_str() {

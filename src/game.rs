@@ -55,7 +55,7 @@ pub fn update(
     mouse: Mouse,
     settings: &mut Settings,
     metrics: &dyn TextMetrics,
-    settings_store: &mut SettingsStore,
+    settings_store: &mut dyn SettingsStore,
     display: &mut Display, // TODO: remove this from the engine and keep a transient state instead
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
@@ -733,7 +733,7 @@ fn process_settings_window(
             }
 
             Apply => {
-                store.persist(settings);
+                store.save(settings);
             }
         }
     }

@@ -154,14 +154,16 @@ fn change_tilesize(
 }
 
 #[allow(cyclomatic_complexity, unsafe_code)]
-pub fn main_loop(
+pub fn main_loop<S>(
     display_size: Point,
     default_background: Color,
     window_title: &str,
-    mut settings_store: SettingsStore,
+    mut settings_store: S,
     mut state: Box<State>,
     update: UpdateFn,
-) {
+) where
+    S: SettingsStore,
+{
     // Force winit unix backend to X11.
     //
     // Right now, this produces better results on Wayland (Fedora 28).

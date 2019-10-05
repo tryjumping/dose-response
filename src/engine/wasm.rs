@@ -191,7 +191,7 @@ pub extern "C" fn initialise() -> *mut Wasm {
     let display = Box::new(crate::engine::Display::new(
         display_size,
         Point::from_i32(display_size.y / 2),
-        super::TILESIZE as i32,
+        super::DEFAULT_TILESIZE as i32,
     ));
 
     let wasm = {
@@ -236,9 +236,13 @@ pub extern "C" fn update(
         left_is_down: false,
         right_is_down: false,
     };
-    let mut settings = Settings { fullscreen: false };
+    let mut settings = Settings {
+        fullscreen: false,
+        backend: "web".into(),
+        tile_size: super::DEFAULT_TILESIZE,
+    };
     let metrics = Metrics {
-        tile_width_px: super::TILESIZE as i32,
+        tile_width_px: super::DEFAULT_TILESIZE as i32,
     };
 
     let result = game::update(
@@ -262,8 +266,8 @@ pub extern "C" fn update(
     }
 
     let native_display_size_px = [
-        display_size.x as f32 * super::TILESIZE as f32,
-        display_size.y as f32 * super::TILESIZE as f32,
+        display_size.x as f32 * super::DEFAULT_TILESIZE as f32,
+        display_size.y as f32 * super::DEFAULT_TILESIZE as f32,
     ];
 
     drawcalls.clear();

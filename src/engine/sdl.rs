@@ -1,6 +1,6 @@
 use crate::{
     color::Color,
-    engine::{self, Drawcall, Mouse, Settings, TextMetrics, UpdateFn, Vertex},
+    engine::{self, Drawcall, Mouse, SettingsStore, TextMetrics, UpdateFn, Vertex},
     game::RunningState,
     keys::KeyCode,
     point::Point,
@@ -109,17 +109,20 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
 }
 
 #[allow(cyclomatic_complexity)]
-pub fn main_loop(
+pub fn main_loop<S>(
     display_size: Point,
     default_background: Color,
     window_title: &str,
+    mut settings_store: S,
     mut state: Box<State>,
     update: UpdateFn,
-) {
-    let tilesize = super::TILESIZE;
+) where
+    S: SettingsStore,
+{
+    let mut settings = settings_store.load();
     let (desired_window_width, desired_window_height) = (
-        display_size.x as u32 * tilesize as u32,
-        display_size.y as u32 * tilesize as u32,
+        display_size.x as u32 * settings.tile_size as u32,
+        display_size.y as u32 * settings.tile_size as u32,
     );
 
     let sdl_context = sdl2::init().expect("SDL context creation failed.");
@@ -168,12 +171,11 @@ pub fn main_loop(
         .expect("SDL event pump creation failed.");
 
     let mut mouse = Mouse::new();
-    let mut settings = Settings { fullscreen: false };
     let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
     let mut display = engine::Display::new(
         display_size,
         Point::from_i32(display_size.y / 2),
-        tilesize as i32,
+        settings.tile_size,
     );
     let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
@@ -226,9 +228,11 @@ pub fn main_loop(
                     if let Some(code) = key_code_from_backend(backend_code) {
                         let key = super::Key {
                             code,
-                            alt: keymod.intersects(keyboard::LALTMOD | keyboard::RALTMOD),
-                            ctrl: keymod.intersects(keyboard::LCTRLMOD | keyboard::RCTRLMOD),
-                            shift: keymod.intersects(keyboard::LSHIFTMOD | keyboard::RSHIFTMOD),
+                            alt: keymod.intersects(keyboard::Mod::LALTMOD | keyboard::Mod::RALTMOD),
+                            ctrl: keymod
+                                .intersects(keyboard::Mod::LCTRLMOD | keyboard::Mod::RCTRLMOD),
+                            shift: keymod
+                                .intersects(keyboard::Mod::LSHIFTMOD | keyboard::Mod::RSHIFTMOD),
                         };
                         log::debug!("Detected key {:?}", key);
                         keys.push(key);
@@ -305,8 +309,9 @@ pub fn main_loop(
             }
         }
 
-        let previous_settings = settings;
+        let previous_settings = settings.clone();
 
+        let tile_width_px = settings.tile_size;
         let update_result = update(
             &mut state,
             dt,
@@ -315,9 +320,8 @@ pub fn main_loop(
             &keys,
             mouse,
             &mut settings,
-            &Metrics {
-                tile_width_px: tilesize as i32,
-            },
+            &Metrics { tile_width_px },
+            &mut settings_store,
             &mut display,
         );
 
@@ -376,7 +380,7 @@ pub fn main_loop(
         let display_info = engine::calculate_display_info(
             [window_size_px.x as f32, window_size_px.y as f32],
             display_size,
-            tilesize,
+            settings.tile_size,
         );
 
         vertex_buffer.clear();

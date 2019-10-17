@@ -1,6 +1,6 @@
 use crate::{
     color::Color,
-    engine::{self, Drawcall, Mouse, SettingsStore, TextMetrics, UpdateFn, Vertex},
+    engine::{self, Drawcall, Mouse, Settings, SettingsStore, TextMetrics, UpdateFn, Vertex},
     game::RunningState,
     keys::KeyCode,
     point::Point,
@@ -183,6 +183,17 @@ pub fn main_loop<S>(
     let mut overall_max_drawcall_count = 0;
     let mut keys = vec![];
     let mut previous_frame_start_time = Instant::now();
+    // Always stard from a windowed mode. This will force the
+    // fullscreen switch in the first frame if requested in the
+    // settings we've loaded.
+    //
+    // This is necessary because some backends don't support
+    // fullscreen on window creation. And TBH, this is easier on us
+    // because it means there's only one fullscreen-handling pathway.
+    let mut previous_settings = Settings {
+        fullscreen: false,
+        ..settings.clone()
+    };
     let mut fps_clock = Duration::from_millis(0);
     let mut frames_in_current_second = 0;
     let mut fps = 0;
@@ -309,8 +320,6 @@ pub fn main_loop<S>(
             }
         }
 
-        let previous_settings = settings.clone();
-
         let tile_width_px = settings.tile_size;
         let update_result = update(
             &mut state,
@@ -413,6 +422,8 @@ pub fn main_loop<S>(
             &vertex_buffer,
         );
         window.gl_swap_window();
+
+        previous_settings = settings.clone();
 
         // debug!("Code duration: {:?}ms",
         //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);

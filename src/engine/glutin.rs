@@ -318,6 +318,18 @@ pub fn main_loop<S>(
     let mut overall_max_drawcall_count = 0;
     let mut keys = vec![];
     let mut previous_frame_start_time = Instant::now();
+
+    // Always stard from a windowed mode. This will force the
+    // fullscreen switch in the first frame if requested in the
+    // settings we've loaded.
+    //
+    // This is necessary because some backends don't support
+    // fullscreen on window creation. And TBH, this is easier on us
+    // because it means there's only one fullscreen-handling pathway.
+    let mut previous_settings = Settings {
+        fullscreen: false,
+        ..settings.clone()
+    };
     let mut switched_from_fullscreen = false;
     let mut fps_clock = Duration::from_millis(0);
     let mut frames_in_current_second = 0;
@@ -522,8 +534,6 @@ pub fn main_loop<S>(
             }
         });
 
-        let previous_settings = settings.clone();
-
         let tile_width_px = settings.tile_size;
         let update_result = update(
             &mut state,
@@ -635,6 +645,8 @@ pub fn main_loop<S>(
             &vertex_buffer,
         );
         context.swap_buffers().unwrap();
+
+        previous_settings = settings.clone();
 
         if current_frame_id == 1 {
             // NOTE: We should have the proper window position and

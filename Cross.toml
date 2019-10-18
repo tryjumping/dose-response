@@ -1,5 +1,11 @@
-[target.x86_64-unknown-linux-musl]
-image = "tsedovic/cross:x86_64-unknown-linux-musl"
-
+# NOTE(shadower): we're overriding the default linux cross image.
+#
+# This is necessary to fix the SDL builds with the "bundled" feature.
+# The sdl2-sys crate removed the Rust-based way to download the necessary
+# assets in favour of curl:
+# https://github.com/Rust-SDL2/rust-sdl2/pull/822
+#
+# That made our builds to fail because the `cross` image does not ship curl.
+# So we've created our own that does.
 [target.x86_64-unknown-linux-gnu]
 image = "tsedovic/cross:x86_64-unknown-linux-gnu"

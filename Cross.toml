@@ -1,2 +1,5 @@
 [target.x86_64-unknown-linux-musl]
 image = "tsedovic/cross:x86_64-unknown-linux-musl"
+
+[target.x86_64-unknown-linux-gnu]
+image = "tsedovic/cross:x86_64-unknown-linux-gnu"

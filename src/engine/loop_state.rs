@@ -6,6 +6,8 @@ use crate::{
     state::State,
 };
 
+use std::time::Duration;
+
 use image::RgbaImage;
 
 pub struct LoopState {
@@ -22,6 +24,14 @@ pub struct LoopState {
     pub game_state: Box<State>,
     pub mouse: Mouse,
     pub keys: Vec<Key>,
+    pub fps_clock: Duration,
+    pub switched_from_fullscreen: bool,
+    pub frames_in_current_second: i32,
+    pub fps: i32,
+
+    // NOTE: This will wrap after running continuously for over 64
+    // years at 60 FPS. 32 bits are just fine.
+    pub current_frame_id: i32,
 }
 
 impl LoopState {
@@ -83,6 +93,11 @@ impl LoopState {
             game_state,
             mouse: Mouse::new(),
             keys: vec![],
+            fps_clock: Duration::new(0, 0),
+            switched_from_fullscreen: false,
+            frames_in_current_second: 0,
+            fps: 0,
+            current_frame_id: 0,
         }
     }
 

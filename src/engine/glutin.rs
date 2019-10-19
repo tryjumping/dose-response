@@ -253,28 +253,20 @@ pub fn main_loop<S>(
 
     let mut previous_frame_start_time = Instant::now();
 
-    let mut switched_from_fullscreen = false;
-    let mut fps_clock = Duration::from_millis(0);
-    let mut frames_in_current_second = 0;
-    let mut fps = 0;
-    // NOTE: This will wrap after running continuously for over 64
-    // years at 60 FPS. 32 bits are just fine.
-    let mut current_frame_id: i32 = 0;
     let mut running = true;
-
     while running {
         let frame_start_time = Instant::now();
         let dt = frame_start_time.duration_since(previous_frame_start_time);
         previous_frame_start_time = frame_start_time;
 
         // Calculate FPS
-        fps_clock += dt;
-        frames_in_current_second += 1;
-        current_frame_id += 1;
-        if util::num_milliseconds(fps_clock) > 1000 {
-            fps = frames_in_current_second;
-            frames_in_current_second = 1;
-            fps_clock = Duration::new(0, 0);
+        loop_state.fps_clock += dt;
+        loop_state.frames_in_current_second += 1;
+        loop_state.current_frame_id += 1;
+        if loop_state.fps_clock.as_millis() > 1000 {
+            loop_state.fps = loop_state.frames_in_current_second;
+            loop_state.frames_in_current_second = 1;
+            loop_state.fps_clock = Duration::new(0, 0);
         }
 
         events_loop.poll_events(|event| {
@@ -292,7 +284,7 @@ pub fn main_loop<S>(
                     }
 
                     glutin::WindowEvent::Moved(new_pos) => {
-                        if loop_state.settings.fullscreen || switched_from_fullscreen {
+                        if loop_state.settings.fullscreen || loop_state.switched_from_fullscreen {
                             // Don't update the window position
                             //
                             // Even after we switch from
@@ -303,7 +295,7 @@ pub fn main_loop<S>(
                         } else {
                             log::debug!(
                                 "[FRAME {}] Window moved to: {:?}",
-                                current_frame_id,
+                                loop_state.current_frame_id,
                                 new_pos
                             );
                             window_pos.x = new_pos.x as i32;
@@ -435,7 +427,7 @@ pub fn main_loop<S>(
             &mut loop_state.game_state,
             dt,
             loop_state.game_display_size,
-            fps,
+            loop_state.fps,
             &loop_state.keys,
             loop_state.mouse,
             &mut loop_state.settings,
@@ -459,7 +451,7 @@ pub fn main_loop<S>(
         if cfg!(feature = "fullscreen") {
             if loop_state.previous_settings.fullscreen != loop_state.settings.fullscreen {
                 if loop_state.settings.fullscreen {
-                    log::info!("[{}] Switching to fullscreen", current_frame_id);
+                    log::info!("[{}] Switching to fullscreen", loop_state.current_frame_id);
                     context.window().set_decorations(false);
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
@@ -474,13 +466,13 @@ pub fn main_loop<S>(
                         log::debug!("`current_monitor` is not set!??");
                     }
                 } else {
-                    log::info!("[{}] Switching fullscreen off", current_frame_id);
+                    log::info!("[{}] Switching fullscreen off", loop_state.current_frame_id);
                     let window = context.window();
                     window.set_fullscreen(None);
                     let pos = window.get_position();
                     log::debug!("New window position: {:?}", pos);
                     window.set_decorations(true);
-                    switched_from_fullscreen = true;
+                    loop_state.switched_from_fullscreen = true;
                 }
             }
         }
@@ -512,7 +504,7 @@ pub fn main_loop<S>(
 
         loop_state.previous_settings = loop_state.settings.clone();
 
-        if current_frame_id == 1 {
+        if loop_state.current_frame_id == 1 {
             // NOTE: We should have the proper window position and
             // monitor info at this point but not sooner.
 
@@ -560,7 +552,7 @@ pub fn main_loop<S>(
         //
         // This ensures that we can switch full screen back and fort
         // on a multi monitor setup.
-        if switched_from_fullscreen {
+        if loop_state.switched_from_fullscreen {
             window_pos = pre_fullscreen_window_pos;
         }
     }

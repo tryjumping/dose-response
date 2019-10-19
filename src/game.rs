@@ -1468,27 +1468,25 @@ fn use_dose(
 }
 
 fn show_exit_stats(stats: &Stats) {
-    log::debug!(
+    log::info!(
         "\nSlowest update durations: {:?}\n",
         stats
             .longest_update_durations()
             .iter()
-            .map(|dur| util::num_microseconds(*dur).unwrap_or(u64::MAX))
-            .map(|us| us as f32 / 1000.0)
+            .map(|dur| dur.as_secs_f32() * 1000.0) // milliseconds in f32
             .collect::<Vec<_>>(),
     );
 
-    log::debug!(
+    log::info!(
         "\nSlowest drawcall durations: {:?}\n",
         stats
             .longest_drawcall_durations()
             .iter()
-            .map(|dur| util::num_microseconds(*dur).unwrap_or(u64::MAX))
-            .map(|us| us as f32 / 1000.0)
+            .map(|dur| dur.as_secs_f32() * 1000.0) // milliseconds in f32
             .collect::<Vec<_>>(),
     );
 
-    log::debug!(
+    log::info!(
         "\nMean update duration: {} ms\nMean drawcall duration: {} ms",
         stats.mean_update(),
         stats.mean_drawcalls()

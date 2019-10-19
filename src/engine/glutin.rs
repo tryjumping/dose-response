@@ -1,19 +1,13 @@
 use crate::{
     color::Color,
-    engine::{
-        self, loop_state::LoopState, Drawcall, Mouse, RunningState, Settings, SettingsStore,
-        TextMetrics, UpdateFn, Vertex,
-    },
+    engine::{self, loop_state::LoopState, RunningState, SettingsStore, TextMetrics, UpdateFn},
     keys::KeyCode,
     point::Point,
     state::State,
     util,
 };
 
-use std::{
-    mem,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 use glutin::{
     dpi::{LogicalPosition, LogicalSize},
@@ -136,11 +130,11 @@ fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<Moni
 
 #[allow(cyclomatic_complexity, unsafe_code)]
 pub fn main_loop<S>(
-    game_display_size: Point,
-    default_background: Color,
+    initial_game_display_size: Point,
+    initial_default_background: Color,
     window_title: &str,
     mut settings_store: S,
-    mut state: Box<State>,
+    initial_state: Box<State>,
     update: UpdateFn,
 ) where
     S: SettingsStore,
@@ -160,8 +154,12 @@ pub fn main_loop<S>(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    let mut loop_state =
-        LoopState::initialise(settings_store.load(), game_display_size, default_background);
+    let mut loop_state = LoopState::initialise(
+        settings_store.load(),
+        initial_game_display_size,
+        initial_default_background,
+        initial_state,
+    );
 
     let mut events_loop = glutin::EventsLoop::new();
     log::debug!("Created events loop: {:?}", events_loop);
@@ -253,26 +251,8 @@ pub fn main_loop<S>(
         current_monitor.as_ref().map(|m| m.get_dimensions())
     );
 
-    let mut mouse = Mouse::new();
-    let mut window_size_px: Point = loop_state.desired_window_size().into();
-    let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
-    assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
-    let mut vertex_buffer: Vec<f32> = Vec::with_capacity(engine::VERTEX_BUFFER_CAPACITY);
-    let mut overall_max_drawcall_count = 0;
-    let mut keys = vec![];
     let mut previous_frame_start_time = Instant::now();
 
-    // Always stard from a windowed mode. This will force the
-    // fullscreen switch in the first frame if requested in the
-    // settings we've loaded.
-    //
-    // This is necessary because some backends don't support
-    // fullscreen on window creation. And TBH, this is easier on us
-    // because it means there's only one fullscreen-handling pathway.
-    let mut previous_settings = Settings {
-        fullscreen: false,
-        ..loop_state.settings.clone()
-    };
     let mut switched_from_fullscreen = false;
     let mut fps_clock = Duration::from_millis(0);
     let mut frames_in_current_second = 0;
@@ -297,18 +277,6 @@ pub fn main_loop<S>(
             fps_clock = Duration::new(0, 0);
         }
 
-        // TODO(shadower): is this the right way to use the `dpi`? I'm
-        // guessing we should just be honest about `window_size_px`
-        // everywhere.
-        let display_info = engine::calculate_display_info(
-            [
-                window_size_px.x as f32 * dpi as f32,
-                window_size_px.y as f32 * dpi as f32,
-            ],
-            game_display_size,
-            loop_state.settings.tile_size,
-        );
-
         events_loop.poll_events(|event| {
             log::debug!("{:?}", event);
             match event {
@@ -320,19 +288,7 @@ pub fn main_loop<S>(
                         // let dpi_factor = gl_window.get_hidpi_factor();
                         // gl_window.resize(logical_size.to_physical(dpi_factor));
                         context.resize(size.to_physical(context.window().get_hidpi_factor()));
-                        let height = height as i32;
-                        let width = width as i32;
-                        log::info!("Window resized to: {}x{}", width, height);
-                        let new_window_size_px = Point::new(width, height);
-                        if window_size_px != new_window_size_px {
-                            window_size_px = new_window_size_px;
-
-                            // NOTE: Update the tilesize if we get a perfect match
-                            if height > 0 && height % crate::DISPLAY_SIZE.y == 0 {
-                                let new_tilesize = height / crate::DISPLAY_SIZE.y;
-                                loop_state.change_tilesize(new_tilesize);
-                            };
-                        }
+                        loop_state.resize_window(width as i32, height as i32);
                     }
 
                     glutin::WindowEvent::Moved(new_pos) => {
@@ -387,7 +343,7 @@ pub fn main_loop<S>(
                                 shift: modifiers.shift,
                             };
                             log::debug!("Detected key {:?}", key);
-                            keys.push(key);
+                            loop_state.keys.push(key);
                         }
                     }
 
@@ -401,12 +357,13 @@ pub fn main_loop<S>(
                                 shift: false,
                             };
                             log::debug!("Detected key {:?}", key);
-                            keys.push(key);
+                            loop_state.keys.push(key);
                         }
                     }
 
                     glutin::WindowEvent::CursorMoved { position, .. } => {
                         let (x, y) = (position.x as i32, position.y as i32);
+                        let display_info = loop_state.display_info(dpi);
 
                         let (x, y) = (
                             x - (display_info.extra_px[0] / 2.0) as i32,
@@ -415,7 +372,7 @@ pub fn main_loop<S>(
                         let x = util::clamp(0, x, display_info.display_px[0] as i32 - 1);
                         let y = util::clamp(0, y, display_info.display_px[1] as i32 - 1);
 
-                        mouse.screen_pos = Point { x, y };
+                        loop_state.mouse.screen_pos = Point { x, y };
 
                         let tile_width =
                             display_info.display_px[0] as i32 / loop_state.game_display_size.x;
@@ -425,7 +382,7 @@ pub fn main_loop<S>(
                             display_info.display_px[1] as i32 / loop_state.game_display_size.y;
                         let mouse_tile_y = y / tile_height;
 
-                        mouse.tile_pos = Point {
+                        loop_state.mouse.tile_pos = Point {
                             x: mouse_tile_x,
                             y: mouse_tile_y,
                         };
@@ -439,10 +396,10 @@ pub fn main_loop<S>(
                         use glutin::MouseButton::*;
                         match button {
                             Left => {
-                                mouse.left_is_down = true;
+                                loop_state.mouse.left_is_down = true;
                             }
                             Right => {
-                                mouse.right_is_down = true;
+                                loop_state.mouse.right_is_down = true;
                             }
                             _ => {}
                         }
@@ -456,12 +413,12 @@ pub fn main_loop<S>(
                         use glutin::MouseButton::*;
                         match button {
                             Left => {
-                                mouse.left_clicked = true;
-                                mouse.left_is_down = false;
+                                loop_state.mouse.left_clicked = true;
+                                loop_state.mouse.left_is_down = false;
                             }
                             Right => {
-                                mouse.right_clicked = true;
-                                mouse.right_is_down = false;
+                                loop_state.mouse.right_clicked = true;
+                                loop_state.mouse.right_is_down = false;
                             }
                             _ => {}
                         }
@@ -475,12 +432,12 @@ pub fn main_loop<S>(
 
         let tile_width_px = loop_state.settings.tile_size;
         let update_result = update(
-            &mut state,
+            &mut loop_state.game_state,
             dt,
             loop_state.game_display_size,
             fps,
-            &keys,
-            mouse,
+            &loop_state.keys,
+            loop_state.mouse,
             &mut loop_state.settings,
             &Metrics { tile_width_px },
             &mut settings_store,
@@ -490,17 +447,17 @@ pub fn main_loop<S>(
         match update_result {
             RunningState::Running => {}
             RunningState::NewGame(new_state) => {
-                state = new_state;
+                loop_state.game_state = new_state;
             }
             RunningState::Stopped => break,
         }
 
-        mouse.left_clicked = false;
-        mouse.right_clicked = false;
-        keys.clear();
+        loop_state.mouse.left_clicked = false;
+        loop_state.mouse.right_clicked = false;
+        loop_state.keys.clear();
 
         if cfg!(feature = "fullscreen") {
-            if previous_settings.fullscreen != loop_state.settings.fullscreen {
+            if loop_state.previous_settings.fullscreen != loop_state.settings.fullscreen {
                 if loop_state.settings.fullscreen {
                     log::info!("[{}] Switching to fullscreen", current_frame_id);
                     context.window().set_decorations(false);
@@ -528,7 +485,7 @@ pub fn main_loop<S>(
             }
         }
 
-        if previous_settings.tile_size != loop_state.settings.tile_size {
+        if loop_state.previous_settings.tile_size != loop_state.settings.tile_size {
             loop_state.change_tilesize(loop_state.settings.tile_size);
             if !loop_state.settings.fullscreen {
                 let size: LogicalSize = loop_state.desired_window_size().into();
@@ -538,45 +495,22 @@ pub fn main_loop<S>(
             }
         }
 
-        drawcalls.clear();
-        loop_state.display.push_drawcalls(&mut drawcalls);
+        loop_state.push_drawcalls_to_display();
 
-        if drawcalls.len() > overall_max_drawcall_count {
-            overall_max_drawcall_count = drawcalls.len();
-        }
-
-        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
-            log::warn!(
-                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
-                engine::DRAWCALL_CAPACITY,
-                drawcalls.len(),
-            );
-        }
-
-        vertex_buffer.clear();
+        loop_state.vertex_buffer.clear();
+        let native_display_px = loop_state.display_info(dpi).native_display_px;
         engine::build_vertices(
-            &drawcalls,
-            &mut vertex_buffer,
-            display_info.native_display_px,
+            &loop_state.drawcalls,
+            &mut loop_state.vertex_buffer,
+            native_display_px,
         );
 
-        if vertex_buffer.len() > engine::VERTEX_BUFFER_CAPACITY {
-            log::warn!(
-                "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
-                engine::VERTEX_BUFFER_CAPACITY,
-                vertex_buffer.len(),
-            );
-        }
+        loop_state.check_vertex_buffer_capacity();
 
-        loop_state.render(
-            &opengl_app,
-            default_background,
-            display_info,
-            &vertex_buffer,
-        );
+        loop_state.render(&opengl_app, dpi);
         context.swap_buffers().unwrap();
 
-        previous_settings = loop_state.settings.clone();
+        loop_state.previous_settings = loop_state.settings.clone();
 
         if current_frame_id == 1 {
             // NOTE: We should have the proper window position and
@@ -596,7 +530,7 @@ pub fn main_loop<S>(
             );
 
             let desired_window_size: Point = loop_state.desired_window_size().into();
-            if desired_window_size != window_size_px {
+            if desired_window_size != loop_state.window_size_px {
                 if let Some(ref monitor) = current_monitor {
                     let dim = monitor.get_dimensions();
                     let monitor_width = dim.width as u32;
@@ -633,7 +567,7 @@ pub fn main_loop<S>(
 
     log::debug!(
         "Drawcall count: {}. Capacity: {}.",
-        overall_max_drawcall_count,
+        loop_state.overall_max_drawcall_count,
         engine::DRAWCALL_CAPACITY
     );
 }

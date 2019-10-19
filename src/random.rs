@@ -53,8 +53,12 @@ impl Random {
     }
 
     pub fn choose<'a, T>(&mut self, options: &'a [T]) -> Option<&'a T> {
-        let index = self.rng.rand_range(0 as u32..options.len() as u32) as usize;
-        options.get(index)
+        if options.is_empty() {
+            None
+        } else {
+            let index = self.rng.rand_range(0 as u32..options.len() as u32) as usize;
+            options.get(index)
+        }
     }
 }
 

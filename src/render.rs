@@ -7,7 +7,6 @@ use crate::{
     rect::Rectangle,
     settings::Settings,
     state::State,
-    util,
     window::Window,
     windows::{endgame, help, main_menu, settings, sidebar},
     world::Chunk,
@@ -117,7 +116,7 @@ pub fn render_game(
     let display_area = Rectangle::center(screen_position_in_world, state.map_size);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
 
-    let total_time_ms = util::num_milliseconds(state.clock) as i64;
+    let total_time_ms = state.clock.as_millis() as i64;
     let world_size = state.world_size;
 
     let player_will = state.player.will.to_int();

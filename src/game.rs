@@ -29,7 +29,6 @@ use std::{
     io::Write,
     iter::FromIterator,
     time::Duration,
-    u64,
 };
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -88,9 +87,7 @@ pub fn update(
         if let Some(ref mut ttl) = ttl {
             *ttl = util::duration_sub_or_zero(*ttl, dt);
         }
-        window_timed_out = ttl
-            .map(|ttl| util::num_milliseconds(ttl) == 0)
-            .unwrap_or(false);
+        window_timed_out = ttl.map(|ttl| ttl.as_millis() == 0).unwrap_or(false);
     }
     if window_timed_out {
         state.window_stack.pop();
@@ -246,7 +243,7 @@ fn process_game(
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
     let timed_step = if state.replay
         && !state.paused
-        && (util::num_milliseconds(state.replay_step) >= 50 || state.replay_full_speed)
+        && (state.replay_step.as_millis() >= 50 || state.replay_full_speed)
     {
         state.replay_step = Duration::new(0, 0);
         true

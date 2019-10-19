@@ -8,7 +8,6 @@ use crate::point::Point;
 use crate::rect::Rectangle;
 use crate::state::State;
 use crate::ui::Button;
-use crate::util;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -377,23 +376,17 @@ impl Window {
                 lines.push(
                     format!(
                         "upd: {}, dc: {}",
-                        util::num_milliseconds(frame_stat.update),
-                        util::num_milliseconds(frame_stat.drawcalls)
+                        frame_stat.update.as_millis(),
+                        frame_stat.drawcalls.as_millis()
                     )
                     .into(),
                 );
             }
-            lines.push(
-                format!(
-                    "longest upd: {}",
-                    util::num_milliseconds(state.stats.longest_update())
-                )
-                .into(),
-            );
+            lines.push(format!("longest upd: {}", state.stats.longest_update().as_millis()).into());
             lines.push(
                 format!(
                     "longest dc: {}",
-                    util::num_milliseconds(state.stats.longest_drawcalls())
+                    state.stats.longest_drawcalls().as_millis()
                 )
                 .into(),
             );
@@ -484,7 +477,7 @@ impl Window {
                     x: x + 1,
                     y: layout.bottom - 1,
                 },
-                &format!("dt: {}ms", util::num_milliseconds(dt)),
+                &format!("dt: {}ms", dt.as_millis()),
                 fg,
                 Default::default(),
             );

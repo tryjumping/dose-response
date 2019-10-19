@@ -1,7 +1,5 @@
 use std::{collections::VecDeque, time::Duration};
 
-use crate::util;
-
 #[derive(Clone, Debug, Default)]
 pub struct FrameStats {
     pub update: Duration,
@@ -87,7 +85,7 @@ impl Stats {
     pub fn mean_update(&self) -> f32 {
         self.frame_stats
             .iter()
-            .map(|fs| util::num_milliseconds(fs.update) as f32)
+            .map(|fs| fs.update.as_secs_f32() * 1000.0)
             .fold(0.0, |acc, dur| acc + dur)
             / (self.frame_stats.len() as f32)
     }
@@ -95,7 +93,7 @@ impl Stats {
     pub fn mean_drawcalls(&self) -> f32 {
         self.frame_stats
             .iter()
-            .map(|fs| util::num_milliseconds(fs.drawcalls) as f32)
+            .map(|fs| fs.drawcalls.as_secs_f32() * 1000.0)
             .fold(0.0, |acc, dur| acc + dur)
             / (self.frame_stats.len() as f32)
     }

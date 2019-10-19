@@ -10,21 +10,6 @@ const NANOS_PER_MILLI: u32 = 1_000_000;
 const MICROS_PER_SEC: u64 = 1_000_000;
 /// The number of milliseconds per second.
 const MILLIS_PER_SEC: u64 = 1000;
-/// The number of seconds in a minute.
-
-pub fn num_milliseconds(duration: Duration) -> u64 {
-    let secs_part = duration.as_secs() * MILLIS_PER_SEC;
-    let millis_part = duration.subsec_millis();
-    secs_part + u64::from(millis_part)
-}
-
-pub fn num_microseconds(duration: Duration) -> Option<u64> {
-    if let Some(secs_part) = duration.as_secs().checked_mul(MICROS_PER_SEC) {
-        let micros_part = duration.subsec_micros();
-        return secs_part.checked_add(u64::from(micros_part));
-    }
-    None
-}
 
 /// Calculate `duration - other`, but if we got an overflow or a
 /// negative value, return a zero Duration instead.

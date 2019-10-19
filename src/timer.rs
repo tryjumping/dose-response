@@ -1,5 +1,3 @@
-use crate::util;
-
 use std::time::Duration;
 #[cfg(not(feature = "web"))]
 use std::time::Instant;
@@ -24,7 +22,7 @@ impl Timer {
         assert!(elapsed_percent >= 0.0);
         assert!(elapsed_percent <= 1.0);
         let mut timer = Timer::new(duration);
-        let current_ms = util::num_milliseconds(duration) as f32 * (1.0 - elapsed_percent);
+        let current_ms = duration.as_secs_f32() * 1000.0 * (1.0 - elapsed_percent);
         assert!(current_ms >= 0.0);
         timer.current = Duration::from_millis(current_ms as u64);
 
@@ -40,7 +38,7 @@ impl Timer {
     }
 
     pub fn percentage_remaining(&self) -> f32 {
-        (util::num_milliseconds(self.current) as f32) / (util::num_milliseconds(self.max) as f32)
+        self.current.as_secs_f32() / self.max.as_secs_f32()
     }
 
     pub fn percentage_elapsed(&self) -> f32 {

@@ -1,7 +1,7 @@
 use crate::{
     color::Color,
     engine::{
-        self, opengl::OpenGlApp, Display, Drawcall, Mouse, RunningState, Settings, SettingsStore,
+        self, loop_state::LoopState, Drawcall, Mouse, RunningState, Settings, SettingsStore,
         TextMetrics, UpdateFn, Vertex,
     },
     keys::KeyCode,
@@ -134,35 +134,9 @@ fn get_current_monitor(monitors: &[MonitorId], window_pos: Point) -> Option<Moni
     monitors.iter().cloned().next()
 }
 
-fn change_tilesize(
-    new_tilesize: i32,
-    display: &mut Display,
-    settings: &mut Settings,
-    desired_window_width: &mut u32,
-    desired_window_height: &mut u32,
-) {
-    if crate::engine::AVAILABLE_FONT_SIZES.contains(&(new_tilesize as i32)) {
-        log::info!(
-            "Changing tilesize from {} to {}",
-            display.tilesize,
-            new_tilesize
-        );
-        *desired_window_width = display.display_size.x as u32 * new_tilesize as u32;
-        *desired_window_height = display.display_size.y as u32 * new_tilesize as u32;
-        display.tilesize = new_tilesize;
-        settings.tile_size = new_tilesize;
-    } else {
-        log::warn!(
-            "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
-            new_tilesize,
-            crate::engine::AVAILABLE_FONT_SIZES
-        );
-    }
-}
-
 #[allow(cyclomatic_complexity, unsafe_code)]
 pub fn main_loop<S>(
-    display_size: Point,
+    game_display_size: Point,
     default_background: Color,
     window_title: &str,
     mut settings_store: S,
@@ -186,29 +160,14 @@ pub fn main_loop<S>(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    let mut settings = settings_store.load();
-    let mut desired_window_width = display_size.x as u32 * settings.tile_size as u32;
-    let mut desired_window_height = display_size.y as u32 * settings.tile_size as u32;
-
-    log::debug!(
-        "Requested display in tiles: {} x {}",
-        display_size.x,
-        display_size.y
-    );
-    log::debug!(
-        "Desired window size: {} x {}",
-        desired_window_width,
-        desired_window_height
-    );
+    let mut loop_state =
+        LoopState::initialise(settings_store.load(), game_display_size, default_background);
 
     let mut events_loop = glutin::EventsLoop::new();
     log::debug!("Created events loop: {:?}", events_loop);
     let window = glutin::WindowBuilder::new()
         .with_title(window_title)
-        .with_dimensions(LogicalSize::new(
-            desired_window_width.into(),
-            desired_window_height.into(),
-        ));
+        .with_dimensions(loop_state.desired_window_size().into());
     log::debug!("Created window builder: {:?}", window);
     let context = glutin::ContextBuilder::new()
         .with_vsync(true)
@@ -236,6 +195,8 @@ pub fn main_loop<S>(
     log::debug!("Loaded OpenGL symbols.");
     gl::load_with(|symbol| context.get_proc_address(symbol) as *const _);
     log::info!("Window is ready.");
+
+    let opengl_app = loop_state.opengl_app();
 
     let dpi = context.window().get_hidpi_factor();
     log::info!("Window HIDPI factor: {:?}", dpi);
@@ -265,25 +226,6 @@ pub fn main_loop<S>(
     let monitors: Vec<_> = events_loop.get_available_monitors().collect();
     log::debug!("Got all available monitors: {:?}", monitors);
 
-    let image = {
-        use std::io::Cursor;
-        let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
-        image::load(Cursor::new(data), image::PNG)
-            .unwrap()
-            .to_rgba()
-    };
-    log::debug!("Loaded font image.");
-
-    let image_width = image.width();
-    let image_height = image.height();
-
-    let vs_source = include_str!("../shader_150.glslv");
-    let fs_source = include_str!("../shader_150.glslf");
-    let opengl_app = OpenGlApp::new(vs_source, fs_source);
-    log::debug!("Created opengl app.");
-    opengl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
-    log::debug!("Initialised opengl app.");
-
     // Main loop
     let mut window_pos = {
         match context.window().get_position() {
@@ -312,13 +254,7 @@ pub fn main_loop<S>(
     );
 
     let mut mouse = Mouse::new();
-    let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
-
-    let mut display = engine::Display::new(
-        display_size,
-        Point::from_i32(display_size.y / 2),
-        settings.tile_size,
-    );
+    let mut window_size_px: Point = loop_state.desired_window_size().into();
     let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
     assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
     let mut vertex_buffer: Vec<f32> = Vec::with_capacity(engine::VERTEX_BUFFER_CAPACITY);
@@ -335,7 +271,7 @@ pub fn main_loop<S>(
     // because it means there's only one fullscreen-handling pathway.
     let mut previous_settings = Settings {
         fullscreen: false,
-        ..settings.clone()
+        ..loop_state.settings.clone()
     };
     let mut switched_from_fullscreen = false;
     let mut fps_clock = Duration::from_millis(0);
@@ -369,8 +305,8 @@ pub fn main_loop<S>(
                 window_size_px.x as f32 * dpi as f32,
                 window_size_px.y as f32 * dpi as f32,
             ],
-            display_size,
-            settings.tile_size,
+            game_display_size,
+            loop_state.settings.tile_size,
         );
 
         events_loop.poll_events(|event| {
@@ -394,19 +330,13 @@ pub fn main_loop<S>(
                             // NOTE: Update the tilesize if we get a perfect match
                             if height > 0 && height % crate::DISPLAY_SIZE.y == 0 {
                                 let new_tilesize = height / crate::DISPLAY_SIZE.y;
-                                change_tilesize(
-                                    new_tilesize,
-                                    &mut display,
-                                    &mut settings,
-                                    &mut desired_window_width,
-                                    &mut desired_window_height,
-                                );
+                                loop_state.change_tilesize(new_tilesize);
                             };
                         }
                     }
 
                     glutin::WindowEvent::Moved(new_pos) => {
-                        if settings.fullscreen || switched_from_fullscreen {
+                        if loop_state.settings.fullscreen || switched_from_fullscreen {
                             // Don't update the window position
                             //
                             // Even after we switch from
@@ -487,10 +417,12 @@ pub fn main_loop<S>(
 
                         mouse.screen_pos = Point { x, y };
 
-                        let tile_width = display_info.display_px[0] as i32 / display_size.x;
+                        let tile_width =
+                            display_info.display_px[0] as i32 / loop_state.game_display_size.x;
                         let mouse_tile_x = x / tile_width;
 
-                        let tile_height = display_info.display_px[1] as i32 / display_size.y;
+                        let tile_height =
+                            display_info.display_px[1] as i32 / loop_state.game_display_size.y;
                         let mouse_tile_y = y / tile_height;
 
                         mouse.tile_pos = Point {
@@ -541,18 +473,18 @@ pub fn main_loop<S>(
             }
         });
 
-        let tile_width_px = settings.tile_size;
+        let tile_width_px = loop_state.settings.tile_size;
         let update_result = update(
             &mut state,
             dt,
-            display_size,
+            loop_state.game_display_size,
             fps,
             &keys,
             mouse,
-            &mut settings,
+            &mut loop_state.settings,
             &Metrics { tile_width_px },
             &mut settings_store,
-            &mut display,
+            &mut loop_state.display,
         );
 
         match update_result {
@@ -568,8 +500,8 @@ pub fn main_loop<S>(
         keys.clear();
 
         if cfg!(feature = "fullscreen") {
-            if previous_settings.fullscreen != settings.fullscreen {
-                if settings.fullscreen {
+            if previous_settings.fullscreen != loop_state.settings.fullscreen {
+                if loop_state.settings.fullscreen {
                     log::info!("[{}] Switching to fullscreen", current_frame_id);
                     context.window().set_decorations(false);
                     if let Some(ref monitor) = current_monitor {
@@ -596,16 +528,10 @@ pub fn main_loop<S>(
             }
         }
 
-        if previous_settings.tile_size != settings.tile_size {
-            change_tilesize(
-                settings.tile_size,
-                &mut display,
-                &mut settings,
-                &mut desired_window_width,
-                &mut desired_window_height,
-            );
-            if !settings.fullscreen {
-                let size: LogicalSize = (desired_window_width, desired_window_height).into();
+        if previous_settings.tile_size != loop_state.settings.tile_size {
+            loop_state.change_tilesize(loop_state.settings.tile_size);
+            if !loop_state.settings.fullscreen {
+                let size: LogicalSize = loop_state.desired_window_size().into();
                 let window = context.window();
                 window.set_inner_size(size);
                 context.resize(size.to_physical(window.get_hidpi_factor()));
@@ -613,7 +539,7 @@ pub fn main_loop<S>(
         }
 
         drawcalls.clear();
-        display.push_drawcalls(&mut drawcalls);
+        loop_state.display.push_drawcalls(&mut drawcalls);
 
         if drawcalls.len() > overall_max_drawcall_count {
             overall_max_drawcall_count = drawcalls.len();
@@ -642,18 +568,15 @@ pub fn main_loop<S>(
             );
         }
 
-        engine::opengl::render(
-            opengl_app.program,
-            opengl_app.texture,
+        loop_state.render(
+            &opengl_app,
             default_background,
-            opengl_app.vbo,
             display_info,
-            [image_width as f32, image_height as f32],
             &vertex_buffer,
         );
         context.swap_buffers().unwrap();
 
-        previous_settings = settings.clone();
+        previous_settings = loop_state.settings.clone();
 
         if current_frame_id == 1 {
             // NOTE: We should have the proper window position and
@@ -672,25 +595,23 @@ pub fn main_loop<S>(
                 current_monitor.as_ref().map(|m| m.get_dimensions())
             );
 
-            if desired_window_width != window_size_px.x as u32
-                || desired_window_height != window_size_px.y as u32
-            {
+            let desired_window_size: Point = loop_state.desired_window_size().into();
+            if desired_window_size != window_size_px {
                 if let Some(ref monitor) = current_monitor {
                     let dim = monitor.get_dimensions();
                     let monitor_width = dim.width as u32;
                     let monitor_height = dim.height as u32;
-                    if desired_window_width <= monitor_width
-                        && desired_window_height <= monitor_height
+                    if loop_state.desired_window_size().0 <= monitor_width
+                        && loop_state.desired_window_size().1 <= monitor_height
                     {
                         log::debug!(
                             "Resetting the window to its expected size: {} x {}.",
-                            desired_window_width,
-                            desired_window_height
+                            loop_state.desired_window_size().0,
+                            loop_state.desired_window_size().1,
                         );
-                        context.window().set_inner_size(LogicalSize {
-                            width: desired_window_width.into(),
-                            height: desired_window_height.into(),
-                        });
+                        context
+                            .window()
+                            .set_inner_size(loop_state.desired_window_size().into());
                     } else {
                         log::debug!("TODO: try to resize but maintain aspect ratio.");
                     }

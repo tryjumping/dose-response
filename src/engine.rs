@@ -16,6 +16,8 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
+mod loop_state;
+
 #[cfg(feature = "glutin-backend")]
 pub mod glutin;
 
@@ -559,9 +561,11 @@ impl Default for Cell {
 
 #[derive(Default)]
 pub struct Display {
+    // TODO: this is the actual game area size in tiles. Rename it to something that makes that clear
     display_size: Point,
     pub tilesize: i32,
     pub offset_px: Point,
+    /// This is the padding that makes the game fit a display of a different ratio
     padding: Point,
     map: Vec<Cell>,
     drawcalls: Vec<Drawcall>,
@@ -599,6 +603,8 @@ impl Display {
         self.clear_background_color = Some(background);
     }
 
+    /// This is the full display size: game plus padding!
+    // TODO: rename this to `screen_size_in_tiles`
     pub fn size(&self) -> Point {
         self.display_size + (self.padding * 2)
     }

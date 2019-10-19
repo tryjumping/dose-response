@@ -164,7 +164,7 @@ pub fn main_loop<S>(
     let vs_source = include_str!("../shader_150.glslv");
     let fs_source = include_str!("../shader_150.glslf");
     let sdl_app = engine::opengl::OpenGlApp::new(vs_source, fs_source);
-    sdl_app.initialise(image_width, image_height, image.into_raw().as_ptr());
+    sdl_app.initialise(image.dimensions(), &image);
 
     let mut event_pump = sdl_context
         .event_pump()
@@ -412,11 +412,8 @@ pub fn main_loop<S>(
 
         // NOTE: render
 
-        engine::opengl::render(
-            sdl_app.program,
-            sdl_app.texture,
+        sdl_app.render(
             default_background,
-            sdl_app.vbo,
             display_info,
             [image_width as f32, image_height as f32],
             &vertex_buffer,

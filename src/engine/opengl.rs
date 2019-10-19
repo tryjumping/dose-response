@@ -43,7 +43,14 @@ impl OpenGlApp {
     }
 
     #[allow(unsafe_code)]
-    pub fn initialise(&self, image_width: u32, image_height: u32, image_data: *const u8) {
+    pub fn initialise(&self, image_size: (u32, u32), image_data: &[u8]) {
+        let (image_width, image_height) = image_size;
+        // NOTE(shadower): as far as I can tell (though the opengl
+        // docs could a little more explicit) the data is copied in
+        // the `texImage2D` call afterwards so it is okay to pass a
+        // reference here. The pointer will not be referenced
+        // afterwards.
+        let image_data_ptr: *const u8 = image_data.as_ptr();
         unsafe {
             gl::Enable(gl::BLEND);
             check_gl_error("Enable");
@@ -77,7 +84,7 @@ impl OpenGlApp {
                 0,
                 gl::RGBA,
                 gl::UNSIGNED_BYTE,
-                image_data as *const os::raw::c_void,
+                image_data_ptr as *const os::raw::c_void,
             );
             check_gl_error("TexImage2D");
         }
@@ -149,6 +156,142 @@ impl OpenGlApp {
             program
         }
     }
+
+    // TODO: make this a method on GlApp!!!
+    #[allow(unsafe_code, too_many_arguments)]
+    pub fn render(
+        &self,
+        clear_color: Color,
+        display_info: DisplayInfo,
+        texture_size_px: [f32; 2],
+        vertex_buffer: &[f32],
+    ) {
+        let program = self.program;
+        let texture = self.texture;
+        let vbo = self.vbo;
+        unsafe {
+            gl::Viewport(
+                0,
+                0,
+                display_info.window_size_px[0] as i32,
+                display_info.window_size_px[1] as i32,
+            );
+            check_gl_error("Viewport");
+
+            let rgba: ColorAlpha = clear_color.into();
+            let glcolor: [f32; 4] = rgba.into();
+            gl::ClearColor(glcolor[0], glcolor[1], glcolor[2], 1.0);
+            check_gl_error("ClearColor");
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+            check_gl_error("Clear");
+
+            // Copy data to the vertex buffer
+            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+            check_gl_error("BindBuffer");
+            // TODO: look at BufferSubData here -- that should reuse the allocation
+            gl::BufferData(
+                gl::ARRAY_BUFFER,
+                (vertex_buffer.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+                vertex_buffer.as_ptr() as *const os::raw::c_void,
+                gl::DYNAMIC_DRAW,
+            );
+            check_gl_error("BufferData");
+
+            // Specify the layout of the vertex data
+            // NOTE: this must happen only after the BufferData call
+            let stride =
+                crate::engine::VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
+            let pos_px_cstr = CString::new("pos_px").unwrap();
+            let pos_attr = gl::GetAttribLocation(program, pos_px_cstr.as_ptr());
+            check_gl_error("GetAttribLocation pos_px");
+            gl::EnableVertexAttribArray(pos_attr as GLuint);
+            check_gl_error("EnableVertexAttribArray pos_px");
+            gl::VertexAttribPointer(
+                pos_attr as GLuint,
+                2,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                stride,
+                ptr::null(),
+            );
+            check_gl_error("VertexAttribPointer pos_xp");
+
+            let tile_pos_px_cstr = CString::new("tile_pos_px").unwrap();
+            let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_px_cstr.as_ptr());
+            check_gl_error("GetAttribLocation tile_pos_px");
+            gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
+            check_gl_error("EnableVertexAttribArray tile_pos_px");
+            gl::VertexAttribPointer(
+                tex_coord_attr as GLuint,
+                2,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                stride,
+                (2 * mem::size_of::<GLfloat>()) as *const GLvoid,
+            );
+            check_gl_error("VertexAttribPointer tile_pos_px");
+
+            let color_cstr = CString::new("color").unwrap();
+            let color_attr = gl::GetAttribLocation(program, color_cstr.as_ptr());
+            check_gl_error("GetAttribLocation color");
+            gl::EnableVertexAttribArray(color_attr as GLuint);
+            check_gl_error("EnableVertexAttribArray color");
+            gl::VertexAttribPointer(
+                color_attr as GLuint,
+                4,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                stride,
+                (4 * mem::size_of::<GLfloat>()) as *const GLvoid,
+            );
+            check_gl_error("VertexAttribPointer color");
+
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, texture);
+            check_gl_error("BindTexture");
+            let texture_index = 0; // NOTE: hardcoded -- we only have 1 texture.
+            let tex_cstr = CString::new("tex").unwrap();
+            gl::Uniform1i(
+                gl::GetUniformLocation(program, tex_cstr.as_ptr()),
+                texture_index,
+            );
+
+            let native_display_px_cstr = CString::new("native_display_px").unwrap();
+            gl::Uniform2f(
+                gl::GetUniformLocation(program, native_display_px_cstr.as_ptr()),
+                display_info.native_display_px[0],
+                display_info.native_display_px[1],
+            );
+
+            let display_px_cstr = CString::new("display_px").unwrap();
+            gl::Uniform2f(
+                gl::GetUniformLocation(program, display_px_cstr.as_ptr()),
+                display_info.display_px[0],
+                display_info.display_px[1],
+            );
+
+            let extra_px_cstr = CString::new("extra_px").unwrap();
+            gl::Uniform2f(
+                gl::GetUniformLocation(program, extra_px_cstr.as_ptr()),
+                display_info.extra_px[0],
+                display_info.extra_px[1],
+            );
+
+            let texture_size_px_cstr = CString::new("texture_size_px").unwrap();
+            gl::Uniform2f(
+                gl::GetUniformLocation(program, texture_size_px_cstr.as_ptr()),
+                texture_size_px[0],
+                texture_size_px[1],
+            );
+
+            gl::DrawArrays(
+                gl::TRIANGLES,
+                0,
+                (vertex_buffer.len() / crate::engine::VERTEX_COMPONENT_COUNT) as i32,
+            );
+            check_gl_error("DrawArrays");
+        }
+    }
 }
 
 impl Drop for OpenGlApp {
@@ -162,140 +305,6 @@ impl Drop for OpenGlApp {
             gl::DeleteVertexArrays(1, &self.vao);
             gl::DeleteTextures(1, &self.texture);
         }
-    }
-}
-
-#[allow(unsafe_code, too_many_arguments)]
-pub fn render(
-    program: GLuint,
-    texture: GLuint,
-    clear_color: Color,
-    vbo: GLuint,
-    display_info: DisplayInfo,
-    texture_size_px: [f32; 2],
-    vertex_buffer: &[f32],
-) {
-    unsafe {
-        gl::Viewport(
-            0,
-            0,
-            display_info.window_size_px[0] as i32,
-            display_info.window_size_px[1] as i32,
-        );
-        check_gl_error("Viewport");
-
-        let rgba: ColorAlpha = clear_color.into();
-        let glcolor: [f32; 4] = rgba.into();
-        gl::ClearColor(glcolor[0], glcolor[1], glcolor[2], 1.0);
-        check_gl_error("ClearColor");
-        gl::Clear(gl::COLOR_BUFFER_BIT);
-        check_gl_error("Clear");
-
-        // Copy data to the vertex buffer
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        check_gl_error("BindBuffer");
-        // TODO: look at BufferSubData here -- that should reuse the allocation
-        gl::BufferData(
-            gl::ARRAY_BUFFER,
-            (vertex_buffer.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-            vertex_buffer.as_ptr() as *const os::raw::c_void,
-            gl::DYNAMIC_DRAW,
-        );
-        check_gl_error("BufferData");
-
-        // Specify the layout of the vertex data
-        // NOTE: this must happen only after the BufferData call
-        let stride =
-            crate::engine::VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
-        let pos_px_cstr = CString::new("pos_px").unwrap();
-        let pos_attr = gl::GetAttribLocation(program, pos_px_cstr.as_ptr());
-        check_gl_error("GetAttribLocation pos_px");
-        gl::EnableVertexAttribArray(pos_attr as GLuint);
-        check_gl_error("EnableVertexAttribArray pos_px");
-        gl::VertexAttribPointer(
-            pos_attr as GLuint,
-            2,
-            gl::FLOAT,
-            gl::FALSE as GLboolean,
-            stride,
-            ptr::null(),
-        );
-        check_gl_error("VertexAttribPointer pos_xp");
-
-        let tile_pos_px_cstr = CString::new("tile_pos_px").unwrap();
-        let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_px_cstr.as_ptr());
-        check_gl_error("GetAttribLocation tile_pos_px");
-        gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
-        check_gl_error("EnableVertexAttribArray tile_pos_px");
-        gl::VertexAttribPointer(
-            tex_coord_attr as GLuint,
-            2,
-            gl::FLOAT,
-            gl::FALSE as GLboolean,
-            stride,
-            (2 * mem::size_of::<GLfloat>()) as *const GLvoid,
-        );
-        check_gl_error("VertexAttribPointer tile_pos_px");
-
-        let color_cstr = CString::new("color").unwrap();
-        let color_attr = gl::GetAttribLocation(program, color_cstr.as_ptr());
-        check_gl_error("GetAttribLocation color");
-        gl::EnableVertexAttribArray(color_attr as GLuint);
-        check_gl_error("EnableVertexAttribArray color");
-        gl::VertexAttribPointer(
-            color_attr as GLuint,
-            4,
-            gl::FLOAT,
-            gl::FALSE as GLboolean,
-            stride,
-            (4 * mem::size_of::<GLfloat>()) as *const GLvoid,
-        );
-        check_gl_error("VertexAttribPointer color");
-
-        gl::ActiveTexture(gl::TEXTURE0);
-        gl::BindTexture(gl::TEXTURE_2D, texture);
-        check_gl_error("BindTexture");
-        let texture_index = 0; // NOTE: hardcoded -- we only have 1 texture.
-        let tex_cstr = CString::new("tex").unwrap();
-        gl::Uniform1i(
-            gl::GetUniformLocation(program, tex_cstr.as_ptr()),
-            texture_index,
-        );
-
-        let native_display_px_cstr = CString::new("native_display_px").unwrap();
-        gl::Uniform2f(
-            gl::GetUniformLocation(program, native_display_px_cstr.as_ptr()),
-            display_info.native_display_px[0],
-            display_info.native_display_px[1],
-        );
-
-        let display_px_cstr = CString::new("display_px").unwrap();
-        gl::Uniform2f(
-            gl::GetUniformLocation(program, display_px_cstr.as_ptr()),
-            display_info.display_px[0],
-            display_info.display_px[1],
-        );
-
-        let extra_px_cstr = CString::new("extra_px").unwrap();
-        gl::Uniform2f(
-            gl::GetUniformLocation(program, extra_px_cstr.as_ptr()),
-            display_info.extra_px[0],
-            display_info.extra_px[1],
-        );
-
-        let texture_size_px_cstr = CString::new("texture_size_px").unwrap();
-        gl::Uniform2f(
-            gl::GetUniformLocation(program, texture_size_px_cstr.as_ptr()),
-            texture_size_px[0],
-            texture_size_px[1],
-        );
-
-        gl::DrawArrays(
-            gl::TRIANGLES,
-            0,
-            (vertex_buffer.len() / crate::engine::VERTEX_COMPONENT_COUNT) as i32,
-        );
-        check_gl_error("DrawArrays");
     }
 }
 

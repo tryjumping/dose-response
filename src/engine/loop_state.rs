@@ -4,6 +4,7 @@ use crate::{
     keys::Key,
     point::Point,
     state::State,
+    util,
 };
 
 use std::time::Duration;
@@ -168,6 +169,36 @@ impl LoopState {
         )
     }
 
+    pub fn reset_inputs(&mut self) {
+        self.mouse.left_clicked = false;
+        self.mouse.right_clicked = false;
+        self.keys.clear();
+    }
+
+    pub fn update_mouse_position(&mut self, dpi: f64, window_px_x: i32, window_px_y: i32) {
+        let display_info = self.display_info(dpi);
+
+        let (x, y) = (
+            window_px_x - (display_info.extra_px[0] / 2.0) as i32,
+            window_px_y - (display_info.extra_px[1] / 2.0) as i32,
+        );
+        let x = util::clamp(0, x, display_info.display_px[0] as i32 - 1);
+        let y = util::clamp(0, y, display_info.display_px[1] as i32 - 1);
+
+        self.mouse.screen_pos = Point { x, y };
+
+        let tile_width = display_info.display_px[0] as i32 / self.game_display_size.x;
+        let mouse_tile_x = x / tile_width;
+
+        let tile_height = display_info.display_px[1] as i32 / self.game_display_size.y;
+        let mouse_tile_y = y / tile_height;
+
+        self.mouse.tile_pos = Point {
+            x: mouse_tile_x,
+            y: mouse_tile_y,
+        };
+    }
+
     pub fn push_drawcalls_to_display(&mut self) {
         self.drawcalls.clear();
         self.display.push_drawcalls(&mut self.drawcalls);
@@ -196,6 +227,17 @@ impl LoopState {
             texture_size_px,
             &self.vertex_buffer,
         );
+    }
+
+    pub fn process_vertices_and_render(&mut self, opengl_app: &OpenGlApp, dpi: f64) {
+        self.push_drawcalls_to_display();
+
+        self.vertex_buffer.clear();
+        let native_display_px = self.display_info(dpi).native_display_px;
+        engine::build_vertices(&self.drawcalls, &mut self.vertex_buffer, native_display_px);
+        self.check_vertex_buffer_capacity();
+
+        self.render(&opengl_app, dpi);
     }
 
     pub fn check_vertex_buffer_capacity(&self) {

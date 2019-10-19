@@ -4,7 +4,6 @@ use crate::{
     keys::KeyCode,
     point::Point,
     state::State,
-    util,
 };
 
 use std::time::{Duration, Instant};
@@ -354,30 +353,7 @@ pub fn main_loop<S>(
                     }
 
                     glutin::WindowEvent::CursorMoved { position, .. } => {
-                        let (x, y) = (position.x as i32, position.y as i32);
-                        let display_info = loop_state.display_info(dpi);
-
-                        let (x, y) = (
-                            x - (display_info.extra_px[0] / 2.0) as i32,
-                            y - (display_info.extra_px[1] / 2.0) as i32,
-                        );
-                        let x = util::clamp(0, x, display_info.display_px[0] as i32 - 1);
-                        let y = util::clamp(0, y, display_info.display_px[1] as i32 - 1);
-
-                        loop_state.mouse.screen_pos = Point { x, y };
-
-                        let tile_width =
-                            display_info.display_px[0] as i32 / loop_state.game_display_size.x;
-                        let mouse_tile_x = x / tile_width;
-
-                        let tile_height =
-                            display_info.display_px[1] as i32 / loop_state.game_display_size.y;
-                        let mouse_tile_y = y / tile_height;
-
-                        loop_state.mouse.tile_pos = Point {
-                            x: mouse_tile_x,
-                            y: mouse_tile_y,
-                        };
+                        loop_state.update_mouse_position(dpi, position.x as i32, position.y as i32);
                     }
 
                     glutin::WindowEvent::MouseInput {
@@ -444,9 +420,7 @@ pub fn main_loop<S>(
             RunningState::Stopped => break,
         }
 
-        loop_state.mouse.left_clicked = false;
-        loop_state.mouse.right_clicked = false;
-        loop_state.keys.clear();
+        loop_state.reset_inputs();
 
         if cfg!(feature = "fullscreen") {
             if loop_state.previous_settings.fullscreen != loop_state.settings.fullscreen {
@@ -487,19 +461,7 @@ pub fn main_loop<S>(
             }
         }
 
-        loop_state.push_drawcalls_to_display();
-
-        loop_state.vertex_buffer.clear();
-        let native_display_px = loop_state.display_info(dpi).native_display_px;
-        engine::build_vertices(
-            &loop_state.drawcalls,
-            &mut loop_state.vertex_buffer,
-            native_display_px,
-        );
-
-        loop_state.check_vertex_buffer_capacity();
-
-        loop_state.render(&opengl_app, dpi);
+        loop_state.process_vertices_and_render(&opengl_app, dpi);
         context.swap_buffers().unwrap();
 
         loop_state.previous_settings = loop_state.settings.clone();

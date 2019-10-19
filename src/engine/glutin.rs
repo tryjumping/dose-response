@@ -92,6 +92,13 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
         BackendKey::Down => Some(KeyCode::Down),
         BackendKey::Up => Some(KeyCode::Up),
 
+        // NOTE: these keys trigger on the numpad when NumLock is off.
+        // We will translate them back to the appropriate numpad keys:
+        BackendKey::Home => Some(KeyCode::NumPad7),
+        BackendKey::End => Some(KeyCode::NumPad1),
+        BackendKey::PageUp => Some(KeyCode::NumPad9),
+        BackendKey::PageDown => Some(KeyCode::NumPad3),
+
         BackendKey::Numpad1 => Some(KeyCode::NumPad1),
         BackendKey::Numpad2 => Some(KeyCode::NumPad2),
         BackendKey::Numpad3 => Some(KeyCode::NumPad3),

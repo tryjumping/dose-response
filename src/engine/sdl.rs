@@ -2,7 +2,7 @@ use crate::{
     color::Color,
     engine::{
         self,
-        loop_state::{LoopState, UpdateResult},
+        loop_state::{LoopState, ResizeWindowAction, UpdateResult},
         SettingsStore, TextMetrics,
     },
     keys::KeyCode,
@@ -290,6 +290,17 @@ pub fn main_loop<S>(
                 }
                 None => {}
             }
+        }
+
+        match loop_state.check_window_size_needs_updating() {
+            ResizeWindowAction::NewSize((width, height)) => {
+                if let Err(err) = window.set_size(width, height) {
+                    log::warn!("[{}] Could not resize window:", loop_state.current_frame_id);
+                    log::warn!("{:?}", err);
+                }
+                loop_state.handle_window_size_changed(width as i32, height as i32);
+            }
+            ResizeWindowAction::NoChange => {}
         }
 
         loop_state.process_vertices_and_render(&opengl_app, dpi);

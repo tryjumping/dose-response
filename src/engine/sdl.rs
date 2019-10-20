@@ -1,25 +1,21 @@
 use crate::{
     color::Color,
-    engine::{self, Drawcall, Mouse, Settings, SettingsStore, TextMetrics, Vertex},
-    game::RunningState,
+    engine::{
+        self,
+        loop_state::{LoopState, UpdateResult},
+        SettingsStore, TextMetrics,
+    },
     keys::KeyCode,
     point::Point,
     state::State,
-    util,
 };
 
-use std::{
-    mem,
-    time::{Duration, Instant},
-};
+use std::time::Instant;
 
 use sdl2::{
     event::{Event, WindowEvent},
     keyboard::{self, Keycode as BackendKey},
 };
-
-// const DESIRED_FPS: u64 = 60;
-// const EXPECTED_FRAME_LENGTH: Duration = Duration::from_millis(1000 / DESIRED_FPS);
 
 pub struct Metrics {
     tile_width_px: i32,
@@ -110,18 +106,19 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
 
 #[allow(cyclomatic_complexity)]
 pub fn main_loop<S>(
-    display_size: Point,
-    default_background: Color,
+    initial_game_display_size: Point,
+    initial_default_background: Color,
     window_title: &str,
     mut settings_store: S,
-    mut state: Box<State>,
+    initial_state: Box<State>,
 ) where
     S: SettingsStore,
 {
-    let mut settings = settings_store.load();
-    let (desired_window_width, desired_window_height) = (
-        display_size.x as u32 * settings.tile_size as u32,
-        display_size.y as u32 * settings.tile_size as u32,
+    let mut loop_state = LoopState::initialise(
+        settings_store.load(),
+        initial_game_display_size,
+        initial_default_background,
+        initial_state,
     );
 
     let sdl_context = sdl2::init().expect("SDL context creation failed.");
@@ -137,7 +134,11 @@ pub fn main_loop<S>(
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
     let mut window = video_subsystem
-        .window(window_title, desired_window_width, desired_window_height)
+        .window(
+            window_title,
+            loop_state.desired_window_size_px().0,
+            loop_state.desired_window_size_px().1,
+        )
         .resizable()
         .opengl()
         .position_centered()
@@ -148,79 +149,41 @@ pub fn main_loop<S>(
         .gl_create_context()
         .expect("SDL GL context creation failed.");
     gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
+    log::debug!("Loaded OpenGL symbols.");
 
-    let image = {
-        use std::io::Cursor;
-        let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
-        image::load(Cursor::new(data), image::PNG)
-            .unwrap()
-            .to_rgba()
-    };
+    let opengl_app = loop_state.opengl_app();
 
-    let image_width = image.width();
-    let image_height = image.height();
-
-    let vs_source = include_str!("../shader_150.glslv");
-    let fs_source = include_str!("../shader_150.glslf");
-    let sdl_app = engine::opengl::OpenGlApp::new(vs_source, fs_source);
-    sdl_app.initialise(image.dimensions(), &image);
+    // TODO: we're hardcoding it now because that's what we always did for SDL.
+    // There's probably a method to read/handle this proper.
+    let dpi = 1.0;
 
     let mut event_pump = sdl_context
         .event_pump()
         .expect("SDL event pump creation failed.");
 
-    let mut mouse = Mouse::new();
-    let mut window_size_px = Point::new(desired_window_width as i32, desired_window_height as i32);
-    let mut display = engine::Display::new(
-        display_size,
-        Point::from_i32(display_size.y / 2),
-        settings.tile_size,
-    );
-    let mut drawcalls: Vec<Drawcall> = Vec::with_capacity(engine::DRAWCALL_CAPACITY);
-    assert_eq!(mem::size_of::<Vertex>(), engine::VERTEX_COMPONENT_COUNT * 4);
-    let mut vertex_buffer: Vec<f32> = Vec::with_capacity(engine::VERTEX_BUFFER_CAPACITY);
-    let mut overall_max_drawcall_count = 0;
-    let mut keys = vec![];
     let mut previous_frame_start_time = Instant::now();
-    // Always stard from a windowed mode. This will force the
-    // fullscreen switch in the first frame if requested in the
-    // settings we've loaded.
-    //
-    // This is necessary because some backends don't support
-    // fullscreen on window creation. And TBH, this is easier on us
-    // because it means there's only one fullscreen-handling pathway.
-    let mut previous_settings = Settings {
-        fullscreen: false,
-        ..settings.clone()
-    };
-    let mut fps_clock = Duration::from_millis(0);
-    let mut frames_in_current_second = 0;
-    let mut fps = 0;
-    // NOTE: This will wrap after running continuously for over 64
-    // years at 60 FPS. 32 bits are just fine.
-    let mut current_frame_id: i32 = 0;
-    let mut running = true;
 
+    let mut running = true;
     while running {
         let frame_start_time = Instant::now();
         let dt = frame_start_time.duration_since(previous_frame_start_time);
         previous_frame_start_time = frame_start_time;
 
-        // Calculate FPS
-        fps_clock += dt;
-        frames_in_current_second += 1;
-        current_frame_id += 1;
-        if fps_clock.as_millis() > 1000 {
-            fps = frames_in_current_second;
-            frames_in_current_second = 1;
-            fps_clock = Duration::new(0, 0);
-        }
+        loop_state.update_fps(dt);
 
         for event in event_pump.poll_iter() {
             log::debug!("{:?}", event);
             match event {
                 Event::Quit { .. } => {
                     running = false;
+                }
+
+                Event::Window {
+                    win_event: WindowEvent::Resized(width, height),
+                    ..
+                } => {
+                    log::info!("Window resized to: {}x{}", width, height);
+                    loop_state.handle_window_size_changed(width, height);
                 }
 
                 Event::KeyDown {
@@ -245,7 +208,7 @@ pub fn main_loop<S>(
                                 .intersects(keyboard::Mod::LSHIFTMOD | keyboard::Mod::RSHIFTMOD),
                         };
                         log::debug!("Detected key {:?}", key);
-                        keys.push(key);
+                        loop_state.keys.push(key);
                     }
                 }
 
@@ -258,35 +221,22 @@ pub fn main_loop<S>(
                             shift: false,
                         };
                         log::debug!("Detected key {:?}", key);
-                        keys.push(key);
+                        loop_state.keys.push(key);
                     }
                 }
 
                 Event::MouseMotion { x, y, .. } => {
-                    let x = util::clamp(0, x, window_size_px.x - 1);
-                    let y = util::clamp(0, y, window_size_px.y - 1);
-                    mouse.screen_pos = Point { x, y };
-
-                    let tile_width = window_size_px.x / display_size.x;
-                    let mouse_tile_x = x / tile_width;
-
-                    let tile_height = window_size_px.y / display_size.y;
-                    let mouse_tile_y = y / tile_height;
-
-                    mouse.tile_pos = Point {
-                        x: mouse_tile_x,
-                        y: mouse_tile_y,
-                    };
+                    loop_state.update_mouse_position(dpi, x, y);
                 }
 
                 Event::MouseButtonDown { mouse_btn, .. } => {
                     use sdl2::mouse::MouseButton::*;
                     match mouse_btn {
                         Left => {
-                            mouse.left_is_down = true;
+                            loop_state.mouse.left_is_down = true;
                         }
                         Right => {
-                            mouse.right_is_down = true;
+                            loop_state.mouse.right_is_down = true;
                         }
                         _ => {}
                     }
@@ -296,145 +246,61 @@ pub fn main_loop<S>(
                     use sdl2::mouse::MouseButton::*;
                     match mouse_btn {
                         Left => {
-                            mouse.left_clicked = true;
-                            mouse.left_is_down = false;
+                            loop_state.mouse.left_clicked = true;
+                            loop_state.mouse.left_is_down = false;
                         }
                         Right => {
-                            mouse.right_clicked = true;
-                            mouse.right_is_down = false;
+                            loop_state.mouse.right_clicked = true;
+                            loop_state.mouse.right_is_down = false;
                         }
                         _ => {}
                     }
-                }
-
-                Event::Window {
-                    win_event: WindowEvent::Resized(width, height),
-                    ..
-                } => {
-                    log::info!("Window resized to: {}x{}", width, height);
-                    window_size_px = Point::new(width, height);
                 }
 
                 _ => {}
             }
         }
 
-        let tile_width_px = settings.tile_size;
-        let update_result = crate::game::update(
-            &mut state,
-            dt,
-            display_size,
-            fps,
-            &keys,
-            mouse,
-            &mut settings,
-            &Metrics { tile_width_px },
-            &mut settings_store,
-            &mut display,
-        );
-
-        match update_result {
-            RunningState::Running => {}
-            RunningState::NewGame(new_state) => {
-                state = new_state;
-            }
-            RunningState::Stopped => break,
+        match loop_state.update_game(dt, &mut settings_store) {
+            UpdateResult::QuitRequested => break,
+            UpdateResult::KeepGoing => {}
         }
 
-        mouse.left_clicked = false;
-        mouse.right_clicked = false;
-        keys.clear();
-
         if cfg!(feature = "fullscreen") {
+            use engine::loop_state::FullscreenAction::*;
             use sdl2::video::FullscreenType::*;
-            if previous_settings.fullscreen != settings.fullscreen {
-                if settings.fullscreen {
-                    log::info!(
-                        "[{}] Switching to (desktop-type) fullscreen",
-                        current_frame_id
-                    );
+            match loop_state.fullscreen_action() {
+                Some(SwitchToFullscreen) => {
                     if let Err(err) = window.set_fullscreen(Desktop) {
-                        log::warn!("[{}]: Could not switch to fullscreen:", current_frame_id);
-                        log::warn!("{:?}", err);
-                    }
-                } else {
-                    log::info!("[{}] Switching fullscreen off", current_frame_id);
-                    if let Err(err) = window.set_fullscreen(Off) {
-                        log::warn!("[{}]: Could not leave fullscreen:", current_frame_id);
+                        log::warn!(
+                            "[{}]: Could not switch to fullscreen:",
+                            loop_state.current_frame_id
+                        );
                         log::warn!("{:?}", err);
                     }
                 }
+                Some(SwitchToWindowed) => {
+                    if let Err(err) = window.set_fullscreen(Off) {
+                        log::warn!(
+                            "[{}]: Could not leave fullscreen:",
+                            loop_state.current_frame_id
+                        );
+                        log::warn!("{:?}", err);
+                    }
+                }
+                None => {}
             }
         }
 
-        // debug!("Pre-draw duration: {:?}ms",
-        //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
-
-        drawcalls.clear();
-        display.push_drawcalls(&mut drawcalls);
-
-        if drawcalls.len() > overall_max_drawcall_count {
-            overall_max_drawcall_count = drawcalls.len();
-        }
-
-        if drawcalls.len() > engine::DRAWCALL_CAPACITY {
-            log::warn!(
-                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
-                engine::DRAWCALL_CAPACITY,
-                drawcalls.len(),
-            );
-        }
-
-        let display_info = engine::calculate_display_info(
-            [window_size_px.x as f32, window_size_px.y as f32],
-            display_size,
-            settings.tile_size,
-        );
-
-        vertex_buffer.clear();
-        engine::build_vertices(
-            &drawcalls,
-            &mut vertex_buffer,
-            display_info.native_display_px,
-        );
-
-        if vertex_buffer.len() > engine::VERTEX_BUFFER_CAPACITY {
-            log::warn!(
-                "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
-                engine::VERTEX_BUFFER_CAPACITY,
-                vertex_buffer.len(),
-            );
-        }
-
-        // debug!("Pre-present duration: {:?}ms",
-        //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
-
-        // NOTE: render
-
-        sdl_app.render(
-            default_background,
-            display_info,
-            [image_width as f32, image_height as f32],
-            &vertex_buffer,
-        );
+        loop_state.process_vertices_and_render(&opengl_app, dpi);
         window.gl_swap_window();
 
-        previous_settings = settings.clone();
-
-        // debug!("Code duration: {:?}ms",
-        //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
-
-        // if let Some(sleep_duration) = EXPECTED_FRAME_LENGTH.checked_sub(frame_start_time.elapsed()) {
-        //     ::std::thread::sleep(sleep_duration);
-        // };
-
-        // debug!("Total frame duration: {:?}ms",
-        //          frame_start_time.elapsed().subsec_nanos() as f32 / 1_000_000.0);
+        loop_state.previous_settings = loop_state.settings.clone();
     }
 
     log::debug!(
         "Drawcall count: {}. Capacity: {}.",
-        overall_max_drawcall_count,
+        loop_state.overall_max_drawcall_count,
         engine::DRAWCALL_CAPACITY
     );
 }

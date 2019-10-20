@@ -182,9 +182,8 @@ pub fn main_loop<S>(
         }
     };
 
-    log::debug!("Loaded OpenGL symbols.");
     gl::load_with(|symbol| context.get_proc_address(symbol) as *const _);
-    log::info!("Window is ready.");
+    log::debug!("Loaded OpenGL symbols.");
 
     let opengl_app = loop_state.opengl_app();
 
@@ -216,7 +215,6 @@ pub fn main_loop<S>(
     let monitors: Vec<_> = events_loop.get_available_monitors().collect();
     log::debug!("Got all available monitors: {:?}", monitors);
 
-    // Main loop
     let mut window_pos = {
         match context.window().get_position() {
             Some(LogicalPosition { x, y }) => Point::new(x as i32, y as i32),

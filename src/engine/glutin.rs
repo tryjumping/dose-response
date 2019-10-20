@@ -168,7 +168,7 @@ pub fn main_loop<S>(
     log::debug!("Created events loop: {:?}", events_loop);
     let window = glutin::WindowBuilder::new()
         .with_title(window_title)
-        .with_dimensions(loop_state.desired_window_size().into());
+        .with_dimensions(loop_state.desired_window_size_px().into());
     log::debug!("Created window builder: {:?}", window);
     let context = glutin::ContextBuilder::new()
         .with_vsync(true)
@@ -275,7 +275,7 @@ pub fn main_loop<S>(
                         // let dpi_factor = gl_window.get_hidpi_factor();
                         // gl_window.resize(logical_size.to_physical(dpi_factor));
                         context.resize(size.to_physical(context.window().get_hidpi_factor()));
-                        loop_state.resize_window(width as i32, height as i32);
+                        loop_state.handle_window_size_changed(width as i32, height as i32);
                     }
 
                     glutin::WindowEvent::Moved(new_pos) => {
@@ -398,7 +398,7 @@ pub fn main_loop<S>(
         let update_result = update(
             &mut loop_state.game_state,
             dt,
-            loop_state.game_display_size,
+            loop_state.game_display_size_tiles,
             loop_state.fps,
             &loop_state.keys,
             loop_state.mouse,
@@ -448,7 +448,7 @@ pub fn main_loop<S>(
             };
         }
 
-        match loop_state.check_window_size() {
+        match loop_state.check_window_size_needs_updating() {
             ResizeWindowAction::NewSize(desired_window_size_px) => {
                 let window = context.window();
                 let size: LogicalSize = desired_window_size_px.into();
@@ -480,23 +480,27 @@ pub fn main_loop<S>(
                 current_monitor.as_ref().map(|m| m.get_dimensions())
             );
 
-            let desired_window_size: Point = loop_state.desired_window_size().into();
-            if desired_window_size != loop_state.window_size_px {
+            let desired_window_size_px: Point = loop_state.desired_window_size_px().into();
+            if desired_window_size_px != loop_state.window_size_px {
                 if let Some(ref monitor) = current_monitor {
                     let dim = monitor.get_dimensions();
-                    let monitor_width = dim.width as u32;
-                    let monitor_height = dim.height as u32;
-                    if loop_state.desired_window_size().0 <= monitor_width
-                        && loop_state.desired_window_size().1 <= monitor_height
+                    let monitor_width = dim.width as i32;
+                    let monitor_height = dim.height as i32;
+                    if desired_window_size_px.x <= monitor_width
+                        && desired_window_size_px.y <= monitor_height
                     {
                         log::debug!(
                             "Resetting the window to its expected size: {} x {}.",
-                            loop_state.desired_window_size().0,
-                            loop_state.desired_window_size().1,
+                            desired_window_size_px.x,
+                            desired_window_size_px.y,
                         );
-                        context
-                            .window()
-                            .set_inner_size(loop_state.desired_window_size().into());
+                        context.window().set_inner_size(
+                            (
+                                desired_window_size_px.x as u32,
+                                desired_window_size_px.y as u32,
+                            )
+                                .into(),
+                        );
                     } else {
                         log::debug!("TODO: try to resize but maintain aspect ratio.");
                     }

@@ -24,7 +24,7 @@ pub enum ResizeWindowAction {
 pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
-    pub game_display_size: Point,
+    pub game_display_size_tiles: Point,
     pub window_size_px: Point,
     pub display: Display,
     pub image: RgbaImage,
@@ -48,14 +48,14 @@ pub struct LoopState {
 impl LoopState {
     pub fn initialise(
         settings: Settings,
-        game_display_size: Point,
+        game_display_size_tiles: Point,
         default_background: Color,
         game_state: Box<State>,
     ) -> Self {
         log::debug!(
             "Requested display in tiles: {} x {}",
-            game_display_size.x,
-            game_display_size.y
+            game_display_size_tiles.x,
+            game_display_size_tiles.y
         );
 
         assert_eq!(
@@ -63,8 +63,8 @@ impl LoopState {
             engine::VERTEX_COMPONENT_COUNT * 4
         );
 
-        let padding = Point::from_i32(game_display_size.y / 2);
-        let display = Display::new(game_display_size, padding, settings.tile_size);
+        let padding = Point::from_i32(game_display_size_tiles.y / 2);
+        let display = Display::new(game_display_size_tiles, padding, settings.tile_size);
         let image = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
             image::load_from_memory_with_format(data, image::PNG)
@@ -73,7 +73,7 @@ impl LoopState {
         };
         log::debug!("Loaded font image.");
 
-        // Always stard from a windowed mode. This will force the
+        // Always start from a windowed mode. This will force the
         // fullscreen switch in the first frame if requested in the
         // settings we've loaded.
         //
@@ -84,7 +84,7 @@ impl LoopState {
             fullscreen: false,
             ..settings.clone()
         };
-        let window_size_px = game_display_size * settings.tile_size;
+        let window_size_px = game_display_size_tiles * settings.tile_size;
         log::debug!(
             "Desired window size: {} x {}",
             window_size_px.x,
@@ -93,7 +93,7 @@ impl LoopState {
         Self {
             settings,
             previous_settings,
-            game_display_size,
+            game_display_size_tiles,
             display,
             image,
             default_background,
@@ -124,11 +124,10 @@ impl LoopState {
         opengl_app
     }
 
-    // TODO: add units!!
-    pub fn desired_window_size(&self) -> (u32, u32) {
+    pub fn desired_window_size_px(&self) -> (u32, u32) {
         (
-            self.game_display_size.x as u32 * self.settings.tile_size as u32,
-            self.game_display_size.y as u32 * self.settings.tile_size as u32,
+            self.game_display_size_tiles.x as u32 * self.settings.tile_size as u32,
+            self.game_display_size_tiles.y as u32 * self.settings.tile_size as u32,
         )
     }
 
@@ -143,9 +142,7 @@ impl LoopState {
         }
     }
 
-    // TODO: there's a similarly named function `should_resize_window`
-    // Find the differences, make better names!
-    pub fn resize_window(&mut self, new_width: i32, new_height: i32) {
+    pub fn handle_window_size_changed(&mut self, new_width: i32, new_height: i32) {
         log::info!("Window resized to: {} x {}", new_width, new_height);
         let new_window_size_px = Point::new(new_width, new_height);
         if self.window_size_px != new_window_size_px {
@@ -153,26 +150,25 @@ impl LoopState {
 
             // NOTE: Update the tilesize if we get a perfect match
             if new_height > 0 && new_height % crate::DISPLAY_SIZE.y == 0 {
-                let new_tilesize = new_height / crate::DISPLAY_SIZE.y;
-                self.change_tilesize(new_tilesize);
+                let new_tilesize_px = new_height / crate::DISPLAY_SIZE.y;
+                self.change_tilesize_px(new_tilesize_px);
             };
         }
     }
 
-    // TODO: units? I think it's pixels. Make sure that's in the name
-    pub fn change_tilesize(&mut self, new_tilesize: i32) {
-        if crate::engine::AVAILABLE_FONT_SIZES.contains(&(new_tilesize as i32)) {
+    pub fn change_tilesize_px(&mut self, new_tilesize_px: i32) {
+        if crate::engine::AVAILABLE_FONT_SIZES.contains(&(new_tilesize_px as i32)) {
             log::info!(
                 "Changing tilesize from {} to {}",
                 self.display.tilesize,
-                new_tilesize
+                new_tilesize_px
             );
-            self.display.tilesize = new_tilesize;
-            self.settings.tile_size = new_tilesize;
+            self.display.tilesize = new_tilesize_px;
+            self.settings.tile_size = new_tilesize_px;
         } else {
             log::warn!(
             "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
-            new_tilesize,
+            new_tilesize_px,
             crate::engine::AVAILABLE_FONT_SIZES
             );
         }
@@ -187,7 +183,7 @@ impl LoopState {
                 self.window_size_px.x as f32 * dpi as f32,
                 self.window_size_px.y as f32 * dpi as f32,
             ],
-            self.game_display_size,
+            self.game_display_size_tiles,
             self.settings.tile_size,
         )
     }
@@ -210,10 +206,10 @@ impl LoopState {
 
         self.mouse.screen_pos = Point { x, y };
 
-        let tile_width = display_info.display_px[0] as i32 / self.game_display_size.x;
+        let tile_width = display_info.display_px[0] as i32 / self.game_display_size_tiles.x;
         let mouse_tile_x = x / tile_width;
 
-        let tile_height = display_info.display_px[1] as i32 / self.game_display_size.y;
+        let tile_height = display_info.display_px[1] as i32 / self.game_display_size_tiles.y;
         let mouse_tile_y = y / tile_height;
 
         self.mouse.tile_pos = Point {
@@ -288,11 +284,11 @@ impl LoopState {
         }
     }
 
-    pub fn check_window_size(&mut self) -> ResizeWindowAction {
+    pub fn check_window_size_needs_updating(&mut self) -> ResizeWindowAction {
         if self.previous_settings.tile_size != self.settings.tile_size {
-            self.change_tilesize(self.settings.tile_size);
+            self.change_tilesize_px(self.settings.tile_size);
             if !self.settings.fullscreen {
-                return ResizeWindowAction::NewSize(self.desired_window_size());
+                return ResizeWindowAction::NewSize(self.desired_window_size_px());
             }
         }
         ResizeWindowAction::NoChange

@@ -1,12 +1,16 @@
 use crate::{
     color::Color,
-    engine::{self, loop_state::LoopState, RunningState, SettingsStore, TextMetrics, UpdateFn},
+    engine::{
+        self,
+        loop_state::{LoopState, ResizeWindowAction},
+        RunningState, SettingsStore, TextMetrics, UpdateFn,
+    },
     keys::KeyCode,
     point::Point,
     state::State,
 };
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use glutin::{
     dpi::{LogicalPosition, LogicalSize},
@@ -258,15 +262,7 @@ pub fn main_loop<S>(
         let dt = frame_start_time.duration_since(previous_frame_start_time);
         previous_frame_start_time = frame_start_time;
 
-        // Calculate FPS
-        loop_state.fps_clock += dt;
-        loop_state.frames_in_current_second += 1;
-        loop_state.current_frame_id += 1;
-        if loop_state.fps_clock.as_millis() > 1000 {
-            loop_state.fps = loop_state.frames_in_current_second;
-            loop_state.frames_in_current_second = 1;
-            loop_state.fps_clock = Duration::new(0, 0);
-        }
+        loop_state.update_fps(dt);
 
         events_loop.poll_events(|event| {
             log::debug!("{:?}", event);
@@ -423,9 +419,9 @@ pub fn main_loop<S>(
         loop_state.reset_inputs();
 
         if cfg!(feature = "fullscreen") {
-            if loop_state.previous_settings.fullscreen != loop_state.settings.fullscreen {
-                if loop_state.settings.fullscreen {
-                    log::info!("[{}] Switching to fullscreen", loop_state.current_frame_id);
+            use engine::loop_state::FullscreenAction::*;
+            match loop_state.fullscreen_action() {
+                Some(SwitchToFullscreen) => {
                     context.window().set_decorations(false);
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
@@ -439,8 +435,8 @@ pub fn main_loop<S>(
                     } else {
                         log::debug!("`current_monitor` is not set!??");
                     }
-                } else {
-                    log::info!("[{}] Switching fullscreen off", loop_state.current_frame_id);
+                }
+                Some(SwitchToWindowed) => {
                     let window = context.window();
                     window.set_fullscreen(None);
                     let pos = window.get_position();
@@ -448,17 +444,18 @@ pub fn main_loop<S>(
                     window.set_decorations(true);
                     loop_state.switched_from_fullscreen = true;
                 }
-            }
+                None => {}
+            };
         }
 
-        if loop_state.previous_settings.tile_size != loop_state.settings.tile_size {
-            loop_state.change_tilesize(loop_state.settings.tile_size);
-            if !loop_state.settings.fullscreen {
-                let size: LogicalSize = loop_state.desired_window_size().into();
+        match loop_state.check_window_size() {
+            ResizeWindowAction::NewSize(desired_window_size_px) => {
                 let window = context.window();
+                let size: LogicalSize = desired_window_size_px.into();
                 window.set_inner_size(size);
                 context.resize(size.to_physical(window.get_hidpi_factor()));
             }
+            ResizeWindowAction::NoChange => {}
         }
 
         loop_state.process_vertices_and_render(&opengl_app, dpi);

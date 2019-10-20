@@ -11,6 +11,16 @@ use std::time::Duration;
 
 use image::RgbaImage;
 
+pub enum FullscreenAction {
+    SwitchToFullscreen,
+    SwitchToWindowed,
+}
+
+pub enum ResizeWindowAction {
+    NewSize((u32, u32)),
+    NoChange,
+}
+
 pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
@@ -122,6 +132,19 @@ impl LoopState {
         )
     }
 
+    pub fn update_fps(&mut self, dt: Duration) {
+        self.fps_clock += dt;
+        self.frames_in_current_second += 1;
+        self.current_frame_id += 1;
+        if self.fps_clock.as_millis() > 1000 {
+            self.fps = self.frames_in_current_second;
+            self.frames_in_current_second = 1;
+            self.fps_clock = Duration::new(0, 0);
+        }
+    }
+
+    // TODO: there's a similarly named function `should_resize_window`
+    // Find the differences, make better names!
     pub fn resize_window(&mut self, new_width: i32, new_height: i32) {
         log::info!("Window resized to: {} x {}", new_width, new_height);
         let new_window_size_px = Point::new(new_width, new_height);
@@ -248,5 +271,30 @@ impl LoopState {
                 self.vertex_buffer.len(),
             );
         }
+    }
+
+    pub fn fullscreen_action(&mut self) -> Option<FullscreenAction> {
+        if self.previous_settings.fullscreen != self.settings.fullscreen {
+            if self.settings.fullscreen {
+                log::info!("[{}] Switching to fullscreen", self.current_frame_id);
+                Some(FullscreenAction::SwitchToFullscreen)
+            } else {
+                log::info!("[{}] Switching fullscreen off", self.current_frame_id);
+                self.switched_from_fullscreen = true;
+                Some(FullscreenAction::SwitchToWindowed)
+            }
+        } else {
+            None
+        }
+    }
+
+    pub fn check_window_size(&mut self) -> ResizeWindowAction {
+        if self.previous_settings.tile_size != self.settings.tile_size {
+            self.change_tilesize(self.settings.tile_size);
+            if !self.settings.fullscreen {
+                return ResizeWindowAction::NewSize(self.desired_window_size());
+            }
+        }
+        ResizeWindowAction::NoChange
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     color::Color,
-    engine::{self, Drawcall, Mouse, Settings, SettingsStore, TextMetrics, UpdateFn, Vertex},
+    engine::{self, Drawcall, Mouse, Settings, SettingsStore, TextMetrics, Vertex},
     game::RunningState,
     keys::KeyCode,
     point::Point,
@@ -115,7 +115,6 @@ pub fn main_loop<S>(
     window_title: &str,
     mut settings_store: S,
     mut state: Box<State>,
-    update: UpdateFn,
 ) where
     S: SettingsStore,
 {
@@ -211,7 +210,7 @@ pub fn main_loop<S>(
         fps_clock += dt;
         frames_in_current_second += 1;
         current_frame_id += 1;
-        if util::num_milliseconds(fps_clock) > 1000 {
+        if fps_clock.as_millis() > 1000 {
             fps = frames_in_current_second;
             frames_in_current_second = 1;
             fps_clock = Duration::new(0, 0);
@@ -321,7 +320,7 @@ pub fn main_loop<S>(
         }
 
         let tile_width_px = settings.tile_size;
-        let update_result = update(
+        let update_result = crate::game::update(
             &mut state,
             dt,
             display_size,

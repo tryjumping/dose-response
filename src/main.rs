@@ -115,7 +115,6 @@ fn run_sdl(
         window_title,
         settings_store,
         Box::new(state),
-        update,
     );
 
     #[cfg(not(feature = "sdl-backend"))]

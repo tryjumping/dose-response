@@ -1,6 +1,9 @@
 use crate::{
     color::Color,
-    engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, Settings, Vertex},
+    engine::{
+        self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, Settings, SettingsStore,
+        TextMetrics, Vertex,
+    },
     keys::Key,
     point::Point,
     state::State,
@@ -19,6 +22,21 @@ pub enum FullscreenAction {
 pub enum ResizeWindowAction {
     NewSize((u32, u32)),
     NoChange,
+}
+
+pub enum UpdateResult {
+    QuitRequested,
+    KeepGoing,
+}
+
+pub struct Metrics {
+    tile_width_px: i32,
+}
+
+impl TextMetrics for Metrics {
+    fn tile_width_px(&self) -> i32 {
+        self.tile_width_px
+    }
 }
 
 pub struct LoopState {
@@ -140,6 +158,39 @@ impl LoopState {
             self.frames_in_current_second = 1;
             self.fps_clock = Duration::new(0, 0);
         }
+    }
+
+    pub fn update_game(
+        &mut self,
+        dt: Duration,
+        settings_store: &mut dyn SettingsStore,
+    ) -> UpdateResult {
+        use crate::engine::RunningState;
+        let tile_width_px = self.settings.tile_size;
+        let update_result = crate::game::update(
+            &mut self.game_state,
+            dt,
+            self.game_display_size_tiles,
+            self.fps,
+            &self.keys,
+            self.mouse,
+            &mut self.settings,
+            &Metrics { tile_width_px },
+            settings_store,
+            &mut self.display,
+        );
+
+        match update_result {
+            RunningState::Running => {}
+            RunningState::NewGame(new_state) => {
+                self.game_state = new_state;
+            }
+            RunningState::Stopped => return UpdateResult::QuitRequested,
+        }
+
+        self.reset_inputs();
+
+        UpdateResult::KeepGoing
     }
 
     pub fn handle_window_size_changed(&mut self, new_width: i32, new_height: i32) {

@@ -75,7 +75,6 @@ fn run_glutin(
     window_title: &str,
     settings_store: settings::FileSystemStore,
     state: state::State,
-    update: engine::UpdateFn,
 ) {
     log::info!("Using the glutin backend");
 
@@ -93,7 +92,6 @@ fn run_glutin(
         window_title,
         settings_store,
         Box::new(state),
-        update,
     );
 
     #[cfg(not(feature = "glutin-backend"))]
@@ -107,7 +105,6 @@ fn run_sdl(
     window_title: &str,
     settings_store: settings::FileSystemStore,
     state: state::State,
-    update: engine::UpdateFn,
 ) {
     log::info!("Using the sdl backend");
 
@@ -132,7 +129,6 @@ fn run_remote(
     window_title: &str,
     settings_store: settings::FileSystemStore,
     state: state::State,
-    update: engine::UpdateFn,
 ) {
     #[cfg(feature = "remote")]
     engine::remote::main_loop(
@@ -325,36 +321,14 @@ fn process_cli_and_run_game() {
     let display_size = DISPLAY_SIZE;
     let background = color::unexplored_background;
     let game_title = metadata::TITLE;
-    let game_update = game::update;
 
     let settings_store = settings::FileSystemStore::new();
     let backend = settings_store.load().backend;
 
     match backend.as_str() {
-        "remote" => run_remote(
-            display_size,
-            background,
-            game_title,
-            settings_store,
-            state,
-            game_update,
-        ),
-        "sdl" => run_sdl(
-            display_size,
-            background,
-            game_title,
-            settings_store,
-            state,
-            game_update,
-        ),
-        "glutin" => run_glutin(
-            display_size,
-            background,
-            game_title,
-            settings_store,
-            state,
-            game_update,
-        ),
+        "remote" => run_remote(display_size, background, game_title, settings_store, state),
+        "sdl" => run_sdl(display_size, background, game_title, settings_store, state),
+        "glutin" => run_glutin(display_size, background, game_title, settings_store, state),
         _ => {
             log::error!("Unknown backend: {}", backend);
         }

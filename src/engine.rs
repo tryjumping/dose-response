@@ -7,12 +7,9 @@ use crate::{
     point::Point,
     rect::Rectangle,
     settings::{Settings, Store as SettingsStore},
-    state::State,
     ui::Button,
     util,
 };
-
-use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
@@ -819,19 +816,5 @@ impl Display {
 fn rect_intersects_area(rect: Rectangle, area: Point) -> bool {
     rect.right() >= 0 && rect.left() < area.x && rect.top() < area.y && rect.bottom() >= 0
 }
-
-#[allow(dead_code)]
-pub type UpdateFn = fn(
-    &mut State,
-    dt: Duration,
-    size: Point,
-    fps: i32,
-    keys: &[Key],
-    mouse: Mouse,
-    settings: &mut Settings,
-    metrics: &dyn TextMetrics,
-    settings_store: &mut dyn SettingsStore,
-    display: &mut Display,
-) -> RunningState;
 
 include!(concat!(env!("OUT_DIR"), "/glyph_lookup_table.rs"));

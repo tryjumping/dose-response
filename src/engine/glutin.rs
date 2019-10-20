@@ -2,8 +2,8 @@ use crate::{
     color::Color,
     engine::{
         self,
-        loop_state::{LoopState, ResizeWindowAction},
-        RunningState, SettingsStore, TextMetrics, UpdateFn,
+        loop_state::{LoopState, ResizeWindowAction, UpdateResult},
+        SettingsStore,
     },
     keys::KeyCode,
     point::Point,
@@ -16,16 +16,6 @@ use glutin::{
     dpi::{LogicalPosition, LogicalSize},
     ElementState, KeyboardInput, MonitorId, VirtualKeyCode as BackendKey,
 };
-
-pub struct Metrics {
-    tile_width_px: i32,
-}
-
-impl TextMetrics for Metrics {
-    fn tile_width_px(&self) -> i32 {
-        self.tile_width_px
-    }
-}
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
@@ -138,7 +128,6 @@ pub fn main_loop<S>(
     window_title: &str,
     mut settings_store: S,
     initial_state: Box<State>,
-    update: UpdateFn,
 ) where
     S: SettingsStore,
 {
@@ -394,29 +383,10 @@ pub fn main_loop<S>(
             }
         });
 
-        let tile_width_px = loop_state.settings.tile_size;
-        let update_result = update(
-            &mut loop_state.game_state,
-            dt,
-            loop_state.game_display_size_tiles,
-            loop_state.fps,
-            &loop_state.keys,
-            loop_state.mouse,
-            &mut loop_state.settings,
-            &Metrics { tile_width_px },
-            &mut settings_store,
-            &mut loop_state.display,
-        );
-
-        match update_result {
-            RunningState::Running => {}
-            RunningState::NewGame(new_state) => {
-                loop_state.game_state = new_state;
-            }
-            RunningState::Stopped => break,
+        match loop_state.update_game(dt, &mut settings_store) {
+            UpdateResult::QuitRequested => break,
+            UpdateResult::KeepGoing => {}
         }
-
-        loop_state.reset_inputs();
 
         if cfg!(feature = "fullscreen") {
             use engine::loop_state::FullscreenAction::*;

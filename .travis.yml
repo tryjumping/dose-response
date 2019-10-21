@@ -11,20 +11,21 @@ env:
 
 matrix:
   include:
+    - env: TARGET=x86_64-unknown-linux-gnu
+      rust: stable  # was: nightly
+    - env: TARGET=x86_64-apple-darwin
+      rust: stable  # was: nightly
+      os: osx
+
     # Linux
     # - env: TARGET=i686-unknown-linux-gnu
     #   rust: nightly
     # - env: TARGET=i686-unknown-linux-musl
-    - env: TARGET=x86_64-unknown-linux-gnu
-      rust: stable  #nightly
     # - env: TARGET=x86_64-unknown-linux-musl
 
     # OSX
     # - env: TARGET=i686-apple-darwin
     #   os: osx
-    - env: TARGET=x86_64-apple-darwin
-      rust: stable  #nightly
-      os: osx
 
     # *BSD
     # - env: TARGET=i686-unknown-freebsd DISABLE_TESTS=1
@@ -70,7 +71,6 @@ deploy:
   file_glob: true
   file: $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
   on:
-    condition: $TRAVIS_RUST_VERSION = nightly
     tags: true
   provider: releases
   skip_cleanup: true

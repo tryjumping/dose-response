@@ -75,7 +75,6 @@ deploy:
     secure: "/ItkeB7N8x3jUWjM0NWJhVPjx5jaEcEGgTC1GYWUGCHQSQwKcQ/tUqoGj7+HwaCk"
   description: ''
   on:
-    RUST_VERSION: nightly
     appveyor_repo_tag: true
   provider: GitHub
 

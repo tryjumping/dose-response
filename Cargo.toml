@@ -48,7 +48,7 @@ winres = "0.1"
 
 [features]
 default = ["dev"]
-prod = ["desktop", "glutin-backend"]
+prod = ["desktop", "glutin-backend", "all-backends"]
 dev = ["desktop", "glutin-backend", "cheating", "replay", "stats", "verifications"]
 all-backends = ["glutin-backend", "sdl-backend"]
 desktop = ["cli", "fullscreen", "chrono"]

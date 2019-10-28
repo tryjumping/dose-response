@@ -260,12 +260,14 @@ pub fn main_loop<S>(
                     glutin::WindowEvent::Resized(size) => {
                         let LogicalSize { width, height } = size;
                         log::info!("WindowEvent::Resized: {:?}", size);
-                        dbg!(context.window().get_inner_size());
-                        dbg!(context.window().get_outer_size());
-                        dbg!(context.window().get_position());
-                        // TODO: is this missing the window resize?
-                        // let dpi_factor = gl_window.get_hidpi_factor();
-                        // gl_window.resize(logical_size.to_physical(dpi_factor));
+
+                        if let Some(monitor_id) = context.window().get_fullscreen() {
+                            log::warn!(
+                                "Asked to resize on fullscreen: target size: {:?}, monitor ID: {:?}. Ignoring this request.",
+                                size,
+                                monitor_id);
+                        }
+
                         context.resize(size.to_physical(context.window().get_hidpi_factor()));
                         loop_state.handle_window_size_changed(width as i32, height as i32);
                     }
@@ -456,33 +458,6 @@ pub fn main_loop<S>(
                 "Current monitor size: {:?}",
                 current_monitor.as_ref().map(|m| m.get_dimensions())
             );
-
-            let desired_window_size_px: Point = loop_state.desired_window_size_px().into();
-            if desired_window_size_px != loop_state.window_size_px {
-                if let Some(ref monitor) = current_monitor {
-                    let dim = monitor.get_dimensions();
-                    let monitor_width = dim.width as i32;
-                    let monitor_height = dim.height as i32;
-                    if desired_window_size_px.x <= monitor_width
-                        && desired_window_size_px.y <= monitor_height
-                    {
-                        log::info!(
-                            "Resetting the window to its expected size: {} x {}.",
-                            desired_window_size_px.x,
-                            desired_window_size_px.y,
-                        );
-                        context.window().set_inner_size(
-                            (
-                                desired_window_size_px.x as u32,
-                                desired_window_size_px.y as u32,
-                            )
-                                .into(),
-                        );
-                    } else {
-                        log::info!("TODO: try to resize but maintain aspect ratio.");
-                    }
-                }
-            }
         }
 
         // If we just switched from fullscreen back to a windowed

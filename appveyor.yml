@@ -39,11 +39,7 @@ install:
   - cargo -V
 
 test_script:
-  # we don't run the "test phase" when doing deploys
-  - if [%APPVEYOR_REPO_TAG%]==[false] (
-      cargo build --target %TARGET% &&
-      cargo build --target %TARGET% --release
-    )
+  - ps: ci\test.ps1
 
 before_deploy:
   - ps: >-
@@ -58,17 +54,9 @@ before_deploy:
         $Env:CMAKE_C_COMPILER = 'i686-w64-mingw32-gcc.exe'
         $Env:CMAKE_AR = 'i686-w64-mingw32-gcc-ar.exe'
       }
-  - dir "C:\msys64\mingw32\bin"
-  - echo %PATH%
-  - set
-  # TODO Update this to build the artifacts that matter to you
-  # - cargo rustc --target %TARGET% --release --bin hello -- -C lto
   - set CMAKE_MAKE_PROGRAM = 'mingw32-make.exe'
   - set CMAKE_C_COMPILER = 'gcc.exe'
   - set CMAKE_AR = 'gcc-ar.exe'
-  # Print all environment variables
-  - gci env:* | sort-object name
-  - cargo rustc --target %TARGET% --release  --no-default-features --features "prod windows-extra-features"
   - ps: ci\release.ps1
 
 deploy:

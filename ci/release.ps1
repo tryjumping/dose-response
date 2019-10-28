@@ -1,6 +1,12 @@
 # This script takes care of packaging the build artifacts that will go in the
 # release zipfile
 
+
+# Print all environment variables
+gci env:* | sort-object name
+
+cargo rustc --target %TARGET% --release --no-default-features --features "prod windows-extra-features"
+
 $SRC_DIR = $PWD.Path
 $STAGE = [System.Guid]::NewGuid().ToString()
 

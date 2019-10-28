@@ -16,8 +16,8 @@ main() {
     echo "Test environment:"
     env
 
-    cross build --features "test $extra_features" --target $TARGET
-    cross build --features "test $extra_features" --target $TARGET --release
+    cross build --features "test" --target $TARGET
+    cross build --features "test" --target $TARGET --release
 }
 
 if [ -z $TRAVIS_TAG ]; then

@@ -259,6 +259,11 @@ pub fn main_loop<S>(
 
                     glutin::WindowEvent::Resized(size) => {
                         let LogicalSize { width, height } = size;
+                        log::info!("WindowEvent::Resized: {:?}", size);
+                        dbg!(context.window().get_inner_size());
+                        dbg!(context.window().get_outer_size());
+                        dbg!(context.window().get_position());
+                        // TODO: is this missing the window resize?
                         // let dpi_factor = gl_window.get_hidpi_factor();
                         // gl_window.resize(logical_size.to_physical(dpi_factor));
                         context.resize(size.to_physical(context.window().get_hidpi_factor()));

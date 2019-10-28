@@ -3,12 +3,12 @@ If ($Env:APPVEYOR_REPO_TAG -eq "false") {
     # Print all environment variables
     gci env:* | sort-object name
 
-    cargo build --features "test windows-extra-features" --target %TARGET%
+    cargo build --features "test windows-extra-features" --target $Env:TARGET
     $native_call_success = $?
     if (-not $native_call_success) {
         throw 'error making native call'
     }
-    cargo build --features "test windows-extra-features" --target %TARGET% --release
+    cargo build --features "test windows-extra-features" --target $Env:TARGET --release
     $native_call_success = $?
     if (-not $native_call_success) {
         throw 'error making native call'

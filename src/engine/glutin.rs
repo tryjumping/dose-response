@@ -221,7 +221,7 @@ pub fn main_loop<S>(
             None => Default::default(),
         }
     };
-    log::debug!("Window pos: {:?}", window_pos);
+    log::info!("Window pos: {:?}", window_pos);
     let mut pre_fullscreen_window_pos = window_pos;
 
     let mut current_monitor = get_current_monitor(&monitors, window_pos);
@@ -234,7 +234,7 @@ pub fn main_loop<S>(
             monitor.get_dimensions()
         );
     }
-    log::debug!(
+    log::info!(
         "Current monitor: {:?}, pos: {:?}, size: {:?}",
         current_monitor.as_ref().map(|m| m.get_name()),
         current_monitor.as_ref().map(|m| m.get_position()),
@@ -393,7 +393,7 @@ pub fn main_loop<S>(
                     context.window().set_decorations(false);
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
-                        log::debug!(
+                        log::info!(
                             "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
                             monitor.get_name(),
                             monitor.get_position(),
@@ -408,7 +408,7 @@ pub fn main_loop<S>(
                     let window = context.window();
                     window.set_fullscreen(None);
                     let pos = window.get_position();
-                    log::debug!("New window position: {:?}", pos);
+                    log::info!("New window position: {:?}", pos);
                     window.set_decorations(true);
                     loop_state.switched_from_fullscreen = true;
                 }
@@ -418,6 +418,7 @@ pub fn main_loop<S>(
 
         match loop_state.check_window_size_needs_updating() {
             ResizeWindowAction::NewSize(desired_window_size_px) => {
+                log::info!("Updating window to new size: {:?}", desired_window_size_px);
                 let window = context.window();
                 let size: LogicalSize = desired_window_size_px.into();
                 window.set_inner_size(size);
@@ -443,8 +444,8 @@ pub fn main_loop<S>(
             // it gets resized. We can detect it because this event
             // fires on the first frame. So we ask it to resize to the
             // expected size again and leave it at that.
-            log::debug!(
-                "Current monitor: {:?}",
+            log::info!(
+                "Current monitor size: {:?}",
                 current_monitor.as_ref().map(|m| m.get_dimensions())
             );
 
@@ -457,7 +458,7 @@ pub fn main_loop<S>(
                     if desired_window_size_px.x <= monitor_width
                         && desired_window_size_px.y <= monitor_height
                     {
-                        log::debug!(
+                        log::info!(
                             "Resetting the window to its expected size: {} x {}.",
                             desired_window_size_px.x,
                             desired_window_size_px.y,
@@ -470,7 +471,7 @@ pub fn main_loop<S>(
                                 .into(),
                         );
                     } else {
-                        log::debug!("TODO: try to resize but maintain aspect ratio.");
+                        log::info!("TODO: try to resize but maintain aspect ratio.");
                     }
                 }
             }
@@ -488,7 +489,7 @@ pub fn main_loop<S>(
         }
     }
 
-    log::debug!(
+    log::info!(
         "Drawcall count: {}. Capacity: {}.",
         loop_state.overall_max_drawcall_count,
         engine::DRAWCALL_CAPACITY

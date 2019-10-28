@@ -27,7 +27,7 @@ environment:
 
 # Only build master, pull requests or tags. Ignore everything else.
 init:
-- ps: if !($env:APPVEYOR_REPO_BRANCH -eq "master" -or $Env:APPVEYOR_REPO_TAG -eq "false" -or $env:APPVEYOR_PULL_REQUEST_TITLE) {Exit-AppveyorBuild}
+- ps: if (!($env:APPVEYOR_REPO_BRANCH -eq "master" -or $Env:APPVEYOR_REPO_TAG -eq "false" -or $env:APPVEYOR_PULL_REQUEST_TITLE)) {Exit-AppveyorBuild}
 
 install:
   - ps: >-

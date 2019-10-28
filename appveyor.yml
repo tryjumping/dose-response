@@ -25,6 +25,10 @@ environment:
     # - TARGET: x86_64-pc-windows-msvc
     #   RUST_VERSION: nightly
 
+# Only build master, pull requests or tags. Ignore everything else.
+init:
+- ps: if !($env:APPVEYOR_REPO_BRANCH -eq "master" -or $Env:APPVEYOR_REPO_TAG -eq "false" -or $env:APPVEYOR_PULL_REQUEST_TITLE) {Exit-AppveyorBuild}
+
 install:
   - ps: >-
       If ($Env:TARGET -eq 'x86_64-pc-windows-gnu') {
@@ -71,12 +75,6 @@ deploy:
 cache:
   - C:\Users\appveyor\.cargo\registry
   - target
-
-branches:
-  only:
-    # Release tags
-    - /^v\d+\.\d+\.\d+.*$/
-    - master
 
 # disable automatic builds
 build: false

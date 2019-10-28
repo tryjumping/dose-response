@@ -2,7 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
-If ($Env:APPVEYOR_REPO_TAG == "false") {
+If ($Env:APPVEYOR_REPO_TAG -eq "false") {
     Write-Host "This is not a release tag. Running test builds."
     # Print all environment variables
     gci env:* | sort-object name

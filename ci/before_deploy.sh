@@ -20,6 +20,7 @@ main() {
 
     test -f Cargo.lock || cargo generate-lockfile
 
+    echo "Release environment:"
     env
 
     cross rustc --target $TARGET --release --no-default-features --features "prod $extra_features" -- -C lto

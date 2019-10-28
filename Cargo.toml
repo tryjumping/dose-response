@@ -50,6 +50,7 @@ winres = "0.1"
 default = ["dev"]
 prod = ["desktop", "glutin-backend"]
 dev = ["desktop", "glutin-backend", "cheating", "replay", "stats", "verifications"]
+test = ["dev", "prod", "all-backends"]
 all-backends = ["glutin-backend", "sdl-backend"]
 desktop = ["cli", "fullscreen", "chrono"]
 recording = ["prod", "replay"]

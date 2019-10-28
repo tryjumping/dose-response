@@ -1,24 +1,28 @@
-# This script takes care of testing your crate
-
 set -ex
 
-# TODO This is the "test phase", tweak it as you see fit
+# Run the test builds as well as any actual tests.
 main() {
-    cross build --features all-backends --target $TARGET
-    cross build --features all-backends --target $TARGET --release
+    local extra_features=
 
-    if [ ! -z $DISABLE_TESTS ]; then
-        return
-    fi
+    case $TRAVIS_OS_NAME in
+        linux)
+            extra_features="linux-extra-features"
+            ;;
+        osx)
+            extra_features="macos-extra-features"
+            ;;
+    esac
 
-    # cross test --target $TARGET
-    # cross test --target $TARGET --release
+    echo "Test environment:"
+    env
 
-    # cross run --target $TARGET
-    # cross run --target $TARGET --release
+    cross build --features "test $extra_features" --target $TARGET
+    cross build --features "test $extra_features" --target $TARGET --release
 }
 
-# we don't run the "test phase" when doing deploys
 if [ -z $TRAVIS_TAG ]; then
+    echo "This is not a release tag. Running test builds."
     main
+else
+    echo "This is a release tag: $TRAVIS_TAG. Skipping test builds."
 fi

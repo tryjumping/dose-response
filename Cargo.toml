@@ -63,10 +63,16 @@ glutin-backend = ["glutin", "gl", "image"]
 remote = ["zmq"]
 replay = ["chrono"]
 sdl-backend = ["sdl2", "gl", "image"]
-sdl-static-link = ["sdl2", "sdl2/static-link"]
+# NOTE: You need the `sdl-backend` feature for this to have any
+# effect. We want it to be orthogonal to the actual backends so you
+# need to enable both.
+sdl-static-link = ["sdl2/static-link"]
 stats = []
 verifications = []
 web = []
+linux-extra-features = []
+macos-extra-features = ["sdl-static-link"]
+windows-extra-features = ["sdl-static-link"]
 
 
 [profile.release]

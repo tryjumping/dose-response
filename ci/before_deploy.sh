@@ -10,11 +10,11 @@ main() {
     case $TRAVIS_OS_NAME in
         linux)
             stage=$(mktemp -d)
-            extra_features=""
+            extra_features="linux-extra-features"
             ;;
         osx)
             stage=$(mktemp -d -t tmp)
-            extra_features="sdl-static-link"
+            extra_features="macos-extra-features"
             ;;
     esac
 

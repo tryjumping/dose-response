@@ -58,12 +58,12 @@ install:
   - source ~/.cargo/env || true
 
 script:
-  - bash ci/script.sh
+  - bash ci/test.sh
 
 after_script: set +e
 
 before_deploy:
-  - sh ci/before_deploy.sh
+  - sh ci/release.sh
 
 deploy:
   api_key:

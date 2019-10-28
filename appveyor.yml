@@ -69,7 +69,7 @@ before_deploy:
   # Print all environment variables
   - gci env:* | sort-object name
   - cargo rustc --target %TARGET% --release  --no-default-features --features "prod windows-extra-features"
-  - ps: ci\before_deploy.ps1
+  - ps: ci\release.ps1
 
 deploy:
   artifact: /.*\.tar.gz/

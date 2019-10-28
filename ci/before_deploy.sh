@@ -20,6 +20,8 @@ main() {
 
     test -f Cargo.lock || cargo generate-lockfile
 
+    env
+
     cross rustc --target $TARGET --release --no-default-features --features "prod $extra_features" -- -C lto
 
     mkdir -p $stage/"Dose Response"

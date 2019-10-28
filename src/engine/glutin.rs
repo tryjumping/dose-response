@@ -395,7 +395,6 @@ pub fn main_loop<S>(
             use engine::loop_state::FullscreenAction::*;
             match loop_state.fullscreen_action() {
                 Some(SwitchToFullscreen) => {
-                    context.window().set_decorations(false);
                     if let Some(ref monitor) = current_monitor {
                         pre_fullscreen_window_pos = window_pos;
                         log::info!(
@@ -404,9 +403,13 @@ pub fn main_loop<S>(
                             monitor.get_position(),
                             monitor.get_dimensions()
                         );
+                        // TODO: let's see if we need to set
+                        // decorations explicitly. Remove this line if
+                        // we don't actually need it.
+                        //context.window().set_decorations(false);
                         context.window().set_fullscreen(Some(monitor.clone()));
                     } else {
-                        log::debug!("`current_monitor` is not set!??");
+                        log::warn!("`current_monitor` is not set!??");
                     }
                 }
                 Some(SwitchToWindowed) => {

@@ -343,5 +343,6 @@ fn process_cli_and_run_game() {
 fn process_cli_and_run_game() {}
 
 fn main() {
+    lol
     process_cli_and_run_game();
 }

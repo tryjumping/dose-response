@@ -32,7 +32,7 @@ void main() {
 	//
 	// `+ (0.5 * extra_px / full_dimension_px)` centeres the image,
 	// letterboxing it.
-    vec2 pos_fit_to_screen = pos_px / native_display_px * (display_px / full_dimension_px) + (0.5 * extra_px / full_dimension_px);
+    vec2 pos_fit_to_screen = pos_px / native_display_px * (display_px / full_dimension_px);
 
 	// Convert the y-is-down (0, 1) coordinate system to OpenGl's
 	// y-is-up, (-1, 1)

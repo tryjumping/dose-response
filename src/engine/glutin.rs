@@ -431,7 +431,6 @@ pub fn main_loop<S>(
                 log::info!("Updating window to new size: {:?}", desired_window_size_px);
                 let window = context.window();
                 let size: LogicalSize = desired_window_size_px.into();
-                window.set_inner_size(size);
                 context.resize(size.to_physical(window.get_hidpi_factor()));
             }
             ResizeWindowAction::NoChange => {}

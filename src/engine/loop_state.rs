@@ -198,12 +198,6 @@ impl LoopState {
         let new_window_size_px = Point::new(new_width, new_height);
         if self.window_size_px != new_window_size_px {
             self.window_size_px = new_window_size_px;
-
-            // NOTE: Update the tilesize if we get a perfect match
-            if new_height > 0 && new_height % crate::DISPLAY_SIZE.y == 0 {
-                let new_tilesize_px = new_height / crate::DISPLAY_SIZE.y;
-                self.change_tilesize_px(new_tilesize_px);
-            };
         }
     }
 

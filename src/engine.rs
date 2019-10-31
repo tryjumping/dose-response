@@ -476,35 +476,12 @@ fn calculate_display_info(
     let unscaled_game_width = tilecount_x * tilesize;
     let unscaled_game_height = tilecount_y * tilesize;
 
-    // TODO: we're assuming that the unscaled dimensions
-    // already fit into the display. So the game is only going
-    // to be scaled up, not down.
-
-    // NOTE: try if the hight should fill the display area
-    let scaled_tilesize = (window_height / tilecount_y).floor();
-    let scaled_width = scaled_tilesize * tilecount_x;
-    let scaled_height = scaled_tilesize * tilecount_y;
-    let (final_scaled_width, final_scaled_height) = if scaled_width <= window_width {
-        (scaled_width, scaled_height)
-    } else {
-        // NOTE: try if the width should fill the display area
-        let scaled_tilesize = (window_width / tilecount_x).floor();
-        let scaled_width = scaled_tilesize * tilecount_x;
-        let scaled_height = scaled_tilesize * tilecount_y;
-
-        if scaled_height <= window_height {
-            // NOTE: we're good
-        } else {
-            log::error!("Can't scale neither to width nor height wtf.");
-        }
-        (scaled_width, scaled_height)
-    };
-
+    // TODO: remove `native_display_px`, they're equal now
     let native_display_px = [unscaled_game_width, unscaled_game_height];
-    let display_px = [final_scaled_width, final_scaled_height];
+    let display_px = native_display_px;
     let extra_px = [
-        window_width - final_scaled_width,
-        window_height - final_scaled_height,
+        window_width - unscaled_game_width,
+        window_height - unscaled_game_height,
     ];
 
     DisplayInfo {

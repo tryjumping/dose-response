@@ -519,7 +519,16 @@ fn process_game(
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
         let display_pos = state.player.pos - screen_left_top_corner;
-        let ms = if state.replay_full_speed { 100 } else { 400 };
+        // NOTE: this is the re-center speed. We calculate it based on
+        // the map size. That way the speed itself remains more or
+        // less constant.
+        let scroll_rate_ms_per_tile = 14;
+        let max_display_size = std::cmp::max(state.map_size.x, state.map_size.y) as u64;
+        let ms = if state.replay_full_speed {
+            100
+        } else {
+            scroll_rate_ms_per_tile * max_display_size
+        };
         let dur = Duration::from_millis(ms);
         let exploration_radius = formula::exploration_radius(state.player.mind);
         // TODO: move the screen roughly the same distance along X and Y

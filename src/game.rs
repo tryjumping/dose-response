@@ -63,6 +63,12 @@ pub fn update(
 
     if display.size_without_padding() != (state.map_size.x + state.panel_width, state.map_size.y) {
         state.map_size = display.size_without_padding() - Point::new(state.panel_width, 0);
+
+        // TODO: This is a massive hack! We shouldn't keep the
+        // `state.display_size` value. Just get it from the Display
+        // struct everywhere! But right now, a lot of code is using
+        // it.
+        state.display_size = display.size_without_padding();
     }
     assert_eq!(
         display.size_without_padding(),

@@ -589,6 +589,15 @@ impl Display {
         self.display_size + (self.padding * 2)
     }
 
+    /// This is the size of the display as originally requested.
+    ///
+    /// There is no padding here -- this should correspond to what's
+    /// shown on the screen when there is no scrolling or other
+    /// shennanigans going on.
+    pub fn size_without_padding(&self) -> Point {
+        self.display_size
+    }
+
     fn index(&self, pos: Point) -> Option<usize> {
         if self.contains(pos) {
             let pos = pos + self.padding;

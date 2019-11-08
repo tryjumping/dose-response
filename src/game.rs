@@ -61,6 +61,14 @@ pub fn update(
     state.clock += dt;
     state.replay_step += dt;
 
+    if display.size_without_padding() != (state.map_size.x + state.panel_width, state.map_size.y) {
+        state.map_size = display.size_without_padding() - Point::new(state.panel_width, 0);
+    }
+    assert_eq!(
+        display.size_without_padding(),
+        (state.map_size.x + state.panel_width, state.map_size.y)
+    );
+
     state.keys.extend(new_keys.iter().cloned());
     state.mouse = mouse;
 

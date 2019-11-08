@@ -166,7 +166,7 @@ pub struct State {
 impl State {
     fn new<W: Write + 'static>(
         world_size: Point,
-        map_size: i32,
+        map_size: Point,
         panel_width: i32,
         display_size: Point,
         commands: VecDeque<Command>,
@@ -181,7 +181,7 @@ impl State {
     ) -> State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
-        assert_eq!(display_size, (map_size + panel_width, map_size));
+        assert_eq!(display_size, (map_size.x + panel_width, map_size.y));
         let player_position = world_centre;
         let player = Player::new(player_position, invincible);
         let mut rng = Random::from_seed(u64::from(seed));
@@ -193,7 +193,7 @@ impl State {
             chunk_size: 32,
             world_size,
             world,
-            map_size: (map_size, map_size).into(),
+            map_size: map_size,
             panel_width,
             display_size,
             screen_position_in_world: world_centre,
@@ -238,7 +238,7 @@ impl State {
 
     pub fn new_game(
         world_size: Point,
-        map_size: i32,
+        map_size: Point,
         panel_width: i32,
         display_size: Point,
         exit_after: bool,
@@ -313,7 +313,7 @@ Reason: '{}'.",
     #[cfg(feature = "replay")]
     pub fn replay_game(
         world_size: Point,
-        map_size: i32,
+        map_size: Point,
         panel_width: i32,
         display_size: Point,
         replay_path: &Path,

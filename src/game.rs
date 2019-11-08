@@ -1562,7 +1562,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
 fn create_new_game_state(state: &State) -> State {
     State::new_game(
         state.world_size,
-        state.map_size.x,
+        state.map_size,
         state.panel_width,
         state.display_size,
         state.exit_after,

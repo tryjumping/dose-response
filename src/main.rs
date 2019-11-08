@@ -282,7 +282,7 @@ fn process_cli_and_run_game() {
         let replay_path = std::path::Path::new(replay);
         state::State::replay_game(
             WORLD_SIZE,
-            DISPLAYED_MAP_SIZE,
+            point::Point::from_i32(DISPLAYED_MAP_SIZE),
             PANEL_WIDTH,
             DISPLAY_SIZE,
             &replay_path,
@@ -305,7 +305,7 @@ fn process_cli_and_run_game() {
         };
         let mut state = state::State::new_game(
             WORLD_SIZE,
-            DISPLAYED_MAP_SIZE,
+            point::Point::from_i32(DISPLAYED_MAP_SIZE),
             PANEL_WIDTH,
             DISPLAY_SIZE,
             matches.is_present("exit-after"),

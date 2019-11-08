@@ -197,6 +197,9 @@ impl LoopState {
         let new_window_size_px = Point::new(new_width, new_height);
         if self.window_size_px != new_window_size_px {
             self.window_size_px = new_window_size_px;
+            self.game_display_size_tiles.x = new_window_size_px.x / self.settings.tile_size;
+            self.game_display_size_tiles.y = new_window_size_px.y / self.settings.tile_size;
+            self.display = Display::new(self.game_display_size_tiles, self.settings.tile_size);
         }
     }
 

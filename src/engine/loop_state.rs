@@ -81,8 +81,7 @@ impl LoopState {
             engine::VERTEX_COMPONENT_COUNT * 4
         );
 
-        let padding = Point::from_i32(game_display_size_tiles.y / 2);
-        let display = Display::new(game_display_size_tiles, padding, settings.tile_size);
+        let display = Display::new(game_display_size_tiles, settings.tile_size);
         let image = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
             image::load_from_memory_with_format(data, image::PNG)

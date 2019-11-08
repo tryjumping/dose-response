@@ -549,11 +549,18 @@ pub struct Display {
 
 #[allow(dead_code)]
 impl Display {
-    pub fn new(display_size: Point, padding: Point, tilesize: i32) -> Self {
+    /// Create a new Display.
+    ///
+    /// `display_size`: number of tiles shown on the screen
+    /// `tilesize`: size (in pixels) of a single tile. Tiles are square.
+    pub fn new(display_size: Point, tilesize: i32) -> Self {
         assert!(display_size > Point::zero());
-        assert!(padding >= Point::zero());
         assert!(tilesize > 0);
+        // NOTE: this padding is only here to make the screen scroll smoothly.
+        // Without it, the partial tiles would not appear.
+        let padding = Point::from_i32(1);
         let size = display_size + (padding * 2);
+        log::info!("Creating the internal Display: {:?}", size);
         Display {
             display_size,
             padding,
@@ -577,16 +584,15 @@ impl Display {
         self.clear_background_color = Some(background);
     }
 
-    /// This is the full display size: game plus padding!
-    // TODO: rename this to `screen_size_in_tiles`
-    pub fn size(&self) -> Point {
+    /// This is the full display size: game plus padding.
+    pub fn full_size_with_padding_in_tiles(&self) -> Point {
         self.display_size + (self.padding * 2)
     }
 
     fn index(&self, pos: Point) -> Option<usize> {
         if self.contains(pos) {
             let pos = pos + self.padding;
-            Some((pos.y * self.size().x + pos.x) as usize)
+            Some((pos.y * self.full_size_with_padding_in_tiles().x + pos.x) as usize)
         } else {
             None
         }
@@ -734,7 +740,7 @@ impl Display {
 
     pub fn cells(&self) -> impl Iterator<Item = (Point, &Cell)> {
         let padding = self.padding;
-        let width = self.size().x;
+        let width = self.full_size_with_padding_in_tiles().x;
         self.map.iter().enumerate().map(move |(index, cell)| {
             let pos = Point::new(index as i32 % width, index as i32 / width);
             let pos = pos - padding;

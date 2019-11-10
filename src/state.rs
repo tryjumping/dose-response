@@ -281,7 +281,7 @@ Reason: '{}'.",
     #[allow(dead_code)]
     pub fn replay_game(
         world_size: Point,
-        map_size: i32,
+        map_size: Point,
         panel_width: i32,
         _replay_path: &Path,
         _cheating: bool,

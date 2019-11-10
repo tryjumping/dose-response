@@ -26,14 +26,14 @@ struct Layout {
 pub struct Window;
 
 impl Window {
-    fn layout(&self, state: &State, metrics: &dyn TextMetrics) -> Layout {
+    fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &Display) -> Layout {
         let mut action_under_mouse = None;
         let mut rect_under_mouse = None;
 
         let padding = Point::from_i32(1);
         let size = Point::new(37, 17) + (padding * 2);
         let top_left = Point {
-            x: (state.display_size.x - size.x) / 2,
+            x: (display.size_without_padding().x - size.x) / 2,
             y: 7,
         };
 
@@ -87,7 +87,7 @@ impl Window {
         use self::CauseOfDeath::*;
         use crate::ui::Text::*;
 
-        let layout = self.layout(state, metrics);
+        let layout = self.layout(state, metrics, display);
 
         let cause_of_death = formula::cause_of_death(&state.player);
 
@@ -172,8 +172,13 @@ impl Window {
         display.draw_button(&layout.menu_button);
     }
 
-    pub fn hovered(&self, state: &State, metrics: &dyn TextMetrics) -> Option<Action> {
-        self.layout(state, metrics).action_under_mouse
+    pub fn hovered(
+        &self,
+        state: &State,
+        metrics: &dyn TextMetrics,
+        display: &Display,
+    ) -> Option<Action> {
+        self.layout(state, metrics, display).action_under_mouse
     }
 }
 

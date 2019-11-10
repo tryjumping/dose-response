@@ -16,11 +16,11 @@ struct Layout {
 pub struct Window;
 
 impl Window {
-    fn layout(&self, state: &State, metrics: &dyn TextMetrics) -> Layout {
+    fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) -> Layout {
         let padding = Point::from_i32(1);
         let size = Point::new(37, 17) + (padding * 2);
         let top_left = Point {
-            x: (state.display_size.x - size.x) / 2,
+            x: (display.size_without_padding().x - size.x) / 2,
             y: 7,
         };
 
@@ -37,7 +37,7 @@ impl Window {
     pub fn render(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) {
         use crate::ui::Text::*;
 
-        let layout = self.layout(state, metrics);
+        let layout = self.layout(state, metrics, display);
 
         let lines = vec![
             EmptySpace(1),

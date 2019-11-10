@@ -63,12 +63,6 @@ pub fn update(
 
     if display.size_without_padding() != (state.map_size.x + state.panel_width, state.map_size.y) {
         state.map_size = display.size_without_padding() - Point::new(state.panel_width, 0);
-
-        // TODO: This is a massive hack! We shouldn't keep the
-        // `state.display_size` value. Just get it from the Display
-        // struct everywhere! But right now, a lot of code is using
-        // it.
-        state.display_size = display.size_without_padding();
     }
     assert_eq!(
         display.size_without_padding(),
@@ -109,13 +103,18 @@ pub fn update(
 
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
-        Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
-        Window::Game => process_game(state, settings, &sidebar::Window, metrics, dt),
-        Window::Settings => {
-            process_settings_window(state, settings, &settings::Window, metrics, settings_store)
-        }
-        Window::Help => process_help_window(state, &help::Window, metrics),
-        Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
+        Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics, display),
+        Window::Game => process_game(state, settings, &sidebar::Window, metrics, display, dt),
+        Window::Settings => process_settings_window(
+            state,
+            settings,
+            &settings::Window,
+            metrics,
+            display,
+            settings_store,
+        ),
+        Window::Help => process_help_window(state, &help::Window, metrics, display),
+        Window::Endgame => process_endgame_window(state, &endgame::Window, metrics, display),
         Window::Message { .. } => process_message_window(state),
     };
 
@@ -173,12 +172,13 @@ fn process_game(
     settings: &Settings,
     window: &sidebar::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
     dt: Duration,
 ) -> RunningState {
     use self::sidebar::Action;
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, metrics, display)
     } else {
         None
     };
@@ -578,11 +578,12 @@ fn process_main_menu(
     state: &mut State,
     window: &main_menu::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
 ) -> RunningState {
     use crate::windows::main_menu::MenuItem::*;
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, metrics, display)
     } else {
         None
     };
@@ -686,6 +687,7 @@ fn process_settings_window(
     settings: &mut Settings,
     window: &settings::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
     store: &mut dyn SettingsStore,
 ) -> RunningState {
     use crate::windows::settings::Action::*;
@@ -696,7 +698,7 @@ fn process_settings_window(
     }
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, settings, metrics)
+        window.hovered(&state, settings, metrics, display)
     } else {
         None
     };
@@ -765,6 +767,7 @@ fn process_help_window(
     state: &mut State,
     window: &help::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
 ) -> RunningState {
     use self::help::Action;
 
@@ -774,7 +777,7 @@ fn process_help_window(
     }
 
     let mut action = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, metrics, display)
     } else {
         None
     };
@@ -814,11 +817,12 @@ fn process_endgame_window(
     state: &mut State,
     window: &endgame::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
 ) -> RunningState {
     use crate::windows::endgame::Action::*;
 
     let mut action = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, metrics, display)
     } else {
         None
     };
@@ -1587,7 +1591,6 @@ fn create_new_game_state(state: &State) -> State {
         state.world_size,
         state.map_size,
         state.panel_width,
-        state.display_size,
         state.exit_after,
         state::generate_replay_path(),
         state.player.invincible,

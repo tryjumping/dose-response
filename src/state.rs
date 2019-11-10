@@ -109,10 +109,6 @@ pub struct State {
     /// The width of the in-game status panel.
     pub panel_width: i32,
 
-    /// The size of the game window in tiles. The area stuff is
-    /// rendered to. NOTE: currently, the width is equal to map_size +
-    /// panel_width, height is map_size.
-    pub display_size: Point,
     pub screen_position_in_world: Point,
     pub seed: u32,
     pub rng: Random,
@@ -168,7 +164,6 @@ impl State {
         world_size: Point,
         map_size: Point,
         panel_width: i32,
-        display_size: Point,
         commands: VecDeque<Command>,
         verifications: VecDeque<Verification>,
         log_writer: W,
@@ -181,7 +176,6 @@ impl State {
     ) -> State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
-        assert_eq!(display_size, (map_size.x + panel_width, map_size.y));
         let player_position = world_centre;
         let player = Player::new(player_position, invincible);
         let mut rng = Random::from_seed(u64::from(seed));
@@ -195,7 +189,6 @@ impl State {
             world,
             map_size: map_size,
             panel_width,
-            display_size,
             screen_position_in_world: world_centre,
             seed,
             rng,
@@ -240,7 +233,6 @@ impl State {
         world_size: Point,
         map_size: Point,
         panel_width: i32,
-        display_size: Point,
         exit_after: bool,
         replay_path: Option<PathBuf>,
         invincible: bool,
@@ -273,7 +265,6 @@ Reason: '{}'.",
             world_size,
             map_size,
             panel_width,
-            display_size,
             commands,
             verifications,
             writer,
@@ -292,7 +283,6 @@ Reason: '{}'.",
         world_size: Point,
         map_size: i32,
         panel_width: i32,
-        display_size: Point,
         _replay_path: &Path,
         _cheating: bool,
         invincible: bool,
@@ -303,7 +293,6 @@ Reason: '{}'.",
             world_size,
             map_size,
             panel_width,
-            display_size,
             exit_after,
             None,
             invincible,
@@ -315,7 +304,6 @@ Reason: '{}'.",
         world_size: Point,
         map_size: Point,
         panel_width: i32,
-        display_size: Point,
         replay_path: &Path,
         cheating: bool,
         invincible: bool,
@@ -386,7 +374,6 @@ Reason: '{}'.",
             world_size,
             map_size,
             panel_width,
-            display_size,
             commands,
             verifications,
             Box::new(io::sink()),

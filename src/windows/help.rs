@@ -83,11 +83,11 @@ struct Layout {
 pub struct Window;
 
 impl Window {
-    fn layout(&self, state: &State, metrics: &dyn TextMetrics) -> Layout {
+    fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &Display) -> Layout {
         let screen_padding = Point::from_i32(2);
         let window_rect = Rectangle::from_point_and_size(
             screen_padding,
-            state.display_size - (screen_padding * 2),
+            display.size_without_padding() - (screen_padding * 2),
         );
 
         let rect = Rectangle::new(
@@ -133,7 +133,7 @@ impl Window {
     pub fn render(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) {
         use crate::ui::Text::*;
 
-        let layout = self.layout(state, metrics);
+        let layout = self.layout(state, metrics, display);
 
         display.draw_rectangle(layout.window_rect, color::window_edge);
 
@@ -309,7 +309,12 @@ impl Window {
         }
     }
 
-    pub fn hovered(&self, state: &State, metrics: &dyn TextMetrics) -> Option<Action> {
-        self.layout(state, metrics).action_under_mouse
+    pub fn hovered(
+        &self,
+        state: &State,
+        metrics: &dyn TextMetrics,
+        display: &Display,
+    ) -> Option<Action> {
+        self.layout(state, metrics, display).action_under_mouse
     }
 }

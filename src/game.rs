@@ -48,7 +48,6 @@ pub enum RunningState {
 pub fn update(
     state: &mut State,
     dt: Duration,
-    _display_size: Point,
     fps: i32,
     new_keys: &[Key],
     mouse: Mouse,

@@ -42,7 +42,6 @@ impl TextMetrics for Metrics {
 pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
-    pub game_display_size_tiles: Point,
     pub window_size_px: Point,
     pub display: Display,
     pub image: RgbaImage,
@@ -110,7 +109,6 @@ impl LoopState {
         Self {
             settings,
             previous_settings,
-            game_display_size_tiles,
             display,
             image,
             default_background,
@@ -142,10 +140,8 @@ impl LoopState {
     }
 
     pub fn desired_window_size_px(&self) -> (u32, u32) {
-        (
-            self.game_display_size_tiles.x as u32 * self.settings.tile_size as u32,
-            self.game_display_size_tiles.y as u32 * self.settings.tile_size as u32,
-        )
+        let result = self.display.size_without_padding() * self.settings.tile_size;
+        (result.x as u32, result.y as u32)
     }
 
     pub fn update_fps(&mut self, dt: Duration) {
@@ -169,7 +165,6 @@ impl LoopState {
         let update_result = crate::game::update(
             &mut self.game_state,
             dt,
-            self.game_display_size_tiles,
             self.fps,
             &self.keys,
             self.mouse,
@@ -197,9 +192,11 @@ impl LoopState {
         let new_window_size_px = Point::new(new_width, new_height);
         if self.window_size_px != new_window_size_px {
             self.window_size_px = new_window_size_px;
-            self.game_display_size_tiles.x = new_window_size_px.x / self.settings.tile_size;
-            self.game_display_size_tiles.y = new_window_size_px.y / self.settings.tile_size;
-            self.display = Display::new(self.game_display_size_tiles, self.settings.tile_size);
+            let new_display_size_tiles = Point::new(
+                new_window_size_px.x / self.settings.tile_size,
+                new_window_size_px.y / self.settings.tile_size,
+            );
+            self.display = Display::new(new_display_size_tiles, self.settings.tile_size);
         }
     }
 
@@ -230,7 +227,7 @@ impl LoopState {
                 self.window_size_px.x as f32 * dpi as f32,
                 self.window_size_px.y as f32 * dpi as f32,
             ],
-            self.game_display_size_tiles,
+            self.display.size_without_padding(),
             self.settings.tile_size,
         )
     }
@@ -253,10 +250,10 @@ impl LoopState {
 
         self.mouse.screen_pos = Point { x, y };
 
-        let tile_width = display_info.display_px[0] as i32 / self.game_display_size_tiles.x;
+        let tile_width = display_info.display_px[0] as i32 / self.display.size_without_padding().x;
         let mouse_tile_x = x / tile_width;
 
-        let tile_height = display_info.display_px[1] as i32 / self.game_display_size_tiles.y;
+        let tile_height = display_info.display_px[1] as i32 / self.display.size_without_padding().y;
         let mouse_tile_y = y / tile_height;
 
         self.mouse.tile_pos = Point {

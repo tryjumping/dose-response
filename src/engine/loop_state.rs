@@ -42,7 +42,6 @@ impl TextMetrics for Metrics {
 pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
-    pub game_display_size_tiles: Point,
     pub window_size_px: Point,
     pub display: Display,
     pub image: RgbaImage,
@@ -81,8 +80,7 @@ impl LoopState {
             engine::VERTEX_COMPONENT_COUNT * 4
         );
 
-        let padding = Point::from_i32(game_display_size_tiles.y / 2);
-        let display = Display::new(game_display_size_tiles, padding, settings.tile_size);
+        let display = Display::new(game_display_size_tiles, settings.tile_size);
         let image = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
             image::load_from_memory_with_format(data, image::PNG)
@@ -111,7 +109,6 @@ impl LoopState {
         Self {
             settings,
             previous_settings,
-            game_display_size_tiles,
             display,
             image,
             default_background,
@@ -143,10 +140,8 @@ impl LoopState {
     }
 
     pub fn desired_window_size_px(&self) -> (u32, u32) {
-        (
-            self.game_display_size_tiles.x as u32 * self.settings.tile_size as u32,
-            self.game_display_size_tiles.y as u32 * self.settings.tile_size as u32,
-        )
+        let result = self.display.size_without_padding() * self.settings.tile_size;
+        (result.x as u32, result.y as u32)
     }
 
     pub fn update_fps(&mut self, dt: Duration) {
@@ -170,7 +165,6 @@ impl LoopState {
         let update_result = crate::game::update(
             &mut self.game_state,
             dt,
-            self.game_display_size_tiles,
             self.fps,
             &self.keys,
             self.mouse,
@@ -198,12 +192,11 @@ impl LoopState {
         let new_window_size_px = Point::new(new_width, new_height);
         if self.window_size_px != new_window_size_px {
             self.window_size_px = new_window_size_px;
-
-            // NOTE: Update the tilesize if we get a perfect match
-            if new_height > 0 && new_height % crate::DISPLAY_SIZE.y == 0 {
-                let new_tilesize_px = new_height / crate::DISPLAY_SIZE.y;
-                self.change_tilesize_px(new_tilesize_px);
-            };
+            let new_display_size_tiles = Point::new(
+                new_window_size_px.x / self.settings.tile_size,
+                new_window_size_px.y / self.settings.tile_size,
+            );
+            self.display = Display::new(new_display_size_tiles, self.settings.tile_size);
         }
     }
 
@@ -234,7 +227,7 @@ impl LoopState {
                 self.window_size_px.x as f32 * dpi as f32,
                 self.window_size_px.y as f32 * dpi as f32,
             ],
-            self.game_display_size_tiles,
+            self.display.size_without_padding(),
             self.settings.tile_size,
         )
     }
@@ -257,10 +250,10 @@ impl LoopState {
 
         self.mouse.screen_pos = Point { x, y };
 
-        let tile_width = display_info.display_px[0] as i32 / self.game_display_size_tiles.x;
+        let tile_width = display_info.display_px[0] as i32 / self.display.size_without_padding().x;
         let mouse_tile_x = x / tile_width;
 
-        let tile_height = display_info.display_px[1] as i32 / self.game_display_size_tiles.y;
+        let tile_height = display_info.display_px[1] as i32 / self.display.size_without_padding().y;
         let mouse_tile_y = y / tile_height;
 
         self.mouse.tile_pos = Point {

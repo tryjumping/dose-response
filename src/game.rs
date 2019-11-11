@@ -48,7 +48,6 @@ pub enum RunningState {
 pub fn update(
     state: &mut State,
     dt: Duration,
-    _display_size: Point,
     fps: i32,
     new_keys: &[Key],
     mouse: Mouse,
@@ -60,6 +59,14 @@ pub fn update(
     let update_stopwatch = Stopwatch::start();
     state.clock += dt;
     state.replay_step += dt;
+
+    if display.size_without_padding() != (state.map_size.x + state.panel_width, state.map_size.y) {
+        state.map_size = display.size_without_padding() - Point::new(state.panel_width, 0);
+    }
+    assert_eq!(
+        display.size_without_padding(),
+        (state.map_size.x + state.panel_width, state.map_size.y)
+    );
 
     state.keys.extend(new_keys.iter().cloned());
     state.mouse = mouse;
@@ -95,13 +102,18 @@ pub fn update(
 
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
-        Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics),
-        Window::Game => process_game(state, settings, &sidebar::Window, metrics, dt),
-        Window::Settings => {
-            process_settings_window(state, settings, &settings::Window, metrics, settings_store)
-        }
-        Window::Help => process_help_window(state, &help::Window, metrics),
-        Window::Endgame => process_endgame_window(state, &endgame::Window, metrics),
+        Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics, display),
+        Window::Game => process_game(state, settings, &sidebar::Window, metrics, display, dt),
+        Window::Settings => process_settings_window(
+            state,
+            settings,
+            &settings::Window,
+            metrics,
+            display,
+            settings_store,
+        ),
+        Window::Help => process_help_window(state, &help::Window, metrics, display),
+        Window::Endgame => process_endgame_window(state, &endgame::Window, metrics, display),
         Window::Message { .. } => process_message_window(state),
     };
 
@@ -159,12 +171,13 @@ fn process_game(
     settings: &Settings,
     window: &sidebar::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
     dt: Duration,
 ) -> RunningState {
     use self::sidebar::Action;
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, metrics, display)
     } else {
         None
     };
@@ -511,7 +524,16 @@ fn process_game(
     // NOTE: re-centre the display if the player reached the end of the screen
     if state.pos_timer.finished() {
         let display_pos = state.player.pos - screen_left_top_corner;
-        let ms = if state.replay_full_speed { 100 } else { 400 };
+        // NOTE: this is the re-center speed. We calculate it based on
+        // the map size. That way the speed itself remains more or
+        // less constant.
+        let scroll_rate_ms_per_tile = 14;
+        let max_display_size = std::cmp::max(state.map_size.x, state.map_size.y) as u64;
+        let ms = if state.replay_full_speed {
+            100
+        } else {
+            scroll_rate_ms_per_tile * max_display_size
+        };
         let dur = Duration::from_millis(ms);
         let exploration_radius = formula::exploration_radius(state.player.mind);
         // TODO: move the screen roughly the same distance along X and Y
@@ -555,11 +577,12 @@ fn process_main_menu(
     state: &mut State,
     window: &main_menu::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
 ) -> RunningState {
     use crate::windows::main_menu::MenuItem::*;
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, metrics, display)
     } else {
         None
     };
@@ -663,6 +686,7 @@ fn process_settings_window(
     settings: &mut Settings,
     window: &settings::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
     store: &mut dyn SettingsStore,
 ) -> RunningState {
     use crate::windows::settings::Action::*;
@@ -673,7 +697,7 @@ fn process_settings_window(
     }
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, settings, metrics)
+        window.hovered(&state, settings, metrics, display)
     } else {
         None
     };
@@ -742,6 +766,7 @@ fn process_help_window(
     state: &mut State,
     window: &help::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
 ) -> RunningState {
     use self::help::Action;
 
@@ -751,7 +776,7 @@ fn process_help_window(
     }
 
     let mut action = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, metrics, display)
     } else {
         None
     };
@@ -791,11 +816,12 @@ fn process_endgame_window(
     state: &mut State,
     window: &endgame::Window,
     metrics: &dyn TextMetrics,
+    display: &Display,
 ) -> RunningState {
     use crate::windows::endgame::Action::*;
 
     let mut action = if state.mouse.left_clicked {
-        window.hovered(&state, metrics)
+        window.hovered(&state, metrics, display)
     } else {
         None
     };
@@ -1562,9 +1588,8 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
 fn create_new_game_state(state: &State) -> State {
     State::new_game(
         state.world_size,
-        state.map_size.x,
+        state.map_size,
         state.panel_width,
-        state.display_size,
         state.exit_after,
         state::generate_replay_path(),
         state.player.invincible,

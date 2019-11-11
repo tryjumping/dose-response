@@ -358,9 +358,9 @@ fn render_endgame_screen(
     }
 }
 
-fn render_message(state: &State, text: &str, _metrics: &dyn TextMetrics, display: &mut Display) {
+fn render_message(_state: &State, text: &str, _metrics: &dyn TextMetrics, display: &mut Display) {
     let window_size = Point::new(40, 8);
-    let window_pos = ((state.display_size - window_size) / 2) - (0, 8);
+    let window_pos = ((display.size_without_padding() - window_size) / 2) - (0, 8);
     let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
 
     let padding = Point::new(2, 3);

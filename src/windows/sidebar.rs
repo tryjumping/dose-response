@@ -65,7 +65,7 @@ struct Layout {
 pub struct Window;
 
 impl Window {
-    fn layout(&self, state: &State, metrics: &dyn TextMetrics) -> Layout {
+    fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &Display) -> Layout {
         let x = state.map_size.x;
         let fg = color::gui_text;
         let bg = color::dim_background;
@@ -106,7 +106,7 @@ impl Window {
             }
         }
 
-        let mut bottom = state.display_size.y - 2;
+        let mut bottom = display.size_without_padding().y - 2;
 
         let main_menu_button = Button::new(Point::new(x + 1, bottom), "[Esc] Main Menu").color(fg);
 
@@ -213,8 +213,13 @@ impl Window {
         }
     }
 
-    pub fn hovered(&self, state: &State, metrics: &dyn TextMetrics) -> Option<Action> {
-        self.layout(state, metrics).action_under_mouse
+    pub fn hovered(
+        &self,
+        state: &State,
+        metrics: &dyn TextMetrics,
+        display: &Display,
+    ) -> Option<Action> {
+        self.layout(state, metrics, display).action_under_mouse
     }
 
     pub fn render(
@@ -225,13 +230,13 @@ impl Window {
         fps: i32,
         display: &mut Display,
     ) {
-        let layout = self.layout(state, metrics);
+        let layout = self.layout(state, metrics, display);
         let x = layout.x;
         let fg = layout.fg;
         let bg = layout.bg;
         let width = state.panel_width;
 
-        let height = state.display_size.y;
+        let height = display.size_without_padding().y;
         display.draw_rectangle(
             Rectangle::from_point_and_size(Point::new(x, 0), Point::new(width, height)),
             bg,
@@ -366,7 +371,9 @@ impl Window {
             lines.push("CHEATING".into());
             lines.push("".into());
 
-            if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.display_size {
+            if state.mouse.tile_pos >= (0, 0)
+                && state.mouse.tile_pos < display.size_without_padding()
+            {
                 lines.push(format!("Mouse px: {}", state.mouse.screen_pos).into());
                 lines.push(format!("Mouse: {}", state.mouse.tile_pos).into());
             }

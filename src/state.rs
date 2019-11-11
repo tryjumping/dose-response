@@ -59,26 +59,28 @@ pub enum Command {
     ShowMessageBox { ttl: Duration, message: String },
 }
 
-#[cfg(feature = "replay")]
 pub fn generate_replay_path() -> Option<PathBuf> {
-    use chrono::prelude::*;
-    let local_time = Local::now();
+    #[cfg(feature = "replay")]
+    {
+        use chrono::prelude::*;
+        let local_time = Local::now();
 
-    // Timestamp in format: 2016-11-20T20-04-39.123. We can't use the
-    // colons in the timestamp -- Windows don't allow them in a path.
-    let timestamp = local_time.format("%FT%H-%M-%S%.3f");
-    let replay_dir = &Path::new("replays");
-    assert!(replay_dir.is_relative());
-    if !replay_dir.exists() {
-        fs::create_dir_all(replay_dir).unwrap();
+        // Timestamp in format: 2016-11-20T20-04-39.123. We can't use the
+        // colons in the timestamp -- Windows don't allow them in a path.
+        let timestamp = local_time.format("%FT%H-%M-%S%.3f");
+        let replay_dir = &Path::new("replays");
+        assert!(replay_dir.is_relative());
+        if !replay_dir.exists() {
+            fs::create_dir_all(replay_dir).unwrap();
+        }
+        let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
+        Some(replay_path.into())
     }
-    let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
-    Some(replay_path.into())
-}
 
-#[cfg(not(feature = "replay"))]
-pub fn generate_replay_path() -> Option<PathBuf> {
-    None
+    #[cfg(not(feature = "replay"))]
+    {
+        None
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -109,10 +111,6 @@ pub struct State {
     /// The width of the in-game status panel.
     pub panel_width: i32,
 
-    /// The size of the game window in tiles. The area stuff is
-    /// rendered to. NOTE: currently, the width is equal to map_size +
-    /// panel_width, height is map_size.
-    pub display_size: Point,
     pub screen_position_in_world: Point,
     pub seed: u32,
     pub rng: Random,
@@ -166,9 +164,8 @@ pub struct State {
 impl State {
     fn new<W: Write + 'static>(
         world_size: Point,
-        map_size: i32,
+        map_size: Point,
         panel_width: i32,
-        display_size: Point,
         commands: VecDeque<Command>,
         verifications: VecDeque<Verification>,
         log_writer: W,
@@ -181,7 +178,6 @@ impl State {
     ) -> State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
-        assert_eq!(display_size, (map_size + panel_width, map_size));
         let player_position = world_centre;
         let player = Player::new(player_position, invincible);
         let mut rng = Random::from_seed(u64::from(seed));
@@ -193,9 +189,8 @@ impl State {
             chunk_size: 32,
             world_size,
             world,
-            map_size: (map_size, map_size).into(),
+            map_size: map_size,
             panel_width,
-            display_size,
             screen_position_in_world: world_centre,
             seed,
             rng,
@@ -238,9 +233,8 @@ impl State {
 
     pub fn new_game(
         world_size: Point,
-        map_size: i32,
+        map_size: Point,
         panel_width: i32,
-        display_size: Point,
         exit_after: bool,
         replay_path: Option<PathBuf>,
         invincible: bool,
@@ -273,7 +267,6 @@ Reason: '{}'.",
             world_size,
             map_size,
             panel_width,
-            display_size,
             commands,
             verifications,
             writer,
@@ -286,116 +279,102 @@ Reason: '{}'.",
         )
     }
 
-    #[cfg(not(feature = "replay"))]
-    #[allow(dead_code)]
     pub fn replay_game(
         world_size: Point,
-        map_size: i32,
+        map_size: Point,
         panel_width: i32,
-        display_size: Point,
-        _replay_path: &Path,
-        _cheating: bool,
-        invincible: bool,
-        _replay_full_speed: bool,
-        exit_after: bool,
-    ) -> Result<State, Box<dyn Error>> {
-        Ok(Self::new_game(
-            world_size,
-            map_size,
-            panel_width,
-            display_size,
-            exit_after,
-            None,
-            invincible,
-        ))
-    }
-
-    #[cfg(feature = "replay")]
-    pub fn replay_game(
-        world_size: Point,
-        map_size: i32,
-        panel_width: i32,
-        display_size: Point,
         replay_path: &Path,
         cheating: bool,
         invincible: bool,
         replay_full_speed: bool,
         exit_after: bool,
     ) -> Result<State, Box<dyn Error>> {
-        use std::io::{BufRead, BufReader};
-        let mut commands = VecDeque::new();
-        let mut verifications = VecDeque::new();
-        let seed: u32;
-        let file = File::open(replay_path)?;
-        let mut lines = BufReader::new(file).lines();
-        match lines.next() {
-            Some(seed_str) => seed = seed_str?.parse()?,
-            None => error!("The replay file is empty."),
-        };
-
-        match lines.next() {
-            Some(version) => {
-                let version = version?;
-                if version != crate::metadata::VERSION {
-                    log::warn!(
-                        "The replay file's version is: {}, but the program is: {}",
-                        version,
-                        crate::metadata::VERSION
-                    );
-                }
-            }
-            None => error!("The replay file is missing the version."),
-        };
-
-        match lines.next() {
-            Some(commit) => {
-                let commit = commit?;
-                if commit != crate::metadata::GIT_HASH {
-                    log::warn!(
-                        "The replay file's commit is: {}, but the program is: {}.",
-                        commit,
-                        crate::metadata::GIT_HASH
-                    );
-                }
-            }
-            None => error!("The replay file is missing the commit hash."),
-        };
-
-        loop {
+        #[cfg(feature = "replay")]
+        {
+            use std::io::{BufRead, BufReader};
+            let mut commands = VecDeque::new();
+            let mut verifications = VecDeque::new();
+            let seed: u32;
+            let file = File::open(replay_path)?;
+            let mut lines = BufReader::new(file).lines();
             match lines.next() {
-                Some(line) => {
-                    let line = line?;
-                    let command = serde_json::from_str(&line);
-                    // Try parsing it as a command, otherwise it's a verification
-                    if let Ok(command) = command {
-                        commands.push_back(command);
-                    } else {
-                        let verification = serde_json::from_str(&line)?;
-                        verifications.push_back(verification);
+                Some(seed_str) => seed = seed_str?.parse()?,
+                None => error!("The replay file is empty."),
+            };
+
+            match lines.next() {
+                Some(version) => {
+                    let version = version?;
+                    if version != crate::metadata::VERSION {
+                        log::warn!(
+                            "The replay file's version is: {}, but the program is: {}",
+                            version,
+                            crate::metadata::VERSION
+                        );
                     }
                 }
-                None => break,
+                None => error!("The replay file is missing the version."),
+            };
+
+            match lines.next() {
+                Some(commit) => {
+                    let commit = commit?;
+                    if commit != crate::metadata::GIT_HASH {
+                        log::warn!(
+                            "The replay file's commit is: {}, but the program is: {}.",
+                            commit,
+                            crate::metadata::GIT_HASH
+                        );
+                    }
+                }
+                None => error!("The replay file is missing the commit hash."),
+            };
+
+            loop {
+                match lines.next() {
+                    Some(line) => {
+                        let line = line?;
+                        let command = serde_json::from_str(&line);
+                        // Try parsing it as a command, otherwise it's a verification
+                        if let Ok(command) = command {
+                            commands.push_back(command);
+                        } else {
+                            let verification = serde_json::from_str(&line)?;
+                            verifications.push_back(verification);
+                        }
+                    }
+                    None => break,
+                }
             }
+
+            log::info!("Replaying game log: '{}'", replay_path.display());
+            let cheating = cheating;
+            let invincible = invincible;
+            let replay = true;
+            Ok(State::new(
+                world_size,
+                map_size,
+                panel_width,
+                commands,
+                verifications,
+                Box::new(io::sink()),
+                seed,
+                cheating,
+                invincible,
+                replay,
+                replay_full_speed,
+                exit_after,
+            ))
         }
 
-        log::info!("Replaying game log: '{}'", replay_path.display());
-        let cheating = cheating;
-        let invincible = invincible;
-        let replay = true;
-        Ok(State::new(
+        #[cfg(not(feature = "replay"))]
+        Ok(Self::new_game(
             world_size,
             map_size,
             panel_width,
-            display_size,
-            commands,
-            verifications,
-            Box::new(io::sink()),
-            seed,
-            cheating,
-            invincible,
-            replay,
-            replay_full_speed,
             exit_after,
+            None,
+            invincible,
         ))
     }
 

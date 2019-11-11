@@ -13,6 +13,7 @@ use crate::{
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(any(feature = "glutin-backend", feature = "sdl-backend"))]
 mod loop_state;
 
 #[cfg(feature = "glutin-backend")]
@@ -476,35 +477,12 @@ fn calculate_display_info(
     let unscaled_game_width = tilecount_x * tilesize;
     let unscaled_game_height = tilecount_y * tilesize;
 
-    // TODO: we're assuming that the unscaled dimensions
-    // already fit into the display. So the game is only going
-    // to be scaled up, not down.
-
-    // NOTE: try if the hight should fill the display area
-    let scaled_tilesize = (window_height / tilecount_y).floor();
-    let scaled_width = scaled_tilesize * tilecount_x;
-    let scaled_height = scaled_tilesize * tilecount_y;
-    let (final_scaled_width, final_scaled_height) = if scaled_width <= window_width {
-        (scaled_width, scaled_height)
-    } else {
-        // NOTE: try if the width should fill the display area
-        let scaled_tilesize = (window_width / tilecount_x).floor();
-        let scaled_width = scaled_tilesize * tilecount_x;
-        let scaled_height = scaled_tilesize * tilecount_y;
-
-        if scaled_height <= window_height {
-            // NOTE: we're good
-        } else {
-            log::error!("Can't scale neither to width nor height wtf.");
-        }
-        (scaled_width, scaled_height)
-    };
-
+    // TODO: remove `native_display_px`, they're equal now
     let native_display_px = [unscaled_game_width, unscaled_game_height];
-    let display_px = [final_scaled_width, final_scaled_height];
+    let display_px = native_display_px;
     let extra_px = [
-        window_width - final_scaled_width,
-        window_height - final_scaled_height,
+        window_width - unscaled_game_width,
+        window_height - unscaled_game_height,
     ];
 
     DisplayInfo {
@@ -572,11 +550,18 @@ pub struct Display {
 
 #[allow(dead_code)]
 impl Display {
-    pub fn new(display_size: Point, padding: Point, tilesize: i32) -> Self {
+    /// Create a new Display.
+    ///
+    /// `display_size`: number of tiles shown on the screen
+    /// `tilesize`: size (in pixels) of a single tile. Tiles are square.
+    pub fn new(display_size: Point, tilesize: i32) -> Self {
         assert!(display_size > Point::zero());
-        assert!(padding >= Point::zero());
         assert!(tilesize > 0);
+        // NOTE: this padding is only here to make the screen scroll smoothly.
+        // Without it, the partial tiles would not appear.
+        let padding = Point::from_i32(1);
         let size = display_size + (padding * 2);
+        log::info!("Creating the internal Display: {:?}", size);
         Display {
             display_size,
             padding,
@@ -600,16 +585,24 @@ impl Display {
         self.clear_background_color = Some(background);
     }
 
-    /// This is the full display size: game plus padding!
-    // TODO: rename this to `screen_size_in_tiles`
-    pub fn size(&self) -> Point {
+    /// This is the full display size: game plus padding.
+    pub fn full_size_with_padding_in_tiles(&self) -> Point {
         self.display_size + (self.padding * 2)
+    }
+
+    /// This is the size of the display as originally requested.
+    ///
+    /// There is no padding here -- this should correspond to what's
+    /// shown on the screen when there is no scrolling or other
+    /// shennanigans going on.
+    pub fn size_without_padding(&self) -> Point {
+        self.display_size
     }
 
     fn index(&self, pos: Point) -> Option<usize> {
         if self.contains(pos) {
             let pos = pos + self.padding;
-            Some((pos.y * self.size().x + pos.x) as usize)
+            Some((pos.y * self.full_size_with_padding_in_tiles().x + pos.x) as usize)
         } else {
             None
         }
@@ -757,7 +750,7 @@ impl Display {
 
     pub fn cells(&self) -> impl Iterator<Item = (Point, &Cell)> {
         let padding = self.padding;
-        let width = self.size().x;
+        let width = self.full_size_with_padding_in_tiles().x;
         self.map.iter().enumerate().map(move |(index, cell)| {
             let pos = Point::new(index as i32 % width, index as i32 / width);
             let pos = pos - padding;

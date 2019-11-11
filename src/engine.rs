@@ -13,6 +13,7 @@ use crate::{
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(any(feature = "glutin-backend", feature = "sdl-backend"))]
 mod loop_state;
 
 #[cfg(feature = "glutin-backend")]

@@ -178,19 +178,16 @@ pub extern "C" fn initialise() -> *mut Wasm {
     log::info!("Initialising {} for WebAssembly", crate::metadata::TITLE);
     let state = Box::new(State::new_game(
         crate::WORLD_SIZE,
-        crate::DISPLAYED_MAP_SIZE,
+        Point::from_i32(crate::DISPLAYED_MAP_SIZE),
         crate::PANEL_WIDTH,
-        crate::DISPLAY_SIZE,
         false, // exit-after
         None,  // replay file
         false, // invincible
     ));
     let drawcalls = Box::new(Vec::with_capacity(crate::engine::DRAWCALL_CAPACITY));
     let vertices = Box::new(Vec::with_capacity(VERTEX_CAPACITY));
-    let display_size = crate::DISPLAY_SIZE;
     let display = Box::new(crate::engine::Display::new(
-        display_size,
-        Point::from_i32(display_size.y / 2),
+        crate::DISPLAY_SIZE,
         super::DEFAULT_TILESIZE as i32,
     ));
 
@@ -225,7 +222,7 @@ pub extern "C" fn update(
     let mut display: Box<Display> = unsafe { Box::from_raw(wasm.display) };
 
     let dt = Duration::from_millis(dt_ms as u64);
-    let display_size = state.display_size;
+    let display_size = display.size_without_padding();
     let fps = 60;
     let keys: Vec<Key> = vec![];
     let mouse = Mouse {
@@ -248,7 +245,6 @@ pub extern "C" fn update(
     let result = game::update(
         &mut state,
         dt,
-        display_size,
         fps,
         &keys,
         mouse,

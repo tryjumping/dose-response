@@ -39,8 +39,8 @@ function actually_play_game(canvas, loaded_callback) {
 
   var c = canvas;
   console.log("Setting up the canvas", c);
-  c.width = width*squareSize;
-  c.height = height*squareSize;
+  // c.width = width*squareSize;
+  // c.height = height*squareSize;
   const gl = canvas.getContext("webgl");
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);

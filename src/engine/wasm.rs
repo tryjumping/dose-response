@@ -208,6 +208,8 @@ pub extern "C" fn initialise() -> *mut Wasm {
 pub extern "C" fn update(
     wasm_ptr: *mut Wasm,
     dt_ms: u32,
+    canvas_width: i32,
+    canvas_height: i32,
     mouse_tile_x: i32,
     mouse_tile_y: i32,
     mouse_pixel_x: i32,
@@ -215,7 +217,7 @@ pub extern "C" fn update(
     mouse_left: bool,
     mouse_right: bool,
 ) {
-    let wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
+    let mut wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
     let mut state: Box<State> = unsafe { Box::from_raw(wasm.state) };
     let mut drawcalls: Box<Vec<Drawcall>> = unsafe { Box::from_raw(wasm.drawcalls) };
     let mut vertices: Box<Vec<u8>> = unsafe { Box::from_raw(wasm.vertices) };
@@ -223,6 +225,28 @@ pub extern "C" fn update(
 
     let dt = Duration::from_millis(dt_ms as u64);
     let display_size = display.size_without_padding();
+    let new_display_size = Point::new(
+        canvas_width / super::DEFAULT_TILESIZE,
+        canvas_height / super::DEFAULT_TILESIZE,
+    );
+    if new_display_size != display_size {
+        let new_display = Box::new(crate::engine::Display::new(
+            new_display_size,
+            super::DEFAULT_TILESIZE as i32,
+        ));
+        // TODO(shadower): This causes a panic during first load
+        // (`RuntimeError: unreachable executed`). The browser seems
+        // to handle it fine and everything after that seems to work
+        // fine, but we should investigate.
+        wasm.display = Box::into_raw(new_display);
+
+        // NOTE(shadower): uncommenting this causes every `update` call to panic.
+        // Why? Right now we just carry on and use the new Display size a frame
+        // late, but we should be able to replace it here and now.
+        // display = unsafe { Box::from_raw(wasm.display) };
+    }
+    let display_size = display.size_without_padding();
+
     let fps = 60;
     let keys: Vec<Key> = vec![];
     let mouse = Mouse {

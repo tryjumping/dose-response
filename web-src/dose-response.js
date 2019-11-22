@@ -39,8 +39,8 @@ function actually_play_game(canvas, loaded_callback) {
 
   var c = canvas;
   console.log("Setting up the canvas", c);
-  c.width = width*squareSize;
-  c.height = height*squareSize;
+  // c.width = width*squareSize;
+  // c.height = height*squareSize;
   const gl = canvas.getContext("webgl");
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -269,7 +269,7 @@ function actually_play_game(canvas, loaded_callback) {
         pressed_keys = [];
 
         wasm_result.instance.exports.update(
-          gamestate_ptr, dt,
+          gamestate_ptr, dt, gl.canvas.width, gl.canvas.height,
           mouse.tile_x, mouse.tile_y, mouse.pixel_x, mouse.pixel_y,
           mouse.left, mouse.right);
         mouse.left = false;

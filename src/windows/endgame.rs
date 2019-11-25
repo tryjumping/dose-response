@@ -42,8 +42,8 @@ impl Window {
         let window_rect = Rectangle::from_point_and_size(top_left, size);
 
         let rect = Rectangle::new(
-            window_rect.top_left() + padding,
-            window_rect.bottom_right() - padding,
+            window_rect.top_left() + padding + (1, 1),
+            window_rect.bottom_right() - padding - (1, 1),
         );
 
         let new_game_button = Button::new(rect.bottom_left(), "[N]ew Game").align_left();
@@ -174,7 +174,15 @@ impl Window {
             EmptySpace(2),
         ];
 
-        display.draw_rectangle(layout.window_rect, color::window_background);
+        display.draw_rectangle(layout.window_rect, color::window_edge);
+
+        display.draw_rectangle(
+            Rectangle::new(
+                layout.window_rect.top_left() + (1, 1),
+                layout.window_rect.bottom_right() - (1, 1),
+            ),
+            color::window_background,
+        );
 
         ui::render_text_flow(&lines, layout.rect, metrics, display);
 

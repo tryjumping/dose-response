@@ -13,6 +13,10 @@ struct Layout {
     rect: Rectangle,
 }
 
+/// This window appears only during a gameplay recording/replay.
+///
+/// It is not interactive and should not be visible during normal
+/// playtime.
 pub struct Window;
 
 impl Window {

@@ -1,5 +1,5 @@
 use crate::color;
-use crate::engine::{Display, TextMetrics};
+use crate::engine::{Display, TextMetrics, TextOptions};
 use crate::formula;
 use crate::player::CauseOfDeath;
 use crate::point::Point;
@@ -11,6 +11,7 @@ pub enum Action {
     NewGame,
     Help,
     Menu,
+    Close,
 }
 
 struct Layout {
@@ -21,6 +22,7 @@ struct Layout {
     new_game_button: Button,
     help_button: Button,
     menu_button: Button,
+    close_button: Button,
 }
 
 pub struct Window;
@@ -72,6 +74,18 @@ impl Window {
             rect_under_mouse = Some(text_rect);
         }
 
+        let close_button = {
+            let text = format!("[Esc] Close");
+            let mut button = Button::new(window_rect.top_right() - (1, 0), &text);
+            button.text_options = TextOptions::align_right();
+            let button_rect = metrics.button_rect(&button);
+            if button_rect.contains(state.mouse.tile_pos) {
+                action_under_mouse = Some(Action::Close);
+                rect_under_mouse = Some(button_rect);
+            }
+            button
+        };
+
         Layout {
             window_rect,
             rect,
@@ -80,6 +94,7 @@ impl Window {
             new_game_button,
             help_button,
             menu_button,
+            close_button,
         }
     }
 
@@ -170,6 +185,7 @@ impl Window {
         display.draw_button(&layout.new_game_button);
         display.draw_button(&layout.help_button);
         display.draw_button(&layout.menu_button);
+        display.draw_button(&layout.close_button);
     }
 
     pub fn hovered(

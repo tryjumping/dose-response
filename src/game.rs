@@ -853,6 +853,10 @@ fn process_endgame_window(
             state.window_stack.push(Window::Help);
             RunningState::Running
         }
+        Some(Close) => {
+            state.window_stack.pop();
+            RunningState::Running
+        }
         None => {
             if state.keys.get().is_some() || state.mouse.right_clicked {
                 state.window_stack.pop();

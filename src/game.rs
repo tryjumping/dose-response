@@ -806,6 +806,11 @@ fn process_help_window(
             state.current_help_window = new_help_window;
         }
 
+        Some(Action::Close) => {
+            state.window_stack.pop();
+            return RunningState::Running;
+        }
+
         None => {}
     }
 

@@ -1,6 +1,6 @@
 use crate::{
     color,
-    engine::{Display, TextMetrics},
+    engine::{Display, TextMetrics, TextOptions},
     point::Point,
     rect::Rectangle,
     state::State,
@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 pub enum Action {
     NextPage,
     PrevPage,
+    Close,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -74,6 +75,7 @@ impl FmtDisplay for Page {
 struct Layout {
     next_page_button: Option<Button>,
     prev_page_button: Option<Button>,
+    close_button: Button,
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
     window_rect: Rectangle,
@@ -120,11 +122,24 @@ impl Window {
             button
         });
 
+        let close_button = {
+            let text = format!("[Esc] Close");
+            let mut button = Button::new(window_rect.top_right() - (1, 0), &text);
+            button.text_options = TextOptions::align_right();
+            let button_rect = metrics.button_rect(&button);
+            if button_rect.contains(state.mouse.tile_pos) {
+                action_under_mouse = Some(Action::Close);
+                rect_under_mouse = Some(button_rect);
+            }
+            button
+        };
+
         Layout {
             window_rect,
             rect,
             next_page_button,
             prev_page_button,
+            close_button,
             action_under_mouse,
             rect_under_mouse,
         }
@@ -299,6 +314,8 @@ impl Window {
         if let Some(highlighted_rect) = layout.rect_under_mouse {
             display.draw_rectangle(highlighted_rect, color::menu_highlight);
         }
+
+        display.draw_button(&layout.close_button);
 
         if let Some(button) = layout.next_page_button {
             display.draw_button(&button)

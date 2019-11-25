@@ -97,6 +97,10 @@ impl Rectangle {
         self.top_left
     }
 
+    pub fn top_right(self) -> Point {
+        Point::new(self.bottom_right.x, self.top_left.y)
+    }
+
     pub fn bottom_right(self) -> Point {
         self.bottom_right
     }
@@ -165,5 +169,4 @@ mod tests {
         assert_eq!(rect.size(), Point::new(2, 2));
         assert_eq!(rect.points().collect::<Vec<_>>().len(), 4);
     }
-
 }

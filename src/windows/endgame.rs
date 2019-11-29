@@ -160,7 +160,7 @@ impl Window {
         );
         let tip_text = format!("Tip: {}", endgame_tip(state));
 
-        let lines = vec![
+        let mut lines = vec![
             Centered(endgame_reason_text),
             Centered(&endgame_description),
             EmptySpace(2),
@@ -170,9 +170,13 @@ impl Window {
             Empty,
             Centered(&carrying_doses_text),
             EmptySpace(2),
-            Paragraph(&tip_text),
-            EmptySpace(2),
         ];
+
+        if state.side != Side::Victory {
+            // Show some game tip, but not if the player just won
+            lines.push(Paragraph(&tip_text));
+            lines.push(EmptySpace(2));
+        }
 
         display.draw_rectangle(layout.window_rect, color::window_edge);
 

@@ -3,10 +3,10 @@ use crate::{
     engine::{
         self,
         loop_state::{LoopState, ResizeWindowAction, UpdateResult},
-        SettingsStore,
     },
-    keys::KeyCode,
+    keys::{Key, KeyCode},
     point::Point,
+    settings::Store as SettingsStore,
     state::State,
 };
 
@@ -317,7 +317,7 @@ pub fn main_loop<S>(
                             modifiers,
                         );
                         if let Some(code) = key_code_from_backend(backend_code) {
-                            let key = super::Key {
+                            let key = Key {
                                 code,
                                 alt: modifiers.alt,
                                 ctrl: modifiers.ctrl,
@@ -331,7 +331,7 @@ pub fn main_loop<S>(
                     glutin::WindowEvent::ReceivedCharacter(chr) => {
                         log::debug!("Received character: {:?}", chr);
                         if chr == '?' {
-                            let key = super::Key {
+                            let key = Key {
                                 code: KeyCode::QuestionMark,
                                 alt: false,
                                 ctrl: false,

@@ -1,8 +1,9 @@
 use crate::{
-    engine::{self, Display, Drawcall, Mouse, Settings, TextMetrics},
+    engine::{self, Display, Drawcall, Mouse, TextMetrics},
     game::{self, RunningState},
     keys::{Key, KeyCode},
     point::Point,
+    settings::Settings,
     state::State,
 };
 

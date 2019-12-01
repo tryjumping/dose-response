@@ -3,10 +3,11 @@ use crate::{
     engine::{
         self,
         loop_state::{LoopState, ResizeWindowAction, UpdateResult},
-        SettingsStore, TextMetrics,
+        TextMetrics,
     },
-    keys::KeyCode,
+    keys::{Key, KeyCode},
     point::Point,
+    settings::Store as SettingsStore,
     state::State,
 };
 
@@ -199,7 +200,7 @@ pub fn main_loop<S>(
                         keymod.bits(),
                     );
                     if let Some(code) = key_code_from_backend(backend_code) {
-                        let key = super::Key {
+                        let key = Key {
                             code,
                             alt: keymod.intersects(keyboard::Mod::LALTMOD | keyboard::Mod::RALTMOD),
                             ctrl: keymod
@@ -214,7 +215,7 @@ pub fn main_loop<S>(
 
                 Event::TextInput { text, .. } => {
                     if text.contains('?') {
-                        let key = super::Key {
+                        let key = Key {
                             code: KeyCode::QuestionMark,
                             alt: false,
                             ctrl: false,

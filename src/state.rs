@@ -19,7 +19,6 @@ use std::{
     error::Error,
     fs::File,
     io::{self, Write},
-    path::Path,
     path::PathBuf,
     time::Duration,
 };
@@ -68,7 +67,7 @@ pub fn generate_replay_path() -> Option<PathBuf> {
         // Timestamp in format: 2016-11-20T20-04-39.123. We can't use the
         // colons in the timestamp -- Windows don't allow them in a path.
         let timestamp = local_time.format("%FT%H-%M-%S%.3f");
-        let replay_dir = &Path::new("replays");
+        let replay_dir = &std::path::Path::new("replays");
         assert!(replay_dir.is_relative());
         if !replay_dir.exists() {
             fs::create_dir_all(replay_dir).unwrap();
@@ -279,11 +278,12 @@ Reason: '{}'.",
         )
     }
 
+    #[cfg_attr(not(feature = "replay"), allow(dead_code, unused_variables))]
     pub fn replay_game(
         world_size: Point,
         map_size: Point,
         panel_width: i32,
-        replay_path: &Path,
+        replay_path: &std::path::Path,
         cheating: bool,
         invincible: bool,
         replay_full_speed: bool,

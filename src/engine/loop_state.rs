@@ -1,11 +1,9 @@
 use crate::{
     color::Color,
-    engine::{
-        self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, Settings, SettingsStore,
-        TextMetrics, Vertex,
-    },
+    engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex},
     keys::Key,
     point::Point,
+    settings::{Settings, Store as SettingsStore},
     state::State,
     util,
 };
@@ -160,7 +158,7 @@ impl LoopState {
         dt: Duration,
         settings_store: &mut dyn SettingsStore,
     ) -> UpdateResult {
-        use crate::engine::RunningState;
+        use crate::game::RunningState;
         let tile_width_px = self.settings.tile_size;
         let update_result = crate::game::update(
             &mut self.game_state,

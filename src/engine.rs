@@ -2,11 +2,8 @@
 
 use crate::{
     color::{self, Color, ColorAlpha},
-    game::RunningState,
-    keys::Key,
     point::Point,
     rect::Rectangle,
-    settings::{Settings, Store as SettingsStore},
     ui::Button,
     util,
 };

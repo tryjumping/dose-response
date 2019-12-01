@@ -3,6 +3,7 @@ build-all:
 	cargo build
 	cargo build --release --no-default-features --features prod
 	cargo build --release --target wasm32-unknown-unknown --no-default-features --features web
+	cargo build --features all-backends
 
 replay:
 	cargo run -- `find replays -type f -name 'replay-*' | sort | tail -n 1`

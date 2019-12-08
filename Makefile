@@ -23,7 +23,7 @@ replay-release-fast:
 .PHONY: replay-release-fast
 
 release:
-	scripts/prep-release.sh
+	bin/prep-release.sh
 .PHONY: release
 
 wasm:
@@ -32,7 +32,7 @@ wasm:
 
 
 wasm-release: wasm
-	scripts/wasm-release.sh
+	bin/wasm-release.sh
 .PHONY: wasm-release
 
 # NOTE: the `convert` binary comes with ImageMagick, so install that!

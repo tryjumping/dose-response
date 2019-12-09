@@ -158,7 +158,6 @@ impl Window {
             "Longest High streak: {} turns",
             state.player.longest_high_streak
         );
-        let tip_text = format!("Tip: {}", endgame_tip(state));
 
         let mut lines = vec![
             Centered(endgame_reason_text),
@@ -172,6 +171,7 @@ impl Window {
             EmptySpace(2),
         ];
 
+        let tip_text = format!("Tip: {}", endgame_tip(state));
         if state.side != Side::Victory {
             // Show some game tip, but not if the player just won
             lines.push(Paragraph(&tip_text));

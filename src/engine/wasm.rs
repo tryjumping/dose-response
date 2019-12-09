@@ -11,6 +11,10 @@ use std::{mem, time::Duration};
 
 const VERTEX_CAPACITY: usize =
     mem::size_of::<f32>() * engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
+const DEFAULT_TILESIZE: i32 = engine::DEFAULT_TILESIZE;
+// NOTE: we can uncomment this to force a specific tilesize
+// TODO: this should really come from the Settings though
+//const DEFAULT_TILESIZE: i32 = 36;
 
 extern "C" {
     fn draw(nums: *const u8, len: usize, texture_width_px: i32, texture_height_px: i32);
@@ -189,7 +193,7 @@ pub extern "C" fn initialise() -> *mut Wasm {
     let vertices = Box::new(Vec::with_capacity(VERTEX_CAPACITY));
     let display = Box::new(crate::engine::Display::new(
         crate::DISPLAY_SIZE,
-        super::DEFAULT_TILESIZE as i32,
+        DEFAULT_TILESIZE as i32,
     ));
 
     let wasm = {
@@ -227,13 +231,13 @@ pub extern "C" fn update(
     let dt = Duration::from_millis(dt_ms as u64);
     let display_size = display.size_without_padding();
     let new_display_size = Point::new(
-        canvas_width / super::DEFAULT_TILESIZE,
-        canvas_height / super::DEFAULT_TILESIZE,
+        canvas_width / DEFAULT_TILESIZE,
+        canvas_height / DEFAULT_TILESIZE,
     );
     if new_display_size != display_size {
         let new_display = Box::new(crate::engine::Display::new(
             new_display_size,
-            super::DEFAULT_TILESIZE as i32,
+            DEFAULT_TILESIZE as i32,
         ));
         // TODO(shadower): This causes a panic during first load
         // (`RuntimeError: unreachable executed`). The browser seems
@@ -261,10 +265,10 @@ pub extern "C" fn update(
     let mut settings = Settings {
         fullscreen: false,
         backend: "web".into(),
-        tile_size: super::DEFAULT_TILESIZE,
+        tile_size: DEFAULT_TILESIZE,
     };
     let metrics = Metrics {
-        tile_width_px: super::DEFAULT_TILESIZE as i32,
+        tile_width_px: DEFAULT_TILESIZE as i32,
     };
 
     let result = game::update(
@@ -288,8 +292,8 @@ pub extern "C" fn update(
     }
 
     let native_display_size_px = [
-        display_size.x as f32 * super::DEFAULT_TILESIZE as f32,
-        display_size.y as f32 * super::DEFAULT_TILESIZE as f32,
+        display_size.x as f32 * DEFAULT_TILESIZE as f32,
+        display_size.y as f32 * DEFAULT_TILESIZE as f32,
     ];
 
     drawcalls.clear();

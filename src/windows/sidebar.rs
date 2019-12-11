@@ -121,18 +121,20 @@ impl Window {
 
         let mut bottom = display.size_without_padding().y - if tall { 2 } else { 1 };
 
-        let main_menu_button = if wide {
-            Button::new(Point::new(x + left_padding, bottom), "[Esc] Main Menu").color(fg)
-        } else {
-            Button::new(Point::new(x + left_padding, bottom), "[Esc] Menu").color(fg)
+        let main_menu_button = {
+            let text = if wide {
+                "[Esc] Main Menu"
+            } else {
+                "[Esc] Menu"
+            };
+            Button::new(Point::new(x + left_padding, bottom), text).color(fg)
         };
 
-        bottom -= 2;
-
+        bottom -= if tall { 2 } else { 1 };
         let help_button = Button::new(Point::new(x + left_padding, bottom), "[?] Help").color(fg);
 
         // Position of the movement/numpad buttons
-        bottom -= 10;
+        bottom -= if tall { 10 } else { 9 };
 
         // NOTE: each button takes 3 tiles and there are 3 buttons in each row:
         let controls_width_tiles = 9;

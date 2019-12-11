@@ -19,12 +19,23 @@ pub enum Kind {
 impl std::fmt::Display for Kind {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         use self::Kind::*;
-        let s = match *self {
-            Food => "Food",
-            Dose => "Dose",
-            CardinalDose => "Cardinal Dose",
-            DiagonalDose => "Diagonal Dose",
-            StrongDose => "Strong Dose",
+        let precision = f.precision().unwrap_or(1000);
+        let s = if precision < 13 {
+            match *self {
+                Food => "Food",
+                Dose => "Dose",
+                CardinalDose => "+ Dose",
+                DiagonalDose => "x Dose",
+                StrongDose => "I Dose",
+            }
+        } else {
+            match *self {
+                Food => "Food",
+                Dose => "Dose",
+                CardinalDose => "Cardinal Dose",
+                DiagonalDose => "Diagonal Dose",
+                StrongDose => "Strong Dose",
+            }
         };
         f.write_str(s)
     }
@@ -34,17 +45,6 @@ impl Kind {
     pub fn iter() -> KindIterator {
         KindIterator {
             current: Some(self::Kind::Food),
-        }
-    }
-
-    pub fn as_short_str(&self) -> &str {
-        use Kind::*;
-        match *self {
-            Food => "Food (%)",
-            Dose => "Dose (i)",
-            CardinalDose => "Dose (+)",
-            DiagonalDose => "Dose (x)",
-            StrongDose => "Dose (I)",
         }
     }
 }

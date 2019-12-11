@@ -74,9 +74,9 @@ impl Display for CompanionBonus {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         use self::CompanionBonus::*;
         let s = match *self {
-            DoubleWillGrowth => "Doubled Will Increase",
-            HalveExhaustion => "Slow Exhaustion Rate",
-            ExtraActionPoint => "Extra Action Point",
+            DoubleWillGrowth => "Faster Will Gain",
+            HalveExhaustion => "Slow Exhaustion",
+            ExtraActionPoint => "Extra AP",
             Victory => "Victory",
         };
         f.write_str(s)

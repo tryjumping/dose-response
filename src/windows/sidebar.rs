@@ -66,14 +66,27 @@ pub struct Window;
 
 impl Window {
     fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &Display) -> Layout {
+        let wide = state.panel_width > 16;
+        let tall = display.size_without_padding().y > 31;
         let x = state.map_size.x;
         let fg = color::gui_text;
         let bg = color::dim_background;
 
-        let mind_pos = Point::new(x + 1, 0);
-        let progress_bar_pos = Point::new(x + 1, 1);
-        let stats_pos = Point::new(x + 1, 3);
-        let inventory_pos = Point::new(x + 1, 5);
+        let left_padding = if wide { 1 } else { 0 };
+        let mind_pos = Point::new(x + left_padding, 0);
+        let progress_bar_pos = {
+            let top = if tall { 1 } else { 0 };
+            Point::new(x + left_padding, top)
+        };
+
+        let stats_pos = {
+            let top = if tall { 3 } else { 1 };
+            Point::new(x + left_padding, top)
+        };
+        let inventory_pos = {
+            let top = if tall { 5 } else { 3 };
+            Point::new(x + left_padding, top)
+        };
 
         let mut action_under_mouse = None;
         let mut rect_under_mouse = None;
@@ -106,51 +119,75 @@ impl Window {
             }
         }
 
-        let mut bottom = display.size_without_padding().y - 2;
+        let mut bottom = display.size_without_padding().y - if tall { 2 } else { 1 };
 
-        let main_menu_button = Button::new(Point::new(x + 1, bottom), "[Esc] Main Menu").color(fg);
+        let main_menu_button = if wide {
+            Button::new(Point::new(x + left_padding, bottom), "[Esc] Main Menu").color(fg)
+        } else {
+            Button::new(Point::new(x + left_padding, bottom), "[Esc] Menu").color(fg)
+        };
 
         bottom -= 2;
 
-        let help_button = Button::new(Point::new(x + 1, bottom), "[?] Help").color(fg);
+        let help_button = Button::new(Point::new(x + left_padding, bottom), "[?] Help").color(fg);
 
         // Position of the movement/numpad buttons
         bottom -= 10;
 
+        // NOTE: each button takes 3 tiles and there are 3 buttons in each row:
+        let controls_width_tiles = 9;
+
+        let left_padding = (state.panel_width - controls_width_tiles) / 2;
+
         // NOTE: since text width and tile width don't really match, the number of spaces
         // here was determined empirically and will not hold for different fonts.
         // TODO: These aren't really buttons more like rects so we should just draw those.
-        let mut nw_button = Button::new(Point::new(x + 1, bottom), "     ").color(fg);
+        let mut nw_button =
+            Button::new(Point::new(x + left_padding + 0, bottom + 0), "     ").color(fg);
         nw_button.text_options.height = 3;
-        let nw_button_small = Button::new(Point::new(x + 4, bottom + 3), " ").color(fg);
+        let nw_button_small =
+            Button::new(Point::new(x + left_padding + 3, bottom + 3), " ").color(fg);
 
-        let mut n_button = Button::new(Point::new(x + 4, bottom), "     ").color(fg);
+        let mut n_button = Button::new(Point::new(x + left_padding + 3, bottom), "     ").color(fg);
         n_button.text_options.height = 3;
-        let n_button_small = Button::new(Point::new(x + 5, bottom + 3), " ").color(fg);
+        let n_button_small =
+            Button::new(Point::new(x + left_padding + 4, bottom + 3), " ").color(fg);
 
-        let mut ne_button = Button::new(Point::new(x + 7, bottom), "     ").color(fg);
+        let mut ne_button =
+            Button::new(Point::new(x + left_padding + 6, bottom + 0), "     ").color(fg);
         ne_button.text_options.height = 3;
-        let ne_button_small = Button::new(Point::new(x + 6, bottom + 3), " ").color(fg);
+        let ne_button_small =
+            Button::new(Point::new(x + left_padding + 5, bottom + 3), " ").color(fg);
 
-        let mut w_button = Button::new(Point::new(x + 1, bottom + 3), "     ").color(fg);
+        let mut w_button =
+            Button::new(Point::new(x + left_padding + 0, bottom + 3), "     ").color(fg);
         w_button.text_options.height = 3;
-        let w_button_small = Button::new(Point::new(x + 4, bottom + 4), " ").color(fg);
+        let w_button_small =
+            Button::new(Point::new(x + left_padding + 3, bottom + 4), " ").color(fg);
 
-        let mut e_button = Button::new(Point::new(x + 7, bottom + 3), "     ").color(fg);
+        let mut e_button =
+            Button::new(Point::new(x + left_padding + 6, bottom + 3), "     ").color(fg);
         e_button.text_options.height = 3;
-        let e_button_small = Button::new(Point::new(x + 6, bottom + 4), " ").color(fg);
+        let e_button_small =
+            Button::new(Point::new(x + left_padding + 5, bottom + 4), " ").color(fg);
 
-        let mut sw_button = Button::new(Point::new(x + 1, bottom + 6), "     ").color(fg);
+        let mut sw_button =
+            Button::new(Point::new(x + left_padding + 0, bottom + 6), "     ").color(fg);
         sw_button.text_options.height = 3;
-        let sw_button_small = Button::new(Point::new(x + 4, bottom + 5), " ").color(fg);
+        let sw_button_small =
+            Button::new(Point::new(x + left_padding + 3, bottom + 5), " ").color(fg);
 
-        let mut s_button = Button::new(Point::new(x + 4, bottom + 6), "     ").color(fg);
+        let mut s_button =
+            Button::new(Point::new(x + left_padding + 3, bottom + 6), "     ").color(fg);
         s_button.text_options.height = 3;
-        let s_button_small = Button::new(Point::new(x + 5, bottom + 5), " ").color(fg);
+        let s_button_small =
+            Button::new(Point::new(x + left_padding + 4, bottom + 5), " ").color(fg);
 
-        let mut se_button = Button::new(Point::new(x + 7, bottom + 6), "     ").color(fg);
+        let mut se_button =
+            Button::new(Point::new(x + left_padding + 6, bottom + 6), "     ").color(fg);
         se_button.text_options.height = 3;
-        let se_button_small = Button::new(Point::new(x + 6, bottom + 5), " ").color(fg);
+        let se_button_small =
+            Button::new(Point::new(x + left_padding + 5, bottom + 5), " ").color(fg);
 
         let main_menu_rect = metrics.button_rect(&main_menu_button);
         if main_menu_rect.contains(state.mouse.tile_pos) {
@@ -230,11 +267,16 @@ impl Window {
         fps: i32,
         display: &mut Display,
     ) {
+        let wide = state.panel_width > 16;
+        let tall = display.size_without_padding().y > 31;
+        let left_padding = if wide { 1 } else { 0 };
+
         let layout = self.layout(state, metrics, display);
         let x = layout.x;
         let fg = layout.fg;
         let bg = layout.bg;
         let width = state.panel_width;
+        let precision = width as usize;
 
         let height = display.size_without_padding().y;
         display.draw_rectangle(
@@ -295,8 +337,6 @@ impl Window {
             (false, _) => ("Lost", 0.0),
         };
 
-        display.draw_button(&Button::new(layout.mind_pos, &mind_str).color(fg));
-
         graphics::progress_bar(
             display,
             mind_val_percent,
@@ -306,21 +346,28 @@ impl Window {
             color::gui_progress_bar_bg,
         );
 
+        display.draw_button(&Button::new(layout.mind_pos, &mind_str).color(fg));
+
         let will_text = format!("Will: {}", player.will.to_int());
         let will_text_options = Default::default();
-        display.draw_text(layout.stats_pos, &will_text, fg, will_text_options);
 
         // Show the anxiety counter as a progress bar next to the `Will` number
         if state.show_anxiety_counter {
+            let will_bar_padding = if wide {
+                metrics.get_text_width(&will_text, will_text_options)
+            } else {
+                0
+            };
             graphics::progress_bar(
                 display,
                 state.player.anxiety_counter.percent(),
-                layout.stats_pos + (metrics.get_text_width(&will_text, will_text_options), 0),
+                layout.stats_pos + (will_bar_padding, 0),
                 state.player.anxiety_counter.max(),
                 color::anxiety_progress_bar_fg,
                 color::anxiety_progress_bar_bg,
             );
         }
+        display.draw_text(layout.stats_pos, &will_text, fg, will_text_options);
 
         let mut lines: Vec<Cow<'static, str>> = vec![];
 
@@ -330,7 +377,14 @@ impl Window {
             for kind in item::Kind::iter() {
                 if let Some(count) = layout.inventory.get(&kind) {
                     lines.push(
-                        format!("[{}] {:?}: {}", game::inventory_key(kind), kind, count).into(),
+                        format!(
+                            "[{}] {:.pr$}: {}",
+                            game::inventory_key(kind),
+                            kind,
+                            count,
+                            pr = precision - 7
+                        )
+                        .into(),
                     );
                 }
             }
@@ -345,7 +399,11 @@ impl Window {
                     let dy = (player.pos.y - vnpc_pos.y) as f32;
                     dx.abs().max(dy.abs()) as i32
                 };
-                lines.push(format!("Distance to Victory NPC: {}", distance).into());
+                if wide {
+                    lines.push(format!("Distance to Victory NPC: {}", distance).into());
+                } else {
+                    lines.push(format!("Victory {} tiles", distance).into());
+                }
                 lines.push("".into());
             }
         }
@@ -402,7 +460,7 @@ impl Window {
         for (y, line) in lines.into_iter().enumerate() {
             display.draw_text(
                 Point {
-                    x: x + 1,
+                    x: x + left_padding,
                     y: y as i32 + layout.inventory_pos.y + 1,
                 },
                 &line,
@@ -416,8 +474,8 @@ impl Window {
 
         // Draw the clickable controls help
         display.draw_text(
-            Point::new(x + 1, layout.n_button.pos.y - 1),
-            "Movement controls (numpad):",
+            Point::new(x, layout.n_button.pos.y - 1),
+            "Numpad Controls:",
             layout.fg,
             crate::engine::TextOptions::align_left(),
         );

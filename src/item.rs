@@ -36,6 +36,17 @@ impl Kind {
             current: Some(self::Kind::Food),
         }
     }
+
+    pub fn as_short_str(&self) -> &str {
+        use Kind::*;
+        match *self {
+            Food => "Food (%)",
+            Dose => "Dose (i)",
+            CardinalDose => "Dose (+)",
+            DiagonalDose => "Dose (x)",
+            StrongDose => "Dose (I)",
+        }
+    }
 }
 
 pub struct KindIterator {

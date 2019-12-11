@@ -16,6 +16,20 @@ pub enum Kind {
     StrongDose,
 }
 
+impl std::fmt::Display for Kind {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        use self::Kind::*;
+        let s = match *self {
+            Food => "Food",
+            Dose => "Dose",
+            CardinalDose => "Cardinal Dose",
+            DiagonalDose => "Diagonal Dose",
+            StrongDose => "Strong Dose",
+        };
+        f.write_str(s)
+    }
+}
+
 impl Kind {
     pub fn iter() -> KindIterator {
         KindIterator {

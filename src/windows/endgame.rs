@@ -133,11 +133,17 @@ impl Window {
                 monster.name(),
                 monster.glyph()
             ),
-            (Some(LostWill), None) => unreachable!(),
+            (Some(LostWill), None) => {
+                log::error!("Lost all will without any apparent cause.");
+                format!("Lost all will")
+            }
             (Some(Killed), Some(monster)) => {
                 format!("Defeated by {} ({})", monster.name(), monster.glyph())
             }
-            (Some(Killed), None) => unreachable!(),
+            (Some(Killed), None) => {
+                log::error!("Player lost without an apparent cause.");
+                format!("Lost")
+            }
             (None, _) => "".into(), // Victory
         };
 

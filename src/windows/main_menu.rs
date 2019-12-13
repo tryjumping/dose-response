@@ -50,6 +50,7 @@ impl Window {
         display: &Display,
     ) -> Layout<'_> {
         use crate::ui::Text::*;
+        let short = display.size_without_padding().y < 26;
 
         let window_pos = Point::new(0, 0);
         let window_size = display.size_without_padding();
@@ -65,11 +66,12 @@ impl Window {
         let rect_pos = Point::new((inner_window_rect.width() - rect_size.x) / 2, 0);
         let rect = Rectangle::from_point_and_size(rect_pos, rect_size);
 
+        let title_padding = if short { 1 } else { 2 };
         let mut text_flow = vec![
-            EmptySpace(2),
+            EmptySpace(title_padding),
             Centered("Dose Response"),
             Centered("By Tomas Sedovic"),
-            EmptySpace(2),
+            EmptySpace(title_padding),
         ];
 
         let mut options = vec![];
@@ -122,9 +124,12 @@ impl Window {
             .y;
         }
 
-        text_flow.push(EmptySpace(3));
-        text_flow.push(Paragraph("\"You cannot lose if you do not play.\""));
-        text_flow.push(Paragraph("-- Marla Daniels"));
+        if window_rect.height() >= 19 {
+            let quote_padding = if short { 0 } else { 3 };
+            text_flow.push(EmptySpace(quote_padding));
+            text_flow.push(Paragraph("\"You cannot lose if you do not play.\""));
+            text_flow.push(Paragraph("-- Marla Daniels"));
+        }
 
         Layout {
             window_rect,
@@ -150,8 +155,10 @@ impl Window {
         ui::render_text_flow(&layout.text_flow, rect, metrics, display);
 
         // NOTE: draw the version explicitly
+        let short = display.size_without_padding().y < 26;
+        let version_padding = if short { (0, 0) } else { (1, 1) };
         display.draw_text(
-            layout.inner_window_rect.bottom_right() - (1, 1),
+            layout.inner_window_rect.bottom_right() - version_padding,
             &format!("Version: {}", crate::metadata::VERSION),
             color::gui_text,
             TextOptions::align_right(),

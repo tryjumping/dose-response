@@ -159,7 +159,11 @@ impl Window {
         let version_padding = if short { (0, 0) } else { (1, 1) };
         display.draw_text(
             layout.inner_window_rect.bottom_right() - version_padding,
-            &format!("Version: {}", crate::metadata::VERSION),
+            &format!(
+                "Version: {}.{}",
+                crate::metadata::VERSION_MAJOR,
+                crate::metadata::VERSION_MINOR
+            ),
             color::gui_text,
             TextOptions::align_right(),
         );

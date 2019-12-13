@@ -68,6 +68,7 @@ impl Window {
     fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &Display) -> Layout {
         let wide = state.panel_width > 16;
         let tall = display.size_without_padding().y > 31;
+        let short = display.size_without_padding().y < 26;
         let x = state.map_size.x;
         let fg = color::gui_text;
         let bg = color::dim_background;
@@ -84,7 +85,13 @@ impl Window {
             Point::new(x + left_padding, top)
         };
         let inventory_pos = {
-            let top = if tall { 5 } else { 3 };
+            let top = if tall {
+                5
+            } else if short {
+                1
+            } else {
+                3
+            };
             Point::new(x + left_padding, top)
         };
 
@@ -101,8 +108,9 @@ impl Window {
         let mut item_y_offset = 0;
         for kind in item::Kind::iter() {
             if inventory.get(&kind).is_some() {
+                let left_pad = if wide { -1 } else { 0 };
                 let rect = Rectangle::from_point_and_size(
-                    inventory_pos + Point::new(-1, item_y_offset + 1),
+                    inventory_pos + Point::new(left_pad, item_y_offset + 1),
                     Point::new(state.panel_width, 1),
                 );
                 if rect.contains(state.mouse.tile_pos) {
@@ -123,11 +131,11 @@ impl Window {
 
         let main_menu_button = {
             let text = if wide {
-                "[Esc] Main Menu"
+                "[Esc] Main Menu".into()
             } else {
                 "[Esc] Menu"
             };
-            Button::new(Point::new(x + left_padding, bottom), text).color(fg)
+            Button::new(Point::new(x + left_padding, bottom), &text).color(fg)
         };
 
         bottom -= if tall { 2 } else { 1 };
@@ -270,7 +278,7 @@ impl Window {
         display: &mut Display,
     ) {
         let wide = state.panel_width > 16;
-        let tall = display.size_without_padding().y > 31;
+        let short = display.size_without_padding().y < 26;
         let left_padding = if wide { 1 } else { 0 };
 
         let layout = self.layout(state, metrics, display);
@@ -374,7 +382,9 @@ impl Window {
         let mut lines: Vec<Cow<'static, str>> = vec![];
 
         if !layout.inventory.is_empty() {
-            display.draw_button(&Button::new(layout.inventory_pos, "Inventory:").color(fg));
+            if !short {
+                display.draw_button(&Button::new(layout.inventory_pos, "Inventory:").color(fg));
+            }
 
             for kind in item::Kind::iter() {
                 if let Some(count) = layout.inventory.get(&kind) {
@@ -392,7 +402,9 @@ impl Window {
             }
         }
 
-        lines.push("".into());
+        if !short {
+            lines.push("".into());
+        }
 
         if let Some(vnpc_id) = state.victory_npc_id {
             if let Some(vnpc_pos) = state.world.monster(vnpc_id).map(|m| m.position) {
@@ -404,26 +416,54 @@ impl Window {
                 if wide {
                     lines.push(format!("Distance to Victory NPC: {}", distance).into());
                 } else {
-                    lines.push(format!("Victory {} tiles", distance).into());
+                    lines.push(format!("Victory: {} tiles", distance).into());
+                }
+                if !short {
+                    lines.push("".into());
+                }
+            }
+        }
+
+        if !player.bonuses.is_empty() {
+            if short {
+                if let Some(bonus) = player.bonuses.get(0) {
+                    lines.push(format!("{}", bonus).into());
+                }
+            } else {
+                lines.push("Active bonus:".into());
+                for bonus in &player.bonuses {
+                    lines.push(format!("{}", bonus).into());
                 }
                 lines.push("".into());
             }
         }
 
-        if !player.bonuses.is_empty() {
-            lines.push("Active bonus:".into());
-            for bonus in &player.bonuses {
-                lines.push(format!("{}", bonus).into());
-            }
-            lines.push("".into());
-        }
-
         if player.alive() {
-            if player.stun.to_int() > 0 {
-                lines.push(format!("Stunned({})", player.stun.to_int()).into());
-            }
-            if player.panic.to_int() > 0 {
-                lines.push(format!("Panicking({})", player.panic.to_int()).into());
+            if short {
+                let mut line = String::new();
+                if wide {
+                    if player.stun.to_int() > 0 {
+                        line.push_str(&format!("Stunned({})  ", player.stun.to_int()));
+                    }
+                    if player.panic.to_int() > 0 {
+                        line.push_str(&format!("Panicking({})", player.panic.to_int()));
+                    }
+                } else {
+                    if player.stun.to_int() > 0 {
+                        line.push_str(&format!("Stun({})  ", player.stun.to_int()));
+                    }
+                    if player.panic.to_int() > 0 {
+                        line.push_str(&format!("Panic({})", player.panic.to_int()));
+                    }
+                }
+                lines.push(line.into());
+            } else {
+                if player.stun.to_int() > 0 {
+                    lines.push(format!("Stunned({})", player.stun.to_int()).into());
+                }
+                if player.panic.to_int() > 0 {
+                    lines.push(format!("Panicking({})", player.panic.to_int()).into());
+                }
             }
         }
 
@@ -459,11 +499,13 @@ impl Window {
             );
         }
 
+        let lines_start_y = layout.inventory_pos.y + 1;
+        let line_count = lines.len();
         for (y, line) in lines.into_iter().enumerate() {
             display.draw_text(
                 Point {
                     x: x + left_padding,
-                    y: y as i32 + layout.inventory_pos.y + 1,
+                    y: lines_start_y + y as i32,
                 },
                 &line,
                 fg,
@@ -475,12 +517,19 @@ impl Window {
         display.draw_button(&layout.help_button);
 
         // Draw the clickable controls help
-        display.draw_text(
-            Point::new(x, layout.n_button.pos.y - 1),
-            "Numpad Controls:",
-            layout.fg,
-            crate::engine::TextOptions::align_left(),
-        );
+        if !short {
+            let label_y = layout.n_button.pos.y - 1;
+            let label_index_in_lines = label_y - lines_start_y;
+            // Don't render the numpad controls label if it would overwrite a line
+            if label_index_in_lines >= line_count as i32 {
+                display.draw_text(
+                    Point::new(x, label_y),
+                    "Numpad Controls:",
+                    layout.fg,
+                    crate::engine::TextOptions::align_left(),
+                );
+            }
+        }
 
         let numpad_buttons = [
             (&layout.nw_button, '7', (1, 1)),

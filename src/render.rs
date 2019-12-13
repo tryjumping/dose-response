@@ -359,8 +359,30 @@ fn render_endgame_screen(
 }
 
 fn render_message(_state: &State, text: &str, _metrics: &dyn TextMetrics, display: &mut Display) {
-    let window_size = Point::new(40, 8);
-    let window_pos = ((display.size_without_padding() - window_size) / 2) - (0, 8);
+    let display_size = display.size_without_padding();
+    let default_window_width = 40;
+    let default_window_height = 8;
+
+    // combined padding on both sides
+    let display_padding = 3 * 2;
+
+    let window_width = if display_size.x > default_window_width + display_padding {
+        default_window_width
+    } else {
+        display_size.x - display_padding
+    };
+    let window_height = if display_size.y > default_window_height {
+        default_window_height
+    } else {
+        display_size.y
+    };
+    let window_size = Point::new(window_width, window_height);
+
+    // Centre the window horizontally and try to put it 1/3rd vertically
+    let window_pos = Point {
+        x: (display_size.x - window_width) / 2,
+        y: ((display_size.y - window_height) as f32 * 0.3) as i32,
+    };
     let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
 
     let padding = Point::new(2, 3);

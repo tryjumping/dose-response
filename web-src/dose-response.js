@@ -146,7 +146,7 @@ function actually_play_game(canvas, loaded_callback) {
         return response.text();
       })
       .then(function(text) {
-        console.log("Leaded vertex shader text.");
+        console.log("Loaded vertex shader text.");
         return text;
       });
 
@@ -156,7 +156,7 @@ function actually_play_game(canvas, loaded_callback) {
         return response.text();
       })
       .then(function(text) {
-        console.log("Leaded fragment shader text.");
+        console.log("Loaded fragment shader text.");
         return text;
       });
 

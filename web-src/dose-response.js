@@ -34,7 +34,10 @@ function actually_play_game(canvas, loaded_callback) {
   var height = 30;
   // TODO: see if we can reduce this to 18 px. That's the size we've empiricaly
   // determined to fit in the smaller laptops.
-  var squareSize = 21;
+
+  // IMPORTANT NOTE: whenever you change this, you must also change
+  // `engine.wasm.DEFAULT_TILESIZE`. They must be kept in sync.
+  var squareSize = 24;
 
 
   var c = canvas;

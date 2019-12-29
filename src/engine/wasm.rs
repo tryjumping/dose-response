@@ -11,10 +11,18 @@ use std::{mem, time::Duration};
 
 const VERTEX_CAPACITY: usize =
     mem::size_of::<f32>() * engine::VERTEX_COMPONENT_COUNT * engine::VERTEX_CAPACITY;
-const DEFAULT_TILESIZE: i32 = engine::DEFAULT_TILESIZE;
-// NOTE: we can uncomment this to force a specific tilesize
-// TODO: this should really come from the Settings though
-//const DEFAULT_TILESIZE: i32 = 36;
+
+// NOTE: we're forcing a specific tilesize for the web. This is
+// because the player can't actually resize the canvas from the web UI
+// right now.
+//
+// TODO: the default tilesize in WASM should come from the settings
+// rather than a const here.
+//
+// IMPORTANT NOTE: whenever you change this, you must also change
+// `dose-response.js -> actually_play_game.squareSize`. They must be
+// kept in sync.
+const DEFAULT_TILESIZE: i32 = 24;
 
 extern "C" {
     fn draw(nums: *const u8, len: usize, texture_width_px: i32, texture_height_px: i32);

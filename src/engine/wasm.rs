@@ -18,10 +18,6 @@ const VERTEX_CAPACITY: usize =
 //
 // TODO: the default tilesize in WASM should come from the settings
 // rather than a const here.
-//
-// IMPORTANT NOTE: whenever you change this, you must also change
-// `dose-response.js -> actually_play_game.squareSize`. They must be
-// kept in sync.
 const DEFAULT_TILESIZE: i32 = 24;
 
 extern "C" {
@@ -223,8 +219,6 @@ pub extern "C" fn update(
     dt_ms: u32,
     canvas_width: i32,
     canvas_height: i32,
-    mouse_tile_x: i32,
-    mouse_tile_y: i32,
     mouse_pixel_x: i32,
     mouse_pixel_y: i32,
     mouse_left: bool,
@@ -259,6 +253,8 @@ pub extern "C" fn update(
         // display = unsafe { Box::from_raw(wasm.display) };
     }
     let display_size = display.size_without_padding();
+    let mouse_tile_x = mouse_pixel_x / DEFAULT_TILESIZE;
+    let mouse_tile_y = mouse_pixel_y / DEFAULT_TILESIZE;
 
     let fps = 60;
     let keys: Vec<Key> = vec![];

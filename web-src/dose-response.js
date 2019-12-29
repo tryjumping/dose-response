@@ -29,21 +29,8 @@ function play_game(canvas, loaded_callback) {
 
 
 function actually_play_game(canvas, loaded_callback) {
-  // Width and Height in tiles:
-  var width = 47;
-  var height = 30;
-  // TODO: see if we can reduce this to 18 px. That's the size we've empiricaly
-  // determined to fit in the smaller laptops.
-
-  // IMPORTANT NOTE: whenever you change this, you must also change
-  // `engine.wasm.DEFAULT_TILESIZE`. They must be kept in sync.
-  var squareSize = 24;
-
-
   var c = canvas;
   console.log("Setting up the canvas", c);
-  // c.width = width*squareSize;
-  // c.height = height*squareSize;
   const gl = canvas.getContext("webgl");
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -55,8 +42,6 @@ function actually_play_game(canvas, loaded_callback) {
   var gamestate_ptr;
   var pressed_keys = [];
   var mouse = {
-    tile_x: 0,
-    tile_y: 0,
     pixel_x: 0,
     pixel_y: 0,
     left: false,
@@ -208,14 +193,10 @@ function actually_play_game(canvas, loaded_callback) {
         var rect = canvas.getBoundingClientRect();
         let x = (event.clientX - rect.left) / (rect.right - rect.left) * canvas.width;
         let y = (event.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height;
-        let tile_x = x / squareSize;
-        let tile_y = y / squareSize;
         if(x >= 0 && y >= 0 && x < canvas.width && y < canvas.height) {
           return {
             x: Math.floor(x),
-            y: Math.floor(y),
-            tile_x: Math.floor(tile_x),
-            tile_y: Math.floor(tile_y)
+            y: Math.floor(y)
           };
         } else {
           return null;
@@ -227,8 +208,6 @@ function actually_play_game(canvas, loaded_callback) {
         if(current_mouse) {
           mouse.pixel_x = current_mouse.x;
           mouse.pixel_y = current_mouse.y;
-          mouse.tile_x = current_mouse.tile_x;
-          mouse.tile_y = current_mouse.tile_y;
         }
       });
       document.addEventListener('mousedown', function(event) {
@@ -236,8 +215,6 @@ function actually_play_game(canvas, loaded_callback) {
         if(current_mouse) {
           mouse.pixel_x = current_mouse.x;
           mouse.pixel_y = current_mouse.y;
-          mouse.tile_x = current_mouse.tile_x;
-          mouse.tile_y = current_mouse.tile_y;
         }
       });
       document.addEventListener('mouseup', function(event) {
@@ -245,8 +222,6 @@ function actually_play_game(canvas, loaded_callback) {
         if(current_mouse) {
           mouse.pixel_x = current_mouse.x;
           mouse.pixel_y = current_mouse.y;
-          mouse.tile_x = current_mouse.tile_x;
-          mouse.tile_y = current_mouse.tile_y;
           if(event.button === 0) {
             mouse.left = true;
           } else if (event.button === 2) {
@@ -273,7 +248,7 @@ function actually_play_game(canvas, loaded_callback) {
 
         wasm_result.instance.exports.update(
           gamestate_ptr, dt, gl.canvas.width, gl.canvas.height,
-          mouse.tile_x, mouse.tile_y, mouse.pixel_x, mouse.pixel_y,
+          mouse.pixel_x, mouse.pixel_y,
           mouse.left, mouse.right);
         mouse.left = false;
         mouse.right = false;

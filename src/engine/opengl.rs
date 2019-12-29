@@ -173,8 +173,8 @@ impl OpenGlApp {
             gl::Viewport(
                 0,
                 0,
-                display_info.window_size_px[0] as i32,
-                display_info.window_size_px[1] as i32,
+                display_info.physical_window_size[0] as i32,
+                display_info.physical_window_size[1] as i32,
             );
             check_gl_error("Viewport");
 

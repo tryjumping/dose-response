@@ -217,16 +217,11 @@ impl LoopState {
     }
 
     pub fn display_info(&self, dpi: f64) -> DisplayInfo {
-        // TODO(shadower): is this the right way to use the `dpi`? I'm
-        // guessing we should just be honest about `window_size_px`
-        // everywhere.
         engine::calculate_display_info(
-            [
-                self.window_size_px.x as f32 * dpi as f32,
-                self.window_size_px.y as f32 * dpi as f32,
-            ],
+            [self.window_size_px.x as f32, self.window_size_px.y as f32],
             self.display.size_without_padding(),
             self.settings.tile_size,
+            dpi as f32,
         )
     }
 

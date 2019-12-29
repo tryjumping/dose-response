@@ -451,10 +451,16 @@ fn wrap_text(text: &str, font_size: u32, width_tiles: i32, tile_width_px: i32) -
 
 #[derive(Copy, Clone, Debug)]
 pub struct DisplayInfo {
+    /// TODO: deprecated. Equal to `display_px`.
     native_display_px: [f32; 2],
+    /// Size of the entire rendering area in logical pixels. `display_px + extra_px`
     window_size_px: [f32; 2],
+    /// Size of the actual area the Display struct can render to.
     display_px: [f32; 2],
+    /// Size of any remaining area beyond `display_px`.
     extra_px: [f32; 2],
+    /// Size of the entire rendering area in physical pixels. `display_px * DPI`
+    physical_window_size: [f32; 2],
 }
 
 /// Calculate the dimensions to provide the largest display
@@ -464,6 +470,7 @@ fn calculate_display_info(
     window_size_px: [f32; 2],
     display_size_tiles: Point,
     tilesize_px: i32,
+    dpi: f32,
 ) -> DisplayInfo {
     let window_width = window_size_px[0] as f32;
     let window_height = window_size_px[1] as f32;
@@ -481,12 +488,14 @@ fn calculate_display_info(
         window_width - unscaled_game_width,
         window_height - unscaled_game_height,
     ];
+    let physical_window_size = [display_px[0] * dpi, display_px[1] * dpi];
 
     DisplayInfo {
         native_display_px,
         window_size_px,
         display_px,
         extra_px,
+        physical_window_size,
     }
 }
 

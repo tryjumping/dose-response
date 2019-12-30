@@ -1362,6 +1362,12 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
                 shift: false,
                 ..
             } => commands.push_back(Command::SW),
+            Key {
+                code: Left,
+                alt: true,
+                shift: false,
+                ..
+            } => commands.push_back(Command::SW),
             Key { code: Left, .. } => commands.push_back(Command::W),
             Key {
                 code: Right,
@@ -1372,6 +1378,12 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
             Key {
                 code: Right,
                 ctrl: true,
+                shift: false,
+                ..
+            } => commands.push_back(Command::SE),
+            Key {
+                code: Right,
+                alt: true,
                 shift: false,
                 ..
             } => commands.push_back(Command::SE),

@@ -164,6 +164,7 @@ pub extern "C" fn key_pressed(
     ctrl: bool,
     alt: bool,
     shift: bool,
+    logo: bool,
 ) {
     let wasm: Box<Wasm> = unsafe { Box::from_raw(wasm_ptr) };
     let mut state: Box<State> = unsafe { Box::from_raw(wasm.state) };
@@ -175,6 +176,7 @@ pub extern "C" fn key_pressed(
             alt,
             ctrl,
             shift,
+            logo,
         });
     }
 

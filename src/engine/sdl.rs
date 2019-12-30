@@ -207,6 +207,8 @@ pub fn main_loop<S>(
                                 .intersects(keyboard::Mod::LCTRLMOD | keyboard::Mod::RCTRLMOD),
                             shift: keymod
                                 .intersects(keyboard::Mod::LSHIFTMOD | keyboard::Mod::RSHIFTMOD),
+                            logo: keymod
+                                .intersects(keyboard::Mod::LGUIMOD | keyboard::Mod::RGUIMOD),
                         };
                         log::debug!("Detected key {:?}", key);
                         loop_state.keys.push(key);
@@ -220,6 +222,7 @@ pub fn main_loop<S>(
                             alt: false,
                             ctrl: false,
                             shift: false,
+                            logo: false,
                         };
                         log::debug!("Detected key {:?}", key);
                         loop_state.keys.push(key);

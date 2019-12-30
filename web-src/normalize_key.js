@@ -69,7 +69,8 @@ var normalize_key = (function () {
       numerical_code: 0,
       ctrl: false,
       alt: false,
-      shift: false
+      shift: false,
+      logo: false
     };
 
     if(keyboard_event.ctrlKey) {
@@ -82,6 +83,10 @@ var normalize_key = (function () {
 
     if(keyboard_event.shiftKey) {
       result.shift = keyboard_event.shiftKey;
+    }
+
+    if(keyboard_event.metaKey) {
+      result.logo = keyboard_event.metaKey;
     }
 
     if(keyboard_event.key && keyboard_event.code) {

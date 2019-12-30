@@ -240,7 +240,7 @@ function actually_play_game(canvas, loaded_callback) {
           wasm_instance.exports.key_pressed(
             gamestate_ptr,
             key.numerical_code,
-            key.ctrl, key.alt, key.shift);
+            key.ctrl, key.alt, key.shift, key.logo);
         }
         pressed_keys = [];
 

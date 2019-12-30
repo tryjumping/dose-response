@@ -97,9 +97,7 @@ function actually_play_game(canvas, loaded_callback) {
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       const uniforms = {
-        native_display_px: [gl.canvas.width, gl.canvas.height],
         display_px: [gl.canvas.width, gl.canvas.height],
-        extra_px: [0, 0],
         texture_size_px: [texture_width_px, texture_height_px],
         tex: texture
       };

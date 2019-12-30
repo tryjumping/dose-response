@@ -8,6 +8,7 @@ pub struct Key {
     pub alt: bool,
     pub ctrl: bool,
     pub shift: bool,
+    pub logo: bool,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -322,6 +322,7 @@ pub fn main_loop<S>(
                                 alt: modifiers.alt,
                                 ctrl: modifiers.ctrl,
                                 shift: modifiers.shift,
+                                logo: modifiers.logo,
                             };
                             log::debug!("Detected key {:?}", key);
                             loop_state.keys.push(key);
@@ -336,6 +337,7 @@ pub fn main_loop<S>(
                                 alt: false,
                                 ctrl: false,
                                 shift: false,
+                                logo: false,
                             };
                             log::debug!("Detected key {:?}", key);
                             loop_state.keys.push(key);

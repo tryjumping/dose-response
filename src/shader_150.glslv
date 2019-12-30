@@ -1,14 +1,9 @@
 #version 150 core
 
-// Window size (rendering area) in pixels
-uniform vec2 native_display_px;
-// Actual display size in pixels. Has the same aspect ratio as
-//`native_display_px`, but can be bigger say on fullscreen.
+// Game display size in pixels. This covers the entire rendering area of the
+// game. The OpenGL viewport is set ot be this times the DPI so there are no
+// extra pixels as far as the shaders are concerned.
 uniform vec2 display_px;
-// Additional empty space. If the final rendering area has a different
-// aspect ratio, this contains the extra space so we can letterbox or
-// whatever.
-uniform vec2 extra_px;
 
 in vec2 pos_px;
 in vec2 tile_pos_px;
@@ -21,18 +16,10 @@ void main() {
     v_tile_pos_px = tile_pos_px;
     v_color = color;
 
-    // This is the full size of the rendered area (window / screen) in pixels
-    vec2 full_dimension_px = display_px + extra_px;
-
-    // `pos_px / native_display_px` converts the coordinates to (0, 1)
+    // `pos_px / display_px` converts the coordinates to (0, 1)
     // in the native pixel-perfect space. This stretches the image to
-    // fit the entire window.
-    //
-    // `* (display_px / full_dimension_px)` fixes the aspect ratio.
-	//
-	// `+ (0.5 * extra_px / full_dimension_px)` centeres the image,
-	// letterboxing it.
-    vec2 pos_fit_to_screen = pos_px / native_display_px * (display_px / full_dimension_px);
+    // fit the entire viewport.
+    vec2 pos_fit_to_screen = pos_px / display_px;
 
 	// Convert the y-is-down (0, 1) coordinate system to OpenGl's
 	// y-is-up, (-1, 1)

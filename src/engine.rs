@@ -451,8 +451,6 @@ fn wrap_text(text: &str, font_size: u32, width_tiles: i32, tile_width_px: i32) -
 
 #[derive(Copy, Clone, Debug)]
 pub struct DisplayInfo {
-    /// TODO: deprecated. Equal to `display_px`.
-    native_display_px: [f32; 2],
     /// Size of the entire rendering area in logical pixels. `display_px + extra_px`
     window_size_px: [f32; 2],
     /// Size of the actual area the Display struct can render to.
@@ -460,7 +458,7 @@ pub struct DisplayInfo {
     /// Size of any remaining area beyond `display_px`.
     extra_px: [f32; 2],
     /// Size of the entire rendering area in physical pixels. `display_px * DPI`
-    physical_window_size: [f32; 2],
+    viewport_size: [f32; 2],
 }
 
 /// Calculate the dimensions to provide the largest display
@@ -481,21 +479,18 @@ fn calculate_display_info(
     let unscaled_game_width = tilecount_x * tilesize;
     let unscaled_game_height = tilecount_y * tilesize;
 
-    // TODO: remove `native_display_px`, they're equal now
-    let native_display_px = [unscaled_game_width, unscaled_game_height];
-    let display_px = native_display_px;
+    let display_px = [unscaled_game_width, unscaled_game_height];
     let extra_px = [
         window_width - unscaled_game_width,
         window_height - unscaled_game_height,
     ];
-    let physical_window_size = [display_px[0] * dpi, display_px[1] * dpi];
+    let viewport_size = [display_px[0] * dpi, display_px[1] * dpi];
 
     DisplayInfo {
-        native_display_px,
         window_size_px,
         display_px,
         extra_px,
-        physical_window_size,
+        viewport_size,
     }
 }
 

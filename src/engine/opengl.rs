@@ -159,7 +159,6 @@ impl OpenGlApp {
         }
     }
 
-    // TODO: make this a method on GlApp!!!
     #[allow(unsafe_code, too_many_arguments)]
     pub fn render(
         &self,
@@ -172,11 +171,21 @@ impl OpenGlApp {
         let texture = self.texture;
         let vbo = self.vbo;
         unsafe {
+            // NOTE: this ignores the `extra_px` value. Which means
+            // the viewport size will allways have the same aspect
+            // ratio as `display_px`. Specifically, it's `display_px *
+            // DPI`.
+            //
+            // We could center the viewport by replacing the zeros
+            // here with `extra_px * DPI / 2`. That would offset the
+            // viewport's "top left corner". But we don't have the DPI
+            // value here and I frankly don't care enough to bring it
+            // here.
             gl::Viewport(
                 0,
                 0,
-                display_info.physical_window_size[0] as i32,
-                display_info.physical_window_size[1] as i32,
+                display_info.viewport_size[0] as i32,
+                display_info.viewport_size[1] as i32,
             );
             check_gl_error("Viewport");
 
@@ -258,25 +267,11 @@ impl OpenGlApp {
                 texture_index,
             );
 
-            let native_display_px_cstr = CString::new("native_display_px").unwrap();
-            gl::Uniform2f(
-                gl::GetUniformLocation(program, native_display_px_cstr.as_ptr()),
-                display_info.native_display_px[0],
-                display_info.native_display_px[1],
-            );
-
             let display_px_cstr = CString::new("display_px").unwrap();
             gl::Uniform2f(
                 gl::GetUniformLocation(program, display_px_cstr.as_ptr()),
                 display_info.display_px[0],
                 display_info.display_px[1],
-            );
-
-            let extra_px_cstr = CString::new("extra_px").unwrap();
-            gl::Uniform2f(
-                gl::GetUniformLocation(program, extra_px_cstr.as_ptr()),
-                display_info.extra_px[0],
-                display_info.extra_px[1],
             );
 
             let texture_size_px_cstr = CString::new("texture_size_px").unwrap();

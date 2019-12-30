@@ -289,8 +289,8 @@ impl LoopState {
         self.push_drawcalls_to_display();
 
         self.vertex_buffer.clear();
-        let native_display_px = self.display_info(dpi).native_display_px;
-        engine::build_vertices(&self.drawcalls, &mut self.vertex_buffer, native_display_px);
+        let display_px = self.display_info(dpi).display_px;
+        engine::build_vertices(&self.drawcalls, &mut self.vertex_buffer, display_px);
         self.check_vertex_buffer_capacity();
 
         self.render(&opengl_app, dpi);

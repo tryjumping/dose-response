@@ -71,9 +71,11 @@ impl OpenGlApp {
             // Bind the texture
             gl::BindTexture(gl::TEXTURE_2D, self.texture);
             check_gl_error("BindTexture");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            // TODO: do we want to always use the GL_NEAREST filter? Even on downscaling and
+            // non-whole DPI values?
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
             check_gl_error("TexParameteri MIN FILTER");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
             check_gl_error("TexParameteri MAG FILTER");
             gl::TexImage2D(
                 gl::TEXTURE_2D,

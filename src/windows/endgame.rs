@@ -23,20 +23,28 @@ struct Layout {
     help_button: Button,
     menu_button: Button,
     close_button: Button,
+    short: bool,
 }
 
 pub struct Window;
 
 impl Window {
     fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &Display) -> Layout {
+        let short = display.size_without_padding().y < 26;
+
         let mut action_under_mouse = None;
         let mut rect_under_mouse = None;
 
         let padding = Point::from_i32(1);
-        let size = Point::new(37, 17) + (padding * 2);
+        let height = if short {
+            display.size_without_padding().y - (padding.y * 2)
+        } else {
+            17
+        };
+        let size = Point::new(37, height) + (padding * 2);
         let top_left = Point {
             x: (display.size_without_padding().x - size.x) / 2,
-            y: 7,
+            y: if short { 0 } else { 7 },
         };
 
         let window_rect = Rectangle::from_point_and_size(top_left, size);
@@ -95,6 +103,7 @@ impl Window {
             help_button,
             menu_button,
             close_button,
+            short,
         }
     }
 
@@ -165,23 +174,34 @@ impl Window {
             state.player.longest_high_streak
         );
 
-        let mut lines = vec![
-            Centered(endgame_reason_text),
-            Centered(&endgame_description),
-            EmptySpace(2),
+        let oneline_reason = format!("{} {}", endgame_reason_text, endgame_description);
+        let mut lines = vec![];
+
+        if layout.short {
+            lines.push(Centered(&oneline_reason));
+        } else {
+            lines.push(Centered(endgame_reason_text));
+            lines.push(Centered(&endgame_description));
+        }
+
+        let empty_line = if layout.short { 0 } else { 1 };
+        let empty_block_lines = if layout.short { 1 } else { 2 };
+
+        lines.extend(&[
+            EmptySpace(empty_block_lines),
             Centered(&turns_text),
-            Empty,
+            EmptySpace(empty_line),
             Centered(&high_streak_text),
-            Empty,
+            EmptySpace(empty_line),
             Centered(&carrying_doses_text),
-            EmptySpace(2),
-        ];
+            EmptySpace(empty_block_lines),
+        ]);
 
         let tip_text = format!("Tip: {}", endgame_tip(state));
         if state.side != Side::Victory {
             // Show some game tip, but not if the player just won
             lines.push(Paragraph(&tip_text));
-            lines.push(EmptySpace(2));
+            lines.push(EmptySpace(empty_block_lines));
         }
 
         display.draw_rectangle(layout.window_rect, color::window_edge);

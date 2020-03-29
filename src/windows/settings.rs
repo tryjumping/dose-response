@@ -155,7 +155,7 @@ impl Window {
             EmptySpace(crate::engine::AVAILABLE_FONT_SIZES.len() as i32),
         ];
 
-        ui::render_text_flow(&lines, layout.rect, metrics, display);
+        ui::render_text_flow(&lines, layout.rect, 0, metrics, display);
 
         if let Some(rect) = layout.rect_under_mouse {
             display.draw_rectangle(rect, color::menu_highlight);

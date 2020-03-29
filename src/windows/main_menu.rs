@@ -152,7 +152,7 @@ impl Window {
             display.draw_rectangle(rect, color::menu_highlight);
         }
 
-        ui::render_text_flow(&layout.text_flow, rect, metrics, display);
+        ui::render_text_flow(&layout.text_flow, rect, 0, metrics, display);
 
         // NOTE: draw the version explicitly
         let short = display.size_without_padding().y < 26;

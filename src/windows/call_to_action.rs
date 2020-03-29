@@ -57,6 +57,6 @@ impl Window {
 
         display.draw_rectangle(layout.window_rect, color::window_background);
 
-        ui::render_text_flow(&lines, layout.rect, metrics, display);
+        ui::render_text_flow(&lines, layout.rect, 0, metrics, display);
     }
 }

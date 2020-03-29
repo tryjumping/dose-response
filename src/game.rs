@@ -786,6 +786,10 @@ fn process_help_window(
             action = Some(Action::NextPage);
         } else if state.keys.matches_code(KeyCode::Left) {
             action = Some(Action::PrevPage);
+        } else if state.keys.matches_code(KeyCode::Up) {
+            action = Some(Action::LineUp);
+        } else if state.keys.matches_code(KeyCode::Down) {
+            action = Some(Action::LineDown);
         }
     }
 
@@ -796,6 +800,7 @@ fn process_help_window(
                 .next()
                 .unwrap_or(state.current_help_window);
             state.current_help_window = new_help_window;
+            state.help_starting_line = 0;
         }
 
         Some(Action::PrevPage) => {
@@ -804,7 +809,15 @@ fn process_help_window(
                 .prev()
                 .unwrap_or(state.current_help_window);
             state.current_help_window = new_help_window;
+            state.help_starting_line = 0;
         }
+
+        Some(Action::LineUp) => {
+            if state.help_starting_line > 0 {
+                state.help_starting_line -= 1;
+            }
+        }
+        Some(Action::LineDown) => state.help_starting_line += 1,
 
         Some(Action::Close) => {
             state.window_stack.pop();

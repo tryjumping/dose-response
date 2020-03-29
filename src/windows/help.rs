@@ -14,6 +14,8 @@ use serde::{Deserialize, Serialize};
 pub enum Action {
     NextPage,
     PrevPage,
+    LineUp,
+    LineDown,
     Close,
 }
 
@@ -79,7 +81,7 @@ struct Layout {
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
     window_rect: Rectangle,
-    rect: Rectangle,
+    help_text_rect: Rectangle,
 }
 
 pub struct Window;
@@ -92,9 +94,14 @@ impl Window {
             display.size_without_padding() - (screen_padding * 2),
         );
 
-        let rect = Rectangle::new(
-            window_rect.top_left() + (2, 0),
+        let contents_rect = Rectangle::new(
+            window_rect.top_left() + (2, 1),
             window_rect.bottom_right() - (2, 1),
+        );
+
+        let help_text_rect = Rectangle::new(
+            contents_rect.top_left() + (0, 1),
+            contents_rect.bottom_right() - (0, 1),
         );
 
         let mut action_under_mouse = None;
@@ -102,7 +109,7 @@ impl Window {
 
         let next_page_button = state.current_help_window.next().map(|text| {
             let text = format!("[->] {}", text);
-            let button = Button::new(rect.bottom_right(), &text).align_right();
+            let button = Button::new(contents_rect.bottom_right(), &text).align_right();
             let button_rect = metrics.button_rect(&button);
             if button_rect.contains(state.mouse.tile_pos) {
                 action_under_mouse = Some(Action::NextPage);
@@ -113,7 +120,7 @@ impl Window {
 
         let prev_page_button = state.current_help_window.prev().map(|text| {
             let text = format!("{} [<-]", text);
-            let button = Button::new(rect.bottom_left(), &text);
+            let button = Button::new(contents_rect.bottom_left(), &text);
             let button_rect = metrics.button_rect(&button);
             if button_rect.contains(state.mouse.tile_pos) {
                 action_under_mouse = Some(Action::PrevPage);
@@ -136,7 +143,7 @@ impl Window {
 
         Layout {
             window_rect,
-            rect,
+            help_text_rect,
             next_page_button,
             prev_page_button,
             close_button,
@@ -171,9 +178,14 @@ impl Window {
         let homepage = &format!("Homepage: {}", crate::metadata::HOMEPAGE);
         let git_msg = &format!("Git commit: {}", crate::metadata::GIT_HASH);
 
+        display.draw_text(
+            layout.window_rect.top_left(),
+            &header,
+            color::gui_text,
+            TextOptions::align_center(layout.window_rect.width()),
+        );
+
         let mut lines = vec![];
-        lines.push(Centered(&header));
-        lines.push(EmptySpace(1));
 
         match state.current_help_window {
             Page::DoseResponse => {
@@ -309,7 +321,13 @@ impl Window {
             }
         }
 
-        ui::render_text_flow(&lines, layout.rect, metrics, display);
+        ui::render_text_flow(
+            &lines,
+            layout.help_text_rect,
+            state.help_starting_line,
+            metrics,
+            display,
+        );
 
         if let Some(highlighted_rect) = layout.rect_under_mouse {
             display.draw_rectangle(highlighted_rect, color::menu_highlight);

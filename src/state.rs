@@ -149,6 +149,8 @@ pub struct State {
     pub show_anxiety_counter: bool,
     pub player_picked_up_a_dose: bool,
     pub current_help_window: windows::help::Page,
+    /// Used for help contents pagination: which line should we start showing.
+    pub help_starting_line: i32,
 
     /// Whether we should push the Endscreen window and uncover the
     /// map during the transition from screen fade out to fade in
@@ -225,6 +227,7 @@ impl State {
             show_anxiety_counter: false,
             player_picked_up_a_dose: false,
             current_help_window: windows::help::Page::DoseResponse,
+            help_starting_line: 0,
             show_endscreen_and_uncover_map_during_fadein: false,
             uncovered_map: false,
         }

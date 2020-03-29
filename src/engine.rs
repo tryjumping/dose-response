@@ -277,6 +277,10 @@ pub struct TextOptions {
     pub width: i32,
 
     pub height: i32,
+
+    /// The number of lines to skip rendering. Allows printing only a
+    /// subset of the text e.g. for pagination.
+    pub skip: i32,
 }
 
 impl TextOptions {
@@ -309,6 +313,7 @@ impl Default for TextOptions {
             wrap: false,
             width: 0,
             height: 1,
+            skip: 0,
         }
     }
 }
@@ -715,9 +720,11 @@ impl Display {
         if options.wrap && options.width > 0 {
             // TODO: handle text alignment for wrapped text
             let lines = wrap_text(text, font_size, options.width, tilesize);
-            for (index, line) in lines.iter().enumerate() {
-                let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
-                render_line(pos, line);
+            for (index, line) in lines.iter().skip(options.skip as usize).enumerate() {
+                if (index as i32) < options.height {
+                    let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
+                    render_line(pos, line);
+                }
             }
         } else {
             use crate::engine::TextAlign::*;
@@ -737,7 +744,9 @@ impl Display {
                     }
                 }
             };
-            render_line(pos, text);
+            if options.skip == 0 {
+                render_line(pos, text);
+            }
         }
     }
 

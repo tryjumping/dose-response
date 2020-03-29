@@ -17,13 +17,19 @@ pub enum Text<'a> {
 pub fn render_text_flow(
     text_flow: &[Text<'_>],
     rect: Rectangle,
+    starting_line: i32,
     metrics: &dyn TextMetrics,
     display: &mut Display,
 ) {
     use self::Text::*;
 
+    let mut skip = starting_line;
     let mut ypos = 0;
     for text in text_flow.iter() {
+        let text_height = text_height(text, rect, metrics);
+        if ypos >= rect.height() {
+            break;
+        }
         match text {
             Empty => {}
 
@@ -31,9 +37,16 @@ pub fn render_text_flow(
 
             Paragraph(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
+                let height = if ypos + text_height < rect.height() {
+                    text_height
+                } else {
+                    rect.height() - ypos - 1
+                };
                 let options = TextOptions {
                     wrap: true,
                     width: rect.width(),
+                    height: height,
+                    skip,
                     ..Default::default()
                 };
                 display.draw_text(pos, text, color::gui_text, options);
@@ -41,12 +54,11 @@ pub fn render_text_flow(
 
             Centered(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                display.draw_text(
-                    pos,
-                    text,
-                    color::gui_text,
-                    TextOptions::align_center(rect.width()),
-                );
+                let options = TextOptions {
+                    skip,
+                    ..TextOptions::align_center(rect.width())
+                };
+                display.draw_text(pos, text, color::gui_text, options);
             }
 
             // NOTE: this is no longer doing anything special! Maybe remove it later on?
@@ -55,15 +67,22 @@ pub fn render_text_flow(
             // to the tile width.
             SquareTiles(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                display.draw_text(
-                    pos,
-                    text,
-                    color::gui_text,
-                    TextOptions::align_center(rect.width()),
-                );
+                let options = TextOptions {
+                    skip,
+                    ..TextOptions::align_center(rect.width())
+                };
+                display.draw_text(pos, text, color::gui_text, options);
             }
         }
-        ypos += text_height(text, rect, metrics);
+        ypos += text_height;
+
+        if text_height < skip {
+            ypos -= text_height;
+            skip -= text_height;
+        } else {
+            ypos -= skip;
+            skip = 0;
+        }
     }
 }
 

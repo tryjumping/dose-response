@@ -1,4 +1,5 @@
 use std::{
+    convert::TryFrom,
     env,
     error::Error,
     fs::File,
@@ -150,11 +151,15 @@ fn main() {
     // only succeeds if collection consists of one font
     let font = collection.into_font().unwrap();
 
-    // Lookup table for the printable ASCII chars (32 to 126)
-    let lookup_table = (32u8..127)
+    // Lookup table for the printable ASCII chars (32 to 125)
+    let mut lookup_table = (32u32..=125)
         .enumerate()
-        .map(|(index, ascii_code)| (index, ascii_code as char))
+        .map(|(index, ascii_code)| (index, char::try_from(ascii_code).unwrap_or(' ')))
         .collect::<Vec<_>>();
+
+    // Up and down "carret" to simulate arrows
+    lookup_table.push((lookup_table.len(), char::try_from(710u32).unwrap()));
+    lookup_table.push((lookup_table.len(), char::try_from(711u32).unwrap()));
 
     // NOTE: recardless of what value we set here, always keep it power of two!
     let texture_width = 512;

@@ -7,7 +7,10 @@ use crate::{
     ui::{self, Button},
 };
 
-use std::fmt::{Display as FmtDisplay, Error, Formatter};
+use std::{
+    convert::TryFrom,
+    fmt::{Display as FmtDisplay, Error, Formatter},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -78,6 +81,8 @@ struct Layout {
     next_page_button: Option<Button>,
     prev_page_button: Option<Button>,
     close_button: Button,
+    scroll_up_button: Button,
+    scroll_down_button: Button,
     action_under_mouse: Option<Action>,
     rect_under_mouse: Option<Rectangle>,
     window_rect: Rectangle,
@@ -129,6 +134,28 @@ impl Window {
             button
         });
 
+        let scroll_up_button = {
+            let mut button = Button::new(window_rect.top_right() + (0, 2), " ");
+            button.text_options.height = 2;
+            let button_rect = metrics.button_rect(&button);
+            if button_rect.contains(state.mouse.tile_pos) {
+                action_under_mouse = Some(Action::LineUp);
+                rect_under_mouse = Some(button_rect);
+            }
+            button
+        };
+
+        let scroll_down_button = {
+            let mut button = Button::new(window_rect.bottom_right() - (0, 3), " ");
+            button.text_options.height = 2;
+            let button_rect = metrics.button_rect(&button);
+            if button_rect.contains(state.mouse.tile_pos) {
+                action_under_mouse = Some(Action::LineDown);
+                rect_under_mouse = Some(button_rect);
+            }
+            button
+        };
+
         let close_button = {
             let text = format!("[Esc] Close");
             let mut button = Button::new(window_rect.top_right() - (1, 0), &text);
@@ -146,6 +173,8 @@ impl Window {
             help_text_rect,
             next_page_button,
             prev_page_button,
+            scroll_up_button,
+            scroll_down_button,
             close_button,
             action_under_mouse,
             rect_under_mouse,
@@ -331,6 +360,60 @@ impl Window {
 
         if let Some(highlighted_rect) = layout.rect_under_mouse {
             display.draw_rectangle(highlighted_rect, color::menu_highlight);
+        }
+
+        {
+            // Render the "up" portion of the scollbar
+            let glyph = char::try_from(710u32).unwrap_or('^');
+            let button = &layout.scroll_up_button;
+            let tilesize = metrics.tile_width_px();
+            let x_offset_px = (tilesize - metrics.advance_width_px(glyph)) / 2;
+            display.draw_glyph_abs_px(
+                button.pos.x * tilesize + x_offset_px,
+                button.pos.y * tilesize,
+                glyph,
+                button.color,
+            );
+            let pos_px = button.pos + (0, 1);
+            display.draw_glyph_abs_px(
+                pos_px.x * tilesize + x_offset_px,
+                pos_px.y * tilesize,
+                glyph,
+                button.color,
+            );
+            display.draw_glyph_abs_px(
+                pos_px.x * tilesize + x_offset_px,
+                pos_px.y * tilesize - (tilesize / 2),
+                glyph,
+                button.color,
+            );
+        }
+
+        {
+            // Render the "down" portion of the scollbar
+            let glyph = char::try_from(711u32).unwrap_or('v');
+            let button = &layout.scroll_down_button;
+            let tilesize = metrics.tile_width_px();
+            let x_offset_px = (tilesize - metrics.advance_width_px(glyph)) / 2;
+            display.draw_glyph_abs_px(
+                button.pos.x * tilesize + x_offset_px,
+                button.pos.y * tilesize,
+                glyph,
+                button.color,
+            );
+            let pos_px = button.pos + (0, 1);
+            display.draw_glyph_abs_px(
+                pos_px.x * tilesize + x_offset_px,
+                pos_px.y * tilesize,
+                glyph,
+                button.color,
+            );
+            display.draw_glyph_abs_px(
+                pos_px.x * tilesize + x_offset_px,
+                pos_px.y * tilesize - (tilesize / 2),
+                glyph,
+                button.color,
+            );
         }
 
         display.draw_button(&layout.close_button);

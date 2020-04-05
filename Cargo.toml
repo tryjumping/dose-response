@@ -47,6 +47,7 @@ winres = "0.1"
 
 
 [features]
+# Add the `mobile-ui` feature to switch to the mobile UI size
 default = ["dev"]
 prod = ["desktop", "glutin-backend"]
 dev = ["desktop", "glutin-backend", "cheating", "replay", "stats", "verifications"]
@@ -57,8 +58,7 @@ recording = ["prod", "replay"]
 # TODO: add a "trailer" feature for the gameplay (not UI) changes under "recording"?
 # So you can record a normal game / replay too.
 
-# TODO: enable this to set a mobile size window
-#mobile-ui = []
+mobile-ui = []
 cheating = []
 cli = ["clap", "simplelog", "log-panics"]
 fullscreen = []

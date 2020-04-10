@@ -1,6 +1,6 @@
 use crate::{
     color,
-    engine::{Display, TextMetrics, TextOptions},
+    engine::{Display, DrawResult, TextMetrics, TextOptions},
     point::Point,
     rect::Rectangle,
     state::State,
@@ -350,13 +350,22 @@ impl Window {
             }
         }
 
-        ui::render_text_flow(
+        let res = ui::render_text_flow(
             &lines,
             layout.help_text_rect,
             state.help_starting_line,
             metrics,
             display,
         );
+        if let DrawResult::Overflow = res {
+            let options = TextOptions::align_center(layout.window_rect.width());
+            display.draw_text(
+                layout.window_rect.bottom_left() - (0, 1),
+                "(more)",
+                color::gui_text,
+                options,
+            );
+        }
 
         if let Some(highlighted_rect) = layout.rect_under_mouse {
             display.draw_rectangle(highlighted_rect, color::menu_highlight);

@@ -1,6 +1,6 @@
 use crate::{
     color::{self, Color},
-    engine::{Display, TextMetrics, TextOptions},
+    engine::{Display, DrawResult, TextMetrics, TextOptions},
     point::Point,
     rect::Rectangle,
 };
@@ -20,7 +20,7 @@ pub fn render_text_flow(
     starting_line: i32,
     metrics: &dyn TextMetrics,
     display: &mut Display,
-) {
+) -> DrawResult {
     use self::Text::*;
 
     let mut skip = starting_line;
@@ -28,7 +28,7 @@ pub fn render_text_flow(
     for text in text_flow.iter() {
         let text_height = text_height(text, rect, metrics);
         if ypos >= rect.height() {
-            break;
+            return DrawResult::Overflow;
         }
         match text {
             Empty => {}
@@ -49,7 +49,10 @@ pub fn render_text_flow(
                     skip,
                     ..Default::default()
                 };
-                display.draw_text(pos, text, color::gui_text, options);
+                let res = display.draw_text(pos, text, color::gui_text, options);
+                if let DrawResult::Overflow = res {
+                    return res;
+                };
             }
 
             Centered(text) => {
@@ -58,7 +61,10 @@ pub fn render_text_flow(
                     skip,
                     ..TextOptions::align_center(rect.width())
                 };
-                display.draw_text(pos, text, color::gui_text, options);
+                let res = display.draw_text(pos, text, color::gui_text, options);
+                if let DrawResult::Overflow = res {
+                    return res;
+                };
             }
 
             // NOTE: this is no longer doing anything special! Maybe remove it later on?
@@ -71,7 +77,10 @@ pub fn render_text_flow(
                     skip,
                     ..TextOptions::align_center(rect.width())
                 };
-                display.draw_text(pos, text, color::gui_text, options);
+                let res = display.draw_text(pos, text, color::gui_text, options);
+                if let DrawResult::Overflow = res {
+                    return res;
+                };
             }
         }
         ypos += text_height;
@@ -84,6 +93,8 @@ pub fn render_text_flow(
             skip = 0;
         }
     }
+
+    DrawResult::Fit
 }
 
 fn text_height(text: &Text<'_>, rect: Rectangle, metrics: &dyn TextMetrics) -> i32 {

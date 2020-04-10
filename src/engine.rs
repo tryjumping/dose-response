@@ -540,6 +540,12 @@ impl Default for Cell {
     }
 }
 
+#[derive(Copy, Clone, PartialEq)]
+pub enum DrawResult {
+    Fit,
+    Overflow,
+}
+
 #[derive(Default)]
 pub struct Display {
     // TODO: this is the actual game area size in tiles. Rename it to something that makes that clear
@@ -684,7 +690,13 @@ impl Display {
         self.drawcalls.push(Drawcall::Image(src, dst, color));
     }
 
-    pub fn draw_text(&mut self, start_pos: Point, text: &str, color: Color, options: TextOptions) {
+    pub fn draw_text(
+        &mut self,
+        start_pos: Point,
+        text: &str,
+        color: Color,
+        options: TextOptions,
+    ) -> DrawResult {
         let tilesize = self.tilesize;
         let font_size = tilesize as u32;
         let mut render_line = |pos_px: Point, line: &str| {
@@ -724,6 +736,8 @@ impl Display {
                 if (index as i32) < options.height {
                     let pos = (start_pos + Point::new(0, index as i32)) * tilesize;
                     render_line(pos, line);
+                } else {
+                    return DrawResult::Overflow;
                 }
             }
         } else {
@@ -746,8 +760,12 @@ impl Display {
             };
             if options.skip == 0 {
                 render_line(pos, text);
+            } else {
+                return DrawResult::Overflow;
             }
         }
+
+        DrawResult::Fit
     }
 
     pub fn get(&self, pos: Point) -> Color {

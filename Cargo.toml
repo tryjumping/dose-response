@@ -48,6 +48,7 @@ winres = "0.1"
 
 [features]
 # Add the `mobile-ui` feature to switch to the mobile UI size
+# default = ["dev", "mobile-ui"]
 default = ["dev"]
 prod = ["desktop", "glutin-backend"]
 dev = ["desktop", "glutin-backend", "cheating", "replay", "stats", "verifications"]

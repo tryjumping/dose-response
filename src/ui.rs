@@ -37,10 +37,10 @@ pub fn render_text_flow(
 
             Paragraph(text) => {
                 let pos = rect.top_left() + Point::new(0, ypos);
-                let height = if ypos + text_height < rect.height() {
+                let height = if ypos + text_height <= rect.height() {
                     text_height
                 } else {
-                    rect.height() - ypos - 1
+                    rect.height() - ypos
                 };
                 let options = TextOptions {
                     wrap: true,
@@ -77,10 +77,7 @@ pub fn render_text_flow(
                     skip,
                     ..TextOptions::align_center(rect.width())
                 };
-                let res = display.draw_text(pos, text, color::gui_text, options);
-                if let DrawResult::Overflow = res {
-                    return res;
-                };
+                display.draw_text(pos, text, color::gui_text, options);
             }
         }
         ypos += text_height;

@@ -540,7 +540,7 @@ impl Default for Cell {
     }
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum DrawResult {
     Fit,
     Overflow,

@@ -34,7 +34,6 @@ impl MenuItem {
 pub struct Layout<'a> {
     window_rect: Rectangle,
     inner_window_rect: Rectangle,
-    rect: Rectangle,
     text_flow: Vec<Text<'a>>,
     menu_item_under_mouse: Option<MenuItem>,
     menu_rect_under_mouse: Option<Rectangle>,
@@ -62,17 +61,28 @@ impl Window {
             window_rect.bottom_right() - (1, 1),
         );
 
-        let rect_size = Point::new(20, 15);
-        let rect_pos = Point::new((inner_window_rect.width() - rect_size.x) / 2, 0);
-        let rect = Rectangle::from_point_and_size(rect_pos, rect_size);
+        // This rectangle is to restrict the width of the highlighted
+        // menu items. Without it, they would span the width of the
+        // entire window which is too much.
+        let highlight_rect_size = Point::new(20, inner_window_rect.height());
+        let highlight_rect_pos = Point::new(
+            (inner_window_rect.width() - highlight_rect_size.x) / 2
+                + inner_window_rect.top_left().x,
+            0,
+        );
+        let highlight_rect =
+            Rectangle::from_point_and_size(highlight_rect_pos, highlight_rect_size);
 
-        let title_padding = if short { 1 } else { 2 };
+        let top_padding = if short { 0 } else { 2 };
+        let header_padding = if short { 1 } else { 2 };
         let mut text_flow = vec![
-            EmptySpace(title_padding),
+            EmptySpace(top_padding),
             Centered("Dose Response"),
             Centered("By Tomas Sedovic"),
-            EmptySpace(title_padding),
+            EmptySpace(header_padding),
         ];
+
+        let header_rect = ui::text_flow_rect(&text_flow, inner_window_rect, metrics);
 
         let mut options = vec![];
 
@@ -96,8 +106,6 @@ impl Window {
         }
         options.push(MenuItem::Quit);
 
-        let header_rect = ui::text_flow_rect(&text_flow, rect, metrics);
-
         let mut menu_item_under_mouse = None;
         let mut menu_rect_under_mouse = None;
         let mut ypos = header_rect.bottom_right().y;
@@ -105,7 +113,10 @@ impl Window {
             let text = Centered(option.to_str());
             let text_rect = ui::text_rect(
                 &text,
-                Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()),
+                Rectangle::new(
+                    highlight_rect.top_left() + (0, ypos),
+                    highlight_rect.bottom_right(),
+                ),
                 metrics,
             );
             ypos += text_rect.size().y;
@@ -117,7 +128,10 @@ impl Window {
             text_flow.push(Empty);
             ypos += ui::text_rect(
                 &Empty,
-                Rectangle::new(rect.top_left() + (0, ypos), rect.bottom_right()),
+                Rectangle::new(
+                    highlight_rect.top_left() + (0, ypos),
+                    highlight_rect.bottom_right(),
+                ),
                 metrics,
             )
             .size()
@@ -127,14 +141,13 @@ impl Window {
         if window_rect.height() >= 19 {
             let quote_padding = if short { 0 } else { 3 };
             text_flow.push(EmptySpace(quote_padding));
-            text_flow.push(Paragraph("\"You cannot lose if you do not play.\""));
-            text_flow.push(Paragraph("-- Marla Daniels"));
+            text_flow.push(Paragraph(" \"You cannot lose if you do not play.\""));
+            text_flow.push(Paragraph(" -- Marla Daniels"));
         }
 
         Layout {
             window_rect,
             inner_window_rect,
-            rect,
             text_flow,
             menu_item_under_mouse,
             menu_rect_under_mouse,
@@ -146,17 +159,21 @@ impl Window {
         display.draw_rectangle(layout.window_rect, color::window_edge);
         display.draw_rectangle(layout.inner_window_rect, color::window_background);
 
-        let rect = layout.rect;
-
         if let Some(rect) = layout.menu_rect_under_mouse {
             display.draw_rectangle(rect, color::menu_highlight);
         }
 
-        ui::render_text_flow(&layout.text_flow, rect, 0, metrics, display);
+        ui::render_text_flow(
+            &layout.text_flow,
+            layout.inner_window_rect,
+            0,
+            metrics,
+            display,
+        );
 
         // NOTE: draw the version explicitly
         let short = display.size_without_padding().y < 26;
-        let version_padding = if short { (0, 0) } else { (1, 1) };
+        let version_padding = if short { (1, 0) } else { (1, 1) };
         display.draw_text(
             layout.inner_window_rect.bottom_right() - version_padding,
             &format!(

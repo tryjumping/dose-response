@@ -83,21 +83,30 @@ impl Window {
             rect_under_mouse = Some(button_rect);
         }
 
-        let tile_size_options = crate::engine::AVAILABLE_FONT_SIZES
+        let tile_size_texts = crate::engine::AVAILABLE_FONT_SIZES
             .iter()
             .enumerate()
             .map(|(index, &tile_size)| {
                 let window = crate::DISPLAY_SIZE * tile_size;
-                let button = Button::new(
-                    rect.top_left() + (14, 6 + index as i32),
-                    &format!(
-                        "[{}] {}px ({}x{})",
-                        index + 1,
-                        tile_size,
-                        window.x,
-                        window.y
-                    ),
+                let text = format!(
+                    "[{}] {}px ({}x{})",
+                    index + 1,
+                    tile_size,
+                    window.x,
+                    window.y
                 );
+                (tile_size, text)
+            })
+            .collect::<Vec<_>>();
+        let text_size_option_width =
+            metrics.get_text_width(&tile_size_texts[0].1, Default::default());
+
+        let x_offset = (rect.width() - text_size_option_width) / 2;
+        let tile_size_options = tile_size_texts
+            .iter()
+            .enumerate()
+            .map(|(index, &(tile_size, ref text))| {
+                let button = Button::new(rect.top_left() + (x_offset, 6 + index as i32), text);
                 (tile_size, button)
             })
             .collect::<Vec<_>>();

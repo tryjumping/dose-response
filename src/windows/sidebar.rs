@@ -523,7 +523,7 @@ impl Window {
             // Don't render the numpad controls label if it would overwrite a line
             if label_index_in_lines >= line_count as i32 {
                 display.draw_text(
-                    Point::new(x, label_y),
+                    Point::new(x + left_padding, label_y),
                     "Numpad Controls:",
                     layout.fg,
                     crate::engine::TextOptions::align_left(),

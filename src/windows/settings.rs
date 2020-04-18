@@ -52,8 +52,9 @@ impl Window {
         let mut option_under_mouse = None;
         let mut rect_under_mouse = None;
 
-        let fullscreen_button = Button::new(rect.top_left() + (13, 3), "[F]ullscreen");
-        let window_button = Button::new(rect.top_left() + (20, 3), "[W]indow");
+        let midpoint = rect.top_left() + (rect.width() / 2, 3);
+        let fullscreen_button = Button::new(midpoint - (1, 0), "[F]ullscreen").align_right();
+        let window_button = Button::new(midpoint + (1, 0), "[W]indow").align_left();
         let apply_button =
             Button::new(rect.bottom_right() + (0, -1), "[A]pply settings").align_right();
         let back_button = Button::new(rect.bottom_left() + (0, -1), "[Esc] Back").align_left();
@@ -149,7 +150,7 @@ impl Window {
             Centered("Settings"),
             Empty,
             Centered("Display:"),
-            Centered("/"), // Fullscreen / Window
+            Centered(" "), // Fullscreen / Window
             Empty,
             Centered(&tile_size),
             EmptySpace(crate::engine::AVAILABLE_FONT_SIZES.len() as i32),

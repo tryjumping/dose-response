@@ -205,8 +205,13 @@ impl LoopState {
                 self.display.tilesize,
                 new_tilesize_px
             );
-            self.display.tilesize = new_tilesize_px;
             self.settings.tile_size = new_tilesize_px;
+            // Recreate the display, because the tile count is now different:
+            let new_display_size_tiles = Point::new(
+                self.window_size_px.x / self.settings.tile_size,
+                self.window_size_px.y / self.settings.tile_size,
+            );
+            self.display = Display::new(new_display_size_tiles, self.settings.tile_size);
         } else {
             log::warn!(
             "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",

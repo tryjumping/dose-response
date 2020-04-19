@@ -205,13 +205,19 @@ impl Window {
         let se_button_small =
             Button::new(Point::new(x + left_padding + 5, bottom + 5), " ").color(fg);
 
-        let main_menu_rect = metrics.button_rect(&main_menu_button);
+        let main_menu_rect = Rectangle::from_point_and_size(
+            Point::new(x, main_menu_button.pos.y),
+            Point::new(state.panel_width, 1),
+        );
         if main_menu_rect.contains(state.mouse.tile_pos) {
             action_under_mouse = Some(Action::MainMenu);
             rect_under_mouse = Some(main_menu_rect);
         }
 
-        let help_rect = metrics.button_rect(&help_button);
+        let help_rect = Rectangle::from_point_and_size(
+            Point::new(x, help_button.pos.y),
+            Point::new(state.panel_width, 1),
+        );
         if help_rect.contains(state.mouse.tile_pos) {
             action_under_mouse = Some(Action::Help);
             rect_under_mouse = Some(help_rect);

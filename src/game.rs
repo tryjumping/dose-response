@@ -177,7 +177,7 @@ fn process_game(
     use self::sidebar::Action;
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics, display)
+        window.hovered(&state, metrics, display, true)
     } else {
         None
     };
@@ -582,7 +582,7 @@ fn process_main_menu(
     use crate::windows::main_menu::MenuItem::*;
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics, display)
+        window.hovered(&state, metrics, display, true)
     } else {
         None
     };
@@ -697,7 +697,7 @@ fn process_settings_window(
     }
 
     let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, settings, metrics, display)
+        window.hovered(&state, settings, metrics, display, true)
     } else {
         None
     };
@@ -776,7 +776,7 @@ fn process_help_window(
     }
 
     let mut action = if state.mouse.left_clicked {
-        window.hovered(&state, metrics, display)
+        window.hovered(&state, metrics, display, true)
     } else {
         None
     };
@@ -839,7 +839,7 @@ fn process_endgame_window(
     use crate::windows::endgame::Action::*;
 
     let mut action = if state.mouse.left_clicked {
-        window.hovered(&state, metrics, display)
+        window.hovered(&state, metrics, display, true)
     } else {
         None
     };

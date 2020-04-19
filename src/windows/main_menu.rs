@@ -47,6 +47,7 @@ impl Window {
         state: &State,
         metrics: &dyn TextMetrics,
         display: &Display,
+        top_level: bool,
     ) -> Layout<'_> {
         use crate::ui::Text::*;
         let short = display.size_without_padding().y < 26;
@@ -145,6 +146,11 @@ impl Window {
             text_flow.push(Paragraph(" -- Marla Daniels"));
         }
 
+        if !top_level {
+            menu_item_under_mouse = None;
+            menu_rect_under_mouse = None;
+        }
+
         Layout {
             window_rect,
             inner_window_rect,
@@ -154,8 +160,14 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) {
-        let layout = self.calculate_layout(state, metrics, display);
+    pub fn render(
+        &self,
+        state: &State,
+        metrics: &dyn TextMetrics,
+        display: &mut Display,
+        top_level: bool,
+    ) {
+        let layout = self.calculate_layout(state, metrics, display, top_level);
         display.draw_rectangle(layout.window_rect, color::window_edge);
         display.draw_rectangle(layout.inner_window_rect, color::window_background);
 
@@ -191,8 +203,9 @@ impl Window {
         state: &State,
         metrics: &dyn TextMetrics,
         display: &Display,
+        top_level: bool,
     ) -> Option<MenuItem> {
-        self.calculate_layout(state, metrics, display)
+        self.calculate_layout(state, metrics, display, top_level)
             .menu_item_under_mouse
     }
 }

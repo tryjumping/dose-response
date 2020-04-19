@@ -28,24 +28,40 @@ pub fn render(
     // TODO: This might be inefficient for windows fully covering
     // other windows.
     for window in state.window_stack.windows() {
+        let top_level = state.window_stack.top() == *window;
         match window {
             Window::MainMenu => {
-                render_main_menu(state, &main_menu::Window, metrics, display);
+                render_main_menu(state, &main_menu::Window, metrics, display, top_level);
             }
             Window::Game => {
-                render_game(state, &sidebar::Window, metrics, dt, fps, display);
+                render_game(
+                    state,
+                    &sidebar::Window,
+                    metrics,
+                    dt,
+                    fps,
+                    display,
+                    top_level,
+                );
             }
             Window::Settings => {
-                render_settings(state, settings, &settings::Window, metrics, display);
+                render_settings(
+                    state,
+                    settings,
+                    &settings::Window,
+                    metrics,
+                    display,
+                    top_level,
+                );
             }
             Window::Help => {
-                render_help_screen(state, &help::Window, metrics, display);
+                render_help_screen(state, &help::Window, metrics, display, top_level);
             }
             Window::Endgame => {
-                render_endgame_screen(state, &endgame::Window, metrics, display);
+                render_endgame_screen(state, &endgame::Window, metrics, display, top_level);
             }
             Window::Message { ref message, .. } => {
-                render_message(state, message, metrics, display);
+                render_message(state, message, metrics, display, top_level);
             }
         }
     }
@@ -74,6 +90,7 @@ pub fn render_game(
     dt: Duration,
     fps: i32,
     display: &mut Display,
+    top_level: bool,
 ) {
     let mut offset_px = state.offset_px;
 
@@ -284,7 +301,7 @@ pub fn render_game(
         display.set_glyph(display_pos, state.player.glyph(), state.player.color());
     }
 
-    sidebar_window.render(state, metrics, dt, fps, display);
+    sidebar_window.render(state, metrics, dt, fps, display, top_level);
     if state.show_keboard_movement_hints && !state.game_ended {
         render_controls_help(state.map_size, metrics, display);
     }
@@ -300,8 +317,9 @@ fn render_main_menu(
     window: &main_menu::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
+    top_level: bool,
 ) {
-    window.render(state, metrics, display);
+    window.render(state, metrics, display, top_level);
 
     // Clear any fade set by the gameplay rendering
     display.fade = color::invisible;
@@ -313,8 +331,9 @@ fn render_settings(
     window: &settings::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
+    top_level: bool,
 ) {
-    window.render(state, settings, metrics, display);
+    window.render(state, settings, metrics, display, top_level);
 
     // Clear any fade set by the gameplay rendering
     display.fade = color::invisible;
@@ -325,8 +344,9 @@ fn render_help_screen(
     window: &help::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
+    top_level: bool,
 ) {
-    window.render(state, metrics, display);
+    window.render(state, metrics, display, top_level);
 
     // Clear any fade set by the gameplay rendering
     display.fade = color::invisible;
@@ -337,8 +357,9 @@ fn render_endgame_screen(
     window: &endgame::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
+    top_level: bool,
 ) {
-    window.render(state, metrics, display);
+    window.render(state, metrics, display, top_level);
 
     if cfg!(feature = "recording") {
         let window = crate::windows::call_to_action::Window;
@@ -358,7 +379,13 @@ fn render_endgame_screen(
     }
 }
 
-fn render_message(_state: &State, text: &str, _metrics: &dyn TextMetrics, display: &mut Display) {
+fn render_message(
+    _state: &State,
+    text: &str,
+    _metrics: &dyn TextMetrics,
+    display: &mut Display,
+    _top_level: bool,
+) {
     let display_size = display.size_without_padding();
     let default_window_width = 40;
     let default_window_height = 8;

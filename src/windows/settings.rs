@@ -37,6 +37,7 @@ impl Window {
         _settings: &Settings,
         metrics: &dyn TextMetrics,
         display: &Display,
+        top_level: bool,
     ) -> Layout {
         let screen_padding = Point::from_i32(2);
         let window_rect = Rectangle::from_point_and_size(
@@ -119,6 +120,11 @@ impl Window {
             }
         }
 
+        if !top_level {
+            option_under_mouse = None;
+            rect_under_mouse = None;
+        }
+
         Layout {
             window_rect,
             rect,
@@ -138,10 +144,11 @@ impl Window {
         settings: &Settings,
         metrics: &dyn TextMetrics,
         display: &mut Display,
+        top_level: bool,
     ) {
         use crate::ui::Text::*;
 
-        let layout = self.layout(state, settings, metrics, display);
+        let layout = self.layout(state, settings, metrics, display, top_level);
 
         display.draw_rectangle(layout.window_rect, color::window_edge);
 
@@ -203,8 +210,9 @@ impl Window {
         settings: &Settings,
         metrics: &dyn TextMetrics,
         display: &Display,
+        top_level: bool,
     ) -> Option<Action> {
-        self.layout(state, settings, metrics, display)
+        self.layout(state, settings, metrics, display, top_level)
             .option_under_mouse
     }
 }

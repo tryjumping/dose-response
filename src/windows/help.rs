@@ -92,7 +92,13 @@ struct Layout {
 pub struct Window;
 
 impl Window {
-    fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &Display) -> Layout {
+    fn layout(
+        &self,
+        state: &State,
+        metrics: &dyn TextMetrics,
+        display: &Display,
+        top_level: bool,
+    ) -> Layout {
         let screen_padding = Point::from_i32(2);
         let window_rect = Rectangle::from_point_and_size(
             screen_padding,
@@ -168,6 +174,11 @@ impl Window {
             button
         };
 
+        if !top_level {
+            action_under_mouse = None;
+            rect_under_mouse = None;
+        }
+
         Layout {
             window_rect,
             help_text_rect,
@@ -181,10 +192,16 @@ impl Window {
         }
     }
 
-    pub fn render(&self, state: &State, metrics: &dyn TextMetrics, display: &mut Display) {
+    pub fn render(
+        &self,
+        state: &State,
+        metrics: &dyn TextMetrics,
+        display: &mut Display,
+        top_level: bool,
+    ) {
         use crate::ui::Text::*;
 
-        let layout = self.layout(state, metrics, display);
+        let layout = self.layout(state, metrics, display, top_level);
 
         display.draw_rectangle(layout.window_rect, color::window_edge);
 
@@ -441,7 +458,9 @@ impl Window {
         state: &State,
         metrics: &dyn TextMetrics,
         display: &Display,
+        top_level: bool,
     ) -> Option<Action> {
-        self.layout(state, metrics, display).action_under_mouse
+        self.layout(state, metrics, display, top_level)
+            .action_under_mouse
     }
 }

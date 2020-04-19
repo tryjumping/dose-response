@@ -65,7 +65,13 @@ struct Layout {
 pub struct Window;
 
 impl Window {
-    fn layout(&self, state: &State, metrics: &dyn TextMetrics, display: &Display) -> Layout {
+    fn layout(
+        &self,
+        state: &State,
+        metrics: &dyn TextMetrics,
+        display: &Display,
+        top_level: bool,
+    ) -> Layout {
         let wide = state.panel_width > 16;
         let tall = display.size_without_padding().y > 31;
         let short = display.size_without_padding().y < 26;
@@ -234,6 +240,12 @@ impl Window {
             }
         }
 
+        if !top_level {
+            action_under_mouse = None;
+            rect_under_mouse = None;
+            rect2_under_mouse = None;
+        }
+
         Layout {
             x,
             fg,
@@ -265,8 +277,10 @@ impl Window {
         state: &State,
         metrics: &dyn TextMetrics,
         display: &Display,
+        top_level: bool,
     ) -> Option<Action> {
-        self.layout(state, metrics, display).action_under_mouse
+        self.layout(state, metrics, display, top_level)
+            .action_under_mouse
     }
 
     pub fn render(
@@ -276,12 +290,13 @@ impl Window {
         dt: Duration,
         fps: i32,
         display: &mut Display,
+        top_level: bool,
     ) {
         let wide = state.panel_width > 16;
         let short = display.size_without_padding().y < 26;
         let left_padding = if wide { 1 } else { 0 };
 
-        let layout = self.layout(state, metrics, display);
+        let layout = self.layout(state, metrics, display, top_level);
         let x = layout.x;
         let fg = layout.fg;
         let bg = layout.bg;

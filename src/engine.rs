@@ -531,11 +531,7 @@ impl Default for Cell {
         Cell {
             glyph: ' ',
             foreground: Color { r: 0, g: 0, b: 0 },
-            background: Color {
-                r: 255,
-                g: 0,
-                b: 255,
-            },
+            background: Color { r: 0, g: 0, b: 0 },
         }
     }
 }

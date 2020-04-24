@@ -1,9 +1,10 @@
 build-all:
-	cargo check
-	cargo build
+	cargo build --features all-backends
 	cargo build --release --no-default-features --features prod
 	cargo build --release --target wasm32-unknown-unknown --no-default-features --features web
-	cargo build --features all-backends
+	cargo check
+	cargo build
+	cargo build --release
 .PHONY: build-all
 
 replay:

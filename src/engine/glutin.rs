@@ -336,7 +336,12 @@ pub fn main_loop<S>(
                 }
 
                 WindowEvent::CursorMoved { position, .. } => {
-                    loop_state.update_mouse_position(dpi, position.x as i32, position.y as i32);
+                    // NOTE: This function expects logical, not physical pixels.
+                    // But the values we get in this event are physical, so we need
+                    // to divide by the DPI to mae them logical.
+                    loop_state.update_mouse_position(dpi,
+                                                     (position.x / dpi) as i32,
+                                                     (position.y / dpi) as i32);
                 }
 
                 WindowEvent::MouseInput {

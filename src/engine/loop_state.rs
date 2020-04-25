@@ -185,6 +185,7 @@ impl LoopState {
         UpdateResult::KeepGoing
     }
 
+    /// The inputs are in LOGICAL pixels.
     pub fn handle_window_size_changed(&mut self, new_width: i32, new_height: i32) {
         log::info!("Window resized to: {} x {}", new_width, new_height);
         let new_window_size_px = Point::new(new_width, new_height);

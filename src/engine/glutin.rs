@@ -247,6 +247,7 @@ pub fn main_loop<S>(
 
                 WindowEvent::Resized(size) => {
                     log::info!("WindowEvent::Resized: {:?}", size);
+                    let logical_size: LogicalSize<i32> = size.to_logical(dpi);
 
                     if let Some(monitor_id) = context.window().fullscreen() {
                         log::warn!(
@@ -256,7 +257,8 @@ pub fn main_loop<S>(
                     }
 
                     context.resize(size);
-                    loop_state.handle_window_size_changed(size.width as i32, size.height as i32);
+                    loop_state.handle_window_size_changed(logical_size.width as i32,
+                                                          logical_size.height as i32);
                 }
 
                 WindowEvent::Moved(new_pos) => {

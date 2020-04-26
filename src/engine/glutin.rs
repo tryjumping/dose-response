@@ -163,6 +163,7 @@ pub fn main_loop<S>(
     };
     let window = glutin::window::WindowBuilder::new()
         .with_title(window_title)
+        .with_min_inner_size(LogicalSize::new(480, 320))
         .with_inner_size(desired_size);
     log::debug!("Created window builder: {:?}", window);
     let context = glutin::ContextBuilder::new()

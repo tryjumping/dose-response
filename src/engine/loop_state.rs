@@ -12,6 +12,8 @@ use std::time::Duration;
 
 use image::RgbaImage;
 
+pub const TILEMAP_SIZE: i32 = 10;
+
 pub enum FullscreenAction {
     SwitchToFullscreen,
     SwitchToWindowed,
@@ -42,7 +44,8 @@ pub struct LoopState {
     pub previous_settings: Settings,
     pub window_size_px: Point,
     pub display: Display,
-    pub image: RgbaImage,
+    pub fontmap: RgbaImage,
+    pub tilemap: RgbaImage,
     pub default_background: Color,
     pub drawcalls: Vec<Drawcall>,
     pub overall_max_drawcall_count: usize,
@@ -79,13 +82,20 @@ impl LoopState {
         );
 
         let display = Display::new(game_display_size_tiles, settings.tile_size);
-        let image = {
+        let fontmap = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
             image::load_from_memory_with_format(data, image::PNG)
                 .unwrap()
                 .to_rgba()
         };
         log::debug!("Loaded font image.");
+        let tilemap = {
+            let data = &include_bytes!("../../assets/bountiful-bits/Natural-no-bg.png")[..];
+            image::load_from_memory_with_format(data, image::PNG)
+                .unwrap()
+                .to_rgba()
+        };
+        log::debug!("Loaded the tilemap.");
 
         // Always start from a windowed mode. This will force the
         // fullscreen switch in the first frame if requested in the
@@ -108,7 +118,8 @@ impl LoopState {
             settings,
             previous_settings,
             display,
-            image,
+            fontmap,
+            tilemap,
             default_background,
             window_size_px,
             drawcalls: Vec::with_capacity(engine::DRAWCALL_CAPACITY),
@@ -128,11 +139,12 @@ impl LoopState {
     pub fn opengl_app(&self) -> OpenGlApp {
         let vs_source = include_str!("../shader_150.glslv");
         let fs_source = include_str!("../shader_150.glslf");
-        let opengl_app = OpenGlApp::new(vs_source, fs_source);
+        let mut opengl_app = OpenGlApp::new(vs_source, fs_source);
         log::debug!("Created opengl app.");
 
-        let image_size = self.image.dimensions();
-        opengl_app.initialise(image_size, &self.image);
+        let fontmap_size = self.fontmap.dimensions();
+        let tilemap_size = self.tilemap.dimensions();
+        opengl_app.initialise(fontmap_size, &self.fontmap, tilemap_size, &self.tilemap);
         log::debug!("Initialised opengl app.");
         opengl_app
     }
@@ -279,14 +291,9 @@ impl LoopState {
     }
 
     pub fn render(&self, gl: &OpenGlApp, dpi: f64) {
-        let texture_size_px = {
-            let (width, height) = self.image.dimensions();
-            [width as f32, height as f32]
-        };
         gl.render(
             self.default_background,
             self.display_info(dpi),
-            texture_size_px,
             &self.vertex_buffer,
         );
     }

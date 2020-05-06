@@ -16,7 +16,10 @@ pub struct OpenGlApp {
     pub fragment_shader: GLuint,
     pub vao: GLuint,
     pub vbo: GLuint,
-    pub texture: GLuint,
+    pub fontmap: GLuint,
+    pub fontmap_size_px: [f32; 2],
+    pub tilemap: GLuint,
+    pub tilemap_size_px: [f32; 2],
 }
 
 impl OpenGlApp {
@@ -35,22 +38,35 @@ impl OpenGlApp {
             gl::GenBuffers(1, &mut app.vbo);
             check_gl_error("GenBuffers");
 
-            gl::GenTextures(1, &mut app.texture);
-            check_gl_error("GenTextures");
+            gl::GenTextures(1, &mut app.fontmap);
+            check_gl_error("GenTextures font texture");
+
+            gl::GenTextures(1, &mut app.tilemap);
+            check_gl_error("GenTextures tilemap texture");
         }
 
         app
     }
 
     #[allow(unsafe_code)]
-    pub fn initialise(&self, image_size: (u32, u32), image_data: &[u8]) {
-        let (image_width, image_height) = image_size;
+    pub fn initialise(
+        &mut self,
+        fontmap_size: (u32, u32),
+        fontmap_data: &[u8],
+        tilemap_size: (u32, u32),
+        tilemap_data: &[u8],
+    ) {
+        let (fontmap_width, fontmap_height) = fontmap_size;
+        self.fontmap_size_px = [fontmap_width as f32, fontmap_height as f32];
+        let (tilemap_width, tilemap_height) = tilemap_size;
+        self.tilemap_size_px = [tilemap_width as f32, tilemap_height as f32];
         // NOTE(shadower): as far as I can tell (though the opengl
         // docs could a little more explicit) the data is copied in
         // the `texImage2D` call afterwards so it is okay to pass a
         // reference here. The pointer will not be referenced
         // afterwards.
-        let image_data_ptr: *const u8 = image_data.as_ptr();
+        let fontmap_data_ptr: *const u8 = fontmap_data.as_ptr();
+        let tilemap_data_ptr: *const u8 = tilemap_data.as_ptr();
         unsafe {
             gl::Enable(gl::BLEND);
             check_gl_error("Enable");
@@ -68,8 +84,8 @@ impl OpenGlApp {
             gl::BindFragDataLocation(self.program, 0, out_color_cstr.as_ptr());
             check_gl_error("BindFragDataLocation");
 
-            // Bind the texture
-            gl::BindTexture(gl::TEXTURE_2D, self.texture);
+            // Bind the font texture
+            gl::BindTexture(gl::TEXTURE_2D, self.fontmap);
             check_gl_error("BindTexture");
             // TODO: do we want to always use the GL_NEAREST filter? Even on downscaling and
             // non-whole DPI values?
@@ -81,14 +97,34 @@ impl OpenGlApp {
                 gl::TEXTURE_2D,
                 0,
                 gl::RGBA as i32,
-                image_width as i32,
-                image_height as i32,
+                fontmap_width as i32,
+                fontmap_height as i32,
                 0,
                 gl::RGBA,
                 gl::UNSIGNED_BYTE,
-                image_data_ptr as *const os::raw::c_void,
+                fontmap_data_ptr as *const os::raw::c_void,
             );
             check_gl_error("TexImage2D");
+
+            // Bind the tilemap texture
+            gl::BindTexture(gl::TEXTURE_2D, self.tilemap);
+            check_gl_error("BindTexture tilemap");
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            check_gl_error("TexParameteri MIN FILTER tilemap");
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            check_gl_error("TexParameteri MAG FILTER tilemap");
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as i32,
+                tilemap_width as i32,
+                tilemap_height as i32,
+                0,
+                gl::RGBA,
+                gl::UNSIGNED_BYTE,
+                tilemap_data_ptr as *const os::raw::c_void,
+            );
+            check_gl_error("TexImage2D tilemap");
         }
     }
 
@@ -160,15 +196,8 @@ impl OpenGlApp {
     }
 
     #[allow(unsafe_code, too_many_arguments)]
-    pub fn render(
-        &self,
-        clear_color: Color,
-        display_info: DisplayInfo,
-        texture_size_px: [f32; 2],
-        vertex_buffer: &[f32],
-    ) {
+    pub fn render(&self, clear_color: Color, display_info: DisplayInfo, vertex_buffer: &[f32]) {
         let program = self.program;
-        let texture = self.texture;
         let vbo = self.vbo;
         unsafe {
             // NOTE: this ignores the `extra_px` value. Which means
@@ -212,6 +241,23 @@ impl OpenGlApp {
             // NOTE: this must happen only after the BufferData call
             let stride =
                 crate::engine::VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
+
+            let texture_id_cstr = CString::new("texture_id").unwrap();
+            let texture_id_attr = gl::GetAttribLocation(program, texture_id_cstr.as_ptr());
+            check_gl_error("GetAttribLocation texture_id");
+            gl::EnableVertexAttribArray(texture_id_attr as GLuint);
+            check_gl_error("EnableVertexAttribArray texture_id");
+            gl::VertexAttribPointer(
+                texture_id_attr as GLuint,
+                1,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                stride,
+                ptr::null(),
+            );
+
+            assert_eq!(mem::size_of::<GLfloat>(), mem::size_of::<GLuint>());
+
             let pos_px_cstr = CString::new("pos_px").unwrap();
             let pos_attr = gl::GetAttribLocation(program, pos_px_cstr.as_ptr());
             check_gl_error("GetAttribLocation pos_px");
@@ -223,7 +269,7 @@ impl OpenGlApp {
                 gl::FLOAT,
                 gl::FALSE as GLboolean,
                 stride,
-                ptr::null(),
+                (1 * mem::size_of::<GLfloat>()) as *const GLvoid,
             );
             check_gl_error("VertexAttribPointer pos_xp");
 
@@ -238,7 +284,7 @@ impl OpenGlApp {
                 gl::FLOAT,
                 gl::FALSE as GLboolean,
                 stride,
-                (2 * mem::size_of::<GLfloat>()) as *const GLvoid,
+                (3 * mem::size_of::<GLfloat>()) as *const GLvoid,
             );
             check_gl_error("VertexAttribPointer tile_pos_px");
 
@@ -253,17 +299,27 @@ impl OpenGlApp {
                 gl::FLOAT,
                 gl::FALSE as GLboolean,
                 stride,
-                (4 * mem::size_of::<GLfloat>()) as *const GLvoid,
+                (5 * mem::size_of::<GLfloat>()) as *const GLvoid,
             );
             check_gl_error("VertexAttribPointer color");
 
             gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, texture);
-            check_gl_error("BindTexture");
-            let texture_index = 0; // NOTE: hardcoded -- we only have 1 texture.
-            let tex_cstr = CString::new("tex").unwrap();
+            gl::BindTexture(gl::TEXTURE_2D, self.fontmap);
+            check_gl_error("BindTexture font");
+            let texture_index = 0;
+            let fontmap_cstr = CString::new("fontmap").unwrap();
             gl::Uniform1i(
-                gl::GetUniformLocation(program, tex_cstr.as_ptr()),
+                gl::GetUniformLocation(program, fontmap_cstr.as_ptr()),
+                texture_index,
+            );
+
+            gl::ActiveTexture(gl::TEXTURE1);
+            gl::BindTexture(gl::TEXTURE_2D, self.tilemap);
+            check_gl_error("BindTexture tilemap");
+            let texture_index = 1;
+            let tilemap_cstr = CString::new("tilemap").unwrap();
+            gl::Uniform1i(
+                gl::GetUniformLocation(program, tilemap_cstr.as_ptr()),
                 texture_index,
             );
 
@@ -273,13 +329,23 @@ impl OpenGlApp {
                 display_info.display_px[0],
                 display_info.display_px[1],
             );
+            check_gl_error("Uniform2f display_px");
 
-            let texture_size_px_cstr = CString::new("texture_size_px").unwrap();
+            let texture_size_px_cstr = CString::new("fontmap_size_px").unwrap();
             gl::Uniform2f(
                 gl::GetUniformLocation(program, texture_size_px_cstr.as_ptr()),
-                texture_size_px[0],
-                texture_size_px[1],
+                self.fontmap_size_px[0],
+                self.fontmap_size_px[1],
             );
+            check_gl_error("Uniform2f fontmap_size_px");
+
+            let tilemap_size_px_cstr = CString::new("tilemap_size_px").unwrap();
+            gl::Uniform2f(
+                gl::GetUniformLocation(program, tilemap_size_px_cstr.as_ptr()),
+                self.tilemap_size_px[0],
+                self.tilemap_size_px[1],
+            );
+            check_gl_error("Uniform2f tilemap_size_px");
 
             gl::DrawArrays(
                 gl::TRIANGLES,
@@ -300,7 +366,8 @@ impl Drop for OpenGlApp {
             gl::DeleteShader(self.vertex_shader);
             gl::DeleteBuffers(1, &self.vbo);
             gl::DeleteVertexArrays(1, &self.vao);
-            gl::DeleteTextures(1, &self.texture);
+            gl::DeleteTextures(1, &self.fontmap);
+            gl::DeleteTextures(1, &self.tilemap);
         }
     }
 }

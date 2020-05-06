@@ -2,6 +2,7 @@
 
 use crate::{
     color::{self, Color, ColorAlpha},
+    engine::loop_state::TILEMAP_SIZE,
     point::Point,
     rect::Rectangle,
     ui::Button,
@@ -30,19 +31,40 @@ pub mod wasm;
 
 pub const DRAWCALL_CAPACITY: usize = 8000;
 pub const VERTEX_CAPACITY: usize = 50_000;
-pub const VERTEX_COMPONENT_COUNT: usize = 8;
+pub const VERTEX_COMPONENT_COUNT: usize = 9;
 const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * VERTEX_CAPACITY;
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum Texture {
+    Font,
+    Tilemap,
+}
+
+impl Into<f32> for Texture {
+    fn into(self) -> f32 {
+        match self {
+            Texture::Font => 0.0,
+            Texture::Tilemap => 1.1,
+        }
+    }
+}
 
 /// The drawcalls that the engine will process and render.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Drawcall {
     Rectangle(Rectangle, ColorAlpha),
-    Image(Rectangle, Rectangle, Color),
+    Image(Texture, Rectangle, Rectangle, Color),
 }
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
 pub struct Vertex {
+    /// ID of the texture to read from.
+    ///
+    /// `0.0` means the font
+    /// `1.0` means the tilemap
+    pub texture_id: f32,
+
     /// Position in the tile coordinates.
     ///
     /// Note that this doesn't have to be an integer, so you can
@@ -63,8 +85,9 @@ pub struct Vertex {
 
 impl Vertex {
     #[allow(dead_code)]
-    fn to_f32_array(&self) -> [f32; 8] {
+    fn to_f32_array(&self) -> [f32; 9] {
         [
+            self.texture_id.into(),
             self.pos_px[0],
             self.pos_px[1],
             self.tile_pos_px[0],
@@ -159,36 +182,45 @@ fn build_vertices<T: VertexStore>(
                     (pos_y, dim_y)
                 };
 
+                // Tile position of [-1, -1] indicates an area colour fill rather than a texture blit
                 let tile_pos_px = [-1.0, -1.0];
+                // The value here doesn't matter, the shader ignores the texture for rectangles.
+                let texture_id = 0.0;
                 let color = (*color).into();
 
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x, pos_y],
                     tile_pos_px,
                     color,
                 });
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x + dim_x, pos_y],
                     tile_pos_px,
                     color,
                 });
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x, pos_y + dim_y],
                     tile_pos_px,
                     color,
                 });
 
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x + dim_x, pos_y],
                     tile_pos_px,
                     color,
                 });
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x, pos_y + dim_y],
                     tile_pos_px,
                     color,
                 });
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x + dim_x, pos_y + dim_y],
                     tile_pos_px,
                     color,
@@ -196,11 +228,15 @@ fn build_vertices<T: VertexStore>(
             }
 
             // NOTE: (Rectangle, Rectangle, Color)
-            Drawcall::Image(src, dst, color) => {
+            Drawcall::Image(texture, src, dst, color) => {
                 let pixel_pos = dst.top_left();
                 let (pos_x, pos_y) = (pixel_pos.x as f32, pixel_pos.y as f32);
                 let (tile_width, tile_height) = (dst.width() as f32, dst.height() as f32);
                 let (tilemap_x, tilemap_y) = (src.top_left().x as f32, src.top_left().y as f32);
+                let (texture_width, texture_height) = match texture {
+                    Texture::Font => (tile_width, tile_height),
+                    Texture::Tilemap => (TILEMAP_SIZE as f32, TILEMAP_SIZE as f32),
+                };
 
                 // NOTE: cut off the area that's not in the display.
                 //
@@ -224,39 +260,46 @@ fn build_vertices<T: VertexStore>(
                     (pos_y, tilemap_y, tile_height)
                 };
 
+                let texture_id = (*texture).into();
                 let rgba: ColorAlpha = (*color).into();
                 let color = rgba.into();
 
                 // NOTE: draw the glyph
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x, pos_y],
                     tile_pos_px: [tilemap_x, tilemap_y],
                     color,
                 });
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x + tile_width, pos_y],
-                    tile_pos_px: [tilemap_x + tile_width, tilemap_y],
+                    tile_pos_px: [tilemap_x + texture_width, tilemap_y],
                     color,
                 });
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x, tilemap_y + tile_height],
+                    tile_pos_px: [tilemap_x, tilemap_y + texture_height],
                     color,
                 });
 
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x + tile_width, pos_y],
-                    tile_pos_px: [tilemap_x + tile_width, tilemap_y],
+                    tile_pos_px: [tilemap_x + texture_width, tilemap_y],
                     color,
                 });
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x, tilemap_y + tile_height],
+                    tile_pos_px: [tilemap_x, tilemap_y + texture_height],
                     color,
                 });
                 vertices.push(Vertex {
+                    texture_id,
                     pos_px: [pos_x + tile_width, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x + tile_width, tilemap_y + tile_height],
+                    tile_pos_px: [tilemap_x + texture_width, tilemap_y + texture_height],
                     color,
                 });
             }
@@ -519,6 +562,14 @@ impl Mouse {
     }
 }
 
+fn tilemap_coords_px_from_char(_tilesize: u32, glyph: char) -> Option<(i32, i32)> {
+    match glyph {
+        '#' => Some((3 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        '.' => Some((1 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        _ => None,
+    }
+}
+
 #[derive(Copy, Clone, Debug)]
 pub struct Cell {
     pub glyph: char,
@@ -683,7 +734,8 @@ impl Display {
         );
         let dst = Rectangle::from_point_and_size(Point::new(x, y), Point::from_i32(self.tilesize));
 
-        self.drawcalls.push(Drawcall::Image(src, dst, color));
+        self.drawcalls
+            .push(Drawcall::Image(Texture::Font, src, dst, color));
     }
 
     pub fn draw_text(
@@ -718,7 +770,8 @@ impl Display {
                     Point::from_i32(self.tilesize),
                 );
 
-                self.drawcalls.push(Drawcall::Image(src, dst, color));
+                self.drawcalls
+                    .push(Drawcall::Image(Texture::Font, src, dst, color));
 
                 let advance_width = glyph_advance_width(font_size, chr).unwrap_or(self.tilesize);
                 offset_x += advance_width;
@@ -795,11 +848,22 @@ impl Display {
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
-            let (texture_px_x, texture_px_y) =
-                texture_coords_px_from_char(font_size, cell.glyph).unwrap_or((0, 0));
+            let (texture, texture_px_x, texture_px_y) =
+                match tilemap_coords_px_from_char(font_size, cell.glyph) {
+                    Some((tx, ty)) => (Texture::Tilemap, tx, ty),
+                    None => {
+                        let (tx, ty) =
+                            texture_coords_px_from_char(font_size, cell.glyph).unwrap_or((0, 0));
+                        (Texture::Font, tx, ty)
+                    }
+                };
+            let texture_size = match texture {
+                Texture::Font => font_size as i32,
+                Texture::Tilemap => TILEMAP_SIZE,
+            };
             let texture_src = Rectangle::from_point_and_size(
                 Point::new(texture_px_x, texture_px_y),
-                Point::from_i32(tilesize),
+                Point::from_i32(texture_size),
             );
             let background_dst = Rectangle::from_point_and_size(
                 Point::new(
@@ -809,14 +873,26 @@ impl Display {
                 Point::from_i32(tilesize),
             );
 
-            // NOTE: Center the glyphs in their cells
-            let glyph_width = glyph_advance_width(font_size, cell.glyph).unwrap_or(tilesize);
-            let x_offset = (tilesize as i32 - glyph_width) / 2;
+            let x_offset = match texture {
+                Texture::Font => {
+                    // NOTE: Center the glyphs in their cells
+                    let glyph_width =
+                        glyph_advance_width(font_size, cell.glyph).unwrap_or(tilesize);
+                    (tilesize as i32 - glyph_width) / 2
+                }
+                // NOTE: The graphical tiles are positioned correctly already
+                Texture::Tilemap => 0,
+            };
             let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
 
             if rect_intersects_area(background_dst, display_size_px) {
                 drawcalls.push(Drawcall::Rectangle(background_dst, cell.background.into()));
-                drawcalls.push(Drawcall::Image(texture_src, glyph_dst, cell.foreground));
+                drawcalls.push(Drawcall::Image(
+                    texture,
+                    texture_src,
+                    glyph_dst,
+                    cell.foreground,
+                ));
             }
         }
 

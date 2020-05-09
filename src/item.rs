@@ -2,6 +2,7 @@ use self::Kind::*;
 
 use crate::{
     color::{self, Color},
+    graphic::Graphic,
     player::Modifier,
 };
 
@@ -86,13 +87,13 @@ impl Item {
         }
     }
 
-    pub fn glyph(&self) -> char {
+    pub fn graphic(&self) -> Graphic {
         match self.kind {
-            Food => '%',
-            Dose => 'i',
-            StrongDose => 'I',
-            CardinalDose => '+',
-            DiagonalDose => 'x',
+            Food => Graphic::Food,
+            Dose => Graphic::Dose,
+            StrongDose => Graphic::StrongDose,
+            CardinalDose => Graphic::CardinalDose,
+            DiagonalDose => Graphic::DiagonalDose,
         }
     }
 

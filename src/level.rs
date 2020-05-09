@@ -1,6 +1,7 @@
 use crate::{
     blocker,
     color::{self, Color},
+    graphic::Graphic,
     item::Item,
     point,
 };
@@ -38,6 +39,7 @@ pub enum TileKind {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Tile {
     pub kind: TileKind,
+    pub graphic: Graphic,
     pub fg_color: Color,
 }
 
@@ -47,17 +49,14 @@ impl Tile {
             TileKind::Empty => color::empty_tile,
             TileKind::Tree => color::tree_1,
         };
+        let graphic = match kind {
+            TileKind::Empty => Graphic::Ground,
+            TileKind::Tree => Graphic::Tree1,
+        };
         Tile {
             kind,
+            graphic,
             fg_color: color,
-        }
-    }
-
-    pub fn glyph(self) -> char {
-        use self::TileKind::*;
-        match self.kind {
-            Empty => '.',
-            Tree => '#',
         }
     }
 }

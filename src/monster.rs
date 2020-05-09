@@ -5,6 +5,7 @@ use crate::{
     blocker::Blocker,
     color::{self, Color},
     game::Action,
+    graphic::Graphic,
     player::{Modifier, PlayerInfo},
     point::Point,
     random::Random,
@@ -204,15 +205,15 @@ impl Monster {
         !self.dead
     }
 
-    pub fn glyph(&self) -> char {
+    pub fn graphic(&self) -> Graphic {
         match self.kind {
-            Anxiety => 'a',
-            Depression => 'D',
-            Hunger => 'h',
-            Shadows => 'S',
-            Voices => 'v',
-            Npc => '@',
-            Signpost => '!',
+            Anxiety => Graphic::Anxiety,
+            Depression => Graphic::Depression,
+            Hunger => Graphic::Hunger,
+            Shadows => Graphic::Shadows,
+            Voices => Graphic::Voices,
+            Npc => Graphic::Npc,
+            Signpost => Graphic::Signpost,
         }
     }
 

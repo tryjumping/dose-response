@@ -186,14 +186,14 @@ pub fn render_game(
         if in_fov(world_pos) || cell.always_visible || state.uncovered_map {
             display.set(
                 display_pos,
-                rendered_tile.glyph(),
+                rendered_tile.graphic,
                 rendered_tile.fg_color,
                 color::explored_background,
             );
         } else if cell.explored || bonus == Bonus::UncoverMap {
             display.set(
                 display_pos,
-                rendered_tile.glyph(),
+                rendered_tile.graphic,
                 rendered_tile.fg_color,
                 color::dim_background,
             );
@@ -210,7 +210,7 @@ pub fn render_game(
             || state.uncovered_map
         {
             for item in &cell.items {
-                display.set_glyph(display_pos, item.glyph(), item.color());
+                display.set_graphic(display_pos, item.graphic(), item.color());
             }
         }
     }
@@ -285,20 +285,19 @@ pub fn render_game(
             //     }
             // }
 
-            let glyph = monster.glyph();
             let color = if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
                 color::npc_dim
             } else {
                 monster.color
             };
-            display.set_glyph(display_pos, glyph, color);
+            display.set_graphic(display_pos, monster.graphic(), color);
         }
     }
 
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
-        display.set_glyph(display_pos, state.player.glyph(), state.player.color());
+        display.set_graphic(display_pos, state.player.graphic(), state.player.color());
     }
 
     sidebar_window.render(state, metrics, dt, fps, display, top_level);

@@ -3,6 +3,7 @@
 use crate::{
     color::{self, Color, ColorAlpha},
     engine::loop_state::TILEMAP_SIZE,
+    graphic::Graphic,
     point::Point,
     rect::Rectangle,
     ui::Button,
@@ -562,17 +563,20 @@ impl Mouse {
     }
 }
 
-fn tilemap_coords_px_from_char(_tilesize: u32, glyph: char) -> Option<(i32, i32)> {
-    match glyph {
-        '#' => Some((3 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
-        '.' => Some((1 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)> {
+    match graphic {
+        Graphic::Tree1 => Some((3 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Tree2 => Some((4 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Tree3 => Some((5 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Tree4 => Some((6 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Ground => Some((1 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
         _ => None,
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 pub struct Cell {
-    pub glyph: char,
+    pub graphic: Graphic,
     pub foreground: Color,
     pub background: Color,
 }
@@ -580,7 +584,7 @@ pub struct Cell {
 impl Default for Cell {
     fn default() -> Self {
         Cell {
-            glyph: ' ',
+            graphic: Graphic::Empty,
             foreground: Color { r: 0, g: 0, b: 0 },
             background: Color { r: 0, g: 0, b: 0 },
         }
@@ -674,19 +678,19 @@ impl Display {
         pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y
     }
 
-    pub fn set(&mut self, pos: Point, glyph: char, foreground: Color, background: Color) {
+    pub fn set(&mut self, pos: Point, graphic: Graphic, foreground: Color, background: Color) {
         if let Some(ix) = self.index(pos) {
             self.map[ix] = Cell {
-                glyph,
+                graphic,
                 foreground,
                 background,
             };
         }
     }
 
-    pub fn set_glyph(&mut self, pos: Point, glyph: char, foreground: Color) {
+    pub fn set_graphic(&mut self, pos: Point, graphic: Graphic, foreground: Color) {
         if let Some(ix) = self.index(pos) {
-            self.map[ix].glyph = glyph;
+            self.map[ix].graphic = graphic;
             self.map[ix].foreground = foreground;
         }
     }
@@ -849,11 +853,11 @@ impl Display {
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
             let (texture, texture_px_x, texture_px_y) =
-                match tilemap_coords_px_from_char(font_size, cell.glyph) {
+                match tilemap_coords_px_from_graphic(font_size, cell.graphic) {
                     Some((tx, ty)) => (Texture::Tilemap, tx, ty),
                     None => {
-                        let (tx, ty) =
-                            texture_coords_px_from_char(font_size, cell.glyph).unwrap_or((0, 0));
+                        let (tx, ty) = texture_coords_px_from_char(font_size, cell.graphic.into())
+                            .unwrap_or((0, 0));
                         (Texture::Font, tx, ty)
                     }
                 };
@@ -877,7 +881,7 @@ impl Display {
                 Texture::Font => {
                     // NOTE: Center the glyphs in their cells
                     let glyph_width =
-                        glyph_advance_width(font_size, cell.glyph).unwrap_or(tilesize);
+                        glyph_advance_width(font_size, cell.graphic.into()).unwrap_or(tilesize);
                     (tilesize as i32 - glyph_width) / 2
                 }
                 // NOTE: The graphical tiles are positioned correctly already

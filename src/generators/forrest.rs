@@ -1,6 +1,7 @@
 use crate::{
     color, formula,
     generators::GeneratedWorld,
+    graphic::Graphic,
     item::{self, Item},
     level::{Tile, TileKind},
     monster::{Kind, Monster},
@@ -52,6 +53,13 @@ fn generate_map(
             if tile.kind == TileKind::Tree {
                 let options = [color::tree_1, color::tree_2, color::tree_3];
                 tile.fg_color = *throwavay_rng.choose(&options).unwrap();
+                let graphic_options = [
+                    Graphic::Tree1,
+                    Graphic::Tree2,
+                    Graphic::Tree3,
+                    Graphic::Tree4,
+                ];
+                tile.graphic = *throwavay_rng.choose(&graphic_options).unwrap();
             }
 
             result.push((Point::new(x, y), tile));

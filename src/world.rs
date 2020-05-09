@@ -66,9 +66,9 @@ impl Chunk {
 
     fn populate(&mut self, generated_world: GeneratedWorld) {
         let (map, generated_monsters, items) = generated_world;
-        for &(pos, item) in &map {
+        for &(pos, tile) in &map {
             let pos = self.level.level_position(pos);
-            self.level.set_tile(pos, item);
+            self.level.set_tile(pos, tile);
         }
         for mut monster in generated_monsters.into_iter() {
             // TODO: the pos conversion would not be necessary if the

@@ -148,24 +148,14 @@ impl Window {
 
         let endgame_description = match (cause_of_death, perpetrator) {
             (Some(Exhausted), None) => "Exhausted".into(),
-            (Some(Exhausted), Some(monster)) => format!(
-                "Exhausted because of {} ({})",
-                monster.name(),
-                monster.glyph()
-            ),
+            (Some(Exhausted), Some(monster)) => format!("Exhausted because of {}", monster.name(),),
             (Some(Overdosed), _) => "Overdosed".into(),
-            (Some(LostWill), Some(monster)) => format!(
-                "Lost all Will due to {} ({})",
-                monster.name(),
-                monster.glyph()
-            ),
+            (Some(LostWill), Some(monster)) => format!("Lost all Will due to {}", monster.name(),),
             (Some(LostWill), None) => {
                 log::error!("Lost all will without any apparent cause.");
                 format!("Lost all will")
             }
-            (Some(Killed), Some(monster)) => {
-                format!("Defeated by {} ({})", monster.name(), monster.glyph())
-            }
+            (Some(Killed), Some(monster)) => format!("Defeated by {}", monster.name()),
             (Some(Killed), None) => {
                 log::error!("Player lost without an apparent cause.");
                 format!("Lost")

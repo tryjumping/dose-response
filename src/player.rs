@@ -1,6 +1,7 @@
 use crate::{
     color::{self, Color},
     formula::{self, ANXIETIES_PER_WILL, WILL, WITHDRAWAL},
+    graphic::Graphic,
     item::Item,
     monster::{CompanionBonus, Monster},
     point::Point,
@@ -221,11 +222,11 @@ impl Player {
         }
     }
 
-    pub fn glyph(&self) -> char {
+    pub fn graphic(&self) -> Graphic {
         if self.alive() {
-            '@'
+            Graphic::Player
         } else {
-            '&'
+            Graphic::Corpse
         }
     }
 }

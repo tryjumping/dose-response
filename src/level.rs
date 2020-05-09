@@ -50,7 +50,7 @@ impl Tile {
             TileKind::Tree => color::tree_1,
         };
         let graphic = match kind {
-            TileKind::Empty => Graphic::Ground,
+            TileKind::Empty => Graphic::Ground1,
             TileKind::Tree => Graphic::Tree1,
         };
         Tile {

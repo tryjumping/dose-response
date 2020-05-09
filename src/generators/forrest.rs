@@ -50,17 +50,44 @@ fn generate_map(
             };
 
             let mut tile = Tile::new(kind);
-            if tile.kind == TileKind::Tree {
-                let options = [color::tree_1, color::tree_2, color::tree_3];
-                tile.fg_color = *throwavay_rng.choose(&options).unwrap();
-                let graphic_options = [
-                    Graphic::Tree1,
-                    Graphic::Tree2,
-                    Graphic::Tree3,
-                    Graphic::Tree4,
-                ];
-                tile.graphic = *throwavay_rng.choose(&graphic_options).unwrap();
-            }
+            match tile.kind {
+                TileKind::Tree => {
+                    let options = [color::tree_1, color::tree_2, color::tree_3];
+                    tile.fg_color = *throwavay_rng.choose(&options).unwrap();
+                    let graphic_options = [
+                        Graphic::Tree1,
+                        Graphic::Tree2,
+                        Graphic::Tree3,
+                        Graphic::Tree4,
+                        Graphic::Tree5,
+                        Graphic::Tree6,
+                        Graphic::Tree7,
+                        Graphic::Tree8,
+                        Graphic::Tree9,
+                        Graphic::Tree10,
+                    ];
+                    tile.graphic = *throwavay_rng.choose(&graphic_options).unwrap();
+                }
+                TileKind::Empty => {
+                    let options = [
+                        Graphic::Ground1,
+                        Graphic::Ground2,
+                        Graphic::Ground3,
+                        Graphic::Ground4,
+                        Graphic::Ground5,
+                        Graphic::Grass1,
+                        Graphic::Grass2,
+                        Graphic::Grass3,
+                        Graphic::Grass4,
+                        Graphic::Grass5,
+                        Graphic::Grass6,
+                        Graphic::Grass7,
+                        Graphic::Grass8,
+                        Graphic::Grass9,
+                    ];
+                    tile.graphic = *throwavay_rng.choose(&options).unwrap();
+                }
+            };
 
             result.push((Point::new(x, y), tile));
         }

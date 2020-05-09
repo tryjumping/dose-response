@@ -569,7 +569,31 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
         Graphic::Tree2 => Some((4 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
         Graphic::Tree3 => Some((5 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
         Graphic::Tree4 => Some((6 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
-        Graphic::Ground => Some((1 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Tree5 => Some((7 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Tree6 => Some((8 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Tree7 => Some((9 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Tree8 => Some((10 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Tree9 => Some((3 * TILEMAP_SIZE, 2 * TILEMAP_SIZE)),
+        Graphic::Tree10 => Some((4 * TILEMAP_SIZE, 2 * TILEMAP_SIZE)),
+
+        Graphic::Ground1 => Some((1 * TILEMAP_SIZE, 1 * TILEMAP_SIZE)),
+        Graphic::Ground2 => Some((1 * TILEMAP_SIZE, 2 * TILEMAP_SIZE)),
+        Graphic::Ground3 => Some((1 * TILEMAP_SIZE, 3 * TILEMAP_SIZE)),
+        Graphic::Ground4 => Some((1 * TILEMAP_SIZE, 4 * TILEMAP_SIZE)),
+        Graphic::Ground5 => Some((1 * TILEMAP_SIZE, 5 * TILEMAP_SIZE)),
+
+        Graphic::Grass1 => Some((8 * TILEMAP_SIZE, 3 * TILEMAP_SIZE)),
+        Graphic::Grass2 => Some((9 * TILEMAP_SIZE, 3 * TILEMAP_SIZE)),
+        Graphic::Grass3 => Some((10 * TILEMAP_SIZE, 3 * TILEMAP_SIZE)),
+        Graphic::Grass4 => Some((8 * TILEMAP_SIZE, 5 * TILEMAP_SIZE)),
+        Graphic::Grass5 => Some((9 * TILEMAP_SIZE, 5 * TILEMAP_SIZE)),
+        Graphic::Grass6 => Some((10 * TILEMAP_SIZE, 5 * TILEMAP_SIZE)),
+        Graphic::Grass7 => Some((8 * TILEMAP_SIZE, 7 * TILEMAP_SIZE)),
+        Graphic::Grass8 => Some((9 * TILEMAP_SIZE, 7 * TILEMAP_SIZE)),
+        Graphic::Grass9 => Some((10 * TILEMAP_SIZE, 7 * TILEMAP_SIZE)),
+
+        Graphic::Corpse => Some((2 * TILEMAP_SIZE, 2 * TILEMAP_SIZE)),
+
         _ => None,
     }
 }

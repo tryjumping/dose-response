@@ -48,7 +48,7 @@ pub const invisible: ColorAlpha = ColorAlpha { rgb: Color { r: 0, g: 0, b: 0 }, 
 
 
 // Game colours
-pub const explored_background: Color = BLACK;
+pub const explored_background: Color = DARK_BROWN;
 pub const unexplored_background: Color = BLACK;
 pub const exhaustion_animation: Color = BLACK;
 pub const fade_to_black_animation: Color = BLACK;

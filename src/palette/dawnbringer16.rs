@@ -60,6 +60,12 @@ pub const BROWN: Color = Color {
     b: 48,
 };
 
+pub const DARK_BROWN: Color = Color {
+    r: 39,
+    g: 25,
+    b: 14,
+};
+
 pub const FUNKY_RED: Color = Color {
     r: 210,
     g: 125,

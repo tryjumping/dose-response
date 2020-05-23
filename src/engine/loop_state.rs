@@ -83,12 +83,12 @@ impl LoopState {
 
         let display = Display::new(game_display_size_tiles, settings.tile_size);
         let fontmap = {
-            let data = &include_bytes!(concat!(env!("OUT_DIR"), "/font.png"))[..];
+            let data = &include_bytes!(concat!(env!("OUT_DIR"), "/text.png"))[..];
             image::load_from_memory_with_format(data, image::PNG)
                 .unwrap()
                 .to_rgba()
         };
-        log::debug!("Loaded font image.");
+        log::debug!("Loaded text tilemap.");
 
         let mut tilemap = {
             let data = &include_bytes!("../../assets/bountiful-bits/Natural-no-bg.png")[..];

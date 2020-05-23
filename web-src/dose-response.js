@@ -34,7 +34,7 @@ function actually_play_game(canvas, loaded_callback) {
   const gl = canvas.getContext("webgl");
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  const texture = twgl.createTexture(gl, {src: "font.png"});
+  const texture = twgl.createTexture(gl, {src: "text.png"});
 
 
   var programInfo = null;

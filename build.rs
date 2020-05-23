@@ -174,7 +174,7 @@ fn main() {
     // Let's cap it to whatever currently fits 512x512 and see if we
     // need to change this later.
 
-    let mut font_sizes = [
+    let mut text_sizes = [
         //72, // 4k i.e. QuadHD i.e. 3840x2160
         36, // 1920x1080 (1080p)
         24, // 1280x720 (720p)
@@ -183,6 +183,7 @@ fn main() {
     ];
 
     // TODO: render a separate glyphmap for the game tiles as opposed to generic text
+    // NOTE: We can center them properly and not have to do the position fixup in the game
     let tile_sizes = [40, 30, 20];
 
     let mut glyph_advance_width_entries = vec![];
@@ -193,13 +194,10 @@ fn main() {
 
     // NOTE: the packing can be made more efficient if we place the
     // biggest glyphs first.
-    font_sizes.sort_by(|a, b| b.cmp(a));
+    text_sizes.sort_by(|a, b| b.cmp(a));
 
-    for &font_size in &font_sizes {
-        // Desired font pixel height
-        let tilesize: u32 = font_size as u32;
-        let height: f32 = tilesize as f32;
-
+    for &size in &text_sizes {
+        let height = size as f32;
         let scale = Scale::uniform(height);
         let v_metrics = font.v_metrics(scale);
 
@@ -211,25 +209,25 @@ fn main() {
             glyph_advance_width_entries.push((height as u32, chr, advance_width as i32));
         }
 
-        let tiles_per_texture_width: i32 = texture_width / tilesize as i32;
+        let tiles_per_texture_width = texture_width / size;
 
         let glyphs_iter = lookup_table.iter().map(|&(index, chr)| {
             let column = index as i32 % tiles_per_texture_width;
             let line = index as i32 / tiles_per_texture_width;
-            let tilepos_x = column * tilesize as i32 + tilemap_offset_x;
-            let tilepos_y = line * tilesize as i32 + tilemap_offset_y;
+            let tilepos_x = column * size + tilemap_offset_x;
+            let tilepos_y = line * size + tilemap_offset_y;
             let glyph = font
                 .glyph(chr)
                 .scaled(scale)
                 .positioned(point(tilepos_x as f32, tilepos_y as f32 + v_metrics.ascent));
-            (font_size, glyph, chr, tilepos_x, tilepos_y)
+            (size, glyph, chr, tilepos_x, tilepos_y)
         });
 
         glyphs.extend(glyphs_iter);
 
-        let full_font_width_px = lookup_table.len() as i32 * font_size;
+        let full_font_width_px = lookup_table.len() as i32 * size;
         let lines = (full_font_width_px as f32 / texture_width as f32).ceil() as i32;
-        tilemap_offset_y += font_size * lines;
+        tilemap_offset_y += size * lines;
 
         if tilemap_offset_y >= texture_height {
             panic!(
@@ -257,8 +255,8 @@ fn main() {
 
     lookup_table_contents.push_str(&format!(
         "pub const AVAILABLE_FONT_SIZES: [i32; {}] = {:?};\n",
-        font_sizes.len(),
-        font_sizes,
+        text_sizes.len(),
+        text_sizes,
     ));
 
     let mut backends = vec![];
@@ -311,7 +309,7 @@ fn main() {
     lt_file.write_all(lookup_table_contents.as_bytes()).unwrap();
 
     // NOTE: Generate the tilemap
-    let mut fontmap = RgbaImage::new(texture_width as u32, texture_height as u32);
+    let mut textmap = RgbaImage::new(texture_width as u32, texture_height as u32);
 
     for (_font_size, g, _chr, _column, _line) in glyphs {
         if let Some(bb) = g.pixel_bounding_box() {
@@ -325,13 +323,13 @@ fn main() {
                     let pixel = Rgba {
                         data: [255, 255, 255, alpha],
                     };
-                    fontmap.put_pixel(x as u32, y as u32, pixel);
+                    textmap.put_pixel(x as u32, y as u32, pixel);
                 }
             })
         }
     }
 
-    fontmap.save(out_dir.join("font.png")).unwrap();
+    textmap.save(out_dir.join("text.png")).unwrap();
 
     let vertex_src = include_str!("src/shader_150.glslv");
     let fragment_src = include_str!("src/shader_150.glslf");
@@ -339,7 +337,7 @@ fn main() {
 
     // We want these artifacts in the target dir right next to the
     // binaries, not just in the hard-to-find out-dir
-    copy_output_artifacts_to_target("font.png");
+    copy_output_artifacts_to_target("text.png");
     copy_output_artifacts_to_target("webgl_vertex_shader.glsl");
     copy_output_artifacts_to_target("webgl_fragment_shader.glsl");
 

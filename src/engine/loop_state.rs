@@ -89,13 +89,27 @@ impl LoopState {
                 .to_rgba()
         };
         log::debug!("Loaded font image.");
-        let tilemap = {
+
+        let mut tilemap = {
             let data = &include_bytes!("../../assets/bountiful-bits/Natural-no-bg.png")[..];
             image::load_from_memory_with_format(data, image::PNG)
                 .unwrap()
                 .to_rgba()
         };
         log::debug!("Loaded the tilemap.");
+        // Normalise the tilemap colours.
+        //
+        // The current tilemap has alpha, but it also sets explicit
+        // colours. This doesn't work with our colour schemes and the
+        // way we do the High effect by overriding some of the
+        // colours. That all expects the original colour to be white
+        // so what we do here is turn every nonzero pixel to white.
+        for pixel in tilemap.pixels_mut() {
+            use image::Pixel;
+            pixel.apply_with_alpha(|channel| if channel == 0 { 0 } else { 255 }, |alpha| alpha);
+        }
+        log::debug!("Normalised the tilemap colours.");
+        let tilemap = tilemap; // Disable `mut`
 
         // Always start from a windowed mode. This will force the
         // fullscreen switch in the first frame if requested in the

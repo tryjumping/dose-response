@@ -292,8 +292,8 @@ fn process_cli_and_run_game() {
     }
 
     log::info!(
-        "Available font sizes: {:?}",
-        crate::engine::AVAILABLE_FONT_SIZES
+        "Available text sizes: {:?}",
+        crate::engine::AVAILABLE_TEXT_SIZES
     );
 
     log::info!(

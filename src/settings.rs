@@ -16,6 +16,7 @@ use toml_edit::Document as TomlDocument;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Settings {
     pub fullscreen: bool,
+    pub text_size: i32,
     pub tile_size: i32,
     pub backend: String,
 }
@@ -31,7 +32,8 @@ impl Default for Settings {
 
         let settings = Self {
             fullscreen: false,
-            tile_size: crate::engine::DEFAULT_TILESIZE,
+            text_size: crate::engine::DEFAULT_TEXT_SIZE,
+            tile_size: crate::engine::DEFAULT_TILE_SIZE,
             backend: backend.into(),
         };
 
@@ -43,11 +45,12 @@ impl Default for Settings {
 #[allow(dead_code)]
 impl Settings {
     pub fn valid(&self) -> bool {
-        self.valid_tile_size() && self.valid_backend()
+        self.valid_tile_sizes() && self.valid_backend()
     }
 
-    pub fn valid_tile_size(&self) -> bool {
-        crate::engine::AVAILABLE_FONT_SIZES.contains(&self.tile_size)
+    pub fn valid_tile_sizes(&self) -> bool {
+        crate::engine::AVAILABLE_TEXT_SIZES.contains(&self.text_size)
+            && crate::engine::AVAILABLE_TILE_SIZES.contains(&self.tile_size)
     }
 
     pub fn valid_backend(&self) -> bool {
@@ -59,13 +62,14 @@ impl Settings {
         out.push_str("# Options: \"fullscreen\" or \"window\"\n");
         out.push_str("display = \"window\"\n\n");
 
-        let tile_sizes_str = crate::engine::AVAILABLE_FONT_SIZES
+        let tile_sizes_str = crate::engine::AVAILABLE_TEXT_SIZES
             .iter()
             .map(|num| num.to_string())
             .collect::<Vec<_>>()
             .join(", ");
         out.push_str(&format!("# Options: {}\n", tile_sizes_str));
         out.push_str(&format!("tile_size = {}\n\n", self.tile_size));
+        out.push_str(&format!("text_size = {}\n\n", self.text_size));
 
         let backends_str = crate::engine::AVAILABLE_BACKENDS
             .iter()
@@ -155,17 +159,33 @@ impl Store for FileSystemStore {
         match self.toml["tile_size"].as_integer() {
             Some(tile_size) => {
                 let tile_size = tile_size as i32;
-                if crate::engine::AVAILABLE_FONT_SIZES.contains(&tile_size) {
+                if crate::engine::AVAILABLE_TILE_SIZES.contains(&tile_size) {
                     settings.tile_size = tile_size;
                 } else {
                     log::error!("Unsupported `tile_size`: {}", tile_size);
                     log::info!(
                         "Available tile sizes: {:?}",
-                        crate::engine::AVAILABLE_FONT_SIZES
+                        crate::engine::AVAILABLE_TILE_SIZES
                     );
                 }
             }
             None => log::error!("Missing `tile_size` entry."),
+        }
+
+        match self.toml["text_size"].as_integer() {
+            Some(text_size) => {
+                let text_size = text_size as i32;
+                if crate::engine::AVAILABLE_TEXT_SIZES.contains(&text_size) {
+                    settings.text_size = text_size;
+                } else {
+                    log::error!("Unsupported `text_size`: {}", text_size);
+                    log::info!(
+                        "Available text sizes: {:?}",
+                        crate::engine::AVAILABLE_TEXT_SIZES
+                    );
+                }
+            }
+            None => log::error!("Missing `text_size` entry."),
         }
 
         match self.toml["backend"].as_str() {
@@ -197,6 +217,8 @@ impl Store for FileSystemStore {
         self.toml["display"] = toml_edit::value(display);
 
         self.toml["tile_size"] = toml_edit::value(settings.tile_size as i64);
+
+        self.toml["text_size"] = toml_edit::value(settings.text_size as i64);
 
         self.toml["backend"] = toml_edit::value(settings.backend.clone());
 

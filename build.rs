@@ -165,7 +165,7 @@ fn main() {
     let texture_width = 512;
     let texture_height = 512;
 
-    let default_tilesize = 21;
+    let default_text_size = 21;
 
     // NOTE: If we want to add any other resolutions, we'll probably
     // have to change the texture to 1024x1024. Notably, 4K needs it
@@ -185,6 +185,7 @@ fn main() {
     // TODO: render a separate glyphmap for the game tiles as opposed to generic text
     // NOTE: We can center them properly and not have to do the position fixup in the game
     let tile_sizes = [40, 30, 20];
+    let default_tile_size = 40;
 
     let mut glyph_advance_width_entries = vec![];
     let mut glyphs = vec![];
@@ -241,8 +242,12 @@ fn main() {
     let mut lookup_table_contents = String::new();
 
     lookup_table_contents.push_str(&format!(
-        "pub const DEFAULT_TILESIZE: i32 = {};\n",
-        default_tilesize
+        "pub const DEFAULT_TEXT_SIZE: i32 = {};\n",
+        default_text_size
+    ));
+    lookup_table_contents.push_str(&format!(
+        "pub const DEFAULT_TILE_SIZE: i32 = {};\n",
+        default_tile_size
     ));
     lookup_table_contents.push_str(&format!(
         "pub const TEXTURE_WIDTH: u32 = {};\n",
@@ -254,7 +259,13 @@ fn main() {
     ));
 
     lookup_table_contents.push_str(&format!(
-        "pub const AVAILABLE_FONT_SIZES: [i32; {}] = {:?};\n",
+        "pub const AVAILABLE_TILE_SIZES: [i32; {}] = {:?};\n",
+        tile_sizes.len(),
+        tile_sizes,
+    ));
+
+    lookup_table_contents.push_str(&format!(
+        "pub const AVAILABLE_TEXT_SIZES: [i32; {}] = {:?};\n",
         text_sizes.len(),
         text_sizes,
     ));

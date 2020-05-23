@@ -81,7 +81,11 @@ impl LoopState {
             engine::VERTEX_COMPONENT_COUNT * 4
         );
 
-        let display = Display::new(game_display_size_tiles, settings.tile_size);
+        let display = Display::new(
+            game_display_size_tiles,
+            settings.tile_size,
+            settings.text_size,
+        );
         let fontmap = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/text.png"))[..];
             image::load_from_memory_with_format(data, image::PNG)
@@ -221,15 +225,19 @@ impl LoopState {
                 new_window_size_px.x / self.settings.tile_size,
                 new_window_size_px.y / self.settings.tile_size,
             );
-            self.display = Display::new(new_display_size_tiles, self.settings.tile_size);
+            self.display = Display::new(
+                new_display_size_tiles,
+                self.settings.tile_size,
+                self.settings.text_size,
+            );
         }
     }
 
     pub fn change_tilesize_px(&mut self, new_tilesize_px: i32) {
-        if crate::engine::AVAILABLE_FONT_SIZES.contains(&(new_tilesize_px as i32)) {
+        if crate::engine::AVAILABLE_TEXT_SIZES.contains(&(new_tilesize_px as i32)) {
             log::info!(
                 "Changing tilesize from {} to {}",
-                self.display.tilesize,
+                self.display.tile_size,
                 new_tilesize_px
             );
             self.settings.tile_size = new_tilesize_px;
@@ -238,12 +246,16 @@ impl LoopState {
                 self.window_size_px.x / self.settings.tile_size,
                 self.window_size_px.y / self.settings.tile_size,
             );
-            self.display = Display::new(new_display_size_tiles, self.settings.tile_size);
+            self.display = Display::new(
+                new_display_size_tiles,
+                self.settings.tile_size,
+                self.settings.text_size,
+            );
         } else {
             log::warn!(
             "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
             new_tilesize_px,
-            crate::engine::AVAILABLE_FONT_SIZES
+            crate::engine::AVAILABLE_TEXT_SIZES
             );
         }
     }

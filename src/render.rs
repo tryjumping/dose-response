@@ -102,10 +102,10 @@ pub fn render_game(
     // scroll far away from the player, we still want to show the map
     // if it exists there.
     let mut screen_position_in_world = state.screen_position_in_world;
-    screen_position_in_world.x -= offset_px.x / display.tilesize;
-    screen_position_in_world.y -= offset_px.y / display.tilesize;
-    offset_px.x = offset_px.x % display.tilesize;
-    offset_px.y = offset_px.y % display.tilesize;
+    screen_position_in_world.x -= offset_px.x / display.tile_size;
+    screen_position_in_world.y -= offset_px.y / display.tile_size;
+    offset_px.x = offset_px.x % display.tile_size;
+    offset_px.y = offset_px.y % display.tile_size;
 
     if let Some(ref animation) = state.screen_fading {
         use crate::animation::ScreenFadePhase;

@@ -713,7 +713,7 @@ fn process_settings_window(
     }
 
     if option.is_none() {
-        for (index, &size) in crate::engine::AVAILABLE_FONT_SIZES.iter().enumerate() {
+        for (index, &size) in crate::engine::AVAILABLE_TEXT_SIZES.iter().enumerate() {
             let code = match index + 1 {
                 1 => Some(KeyCode::D1),
                 2 => Some(KeyCode::D2),

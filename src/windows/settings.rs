@@ -84,7 +84,7 @@ impl Window {
             rect_under_mouse = Some(button_rect);
         }
 
-        let tile_size_texts = crate::engine::AVAILABLE_FONT_SIZES
+        let tile_size_texts = crate::engine::AVAILABLE_TEXT_SIZES
             .iter()
             .enumerate()
             .map(|(index, &tile_size)| {
@@ -169,7 +169,7 @@ impl Window {
             Centered(" "), // Fullscreen / Window
             Empty,
             Centered(&tile_size),
-            EmptySpace(crate::engine::AVAILABLE_FONT_SIZES.len() as i32),
+            EmptySpace(crate::engine::AVAILABLE_TEXT_SIZES.len() as i32),
         ];
 
         ui::render_text_flow(&lines, layout.rect, 0, metrics, display);
@@ -192,8 +192,8 @@ impl Window {
         display.draw_button(&layout.window_button);
 
         for (size, button) in &layout.tile_size_options {
-            // Highlight the active tile size
-            if *size == settings.tile_size {
+            // Highlight the active text size
+            if *size == settings.text_size {
                 let rect = metrics.button_rect(button);
                 display.draw_rectangle(rect, color::dim_background);
             }

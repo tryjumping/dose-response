@@ -62,13 +62,20 @@ impl Settings {
         out.push_str("# Options: \"fullscreen\" or \"window\"\n");
         out.push_str("display = \"window\"\n\n");
 
-        let tile_sizes_str = crate::engine::AVAILABLE_TEXT_SIZES
+        let tile_sizes_str = crate::engine::AVAILABLE_TILE_SIZES
             .iter()
             .map(|num| num.to_string())
             .collect::<Vec<_>>()
             .join(", ");
         out.push_str(&format!("# Options: {}\n", tile_sizes_str));
         out.push_str(&format!("tile_size = {}\n\n", self.tile_size));
+
+        let text_sizes_str = crate::engine::AVAILABLE_TEXT_SIZES
+            .iter()
+            .map(|num| num.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        out.push_str(&format!("# Options: {}\n", text_sizes_str));
         out.push_str(&format!("text_size = {}\n\n", self.text_size));
 
         let backends_str = crate::engine::AVAILABLE_BACKENDS
@@ -204,6 +211,8 @@ impl Store for FileSystemStore {
         }
 
         debug_assert!(settings.valid());
+
+        log::info!("Loaded settings: {:?}", settings);
 
         settings
     }

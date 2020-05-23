@@ -18,6 +18,8 @@ pub struct OpenGlApp {
     pub vbo: GLuint,
     pub fontmap: GLuint,
     pub fontmap_size_px: [f32; 2],
+    pub glyphmap: GLuint,
+    pub glyphmap_size_px: [f32; 2],
     pub tilemap: GLuint,
     pub tilemap_size_px: [f32; 2],
 }
@@ -41,6 +43,9 @@ impl OpenGlApp {
             gl::GenTextures(1, &mut app.fontmap);
             check_gl_error("GenTextures font texture");
 
+            gl::GenTextures(1, &mut app.glyphmap);
+            check_gl_error("GenTextures glyph texture");
+
             gl::GenTextures(1, &mut app.tilemap);
             check_gl_error("GenTextures tilemap texture");
         }
@@ -53,11 +58,15 @@ impl OpenGlApp {
         &mut self,
         fontmap_size: (u32, u32),
         fontmap_data: &[u8],
+        glyphmap_size: (u32, u32),
+        glyphmap_data: &[u8],
         tilemap_size: (u32, u32),
         tilemap_data: &[u8],
     ) {
         let (fontmap_width, fontmap_height) = fontmap_size;
         self.fontmap_size_px = [fontmap_width as f32, fontmap_height as f32];
+        let (glyphmap_width, glyphmap_height) = glyphmap_size;
+        self.glyphmap_size_px = [glyphmap_width as f32, glyphmap_height as f32];
         let (tilemap_width, tilemap_height) = tilemap_size;
         self.tilemap_size_px = [tilemap_width as f32, tilemap_height as f32];
         // NOTE(shadower): as far as I can tell (though the opengl
@@ -66,6 +75,7 @@ impl OpenGlApp {
         // reference here. The pointer will not be referenced
         // afterwards.
         let fontmap_data_ptr: *const u8 = fontmap_data.as_ptr();
+        let glyphmap_data_ptr: *const u8 = glyphmap_data.as_ptr();
         let tilemap_data_ptr: *const u8 = tilemap_data.as_ptr();
         unsafe {
             gl::Enable(gl::BLEND);
@@ -105,6 +115,26 @@ impl OpenGlApp {
                 fontmap_data_ptr as *const os::raw::c_void,
             );
             check_gl_error("TexImage2D");
+
+            // Bind the glyphmap texture
+            gl::BindTexture(gl::TEXTURE_2D, self.glyphmap);
+            check_gl_error("BindTexture glyphmap");
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            check_gl_error("TexParameteri MIN FILTER glyphmap");
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            check_gl_error("TexParameteri MAG FILTER glyphmap");
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as i32,
+                glyphmap_width as i32,
+                glyphmap_height as i32,
+                0,
+                gl::RGBA,
+                gl::UNSIGNED_BYTE,
+                glyphmap_data_ptr as *const os::raw::c_void,
+            );
+            check_gl_error("TexImage2D glyphmap");
 
             // Bind the tilemap texture
             gl::BindTexture(gl::TEXTURE_2D, self.tilemap);
@@ -271,7 +301,7 @@ impl OpenGlApp {
                 stride,
                 (1 * mem::size_of::<GLfloat>()) as *const GLvoid,
             );
-            check_gl_error("VertexAttribPointer pos_xp");
+            check_gl_error("VertexAttribPointer pos_px");
 
             let tile_pos_px_cstr = CString::new("tile_pos_px").unwrap();
             let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_px_cstr.as_ptr());
@@ -307,16 +337,26 @@ impl OpenGlApp {
             gl::BindTexture(gl::TEXTURE_2D, self.fontmap);
             check_gl_error("BindTexture font");
             let texture_index = 0;
-            let fontmap_cstr = CString::new("fontmap").unwrap();
+            let fontmap_cstr = CString::new("textmap").unwrap();
             gl::Uniform1i(
                 gl::GetUniformLocation(program, fontmap_cstr.as_ptr()),
                 texture_index,
             );
 
             gl::ActiveTexture(gl::TEXTURE1);
+            gl::BindTexture(gl::TEXTURE_2D, self.glyphmap);
+            check_gl_error("BindTexture glyphmap");
+            let texture_index = 1;
+            let glyphmap_cstr = CString::new("glyphmap").unwrap();
+            gl::Uniform1i(
+                gl::GetUniformLocation(program, glyphmap_cstr.as_ptr()),
+                texture_index,
+            );
+
+            gl::ActiveTexture(gl::TEXTURE2);
             gl::BindTexture(gl::TEXTURE_2D, self.tilemap);
             check_gl_error("BindTexture tilemap");
-            let texture_index = 1;
+            let texture_index = 2;
             let tilemap_cstr = CString::new("tilemap").unwrap();
             gl::Uniform1i(
                 gl::GetUniformLocation(program, tilemap_cstr.as_ptr()),
@@ -331,13 +371,21 @@ impl OpenGlApp {
             );
             check_gl_error("Uniform2f display_px");
 
-            let texture_size_px_cstr = CString::new("fontmap_size_px").unwrap();
+            let texture_size_px_cstr = CString::new("textmap_size_px").unwrap();
             gl::Uniform2f(
                 gl::GetUniformLocation(program, texture_size_px_cstr.as_ptr()),
                 self.fontmap_size_px[0],
                 self.fontmap_size_px[1],
             );
-            check_gl_error("Uniform2f fontmap_size_px");
+            check_gl_error("Uniform2f textmap_size_px");
+
+            let glyphmap_size_px_cstr = CString::new("glyphmap_size_px").unwrap();
+            gl::Uniform2f(
+                gl::GetUniformLocation(program, glyphmap_size_px_cstr.as_ptr()),
+                self.glyphmap_size_px[0],
+                self.glyphmap_size_px[1],
+            );
+            check_gl_error("Uniform2f glyphmap_size_px");
 
             let tilemap_size_px_cstr = CString::new("tilemap_size_px").unwrap();
             gl::Uniform2f(

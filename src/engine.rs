@@ -35,17 +35,19 @@ pub const VERTEX_CAPACITY: usize = 50_000;
 pub const VERTEX_COMPONENT_COUNT: usize = 9;
 const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * VERTEX_CAPACITY;
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Texture {
-    Font,
+    Text,
+    Glyph,
     Tilemap,
 }
 
 impl Into<f32> for Texture {
     fn into(self) -> f32 {
         match self {
-            Texture::Font => 0.0,
-            Texture::Tilemap => 1.1,
+            Texture::Text => 0.0,
+            Texture::Glyph => 1.0,
+            Texture::Tilemap => 2.0,
         }
     }
 }
@@ -235,7 +237,8 @@ fn build_vertices<T: VertexStore>(
                 let (tile_width, tile_height) = (dst.width() as f32, dst.height() as f32);
                 let (tilemap_x, tilemap_y) = (src.top_left().x as f32, src.top_left().y as f32);
                 let (texture_width, texture_height) = match texture {
-                    Texture::Font => (tile_width, tile_height),
+                    Texture::Text => (tile_width, tile_height),
+                    Texture::Glyph => (tile_width, tile_height),
                     Texture::Tilemap => (TILEMAP_SIZE as f32, TILEMAP_SIZE as f32),
                 };
 
@@ -767,7 +770,7 @@ impl Display {
         let dst = Rectangle::from_point_and_size(Point::new(x, y), Point::from_i32(self.text_size));
 
         self.drawcalls
-            .push(Drawcall::Image(Texture::Font, src, dst, color));
+            .push(Drawcall::Image(Texture::Text, src, dst, color));
     }
 
     pub fn draw_text(
@@ -804,7 +807,7 @@ impl Display {
                 );
 
                 self.drawcalls
-                    .push(Drawcall::Image(Texture::Font, src, dst, color));
+                    .push(Drawcall::Image(Texture::Text, src, dst, color));
 
                 let advance_width = glyph_advance_width(text_size as u32, chr).unwrap_or(text_size);
                 offset_x += advance_width;
@@ -880,17 +883,18 @@ impl Display {
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
             let (texture, texture_px_x, texture_px_y) =
-                match tilemap_coords_px_from_graphic(self.text_size as u32, cell.graphic) {
+                match tilemap_coords_px_from_graphic(self.tile_size as u32, cell.graphic) {
                     Some((tx, ty)) => (Texture::Tilemap, tx, ty),
                     None => {
                         let (tx, ty) =
-                            texture_coords_px_from_char(self.text_size as u32, cell.graphic.into())
+                            glyph_coords_px_from_char(self.tile_size as u32, cell.graphic.into())
                                 .unwrap_or((0, 0));
-                        (Texture::Font, tx, ty)
+                        (Texture::Glyph, tx, ty)
                     }
                 };
             let texture_size = match texture {
-                Texture::Font => self.text_size,
+                Texture::Text => self.text_size,
+                Texture::Glyph => self.tile_size,
                 Texture::Tilemap => TILEMAP_SIZE,
             };
             let texture_src = Rectangle::from_point_and_size(
@@ -906,7 +910,16 @@ impl Display {
             );
 
             let x_offset = match texture {
-                Texture::Font => {
+                // NOTE: We should never get `Texture::Text` in the cells iterator, right?
+                Texture::Text => {
+                    // NOTE: Center the glyphs in their cells
+                    let glyph_width =
+                        glyph_advance_width(self.text_size as u32, cell.graphic.into())
+                            .unwrap_or(self.tile_size);
+                    (self.tile_size as i32 - glyph_width) / 2
+                }
+                // TODO: we should center this in build.rs and set x_offset to zero
+                Texture::Glyph => {
                     // NOTE: Center the glyphs in their cells
                     let glyph_width =
                         glyph_advance_width(self.text_size as u32, cell.graphic.into())

@@ -151,124 +151,8 @@ fn main() {
     // only succeeds if collection consists of one font
     let font = collection.into_font().unwrap();
 
-    // Lookup table for the printable ASCII chars (32 to 125)
-    let mut lookup_table = (32u32..=125)
-        .enumerate()
-        .map(|(index, ascii_code)| (index, char::try_from(ascii_code).unwrap_or(' ')))
-        .collect::<Vec<_>>();
-
-    // Up and down "carret" to simulate arrows
-    lookup_table.push((lookup_table.len(), char::try_from(710u32).unwrap()));
-    lookup_table.push((lookup_table.len(), char::try_from(711u32).unwrap()));
-
-    // NOTE: recardless of what value we set here, always keep it power of two!
-    let texture_width = 512;
-    let texture_height = 512;
-
-    let default_text_size = 21;
-
-    // NOTE: If we want to add any other resolutions, we'll probably
-    // have to change the texture to 1024x1024. Notably, 4K needs it
-    // even if it's the only size in town.
-    //
-    // Let's cap it to whatever currently fits 512x512 and see if we
-    // need to change this later.
-
-    let mut text_sizes = [
-        //72, // 4k i.e. QuadHD i.e. 3840x2160
-        36, // 1920x1080 (1080p)
-        24, // 1280x720 (720p)
-        21, // "Dose Response default"
-        16, // 854x480 (480p)
-    ];
-
-    // TODO: render a separate glyphmap for the game tiles as opposed to generic text
-    // NOTE: We can center them properly and not have to do the position fixup in the game
-    let tile_sizes = [40, 30, 20];
-    let default_tile_size = 40;
-
-    let mut glyph_advance_width_entries = vec![];
-    let mut glyphs = vec![];
-
-    let tilemap_offset_x = 0;
-    let mut tilemap_offset_y = 0;
-
-    // NOTE: the packing can be made more efficient if we place the
-    // biggest glyphs first.
-    text_sizes.sort_by(|a, b| b.cmp(a));
-
-    for &size in &text_sizes {
-        let height = size as f32;
-        let scale = Scale::uniform(height);
-        let v_metrics = font.v_metrics(scale);
-
-        let h_metrics = lookup_table
-            .iter()
-            .map(|&(_index, chr)| font.glyph(chr).scaled(scale).h_metrics().advance_width);
-
-        for (&(_index, chr), advance_width) in lookup_table.iter().zip(h_metrics) {
-            glyph_advance_width_entries.push((height as u32, chr, advance_width as i32));
-        }
-
-        let tiles_per_texture_width = texture_width / size;
-
-        let glyphs_iter = lookup_table.iter().map(|&(index, chr)| {
-            let column = index as i32 % tiles_per_texture_width;
-            let line = index as i32 / tiles_per_texture_width;
-            let tilepos_x = column * size + tilemap_offset_x;
-            let tilepos_y = line * size + tilemap_offset_y;
-            let glyph = font
-                .glyph(chr)
-                .scaled(scale)
-                .positioned(point(tilepos_x as f32, tilepos_y as f32 + v_metrics.ascent));
-            (size, glyph, chr, tilepos_x, tilepos_y)
-        });
-
-        glyphs.extend(glyphs_iter);
-
-        let full_font_width_px = lookup_table.len() as i32 * size;
-        let lines = (full_font_width_px as f32 / texture_width as f32).ceil() as i32;
-        tilemap_offset_y += size * lines;
-
-        if tilemap_offset_y >= texture_height {
-            panic!(
-                "The texture size ({}x{}) is not sufficient. Current height: {}",
-                texture_width, texture_height, tilemap_offset_y
-            );
-        }
-    }
-
     // NOTE: generate the constants
     let mut lookup_table_contents = String::new();
-
-    lookup_table_contents.push_str(&format!(
-        "pub const DEFAULT_TEXT_SIZE: i32 = {};\n",
-        default_text_size
-    ));
-    lookup_table_contents.push_str(&format!(
-        "pub const DEFAULT_TILE_SIZE: i32 = {};\n",
-        default_tile_size
-    ));
-    lookup_table_contents.push_str(&format!(
-        "pub const TEXTURE_WIDTH: u32 = {};\n",
-        texture_width as u32
-    ));
-    lookup_table_contents.push_str(&format!(
-        "pub const TEXTURE_HEIGHT: u32 = {};\n",
-        texture_height as u32
-    ));
-
-    lookup_table_contents.push_str(&format!(
-        "pub const AVAILABLE_TILE_SIZES: [i32; {}] = {:?};\n",
-        tile_sizes.len(),
-        tile_sizes,
-    ));
-
-    lookup_table_contents.push_str(&format!(
-        "pub const AVAILABLE_TEXT_SIZES: [i32; {}] = {:?};\n",
-        text_sizes.len(),
-        text_sizes,
-    ));
 
     let mut backends = vec![];
     for (key, _value) in std::env::vars_os() {
@@ -287,60 +171,307 @@ fn main() {
         backends,
     ));
 
-    // NOTE: Generate the `glyph_advance_width` query function
-    lookup_table_contents
-        .push_str("pub fn glyph_advance_width(size: u32, chr: char) -> Option<i32> {\n");
-    lookup_table_contents.push_str("match (size, chr) {\n");
+    // NOTE: Generate the text map texture
+    {
+        // NOTE: If we want to add any other resolutions, we'll probably
+        // have to change the texture to 1024x1024. Notably, 4K needs it
+        // even if it's the only size in town.
+        //
+        // Let's cap it to whatever currently fits 512x512 and see if we
+        // need to change this later.
 
-    for (font_size, chr, advance_width) in &glyph_advance_width_entries {
+        let default_text_size = 21;
+
+        let text_sizes = [
+            //72, // 4k i.e. QuadHD i.e. 3840x2160
+            36, // 1920x1080 (1080p)
+            24, // 1280x720 (720p)
+            21, // "Dose Response default"
+            16, // 854x480 (480p)
+        ];
+        assert!(text_sizes.contains(&default_text_size));
+
+        // NOTE: recardless of what value we set here, always keep it power of two!
+        let texture_width = 512;
+        let texture_height = 512;
+
+        // Lookup table for the printable ASCII chars (32 to 125)
+        let mut lookup_table = (32u32..=125)
+            .enumerate()
+            .map(|(index, ascii_code)| (index, char::try_from(ascii_code).unwrap_or(' ')))
+            .collect::<Vec<_>>();
+
+        // Up and down "carret" to simulate arrows
+        lookup_table.push((lookup_table.len(), char::try_from(710u32).unwrap()));
+        lookup_table.push((lookup_table.len(), char::try_from(711u32).unwrap()));
+
         lookup_table_contents.push_str(&format!(
-            "    ({:?}, {:?}) => Some({}),\n",
-            font_size, chr, advance_width
+            "pub const DEFAULT_TEXT_SIZE: i32 = {};\n",
+            default_text_size
         ));
+
+        lookup_table_contents.push_str(&format!(
+            "pub const TEXT_TEXTURE_WIDTH: u32 = {};\n",
+            texture_width as u32
+        ));
+
+        lookup_table_contents.push_str(&format!(
+            "pub const TEXT_TEXTURE_HEIGHT: u32 = {};\n",
+            texture_height as u32
+        ));
+
+        lookup_table_contents.push_str(&format!(
+            "pub const AVAILABLE_TEXT_SIZES: [i32; {}] = {:?};\n",
+            text_sizes.len(),
+            text_sizes,
+        ));
+
+        let mut glyph_advance_width_entries = vec![];
+        let mut glyphs = vec![];
+
+        let tilemap_offset_x = 0;
+        let mut tilemap_offset_y = 0;
+
+        // NOTE: the packing can be made more efficient if we place the
+        // biggest glyphs first.
+        let mut text_sizes = text_sizes.clone();
+        text_sizes.sort_by(|a, b| b.cmp(a));
+
+        for &size in &text_sizes {
+            let height = size as f32;
+            let scale = Scale::uniform(height);
+            let v_metrics = font.v_metrics(scale);
+
+            let h_metrics = lookup_table
+                .iter()
+                .map(|&(_index, chr)| font.glyph(chr).scaled(scale).h_metrics().advance_width);
+
+            for (&(_index, chr), advance_width) in lookup_table.iter().zip(h_metrics) {
+                glyph_advance_width_entries.push((height as u32, chr, advance_width as i32));
+            }
+
+            let tiles_per_texture_width = texture_width / size;
+
+            let glyphs_iter = lookup_table.iter().map(|&(index, chr)| {
+                let column = index as i32 % tiles_per_texture_width;
+                let line = index as i32 / tiles_per_texture_width;
+                let tilepos_x = column * size + tilemap_offset_x;
+                let tilepos_y = line * size + tilemap_offset_y;
+                let glyph = font
+                    .glyph(chr)
+                    .scaled(scale)
+                    .positioned(point(tilepos_x as f32, tilepos_y as f32 + v_metrics.ascent));
+                (size, glyph, chr, tilepos_x, tilepos_y)
+            });
+
+            glyphs.extend(glyphs_iter);
+
+            let full_font_width_px = lookup_table.len() as i32 * size;
+            let lines = (full_font_width_px as f32 / texture_width as f32).ceil() as i32;
+            tilemap_offset_y += size * lines;
+
+            if tilemap_offset_y >= texture_height {
+                panic!(
+                    "The text texture size ({}x{}) is not sufficient. Current height: {}",
+                    texture_width, texture_height, tilemap_offset_y
+                );
+            }
+        }
+
+        // NOTE: Generate the `glyph_advance_width` query function
+        lookup_table_contents
+            .push_str("pub fn glyph_advance_width(size: u32, chr: char) -> Option<i32> {\n");
+        lookup_table_contents.push_str("match (size, chr) {\n");
+
+        for (font_size, chr, advance_width) in &glyph_advance_width_entries {
+            lookup_table_contents.push_str(&format!(
+                "    ({:?}, {:?}) => Some({}),\n",
+                font_size, chr, advance_width
+            ));
+        }
+
+        lookup_table_contents.push_str("_ => None,\n}\n\n");
+        lookup_table_contents.push_str("}\n");
+
+        // NOTE: Generate the `texture_coords_from_char` query function
+
+        lookup_table_contents.push_str(
+            "fn texture_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n",
+        );
+        lookup_table_contents.push_str("match (size, chr) {\n");
+        for &(font_size, ref _glyph, chr, tilepos_x, tilepos_y) in &glyphs {
+            lookup_table_contents.push_str(&format!(
+                "  ({:?}, {:?}) => Some(({}, {})),\n",
+                font_size, chr, tilepos_x, tilepos_y
+            ));
+        }
+
+        lookup_table_contents.push_str("_ => None,\n}\n}\n\n");
+
+        // NOTE: Generate the tilemap
+        let mut textmap = RgbaImage::new(texture_width as u32, texture_height as u32);
+
+        for (_font_size, g, _chr, _column, _line) in glyphs {
+            if let Some(bb) = g.pixel_bounding_box() {
+                g.draw(|x, y, v| {
+                    let x = x as i32 + bb.min.x;
+                    let y = y as i32 + bb.min.y;
+                    // There's still a possibility that the glyph clips
+                    // the boundaries of the bitmap
+                    if x >= 0 && x < texture_width as i32 && y >= 0 && y < texture_height as i32 {
+                        let alpha = (v * 255.0) as u8;
+                        let pixel = Rgba {
+                            data: [255, 255, 255, alpha],
+                        };
+                        textmap.put_pixel(x as u32, y as u32, pixel);
+                    }
+                })
+            }
+        }
+
+        textmap.save(out_dir.join("text.png")).unwrap();
     }
 
-    lookup_table_contents.push_str("_ => None,\n}\n\n");
-    lookup_table_contents.push_str("}\n");
+    // NOTE: generate the glyph map texture
+    {
+        // TODO: render a separate glyphmap for the game tiles as opposed to generic text
+        // NOTE: We can center them properly and not have to do the position fixup in the game
+        let default_tile_size = 30;
+        let tile_sizes = [40, 30, 20, 10];
+        assert!(tile_sizes.contains(&default_tile_size));
 
-    // NOTE: Generate the `texture_coords_from_char` query function
+        // TODO: get this out of graphics somehow?
+        // Or like, validate all the glyphs from Graphics are covered?
+        let tile_chars = " #.@&aDhSviI+x%!".chars().collect::<Vec<_>>();
 
-    lookup_table_contents
-        .push_str("fn texture_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n");
-    lookup_table_contents.push_str("match (size, chr) {\n");
-    for &(font_size, ref _glyph, chr, tilepos_x, tilepos_y) in &glyphs {
+        // NOTE: recardless of what value we set here, always keep it power of two!
+        let texture_width = 256;
+        let texture_height = 256;
+
         lookup_table_contents.push_str(&format!(
-            "  ({:?}, {:?}) => Some(({}, {})),\n",
-            font_size, chr, tilepos_x, tilepos_y
+            "pub const DEFAULT_TILE_SIZE: i32 = {};\n",
+            default_tile_size
         ));
-    }
 
-    lookup_table_contents.push_str("_ => None,\n}\n}\n\n");
+        lookup_table_contents.push_str(&format!(
+            "pub const TILE_TEXTURE_WIDTH: u32 = {};\n",
+            texture_width as u32
+        ));
+
+        lookup_table_contents.push_str(&format!(
+            "pub const TILE_TEXTURE_HEIGHT: u32 = {};\n",
+            texture_height as u32
+        ));
+
+        lookup_table_contents.push_str(&format!(
+            "pub const AVAILABLE_TILE_SIZES: [i32; {}] = {:?};\n",
+            tile_sizes.len(),
+            tile_sizes,
+        ));
+
+        // Lookup table for the printable ASCII chars (32 to 125)
+        let lookup_table = tile_chars
+            .iter()
+            .enumerate()
+            .map(|(index, &chr)| (index, chr))
+            .collect::<Vec<_>>();
+
+        let mut glyph_advance_width_entries = vec![];
+        let mut glyphs = vec![];
+
+        let tilemap_offset_x = 0;
+        let mut tilemap_offset_y = 0;
+
+        // NOTE: the packing can be made more efficient if we place the
+        // biggest glyphs first.
+        let mut tile_sizes = tile_sizes.clone();
+        tile_sizes.sort_by(|a, b| b.cmp(a));
+
+        for &size in &tile_sizes {
+            let height = size as f32;
+            let scale = Scale::uniform(height);
+            let v_metrics = font.v_metrics(scale);
+
+            let h_metrics = lookup_table
+                .iter()
+                .map(|&(_index, chr)| font.glyph(chr).scaled(scale).h_metrics().advance_width);
+
+            for (&(_index, chr), advance_width) in lookup_table.iter().zip(h_metrics) {
+                glyph_advance_width_entries.push((height as u32, chr, advance_width as i32));
+            }
+
+            let tiles_per_texture_width = texture_width / size;
+
+            let glyphs_iter = lookup_table
+                .iter()
+                .filter(|&(_index, chr)| tile_chars.contains(chr))
+                .map(|&(index, chr)| {
+                    let column = index as i32 % tiles_per_texture_width;
+                    let line = index as i32 / tiles_per_texture_width;
+                    let tilepos_x = column * size + tilemap_offset_x;
+                    let tilepos_y = line * size + tilemap_offset_y;
+                    let glyph = font
+                        .glyph(chr)
+                        .scaled(scale)
+                        .positioned(point(tilepos_x as f32, tilepos_y as f32 + v_metrics.ascent));
+                    (size, glyph, chr, tilepos_x, tilepos_y)
+                });
+
+            glyphs.extend(glyphs_iter);
+
+            let full_font_width_px = lookup_table.len() as i32 * size;
+            let lines = (full_font_width_px as f32 / texture_width as f32).ceil() as i32;
+            tilemap_offset_y += size * lines;
+
+            if tilemap_offset_y >= texture_height {
+                panic!(
+                    "The tile texture size ({}x{}) is not sufficient. Current height: {}",
+                    texture_width, texture_height, tilemap_offset_y
+                );
+            }
+        }
+
+        // NOTE: Generate the `texture_coords_from_char` query function
+
+        lookup_table_contents.push_str(
+            "fn glyph_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n",
+        );
+        lookup_table_contents.push_str("match (size, chr) {\n");
+        for &(font_size, ref _glyph, chr, tilepos_x, tilepos_y) in &glyphs {
+            lookup_table_contents.push_str(&format!(
+                "  ({:?}, {:?}) => Some(({}, {})),\n",
+                font_size, chr, tilepos_x, tilepos_y
+            ));
+        }
+
+        lookup_table_contents.push_str("_ => None,\n}\n}\n\n");
+
+        // NOTE: Generate the tilemap
+        let mut textmap = RgbaImage::new(texture_width as u32, texture_height as u32);
+
+        for (_font_size, g, _chr, _column, _line) in glyphs {
+            if let Some(bb) = g.pixel_bounding_box() {
+                g.draw(|x, y, v| {
+                    let x = x as i32 + bb.min.x;
+                    let y = y as i32 + bb.min.y;
+                    // There's still a possibility that the glyph clips
+                    // the boundaries of the bitmap
+                    if x >= 0 && x < texture_width as i32 && y >= 0 && y < texture_height as i32 {
+                        let alpha = (v * 255.0) as u8;
+                        let pixel = Rgba {
+                            data: [255, 255, 255, alpha],
+                        };
+                        textmap.put_pixel(x as u32, y as u32, pixel);
+                    }
+                })
+            }
+        }
+
+        textmap.save(out_dir.join("glyph.png")).unwrap();
+    }
 
     let mut lt_file = File::create(out_dir.join("glyph_lookup_table.rs")).unwrap();
     lt_file.write_all(lookup_table_contents.as_bytes()).unwrap();
-
-    // NOTE: Generate the tilemap
-    let mut textmap = RgbaImage::new(texture_width as u32, texture_height as u32);
-
-    for (_font_size, g, _chr, _column, _line) in glyphs {
-        if let Some(bb) = g.pixel_bounding_box() {
-            g.draw(|x, y, v| {
-                let x = x as i32 + bb.min.x;
-                let y = y as i32 + bb.min.y;
-                // There's still a possibility that the glyph clips
-                // the boundaries of the bitmap
-                if x >= 0 && x < texture_width as i32 && y >= 0 && y < texture_height as i32 {
-                    let alpha = (v * 255.0) as u8;
-                    let pixel = Rgba {
-                        data: [255, 255, 255, alpha],
-                    };
-                    textmap.put_pixel(x as u32, y as u32, pixel);
-                }
-            })
-        }
-    }
-
-    textmap.save(out_dir.join("text.png")).unwrap();
 
     let vertex_src = include_str!("src/shader_150.glslv");
     let fragment_src = include_str!("src/shader_150.glslf");

@@ -45,6 +45,7 @@ pub struct LoopState {
     pub window_size_px: Point,
     pub display: Display,
     pub fontmap: RgbaImage,
+    pub glyphmap: RgbaImage,
     pub tilemap: RgbaImage,
     pub default_background: Color,
     pub drawcalls: Vec<Drawcall>,
@@ -86,6 +87,7 @@ impl LoopState {
             settings.tile_size,
             settings.text_size,
         );
+
         let fontmap = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/text.png"))[..];
             image::load_from_memory_with_format(data, image::PNG)
@@ -94,13 +96,21 @@ impl LoopState {
         };
         log::debug!("Loaded text tilemap.");
 
+        let glyphmap = {
+            let data = &include_bytes!(concat!(env!("OUT_DIR"), "/glyph.png"))[..];
+            image::load_from_memory_with_format(data, image::PNG)
+                .unwrap()
+                .to_rgba()
+        };
+        log::debug!("Loaded glyph tilemap.");
+
         let mut tilemap = {
             let data = &include_bytes!("../../assets/bountiful-bits/Natural-no-bg.png")[..];
             image::load_from_memory_with_format(data, image::PNG)
                 .unwrap()
                 .to_rgba()
         };
-        log::debug!("Loaded the tilemap.");
+        log::debug!("Loaded the graphics tilemap.");
         // Normalise the tilemap colours.
         //
         // The current tilemap has alpha, but it also sets explicit
@@ -112,7 +122,7 @@ impl LoopState {
             use image::Pixel;
             pixel.apply_with_alpha(|channel| if channel == 0 { 0 } else { 255 }, |alpha| alpha);
         }
-        log::debug!("Normalised the tilemap colours.");
+        log::debug!("Normalised the graphics tilemap colours.");
         let tilemap = tilemap; // Disable `mut`
 
         // Always start from a windowed mode. This will force the
@@ -137,6 +147,7 @@ impl LoopState {
             previous_settings,
             display,
             fontmap,
+            glyphmap,
             tilemap,
             default_background,
             window_size_px,
@@ -161,8 +172,16 @@ impl LoopState {
         log::debug!("Created opengl app.");
 
         let fontmap_size = self.fontmap.dimensions();
+        let glyphmap_size = self.glyphmap.dimensions();
         let tilemap_size = self.tilemap.dimensions();
-        opengl_app.initialise(fontmap_size, &self.fontmap, tilemap_size, &self.tilemap);
+        opengl_app.initialise(
+            fontmap_size,
+            &self.fontmap,
+            glyphmap_size,
+            &self.glyphmap,
+            tilemap_size,
+            &self.tilemap,
+        );
         log::debug!("Initialised opengl app.");
         opengl_app
     }

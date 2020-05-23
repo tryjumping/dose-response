@@ -182,6 +182,9 @@ fn main() {
         16, // 854x480 (480p)
     ];
 
+    // TODO: render a separate glyphmap for the game tiles as opposed to generic text
+    let tile_sizes = [40, 30, 20];
+
     let mut glyph_advance_width_entries = vec![];
     let mut glyphs = vec![];
 

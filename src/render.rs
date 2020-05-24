@@ -162,7 +162,7 @@ pub fn render_game(
         // Render the tile
         let mut rendered_tile = cell.tile;
 
-        if show_intoxication_effect {
+        if show_intoxication_effect && rendered_tile.kind != crate::level::TileKind::Empty {
             // TODO: try to move this calculation of this loop and see
             // what it does to our speed.
             let pos_x: i64 = i64::from(world_pos.x + world_size.x);

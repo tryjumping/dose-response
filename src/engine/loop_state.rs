@@ -105,7 +105,9 @@ impl LoopState {
         log::debug!("Loaded glyph tilemap.");
 
         let mut tilemap = {
-            let data = &include_bytes!("../../assets/bountiful-bits/Natural-no-bg.png")[..];
+            //let data = &include_bytes!("../../assets/bountiful-bits/Natural-no-bg.png")[..];
+            // NOTE: including a manually-edited tileset based on Bountiful Bits
+            let data = &include_bytes!("../../assets/tiles.png")[..];
             image::load_from_memory_with_format(data, image::PNG)
                 .unwrap()
                 .to_rgba()

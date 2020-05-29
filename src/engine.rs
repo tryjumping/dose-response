@@ -599,6 +599,29 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
 
         Graphic::Corpse => Some((2, 2)),
 
+        Graphic::Anxiety => Some((7, 11)),
+        Graphic::Hunger => Some((0, 10)),
+        Graphic::Depression => Some((2, 10)),
+        //Graphic::Shadows => Some((3, 10)),
+        Graphic::Shadows => Some((1, 16)),
+        //Graphic::Voices => Some((2, 15)),
+        Graphic::Voices => Some((7, 15)),
+
+        Graphic::Dose => Some((0, 14)),
+        //Graphic::CardinalDose => Some((6, 12)),
+        Graphic::CardinalDose => Some((4, 12)),
+        Graphic::DiagonalDose => Some((3, 13)),
+        Graphic::StrongDose => Some((8, 14)),
+
+        //Graphic::Food => Some((16, 11)),
+        // TODO: add more Food graphics
+        Graphic::Food => Some((11, 11)),
+
+        // TODO: add more Player graphics
+        Graphic::Player => Some((11, 4)),
+        // TODO: add more NPC graphics
+        Graphic::Npc => Some((15, 4)),
+
         _ => None,
     };
     coords.map(|(tile_x, tile_y)| (tile_x * TILEMAP_SIZE, tile_y * TILEMAP_SIZE))

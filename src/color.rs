@@ -72,8 +72,10 @@ pub const shadows: Color = GREY;
 pub const npc_dim: Color = GREY;
 pub const dead_player: Color = GREY;
 
-pub const empty_tile_ground: Color = BROWN;
+//pub const empty_tile_ground: Color = BROWN;
+pub const empty_tile_ground: Color = Color { r: 113, g: 78, b: 52 };
 pub const empty_tile_leaves: Color = DIM_GREEN;
+pub const empty_tile_twigs: Color = Color { r: 162, g: 97, b: 52};
 
 pub const dim_background: Color = DARK_GREY;
 

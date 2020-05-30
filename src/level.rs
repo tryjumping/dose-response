@@ -46,7 +46,7 @@ pub struct Tile {
 impl Tile {
     pub fn new(kind: TileKind) -> Tile {
         let color = match kind {
-            TileKind::Empty => color::empty_tile,
+            TileKind::Empty => color::empty_tile_ground,
             TileKind::Tree => color::tree_1,
         };
         let graphic = match kind {

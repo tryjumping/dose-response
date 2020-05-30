@@ -62,14 +62,18 @@ pub const signpost: Color = WHITE;
 pub const death_animation: Color = RED;
 
 pub const gui_progress_bar_fg: Color = BRIGHT_GREEN;
+
+pub const tree_1: Color = DARK_GREEN;
 pub const tree_2: Color = BRIGHT_GREEN;
+pub const tree_3: Color = NATURAL_GREEN;
 
 pub const voices: Color = GREY;
 pub const shadows: Color = GREY;
 pub const npc_dim: Color = GREY;
 pub const dead_player: Color = GREY;
 
-pub const empty_tile: Color = GREY;
+pub const empty_tile_ground: Color = BROWN;
+pub const empty_tile_leaves: Color = DIM_GREEN;
 
 pub const dim_background: Color = DARK_GREY;
 
@@ -84,14 +88,10 @@ pub const window_background: Color = BLACK;
 pub const menu_highlight: Color = RED;
 pub const dose_irresistible_background: Color = DIM_BLUE;
 
-pub const tree_3: Color = NATURAL_GREEN;
-
 pub const gui_progress_bar_bg: Color = DIM_GREEN;
 
 pub const anxiety_progress_bar_fg: Color = RED;
 pub const anxiety_progress_bar_bg: Color = BROWN;
-
-pub const tree_1: Color = DIM_GREEN;
 
 pub const anxiety: Color = RED;
 pub const npc_will: Color = RED;
@@ -100,9 +100,10 @@ pub const shattering_explosion: Color = RED;
 pub const depression: Color = PURPLE;
 pub const npc_speed: Color = PURPLE;
 
-pub const hunger: Color = BROWN;
-pub const npc_mind: Color = BROWN;
-pub const food: Color = BROWN;
+pub const hunger: Color = ORANGE;
+
+pub const npc_mind: Color = ORANGE;
+pub const food: Color = ORANGE;
 
 pub const high: Color = FUNKY_BLUE;
 pub const high_to: Color = FUNKY_RED;

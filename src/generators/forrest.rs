@@ -52,6 +52,7 @@ fn generate_map(
             let mut tile = Tile::new(kind);
             match tile.kind {
                 TileKind::Tree => {
+                    //let options = [color::tree_1, color::tree_2, color::tree_3];
                     let options = [color::tree_1, color::tree_2, color::tree_3];
                     tile.fg_color = *throwavay_rng.choose(&options).unwrap();
                     let graphic_options = [
@@ -70,22 +71,24 @@ fn generate_map(
                 }
                 TileKind::Empty => {
                     let options = [
-                        Graphic::Ground1,
-                        Graphic::Ground2,
-                        Graphic::Ground3,
-                        Graphic::Ground4,
-                        Graphic::Ground5,
-                        Graphic::Grass1,
-                        Graphic::Grass2,
-                        Graphic::Grass3,
-                        Graphic::Grass4,
-                        Graphic::Grass5,
-                        Graphic::Grass6,
-                        Graphic::Grass7,
-                        Graphic::Grass8,
-                        Graphic::Grass9,
+                        (Graphic::Ground1, color::empty_tile_ground),
+                        (Graphic::Ground2, color::empty_tile_ground),
+                        (Graphic::Ground3, color::empty_tile_ground),
+                        (Graphic::Ground4, color::empty_tile_ground),
+                        (Graphic::Ground5, color::empty_tile_ground),
+                        (Graphic::Grass1, color::empty_tile_leaves),
+                        (Graphic::Grass2, color::empty_tile_leaves),
+                        (Graphic::Grass3, color::empty_tile_leaves),
+                        (Graphic::Grass4, color::empty_tile_leaves),
+                        (Graphic::Grass5, color::empty_tile_leaves),
+                        (Graphic::Grass6, color::empty_tile_leaves),
+                        (Graphic::Grass7, color::empty_tile_leaves),
+                        (Graphic::Grass8, color::empty_tile_leaves),
+                        (Graphic::Grass9, color::empty_tile_leaves),
                     ];
-                    tile.graphic = *throwavay_rng.choose(&options).unwrap();
+                    let (graphic, color) = *throwavay_rng.choose(&options).unwrap();
+                    tile.graphic = graphic;
+                    tile.fg_color = color;
                 }
             };
 

@@ -42,7 +42,13 @@ pub const DIM_GREEN: Color = Color {
     g: 101,
     b: 36,
 };
-pub const NATURAL_GREEN: Color = BRIGHT_GREEN;
+pub const NATURAL_GREEN: Color = Color {
+    r: 53,
+    g: 178,
+    b: 58,
+};
+
+pub const DARK_GREEN: Color = Color { r: 0, g: 134, b: 7 };
 
 pub const RED: Color = Color {
     r: 208,
@@ -76,3 +82,9 @@ pub const FUNKY_BLUE: Color = Color {
     g: 155,
     b: 255,
 }; // TODO
+
+pub const ORANGE: Color = Color {
+    r: 255,
+    g: 136,
+    b: 11,
+};

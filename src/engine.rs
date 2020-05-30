@@ -597,7 +597,8 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
         Graphic::Grass8 => Some((9, 7)),
         Graphic::Grass9 => Some((10, 7)),
 
-        Graphic::Corpse => Some((2, 2)),
+        //Graphic::Corpse => Some((2, 2)),
+        Graphic::Corpse => Some((1, 16)),
 
         Graphic::Anxiety => Some((7, 11)),
         Graphic::Hunger => Some((0, 10)),

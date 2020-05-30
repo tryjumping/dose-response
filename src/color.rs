@@ -105,5 +105,9 @@ pub const hunger: Color = ORANGE;
 pub const npc_mind: Color = ORANGE;
 pub const food: Color = ORANGE;
 
-pub const high: Color = FUNKY_BLUE;
-pub const high_to: Color = FUNKY_RED;
+pub const high: Color = NEON_GREEN;
+// NOTE: this neon pink is awesome, but it visually conflicts with the Anxiety red.
+// If we can find a way to make it work, I'd love to bring it back.
+// Maybe a thre-way colour circling with the green and purple?
+//pub const high_to: Color = NEON_PINK;
+pub const high_to: Color = NEON_PURPLE;

@@ -72,19 +72,37 @@ pub const DARK_BROWN: Color = Color {
     b: 14,
 };
 
-pub const FUNKY_RED: Color = Color {
-    r: 210,
-    g: 125,
-    b: 44,
-};
-pub const FUNKY_BLUE: Color = Color {
-    r: 99,
-    g: 155,
-    b: 255,
-}; // TODO
+// pub const FUNKY_RED: Color = Color {
+//     r: 210,
+//     g: 125,
+//     b: 44,
+// };
+// pub const FUNKY_BLUE: Color = Color {
+//     r: 99,
+//     g: 155,
+//     b: 255,
+// };
 
 pub const ORANGE: Color = Color {
     r: 255,
     g: 136,
     b: 11,
+};
+
+pub const NEON_GREEN: Color = Color {
+    r: 127,
+    g: 255,
+    b: 0,
+};
+
+// pub const NEON_PINK: Color = Color {
+//     r: 255,
+//     g: 20,
+//     b: 147,
+// };
+
+pub const NEON_PURPLE: Color = Color {
+    r: 138,
+    g: 43,
+    b: 226,
 };

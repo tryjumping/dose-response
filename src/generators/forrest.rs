@@ -71,11 +71,22 @@ fn generate_map(
                 }
                 TileKind::Empty => {
                     let options = [
-                        (Graphic::Ground1, color::empty_tile_ground),
+                        // TODO: find the thick ground tiles and drop em
+                        // (Graphic::Ground1, color::empty_tile_ground),
                         (Graphic::Ground2, color::empty_tile_ground),
                         (Graphic::Ground3, color::empty_tile_ground),
-                        (Graphic::Ground4, color::empty_tile_ground),
+                        // (Graphic::Ground4, color::empty_tile_ground),
                         (Graphic::Ground5, color::empty_tile_ground),
+                        (Graphic::Twigs1, color::empty_tile_ground),
+                        (Graphic::Twigs2, color::empty_tile_ground),
+                        (Graphic::Twigs3, color::empty_tile_ground),
+                        (Graphic::Twigs4, color::empty_tile_ground),
+                        (Graphic::Twigs5, color::empty_tile_ground),
+                        (Graphic::Twigs6, color::empty_tile_ground),
+                        (Graphic::Twigs7, color::empty_tile_ground),
+                        (Graphic::Twigs8, color::empty_tile_ground),
+                        (Graphic::Twigs9, color::empty_tile_ground),
+                        (Graphic::Twigs10, color::empty_tile_ground),
                         (Graphic::Grass1, color::empty_tile_leaves),
                         (Graphic::Grass2, color::empty_tile_leaves),
                         (Graphic::Grass3, color::empty_tile_leaves),
@@ -85,6 +96,11 @@ fn generate_map(
                         (Graphic::Grass7, color::empty_tile_leaves),
                         (Graphic::Grass8, color::empty_tile_leaves),
                         (Graphic::Grass9, color::empty_tile_leaves),
+                        (Graphic::Leaves1, color::empty_tile_leaves),
+                        (Graphic::Leaves2, color::empty_tile_leaves),
+                        (Graphic::Leaves3, color::empty_tile_leaves),
+                        (Graphic::Leaves4, color::empty_tile_leaves),
+                        (Graphic::Leaves5, color::empty_tile_leaves),
                     ];
                     let (graphic, color) = *throwavay_rng.choose(&options).unwrap();
                     tile.graphic = graphic;

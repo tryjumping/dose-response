@@ -75,6 +75,7 @@ impl Iterator for KindIterator {
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Item {
     pub kind: Kind,
+    pub graphic: Graphic,
     pub modifier: Modifier,
     pub irresistible: i32,
 }
@@ -88,13 +89,7 @@ impl Item {
     }
 
     pub fn graphic(&self) -> Graphic {
-        match self.kind {
-            Food => Graphic::Food,
-            Dose => Graphic::Dose,
-            StrongDose => Graphic::StrongDose,
-            CardinalDose => Graphic::CardinalDose,
-            DiagonalDose => Graphic::DiagonalDose,
-        }
+        self.graphic
     }
 
     pub fn color(&self) -> Color {

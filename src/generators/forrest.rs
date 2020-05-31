@@ -199,7 +199,23 @@ fn new_item(kind: item::Kind, rng: &mut Random) -> Item {
             };
             item
         }
-        Food => formula::FOOD_PREFAB,
+        Food => {
+            let mut item = formula::FOOD_PREFAB;
+            item.graphic = *rng
+                .choose(&[
+                    Graphic::FoodAcornWide,
+                    Graphic::FoodAcornThin,
+                    Graphic::FoodCarrotWide,
+                    Graphic::FoodCarrotSideways,
+                    Graphic::FoodCarrotThin,
+                    Graphic::FoodTurnipSmallLeaves,
+                    Graphic::FoodTurnipBigLeaves,
+                    Graphic::FoodTurnipHeart,
+                    Graphic::FoodStriped,
+                ])
+                .unwrap_or(&Graphic::FoodAcornWide);
+            item
+        }
     }
 }
 

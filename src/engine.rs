@@ -638,7 +638,15 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
 
         //Graphic::Food => Some((16, 11)),
         // TODO: add more Food graphics
-        Graphic::Food => Some((11, 11)),
+        Graphic::FoodAcornWide => Some((11, 11)),
+        Graphic::FoodAcornThin => Some((12, 11)),
+        Graphic::FoodCarrotWide => Some((10, 11)),
+        Graphic::FoodCarrotSideways => Some((9, 11)),
+        Graphic::FoodCarrotThin => Some((10, 14)),
+        Graphic::FoodTurnipSmallLeaves => Some((16, 10)),
+        Graphic::FoodTurnipBigLeaves => Some((13, 14)),
+        Graphic::FoodTurnipHeart => Some((15, 14)),
+        Graphic::FoodStriped => Some((15, 10)),
 
         // TODO: add more Player graphics
         Graphic::Player => Some((11, 4)),

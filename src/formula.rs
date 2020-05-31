@@ -1,4 +1,5 @@
 use crate::{
+    graphic::Graphic,
     item::{Item, Kind},
     monster::CompanionBonus,
     player::{Bonus, CauseOfDeath, Mind, Modifier, Player},
@@ -54,6 +55,7 @@ pub const DOSE_PREFAB: Item = Item {
 #[cfg(not(feature = "recording"))]
 pub const DOSE_PREFAB: Item = Item {
     kind: Kind::Dose,
+    graphic: Graphic::Dose,
     irresistible: 2,
     modifier: Modifier::Intoxication {
         state_of_mind: 70,
@@ -63,6 +65,7 @@ pub const DOSE_PREFAB: Item = Item {
 
 pub const STRONG_DOSE_PREFAB: Item = Item {
     kind: Kind::StrongDose,
+    graphic: Graphic::StrongDose,
     irresistible: 4,
     modifier: Modifier::Intoxication {
         state_of_mind: 220,
@@ -72,6 +75,7 @@ pub const STRONG_DOSE_PREFAB: Item = Item {
 
 pub const CARDINAL_DOSE_PREFAB: Item = Item {
     kind: Kind::CardinalDose,
+    graphic: Graphic::CardinalDose,
     irresistible: 3,
     modifier: Modifier::Intoxication {
         state_of_mind: 130,
@@ -81,6 +85,7 @@ pub const CARDINAL_DOSE_PREFAB: Item = Item {
 
 pub const DIAGONAL_DOSE_PREFAB: Item = Item {
     kind: Kind::DiagonalDose,
+    graphic: Graphic::DiagonalDose,
     irresistible: 3,
     modifier: Modifier::Intoxication {
         state_of_mind: 130,
@@ -90,6 +95,7 @@ pub const DIAGONAL_DOSE_PREFAB: Item = Item {
 
 pub const FOOD_PREFAB: Item = Item {
     kind: Kind::Food,
+    graphic: Graphic::FoodAcornWide,
     irresistible: 0,
     modifier: Modifier::Attribute {
         state_of_mind: 20,

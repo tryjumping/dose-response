@@ -62,7 +62,16 @@ pub enum Graphic {
     StrongDose,
     CardinalDose,
     DiagonalDose,
-    Food,
+
+    FoodAcornWide,
+    FoodAcornThin,
+    FoodCarrotWide,
+    FoodCarrotSideways,
+    FoodCarrotThin,
+    FoodTurnipSmallLeaves,
+    FoodTurnipBigLeaves,
+    FoodTurnipHeart,
+    FoodStriped,
 
     Signpost,
 }
@@ -82,6 +91,7 @@ impl Into<char> for Graphic {
             Tree8 => '#',
             Tree9 => '#',
             Tree10 => '#',
+
             Twigs1 => '.',
             Twigs2 => '.',
             Twigs3 => '.',
@@ -93,11 +103,13 @@ impl Into<char> for Graphic {
             Twigs9 => '.',
             Twigs10 => '.',
             Twigs11 => '.',
+
             Ground1 => '.',
             Ground2 => '.',
             Ground3 => '.',
             Ground4 => '.',
             Ground5 => '.',
+
             Grass1 => '.',
             Grass2 => '.',
             Grass3 => '.',
@@ -107,24 +119,38 @@ impl Into<char> for Graphic {
             Grass7 => '.',
             Grass8 => '.',
             Grass9 => '.',
+
             Leaves1 => '.',
             Leaves2 => '.',
             Leaves3 => '.',
             Leaves4 => '.',
             Leaves5 => '.',
+
             Player => '@',
             Npc => '@',
             Corpse => '&',
+
             Anxiety => 'a',
             Depression => 'D',
             Hunger => 'h',
             Shadows => 'S',
             Voices => 'v',
+
             Dose => 'i',
             StrongDose => 'I',
             CardinalDose => '+',
             DiagonalDose => 'x',
-            Food => '%',
+
+            FoodAcornWide => '%',
+            FoodAcornThin => '%',
+            FoodCarrotWide => '%',
+            FoodCarrotSideways => '%',
+            FoodCarrotThin => '%',
+            FoodTurnipSmallLeaves => '%',
+            FoodTurnipBigLeaves => '%',
+            FoodTurnipHeart => '%',
+            FoodStriped => '%',
+
             Signpost => '!',
         }
     }

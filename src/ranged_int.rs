@@ -102,6 +102,7 @@ impl Ranged {
         (self.max() - self.min()) / 2
     }
 
+    /// Return the percentage value in range between <0.0, 1.0>.
     pub fn percent(&self) -> f32 {
         let length = self.max() as f32 - self.min() as f32;
         let value = *self.val.numer() as f32 / *self.val.denom() as f32;

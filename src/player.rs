@@ -98,6 +98,7 @@ pub struct Player {
     pub stun: Ranged,
 
     pub pos: Point,
+    pub graphic: Graphic,
     pub inventory: Vec<Item>,
     pub anxiety_counter: Ranged,
     // TODO: merge this with the other bonuses
@@ -122,6 +123,7 @@ impl Player {
             panic: Ranged::new_min(formula::PANIC_TURNS),
             stun: Ranged::new_min(formula::STUN_TURNS),
             pos,
+            graphic: Graphic::CharacterSkirt,
             inventory: vec![],
             anxiety_counter: Ranged::new_min(ANXIETIES_PER_WILL),
             dead: false,
@@ -223,10 +225,10 @@ impl Player {
     }
 
     pub fn graphic(&self) -> Graphic {
-        if self.alive() {
-            Graphic::Player
-        } else {
-            Graphic::Corpse
+        match (self.alive(), self.mind.is_high()) {
+            (true, true) => Graphic::Bird1,
+            (true, false) => self.graphic,
+            (false, _) => Graphic::Corpse,
         }
     }
 }

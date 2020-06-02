@@ -570,6 +570,8 @@ impl Mouse {
 
 fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)> {
     let coords = match graphic {
+        Graphic::Empty => None,
+
         Graphic::Tree1 => Some((3, 1)),
         Graphic::Tree2 => Some((4, 1)),
         Graphic::Tree3 => Some((5, 1)),
@@ -637,7 +639,6 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
         Graphic::StrongDose => Some((8, 14)),
 
         //Graphic::Food => Some((16, 11)),
-        // TODO: add more Food graphics
         Graphic::FoodAcornWide => Some((11, 11)),
         Graphic::FoodAcornThin => Some((12, 11)),
         Graphic::FoodCarrotWide => Some((10, 11)),
@@ -648,12 +649,37 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
         Graphic::FoodTurnipHeart => Some((15, 14)),
         Graphic::FoodStriped => Some((15, 10)),
 
-        // TODO: add more Player graphics
-        Graphic::Player => Some((11, 4)),
-        // TODO: add more NPC graphics
+        //Graphic::Player => Some((11, 4)),
+
+        // PCs
+        Graphic::CharacterTrousers => Some((11, 2)),
+        Graphic::CharacterSkirt => Some((11, 4)),
+
         Graphic::Npc => Some((15, 4)),
 
-        _ => None,
+        // Tribal NPC set
+        Graphic::CharacterTribalStaffTrousers => Some((13, 2)),
+        Graphic::CharacterTribalStaffBelly => Some((13, 4)),
+        Graphic::CharacterTribalMoon => Some((16, 5)),
+
+        // Sparse NPC set
+        Graphic::CharacterSparseWideArmsWaist => Some((12, 1)),
+        Graphic::CharacterSparseWideSkirt => Some((12, 3)),
+        Graphic::CharacterSparseArmsStraight => Some((11, 3)),
+
+        // Full NPC set
+        Graphic::CharacterFullHandsWaist => Some((14, 1)),
+        Graphic::CharacterFullHandsStaight => Some((14, 3)),
+        Graphic::CharacterFullSuit => Some((11, 5)),
+
+        // Animal Set
+        Graphic::Bird1 => Some((11, 6)),
+        Graphic::Bird2 => Some((11, 7)),
+        Graphic::Fox => Some((13, 6)),
+        Graphic::Snake => Some((15, 6)),
+        Graphic::Bat => Some((17, 6)),
+
+        Graphic::Signpost => Some((12, 8)),
     };
     coords.map(|(tile_x, tile_y)| (tile_x * TILEMAP_SIZE, tile_y * TILEMAP_SIZE))
 }

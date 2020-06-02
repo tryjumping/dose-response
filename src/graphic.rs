@@ -48,8 +48,35 @@ pub enum Graphic {
     Leaves4,
     Leaves5,
 
-    Player,
+    //Player,
     Npc,
+
+    // PCs
+    CharacterTrousers,
+    CharacterSkirt,
+
+    // Tribal NPC set
+    CharacterTribalStaffTrousers,
+    CharacterTribalStaffBelly,
+    CharacterTribalMoon,
+
+    // Sparse NPC set
+    CharacterSparseWideArmsWaist,
+    CharacterSparseWideSkirt,
+    CharacterSparseArmsStraight,
+
+    // Full NPC set
+    CharacterFullHandsWaist,
+    CharacterFullHandsStaight,
+    CharacterFullSuit,
+
+    // Animal Set
+    Bird1,
+    Bird2,
+    Fox,
+    Snake,
+    Bat,
+
     Corpse,
 
     Anxiety,
@@ -126,8 +153,36 @@ impl Into<char> for Graphic {
             Leaves4 => '.',
             Leaves5 => '.',
 
-            Player => '@',
+            //Player => '@',
+
+            // PCs
+            CharacterTrousers => '@',
+            CharacterSkirt => '@',
+
             Npc => '@',
+
+            // Tribal NPC set
+            CharacterTribalStaffTrousers => '@',
+            CharacterTribalStaffBelly => '@',
+            CharacterTribalMoon => '@',
+
+            // Sparse NPC set
+            CharacterSparseWideArmsWaist => '@',
+            CharacterSparseWideSkirt => '@',
+            CharacterSparseArmsStraight => '@',
+
+            // Full NPC set
+            CharacterFullHandsWaist => '@',
+            CharacterFullHandsStaight => '@',
+            CharacterFullSuit => '@',
+
+            // Animal Set
+            Bird1 => '@',
+            Bird2 => '@',
+            Fox => '@',
+            Snake => '@',
+            Bat => '@',
+
             Corpse => '&',
 
             Anxiety => 'a',

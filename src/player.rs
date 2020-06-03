@@ -225,9 +225,19 @@ impl Player {
     }
 
     pub fn graphic(&self) -> Graphic {
-        match (self.alive(), self.mind.is_high()) {
-            (true, true) => Graphic::Bird1,
-            (true, false) => self.graphic,
+        match (self.alive(), self.mind) {
+            (true, Mind::High(val)) => {
+                if val.percent() >= 0.75 {
+                    Graphic::Bat
+                } else if val.percent() >= 0.5 {
+                    Graphic::Snake
+                } else if val.percent() >= 0.25 {
+                    Graphic::Fox
+                } else {
+                    Graphic::Bird1
+                }
+            }
+            (true, _) => self.graphic,
             (false, _) => Graphic::Corpse,
         }
     }

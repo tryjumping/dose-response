@@ -6,26 +6,57 @@ Building
 
 Requires Rust 1.31 (the code uses the [Rust 2018 edition][edition]).
 
-For the SDL backend (planned to become default) you also need
-the [SDL2][sdl] library available wherever your OS looks for
-libraries.
+The published release (version 1.0) uses SDL2, but the master (and
+future releases) uses pure Rust windowing libraries instead.
 
 
 Pure Rust
 ---------
 
-By default, Dose Response uses [SDL2][sdl] as the graphics backend. This
-requires having the SDL2 libraries installed on your system.
+This is the default on master.
 
 If you want to try the pure Rust graphics backend
 ([winit][winit] & [glutin][glutin]), compile the
 project like so:
 
-    $ cargo build --no-default-features --features 'cli replay rand fullscreen cheating stats verifications glutin-backend'
+Just run:
 
-To run the built binary, you must pass the `--glutin` command line argument:
+    $ cargo build
 
-    $ ./target/debug/dose-response --glutin
+To run the built binary you can use cargo:
+
+    $ cargo run
+
+Or run it directly:
+
+    $ ./target/debug/dose-response
+
+
+SDL2
+----
+
+For the SDL backend you also need the [SDL2][sdl] library available
+wherever your OS looks for libraries.
+
+To add the SDL support, you must enable the `sdl-backend` Cargo feature:
+
+    $ cargo build --features sdl-backend
+
+And to use the SDL backend when running the game you must edit the game's settings and set the `backend = "sdl"` option:
+
+    $ $EDITOR target/debug/settings.toml
+    backend = "sdl"
+
+(the backends are currently not selectable in-game)
+
+And then run the game:
+
+    $ cargo run --features sdl-backend
+
+Or:
+
+    $ ./target/debug/dose-response
+
 
 Webassembly
 -----------

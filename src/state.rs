@@ -1,6 +1,7 @@
 use crate::{
     animation::{AreaOfEffect, ScreenFade},
     engine::Mouse,
+    graphic::Graphic,
     keys::Keys,
     monster,
     player::Player,
@@ -180,7 +181,15 @@ impl State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
         let player_position = world_centre;
-        let player = Player::new(player_position, invincible);
+        let player = {
+            let mut player = Player::new(player_position, invincible);
+            // Poor man's RNG:
+            player.graphic = match seed % 2 == 0 {
+                true => Graphic::CharacterSkirt,
+                false => Graphic::CharacterTrousers,
+            };
+            player
+        };
         let mut rng = Random::from_seed(u64::from(seed));
         let world = World::new(&mut rng, seed, world_size.x, 32, player.info());
 

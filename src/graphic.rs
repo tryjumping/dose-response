@@ -43,7 +43,8 @@ pub enum Graphic {
     Grass9,
 
     Leaves1,
-    Leaves2,
+    // TODO: commenting out for now, looks weird in the game
+    //Leaves2,
     Leaves3,
     Leaves4,
     Leaves5,
@@ -148,7 +149,7 @@ impl Into<char> for Graphic {
             Grass9 => '.',
 
             Leaves1 => '.',
-            Leaves2 => '.',
+            //Leaves2 => '.',
             Leaves3 => '.',
             Leaves4 => '.',
             Leaves5 => '.',

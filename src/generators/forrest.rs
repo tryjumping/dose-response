@@ -97,7 +97,7 @@ fn generate_map(
                         (Graphic::Grass8, color::empty_tile_leaves),
                         (Graphic::Grass9, color::empty_tile_leaves),
                         (Graphic::Leaves1, color::empty_tile_leaves),
-                        (Graphic::Leaves2, color::empty_tile_leaves),
+                        //(Graphic::Leaves2, color::empty_tile_leaves),
                         (Graphic::Leaves3, color::empty_tile_leaves),
                         (Graphic::Leaves4, color::empty_tile_leaves),
                         (Graphic::Leaves5, color::empty_tile_leaves),

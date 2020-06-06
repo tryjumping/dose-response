@@ -603,7 +603,7 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
         Ground5 => Some((1, 5)),
 
         Leaves1 => Some((5, 3)),
-        Leaves2 => Some((4, 5)),
+        //Leaves2 => Some((4, 5)),
         Leaves3 => Some((5, 5)),
         Leaves4 => Some((6, 5)),
         Leaves5 => Some((7, 5)),

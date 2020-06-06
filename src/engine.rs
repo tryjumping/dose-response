@@ -656,7 +656,7 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
         CharacterTrousers => Some((11, 2)),
         CharacterSkirt => Some((11, 4)),
 
-        Npc => Some((15, 4)),
+        CharacterBelly => Some((15, 4)),
 
         // Tribal NPC set
         CharacterTribalStaffTrousers => Some((13, 2)),

@@ -51,7 +51,7 @@ pub enum Graphic {
 
     //Player,
     // NOTE: used for the victory NPC
-    Npc,
+    CharacterBelly,
 
     // PCs
     CharacterTrousers,
@@ -163,7 +163,7 @@ impl Into<char> for Graphic {
             CharacterTrousers => '@',
             CharacterSkirt => '@',
 
-            Npc => '@',
+            CharacterBelly => '@',
 
             // Tribal NPC set
             CharacterTribalStaffTrousers => '@',

@@ -216,8 +216,8 @@ impl Monster {
                 Some(CompanionBonus::DoubleWillGrowth) => Graphic::CharacterTribalStaffTrousers,
                 Some(CompanionBonus::HalveExhaustion) => Graphic::CharacterTribalStaffBelly,
                 Some(CompanionBonus::ExtraActionPoint) => Graphic::CharacterTribalMoon,
-                Some(CompanionBonus::Victory) => Graphic::Npc,
-                None => Graphic::Npc,
+                Some(CompanionBonus::Victory) => Graphic::CharacterBelly,
+                None => Graphic::CharacterBelly,
             },
             Signpost => Graphic::Signpost,
         }

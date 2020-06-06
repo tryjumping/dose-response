@@ -50,6 +50,7 @@ pub enum Graphic {
     Leaves5,
 
     //Player,
+    // NOTE: used for the victory NPC
     Npc,
 
     // PCs
@@ -62,11 +63,13 @@ pub enum Graphic {
     CharacterTribalMoon,
 
     // Sparse NPC set
+    // NOTE: not currently used
     CharacterSparseWideArmsWaist,
     CharacterSparseWideSkirt,
     CharacterSparseArmsStraight,
 
     // Full NPC set
+    // NOTE: not currently used
     CharacterFullHandsWaist,
     CharacterFullHandsStaight,
     CharacterFullSuit,

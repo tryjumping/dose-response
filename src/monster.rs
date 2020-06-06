@@ -212,7 +212,13 @@ impl Monster {
             Hunger => Graphic::Hunger,
             Shadows => Graphic::Shadows,
             Voices => Graphic::Voices,
-            Npc => Graphic::Npc,
+            Npc => match self.companion_bonus {
+                Some(CompanionBonus::DoubleWillGrowth) => Graphic::CharacterTribalStaffTrousers,
+                Some(CompanionBonus::HalveExhaustion) => Graphic::CharacterTribalStaffBelly,
+                Some(CompanionBonus::ExtraActionPoint) => Graphic::CharacterTribalMoon,
+                Some(CompanionBonus::Victory) => Graphic::Npc,
+                None => Graphic::Npc,
+            },
             Signpost => Graphic::Signpost,
         }
     }

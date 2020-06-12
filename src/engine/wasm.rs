@@ -137,13 +137,18 @@ fn key_code_from_backend(js_keycode: u32) -> Option<KeyCode> {
     }
 }
 
-struct Metrics {
+pub struct Metrics {
     tile_width_px: i32,
+    text_width_px: i32,
 }
 
 impl TextMetrics for Metrics {
     fn tile_width_px(&self) -> i32 {
         self.tile_width_px
+    }
+
+    fn text_width_px(&self) -> i32 {
+        self.text_width_px
     }
 }
 

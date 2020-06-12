@@ -12,8 +12,6 @@ use std::time::Duration;
 
 use image::RgbaImage;
 
-pub const TILEMAP_SIZE: i32 = 10;
-
 pub enum FullscreenAction {
     SwitchToFullscreen,
     SwitchToWindowed,

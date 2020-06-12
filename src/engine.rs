@@ -2,8 +2,7 @@
 
 use crate::{
     color::{self, Color, ColorAlpha},
-    engine::loop_state::TILEMAP_SIZE,
-    graphic::Graphic,
+    graphic::{self, Graphic, TILEMAP_SIZE},
     point::Point,
     rect::Rectangle,
     ui::Button,
@@ -568,102 +567,6 @@ impl Mouse {
     }
 }
 
-fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)> {
-    use Graphic::*;
-    let coords = match graphic {
-        Empty => None,
-
-        Tree1 => Some((3, 1)),
-        Tree2 => Some((4, 1)),
-        Tree3 => Some((5, 1)),
-        Tree4 => Some((6, 1)),
-        Tree5 => Some((7, 1)),
-        Tree6 => Some((8, 1)),
-        Tree7 => Some((9, 1)),
-        Tree8 => Some((10, 1)),
-        Tree9 => Some((3, 2)),
-        Tree10 => Some((4, 2)),
-
-        Twigs1 => Some((8, 4)),
-        Twigs2 => Some((8, 6)),
-        Twigs3 => Some((9, 6)),
-        Twigs4 => Some((10, 6)),
-        Twigs5 => Some((4, 8)),
-        Twigs6 => Some((5, 8)),
-        Twigs7 => Some((6, 8)),
-        Twigs8 => Some((7, 8)),
-        Twigs9 => Some((8, 8)),
-        Twigs10 => Some((9, 8)),
-        Twigs11 => Some((10, 8)),
-
-        Ground1 => Some((1, 1)),
-        Ground2 => Some((1, 2)),
-        Ground3 => Some((1, 3)),
-        Ground4 => Some((1, 4)),
-        Ground5 => Some((1, 5)),
-
-        Leaves1 => Some((5, 3)),
-        //Leaves2 => Some((4, 5)),
-        Leaves3 => Some((5, 5)),
-        Leaves4 => Some((6, 5)),
-        Leaves5 => Some((7, 5)),
-
-        Grass1 => Some((8, 3)),
-        Grass2 => Some((9, 3)),
-        Grass3 => Some((10, 3)),
-        Grass4 => Some((8, 5)),
-        Grass5 => Some((9, 5)),
-        Grass6 => Some((10, 5)),
-        Grass7 => Some((8, 7)),
-        Grass8 => Some((9, 7)),
-        Grass9 => Some((10, 7)),
-
-        Corpse => Some((3, 13)),
-
-        Anxiety => Some((0, 10)),
-        Hunger => Some((1, 10)),
-        Depression => Some((2, 10)),
-        Shadows => Some((3, 10)),
-        Voices => Some((4, 10)),
-
-        Dose => Some((0, 11)),
-        CardinalDose => Some((1, 11)),
-        DiagonalDose => Some((2, 11)),
-        StrongDose => Some((3, 11)),
-
-        FoodAcornWide => Some((2, 12)),
-        FoodAcornThin => Some((3, 12)),
-        FoodCarrotWide => Some((1, 12)),
-        FoodCarrotSideways => Some((0, 12)),
-        FoodCarrotThin => Some((6, 12)),
-        FoodTurnipSmallLeaves => Some((5, 12)),
-        FoodTurnipBigLeaves => Some((7, 12)),
-        FoodTurnipHeart => Some((8, 12)),
-        FoodStriped => Some((4, 12)),
-
-        // PCs
-        CharacterTrousers => Some((0, 13)),
-        CharacterSkirt => Some((1, 13)),
-
-        // NPC
-        CharacterBelly => Some((2, 13)),
-
-        // Tribal NPC set
-        CharacterTribalStaffTrousers => Some((0, 14)),
-        CharacterTribalStaffBelly => Some((1, 14)),
-        CharacterTribalMoon => Some((2, 14)),
-
-        // Animal Set
-        Bird1 => Some((0, 15)),
-        Fox => Some((1, 15)),
-        Snake => Some((2, 15)),
-        Bat => Some((3, 15)),
-
-        Signpost => Some((12, 8)),
-    };
-    coords.map(|(tile_x, tile_y)| (tile_x * TILEMAP_SIZE, tile_y * TILEMAP_SIZE))
-}
-
 #[derive(Copy, Clone, Debug)]
 pub struct Cell {
     pub graphic: Graphic,
@@ -944,7 +847,7 @@ impl Display {
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
             let (texture, texture_px_x, texture_px_y) =
-                match tilemap_coords_px_from_graphic(self.tile_size as u32, cell.graphic) {
+                match graphic::tilemap_coords_px(self.tile_size as u32, cell.graphic) {
                     Some((tx, ty)) => (Texture::Tilemap, tx, ty),
                     None => {
                         let (tx, ty) =

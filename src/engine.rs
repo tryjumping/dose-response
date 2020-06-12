@@ -322,6 +322,7 @@ pub struct TextOptions {
     /// centering.
     pub width: i32,
 
+    /// Height of the text in tiles.
     pub height: i32,
 
     /// The number of lines to skip rendering. Allows printing only a
@@ -374,6 +375,8 @@ pub enum TextAlign {
 pub trait TextMetrics {
     fn tile_width_px(&self) -> i32;
 
+    fn text_width_px(&self) -> i32;
+
     fn advance_width_px(&self, glyph: char) -> i32 {
         // NOTE: we're assuming that font_size and tilesize always match!
         let font_size = self.tile_width_px() as u32;
@@ -385,7 +388,7 @@ pub trait TextMetrics {
     /// Panics when `text_drawcall` is not `Draw::Text`
     fn get_text_height(&self, text: &str, options: TextOptions) -> i32 {
         if options.wrap && options.width > 0 {
-            let font_size = self.tile_width_px() as u32;
+            let font_size = self.text_width_px() as u32;
             // TODO: this does a needless allocation by
             // returning Vec<String> we don't use here.
             let lines = wrap_text(&text, font_size, options.width, self.tile_width_px());
@@ -399,7 +402,7 @@ pub trait TextMetrics {
     ///
     /// Panics when `text_drawcall` is not `Draw::Text`
     fn get_text_width(&self, text: &str, options: TextOptions) -> i32 {
-        let font_size = self.tile_width_px() as u32;
+        let font_size = self.text_width_px() as u32;
         let pixel_width = if options.wrap && options.width > 0 {
             // // TODO: handle text alignment for wrapped text
             let lines = wrap_text(text, font_size, options.width, self.tile_width_px());
@@ -716,7 +719,13 @@ impl Display {
 
     /// Draw a Button
     pub fn draw_button(&mut self, button: &Button) {
-        self.draw_text(button.pos, &button.text, button.color, button.text_options);
+        self.draw_text_in_tile_coordinates(
+            button.pos,
+            &button.text,
+            button.color,
+            button.text_options,
+            self.tile_size,
+        );
     }
 
     /// Draw a glyph at the given pixel position.
@@ -737,9 +746,24 @@ impl Display {
             .push(Drawcall::Image(Texture::Text, src, dst, color));
     }
 
-    pub fn draw_text(
+    /// Draw text with tile coordinates rather than pixels.
+    ///
+    /// Shorthand for `draw_text`
+    pub fn draw_text_in_tile_coordinates(
         &mut self,
-        start_pos: Point,
+        start_pos_tile: Point,
+        text: &str,
+        color: Color,
+        options: TextOptions,
+        tilesize: i32,
+    ) -> DrawResult {
+        let start_pos_px = start_pos_tile * tilesize;
+        self.draw_text_in_pixel_coordinates(start_pos_px, text, color, options)
+    }
+
+    pub fn draw_text_in_pixel_coordinates(
+        &mut self,
+        start_pos_px: Point,
         text: &str,
         color: Color,
         options: TextOptions,
@@ -783,7 +807,7 @@ impl Display {
             let lines = wrap_text(text, text_size as u32, options.width, tile_size);
             for (index, line) in lines.iter().skip(options.skip as usize).enumerate() {
                 if (index as i32) < options.height {
-                    let pos = (start_pos + Point::new(0, index as i32)) * tile_size;
+                    let pos = start_pos_px + Point::new(0, index as i32) * text_size;
                     render_line(pos, line);
                 } else {
                     return DrawResult::Overflow;
@@ -792,18 +816,18 @@ impl Display {
         } else {
             use crate::engine::TextAlign::*;
             let pos = match options.align {
-                Left => start_pos * tile_size,
+                Left => start_pos_px,
                 Right => {
-                    (start_pos + (1, 0)) * tile_size
+                    (start_pos_px + Point::new(1, 0) * tile_size)
                         - Point::new(text_width_px(text, text_size as u32, tile_size), 0)
                 }
                 Center => {
                     let text_width = text_width_px(text, text_size as u32, tile_size);
                     let max_width = options.width * tile_size;
                     if max_width < 1 || (text_width > max_width) {
-                        start_pos
+                        start_pos_px
                     } else {
-                        (start_pos * tile_size) + Point::new((max_width - text_width) / 2, 0)
+                        start_pos_px + Point::new((max_width - text_width) / 2, 0)
                     }
                 }
             };

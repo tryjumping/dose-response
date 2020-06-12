@@ -186,7 +186,7 @@ impl Window {
         // NOTE: draw the version explicitly
         let short = display.size_without_padding().y < 26;
         let version_padding = if short { (1, 0) } else { (1, 1) };
-        display.draw_text(
+        display.draw_text_in_tile_coordinates(
             layout.inner_window_rect.bottom_right() - version_padding,
             &format!(
                 "Version: {}.{}",
@@ -195,6 +195,7 @@ impl Window {
             ),
             color::gui_text,
             TextOptions::align_right(),
+            display.tile_size,
         );
     }
 

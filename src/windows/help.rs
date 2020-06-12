@@ -228,11 +228,13 @@ impl Window {
         let homepage = &format!("Homepage: {}", crate::metadata::HOMEPAGE);
         let git_msg = &format!("Git commit: {}", crate::metadata::GIT_HASH);
 
-        display.draw_text(
+        display.draw_text_in_tile_coordinates(
+            // TODO: this needs to be pixel
             layout.window_rect.top_left(),
             &header,
             color::gui_text,
             TextOptions::align_center(layout.window_rect.width()),
+            display.tile_size,
         );
 
         let mut lines = vec![];
@@ -403,11 +405,13 @@ impl Window {
         );
         if let DrawResult::Overflow = res {
             let options = TextOptions::align_center(layout.window_rect.width());
-            display.draw_text(
+            display.draw_text_in_tile_coordinates(
+                // TODO: this needs to be fixel
                 layout.window_rect.bottom_left() - (0, 1),
                 "(more)",
                 color::gui_text,
                 options,
+                display.tile_size,
             );
         }
 

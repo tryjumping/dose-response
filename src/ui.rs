@@ -24,10 +24,12 @@ pub fn render_text_flow(
     use self::Text::*;
 
     let mut skip = starting_line;
-    let mut ypos = 0;
+    let mut ypos_px = 0;
+    let rect_height_px = rect.height() * display.tile_size;
     for text in text_flow.iter() {
-        let text_height = text_height(text, rect, metrics);
-        if ypos >= rect.height() {
+        let line_count = text_height(text, rect, metrics);
+        let text_height_px = line_count * display.text_size;
+        if ypos_px >= rect_height_px {
             return DrawResult::Overflow;
         }
         match text {
@@ -36,11 +38,11 @@ pub fn render_text_flow(
             EmptySpace(_) => {}
 
             Paragraph(text) => {
-                let pos = rect.top_left() + Point::new(0, ypos);
-                let height = if ypos + text_height <= rect.height() {
-                    text_height
+                let pos = rect.top_left() * display.tile_size + Point::new(0, ypos_px);
+                let height = if ypos_px + text_height_px <= rect_height_px {
+                    text_height_px
                 } else {
-                    rect.height() - ypos
+                    rect_height_px - ypos_px
                 };
                 let options = TextOptions {
                     wrap: true,
@@ -49,19 +51,21 @@ pub fn render_text_flow(
                     skip,
                     ..Default::default()
                 };
-                let res = display.draw_text(pos, text, color::gui_text, options);
+                let res =
+                    display.draw_text_in_pixel_coordinates(pos, text, color::gui_text, options);
                 if let DrawResult::Overflow = res {
                     return res;
                 };
             }
 
             Centered(text) => {
-                let pos = rect.top_left() + Point::new(0, ypos);
+                let pos = rect.top_left() * display.tile_size + Point::new(0, ypos_px);
                 let options = TextOptions {
                     skip,
                     ..TextOptions::align_center(rect.width())
                 };
-                let res = display.draw_text(pos, text, color::gui_text, options);
+                let res =
+                    display.draw_text_in_pixel_coordinates(pos, text, color::gui_text, options);
                 if let DrawResult::Overflow = res {
                     return res;
                 };
@@ -72,21 +76,21 @@ pub fn render_text_flow(
             // Like, have an option that would always set the advance-width
             // to the tile width.
             SquareTiles(text) => {
-                let pos = rect.top_left() + Point::new(0, ypos);
+                let pos = rect.top_left() * display.tile_size + Point::new(0, ypos_px);
                 let options = TextOptions {
                     skip,
                     ..TextOptions::align_center(rect.width())
                 };
-                display.draw_text(pos, text, color::gui_text, options);
+                display.draw_text_in_pixel_coordinates(pos, text, color::gui_text, options);
             }
         }
-        ypos += text_height;
+        ypos_px += text_height_px;
 
-        if text_height < skip {
-            ypos -= text_height;
-            skip -= text_height;
+        if text_height_px < skip * display.text_size {
+            ypos_px -= text_height_px;
+            skip -= line_count;
         } else {
-            ypos -= skip;
+            ypos_px -= skip * display.text_size;
             skip = 0;
         }
     }

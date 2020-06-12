@@ -29,11 +29,16 @@ pub enum UpdateResult {
 
 pub struct Metrics {
     tile_width_px: i32,
+    text_width_px: i32,
 }
 
 impl TextMetrics for Metrics {
     fn tile_width_px(&self) -> i32 {
         self.tile_width_px
+    }
+
+    fn text_width_px(&self) -> i32 {
+        self.text_width_px
     }
 }
 
@@ -209,6 +214,7 @@ impl LoopState {
     ) -> UpdateResult {
         use crate::game::RunningState;
         let tile_width_px = self.settings.tile_size;
+        let text_width_px = self.settings.text_size;
         let update_result = crate::game::update(
             &mut self.game_state,
             dt,
@@ -216,7 +222,10 @@ impl LoopState {
             &self.keys,
             self.mouse,
             &mut self.settings,
-            &Metrics { tile_width_px },
+            &Metrics {
+                tile_width_px,
+                text_width_px,
+            },
             settings_store,
             &mut self.display,
         );

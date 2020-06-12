@@ -427,11 +427,12 @@ fn render_message(
         color::window_background,
     );
 
-    display.draw_text(
+    display.draw_text_in_tile_coordinates(
         rect.top_left(),
         text,
         color::gui_text,
         TextOptions::align_center(rect.width()),
+        display.tile_size,
     );
 }
 
@@ -461,7 +462,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
             color::window_background,
         );
         for (index, line) in debug_text.lines().enumerate() {
-            display.draw_text(
+            display.draw_text_in_tile_coordinates(
                 Point {
                     x: 0,
                     y: index as i32,
@@ -469,6 +470,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
                 line,
                 color::gui_text,
                 Default::default(),
+                display.tile_size,
             );
         }
     }
@@ -490,11 +492,12 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
             color::dim_background,
         );
         for (index, &line) in lines.iter().enumerate() {
-            display.draw_text(
+            display.draw_text_in_tile_coordinates(
                 start + Point::new(0, index as i32),
                 line,
                 color::gui_text,
                 Default::default(),
+                display.tile_size,
             );
         }
     };

@@ -398,7 +398,13 @@ impl Window {
                 color::anxiety_progress_bar_bg,
             );
         }
-        display.draw_text(layout.stats_pos, &will_text, fg, will_text_options);
+        display.draw_text_in_tile_coordinates(
+            layout.stats_pos,
+            &will_text,
+            fg,
+            will_text_options,
+            display.tile_size,
+        );
 
         let mut lines: Vec<Cow<'static, str>> = vec![];
 
@@ -523,7 +529,7 @@ impl Window {
         let lines_start_y = layout.inventory_pos.y + 1;
         let line_count = lines.len();
         for (y, line) in lines.into_iter().enumerate() {
-            display.draw_text(
+            display.draw_text_in_tile_coordinates(
                 Point {
                     x: x + left_padding,
                     y: lines_start_y + y as i32,
@@ -531,6 +537,7 @@ impl Window {
                 &line,
                 fg,
                 Default::default(),
+                display.tile_size,
             );
         }
 
@@ -543,11 +550,12 @@ impl Window {
             let label_index_in_lines = label_y - lines_start_y;
             // Don't render the numpad controls label if it would overwrite a line
             if label_index_in_lines >= line_count as i32 {
-                display.draw_text(
+                display.draw_text_in_tile_coordinates(
                     Point::new(x + left_padding, label_y),
                     "Numpad Controls:",
                     layout.fg,
                     crate::engine::TextOptions::align_left(),
+                    display.tile_size,
                 );
             }
         }
@@ -609,7 +617,7 @@ impl Window {
         }
 
         if state.cheating {
-            display.draw_text(
+            display.draw_text_in_tile_coordinates(
                 Point {
                     x: x + 1,
                     y: layout.bottom - 1,
@@ -617,8 +625,9 @@ impl Window {
                 &format!("dt: {}ms", dt.as_millis()),
                 fg,
                 Default::default(),
+                display.tile_size,
             );
-            display.draw_text(
+            display.draw_text_in_tile_coordinates(
                 Point {
                     x: x + 1,
                     y: layout.bottom,
@@ -626,6 +635,7 @@ impl Window {
                 &format!("FPS: {}", fps),
                 fg,
                 Default::default(),
+                display.tile_size,
             );
         }
     }

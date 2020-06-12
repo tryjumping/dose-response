@@ -84,18 +84,12 @@ impl Window {
             rect_under_mouse = Some(button_rect);
         }
 
-        let tile_size_texts = crate::engine::AVAILABLE_TEXT_SIZES
+        let tile_size_texts = crate::engine::AVAILABLE_TILE_SIZES
             .iter()
+            .rev()
             .enumerate()
             .map(|(index, &tile_size)| {
-                let window = crate::DISPLAY_SIZE * tile_size;
-                let text = format!(
-                    "[{}] {}px ({}x{})",
-                    index + 1,
-                    tile_size,
-                    window.x,
-                    window.y
-                );
+                let text = format!("[{}] {}px", index + 1, tile_size,);
                 (tile_size, text)
             })
             .collect::<Vec<_>>();

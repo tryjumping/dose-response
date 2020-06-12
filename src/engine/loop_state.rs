@@ -267,7 +267,7 @@ impl LoopState {
     }
 
     pub fn change_tilesize_px(&mut self, new_tilesize_px: i32) {
-        if crate::engine::AVAILABLE_TEXT_SIZES.contains(&(new_tilesize_px as i32)) {
+        if crate::engine::AVAILABLE_TILE_SIZES.contains(&(new_tilesize_px as i32)) {
             log::info!(
                 "Changing tilesize from {} to {}",
                 self.display.tile_size,
@@ -288,7 +288,7 @@ impl LoopState {
             log::warn!(
             "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
             new_tilesize_px,
-            crate::engine::AVAILABLE_TEXT_SIZES
+            crate::engine::AVAILABLE_TILE_SIZES
             );
         }
     }

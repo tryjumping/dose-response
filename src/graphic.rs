@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const TILEMAP_SIZE: i32 = 10;
+pub const TILE_SIZE: i32 = 10;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Graphic {
@@ -189,7 +189,7 @@ pub fn tilemap_coords_px(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)>
 
         Signpost => Some((12, 8)),
     };
-    coords.map(|(tile_x, tile_y)| (tile_x * TILEMAP_SIZE, tile_y * TILEMAP_SIZE))
+    coords.map(|(tile_x, tile_y)| (tile_x * TILE_SIZE, tile_y * TILE_SIZE))
 }
 
 impl Into<char> for Graphic {

@@ -2,7 +2,7 @@
 
 use crate::{
     color::{self, Color, ColorAlpha},
-    graphic::{self, Graphic, TILEMAP_SIZE},
+    graphic::{self, Graphic, TILE_SIZE},
     point::Point,
     rect::Rectangle,
     ui::Button,
@@ -238,7 +238,7 @@ fn build_vertices<T: VertexStore>(
                 let (texture_width, texture_height) = match texture {
                     Texture::Text => (tile_width, tile_height),
                     Texture::Glyph => (tile_width, tile_height),
-                    Texture::Tilemap => (TILEMAP_SIZE as f32, TILEMAP_SIZE as f32),
+                    Texture::Tilemap => (TILE_SIZE as f32, TILE_SIZE as f32),
                 };
 
                 // NOTE: cut off the area that's not in the display.
@@ -859,7 +859,7 @@ impl Display {
             let texture_size = match texture {
                 Texture::Text => self.text_size,
                 Texture::Glyph => self.tile_size,
-                Texture::Tilemap => TILEMAP_SIZE,
+                Texture::Tilemap => TILE_SIZE,
             };
             let texture_src = Rectangle::from_point_and_size(
                 Point::new(texture_px_x, texture_px_y),

@@ -62,21 +62,8 @@ pub enum Graphic {
     CharacterTribalStaffBelly,
     CharacterTribalMoon,
 
-    // Sparse NPC set
-    // NOTE: not currently used
-    CharacterSparseWideArmsWaist,
-    CharacterSparseWideSkirt,
-    CharacterSparseArmsStraight,
-
-    // Full NPC set
-    // NOTE: not currently used
-    CharacterFullHandsWaist,
-    CharacterFullHandsStaight,
-    CharacterFullSuit,
-
     // Animal Set
     Bird1,
-    Bird2,
     Fox,
     Snake,
     Bat,
@@ -170,19 +157,8 @@ impl Into<char> for Graphic {
             CharacterTribalStaffBelly => '@',
             CharacterTribalMoon => '@',
 
-            // Sparse NPC set
-            CharacterSparseWideArmsWaist => '@',
-            CharacterSparseWideSkirt => '@',
-            CharacterSparseArmsStraight => '@',
-
-            // Full NPC set
-            CharacterFullHandsWaist => '@',
-            CharacterFullHandsStaight => '@',
-            CharacterFullSuit => '@',
-
             // Animal Set
             Bird1 => '@',
-            Bird2 => '@',
             Fox => '@',
             Snake => '@',
             Bat => '@',

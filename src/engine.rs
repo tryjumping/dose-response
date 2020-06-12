@@ -618,67 +618,46 @@ fn tilemap_coords_px_from_graphic(_tilesize: u32, graphic: Graphic) -> Option<(i
         Grass8 => Some((9, 7)),
         Grass9 => Some((10, 7)),
 
-        //Corpse => Some((2, 2)),
-        Corpse => Some((1, 16)),
+        Corpse => Some((3, 13)),
 
-        Anxiety => Some((7, 11)),
-        Hunger => Some((0, 10)),
+        Anxiety => Some((0, 10)),
+        Hunger => Some((1, 10)),
         Depression => Some((2, 10)),
-        //Shadows => Some((3, 10)),
-        //Shadows => Some((1, 16)),
-        Shadows => Some((7, 15)),
-        //Voices => Some((2, 15)),
-        Voices => Some((8, 15)),
+        Shadows => Some((3, 10)),
+        Voices => Some((4, 10)),
 
-        //Dose => Some((0, 14)),
-        //Dose => Some((0, 17)),
-        //Dose => Some((3, 12)),
-        Dose => Some((1, 14)),
-        //CardinalDose => Some((6, 12)),
-        CardinalDose => Some((4, 12)),
-        DiagonalDose => Some((3, 13)),
-        StrongDose => Some((8, 14)),
+        Dose => Some((0, 11)),
+        CardinalDose => Some((1, 11)),
+        DiagonalDose => Some((2, 11)),
+        StrongDose => Some((3, 11)),
 
-        //Food => Some((16, 11)),
-        FoodAcornWide => Some((11, 11)),
-        FoodAcornThin => Some((12, 11)),
-        FoodCarrotWide => Some((10, 11)),
-        FoodCarrotSideways => Some((9, 11)),
-        FoodCarrotThin => Some((10, 14)),
-        FoodTurnipSmallLeaves => Some((16, 10)),
-        FoodTurnipBigLeaves => Some((13, 14)),
-        FoodTurnipHeart => Some((15, 14)),
-        FoodStriped => Some((15, 10)),
-
-        //Player => Some((11, 4)),
+        FoodAcornWide => Some((2, 12)),
+        FoodAcornThin => Some((3, 12)),
+        FoodCarrotWide => Some((1, 12)),
+        FoodCarrotSideways => Some((0, 12)),
+        FoodCarrotThin => Some((6, 12)),
+        FoodTurnipSmallLeaves => Some((5, 12)),
+        FoodTurnipBigLeaves => Some((7, 12)),
+        FoodTurnipHeart => Some((8, 12)),
+        FoodStriped => Some((4, 12)),
 
         // PCs
-        CharacterTrousers => Some((11, 2)),
-        CharacterSkirt => Some((11, 4)),
+        CharacterTrousers => Some((0, 13)),
+        CharacterSkirt => Some((1, 13)),
 
-        CharacterBelly => Some((15, 4)),
+        // NPC
+        CharacterBelly => Some((2, 13)),
 
         // Tribal NPC set
-        CharacterTribalStaffTrousers => Some((13, 2)),
-        CharacterTribalStaffBelly => Some((13, 4)),
-        CharacterTribalMoon => Some((16, 5)),
-
-        // Sparse NPC set
-        CharacterSparseWideArmsWaist => Some((12, 1)),
-        CharacterSparseWideSkirt => Some((12, 3)),
-        CharacterSparseArmsStraight => Some((11, 3)),
-
-        // Full NPC set
-        CharacterFullHandsWaist => Some((14, 1)),
-        CharacterFullHandsStaight => Some((14, 3)),
-        CharacterFullSuit => Some((11, 5)),
+        CharacterTribalStaffTrousers => Some((0, 14)),
+        CharacterTribalStaffBelly => Some((1, 14)),
+        CharacterTribalMoon => Some((2, 14)),
 
         // Animal Set
-        Bird1 => Some((11, 6)),
-        Bird2 => Some((11, 7)),
-        Fox => Some((13, 6)),
-        Snake => Some((15, 6)),
-        Bat => Some((17, 6)),
+        Bird1 => Some((0, 15)),
+        Fox => Some((1, 15)),
+        Snake => Some((2, 15)),
+        Bat => Some((3, 15)),
 
         Signpost => Some((12, 8)),
     };

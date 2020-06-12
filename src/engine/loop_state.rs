@@ -192,8 +192,13 @@ impl LoopState {
     }
 
     pub fn desired_window_size_px(&self) -> (u32, u32) {
-        let result = self.display.size_without_padding() * self.settings.tile_size;
-        (result.x as u32, result.y as u32)
+        // let result = self.display.size_without_padding() * self.settings.tile_size;
+        // (result.x as u32, result.y as u32)
+
+        // NOTE: instead of resizing the window based on the current
+        // tilesize, make it always the same and let the visible area
+        // shring/expand to fit the window.
+        (1410, 900)
     }
 
     pub fn update_fps(&mut self, dt: Duration) {

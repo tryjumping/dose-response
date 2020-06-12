@@ -344,7 +344,7 @@ impl Window {
                 // Only highlight when we're not re-centering the
                 // screen (because that looks weird)
                 if state.pos_timer.finished() {
-                    display.set_background(player_screen_pos + offset, color::player);
+                    display.set_background(player_screen_pos + offset, state.player.color);
                 }
             }
         }

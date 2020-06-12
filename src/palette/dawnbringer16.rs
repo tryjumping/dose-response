@@ -106,3 +106,35 @@ pub const NEON_PURPLE: Color = Color {
     g: 43,
     b: 226,
 };
+
+pub const VERY_LIGHT_BLUE: Color = Color {
+    r: 204,
+    g: 220,
+    b: 255,
+};
+pub const VERY_LIGHT_RED: Color = Color {
+    r: 255,
+    g: 207,
+    b: 207,
+};
+pub const VERY_LIGHT_GREEN: Color = Color {
+    r: 204,
+    g: 255,
+    b: 208,
+};
+pub const VERY_LIGHT_PURPLE: Color = Color {
+    r: 255,
+    g: 211,
+    b: 250,
+};
+pub const VERY_LIGHT_YELLOW: Color = Color {
+    r: 251,
+    g: 226,
+    b: 224,
+};
+
+pub const VERY_LIGHT_BROWN: Color = Color {
+    r: 235,
+    g: 193,
+    b: 174,
+};

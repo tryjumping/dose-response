@@ -1,5 +1,6 @@
 use crate::{
     animation::{AreaOfEffect, ScreenFade},
+    color,
     engine::Mouse,
     graphic::Graphic,
     keys::Keys,
@@ -187,6 +188,15 @@ impl State {
             player.graphic = match seed % 2 == 0 {
                 true => Graphic::CharacterSkirt,
                 false => Graphic::CharacterTrousers,
+            };
+            player.color = match (seed % 6) + 1 {
+                1 => color::player_1,
+                2 => color::player_2,
+                3 => color::player_3,
+                4 => color::player_4,
+                5 => color::player_5,
+                6 => color::player_6,
+                _ => color::player_6,
             };
             player
         };

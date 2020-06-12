@@ -55,7 +55,15 @@ pub const fade_to_black_animation: Color = BLACK;
 
 pub const gui_text: Color = WHITE;
 pub const overdose_animation: Color = WHITE;
-pub const player: Color = WHITE;
+
+
+pub const player_1: Color = VERY_LIGHT_BLUE;
+pub const player_2: Color = VERY_LIGHT_RED;
+pub const player_3: Color = VERY_LIGHT_GREEN;
+pub const player_4: Color = VERY_LIGHT_PURPLE;
+pub const player_5: Color = VERY_LIGHT_YELLOW;
+pub const player_6: Color = VERY_LIGHT_BROWN;
+
 pub const victory_npc: Color = WHITE;
 pub const signpost: Color = WHITE;
 

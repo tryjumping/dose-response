@@ -98,6 +98,7 @@ pub struct Player {
     pub stun: Ranged,
 
     pub pos: Point,
+    pub color: Color,
     pub graphic: Graphic,
     pub inventory: Vec<Item>,
     pub anxiety_counter: Ranged,
@@ -123,6 +124,7 @@ impl Player {
             panic: Ranged::new_min(formula::PANIC_TURNS),
             stun: Ranged::new_min(formula::STUN_TURNS),
             pos,
+            color: color::player_1,
             graphic: Graphic::CharacterSkirt,
             inventory: vec![],
             anxiety_counter: Ranged::new_min(ANXIETIES_PER_WILL),
@@ -218,7 +220,7 @@ impl Player {
 
     pub fn color(&self) -> Color {
         if self.alive() {
-            color::player
+            self.color
         } else {
             color::dead_player
         }

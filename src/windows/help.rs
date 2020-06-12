@@ -30,6 +30,7 @@ pub enum Page {
     ViKeys,
     HowToPlay,
     Legend,
+    Credits,
     About,
 }
 
@@ -43,7 +44,8 @@ impl Page {
             ViKeys => Some(ArrowControls),
             HowToPlay => Some(ViKeys),
             Legend => Some(HowToPlay),
-            About => Some(Legend),
+            Credits => Some(Legend),
+            About => Some(Credits),
         }
     }
 
@@ -55,7 +57,8 @@ impl Page {
             ArrowControls => Some(ViKeys),
             ViKeys => Some(HowToPlay),
             HowToPlay => Some(Legend),
-            Legend => Some(About),
+            Legend => Some(Credits),
+            Credits => Some(About),
             About => None,
         }
     }
@@ -71,6 +74,7 @@ impl FmtDisplay for Page {
             ViKeys => "Controls: Vi keys",
             HowToPlay => "How to play",
             Legend => "Legend",
+            Credits => "Credits",
             About => "About Dose Response",
         };
         f.write_str(s)
@@ -348,6 +352,29 @@ impl Window {
                 lines.push(Paragraph("Each Dose has a faint glow around it. If you step into it, you will not be able to resist."));
                 lines.push(Empty);
                 lines.push(Paragraph("When the glow disappears completely, you can pick the dose up and use it later. Don't lose Will if you're carrying doses though!"));
+            }
+
+            Page::Credits => {
+                lines.push(Paragraph(
+                    "Design and development by Tomas Sedovic at https://tomas.sedovic.cz/",
+                ));
+                lines.push(Paragraph("Copyright (C) 2013-2020 Tomas Sedovic"));
+                lines.push(Paragraph(
+                    "licensed under GNU General Public License 3 or later",
+                ));
+                lines.push(Empty);
+                lines.push(Paragraph("Tiles by VEXED at https://vexed.zone/"));
+                lines.push(Paragraph("licensed under Creative Commons 0"));
+                lines.push(Empty);
+                lines.push(Paragraph(
+                    "Mononoki typeface by Matthias Tellen at https://github.com/madmalik",
+                ));
+                lines.push(Paragraph(
+                    "Copyright (c) 2013, Matthias Tellen matthias.tellen@googlemail.com",
+                ));
+                lines.push(Paragraph(
+                    "licensed under the SIL Open Font License, Version 1.1",
+                ));
             }
 
             Page::About => {

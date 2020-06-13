@@ -155,11 +155,17 @@ impl Window {
         );
 
         let tile_size = format!("Tile size (current: {}px):", settings.tile_size);
+        let current_display_mode = if settings.fullscreen {
+            "fullscreen"
+        } else {
+            "window"
+        };
+        let display_header = format!("Display (current: {}):", current_display_mode);
 
         let lines = vec![
             Centered("Settings"),
             Empty,
-            Centered("Display:"),
+            Centered(&display_header),
             Centered(" "), // Fullscreen / Window
             Empty,
             Centered(&tile_size),

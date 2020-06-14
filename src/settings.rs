@@ -9,6 +9,15 @@ use std::{
 
 use toml_edit::Document as TomlDocument;
 
+pub const MIN_WINDOW_WIDTH: u32 = 480;
+pub const MAX_WINDOW_WIDTH: u32 = 5000;
+
+pub const MIN_WINDOW_HEIGHT: u32 = 320;
+pub const MAX_WINDOW_HEIGHT: u32 = 5000;
+
+pub const DEFAULT_WINDOW_WIDTH: u32 = 1410;
+pub const DEFAULT_WINDOW_HEIGHT: u32 = 900;
+
 /// Settings the engine needs to carry.
 ///
 /// Things such as the fullscreen/windowed display, font size, font
@@ -18,6 +27,8 @@ pub struct Settings {
     pub fullscreen: bool,
     pub text_size: i32,
     pub tile_size: i32,
+    pub window_width: u32,
+    pub window_height: u32,
     pub backend: String,
 }
 
@@ -34,6 +45,8 @@ impl Default for Settings {
             fullscreen: false,
             text_size: crate::engine::DEFAULT_TEXT_SIZE,
             tile_size: crate::engine::DEFAULT_TILE_SIZE,
+            window_width: DEFAULT_WINDOW_WIDTH,
+            window_height: DEFAULT_WINDOW_HEIGHT,
             backend: backend.into(),
         };
 
@@ -84,6 +97,9 @@ impl Settings {
             .collect::<Vec<_>>()
             .join(", ");
         out.push_str(&format!("# Options: {}\n", backends_str));
+
+        out.push_str(&format!("window_width = {}\n", self.window_width));
+        out.push_str(&format!("window_height = {}\n\n", self.window_height));
 
         out.push_str(&format!("backend = \"{}\"\n", self.backend));
 
@@ -195,6 +211,48 @@ impl Store for FileSystemStore {
             None => log::error!("Missing `text_size` entry."),
         }
 
+        match self.toml["window_width"].as_integer() {
+            Some(window_width) => {
+                if window_width < MIN_WINDOW_WIDTH as i64 {
+                    log::error!(
+                        "Error: `window_width` must be at least {}.",
+                        MIN_WINDOW_WIDTH
+                    )
+                } else {
+                    if window_width > MAX_WINDOW_WIDTH as i64 {
+                        log::error!(
+                            "Error: `window_width` cannot be greater than {}.",
+                            MAX_WINDOW_WIDTH
+                        );
+                    } else {
+                        settings.window_width = window_width as u32;
+                    }
+                }
+            }
+            None => log::error!("Missing `window_width` entry."),
+        }
+
+        match self.toml["window_height"].as_integer() {
+            Some(window_height) => {
+                if window_height < MIN_WINDOW_HEIGHT as i64 {
+                    log::error!(
+                        "Error: `window_height` must be at least {}.",
+                        MIN_WINDOW_HEIGHT
+                    )
+                } else {
+                    if window_height > MAX_WINDOW_HEIGHT as i64 {
+                        log::error!(
+                            "Error: `window_height` cannot be greater than {}.",
+                            MAX_WINDOW_HEIGHT
+                        );
+                    } else {
+                        settings.window_height = window_height as u32;
+                    }
+                }
+            }
+            None => log::error!("Missing `window_height` entry."),
+        }
+
         match self.toml["backend"].as_str() {
             Some(backend) => {
                 if crate::engine::AVAILABLE_BACKENDS.contains(&backend) {
@@ -228,6 +286,9 @@ impl Store for FileSystemStore {
         self.toml["tile_size"] = toml_edit::value(settings.tile_size as i64);
 
         self.toml["text_size"] = toml_edit::value(settings.text_size as i64);
+
+        self.toml["window_width"] = toml_edit::value(settings.window_width as i64);
+        self.toml["window_height"] = toml_edit::value(settings.window_height as i64);
 
         self.toml["backend"] = toml_edit::value(settings.backend.clone());
 

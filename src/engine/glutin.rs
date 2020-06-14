@@ -6,7 +6,7 @@ use crate::{
     },
     keys::{Key, KeyCode},
     point::Point,
-    settings::Store as SettingsStore,
+    settings::{Store as SettingsStore, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH},
     state::State,
 };
 
@@ -163,7 +163,7 @@ pub fn main_loop<S>(
     };
     let window = glutin::window::WindowBuilder::new()
         .with_title(window_title)
-        .with_min_inner_size(LogicalSize::new(480, 320))
+        .with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT))
         .with_inner_size(desired_size);
     log::debug!("Created window builder: {:?}", window);
     let context = glutin::ContextBuilder::new()
@@ -491,6 +491,15 @@ pub fn main_loop<S>(
 
             }
             _ => {}
+        }
+
+        // Save any settings on exit.
+        //
+        // NOTE: this is mostly for the window size which doesn't have
+        // actual GUI options in the Settings dialog. Rather, we want
+        // to save whatever the current window size is.
+        if *control_flow == glutin::event_loop::ControlFlow::Exit {
+            settings_store.save(&loop_state.settings);
         }
     });
 }

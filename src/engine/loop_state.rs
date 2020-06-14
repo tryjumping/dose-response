@@ -196,9 +196,8 @@ impl LoopState {
         // (result.x as u32, result.y as u32)
 
         // NOTE: instead of resizing the window based on the current
-        // tilesize, make it always the same and let the visible area
-        // shring/expand to fit the window.
-        (1410, 900)
+        // tilesize, use the value from the settings:
+        (self.settings.window_width, self.settings.window_height)
     }
 
     pub fn update_fps(&mut self, dt: Duration) {
@@ -254,6 +253,8 @@ impl LoopState {
         let new_window_size_px = Point::new(new_width, new_height);
         if self.window_size_px != new_window_size_px {
             self.window_size_px = new_window_size_px;
+            self.settings.window_width = new_width as u32;
+            self.settings.window_height = new_height as u32;
             let new_display_size_tiles = Point::new(
                 new_window_size_px.x / self.settings.tile_size,
                 new_window_size_px.y / self.settings.tile_size,

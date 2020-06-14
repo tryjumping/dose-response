@@ -734,6 +734,28 @@ fn process_settings_window(
         }
     }
 
+    if option.is_none() {
+        for (index, &size) in crate::engine::AVAILABLE_TEXT_SIZES.iter().rev().enumerate() {
+            let code = match index + crate::engine::AVAILABLE_TILE_SIZES.len() + 1 {
+                1 => Some(KeyCode::D1),
+                2 => Some(KeyCode::D2),
+                3 => Some(KeyCode::D3),
+                4 => Some(KeyCode::D4),
+                5 => Some(KeyCode::D5),
+                6 => Some(KeyCode::D6),
+                7 => Some(KeyCode::D7),
+                8 => Some(KeyCode::D8),
+                9 => Some(KeyCode::D9),
+                _ => None,
+            };
+            if let Some(code) = code {
+                if state.keys.matches_code(code) {
+                    option = Some(TextSize(size));
+                }
+            }
+        }
+    }
+
     if let Some(option) = option {
         match option {
             Fullscreen => {
@@ -746,6 +768,11 @@ fn process_settings_window(
 
             TileSize(tile_size) => {
                 settings.tile_size = tile_size;
+            }
+
+            TextSize(text_size) => {
+                log::info!("Changing text size to: {}", text_size);
+                settings.text_size = text_size;
             }
 
             Back => {

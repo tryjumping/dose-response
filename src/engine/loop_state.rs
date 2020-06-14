@@ -293,6 +293,32 @@ impl LoopState {
         }
     }
 
+    pub fn change_text_size_px(&mut self, new_text_size_px: i32) {
+        if crate::engine::AVAILABLE_TEXT_SIZES.contains(&(new_text_size_px as i32)) {
+            log::info!(
+                "Changing text from {} to {}",
+                self.display.text_size,
+                new_text_size_px
+            );
+            self.settings.text_size = new_text_size_px;
+            let display_size_tiles = Point::new(
+                self.window_size_px.x / self.settings.tile_size,
+                self.window_size_px.y / self.settings.tile_size,
+            );
+            self.display = Display::new(
+                display_size_tiles,
+                self.settings.tile_size,
+                self.settings.text_size,
+            );
+        } else {
+            log::warn!(
+            "Trying to switch to a text size that's not available: {}. Only these ones exist: {:?}",
+            new_text_size_px,
+            crate::engine::AVAILABLE_TEXT_SIZES
+            );
+        }
+    }
+
     pub fn display_info(&self, dpi: f64) -> DisplayInfo {
         engine::calculate_display_info(
             [self.window_size_px.x as f32, self.window_size_px.y as f32],
@@ -396,9 +422,13 @@ impl LoopState {
     pub fn check_window_size_needs_updating(&mut self) -> ResizeWindowAction {
         if self.previous_settings.tile_size != self.settings.tile_size {
             self.change_tilesize_px(self.settings.tile_size);
-            if !self.settings.fullscreen {
-                return ResizeWindowAction::NewSize(self.desired_window_size_px());
-            }
+            // NOTE: we're no longer resizing window on tilesize change
+            // if !self.settings.fullscreen {
+            //     return ResizeWindowAction::NewSize(self.desired_window_size_px());
+            // }
+        }
+        if self.previous_settings.text_size != self.settings.text_size {
+            self.change_text_size_px(self.settings.text_size);
         }
         ResizeWindowAction::NoChange
     }

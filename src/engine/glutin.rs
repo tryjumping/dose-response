@@ -161,6 +161,7 @@ pub fn main_loop<S>(
         let size = loop_state.desired_window_size_px();
         LogicalSize::new(size.0, size.1)
     };
+
     let window = glutin::window::WindowBuilder::new()
         .with_title(window_title)
         .with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT))
@@ -241,10 +242,12 @@ pub fn main_loop<S>(
     event_loop.run(move |event, _, control_flow| {
         log::debug!("{:?}", event);
         match event {
-            Event::NewEvents(..) => {
-            }
+            Event::NewEvents(..) => {}
+
             Event::WindowEvent { event, .. } => match event {
-                WindowEvent::CloseRequested => *control_flow = glutin::event_loop::ControlFlow::Exit,
+                WindowEvent::CloseRequested => {
+                    *control_flow = glutin::event_loop::ControlFlow::Exit
+                }
 
                 WindowEvent::Resized(size) => {
                     log::info!("WindowEvent::Resized: {:?}", size);
@@ -252,14 +255,18 @@ pub fn main_loop<S>(
 
                     if let Some(monitor_id) = context.window().fullscreen() {
                         log::warn!(
-                            "Asked to resize on fullscreen: target size: {:?}, monitor ID: {:?}. Ignoring this request.",
+                            "Asked to resize on fullscreen: target size: {:?}, \
+monitor ID: {:?}. Ignoring this request.",
                             size,
-                            monitor_id);
+                            monitor_id
+                        );
                     }
 
                     context.resize(size);
-                    loop_state.handle_window_size_changed(logical_size.width as i32,
-                                                          logical_size.height as i32);
+                    loop_state.handle_window_size_changed(
+                        logical_size.width as i32,
+                        logical_size.height as i32,
+                    );
                 }
 
                 WindowEvent::Moved(new_pos) => {
@@ -296,12 +303,12 @@ pub fn main_loop<S>(
 
                 WindowEvent::KeyboardInput {
                     input:
-                    KeyboardInput {
-                        virtual_keycode: Some(backend_code),
-                        state: ElementState::Pressed,
-                        scancode,
-                        ..
-                    },
+                        KeyboardInput {
+                            virtual_keycode: Some(backend_code),
+                            state: ElementState::Pressed,
+                            scancode,
+                            ..
+                        },
                     ..
                 } => {
                     log::debug!(
@@ -342,9 +349,11 @@ pub fn main_loop<S>(
                     // NOTE: This function expects logical, not physical pixels.
                     // But the values we get in this event are physical, so we need
                     // to divide by the DPI to mae them logical.
-                    loop_state.update_mouse_position(dpi,
-                                                     (position.x / dpi) as i32,
-                                                     (position.y / dpi) as i32);
+                    loop_state.update_mouse_position(
+                        dpi,
+                        (position.x / dpi) as i32,
+                        (position.y / dpi) as i32,
+                    );
                 }
 
                 WindowEvent::MouseInput {
@@ -382,11 +391,10 @@ pub fn main_loop<S>(
                         _ => {}
                     }
                 }
-
                 _ => (),
-            }
-            Event::MainEventsCleared => {
+            },
 
+            Event::MainEventsCleared => {
                 let frame_start_time = Instant::now();
                 let dt = frame_start_time.duration_since(previous_frame_start_time);
                 previous_frame_start_time = frame_start_time;
@@ -394,11 +402,11 @@ pub fn main_loop<S>(
                 loop_state.update_fps(dt);
 
                 match loop_state.update_game(dt, &mut settings_store) {
-                    UpdateResult::QuitRequested => *control_flow = glutin::event_loop::ControlFlow::Exit,
+                    UpdateResult::QuitRequested => {
+                        *control_flow = glutin::event_loop::ControlFlow::Exit
+                    }
                     UpdateResult::KeepGoing => {}
                 }
-
-
 
                 if cfg!(feature = "fullscreen") {
                     use engine::loop_state::FullscreenAction::*;
@@ -416,7 +424,9 @@ pub fn main_loop<S>(
                                 // decorations explicitly. Remove this line if
                                 // we don't actually need it.
                                 //context.window().set_decorations(false);
-                                context.window().set_fullscreen(Some(Fullscreen::Borderless(monitor.clone())));
+                                context
+                                    .window()
+                                    .set_fullscreen(Some(Fullscreen::Borderless(monitor.clone())));
                             } else {
                                 log::warn!("`current_monitor` is not set!??");
                             }
@@ -445,8 +455,8 @@ pub fn main_loop<S>(
 
                 context.window().request_redraw();
             }
-            Event::RedrawRequested(_window_id) => {
 
+            Event::RedrawRequested(_window_id) => {
                 loop_state.process_vertices_and_render(&opengl_app, dpi);
                 context.swap_buffers().unwrap();
 
@@ -480,15 +490,14 @@ pub fn main_loop<S>(
                 if loop_state.switched_from_fullscreen {
                     window_pos = pre_fullscreen_window_pos;
                 }
-
             }
+
             Event::LoopDestroyed => {
                 log::info!(
                     "Drawcall count: {}. Capacity: {}.",
                     loop_state.overall_max_drawcall_count,
                     engine::DRAWCALL_CAPACITY
                 );
-
             }
             _ => {}
         }

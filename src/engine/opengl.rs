@@ -22,6 +22,8 @@ pub struct OpenGlApp {
     pub glyphmap_size_px: [f32; 2],
     pub tilemap: GLuint,
     pub tilemap_size_px: [f32; 2],
+    pub eguimap: GLuint,
+    pub eguimap_size_px: [f32; 2],
 }
 
 impl OpenGlApp {
@@ -48,6 +50,9 @@ impl OpenGlApp {
 
             gl::GenTextures(1, &mut app.tilemap);
             check_gl_error("GenTextures tilemap texture");
+
+            gl::GenTextures(1, &mut app.eguimap);
+            check_gl_error("GenTextures eguimap texture");
         }
 
         app
@@ -62,6 +67,8 @@ impl OpenGlApp {
         glyphmap_data: &[u8],
         tilemap_size: (u32, u32),
         tilemap_data: &[u8],
+        egui_size: (u32, u32),
+        egui_data: &[u8],
     ) {
         let (fontmap_width, fontmap_height) = fontmap_size;
         self.fontmap_size_px = [fontmap_width as f32, fontmap_height as f32];
@@ -155,6 +162,36 @@ impl OpenGlApp {
                 tilemap_data_ptr as *const os::raw::c_void,
             );
             check_gl_error("TexImage2D tilemap");
+        }
+
+        self.upload_texture(egui_size.0, egui_size.1, egui_data);
+    }
+
+    #[allow(unsafe_code)]
+    pub fn upload_texture(&mut self, width: u32, height: u32, data: &[u8]) {
+        self.eguimap_size_px = [width as f32, height as f32];
+        let data_ptr: *const u8 = data.as_ptr();
+        // TODO: generalise this and use to upload all the textures??
+        unsafe {
+            // Bind the egui texture
+            gl::BindTexture(gl::TEXTURE_2D, self.eguimap);
+            check_gl_error("BindTexture egui");
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            check_gl_error("TexParameteri MIN FILTER egui");
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            check_gl_error("TexParameteri MAG FILTER egui");
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as i32,
+                width as i32,
+                height as i32,
+                0,
+                gl::RGBA,
+                gl::UNSIGNED_BYTE,
+                data_ptr as *const os::raw::c_void,
+            );
+            check_gl_error("TexImage2D egui");
         }
     }
 
@@ -363,6 +400,16 @@ impl OpenGlApp {
                 texture_index,
             );
 
+            gl::ActiveTexture(gl::TEXTURE3);
+            gl::BindTexture(gl::TEXTURE_2D, self.eguimap);
+            check_gl_error("BindTexture eguimap");
+            let texture_index = 3;
+            let eguimap_cstr = CString::new("eguimap").unwrap();
+            gl::Uniform1i(
+                gl::GetUniformLocation(program, eguimap_cstr.as_ptr()),
+                texture_index,
+            );
+
             let display_px_cstr = CString::new("display_px").unwrap();
             gl::Uniform2f(
                 gl::GetUniformLocation(program, display_px_cstr.as_ptr()),
@@ -394,6 +441,14 @@ impl OpenGlApp {
                 self.tilemap_size_px[1],
             );
             check_gl_error("Uniform2f tilemap_size_px");
+
+            let eguimap_size_px_cstr = CString::new("eguimap_size_px").unwrap();
+            gl::Uniform2f(
+                gl::GetUniformLocation(program, eguimap_size_px_cstr.as_ptr()),
+                self.eguimap_size_px[0],
+                self.eguimap_size_px[1],
+            );
+            check_gl_error("Uniform2f eguimap_size_px");
 
             gl::DrawArrays(
                 gl::TRIANGLES,

@@ -6,6 +6,8 @@ uniform sampler2D glyphmap;
 uniform vec2 glyphmap_size_px;
 uniform sampler2D tilemap;
 uniform vec2 tilemap_size_px;
+uniform sampler2D eguimap;
+uniform vec2 eguimap_size_px;
 
 flat in float v_texture_id;
 in vec2 v_tile_pos_px;
@@ -22,5 +24,7 @@ void main() {
     out_color = texture(glyphmap, v_tile_pos_px / glyphmap_size_px) * v_color;
   } else if (v_texture_id == 2.0) {
     out_color = texture(tilemap, v_tile_pos_px / tilemap_size_px) * v_color;
+  } else if (v_texture_id == 3.0) {
+    out_color = texture(eguimap, v_tile_pos_px / eguimap_size_px) * v_color;
   }
 }

@@ -12,6 +12,8 @@ use crate::{
 
 use std::time::Instant;
 
+use egui::{label, Align, Button, Context, Layout};
+
 use glutin::{
     dpi::LogicalSize,
     event::{ElementState, Event, KeyboardInput, VirtualKeyCode as BackendKey, WindowEvent},
@@ -148,11 +150,14 @@ pub fn main_loop<S>(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
+    let mut egui_context = Context::new();
+
     let mut loop_state = LoopState::initialise(
         settings_store.load(),
         initial_game_display_size,
         initial_default_background,
         initial_state,
+        egui_context.clone(),
     );
 
     let event_loop = glutin::event_loop::EventLoop::new();
@@ -193,7 +198,7 @@ pub fn main_loop<S>(
     gl::load_with(|symbol| context.get_proc_address(symbol) as *const _);
     log::debug!("Loaded OpenGL symbols.");
 
-    let opengl_app = loop_state.opengl_app();
+    let mut opengl_app = loop_state.opengl_app();
 
     let dpi = context.window().scale_factor();
     log::info!("Window HIDPI factor: {:?}", dpi);
@@ -235,6 +240,7 @@ pub fn main_loop<S>(
         current_monitor.as_ref().map(|m| m.position()),
         current_monitor.as_ref().map(|m| m.size())
     );
+    let mut ui_paint_batches = vec![];
 
     let mut previous_frame_start_time = Instant::now();
     let mut modifiers = Default::default();
@@ -401,6 +407,19 @@ monitor ID: {:?}. Ignoring this request.",
 
                 loop_state.update_fps(dt);
 
+                // NOTE: build the UI
+                let mut ui = egui_context.begin_frame(loop_state.egui_raw_input());
+                let mut ui = ui.centered_column(ui.available().width().min(480.0));
+                ui.set_layout(Layout::vertical(Align::Min));
+                ui.add(label!("Egui label!!"));
+                if ui.add(Button::new("Quit")).clicked {
+                    *control_flow = glutin::event_loop::ControlFlow::Exit
+                }
+                // NOTE: the egui output contains only the cursor, url to open and text
+                // to copy to the clipboard. So we can safely ignore that for now.
+                let (_output, paint_batches) = egui_context.end_frame();
+                ui_paint_batches = paint_batches;
+
                 match loop_state.update_game(dt, &mut settings_store) {
                     UpdateResult::QuitRequested => {
                         *control_flow = glutin::event_loop::ControlFlow::Exit
@@ -457,7 +476,33 @@ monitor ID: {:?}. Ignoring this request.",
             }
 
             Event::RedrawRequested(_window_id) => {
-                loop_state.process_vertices_and_render(&opengl_app, dpi);
+                // NOTE: convert Egui indexed vertices into ones our
+                // engine understands. I.e. naive 3 vertices per
+                // triangle with duplication.
+                //
+                // TODO: consider doing updating our engine to suport
+                // vertex indices.
+                let mut ui_vertices = vec![];
+                for (_rect, triangles) in &ui_paint_batches {
+                    for &index in &triangles.indices {
+                        let egui_vertex = triangles.vertices[index as usize];
+                        let color = Color {
+                            r: egui_vertex.color.r,
+                            g: egui_vertex.color.g,
+                            b: egui_vertex.color.b,
+                        }
+                        .alpha(egui_vertex.color.a);
+                        let (u, v) = egui_vertex.uv;
+                        let vertex = engine::Vertex {
+                            texture_id: engine::Texture::Egui.into(),
+                            pos_px: [egui_vertex.pos.x, egui_vertex.pos.y],
+                            tile_pos_px: [u.into(), v.into()],
+                            color: color.into(),
+                        };
+                        ui_vertices.push(vertex);
+                    }
+                }
+                loop_state.process_vertices_and_render(&mut opengl_app, &ui_vertices, dpi);
                 context.swap_buffers().unwrap();
 
                 loop_state.previous_settings = loop_state.settings.clone();

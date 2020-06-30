@@ -39,6 +39,7 @@ pub enum Texture {
     Text,
     Glyph,
     Tilemap,
+    Egui,
 }
 
 impl Into<f32> for Texture {
@@ -47,6 +48,7 @@ impl Into<f32> for Texture {
             Texture::Text => 0.0,
             Texture::Glyph => 1.0,
             Texture::Tilemap => 2.0,
+            Texture::Egui => 3.0,
         }
     }
 }
@@ -67,7 +69,7 @@ pub struct Vertex {
     /// `1.0` means the tilemap
     pub texture_id: f32,
 
-    /// Position in the tile coordinates.
+    /// Position in the pixels.
     ///
     /// Note that this doesn't have to be an integer, so you can
     /// implement smooth positioning by using a fractional value.
@@ -239,6 +241,8 @@ fn build_vertices<T: VertexStore>(
                     Texture::Text => (tile_width, tile_height),
                     Texture::Glyph => (tile_width, tile_height),
                     Texture::Tilemap => (TILE_SIZE as f32, TILE_SIZE as f32),
+                    // NOTE: Egui shouldn't appear in drawcalls, adding it here for completeness
+                    Texture::Egui => (tile_width, tile_height),
                 };
 
                 // NOTE: cut off the area that's not in the display.
@@ -884,6 +888,8 @@ impl Display {
                 Texture::Text => self.text_size,
                 Texture::Glyph => self.tile_size,
                 Texture::Tilemap => TILE_SIZE,
+                // NOTE: Egui shouldn't appear in drawcalls, adding it here for completeness
+                Texture::Egui => self.tile_size,
             };
             let texture_src = Rectangle::from_point_and_size(
                 Point::new(texture_px_x, texture_px_y),
@@ -916,6 +922,8 @@ impl Display {
                 }
                 // NOTE: The graphical tiles are positioned correctly already
                 Texture::Tilemap => 0,
+                // NOTE: Egui shouldn't appear in drawcalls, adding it here for completeness
+                Texture::Egui => 0,
             };
             let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
 

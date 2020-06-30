@@ -231,20 +231,7 @@ impl LoopState {
         let mut opengl_app = OpenGlApp::new(vs_source, fs_source);
         log::debug!("Created opengl app.");
 
-        let fontmap_size = self.fontmap.dimensions();
-        let glyphmap_size = self.glyphmap.dimensions();
-        let tilemap_size = self.tilemap.dimensions();
-        let eguimap_size = self.eguimap.dimensions();
-        opengl_app.initialise(
-            fontmap_size,
-            &self.fontmap,
-            glyphmap_size,
-            &self.glyphmap,
-            tilemap_size,
-            &self.tilemap,
-            eguimap_size,
-            &self.eguimap,
-        );
+        opengl_app.initialise(&self.fontmap, &self.glyphmap, &self.tilemap, &self.eguimap);
         log::debug!("Initialised opengl app.");
         opengl_app
     }
@@ -469,7 +456,9 @@ impl LoopState {
         // NOTE: Check if the Egui texture has changed and needs rebuilding
         if self.egui_texture_id != self.egui_context.texture().id {
             let (egui_texture_id, egui_texture) = build_texture_from_egui(&self.egui_context);
-            opengl_app.upload_texture(egui_texture.width(), egui_texture.height(), &egui_texture);
+            let (width, height) = egui_texture.dimensions();
+            opengl_app.eguimap_size_px = [width as f32, height as f32];
+            opengl_app.upload_texture(opengl_app.eguimap, "egui", &egui_texture);
             self.egui_texture_id = egui_texture_id;
         }
 

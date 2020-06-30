@@ -5,6 +5,8 @@ use crate::{
 
 use std::{ffi::CString, mem, os, ptr};
 
+use image::RgbaImage;
+
 use gl::types::*;
 
 /// The OpenGl context of our rendering pipeline. Contains the
@@ -61,29 +63,11 @@ impl OpenGlApp {
     #[allow(unsafe_code)]
     pub fn initialise(
         &mut self,
-        fontmap_size: (u32, u32),
-        fontmap_data: &[u8],
-        glyphmap_size: (u32, u32),
-        glyphmap_data: &[u8],
-        tilemap_size: (u32, u32),
-        tilemap_data: &[u8],
-        egui_size: (u32, u32),
-        egui_data: &[u8],
+        fontmap: &RgbaImage,
+        glyphmap: &RgbaImage,
+        tilemap: &RgbaImage,
+        eguimap: &RgbaImage,
     ) {
-        let (fontmap_width, fontmap_height) = fontmap_size;
-        self.fontmap_size_px = [fontmap_width as f32, fontmap_height as f32];
-        let (glyphmap_width, glyphmap_height) = glyphmap_size;
-        self.glyphmap_size_px = [glyphmap_width as f32, glyphmap_height as f32];
-        let (tilemap_width, tilemap_height) = tilemap_size;
-        self.tilemap_size_px = [tilemap_width as f32, tilemap_height as f32];
-        // NOTE(shadower): as far as I can tell (though the opengl
-        // docs could a little more explicit) the data is copied in
-        // the `texImage2D` call afterwards so it is okay to pass a
-        // reference here. The pointer will not be referenced
-        // afterwards.
-        let fontmap_data_ptr: *const u8 = fontmap_data.as_ptr();
-        let glyphmap_data_ptr: *const u8 = glyphmap_data.as_ptr();
-        let tilemap_data_ptr: *const u8 = tilemap_data.as_ptr();
         unsafe {
             gl::Enable(gl::BLEND);
             check_gl_error("Enable");
@@ -100,86 +84,36 @@ impl OpenGlApp {
             let out_color_cstr = CString::new("out_color").unwrap();
             gl::BindFragDataLocation(self.program, 0, out_color_cstr.as_ptr());
             check_gl_error("BindFragDataLocation");
-
-            // Bind the font texture
-            gl::BindTexture(gl::TEXTURE_2D, self.fontmap);
-            check_gl_error("BindTexture");
-            // TODO: do we want to always use the GL_NEAREST filter? Even on downscaling and
-            // non-whole DPI values?
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            check_gl_error("TexParameteri MIN FILTER");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            check_gl_error("TexParameteri MAG FILTER");
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGBA as i32,
-                fontmap_width as i32,
-                fontmap_height as i32,
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                fontmap_data_ptr as *const os::raw::c_void,
-            );
-            check_gl_error("TexImage2D");
-
-            // Bind the glyphmap texture
-            gl::BindTexture(gl::TEXTURE_2D, self.glyphmap);
-            check_gl_error("BindTexture glyphmap");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            check_gl_error("TexParameteri MIN FILTER glyphmap");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            check_gl_error("TexParameteri MAG FILTER glyphmap");
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGBA as i32,
-                glyphmap_width as i32,
-                glyphmap_height as i32,
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                glyphmap_data_ptr as *const os::raw::c_void,
-            );
-            check_gl_error("TexImage2D glyphmap");
-
-            // Bind the tilemap texture
-            gl::BindTexture(gl::TEXTURE_2D, self.tilemap);
-            check_gl_error("BindTexture tilemap");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            check_gl_error("TexParameteri MIN FILTER tilemap");
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            check_gl_error("TexParameteri MAG FILTER tilemap");
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGBA as i32,
-                tilemap_width as i32,
-                tilemap_height as i32,
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                tilemap_data_ptr as *const os::raw::c_void,
-            );
-            check_gl_error("TexImage2D tilemap");
         }
 
-        self.upload_texture(egui_size.0, egui_size.1, egui_data);
+        self.fontmap_size_px = [fontmap.width() as f32, fontmap.height() as f32];
+        self.glyphmap_size_px = [glyphmap.width() as f32, glyphmap.height() as f32];
+        self.tilemap_size_px = [tilemap.width() as f32, tilemap.height() as f32];
+        self.eguimap_size_px = [eguimap.width() as f32, eguimap.height() as f32];
+
+        self.upload_texture(self.glyphmap, "glyphmap", glyphmap);
+        self.upload_texture(self.fontmap, "fontmap", fontmap);
+        self.upload_texture(self.tilemap, "tilemap", tilemap);
+        self.upload_texture(self.eguimap, "egui", eguimap);
     }
 
     #[allow(unsafe_code)]
-    pub fn upload_texture(&mut self, width: u32, height: u32, data: &[u8]) {
-        self.eguimap_size_px = [width as f32, height as f32];
-        let data_ptr: *const u8 = data.as_ptr();
-        // TODO: generalise this and use to upload all the textures??
+    pub fn upload_texture(&mut self, id: GLuint, name: &str, texture: &RgbaImage) {
+        let (width, height) = texture.dimensions();
+        // NOTE(shadower): as far as I can tell (though the opengl
+        // docs could a little more explicit) the data is copied in
+        // the `texImage2D` call afterwards so it is okay to pass a
+        // reference here. The pointer will not be referenced
+        // afterwards.
+        let data_ptr: *const u8 = texture.as_ptr();
         unsafe {
-            // Bind the egui texture
-            gl::BindTexture(gl::TEXTURE_2D, self.eguimap);
-            check_gl_error("BindTexture egui");
+            // Bind the texture
+            gl::BindTexture(gl::TEXTURE_2D, id);
+            check_gl_error(&format!("BindTexture {}", name));
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            check_gl_error("TexParameteri MIN FILTER egui");
+            check_gl_error(&format!("TexParameteri MIN FILTER {}", name));
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            check_gl_error("TexParameteri MAG FILTER egui");
+            check_gl_error(&format!("TexParameteri MAG FILTER {}", name));
             gl::TexImage2D(
                 gl::TEXTURE_2D,
                 0,
@@ -191,7 +125,7 @@ impl OpenGlApp {
                 gl::UNSIGNED_BYTE,
                 data_ptr as *const os::raw::c_void,
             );
-            check_gl_error("TexImage2D egui");
+            check_gl_error(&format!("TexImage2D {}", name));
         }
     }
 

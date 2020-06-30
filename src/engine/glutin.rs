@@ -409,6 +409,7 @@ monitor ID: {:?}. Ignoring this request.",
 
                 // NOTE: build the UI
                 let mut ui = egui_context.begin_frame(loop_state.egui_raw_input());
+                // NOTE: this centers the UI area. Without it, we start in the top-left corner.
                 let mut ui = ui.centered_column(ui.available().width().min(480.0));
                 ui.set_layout(Layout::vertical(Align::Min));
                 ui.add(label!("Egui label!!"));

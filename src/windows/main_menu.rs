@@ -203,20 +203,66 @@ impl Window {
 
     pub fn process(
         &self,
-        _state: &State,
+        state: &State,
         ui: &mut Ui,
         _metrics: &dyn TextMetrics,
         _display: &mut Display,
         _top_level: bool,
     ) -> Option<MenuItem> {
+        // TODO: check all the UI padding & layouting work on mobile.
+        // We're ignoring all that here, but a lot of work went into
+        // doing that in the previous version of the UI.
+        // Check if we need to do that here too.
+
         // NOTE: this centers the UI area. Without it, we start in the top-left corner.
         let mut ui = ui.centered_column(ui.available().width().min(480.0));
         ui.set_layout(egui::Layout::vertical(Align::Min));
-        ui.add(label!("Egui label!!"));
-        if ui.add(Button::new("Quit")).clicked {
+        // TODO: center the text here
+        ui.add(label!("Dose Response"));
+        ui.add(label!("By Tomas Sedovic"));
+
+        if !state.game_ended && !state.first_game_already_generated {
+            if ui.add(Button::new("[R]esume")).clicked {
+                return Some(MenuItem::Resume);
+            }
+        }
+
+        if ui.add(Button::new("[N]ew Game")).clicked {
+            return Some(MenuItem::NewGame);
+        }
+
+        if ui.add(Button::new("[H]elp")).clicked {
+            return Some(MenuItem::Help);
+        }
+
+        if ui.add(Button::new("S[e]ttings")).clicked {
+            return Some(MenuItem::Settings);
+        }
+
+        if ui.add(Button::new("[S]ave and Quit")).clicked {
+            return Some(MenuItem::SaveAndQuit);
+        }
+
+        if ui.add(Button::new("[L]oad game")).clicked {
+            return Some(MenuItem::Load);
+        }
+
+        if ui.add(Button::new("[Q]uit without saving")).clicked {
             log::info!("Clicked!");
             return Some(MenuItem::Quit);
         };
+
+        // TODO: move this to the bottom-left corner
+        ui.add(label!(
+            " \"You cannot lose if you do not play.\"\n -- Marla Daniels"
+        ));
+
+        // TODO: move this to the bottom-right corner
+        ui.add(label!(
+            "Version: {}.{}",
+            crate::metadata::VERSION_MAJOR,
+            crate::metadata::VERSION_MINOR
+        ));
 
         None
     }

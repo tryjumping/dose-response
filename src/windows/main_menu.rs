@@ -5,6 +5,8 @@ use crate::rect::Rectangle;
 use crate::state::State;
 use crate::ui::{self, Text};
 
+use egui::{self, label, Align, Button, Ui};
+
 #[derive(Debug)]
 pub enum MenuItem {
     Resume,
@@ -197,6 +199,26 @@ impl Window {
             TextOptions::align_right(),
             display.tile_size,
         );
+    }
+
+    pub fn process(
+        &self,
+        _state: &State,
+        ui: &mut Ui,
+        _metrics: &dyn TextMetrics,
+        _display: &mut Display,
+        _top_level: bool,
+    ) -> Option<MenuItem> {
+        // NOTE: this centers the UI area. Without it, we start in the top-left corner.
+        let mut ui = ui.centered_column(ui.available().width().min(480.0));
+        ui.set_layout(egui::Layout::vertical(Align::Min));
+        ui.add(label!("Egui label!!"));
+        if ui.add(Button::new("Quit")).clicked {
+            log::info!("Clicked!");
+            return Some(MenuItem::Quit);
+        };
+
+        None
     }
 
     pub fn hovered(

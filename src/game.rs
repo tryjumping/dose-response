@@ -31,6 +31,8 @@ use std::{
     time::Duration,
 };
 
+use egui::Ui;
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Action {
     Move(Point),
@@ -47,6 +49,7 @@ pub enum RunningState {
 #[allow(too_many_arguments)]
 pub fn update(
     state: &mut State,
+    ui: &mut Ui,
     dt: Duration,
     fps: i32,
     new_keys: &[Key],
@@ -102,7 +105,7 @@ pub fn update(
 
     let current_window = state.window_stack.top();
     let game_update_result = match current_window {
-        Window::MainMenu => process_main_menu(state, &main_menu::Window, metrics, display),
+        Window::MainMenu => process_main_menu(state, ui, &main_menu::Window, metrics, display),
         Window::Game => process_game(state, settings, &sidebar::Window, metrics, display, dt),
         Window::Settings => process_settings_window(
             state,
@@ -575,17 +578,20 @@ fn process_game(
 
 fn process_main_menu(
     state: &mut State,
+    ui: &mut Ui,
     window: &main_menu::Window,
     metrics: &dyn TextMetrics,
-    display: &Display,
+    display: &mut Display,
 ) -> RunningState {
     use crate::windows::main_menu::MenuItem::*;
 
-    let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics, display, true)
-    } else {
-        None
-    };
+    // Process the Egui events
+    let mut option = window.process(&state, ui, metrics, display, true);
+
+    // Process the old events
+    if option.is_none() && state.mouse.left_clicked {
+        option = window.hovered(&state, metrics, display, true);
+    }
 
     if option.is_none() {
         if state.keys.matches_code(KeyCode::Esc)

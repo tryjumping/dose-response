@@ -12,7 +12,7 @@ use crate::{
 
 use std::time::Instant;
 
-use egui::{label, Align, Button, Context, Layout};
+use egui::Context;
 
 use glutin::{
     dpi::LogicalSize,
@@ -150,14 +150,14 @@ pub fn main_loop<S>(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    let mut egui_context = Context::new();
+    let egui_context = Context::new();
 
     let mut loop_state = LoopState::initialise(
         settings_store.load(),
         initial_game_display_size,
         initial_default_background,
         initial_state,
-        egui_context.clone(),
+        egui_context,
     );
 
     let event_loop = glutin::event_loop::EventLoop::new();
@@ -407,26 +407,17 @@ monitor ID: {:?}. Ignoring this request.",
 
                 loop_state.update_fps(dt);
 
-                // NOTE: build the UI
-                let mut ui = egui_context.begin_frame(loop_state.egui_raw_input());
-                // NOTE: this centers the UI area. Without it, we start in the top-left corner.
-                let mut ui = ui.centered_column(ui.available().width().min(480.0));
-                ui.set_layout(Layout::vertical(Align::Min));
-                ui.add(label!("Egui label!!"));
-                if ui.add(Button::new("Quit")).clicked {
-                    *control_flow = glutin::event_loop::ControlFlow::Exit
-                }
-                // NOTE: the egui output contains only the cursor, url to open and text
-                // to copy to the clipboard. So we can safely ignore that for now.
-                let (_output, paint_batches) = egui_context.end_frame();
-                ui_paint_batches = paint_batches;
-
                 match loop_state.update_game(dt, &mut settings_store) {
                     UpdateResult::QuitRequested => {
                         *control_flow = glutin::event_loop::ControlFlow::Exit
                     }
                     UpdateResult::KeepGoing => {}
                 }
+
+                // NOTE: the egui output contains only the cursor, url to open and text
+                // to copy to the clipboard. So we can safely ignore that for now.
+                let (_output, paint_batches) = loop_state.egui_context.end_frame();
+                ui_paint_batches = paint_batches;
 
                 if cfg!(feature = "fullscreen") {
                     use engine::loop_state::FullscreenAction::*;

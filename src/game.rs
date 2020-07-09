@@ -103,22 +103,105 @@ pub fn update(
         state.window_stack.pop();
     }
 
-    let current_window = state.window_stack.top();
-    let game_update_result = match current_window {
-        Window::MainMenu => process_main_menu(state, ui, &main_menu::Window, metrics, display),
-        Window::Game => process_game(state, settings, &sidebar::Window, metrics, display, dt),
-        Window::Settings => process_settings_window(
-            state,
-            settings,
-            &settings::Window,
-            metrics,
-            display,
-            settings_store,
-        ),
-        Window::Help => process_help_window(state, &help::Window, metrics, display),
-        Window::Endgame => process_endgame_window(state, &endgame::Window, metrics, display),
-        Window::Message { .. } => process_message_window(state),
-    };
+    // NOTE: Clear the whole screenscreen
+    display.clear(color::unexplored_background);
+
+    // // NOTE: This renders the game's icon. Change the tilesize to an
+    // // appropriate value.
+    // //
+    // let origin = Point::new(0, 0);
+    // display.set_glyph(origin, 'D', color::depression);
+    // display.set_glyph(origin + (1, 0), 'r', color::anxiety);
+    // display.set_glyph(origin + (0, 1), '@', color::player);
+    // display.set_glyph(origin + (1, 1), 'i', color::dose);
+    // display.set_fade(color::BLACK, 1.0);
+
+    // // NOTE: DEBUG: Show the tile under mouse pointer:
+    // display.draw_rectangle(
+    //     Rectangle::from_point_and_size(state.mouse.tile_pos, Point::from_i32(1)),
+    //     color::gui_text,
+    // );
+
+    // TODO: This might be inefficient for windows fully covering
+    // other windows.
+    let mut game_update_result = RunningState::Running;
+
+    // NOTE: cloning the window list here to let us iterate it and mutate state.
+    let windows = state.window_stack.clone();
+    for window in windows.windows() {
+        let top_level = state.window_stack.top() == *window;
+        match window {
+            Window::MainMenu => {
+                // TODO: technically, `render` should be before
+                // `process` here and ideally in the same function.
+                // Because here in process we build the GUI and then
+                // "clear the window" in render. This works because
+                // the engine renders the GUI vertices to the GPU
+                // after everything else. But really, this should all
+                // be consolidated somehow.
+                if top_level {
+                    game_update_result =
+                        process_main_menu(state, ui, &main_menu::Window, metrics, display);
+                }
+                render::render_main_menu(state, &main_menu::Window, metrics, display, top_level);
+            }
+            Window::Game => {
+                if top_level {
+                    game_update_result =
+                        process_game(state, settings, &sidebar::Window, metrics, display, dt);
+                }
+                render::render_game(
+                    state,
+                    &sidebar::Window,
+                    metrics,
+                    dt,
+                    fps,
+                    display,
+                    top_level,
+                );
+            }
+            Window::Settings => {
+                if top_level {
+                    game_update_result = process_settings_window(
+                        state,
+                        settings,
+                        &settings::Window,
+                        metrics,
+                        display,
+                        settings_store,
+                    );
+                }
+                render::render_settings(
+                    state,
+                    settings,
+                    &settings::Window,
+                    metrics,
+                    display,
+                    top_level,
+                );
+            }
+            Window::Help => {
+                if top_level {
+                    game_update_result =
+                        process_help_window(state, &help::Window, metrics, display);
+                }
+                render::render_help_screen(state, &help::Window, metrics, display, top_level);
+            }
+            Window::Endgame => {
+                if top_level {
+                    game_update_result =
+                        process_endgame_window(state, &endgame::Window, metrics, display);
+                }
+                render::render_endgame_screen(state, &endgame::Window, metrics, display, top_level);
+            }
+            Window::Message { ref message, .. } => {
+                if top_level {
+                    game_update_result = process_message_window(state)
+                }
+                render::render_message(state, message, metrics, display, top_level);
+            }
+        }
+    }
 
     // NOTE: process the screen fading animation animation.
     // This must happen outside of the window-custom code because the fadeout could
@@ -149,8 +232,9 @@ pub fn update(
 
     let update_duration = update_stopwatch.finish();
 
+    // TODO: we can no longer sensibly distinguish between building the drawcalls
+    // due to egui and having to bundle the update and rendering code.
     let drawcall_stopwatch = Stopwatch::start();
-    render::render(&state, settings, dt, fps, metrics, display);
     let drawcall_duration = drawcall_stopwatch.finish();
 
     if cfg!(feature = "stats") {
@@ -587,11 +671,6 @@ fn process_main_menu(
 
     // Process the Egui events
     let mut option = window.process(&state, ui, metrics, display, true);
-
-    // Process the old events
-    if option.is_none() && state.mouse.left_clicked {
-        option = window.hovered(&state, metrics, display, true);
-    }
 
     if option.is_none() {
         if state.keys.matches_code(KeyCode::Esc)

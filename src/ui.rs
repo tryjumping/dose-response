@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::{
     color::{self, Color},
     engine::{Display, DrawResult, TextMetrics, TextOptions},

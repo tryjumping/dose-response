@@ -7,81 +7,11 @@ use crate::{
     rect::Rectangle,
     settings::Settings,
     state::State,
-    window::Window,
     windows::{endgame, help, main_menu, settings, sidebar},
     world::Chunk,
 };
 
 use std::time::Duration;
-
-pub fn render(
-    state: &State,
-    settings: &Settings,
-    dt: Duration,
-    fps: i32,
-    metrics: &dyn TextMetrics,
-    display: &mut Display,
-) {
-    // NOTE: Clear the screen
-    display.clear(color::unexplored_background);
-
-    // TODO: This might be inefficient for windows fully covering
-    // other windows.
-    for window in state.window_stack.windows() {
-        let top_level = state.window_stack.top() == *window;
-        match window {
-            Window::MainMenu => {
-                render_main_menu(state, &main_menu::Window, metrics, display, top_level);
-            }
-            Window::Game => {
-                render_game(
-                    state,
-                    &sidebar::Window,
-                    metrics,
-                    dt,
-                    fps,
-                    display,
-                    top_level,
-                );
-            }
-            Window::Settings => {
-                render_settings(
-                    state,
-                    settings,
-                    &settings::Window,
-                    metrics,
-                    display,
-                    top_level,
-                );
-            }
-            Window::Help => {
-                render_help_screen(state, &help::Window, metrics, display, top_level);
-            }
-            Window::Endgame => {
-                render_endgame_screen(state, &endgame::Window, metrics, display, top_level);
-            }
-            Window::Message { ref message, .. } => {
-                render_message(state, message, metrics, display, top_level);
-            }
-        }
-    }
-
-    // // NOTE: This renders the game's icon. Change the tilesize to an
-    // // appropriate value.
-    // //
-    // let origin = Point::new(0, 0);
-    // display.set_glyph(origin, 'D', color::depression);
-    // display.set_glyph(origin + (1, 0), 'r', color::anxiety);
-    // display.set_glyph(origin + (0, 1), '@', color::player);
-    // display.set_glyph(origin + (1, 1), 'i', color::dose);
-    // display.set_fade(color::BLACK, 1.0);
-
-    // // NOTE: DEBUG: Show the tile under mouse pointer:
-    // display.draw_rectangle(
-    //     Rectangle::from_point_and_size(state.mouse.tile_pos, Point::from_i32(1)),
-    //     color::gui_text,
-    // );
-}
 
 pub fn render_game(
     state: &State,
@@ -311,20 +241,30 @@ pub fn render_game(
     }
 }
 
-fn render_main_menu(
-    state: &State,
-    window: &main_menu::Window,
-    metrics: &dyn TextMetrics,
+pub fn render_main_menu(
+    _state: &State,
+    _window: &main_menu::Window,
+    _metrics: &dyn TextMetrics,
     display: &mut Display,
-    top_level: bool,
+    _top_level: bool,
 ) {
-    window.render(state, metrics, display, top_level);
+    // TODO: Any chance we could just replace all this with an egui window?
+    let window_pos = Point::new(0, 0);
+    let window_size = display.size_without_padding();
+    let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
+
+    let inner_window_rect = Rectangle::new(
+        window_rect.top_left() + (1, 1),
+        window_rect.bottom_right() - (1, 1),
+    );
+    display.draw_rectangle(window_rect, color::window_edge);
+    display.draw_rectangle(inner_window_rect, color::window_background);
 
     // Clear any fade set by the gameplay rendering
     display.fade = color::invisible;
 }
 
-fn render_settings(
+pub fn render_settings(
     state: &State,
     settings: &Settings,
     window: &settings::Window,
@@ -338,7 +278,7 @@ fn render_settings(
     display.fade = color::invisible;
 }
 
-fn render_help_screen(
+pub fn render_help_screen(
     state: &State,
     window: &help::Window,
     metrics: &dyn TextMetrics,
@@ -351,7 +291,7 @@ fn render_help_screen(
     display.fade = color::invisible;
 }
 
-fn render_endgame_screen(
+pub fn render_endgame_screen(
     state: &State,
     window: &endgame::Window,
     metrics: &dyn TextMetrics,
@@ -378,7 +318,7 @@ fn render_endgame_screen(
     }
 }
 
-fn render_message(
+pub fn render_message(
     _state: &State,
     text: &str,
     _metrics: &dyn TextMetrics,

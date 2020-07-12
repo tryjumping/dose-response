@@ -117,17 +117,27 @@ impl Into<[f32; 4]> for ColorAlpha {
 
 trait VertexStore {
     fn push(&mut self, _: Vertex);
+    fn count(&self) -> usize;
 }
 
 impl VertexStore for Vec<Vertex> {
     fn push(&mut self, vertex: Vertex) {
         self.push(vertex)
     }
+
+    fn count(&self) -> usize {
+        self.len()
+    }
 }
 
 impl VertexStore for Vec<f32> {
     fn push(&mut self, vertex: Vertex) {
         self.extend(&vertex.to_f32_array())
+    }
+
+    fn count(&self) -> usize {
+        assert_eq!(self.len() % 9, 0);
+        self.len() / 9
     }
 }
 
@@ -146,6 +156,10 @@ impl VertexStore for Vec<u8> {
             self.push(b3);
             self.push(b4);
         }
+    }
+
+    fn count(&self) -> usize {
+        todo!()
     }
 }
 

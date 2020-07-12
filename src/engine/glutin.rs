@@ -475,7 +475,9 @@ monitor ID: {:?}. Ignoring this request.",
                 // TODO: consider doing updating our engine to suport
                 // vertex indices.
                 let mut ui_vertices = vec![];
-                for (_rect, triangles) in &ui_paint_batches {
+                let mut batches = vec![];
+                let mut index = 0;
+                for (rect, triangles) in &ui_paint_batches {
                     for &index in &triangles.indices {
                         let egui_vertex = triangles.vertices[index as usize];
                         let color = Color {
@@ -485,16 +487,36 @@ monitor ID: {:?}. Ignoring this request.",
                         }
                         .alpha(egui_vertex.color.a);
                         let (u, v) = egui_vertex.uv;
+
+                        let pos = egui_vertex.pos;
                         let vertex = engine::Vertex {
                             texture_id: engine::Texture::Egui.into(),
-                            pos_px: [egui_vertex.pos.x, egui_vertex.pos.y],
+                            pos_px: [pos.x, pos.y],
                             tile_pos_px: [u.into(), v.into()],
                             color: color.into(),
                         };
                         ui_vertices.push(vertex);
                     }
+
+                    let vertex_count = triangles.indices.len() as i32;
+                    batches.push((
+                        [
+                            rect.left_top().x,
+                            rect.left_top().y,
+                            rect.right_bottom().x,
+                            rect.right_bottom().y,
+                        ],
+                        index,
+                        vertex_count,
+                    ));
+                    index += vertex_count;
                 }
-                loop_state.process_vertices_and_render(&mut opengl_app, &ui_vertices, dpi);
+                loop_state.process_vertices_and_render(
+                    &mut opengl_app,
+                    &ui_vertices,
+                    dpi,
+                    &batches,
+                );
                 context.swap_buffers().unwrap();
 
                 loop_state.previous_settings = loop_state.settings.clone();

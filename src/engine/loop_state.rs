@@ -441,12 +441,13 @@ impl LoopState {
         }
     }
 
-    pub fn render(&self, gl: &OpenGlApp, dpi: f64) {
-        gl.render(
-            self.default_background,
-            self.display_info(dpi),
-            &self.vertex_buffer,
-        );
+    pub fn render(&self, gl: &OpenGlApp, dpi: f64, batches: &[([f32; 4], i32, i32)]) {
+        let display_info = self.display_info(dpi);
+        gl.render(self.default_background, display_info, &self.vertex_buffer);
+
+        for &(clip_rect, vertex_index, vertex_count) in batches {
+            gl.render_clipped_vertices(gl.program, clip_rect, (vertex_index, vertex_count));
+        }
     }
 
     pub fn process_vertices_and_render(
@@ -454,6 +455,7 @@ impl LoopState {
         opengl_app: &mut OpenGlApp,
         extra_vertices: &[Vertex],
         dpi: f64,
+        extra_batches: &[([f32; 4], i32, i32)],
     ) {
         // NOTE: Check if the Egui texture has changed and needs rebuilding
         if self.egui_texture_id != self.egui_context.texture().id {
@@ -467,15 +469,33 @@ impl LoopState {
         self.push_drawcalls_to_display();
 
         self.vertex_buffer.clear();
-        let display_px = self.display_info(dpi).display_px;
+        let display_info = self.display_info(dpi);
+        let display_px = display_info.display_px;
         engine::build_vertices(&self.drawcalls, &mut self.vertex_buffer, display_px);
+
         let vertex_store: &mut dyn engine::VertexStore = &mut self.vertex_buffer;
+
+        let noclip_rect = [
+            0.0,
+            0.0,
+            display_info.window_size_px[0],
+            display_info.window_size_px[1],
+        ];
+
+        let mut batches = vec![];
+        let noclip_vertex_count = vertex_store.count() as i32;
+        batches.push((noclip_rect, 0, noclip_vertex_count));
+        for &(clip, index, count) in extra_batches {
+            batches.push((clip, index + noclip_vertex_count, count));
+        }
+
         for &vertex in extra_vertices {
             vertex_store.push(vertex);
         }
+
         self.check_vertex_buffer_capacity();
 
-        self.render(&opengl_app, dpi);
+        self.render(&opengl_app, dpi, &batches);
     }
 
     pub fn check_vertex_buffer_capacity(&self) {

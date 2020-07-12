@@ -1,3 +1,5 @@
+#![allow(unsafe_code)]
+
 use crate::{
     color::{Color, ColorAlpha},
     engine::DisplayInfo,
@@ -218,14 +220,6 @@ impl OpenGlApp {
                 display_info.viewport_size[1] as i32,
             );
             check_gl_error("Viewport");
-
-            let rgba: ColorAlpha = clear_color.into();
-            let glcolor: [f32; 4] = rgba.into();
-            gl::ClearColor(glcolor[0], glcolor[1], glcolor[2], 1.0);
-            check_gl_error("ClearColor");
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-            check_gl_error("Clear");
-
             // Copy data to the vertex buffer
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             check_gl_error("BindBuffer");
@@ -237,6 +231,13 @@ impl OpenGlApp {
                 gl::DYNAMIC_DRAW,
             );
             check_gl_error("BufferData");
+
+            let rgba: ColorAlpha = clear_color.into();
+            let glcolor: [f32; 4] = rgba.into();
+            gl::ClearColor(glcolor[0], glcolor[1], glcolor[2], 1.0);
+            check_gl_error("ClearColor");
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+            check_gl_error("Clear");
 
             // Specify the layout of the vertex data
             // NOTE: this must happen only after the BufferData call
@@ -258,61 +259,6 @@ impl OpenGlApp {
             );
 
             assert_eq!(mem::size_of::<GLfloat>(), mem::size_of::<GLuint>());
-
-            let pos_px_cstr = CString::new("pos_px").unwrap();
-            let pos_attr = gl::GetAttribLocation(program, pos_px_cstr.as_ptr());
-            check_gl_error("GetAttribLocation pos_px");
-            gl::EnableVertexAttribArray(pos_attr as GLuint);
-            check_gl_error("EnableVertexAttribArray pos_px");
-            gl::VertexAttribPointer(
-                pos_attr as GLuint,
-                2,
-                gl::FLOAT,
-                gl::FALSE as GLboolean,
-                stride,
-                (1 * mem::size_of::<GLfloat>()) as *const GLvoid,
-            );
-            check_gl_error("VertexAttribPointer pos_px");
-
-            let tile_pos_px_cstr = CString::new("tile_pos_px").unwrap();
-            let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_px_cstr.as_ptr());
-            check_gl_error("GetAttribLocation tile_pos_px");
-            gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
-            check_gl_error("EnableVertexAttribArray tile_pos_px");
-            gl::VertexAttribPointer(
-                tex_coord_attr as GLuint,
-                2,
-                gl::FLOAT,
-                gl::FALSE as GLboolean,
-                stride,
-                (3 * mem::size_of::<GLfloat>()) as *const GLvoid,
-            );
-            check_gl_error("VertexAttribPointer tile_pos_px");
-
-            let color_cstr = CString::new("color").unwrap();
-            let color_attr = gl::GetAttribLocation(program, color_cstr.as_ptr());
-            check_gl_error("GetAttribLocation color");
-            gl::EnableVertexAttribArray(color_attr as GLuint);
-            check_gl_error("EnableVertexAttribArray color");
-            gl::VertexAttribPointer(
-                color_attr as GLuint,
-                4,
-                gl::FLOAT,
-                gl::FALSE as GLboolean,
-                stride,
-                (5 * mem::size_of::<GLfloat>()) as *const GLvoid,
-            );
-            check_gl_error("VertexAttribPointer color");
-
-            gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, self.fontmap);
-            check_gl_error("BindTexture font");
-            let texture_index = 0;
-            let fontmap_cstr = CString::new("textmap").unwrap();
-            gl::Uniform1i(
-                gl::GetUniformLocation(program, fontmap_cstr.as_ptr()),
-                texture_index,
-            );
 
             gl::ActiveTexture(gl::TEXTURE1);
             gl::BindTexture(gl::TEXTURE_2D, self.glyphmap);
@@ -384,11 +330,94 @@ impl OpenGlApp {
             );
             check_gl_error("Uniform2f eguimap_size_px");
 
-            gl::DrawArrays(
-                gl::TRIANGLES,
-                0,
-                (vertex_buffer.len() / crate::engine::VERTEX_COMPONENT_COUNT) as i32,
+            let pos_px_cstr = CString::new("pos_px").unwrap();
+            let pos_attr = gl::GetAttribLocation(program, pos_px_cstr.as_ptr());
+            check_gl_error("GetAttribLocation pos_px");
+            gl::EnableVertexAttribArray(pos_attr as GLuint);
+            check_gl_error("EnableVertexAttribArray pos_px");
+            gl::VertexAttribPointer(
+                pos_attr as GLuint,
+                2,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                stride,
+                (1 * mem::size_of::<GLfloat>()) as *const GLvoid,
             );
+            check_gl_error("VertexAttribPointer pos_px");
+
+            let tile_pos_px_cstr = CString::new("tile_pos_px").unwrap();
+            let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_px_cstr.as_ptr());
+            check_gl_error("GetAttribLocation tile_pos_px");
+            gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
+            check_gl_error("EnableVertexAttribArray tile_pos_px");
+            gl::VertexAttribPointer(
+                tex_coord_attr as GLuint,
+                2,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                stride,
+                (3 * mem::size_of::<GLfloat>()) as *const GLvoid,
+            );
+            check_gl_error("VertexAttribPointer tile_pos_px");
+
+            let color_cstr = CString::new("color").unwrap();
+            let color_attr = gl::GetAttribLocation(program, color_cstr.as_ptr());
+            check_gl_error("GetAttribLocation color");
+            gl::EnableVertexAttribArray(color_attr as GLuint);
+            check_gl_error("EnableVertexAttribArray color");
+            gl::VertexAttribPointer(
+                color_attr as GLuint,
+                4,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                stride,
+                (5 * mem::size_of::<GLfloat>()) as *const GLvoid,
+            );
+            check_gl_error("VertexAttribPointer color");
+
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, self.fontmap);
+            check_gl_error("BindTexture font");
+            let texture_index = 0;
+            let fontmap_cstr = CString::new("textmap").unwrap();
+            gl::Uniform1i(
+                gl::GetUniformLocation(program, fontmap_cstr.as_ptr()),
+                texture_index,
+            );
+        }
+    }
+
+    /// Render vertices within a specific range and filter out pixels
+    /// that don't fit inside the `clip_rect`.
+    ///
+    /// `clip_rect` rectangle within which to render points. In pixel size.
+    ///
+    /// `vertex_range` a (index, count) tuple inte a *vertex array*.
+    /// `index` must be in multiples of three because the vertex array
+    /// represents triangles and it's composed of three vertices per
+    /// triangle. `count` is a number of vertices to draw.
+    ///
+    /// Example: a vertex array of 10 triangles will have 30 vertices.
+    /// To draw all of them, use: (0, 30). To draw the first five, use: (0, 5*3) = (0, 15).
+    /// To draw the last five, use: (15, 15).
+    pub fn render_clipped_vertices(
+        &self,
+        program: GLuint,
+        clip_rect: [f32; 4],
+        vertex_range: (i32, i32),
+    ) {
+        unsafe {
+            let u_clip_rect_cstr = CString::new("u_clip_rect").unwrap();
+            gl::Uniform4f(
+                gl::GetUniformLocation(program, u_clip_rect_cstr.as_ptr()),
+                clip_rect[0],
+                clip_rect[1],
+                clip_rect[2],
+                clip_rect[3],
+            );
+            check_gl_error("Uniform4f u_clip_rect");
+
+            gl::DrawArrays(gl::TRIANGLES, vertex_range.0, vertex_range.1);
             check_gl_error("DrawArrays");
         }
     }

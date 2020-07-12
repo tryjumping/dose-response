@@ -12,12 +12,14 @@ in vec4 color;
 
 flat out float v_texture_id;
 out vec2 v_tile_pos_px;
+out vec2 v_vertex_pos_px;
 out vec4 v_color;
 
 void main() {
     v_texture_id = texture_id;
     v_tile_pos_px = tile_pos_px;
     v_color = color;
+    v_vertex_pos_px = pos_px;
 
     // `pos_px / display_px` converts the coordinates to (0, 1)
     // in the native pixel-perfect space. This stretches the image to

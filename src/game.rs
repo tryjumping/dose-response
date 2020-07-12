@@ -49,7 +49,6 @@ pub enum RunningState {
 #[allow(too_many_arguments)]
 pub fn update(
     state: &mut State,
-    // NOTE: looks like in order to show a window we need to add egui::Ctx here
     ui: &mut Ui,
     dt: Duration,
     fps: i32,
@@ -180,14 +179,8 @@ pub fn update(
                         settings_store,
                     );
                 }
-                render::render_settings(
-                    state,
-                    settings,
-                    &settings::Window,
-                    metrics,
-                    display,
-                    top_level,
-                );
+                // Clear any fade set by the gameplay rendering
+                display.fade = color::invisible;
             }
             Window::Help => {
                 if top_level {

@@ -1,13 +1,10 @@
 use crate::{
-    color,
     engine::{Display, TextMetrics},
-    point::Point,
-    rect::Rectangle,
     settings::Settings,
     state::State,
 };
 
-use egui::{self, label, Align, Button, Ui, Window as GuiWindow};
+use egui::{self, Ui, Window as GuiWindow};
 
 pub enum Action {
     Fullscreen,
@@ -16,19 +13,6 @@ pub enum Action {
     TextSize(i32),
     Back,
     Apply,
-}
-
-struct Layout {
-    window_rect: Rectangle,
-    rect: Rectangle,
-    option_under_mouse: Option<Action>,
-    rect_under_mouse: Option<Rectangle>,
-    fullscreen_button: Button,
-    window_button: Button,
-    tile_size_options: Vec<(i32, Button)>,
-    text_size_options: Vec<(i32, Button)>,
-    back_button: Button,
-    apply_button: Button,
 }
 
 pub struct Window;
@@ -171,7 +155,7 @@ impl Window {
 
     pub fn process(
         &self,
-        state: &State,
+        _state: &State,
         ui: &mut Ui,
         settings: &Settings,
         _metrics: &dyn TextMetrics,

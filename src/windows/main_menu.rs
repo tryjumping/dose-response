@@ -1,7 +1,7 @@
 use crate::engine::{Display, TextMetrics};
 use crate::state::State;
 
-use egui::{self, label, Align, Button, Ui};
+use egui::{self, Button, Ui};
 
 #[derive(Debug)]
 pub enum MenuItem {

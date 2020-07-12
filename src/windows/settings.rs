@@ -175,7 +175,7 @@ impl Window {
         ui: &mut Ui,
         settings: &Settings,
         _metrics: &dyn TextMetrics,
-        _display: &mut Display,
+        display: &mut Display,
         _top_level: bool,
     ) -> Option<Action> {
         let mut visible = true;
@@ -187,10 +187,22 @@ impl Window {
         // layout and the code is cleanly separate. IDK.
         let mut action = None;
 
+        // TODO: resizing the game window doesn't resize the settings window properly.
+
+        let display_size_px = display.size_without_padding() * display.tile_size;
+        let window_size_px = [
+            (display_size_px.x - 150) as f32,
+            (display_size_px.y - 150) as f32,
+        ];
+        let window_pos_px = [
+            (display_size_px.x as f32 - window_size_px[0]) / 2.0,
+            (display_size_px.y as f32 - window_size_px[1]) / 2.0,
+        ];
+
         GuiWindow::new("Settings")
             .open(&mut visible)
-            // TODO: make sure this fits the game window
-            .fixed_size([800.0, 500.0])
+            .default_pos(window_pos_px)
+            .fixed_size(window_size_px)
             .show(ui.ctx(), |ui| {
                 ui.columns(2, |c| {
                     c[0].label("Display:");

@@ -272,7 +272,7 @@ pub fn render_settings(
     display: &mut Display,
     top_level: bool,
 ) {
-    window.render(state, settings, metrics, display, top_level);
+    //window.render(state, settings, metrics, display, top_level);
 
     // Clear any fade set by the gameplay rendering
     display.fade = color::invisible;

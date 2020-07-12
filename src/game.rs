@@ -49,6 +49,7 @@ pub enum RunningState {
 #[allow(too_many_arguments)]
 pub fn update(
     state: &mut State,
+    // NOTE: looks like in order to show a window we need to add egui::Ctx here
     ui: &mut Ui,
     dt: Duration,
     fps: i32,
@@ -139,10 +140,17 @@ pub fn update(
                 // the engine renders the GUI vertices to the GPU
                 // after everything else. But really, this should all
                 // be consolidated somehow.
-                if top_level {
-                    game_update_result =
-                        process_main_menu(state, ui, &main_menu::Window, metrics, display);
-                }
+                let visible = true;
+                let active = top_level;
+                game_update_result = process_main_menu(
+                    state,
+                    ui,
+                    &main_menu::Window,
+                    metrics,
+                    display,
+                    visible,
+                    active,
+                );
                 render::render_main_menu(state, &main_menu::Window, metrics, display, top_level);
             }
             Window::Game => {
@@ -164,6 +172,7 @@ pub fn update(
                 if top_level {
                     game_update_result = process_settings_window(
                         state,
+                        ui,
                         settings,
                         &settings::Window,
                         metrics,
@@ -666,11 +675,13 @@ fn process_main_menu(
     window: &main_menu::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
+    visible: bool,
+    active: bool,
 ) -> RunningState {
     use crate::windows::main_menu::MenuItem::*;
 
     // Process the Egui events
-    let mut option = window.process(&state, ui, metrics, display, true);
+    let mut option = window.process(&state, ui, metrics, display, visible, active);
 
     if option.is_none() {
         if state.keys.matches_code(KeyCode::Esc)
@@ -768,10 +779,11 @@ fn process_main_menu(
 
 fn process_settings_window(
     state: &mut State,
+    ui: &mut Ui,
     settings: &mut Settings,
     window: &settings::Window,
     metrics: &dyn TextMetrics,
-    display: &Display,
+    display: &mut Display,
     store: &mut dyn SettingsStore,
 ) -> RunningState {
     use crate::windows::settings::Action::*;
@@ -781,11 +793,8 @@ fn process_settings_window(
         return RunningState::Running;
     }
 
-    let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, settings, metrics, display, true)
-    } else {
-        None
-    };
+    // Process the Egui events
+    let mut option = window.process(&state, ui, settings, metrics, display, true);
 
     if option.is_none() {
         if state.keys.matches_code(KeyCode::F) {

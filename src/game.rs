@@ -192,8 +192,7 @@ pub fn update(
             }
             Window::Endgame => {
                 if top_level {
-                    game_update_result =
-                        process_endgame_window(state, ui, &endgame::Window, metrics, display);
+                    game_update_result = endgame::Window.process(state, ui, metrics, display);
                 }
 
                 if cfg!(feature = "recording") {
@@ -950,52 +949,6 @@ fn process_help_window(
     }
 
     RunningState::Running
-}
-
-fn process_endgame_window(
-    state: &mut State,
-    ui: &mut Ui,
-    window: &endgame::Window,
-    metrics: &dyn TextMetrics,
-    display: &Display,
-) -> RunningState {
-    use crate::windows::endgame::Action::*;
-
-    let mut action = window.process(state, ui, metrics, display);
-
-    if action.is_none() {
-        if state.keys.matches_code(KeyCode::N) {
-            action = Some(NewGame);
-        } else if state.keys.matches_code(KeyCode::Esc) {
-            action = Some(Menu);
-        } else if state.keys.matches_code(KeyCode::QuestionMark)
-            || state.keys.matches_code(KeyCode::H)
-        {
-            action = Some(Help);
-        }
-    }
-
-    match action {
-        Some(NewGame) => RunningState::NewGame(Box::new(create_new_game_state(state))),
-        Some(Menu) => {
-            state.window_stack.push(Window::MainMenu);
-            RunningState::Running
-        }
-        Some(Help) => {
-            state.window_stack.push(Window::Help);
-            RunningState::Running
-        }
-        Some(Close) => {
-            state.window_stack.pop();
-            RunningState::Running
-        }
-        None => {
-            if state.keys.get().is_some() || state.mouse.right_clicked {
-                state.window_stack.pop();
-            }
-            RunningState::Running
-        }
-    }
 }
 
 fn process_message_window(state: &mut State, ui: &mut Ui, text: &str) -> RunningState {
@@ -1760,7 +1713,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
     assert!(expected == actual, "Validation failed!");
 }
 
-fn create_new_game_state(state: &State) -> State {
+pub fn create_new_game_state(state: &State) -> State {
     State::new_game(
         state.world_size,
         state.map_size,

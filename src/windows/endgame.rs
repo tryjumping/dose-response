@@ -1,8 +1,11 @@
 use crate::{
     engine::{Display, TextMetrics},
     formula,
+    game::{self, RunningState},
+    keys::KeyCode,
     player::CauseOfDeath,
     state::{Side, State},
+    window,
 };
 
 use egui::{self, Ui};
@@ -19,11 +22,11 @@ pub struct Window;
 impl Window {
     pub fn process(
         &self,
-        state: &State,
+        state: &mut State,
         ui: &mut Ui,
         _metrics: &dyn TextMetrics,
         _display: &Display,
-    ) -> Option<Action> {
+    ) -> RunningState {
         use CauseOfDeath::*;
         let cause_of_death = formula::cause_of_death(&state.player);
         let perpetrator = state.player.perpetrator.as_ref();
@@ -103,7 +106,41 @@ impl Window {
             action = Some(Action::Close)
         };
 
-        action
+        if action.is_none() {
+            if state.keys.matches_code(KeyCode::N) {
+                action = Some(Action::NewGame);
+            } else if state.keys.matches_code(KeyCode::Esc) {
+                action = Some(Action::Menu);
+            } else if state.keys.matches_code(KeyCode::QuestionMark)
+                || state.keys.matches_code(KeyCode::H)
+            {
+                action = Some(Action::Help);
+            }
+        }
+
+        match action {
+            Some(Action::NewGame) => {
+                RunningState::NewGame(Box::new(game::create_new_game_state(state)))
+            }
+            Some(Action::Menu) => {
+                state.window_stack.push(window::Window::MainMenu);
+                RunningState::Running
+            }
+            Some(Action::Help) => {
+                state.window_stack.push(window::Window::Help);
+                RunningState::Running
+            }
+            Some(Action::Close) => {
+                state.window_stack.pop();
+                RunningState::Running
+            }
+            None => {
+                if state.keys.get().is_some() || state.mouse.right_clicked {
+                    state.window_stack.pop();
+                }
+                RunningState::Running
+            }
+        }
     }
 }
 

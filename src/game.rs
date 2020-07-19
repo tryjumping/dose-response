@@ -169,14 +169,8 @@ pub fn update(
             }
             Window::Settings => {
                 if top_level {
-                    game_update_result = process_settings_window(
-                        state,
-                        ui,
-                        settings,
-                        metrics,
-                        display,
-                        settings_store,
-                    );
+                    game_update_result =
+                        settings::process(state, ui, settings, display, settings_store);
                 }
                 // Clear any fade set by the gameplay rendering
                 display.fade = color::invisible;
@@ -765,111 +759,6 @@ fn process_main_menu(
 
             Quit => {
                 return RunningState::Stopped;
-            }
-        }
-    }
-
-    RunningState::Running
-}
-
-fn process_settings_window(
-    state: &mut State,
-    ui: &mut Ui,
-    settings: &mut Settings,
-    metrics: &dyn TextMetrics,
-    display: &mut Display,
-    store: &mut dyn SettingsStore,
-) -> RunningState {
-    use crate::windows::settings::Action::*;
-
-    if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
-        state.window_stack.pop();
-        return RunningState::Running;
-    }
-
-    // Process the Egui events
-    let mut option = settings::process(&state, ui, settings, display);
-
-    if option.is_none() {
-        if state.keys.matches_code(KeyCode::F) {
-            option = Some(Fullscreen);
-        } else if state.keys.matches_code(KeyCode::W) {
-            option = Some(Window);
-        } else if state.keys.matches_code(KeyCode::A) {
-            option = Some(Apply);
-        }
-    }
-
-    if option.is_none() {
-        for (index, &size) in crate::engine::AVAILABLE_TILE_SIZES.iter().rev().enumerate() {
-            let code = match index + 1 {
-                1 => Some(KeyCode::D1),
-                2 => Some(KeyCode::D2),
-                3 => Some(KeyCode::D3),
-                4 => Some(KeyCode::D4),
-                5 => Some(KeyCode::D5),
-                6 => Some(KeyCode::D6),
-                7 => Some(KeyCode::D7),
-                8 => Some(KeyCode::D8),
-                9 => Some(KeyCode::D9),
-                _ => None,
-            };
-            if let Some(code) = code {
-                if state.keys.matches_code(code) {
-                    option = Some(TileSize(size));
-                }
-            }
-        }
-    }
-
-    if option.is_none() {
-        for (index, &size) in crate::engine::AVAILABLE_TEXT_SIZES.iter().rev().enumerate() {
-            let code = match index + crate::engine::AVAILABLE_TILE_SIZES.len() + 1 {
-                1 => Some(KeyCode::D1),
-                2 => Some(KeyCode::D2),
-                3 => Some(KeyCode::D3),
-                4 => Some(KeyCode::D4),
-                5 => Some(KeyCode::D5),
-                6 => Some(KeyCode::D6),
-                7 => Some(KeyCode::D7),
-                8 => Some(KeyCode::D8),
-                9 => Some(KeyCode::D9),
-                _ => None,
-            };
-            if let Some(code) = code {
-                if state.keys.matches_code(code) {
-                    option = Some(TextSize(size));
-                }
-            }
-        }
-    }
-
-    if let Some(option) = option {
-        match option {
-            Fullscreen => {
-                settings.fullscreen = true;
-            }
-
-            Window => {
-                settings.fullscreen = false;
-            }
-
-            TileSize(tile_size) => {
-                settings.tile_size = tile_size;
-            }
-
-            TextSize(text_size) => {
-                log::info!("Changing text size to: {}", text_size);
-                settings.text_size = text_size;
-            }
-
-            Back => {
-                *settings = store.load();
-                state.window_stack.pop();
-            }
-
-            Apply => {
-                store.save(settings);
             }
         }
     }

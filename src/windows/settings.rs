@@ -1,4 +1,10 @@
-use crate::{engine::Display, settings::Settings, state::State};
+use crate::{
+    engine::Display,
+    game::RunningState,
+    keys::KeyCode,
+    settings::{Settings, Store as SettingsStore},
+    state::State,
+};
 
 use egui::{self, Ui, Window as GuiWindow};
 
@@ -12,18 +18,13 @@ pub enum Action {
 }
 
 pub fn process(
-    _state: &State,
+    state: &mut State,
     ui: &mut Ui,
-    settings: &Settings,
+    settings: &mut Settings,
     display: &mut Display,
-) -> Option<Action> {
+    settings_store: &mut dyn SettingsStore,
+) -> RunningState {
     let mut visible = true;
-
-    // NOTE: this is why I think it probably makes sense to keep
-    // the logic and rendering in the same place. We won't have to
-    // be returning actions or whatnot to process them later. But
-    // IDK might lead to spagetti code and right now, the GUI
-    // layout and the code is cleanly separate. IDK.
     let mut action = None;
 
     // TODO: resizing the game window doesn't resize the settings window properly.
@@ -108,8 +109,97 @@ pub fn process(
         });
 
     if !visible {
-        return Some(Action::Back);
+        action = Some(Action::Back);
     }
 
-    action
+    if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
+        state.window_stack.pop();
+        return RunningState::Running;
+    }
+
+    if action.is_none() {
+        if state.keys.matches_code(KeyCode::F) {
+            action = Some(Action::Fullscreen);
+        } else if state.keys.matches_code(KeyCode::W) {
+            action = Some(Action::Window);
+        } else if state.keys.matches_code(KeyCode::A) {
+            action = Some(Action::Apply);
+        }
+    }
+
+    if action.is_none() {
+        for (index, &size) in crate::engine::AVAILABLE_TILE_SIZES.iter().rev().enumerate() {
+            let code = match index + 1 {
+                1 => Some(KeyCode::D1),
+                2 => Some(KeyCode::D2),
+                3 => Some(KeyCode::D3),
+                4 => Some(KeyCode::D4),
+                5 => Some(KeyCode::D5),
+                6 => Some(KeyCode::D6),
+                7 => Some(KeyCode::D7),
+                8 => Some(KeyCode::D8),
+                9 => Some(KeyCode::D9),
+                _ => None,
+            };
+            if let Some(code) = code {
+                if state.keys.matches_code(code) {
+                    action = Some(Action::TileSize(size));
+                }
+            }
+        }
+    }
+
+    if action.is_none() {
+        for (index, &size) in crate::engine::AVAILABLE_TEXT_SIZES.iter().rev().enumerate() {
+            let code = match index + crate::engine::AVAILABLE_TILE_SIZES.len() + 1 {
+                1 => Some(KeyCode::D1),
+                2 => Some(KeyCode::D2),
+                3 => Some(KeyCode::D3),
+                4 => Some(KeyCode::D4),
+                5 => Some(KeyCode::D5),
+                6 => Some(KeyCode::D6),
+                7 => Some(KeyCode::D7),
+                8 => Some(KeyCode::D8),
+                9 => Some(KeyCode::D9),
+                _ => None,
+            };
+            if let Some(code) = code {
+                if state.keys.matches_code(code) {
+                    action = Some(Action::TextSize(size));
+                }
+            }
+        }
+    }
+
+    if let Some(action) = action {
+        match action {
+            Action::Fullscreen => {
+                settings.fullscreen = true;
+            }
+
+            Action::Window => {
+                settings.fullscreen = false;
+            }
+
+            Action::TileSize(tile_size) => {
+                settings.tile_size = tile_size;
+            }
+
+            Action::TextSize(text_size) => {
+                log::info!("Changing text size to: {}", text_size);
+                settings.text_size = text_size;
+            }
+
+            Action::Back => {
+                *settings = settings_store.load();
+                state.window_stack.pop();
+            }
+
+            Action::Apply => {
+                settings_store.save(settings);
+            }
+        }
+    }
+
+    RunningState::Running
 }

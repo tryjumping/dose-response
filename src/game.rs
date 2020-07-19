@@ -204,9 +204,8 @@ pub fn update(
             }
             Window::Message { ref message, .. } => {
                 if top_level {
-                    game_update_result = process_message_window(state)
+                    game_update_result = process_message_window(state, ui, message)
                 }
-                render::render_message(state, message, metrics, display, top_level);
             }
         }
     }
@@ -999,10 +998,20 @@ fn process_endgame_window(
     }
 }
 
-fn process_message_window(state: &mut State) -> RunningState {
-    if state.keys.get().is_some() || state.mouse.left_clicked || state.mouse.right_clicked {
+fn process_message_window(state: &mut State, ui: &mut Ui, text: &str) -> RunningState {
+    let mut window_open = true;
+    let mut close_button_clicked = false;
+    egui::Window::new(text)
+        .open(&mut window_open)
+        .show(ui.ctx(), |ui| {
+            ui.label(text);
+            close_button_clicked = ui.button("Close").clicked;
+        });
+
+    let closed = !window_open || close_button_clicked;
+
+    if closed || state.keys.get().is_some() || state.mouse.right_clicked {
         state.window_stack.pop();
-        return RunningState::Running;
     }
 
     RunningState::Running

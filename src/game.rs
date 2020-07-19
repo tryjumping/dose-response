@@ -141,15 +141,8 @@ pub fn update(
                 // be consolidated somehow.
                 let visible = true;
                 let active = top_level;
-                game_update_result = process_main_menu(
-                    state,
-                    ui,
-                    &main_menu::Window,
-                    metrics,
-                    display,
-                    visible,
-                    active,
-                );
+                game_update_result =
+                    process_main_menu(state, ui, metrics, display, visible, active);
             }
             Window::Game => {
                 if top_level {
@@ -660,7 +653,6 @@ fn process_game(
 fn process_main_menu(
     state: &mut State,
     ui: &mut Ui,
-    window: &main_menu::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
     visible: bool,
@@ -684,7 +676,7 @@ fn process_main_menu(
     display.fade = color::invisible;
 
     // Process the Egui events
-    let mut option = window.process(&state, ui, metrics, display, visible, active);
+    let mut option = main_menu::process(&state, ui, metrics, display, visible, active);
 
     if option.is_none() {
         if state.keys.matches_code(KeyCode::Esc)

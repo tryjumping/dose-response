@@ -6,7 +6,7 @@ use crate::{
     point::{Point, SquareArea},
     rect::Rectangle,
     state::State,
-    windows::{endgame, main_menu, sidebar},
+    windows::{main_menu, sidebar},
     world::Chunk,
 };
 
@@ -261,33 +261,6 @@ pub fn render_main_menu(
 
     // Clear any fade set by the gameplay rendering
     display.fade = color::invisible;
-}
-
-pub fn render_endgame_screen(
-    state: &State,
-    window: &endgame::Window,
-    metrics: &dyn TextMetrics,
-    display: &mut Display,
-    top_level: bool,
-) {
-    window.render(state, metrics, display, top_level);
-
-    if cfg!(feature = "recording") {
-        let window = crate::windows::call_to_action::Window;
-        window.render(state, metrics, display);
-    }
-
-    // Clear any fade set by the gameplay rendering.
-    //
-    // Normally, the fadeout animation ends up setting the fade to 0.
-    // But if we show the endgame screen without the animation (e.g.
-    // on Victory), we need to clear any excess fade (e.g. via
-    // withdrawal) manually here.
-    //
-    // Otherwise, the victory screen would be faded.
-    if state.screen_fading.is_none() {
-        display.fade = color::invisible;
-    }
 }
 
 pub fn render_message(

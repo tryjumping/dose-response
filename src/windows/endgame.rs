@@ -1,11 +1,11 @@
-use crate::color;
-use crate::engine::{Display, TextMetrics, TextOptions};
-use crate::formula;
-use crate::player::CauseOfDeath;
-use crate::point::Point;
-use crate::rect::Rectangle;
-use crate::state::{Side, State};
-use crate::ui::{self, Button};
+use crate::{
+    engine::{Display, TextMetrics},
+    formula,
+    player::CauseOfDeath,
+    state::{Side, State},
+};
+
+use egui::{self, Ui};
 
 pub enum Action {
     NewGame,
@@ -14,138 +14,19 @@ pub enum Action {
     Close,
 }
 
-struct Layout {
-    window_rect: Rectangle,
-    rect: Rectangle,
-    action_under_mouse: Option<Action>,
-    rect_under_mouse: Option<Rectangle>,
-    new_game_button: Button,
-    help_button: Button,
-    menu_button: Button,
-    close_button: Button,
-    short: bool,
-}
-
 pub struct Window;
 
 impl Window {
-    fn layout(
+    pub fn process(
         &self,
         state: &State,
-        metrics: &dyn TextMetrics,
-        display: &Display,
-        top_level: bool,
-    ) -> Layout {
-        let short = display.size_without_padding().y < 26;
-
-        let mut action_under_mouse = None;
-        let mut rect_under_mouse = None;
-
-        let padding = Point::from_i32(1);
-        let height = if short {
-            display.size_without_padding().y - (padding.y * 2)
-        } else {
-            17
-        };
-        let size = Point::new(37, height) + (padding * 2);
-        let top_left = Point {
-            x: (display.size_without_padding().x - size.x) / 2,
-            y: if short { 0 } else { 7 },
-        };
-
-        let window_rect = Rectangle::from_point_and_size(top_left, size);
-
-        let rect = Rectangle::new(
-            window_rect.top_left() + padding + (1, 1),
-            window_rect.bottom_right() - padding - (1, 1),
-        );
-
-        let new_game_button = Button::new(rect.bottom_left(), "[N]ew Game").align_left();
-
-        let help_button = Button::new(rect.bottom_left(), "[?] Help").align_center(rect.width());
-
-        let menu_button = Button::new(rect.bottom_right(), "[Esc] Main Menu").align_right();
-
-        let text_rect = metrics.button_rect(&new_game_button);
-        if text_rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::NewGame);
-            rect_under_mouse = Some(text_rect);
-        }
-
-        let text_rect = metrics.button_rect(&help_button);
-        // NOTE(shadower): This is a fixup for the discrepancy between
-        // the text width in pixels and how it maps to the tile
-        // coordinates. It just looks better 1 tile wider.
-        let text_rect = Rectangle::new(text_rect.top_left(), text_rect.bottom_right() + (1, 0));
-        if text_rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::Help);
-            rect_under_mouse = Some(text_rect);
-        }
-
-        let text_rect = metrics.button_rect(&menu_button);
-        if text_rect.contains(state.mouse.tile_pos) {
-            action_under_mouse = Some(Action::Menu);
-            rect_under_mouse = Some(text_rect);
-        }
-
-        let close_button = {
-            let text = format!("[Esc] Close");
-            let mut button = Button::new(window_rect.top_right() - (1, 0), &text);
-            button.text_options = TextOptions::align_right();
-            let button_rect = metrics.button_rect(&button);
-            if button_rect.contains(state.mouse.tile_pos) {
-                action_under_mouse = Some(Action::Close);
-                rect_under_mouse = Some(button_rect);
-            }
-            button
-        };
-
-        if !top_level {
-            action_under_mouse = None;
-            rect_under_mouse = None;
-        }
-
-        Layout {
-            window_rect,
-            rect,
-            action_under_mouse,
-            rect_under_mouse,
-            new_game_button,
-            help_button,
-            menu_button,
-            close_button,
-            short,
-        }
-    }
-
-    pub fn render(
-        &self,
-        state: &State,
-        metrics: &dyn TextMetrics,
-        display: &mut Display,
-        top_level: bool,
-    ) {
-        use self::CauseOfDeath::*;
-        use crate::ui::Text::*;
-
-        let layout = self.layout(state, metrics, display, top_level);
-
+        ui: &mut Ui,
+        _metrics: &dyn TextMetrics,
+        _display: &Display,
+    ) -> Option<Action> {
+        use CauseOfDeath::*;
         let cause_of_death = formula::cause_of_death(&state.player);
-
-        let endgame_reason_text = if state.side == Side::Victory {
-            if !state.player.alive() {
-                log::warn!("The player appears to be dead on victory screen.");
-            }
-            if cause_of_death.is_some() {
-                log::warn!("The player has active cause of dead on victory screen.");
-            }
-            "You won!"
-        } else {
-            "You lost:"
-        };
-
         let perpetrator = state.player.perpetrator.as_ref();
-
         let endgame_description = match (cause_of_death, perpetrator) {
             (Some(Exhausted), None) => "Exhausted".into(),
             (Some(Exhausted), Some(monster)) => format!("Exhausted because of {}", monster.name(),),
@@ -162,86 +43,67 @@ impl Window {
             }
             (None, _) => "".into(), // Victory
         };
-
-        let doses_in_inventory = state
-            .player
-            .inventory
-            .iter()
-            .filter(|item| item.is_dose())
-            .count();
-
-        let turns_text = format!("Turns: {}", state.turn);
-        let carrying_doses_text = if state.player_picked_up_a_dose {
-            format!("Carrying {} doses", doses_in_inventory)
+        let endgame_reason_text = if state.side == Side::Victory {
+            if !state.player.alive() {
+                log::warn!("The player appears to be dead on victory screen.");
+            }
+            if cause_of_death.is_some() {
+                log::warn!("The player has active cause of dead on victory screen.");
+            }
+            "You won!".into()
         } else {
-            "You've never managed to save a dose for a later fix.".to_string()
+            format!("You lost: {}", endgame_description)
         };
-        let high_streak_text = format!(
-            "Longest High streak: {} turns",
-            state.player.longest_high_streak
-        );
 
-        let oneline_reason = format!("{} {}", endgame_reason_text, endgame_description);
-        let mut lines = vec![];
+        let mut action = None;
+        let mut window_is_open = true;
 
-        if layout.short {
-            lines.push(Centered(&oneline_reason));
-        } else {
-            lines.push(Centered(endgame_reason_text));
-            lines.push(Centered(&endgame_description));
-        }
+        egui::Window::new(&endgame_reason_text)
+            .default_size([800.0, 600.0])
+            .open(&mut window_is_open)
+            .show(ui.ctx(), |ui| {
+                ui.label(endgame_reason_text.clone());
+                ui.label(format!("Turns: {}", state.turn));
+                ui.label(format!(
+                    "Longest High streak: {} turns",
+                    state.player.longest_high_streak
+                ));
+                let carrying_doses_text = if state.player_picked_up_a_dose {
+                    let doses_in_inventory = state
+                        .player
+                        .inventory
+                        .iter()
+                        .filter(|item| item.is_dose())
+                        .count();
+                    format!("Carrying {} doses", doses_in_inventory)
+                } else {
+                    "You've never managed to save a dose for a later fix.".to_string()
+                };
+                ui.label(carrying_doses_text);
+                // Show some game tip, but not if the player just won
+                if state.side != Side::Victory {
+                    ui.label(format!("Tip: {}", endgame_tip(state)));
+                }
 
-        let empty_line = if layout.short { 0 } else { 1 };
-        let empty_block_lines = if layout.short { 1 } else { 2 };
+                ui.separator();
+                ui.horizontal(|ui| {
+                    if ui.button("[N]ew Game").clicked {
+                        action = Some(Action::NewGame);
+                    };
+                    if ui.button("[?] Help").clicked {
+                        action = Some(Action::Help);
+                    };
+                    if ui.button("[Esc] Main Menu").clicked {
+                        action = Some(Action::Menu);
+                    };
+                });
+            });
 
-        lines.extend(&[
-            EmptySpace(empty_block_lines),
-            Centered(&turns_text),
-            EmptySpace(empty_line),
-            Centered(&high_streak_text),
-            EmptySpace(empty_line),
-            Centered(&carrying_doses_text),
-            EmptySpace(empty_block_lines),
-        ]);
+        if !window_is_open {
+            action = Some(Action::Close)
+        };
 
-        let tip_text = format!("Tip: {}", endgame_tip(state));
-        if state.side != Side::Victory {
-            // Show some game tip, but not if the player just won
-            lines.push(Paragraph(&tip_text));
-            lines.push(EmptySpace(empty_block_lines));
-        }
-
-        display.draw_rectangle(layout.window_rect, color::window_edge);
-
-        display.draw_rectangle(
-            Rectangle::new(
-                layout.window_rect.top_left() + (1, 1),
-                layout.window_rect.bottom_right() - (1, 1),
-            ),
-            color::window_background,
-        );
-
-        ui::render_text_flow(&lines, layout.rect, 0, metrics, display);
-
-        if let Some(rect) = layout.rect_under_mouse {
-            display.draw_rectangle(rect, color::menu_highlight);
-        }
-
-        display.draw_button(&layout.new_game_button);
-        display.draw_button(&layout.help_button);
-        display.draw_button(&layout.menu_button);
-        display.draw_button(&layout.close_button);
-    }
-
-    pub fn hovered(
-        &self,
-        state: &State,
-        metrics: &dyn TextMetrics,
-        display: &Display,
-        top_level: bool,
-    ) -> Option<Action> {
-        self.layout(state, metrics, display, top_level)
-            .action_under_mouse
+        action
     }
 }
 

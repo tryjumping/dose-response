@@ -193,9 +193,14 @@ pub fn update(
             Window::Endgame => {
                 if top_level {
                     game_update_result =
-                        process_endgame_window(state, &endgame::Window, metrics, display);
+                        process_endgame_window(state, ui, &endgame::Window, metrics, display);
                 }
-                render::render_endgame_screen(state, &endgame::Window, metrics, display, top_level);
+
+                if cfg!(feature = "recording") {
+                    let window = crate::windows::call_to_action::Window;
+                    window.render(state, metrics, display);
+                }
+                display.fade = color::invisible;
             }
             Window::Message { ref message, .. } => {
                 if top_level {
@@ -950,17 +955,14 @@ fn process_help_window(
 
 fn process_endgame_window(
     state: &mut State,
+    ui: &mut Ui,
     window: &endgame::Window,
     metrics: &dyn TextMetrics,
     display: &Display,
 ) -> RunningState {
     use crate::windows::endgame::Action::*;
 
-    let mut action = if state.mouse.left_clicked {
-        window.hovered(&state, metrics, display, true)
-    } else {
-        None
-    };
+    let mut action = window.process(state, ui, metrics, display);
 
     if action.is_none() {
         if state.keys.matches_code(KeyCode::N) {

@@ -6,7 +6,7 @@ use crate::{
     point::{Point, SquareArea},
     rect::Rectangle,
     state::State,
-    windows::{endgame, help, main_menu, sidebar},
+    windows::{endgame, main_menu, sidebar},
     world::Chunk,
 };
 
@@ -258,19 +258,6 @@ pub fn render_main_menu(
     );
     display.draw_rectangle(window_rect, color::window_edge);
     display.draw_rectangle(inner_window_rect, color::window_background);
-
-    // Clear any fade set by the gameplay rendering
-    display.fade = color::invisible;
-}
-
-pub fn render_help_screen(
-    state: &State,
-    window: &help::Window,
-    metrics: &dyn TextMetrics,
-    display: &mut Display,
-    top_level: bool,
-) {
-    window.render(state, metrics, display, top_level);
 
     // Clear any fade set by the gameplay rendering
     display.fade = color::invisible;

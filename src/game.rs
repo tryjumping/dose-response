@@ -185,9 +185,10 @@ pub fn update(
             Window::Help => {
                 if top_level {
                     game_update_result =
-                        process_help_window(state, &help::Window, metrics, display);
+                        process_help_window(state, ui, &help::Window, metrics, display);
                 }
-                render::render_help_screen(state, &help::Window, metrics, display, top_level);
+                // Clear any fade set by the gameplay rendering
+                display.fade = color::invisible;
             }
             Window::Endgame => {
                 if top_level {
@@ -878,8 +879,9 @@ fn process_settings_window(
 
 fn process_help_window(
     state: &mut State,
+    ui: &mut Ui,
     window: &help::Window,
-    metrics: &dyn TextMetrics,
+    _metrics: &dyn TextMetrics,
     display: &Display,
 ) -> RunningState {
     use self::help::Action;
@@ -889,11 +891,13 @@ fn process_help_window(
         return RunningState::Running;
     }
 
-    let mut action = if state.mouse.left_clicked {
-        window.hovered(&state, metrics, display, true)
-    } else {
-        None
-    };
+    let mut visible = true;
+
+    let mut action = window.process(state, ui, display, &mut visible);
+
+    if !visible {
+        action = Some(Action::Close);
+    }
 
     if action.is_none() {
         if state.keys.matches_code(KeyCode::Right) {

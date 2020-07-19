@@ -4,6 +4,7 @@ pub mod call_to_action;
 pub mod endgame;
 pub mod help;
 pub mod main_menu;
+pub mod message;
 pub mod settings;
 pub mod sidebar;
 

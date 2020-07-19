@@ -20,7 +20,7 @@ use crate::{
     timer::{Stopwatch, Timer},
     util,
     window::{self, Window},
-    windows::{endgame, help, main_menu, settings, sidebar},
+    windows::{endgame, help, main_menu, message, settings, sidebar},
     world::World,
 };
 
@@ -203,7 +203,7 @@ pub fn update(
             }
             Window::Message { ref message, .. } => {
                 if top_level {
-                    game_update_result = process_message_window(state, ui, message)
+                    game_update_result = message::process(state, ui, message)
                 }
             }
         }
@@ -946,25 +946,6 @@ fn process_help_window(
         }
 
         None => {}
-    }
-
-    RunningState::Running
-}
-
-fn process_message_window(state: &mut State, ui: &mut Ui, text: &str) -> RunningState {
-    let mut window_open = true;
-    let mut close_button_clicked = false;
-    egui::Window::new(text)
-        .open(&mut window_open)
-        .show(ui.ctx(), |ui| {
-            ui.label(text);
-            close_button_clicked = ui.button("Close").clicked;
-        });
-
-    let closed = !window_open || close_button_clicked;
-
-    if closed || state.keys.get().is_some() || state.mouse.right_clicked {
-        state.window_stack.pop();
     }
 
     RunningState::Running

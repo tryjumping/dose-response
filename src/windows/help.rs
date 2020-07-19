@@ -155,104 +155,99 @@ licensed under the SIL Open Font License, Version 1.1";
 pub const LICENSE: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:
 https://www.gnu.org/licenses/gpl-3.0.en.html";
 
-pub struct Window;
-
-impl Window {
-    pub fn process(
-        &self,
-        state: &State,
-        ui: &mut Ui,
-        _display: &Display,
-        visible: &mut bool,
-    ) -> Option<Action> {
-        let mut action = None;
-        egui::Window::new(format!("{}", state.current_help_window))
-            .open(visible)
-            // TODO: calculate window size and position
-            .default_pos([10.0, 10.0])
-            .fixed_size([800.0, 400.0])
-            .show(ui.ctx(), |ui| {
-                ScrollArea::default()
-                    .always_show_scroll(true)
-                    .show(ui, |ui| {
-                        let copyright = format!("Copyright 2013-2020 {}", crate::metadata::AUTHORS);
-                        match state.current_help_window {
-                            Page::DoseResponse => {
-                                ui.label(OVERVIEW);
-                            }
-
-                            Page::NumpadControls => {
-                                ui.label(CONTROLS_HEADER);
-                                ui.label(NUMPAD_CONTROLS);
-                                ui.label(CONTROLS_FOOTER);
-                            }
-
-                            Page::ArrowControls => {
-                                ui.label(CONTROLS_HEADER);
-                                ui.label(ARROW_CONTROLS);
-                                ui.label(CONTROLS_FOOTER);
-                            }
-
-                            Page::ViKeys => {
-                                ui.label(CONTROLS_HEADER);
-                                ui.label(VI_KEYS_CONTROLS);
-                                ui.label(CONTROLS_FOOTER);
-                            }
-
-                            Page::HowToPlay => {
-                                // TODO: Add the graphical tiles here!
-                                ui.label(HOW_TO_PLAY);
-                            }
-
-                            Page::Legend => {
-                                // TODO: Add the graphical tiles here!
-                                ui.label(LEGEND);
-                            }
-
-                            Page::Credits => {
-                                ui.label(CREDITS_DEV);
-                                ui.label(copyright);
-                                ui.label("licensed under GNU General Public License 3 or later");
-                                ui.label(CREDITS_TILES);
-                                ui.label(CREDITS_FONT);
-                            }
-
-                            Page::About => {
-                                let version = format!(
-                                    "{} version: {}",
-                                    crate::metadata::TITLE,
-                                    crate::metadata::VERSION
-                                );
-
-                                ui.label(version);
-                                ui.label(format!("Homepage: {}", crate::metadata::HOMEPAGE));
-
-                                if !crate::metadata::GIT_HASH.trim().is_empty() {
-                                    ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
-                                }
-
-                                ui.label(LICENSE);
-                                ui.label(copyright);
-                            }
-                        };
-                    });
-                ui.separator();
-                ui.horizontal(|ui| {
-                    state.current_help_window.prev().map(|text| {
-                        if ui.button(format!("[<-] {}", text)).clicked {
-                            action = Some(Action::PrevPage);
+pub fn process(
+    state: &State,
+    ui: &mut Ui,
+    _display: &Display,
+    visible: &mut bool,
+) -> Option<Action> {
+    let mut action = None;
+    egui::Window::new(format!("{}", state.current_help_window))
+        .open(visible)
+        // TODO: calculate window size and position
+        .default_pos([10.0, 10.0])
+        .fixed_size([800.0, 400.0])
+        .show(ui.ctx(), |ui| {
+            ScrollArea::default()
+                .always_show_scroll(true)
+                .show(ui, |ui| {
+                    let copyright = format!("Copyright 2013-2020 {}", crate::metadata::AUTHORS);
+                    match state.current_help_window {
+                        Page::DoseResponse => {
+                            ui.label(OVERVIEW);
                         }
-                    });
 
-                    state.current_help_window.next().map(|text| {
-                        // TODO: right-align the button
-                        if ui.button(format!("[->] {}", text)).clicked {
-                            action = Some(Action::NextPage);
+                        Page::NumpadControls => {
+                            ui.label(CONTROLS_HEADER);
+                            ui.label(NUMPAD_CONTROLS);
+                            ui.label(CONTROLS_FOOTER);
                         }
-                    });
+
+                        Page::ArrowControls => {
+                            ui.label(CONTROLS_HEADER);
+                            ui.label(ARROW_CONTROLS);
+                            ui.label(CONTROLS_FOOTER);
+                        }
+
+                        Page::ViKeys => {
+                            ui.label(CONTROLS_HEADER);
+                            ui.label(VI_KEYS_CONTROLS);
+                            ui.label(CONTROLS_FOOTER);
+                        }
+
+                        Page::HowToPlay => {
+                            // TODO: Add the graphical tiles here!
+                            ui.label(HOW_TO_PLAY);
+                        }
+
+                        Page::Legend => {
+                            // TODO: Add the graphical tiles here!
+                            ui.label(LEGEND);
+                        }
+
+                        Page::Credits => {
+                            ui.label(CREDITS_DEV);
+                            ui.label(copyright);
+                            ui.label("licensed under GNU General Public License 3 or later");
+                            ui.label(CREDITS_TILES);
+                            ui.label(CREDITS_FONT);
+                        }
+
+                        Page::About => {
+                            let version = format!(
+                                "{} version: {}",
+                                crate::metadata::TITLE,
+                                crate::metadata::VERSION
+                            );
+
+                            ui.label(version);
+                            ui.label(format!("Homepage: {}", crate::metadata::HOMEPAGE));
+
+                            if !crate::metadata::GIT_HASH.trim().is_empty() {
+                                ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
+                            }
+
+                            ui.label(LICENSE);
+                            ui.label(copyright);
+                        }
+                    };
+                });
+            ui.separator();
+            ui.horizontal(|ui| {
+                state.current_help_window.prev().map(|text| {
+                    if ui.button(format!("[<-] {}", text)).clicked {
+                        action = Some(Action::PrevPage);
+                    }
+                });
+
+                state.current_help_window.next().map(|text| {
+                    // TODO: right-align the button
+                    if ui.button(format!("[->] {}", text)).clicked {
+                        action = Some(Action::NextPage);
+                    }
                 });
             });
+        });
 
-        action
-    }
+    action
 }

@@ -184,8 +184,7 @@ pub fn update(
             }
             Window::Help => {
                 if top_level {
-                    game_update_result =
-                        process_help_window(state, ui, &help::Window, metrics, display);
+                    game_update_result = process_help_window(state, ui, metrics, display);
                 }
                 // Clear any fade set by the gameplay rendering
                 display.fade = color::invisible;
@@ -883,7 +882,6 @@ fn process_settings_window(
 fn process_help_window(
     state: &mut State,
     ui: &mut Ui,
-    window: &help::Window,
     _metrics: &dyn TextMetrics,
     display: &Display,
 ) -> RunningState {
@@ -896,7 +894,7 @@ fn process_help_window(
 
     let mut visible = true;
 
-    let mut action = window.process(state, ui, display, &mut visible);
+    let mut action = help::process(state, ui, display, &mut visible);
 
     if !visible {
         action = Some(Action::Close);

@@ -184,7 +184,7 @@ pub fn update(
             }
             Window::Help => {
                 if top_level {
-                    game_update_result = process_help_window(state, ui, metrics, display);
+                    game_update_result = help::process(state, ui, display);
                 }
                 // Clear any fade set by the gameplay rendering
                 display.fade = color::invisible;
@@ -874,76 +874,6 @@ fn process_settings_window(
                 store.save(settings);
             }
         }
-    }
-
-    RunningState::Running
-}
-
-fn process_help_window(
-    state: &mut State,
-    ui: &mut Ui,
-    _metrics: &dyn TextMetrics,
-    display: &Display,
-) -> RunningState {
-    use self::help::Action;
-
-    if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
-        state.window_stack.pop();
-        return RunningState::Running;
-    }
-
-    let mut visible = true;
-
-    let mut action = help::process(state, ui, display, &mut visible);
-
-    if !visible {
-        action = Some(Action::Close);
-    }
-
-    if action.is_none() {
-        if state.keys.matches_code(KeyCode::Right) {
-            action = Some(Action::NextPage);
-        } else if state.keys.matches_code(KeyCode::Left) {
-            action = Some(Action::PrevPage);
-        } else if state.keys.matches_code(KeyCode::Up) {
-            action = Some(Action::LineUp);
-        } else if state.keys.matches_code(KeyCode::Down) {
-            action = Some(Action::LineDown);
-        }
-    }
-
-    match action {
-        Some(Action::NextPage) => {
-            let new_help_window = state
-                .current_help_window
-                .next()
-                .unwrap_or(state.current_help_window);
-            state.current_help_window = new_help_window;
-            state.help_starting_line = 0;
-        }
-
-        Some(Action::PrevPage) => {
-            let new_help_window = state
-                .current_help_window
-                .prev()
-                .unwrap_or(state.current_help_window);
-            state.current_help_window = new_help_window;
-            state.help_starting_line = 0;
-        }
-
-        Some(Action::LineUp) => {
-            if state.help_starting_line > 0 {
-                state.help_starting_line -= 1;
-            }
-        }
-        Some(Action::LineDown) => state.help_starting_line += 1,
-
-        Some(Action::Close) => {
-            state.window_stack.pop();
-            return RunningState::Running;
-        }
-
-        None => {}
     }
 
     RunningState::Running

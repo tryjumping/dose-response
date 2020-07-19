@@ -1,4 +1,4 @@
-use crate::{engine::Display, state::State};
+use crate::{engine::Display, game::RunningState, keys::KeyCode, state::State};
 
 use std::fmt::{Display as FmtDisplay, Error, Formatter};
 
@@ -155,15 +155,13 @@ licensed under the SIL Open Font License, Version 1.1";
 pub const LICENSE: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:
 https://www.gnu.org/licenses/gpl-3.0.en.html";
 
-pub fn process(
-    state: &State,
-    ui: &mut Ui,
-    _display: &Display,
-    visible: &mut bool,
-) -> Option<Action> {
+pub fn process(state: &mut State, ui: &mut Ui, _display: &Display) -> RunningState {
+    let mut visible = true;
+
     let mut action = None;
+
     egui::Window::new(format!("{}", state.current_help_window))
-        .open(visible)
+        .open(&mut visible)
         // TODO: calculate window size and position
         .default_pos([10.0, 10.0])
         .fixed_size([800.0, 400.0])
@@ -249,5 +247,59 @@ pub fn process(
             });
         });
 
-    action
+    if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
+        action = Some(Action::Close);
+    }
+
+    if !visible {
+        action = Some(Action::Close);
+    }
+
+    if action.is_none() {
+        if state.keys.matches_code(KeyCode::Right) {
+            action = Some(Action::NextPage);
+        } else if state.keys.matches_code(KeyCode::Left) {
+            action = Some(Action::PrevPage);
+        } else if state.keys.matches_code(KeyCode::Up) {
+            action = Some(Action::LineUp);
+        } else if state.keys.matches_code(KeyCode::Down) {
+            action = Some(Action::LineDown);
+        }
+    }
+
+    match action {
+        Some(Action::NextPage) => {
+            let new_help_window = state
+                .current_help_window
+                .next()
+                .unwrap_or(state.current_help_window);
+            state.current_help_window = new_help_window;
+            state.help_starting_line = 0;
+        }
+
+        Some(Action::PrevPage) => {
+            let new_help_window = state
+                .current_help_window
+                .prev()
+                .unwrap_or(state.current_help_window);
+            state.current_help_window = new_help_window;
+            state.help_starting_line = 0;
+        }
+
+        Some(Action::LineUp) => {
+            if state.help_starting_line > 0 {
+                state.help_starting_line -= 1;
+            }
+        }
+        Some(Action::LineDown) => state.help_starting_line += 1,
+
+        Some(Action::Close) => {
+            state.window_stack.pop();
+            return RunningState::Running;
+        }
+
+        None => {}
+    }
+
+    RunningState::Running
 }

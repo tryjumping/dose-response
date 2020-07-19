@@ -173,7 +173,6 @@ pub fn update(
                         state,
                         ui,
                         settings,
-                        &settings::Window,
                         metrics,
                         display,
                         settings_store,
@@ -777,7 +776,6 @@ fn process_settings_window(
     state: &mut State,
     ui: &mut Ui,
     settings: &mut Settings,
-    window: &settings::Window,
     metrics: &dyn TextMetrics,
     display: &mut Display,
     store: &mut dyn SettingsStore,
@@ -790,7 +788,7 @@ fn process_settings_window(
     }
 
     // Process the Egui events
-    let mut option = window.process(&state, ui, settings, metrics, display, true);
+    let mut option = settings::process(&state, ui, settings, display);
 
     if option.is_none() {
         if state.keys.matches_code(KeyCode::F) {

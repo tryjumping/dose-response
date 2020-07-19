@@ -150,7 +150,6 @@ pub fn update(
                     visible,
                     active,
                 );
-                render::render_main_menu(state, &main_menu::Window, metrics, display, top_level);
             }
             Window::Game => {
                 if top_level {
@@ -668,6 +667,21 @@ fn process_main_menu(
     active: bool,
 ) -> RunningState {
     use crate::windows::main_menu::MenuItem::*;
+
+    // TODO: Any chance we could just replace all this with an egui window?
+    let window_pos = Point::new(0, 0);
+    let window_size = display.size_without_padding();
+    let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
+
+    let inner_window_rect = Rectangle::new(
+        window_rect.top_left() + (1, 1),
+        window_rect.bottom_right() - (1, 1),
+    );
+    display.draw_rectangle(window_rect, color::window_edge);
+    display.draw_rectangle(inner_window_rect, color::window_background);
+
+    // Clear any fade set by the gameplay rendering
+    display.fade = color::invisible;
 
     // Process the Egui events
     let mut option = window.process(&state, ui, metrics, display, visible, active);

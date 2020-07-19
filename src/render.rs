@@ -6,7 +6,7 @@ use crate::{
     point::{Point, SquareArea},
     rect::Rectangle,
     state::State,
-    windows::{main_menu, sidebar},
+    windows::sidebar,
     world::Chunk,
 };
 
@@ -238,29 +238,6 @@ pub fn render_game(
     if mouse_inside_map && state.mouse.right_is_down {
         render_monster_info(state, display);
     }
-}
-
-pub fn render_main_menu(
-    _state: &State,
-    _window: &main_menu::Window,
-    _metrics: &dyn TextMetrics,
-    display: &mut Display,
-    _top_level: bool,
-) {
-    // TODO: Any chance we could just replace all this with an egui window?
-    let window_pos = Point::new(0, 0);
-    let window_size = display.size_without_padding();
-    let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
-
-    let inner_window_rect = Rectangle::new(
-        window_rect.top_left() + (1, 1),
-        window_rect.bottom_right() - (1, 1),
-    );
-    display.draw_rectangle(window_rect, color::window_edge);
-    display.draw_rectangle(inner_window_rect, color::window_background);
-
-    // Clear any fade set by the gameplay rendering
-    display.fade = color::invisible;
 }
 
 fn render_monster_info(state: &State, display: &mut Display) {

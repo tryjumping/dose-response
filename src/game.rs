@@ -192,7 +192,7 @@ pub fn update(
             }
             Window::Endgame => {
                 if top_level {
-                    game_update_result = endgame::Window.process(state, ui, metrics, display);
+                    game_update_result = endgame::process(state, ui, metrics, display);
                 }
 
                 if cfg!(feature = "recording") {

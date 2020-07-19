@@ -132,17 +132,11 @@ pub fn update(
         let top_level = state.window_stack.top() == *window;
         match window {
             Window::MainMenu => {
-                // TODO: technically, `render` should be before
-                // `process` here and ideally in the same function.
-                // Because here in process we build the GUI and then
-                // "clear the window" in render. This works because
-                // the engine renders the GUI vertices to the GPU
-                // after everything else. But really, this should all
-                // be consolidated somehow.
-                let visible = true;
                 let active = top_level;
-                game_update_result =
-                    process_main_menu(state, ui, metrics, display, visible, active);
+                game_update_result = main_menu::process(state, ui, metrics, display, active);
+
+                // Clear any fade set by the gameplay rendering
+                display.fade = color::invisible;
             }
             Window::Game => {
                 if top_level {
@@ -644,128 +638,6 @@ fn process_game(
 
         if cfg!(feature = "recording") {
             state.show_keboard_movement_hints = false;
-        }
-    }
-
-    RunningState::Running
-}
-
-fn process_main_menu(
-    state: &mut State,
-    ui: &mut Ui,
-    metrics: &dyn TextMetrics,
-    display: &mut Display,
-    visible: bool,
-    active: bool,
-) -> RunningState {
-    use crate::windows::main_menu::MenuItem::*;
-
-    // TODO: Any chance we could just replace all this with an egui window?
-    let window_pos = Point::new(0, 0);
-    let window_size = display.size_without_padding();
-    let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
-
-    let inner_window_rect = Rectangle::new(
-        window_rect.top_left() + (1, 1),
-        window_rect.bottom_right() - (1, 1),
-    );
-    display.draw_rectangle(window_rect, color::window_edge);
-    display.draw_rectangle(inner_window_rect, color::window_background);
-
-    // Clear any fade set by the gameplay rendering
-    display.fade = color::invisible;
-
-    // Process the Egui events
-    let mut option = main_menu::process(&state, ui, metrics, display, visible, active);
-
-    if option.is_none() {
-        if state.keys.matches_code(KeyCode::Esc)
-            || state.keys.matches_code(KeyCode::R)
-            || state.mouse.right_clicked
-        {
-            option = Some(Resume);
-        } else if state.keys.matches_code(KeyCode::N) {
-            option = Some(NewGame);
-        } else if state.keys.matches_code(KeyCode::QuestionMark)
-            || state.keys.matches_code(KeyCode::H)
-        {
-            option = Some(Help);
-        } else if state.keys.matches_code(KeyCode::E) {
-            option = Some(Settings);
-        } else if state.keys.matches_code(KeyCode::S) {
-            option = Some(SaveAndQuit);
-        } else if state.keys.matches_code(KeyCode::Q) {
-            option = Some(Quit);
-        } else if state.keys.matches_code(KeyCode::L) {
-            option = Some(Load);
-        }
-    }
-
-    if let Some(option) = option {
-        match option {
-            Resume => {
-                state.window_stack.pop();
-                return RunningState::Running;
-            }
-
-            NewGame => {
-                // NOTE: When this is the first run, we resume the
-                // game that's already loaded in the background.
-                if state.first_game_already_generated {
-                    state.window_stack.pop();
-                    state.first_game_already_generated = false;
-                    return RunningState::Running;
-                } else {
-                    return RunningState::NewGame(Box::new(create_new_game_state(state)));
-                }
-            }
-
-            Help => {
-                state.window_stack.push(Window::Help);
-                return RunningState::Running;
-            }
-
-            Settings => {
-                state.window_stack.push(Window::Settings);
-                return RunningState::Running;
-            }
-
-            SaveAndQuit => {
-                if !state.game_ended {
-                    match state.save_to_file() {
-                        Ok(()) => return RunningState::Stopped,
-                        Err(error) => {
-                            // NOTE: we couldn't save the game so we'll keep going
-                            log::error!("Error saving the game: {:?}", error);
-                            state
-                                .window_stack
-                                .push(window::message_box("Error: could not save the game."));
-                        }
-                    }
-                }
-                return RunningState::Running;
-            }
-
-            Load => match State::load_from_file() {
-                Ok(new_state) => {
-                    *state = new_state;
-                    if state.window_stack.top() == Window::MainMenu {
-                        state.window_stack.pop();
-                    }
-                    return RunningState::Running;
-                }
-                Err(error) => {
-                    log::error!("Error loading the game: {:?}", error);
-                    state
-                        .window_stack
-                        .push(window::message_box("Error: could not load the game."));
-                    return RunningState::Running;
-                }
-            },
-
-            Quit => {
-                return RunningState::Stopped;
-            }
         }
     }
 

@@ -295,6 +295,7 @@ impl LoopState {
     }
 
     pub fn egui_raw_input(&self) -> RawInput {
+        let text_size = self.settings.text_size as f32;
         RawInput {
             mouse_down: self.mouse.left_is_down,
             mouse_pos: Some(
@@ -304,6 +305,11 @@ impl LoopState {
                 ]
                 .into(),
             ),
+            scroll_delta: [
+                self.mouse.scroll_delta[0] * text_size,
+                self.mouse.scroll_delta[1] * text_size,
+            ]
+            .into(),
             screen_size: [self.window_size_px.x as f32, self.window_size_px.y as f32].into(),
 
             // TODO: handle DPI here
@@ -397,6 +403,7 @@ impl LoopState {
     pub fn reset_inputs(&mut self) {
         self.mouse.left_clicked = false;
         self.mouse.right_clicked = false;
+        self.mouse.scroll_delta = [0.0, 0.0];
         self.keys.clear();
     }
 

@@ -580,6 +580,9 @@ pub struct Mouse {
     pub left_is_down: bool,
     /// The right button is being held down.
     pub right_is_down: bool,
+
+    /// The amount a mouse wheel has scrolled.
+    pub scroll_delta: [f32; 2],
 }
 
 impl Mouse {

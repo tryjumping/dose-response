@@ -362,6 +362,12 @@ monitor ID: {:?}. Ignoring this request.",
                     );
                 }
 
+                WindowEvent::MouseWheel { delta, .. } => {
+                    if let glutin::event::MouseScrollDelta::LineDelta(x, y) = delta {
+                        loop_state.mouse.scroll_delta = [x as f32, y as f32];
+                    }
+                }
+
                 WindowEvent::MouseInput {
                     state: ElementState::Pressed,
                     button,

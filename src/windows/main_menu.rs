@@ -33,8 +33,7 @@ pub fn process(
     // doing that in the previous version of the UI.
     // Check if we need to do that here too.
 
-    // TODO: get the actual window size, not just the area to render tiles in!
-    let window_size_px = display.size_without_padding() * display.tile_size;
+    let window_size_px = display.screen_size_px;
 
     // NOTE: half of the border is inside the rect and half is
     // outside. Since the edge of the rectangle is the edge of the

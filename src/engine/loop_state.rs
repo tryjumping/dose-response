@@ -297,7 +297,12 @@ impl LoopState {
     pub fn egui_raw_input(&self) -> RawInput {
         let text_size = self.settings.text_size as f32;
         RawInput {
-            mouse_down: self.mouse.left_is_down,
+            // NOTE: egui is only interested in mouse down events. But
+            // if you click and release within the same frame, that
+            // would get ignored. Adding in the `left_clicked` state
+            // means that clicks won't get missed, but they may be
+            // registered by egui a frame later.
+            mouse_down: self.mouse.left_is_down || self.mouse.left_clicked,
             mouse_pos: Some(
                 [
                     self.mouse.screen_pos.x as f32,

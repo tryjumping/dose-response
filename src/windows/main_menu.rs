@@ -4,13 +4,11 @@ use crate::{
     game,
     game::RunningState,
     keys::KeyCode,
-    point::Point,
-    rect::Rectangle,
     state::State,
     window::{self, Window},
 };
 
-use egui::{self, Button, Ui};
+use egui::{self, Button, LineStyle, PaintCmd, Rect, Ui};
 
 #[derive(Debug)]
 pub enum MenuItem {
@@ -30,26 +28,32 @@ pub fn process(
     display: &mut Display,
     active: bool,
 ) -> RunningState {
-    // TODO: Any chance we could just replace all this with an egui window?
-    let window_pos = Point::new(0, 0);
-    let window_size = display.size_without_padding();
-    let window_rect = Rectangle::from_point_and_size(window_pos, window_size);
-
-    let inner_window_rect = Rectangle::new(
-        window_rect.top_left() + (1, 1),
-        window_rect.bottom_right() - (1, 1),
-    );
-    display.draw_rectangle(window_rect, color::window_edge);
-    display.draw_rectangle(inner_window_rect, color::window_background);
-
-    let mut action = None;
-
     // TODO: check all the UI padding & layouting work on mobile.
     // We're ignoring all that here, but a lot of work went into
     // doing that in the previous version of the UI.
     // Check if we need to do that here too.
 
-    // NOTE: this centers the UI area. Without it, we start in the top-left corner.
+    // TODO: get the actual window size, not just the area to render tiles in!
+    let window_size_px = display.size_without_padding() * display.tile_size;
+
+    // NOTE: half of the border is inside the rect and half is
+    // outside. Since the edge of the rectangle is the edge of the
+    // window, we only see half of this. By making the outline twice
+    // as wide, we'll see the desired thickness.
+    let border_width_px = 30.0 * 2.0;
+
+    ui.add_paint_cmd(PaintCmd::Rect {
+        rect: Rect {
+            min: [0.0, 0.0].into(),
+            max: [window_size_px.x as f32, window_size_px.y as f32].into(),
+        },
+        corner_radius: 0.0,
+        fill: Some(color::window_background.into()),
+        outline: Some(LineStyle {
+            width: border_width_px,
+            color: color::window_edge.into(),
+        }),
+    });
 
     ui.floating_text(
         ui.available().translate([-70.0, -70.0].into()).max,
@@ -63,6 +67,7 @@ pub fn process(
         None,
     );
 
+    // NOTE: this centers the UI area. Without it, we start in the top-left corner.
     let mut ui = ui.centered_column(ui.available().width().min(480.0));
 
     // This makes the buttons centered but only as wide as the text inside:
@@ -76,6 +81,8 @@ pub fn process(
     ui.label("Dose Response");
     ui.label("By Tomas Sedovic");
     ui.label("");
+
+    let mut action = None;
 
     if !state.game_ended && !state.first_game_already_generated {
         if ui.button("[R]esume").clicked {

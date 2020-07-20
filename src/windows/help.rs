@@ -155,16 +155,25 @@ licensed under the SIL Open Font License, Version 1.1";
 pub const LICENSE: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:
 https://www.gnu.org/licenses/gpl-3.0.en.html";
 
-pub fn process(state: &mut State, ui: &mut Ui, _display: &Display) -> RunningState {
+pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningState {
     let mut visible = true;
 
     let mut action = None;
 
+    let display_size_px = display.size_without_padding() * display.tile_size;
+    let window_size_px = [
+        (display_size_px.x - 150) as f32,
+        (display_size_px.y - 150) as f32,
+    ];
+    let window_pos_px = [
+        (display_size_px.x as f32 - window_size_px[0]) / 2.0,
+        (display_size_px.y as f32 - window_size_px[1]) / 2.0,
+    ];
+
     egui::Window::new(format!("{}", state.current_help_window))
         .open(&mut visible)
-        // TODO: calculate window size and position
-        .default_pos([10.0, 10.0])
-        .fixed_size([800.0, 400.0])
+        .default_pos(window_pos_px)
+        .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
             ScrollArea::default()
                 .always_show_scroll(true)

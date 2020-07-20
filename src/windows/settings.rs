@@ -27,8 +27,6 @@ pub fn process(
     let mut visible = true;
     let mut action = None;
 
-    // TODO: resizing the game window doesn't resize the settings window properly.
-
     let display_size_px = display.size_without_padding() * display.tile_size;
     let window_size_px = [
         (display_size_px.x - 150) as f32,

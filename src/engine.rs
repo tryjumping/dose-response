@@ -618,6 +618,8 @@ pub enum DrawResult {
 pub struct Display {
     // TODO: this is the actual game area size in tiles. Rename it to something that makes that clear
     display_size: Point,
+    /// Size of the full window in pixels.
+    pub screen_size_px: Point,
     pub tile_size: i32,
     pub text_size: i32,
     pub offset_px: Point,
@@ -635,8 +637,9 @@ impl Display {
     ///
     /// `display_size`: number of tiles shown on the screen
     /// `tilesize`: size (in pixels) of a single tile. Tiles are square.
-    pub fn new(display_size: Point, tile_size: i32, text_size: i32) -> Self {
+    pub fn new(display_size: Point, screen_size_px: Point, tile_size: i32, text_size: i32) -> Self {
         assert!(display_size > Point::zero());
+        assert!(screen_size_px > Point::zero());
         assert!(tile_size > 0);
         assert!(text_size > 0);
         // NOTE: this padding is only here to make the screen scroll smoothly.
@@ -646,6 +649,7 @@ impl Display {
         log::info!("Creating the internal Display: {:?}", size);
         Display {
             display_size,
+            screen_size_px,
             padding,
             tile_size,
             text_size,

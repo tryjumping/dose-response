@@ -115,6 +115,7 @@ impl LoopState {
 
         let display = Display::new(
             game_display_size_tiles,
+            game_display_size_tiles * settings.tile_size,
             settings.tile_size,
             settings.text_size,
         );
@@ -337,6 +338,7 @@ impl LoopState {
             );
             self.display = Display::new(
                 new_display_size_tiles,
+                new_window_size_px,
                 self.settings.tile_size,
                 self.settings.text_size,
             );
@@ -358,6 +360,7 @@ impl LoopState {
             );
             self.display = Display::new(
                 new_display_size_tiles,
+                self.display.screen_size_px,
                 self.settings.tile_size,
                 self.settings.text_size,
             );
@@ -384,6 +387,7 @@ impl LoopState {
             );
             self.display = Display::new(
                 display_size_tiles,
+                self.display.screen_size_px,
                 self.settings.tile_size,
                 self.settings.text_size,
             );

@@ -179,9 +179,13 @@ pub fn update(
                 }
                 display.fade = color::invisible;
             }
-            Window::Message { ref message, .. } => {
+            Window::Message {
+                ref title,
+                ref message,
+                ..
+            } => {
                 if top_level {
-                    game_update_result = message::process(state, ui, message)
+                    game_update_result = message::process(state, ui, title, message)
                 }
             }
         }
@@ -798,8 +802,12 @@ fn process_player_action<W>(
             Command::UseDiagonalDose => Action::Use(item::Kind::DiagonalDose),
             Command::UseStrongDose => Action::Use(item::Kind::StrongDose),
 
-            Command::ShowMessageBox { ttl, message } => {
-                window_stack.push(window::timed_message_box(message, ttl));
+            Command::ShowMessageBox {
+                ttl,
+                title,
+                message,
+            } => {
+                window_stack.push(window::timed_message_box(title, message, ttl));
                 return;
             }
         };
@@ -910,6 +918,7 @@ fn process_player_action<W>(
                                 log::info!("Bumped into a signpost!");
                                 window_stack.push(
                                     window::message_box(
+                                        "Message",
                                         "\"I thought you were going to stay sober for good. I was wrong. Goodbye.\""));
                             }
 

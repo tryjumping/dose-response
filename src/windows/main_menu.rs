@@ -182,9 +182,10 @@ pub fn process(
                         Err(error) => {
                             // NOTE: we couldn't save the game so we'll keep going
                             log::error!("Error saving the game: {:?}", error);
-                            state
-                                .window_stack
-                                .push(window::message_box("Error: could not save the game."));
+                            state.window_stack.push(window::message_box(
+                                "Save Game",
+                                "Error: could not save the game.",
+                            ));
                         }
                     }
                 }
@@ -201,9 +202,10 @@ pub fn process(
                 }
                 Err(error) => {
                     log::error!("Error loading the game: {:?}", error);
-                    state
-                        .window_stack
-                        .push(window::message_box("Error: could not load the game."));
+                    state.window_stack.push(window::message_box(
+                        "Load Game",
+                        "Error: could not load the game.",
+                    ));
                     return RunningState::Running;
                 }
             },

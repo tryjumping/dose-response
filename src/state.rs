@@ -57,7 +57,11 @@ pub enum Command {
     UseCardinalDose,
     UseDiagonalDose,
     UseStrongDose,
-    ShowMessageBox { ttl: Duration, message: String },
+    ShowMessageBox {
+        ttl: Duration,
+        title: String,
+        message: String,
+    },
 }
 
 pub fn generate_replay_path() -> Option<PathBuf> {

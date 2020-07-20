@@ -50,6 +50,19 @@ pub fn process(
     // Check if we need to do that here too.
 
     // NOTE: this centers the UI area. Without it, we start in the top-left corner.
+
+    ui.floating_text(
+        ui.available().translate([-70.0, -70.0].into()).max,
+        format!(
+            "Version: {}.{}",
+            crate::metadata::VERSION_MAJOR,
+            crate::metadata::VERSION_MINOR
+        ),
+        egui::TextStyle::Body,
+        (egui::Align::Max, egui::Align::Max),
+        None,
+    );
+
     let mut ui = ui.centered_column(ui.available().width().min(480.0));
 
     // This makes the buttons centered but only as wide as the text inside:
@@ -57,8 +70,12 @@ pub fn process(
     // NOTE: This makes the buttons left-aligned but full-width
     //ui.set_layout(egui::Layout::justified(egui::Direction::Vertical));
 
+    // NOTE: hack to add some top padding to the buttons and labels:
+    ui.label("\n");
+
     ui.label("Dose Response");
     ui.label("By Tomas Sedovic");
+    ui.label("");
 
     if !state.game_ended && !state.first_game_already_generated {
         if ui.button("[R]esume").clicked {
@@ -97,15 +114,8 @@ pub fn process(
         action = Some(MenuItem::Quit);
     };
 
-    // TODO: move this to the bottom-left corner
-    ui.label(" \"You cannot lose if you do not play.\"\n -- Marla Daniels");
-
-    // TODO: move this to the bottom-right corner
-    ui.label(format!(
-        "Version: {}.{}",
-        crate::metadata::VERSION_MAJOR,
-        crate::metadata::VERSION_MINOR
-    ));
+    ui.label("");
+    ui.label("\"You cannot lose if you do not play.\"\n-- Marla Daniels");
 
     if action.is_none() {
         if state.keys.matches_code(KeyCode::Esc)

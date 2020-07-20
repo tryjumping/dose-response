@@ -185,7 +185,7 @@ pub fn update(
                 ..
             } => {
                 if top_level {
-                    game_update_result = message::process(state, ui, title, message)
+                    game_update_result = message::process(state, ui, title, message, display)
                 }
             }
         }

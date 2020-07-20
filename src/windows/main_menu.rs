@@ -51,9 +51,12 @@ pub fn process(
 
     // NOTE: this centers the UI area. Without it, we start in the top-left corner.
     let mut ui = ui.centered_column(ui.available().width().min(480.0));
-    //ui.set_layout(egui::Layout::vertical(Align::Min));
-    ui.set_layout(egui::Layout::justified(egui::Direction::Vertical));
-    // TODO: center the text here
+
+    // This makes the buttons centered but only as wide as the text inside:
+    ui.set_layout(egui::Layout::vertical(egui::Align::Center));
+    // NOTE: This makes the buttons left-aligned but full-width
+    //ui.set_layout(egui::Layout::justified(egui::Direction::Vertical));
+
     ui.label("Dose Response");
     ui.label("By Tomas Sedovic");
 

@@ -44,6 +44,19 @@ impl Into<ColorAlpha> for Color {
 }
 
 
+impl Into<egui::Color> for Color {
+    fn into(self) -> egui::Color {
+        let color: ColorAlpha = self.into();
+        egui::Color {
+            r: color.rgb.r,
+            g: color.rgb.g,
+            b: color.rgb.b,
+            a: color.alpha,
+        }
+    }
+}
+
+
 pub const invisible: ColorAlpha = ColorAlpha { rgb: Color { r: 0, g: 0, b: 0 }, alpha: 0 };
 
 

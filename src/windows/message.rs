@@ -19,6 +19,7 @@ pub fn process(
     let mut window_open = true;
     egui::Window::new(title)
         .open(&mut window_open)
+        .collapsable(false)
         .fixed_pos(window_pos_px)
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {

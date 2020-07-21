@@ -75,6 +75,7 @@ pub fn process(
 
     egui::Window::new(&endgame_reason_text)
         .open(&mut window_is_open)
+        .collapsable(false)
         .fixed_pos(window_pos_px)
         .fixed_size(window_size)
         .show(ui.ctx(), |ui| {

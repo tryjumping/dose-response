@@ -6,7 +6,7 @@ use crate::{
     state::State,
 };
 
-use egui::{self, Ui, Window as GuiWindow};
+use egui::{self, Ui};
 
 pub enum Action {
     Fullscreen,
@@ -37,7 +37,7 @@ pub fn process(
         (display_size_px.y as f32 - window_size_px[1]) / 2.0,
     ];
 
-    GuiWindow::new("Settings")
+    egui::Window::new("Settings")
         .open(&mut visible)
         .default_pos(window_pos_px)
         .fixed_size(window_size_px)

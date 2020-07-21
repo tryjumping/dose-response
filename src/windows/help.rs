@@ -243,17 +243,18 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                         }
                     };
                 });
+
             ui.separator();
-            ui.horizontal(|ui| {
+            ui.columns(2, |c| {
                 state.current_help_window.prev().map(|text| {
-                    if ui.button(format!("[<-] {}", text)).clicked {
+                    if c[0].button(format!("[<-] {}", text)).clicked {
                         action = Some(Action::PrevPage);
                     }
                 });
 
                 state.current_help_window.next().map(|text| {
-                    // TODO: right-align the button
-                    if ui.button(format!("[->] {}", text)).clicked {
+                    c[1].set_layout(egui::Layout::vertical(egui::Align::Max));
+                    if c[1].button(format!("[->] {}", text)).clicked {
                         action = Some(Action::NextPage);
                     }
                 });

@@ -78,12 +78,14 @@ pub fn process(
         .fixed_pos(window_pos_px)
         .fixed_size(window_size)
         .show(ui.ctx(), |ui| {
-            ui.label(endgame_reason_text.clone());
+            ui.set_layout(egui::Layout::vertical(egui::Align::Center));
             ui.label(format!("Turns: {}", state.turn));
+            ui.label("");
             ui.label(format!(
                 "Longest High streak: {} turns",
                 state.player.longest_high_streak
             ));
+            ui.label("");
             let carrying_doses_text = if state.player_picked_up_a_dose {
                 let doses_in_inventory = state
                     .player
@@ -98,18 +100,23 @@ pub fn process(
             ui.label(carrying_doses_text);
             // Show some game tip, but not if the player just won
             if state.side != Side::Victory {
+                ui.label("");
                 ui.label(format!("Tip: {}", endgame_tip(state)));
             }
 
             ui.separator();
-            ui.horizontal(|ui| {
-                if ui.button("[N]ew Game").clicked {
+            ui.columns(3, |c| {
+                c[0].set_layout(egui::Layout::vertical(egui::Align::Min));
+                if c[0].button("[N]ew Game").clicked {
                     action = Some(Action::NewGame);
                 };
-                if ui.button("[?] Help").clicked {
+                c[1].set_layout(egui::Layout::vertical(egui::Align::Center));
+                if c[1].button("[?] Help").clicked {
                     action = Some(Action::Help);
                 };
-                if ui.button("[Esc] Main Menu").clicked {
+                c[2].set_layout(egui::Layout::vertical(egui::Align::Max));
+
+                if c[2].button("[Esc] Main Menu").clicked {
                     action = Some(Action::Menu);
                 };
             });

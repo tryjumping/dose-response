@@ -288,6 +288,8 @@ fn process_game(
         return RunningState::Running;
     }
 
+    let player_was_alive = state.player.alive();
+
     // Uncover map / set the Cheat mode
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::F6) {
         state.cheating = !state.cheating;
@@ -309,6 +311,11 @@ fn process_game(
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::W) && state.cheating {
         log::info!("Increasing Will by one, you cheat!");
         state.player.will += 1;
+    }
+
+    if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::D) && state.cheating {
+        log::info!("Killing the player");
+        state.player.dead = true;
     }
 
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::V) && state.cheating {
@@ -353,7 +360,6 @@ fn process_game(
         state.offset_px = Point::zero();
     }
 
-    let player_was_alive = state.player.alive();
     let running = !state.paused && !state.replay;
     let mut entire_turn_ended = false;
     // Pause entity processing during animations when replaying (so

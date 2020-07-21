@@ -37,7 +37,7 @@ pub fn process(
         }
         (Some(Killed), Some(monster)) => format!("Defeated by {}", monster.name()),
         (Some(Killed), None) => {
-            log::error!("Player lost without an apparent cause.");
+            // NOTE: this happens when the player kills itself using a cheat command.
             format!("Lost")
         }
         (None, _) => "".into(), // Victory

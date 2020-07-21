@@ -21,7 +21,7 @@ pub fn process(
     state: &mut State,
     ui: &mut Ui,
     _metrics: &dyn TextMetrics,
-    _display: &Display,
+    display: &Display,
 ) -> RunningState {
     use CauseOfDeath::*;
     let cause_of_death = formula::cause_of_death(&state.player);
@@ -57,9 +57,26 @@ pub fn process(
     let mut action = None;
     let mut window_is_open = true;
 
+    let expected_window_width: f32 = 600.0;
+    let expected_window_height: f32 = 400.0;
+    let padding = 50.0;
+    let max_size = [
+        display.screen_size_px.x as f32 - padding,
+        display.screen_size_px.y as f32 - padding,
+    ];
+    let window_size = [
+        expected_window_width.min(max_size[0]),
+        expected_window_height.min(max_size[1]),
+    ];
+    let window_pos_px = [
+        (display.screen_size_px.x as f32 - window_size[0]) / 2.0,
+        (display.screen_size_px.y as f32 - window_size[1]) / 2.0,
+    ];
+
     egui::Window::new(&endgame_reason_text)
-        .default_size([800.0, 600.0])
         .open(&mut window_is_open)
+        .fixed_pos(window_pos_px)
+        .fixed_size(window_size)
         .show(ui.ctx(), |ui| {
             ui.label(endgame_reason_text.clone());
             ui.label(format!("Turns: {}", state.turn));

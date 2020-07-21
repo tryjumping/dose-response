@@ -19,8 +19,8 @@ pub fn process(
     let mut window_open = true;
     egui::Window::new(title)
         .open(&mut window_open)
-        .default_pos(window_pos_px)
-        .default_size(window_size_px)
+        .fixed_pos(window_pos_px)
+        .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
             ui.label(message);
         });

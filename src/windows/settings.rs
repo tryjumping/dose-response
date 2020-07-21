@@ -39,7 +39,7 @@ pub fn process(
 
     egui::Window::new("Settings")
         .open(&mut visible)
-        .default_pos(window_pos_px)
+        .fixed_pos(window_pos_px)
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
             ui.columns(2, |c| {

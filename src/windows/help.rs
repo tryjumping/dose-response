@@ -172,7 +172,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
 
     egui::Window::new(format!("{}", state.current_help_window))
         .open(&mut visible)
-        .default_pos(window_pos_px)
+        .fixed_pos(window_pos_px)
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
             ScrollArea::default()

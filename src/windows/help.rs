@@ -216,7 +216,9 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                             ui.label(CREDITS_DEV);
                             ui.label(copyright);
                             ui.label("licensed under GNU General Public License 3 or later");
+                            ui.label("");
                             ui.label(CREDITS_TILES);
+                            ui.label("");
                             ui.label(CREDITS_FONT);
                         }
 
@@ -234,7 +236,9 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                                 ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
                             }
 
+                            ui.label("");
                             ui.label(LICENSE);
+                            ui.label("");
                             ui.label(copyright);
                         }
                     };

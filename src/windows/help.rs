@@ -86,32 +86,32 @@ pub const CONTROLS_HEADER: &str = "You control the @ character. It moves just li
 
 pub const CONTROLS_FOOTER: &str = "Using items: you can use an item you're carrying (food and later on, doses) by clicking on it in the sidebar or pressing its number on the keyboard (not numpad -- that's for movement).";
 
-pub const NUMPAD_CONTROLS: &str = r"You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction.
+pub const NUMPAD_TEXT: &str = r"You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction.";
 
-7 8 9
+pub const NUMPAD_CONTROLS: &str = r"7 8 9
  \|/
 4-@-6
  /|\
 1 2 3
 ";
 
-pub const ARROW_CONTROLS: &str = r"If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.
+pub const ARROW_TEXT: &str = r"If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.";
 
-Shift+Left  Up  Shift+Right
+pub const ARROW_CONTROLS: &str = r"Shift+Left  Up  Shift+Right
          \  |  /
        Left-@-Right
          /  |  \
 Ctrl+Left  Down Ctrl+Right
 ";
 
-pub const VI_KEYS_CONTROLS: &str = r#"You can also move using the "Vi keys". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor."));
+pub const VI_KEYS_TEXT: &str = r#"You can also move using the "Vi keys". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor."#;
 
-y k u
+pub const VI_KEYS_CONTROLS: &str = r"y k u
  \|/
 h-@-l
  /|\
 b j n
-"#;
+";
 
 pub const HOW_TO_PLAY: &str = r#"Your character ('@') is an addict. Stay long without using a Dose ('i'), and the game is over. Eat food ('%') to remain sober for longer. Using a Dose or eating Food will also defeat nearby enemies.
 
@@ -187,19 +187,36 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
 
                         Page::NumpadControls => {
                             ui.label(CONTROLS_HEADER);
-                            ui.label(NUMPAD_CONTROLS);
+                            ui.label(NUMPAD_TEXT);
+                            ui.label("");
+                            // NOTE: this is a hack for not having a
+                            // way to center a label but it works:
+                            ui.columns(1, |c| {
+                                c[0].set_layout(egui::Layout::vertical(egui::Align::Center));
+                                c[0].label(NUMPAD_CONTROLS);
+                            });
                             ui.label(CONTROLS_FOOTER);
                         }
 
                         Page::ArrowControls => {
                             ui.label(CONTROLS_HEADER);
-                            ui.label(ARROW_CONTROLS);
+                            ui.label(ARROW_TEXT);
+                            ui.label("");
+                            ui.columns(1, |c| {
+                                c[0].set_layout(egui::Layout::vertical(egui::Align::Center));
+                                c[0].label(ARROW_CONTROLS);
+                            });
                             ui.label(CONTROLS_FOOTER);
                         }
 
                         Page::ViKeys => {
                             ui.label(CONTROLS_HEADER);
-                            ui.label(VI_KEYS_CONTROLS);
+                            ui.label(VI_KEYS_TEXT);
+                            ui.label("");
+                            ui.columns(1, |c| {
+                                c[0].set_layout(egui::Layout::vertical(egui::Align::Center));
+                                c[0].label(VI_KEYS_CONTROLS);
+                            });
                             ui.label(CONTROLS_FOOTER);
                         }
 

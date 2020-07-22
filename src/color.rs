@@ -67,6 +67,7 @@ pub const exhaustion_animation: Color = BLACK;
 pub const fade_to_black_animation: Color = BLACK;
 
 pub const gui_text: Color = WHITE;
+pub const gui_button_background: Color = DARK_RED;
 pub const overdose_animation: Color = WHITE;
 
 

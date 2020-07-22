@@ -55,6 +55,13 @@ pub const RED: Color = Color {
     g: 70,
     b: 72,
 };
+
+pub const DARK_RED: Color = Color {
+    r: 100,
+    g: 10,
+    b: 10,
+};
+
 pub const PURPLE: Color = Color {
     r: 218,
     g: 212,

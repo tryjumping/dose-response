@@ -44,15 +44,7 @@ pub fn process(
         .fixed_pos(window_pos_px)
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
-            ui.columns(2, |c| {
-                c[0].label("Display:");
-                if c[0].radio("[F]ullscreen", settings.fullscreen).clicked {
-                    action = Some(Action::Fullscreen);
-                }
-                if c[0].radio("[W]indowed", !settings.fullscreen).clicked {
-                    action = Some(Action::Window)
-                }
-
+            ui.columns(3, |c| {
                 let mut available_key_shortcut = 1;
 
                 c[0].label("Tile Size:");
@@ -70,6 +62,7 @@ pub fn process(
                     available_key_shortcut += 1;
                 }
 
+                c[0].label("");
                 c[0].label("Text Size:");
                 for &text_size in crate::engine::AVAILABLE_TEXT_SIZES.iter().rev() {
                     let selected = text_size == settings.text_size;
@@ -85,15 +78,36 @@ pub fn process(
                     available_key_shortcut += 1;
                 }
 
-                c[1].label("Accessibility:");
+                c[1].label("Display:");
+                if c[1].radio("[F]ullscreen", settings.fullscreen).clicked {
+                    action = Some(Action::Fullscreen);
+                }
+                if c[1].radio("[W]indowed", !settings.fullscreen).clicked {
+                    action = Some(Action::Window)
+                }
+
+                c[1].label("");
                 c[1].label("Tiles:");
                 c[1].radio("[G]raphical", true);
                 c[1].radio("[T]extual (ASCII)", false);
 
+                c[1].label("");
                 c[1].label("Colour:");
                 c[1].radio("[S]tandard", true);
                 c[1].radio("[C]olour-blind", false);
                 c[1].radio("C[u]stom", false);
+
+                // TODO: implement these
+                // TODO: add tooltips with explanations
+                c[2].label("Challenge:");
+                // Does depression move by one or two tiles per turn?
+                c[2].checkbox("Fast Depression", &mut true);
+                // Does the player get revived on losing the game?
+                c[2].checkbox("Player respawn", &mut false);
+                // Can the player lose the game by overdosing?
+                c[2].checkbox("Overdose", &mut true);
+                // Is the map hidden or completely uncovered?
+                c[2].checkbox("Fog of war", &mut true);
             });
 
             ui.separator();

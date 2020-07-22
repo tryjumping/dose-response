@@ -163,7 +163,7 @@ impl LoopState {
         let font_definitions = {
             use egui::paint::fonts::{FontFamily, TextStyle};
             let size = settings.text_size as f32;
-            let family = FontFamily::VariableWidth;
+            let family = FontFamily::Mononoki;
 
             // TODO: Add my own font here!
             let mut def = egui::FontDefinitions::default();

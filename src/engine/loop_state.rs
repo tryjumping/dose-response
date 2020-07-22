@@ -175,6 +175,12 @@ impl LoopState {
         };
         egui_context.set_fonts(font_definitions);
 
+        // Customise the default egui style:
+        let mut style = egui_context.style().clone();
+        // NOTE: this applies to check/radio boxes as well, not just regular buttons:
+        style.button_padding = [7.0, 3.0].into();
+        egui_context.set_style(style);
+
         // NOTE: Begin a dummy egui frame to generate the egui texture
         {
             egui_context.begin_frame(RawInput::default());

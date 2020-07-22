@@ -533,6 +533,13 @@ pub struct DisplayInfo {
     extra_px: [f32; 2],
     /// Size of the entire rendering area in physical pixels. `display_px * DPI`
     viewport_size: [f32; 2],
+    /// Number of physical pixels per a logical one. E.g. `DPI` of
+    /// `2.0` will render a single game pixel as four pixels (two in
+    /// each dimension) on the display. Think "retina" displays on
+    /// macs that have doubled the pixel density in order to enable
+    /// greater text crispness and whatnot (which we're not using, but
+    /// we need to handle DPI nonetheless).
+    dpi: f32,
 }
 
 /// Calculate the dimensions to provide the largest display
@@ -565,6 +572,7 @@ fn calculate_display_info(
         display_px,
         extra_px,
         viewport_size,
+        dpi,
     }
 }
 

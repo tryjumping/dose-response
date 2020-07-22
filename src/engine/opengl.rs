@@ -405,16 +405,15 @@ impl OpenGlApp {
     pub fn render_clipped_vertices(
         &self,
         display_info: DisplayInfo,
-        dpi: f32,
         clip_rect: [f32; 4],
         vertex_range: (i32, i32),
     ) {
+        use egui::math::clamp;
         unsafe {
             let screen_size_width = display_info.window_size_px[0];
             let screen_size_height = display_info.window_size_px[1];
 
-            use egui::math::clamp;
-            let pixels_per_point = dpi;
+            let pixels_per_point = display_info.dpi;
             let clip_min_x = pixels_per_point * clip_rect[0];
             let clip_min_y = pixels_per_point * clip_rect[1];
             let clip_max_x = pixels_per_point * clip_rect[2];

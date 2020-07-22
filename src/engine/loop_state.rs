@@ -467,14 +467,8 @@ impl LoopState {
         let display_info = self.display_info(dpi);
         gl.render(self.default_background, display_info, &self.vertex_buffer);
 
-        // TODO: add DPI to DisplayInfo??
         for &(clip_rect, vertex_index, vertex_count) in batches {
-            gl.render_clipped_vertices(
-                display_info,
-                dpi as f32,
-                clip_rect,
-                (vertex_index, vertex_count),
-            );
+            gl.render_clipped_vertices(display_info, clip_rect, (vertex_index, vertex_count));
         }
     }
 

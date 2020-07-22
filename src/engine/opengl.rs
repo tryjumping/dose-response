@@ -71,8 +71,10 @@ impl OpenGlApp {
         eguimap: &RgbaImage,
     ) {
         unsafe {
+            gl::Enable(gl::SCISSOR_TEST);
+            check_gl_error("Enable SCISSOR_TEST");
             gl::Enable(gl::BLEND);
-            check_gl_error("Enable");
+            check_gl_error("Enable BLEND");
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             check_gl_error("BlendFunc");
 
@@ -402,20 +404,39 @@ impl OpenGlApp {
     /// To draw the last five, use: (15, 15).
     pub fn render_clipped_vertices(
         &self,
-        program: GLuint,
+        display_info: DisplayInfo,
+        dpi: f32,
         clip_rect: [f32; 4],
         vertex_range: (i32, i32),
     ) {
         unsafe {
-            let u_clip_rect_cstr = CString::new("u_clip_rect").unwrap();
-            gl::Uniform4f(
-                gl::GetUniformLocation(program, u_clip_rect_cstr.as_ptr()),
-                clip_rect[0],
-                clip_rect[1],
-                clip_rect[2],
-                clip_rect[3],
+            let screen_size_width = display_info.window_size_px[0];
+            let screen_size_height = display_info.window_size_px[1];
+
+            use egui::math::clamp;
+            let pixels_per_point = dpi;
+            let clip_min_x = pixels_per_point * clip_rect[0];
+            let clip_min_y = pixels_per_point * clip_rect[1];
+            let clip_max_x = pixels_per_point * clip_rect[2];
+            let clip_max_y = pixels_per_point * clip_rect[3];
+            let clip_min_x = clamp(clip_min_x, 0.0..=screen_size_width);
+            let clip_min_y = clamp(clip_min_y, 0.0..=screen_size_height);
+            let clip_max_x = clamp(clip_max_x, clip_min_x..=screen_size_width);
+            let clip_max_y = clamp(clip_max_y, clip_min_y..=screen_size_height);
+            let clip_min_x = clip_min_x.round() as i32;
+            let clip_min_y = clip_min_y.round() as i32;
+            let clip_max_x = clip_max_x.round() as i32;
+            let clip_max_y = clip_max_y.round() as i32;
+
+            dbg!(clip_min_x, clip_min_y, clip_max_x, clip_max_y);
+
+            // scissor Y coordinate is from the bottom
+            gl::Scissor(
+                clip_min_x,
+                screen_size_height as i32 - clip_max_y,
+                clip_max_x - clip_min_x,
+                clip_max_y - clip_min_y,
             );
-            check_gl_error("Uniform4f u_clip_rect");
 
             gl::DrawArrays(gl::TRIANGLES, vertex_range.0, vertex_range.1);
             check_gl_error("DrawArrays");

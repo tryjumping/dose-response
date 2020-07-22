@@ -138,6 +138,14 @@ pub fn text_rect(text: &Text<'_>, rect: Rectangle, metrics: &dyn TextMetrics) ->
     )
 }
 
+/// Helper for creating an egui button with the default background and
+/// an enabled state.
+pub fn button(text: &str, enabled: bool) -> egui::Button {
+    egui::Button::new(text)
+        .fill(Some(color::gui_button_background.into()))
+        .enabled(enabled)
+}
+
 #[derive(Clone, Default)]
 pub struct Button {
     pub pos: Point,

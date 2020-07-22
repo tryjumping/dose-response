@@ -1,4 +1,4 @@
-use crate::{engine::Display, game::RunningState, keys::KeyCode, state::State};
+use crate::{engine::Display, game::RunningState, keys::KeyCode, state::State, ui};
 
 use std::fmt::{Display as FmtDisplay, Error, Formatter};
 
@@ -248,14 +248,20 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
             ui.separator();
             ui.columns(2, |c| {
                 state.current_help_window.prev().map(|text| {
-                    if c[0].button(format!("[<-] {}", text)).clicked {
+                    if c[0]
+                        .add(ui::button(&format!("[<-] {}", text), true))
+                        .clicked
+                    {
                         action = Some(Action::PrevPage);
                     }
                 });
 
                 state.current_help_window.next().map(|text| {
                     c[1].set_layout(egui::Layout::vertical(egui::Align::Max));
-                    if c[1].button(format!("[->] {}", text)).clicked {
+                    if c[1]
+                        .add(ui::button(&format!("[->] {}", text), true))
+                        .clicked
+                    {
                         action = Some(Action::NextPage);
                     }
                 });

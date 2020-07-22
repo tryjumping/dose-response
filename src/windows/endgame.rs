@@ -5,7 +5,7 @@ use crate::{
     keys::KeyCode,
     player::CauseOfDeath,
     state::{Side, State},
-    window,
+    ui, window,
 };
 
 use egui::{self, Ui};
@@ -108,16 +108,16 @@ pub fn process(
             ui.separator();
             ui.columns(3, |c| {
                 c[0].set_layout(egui::Layout::vertical(egui::Align::Min));
-                if c[0].button("[N]ew Game").clicked {
+                if c[0].add(ui::button("[N]ew Game", true)).clicked {
                     action = Some(Action::NewGame);
                 };
                 c[1].set_layout(egui::Layout::vertical(egui::Align::Center));
-                if c[1].button("[?] Help").clicked {
+                if c[1].add(ui::button("[?] Help", true)).clicked {
                     action = Some(Action::Help);
                 };
                 c[2].set_layout(egui::Layout::vertical(egui::Align::Max));
 
-                if c[2].button("[Esc] Main Menu").clicked {
+                if c[2].add(ui::button("[Esc] Main Menu", true)).clicked {
                     action = Some(Action::Menu);
                 };
             });

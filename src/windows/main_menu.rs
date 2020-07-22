@@ -5,10 +5,11 @@ use crate::{
     game::RunningState,
     keys::KeyCode,
     state::State,
+    ui,
     window::{self, Window},
 };
 
-use egui::{self, Button, LineStyle, PaintCmd, Rect, Ui};
+use egui::{self, LineStyle, PaintCmd, Rect, Ui};
 
 #[derive(Debug)]
 pub enum MenuItem {
@@ -84,38 +85,32 @@ pub fn process(
     let mut action = None;
 
     if !state.game_ended && !state.first_game_already_generated {
-        if ui.button("[R]esume").clicked {
+        if ui.add(ui::button("[R]esume", active)).clicked {
             action = Some(MenuItem::Resume);
         }
     }
 
-    if ui.add(Button::new("[N]ew Game").enabled(active)).clicked {
+    if ui.add(ui::button("[N]ew Game", active)).clicked {
         action = Some(MenuItem::NewGame);
     }
 
-    if ui.add(Button::new("[H]elp").enabled(active)).clicked {
+    if ui.add(ui::button("[H]elp", active)).clicked {
         action = Some(MenuItem::Help);
     }
 
-    if ui.add(Button::new("S[e]ttings").enabled(active)).clicked {
+    if ui.add(ui::button("S[e]ttings", active)).clicked {
         action = Some(MenuItem::Settings);
     }
 
-    if ui
-        .add(Button::new("[S]ave and Quit").enabled(active))
-        .clicked
-    {
+    if ui.add(ui::button("[S]ave and Quit", active)).clicked {
         action = Some(MenuItem::SaveAndQuit);
     }
 
-    if ui.add(Button::new("[L]oad game").enabled(active)).clicked {
+    if ui.add(ui::button("[L]oad game", active)).clicked {
         action = Some(MenuItem::Load);
     }
 
-    if ui
-        .add(Button::new("[Q]uit without saving").enabled(active))
-        .clicked
-    {
+    if ui.add(ui::button("[Q]uit without saving", active)).clicked {
         log::info!("Clicked!");
         action = Some(MenuItem::Quit);
     };

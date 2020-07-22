@@ -4,6 +4,7 @@ use crate::{
     keys::KeyCode,
     settings::{Settings, Store as SettingsStore},
     state::State,
+    ui,
 };
 
 use egui::{self, Ui};
@@ -97,11 +98,11 @@ pub fn process(
 
             ui.separator();
             ui.horizontal(|ui| {
-                if ui.button("[A]pply Changes").clicked {
+                if ui.add(ui::button("[A]pply Changes", true)).clicked {
                     action = Some(Action::Apply);
                 }
 
-                if ui.button("[B]ack").clicked {
+                if ui.add(ui::button("[B]ack", true)).clicked {
                     action = Some(Action::Back);
                 }
             });

@@ -410,6 +410,9 @@ impl OpenGlApp {
     ) {
         use egui::math::clamp;
         unsafe {
+            // NOTE: use gl::Scissor to only render the pixels within
+            // clip_rect. This makes the shader simpler compared to
+            // discarding the pixels there.
             let screen_size_width = display_info.window_size_px[0];
             let screen_size_height = display_info.window_size_px[1];
 
@@ -426,8 +429,6 @@ impl OpenGlApp {
             let clip_min_y = clip_min_y.round() as i32;
             let clip_max_x = clip_max_x.round() as i32;
             let clip_max_y = clip_max_y.round() as i32;
-
-            dbg!(clip_min_x, clip_min_y, clip_max_x, clip_max_y);
 
             // scissor Y coordinate is from the bottom
             gl::Scissor(

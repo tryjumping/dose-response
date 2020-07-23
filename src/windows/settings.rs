@@ -45,12 +45,44 @@ pub fn process(
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
             ui.columns(3, |c| {
+                // NOTE: the tooltips don't have a window/screen
+                // boundary checks and they just overflow. So I've put
+                // the checkboxes with tooltips to the leftmost column
+                // -- to make sure they're always visible.
+                //
+                // TODO: file a bug in egui for this.
+
+                // TODO: implement these
+                c[0].label("Challenge:");
+                c[0].checkbox("Fast Depression", &mut true).tooltip_text(
+                    "\
+Checked: Depression moves two tiles per turn.
+Unchecked: Depression moves one tile per turn.",
+                );
+                // NOTE: this how do we handle persistentcases like
+                // exhaustion, overdose, loss of will, etc.? I think
+                // we'll prolly want to drop thisone.
+                c[0].checkbox("Player respawn", &mut false)
+                    .tooltip_text("Does the player respawn instead of losing the game?");
+                c[0].checkbox("Overdose", &mut true).tooltip_text(
+                    "\
+Checked: game over on overdose.
+Unchecked: the game continues
+ even on overdose.",
+                );
+                c[0].checkbox("Show all tiles", &mut false).tooltip_text(
+                    "\
+Checked: the entire map is uncovered.
+Unchecked: only previously seen tiles
+are visible.",
+                );
+
                 let mut available_key_shortcut = 1;
 
-                c[0].label("Tile Size:");
+                c[1].label("Tile Size:");
                 for &tile_size in crate::engine::AVAILABLE_TILE_SIZES.iter().rev() {
                     let selected = tile_size == settings.tile_size;
-                    if c[0]
+                    if c[1]
                         .radio(
                             format!("[{}] {}px", available_key_shortcut, tile_size),
                             selected,
@@ -62,11 +94,11 @@ pub fn process(
                     available_key_shortcut += 1;
                 }
 
-                c[0].label("");
-                c[0].label("Text Size:");
+                c[1].label("");
+                c[1].label("Text Size:");
                 for &text_size in crate::engine::AVAILABLE_TEXT_SIZES.iter().rev() {
                     let selected = text_size == settings.text_size;
-                    if c[0]
+                    if c[1]
                         .radio(
                             format!("[{}] {}px", available_key_shortcut, text_size),
                             selected,
@@ -78,36 +110,24 @@ pub fn process(
                     available_key_shortcut += 1;
                 }
 
-                c[1].label("Display:");
-                if c[1].radio("[F]ullscreen", settings.fullscreen).clicked {
+                c[2].label("Display:");
+                if c[2].radio("[F]ullscreen", settings.fullscreen).clicked {
                     action = Some(Action::Fullscreen);
                 }
-                if c[1].radio("[W]indowed", !settings.fullscreen).clicked {
+                if c[2].radio("[W]indowed", !settings.fullscreen).clicked {
                     action = Some(Action::Window)
                 }
 
-                c[1].label("");
-                c[1].label("Tiles:");
-                c[1].radio("[G]raphical", true);
-                c[1].radio("[T]extual (ASCII)", false);
+                c[2].label("");
+                c[2].label("Tiles:");
+                c[2].radio("[G]raphical", true);
+                c[2].radio("[T]extual (ASCII)", false);
 
-                c[1].label("");
-                c[1].label("Colour:");
-                c[1].radio("[S]tandard", true);
-                c[1].radio("[C]olour-blind", false);
-                c[1].radio("C[u]stom", false);
-
-                // TODO: implement these
-                // TODO: add tooltips with explanations
-                c[2].label("Challenge:");
-                // Does depression move by one or two tiles per turn?
-                c[2].checkbox("Fast Depression", &mut true);
-                // Does the player get revived on losing the game?
-                c[2].checkbox("Player respawn", &mut false);
-                // Can the player lose the game by overdosing?
-                c[2].checkbox("Overdose", &mut true);
-                // Is the map hidden or completely uncovered?
-                c[2].checkbox("Fog of war", &mut true);
+                c[2].label("");
+                c[2].label("Colour:");
+                c[2].radio("[S]tandard", true);
+                c[2].radio("[C]olour-blind", false);
+                c[2].radio("C[u]stom", false);
             });
 
             ui.separator();

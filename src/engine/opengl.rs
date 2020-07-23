@@ -295,8 +295,8 @@ impl OpenGlApp {
             let display_px_cstr = CString::new("display_px").unwrap();
             gl::Uniform2f(
                 gl::GetUniformLocation(program, display_px_cstr.as_ptr()),
-                display_info.display_px[0],
-                display_info.display_px[1],
+                display_info.window_size_px[0],
+                display_info.window_size_px[1],
             );
             check_gl_error("Uniform2f display_px");
 

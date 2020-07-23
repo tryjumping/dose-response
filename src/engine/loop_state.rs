@@ -425,12 +425,8 @@ impl LoopState {
     pub fn update_mouse_position(&mut self, dpi: f64, window_px_x: i32, window_px_y: i32) {
         let display_info = self.display_info(dpi);
 
-        let (x, y) = (
-            window_px_x - (display_info.extra_px[0] / 2.0) as i32,
-            window_px_y - (display_info.extra_px[1] / 2.0) as i32,
-        );
-        let x = util::clamp(0, x, display_info.display_px[0] as i32 - 1);
-        let y = util::clamp(0, y, display_info.display_px[1] as i32 - 1);
+        let x = util::clamp(0, window_px_x, display_info.window_size_px[0] as i32 - 1);
+        let y = util::clamp(0, window_px_y, display_info.window_size_px[1] as i32 - 1);
 
         self.mouse.screen_pos = Point { x, y };
 

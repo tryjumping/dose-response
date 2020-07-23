@@ -527,12 +527,16 @@ fn wrap_text(text: &str, font_size: u32, width_tiles: i32, tile_width_px: i32) -
 pub struct DisplayInfo {
     /// Size of the entire rendering area in logical pixels. `display_px + extra_px`
     window_size_px: [f32; 2],
+
     /// Size of the actual area the Display struct can render to.
+    ///
+    /// This covers all the rendered tiles, but if the window size
+    /// doesn't cover the tiles cleanly, this may be a bit smaller.
     display_px: [f32; 2],
-    /// Size of any remaining area beyond `display_px`.
-    extra_px: [f32; 2],
-    /// Size of the entire rendering area in physical pixels. `display_px * DPI`
+
+    /// Size of the entire rendering area in physical pixels. `window_size_px * DPI`
     viewport_size: [f32; 2],
+
     /// Number of physical pixels per a logical one. E.g. `DPI` of
     /// `2.0` will render a single game pixel as four pixels (two in
     /// each dimension) on the display. Think "retina" displays on
@@ -551,8 +555,6 @@ fn calculate_display_info(
     tilesize_px: i32,
     dpi: f32,
 ) -> DisplayInfo {
-    let window_width = window_size_px[0] as f32;
-    let window_height = window_size_px[1] as f32;
     let tilecount_x = display_size_tiles.x as f32;
     let tilecount_y = display_size_tiles.y as f32;
     let tilesize = tilesize_px as f32;
@@ -561,16 +563,11 @@ fn calculate_display_info(
     let unscaled_game_height = tilecount_y * tilesize;
 
     let display_px = [unscaled_game_width, unscaled_game_height];
-    let extra_px = [
-        window_width - unscaled_game_width,
-        window_height - unscaled_game_height,
-    ];
-    let viewport_size = [display_px[0] * dpi, display_px[1] * dpi];
+    let viewport_size = [window_size_px[0] * dpi, window_size_px[1] * dpi];
 
     DisplayInfo {
         window_size_px,
         display_px,
-        extra_px,
         viewport_size,
         dpi,
     }

@@ -166,7 +166,7 @@ impl LoopState {
             let family = FontFamily::Mononoki;
 
             // TODO: Add my own font here!
-            let mut def = egui::FontDefinitions::default();
+            let mut def = egui::paint::FontDefinitions::default();
             def.fonts.insert(TextStyle::Body, (family, size));
             def.fonts.insert(TextStyle::Button, (family, size));
             def.fonts.insert(TextStyle::Heading, (family, size));

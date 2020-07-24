@@ -9,7 +9,11 @@ use crate::{
     window::{self, Window},
 };
 
-use egui::{self, LineStyle, PaintCmd, Rect, Ui};
+use egui::{
+    self,
+    paint::{LineStyle, PaintCmd},
+    Rect, Ui,
+};
 
 #[derive(Debug)]
 pub enum MenuItem {

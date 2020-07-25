@@ -1,17 +1,15 @@
-use crate::color;
-use crate::engine::{Display, TextMetrics};
-use crate::game;
-use crate::graphics;
-use crate::item;
-use crate::player::Mind;
-use crate::point::Point;
-use crate::rect::Rectangle;
-use crate::state::State;
-use crate::ui::Button;
+use crate::{
+    color,
+    engine::{Display, TextMetrics},
+    game, graphics, item,
+    player::Mind,
+    point::Point,
+    rect::Rectangle,
+    state::State,
+    ui::Button,
+};
 
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::time::Duration;
+use std::{borrow::Cow, collections::HashMap, time::Duration};
 
 #[derive(Copy, Clone)]
 pub enum Action {

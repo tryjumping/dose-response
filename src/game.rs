@@ -140,8 +140,16 @@ pub fn update(
             }
             Window::Game => {
                 if top_level {
-                    game_update_result =
-                        process_game(state, settings, &sidebar::Window, metrics, display, dt);
+                    game_update_result = process_game(
+                        state,
+                        ui,
+                        settings,
+                        &sidebar::Window,
+                        metrics,
+                        display,
+                        dt,
+                        fps,
+                    );
                 }
                 render::render_game(
                     state,
@@ -243,19 +251,19 @@ pub fn update(
 
 fn process_game(
     state: &mut State,
+    ui: &mut Ui,
     settings: &Settings,
     window: &sidebar::Window,
     metrics: &dyn TextMetrics,
     display: &Display,
     dt: Duration,
+    fps: i32,
 ) -> RunningState {
     use self::sidebar::Action;
 
-    let mut option = if state.mouse.left_clicked {
-        window.hovered(&state, metrics, display, true)
-    } else {
-        None
-    };
+    // TODO: pass "is sidebar active" here
+    let sidebar_active = true;
+    let mut option = sidebar::process(state, ui, dt, fps, display, true);
 
     if option.is_none() {
         option = if state.keys.matches_code(KeyCode::Esc) {

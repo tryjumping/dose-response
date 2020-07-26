@@ -6,8 +6,10 @@ use crate::{
     point::Point,
     rect::Rectangle,
     state::State,
-    ui::Button,
+    ui::{self, Button},
 };
+
+use egui::{self, paint::PaintCmd, Rect, Ui};
 
 use std::{borrow::Cow, collections::HashMap, time::Duration};
 
@@ -30,6 +32,285 @@ pub enum Action {
     MoveNE,
     MoveSW,
     MoveSE,
+}
+
+pub fn process(
+    state: &mut State,
+    ui: &mut Ui,
+    dt: Duration,
+    fps: i32,
+    display: &Display,
+    active: bool,
+) -> Option<Action> {
+    let mut action = None;
+
+    let width_px = 250.0;
+    let bottom_left = [
+        (display.screen_size_px.x - 1) as f32,
+        (display.screen_size_px.y - 1) as f32,
+    ];
+    let top_left = [bottom_left[0] - width_px, 0.0];
+    let ui_rect = Rect::from_min_max(top_left.into(), bottom_left.into());
+
+    let padding = 20.0;
+    let full_rect = Rect::from_min_max(
+        [ui_rect.left() - padding, ui_rect.top()].into(),
+        ui_rect.right_bottom(),
+    );
+
+    let mut ui = ui.child_ui(ui_rect);
+    ui.set_clip_rect(full_rect);
+
+    let mut style = ui.style().clone();
+    style.text_color = color::gui_text.into();
+    ui.set_style(style);
+
+    ui.add_paint_cmd(PaintCmd::Rect {
+        rect: full_rect,
+        corner_radius: 0.0,
+        outline: None,
+        // TODO: use `color::dim_background` this for background
+        fill: Some(color::RED.into()),
+    });
+
+    let player = &state.player;
+
+    let (mind_str, mind_val_percent) = match (player.alive(), player.mind) {
+        (true, Mind::Withdrawal(val)) => ("Withdrawal", val.percent()),
+        (true, Mind::Sober(val)) => ("Sober", val.percent()),
+        (true, Mind::High(val)) => ("High", val.percent()),
+        (false, _) => ("Lost", 0.0),
+    };
+
+    let paint_list_pos = ui.paint_list_len();
+    let mindstate_rect = ui.label(mind_str).rect;
+
+    // TODO: pull this out into a "progress bar" function? We did that
+    // for the previous tile-based one.
+    ui.insert_paint_cmd(
+        paint_list_pos,
+        PaintCmd::Rect {
+            rect: Rect::from_min_max(
+                mindstate_rect.left_top(),
+                [
+                    ui_rect.right() - padding,
+                    mindstate_rect.top() + mindstate_rect.height(),
+                ]
+                .into(),
+            ),
+            corner_radius: 0.0,
+            outline: None,
+            fill: Some(color::gui_progress_bar_bg.into()),
+        },
+    );
+
+    ui.insert_paint_cmd(
+        paint_list_pos + 1,
+        PaintCmd::Rect {
+            rect: Rect::from_min_max(
+                mindstate_rect.left_top(),
+                [
+                    mindstate_rect.left() + (ui_rect.width() - padding) * mind_val_percent,
+                    mindstate_rect.top() + mindstate_rect.height(),
+                ]
+                .into(),
+            ),
+            corner_radius: 0.0,
+            outline: None,
+            fill: Some(color::gui_progress_bar_fg.into()),
+        },
+    );
+
+    let paint_list_pos = ui.paint_list_len();
+    let anxiety_counter_rect = ui.label(format!("Will: {}", player.will.to_int())).rect;
+
+    // Show the anxiety counter as a progress bar next to the `Will` number
+    if state.show_anxiety_counter {
+        let left_top: egui::Pos2 = [
+            anxiety_counter_rect.right() + padding,
+            anxiety_counter_rect.top(),
+        ]
+        .into();
+        let right = left_top.x + full_rect.width();
+
+        ui.insert_paint_cmd(
+            paint_list_pos,
+            PaintCmd::Rect {
+                rect: Rect::from_min_max(
+                    left_top,
+                    [
+                        right,
+                        anxiety_counter_rect.top() + anxiety_counter_rect.height(),
+                    ]
+                    .into(),
+                ),
+                corner_radius: 0.0,
+                outline: None,
+                fill: Some(color::anxiety_progress_bar_bg.into()),
+            },
+        );
+
+        // Only render the active portion of the progress bar if there
+        // is progress to show. Otherwise even a zero-width progress
+        // bar will result in a 1px rect. I'm guessing egui's float
+        // coords or something.
+        if !player.anxiety_counter.is_min() {
+            ui.insert_paint_cmd(
+                paint_list_pos + 1,
+                PaintCmd::Rect {
+                    rect: Rect::from_min_max(
+                        left_top,
+                        [
+                            left_top.x + full_rect.width() * player.anxiety_counter.percent(),
+                            anxiety_counter_rect.top() + anxiety_counter_rect.height(),
+                        ]
+                        .into(),
+                    ),
+                    corner_radius: 0.0,
+                    outline: None,
+                    fill: Some(color::anxiety_progress_bar_fg.into()),
+                },
+            );
+        }
+    }
+
+    let mut inventory = HashMap::new();
+    for item in &player.inventory {
+        let count = inventory.entry(item.kind).or_insert(0);
+        *count += 1;
+    }
+
+    if !inventory.is_empty() {
+        ui.label("Inventory:");
+        for kind in item::Kind::iter() {
+            if let Some(count) = inventory.get(&kind) {
+                let button_action = match kind {
+                    item::Kind::Food => Action::UseFood,
+                    item::Kind::Dose => Action::UseDose,
+                    item::Kind::CardinalDose => Action::UseCardinalDose,
+                    item::Kind::DiagonalDose => Action::UseDiagonalDose,
+                    item::Kind::StrongDose => Action::UseStrongDose,
+                };
+                let precision = state.panel_width as usize;
+                let button_label = format!(
+                    "[{}] {:.pr$}: {}",
+                    game::inventory_key(kind),
+                    kind,
+                    count,
+                    pr = precision - 7
+                );
+                if ui.add(ui::button(&button_label, active)).clicked {
+                    action = Some(button_action);
+                };
+            }
+        }
+    }
+
+    if let Some(vnpc_id) = state.victory_npc_id {
+        if let Some(vnpc_pos) = state.world.monster(vnpc_id).map(|m| m.position) {
+            let distance = {
+                let dx = (player.pos.x - vnpc_pos.x) as f32;
+                let dy = (player.pos.y - vnpc_pos.y) as f32;
+                dx.abs().max(dy.abs()) as i32
+            };
+            ui.label(format!("Distance to Victory NPC: {}", distance));
+        }
+    }
+
+    if !player.bonuses.is_empty() {
+        ui.label("Active bonus:");
+        for bonus in &player.bonuses {
+            ui.label(format!("{}", bonus));
+        }
+    }
+
+    if player.alive() {
+        if player.stun.to_int() > 0 {
+            ui.label(format!("Stunned({})", player.stun.to_int()));
+        }
+        if player.panic.to_int() > 0 {
+            ui.label(format!("Panicking({})", player.panic.to_int()));
+        }
+    }
+
+    ui.label("Numpad Controls:");
+    ui.columns(3, |c| {
+        let mut style = c[0].style().clone();
+        style.button_padding = [20.0, 15.0].into();
+        for index in 0..=2 {
+            c[index].set_style(style.clone());
+        }
+
+        if c[0].add(ui::button("7", active)).clicked {
+            action = Some(Action::MoveNW);
+        };
+        if c[1].add(ui::button("8", active)).clicked {
+            action = Some(Action::MoveN);
+        };
+        if c[2].add(ui::button("9", active)).clicked {
+            action = Some(Action::MoveNE);
+        };
+
+        if c[0].add(ui::button("4", active)).clicked {
+            action = Some(Action::MoveW);
+        };
+        c[1].add(egui::Button::new("@").enabled(false));
+        if c[2].add(ui::button("6", active)).clicked {
+            action = Some(Action::MoveE);
+        };
+
+        if c[0].add(ui::button("1", active)).clicked {
+            action = Some(Action::MoveSW);
+        };
+        if c[1].add(ui::button("2", active)).clicked {
+            action = Some(Action::MoveS);
+        };
+        if c[2].add(ui::button("3", active)).clicked {
+            action = Some(Action::MoveSE);
+        };
+    });
+
+    if ui.add(ui::button("[?] Help", active)).clicked {
+        action = Some(Action::Help);
+    }
+
+    if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
+        action = Some(Action::MainMenu);
+    }
+
+    if state.cheating {
+        ui.label("CHEATING");
+
+        if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < display.size_without_padding() {
+            ui.label(format!("Mouse px: {}", state.mouse.screen_pos));
+            ui.label(format!("Mouse: {}", state.mouse.tile_pos));
+        }
+
+        ui.label(format!("dt: {}ms", dt.as_millis()));
+        ui.label(format!("FPS: {}", fps));
+
+        // // NOTE: commenting this out for now, we're not using the stats now
+        // ui.label("Time stats:");
+        // for frame_stat in state.stats.last_frames(25) {
+        //     ui.label(format!(
+        //         "upd: {}, dc: {}",
+        //         frame_stat.update.as_millis(),
+        //         frame_stat.drawcalls.as_millis()
+        //     ));
+        // }
+
+        ui.label(format!(
+            "longest upd: {}",
+            state.stats.longest_update().as_millis()
+        ));
+
+        ui.label(format!(
+            "longest dc: {}",
+            state.stats.longest_drawcalls().as_millis()
+        ));
+    }
+
+    action
 }
 
 struct Layout {

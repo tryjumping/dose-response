@@ -233,50 +233,15 @@ pub fn process(
         }
     }
 
-    ui.label("Numpad Controls:");
-    ui.columns(3, |c| {
-        let mut style = c[0].style().clone();
-        style.button_padding = [20.0, 15.0].into();
-        for index in 0..=2 {
-            c[index].set_style(style.clone());
+    // NOTE: `Layout::reverse()` builds it up from the bottom:
+    ui.inner_layout(egui::Layout::vertical(egui::Align::Min).reverse(), |ui| {
+        if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
+            action = Some(Action::MainMenu);
         }
-
-        if c[0].add(ui::button("7", active)).clicked {
-            action = Some(Action::MoveNW);
-        };
-        if c[1].add(ui::button("8", active)).clicked {
-            action = Some(Action::MoveN);
-        };
-        if c[2].add(ui::button("9", active)).clicked {
-            action = Some(Action::MoveNE);
-        };
-
-        if c[0].add(ui::button("4", active)).clicked {
-            action = Some(Action::MoveW);
-        };
-        c[1].add(egui::Button::new("@").enabled(false));
-        if c[2].add(ui::button("6", active)).clicked {
-            action = Some(Action::MoveE);
-        };
-
-        if c[0].add(ui::button("1", active)).clicked {
-            action = Some(Action::MoveSW);
-        };
-        if c[1].add(ui::button("2", active)).clicked {
-            action = Some(Action::MoveS);
-        };
-        if c[2].add(ui::button("3", active)).clicked {
-            action = Some(Action::MoveSE);
-        };
+        if ui.add(ui::button("[?] Help", active)).clicked {
+            action = Some(Action::Help);
+        }
     });
-
-    if ui.add(ui::button("[?] Help", active)).clicked {
-        action = Some(Action::Help);
-    }
-
-    if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
-        action = Some(Action::MainMenu);
-    }
 
     if state.cheating {
         ui.label("CHEATING");
@@ -308,6 +273,55 @@ pub fn process(
             "longest dc: {}",
             state.stats.longest_drawcalls().as_millis()
         ));
+    }
+
+    {
+        // TODO: make sure this hardcoded position works even for
+        // bigger fonts and smaller windows. I think we should be able
+        // to calculate a good boundary by using some of the rects
+        // calculated for other UI elements.
+        let controls_pos_from_bottom = 300.0;
+        let mut ui = ui.child_ui(Rect::from_min_max(
+            [ui_rect.left(), ui_rect.bottom() - controls_pos_from_bottom].into(),
+            ui_rect.right_bottom(),
+        ));
+
+        ui.label("Numpad Controls:\n");
+        ui.columns(3, |c| {
+            let mut style = c[0].style().clone();
+            style.button_padding = [20.0, 15.0].into();
+            for index in 0..=2 {
+                c[index].set_style(style.clone());
+            }
+
+            if c[0].add(ui::button("7", active)).clicked {
+                action = Some(Action::MoveNW);
+            };
+            if c[1].add(ui::button("8", active)).clicked {
+                action = Some(Action::MoveN);
+            };
+            if c[2].add(ui::button("9", active)).clicked {
+                action = Some(Action::MoveNE);
+            };
+
+            if c[0].add(ui::button("4", active)).clicked {
+                action = Some(Action::MoveW);
+            };
+            c[1].add(egui::Button::new("@").enabled(false));
+            if c[2].add(ui::button("6", active)).clicked {
+                action = Some(Action::MoveE);
+            };
+
+            if c[0].add(ui::button("1", active)).clicked {
+                action = Some(Action::MoveSW);
+            };
+            if c[1].add(ui::button("2", active)).clicked {
+                action = Some(Action::MoveS);
+            };
+            if c[2].add(ui::button("3", active)).clicked {
+                action = Some(Action::MoveSE);
+            };
+        });
     }
 
     action

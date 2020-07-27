@@ -324,7 +324,11 @@ pub fn process(
         });
     }
 
-    action
+    if active {
+        action
+    } else {
+        None
+    }
 }
 
 struct Layout {

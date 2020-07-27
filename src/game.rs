@@ -139,18 +139,17 @@ pub fn update(
                 display.fade = color::invisible;
             }
             Window::Game => {
-                if top_level {
-                    game_update_result = process_game(
-                        state,
-                        ui,
-                        settings,
-                        &sidebar::Window,
-                        metrics,
-                        display,
-                        dt,
-                        fps,
-                    );
-                }
+                game_update_result = process_game(
+                    state,
+                    ui,
+                    settings,
+                    &sidebar::Window,
+                    metrics,
+                    display,
+                    dt,
+                    fps,
+                    top_level,
+                );
                 render::render_game(
                     state,
                     &sidebar::Window,
@@ -258,12 +257,15 @@ fn process_game(
     display: &Display,
     dt: Duration,
     fps: i32,
+    active: bool,
 ) -> RunningState {
     use self::sidebar::Action;
 
-    // TODO: pass "is sidebar active" here
-    let sidebar_active = true;
-    let mut option = sidebar::process(state, ui, dt, fps, display, true);
+    let mut option = sidebar::process(state, ui, dt, fps, display, active);
+
+    if !active {
+        return RunningState::Running;
+    }
 
     if option.is_none() {
         option = if state.keys.matches_code(KeyCode::Esc) {

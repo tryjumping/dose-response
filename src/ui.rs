@@ -7,6 +7,8 @@ use crate::{
     rect::Rectangle,
 };
 
+use egui::{self, Ui};
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Text<'a> {
     Centered(&'a str),
@@ -144,6 +146,40 @@ pub fn button(text: &str, enabled: bool) -> egui::Button {
     egui::Button::new(text)
         .fill(Some(color::gui_button_background.into()))
         .enabled(enabled)
+}
+
+pub fn progress_bar(
+    ui: &mut Ui,
+    paint_list_pos: usize,
+    top_left: egui::Pos2,
+    width: f32,
+    height: f32,
+    percent: f32,
+    bg_color: Color,
+    fg_color: Color,
+) {
+    use egui::{paint::PaintCmd, Rect};
+
+    let percent = crate::util::clampf(0.0, percent, 1.0);
+
+    let background_rect = PaintCmd::Rect {
+        rect: Rect::from_min_size(top_left, [width, height].into()),
+        corner_radius: 0.0,
+        outline: None,
+        fill: Some(bg_color.into()),
+    };
+    let foreground_rect = PaintCmd::Rect {
+        rect: Rect::from_min_size(top_left, [width * percent, height].into()),
+        corner_radius: 0.0,
+        outline: None,
+        fill: Some(fg_color.into()),
+    };
+
+    ui.insert_paint_cmd(paint_list_pos, background_rect);
+
+    if percent > 0.0 {
+        ui.insert_paint_cmd(paint_list_pos + 1, foreground_rect);
+    }
 }
 
 #[derive(Clone, Default)]

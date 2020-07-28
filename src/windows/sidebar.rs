@@ -76,40 +76,15 @@ pub fn process(
     let paint_list_pos = ui.paint_list_len();
     let mindstate_rect = ui.label(mind_str).rect;
 
-    // TODO: pull this out into a "progress bar" function? We did that
-    // for the previous tile-based one.
-    ui.insert_paint_cmd(
+    ui::progress_bar(
+        &mut ui,
         paint_list_pos,
-        PaintCmd::Rect {
-            rect: Rect::from_min_max(
-                mindstate_rect.left_top(),
-                [
-                    ui_rect.right() - padding,
-                    mindstate_rect.top() + mindstate_rect.height(),
-                ]
-                .into(),
-            ),
-            corner_radius: 0.0,
-            outline: None,
-            fill: Some(color::gui_progress_bar_bg.into()),
-        },
-    );
-
-    ui.insert_paint_cmd(
-        paint_list_pos + 1,
-        PaintCmd::Rect {
-            rect: Rect::from_min_max(
-                mindstate_rect.left_top(),
-                [
-                    mindstate_rect.left() + (ui_rect.width() - padding) * mind_val_percent,
-                    mindstate_rect.top() + mindstate_rect.height(),
-                ]
-                .into(),
-            ),
-            corner_radius: 0.0,
-            outline: None,
-            fill: Some(color::gui_progress_bar_fg.into()),
-        },
+        mindstate_rect.left_top(),
+        ui_rect.width() - padding,
+        mindstate_rect.height(),
+        mind_val_percent,
+        color::gui_progress_bar_bg,
+        color::gui_progress_bar_fg,
     );
 
     let paint_list_pos = ui.paint_list_len();
@@ -117,52 +92,22 @@ pub fn process(
 
     // Show the anxiety counter as a progress bar next to the `Will` number
     if state.show_anxiety_counter {
-        let left_top: egui::Pos2 = [
+        let top_left: egui::Pos2 = [
             anxiety_counter_rect.right() + padding,
             anxiety_counter_rect.top(),
         ]
         .into();
-        let right = left_top.x + full_rect.width();
 
-        ui.insert_paint_cmd(
+        ui::progress_bar(
+            &mut ui,
             paint_list_pos,
-            PaintCmd::Rect {
-                rect: Rect::from_min_max(
-                    left_top,
-                    [
-                        right,
-                        anxiety_counter_rect.top() + anxiety_counter_rect.height(),
-                    ]
-                    .into(),
-                ),
-                corner_radius: 0.0,
-                outline: None,
-                fill: Some(color::anxiety_progress_bar_bg.into()),
-            },
+            top_left,
+            ui_rect.right() - padding - top_left.x,
+            anxiety_counter_rect.height(),
+            player.anxiety_counter.percent(),
+            color::anxiety_progress_bar_bg,
+            color::anxiety_progress_bar_fg,
         );
-
-        // Only render the active portion of the progress bar if there
-        // is progress to show. Otherwise even a zero-width progress
-        // bar will result in a 1px rect. I'm guessing egui's float
-        // coords or something.
-        if !player.anxiety_counter.is_min() {
-            ui.insert_paint_cmd(
-                paint_list_pos + 1,
-                PaintCmd::Rect {
-                    rect: Rect::from_min_max(
-                        left_top,
-                        [
-                            left_top.x + full_rect.width() * player.anxiety_counter.percent(),
-                            anxiety_counter_rect.top() + anxiety_counter_rect.height(),
-                        ]
-                        .into(),
-                    ),
-                    corner_radius: 0.0,
-                    outline: None,
-                    fill: Some(color::anxiety_progress_bar_fg.into()),
-                },
-            );
-        }
     }
 
     let mut inventory = HashMap::new();

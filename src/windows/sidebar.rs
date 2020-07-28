@@ -72,6 +72,7 @@ pub fn process(
         (false, _) => ("Lost", 0.0),
     };
 
+    ui.label("");
     let paint_list_pos = ui.paint_list_len();
     let mindstate_rect = ui.label(mind_str).rect;
 
@@ -109,6 +110,18 @@ pub fn process(
         );
     }
 
+    if player.stun.to_int() > 0 {
+        ui.label(format!("Stunned({})", player.stun.to_int()));
+    } else {
+        ui.label("");
+    }
+
+    if player.panic.to_int() > 0 {
+        ui.label(format!("Panicking({})", player.panic.to_int()));
+    } else {
+        ui.label("");
+    }
+
     let mut inventory = HashMap::new();
     for item in &player.inventory {
         let count = inventory.entry(item.kind).or_insert(0);
@@ -116,6 +129,7 @@ pub fn process(
     }
 
     if !inventory.is_empty() {
+        ui.label("");
         ui.label("Inventory:");
         for kind in item::Kind::iter() {
             if let Some(count) = inventory.get(&kind) {
@@ -141,6 +155,14 @@ pub fn process(
         }
     }
 
+    if !player.bonuses.is_empty() {
+        ui.label("");
+        ui.label("Active bonus:");
+        for bonus in &player.bonuses {
+            ui.label(format!("{}", bonus));
+        }
+    }
+
     if let Some(vnpc_id) = state.victory_npc_id {
         if let Some(vnpc_pos) = state.world.monster(vnpc_id).map(|m| m.position) {
             let distance = {
@@ -152,24 +174,9 @@ pub fn process(
         }
     }
 
-    if !player.bonuses.is_empty() {
-        ui.label("Active bonus:");
-        for bonus in &player.bonuses {
-            ui.label(format!("{}", bonus));
-        }
-    }
-
-    if player.alive() {
-        if player.stun.to_int() > 0 {
-            ui.label(format!("Stunned({})", player.stun.to_int()));
-        }
-        if player.panic.to_int() > 0 {
-            ui.label(format!("Panicking({})", player.panic.to_int()));
-        }
-    }
-
     // NOTE: `Layout::reverse()` builds it up from the bottom:
     ui.inner_layout(egui::Layout::vertical(egui::Align::Min).reverse(), |ui| {
+        ui.label("");
         if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
             action = Some(Action::MainMenu);
         }

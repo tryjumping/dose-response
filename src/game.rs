@@ -139,27 +139,9 @@ pub fn update(
                 display.fade = color::invisible;
             }
             Window::Game => {
-                let (result, highlighted_tile) = process_game(
-                    state,
-                    ui,
-                    settings,
-                    &sidebar::Window,
-                    metrics,
-                    display,
-                    dt,
-                    fps,
-                    top_level,
-                );
-                render::render_game(
-                    state,
-                    &sidebar::Window,
-                    metrics,
-                    dt,
-                    fps,
-                    display,
-                    highlighted_tile,
-                    top_level,
-                );
+                let (result, highlighted_tile) =
+                    process_game(state, ui, settings, metrics, display, dt, fps, top_level);
+                render::render_game(state, metrics, display, highlighted_tile);
                 game_update_result = result;
             }
             Window::Settings => {
@@ -254,8 +236,7 @@ fn process_game(
     state: &mut State,
     ui: &mut Ui,
     settings: &Settings,
-    window: &sidebar::Window,
-    metrics: &dyn TextMetrics,
+    _metrics: &dyn TextMetrics,
     display: &Display,
     dt: Duration,
     fps: i32,

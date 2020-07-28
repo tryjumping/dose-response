@@ -55,6 +55,7 @@ impl Stats {
         self.frame_stats.push_back(frame_stats);
     }
 
+    #[allow(dead_code)]
     pub fn last_frames(&self, count: usize) -> FrameStatsIterator<'_> {
         let size = if count > self.frame_stats.len() {
             self.frame_stats.len()

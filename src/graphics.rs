@@ -1,40 +1,4 @@
-use crate::{color::Color, engine::Display, point::Point, rect::Rectangle};
-
-pub fn progress_bar(
-    display: &mut Display,
-    percentage: f32,
-    pos: Point,
-    width: i32,
-    foreground: Color,
-    background: Color,
-) {
-    assert!(percentage >= 0.0);
-    assert!(percentage <= 1.0);
-    let mut highlighted_width = (width as f32 * percentage) as i32;
-    if percentage > 0.0 && highlighted_width == 0 {
-        highlighted_width = 1;
-    } else if percentage >= 1.0 {
-        highlighted_width = width;
-    }
-
-    if highlighted_width > 0 {
-        display.draw_rectangle(
-            Rectangle::from_point_and_size(pos, Point::new(highlighted_width, 1)),
-            foreground,
-        );
-    }
-
-    let remaining_width = width - highlighted_width;
-    if remaining_width > 0 {
-        display.draw_rectangle(
-            Rectangle::from_point_and_size(
-                pos + (highlighted_width, 0),
-                Point::new(remaining_width, 1),
-            ),
-            background,
-        );
-    }
-}
+use crate::color::Color;
 
 pub fn lerp_f32(from: f32, to: f32, t: f32) -> f32 {
     (1.0 - t) * from + t * to

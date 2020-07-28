@@ -109,7 +109,11 @@ pub const explosion: Color = BRIGHT_BLUE;
 
 pub const window_edge: Color = DIM_BLUE;
 pub const window_background: Color = BLACK;
-pub const menu_highlight: Color = RED;
+
+// NOTE: Our old menus used it, but egui buttons have a different colour.
+// Keeping it here for now just in case:
+//pub const menu_highlight: Color = RED;
+
 pub const dose_irresistible_background: Color = DIM_BLUE;
 
 pub const gui_progress_bar_bg: Color = DIM_GREEN;

@@ -60,8 +60,7 @@ pub fn process(
         rect: full_rect,
         corner_radius: 0.0,
         outline: None,
-        // TODO: use `color::dim_background` this for background
-        fill: Some(color::RED.into()),
+        fill: Some(color::dim_background.into()),
     });
 
     let player = &state.player;

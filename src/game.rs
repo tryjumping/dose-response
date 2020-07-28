@@ -139,7 +139,7 @@ pub fn update(
                 display.fade = color::invisible;
             }
             Window::Game => {
-                game_update_result = process_game(
+                let (result, highlighted_tile) = process_game(
                     state,
                     ui,
                     settings,
@@ -157,8 +157,10 @@ pub fn update(
                     dt,
                     fps,
                     display,
+                    highlighted_tile,
                     top_level,
                 );
+                game_update_result = result;
             }
             Window::Settings => {
                 if top_level {
@@ -258,13 +260,13 @@ fn process_game(
     dt: Duration,
     fps: i32,
     active: bool,
-) -> RunningState {
+) -> (RunningState, Option<Point>) {
     use self::sidebar::Action;
 
-    let mut option = sidebar::process(state, ui, dt, fps, display, active);
+    let (mut option, highlighted_tile) = sidebar::process(state, ui, dt, fps, display, active);
 
     if !active {
-        return RunningState::Running;
+        return (RunningState::Running, None);
     }
 
     if option.is_none() {
@@ -280,11 +282,11 @@ fn process_game(
     match option {
         Some(Action::MainMenu) => {
             state.window_stack.push(Window::MainMenu);
-            return RunningState::Running;
+            return (RunningState::Running, None);
         }
         Some(Action::Help) => {
             state.window_stack.push(Window::Help);
-            return RunningState::Running;
+            return (RunningState::Running, None);
         }
         _ => {}
     }
@@ -295,7 +297,7 @@ fn process_game(
         && (state.keys.matches(|_| true) || state.mouse.right_clicked)
     {
         state.window_stack.push(Window::Endgame);
-        return RunningState::Running;
+        return (RunningState::Running, None);
     }
 
     let player_was_alive = state.player.alive();
@@ -661,7 +663,7 @@ fn process_game(
         }
     }
 
-    RunningState::Running
+    (RunningState::Running, highlighted_tile)
 }
 
 fn process_monsters(

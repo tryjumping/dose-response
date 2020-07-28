@@ -41,7 +41,7 @@ pub fn process(
     fps: i32,
     display: &Display,
     active: bool,
-) -> Option<Action> {
+) -> (Option<Action>, Option<Point>) {
     let mut action = None;
 
     let width_px = 250.0;
@@ -275,6 +275,8 @@ pub fn process(
         ));
     }
 
+    let mut highlighted_tile = None;
+
     {
         // TODO: make sure this hardcoded position works even for
         // bigger fonts and smaller windows. I think we should be able
@@ -286,6 +288,8 @@ pub fn process(
             ui_rect.right_bottom(),
         ));
 
+        let mut highlighted_tile_offset_from_player_pos = None;
+
         ui.label("Numpad Controls:\n");
         ui.columns(3, |c| {
             let mut style = c[0].style().clone();
@@ -294,40 +298,85 @@ pub fn process(
                 c[index].set_style(style.clone());
             }
 
-            if c[0].add(ui::button("7", active)).clicked {
+            let btn = c[0].add(ui::button("7", active));
+            if btn.clicked {
                 action = Some(Action::MoveNW);
             };
-            if c[1].add(ui::button("8", active)).clicked {
+            if btn.hovered {
+                highlighted_tile_offset_from_player_pos = Some((-1, -1));
+            }
+
+            let btn = c[1].add(ui::button("8", active));
+            if btn.clicked {
                 action = Some(Action::MoveN);
             };
-            if c[2].add(ui::button("9", active)).clicked {
+            if btn.hovered {
+                highlighted_tile_offset_from_player_pos = Some((0, -1));
+            }
+
+            let btn = c[2].add(ui::button("9", active));
+            if btn.clicked {
                 action = Some(Action::MoveNE);
             };
+            if btn.hovered {
+                highlighted_tile_offset_from_player_pos = Some((1, -1));
+            }
 
-            if c[0].add(ui::button("4", active)).clicked {
+            let btn = c[0].add(ui::button("4", active));
+            if btn.clicked {
                 action = Some(Action::MoveW);
             };
+            if btn.hovered {
+                highlighted_tile_offset_from_player_pos = Some((-1, 0));
+            }
+
             c[1].add(egui::Button::new("@").enabled(false));
-            if c[2].add(ui::button("6", active)).clicked {
+
+            let btn = c[2].add(ui::button("6", active));
+            if btn.clicked {
                 action = Some(Action::MoveE);
             };
+            if btn.hovered {
+                highlighted_tile_offset_from_player_pos = Some((1, 0));
+            }
 
-            if c[0].add(ui::button("1", active)).clicked {
+            let btn = c[0].add(ui::button("1", active));
+            if btn.clicked {
                 action = Some(Action::MoveSW);
             };
-            if c[1].add(ui::button("2", active)).clicked {
+            if btn.hovered {
+                highlighted_tile_offset_from_player_pos = Some((-1, 1));
+            }
+
+            let btn = c[1].add(ui::button("2", active));
+            if btn.clicked {
                 action = Some(Action::MoveS);
             };
-            if c[2].add(ui::button("3", active)).clicked {
+            if btn.hovered {
+                highlighted_tile_offset_from_player_pos = Some((0, 1));
+            }
+
+            let btn = c[2].add(ui::button("3", active));
+            if btn.clicked {
                 action = Some(Action::MoveSE);
             };
+            if btn.hovered {
+                highlighted_tile_offset_from_player_pos = Some((1, 1));
+            }
         });
+
+        // Highlight the target tile the player would walk to if clicked in the sidebar numpad:
+        if let Some(offset) = highlighted_tile_offset_from_player_pos {
+            let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+            let player_screen_pos = state.player.pos - screen_left_top_corner;
+            highlighted_tile = Some(player_screen_pos + offset);
+        }
     }
 
     if active {
-        action
+        (action, highlighted_tile)
     } else {
-        None
+        (None, None)
     }
 }
 

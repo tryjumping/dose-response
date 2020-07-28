@@ -19,6 +19,7 @@ pub fn render_game(
     dt: Duration,
     fps: i32,
     display: &mut Display,
+    highlighted_tile: Option<Point>,
     top_level: bool,
 ) {
     let mut offset_px = state.offset_px;
@@ -229,7 +230,18 @@ pub fn render_game(
         display.set_graphic(display_pos, state.player.graphic(), state.player.color());
     }
 
+    // TODO: remove this -- it's the old sidebar
     sidebar_window.render(state, metrics, dt, fps, display, top_level);
+
+    // Highlight the target tile the player would walk to if clicked in the sidebar numpad:
+    if let Some(pos) = highlighted_tile {
+        // Only highlight when we're not re-centering the
+        // screen (because that looks weird)
+        if state.pos_timer.finished() {
+            display.set_background(pos, state.player.color);
+        }
+    }
+
     if state.show_keboard_movement_hints && !state.game_ended {
         render_controls_help(state.map_size, metrics, display);
     }

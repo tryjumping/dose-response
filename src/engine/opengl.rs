@@ -413,8 +413,8 @@ impl OpenGlApp {
             // NOTE: use gl::Scissor to only render the pixels within
             // clip_rect. This makes the shader simpler compared to
             // discarding the pixels there.
-            let screen_size_width = display_info.window_size_px[0];
-            let screen_size_height = display_info.window_size_px[1];
+            let screen_size_width = display_info.viewport_size[0];
+            let screen_size_height = display_info.viewport_size[1];
 
             let pixels_per_point = display_info.dpi;
             let clip_min_x = pixels_per_point * clip_rect[0];

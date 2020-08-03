@@ -363,8 +363,14 @@ monitor ID: {:?}. Ignoring this request.",
                 }
 
                 WindowEvent::MouseWheel { delta, .. } => {
-                    if let glutin::event::MouseScrollDelta::LineDelta(x, y) = delta {
-                        loop_state.mouse.scroll_delta = [x as f32, y as f32];
+                    use glutin::event::MouseScrollDelta::*;
+                    match delta {
+                        LineDelta(x, y) => loop_state.mouse.scroll_delta = [x as f32, y as f32],
+                        PixelDelta(glutin::dpi::LogicalPosition { x: x_px, y: y_px }) => {
+                            let line_height_px = loop_state.settings.text_size as f32;
+                            loop_state.mouse.scroll_delta =
+                                [x_px as f32 / line_height_px, y_px as f32 / line_height_px]
+                        }
                     }
                 }
 

@@ -640,15 +640,28 @@ pub struct Display {
 impl Display {
     /// Create a new Display.
     ///
-    /// `display_size`: number of tiles shown on the screen
+    /// `screen_size_px`: dimension of the game windo in logical pixels.
     /// `tilesize`: size (in pixels) of a single tile. Tiles are square.
-    pub fn new(display_size: Point, screen_size_px: Point, tile_size: i32, text_size: i32) -> Self {
-        assert!(display_size > Point::zero());
+    pub fn new(screen_size_px: Point, tile_size: i32, text_size: i32) -> Self {
         assert!(screen_size_px > Point::zero());
         assert!(tile_size > 0);
         assert!(text_size > 0);
         // NOTE: this padding is only here to make the screen scroll smoothly.
         // Without it, the partial tiles would not appear.
+        let display_size = {
+            let size = screen_size_px / tile_size;
+            let extra_x = if size.x * tile_size < screen_size_px.x {
+                1
+            } else {
+                0
+            };
+            let extra_y = if size.y * tile_size < screen_size_px.y {
+                1
+            } else {
+                0
+            };
+            size + Point::new(extra_x, extra_y)
+        };
         let padding = Point::from_i32(1);
         let size = display_size + (padding * 2);
         log::info!("Creating the internal Display: {:?}", size);

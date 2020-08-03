@@ -102,22 +102,21 @@ impl LoopState {
         game_state: Box<State>,
         mut egui_context: Arc<egui::Context>,
     ) -> Self {
-        log::debug!(
-            "Requested display in tiles: {} x {}",
-            game_display_size_tiles.x,
-            game_display_size_tiles.y
-        );
+        // TODO: do this for every Display creatio / window resize
+        let window_size_px =
+            Point::new(settings.window_width as i32, settings.window_height as i32);
 
         assert_eq!(
             std::mem::size_of::<Vertex>(),
             engine::VERTEX_COMPONENT_COUNT * 4
         );
 
-        let display = Display::new(
-            game_display_size_tiles,
-            game_display_size_tiles * settings.tile_size,
-            settings.tile_size,
-            settings.text_size,
+        let display = Display::new(window_size_px, settings.tile_size, settings.text_size);
+
+        log::debug!(
+            "Requested display in tiles: {} x {}",
+            display.display_size.x,
+            display.display_size.y
         );
 
         let fontmap = {
@@ -200,12 +199,14 @@ impl LoopState {
             fullscreen: false,
             ..settings.clone()
         };
-        let window_size_px = game_display_size_tiles * settings.tile_size;
         log::debug!(
             "Desired window size: {} x {}",
             window_size_px.x,
             window_size_px.y
         );
+        assert_eq!(window_size_px, display.screen_size_px);
+        assert_eq!(window_size_px.x, settings.window_width as i32);
+        assert_eq!(window_size_px.y, settings.window_height as i32);
         Self {
             settings,
             previous_settings,
@@ -338,12 +339,7 @@ impl LoopState {
             self.window_size_px = new_window_size_px;
             self.settings.window_width = new_width as u32;
             self.settings.window_height = new_height as u32;
-            let new_display_size_tiles = Point::new(
-                new_window_size_px.x / self.settings.tile_size,
-                new_window_size_px.y / self.settings.tile_size,
-            );
             self.display = Display::new(
-                new_display_size_tiles,
                 new_window_size_px,
                 self.settings.tile_size,
                 self.settings.text_size,
@@ -360,12 +356,7 @@ impl LoopState {
             );
             self.settings.tile_size = new_tilesize_px;
             // Recreate the display, because the tile count is now different:
-            let new_display_size_tiles = Point::new(
-                self.window_size_px.x / self.settings.tile_size,
-                self.window_size_px.y / self.settings.tile_size,
-            );
             self.display = Display::new(
-                new_display_size_tiles,
                 self.display.screen_size_px,
                 self.settings.tile_size,
                 self.settings.text_size,
@@ -387,12 +378,7 @@ impl LoopState {
                 new_text_size_px
             );
             self.settings.text_size = new_text_size_px;
-            let display_size_tiles = Point::new(
-                self.window_size_px.x / self.settings.tile_size,
-                self.window_size_px.y / self.settings.tile_size,
-            );
             self.display = Display::new(
-                display_size_tiles,
                 self.display.screen_size_px,
                 self.settings.tile_size,
                 self.settings.text_size,

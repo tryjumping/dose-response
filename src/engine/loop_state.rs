@@ -69,7 +69,6 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
 pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
-    pub window_size_px: Point,
     pub display: Display,
     pub fontmap: RgbaImage,
     pub glyphmap: RgbaImage,
@@ -97,7 +96,6 @@ pub struct LoopState {
 impl LoopState {
     pub fn initialise(
         settings: Settings,
-        game_display_size_tiles: Point,
         default_background: Color,
         game_state: Box<State>,
         mut egui_context: Arc<egui::Context>,
@@ -218,7 +216,6 @@ impl LoopState {
             egui_texture_id,
             egui_context,
             default_background,
-            window_size_px,
             drawcalls: Vec::with_capacity(engine::DRAWCALL_CAPACITY),
             overall_max_drawcall_count: 0,
             vertex_buffer: Vec::with_capacity(engine::VERTEX_BUFFER_CAPACITY),
@@ -323,7 +320,11 @@ impl LoopState {
                 self.mouse.scroll_delta[1] * text_size,
             ]
             .into(),
-            screen_size: [self.window_size_px.x as f32, self.window_size_px.y as f32].into(),
+            screen_size: [
+                self.settings.window_width as f32,
+                self.settings.window_height as f32,
+            ]
+            .into(),
 
             // TODO: handle DPI here
             // pixels_per_point: None,
@@ -335,8 +336,7 @@ impl LoopState {
     pub fn handle_window_size_changed(&mut self, new_width: i32, new_height: i32) {
         log::info!("Window resized to: {} x {}", new_width, new_height);
         let new_window_size_px = Point::new(new_width, new_height);
-        if self.window_size_px != new_window_size_px {
-            self.window_size_px = new_window_size_px;
+        if self.display.screen_size_px != new_window_size_px {
             self.settings.window_width = new_width as u32;
             self.settings.window_height = new_height as u32;
             self.display = Display::new(
@@ -394,7 +394,10 @@ impl LoopState {
 
     pub fn display_info(&self, dpi: f64) -> DisplayInfo {
         engine::calculate_display_info(
-            [self.window_size_px.x as f32, self.window_size_px.y as f32],
+            [
+                self.display.screen_size_px.x as f32,
+                self.display.screen_size_px.y as f32,
+            ],
             self.display.size_without_padding(),
             self.settings.tile_size,
             dpi as f32,

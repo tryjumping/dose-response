@@ -127,7 +127,6 @@ fn get_current_monitor(monitors: &[MonitorHandle], window_pos: Point) -> Option<
 
 #[allow(cyclomatic_complexity, unsafe_code)]
 pub fn main_loop<S>(
-    initial_game_display_size: Point,
     initial_default_background: Color,
     window_title: &str,
     mut settings_store: S,
@@ -154,7 +153,6 @@ pub fn main_loop<S>(
 
     let mut loop_state = LoopState::initialise(
         settings_store.load(),
-        initial_game_display_size,
         initial_default_background,
         initial_state,
         egui_context,

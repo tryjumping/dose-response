@@ -99,7 +99,6 @@ const WORLD_SIZE: point::Point = point::Point {
 
 #[allow(unused_variables, dead_code, needless_pass_by_value)]
 fn run_glutin(
-    display_size: point::Point,
     default_background: color::Color,
     window_title: &str,
     settings_store: settings::FileSystemStore,
@@ -116,7 +115,6 @@ fn run_glutin(
 
     #[cfg(feature = "glutin-backend")]
     engine::glutin::main_loop(
-        display_size,
         default_background,
         window_title,
         settings_store,
@@ -354,7 +352,7 @@ fn process_cli_and_run_game() {
     match backend.as_str() {
         "remote" => run_remote(display_size, background, game_title, settings_store, state),
         "sdl" => run_sdl(display_size, background, game_title, settings_store, state),
-        "glutin" => run_glutin(display_size, background, game_title, settings_store, state),
+        "glutin" => run_glutin(background, game_title, settings_store, state),
         _ => {
             log::error!("Unknown backend: {}", backend);
         }

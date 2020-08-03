@@ -46,7 +46,7 @@ pub fn process(
     // as wide, we'll see the desired thickness.
     let border_width_px = 30.0 * 2.0;
 
-    ui.add_paint_cmd(PaintCmd::Rect {
+    ui.painter().add(PaintCmd::Rect {
         rect: Rect {
             min: [0.0, 0.0].into(),
             max: [window_size_px.x as f32, window_size_px.y as f32].into(),
@@ -59,7 +59,7 @@ pub fn process(
         }),
     });
 
-    ui.floating_text(
+    ui.painter().floating_text(
         ui.available().translate([-70.0, -70.0].into()).max,
         format!(
             "Version: {}.{}",
@@ -68,7 +68,7 @@ pub fn process(
         ),
         egui::TextStyle::Body,
         (egui::Align::Max, egui::Align::Max),
-        None,
+        color::gui_text.into(),
     );
 
     // NOTE: this centers the UI area. Without it, we start in the top-left corner.

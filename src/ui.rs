@@ -150,7 +150,8 @@ pub fn button(text: &str, enabled: bool) -> egui::Button {
 
 pub fn progress_bar(
     ui: &mut Ui,
-    paint_list_pos: usize,
+    bg_cmd_index: egui::PaintCmdIdx,
+    fg_cmd_index: egui::PaintCmdIdx,
     top_left: egui::Pos2,
     width: f32,
     height: f32,
@@ -175,10 +176,10 @@ pub fn progress_bar(
         fill: Some(fg_color.into()),
     };
 
-    ui.insert_paint_cmd(paint_list_pos, background_rect);
+    ui.painter().set(bg_cmd_index, background_rect);
 
     if percent > 0.0 {
-        ui.insert_paint_cmd(paint_list_pos + 1, foreground_rect);
+        ui.painter().set(fg_cmd_index, foreground_rect);
     }
 }
 

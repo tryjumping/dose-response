@@ -56,7 +56,7 @@ pub fn process(
     style.text_color = color::gui_text.into();
     ui.set_style(style);
 
-    ui.add_paint_cmd(PaintCmd::Rect {
+    ui.painter().add(PaintCmd::Rect {
         rect: full_rect,
         corner_radius: 0.0,
         outline: None,
@@ -73,12 +73,14 @@ pub fn process(
     };
 
     ui.label("");
-    let paint_list_pos = ui.paint_list_len();
+    let bg_progress_bar_pos = ui.painter().add(PaintCmd::Noop);
+    let fg_progress_bar_pos = ui.painter().add(PaintCmd::Noop);
     let mindstate_rect = ui.label(mind_str).rect;
 
     ui::progress_bar(
         &mut ui,
-        paint_list_pos,
+        bg_progress_bar_pos,
+        fg_progress_bar_pos,
         mindstate_rect.left_top(),
         ui_rect.width() - padding,
         mindstate_rect.height(),
@@ -87,7 +89,8 @@ pub fn process(
         color::gui_progress_bar_fg,
     );
 
-    let paint_list_pos = ui.paint_list_len();
+    let bg_anxiety_paint_pos = ui.painter().add(PaintCmd::Noop);
+    let fg_anxiety_paint_pos = ui.painter().add(PaintCmd::Noop);
     let anxiety_counter_rect = ui.label(format!("Will: {}", player.will.to_int())).rect;
 
     // Show the anxiety counter as a progress bar next to the `Will` number
@@ -100,7 +103,8 @@ pub fn process(
 
         ui::progress_bar(
             &mut ui,
-            paint_list_pos,
+            bg_anxiety_paint_pos,
+            fg_anxiety_paint_pos,
             top_left,
             ui_rect.right() - padding - top_left.x,
             anxiety_counter_rect.height(),

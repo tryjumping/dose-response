@@ -24,7 +24,8 @@ clap = { version = "2.20.1", optional = true }
 chrono = { version = "0.4.0", optional = true }
 #egui = "0.1.2"
 #egui = { git = "https://github.com/emilk/emigui.git" }
-egui = { path = "../../go/src/github.com/emilk/emigui/egui" }
+egui = { git = "https://github.com/tomassedovic/emigui.git" }
+#egui = { path = "../../go/src/github.com/tomassedovic/emigui/egui" }
 gl = { version = "0.10", optional = true }
 glutin = { version = "0.24", optional = true }
 image = { version = "0.20", optional = true }

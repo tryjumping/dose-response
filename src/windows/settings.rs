@@ -28,14 +28,14 @@ pub fn process(
     let mut visible = true;
     let mut action = None;
 
-    let display_size_px = display.size_without_padding() * display.tile_size;
+    let screen_size_px = display.screen_size_px;
     let window_size_px = [
-        (display_size_px.x - 150) as f32,
-        (display_size_px.y - 150) as f32,
+        (screen_size_px.x - 150) as f32,
+        (screen_size_px.y - 150) as f32,
     ];
     let window_pos_px = [
-        (display_size_px.x as f32 - window_size_px[0]) / 2.0,
-        (display_size_px.y as f32 - window_size_px[1]) / 2.0,
+        (screen_size_px.x as f32 - window_size_px[0]) / 2.0,
+        (screen_size_px.y as f32 - window_size_px[1]) / 2.0,
     ];
 
     egui::Window::new("Settings")

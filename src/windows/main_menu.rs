@@ -59,15 +59,15 @@ pub fn process(
         }),
     });
 
-    ui.painter().floating_text(
+    ui.painter().text(
         ui.available().translate([-70.0, -70.0].into()).max,
+        (egui::Align::Max, egui::Align::Max),
         format!(
             "Version: {}.{}",
             crate::metadata::VERSION_MAJOR,
             crate::metadata::VERSION_MINOR
         ),
         egui::TextStyle::Body,
-        (egui::Align::Max, egui::Align::Max),
         color::gui_text.into(),
     );
 

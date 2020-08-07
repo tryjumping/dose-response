@@ -387,7 +387,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "egui"
 version = "0.1.2"
-source = "git+https://github.com/tomassedovic/emigui.git#bf488b47ea3eae2f47d6df1ee2cd8b5d46963a98"
+source = "git+https://github.com/tomassedovic/emigui.git#1d955a2a37691d4c1927ea27c0e343eae152f840"
 dependencies = [
  "ahash 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "parking_lot 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",

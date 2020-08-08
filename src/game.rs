@@ -63,12 +63,18 @@ pub fn update(
     state.clock += dt;
     state.replay_step += dt;
 
-    if display.size_without_padding() != (state.map_size.x + state.panel_width, state.map_size.y) {
-        state.map_size = display.size_without_padding() - Point::new(state.panel_width, 0);
+    // TODO: remove `state.map_size` if we're always recalculating it
+    // here anyway?? The map size now depends solely on the window
+    // size in pixels anyway so there's little sense carrying it
+    // around.
+    let panel_width_tiles =
+        (crate::SIDEBAR_WIDTH_PX as f32 / settings.tile_size as f32).ceil() as i32;
+    if display.size_without_padding() != (state.map_size.x + panel_width_tiles, state.map_size.y) {
+        state.map_size = display.size_without_padding() - Point::new(panel_width_tiles, 0);
     }
     assert_eq!(
         display.size_without_padding(),
-        (state.map_size.x + state.panel_width, state.map_size.y)
+        (state.map_size.x + panel_width_tiles, state.map_size.y)
     );
 
     state.keys.extend(new_keys.iter().cloned());

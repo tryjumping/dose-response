@@ -35,7 +35,7 @@ pub fn process(
 ) -> (Option<Action>, Option<Point>) {
     let mut action = None;
 
-    let width_px = 250.0;
+    let width_px = crate::SIDEBAR_WIDTH_PX as f32;
     let bottom_left = [
         (display.screen_size_px.x + 1) as f32,
         (display.screen_size_px.y + 1) as f32,

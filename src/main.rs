@@ -49,6 +49,8 @@ mod window;
 mod windows;
 mod world;
 
+const SIDEBAR_WIDTH_PX: i32 = 250;
+
 // These are all in tiles and relate to how much we show on the screen.
 //
 // NOTE: 53 x 30 tiles is the same aspect ratio as a widescreen

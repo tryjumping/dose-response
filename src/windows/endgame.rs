@@ -22,6 +22,7 @@ pub fn process(
     ui: &mut Ui,
     _metrics: &dyn TextMetrics,
     display: &Display,
+    active: bool,
 ) -> RunningState {
     use CauseOfDeath::*;
     let cause_of_death = formula::cause_of_death(&state.player);
@@ -108,16 +109,16 @@ pub fn process(
             ui.separator();
             ui.columns(3, |c| {
                 c[0].set_layout(egui::Layout::vertical(egui::Align::Min));
-                if c[0].add(ui::button("[N]ew Game", true)).clicked {
+                if c[0].add(ui::button("[N]ew Game", active)).clicked {
                     action = Some(Action::NewGame);
                 };
                 c[1].set_layout(egui::Layout::vertical(egui::Align::Center));
-                if c[1].add(ui::button("[?] Help", true)).clicked {
+                if c[1].add(ui::button("[?] Help", active)).clicked {
                     action = Some(Action::Help);
                 };
                 c[2].set_layout(egui::Layout::vertical(egui::Align::Max));
 
-                if c[2].add(ui::button("[Esc] Main Menu", true)).clicked {
+                if c[2].add(ui::button("[Esc] Main Menu", active)).clicked {
                     action = Some(Action::Menu);
                 };
             });
@@ -137,6 +138,10 @@ pub fn process(
         {
             action = Some(Action::Help);
         }
+    }
+
+    if !active {
+        action = None;
     }
 
     match action {

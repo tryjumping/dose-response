@@ -166,9 +166,7 @@ pub fn update(
                 display.fade = color::invisible;
             }
             Window::Endgame => {
-                if top_level {
-                    game_update_result = endgame::process(state, ui, metrics, display);
-                }
+                game_update_result = endgame::process(state, ui, metrics, display, top_level);
 
                 if cfg!(feature = "recording") {
                     let window = crate::windows::call_to_action::Window;

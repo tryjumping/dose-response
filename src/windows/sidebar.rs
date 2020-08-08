@@ -37,10 +37,10 @@ pub fn process(
 
     let width_px = 250.0;
     let bottom_left = [
-        (display.screen_size_px.x - 1) as f32,
-        (display.screen_size_px.y - 1) as f32,
+        (display.screen_size_px.x + 1) as f32,
+        (display.screen_size_px.y + 1) as f32,
     ];
-    let top_left = [bottom_left[0] - width_px, 0.0];
+    let top_left = [bottom_left[0] - width_px - 1.0, -1.0];
     let ui_rect = Rect::from_min_max(top_left.into(), bottom_left.into());
 
     let padding = 20.0;

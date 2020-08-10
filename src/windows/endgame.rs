@@ -149,6 +149,7 @@ pub fn process(
             RunningState::NewGame(Box::new(game::create_new_game_state(state)))
         }
         Some(Action::Menu) => {
+            state.window_stack.pop();
             state.window_stack.push(window::Window::MainMenu);
             RunningState::Running
         }

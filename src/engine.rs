@@ -259,28 +259,6 @@ fn build_vertices<T: VertexStore>(
                     Texture::Egui => (tile_width, tile_height),
                 };
 
-                // NOTE: cut off the area that's not in the display.
-                //
-                // Any drawcalls that would be entirely invisible will
-                // have been filtered by now. But we still need to
-                // process drawcalls that are only partially visible.
-                // So this fixes the rendered position and height to
-                // do just that.
-                let (pos_x, tilemap_x, tile_width) = if pos_x < 0.0 {
-                    (0.0, tilemap_x + (0.0 - pos_x), tile_width + pos_x)
-                } else if pos_x + tile_width >= display_size_x {
-                    (pos_x, tilemap_x, display_size_x - pos_x)
-                } else {
-                    (pos_x, tilemap_x, tile_width)
-                };
-                let (pos_y, tilemap_y, tile_height) = if pos_y < 0.0 {
-                    (0.0, tilemap_y + (0.0 - pos_y), tile_height + pos_y)
-                } else if pos_y + tile_height >= display_size_y {
-                    (pos_y, tilemap_y, display_size_y - pos_y)
-                } else {
-                    (pos_y, tilemap_y, tile_height)
-                };
-
                 let texture_id = (*texture).into();
                 let rgba: ColorAlpha = (*color).into();
                 let color = rgba.into();

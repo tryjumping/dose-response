@@ -387,6 +387,8 @@ impl LoopState {
                 self.settings.tile_size,
                 self.settings.text_size,
             );
+            // Update the current egui font size:
+            egui_set_font_size(&self.egui_context, self.settings.text_size as f32);
         } else {
             log::warn!(
             "Trying to switch to a text size that's not available: {}. Only these ones exist: {:?}",

@@ -66,6 +66,23 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
     (egui_texture.id, texture)
 }
 
+pub fn egui_set_font_size(ctx: &egui::Context, font_size_px: f32) {
+    let font_definitions = {
+        use egui::paint::fonts::{FontFamily, TextStyle};
+        let family = FontFamily::Mononoki;
+
+        // TODO: Add my own font here!
+        let mut def = egui::paint::FontDefinitions::default();
+        def.fonts.insert(TextStyle::Body, (family, font_size_px));
+        def.fonts.insert(TextStyle::Button, (family, font_size_px));
+        def.fonts.insert(TextStyle::Heading, (family, font_size_px));
+        def.fonts
+            .insert(TextStyle::Monospace, (family, font_size_px));
+        def
+    };
+    ctx.set_fonts(font_definitions);
+}
+
 pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
@@ -157,20 +174,7 @@ impl LoopState {
         let tilemap = tilemap; // Disable `mut`
 
         // Set the Egui font family and size:
-        let font_definitions = {
-            use egui::paint::fonts::{FontFamily, TextStyle};
-            let size = settings.text_size as f32;
-            let family = FontFamily::Mononoki;
-
-            // TODO: Add my own font here!
-            let mut def = egui::paint::FontDefinitions::default();
-            def.fonts.insert(TextStyle::Body, (family, size));
-            def.fonts.insert(TextStyle::Button, (family, size));
-            def.fonts.insert(TextStyle::Heading, (family, size));
-            def.fonts.insert(TextStyle::Monospace, (family, size));
-            def
-        };
-        egui_context.set_fonts(font_definitions);
+        egui_set_font_size(&egui_context, settings.text_size as f32);
 
         // Customise the default egui style:
         let mut style = egui_context.style().clone();

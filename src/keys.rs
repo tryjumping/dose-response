@@ -141,4 +141,9 @@ impl Keys {
     pub fn push(&mut self, key: Key) {
         self.keys.push_back(key);
     }
+
+    #[allow(dead_code)]
+    pub fn len(&self) -> usize {
+        self.keys.len()
+    }
 }

@@ -122,7 +122,7 @@ pub fn process(
     ui.label("");
     ui.label("\"You cannot lose if you do not play.\"\n-- Marla Daniels");
 
-    if action.is_none() {
+    if action.is_none() && active {
         if state.keys.matches_code(KeyCode::Esc)
             || state.keys.matches_code(KeyCode::R)
             || state.mouse.right_clicked

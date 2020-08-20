@@ -9,6 +9,7 @@ use crate::{
 
 use egui::{self, Ui};
 
+#[derive(Debug)]
 pub enum Action {
     Fullscreen,
     Window,
@@ -132,11 +133,11 @@ are visible.",
 
             ui.separator();
             ui.horizontal(|ui| {
-                if ui.add(ui::button("[A]pply Changes", true)).clicked {
+                if ui.add(ui::button("[A]ccept Changes", true)).clicked {
                     action = Some(Action::Apply);
                 }
 
-                if ui.add(ui::button("[B]ack", true)).clicked {
+                if ui.add(ui::button("[D]iscard Changes", true)).clicked {
                     action = Some(Action::Back);
                 }
             });
@@ -147,8 +148,7 @@ are visible.",
     }
 
     if state.keys.matches_code(KeyCode::Esc) || state.mouse.right_clicked {
-        state.window_stack.pop();
-        return RunningState::Running;
+        action = Some(Action::Back);
     }
 
     if action.is_none() {
@@ -158,6 +158,8 @@ are visible.",
             action = Some(Action::Window);
         } else if state.keys.matches_code(KeyCode::A) {
             action = Some(Action::Apply);
+        } else if state.keys.matches_code(KeyCode::D) {
+            action = Some(Action::Back);
         }
     }
 
@@ -231,6 +233,7 @@ are visible.",
 
             Action::Apply => {
                 settings_store.save(settings);
+                state.window_stack.pop();
             }
         }
     }

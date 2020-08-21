@@ -173,22 +173,8 @@ fn main() {
 
     // NOTE: Generate the text map texture
     {
-        // NOTE: If we want to add any other resolutions, we'll probably
-        // have to change the texture to 1024x1024. Notably, 4K needs it
-        // even if it's the only size in town.
-        //
-        // Let's cap it to whatever currently fits 512x512 and see if we
-        // need to change this later.
-
         let default_text_size = 21;
-
-        let text_sizes = [
-            //72, // 4k i.e. QuadHD i.e. 3840x2160
-            36, // 1920x1080 (1080p)
-            24, // 1280x720 (720p)
-            21, // "Dose Response default"
-            16, // 854x480 (480p)
-        ];
+        let text_sizes = [28, 21, 16];
         assert!(text_sizes.contains(&default_text_size));
 
         // NOTE: recardless of what value we set here, always keep it power of two!

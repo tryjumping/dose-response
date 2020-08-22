@@ -15,8 +15,8 @@ pub const MAX_WINDOW_WIDTH: u32 = 5000;
 pub const MIN_WINDOW_HEIGHT: u32 = 320;
 pub const MAX_WINDOW_HEIGHT: u32 = 5000;
 
-pub const DEFAULT_WINDOW_WIDTH: u32 = 1410;
-pub const DEFAULT_WINDOW_HEIGHT: u32 = 900;
+pub const DEFAULT_WINDOW_WIDTH: u32 = 1024;
+pub const DEFAULT_WINDOW_HEIGHT: u32 = 768;
 
 /// Settings the engine needs to carry.
 ///

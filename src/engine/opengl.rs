@@ -200,7 +200,7 @@ impl OpenGlApp {
         }
     }
 
-    #[allow(unsafe_code, too_many_arguments)]
+    #[allow(unsafe_code)]
     pub fn render(&self, clear_color: Color, display_info: DisplayInfo, vertex_buffer: &[f32]) {
         let program = self.program;
         let vbo = self.vbo;

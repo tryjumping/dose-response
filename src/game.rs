@@ -46,7 +46,6 @@ pub enum RunningState {
     NewGame(Box<State>),
 }
 
-#[allow(too_many_arguments)]
 pub fn update(
     state: &mut State,
     ui: &mut Ui,
@@ -762,7 +761,6 @@ fn process_monsters(
     }
 }
 
-#[allow(cyclomatic_complexity)]
 fn process_player_action<W>(
     player: &mut player::Player,
     commands: &mut VecDeque<Command>,

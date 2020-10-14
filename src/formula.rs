@@ -12,6 +12,9 @@ use std::cmp;
 
 use num_rational::{Ratio, Rational32};
 
+const WIDE_SIDEBAR_WIDTH_PX: i32 = 350;
+const NARROW_SIDEBAR_WIDTH_PX: i32 = 270;
+
 #[cfg(feature = "recording")]
 pub const INITIAL_SAFE_RADIUS: i32 = 7;
 #[cfg(not(feature = "recording"))]
@@ -284,5 +287,13 @@ pub fn player_max_ap(bonuses: &[CompanionBonus]) -> i32 {
         PLAYER_BASE_AP + 1
     } else {
         PLAYER_BASE_AP
+    }
+}
+
+pub fn sidebar_width_px(text_size_px: i32) -> i32 {
+    if text_size_px <= 21 {
+        NARROW_SIDEBAR_WIDTH_PX
+    } else {
+        WIDE_SIDEBAR_WIDTH_PX
     }
 }

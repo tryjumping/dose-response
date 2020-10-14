@@ -1,4 +1,6 @@
-use crate::{color, engine::Display, game, item, player::Mind, point::Point, state::State, ui};
+use crate::{
+    color, engine::Display, formula, game, item, player::Mind, point::Point, state::State, ui,
+};
 
 use egui::{self, paint::PaintCmd, Rect, Ui};
 
@@ -35,7 +37,7 @@ pub fn process(
 ) -> (Option<Action>, Option<Point>) {
     let mut action = None;
 
-    let width_px = crate::SIDEBAR_WIDTH_PX as f32;
+    let width_px = formula::sidebar_width_px(display.text_size) as f32;
     let bottom_left = [
         (display.screen_size_px.x + 1) as f32,
         (display.screen_size_px.y + 1) as f32,

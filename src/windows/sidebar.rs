@@ -72,7 +72,6 @@ pub fn process(
         (false, _) => ("Lost", 0.0),
     };
 
-    ui.label("");
     let bg_progress_bar_pos = ui.painter().add(PaintCmd::Noop);
     let fg_progress_bar_pos = ui.painter().add(PaintCmd::Noop);
     let mindstate_rect = ui.label(mind_str).rect;
@@ -126,45 +125,20 @@ pub fn process(
         ui.label("");
     }
 
-    let mut inventory = HashMap::new();
-    for item in &player.inventory {
-        let count = inventory.entry(item.kind).or_insert(0);
-        *count += 1;
+    // NOTE: this ignores if we've got more than one bonus. That's
+    // correct as of right now, but if we ever support more than one
+    // bonus, we'll need to update this code!
+    if let Some(bonus) = player.bonuses.get(0) {
+        ui.label(format!("Bonus: {}", bonus));
+    } else {
+        ui.label("");
     }
 
-    if !inventory.is_empty() {
-        ui.label("");
-        ui.label("Inventory:");
-        for kind in item::Kind::iter() {
-            if let Some(count) = inventory.get(&kind) {
-                let button_action = match kind {
-                    item::Kind::Food => Action::UseFood,
-                    item::Kind::Dose => Action::UseDose,
-                    item::Kind::CardinalDose => Action::UseCardinalDose,
-                    item::Kind::DiagonalDose => Action::UseDiagonalDose,
-                    item::Kind::StrongDose => Action::UseStrongDose,
-                };
-                let precision = state.panel_width as usize;
-                let button_label = format!(
-                    "[{}] {:.pr$}: {}",
-                    game::inventory_key(kind),
-                    kind,
-                    count,
-                    pr = precision - 7
-                );
-                if ui.add(ui::button(&button_label, active)).clicked {
-                    action = Some(button_action);
-                };
-            }
-        }
-    }
-
-    if !player.bonuses.is_empty() {
-        ui.label("");
-        ui.label("Active bonus:");
-        for bonus in &player.bonuses {
-            ui.label(format!("{}", bonus));
-        }
+    if player.bonuses.len() > 1 {
+        log::warn!(
+            "Player has more than one bonus! This is not supported at this time. Bonuses: {:#?}",
+            player.bonuses
+        );
     }
 
     if let Some(vnpc_id) = state.victory_npc_id {
@@ -174,19 +148,56 @@ pub fn process(
                 let dy = (player.pos.y - vnpc_pos.y) as f32;
                 dx.abs().max(dy.abs()) as i32
             };
-            ui.label(format!("Distance to Victory NPC: {}", distance));
+            ui.label(format!("Victory Distance: {}", distance));
+        } else {
+            ui.label("");
         }
+    } else {
+        ui.label("");
     }
+
+    let mut inventory = HashMap::new();
+    for item in &player.inventory {
+        let count = inventory.entry(item.kind).or_insert(0);
+        *count += 1;
+    }
+
+    ui.label("\nInventory:");
+    for kind in item::Kind::iter() {
+        let count = *inventory.get(&kind).unwrap_or(&0);
+        let button_action = match kind {
+            item::Kind::Food => Action::UseFood,
+            item::Kind::Dose => Action::UseDose,
+            item::Kind::CardinalDose => Action::UseCardinalDose,
+            item::Kind::DiagonalDose => Action::UseDiagonalDose,
+            item::Kind::StrongDose => Action::UseStrongDose,
+        };
+        let precision = state.panel_width as usize;
+        let button_label = format!(
+            "[{}] {:.pr$}: {}",
+            game::inventory_key(kind),
+            kind,
+            count,
+            pr = precision - 7
+        );
+        let active = active && count > 0;
+        if ui.add(ui::button(&button_label, active)).clicked {
+            action = Some(button_action);
+        };
+    }
+
+    let mut help_rect = Default::default();
 
     // NOTE: `Layout::reverse()` builds it up from the bottom:
     ui.inner_layout(egui::Layout::vertical(egui::Align::Min).reverse(), |ui| {
-        ui.label("");
         if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
             action = Some(Action::MainMenu);
         }
-        if ui.add(ui::button("[?] Help", active)).clicked {
+        let gui_response = ui.add(ui::button("[?] Help", active));
+        if gui_response.clicked {
             action = Some(Action::Help);
         }
+        help_rect = gui_response.rect;
     });
 
     if state.cheating {
@@ -224,19 +235,14 @@ pub fn process(
     let mut highlighted_tile = None;
 
     {
-        // TODO: make sure this hardcoded position works even for
-        // bigger fonts and smaller windows. I think we should be able
-        // to calculate a good boundary by using some of the rects
-        // calculated for other UI elements.
-        let controls_pos_from_bottom = 300.0;
         let mut ui = ui.child_ui(Rect::from_min_max(
-            [ui_rect.left(), ui_rect.bottom() - controls_pos_from_bottom].into(),
+            [ui_rect.left(), help_rect.min.y - 220.0].into(),
             ui_rect.right_bottom(),
         ));
 
         let mut highlighted_tile_offset_from_player_pos = None;
 
-        ui.label("Numpad Controls:\n");
+        ui.label("Numpad Controls:");
         ui.columns(3, |c| {
             let mut style = c[0].style().clone();
             style.button_padding = [20.0, 15.0].into();

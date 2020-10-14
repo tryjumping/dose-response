@@ -49,7 +49,10 @@ mod window;
 mod windows;
 mod world;
 
-const SIDEBAR_WIDTH_PX: i32 = 250;
+// TODO: make this width dependant on whether we use big font or not.
+// Check how the sidebar looks on smaller fonts and see if we can make it smaller.
+const SIDEBAR_WIDTH_PX: i32 = 350;
+const NARROW_SIDEBAR_WIDTH_PX: i32 = 270;
 
 // These are all in tiles and relate to how much we show on the screen.
 //

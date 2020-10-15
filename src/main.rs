@@ -10,10 +10,6 @@
 )]
 #![windows_subsystem = "windows"]
 
-// NOTE: the external functions must be available in crate root:
-#[cfg(feature = "web")]
-pub use crate::engine::wasm::{initialise, key_pressed, update};
-
 mod ai;
 mod animation;
 mod blocker;
@@ -123,29 +119,6 @@ fn run_glutin(
 
     #[cfg(not(feature = "glutin-backend"))]
     log::error!("The \"glutin-backend\" feature was not compiled in.");
-}
-
-#[allow(unused_variables, dead_code)]
-fn run_sdl(
-    display_size: point::Point,
-    default_background: color::Color,
-    window_title: &str,
-    settings_store: settings::FileSystemStore,
-    state: state::State,
-) {
-    log::info!("Using the sdl backend");
-
-    #[cfg(feature = "sdl-backend")]
-    engine::sdl::main_loop(
-        display_size,
-        default_background,
-        window_title,
-        settings_store,
-        Box::new(state),
-    );
-
-    #[cfg(not(feature = "sdl-backend"))]
-    log::error!("The \"sdl-backend\" feature was not compiled in.");
 }
 
 #[allow(unused_variables, dead_code, needless_pass_by_value)]
@@ -351,7 +324,6 @@ fn process_cli_and_run_game() {
 
     match backend.as_str() {
         "remote" => run_remote(display_size, background, game_title, settings_store, state),
-        "sdl" => run_sdl(display_size, background, game_title, settings_store, state),
         "glutin" => run_glutin(background, game_title, settings_store, state),
         _ => {
             log::error!("Unknown backend: {}", backend);

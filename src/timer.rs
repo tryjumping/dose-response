@@ -1,5 +1,4 @@
 use std::time::Duration;
-#[cfg(not(feature = "web"))]
 use std::time::Instant;
 
 use serde::{Deserialize, Serialize};
@@ -51,24 +50,17 @@ impl Timer {
 }
 
 pub struct Stopwatch {
-    #[cfg(not(feature = "web"))]
     start: Instant,
 }
 
 impl Stopwatch {
     pub fn start() -> Self {
         Stopwatch {
-            #[cfg(not(feature = "web"))]
             start: Instant::now(),
         }
     }
 
     pub fn finish(self) -> Duration {
-        #[cfg(not(feature = "web"))]
         return Instant::now().duration_since(self.start);
-
-        // TODO: make this work for the web as well!
-        #[cfg(feature = "web")]
-        return Duration::new(0, 0);
     }
 }

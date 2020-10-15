@@ -49,18 +49,9 @@ pub fn sine_curve(percentage: f32) -> f32 {
     rad.sin()
 }
 
-#[cfg(not(feature = "web"))]
 pub fn random_seed() -> u32 {
     use chrono::prelude::*;
     let local_time = Local::now();
     // Poor man's RNG: get the least signifigant digits from the current time:
     local_time.timestamp_subsec_nanos()
-}
-
-#[cfg(feature = "web")]
-pub fn random_seed() -> u32 {
-    #[allow(unsafe_code)]
-    // NOTE: this comes from `Math.random` and returns a float in the <0, 1> range:
-    let random_float = unsafe { crate::engine::wasm::random() };
-    (random_float * std::u32::MAX as f32) as u32
 }

@@ -11,23 +11,17 @@ use crate::{
 
 use serde::{Deserialize, Serialize};
 
-#[cfg(any(feature = "glutin-backend", feature = "sdl-backend"))]
+#[cfg(feature = "glutin-backend")]
 mod loop_state;
 
 #[cfg(feature = "glutin-backend")]
 pub mod glutin;
 
-#[cfg(any(feature = "glutin-backend", feature = "sdl-backend"))]
+#[cfg(feature = "glutin-backend")]
 pub mod opengl;
-
-#[cfg(feature = "sdl-backend")]
-pub mod sdl;
 
 #[cfg(feature = "remote")]
 pub mod remote;
-
-#[cfg(feature = "web")]
-pub mod wasm;
 
 pub const DRAWCALL_CAPACITY: usize = 8000;
 pub const VERTEX_CAPACITY: usize = 50_000;

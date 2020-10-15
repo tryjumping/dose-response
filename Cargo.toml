@@ -57,7 +57,7 @@ default = ["dev"]
 prod = ["desktop", "glutin-backend"]
 dev = ["desktop", "glutin-backend", "cheating", "replay", "stats", "verifications"]
 test = ["dev", "prod", "all-backends"]
-all-backends = ["glutin-backend", "sdl-backend"]
+all-backends = ["glutin-backend"]
 desktop = ["cli", "fullscreen", "chrono"]
 recording = ["prod", "replay"]
 # TODO: add a "trailer" feature for the gameplay (not UI) changes under "recording"?
@@ -70,17 +70,11 @@ fullscreen = []
 glutin-backend = ["glutin", "gl", "image"]
 remote = ["zmq"]
 replay = ["chrono"]
-sdl-backend = ["sdl2", "gl", "image"]
-# NOTE: You need the `sdl-backend` feature for this to have any
-# effect. We want it to be orthogonal to the actual backends so you
-# need to enable both.
-sdl-static-link = ["sdl2/static-link"]
 stats = []
 verifications = []
-web = []
 linux-extra-features = []
-macos-extra-features = ["sdl-static-link"]
-windows-extra-features = ["sdl-static-link"]
+macos-extra-features = []
+windows-extra-features = []
 
 
 [profile.release]

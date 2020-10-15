@@ -262,7 +262,6 @@ impl State {
         panel_width: i32,
         exit_after: bool,
         replay_path: Option<PathBuf>,
-        invincible: bool,
     ) -> State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
@@ -287,6 +286,7 @@ Reason: '{}'.",
         log_header(&mut writer, seed);
         let cheating = false;
         let replay = false;
+        let invincible = false;
         let replay_full_speed = false;
         State::new(
             world_size,
@@ -400,7 +400,6 @@ Reason: '{}'.",
             panel_width,
             exit_after,
             None,
-            invincible,
         ))
     }
 

@@ -1405,7 +1405,6 @@ pub fn create_new_game_state(state: &State) -> State {
         state.panel_width,
         state.exit_after,
         state::generate_replay_path(),
-        state.player.invincible,
     )
 }
 

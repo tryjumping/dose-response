@@ -198,7 +198,6 @@ pub extern "C" fn initialise() -> *mut Wasm {
         crate::PANEL_WIDTH,
         false, // exit-after
         None,  // replay file
-        false, // invincible
     ));
     let drawcalls = Box::new(Vec::with_capacity(crate::engine::DRAWCALL_CAPACITY));
     let vertices = Box::new(Vec::with_capacity(VERTEX_CAPACITY));

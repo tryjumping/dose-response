@@ -335,8 +335,8 @@ fn process_cli_and_run_game() {
             PANEL_WIDTH,
             matches.is_present("exit-after"),
             replay_file,
-            matches.is_present("invincible"),
         );
+        state.player.invincible = matches.is_present("invincible");
         state.window_stack.push(window::Window::MainMenu);
         state.first_game_already_generated = true;
         state

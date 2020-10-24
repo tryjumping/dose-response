@@ -143,8 +143,13 @@ pub fn text_rect(text: &Text<'_>, rect: Rectangle, metrics: &dyn TextMetrics) ->
 /// Helper for creating an egui button with the default background and
 /// an enabled state.
 pub fn button(text: &str, enabled: bool) -> egui::Button {
+    let color = match enabled {
+        true => color::gui_text,
+        false => color::gui_text_inactive,
+    };
     egui::Button::new(text)
         .fill(Some(color::gui_button_background.into()))
+        .text_color(color.into())
         .enabled(enabled)
 }
 
@@ -159,21 +164,24 @@ pub fn progress_bar(
     bg_color: Color,
     fg_color: Color,
 ) {
-    use egui::{paint::PaintCmd, Rect};
+    use egui::{
+        paint::{PaintCmd, Stroke},
+        Rect,
+    };
 
     let percent = crate::util::clampf(0.0, percent, 1.0);
 
     let background_rect = PaintCmd::Rect {
         rect: Rect::from_min_size(top_left, [width, height].into()),
         corner_radius: 0.0,
-        outline: None,
-        fill: Some(bg_color.into()),
+        stroke: Stroke::none(),
+        fill: bg_color.into(),
     };
     let foreground_rect = PaintCmd::Rect {
         rect: Rect::from_min_size(top_left, [width * percent, height].into()),
         corner_radius: 0.0,
-        outline: None,
-        fill: Some(fg_color.into()),
+        stroke: Stroke::none(),
+        fill: fg_color.into(),
     };
 
     ui.painter().set(bg_cmd_index, background_rect);

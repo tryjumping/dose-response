@@ -9,6 +9,12 @@ pub const WHITE: Color = Color {
     b: 255,
 };
 
+pub const LIGHT_GREY: Color = Color {
+    r: 180,
+    g: 180,
+    b: 180,
+};
+
 pub const GREY: Color = Color {
     r: 117,
     g: 113,

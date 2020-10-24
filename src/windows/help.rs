@@ -176,7 +176,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
         .fixed_pos(window_pos_px)
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
-            ScrollArea::default()
+            ScrollArea::auto_sized()
                 .always_show_scroll(true)
                 .show(ui, |ui| {
                     let copyright = format!("Copyright 2013-2020 {}", crate::metadata::AUTHORS);
@@ -192,8 +192,12 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                             // NOTE: this is a hack for not having a
                             // way to center a label but it works:
                             ui.columns(1, |c| {
-                                c[0].set_layout(egui::Layout::vertical(egui::Align::Center));
-                                c[0].label(NUMPAD_CONTROLS);
+                                c[0].with_layout(
+                                    egui::Layout::vertical(egui::Align::Center),
+                                    |ui| {
+                                        ui.label(NUMPAD_CONTROLS);
+                                    },
+                                );
                             });
                             ui.label(CONTROLS_FOOTER);
                         }
@@ -203,8 +207,12 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                             ui.label(ARROW_TEXT);
                             ui.label("");
                             ui.columns(1, |c| {
-                                c[0].set_layout(egui::Layout::vertical(egui::Align::Center));
-                                c[0].label(ARROW_CONTROLS);
+                                c[0].with_layout(
+                                    egui::Layout::vertical(egui::Align::Center),
+                                    |ui| {
+                                        ui.label(ARROW_CONTROLS);
+                                    },
+                                );
                             });
                             ui.label(CONTROLS_FOOTER);
                         }
@@ -214,8 +222,12 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                             ui.label(VI_KEYS_TEXT);
                             ui.label("");
                             ui.columns(1, |c| {
-                                c[0].set_layout(egui::Layout::vertical(egui::Align::Center));
-                                c[0].label(VI_KEYS_CONTROLS);
+                                c[0].with_layout(
+                                    egui::Layout::vertical(egui::Align::Center),
+                                    |ui| {
+                                        ui.label(VI_KEYS_CONTROLS);
+                                    },
+                                );
                             });
                             ui.label(CONTROLS_FOOTER);
                         }
@@ -274,13 +286,11 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                 });
 
                 state.current_help_window.next().map(|text| {
-                    c[1].set_layout(egui::Layout::vertical(egui::Align::Max));
-                    if c[1]
-                        .add(ui::button(&format!("[->] {}", text), true))
-                        .clicked
-                    {
-                        action = Some(Action::NextPage);
-                    }
+                    c[1].with_layout(egui::Layout::vertical(egui::Align::Max), |ui| {
+                        if ui.add(ui::button(&format!("[->] {}", text), true)).clicked {
+                            action = Some(Action::NextPage);
+                        }
+                    });
                 });
             });
         });

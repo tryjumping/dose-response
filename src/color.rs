@@ -44,15 +44,10 @@ impl Into<ColorAlpha> for Color {
 }
 
 
-impl Into<egui::Color> for Color {
-    fn into(self) -> egui::Color {
+impl Into<egui::Srgba> for Color {
+    fn into(self) -> egui::Srgba {
         let color: ColorAlpha = self.into();
-        egui::Color {
-            r: color.rgb.r,
-            g: color.rgb.g,
-            b: color.rgb.b,
-            a: color.alpha,
-        }
+        egui::Srgba::new(color.rgb.r, color.rgb.g, color.rgb.b, color.alpha)
     }
 }
 
@@ -67,6 +62,7 @@ pub const exhaustion_animation: Color = BLACK;
 pub const fade_to_black_animation: Color = BLACK;
 
 pub const gui_text: Color = WHITE;
+pub const gui_text_inactive: Color = LIGHT_GREY;
 pub const gui_button_background: Color = DARK_RED;
 pub const overdose_animation: Color = WHITE;
 

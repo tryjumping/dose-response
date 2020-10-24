@@ -59,11 +59,12 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
     let mut texture = RgbaImage::new(width, height);
     for (index, &alpha) in egui_texture.pixels.iter().enumerate() {
         let pixel = Rgba {
-            data: [255, 255, 255, alpha],
+            data: egui::Srgba::white_alpha(alpha).to_array(),
         };
         texture.put_pixel(index as u32 % width, index as u32 / width, pixel);
     }
-    (egui_texture.id, texture)
+
+    (egui_texture.version, texture)
 }
 
 pub fn egui_set_font_size(ctx: &egui::Context, font_size_px: f32) {
@@ -91,7 +92,7 @@ pub struct LoopState {
     pub glyphmap: RgbaImage,
     pub tilemap: RgbaImage,
     pub eguimap: RgbaImage,
-    pub egui_texture_id: u64,
+    pub egui_texture_version: u64,
     pub egui_context: Arc<egui::Context>,
     pub default_background: Color,
     pub drawcalls: Vec<Drawcall>,
@@ -177,17 +178,17 @@ impl LoopState {
         egui_set_font_size(&egui_context, settings.text_size as f32);
 
         // Customise the default egui style:
-        let mut style = egui_context.style().clone();
+        let mut style = egui::Style::default();
         // NOTE: this applies to check/radio boxes as well, not just regular buttons:
-        style.button_padding = [7.0, 3.0].into();
-        egui_context.set_style(style);
+        style.spacing.button_padding = [7.0, 3.0].into();
+        egui_context.set_style(Arc::new(style));
 
         // NOTE: Begin a dummy egui frame to generate the egui texture
         {
             egui_context.begin_frame(RawInput::default());
             let _ = egui_context.end_frame();
         };
-        let (egui_texture_id, eguimap) = build_texture_from_egui(&egui_context);
+        let (egui_texture_version, eguimap) = build_texture_from_egui(&egui_context);
         log::debug!("Loaded the egui tilemap.");
 
         // Always start from a windowed mode. This will force the
@@ -217,7 +218,7 @@ impl LoopState {
             glyphmap,
             tilemap,
             eguimap,
-            egui_texture_id,
+            egui_texture_version,
             egui_context,
             default_background,
             drawcalls: Vec::with_capacity(engine::DRAWCALL_CAPACITY),
@@ -471,12 +472,12 @@ impl LoopState {
         extra_batches: &[([f32; 4], i32, i32)],
     ) {
         // NOTE: Check if the Egui texture has changed and needs rebuilding
-        if self.egui_texture_id != self.egui_context.texture().id {
-            let (egui_texture_id, egui_texture) = build_texture_from_egui(&self.egui_context);
+        if self.egui_texture_version != self.egui_context.texture().version {
+            let (egui_texture_version, egui_texture) = build_texture_from_egui(&self.egui_context);
             let (width, height) = egui_texture.dimensions();
             opengl_app.eguimap_size_px = [width as f32, height as f32];
             opengl_app.upload_texture(opengl_app.eguimap, "egui", &egui_texture);
-            self.egui_texture_id = egui_texture_id;
+            self.egui_texture_version = egui_texture_version;
         }
 
         self.push_drawcalls_to_display();

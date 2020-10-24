@@ -80,47 +80,50 @@ pub fn process(
         .fixed_pos(window_pos_px)
         .fixed_size(window_size)
         .show(ui.ctx(), |ui| {
-            ui.set_layout(egui::Layout::vertical(egui::Align::Center));
-            ui.label(format!("Turns: {}", state.turn));
-            ui.label("");
-            ui.label(format!(
-                "Longest High streak: {} turns",
-                state.player.longest_high_streak
-            ));
-            ui.label("");
-            let carrying_doses_text = if state.player_picked_up_a_dose {
-                let doses_in_inventory = state
-                    .player
-                    .inventory
-                    .iter()
-                    .filter(|item| item.is_dose())
-                    .count();
-                format!("Carrying {} doses", doses_in_inventory)
-            } else {
-                "You've never managed to save a dose for a later fix.".to_string()
-            };
-            ui.label(carrying_doses_text);
-            // Show some game tip, but not if the player just won
-            if state.side != Side::Victory {
+            ui.with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                ui.label(format!("Turns: {}", state.turn));
                 ui.label("");
-                ui.label(format!("Tip: {}", endgame_tip(state)));
-            }
+                ui.label(format!(
+                    "Longest High streak: {} turns",
+                    state.player.longest_high_streak
+                ));
+                ui.label("");
+                let carrying_doses_text = if state.player_picked_up_a_dose {
+                    let doses_in_inventory = state
+                        .player
+                        .inventory
+                        .iter()
+                        .filter(|item| item.is_dose())
+                        .count();
+                    format!("Carrying {} doses", doses_in_inventory)
+                } else {
+                    "You've never managed to save a dose for a later fix.".to_string()
+                };
+                ui.label(carrying_doses_text);
+                // Show some game tip, but not if the player just won
+                if state.side != Side::Victory {
+                    ui.label("");
+                    ui.label(format!("Tip: {}", endgame_tip(state)));
+                }
 
-            ui.separator();
-            ui.columns(3, |c| {
-                c[0].set_layout(egui::Layout::vertical(egui::Align::Min));
-                if c[0].add(ui::button("[N]ew Game", active)).clicked {
-                    action = Some(Action::NewGame);
-                };
-                c[1].set_layout(egui::Layout::vertical(egui::Align::Center));
-                if c[1].add(ui::button("[?] Help", active)).clicked {
-                    action = Some(Action::Help);
-                };
-                c[2].set_layout(egui::Layout::vertical(egui::Align::Max));
-
-                if c[2].add(ui::button("[Esc] Main Menu", active)).clicked {
-                    action = Some(Action::Menu);
-                };
+                ui.separator();
+                ui.columns(3, |c| {
+                    c[0].with_layout(egui::Layout::vertical(egui::Align::Min), |ui| {
+                        if ui.add(ui::button("[N]ew Game", active)).clicked {
+                            action = Some(Action::NewGame);
+                        };
+                    });
+                    c[1].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                        if ui.add(ui::button("[?] Help", active)).clicked {
+                            action = Some(Action::Help);
+                        };
+                    });
+                    c[2].with_layout(egui::Layout::vertical(egui::Align::Max), |ui| {
+                        if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
+                            action = Some(Action::Menu);
+                        };
+                    });
+                });
             });
         });
 

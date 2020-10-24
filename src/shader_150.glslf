@@ -26,6 +26,11 @@ void main() {
   } else if (v_texture_id == 2.0) {
     out_color = texture(tilemap, v_tile_pos_px / tilemap_size_px) * v_color;
   } else if (v_texture_id == 3.0) {
-    out_color = texture(eguimap, v_tile_pos_px / eguimap_size_px) * v_color;
+    // NOTE: egui outputs texture coordinates (uv aka v_tile_pos_px) already normalised.
+    // That means we shouldn't divide them by eguimap_size_px as they're in the [0, 1] range already.
+    // TODO: "denormalise" them again so the shader is consistent?
+    // Alternatively: normalise all the other texture coordinates.
+    // TODO: rename `v_tile_pos_px` to `v_tile_pos_01` because it's NOT pixels anymore.
+    out_color = texture(eguimap, v_tile_pos_px) * v_color;
   }
 }

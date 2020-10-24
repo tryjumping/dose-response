@@ -55,7 +55,7 @@ pub fn process(
 
                 // TODO: implement these
                 c[0].label("Challenge:");
-                c[0].checkbox("Fast Depression", &mut true).tooltip_text(
+                c[0].checkbox(&mut true, "Fast Depression").on_hover_text(
                     "\
 Checked: Depression moves two tiles per turn.
 Unchecked: Depression moves one tile per turn.",
@@ -63,15 +63,15 @@ Unchecked: Depression moves one tile per turn.",
                 // NOTE: this how do we handle persistentcases like
                 // exhaustion, overdose, loss of will, etc.? I think
                 // we'll prolly want to drop thisone.
-                c[0].checkbox("Player respawn", &mut false)
-                    .tooltip_text("Does the player respawn instead of losing the game?");
-                c[0].checkbox("Overdose", &mut true).tooltip_text(
+                c[0].checkbox(&mut false, "Player respawn")
+                    .on_hover_text("Does the player respawn instead of losing the game?");
+                c[0].checkbox(&mut true, "Overdose").on_hover_text(
                     "\
 Checked: game over on overdose.
 Unchecked: the game continues
  even on overdose.",
                 );
-                c[0].checkbox("Show all tiles", &mut false).tooltip_text(
+                c[0].checkbox(&mut false, "Show all tiles").on_hover_text(
                     "\
 Checked: the entire map is uncovered.
 Unchecked: only previously seen tiles
@@ -85,8 +85,8 @@ are visible.",
                     let selected = tile_size == settings.tile_size;
                     if c[1]
                         .radio(
-                            format!("[{}] {}px", available_key_shortcut, tile_size),
                             selected,
+                            format!("[{}] {}px", available_key_shortcut, tile_size),
                         )
                         .clicked
                     {
@@ -101,8 +101,8 @@ are visible.",
                     let selected = text_size == settings.text_size;
                     if c[1]
                         .radio(
-                            format!("[{}] {}px", available_key_shortcut, text_size),
                             selected,
+                            format!("[{}] {}px", available_key_shortcut, text_size),
                         )
                         .clicked
                     {
@@ -112,23 +112,23 @@ are visible.",
                 }
 
                 c[2].label("Display:");
-                if c[2].radio("[F]ullscreen", settings.fullscreen).clicked {
+                if c[2].radio(settings.fullscreen, "[F]ullscreen").clicked {
                     action = Some(Action::Fullscreen);
                 }
-                if c[2].radio("[W]indowed", !settings.fullscreen).clicked {
+                if c[2].radio(!settings.fullscreen, "[W]indowed").clicked {
                     action = Some(Action::Window)
                 }
 
                 c[2].label("");
                 c[2].label("Tiles:");
-                c[2].radio("[G]raphical", true);
-                c[2].radio("[T]extual (ASCII)", false);
+                c[2].radio(true, "[G]raphical");
+                c[2].radio(false, "[T]extual (ASCII)");
 
                 c[2].label("");
                 c[2].label("Colour:");
-                c[2].radio("[S]tandard", true);
-                c[2].radio("[C]olour-blind", false);
-                c[2].radio("C[u]stom", false);
+                c[2].radio(true, "[S]tandard");
+                c[2].radio(false, "[C]olour-blind");
+                c[2].radio(false, "C[u]stom");
             });
 
             ui.separator();

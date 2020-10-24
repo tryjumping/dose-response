@@ -491,12 +491,12 @@ monitor ID: {:?}. Ignoring this request.",
                     for &index in &triangles.indices {
                         let egui_vertex = triangles.vertices[index as usize];
                         let color = Color {
-                            r: egui_vertex.color.r,
-                            g: egui_vertex.color.g,
-                            b: egui_vertex.color.b,
+                            r: egui_vertex.color.r(),
+                            g: egui_vertex.color.g(),
+                            b: egui_vertex.color.b(),
                         }
-                        .alpha(egui_vertex.color.a);
-                        let (u, v) = egui_vertex.uv;
+                        .alpha(egui_vertex.color.a());
+                        let (u, v) = (egui_vertex.uv.x, egui_vertex.uv.y);
 
                         let pos = egui_vertex.pos;
                         let vertex = engine::Vertex {

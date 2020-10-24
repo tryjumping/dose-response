@@ -2,7 +2,11 @@ use crate::{
     color, engine::Display, formula, game, item, player::Mind, point::Point, state::State, ui,
 };
 
-use egui::{self, paint::PaintCmd, Rect, Ui};
+use egui::{
+    self,
+    paint::{PaintCmd, Stroke},
+    Rect, Ui,
+};
 
 use std::{collections::HashMap, time::Duration};
 
@@ -51,18 +55,18 @@ pub fn process(
         ui_rect.right_bottom(),
     );
 
-    let mut ui = ui.child_ui(ui_rect);
+    let mut ui = ui.child_ui(ui_rect, *ui.layout());
     ui.set_clip_rect(full_rect);
 
     let mut style = ui.style().clone();
-    style.text_color = color::gui_text.into();
+    style.visuals.override_text_color = Some(color::gui_text.into());
     ui.set_style(style);
 
     ui.painter().add(PaintCmd::Rect {
         rect: full_rect,
         corner_radius: 0.0,
-        outline: None,
-        fill: Some(color::dim_background.into()),
+        stroke: Stroke::none(),
+        fill: color::dim_background.into(),
     });
 
     let player = &state.player;
@@ -188,10 +192,10 @@ pub fn process(
         };
     }
 
-    let mut help_rect = Default::default();
+    let mut help_rect = Rect::invalid(); // Will be filled in later
 
     // NOTE: `Layout::reverse()` builds it up from the bottom:
-    ui.inner_layout(egui::Layout::vertical(egui::Align::Min).reverse(), |ui| {
+    ui.with_layout(egui::Layout::vertical(egui::Align::Min).reverse(), |ui| {
         if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
             action = Some(Action::MainMenu);
         }
@@ -237,17 +241,20 @@ pub fn process(
     let mut highlighted_tile = None;
 
     {
-        let mut ui = ui.child_ui(Rect::from_min_max(
-            [ui_rect.left(), help_rect.min.y - 220.0].into(),
-            ui_rect.right_bottom(),
-        ));
+        let mut ui = ui.child_ui(
+            Rect::from_min_max(
+                [ui_rect.left(), help_rect.min.y - 220.0].into(),
+                ui_rect.right_bottom(),
+            ),
+            *ui.layout(),
+        );
 
         let mut highlighted_tile_offset_from_player_pos = None;
 
         ui.label("Numpad Controls:");
         ui.columns(3, |c| {
             let mut style = c[0].style().clone();
-            style.button_padding = [20.0, 15.0].into();
+            style.spacing.button_padding = [20.0, 15.0].into();
             for index in 0..=2 {
                 c[index].set_style(style.clone());
             }

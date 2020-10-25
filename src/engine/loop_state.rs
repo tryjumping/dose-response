@@ -274,10 +274,10 @@ impl LoopState {
         use crate::game::RunningState;
         let tile_width_px = self.settings.tile_size;
         let text_width_px = self.settings.text_size;
-        let mut ui = self.egui_context.begin_frame(self.egui_raw_input());
+        self.egui_context.begin_frame(self.egui_raw_input());
         let update_result = crate::game::update(
             &mut self.game_state,
-            &mut ui,
+            &self.egui_context,
             dt,
             self.fps,
             &self.keys,

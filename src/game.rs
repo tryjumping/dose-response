@@ -28,10 +28,11 @@ use std::{
     collections::{HashMap, VecDeque},
     io::Write,
     iter::FromIterator,
+    sync::Arc,
     time::Duration,
 };
 
-use egui::Ui;
+use egui::{Context, Ui};
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Action {
@@ -48,7 +49,7 @@ pub enum RunningState {
 
 pub fn update(
     state: &mut State,
-    ui: &mut Ui,
+    egui_ctx: &Arc<Context>,
     dt: Duration,
     fps: i32,
     new_keys: &[Key],
@@ -132,59 +133,61 @@ pub fn update(
     // other windows.
     let mut game_update_result = RunningState::Running;
 
-    // NOTE: cloning the window list here to let us iterate it and mutate state.
-    let windows = state.window_stack.clone();
-    for window in windows.windows() {
-        let top_level = state.window_stack.top() == *window;
-        match window {
-            Window::MainMenu => {
-                let active = top_level;
-                game_update_result = main_menu::process(state, ui, metrics, display, active);
+    egui::CentralPanel::default().show(egui_ctx, |ui| {
+        // NOTE: cloning the window list here to let us iterate it and mutate state.
+        let windows = state.window_stack.clone();
+        for window in windows.windows() {
+            let top_level = state.window_stack.top() == *window;
+            match window {
+                Window::MainMenu => {
+                    let active = top_level;
+                    game_update_result = main_menu::process(state, ui, metrics, display, active);
 
-                // Clear any fade set by the gameplay rendering
-                display.fade = color::invisible;
-            }
-            Window::Game => {
-                let (result, highlighted_tile) =
-                    process_game(state, ui, settings, metrics, display, dt, fps, top_level);
-                render::render_game(state, metrics, display, highlighted_tile);
-                game_update_result = result;
-            }
-            Window::Settings => {
-                if top_level {
-                    game_update_result =
-                        settings::process(state, ui, settings, display, settings_store);
+                    // Clear any fade set by the gameplay rendering
+                    display.fade = color::invisible;
                 }
-                // Clear any fade set by the gameplay rendering
-                display.fade = color::invisible;
-            }
-            Window::Help => {
-                if top_level {
-                    game_update_result = help::process(state, ui, display);
+                Window::Game => {
+                    let (result, highlighted_tile) =
+                        process_game(state, ui, settings, metrics, display, dt, fps, top_level);
+                    render::render_game(state, metrics, display, highlighted_tile);
+                    game_update_result = result;
                 }
-                // Clear any fade set by the gameplay rendering
-                display.fade = color::invisible;
-            }
-            Window::Endgame => {
-                game_update_result = endgame::process(state, ui, metrics, display, top_level);
+                Window::Settings => {
+                    if top_level {
+                        game_update_result =
+                            settings::process(state, ui, settings, display, settings_store);
+                    }
+                    // Clear any fade set by the gameplay rendering
+                    display.fade = color::invisible;
+                }
+                Window::Help => {
+                    if top_level {
+                        game_update_result = help::process(state, ui, display);
+                    }
+                    // Clear any fade set by the gameplay rendering
+                    display.fade = color::invisible;
+                }
+                Window::Endgame => {
+                    game_update_result = endgame::process(state, ui, metrics, display, top_level);
 
-                if cfg!(feature = "recording") {
-                    let window = crate::windows::call_to_action::Window;
-                    window.render(state, metrics, display);
+                    if cfg!(feature = "recording") {
+                        let window = crate::windows::call_to_action::Window;
+                        window.render(state, metrics, display);
+                    }
+                    display.fade = color::invisible;
                 }
-                display.fade = color::invisible;
-            }
-            Window::Message {
-                ref title,
-                ref message,
-                ..
-            } => {
-                if top_level {
-                    game_update_result = message::process(state, ui, title, message, display)
+                Window::Message {
+                    ref title,
+                    ref message,
+                    ..
+                } => {
+                    if top_level {
+                        game_update_result = message::process(state, ui, title, message, display)
+                    }
                 }
             }
         }
-    }
+    });
 
     // NOTE: process the screen fading animation animation.
     // This must happen outside of the window-custom code because the fadeout could

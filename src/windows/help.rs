@@ -163,12 +163,9 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
     let screen_size_px = display.screen_size_px;
     let window_size_px = [
         (screen_size_px.x - 150) as f32,
-        (screen_size_px.y - 150) as f32,
+        (screen_size_px.y - 350) as f32,
     ];
-    let window_pos_px = [
-        (screen_size_px.x as f32 - window_size_px[0]) / 2.0,
-        (screen_size_px.y as f32 - window_size_px[1]) / 2.0,
-    ];
+    let window_pos_px = [(screen_size_px.x as f32 - window_size_px[0]) / 2.0, 100.0];
 
     egui::Window::new(format!("{}", state.current_help_window))
         .open(&mut visible)
@@ -176,104 +173,96 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
         .fixed_pos(window_pos_px)
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
-            ScrollArea::auto_sized()
-                .always_show_scroll(true)
-                .show(ui, |ui| {
-                    let copyright = format!("Copyright 2013-2020 {}", crate::metadata::AUTHORS);
-                    match state.current_help_window {
-                        Page::DoseResponse => {
-                            ui.label(OVERVIEW);
-                        }
+            ScrollArea::from_max_height(window_size_px[1]).show(ui, |ui| {
+                // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
+                ui.set_min_height(window_size_px[1] - 7.0);
+                let copyright = format!("Copyright 2013-2020 {}", crate::metadata::AUTHORS);
+                match state.current_help_window {
+                    Page::DoseResponse => {
+                        ui.label(OVERVIEW);
+                    }
 
-                        Page::NumpadControls => {
-                            ui.label(CONTROLS_HEADER);
-                            ui.label(NUMPAD_TEXT);
-                            ui.label("");
-                            // NOTE: this is a hack for not having a
-                            // way to center a label but it works:
-                            ui.columns(1, |c| {
-                                c[0].with_layout(
-                                    egui::Layout::vertical(egui::Align::Center),
-                                    |ui| {
-                                        ui.label(NUMPAD_CONTROLS);
-                                    },
-                                );
+                    Page::NumpadControls => {
+                        ui.label(CONTROLS_HEADER);
+                        ui.label(NUMPAD_TEXT);
+                        ui.label("");
+                        // NOTE: this is a hack for not having a
+                        // way to center a label but it works:
+                        ui.columns(1, |c| {
+                            c[0].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                                ui.label(NUMPAD_CONTROLS);
                             });
-                            ui.label(CONTROLS_FOOTER);
-                        }
+                        });
+                        ui.label(CONTROLS_FOOTER);
+                    }
 
-                        Page::ArrowControls => {
-                            ui.label(CONTROLS_HEADER);
-                            ui.label(ARROW_TEXT);
-                            ui.label("");
-                            ui.columns(1, |c| {
-                                c[0].with_layout(
-                                    egui::Layout::vertical(egui::Align::Center),
-                                    |ui| {
-                                        ui.label(ARROW_CONTROLS);
-                                    },
-                                );
+                    Page::ArrowControls => {
+                        ui.label(CONTROLS_HEADER);
+                        ui.label(ARROW_TEXT);
+                        ui.label("");
+                        ui.columns(1, |c| {
+                            c[0].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                                ui.label(ARROW_CONTROLS);
                             });
-                            ui.label(CONTROLS_FOOTER);
-                        }
+                        });
+                        ui.label(CONTROLS_FOOTER);
+                    }
 
-                        Page::ViKeys => {
-                            ui.label(CONTROLS_HEADER);
-                            ui.label(VI_KEYS_TEXT);
-                            ui.label("");
-                            ui.columns(1, |c| {
-                                c[0].with_layout(
-                                    egui::Layout::vertical(egui::Align::Center),
-                                    |ui| {
-                                        ui.label(VI_KEYS_CONTROLS);
-                                    },
-                                );
+                    Page::ViKeys => {
+                        ui.label(CONTROLS_HEADER);
+                        ui.label(VI_KEYS_TEXT);
+                        ui.label("");
+                        ui.columns(1, |c| {
+                            c[0].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                                ui.label(VI_KEYS_CONTROLS);
                             });
-                            ui.label(CONTROLS_FOOTER);
+                        });
+                        ui.label(CONTROLS_FOOTER);
+                    }
+
+                    Page::HowToPlay => {
+                        // TODO: Add the graphical tiles here!
+                        ui.label(HOW_TO_PLAY);
+                    }
+
+                    Page::Legend => {
+                        // TODO: Add the graphical tiles here!
+                        ui.label(LEGEND);
+                    }
+
+                    Page::Credits => {
+                        ui.label(CREDITS_DEV);
+                        ui.label(copyright);
+                        ui.label("licensed under GNU General Public License 3 or later");
+                        ui.label("");
+                        ui.label(CREDITS_TILES);
+                        ui.label("");
+                        ui.label(CREDITS_FONT);
+                    }
+
+                    Page::About => {
+                        let version = format!(
+                            "{} version: {}",
+                            crate::metadata::TITLE,
+                            crate::metadata::VERSION
+                        );
+
+                        ui.label(version);
+                        ui.label(format!("Homepage: {}", crate::metadata::HOMEPAGE));
+
+                        if !crate::metadata::GIT_HASH.trim().is_empty() {
+                            ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
                         }
 
-                        Page::HowToPlay => {
-                            // TODO: Add the graphical tiles here!
-                            ui.label(HOW_TO_PLAY);
-                        }
+                        ui.label("");
+                        ui.label(LICENSE);
+                        ui.label("");
+                        ui.label(copyright);
+                    }
+                };
+            });
 
-                        Page::Legend => {
-                            // TODO: Add the graphical tiles here!
-                            ui.label(LEGEND);
-                        }
-
-                        Page::Credits => {
-                            ui.label(CREDITS_DEV);
-                            ui.label(copyright);
-                            ui.label("licensed under GNU General Public License 3 or later");
-                            ui.label("");
-                            ui.label(CREDITS_TILES);
-                            ui.label("");
-                            ui.label(CREDITS_FONT);
-                        }
-
-                        Page::About => {
-                            let version = format!(
-                                "{} version: {}",
-                                crate::metadata::TITLE,
-                                crate::metadata::VERSION
-                            );
-
-                            ui.label(version);
-                            ui.label(format!("Homepage: {}", crate::metadata::HOMEPAGE));
-
-                            if !crate::metadata::GIT_HASH.trim().is_empty() {
-                                ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
-                            }
-
-                            ui.label("");
-                            ui.label(LICENSE);
-                            ui.label("");
-                            ui.label(copyright);
-                        }
-                    };
-                });
-
+            // TODO: looks like the separator is no longer being rendered??
             ui.separator();
             ui.columns(2, |c| {
                 state.current_help_window.prev().map(|text| {

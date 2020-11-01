@@ -70,10 +70,11 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
 pub fn egui_set_font_size(ctx: &egui::Context, font_size_px: f32) {
     let font_definitions = {
         use egui::paint::fonts::{FontFamily, TextStyle};
-        let family = FontFamily::Mononoki;
+        let family = FontFamily::Monospace;
 
-        // TODO: Add my own font here!
         let mut def = egui::paint::FontDefinitions::default();
+        def.ttf_data
+            .insert(family, include_bytes!("../../fonts/mononoki-Regular.ttf"));
         def.fonts.insert(TextStyle::Body, (family, font_size_px));
         def.fonts.insert(TextStyle::Button, (family, font_size_px));
         def.fonts.insert(TextStyle::Heading, (family, font_size_px));

@@ -407,7 +407,7 @@ checksum = "18df8ce4470c189d18aa926022da57544f31e154631eb4cfe796aea97051fe6c"
 [[package]]
 name = "egui"
 version = "0.2.0"
-source = "git+https://github.com/tomassedovic/emigui.git#47c7942725267856d2ad32fe29ce1274d617bff2"
+source = "git+https://github.com/tomassedovic/emigui.git#ca961725522cc90d46d8ba44642846d45541eea7"
 dependencies = [
  "ahash",
  "parking_lot 0.11.0",

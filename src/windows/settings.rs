@@ -56,8 +56,7 @@ pub fn process(
                 // TODO: implement these
                 c[0].label("Challenge:");
                 c[0].checkbox(&mut true, "Fast Depression").on_hover_text(
-                    "\
-Checked: Depression moves two tiles per turn.
+                    "Checked: Depression moves two tiles per turn.
 Unchecked: Depression moves one tile per turn.",
                 );
                 // NOTE: this how do we handle persistentcases like
@@ -66,16 +65,12 @@ Unchecked: Depression moves one tile per turn.",
                 c[0].checkbox(&mut false, "Player respawn")
                     .on_hover_text("Does the player respawn instead of losing the game?");
                 c[0].checkbox(&mut true, "Overdose").on_hover_text(
-                    "\
-Checked: game over on overdose.
-Unchecked: the game continues
- even on overdose.",
+                    "Checked: game over on overdose.
+Unchecked: the game continues even on overdose.",
                 );
                 c[0].checkbox(&mut false, "Show all tiles").on_hover_text(
-                    "\
-Checked: the entire map is uncovered.
-Unchecked: only previously seen tiles
-are visible.",
+                    "Checked: the entire map is uncovered.
+Unchecked: only previously seen tiles are visible.",
                 );
 
                 let mut available_key_shortcut = 1;

@@ -69,12 +69,18 @@ pub struct Vertex {
     /// implement smooth positioning by using a fractional value.
     pub pos_px: [f32; 2],
 
-    /// Pixel position in the tile map / sprite sheet.
+    /// Tile position in the tile map / sprite sheet.
+    ///
+    /// The units can be either normalised u/v coordinates (ranging
+    /// from 0 to 1) or pixel texture coords.
+    ///
+    /// Egui produces normalised coords, everything else uses pixel
+    /// ones.
     ///
     /// If both values are negative, no texture will be rendered.
     /// Instead, the colour will be used to fill the background.
     /// That's how render rectangles.
-    pub tile_pos_px: [f32; 2],
+    pub tile_pos: [f32; 2],
 
     /// Colour of the glyph. The glyphs are greyscale, so this is how
     /// we set the final colour.
@@ -88,8 +94,8 @@ impl Vertex {
             self.texture_id.into(),
             self.pos_px[0],
             self.pos_px[1],
-            self.tile_pos_px[0],
-            self.tile_pos_px[1],
+            self.tile_pos[0],
+            self.tile_pos[1],
             self.color[0],
             self.color[1],
             self.color[2],
@@ -195,7 +201,7 @@ fn build_vertices<T: VertexStore>(
                 };
 
                 // Tile position of [-1, -1] indicates an area colour fill rather than a texture blit
-                let tile_pos_px = [-1.0, -1.0];
+                let tile_pos = [-1.0, -1.0];
                 // The value here doesn't matter, the shader ignores the texture for rectangles.
                 let texture_id = 0.0;
                 let color = (*color).into();
@@ -203,38 +209,38 @@ fn build_vertices<T: VertexStore>(
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x, pos_y],
-                    tile_pos_px,
+                    tile_pos,
                     color,
                 });
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x + dim_x, pos_y],
-                    tile_pos_px,
+                    tile_pos,
                     color,
                 });
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x, pos_y + dim_y],
-                    tile_pos_px,
+                    tile_pos,
                     color,
                 });
 
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x + dim_x, pos_y],
-                    tile_pos_px,
+                    tile_pos,
                     color,
                 });
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x, pos_y + dim_y],
-                    tile_pos_px,
+                    tile_pos,
                     color,
                 });
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x + dim_x, pos_y + dim_y],
-                    tile_pos_px,
+                    tile_pos,
                     color,
                 });
             }
@@ -261,38 +267,38 @@ fn build_vertices<T: VertexStore>(
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x, pos_y],
-                    tile_pos_px: [tilemap_x, tilemap_y],
+                    tile_pos: [tilemap_x, tilemap_y],
                     color,
                 });
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x + tile_width, pos_y],
-                    tile_pos_px: [tilemap_x + texture_width, tilemap_y],
+                    tile_pos: [tilemap_x + texture_width, tilemap_y],
                     color,
                 });
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x, tilemap_y + texture_height],
+                    tile_pos: [tilemap_x, tilemap_y + texture_height],
                     color,
                 });
 
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x + tile_width, pos_y],
-                    tile_pos_px: [tilemap_x + texture_width, tilemap_y],
+                    tile_pos: [tilemap_x + texture_width, tilemap_y],
                     color,
                 });
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x, tilemap_y + texture_height],
+                    tile_pos: [tilemap_x, tilemap_y + texture_height],
                     color,
                 });
                 vertices.push(Vertex {
                     texture_id,
                     pos_px: [pos_x + tile_width, pos_y + tile_height],
-                    tile_pos_px: [tilemap_x + texture_width, tilemap_y + texture_height],
+                    tile_pos: [tilemap_x + texture_width, tilemap_y + texture_height],
                     color,
                 });
             }

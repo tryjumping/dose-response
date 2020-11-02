@@ -339,11 +339,11 @@ impl OpenGlApp {
             );
             check_gl_error("VertexAttribPointer pos_px");
 
-            let tile_pos_px_cstr = CString::new("tile_pos_px").unwrap();
-            let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_px_cstr.as_ptr());
-            check_gl_error("GetAttribLocation tile_pos_px");
+            let tile_pos_cstr = CString::new("tile_pos").unwrap();
+            let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_cstr.as_ptr());
+            check_gl_error("GetAttribLocation tile_pos");
             gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
-            check_gl_error("EnableVertexAttribArray tile_pos_px");
+            check_gl_error("EnableVertexAttribArray tile_pos");
             gl::VertexAttribPointer(
                 tex_coord_attr as GLuint,
                 2,
@@ -352,7 +352,7 @@ impl OpenGlApp {
                 stride,
                 (3 * mem::size_of::<GLfloat>()) as *const GLvoid,
             );
-            check_gl_error("VertexAttribPointer tile_pos_px");
+            check_gl_error("VertexAttribPointer tile_pos");
 
             let color_cstr = CString::new("color").unwrap();
             let color_attr = gl::GetAttribLocation(program, color_cstr.as_ptr());

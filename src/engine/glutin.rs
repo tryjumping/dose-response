@@ -502,7 +502,8 @@ monitor ID: {:?}. Ignoring this request.",
                         let vertex = engine::Vertex {
                             texture_id: engine::Texture::Egui.into(),
                             pos_px: [pos.x, pos.y],
-                            tile_pos_px: [u.into(), v.into()],
+                            // NOTE: for egui, the `u` and `v` values are normalised to <0, 1>
+                            tile_pos: [u.into(), v.into()],
                             color: color.into(),
                         };
                         ui_vertices.push(vertex);

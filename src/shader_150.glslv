@@ -7,17 +7,17 @@ uniform vec2 display_px;
 
 in float texture_id;
 in vec2 pos_px;
-in vec2 tile_pos_px;
+in vec2 tile_pos;
 in vec4 color;
 
 flat out float v_texture_id;
-out vec2 v_tile_pos_px;
+out vec2 v_tile_pos;
 out vec2 v_vertex_pos_px;
 out vec4 v_color;
 
 void main() {
     v_texture_id = texture_id;
-    v_tile_pos_px = tile_pos_px;
+    v_tile_pos = tile_pos;
     v_color = color;
     v_vertex_pos_px = pos_px;
 

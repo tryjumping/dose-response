@@ -63,13 +63,7 @@ impl OpenGlApp {
     }
 
     #[allow(unsafe_code)]
-    pub fn initialise(
-        &mut self,
-        fontmap: &RgbaImage,
-        glyphmap: &RgbaImage,
-        tilemap: &RgbaImage,
-        eguimap: &RgbaImage,
-    ) {
+    pub fn initialise(&mut self, fontmap: &RgbaImage, glyphmap: &RgbaImage, tilemap: &RgbaImage) {
         unsafe {
             gl::Enable(gl::SCISSOR_TEST);
             check_gl_error("Enable SCISSOR_TEST");
@@ -93,12 +87,10 @@ impl OpenGlApp {
         self.fontmap_size_px = [fontmap.width() as f32, fontmap.height() as f32];
         self.glyphmap_size_px = [glyphmap.width() as f32, glyphmap.height() as f32];
         self.tilemap_size_px = [tilemap.width() as f32, tilemap.height() as f32];
-        self.eguimap_size_px = [eguimap.width() as f32, eguimap.height() as f32];
 
         self.upload_texture(self.glyphmap, "glyphmap", glyphmap);
         self.upload_texture(self.fontmap, "fontmap", fontmap);
         self.upload_texture(self.tilemap, "tilemap", tilemap);
-        self.upload_texture(self.eguimap, "egui", eguimap);
     }
 
     #[allow(unsafe_code)]

@@ -92,8 +92,7 @@ pub struct LoopState {
     pub fontmap: RgbaImage,
     pub glyphmap: RgbaImage,
     pub tilemap: RgbaImage,
-    pub eguimap: RgbaImage,
-    pub egui_texture_version: u64,
+    pub egui_texture_version: Option<u64>,
     pub egui_context: Arc<egui::Context>,
     pub default_background: Color,
     pub drawcalls: Vec<Drawcall>,
@@ -117,7 +116,7 @@ impl LoopState {
         settings: Settings,
         default_background: Color,
         game_state: Box<State>,
-        mut egui_context: Arc<egui::Context>,
+        egui_context: Arc<egui::Context>,
     ) -> Self {
         // TODO: do this for every Display creatio / window resize
         let window_size_px =
@@ -184,18 +183,7 @@ impl LoopState {
         style.spacing.button_padding = [7.0, 3.0].into();
         egui_context.set_style(Arc::new(style));
 
-        // NOTE: Begin a dummy egui frame to generate the egui
-        // texture. Without this, the call to `ctx.texture` made in
-        // `build_texture_from_egui` will panic at runtime with:
-        // 'No fonts available until first call to Context::begin_frame()`'
-        //
-        // TODO: load the texture lazily on first use without this dummy frame?
-        {
-            egui_context.begin_frame(RawInput::default());
-            let _ = egui_context.end_frame();
-        };
-        let (egui_texture_version, eguimap) = build_texture_from_egui(&egui_context);
-        log::debug!("Loaded the egui tilemap.");
+        let egui_texture_version = None;
 
         // Always start from a windowed mode. This will force the
         // fullscreen switch in the first frame if requested in the
@@ -223,7 +211,6 @@ impl LoopState {
             fontmap,
             glyphmap,
             tilemap,
-            eguimap,
             egui_texture_version,
             egui_context,
             default_background,
@@ -247,7 +234,7 @@ impl LoopState {
         let mut opengl_app = OpenGlApp::new(vs_source, fs_source);
         log::debug!("Created opengl app.");
 
-        opengl_app.initialise(&self.fontmap, &self.glyphmap, &self.tilemap, &self.eguimap);
+        opengl_app.initialise(&self.fontmap, &self.glyphmap, &self.tilemap);
         log::debug!("Initialised opengl app.");
         opengl_app
     }
@@ -478,12 +465,15 @@ impl LoopState {
         extra_batches: &[([f32; 4], i32, i32)],
     ) {
         // NOTE: Check if the Egui texture has changed and needs rebuilding
-        if self.egui_texture_version != self.egui_context.texture().version {
+        // NOTE: the `ctx.texture()` call will panic if we hadn't
+        // called `begin_frame`. But that absolutely should have
+        // happened by now.
+        if self.egui_texture_version != Some(self.egui_context.texture().version) {
             let (egui_texture_version, egui_texture) = build_texture_from_egui(&self.egui_context);
             let (width, height) = egui_texture.dimensions();
             opengl_app.eguimap_size_px = [width as f32, height as f32];
             opengl_app.upload_texture(opengl_app.eguimap, "egui", &egui_texture);
-            self.egui_texture_version = egui_texture_version;
+            self.egui_texture_version = Some(egui_texture_version);
         }
 
         self.push_drawcalls_to_display();

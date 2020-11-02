@@ -1,1 +1,0 @@
-../target/wasm32-unknown-unknown/release/webgl_vertex_shader.glsl

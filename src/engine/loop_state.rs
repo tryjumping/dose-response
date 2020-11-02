@@ -184,7 +184,12 @@ impl LoopState {
         style.spacing.button_padding = [7.0, 3.0].into();
         egui_context.set_style(Arc::new(style));
 
-        // NOTE: Begin a dummy egui frame to generate the egui texture
+        // NOTE: Begin a dummy egui frame to generate the egui
+        // texture. Without this, the call to `ctx.texture` made in
+        // `build_texture_from_egui` will panic at runtime with:
+        // 'No fonts available until first call to Context::begin_frame()`'
+        //
+        // TODO: load the texture lazily on first use without this dummy frame?
         {
             egui_context.begin_frame(RawInput::default());
             let _ = egui_context.end_frame();

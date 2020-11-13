@@ -1532,7 +1532,31 @@ fn place_victory_npc(state: &mut State) -> Point {
     if let Some(chunk) = state.world.chunk_mut(vnpc_pos) {
         let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos);
         monster.companion_bonus = Some(CompanionBonus::Victory);
-        monster.color = color::victory_npc;
+        // NOTE: The NPCs have the same colour choices as the player,
+        // but let's always pick a colour that's different from the
+        // current player's one.
+        let npc_colors = &[
+            color::player_1,
+            color::player_2,
+            color::player_3,
+            color::player_4,
+            color::player_5,
+            color::player_6,
+        ];
+        monster.color = {
+            let player_color = state.player.color;
+            let mut color = color::player_1;
+            // try to find a colour a few times, then just give up and use the default
+            for _ in 0..5 {
+                if let Some(&selected) = state.rng.choose(npc_colors) {
+                    if selected != player_color {
+                        color = selected;
+                        break;
+                    }
+                }
+            }
+            color
+        };
         monster.ai_state = ai::AIState::NoOp;
         let id = chunk.add_monster(monster);
         state.victory_npc_id = Some(id);

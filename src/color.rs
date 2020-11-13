@@ -74,7 +74,6 @@ pub const player_4: Color = VERY_LIGHT_PURPLE;
 pub const player_5: Color = VERY_LIGHT_YELLOW;
 pub const player_6: Color = VERY_LIGHT_BROWN;
 
-pub const victory_npc: Color = WHITE;
 pub const signpost: Color = WHITE;
 
 pub const death_animation: Color = RED;

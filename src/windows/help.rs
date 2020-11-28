@@ -360,8 +360,8 @@ impl Window {
                     lines.push(Empty);
                 }
 
-                lines.push(Paragraph("Dose Response is a Free and Open Source software provided under the terms of GNU General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:"));
-                lines.push(Paragraph("https://www.gnu.org/licenses/gpl-3.0.en.html"));
+                lines.push(Paragraph("Dose Response is a Free and Open Source software provided under the terms of GNU Affero General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:"));
+                lines.push(Paragraph("https://www.gnu.org/licenses/agpl-3.0.en.html"));
                 lines.push(Empty);
                 lines.push(Paragraph(&copyright));
             }

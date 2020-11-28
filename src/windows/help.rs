@@ -152,8 +152,11 @@ pub const CREDITS_FONT: &str = "Mononoki typeface by Matthias Tellen at https://
 Copyright (c) 2013, Matthias Tellen matthias.tellen@googlemail.com
 licensed under the SIL Open Font License, Version 1.1";
 
-pub const LICENSE: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:
-https://www.gnu.org/licenses/gpl-3.0.en.html";
+pub const CODE_LICENSE_ONELINE: &str =
+    "licensed under GNU Affero General Public License 3 or later";
+
+pub const CODE_LICENSE_BLOCK: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU Affero General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:
+https://www.gnu.org/licenses/agpl-3.0.en.html";
 
 pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningState {
     let mut visible = true;
@@ -233,7 +236,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                     Page::Credits => {
                         ui.label(CREDITS_DEV);
                         ui.label(copyright);
-                        ui.label("licensed under GNU General Public License 3 or later");
+                        ui.label(CODE_LICENSE_ONELINE);
                         ui.label("");
                         ui.label(CREDITS_TILES);
                         ui.label("");
@@ -255,7 +258,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                         }
 
                         ui.label("");
-                        ui.label(LICENSE);
+                        ui.label(CODE_LICENSE_BLOCK);
                         ui.label("");
                         ui.label(copyright);
                     }

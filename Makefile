@@ -28,7 +28,7 @@ release:
 .PHONY: release
 
 wasm:
-	cargo build --release --target wasm32-unknown-unknown --no-default-features --features web
+	cargo build --release --target wasm32-unknown-unknown --no-default-features --features "web,mobile-ui"
 .PHONY: wasm
 
 

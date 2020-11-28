@@ -6,7 +6,7 @@ authors = ["Tomas Sedovic <tomas@sedovic.cz>"]
 homepage = "https://tryjumping.com/dose-response-roguelike/"
 repository = "https://github.com/tryjumping/dose-response"
 edition = "2018"
-license = "GPL-3.0"
+license = "AGPL-3.0-or-later"
 build = "build.rs"
 exclude = ["scripts/*", "replays/*", "screenshots/*", "ci/*",
            "web-src/*", "*.js", "*.css", "*.html",

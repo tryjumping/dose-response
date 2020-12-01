@@ -323,7 +323,7 @@ fn main() {
         // TODO: render a separate glyphmap for the game tiles as opposed to generic text
         // NOTE: We can center them properly and not have to do the position fixup in the game
         let default_tile_size = 30;
-        let tile_sizes = [40, 30, 20, 10];
+        let tile_sizes = [40, 30, 20];
         assert!(tile_sizes.contains(&default_tile_size));
 
         // TODO: get this out of graphics somehow?

@@ -1,3 +1,5 @@
+use crate::engine;
+
 use serde::{Deserialize, Serialize};
 
 use std::{
@@ -25,6 +27,7 @@ pub const DEFAULT_WINDOW_HEIGHT: u32 = 768;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Settings {
     pub fullscreen: bool,
+    pub visual_style: engine::VisualStyle,
     pub text_size: i32,
     pub tile_size: i32,
     pub window_width: u32,
@@ -43,6 +46,7 @@ impl Default for Settings {
 
         let settings = Self {
             fullscreen: false,
+            visual_style: engine::VisualStyle::Graphical,
             text_size: crate::engine::DEFAULT_TEXT_SIZE,
             tile_size: crate::engine::DEFAULT_TILE_SIZE,
             window_width: DEFAULT_WINDOW_WIDTH,
@@ -74,6 +78,13 @@ impl Settings {
         let mut out = String::with_capacity(1000);
         out.push_str("# Options: \"fullscreen\" or \"window\"\n");
         out.push_str("display = \"window\"\n\n");
+
+        out.push_str(&format!(
+            "# Options: \"{}\" or \"{}\"\n",
+            engine::VisualStyle::Graphical,
+            engine::VisualStyle::Textual
+        ));
+        out.push_str(&format!("visual_style = \"{}\"\n\n", self.visual_style));
 
         let tile_sizes_str = crate::engine::AVAILABLE_TILE_SIZES
             .iter()
@@ -179,6 +190,27 @@ impl Store for FileSystemStore {
             None => log::error!("Missing `display` entry."),
         }
 
+        match self.toml["visual_style"].as_str() {
+            Some(engine::VISUAL_STYLE_GRAPHICAL_STR) => {
+                settings.visual_style = engine::VisualStyle::Graphical
+            }
+            Some(engine::VISUAL_STYLE_TEXTUAL_STR) => {
+                settings.visual_style = engine::VisualStyle::Textual
+            }
+            Some(unexpected) => {
+                log::error!("Unknown `visual_style` entry: \"{}\"", unexpected);
+                log::info!(
+                    "Valid `visual_style` entries: \"{}\" or \"{}\"",
+                    engine::VisualStyle::Graphical,
+                    engine::VisualStyle::Textual
+                );
+            }
+            None => log::info!(
+                "Missing `visual_style`, falling back to: \"{}\"",
+                settings.visual_style
+            ),
+        }
+
         match self.toml["tile_size"].as_integer() {
             Some(tile_size) => {
                 let tile_size = tile_size as i32;
@@ -282,6 +314,8 @@ impl Store for FileSystemStore {
             false => "window",
         };
         self.toml["display"] = toml_edit::value(display);
+
+        self.toml["visual_style"] = toml_edit::value(settings.visual_style.to_string());
 
         self.toml["tile_size"] = toml_edit::value(settings.tile_size as i64);
 

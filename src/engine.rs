@@ -9,6 +9,8 @@ use crate::{
     util,
 };
 
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "glutin-backend")]
@@ -44,6 +46,30 @@ impl Into<f32> for Texture {
             Texture::Tilemap => 2.0,
             Texture::Egui => 3.0,
         }
+    }
+}
+
+/// Visual style of the game.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum VisualStyle {
+    /// Graphical tiles
+    Graphical,
+    /// Textual glyphs (classic roguelike ASCII visuals)
+    Textual,
+}
+
+// Define the constants for the string variants to prevent typos in the code.
+pub const VISUAL_STYLE_GRAPHICAL_STR: &str = "graphical";
+pub const VISUAL_STYLE_TEXTUAL_STR: &str = "textual";
+
+impl fmt::Display for VisualStyle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        use self::VisualStyle::*;
+        let s = match *self {
+            Graphical => VISUAL_STYLE_GRAPHICAL_STR,
+            Textual => VISUAL_STYLE_TEXTUAL_STR,
+        };
+        f.write_str(s)
     }
 }
 
@@ -880,7 +906,7 @@ impl Display {
         })
     }
 
-    pub fn push_drawcalls(&self, drawcalls: &mut Vec<Drawcall>) {
+    pub fn push_drawcalls(&self, visual_style: VisualStyle, drawcalls: &mut Vec<Drawcall>) {
         let offset_px = self.offset_px;
         let display_size_px = self.display_size * self.tile_size;
 
@@ -891,16 +917,29 @@ impl Display {
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
-            let (texture, texture_px_x, texture_px_y) =
-                match graphic::tilemap_coords_px(self.tile_size as u32, cell.graphic) {
-                    Some((tx, ty)) => (Texture::Tilemap, tx, ty),
-                    None => {
-                        let (tx, ty) =
-                            glyph_coords_px_from_char(self.tile_size as u32, cell.graphic.into())
-                                .unwrap_or((0, 0));
-                        (Texture::Glyph, tx, ty)
+            let (texture, texture_px_x, texture_px_y) = match visual_style {
+                VisualStyle::Graphical => {
+                    match graphic::tilemap_coords_px(self.tile_size as u32, cell.graphic) {
+                        Some((tx, ty)) => (Texture::Tilemap, tx, ty),
+                        // NOTE: Fall back to glyphs if the graphic coordinaces can't be provided:
+                        None => {
+                            let (tx, ty) = glyph_coords_px_from_char(
+                                self.tile_size as u32,
+                                cell.graphic.into(),
+                            )
+                            .unwrap_or((0, 0));
+                            (Texture::Glyph, tx, ty)
+                        }
                     }
-                };
+                }
+                VisualStyle::Textual => {
+                    let (tx, ty) =
+                        glyph_coords_px_from_char(self.tile_size as u32, cell.graphic.into())
+                            .unwrap_or((0, 0));
+                    (Texture::Glyph, tx, ty)
+                }
+            };
+
             let texture_size = match texture {
                 Texture::Text => self.text_size,
                 Texture::Glyph => self.tile_size,

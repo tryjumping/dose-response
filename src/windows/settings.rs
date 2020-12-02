@@ -1,5 +1,5 @@
 use crate::{
-    engine::Display,
+    engine::{Display, VisualStyle},
     game::RunningState,
     keys::KeyCode,
     settings::{Settings, Store as SettingsStore},
@@ -13,6 +13,7 @@ use egui::{self, Ui};
 pub enum Action {
     Fullscreen,
     Window,
+    VisualStyle(VisualStyle),
     TileSize(i32),
     TextSize(i32),
     Back,
@@ -115,9 +116,25 @@ Unchecked: only previously seen tiles are visible.",
                 }
 
                 c[2].label("");
-                c[2].label("Tiles:");
-                c[2].radio(true, "[G]raphical");
-                c[2].radio(false, "[T]extual (ASCII)");
+                c[2].label("Tile::");
+                if c[2]
+                    .radio(
+                        settings.visual_style == VisualStyle::Graphical,
+                        "[G]raphical",
+                    )
+                    .clicked
+                {
+                    action = Some(Action::VisualStyle(VisualStyle::Graphical));
+                };
+                if c[2]
+                    .radio(
+                        settings.visual_style == VisualStyle::Textual,
+                        "[T]extual (ASCII)",
+                    )
+                    .clicked
+                {
+                    action = Some(Action::VisualStyle(VisualStyle::Textual))
+                };
 
                 c[2].label("");
                 c[2].label("Colour:");
@@ -155,6 +172,10 @@ Unchecked: only previously seen tiles are visible.",
             action = Some(Action::Apply);
         } else if state.keys.matches_code(KeyCode::D) {
             action = Some(Action::Back);
+        } else if state.keys.matches_code(KeyCode::G) {
+            action = Some(Action::VisualStyle(VisualStyle::Graphical));
+        } else if state.keys.matches_code(KeyCode::T) {
+            action = Some(Action::VisualStyle(VisualStyle::Textual));
         }
     }
 
@@ -206,6 +227,10 @@ Unchecked: only previously seen tiles are visible.",
         match action {
             Action::Fullscreen => {
                 settings.fullscreen = true;
+            }
+
+            Action::VisualStyle(visual_style) => {
+                settings.visual_style = visual_style;
             }
 
             Action::Window => {

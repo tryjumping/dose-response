@@ -433,7 +433,8 @@ impl LoopState {
 
     pub fn push_drawcalls_to_display(&mut self) {
         self.drawcalls.clear();
-        self.display.push_drawcalls(&mut self.drawcalls);
+        self.display
+            .push_drawcalls(self.settings.visual_style, &mut self.drawcalls);
 
         if self.drawcalls.len() > self.overall_max_drawcall_count {
             self.overall_max_drawcall_count = self.drawcalls.len();

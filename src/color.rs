@@ -47,7 +47,7 @@ impl Into<ColorAlpha> for Color {
 impl Into<egui::Srgba> for Color {
     fn into(self) -> egui::Srgba {
         let color: ColorAlpha = self.into();
-        egui::Srgba::new(color.rgb.r, color.rgb.g, color.rgb.b, color.alpha)
+        egui::Srgba::from_rgba_premultiplied(color.rgb.r, color.rgb.g, color.rgb.b, color.alpha)
     }
 }
 

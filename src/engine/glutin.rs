@@ -427,7 +427,7 @@ monitor ID: {:?}. Ignoring this request.",
                 // NOTE: the egui output contains only the cursor, url to open and text
                 // to copy to the clipboard. So we can safely ignore that for now.
                 let (_output, paint_batches) = loop_state.egui_context.end_frame();
-                ui_paint_batches = paint_batches;
+                ui_paint_batches = loop_state.egui_context.tesselate(paint_batches);
 
                 if cfg!(feature = "fullscreen") {
                     use engine::loop_state::FullscreenAction::*;

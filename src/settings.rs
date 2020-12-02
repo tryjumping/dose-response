@@ -102,15 +102,15 @@ impl Settings {
         out.push_str(&format!("# Options: {}\n", text_sizes_str));
         out.push_str(&format!("text_size = {}\n\n", self.text_size));
 
+        out.push_str(&format!("window_width = {}\n", self.window_width));
+        out.push_str(&format!("window_height = {}\n\n", self.window_height));
+
         let backends_str = crate::engine::AVAILABLE_BACKENDS
             .iter()
             .map(|b| format!("\"{}\"", b))
             .collect::<Vec<_>>()
             .join(", ");
         out.push_str(&format!("# Options: {}\n", backends_str));
-
-        out.push_str(&format!("window_width = {}\n", self.window_width));
-        out.push_str(&format!("window_height = {}\n\n", self.window_height));
 
         out.push_str(&format!("backend = \"{}\"\n", self.backend));
 

@@ -198,7 +198,7 @@ impl Store for FileSystemStore {
             Some(FULLSCREEN) => settings.fullscreen = true,
             Some(WINDOW) => settings.fullscreen = false,
             Some(unexpected) => {
-                log::error!("Unknown `{}` entry: {}", DISPLAY, unexpected);
+                log::error!("Settings: unknown `{}` entry: {}", DISPLAY, unexpected);
                 log::info!(
                     "Valid `{}` entries: \"{}\" or \"{}\"",
                     DISPLAY,
@@ -206,7 +206,7 @@ impl Store for FileSystemStore {
                     WINDOW
                 );
             }
-            None => log::error!("Missing `{}` entry.", DISPLAY),
+            None => log::error!("Settings: missing `{}` entry.", DISPLAY),
         }
 
         match self.toml[VISUAL_STYLE].as_str() {
@@ -217,7 +217,11 @@ impl Store for FileSystemStore {
                 settings.visual_style = engine::VisualStyle::Textual
             }
             Some(unexpected) => {
-                log::error!("Unknown `{}` entry: \"{}\"", VISUAL_STYLE, unexpected);
+                log::error!(
+                    "Settings: unknown `{}` entry: \"{}\"",
+                    VISUAL_STYLE,
+                    unexpected
+                );
                 log::info!(
                     "Valid `{}` entries: \"{}\" or \"{}\"",
                     VISUAL_STYLE,
@@ -226,7 +230,7 @@ impl Store for FileSystemStore {
                 );
             }
             None => log::info!(
-                "Missing `{}`, falling back to: \"{}\"",
+                "Setting: missing `{}`, falling back to: \"{}\"",
                 VISUAL_STYLE,
                 settings.visual_style
             ),
@@ -238,14 +242,14 @@ impl Store for FileSystemStore {
                 if crate::engine::AVAILABLE_TILE_SIZES.contains(&tile_size) {
                     settings.tile_size = tile_size;
                 } else {
-                    log::error!("Unsupported `{}`: {}", TILE_SIZE, tile_size);
+                    log::error!("Settings: unsupported `{}`: {}", TILE_SIZE, tile_size);
                     log::info!(
                         "Available tile sizes: {:?}",
                         crate::engine::AVAILABLE_TILE_SIZES
                     );
                 }
             }
-            None => log::error!("Missing `{}` entry.", TILE_SIZE),
+            None => log::error!("Settings: missing `{}` entry.", TILE_SIZE),
         }
 
         match self.toml[TEXT_SIZE].as_integer() {
@@ -254,28 +258,28 @@ impl Store for FileSystemStore {
                 if crate::engine::AVAILABLE_TEXT_SIZES.contains(&text_size) {
                     settings.text_size = text_size;
                 } else {
-                    log::error!("Unsupported `{}`: {}", TEXT_SIZE, text_size);
+                    log::error!("Settings: unsupported `{}`: {}", TEXT_SIZE, text_size);
                     log::info!(
                         "Available text sizes: {:?}",
                         crate::engine::AVAILABLE_TEXT_SIZES
                     );
                 }
             }
-            None => log::error!("Missing `{}` entry.", TEXT_SIZE),
+            None => log::error!("Settings: missing `{}` entry.", TEXT_SIZE),
         }
 
         match self.toml[WINDOW_WIDTH].as_integer() {
             Some(window_width) => {
                 if window_width < MIN_WINDOW_WIDTH as i64 {
                     log::error!(
-                        "Error: `{}` must be at least {}.",
+                        "Settings error: `{}` must be at least {}.",
                         WINDOW_WIDTH,
                         MIN_WINDOW_WIDTH
                     )
                 } else {
                     if window_width > MAX_WINDOW_WIDTH as i64 {
                         log::error!(
-                            "Error: `{}` cannot be greater than {}.",
+                            "Settings error: `{}` cannot be greater than {}.",
                             WINDOW_WIDTH,
                             MAX_WINDOW_WIDTH
                         );
@@ -284,21 +288,21 @@ impl Store for FileSystemStore {
                     }
                 }
             }
-            None => log::error!("Missing `{}` entry.", WINDOW_WIDTH),
+            None => log::error!("Settings: missing `{}` entry.", WINDOW_WIDTH),
         }
 
         match self.toml[WINDOW_HEIGHT].as_integer() {
             Some(window_height) => {
                 if window_height < MIN_WINDOW_HEIGHT as i64 {
                     log::error!(
-                        "Error: `{}` must be at least {}.",
+                        "Settings error: `{}` must be at least {}.",
                         WINDOW_HEIGHT,
                         MIN_WINDOW_HEIGHT
                     )
                 } else {
                     if window_height > MAX_WINDOW_HEIGHT as i64 {
                         log::error!(
-                            "Error: `{}` cannot be greater than {}.",
+                            "Settings error: `{}` cannot be greater than {}.",
                             WINDOW_HEIGHT,
                             MAX_WINDOW_HEIGHT
                         );
@@ -307,7 +311,7 @@ impl Store for FileSystemStore {
                     }
                 }
             }
-            None => log::error!("Missing `{}` entry.", WINDOW_HEIGHT),
+            None => log::error!("Settings: missing `{}` entry.", WINDOW_HEIGHT),
         }
 
         match self.toml[BACKEND].as_str() {
@@ -315,14 +319,14 @@ impl Store for FileSystemStore {
                 if crate::engine::AVAILABLE_BACKENDS.contains(&backend) {
                     settings.backend = backend.into();
                 } else {
-                    log::error!("Unknown `{}`: {}", BACKEND, backend);
+                    log::error!("Settings: unknown `{}`: {}", BACKEND, backend);
                     log::info!(
                         "Available backends: {:?}",
                         crate::engine::AVAILABLE_BACKENDS
                     );
                 }
             }
-            None => log::error!("Missing `{}` entry.", BACKEND),
+            None => log::error!("Settings: missing `{}` entry.", BACKEND),
         }
 
         debug_assert!(settings.valid());

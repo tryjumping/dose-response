@@ -1313,6 +1313,7 @@ fn show_exit_stats(stats: &Stats) {
             .longest_update_durations()
             .iter()
             .map(|dur| dur.as_secs_f32() * 1000.0) // milliseconds in f32
+            .rev()
             .collect::<Vec<_>>(),
     );
 
@@ -1322,6 +1323,7 @@ fn show_exit_stats(stats: &Stats) {
             .longest_drawcall_durations()
             .iter()
             .map(|dur| dur.as_secs_f32() * 1000.0) // milliseconds in f32
+            .rev()
             .collect::<Vec<_>>(),
     );
 

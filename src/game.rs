@@ -133,7 +133,7 @@ pub fn update(
     // other windows.
     let mut game_update_result = RunningState::Running;
 
-    egui::CentralPanel::default().show(egui_ctx, |ui| {
+    egui::TopPanel::top(egui::Id::new("main")).show(egui_ctx, |ui| {
         // NOTE: cloning the window list here to let us iterate it and mutate state.
         let windows = state.window_stack.clone();
         for window in windows.windows() {

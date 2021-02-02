@@ -15,7 +15,7 @@ use crate::{
     rect::Rectangle,
     render,
     settings::{Settings, Store as SettingsStore},
-    state::{self, Command, Side, State},
+    state::{self, Challenge, Command, Side, State},
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
     util,
@@ -141,7 +141,8 @@ pub fn update(
             match window {
                 Window::MainMenu => {
                     let active = top_level;
-                    game_update_result = main_menu::process(state, ui, metrics, display, active);
+                    game_update_result =
+                        main_menu::process(state, ui, settings, metrics, display, active);
 
                     // Clear any fade set by the gameplay rendering
                     display.fade = color::invisible;
@@ -168,7 +169,8 @@ pub fn update(
                     display.fade = color::invisible;
                 }
                 Window::Endgame => {
-                    game_update_result = endgame::process(state, ui, metrics, display, top_level);
+                    game_update_result =
+                        endgame::process(state, ui, settings, metrics, display, top_level);
 
                     if cfg!(feature = "recording") {
                         let window = crate::windows::call_to_action::Window;
@@ -1403,13 +1405,14 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
     assert!(expected == actual, "Validation failed!");
 }
 
-pub fn create_new_game_state(state: &State) -> State {
+pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
     State::new_game(
         state.world_size,
         state.map_size,
         state.panel_width,
         state.exit_after,
         state::generate_replay_path(),
+        new_challenge,
     )
 }
 
@@ -1532,7 +1535,7 @@ fn place_victory_npc(state: &mut State) -> Point {
     state.world.always_visible(vnpc_pos, 2);
 
     if let Some(chunk) = state.world.chunk_mut(vnpc_pos) {
-        let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos);
+        let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos, state.challenge);
         monster.companion_bonus = Some(CompanionBonus::Victory);
         // NOTE: The NPCs have the same colour choices as the player,
         // but let's always pick a colour that's different from the

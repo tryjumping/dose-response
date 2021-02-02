@@ -8,6 +8,7 @@ use crate::{
     player::Modifier,
     point::Point,
     random::Random,
+    state::Challenge,
 };
 
 // TODO: Instead of `map_size`, use a Rectangle with the world
@@ -114,7 +115,11 @@ fn generate_map(
     result
 }
 
-fn generate_monsters(rng: &mut Random, map: &[(Point, Tile)]) -> Vec<Monster> {
+fn generate_monsters(
+    rng: &mut Random,
+    map: &[(Point, Tile)],
+    challenge: Challenge,
+) -> Vec<Monster> {
     let monster_count = 5;
     let monster_chance = 30;
     let options = [
@@ -134,7 +139,7 @@ fn generate_monsters(rng: &mut Random, map: &[(Point, Tile)]) -> Vec<Monster> {
         }
         let kind = *rng.choose_weighted(&options).unwrap_or(&None);
         if let Some(kind) = kind {
-            let mut monster = Monster::new(kind, pos);
+            let mut monster = Monster::new(kind, pos, challenge);
             if kind == Kind::Npc {
                 use crate::monster::CompanionBonus::*;
                 let bonus = crate::monster::CompanionBonus::random(rng);
@@ -270,9 +275,10 @@ pub fn generate(
     throwavay_rng: &mut Random,
     size: Point,
     player: Point,
+    challenge: Challenge,
 ) -> GeneratedWorld {
     let map = generate_map(rng, throwavay_rng, size, player);
-    let monsters = generate_monsters(rng, &map);
+    let monsters = generate_monsters(rng, &map, challenge);
     let items = generate_items(rng, &map);
     (map, monsters, items)
 }

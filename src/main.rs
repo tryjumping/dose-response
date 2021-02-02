@@ -272,6 +272,10 @@ fn process_cli_and_run_game() {
         crate::engine::AVAILABLE_BACKENDS
     );
 
+    let settings_store = settings::FileSystemStore::new();
+    let backend = settings_store.load().backend;
+    let challenge = settings_store.load().challenge();
+
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
             panic!(
@@ -289,6 +293,7 @@ fn process_cli_and_run_game() {
             matches.is_present("invincible"),
             matches.is_present("replay-full-speed"),
             matches.is_present("exit-after"),
+            challenge,
         )
         .expect("Could not load the replay file")
     } else {
@@ -308,6 +313,7 @@ fn process_cli_and_run_game() {
             PANEL_WIDTH,
             matches.is_present("exit-after"),
             replay_file,
+            challenge,
         );
         state.player.invincible = matches.is_present("invincible");
         state.window_stack.push(window::Window::MainMenu);
@@ -318,9 +324,6 @@ fn process_cli_and_run_game() {
     let display_size = DISPLAY_SIZE;
     let background = color::unexplored_background;
     let game_title = metadata::TITLE;
-
-    let settings_store = settings::FileSystemStore::new();
-    let backend = settings_store.load().backend;
 
     match backend.as_str() {
         "remote" => run_remote(display_size, background, game_title, settings_store, state),

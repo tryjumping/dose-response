@@ -1,4 +1,4 @@
-use crate::engine;
+use crate::{engine, state};
 
 use serde::{Deserialize, Serialize};
 
@@ -31,6 +31,7 @@ pub const WINDOW_WIDTH: &str = "window_width";
 pub const WINDOW_HEIGHT: &str = "window_height";
 pub const BACKEND: &str = "backend";
 pub const HIDE_UNSEEN_TILES: &str = "hide_unseen_tiles";
+pub const FAST_DEPRESSION: &str = "fast_depression";
 
 /// Settings the engine needs to carry.
 ///
@@ -46,6 +47,7 @@ pub struct Settings {
     pub window_height: u32,
     pub backend: String,
     pub hide_unseen_tiles: bool,
+    pub fast_depression: bool,
 }
 
 impl Default for Settings {
@@ -66,6 +68,7 @@ impl Default for Settings {
             window_height: DEFAULT_WINDOW_HEIGHT,
             backend: backend.into(),
             hide_unseen_tiles: true,
+            fast_depression: true,
         };
 
         debug_assert!(settings.valid());
@@ -86,6 +89,13 @@ impl Settings {
 
     pub fn valid_backend(&self) -> bool {
         crate::engine::AVAILABLE_BACKENDS.contains(&self.backend.as_str())
+    }
+
+    pub fn challenge(&self) -> state::Challenge {
+        state::Challenge {
+            hide_unseen_tiles: self.hide_unseen_tiles,
+            fast_depression: self.fast_depression,
+        }
     }
 
     pub fn as_toml(&self) -> String {
@@ -134,6 +144,11 @@ impl Settings {
         out.push_str(&format!(
             "{} = \"{}\"\n",
             HIDE_UNSEEN_TILES, self.hide_unseen_tiles
+        ));
+
+        out.push_str(&format!(
+            "{} = \"{}\"\n",
+            FAST_DEPRESSION, self.fast_depression
         ));
 
         out
@@ -344,6 +359,13 @@ impl Store for FileSystemStore {
             None => log::error!("Settings: missing `{}` entry.", HIDE_UNSEEN_TILES),
         }
 
+        match self.toml[FAST_DEPRESSION].as_bool() {
+            Some(fast_depression) => {
+                settings.fast_depression = fast_depression;
+            }
+            None => log::error!("Settings: missing `{}` entry.", FAST_DEPRESSION),
+        }
+
         debug_assert!(settings.valid());
 
         log::info!("Loaded settings: {:?}", settings);
@@ -371,6 +393,8 @@ impl Store for FileSystemStore {
         self.toml[BACKEND] = toml_edit::value(settings.backend.clone());
 
         self.toml[HIDE_UNSEEN_TILES] = toml_edit::value(settings.hide_unseen_tiles);
+
+        self.toml[FAST_DEPRESSION] = toml_edit::value(settings.fast_depression);
 
         if let Err(err) = Self::write_settings_toml(&self.path, &self.toml) {
             log::error!("Could not write settings to the storage: {:?}", err);

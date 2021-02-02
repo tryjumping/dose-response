@@ -4,12 +4,14 @@ use crate::{
     ai::{self, AIState, Behavior, Update},
     blocker::Blocker,
     color::{self, Color},
+    formula,
     game::Action,
     graphic::Graphic,
     player::{Modifier, PlayerInfo},
     point::Point,
     random::Random,
     ranged_int::{InclusiveRange, Ranged},
+    state::Challenge,
     world::World,
 };
 
@@ -85,14 +87,14 @@ impl Display for CompanionBonus {
 }
 
 impl Monster {
-    pub fn new(kind: Kind, position: Point) -> Monster {
+    pub fn new(kind: Kind, position: Point, challenge: Challenge) -> Monster {
         let die_after_attack = match kind {
             Shadows | Voices => true,
             Anxiety | Depression | Hunger | Npc | Signpost => false,
         };
 
         let max_ap = match kind {
-            Depression => 2,
+            Depression => formula::depression_max_ap(challenge),
             Anxiety | Hunger | Shadows | Voices | Npc => 1,
             Signpost => 0,
         };

@@ -166,6 +166,8 @@ pub struct State {
     /// effects here instead.
     pub show_endscreen_and_uncover_map_during_fadein: bool,
     pub uncovered_map: bool,
+
+    pub challenge: Challenge,
 }
 
 impl State {
@@ -182,6 +184,7 @@ impl State {
         replay: bool,
         replay_full_speed: bool,
         exit_after: bool,
+        challenge: Challenge,
     ) -> State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
@@ -205,7 +208,7 @@ impl State {
             player
         };
         let mut rng = Random::from_seed(u64::from(seed));
-        let world = World::new(&mut rng, seed, world_size.x, 32, player.info());
+        let world = World::new(&mut rng, seed, world_size.x, 32, player.info(), challenge);
 
         State {
             player,
@@ -253,6 +256,8 @@ impl State {
             help_starting_line: 0,
             show_endscreen_and_uncover_map_during_fadein: false,
             uncovered_map: false,
+
+            challenge,
         }
     }
 
@@ -262,6 +267,7 @@ impl State {
         panel_width: i32,
         exit_after: bool,
         replay_path: Option<PathBuf>,
+        challenge: Challenge,
     ) -> State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
@@ -301,6 +307,7 @@ Reason: '{}'.",
             replay,
             replay_full_speed,
             exit_after,
+            challenge,
         )
     }
 
@@ -314,6 +321,7 @@ Reason: '{}'.",
         invincible: bool,
         replay_full_speed: bool,
         exit_after: bool,
+        challenge: Challenge,
     ) -> Result<State, Box<dyn Error>> {
         #[cfg(feature = "replay")]
         {
@@ -390,6 +398,7 @@ Reason: '{}'.",
                 replay,
                 replay_full_speed,
                 exit_after,
+                challenge,
             ))
         }
 
@@ -400,6 +409,7 @@ Reason: '{}'.",
             panel_width,
             exit_after,
             None,
+            challenge,
         ))
     }
 
@@ -472,6 +482,24 @@ Reason: '{}'.",
         }
 
         Ok(state)
+    }
+}
+
+/// The various challenges that the player can take. Persisted via
+/// settings, but available to the state for easier access within the
+/// game code.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Challenge {
+    pub hide_unseen_tiles: bool,
+    pub fast_depression: bool,
+}
+
+impl Default for Challenge {
+    fn default() -> Self {
+        Self {
+            hide_unseen_tiles: true,
+            fast_depression: true,
+        }
     }
 }
 

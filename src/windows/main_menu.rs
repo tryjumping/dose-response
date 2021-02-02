@@ -4,6 +4,7 @@ use crate::{
     game,
     game::RunningState,
     keys::KeyCode,
+    settings::Settings,
     state::State,
     ui,
     window::{self, Window},
@@ -29,6 +30,7 @@ pub enum MenuItem {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &mut Display,
     active: bool,
@@ -160,7 +162,10 @@ pub fn process(
                     state.first_game_already_generated = false;
                     return RunningState::Running;
                 } else {
-                    return RunningState::NewGame(Box::new(game::create_new_game_state(state)));
+                    return RunningState::NewGame(Box::new(game::create_new_game_state(
+                        state,
+                        settings.challenge(),
+                    )));
                 }
             }
 

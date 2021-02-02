@@ -10,6 +10,7 @@ use crate::{
     random::Random,
     ranged_int::InclusiveRange,
     rect::Rectangle,
+    state::Challenge,
 };
 
 use std::collections::HashMap;
@@ -31,7 +32,13 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    fn new(world_seed: u32, position: ChunkPosition, size: i32, player_position: Point) -> Self {
+    fn new(
+        world_seed: u32,
+        position: ChunkPosition,
+        size: i32,
+        player_position: Point,
+        challenge: Challenge,
+    ) -> Self {
         use std::num::Wrapping;
         let pos = position.position;
         // NOTE: `x` and `y` overflow on negative values here, but all
@@ -57,6 +64,7 @@ impl Chunk {
             &mut throwavay_rng,
             chunk.level.size(),
             player_position,
+            challenge,
         );
 
         chunk.populate(generated_data);
@@ -153,6 +161,7 @@ pub struct World {
     max_half_size: i32,
     chunk_size: i32,
     chunks: HashMap<ChunkPosition, Chunk>,
+    challenge: Challenge,
 }
 
 impl World {
@@ -162,6 +171,7 @@ impl World {
         dimension: i32,
         chunk_size: i32,
         player_info: PlayerInfo,
+        challenge: Challenge,
     ) -> Self {
         assert!(dimension > 0);
         assert!(chunk_size > 0);
@@ -173,6 +183,7 @@ impl World {
             max_half_size: dimension / 2,
             chunk_size,
             chunks: HashMap::new(),
+            challenge,
         };
 
         // TODO: I don't think this code belongs in World. Move it
@@ -374,11 +385,12 @@ impl World {
 
         let seed = self.seed;
         let chunk_size = self.chunk_size;
+        let challenge = self.challenge;
         // TODO: figure out how to generate the starting chunks so the
         // player has some doses and food and no monsters.
-        self.chunks
-            .entry(chunk_position)
-            .or_insert_with(|| Chunk::new(seed, chunk_position, chunk_size, (0, 0).into()));
+        self.chunks.entry(chunk_position).or_insert_with(|| {
+            Chunk::new(seed, chunk_position, chunk_size, (0, 0).into(), challenge)
+        });
     }
 
     pub fn cell(&self, world_pos: Point) -> Option<&Cell> {

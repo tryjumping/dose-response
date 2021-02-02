@@ -4,6 +4,7 @@ use crate::{
     game::{self, RunningState},
     keys::KeyCode,
     player::CauseOfDeath,
+    settings::Settings,
     state::{Side, State},
     ui, window,
 };
@@ -20,6 +21,7 @@ pub enum Action {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &Display,
     active: bool,
@@ -148,9 +150,10 @@ pub fn process(
     }
 
     match action {
-        Some(Action::NewGame) => {
-            RunningState::NewGame(Box::new(game::create_new_game_state(state)))
-        }
+        Some(Action::NewGame) => RunningState::NewGame(Box::new(game::create_new_game_state(
+            state,
+            settings.challenge(),
+        ))),
         Some(Action::Menu) => {
             state.window_stack.pop();
             state.window_stack.push(window::Window::MainMenu);

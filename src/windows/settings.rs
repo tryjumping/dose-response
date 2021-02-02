@@ -56,10 +56,11 @@ pub fn process(
 
                 // TODO: implement these
                 c[0].label("Challenge:");
-                c[0].checkbox(&mut true, "Fast Depression").on_hover_text(
-                    "Checked: Depression moves two tiles per turn.
+                c[0].checkbox(&mut settings.fast_depression, "Fast Depression")
+                    .on_hover_text(
+                        "Checked: Depression moves two tiles per turn.
 Unchecked: Depression moves one tile per turn.",
-                );
+                    );
                 // NOTE: this how do we handle persistentcases like
                 // exhaustion, overdose, loss of will, etc.? I think
                 // we'll prolly want to drop thisone.

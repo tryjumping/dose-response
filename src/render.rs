@@ -5,14 +5,12 @@ use crate::{
     player::Bonus,
     point::{Point, SquareArea},
     rect::Rectangle,
-    settings::Settings,
     state::State,
     world::Chunk,
 };
 
 pub fn render_game(
     state: &State,
-    settings: &Settings,
     metrics: &dyn TextMetrics,
     display: &mut Display,
     highlighted_tile: Option<Point>,
@@ -46,7 +44,7 @@ pub fn render_game(
     let uncovered_map = (cfg!(feature = "cheating") && state.cheating)
         || state.player.bonus == Bonus::UncoverMap  // player bonus
         || state.uncovered_map  // map uncovered after the endgame fade
-        || !settings.hide_unseen_tiles; // challenge Settings option
+        || !state.challenge.hide_unseen_tiles; // challenge Settings option
 
     let radius = formula::exploration_radius(state.player.mind);
 

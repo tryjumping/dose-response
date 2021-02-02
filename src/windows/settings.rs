@@ -69,10 +69,11 @@ Unchecked: Depression moves one tile per turn.",
                     "Checked: game over on overdose.
 Unchecked: the game continues even on overdose.",
                 );
-                c[0].checkbox(&mut false, "Show all tiles").on_hover_text(
-                    "Checked: the entire map is uncovered.
-Unchecked: only previously seen tiles are visible.",
-                );
+                c[0].checkbox(&mut settings.hide_unseen_tiles, "Hide unseen tiles")
+                    .on_hover_text(
+                        "Checked: only previously seen tiles are visible.
+Unchecked: the entire map is uncovered.",
+                    );
 
                 let mut available_key_shortcut = 1;
 

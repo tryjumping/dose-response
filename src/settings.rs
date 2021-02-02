@@ -30,6 +30,7 @@ pub const TEXT_SIZE: &str = "text_size";
 pub const WINDOW_WIDTH: &str = "window_width";
 pub const WINDOW_HEIGHT: &str = "window_height";
 pub const BACKEND: &str = "backend";
+pub const HIDE_UNSEEN_TILES: &str = "hide_unseen_tiles";
 
 /// Settings the engine needs to carry.
 ///
@@ -44,6 +45,7 @@ pub struct Settings {
     pub window_width: u32,
     pub window_height: u32,
     pub backend: String,
+    pub hide_unseen_tiles: bool,
 }
 
 impl Default for Settings {
@@ -63,6 +65,7 @@ impl Default for Settings {
             window_width: DEFAULT_WINDOW_WIDTH,
             window_height: DEFAULT_WINDOW_HEIGHT,
             backend: backend.into(),
+            hide_unseen_tiles: true,
         };
 
         debug_assert!(settings.valid());
@@ -127,6 +130,11 @@ impl Settings {
         out.push_str(&format!("# Options: {}\n", backends_str));
 
         out.push_str(&format!("{} = \"{}\"\n", BACKEND, self.backend));
+
+        out.push_str(&format!(
+            "{} = \"{}\"\n",
+            HIDE_UNSEEN_TILES, self.hide_unseen_tiles
+        ));
 
         out
     }
@@ -329,6 +337,13 @@ impl Store for FileSystemStore {
             None => log::error!("Settings: missing `{}` entry.", BACKEND),
         }
 
+        match self.toml[HIDE_UNSEEN_TILES].as_bool() {
+            Some(hide_unseen_tiles) => {
+                settings.hide_unseen_tiles = hide_unseen_tiles;
+            }
+            None => log::error!("Settings: missing `{}` entry.", HIDE_UNSEEN_TILES),
+        }
+
         debug_assert!(settings.valid());
 
         log::info!("Loaded settings: {:?}", settings);
@@ -354,6 +369,8 @@ impl Store for FileSystemStore {
         self.toml[WINDOW_HEIGHT] = toml_edit::value(settings.window_height as i64);
 
         self.toml[BACKEND] = toml_edit::value(settings.backend.clone());
+
+        self.toml[HIDE_UNSEEN_TILES] = toml_edit::value(settings.hide_unseen_tiles);
 
         if let Err(err) = Self::write_settings_toml(&self.path, &self.toml) {
             log::error!("Could not write settings to the storage: {:?}", err);

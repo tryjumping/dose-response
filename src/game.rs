@@ -149,7 +149,7 @@ pub fn update(
                 Window::Game => {
                     let (result, highlighted_tile) =
                         process_game(state, ui, settings, metrics, display, dt, fps, top_level);
-                    render::render_game(state, metrics, display, highlighted_tile);
+                    render::render_game(state, settings, metrics, display, highlighted_tile);
                     game_update_result = result;
                 }
                 Window::Settings => {

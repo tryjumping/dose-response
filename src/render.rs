@@ -5,12 +5,14 @@ use crate::{
     player::Bonus,
     point::{Point, SquareArea},
     rect::Rectangle,
+    settings::Settings,
     state::State,
     world::Chunk,
 };
 
 pub fn render_game(
     state: &State,
+    settings: &Settings,
     metrics: &dyn TextMetrics,
     display: &mut Display,
     highlighted_tile: Option<Point>,
@@ -41,13 +43,11 @@ pub fn render_game(
         display.set_fade(animation.color, fade);
     }
 
-    let bonus = if cfg!(feature = "cheating") && state.cheating {
-        // TODO: setting this as a bonus is a hack. Pass it to all renderers
-        // directly instead.
-        Bonus::UncoverMap
-    } else {
-        state.player.bonus
-    };
+    let uncovered_map = (cfg!(feature = "cheating") && state.cheating)
+        || state.player.bonus == Bonus::UncoverMap  // player bonus
+        || state.uncovered_map  // map uncovered after the endgame fade
+        || !settings.hide_unseen_tiles; // challenge Settings option
+
     let radius = formula::exploration_radius(state.player.mind);
 
     let player_pos = state.player.pos;
@@ -113,7 +113,7 @@ pub fn render_game(
                 rendered_tile.fg_color,
                 color::explored_background,
             );
-        } else if cell.explored || bonus == Bonus::UncoverMap {
+        } else if cell.explored || uncovered_map {
             display.set(
                 display_pos,
                 rendered_tile.graphic,
@@ -128,9 +128,8 @@ pub fn render_game(
         if in_fov(world_pos)
             || cell.explored
             || cell.always_visible
-            || bonus == Bonus::SeeMonstersAndItems
-            || bonus == Bonus::UncoverMap
-            || state.uncovered_map
+            || state.player.bonus == Bonus::SeeMonstersAndItems
+            || uncovered_map
         {
             for item in &cell.items {
                 display.set_graphic(display_pos, item.graphic(), item.color());
@@ -178,9 +177,8 @@ pub fn render_game(
         if monster_visible
             || monster.accompanying_player
             || cell_visible
-            || bonus == Bonus::UncoverMap
-            || bonus == Bonus::SeeMonstersAndItems
-            || state.uncovered_map
+            || uncovered_map
+            || state.player.bonus == Bonus::SeeMonstersAndItems
         {
             let display_pos = screen_coords_from_world(monster.position);
             // NOTE: this is the monster trail. It's looking bad and

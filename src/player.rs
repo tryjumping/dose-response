@@ -120,6 +120,9 @@ pub struct Player {
     pub current_high_streak: i32,
     pub longest_high_streak: i32,
 
+    /// How many times has the player been reset.
+    pub reset_count: i32,
+
     pub dead: bool,
     pub invincible: bool,
     pub perpetrator: Option<Monster>,
@@ -140,6 +143,7 @@ impl Player {
         player.graphic = Graphic::CharacterSkirt;
         player.current_high_streak = 0;
         player.longest_high_streak = 0;
+        player.reset_count = 0;
 
         player
     }
@@ -162,6 +166,8 @@ impl Player {
         self.ap = formula::PLAYER_BASE_AP;
         self.bonus = Bonus::None;
         self.bonuses = Vec::with_capacity(10);
+
+        self.reset_count += 1;
     }
 
     pub fn info(&self) -> PlayerInfo {

@@ -492,6 +492,7 @@ Reason: '{}'.",
 pub struct Challenge {
     pub hide_unseen_tiles: bool,
     pub fast_depression: bool,
+    pub one_chance: bool,
 }
 
 impl Default for Challenge {
@@ -499,6 +500,7 @@ impl Default for Challenge {
         Self {
             hide_unseen_tiles: true,
             fast_depression: true,
+            one_chance: true,
         }
     }
 }

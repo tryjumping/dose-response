@@ -62,7 +62,7 @@ pub fn render_game(
     // borrowed the state here as immutable, we wouln't need it.
     let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
-    if state.player.alive() {
+    if state.player.alive() && state.screen_fading.is_none() {
         let fade = formula::mind_fade_value(state.player.mind);
         display.set_fade(color::BLACK, fade);
     }

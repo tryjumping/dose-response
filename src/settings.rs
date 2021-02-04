@@ -32,6 +32,7 @@ pub const WINDOW_HEIGHT: &str = "window_height";
 pub const BACKEND: &str = "backend";
 pub const HIDE_UNSEEN_TILES: &str = "hide_unseen_tiles";
 pub const FAST_DEPRESSION: &str = "fast_depression";
+pub const PERMADEATH: &str = "permadeath";
 
 /// Settings the engine needs to carry.
 ///
@@ -48,6 +49,7 @@ pub struct Settings {
     pub backend: String,
     pub hide_unseen_tiles: bool,
     pub fast_depression: bool,
+    pub permadeath: bool,
 }
 
 impl Default for Settings {
@@ -69,6 +71,7 @@ impl Default for Settings {
             backend: backend.into(),
             hide_unseen_tiles: true,
             fast_depression: true,
+            permadeath: true,
         };
 
         debug_assert!(settings.valid());
@@ -95,6 +98,7 @@ impl Settings {
         state::Challenge {
             hide_unseen_tiles: self.hide_unseen_tiles,
             fast_depression: self.fast_depression,
+            one_chance: self.permadeath,
         }
     }
 
@@ -150,6 +154,8 @@ impl Settings {
             "{} = \"{}\"\n",
             FAST_DEPRESSION, self.fast_depression
         ));
+
+        out.push_str(&format!("{} = \"{}\"\n", PERMADEATH, self.permadeath));
 
         out
     }
@@ -366,6 +372,13 @@ impl Store for FileSystemStore {
             None => log::error!("Settings: missing `{}` entry.", FAST_DEPRESSION),
         }
 
+        match self.toml[PERMADEATH].as_bool() {
+            Some(permadeath) => {
+                settings.permadeath = permadeath;
+            }
+            None => log::error!("Settings: missing `{}` entry.", PERMADEATH),
+        }
+
         debug_assert!(settings.valid());
 
         log::info!("Loaded settings: {:?}", settings);
@@ -395,6 +408,8 @@ impl Store for FileSystemStore {
         self.toml[HIDE_UNSEEN_TILES] = toml_edit::value(settings.hide_unseen_tiles);
 
         self.toml[FAST_DEPRESSION] = toml_edit::value(settings.fast_depression);
+
+        self.toml[PERMADEATH] = toml_edit::value(settings.permadeath);
 
         if let Err(err) = Self::write_settings_toml(&self.path, &self.toml) {
             log::error!("Could not write settings to the storage: {:?}", err);

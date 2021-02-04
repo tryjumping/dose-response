@@ -64,11 +64,10 @@ Unchecked: Depression moves one tile per turn.",
                 // NOTE: this how do we handle persistentcases like
                 // exhaustion, overdose, loss of will, etc.? I think
                 // we'll prolly want to drop thisone.
-                c[0].checkbox(&mut false, "Player respawn")
-                    .on_hover_text("Does the player respawn instead of losing the game?");
-                c[0].checkbox(&mut true, "Overdose").on_hover_text(
-                    "Checked: game over on overdose.
-Unchecked: the game continues even on overdose.",
+                c[0].checkbox(&mut settings.permadeath, "Only one chance")
+                    .on_hover_text(
+                    "Checked: the game ends when the player loses (via overdose, depression, etc.).
+Unchecked: all player effects are removed on losing. The game continues.",
                 );
                 c[0].checkbox(&mut settings.hide_unseen_tiles, "Hide unseen tiles")
                     .on_hover_text(

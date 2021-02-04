@@ -96,6 +96,12 @@ pub enum Graphic {
     Signpost,
 }
 
+impl Default for Graphic {
+    fn default() -> Self {
+        Self::Empty
+    }
+}
+
 pub fn tilemap_coords_px(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)> {
     use Graphic::*;
     let coords = match graphic {

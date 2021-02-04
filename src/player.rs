@@ -64,11 +64,23 @@ impl Display for Mind {
     }
 }
 
+impl Default for Mind {
+    fn default() -> Self {
+        Self::Sober(Ranged::default())
+    }
+}
+
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Bonus {
     None,
     SeeMonstersAndItems,
     UncoverMap,
+}
+
+impl Default for Bonus {
+    fn default() -> Self {
+        Self::None
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -89,7 +101,7 @@ pub struct PlayerInfo {
     pub will: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Player {
     pub mind: Mind,
     pub will: Ranged,
@@ -117,26 +129,39 @@ pub struct Player {
 
 impl Player {
     pub fn new(pos: Point, invincible: bool) -> Player {
-        Player {
-            mind: Mind::Withdrawal(Ranged::new_max(WITHDRAWAL)),
-            will: Ranged::new(formula::PLAYER_STARTING_WILL, WILL),
-            tolerance: 0,
-            panic: Ranged::new_min(formula::PANIC_TURNS),
-            stun: Ranged::new_min(formula::STUN_TURNS),
-            pos,
-            color: color::player_1,
-            graphic: Graphic::CharacterSkirt,
-            inventory: vec![],
-            anxiety_counter: Ranged::new_min(ANXIETIES_PER_WILL),
-            dead: false,
-            invincible,
-            perpetrator: None,
-            ap: formula::PLAYER_BASE_AP,
-            bonus: Bonus::None,
-            bonuses: Vec::with_capacity(10),
-            current_high_streak: 0,
-            longest_high_streak: 0,
+        let mut player = Player::default();
+        player.reset();
+        player.pos = pos;
+        player.invincible = invincible;
+        player.will = Ranged::new(formula::PLAYER_STARTING_WILL, WILL);
+        player.tolerance = 0;
+        player.inventory = vec![];
+        player.color = color::player_1;
+        player.graphic = Graphic::CharacterSkirt;
+        player.current_high_streak = 0;
+        player.longest_high_streak = 0;
+
+        player
+    }
+
+    pub fn reset(&mut self) {
+        // NOTE: we're not resetting Will because if the player
+        // carries doses in the inventory, those would suddenly start
+        // going off.
+        self.mind = Mind::Withdrawal(Ranged::new_max(WITHDRAWAL));
+
+        if self.will.to_int() < formula::PLAYER_STARTING_WILL {
+            self.will = Ranged::new(formula::PLAYER_STARTING_WILL, WILL);
         }
+
+        self.panic = Ranged::new_min(formula::PANIC_TURNS);
+        self.stun = Ranged::new_min(formula::STUN_TURNS);
+        self.anxiety_counter = Ranged::new_min(ANXIETIES_PER_WILL);
+        self.dead = false;
+        self.perpetrator = None;
+        self.ap = formula::PLAYER_BASE_AP;
+        self.bonus = Bonus::None;
+        self.bonuses = Vec::with_capacity(10);
     }
 
     pub fn info(&self) -> PlayerInfo {

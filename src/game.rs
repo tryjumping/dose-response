@@ -579,8 +579,14 @@ fn process_game(
         };
 
         let initial_fade_percentage = 1.0 - fade;
-        state.game_ended = true;
-        state.show_endscreen_and_uncover_map_during_fadein = true;
+        if state.challenge.one_chance {
+            state.game_ended = true;
+            state.show_endscreen_and_uncover_map_during_fadein = true;
+            log::debug!("Game real time: {:?}", state.clock);
+        } else {
+            // NOTE: Don't die, reset the player to the initial state instead:
+            state.player.reset();
+        }
         state.screen_fading = Some(animation::ScreenFade::new(
             fade_color,
             Duration::from_millis(fade_out_ms),
@@ -588,7 +594,6 @@ fn process_game(
             Duration::from_millis(fade_in_ms),
             initial_fade_percentage,
         ));
-        log::debug!("Game real time: {:?}", state.clock);
     }
 
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);

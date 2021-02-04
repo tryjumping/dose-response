@@ -51,6 +51,12 @@ impl ::std::fmt::Debug for Ranged {
     }
 }
 
+impl Default for Ranged {
+    fn default() -> Self {
+        Self::new_min(InclusiveRange(0, 1))
+    }
+}
+
 impl Ranged {
     pub fn new<N: Into<Rational32>>(value: N, range: InclusiveRange) -> Self {
         assert!(range.0 <= range.1);

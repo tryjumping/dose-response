@@ -125,25 +125,25 @@ pub fn process(
     });
 
     if action.is_none() && active {
-        if state.keys.matches_code(KeyCode::Esc)
-            || state.keys.matches_code(KeyCode::R)
+        if state.keys.matches_code(KeyCode::E) {
+            action = Some(MenuItem::Settings);
+        } else if state.keys.matches_code(KeyCode::H)
+            || state.keys.matches_code(KeyCode::QuestionMark)
+        {
+            action = Some(MenuItem::Help);
+        } else if state.keys.matches_code(KeyCode::L) {
+            action = Some(MenuItem::Load);
+        } else if state.keys.matches_code(KeyCode::N) {
+            action = Some(MenuItem::NewGame);
+        } else if state.keys.matches_code(KeyCode::Q) {
+            action = Some(MenuItem::Quit);
+        } else if state.keys.matches_code(KeyCode::R)
+            || state.keys.matches_code(KeyCode::Esc)
             || state.mouse.right_clicked
         {
             action = Some(MenuItem::Resume);
-        } else if state.keys.matches_code(KeyCode::N) {
-            action = Some(MenuItem::NewGame);
-        } else if state.keys.matches_code(KeyCode::QuestionMark)
-            || state.keys.matches_code(KeyCode::H)
-        {
-            action = Some(MenuItem::Help);
-        } else if state.keys.matches_code(KeyCode::E) {
-            action = Some(MenuItem::Settings);
         } else if state.keys.matches_code(KeyCode::S) {
             action = Some(MenuItem::SaveAndQuit);
-        } else if state.keys.matches_code(KeyCode::Q) {
-            action = Some(MenuItem::Quit);
-        } else if state.keys.matches_code(KeyCode::L) {
-            action = Some(MenuItem::Load);
         }
     }
 

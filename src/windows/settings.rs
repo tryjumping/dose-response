@@ -167,24 +167,25 @@ Unchecked: the entire map is uncovered.",
     }
 
     if action.is_none() {
-        if state.keys.matches_code(KeyCode::F) {
-            action = Some(Action::Fullscreen);
-        } else if state.keys.matches_code(KeyCode::W) {
-            action = Some(Action::Window);
-        } else if state.keys.matches_code(KeyCode::A) {
+        // NOTE: keep them alfasorted to spot conflicts quickly
+        if state.keys.matches_code(KeyCode::A) {
             action = Some(Action::Apply);
         } else if state.keys.matches_code(KeyCode::D) {
             action = Some(Action::Back);
-        } else if state.keys.matches_code(KeyCode::G) {
-            action = Some(Action::VisualStyle(VisualStyle::Graphical));
-        } else if state.keys.matches_code(KeyCode::T) {
-            action = Some(Action::VisualStyle(VisualStyle::Textual));
         } else if state.keys.matches_code(KeyCode::E) {
             action = Some(Action::FastDepression)
-        } else if state.keys.matches_code(KeyCode::O) {
-            action = Some(Action::Permadeath)
+        } else if state.keys.matches_code(KeyCode::F) {
+            action = Some(Action::Fullscreen);
+        } else if state.keys.matches_code(KeyCode::G) {
+            action = Some(Action::VisualStyle(VisualStyle::Graphical));
         } else if state.keys.matches_code(KeyCode::H) {
             action = Some(Action::HideUnseenTiles)
+        } else if state.keys.matches_code(KeyCode::O) {
+            action = Some(Action::Permadeath)
+        } else if state.keys.matches_code(KeyCode::W) {
+            action = Some(Action::Window);
+        } else if state.keys.matches_code(KeyCode::T) {
+            action = Some(Action::VisualStyle(VisualStyle::Textual));
         }
     }
 

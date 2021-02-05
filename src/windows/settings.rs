@@ -57,7 +57,6 @@ pub fn process(
                 //
                 // TODO: file a bug in egui for this.
 
-                // TODO: implement these
                 c[0].label("Challenge:");
                 c[0].checkbox(&mut settings.fast_depression, "Fast D[e]pression")
                     .on_hover_text(

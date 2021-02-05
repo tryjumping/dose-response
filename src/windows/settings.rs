@@ -11,6 +11,9 @@ use egui::{self, Ui};
 
 #[derive(Debug)]
 pub enum Action {
+    FastDepression,
+    Permadeath,
+    HideUnseenTiles,
     Fullscreen,
     Window,
     VisualStyle(VisualStyle),
@@ -56,7 +59,7 @@ pub fn process(
 
                 // TODO: implement these
                 c[0].label("Challenge:");
-                c[0].checkbox(&mut settings.fast_depression, "Fast Depression")
+                c[0].checkbox(&mut settings.fast_depression, "Fast D[e]pression")
                     .on_hover_text(
                         "Checked: Depression moves two tiles per turn.
 Unchecked: Depression moves one tile per turn.",
@@ -64,12 +67,12 @@ Unchecked: Depression moves one tile per turn.",
                 // NOTE: this how do we handle persistentcases like
                 // exhaustion, overdose, loss of will, etc.? I think
                 // we'll prolly want to drop thisone.
-                c[0].checkbox(&mut settings.permadeath, "Only one chance")
+                c[0].checkbox(&mut settings.permadeath, "[O]nly one chance")
                     .on_hover_text(
                     "Checked: the game ends when the player loses (via overdose, depression, etc.).
 Unchecked: all player effects are removed on losing. The game continues.",
                 );
-                c[0].checkbox(&mut settings.hide_unseen_tiles, "Hide unseen tiles")
+                c[0].checkbox(&mut settings.hide_unseen_tiles, "[H]ide unseen tiles")
                     .on_hover_text(
                         "Checked: only previously seen tiles are visible.
 Unchecked: the entire map is uncovered.",
@@ -177,6 +180,12 @@ Unchecked: the entire map is uncovered.",
             action = Some(Action::VisualStyle(VisualStyle::Graphical));
         } else if state.keys.matches_code(KeyCode::T) {
             action = Some(Action::VisualStyle(VisualStyle::Textual));
+        } else if state.keys.matches_code(KeyCode::E) {
+            action = Some(Action::FastDepression)
+        } else if state.keys.matches_code(KeyCode::O) {
+            action = Some(Action::Permadeath)
+        } else if state.keys.matches_code(KeyCode::H) {
+            action = Some(Action::HideUnseenTiles)
         }
     }
 
@@ -226,6 +235,18 @@ Unchecked: the entire map is uncovered.",
 
     if let Some(action) = action {
         match action {
+            Action::FastDepression => {
+                settings.fast_depression = !settings.fast_depression;
+            }
+
+            Action::Permadeath => {
+                settings.permadeath = !settings.permadeath;
+            }
+
+            Action::HideUnseenTiles => {
+                settings.hide_unseen_tiles = !settings.hide_unseen_tiles;
+            }
+
             Action::Fullscreen => {
                 settings.fullscreen = true;
             }

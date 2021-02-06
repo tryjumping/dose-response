@@ -273,8 +273,10 @@ fn process_cli_and_run_game() {
     );
 
     let settings_store = settings::FileSystemStore::new();
-    let backend = settings_store.load().backend;
-    let challenge = settings_store.load().challenge();
+    let settings = settings_store.load();
+    let backend = settings.backend.clone();
+    let challenge = settings.challenge();
+    let palette = settings.palette();
 
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
@@ -294,6 +296,7 @@ fn process_cli_and_run_game() {
             matches.is_present("replay-full-speed"),
             matches.is_present("exit-after"),
             challenge,
+            palette,
         )
         .expect("Could not load the replay file")
     } else {
@@ -314,6 +317,7 @@ fn process_cli_and_run_game() {
             matches.is_present("exit-after"),
             replay_file,
             challenge,
+            palette,
         );
         state.player.invincible = matches.is_present("invincible");
         state.window_stack.push(window::Window::MainMenu);

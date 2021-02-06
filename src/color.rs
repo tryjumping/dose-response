@@ -4,6 +4,7 @@
 //pub use palette::original::*;
 //pub use palette::dawnbringer32::*;
 pub use crate::palette::dawnbringer16::*;
+//pub use crate::palette::accessible::*;
 
 use serde::{Deserialize, Serialize};
 
@@ -61,7 +62,6 @@ pub const unexplored_background: Color = BLACK;
 pub const exhaustion_animation: Color = BLACK;
 pub const fade_to_black_animation: Color = BLACK;
 
-pub const gui_text: Color = WHITE;
 pub const gui_text_inactive: Color = LIGHT_GREY;
 pub const gui_button_background: Color = DARK_RED;
 pub const overdose_animation: Color = WHITE;
@@ -101,9 +101,6 @@ pub const dose: Color = BLUE;
 pub const strong_dose: Color = BRIGHT_BLUE;
 pub const shattering_dose: Color = BRIGHT_BLUE;
 pub const explosion: Color = BRIGHT_BLUE;
-
-pub const window_edge: Color = DIM_BLUE;
-pub const window_background: Color = BLACK;
 
 // NOTE: Our old menus used it, but egui buttons have a different colour.
 // Keeping it here for now just in case:

@@ -1,4 +1,4 @@
-use crate::{engine, state};
+use crate::{engine, palette, state};
 
 use serde::{Deserialize, Serialize};
 
@@ -127,6 +127,14 @@ impl Settings {
             hide_unseen_tiles: self.hide_unseen_tiles,
             fast_depression: self.fast_depression,
             one_chance: self.permadeath,
+        }
+    }
+
+    pub fn palette(&self) -> palette::Palette {
+        match self.palette {
+            Palette::Classic => palette::Palette::classic(),
+            Palette::Accessible => palette::Palette::accessible(),
+            Palette::Greyscale => palette::Palette::greyscale(),
         }
     }
 

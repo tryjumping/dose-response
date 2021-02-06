@@ -111,17 +111,26 @@ pub fn process(
                 ui.separator();
                 ui.columns(3, |c| {
                     c[0].with_layout(egui::Layout::vertical(egui::Align::Min), |ui| {
-                        if ui.add(ui::button("[N]ew Game", active)).clicked {
+                        if ui
+                            .add(ui::button("[N]ew Game", active, &state.palette))
+                            .clicked
+                        {
                             action = Some(Action::NewGame);
                         };
                     });
                     c[1].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
-                        if ui.add(ui::button("[?] Help", active)).clicked {
+                        if ui
+                            .add(ui::button("[?] Help", active, &state.palette))
+                            .clicked
+                        {
                             action = Some(Action::Help);
                         };
                     });
                     c[2].with_layout(egui::Layout::vertical(egui::Align::Max), |ui| {
-                        if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
+                        if ui
+                            .add(ui::button("[Esc] Main Menu", active, &state.palette))
+                            .clicked
+                        {
                             action = Some(Action::Menu);
                         };
                     });

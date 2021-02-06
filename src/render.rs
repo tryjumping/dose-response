@@ -2,6 +2,7 @@ use crate::{
     color,
     engine::{Display, TextMetrics},
     formula, graphics, monster,
+    palette::Palette,
     player::Bonus,
     point::{Point, SquareArea},
     rect::Rectangle,
@@ -229,7 +230,7 @@ pub fn render_game(
     }
 
     if state.show_keboard_movement_hints && !state.game_ended {
-        render_controls_help(state.map_size, metrics, display);
+        render_controls_help(state.map_size, metrics, display, &state.palette);
     }
 
     let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
@@ -261,7 +262,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
                 Point::from_i32(0),
                 Point::new(width as i32, height as i32),
             ),
-            color::window_background,
+            state.palette.window_background,
         );
         for (index, line) in debug_text.lines().enumerate() {
             display.draw_text_in_tile_coordinates(
@@ -270,7 +271,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
                     y: index as i32,
                 },
                 line,
-                color::gui_text,
+                state.palette.gui_text,
                 Default::default(),
                 display.tile_size,
             );
@@ -278,7 +279,12 @@ fn render_monster_info(state: &State, display: &mut Display) {
     }
 }
 
-fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mut Display) {
+fn render_controls_help(
+    map_size: Point,
+    metrics: &dyn TextMetrics,
+    display: &mut Display,
+    palette: &Palette,
+) {
     let rect_dim = |lines: &[&str]| {
         let longest_line = lines
             .iter()
@@ -288,7 +294,14 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         (longest_line, lines.len() as i32)
     };
 
-    fn draw_rect(lines: &[&'static str], start: Point, w: i32, h: i32, display: &mut Display) {
+    fn draw_rect(
+        lines: &[&'static str],
+        start: Point,
+        w: i32,
+        h: i32,
+        display: &mut Display,
+        palette: &Palette,
+    ) {
         display.draw_rectangle(
             Rectangle::from_point_and_size(start, Point::new(w, h)),
             color::dim_background,
@@ -297,7 +310,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
             display.draw_text_in_tile_coordinates(
                 start + Point::new(0, index as i32),
                 line,
-                color::gui_text,
+                palette.gui_text,
                 Default::default(),
                 display.tile_size,
             );
@@ -312,7 +325,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         x: (map_size.x - width) / 2,
         y: padding,
     };
-    draw_rect(lines, start, width, height, display);
+    draw_rect(lines, start, width, height, display, palette);
 
     let lines = &["Down", "Num 2", "or: J"];
     let (width, height) = rect_dim(lines);
@@ -320,7 +333,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         x: (map_size.x - width) / 2,
         y: map_size.y - height - padding,
     };
-    draw_rect(lines, start, width, height, display);
+    draw_rect(lines, start, width, height, display, palette);
 
     let lines = &["Left", "Num 4", "or: H"];
     let (width, height) = rect_dim(lines);
@@ -328,7 +341,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         x: padding,
         y: (map_size.y - height) / 2,
     };
-    draw_rect(lines, start, width, height, display);
+    draw_rect(lines, start, width, height, display, palette);
 
     let lines = &["Right", "Num 6", "or: L"];
     let (width, height) = rect_dim(lines);
@@ -336,7 +349,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         x: map_size.x - width - padding,
         y: (map_size.y - height) / 2,
     };
-    draw_rect(lines, start, width, height, display);
+    draw_rect(lines, start, width, height, display, palette);
 
     let lines = &["Shift+Left", "Num 7", "or: Y"];
     let (width, height) = rect_dim(lines);
@@ -344,7 +357,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         x: padding,
         y: padding,
     };
-    draw_rect(lines, start, width, height, display);
+    draw_rect(lines, start, width, height, display, palette);
 
     let lines = &["Shift+Right", "Num 9", "or: U"];
     let (width, height) = rect_dim(lines);
@@ -352,7 +365,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         x: map_size.x - width - padding,
         y: padding,
     };
-    draw_rect(lines, start, width, height, display);
+    draw_rect(lines, start, width, height, display, palette);
 
     let lines = &["Ctrl+Left", "Num 1", "or: B"];
     let (width, height) = rect_dim(lines);
@@ -360,7 +373,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         x: padding,
         y: map_size.y - height - padding,
     };
-    draw_rect(lines, start, width, height, display);
+    draw_rect(lines, start, width, height, display, palette);
 
     let lines = &["Ctrl+Right", "Num 3", "or: N"];
     let (width, height) = rect_dim(lines);
@@ -368,5 +381,5 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
         x: map_size.x - width - padding,
         y: map_size.y - height - padding,
     };
-    draw_rect(lines, start, width, height, display);
+    draw_rect(lines, start, width, height, display, palette);
 }

@@ -55,8 +55,8 @@ impl Window {
             Centered("-- Marla Daniels"),
         ];
 
-        display.draw_rectangle(layout.window_rect, color::window_background);
+        display.draw_rectangle(layout.window_rect, state.palette.window_background);
 
-        ui::render_text_flow(&lines, layout.rect, 0, metrics, display);
+        ui::render_text_flow(&lines, layout.rect, 0, metrics, display, &state.palette);
     }
 }

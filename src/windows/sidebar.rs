@@ -59,7 +59,7 @@ pub fn process(
     ui.set_clip_rect(full_rect);
 
     let mut style = ui.style().clone();
-    style.visuals.override_text_color = Some(color::gui_text.into());
+    style.visuals.override_text_color = Some(state.palette.gui_text.into());
     ui.set_style(style);
 
     ui.painter().add(PaintCmd::Rect {
@@ -187,7 +187,10 @@ pub fn process(
             pr = precision - 7
         );
         let active = active && count > 0;
-        if ui.add(ui::button(&button_label, active)).clicked {
+        if ui
+            .add(ui::button(&button_label, active, &state.palette))
+            .clicked
+        {
             action = Some(button_action);
         };
     }
@@ -196,10 +199,13 @@ pub fn process(
 
     // NOTE: `Layout::reverse()` builds it up from the bottom:
     ui.with_layout(egui::Layout::vertical(egui::Align::Min).reverse(), |ui| {
-        if ui.add(ui::button("[Esc] Main Menu", active)).clicked {
+        if ui
+            .add(ui::button("[Esc] Main Menu", active, &state.palette))
+            .clicked
+        {
             action = Some(Action::MainMenu);
         }
-        let gui_response = ui.add(ui::button("[?] Help", active));
+        let gui_response = ui.add(ui::button("[?] Help", active, &state.palette));
         if gui_response.clicked {
             action = Some(Action::Help);
         }
@@ -259,7 +265,7 @@ pub fn process(
                 c[index].set_style(style.clone());
             }
 
-            let btn = c[0].add(ui::button("7", active));
+            let btn = c[0].add(ui::button("7", active, &state.palette));
             if btn.clicked {
                 action = Some(Action::MoveNW);
             };
@@ -267,7 +273,7 @@ pub fn process(
                 highlighted_tile_offset_from_player_pos = Some((-1, -1));
             }
 
-            let btn = c[1].add(ui::button("8", active));
+            let btn = c[1].add(ui::button("8", active, &state.palette));
             if btn.clicked {
                 action = Some(Action::MoveN);
             };
@@ -275,7 +281,7 @@ pub fn process(
                 highlighted_tile_offset_from_player_pos = Some((0, -1));
             }
 
-            let btn = c[2].add(ui::button("9", active));
+            let btn = c[2].add(ui::button("9", active, &state.palette));
             if btn.clicked {
                 action = Some(Action::MoveNE);
             };
@@ -283,7 +289,7 @@ pub fn process(
                 highlighted_tile_offset_from_player_pos = Some((1, -1));
             }
 
-            let btn = c[0].add(ui::button("4", active));
+            let btn = c[0].add(ui::button("4", active, &state.palette));
             if btn.clicked {
                 action = Some(Action::MoveW);
             };
@@ -293,7 +299,7 @@ pub fn process(
 
             c[1].add(egui::Button::new("@").enabled(false));
 
-            let btn = c[2].add(ui::button("6", active));
+            let btn = c[2].add(ui::button("6", active, &state.palette));
             if btn.clicked {
                 action = Some(Action::MoveE);
             };
@@ -301,7 +307,7 @@ pub fn process(
                 highlighted_tile_offset_from_player_pos = Some((1, 0));
             }
 
-            let btn = c[0].add(ui::button("1", active));
+            let btn = c[0].add(ui::button("1", active, &state.palette));
             if btn.clicked {
                 action = Some(Action::MoveSW);
             };
@@ -309,7 +315,7 @@ pub fn process(
                 highlighted_tile_offset_from_player_pos = Some((-1, 1));
             }
 
-            let btn = c[1].add(ui::button("2", active));
+            let btn = c[1].add(ui::button("2", active, &state.palette));
             if btn.clicked {
                 action = Some(Action::MoveS);
             };
@@ -317,7 +323,7 @@ pub fn process(
                 highlighted_tile_offset_from_player_pos = Some((0, 1));
             }
 
-            let btn = c[2].add(ui::button("3", active));
+            let btn = c[2].add(ui::button("3", active, &state.palette));
             if btn.clicked {
                 action = Some(Action::MoveSE);
             };

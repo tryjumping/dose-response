@@ -164,11 +164,17 @@ Unchecked: the entire map is uncovered.",
 
             ui.separator();
             ui.horizontal(|ui| {
-                if ui.add(ui::button("[A]ccept Changes", true)).clicked {
+                if ui
+                    .add(ui::button("[A]ccept Changes", true, &state.palette))
+                    .clicked
+                {
                     action = Some(Action::Apply);
                 }
 
-                if ui.add(ui::button("[D]iscard Changes", true)).clicked {
+                if ui
+                    .add(ui::button("[D]iscard Changes", true, &state.palette))
+                    .clicked
+                {
                     action = Some(Action::Back);
                 }
             });
@@ -300,6 +306,7 @@ Unchecked: the entire map is uncovered.",
             }
 
             Action::Apply => {
+                state.palette = settings.palette();
                 settings_store.save(settings);
                 state.window_stack.pop();
             }

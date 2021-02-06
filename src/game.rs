@@ -1418,6 +1418,7 @@ pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
         state.exit_after,
         state::generate_replay_path(),
         new_challenge,
+        state.palette.clone(),
     )
 }
 

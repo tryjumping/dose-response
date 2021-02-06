@@ -5,6 +5,7 @@ use crate::{
     graphic::Graphic,
     keys::Keys,
     monster,
+    palette::Palette,
     player::Player,
     point::Point,
     random::Random,
@@ -168,6 +169,7 @@ pub struct State {
     pub uncovered_map: bool,
 
     pub challenge: Challenge,
+    pub palette: Palette,
 }
 
 impl State {
@@ -185,6 +187,7 @@ impl State {
         replay_full_speed: bool,
         exit_after: bool,
         challenge: Challenge,
+        palette: Palette,
     ) -> State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
@@ -258,6 +261,7 @@ impl State {
             uncovered_map: false,
 
             challenge,
+            palette,
         }
     }
 
@@ -268,6 +272,7 @@ impl State {
         exit_after: bool,
         replay_path: Option<PathBuf>,
         challenge: Challenge,
+        palette: Palette,
     ) -> State {
         let commands = VecDeque::new();
         let verifications = VecDeque::new();
@@ -308,6 +313,7 @@ Reason: '{}'.",
             replay_full_speed,
             exit_after,
             challenge,
+            palette,
         )
     }
 
@@ -322,6 +328,7 @@ Reason: '{}'.",
         replay_full_speed: bool,
         exit_after: bool,
         challenge: Challenge,
+        palette: Palette,
     ) -> Result<State, Box<dyn Error>> {
         #[cfg(feature = "replay")]
         {
@@ -399,6 +406,7 @@ Reason: '{}'.",
                 replay_full_speed,
                 exit_after,
                 challenge,
+                palette,
             ))
         }
 
@@ -410,6 +418,7 @@ Reason: '{}'.",
             exit_after,
             None,
             challenge,
+            palette,
         ))
     }
 

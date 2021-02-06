@@ -1,5 +1,4 @@
 use crate::{
-    color,
     engine::{Display, TextMetrics},
     game,
     game::RunningState,
@@ -54,10 +53,10 @@ pub fn process(
             max: [window_size_px.x as f32, window_size_px.y as f32].into(),
         },
         corner_radius: 0.0,
-        fill: color::window_background.into(),
+        fill: state.palette.window_background.into(),
         stroke: Stroke {
             width: border_width_px,
-            color: color::window_edge.into(),
+            color: state.palette.window_edge.into(),
         },
     });
 
@@ -70,7 +69,7 @@ pub fn process(
             crate::metadata::VERSION_MINOR
         ),
         egui::TextStyle::Body,
-        color::gui_text.into(),
+        state.palette.gui_text.into(),
     );
 
     let mut action = None;
@@ -90,32 +89,50 @@ pub fn process(
         ui.label("");
 
         if !state.game_ended && !state.first_game_already_generated {
-            if ui.add(ui::button("[R]esume", active)).clicked {
+            if ui
+                .add(ui::button("[R]esume", active, &state.palette))
+                .clicked
+            {
                 action = Some(MenuItem::Resume);
             }
         }
 
-        if ui.add(ui::button("[N]ew Game", active)).clicked {
+        if ui
+            .add(ui::button("[N]ew Game", active, &state.palette))
+            .clicked
+        {
             action = Some(MenuItem::NewGame);
         }
 
-        if ui.add(ui::button("[H]elp", active)).clicked {
+        if ui.add(ui::button("[H]elp", active, &state.palette)).clicked {
             action = Some(MenuItem::Help);
         }
 
-        if ui.add(ui::button("S[e]ttings", active)).clicked {
+        if ui
+            .add(ui::button("S[e]ttings", active, &state.palette))
+            .clicked
+        {
             action = Some(MenuItem::Settings);
         }
 
-        if ui.add(ui::button("[S]ave and Quit", active)).clicked {
+        if ui
+            .add(ui::button("[S]ave and Quit", active, &state.palette))
+            .clicked
+        {
             action = Some(MenuItem::SaveAndQuit);
         }
 
-        if ui.add(ui::button("[L]oad game", active)).clicked {
+        if ui
+            .add(ui::button("[L]oad game", active, &state.palette))
+            .clicked
+        {
             action = Some(MenuItem::Load);
         }
 
-        if ui.add(ui::button("[Q]uit without saving", active)).clicked {
+        if ui
+            .add(ui::button("[Q]uit without saving", active, &state.palette))
+            .clicked
+        {
             log::info!("Clicked!");
             action = Some(MenuItem::Quit);
         };

@@ -270,7 +270,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
             ui.columns(2, |c| {
                 state.current_help_window.prev().map(|text| {
                     if c[0]
-                        .add(ui::button(&format!("[<-] {}", text), true))
+                        .add(ui::button(&format!("[<-] {}", text), true, &state.palette))
                         .clicked
                     {
                         action = Some(Action::PrevPage);
@@ -279,7 +279,10 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
 
                 state.current_help_window.next().map(|text| {
                     c[1].with_layout(egui::Layout::vertical(egui::Align::Max), |ui| {
-                        if ui.add(ui::button(&format!("[->] {}", text), true)).clicked {
+                        if ui
+                            .add(ui::button(&format!("[->] {}", text), true, &state.palette))
+                            .clicked
+                        {
                             action = Some(Action::NextPage);
                         }
                     });

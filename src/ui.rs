@@ -3,6 +3,7 @@
 use crate::{
     color::{self, Color},
     engine::{Display, DrawResult, TextMetrics, TextOptions},
+    palette::Palette,
     point::Point,
     rect::Rectangle,
 };
@@ -24,6 +25,7 @@ pub fn render_text_flow(
     starting_line: i32,
     metrics: &dyn TextMetrics,
     display: &mut Display,
+    palette: &Palette,
 ) -> DrawResult {
     use self::Text::*;
 
@@ -56,7 +58,7 @@ pub fn render_text_flow(
                     ..Default::default()
                 };
                 let res =
-                    display.draw_text_in_pixel_coordinates(pos, text, color::gui_text, options);
+                    display.draw_text_in_pixel_coordinates(pos, text, palette.gui_text, options);
                 if let DrawResult::Overflow = res {
                     return res;
                 };
@@ -69,7 +71,7 @@ pub fn render_text_flow(
                     ..TextOptions::align_center(rect.width())
                 };
                 let res =
-                    display.draw_text_in_pixel_coordinates(pos, text, color::gui_text, options);
+                    display.draw_text_in_pixel_coordinates(pos, text, palette.gui_text, options);
                 if let DrawResult::Overflow = res {
                     return res;
                 };
@@ -85,7 +87,7 @@ pub fn render_text_flow(
                     skip,
                     ..TextOptions::align_center(rect.width())
                 };
-                display.draw_text_in_pixel_coordinates(pos, text, color::gui_text, options);
+                display.draw_text_in_pixel_coordinates(pos, text, palette.gui_text, options);
             }
         }
         ypos_px += text_height_px;
@@ -142,9 +144,9 @@ pub fn text_rect(text: &Text<'_>, rect: Rectangle, metrics: &dyn TextMetrics) ->
 
 /// Helper for creating an egui button with the default background and
 /// an enabled state.
-pub fn button(text: &str, enabled: bool) -> egui::Button {
+pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
     let color = match enabled {
-        true => color::gui_text,
+        true => palette.gui_text,
         false => color::gui_text_inactive,
     };
     egui::Button::new(text)
@@ -200,11 +202,11 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new(pos: Point, text: &str) -> Self {
+    pub fn new(pos: Point, text: &str, palette: &Palette) -> Self {
         Button {
             pos,
             text: text.into(),
-            color: color::gui_text,
+            color: palette.gui_text,
             ..Default::default()
         }
     }

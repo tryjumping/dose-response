@@ -2,7 +2,7 @@ use crate::{
     engine::{Display, VisualStyle},
     game::RunningState,
     keys::KeyCode,
-    settings::{Settings, Store as SettingsStore},
+    settings::{Palette, Settings, Store as SettingsStore},
     state::State,
     ui,
 };
@@ -17,6 +17,7 @@ pub enum Action {
     Fullscreen,
     Window,
     VisualStyle(VisualStyle),
+    Palette(Palette),
     TileSize(i32),
     TextSize(i32),
     Back,
@@ -141,9 +142,24 @@ Unchecked: the entire map is uncovered.",
 
                 c[2].label("");
                 c[2].label("Colour:");
-                c[2].radio(true, "[S]tandard");
-                c[2].radio(false, "[C]olour-blind");
-                c[2].radio(false, "C[u]stom");
+                if c[2]
+                    .radio(settings.palette == Palette::Classic, "Cla[s]sic")
+                    .clicked
+                {
+                    action = Some(Action::Palette(Palette::Classic));
+                };
+                if c[2]
+                    .radio(settings.palette == Palette::Accessible, "A[c]cessible")
+                    .clicked
+                {
+                    action = Some(Action::Palette(Palette::Accessible));
+                };
+                if c[2]
+                    .radio(settings.palette == Palette::Greyscale, "G[r]eyscale")
+                    .clicked
+                {
+                    action = Some(Action::Palette(Palette::Greyscale));
+                };
             });
 
             ui.separator();
@@ -170,6 +186,8 @@ Unchecked: the entire map is uncovered.",
         // NOTE: keep them alfasorted to spot conflicts quickly
         if state.keys.matches_code(KeyCode::A) {
             action = Some(Action::Apply);
+        } else if state.keys.matches_code(KeyCode::C) {
+            action = Some(Action::Palette(Palette::Accessible));
         } else if state.keys.matches_code(KeyCode::D) {
             action = Some(Action::Back);
         } else if state.keys.matches_code(KeyCode::E) {
@@ -182,6 +200,10 @@ Unchecked: the entire map is uncovered.",
             action = Some(Action::HideUnseenTiles)
         } else if state.keys.matches_code(KeyCode::O) {
             action = Some(Action::Permadeath)
+        } else if state.keys.matches_code(KeyCode::R) {
+            action = Some(Action::Palette(Palette::Greyscale));
+        } else if state.keys.matches_code(KeyCode::S) {
+            action = Some(Action::Palette(Palette::Classic));
         } else if state.keys.matches_code(KeyCode::W) {
             action = Some(Action::Window);
         } else if state.keys.matches_code(KeyCode::T) {
@@ -253,6 +275,10 @@ Unchecked: the entire map is uncovered.",
 
             Action::VisualStyle(visual_style) => {
                 settings.visual_style = visual_style;
+            }
+
+            Action::Palette(palette) => {
+                settings.palette = palette;
             }
 
             Action::Window => {

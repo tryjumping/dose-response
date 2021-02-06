@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{
     error::Error,
+    fmt,
     fs::File,
     io::prelude::*,
     path::{Path, PathBuf},
@@ -25,6 +26,7 @@ pub const FULLSCREEN: &str = "fullscreen";
 pub const WINDOW: &str = "window";
 
 pub const VISUAL_STYLE: &str = "visual_style";
+pub const PALETTE: &str = "palette";
 pub const TILE_SIZE: &str = "tile_size";
 pub const TEXT_SIZE: &str = "text_size";
 pub const WINDOW_WIDTH: &str = "window_width";
@@ -34,6 +36,30 @@ pub const HIDE_UNSEEN_TILES: &str = "hide_unseen_tiles";
 pub const FAST_DEPRESSION: &str = "fast_depression";
 pub const PERMADEATH: &str = "permadeath";
 
+/// The colour palette that the user can select
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum Palette {
+    Classic,
+    Accessible,
+    Greyscale,
+}
+
+impl fmt::Display for Palette {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        use self::Palette::*;
+        let s = match *self {
+            Classic => PALETTE_CLASSIC_STR,
+            Accessible => PALETTE_ACCESSIBLE_STR,
+            Greyscale => PALETTE_GREYSCALE_STR,
+        };
+        f.write_str(s)
+    }
+}
+
+const PALETTE_CLASSIC_STR: &str = "classic";
+const PALETTE_ACCESSIBLE_STR: &str = "accessible";
+const PALETTE_GREYSCALE_STR: &str = "greyscale";
+
 /// Settings the engine needs to carry.
 ///
 /// Things such as the fullscreen/windowed display, font size, font
@@ -42,6 +68,7 @@ pub const PERMADEATH: &str = "permadeath";
 pub struct Settings {
     pub fullscreen: bool,
     pub visual_style: engine::VisualStyle,
+    pub palette: Palette,
     pub text_size: i32,
     pub tile_size: i32,
     pub window_width: u32,
@@ -64,6 +91,7 @@ impl Default for Settings {
         let settings = Self {
             fullscreen: false,
             visual_style: engine::VisualStyle::Graphical,
+            palette: Palette::Classic,
             text_size: crate::engine::DEFAULT_TEXT_SIZE,
             tile_size: crate::engine::DEFAULT_TILE_SIZE,
             window_width: DEFAULT_WINDOW_WIDTH,
@@ -116,6 +144,15 @@ impl Settings {
             engine::VisualStyle::Textual
         ));
         out.push_str(&format!("{} = \"{}\"\n\n", VISUAL_STYLE, self.visual_style));
+
+        out.push_str(&format!(
+            "# Options: \"{}\", \"{}\" or \"{}\"",
+            Palette::Classic,
+            Palette::Accessible,
+            Palette::Greyscale
+        ));
+
+        out.push_str(&format!("{} = \"{}\"\n\n", PALETTE, self.palette));
 
         let tile_sizes_str = crate::engine::AVAILABLE_TILE_SIZES
             .iter()
@@ -265,6 +302,33 @@ impl Store for FileSystemStore {
             ),
         }
 
+        match self.toml[PALETTE].as_str() {
+            Some(PALETTE_CLASSIC_STR) => {
+                settings.palette = Palette::Classic;
+            }
+            Some(PALETTE_ACCESSIBLE_STR) => {
+                settings.palette = Palette::Accessible;
+            }
+            Some(PALETTE_GREYSCALE_STR) => {
+                settings.palette = Palette::Greyscale;
+            }
+            Some(unexpected) => {
+                log::error!("Settings: unknown `{}` entry: \"{}\"", PALETTE, unexpected);
+                log::info!(
+                    "Valid `{}` entries: \"{}\", \"{}\" or \"{}\"",
+                    PALETTE,
+                    Palette::Classic,
+                    Palette::Accessible,
+                    Palette::Greyscale
+                );
+            }
+            None => log::info!(
+                "Settings: missing `{}`, falling back to: \"{}\"",
+                PALETTE,
+                settings.palette
+            ),
+        }
+
         match self.toml[TILE_SIZE].as_integer() {
             Some(tile_size) => {
                 let tile_size = tile_size as i32;
@@ -395,6 +459,8 @@ impl Store for FileSystemStore {
         self.toml[DISPLAY] = toml_edit::value(display);
 
         self.toml[VISUAL_STYLE] = toml_edit::value(settings.visual_style.to_string());
+
+        self.toml[PALETTE] = toml_edit::value(settings.palette.to_string());
 
         self.toml[TILE_SIZE] = toml_edit::value(settings.tile_size as i64);
 

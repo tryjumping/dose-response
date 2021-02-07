@@ -4,8 +4,6 @@ use crate::color::Color;
 
 // Haphazardly put together with the help of the DawnBringer 16bit palette:
 // http://pixeljoint.com/forum/forum_posts.asp?TID=12795
-pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
-pub const WHITE: Color = Color {r: 255, g: 255, b: 255};
 
 pub const GREY: Color = Color {r: 117, g: 113, b: 97};
 pub const LIGHT_GREY: Color = Color {r: 180, g: 180, b: 180};

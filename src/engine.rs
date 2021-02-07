@@ -677,7 +677,7 @@ impl Display {
             text_size,
             map: vec![Default::default(); (size.x * size.y) as usize],
             drawcalls: Vec::with_capacity(DRAWCALL_CAPACITY),
-            fade: color::invisible,
+            fade: color::INVISIBLE,
             ..Default::default()
         }
     }
@@ -690,7 +690,7 @@ impl Display {
             };
         }
         self.drawcalls.clear();
-        self.fade = color::invisible;
+        self.fade = color::INVISIBLE;
         self.clear_background_color = Some(background);
     }
 

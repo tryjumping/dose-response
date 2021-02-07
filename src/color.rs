@@ -1,13 +1,4 @@
-#![allow(non_upper_case_globals)]
-#![cfg_attr(rustfmt, rustfmt_skip)]
-
-//pub use palette::original::*;
-//pub use palette::dawnbringer32::*;
-pub use crate::palette::dawnbringer16::*;
-//pub use crate::palette::accessible::*;
-
 use serde::{Deserialize, Serialize};
-
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Color {
@@ -27,20 +18,19 @@ pub struct ColorAlpha {
     pub alpha: u8,
 }
 
-
 impl Color {
     pub fn alpha(self, alpha: u8) -> ColorAlpha {
-        ColorAlpha {
-            rgb: self,
-            alpha,
-        }
+        ColorAlpha { rgb: self, alpha }
     }
 }
 
-
 impl Default for Color {
     fn default() -> Self {
-        Self {r: 255, g: 0, b: 255}
+        Self {
+            r: 255,
+            g: 0,
+            b: 255,
+        }
     }
 }
 
@@ -50,7 +40,6 @@ impl Into<ColorAlpha> for Color {
     }
 }
 
-
 impl Into<egui::Srgba> for Color {
     fn into(self) -> egui::Srgba {
         let color: ColorAlpha = self.into();
@@ -58,6 +47,14 @@ impl Into<egui::Srgba> for Color {
     }
 }
 
+pub const BLACK: Color = Color { r: 0, g: 0, b: 0 };
+pub const WHITE: Color = Color {
+    r: 255,
+    g: 255,
+    b: 255,
+};
 
-// TODO: upcase this, add WHITE, BLACK, default (magenta) and possibly mid-grey
-pub const invisible: ColorAlpha = ColorAlpha { rgb: Color { r: 0, g: 0, b: 0 }, alpha: 0 };
+pub const INVISIBLE: ColorAlpha = ColorAlpha {
+    rgb: Color { r: 0, g: 0, b: 0 },
+    alpha: 0,
+};

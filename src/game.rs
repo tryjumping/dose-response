@@ -146,7 +146,7 @@ pub fn update(
                         main_menu::process(state, ui, settings, metrics, display, active);
 
                     // Clear any fade set by the gameplay rendering
-                    display.fade = color::invisible;
+                    display.fade = color::INVISIBLE;
                 }
                 Window::Game => {
                     let (result, highlighted_tile) =
@@ -160,14 +160,14 @@ pub fn update(
                             settings::process(state, ui, settings, display, settings_store);
                     }
                     // Clear any fade set by the gameplay rendering
-                    display.fade = color::invisible;
+                    display.fade = color::INVISIBLE;
                 }
                 Window::Help => {
                     if top_level {
                         game_update_result = help::process(state, ui, display);
                     }
                     // Clear any fade set by the gameplay rendering
-                    display.fade = color::invisible;
+                    display.fade = color::INVISIBLE;
                 }
                 Window::Endgame => {
                     game_update_result =
@@ -177,7 +177,7 @@ pub fn update(
                         let window = crate::windows::call_to_action::Window;
                         window.render(state, metrics, display);
                     }
-                    display.fade = color::invisible;
+                    display.fade = color::INVISIBLE;
                 }
                 Window::Message {
                     ref title,

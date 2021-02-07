@@ -1,4 +1,4 @@
-use crate::color::Color;
+use crate::color::{Color, BLACK, WHITE};
 
 use serde::{Deserialize, Serialize};
 

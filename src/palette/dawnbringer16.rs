@@ -23,7 +23,9 @@ pub const DARK_RED: Color = Color {r: 100, g: 10, b: 10};
 
 pub const PURPLE: Color = Color {r: 218, g: 212, b: 94};
 
-pub const BROWN: Color = Color {r: 133, g: 76, b: 48};
+pub const BROWN: Color = Color {r: 113, g: 78, b: 52};
+pub const FADED_REDDISH_BROWN: Color = Color {r: 133, g: 76, b: 48};
+pub const LIGHT_BROWN: Color = Color {r: 162, g: 97, b: 52};
 pub const DARK_BROWN: Color = Color {r: 39, g: 25, b: 14};
 
 pub const ORANGE: Color = Color {r: 255, g: 136, b: 11};

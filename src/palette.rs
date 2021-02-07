@@ -75,7 +75,7 @@ impl Palette {
             gui_mind_progress_bar_fg: BRIGHT_GREEN,
             gui_mind_progress_bar_bg: DIM_GREEN,
             gui_anxiety_progress_bar_fg: RED,
-            gui_anxiety_progress_bar_bg: BROWN,
+            gui_anxiety_progress_bar_bg: FADED_REDDISH_BROWN,
             gui_window_background: BLACK,
             gui_window_edge: DIM_BLUE,
 
@@ -126,18 +126,9 @@ impl Palette {
 
             tree: [DARK_GREEN, BRIGHT_GREEN, NATURAL_GREEN],
 
-            // TODO: move these ad-hoc colours into the dawnbringer palette!
-            empty_tile_ground: Color {
-                r: 113,
-                g: 78,
-                b: 52,
-            },
+            empty_tile_ground: BROWN,
             empty_tile_leaves: DIM_GREEN,
-            empty_tile_twigs: Color {
-                r: 162,
-                g: 97,
-                b: 52,
-            },
+            empty_tile_twigs: LIGHT_BROWN,
         }
     }
 

@@ -131,7 +131,62 @@ impl Palette {
     }
 
     pub fn accessible() -> Self {
-        todo!();
+        use accessible::*;
+        Self {
+            gui_text: WHITE,
+            gui_text_inactive: GREY,
+            gui_button_background: RED,
+            gui_mind_progress_bar_fg: TEAL,
+            gui_mind_progress_bar_bg: GREEN,
+            gui_anxiety_progress_bar_fg: RED,
+            gui_anxiety_progress_bar_bg: YELLOW,
+            gui_window_background: BLACK,
+            gui_window_edge: BLUE,
+
+            explored_background: BLACK,
+            unexplored_background: BLACK,
+            dim_background: DARK_GREY,
+
+            exhaustion_animation: BLACK,
+            fade_to_black_animation: BLACK,
+            death_animation: RED,
+            overdose_animation: WHITE,
+
+            high: TEAL,
+            high_to: MAGENTA,
+
+            player: [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE],
+
+            dead_player: GREY,
+
+            anxiety: RED,
+            depression: YELLOW,
+            hunger: ORANGE,
+            voices: GREY,
+            shadows: GREY,
+
+            npc_dim: GREY,
+            npc_will: RED,
+            npc_speed: PURPLE,
+            npc_mind: ORANGE,
+
+            dose: CYAN,
+            strong_dose: CYAN,
+            shattering_dose: CYAN,
+            dose_irresistible_background: BLUE,
+            explosion: CYAN,
+            shattering_explosion: RED,
+
+            food: ORANGE,
+
+            signpost: WHITE,
+
+            tree: [GREEN, TEAL, GREEN],
+
+            empty_tile_ground: GREEN,
+            empty_tile_leaves: GREEN,
+            empty_tile_twigs: GREEN,
+        }
     }
 
     pub fn greyscale() -> Self {

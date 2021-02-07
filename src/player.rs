@@ -1,9 +1,10 @@
 use crate::{
-    color::{self, Color},
+    color::Color,
     formula::{self, ANXIETIES_PER_WILL, WILL, WITHDRAWAL},
     graphic::Graphic,
     item::Item,
     monster::{CompanionBonus, Monster},
+    palette::Palette,
     point::Point,
     ranged_int::Ranged,
 };
@@ -110,7 +111,7 @@ pub struct Player {
     pub stun: Ranged,
 
     pub pos: Point,
-    pub color: Color,
+    pub color_index: usize,
     pub graphic: Graphic,
     pub inventory: Vec<Item>,
     pub anxiety_counter: Ranged,
@@ -139,7 +140,7 @@ impl Player {
         player.will = Ranged::new(formula::PLAYER_STARTING_WILL, WILL);
         player.tolerance = 0;
         player.inventory = vec![];
-        player.color = color::player_1;
+        player.color_index = 0;
         player.graphic = Graphic::CharacterSkirt;
         player.current_high_streak = 0;
         player.longest_high_streak = 0;
@@ -249,11 +250,11 @@ impl Player {
         }
     }
 
-    pub fn color(&self) -> Color {
+    pub fn color(&self, palette: &Palette) -> Color {
         if self.alive() {
-            self.color
+            palette.player(self.color_index)
         } else {
-            color::dead_player
+            palette.dead_player
         }
     }
 

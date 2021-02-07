@@ -296,7 +296,7 @@ fn process_cli_and_run_game() {
             matches.is_present("replay-full-speed"),
             matches.is_present("exit-after"),
             challenge,
-            palette,
+            palette.clone(),
         )
         .expect("Could not load the replay file")
     } else {
@@ -317,7 +317,7 @@ fn process_cli_and_run_game() {
             matches.is_present("exit-after"),
             replay_file,
             challenge,
-            palette,
+            palette.clone(),
         );
         state.player.invincible = matches.is_present("invincible");
         state.window_stack.push(window::Window::MainMenu);
@@ -326,7 +326,7 @@ fn process_cli_and_run_game() {
     };
 
     let display_size = DISPLAY_SIZE;
-    let background = color::unexplored_background;
+    let background = palette.unexplored_background;
     let game_title = metadata::TITLE;
 
     match backend.as_str() {

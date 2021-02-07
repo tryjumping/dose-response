@@ -1,10 +1,6 @@
 use self::Kind::*;
 
-use crate::{
-    color::{self, Color},
-    graphic::Graphic,
-    player::Modifier,
-};
+use crate::{color::Color, graphic::Graphic, palette::Palette, player::Modifier};
 
 use serde::{Deserialize, Serialize};
 
@@ -92,13 +88,13 @@ impl Item {
         self.graphic
     }
 
-    pub fn color(&self) -> Color {
+    pub fn color(&self, palette: &Palette) -> Color {
         match self.kind {
-            Food => color::food,
-            Dose => color::dose,
-            StrongDose => color::strong_dose,
-            CardinalDose => color::shattering_dose,
-            DiagonalDose => color::shattering_dose,
+            Food => palette.food,
+            Dose => palette.dose,
+            StrongDose => palette.strong_dose,
+            CardinalDose => palette.shattering_dose,
+            DiagonalDose => palette.shattering_dose,
         }
     }
 }

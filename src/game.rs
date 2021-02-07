@@ -8,6 +8,7 @@ use crate::{
     keys::{Key, KeyCode, Keys},
     level::TileKind,
     monster::{self, CompanionBonus},
+    palette::Palette,
     pathfinding, player,
     point::{self, Point},
     random::Random,
@@ -111,7 +112,7 @@ pub fn update(
     }
 
     // NOTE: Clear the whole screenscreen
-    display.clear(color::unexplored_background);
+    display.clear(state.palette.unexplored_background);
 
     // // NOTE: This renders the game's icon. Change the tilesize to an
     // // appropriate value.
@@ -460,7 +461,6 @@ fn process_game(
                     // TODO: move this (and other init stuff from
                     // Monster::new) to custom functions?
                     vnpc.kind = monster::Kind::Signpost;
-                    vnpc.color = color::signpost;
                     vnpc.behavior = ai::Behavior::Immobile;
                     vnpc.ai_state = ai::AIState::NoOp
                 }
@@ -546,16 +546,16 @@ fn process_game(
         use crate::player::CauseOfDeath::*;
         let cause_of_death = formula::cause_of_death(&state.player);
         let fade_color = if cfg!(feature = "recording") {
-            color::fade_to_black_animation
+            state.palette.fade_to_black_animation
         } else {
             match cause_of_death {
-                Some(Exhausted) => color::exhaustion_animation,
-                Some(Overdosed) => color::overdose_animation,
-                Some(_) => color::death_animation,
+                Some(Exhausted) => state.palette.exhaustion_animation,
+                Some(Overdosed) => state.palette.overdose_animation,
+                Some(_) => state.palette.death_animation,
                 None => {
                     // NOTE: this shouldn't happen (there should always be
                     // a cause of death) but if it deas, we won't crash
-                    color::death_animation
+                    state.palette.death_animation
                 }
             }
         };
@@ -781,6 +781,7 @@ fn process_player_action<W>(
     rng: &mut Random,
     command_logger: &mut W,
     window_stack: &mut crate::windows::Windows<Window>,
+    palette: &Palette,
 ) where
     W: Write,
 {
@@ -953,7 +954,7 @@ fn process_player_action<W>(
                                 if resist_radius == 0 {
                                     player.inventory.push(item);
                                 } else {
-                                    use_dose(player, explosion_animation, item);
+                                    use_dose(player, explosion_animation, item, palette);
                                 }
                             }
                         }
@@ -977,7 +978,7 @@ fn process_player_action<W>(
                         player.pos,
                         food_explosion_radius,
                         1,
-                        color::explosion,
+                        palette.explosion,
                     );
                     *explosion_animation = Some(Box::new(animation));
                 }
@@ -991,7 +992,7 @@ fn process_player_action<W>(
                 {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, explosion_animation, dose);
+                    use_dose(player, explosion_animation, dose, palette);
                 }
             }
 
@@ -1003,7 +1004,7 @@ fn process_player_action<W>(
                 {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, explosion_animation, dose);
+                    use_dose(player, explosion_animation, dose, palette);
                 }
             }
 
@@ -1015,7 +1016,7 @@ fn process_player_action<W>(
                 {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, explosion_animation, dose);
+                    use_dose(player, explosion_animation, dose, palette);
                 }
             }
 
@@ -1027,7 +1028,7 @@ fn process_player_action<W>(
                 {
                     player.spend_ap(1);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, explosion_animation, dose);
+                    use_dose(player, explosion_animation, dose, palette);
                 }
             }
 
@@ -1079,6 +1080,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         &mut state.rng,
         &mut state.command_logger,
         &mut state.window_stack,
+        &state.palette,
     );
 
     // If the player ever picks up a dose, mark it in this variable:
@@ -1276,6 +1278,7 @@ fn use_dose(
     player: &mut player::Player,
     explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
     item: item::Item,
+    palette: &Palette,
 ) {
     use crate::item::Kind::*;
     use crate::player::Modifier::*;
@@ -1289,21 +1292,21 @@ fn use_dose(
                 player.pos,
                 radius,
                 2,
-                color::explosion,
+                palette.explosion,
             )),
             CardinalDose => Box::new(animation::CardinalExplosion::new(
                 player.pos,
                 radius,
                 2,
-                color::explosion,
-                color::shattering_explosion,
+                palette.explosion,
+                palette.shattering_explosion,
             )),
             DiagonalDose => Box::new(animation::DiagonalExplosion::new(
                 player.pos,
                 radius,
                 2,
-                color::explosion,
-                color::shattering_explosion,
+                palette.explosion,
+                palette.shattering_explosion,
             )),
             Food => unreachable!(),
         };
@@ -1543,31 +1546,24 @@ fn place_victory_npc(state: &mut State) -> Point {
     if let Some(chunk) = state.world.chunk_mut(vnpc_pos) {
         let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos, state.challenge);
         monster.companion_bonus = Some(CompanionBonus::Victory);
-        // NOTE: The NPCs have the same colour choices as the player,
+        // NOTE: The NPCs have the same colour range as the player,
         // but let's always pick a colour that's different from the
         // current player's one.
-        let npc_colors = &[
-            color::player_1,
-            color::player_2,
-            color::player_3,
-            color::player_4,
-            color::player_5,
-            color::player_6,
-        ];
-        monster.color = {
-            let player_color = state.player.color;
-            let mut color = color::player_1;
-            // try to find a colour a few times, then just give up and use the default
+        monster.npc_color_index = {
+            let mut index: usize = 0;
             for _ in 0..5 {
-                if let Some(&selected) = state.rng.choose(npc_colors) {
-                    if selected != player_color {
-                        color = selected;
-                        break;
-                    }
+                let pick = state
+                    .rng
+                    .range_inclusive(0, state.palette.player.len() as i32 - 1)
+                    as usize;
+                if pick != state.player.color_index {
+                    index = pick;
+                    break;
                 }
             }
-            color
+            index
         };
+
         monster.ai_state = ai::AIState::NoOp;
         let id = chunk.add_monster(monster);
         state.victory_npc_id = Some(id);

@@ -1,6 +1,4 @@
-use crate::{
-    color, engine::Display, formula, game, item, player::Mind, point::Point, state::State, ui,
-};
+use crate::{engine::Display, formula, game, item, player::Mind, point::Point, state::State, ui};
 
 use egui::{
     self,
@@ -66,7 +64,7 @@ pub fn process(
         rect: full_rect,
         corner_radius: 0.0,
         stroke: Stroke::none(),
-        fill: color::dim_background.into(),
+        fill: state.palette.dim_background.into(),
     });
 
     let player = &state.player;
@@ -90,8 +88,8 @@ pub fn process(
         ui_rect.width() - padding,
         mindstate_rect.height(),
         mind_val_percent,
-        color::gui_progress_bar_bg,
-        color::gui_progress_bar_fg,
+        state.palette.gui_progress_bar_bg,
+        state.palette.gui_progress_bar_fg,
     );
 
     let bg_anxiety_paint_pos = ui.painter().add(PaintCmd::Noop);
@@ -114,8 +112,8 @@ pub fn process(
             ui_rect.right() - padding - top_left.x,
             anxiety_counter_rect.height(),
             player.anxiety_counter.percent(),
-            color::anxiety_progress_bar_bg,
-            color::anxiety_progress_bar_fg,
+            state.palette.anxiety_progress_bar_bg,
+            state.palette.anxiety_progress_bar_fg,
         );
     }
 

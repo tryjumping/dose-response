@@ -81,10 +81,9 @@ pub fn render_game(
     {
         let display_pos = screen_coords_from_world(world_pos);
 
-        // Render the tile
-        let mut rendered_tile = cell.tile;
+        let mut fg_color = cell.tile.color(&state.palette);
 
-        if show_intoxication_effect && rendered_tile.kind != crate::level::TileKind::Empty {
+        if show_intoxication_effect && cell.tile.kind != crate::level::TileKind::Empty {
             // TODO: try to move this calculation of this loop and see
             // what it does to our speed.
             let pos_x: i64 = i64::from(world_pos.x + world_size.x);
@@ -98,26 +97,26 @@ pub fn render_game(
             assert!(progress >= 0.0);
             assert!(progress <= 1.0);
 
-            rendered_tile.fg_color = if forwards {
-                graphics::fade_color(color::high, color::high_to, progress)
+            fg_color = if forwards {
+                graphics::fade_color(state.palette.high, state.palette.high_to, progress)
             } else {
-                graphics::fade_color(color::high_to, color::high, progress)
+                graphics::fade_color(state.palette.high_to, state.palette.high, progress)
             };
         }
 
         if in_fov(world_pos) || cell.always_visible || state.uncovered_map {
             display.set(
                 display_pos,
-                rendered_tile.graphic,
-                rendered_tile.fg_color,
-                color::explored_background,
+                cell.tile.graphic,
+                fg_color,
+                state.palette.explored_background,
             );
         } else if cell.explored || uncovered_map {
             display.set(
                 display_pos,
-                rendered_tile.graphic,
-                rendered_tile.fg_color,
-                color::dim_background,
+                cell.tile.graphic,
+                fg_color,
+                state.palette.dim_background,
             );
         } else {
             // It's not visible. Do nothing.
@@ -131,7 +130,7 @@ pub fn render_game(
             || uncovered_map
         {
             for item in &cell.items {
-                display.set_graphic(display_pos, item.graphic(), item.color());
+                display.set_graphic(display_pos, item.graphic(), item.color(&state.palette));
             }
         }
     }
@@ -153,7 +152,10 @@ pub fn render_game(
                         .map_or(false, |cell| cell.always_visible);
                     if in_fov(point) || cell_visible || (state.game_ended && state.uncovered_map) {
                         let screen_coords = screen_coords_from_world(point);
-                        display.set_background(screen_coords, color::dose_irresistible_background);
+                        display.set_background(
+                            screen_coords,
+                            state.palette.dose_irresistible_background,
+                        );
                     }
                 }
             }
@@ -206,9 +208,9 @@ pub fn render_game(
             // }
 
             let color = if monster.kind == monster::Kind::Npc && state.player.mind.is_high() {
-                color::npc_dim
+                state.palette.npc_dim
             } else {
-                monster.color
+                monster.color(&state.palette)
             };
             display.set_graphic(display_pos, monster.graphic(), color);
         }
@@ -217,7 +219,11 @@ pub fn render_game(
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
-        display.set_graphic(display_pos, state.player.graphic(), state.player.color());
+        display.set_graphic(
+            display_pos,
+            state.player.graphic(),
+            state.player.color(&state.palette),
+        );
     }
 
     // Highlight the target tile the player would walk to if clicked in the sidebar numpad:
@@ -225,7 +231,7 @@ pub fn render_game(
         // Only highlight when we're not re-centering the
         // screen (because that looks weird)
         if state.pos_timer.finished() {
-            display.set_background(pos, state.player.color);
+            display.set_background(pos, state.player.color(&state.palette));
         }
     }
 
@@ -304,7 +310,7 @@ fn render_controls_help(
     ) {
         display.draw_rectangle(
             Rectangle::from_point_and_size(start, Point::new(w, h)),
-            color::dim_background,
+            palette.dim_background,
         );
         for (index, &line) in lines.iter().enumerate() {
             display.draw_text_in_tile_coordinates(

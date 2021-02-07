@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::{
-    color::{self, Color},
+    color::Color,
     engine::{Display, DrawResult, TextMetrics, TextOptions},
     palette::Palette,
     point::Point,
@@ -147,10 +147,10 @@ pub fn text_rect(text: &Text<'_>, rect: Rectangle, metrics: &dyn TextMetrics) ->
 pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
     let color = match enabled {
         true => palette.gui_text,
-        false => color::gui_text_inactive,
+        false => palette.gui_text_inactive,
     };
     egui::Button::new(text)
-        .fill(Some(color::gui_button_background.into()))
+        .fill(Some(palette.gui_button_background.into()))
         .text_color(color.into())
         .enabled(enabled)
 }

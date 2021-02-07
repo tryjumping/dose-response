@@ -1,10 +1,11 @@
 use crate::{
-    color, formula,
+    formula,
     generators::GeneratedWorld,
     graphic::Graphic,
     item::{self, Item},
     level::{Tile, TileKind},
     monster::{Kind, Monster},
+    palette,
     player::Modifier,
     point::Point,
     random::Random,
@@ -53,9 +54,9 @@ fn generate_map(
             let mut tile = Tile::new(kind);
             match tile.kind {
                 TileKind::Tree => {
-                    //let options = [color::tree_1, color::tree_2, color::tree_3];
-                    let options = [color::tree_1, color::tree_2, color::tree_3];
-                    tile.fg_color = *throwavay_rng.choose(&options).unwrap();
+                    tile.color_index =
+                        throwavay_rng.range_inclusive(0, palette::TREE_COUNT as i32 - 1) as usize;
+
                     let graphic_options = [
                         Graphic::Tree1,
                         Graphic::Tree2,
@@ -72,40 +73,35 @@ fn generate_map(
                 }
                 TileKind::Empty => {
                     let options = [
-                        // TODO: find the thick ground tiles and drop em
-                        // (Graphic::Ground1, color::empty_tile_ground),
-                        (Graphic::Ground2, color::empty_tile_ground),
-                        (Graphic::Ground3, color::empty_tile_ground),
-                        // (Graphic::Ground4, color::empty_tile_ground),
-                        (Graphic::Ground5, color::empty_tile_ground),
-                        (Graphic::Twigs1, color::empty_tile_twigs),
-                        (Graphic::Twigs2, color::empty_tile_twigs),
-                        (Graphic::Twigs3, color::empty_tile_twigs),
-                        (Graphic::Twigs4, color::empty_tile_twigs),
-                        (Graphic::Twigs5, color::empty_tile_twigs),
-                        (Graphic::Twigs6, color::empty_tile_twigs),
-                        (Graphic::Twigs7, color::empty_tile_twigs),
-                        (Graphic::Twigs8, color::empty_tile_twigs),
-                        (Graphic::Twigs9, color::empty_tile_twigs),
-                        (Graphic::Twigs10, color::empty_tile_twigs),
-                        (Graphic::Grass1, color::empty_tile_leaves),
-                        (Graphic::Grass2, color::empty_tile_leaves),
-                        (Graphic::Grass3, color::empty_tile_leaves),
-                        (Graphic::Grass4, color::empty_tile_leaves),
-                        (Graphic::Grass5, color::empty_tile_leaves),
-                        (Graphic::Grass6, color::empty_tile_leaves),
-                        (Graphic::Grass7, color::empty_tile_leaves),
-                        (Graphic::Grass8, color::empty_tile_leaves),
-                        (Graphic::Grass9, color::empty_tile_leaves),
-                        (Graphic::Leaves1, color::empty_tile_leaves),
-                        //(Graphic::Leaves2, color::empty_tile_leaves),
-                        (Graphic::Leaves3, color::empty_tile_leaves),
-                        (Graphic::Leaves4, color::empty_tile_leaves),
-                        (Graphic::Leaves5, color::empty_tile_leaves),
+                        Graphic::Ground2,
+                        Graphic::Ground3,
+                        Graphic::Ground5,
+                        Graphic::Twigs1,
+                        Graphic::Twigs2,
+                        Graphic::Twigs3,
+                        Graphic::Twigs4,
+                        Graphic::Twigs5,
+                        Graphic::Twigs6,
+                        Graphic::Twigs7,
+                        Graphic::Twigs8,
+                        Graphic::Twigs9,
+                        Graphic::Twigs10,
+                        Graphic::Grass1,
+                        Graphic::Grass2,
+                        Graphic::Grass3,
+                        Graphic::Grass4,
+                        Graphic::Grass5,
+                        Graphic::Grass6,
+                        Graphic::Grass7,
+                        Graphic::Grass8,
+                        Graphic::Grass9,
+                        Graphic::Leaves1,
+                        Graphic::Leaves3,
+                        Graphic::Leaves4,
+                        Graphic::Leaves5,
                     ];
-                    let (graphic, color) = *throwavay_rng.choose(&options).unwrap();
+                    let graphic = *throwavay_rng.choose(&options).unwrap();
                     tile.graphic = graphic;
-                    tile.fg_color = color;
                 }
             };
 
@@ -141,15 +137,8 @@ fn generate_monsters(
         if let Some(kind) = kind {
             let mut monster = Monster::new(kind, pos, challenge);
             if kind == Kind::Npc {
-                use crate::monster::CompanionBonus::*;
                 let bonus = crate::monster::CompanionBonus::random(rng);
                 monster.companion_bonus = Some(bonus);
-                monster.color = match bonus {
-                    DoubleWillGrowth => color::npc_will,
-                    HalveExhaustion => color::npc_mind,
-                    ExtraActionPoint => color::npc_speed,
-                    Victory => unreachable!(),
-                };
             };
             result.push(monster);
         }

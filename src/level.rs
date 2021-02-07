@@ -1,10 +1,4 @@
-use crate::{
-    blocker,
-    color::{self, Color},
-    graphic::Graphic,
-    item::Item,
-    point,
-};
+use crate::{blocker, color::Color, graphic::Graphic, item::Item, palette::Palette, point};
 
 use std::collections::HashMap;
 
@@ -40,15 +34,11 @@ pub enum TileKind {
 pub struct Tile {
     pub kind: TileKind,
     pub graphic: Graphic,
-    pub fg_color: Color,
+    pub color_index: usize,
 }
 
 impl Tile {
     pub fn new(kind: TileKind) -> Tile {
-        let color = match kind {
-            TileKind::Empty => color::empty_tile_ground,
-            TileKind::Tree => color::tree_1,
-        };
         let graphic = match kind {
             TileKind::Empty => Graphic::Ground1,
             TileKind::Tree => Graphic::Tree1,
@@ -56,7 +46,42 @@ impl Tile {
         Tile {
             kind,
             graphic,
-            fg_color: color,
+            color_index: 0,
+        }
+    }
+
+    pub fn color(&self, palette: &Palette) -> Color {
+        match self.kind {
+            TileKind::Empty => match self.graphic {
+                Graphic::Ground2 => palette.empty_tile_ground,
+                Graphic::Ground3 => palette.empty_tile_ground,
+                Graphic::Ground5 => palette.empty_tile_ground,
+                Graphic::Twigs1 => palette.empty_tile_twigs,
+                Graphic::Twigs2 => palette.empty_tile_twigs,
+                Graphic::Twigs3 => palette.empty_tile_twigs,
+                Graphic::Twigs4 => palette.empty_tile_twigs,
+                Graphic::Twigs5 => palette.empty_tile_twigs,
+                Graphic::Twigs6 => palette.empty_tile_twigs,
+                Graphic::Twigs7 => palette.empty_tile_twigs,
+                Graphic::Twigs8 => palette.empty_tile_twigs,
+                Graphic::Twigs9 => palette.empty_tile_twigs,
+                Graphic::Twigs10 => palette.empty_tile_twigs,
+                Graphic::Grass1 => palette.empty_tile_leaves,
+                Graphic::Grass2 => palette.empty_tile_leaves,
+                Graphic::Grass3 => palette.empty_tile_leaves,
+                Graphic::Grass4 => palette.empty_tile_leaves,
+                Graphic::Grass5 => palette.empty_tile_leaves,
+                Graphic::Grass6 => palette.empty_tile_leaves,
+                Graphic::Grass7 => palette.empty_tile_leaves,
+                Graphic::Grass8 => palette.empty_tile_leaves,
+                Graphic::Grass9 => palette.empty_tile_leaves,
+                Graphic::Leaves1 => palette.empty_tile_leaves,
+                Graphic::Leaves3 => palette.empty_tile_leaves,
+                Graphic::Leaves4 => palette.empty_tile_leaves,
+                Graphic::Leaves5 => palette.empty_tile_leaves,
+                _ => palette.empty_tile_ground,
+            },
+            TileKind::Tree => palette.tree(self.color_index),
         }
     }
 }

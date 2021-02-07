@@ -3,10 +3,11 @@ use self::Kind::*;
 use crate::{
     ai::{self, AIState, Behavior, Update},
     blocker::Blocker,
-    color::{self, Color},
+    color::Color,
     formula,
     game::Action,
     graphic::Graphic,
+    palette::Palette,
     player::{Modifier, PlayerInfo},
     point::Point,
     random::Random,
@@ -25,6 +26,7 @@ pub struct Monster {
     /// The *world position* of the monster
     pub position: Point,
     pub dead: bool,
+    pub npc_color_index: usize,
     pub die_after_attack: bool,
     pub invincible: bool,
     pub behavior: Behavior,
@@ -32,7 +34,6 @@ pub struct Monster {
     pub blockers: Blocker,
     pub path: Vec<Point>,
     pub trail: Option<Point>,
-    pub color: Color,
     pub companion_bonus: Option<CompanionBonus>,
     pub accompanying_player: bool,
 
@@ -120,20 +121,11 @@ impl Monster {
             _ => Blocker::WALL | Blocker::MONSTER,
         };
 
-        let color = match kind {
-            Depression => color::depression,
-            Anxiety => color::anxiety,
-            Hunger => color::hunger,
-            Shadows => color::shadows,
-            Voices => color::voices,
-            Npc => color::npc_speed,
-            Signpost => color::signpost,
-        };
-
         Monster {
             kind,
             position,
             dead: false,
+            npc_color_index: 0,
             die_after_attack,
             invincible,
             behavior,
@@ -142,7 +134,6 @@ impl Monster {
             blockers,
             path: vec![],
             trail: None,
-            color,
             companion_bonus: None,
             accompanying_player: false,
         }
@@ -222,6 +213,26 @@ impl Monster {
                 None => Graphic::CharacterBelly,
             },
             Signpost => Graphic::Signpost,
+        }
+    }
+
+    pub fn color(&self, palette: &Palette) -> Color {
+        match self.kind {
+            Depression => palette.depression,
+            Anxiety => palette.anxiety,
+            Hunger => palette.hunger,
+            Shadows => palette.shadows,
+            Voices => palette.voices,
+            // TODO: Add dim colours when the player is high? OR do we do that elsewhere?
+            Npc => match self.companion_bonus {
+                Some(CompanionBonus::DoubleWillGrowth) => palette.npc_will,
+                Some(CompanionBonus::HalveExhaustion) => palette.npc_mind,
+                Some(CompanionBonus::ExtraActionPoint) => palette.npc_speed,
+                // TODO: add vnpc colours
+                Some(CompanionBonus::Victory) => palette.player(self.npc_color_index),
+                None => Color::default(),
+            },
+            Signpost => palette.signpost,
         }
     }
 

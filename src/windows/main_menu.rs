@@ -53,10 +53,10 @@ pub fn process(
             max: [window_size_px.x as f32, window_size_px.y as f32].into(),
         },
         corner_radius: 0.0,
-        fill: state.palette.window_background.into(),
+        fill: state.palette.gui_window_background.into(),
         stroke: Stroke {
             width: border_width_px,
-            color: state.palette.window_edge.into(),
+            color: state.palette.gui_window_edge.into(),
         },
     });
 

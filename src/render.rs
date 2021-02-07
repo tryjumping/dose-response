@@ -268,7 +268,7 @@ fn render_monster_info(state: &State, display: &mut Display) {
                 Point::from_i32(0),
                 Point::new(width as i32, height as i32),
             ),
-            state.palette.window_background,
+            state.palette.gui_window_background,
         );
         for (index, line) in debug_text.lines().enumerate() {
             display.draw_text_in_tile_coordinates(

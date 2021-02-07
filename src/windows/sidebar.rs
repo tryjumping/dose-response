@@ -88,8 +88,8 @@ pub fn process(
         ui_rect.width() - padding,
         mindstate_rect.height(),
         mind_val_percent,
-        state.palette.gui_progress_bar_bg,
-        state.palette.gui_progress_bar_fg,
+        state.palette.gui_mind_progress_bar_bg,
+        state.palette.gui_mind_progress_bar_fg,
     );
 
     let bg_anxiety_paint_pos = ui.painter().add(PaintCmd::Noop);
@@ -112,8 +112,8 @@ pub fn process(
             ui_rect.right() - padding - top_left.x,
             anxiety_counter_rect.height(),
             player.anxiety_counter.percent(),
-            state.palette.anxiety_progress_bar_bg,
-            state.palette.anxiety_progress_bar_fg,
+            state.palette.gui_anxiety_progress_bar_bg,
+            state.palette.gui_anxiety_progress_bar_fg,
         );
     }
 

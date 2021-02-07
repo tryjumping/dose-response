@@ -11,13 +11,15 @@ pub const TREE_COUNT: usize = 3;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Palette {
+    pub gui_text: Color,
     pub gui_text_inactive: Color,
     pub gui_button_background: Color,
-    pub gui_progress_bar_fg: Color,
-    pub gui_progress_bar_bg: Color,
-
-    pub anxiety_progress_bar_fg: Color,
-    pub anxiety_progress_bar_bg: Color,
+    pub gui_mind_progress_bar_fg: Color,
+    pub gui_mind_progress_bar_bg: Color,
+    pub gui_anxiety_progress_bar_fg: Color,
+    pub gui_anxiety_progress_bar_bg: Color,
+    pub gui_window_background: Color,
+    pub gui_window_edge: Color,
 
     pub explored_background: Color,
     pub unexplored_background: Color,
@@ -27,10 +29,6 @@ pub struct Palette {
     pub fade_to_black_animation: Color,
     pub overdose_animation: Color,
     pub death_animation: Color,
-
-    pub window_background: Color,
-    pub window_edge: Color,
-    pub gui_text: Color,
 
     pub high: Color,
     pub high_to: Color,
@@ -71,13 +69,15 @@ impl Palette {
     pub fn classic() -> Self {
         use dawnbringer16::*;
         Self {
+            gui_text: WHITE,
             gui_text_inactive: LIGHT_GREY,
             gui_button_background: DARK_RED,
-            gui_progress_bar_fg: BRIGHT_GREEN,
-            gui_progress_bar_bg: DIM_GREEN,
-
-            anxiety_progress_bar_fg: RED,
-            anxiety_progress_bar_bg: BROWN,
+            gui_mind_progress_bar_fg: BRIGHT_GREEN,
+            gui_mind_progress_bar_bg: DIM_GREEN,
+            gui_anxiety_progress_bar_fg: RED,
+            gui_anxiety_progress_bar_bg: BROWN,
+            gui_window_background: BLACK,
+            gui_window_edge: DIM_BLUE,
 
             explored_background: DARK_BROWN,
             unexplored_background: BLACK,
@@ -87,10 +87,6 @@ impl Palette {
             fade_to_black_animation: BLACK,
             death_animation: RED,
             overdose_animation: WHITE,
-
-            window_background: BLACK,
-            window_edge: DIM_BLUE,
-            gui_text: WHITE,
 
             high: NEON_GREEN,
             high_to: NEON_PURPLE,

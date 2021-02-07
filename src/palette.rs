@@ -2,10 +2,8 @@ use crate::color::{Color, BLACK, WHITE};
 
 use serde::{Deserialize, Serialize};
 
-// pub mod original;
-// pub mod dawnbringer32;
 pub mod accessible;
-pub mod dawnbringer16;
+pub mod classic;
 
 pub const TREE_COUNT: usize = 3;
 
@@ -67,7 +65,7 @@ pub struct Palette {
 
 impl Palette {
     pub fn classic() -> Self {
-        use dawnbringer16::*;
+        use classic::*;
         Self {
             gui_text: WHITE,
             gui_text_inactive: LIGHT_GREY,

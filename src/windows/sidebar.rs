@@ -64,7 +64,7 @@ pub fn process(
         rect: full_rect,
         corner_radius: 0.0,
         stroke: Stroke::none(),
-        fill: state.palette.dim_background.into(),
+        fill: state.palette.gui_sidebar_background.into(),
     });
 
     let player = &state.player;

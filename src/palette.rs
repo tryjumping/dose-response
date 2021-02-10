@@ -18,6 +18,7 @@ pub struct Palette {
     pub gui_anxiety_progress_bar_bg: Color,
     pub gui_window_background: Color,
     pub gui_window_edge: Color,
+    pub gui_sidebar_background: Color,
 
     pub explored_background: Color,
     pub unexplored_background: Color,
@@ -76,6 +77,7 @@ impl Palette {
             gui_anxiety_progress_bar_bg: FADED_REDDISH_BROWN,
             gui_window_background: BLACK,
             gui_window_edge: DIM_BLUE,
+            gui_sidebar_background: DARK_GREY,
 
             explored_background: DARK_BROWN,
             unexplored_background: BLACK,
@@ -135,17 +137,18 @@ impl Palette {
         Self {
             gui_text: WHITE,
             gui_text_inactive: GREY,
-            gui_button_background: RED,
+            gui_button_background: GREEN,
             gui_mind_progress_bar_fg: TEAL,
-            gui_mind_progress_bar_bg: GREEN,
+            gui_mind_progress_bar_bg: YELLOW,
             gui_anxiety_progress_bar_fg: RED,
             gui_anxiety_progress_bar_bg: YELLOW,
             gui_window_background: BLACK,
-            gui_window_edge: BLUE,
+            gui_window_edge: DARK_GREY,
+            gui_sidebar_background: DARKEST_GREY,
 
             explored_background: BLACK,
             unexplored_background: BLACK,
-            dim_background: DARK_GREY,
+            dim_background: DARKEST_GREY,
 
             exhaustion_animation: BLACK,
             fade_to_black_animation: BLACK,

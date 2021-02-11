@@ -155,8 +155,9 @@ struct ChunkPosition {
     position: Point,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct World {
+    initialised: bool,
     seed: u32,
     max_half_size: i32,
     chunk_size: i32,
@@ -165,31 +166,38 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(
+    pub fn initialise(
+        &mut self,
         rng: &mut Random,
         seed: u32,
         dimension: i32,
         chunk_size: i32,
         player_info: PlayerInfo,
         challenge: Challenge,
-    ) -> Self {
+    ) {
         assert!(dimension > 0);
         assert!(chunk_size > 0);
         assert_eq!(dimension % 2, 0);
         assert_eq!(dimension % chunk_size, 0);
 
-        let mut world = World {
-            seed,
-            max_half_size: dimension / 2,
-            chunk_size,
-            chunks: HashMap::new(),
-            challenge,
-        };
+        if self.initialised() {
+            log::warn!("World is already initialised!");
+        }
+
+        self.initialised = true;
+        self.seed = seed;
+        self.max_half_size = dimension / 2;
+        self.chunk_size = chunk_size;
+        self.chunks = HashMap::new();
+        self.challenge = challenge;
 
         // TODO: I don't think this code belongs in World. Move it
         // into the level generators or osmething?
-        world.prepare_initial_playing_area(player_info, rng);
-        world
+        self.prepare_initial_playing_area(player_info, rng);
+    }
+
+    pub fn initialised(&self) -> bool {
+        self.initialised
     }
 
     /// Remove some of the monsters from player's initial vicinity,

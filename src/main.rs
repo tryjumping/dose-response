@@ -321,7 +321,6 @@ fn process_cli_and_run_game() {
         );
         state.player.invincible = matches.is_present("invincible");
         state.window_stack.push(window::Window::MainMenu);
-        state.first_game_already_generated = true;
         state
     };
 

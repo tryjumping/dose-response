@@ -150,7 +150,6 @@ pub struct State {
 
     pub window_stack: windows::Windows<Window>,
 
-    pub first_game_already_generated: bool,
     pub show_keboard_movement_hints: bool,
     pub show_anxiety_counter: bool,
     pub player_picked_up_a_dose: bool,
@@ -201,8 +200,8 @@ impl State {
             player.color_index = (seed as usize % 6) + 1;
             player
         };
-        let mut rng = Random::from_seed(u64::from(seed));
-        let world = World::new(&mut rng, seed, world_size.x, 32, player.info(), challenge);
+        let rng = Random::from_seed(u64::from(seed));
+        let world = World::default();
 
         State {
             player,
@@ -238,7 +237,6 @@ impl State {
             game_ended: false,
             victory_npc_id: None,
             window_stack: windows::Windows::new(Window::Game),
-            first_game_already_generated: false,
             // NOTE: Since we've got the mouse support and the numpad
             // hints in the sidebar, let's see if we can just show
             // them never. We might even remove the whole thing at
@@ -411,6 +409,17 @@ Reason: '{}'.",
             challenge,
             palette,
         ))
+    }
+
+    pub fn generate_world(&mut self) {
+        self.world.initialise(
+            &mut self.rng,
+            self.seed,
+            self.world_size.x,
+            32,
+            self.player.info(),
+            self.challenge,
+        );
     }
 
     pub fn verification(&self) -> Verification {

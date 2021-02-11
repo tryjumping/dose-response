@@ -88,7 +88,7 @@ pub fn process(
         ui.label("By Tomas Sedovic");
         ui.label("");
 
-        if !state.game_ended && !state.first_game_already_generated {
+        if !state.game_ended && state.world.initialised() {
             if ui
                 .add(ui::button("[R]esume", active, &state.palette))
                 .clicked
@@ -167,23 +167,17 @@ pub fn process(
     if let Some(action) = action {
         match action {
             MenuItem::Resume => {
-                state.window_stack.pop();
+                if state.world.initialised() {
+                    state.window_stack.pop();
+                }
                 return RunningState::Running;
             }
 
             MenuItem::NewGame => {
-                // NOTE: When this is the first run, we resume the
-                // game that's already loaded in the background.
-                if state.first_game_already_generated {
-                    state.window_stack.pop();
-                    state.first_game_already_generated = false;
-                    return RunningState::Running;
-                } else {
-                    return RunningState::NewGame(Box::new(game::create_new_game_state(
-                        state,
-                        settings.challenge(),
-                    )));
-                }
+                return RunningState::NewGame(Box::new(game::create_new_game_state(
+                    state,
+                    settings.challenge(),
+                )));
             }
 
             MenuItem::Help => {

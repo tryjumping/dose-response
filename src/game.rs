@@ -1414,7 +1414,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
 }
 
 pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
-    State::new_game(
+    let mut state = State::new_game(
         state.world_size,
         state.map_size,
         state.panel_width,
@@ -1422,7 +1422,9 @@ pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
         state::generate_replay_path(),
         new_challenge,
         state.palette.clone(),
-    )
+    );
+    state.generate_world();
+    state
 }
 
 fn place_victory_npc(state: &mut State) -> Point {

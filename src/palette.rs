@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod accessible;
 pub mod classic;
+pub mod greyscale;
 
 pub const TREE_COUNT: usize = 3;
 
@@ -193,7 +194,63 @@ impl Palette {
     }
 
     pub fn greyscale() -> Self {
-        todo!();
+        use greyscale::*;
+        Self {
+            gui_text: WHITE,
+            gui_text_inactive: GREY,
+            gui_button_background: DARK_GREY,
+            gui_mind_progress_bar_fg: GREY,
+            gui_mind_progress_bar_bg: DARK_GREY,
+            gui_anxiety_progress_bar_fg: GREY,
+            gui_anxiety_progress_bar_bg: DARK_GREY,
+            gui_window_background: BLACK,
+            gui_window_edge: DARK_GREY,
+            gui_sidebar_background: DARKEST_GREY,
+
+            explored_background: BLACK,
+            unexplored_background: BLACK,
+            dim_background: DARKEST_GREY,
+
+            exhaustion_animation: BLACK,
+            fade_to_black_animation: BLACK,
+            death_animation: BLACK,
+            overdose_animation: WHITE,
+
+            high: WHITE,
+            high_to: WHITE,
+
+            player: [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE],
+
+            dead_player: GREY,
+
+            anxiety: WHITE,
+            depression: WHITE,
+            hunger: WHITE,
+            voices: GREY,
+            shadows: GREY,
+
+            npc_dim: GREY,
+            npc_will: WHITE,
+            npc_speed: WHITE,
+            npc_mind: WHITE,
+
+            dose: WHITE,
+            strong_dose: WHITE,
+            shattering_dose: WHITE,
+            dose_irresistible_background: DARK_GREY,
+            explosion: DARK_GREY,
+            shattering_explosion: WHITE,
+
+            food: WHITE,
+
+            signpost: WHITE,
+
+            tree: [GREY, GREY, GREY],
+
+            empty_tile_ground: GREY,
+            empty_tile_leaves: GREY,
+            empty_tile_twigs: GREY,
+        }
     }
 
     /// Select one of the possible player colours based on the index.

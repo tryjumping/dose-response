@@ -50,7 +50,7 @@ pub fn process(
     ui.painter().add(Shape::Rect {
         rect: Rect {
             min: [0.0, 0.0].into(),
-            max: [window_size_px.x as f32, window_size_px.y as f32].into(),
+            max: window_size_px.into(),
         },
         corner_radius: 0.0,
         fill: state.palette.gui_window_background.into(),

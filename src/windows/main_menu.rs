@@ -11,7 +11,7 @@ use crate::{
 
 use egui::{
     self,
-    paint::{PaintCmd, Stroke},
+    paint::{Shape, Stroke},
     Rect, Ui,
 };
 
@@ -47,7 +47,7 @@ pub fn process(
     // as wide, we'll see the desired thickness.
     let border_width_px = 30.0 * 2.0;
 
-    ui.painter().add(PaintCmd::Rect {
+    ui.painter().add(Shape::Rect {
         rect: Rect {
             min: [0.0, 0.0].into(),
             max: [window_size_px.x as f32, window_size_px.y as f32].into(),
@@ -61,8 +61,10 @@ pub fn process(
     });
 
     ui.painter().text(
-        ui.available().translate([-70.0, -70.0].into()).max,
-        (egui::Align::Max, egui::Align::Max),
+        // TODO: position the version info using the screen pos etc.
+        //ui.available().translate([-70.0, -70.0].into()).max,
+        [0.0, 0.0].into(),
+        egui::Align2([egui::Align::Max, egui::Align::Max]),
         format!(
             "Version: {}.{}",
             crate::metadata::VERSION_MAJOR,
@@ -75,12 +77,12 @@ pub fn process(
     let mut action = None;
 
     // NOTE: this centers the UI area. Without it, we start in the top-left corner.
-    let mut ui = ui.centered_column(ui.available().width().min(480.0));
+    //let mut ui = ui.centered_column(ui.available_size().y.min(480.0));
     // NOTE: This makes the buttons left-aligned but full-width
     //ui.set_layout(egui::Layout::justified(egui::Direction::Vertical));
 
     // This makes the buttons centered but only as wide as the text inside:
-    ui.with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+    ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
         // NOTE: hack to add some top padding to the buttons and labels:
         ui.label("\n");
 
@@ -91,7 +93,7 @@ pub fn process(
         if !state.game_ended && state.world.initialised() {
             if ui
                 .add(ui::button("[R]esume", active, &state.palette))
-                .clicked
+                .clicked()
             {
                 action = Some(MenuItem::Resume);
             }
@@ -99,39 +101,42 @@ pub fn process(
 
         if ui
             .add(ui::button("[N]ew Game", active, &state.palette))
-            .clicked
+            .clicked()
         {
             action = Some(MenuItem::NewGame);
         }
 
-        if ui.add(ui::button("[H]elp", active, &state.palette)).clicked {
+        if ui
+            .add(ui::button("[H]elp", active, &state.palette))
+            .clicked()
+        {
             action = Some(MenuItem::Help);
         }
 
         if ui
             .add(ui::button("S[e]ttings", active, &state.palette))
-            .clicked
+            .clicked()
         {
             action = Some(MenuItem::Settings);
         }
 
         if ui
             .add(ui::button("[S]ave and Quit", active, &state.palette))
-            .clicked
+            .clicked()
         {
             action = Some(MenuItem::SaveAndQuit);
         }
 
         if ui
             .add(ui::button("[L]oad game", active, &state.palette))
-            .clicked
+            .clicked()
         {
             action = Some(MenuItem::Load);
         }
 
         if ui
             .add(ui::button("[Q]uit without saving", active, &state.palette))
-            .clicked
+            .clicked()
         {
             log::info!("Clicked!");
             action = Some(MenuItem::Quit);

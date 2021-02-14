@@ -2,7 +2,7 @@ use crate::{engine::Display, formula, game, item, player::Mind, point::Point, st
 
 use egui::{
     self,
-    paint::{PaintCmd, Stroke},
+    paint::{Shape, Stroke},
     Rect, Ui,
 };
 
@@ -56,11 +56,9 @@ pub fn process(
     let mut ui = ui.child_ui(ui_rect, *ui.layout());
     ui.set_clip_rect(full_rect);
 
-    let mut style = ui.style().clone();
-    style.visuals.override_text_color = Some(state.palette.gui_text.into());
-    ui.set_style(style);
+    ui.style_mut().visuals.override_text_color = Some(state.palette.gui_text.into());
 
-    ui.painter().add(PaintCmd::Rect {
+    ui.painter().add(Shape::Rect {
         rect: full_rect,
         corner_radius: 0.0,
         stroke: Stroke::none(),
@@ -76,8 +74,8 @@ pub fn process(
         (false, _) => ("Lost", 0.0),
     };
 
-    let bg_progress_bar_pos = ui.painter().add(PaintCmd::Noop);
-    let fg_progress_bar_pos = ui.painter().add(PaintCmd::Noop);
+    let bg_progress_bar_pos = ui.painter().add(Shape::Noop);
+    let fg_progress_bar_pos = ui.painter().add(Shape::Noop);
     let mindstate_rect = ui.label(mind_str).rect;
 
     ui::progress_bar(
@@ -92,8 +90,8 @@ pub fn process(
         state.palette.gui_mind_progress_bar_fg,
     );
 
-    let bg_anxiety_paint_pos = ui.painter().add(PaintCmd::Noop);
-    let fg_anxiety_paint_pos = ui.painter().add(PaintCmd::Noop);
+    let bg_anxiety_paint_pos = ui.painter().add(Shape::Noop);
+    let fg_anxiety_paint_pos = ui.painter().add(Shape::Noop);
     let anxiety_counter_rect = ui.label(format!("Will: {}", player.will.to_int())).rect;
 
     // Show the anxiety counter as a progress bar next to the `Will` number
@@ -187,24 +185,24 @@ pub fn process(
         let active = active && count > 0;
         if ui
             .add(ui::button(&button_label, active, &state.palette))
-            .clicked
+            .clicked()
         {
             action = Some(button_action);
         };
     }
 
-    let mut help_rect = Rect::invalid(); // Will be filled in later
+    let mut help_rect = Rect::NAN; // Will be filled in later
 
     // NOTE: `Layout::reverse()` builds it up from the bottom:
-    ui.with_layout(egui::Layout::vertical(egui::Align::Min).reverse(), |ui| {
+    ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
         if ui
             .add(ui::button("[Esc] Main Menu", active, &state.palette))
-            .clicked
+            .clicked()
         {
             action = Some(Action::MainMenu);
         }
         let gui_response = ui.add(ui::button("[?] Help", active, &state.palette));
-        if gui_response.clicked {
+        if gui_response.clicked() {
             action = Some(Action::Help);
         }
         help_rect = gui_response.rect;
@@ -257,75 +255,73 @@ pub fn process(
 
         ui.label("Numpad Controls:");
         ui.columns(3, |c| {
-            let mut style = c[0].style().clone();
-            style.spacing.button_padding = [20.0, 15.0].into();
             for index in 0..=2 {
-                c[index].set_style(style.clone());
+                c[index].style_mut().spacing.button_padding = [20.0, 15.0].into();
             }
 
             let btn = c[0].add(ui::button("7", active, &state.palette));
-            if btn.clicked {
+            if btn.clicked() {
                 action = Some(Action::MoveNW);
             };
-            if btn.hovered {
+            if btn.hovered() {
                 highlighted_tile_offset_from_player_pos = Some((-1, -1));
             }
 
             let btn = c[1].add(ui::button("8", active, &state.palette));
-            if btn.clicked {
+            if btn.clicked() {
                 action = Some(Action::MoveN);
             };
-            if btn.hovered {
+            if btn.hovered() {
                 highlighted_tile_offset_from_player_pos = Some((0, -1));
             }
 
             let btn = c[2].add(ui::button("9", active, &state.palette));
-            if btn.clicked {
+            if btn.clicked() {
                 action = Some(Action::MoveNE);
             };
-            if btn.hovered {
+            if btn.hovered() {
                 highlighted_tile_offset_from_player_pos = Some((1, -1));
             }
 
             let btn = c[0].add(ui::button("4", active, &state.palette));
-            if btn.clicked {
+            if btn.clicked() {
                 action = Some(Action::MoveW);
             };
-            if btn.hovered {
+            if btn.hovered() {
                 highlighted_tile_offset_from_player_pos = Some((-1, 0));
             }
 
             c[1].add(egui::Button::new("@").enabled(false));
 
             let btn = c[2].add(ui::button("6", active, &state.palette));
-            if btn.clicked {
+            if btn.clicked() {
                 action = Some(Action::MoveE);
             };
-            if btn.hovered {
+            if btn.hovered() {
                 highlighted_tile_offset_from_player_pos = Some((1, 0));
             }
 
             let btn = c[0].add(ui::button("1", active, &state.palette));
-            if btn.clicked {
+            if btn.clicked() {
                 action = Some(Action::MoveSW);
             };
-            if btn.hovered {
+            if btn.hovered() {
                 highlighted_tile_offset_from_player_pos = Some((-1, 1));
             }
 
             let btn = c[1].add(ui::button("2", active, &state.palette));
-            if btn.clicked {
+            if btn.clicked() {
                 action = Some(Action::MoveS);
             };
-            if btn.hovered {
+            if btn.hovered() {
                 highlighted_tile_offset_from_player_pos = Some((0, 1));
             }
 
             let btn = c[2].add(ui::button("3", active, &state.palette));
-            if btn.clicked {
+            if btn.clicked() {
                 action = Some(Action::MoveSE);
             };
-            if btn.hovered {
+            if btn.hovered() {
                 highlighted_tile_offset_from_player_pos = Some((1, 1));
             }
         });

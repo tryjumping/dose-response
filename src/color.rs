@@ -40,10 +40,22 @@ impl Into<ColorAlpha> for Color {
     }
 }
 
-impl Into<egui::Srgba> for Color {
-    fn into(self) -> egui::Srgba {
+impl Into<egui::Rgba> for Color {
+    fn into(self) -> egui::Rgba {
         let color: ColorAlpha = self.into();
-        egui::Srgba::from_rgba_premultiplied(color.rgb.r, color.rgb.g, color.rgb.b, color.alpha)
+        egui::Rgba::from_rgba_premultiplied(
+            color.rgb.r as f32 / 255.0,
+            color.rgb.g as f32 / 255.0,
+            color.rgb.b as f32 / 255.0,
+            color.alpha as f32 / 255.0,
+        )
+    }
+}
+
+impl Into<egui::Color32> for Color {
+    fn into(self) -> egui::Color32 {
+        let color: ColorAlpha = self.into();
+        egui::Color32::from_rgba_premultiplied(color.rgb.r, color.rgb.g, color.rgb.b, color.alpha)
     }
 }
 

@@ -88,7 +88,7 @@ Unchecked: the entire map is uncovered.",
                             selected,
                             format!("[{}] {}px", available_key_shortcut, tile_size),
                         )
-                        .clicked
+                        .clicked()
                     {
                         action = Some(Action::TileSize(tile_size));
                     };
@@ -104,7 +104,7 @@ Unchecked: the entire map is uncovered.",
                             selected,
                             format!("[{}] {}px", available_key_shortcut, text_size),
                         )
-                        .clicked
+                        .clicked()
                     {
                         action = Some(Action::TextSize(text_size));
                     };
@@ -112,10 +112,10 @@ Unchecked: the entire map is uncovered.",
                 }
 
                 c[2].label("Display:");
-                if c[2].radio(settings.fullscreen, "[F]ullscreen").clicked {
+                if c[2].radio(settings.fullscreen, "[F]ullscreen").clicked() {
                     action = Some(Action::Fullscreen);
                 }
-                if c[2].radio(!settings.fullscreen, "[W]indowed").clicked {
+                if c[2].radio(!settings.fullscreen, "[W]indowed").clicked() {
                     action = Some(Action::Window)
                 }
 
@@ -126,7 +126,7 @@ Unchecked: the entire map is uncovered.",
                         settings.visual_style == VisualStyle::Graphical,
                         "[G]raphical",
                     )
-                    .clicked
+                    .clicked()
                 {
                     action = Some(Action::VisualStyle(VisualStyle::Graphical));
                 };
@@ -135,7 +135,7 @@ Unchecked: the entire map is uncovered.",
                         settings.visual_style == VisualStyle::Textual,
                         "[T]extual (ASCII)",
                     )
-                    .clicked
+                    .clicked()
                 {
                     action = Some(Action::VisualStyle(VisualStyle::Textual))
                 };
@@ -144,19 +144,19 @@ Unchecked: the entire map is uncovered.",
                 c[2].label("Colour:");
                 if c[2]
                     .radio(settings.palette == Palette::Classic, "Cla[s]sic")
-                    .clicked
+                    .clicked()
                 {
                     action = Some(Action::Palette(Palette::Classic));
                 };
                 if c[2]
                     .radio(settings.palette == Palette::Accessible, "A[c]cessible")
-                    .clicked
+                    .clicked()
                 {
                     action = Some(Action::Palette(Palette::Accessible));
                 };
                 if c[2]
                     .radio(settings.palette == Palette::Greyscale, "G[r]eyscale")
-                    .clicked
+                    .clicked()
                 {
                     action = Some(Action::Palette(Palette::Greyscale));
                 };
@@ -166,14 +166,14 @@ Unchecked: the entire map is uncovered.",
             ui.horizontal(|ui| {
                 if ui
                     .add(ui::button("[A]ccept Changes", true, &state.palette))
-                    .clicked
+                    .clicked()
                 {
                     action = Some(Action::Apply);
                 }
 
                 if ui
                     .add(ui::button("[D]iscard Changes", true, &state.palette))
-                    .clicked
+                    .clicked()
                 {
                     action = Some(Action::Back);
                 }

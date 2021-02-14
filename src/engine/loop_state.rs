@@ -10,7 +10,7 @@ use crate::{
 
 use std::{convert::TryInto, sync::Arc, time::Duration};
 
-use egui::{self, RawInput};
+use egui::{self, Event, RawInput};
 
 use image::{Rgba, RgbaImage};
 
@@ -57,9 +57,17 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
     // the game uses to make our rendering code more uniform
     // and easier to debug.
     let mut texture = RgbaImage::new(width, height);
+
     for (index, &alpha) in egui_texture.pixels.iter().enumerate() {
+        let alpha_pixel = egui::Rgba::from_white_alpha(alpha as f32 / 255.0);
         let pixel = Rgba {
-            data: egui::Srgba::white_alpha(alpha).to_array(),
+            // TODO: can this just be [255, 255, 255, alpha]??
+            data: [
+                (alpha_pixel.r() * 255.0) as u8,
+                (alpha_pixel.g() * 255.0) as u8,
+                (alpha_pixel.b() * 255.0) as u8,
+                (alpha_pixel.a() * 255.0) as u8,
+            ],
         };
         texture.put_pixel(index as u32 % width, index as u32 / width, pixel);
     }
@@ -69,16 +77,23 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
 
 pub fn egui_set_font_size(ctx: &egui::Context, font_size_px: f32) {
     let font_definitions = {
-        use egui::paint::fonts::{FontFamily, TextStyle};
+        use egui::{FontFamily, TextStyle};
         let family = FontFamily::Monospace;
+        let font_name = String::from("Mononoki");
 
-        let mut def = egui::paint::FontDefinitions::default();
-        def.ttf_data
-            .insert(family, include_bytes!("../../fonts/mononoki-Regular.ttf"));
-        def.fonts.insert(TextStyle::Body, (family, font_size_px));
-        def.fonts.insert(TextStyle::Button, (family, font_size_px));
-        def.fonts.insert(TextStyle::Heading, (family, font_size_px));
-        def.fonts
+        let mut def = egui::FontDefinitions::default();
+        def.font_data.insert(
+            font_name.clone(),
+            std::borrow::Cow::Borrowed(include_bytes!("../../fonts/mononoki-Regular.ttf")),
+        );
+        def.fonts_for_family.insert(family, vec![font_name]);
+        def.family_and_size
+            .insert(TextStyle::Body, (family, font_size_px));
+        def.family_and_size
+            .insert(TextStyle::Button, (family, font_size_px));
+        def.family_and_size
+            .insert(TextStyle::Heading, (family, font_size_px));
+        def.family_and_size
             .insert(TextStyle::Monospace, (family, font_size_px));
         def
     };
@@ -93,7 +108,7 @@ pub struct LoopState {
     pub glyphmap: RgbaImage,
     pub tilemap: RgbaImage,
     pub egui_texture_version: Option<u64>,
-    pub egui_context: Arc<egui::Context>,
+    pub egui_context: egui::CtxRef,
     pub default_background: Color,
     pub drawcalls: Vec<Drawcall>,
     pub overall_max_drawcall_count: usize,
@@ -116,7 +131,7 @@ impl LoopState {
         settings: Settings,
         default_background: Color,
         game_state: Box<State>,
-        egui_context: Arc<egui::Context>,
+        egui_context: egui::CtxRef,
     ) -> Self {
         // TODO: do this for every Display creatio / window resize
         let window_size_px =
@@ -299,30 +314,41 @@ impl LoopState {
 
     pub fn egui_raw_input(&self) -> RawInput {
         let text_size = self.settings.text_size as f32;
+        let mouse_pos = [
+            self.mouse.screen_pos.x as f32,
+            self.mouse.screen_pos.y as f32,
+        ]
+        .into();
+        let mut events = vec![Event::PointerMoved(mouse_pos)];
+        if self.mouse.left_clicked {
+            events.push(Event::PointerButton {
+                pos: mouse_pos,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: Default::default(),
+            });
+            events.push(Event::PointerButton {
+                pos: mouse_pos,
+                button: egui::PointerButton::Primary,
+                pressed: false,
+                modifiers: Default::default(),
+            });
+        }
         RawInput {
-            // NOTE: egui is only interested in mouse down events. But
-            // if you click and release within the same frame, that
-            // would get ignored. Adding in the `left_clicked` state
-            // means that clicks won't get missed, but they may be
-            // registered by egui a frame later.
-            mouse_down: self.mouse.left_is_down || self.mouse.left_clicked,
-            mouse_pos: Some(
-                [
-                    self.mouse.screen_pos.x as f32,
-                    self.mouse.screen_pos.y as f32,
-                ]
-                .into(),
-            ),
             scroll_delta: [
                 self.mouse.scroll_delta[0] * text_size,
                 self.mouse.scroll_delta[1] * text_size,
             ]
             .into(),
-            screen_size: [
-                self.settings.window_width as f32,
-                self.settings.window_height as f32,
-            ]
-            .into(),
+            screen_rect: Some(egui::Rect::from_min_size(
+                Default::default(),
+                [
+                    self.settings.window_width as f32,
+                    self.settings.window_height as f32,
+                ]
+                .into(),
+            )),
+            events,
 
             // TODO: handle DPI here
             // pixels_per_point: None,

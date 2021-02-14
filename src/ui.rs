@@ -157,8 +157,8 @@ pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
 
 pub fn progress_bar(
     ui: &mut Ui,
-    bg_cmd_index: egui::PaintCmdIdx,
-    fg_cmd_index: egui::PaintCmdIdx,
+    bg_cmd_index: egui::layers::ShapeIdx,
+    fg_cmd_index: egui::layers::ShapeIdx,
     top_left: egui::Pos2,
     width: f32,
     height: f32,
@@ -167,19 +167,19 @@ pub fn progress_bar(
     fg_color: Color,
 ) {
     use egui::{
-        paint::{PaintCmd, Stroke},
+        paint::{Shape, Stroke},
         Rect,
     };
 
     let percent = crate::util::clampf(0.0, percent, 1.0);
 
-    let background_rect = PaintCmd::Rect {
+    let background_rect = Shape::Rect {
         rect: Rect::from_min_size(top_left, [width, height].into()),
         corner_radius: 0.0,
         stroke: Stroke::none(),
         fill: bg_color.into(),
     };
-    let foreground_rect = PaintCmd::Rect {
+    let foreground_rect = Shape::Rect {
         rect: Rect::from_min_size(top_left, [width * percent, height].into()),
         corner_radius: 0.0,
         stroke: Stroke::none(),

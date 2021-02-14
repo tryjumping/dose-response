@@ -82,7 +82,7 @@ pub fn process(
         .fixed_pos(window_pos_px)
         .fixed_size(window_size)
         .show(ui.ctx(), |ui| {
-            ui.with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+            ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                 ui.label(format!("Turns: {}", state.turn));
                 ui.label("");
                 ui.label(format!(
@@ -110,26 +110,26 @@ pub fn process(
 
                 ui.separator();
                 ui.columns(3, |c| {
-                    c[0].with_layout(egui::Layout::vertical(egui::Align::Min), |ui| {
+                    c[0].with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
                         if ui
                             .add(ui::button("[N]ew Game", active, &state.palette))
-                            .clicked
+                            .clicked()
                         {
                             action = Some(Action::NewGame);
                         };
                     });
-                    c[1].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                    c[1].with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                         if ui
                             .add(ui::button("[?] Help", active, &state.palette))
-                            .clicked
+                            .clicked()
                         {
                             action = Some(Action::Help);
                         };
                     });
-                    c[2].with_layout(egui::Layout::vertical(egui::Align::Max), |ui| {
+                    c[2].with_layout(egui::Layout::top_down(egui::Align::Max), |ui| {
                         if ui
                             .add(ui::button("[Esc] Main Menu", active, &state.palette))
-                            .clicked
+                            .clicked()
                         {
                             action = Some(Action::Menu);
                         };

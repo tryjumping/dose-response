@@ -192,7 +192,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                         // NOTE: this is a hack for not having a
                         // way to center a label but it works:
                         ui.columns(1, |c| {
-                            c[0].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                            c[0].with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                                 ui.label(NUMPAD_CONTROLS);
                             });
                         });
@@ -204,7 +204,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                         ui.label(ARROW_TEXT);
                         ui.label("");
                         ui.columns(1, |c| {
-                            c[0].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                            c[0].with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                                 ui.label(ARROW_CONTROLS);
                             });
                         });
@@ -216,7 +216,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                         ui.label(VI_KEYS_TEXT);
                         ui.label("");
                         ui.columns(1, |c| {
-                            c[0].with_layout(egui::Layout::vertical(egui::Align::Center), |ui| {
+                            c[0].with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                                 ui.label(VI_KEYS_CONTROLS);
                             });
                         });
@@ -271,17 +271,17 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                 state.current_help_window.prev().map(|text| {
                     if c[0]
                         .add(ui::button(&format!("[<-] {}", text), true, &state.palette))
-                        .clicked
+                        .clicked()
                     {
                         action = Some(Action::PrevPage);
                     }
                 });
 
                 state.current_help_window.next().map(|text| {
-                    c[1].with_layout(egui::Layout::vertical(egui::Align::Max), |ui| {
+                    c[1].with_layout(egui::Layout::top_down(egui::Align::Max), |ui| {
                         if ui
                             .add(ui::button(&format!("[->] {}", text), true, &state.palette))
-                            .clicked
+                            .clicked()
                         {
                             action = Some(Action::NextPage);
                         }

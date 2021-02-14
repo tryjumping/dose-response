@@ -29,11 +29,10 @@ use std::{
     collections::{HashMap, VecDeque},
     io::Write,
     iter::FromIterator,
-    sync::Arc,
     time::Duration,
 };
 
-use egui::{Context, Ui};
+use egui::{CtxRef, Ui};
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Action {
@@ -50,7 +49,7 @@ pub enum RunningState {
 
 pub fn update(
     state: &mut State,
-    egui_ctx: &Arc<Context>,
+    egui_ctx: &CtxRef,
     dt: Duration,
     fps: i32,
     new_keys: &[Key],

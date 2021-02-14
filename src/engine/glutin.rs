@@ -12,7 +12,7 @@ use crate::{
 
 use std::time::Instant;
 
-use egui::Context;
+use egui::CtxRef;
 
 use glutin::{
     dpi::LogicalSize,
@@ -149,7 +149,7 @@ pub fn main_loop<S>(
     // Both are fixed with the line below:
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    let egui_context = Context::new();
+    let egui_context = CtxRef::default();
 
     let mut loop_state = LoopState::initialise(
         settings_store.load(),
@@ -427,7 +427,7 @@ monitor ID: {:?}. Ignoring this request.",
                 // NOTE: the egui output contains only the cursor, url to open and text
                 // to copy to the clipboard. So we can safely ignore that for now.
                 let (_output, paint_batches) = loop_state.egui_context.end_frame();
-                ui_paint_batches = loop_state.egui_context.tesselate(paint_batches);
+                ui_paint_batches = loop_state.egui_context.tessellate(paint_batches);
 
                 if cfg!(feature = "fullscreen") {
                     use engine::loop_state::FullscreenAction::*;
@@ -487,9 +487,9 @@ monitor ID: {:?}. Ignoring this request.",
                 let mut ui_vertices = vec![];
                 let mut batches = vec![];
                 let mut index = 0;
-                for (rect, triangles) in &ui_paint_batches {
-                    for &index in &triangles.indices {
-                        let egui_vertex = triangles.vertices[index as usize];
+                for egui::ClippedMesh(rect, mesh) in &ui_paint_batches {
+                    for &index in &mesh.indices {
+                        let egui_vertex = mesh.vertices[index as usize];
                         let color = Color {
                             r: egui_vertex.color.r(),
                             g: egui_vertex.color.g(),
@@ -509,7 +509,7 @@ monitor ID: {:?}. Ignoring this request.",
                         ui_vertices.push(vertex);
                     }
 
-                    let vertex_count = triangles.indices.len() as i32;
+                    let vertex_count = mesh.indices.len() as i32;
                     batches.push((
                         [
                             rect.left_top().x,

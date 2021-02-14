@@ -63,6 +63,12 @@ impl Into<Point> for (u32, u32) {
     }
 }
 
+impl Into<egui::Pos2> for Point {
+    fn into(self) -> egui::Pos2 {
+        egui::Pos2::new(self.x as f32, self.y as f32)
+    }
+}
+
 impl Display for Point {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "({}, {})", self.x, self.y)

@@ -61,9 +61,7 @@ pub fn process(
     });
 
     ui.painter().text(
-        // TODO: position the version info using the screen pos etc.
-        //ui.available().translate([-70.0, -70.0].into()).max,
-        [0.0, 0.0].into(),
+        Into::<egui::Pos2>::into(window_size_px) - egui::Vec2::splat(70.0),
         egui::Align2([egui::Align::Max, egui::Align::Max]),
         format!(
             "Version: {}.{}",

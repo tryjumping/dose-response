@@ -278,7 +278,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                 });
 
                 state.current_help_window.next().map(|text| {
-                    c[1].with_layout(egui::Layout::top_down(egui::Align::Max), |ui| {
+                    c[1].with_layout(egui::Layout::top_down_justified(egui::Align::Max), |ui| {
                         if ui
                             .add(ui::button(&format!("[->] {}", text), true, &state.palette))
                             .clicked()

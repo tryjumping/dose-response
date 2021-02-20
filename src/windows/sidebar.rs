@@ -3,7 +3,10 @@ use crate::{engine::Display, formula, game, item, player::Mind, point::Point, st
 use egui::{
     self,
     paint::{Shape, Stroke},
-    Rect, Ui,
+    Pos2,
+    Vec2,
+    Rect,
+    Ui,
 };
 
 use std::{collections::HashMap, time::Duration};
@@ -40,18 +43,12 @@ pub fn process(
     let mut action = None;
 
     let width_px = formula::sidebar_width_px(display.text_size) as f32;
-    let bottom_left = [
-        (display.screen_size_px.x + 1) as f32,
-        (display.screen_size_px.y + 1) as f32,
-    ];
-    let top_left = [bottom_left[0] - width_px - 1.0, -1.0];
-    let ui_rect = Rect::from_min_max(top_left.into(), bottom_left.into());
+    let bottom_right = Pos2::new((display.screen_size_px.x + 1) as f32, (display.screen_size_px.y + 1) as f32);
+    let top_left = Pos2::new(bottom_right.x - width_px - 1.0, -1.0);
+    let full_rect = Rect::from_min_max(top_left, bottom_right);
 
-    let padding = 20.0;
-    let full_rect = Rect::from_min_max(
-        [ui_rect.left() - padding, ui_rect.top()].into(),
-        ui_rect.right_bottom(),
-    );
+    let padding = Vec2::splat(20.0);
+    let ui_rect = Rect::from_min_max(top_left + padding, bottom_right - padding);
 
     let mut ui = ui.child_ui(ui_rect, *ui.layout());
     ui.set_clip_rect(full_rect);
@@ -83,7 +80,7 @@ pub fn process(
         bg_progress_bar_pos,
         fg_progress_bar_pos,
         mindstate_rect.left_top(),
-        ui_rect.width() - padding,
+        ui_rect.width(),
         mindstate_rect.height(),
         mind_val_percent,
         state.palette.gui_mind_progress_bar_bg,
@@ -96,18 +93,15 @@ pub fn process(
 
     // Show the anxiety counter as a progress bar next to the `Will` number
     if state.show_anxiety_counter {
-        let top_left: egui::Pos2 = [
-            anxiety_counter_rect.right() + padding,
-            anxiety_counter_rect.top(),
-        ]
-        .into();
+        let top_left: egui::Pos2 =
+            [anxiety_counter_rect.right(), anxiety_counter_rect.top()].into();
 
         ui::progress_bar(
             &mut ui,
             bg_anxiety_paint_pos,
             fg_anxiety_paint_pos,
             top_left,
-            ui_rect.right() - padding - top_left.x,
+            ui_rect.right() - top_left.x,
             anxiety_counter_rect.height(),
             player.anxiety_counter.percent(),
             state.palette.gui_anxiety_progress_bar_bg,

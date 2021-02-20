@@ -245,7 +245,7 @@ pub fn process(
     {
         let mut ui = ui.child_ui(
             Rect::from_min_max(
-                [ui_rect.left(), help_rect.min.y - 220.0].into(),
+                [ui_rect.left(), help_rect.min.y - 250.0].into(),
                 ui_rect.right_bottom(),
             ),
             *ui.layout(),
@@ -256,74 +256,89 @@ pub fn process(
         ui.label("Numpad Controls:");
         ui.columns(3, |c| {
             for index in 0..=2 {
-                c[index].style_mut().spacing.button_padding = [20.0, 15.0].into();
+                c[index].style_mut().spacing.button_padding = [0.0, 25.0].into();
             }
 
-            let btn = c[0].add(ui::button("7", active, &state.palette));
-            if btn.clicked() {
-                action = Some(Action::MoveNW);
-            };
-            if btn.hovered() {
-                highlighted_tile_offset_from_player_pos = Some((-1, -1));
-            }
+            c[0].with_layout(
+                egui::Layout::top_down_justified(egui::Align::Center),
+                |ui| {
+                    let btn = ui.add(ui::button("7", active, &state.palette));
+                    if btn.clicked() {
+                        action = Some(Action::MoveNW);
+                    };
+                    if btn.hovered() {
+                        highlighted_tile_offset_from_player_pos = Some((-1, -1));
+                    }
 
-            let btn = c[1].add(ui::button("8", active, &state.palette));
-            if btn.clicked() {
-                action = Some(Action::MoveN);
-            };
-            if btn.hovered() {
-                highlighted_tile_offset_from_player_pos = Some((0, -1));
-            }
+                    let btn = ui.add(ui::button("4", active, &state.palette));
+                    if btn.clicked() {
+                        action = Some(Action::MoveW);
+                    };
+                    if btn.hovered() {
+                        highlighted_tile_offset_from_player_pos = Some((-1, 0));
+                    }
 
-            let btn = c[2].add(ui::button("9", active, &state.palette));
-            if btn.clicked() {
-                action = Some(Action::MoveNE);
-            };
-            if btn.hovered() {
-                highlighted_tile_offset_from_player_pos = Some((1, -1));
-            }
+                    let btn = ui.add(ui::button("1", active, &state.palette));
+                    if btn.clicked() {
+                        action = Some(Action::MoveSW);
+                    };
+                    if btn.hovered() {
+                        highlighted_tile_offset_from_player_pos = Some((-1, 1));
+                    }
+                },
+            );
 
-            let btn = c[0].add(ui::button("4", active, &state.palette));
-            if btn.clicked() {
-                action = Some(Action::MoveW);
-            };
-            if btn.hovered() {
-                highlighted_tile_offset_from_player_pos = Some((-1, 0));
-            }
+            c[1].with_layout(
+                egui::Layout::top_down_justified(egui::Align::Center),
+                |ui| {
+                    let btn = ui.add(ui::button("8", active, &state.palette));
+                    if btn.clicked() {
+                        action = Some(Action::MoveN);
+                    };
+                    if btn.hovered() {
+                        highlighted_tile_offset_from_player_pos = Some((0, -1));
+                    }
 
-            c[1].add(egui::Button::new("@").enabled(false));
+                    ui.add(egui::Button::new("@").enabled(false));
 
-            let btn = c[2].add(ui::button("6", active, &state.palette));
-            if btn.clicked() {
-                action = Some(Action::MoveE);
-            };
-            if btn.hovered() {
-                highlighted_tile_offset_from_player_pos = Some((1, 0));
-            }
+                    let btn = ui.add(ui::button("2", active, &state.palette));
+                    if btn.clicked() {
+                        action = Some(Action::MoveS);
+                    };
+                    if btn.hovered() {
+                        highlighted_tile_offset_from_player_pos = Some((0, 1));
+                    }
+                },
+            );
 
-            let btn = c[0].add(ui::button("1", active, &state.palette));
-            if btn.clicked() {
-                action = Some(Action::MoveSW);
-            };
-            if btn.hovered() {
-                highlighted_tile_offset_from_player_pos = Some((-1, 1));
-            }
+            c[2].with_layout(
+                egui::Layout::top_down_justified(egui::Align::Center),
+                |ui| {
+                    let btn = ui.add(ui::button("9", active, &state.palette));
+                    if btn.clicked() {
+                        action = Some(Action::MoveNE);
+                    };
+                    if btn.hovered() {
+                        highlighted_tile_offset_from_player_pos = Some((1, -1));
+                    }
 
-            let btn = c[1].add(ui::button("2", active, &state.palette));
-            if btn.clicked() {
-                action = Some(Action::MoveS);
-            };
-            if btn.hovered() {
-                highlighted_tile_offset_from_player_pos = Some((0, 1));
-            }
+                    let btn = ui.add(ui::button("6", active, &state.palette));
+                    if btn.clicked() {
+                        action = Some(Action::MoveE);
+                    };
+                    if btn.hovered() {
+                        highlighted_tile_offset_from_player_pos = Some((1, 0));
+                    }
 
-            let btn = c[2].add(ui::button("3", active, &state.palette));
-            if btn.clicked() {
-                action = Some(Action::MoveSE);
-            };
-            if btn.hovered() {
-                highlighted_tile_offset_from_player_pos = Some((1, 1));
-            }
+                    let btn = ui.add(ui::button("3", active, &state.palette));
+                    if btn.clicked() {
+                        action = Some(Action::MoveSE);
+                    };
+                    if btn.hovered() {
+                        highlighted_tile_offset_from_player_pos = Some((1, 1));
+                    }
+                },
+            );
         });
 
         // Highlight the target tile the player would walk to if clicked in the sidebar numpad:

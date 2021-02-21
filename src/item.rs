@@ -21,8 +21,8 @@ impl std::fmt::Display for Kind {
             match *self {
                 Food => "Food",
                 Dose => "Dose",
-                CardinalDose => "+ Dose",
-                DiagonalDose => "x Dose",
+                CardinalDose => "Card. Dose",
+                DiagonalDose => "Diag. Dose",
                 StrongDose => "Strong Dose",
             }
         } else {

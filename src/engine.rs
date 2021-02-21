@@ -30,21 +30,34 @@ pub const VERTEX_CAPACITY: usize = 50_000;
 pub const VERTEX_COMPONENT_COUNT: usize = 9;
 const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * VERTEX_CAPACITY;
 
+const TEXTURE_EGUI: u64 = 0;
+const TEXTURE_TEXT: u64 = 1;
+const TEXTURE_GLYPH: u64 = 2;
+const TEXTURE_TILEMAP: u64 = 3;
+
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[repr(u64)]
 pub enum Texture {
-    Text,
-    Glyph,
-    Tilemap,
-    Egui,
+    Egui = TEXTURE_EGUI,
+    Text = TEXTURE_TEXT,
+    Glyph = TEXTURE_GLYPH,
+    Tilemap = TEXTURE_TILEMAP,
 }
 
 impl Into<f32> for Texture {
     fn into(self) -> f32 {
+        self as u64 as f32
+    }
+}
+
+impl Into<egui::TextureId> for Texture {
+    fn into(self) -> egui::TextureId {
+        use egui::TextureId;
         match self {
-            Texture::Text => 0.0,
-            Texture::Glyph => 1.0,
-            Texture::Tilemap => 2.0,
-            Texture::Egui => 3.0,
+            Texture::Egui => TextureId::Egui,
+            Texture::Text => TextureId::User(self as u64),
+            Texture::Glyph => TextureId::User(self as u64),
+            Texture::Tilemap => TextureId::User(self as u64),
         }
     }
 }

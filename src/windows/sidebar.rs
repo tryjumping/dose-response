@@ -1,12 +1,19 @@
-use crate::{engine::Display, formula, game, item, player::Mind, point::Point, state::State, ui};
+use crate::{
+    engine::{Display, Texture, VisualStyle},
+    formula, game,
+    graphic::Graphic,
+    item,
+    player::Mind,
+    point::Point,
+    settings::Settings,
+    state::State,
+    ui,
+};
 
 use egui::{
     self,
     paint::{Shape, Stroke},
-    Pos2,
-    Vec2,
-    Rect,
-    Ui,
+    Pos2, Rect, Ui, Vec2,
 };
 
 use std::{collections::HashMap, time::Duration};
@@ -35,6 +42,7 @@ pub enum Action {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    settings: &Settings,
     dt: Duration,
     fps: i32,
     display: &Display,
@@ -43,7 +51,10 @@ pub fn process(
     let mut action = None;
 
     let width_px = formula::sidebar_width_px(display.text_size) as f32;
-    let bottom_right = Pos2::new((display.screen_size_px.x + 1) as f32, (display.screen_size_px.y + 1) as f32);
+    let bottom_right = Pos2::new(
+        (display.screen_size_px.x + 1) as f32,
+        (display.screen_size_px.y + 1) as f32,
+    );
     let top_left = Pos2::new(bottom_right.x - width_px - 1.0, -1.0);
     let full_rect = Rect::from_min_max(top_left, bottom_right);
 
@@ -168,19 +179,37 @@ pub fn process(
             item::Kind::DiagonalDose => Action::UseDiagonalDose,
             item::Kind::StrongDose => Action::UseStrongDose,
         };
+        let graphic = match kind {
+            item::Kind::Food => Graphic::FoodStriped,
+            item::Kind::Dose => Graphic::Dose,
+            item::Kind::CardinalDose => Graphic::CardinalDose,
+            item::Kind::DiagonalDose => Graphic::DiagonalDose,
+            item::Kind::StrongDose => Graphic::StrongDose,
+        };
+        let item_color = match kind {
+            item::Kind::Food => state.palette.food,
+            item::Kind::Dose => state.palette.dose,
+            item::Kind::CardinalDose => state.palette.dose,
+            item::Kind::DiagonalDose => state.palette.dose,
+            item::Kind::StrongDose => state.palette.dose,
+        };
         let precision = state.panel_width as usize;
-        let button_label = format!(
-            "[{}] {:.pr$}: {}",
-            game::inventory_key(kind),
-            kind,
-            count,
-            pr = precision - 7
-        );
+        let button_label = format!("{:.pr$}: {}", kind, count, pr = precision - 7);
         let active = active && count > 0;
-        if ui
-            .add(ui::button(&button_label, active, &state.palette))
-            .clicked()
-        {
+        let texture = match settings.visual_style {
+            VisualStyle::Graphical => Texture::Tilemap,
+            VisualStyle::Textual => Texture::Glyph,
+        };
+        let button = ui::ImageTextButton::new(texture, button_label)
+            .prefix_text(format!("[{}]", game::inventory_key(kind)))
+            .tile(graphic)
+            .image_color(item_color)
+            .text_color(state.palette.gui_text)
+            .text_disabled_color(state.palette.gui_text_inactive)
+            .selected(active)
+            .background_color(state.palette.gui_button_background);
+
+        if ui.add(button).clicked() {
             action = Some(button_action);
         };
     }

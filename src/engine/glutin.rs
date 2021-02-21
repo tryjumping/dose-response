@@ -488,6 +488,36 @@ monitor ID: {:?}. Ignoring this request.",
                 let mut batches = vec![];
                 let mut index = 0;
                 for egui::ClippedMesh(rect, mesh) in &ui_paint_batches {
+                    let texture_id = match mesh.texture_id {
+                        egui::TextureId::Egui => engine::Texture::Egui.into(),
+                        egui::TextureId::User(id) => id as f32,
+                    };
+                    // NOTE: the shader expects the egui texture (uv)
+                    // coordinates to be normalised, but everything
+                    // else expects pixel coordinates.
+                    //
+                    // However, everything that comes out of egui *is
+                    // going to be normalised* so we need to
+                    // "denormalise" it by multiplying the uv coords
+                    // with the size of the texture in pixels.
+                    //
+                    // For egui we just multiply by 1.0 which has no
+                    // effect.
+                    let texture_size = match mesh.texture_id {
+                        egui::TextureId::Egui => [1.0, 1.0],
+                        egui::TextureId::User(engine::TEXTURE_TEXT) => opengl_app.fontmap_size_px,
+                        egui::TextureId::User(engine::TEXTURE_GLYPH) => opengl_app.glyphmap_size_px,
+                        egui::TextureId::User(engine::TEXTURE_TILEMAP) => {
+                            opengl_app.tilemap_size_px
+                        }
+                        id => {
+                            log::error!(
+                                "ERROR[Glutin RedrawRequested]: unknown texture ID: `{:?}`",
+                                id
+                            );
+                            [1.0, 1.0]
+                        }
+                    };
                     for &index in &mesh.indices {
                         let egui_vertex = mesh.vertices[index as usize];
                         let color = Color {
@@ -500,10 +530,9 @@ monitor ID: {:?}. Ignoring this request.",
 
                         let pos = egui_vertex.pos;
                         let vertex = engine::Vertex {
-                            texture_id: engine::Texture::Egui.into(),
+                            texture_id: texture_id,
                             pos_px: [pos.x, pos.y],
-                            // NOTE: for egui, the `u` and `v` values are normalised to <0, 1>
-                            tile_pos: [u.into(), v.into()],
+                            tile_pos: [u * texture_size[0], v * texture_size[1]],
                             color: color.into(),
                         };
                         ui_vertices.push(vertex);

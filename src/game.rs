@@ -253,7 +253,8 @@ fn process_game(
 ) -> (RunningState, Option<Point>) {
     use self::sidebar::Action;
 
-    let (mut option, highlighted_tile) = sidebar::process(state, ui, dt, fps, display, active);
+    let (mut option, highlighted_tile) =
+        sidebar::process(state, ui, settings, dt, fps, display, active);
 
     if !active {
         return (RunningState::Running, None);

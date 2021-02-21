@@ -1,14 +1,15 @@
 #![allow(dead_code)]
 
 use crate::{
-    color::Color,
-    engine::{Display, DrawResult, TextMetrics, TextOptions},
+    color::{self, Color},
+    engine::{Display, DrawResult, TextMetrics, TextOptions, Texture},
+    graphic::{self, Graphic},
     palette::Palette,
     point::Point,
     rect::Rectangle,
 };
 
-use egui::{self, Ui};
+use egui::{self, widgets, Color32, Pos2, Rect, Response, Sense, TextureId, Ui, Vec2, Widget};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Text<'a> {
@@ -155,6 +156,190 @@ pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
         .enabled(enabled)
 }
 
+/// A clickable button that shows an icon (following the `egui::Image`
+/// conventions) followed up by a text.
+#[derive(Clone, Debug)]
+pub struct ImageTextButton {
+    texture_id: TextureId,
+    text: String,
+    prefix_text: String,
+    sense: Sense,
+    frame: bool,
+    selected: bool,
+    uv: Rect,
+    image_color: Color32,
+    text_color: Color32,
+    text_disabled_color: Color32,
+    background_color: Color32,
+}
+
+impl ImageTextButton {
+    pub fn new(texture: Texture, text: impl Into<String>) -> Self {
+        Self {
+            texture_id: texture.into(),
+            text: text.into(),
+            prefix_text: String::new(),
+            sense: Sense::click(),
+            frame: true,
+            selected: true,
+            uv: Rect::from_min_size(Pos2::ZERO, Vec2::splat(1.0)),
+            image_color: color::WHITE.into(),
+            text_color: color::WHITE.into(),
+            text_disabled_color: color::WHITE.into(),
+            background_color: color::BLACK.into(),
+        }
+    }
+
+    /// Select UV range. Default is (0,0) in top-left, (1,1) bottom right.
+    pub fn uv(mut self, uv: impl Into<Rect>) -> Self {
+        self.uv = uv.into();
+        self
+    }
+
+    /// Set the optional text that appears before the image.
+    pub fn prefix_text(mut self, text: impl Into<String>) -> Self {
+        self.prefix_text = text.into();
+        self
+    }
+
+    /// Set the tile by passing in the `Graphic` enum rather than the
+    /// `uv` coordinates.
+    pub fn tile(self, tile: Graphic) -> Self {
+        // TODO: Get the tilemap_size properly rather than hardcoding.
+        // NOTE: The glyphmap coordinates are coming from a different function as well
+        // so this is going to be a bit more complicated.
+        let tilemap_size = 180.0;
+        let tilesize = 10.0;
+        let (x, y) = graphic::tilemap_coords_px(0, tile).unwrap();
+        self.uv(egui::Rect::from_min_size(
+            (x as f32 / tilemap_size, y as f32 / tilemap_size).into(),
+            Vec2::splat(tilesize / tilemap_size),
+        ))
+    }
+
+    /// Multiply image color with this. Default is WHITE (no tint).
+    pub fn image_color(mut self, color: impl Into<Color32>) -> Self {
+        self.image_color = color.into();
+        self
+    }
+
+    pub fn text_color(mut self, color: impl Into<Color32>) -> Self {
+        self.text_color = color.into();
+        self
+    }
+
+    pub fn text_disabled_color(mut self, color: impl Into<Color32>) -> Self {
+        self.text_disabled_color = color.into();
+        self
+    }
+
+    pub fn background_color(mut self, color: impl Into<Color32>) -> Self {
+        self.background_color = color.into();
+        self
+    }
+
+    /// If `true`, mark this button as "selected".
+    pub fn selected(mut self, selected: bool) -> Self {
+        self.selected = selected;
+        self
+    }
+
+    /// Turn off the frame
+    pub fn frame(mut self, frame: bool) -> Self {
+        self.frame = frame;
+        self
+    }
+
+    /// By default, buttons senses clicks.
+    /// Change this to a drag-button with `Sense::drag()`.
+    pub fn sense(mut self, sense: Sense) -> Self {
+        self.sense = sense;
+        self
+    }
+}
+
+impl Widget for ImageTextButton {
+    fn ui(self, ui: &mut Ui) -> Response {
+        let Self {
+            texture_id,
+            text,
+            prefix_text,
+            sense,
+            frame,
+            selected,
+            uv,
+            image_color,
+            text_color,
+            text_disabled_color,
+            background_color,
+        } = self;
+
+        let text_style = egui::TextStyle::Button;
+        let font = &ui.fonts()[text_style];
+        let prefix_galley = font.layout_no_wrap(prefix_text);
+        let text_galley = font.layout_no_wrap(text);
+
+        let image = widgets::Image::new(texture_id, Vec2::splat(text_galley.size.y))
+            .uv(uv)
+            .tint(image_color)
+            .bg_fill(background_color);
+
+        let button_padding = ui.spacing().button_padding;
+        let size = Vec2::new(prefix_galley.size.x + button_padding.x, button_padding.y)
+            + (image.size() + 3.0 * button_padding)
+            + Vec2::new(text_galley.size.x, 0.0);
+        let (rect, response) = ui.allocate_exact_size(size, sense);
+        let text_pos = rect.min
+            + Vec2::new(prefix_galley.size.x, 0.0)
+            + Vec2::new(image.size().x + button_padding.x * 2.0, button_padding.y);
+        let prefix_translate = Vec2::new(prefix_galley.size.x + 2.0, button_padding.y);
+
+        if ui.clip_rect().intersects(rect) {
+            let visuals = ui.style().interact(&response);
+
+            let painter = ui.painter();
+
+            if selected {
+                painter.rect(
+                    rect,
+                    visuals.corner_radius,
+                    background_color,
+                    visuals.bg_stroke,
+                );
+                painter.galley(
+                    rect.min + button_padding,
+                    prefix_galley,
+                    text_style,
+                    text_color,
+                );
+                painter.galley(text_pos, text_galley, text_style, text_color);
+            } else if frame {
+                painter.rect(
+                    rect.expand(visuals.expansion),
+                    visuals.corner_radius,
+                    background_color,
+                    visuals.bg_stroke,
+                );
+                painter.galley(
+                    rect.min + button_padding,
+                    prefix_galley,
+                    text_style,
+                    text_disabled_color,
+                );
+                painter.galley(text_pos, text_galley, text_style, text_disabled_color);
+            }
+
+            let image_rect = ui.layout().align_size_within_rect(
+                image.size(),
+                rect.shrink2(button_padding).translate(prefix_translate),
+            );
+            image.paint_at(ui, image_rect);
+        }
+
+        response
+    }
+}
+
 pub fn progress_bar(
     ui: &mut Ui,
     bg_cmd_index: egui::layers::ShapeIdx,
@@ -166,10 +351,7 @@ pub fn progress_bar(
     bg_color: Color,
     fg_color: Color,
 ) {
-    use egui::{
-        paint::{Shape, Stroke},
-        Rect,
-    };
+    use egui::paint::{Shape, Stroke};
 
     let percent = crate::util::clampf(0.0, percent, 1.0);
 

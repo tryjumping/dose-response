@@ -193,8 +193,10 @@ pub fn process(
             item::Kind::DiagonalDose => state.palette.dose,
             item::Kind::StrongDose => state.palette.dose,
         };
-        let precision = state.panel_width as usize;
-        let button_label = format!("{:.pr$}: {}", kind, count, pr = precision - 7);
+
+        let panel_width_chars =
+            (ui_rect.width() / settings.text_size as f32).abs().floor() as usize;
+        let button_label = format!("{:.pr$}: {}", kind, count, pr = panel_width_chars);
         let active = active && count > 0;
         let texture = match settings.visual_style {
             VisualStyle::Graphical => Texture::Tilemap,

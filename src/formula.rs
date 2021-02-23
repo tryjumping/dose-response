@@ -13,8 +13,8 @@ use std::cmp;
 
 use num_rational::{Ratio, Rational32};
 
-const WIDE_SIDEBAR_WIDTH_PX: i32 = 350;
-const NARROW_SIDEBAR_WIDTH_PX: i32 = 270;
+const WIDE_SIDEBAR_WIDTH_PX: i32 = 375;
+const NARROW_SIDEBAR_WIDTH_PX: i32 = 300;
 
 #[cfg(feature = "recording")]
 pub const INITIAL_SAFE_RADIUS: i32 = 7;

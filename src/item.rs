@@ -17,7 +17,7 @@ impl std::fmt::Display for Kind {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         use self::Kind::*;
         let precision = f.precision().unwrap_or(1000);
-        let s = if precision < 13 {
+        let s = if precision < 12 {
             match *self {
                 Food => "Food",
                 Dose => "Dose",

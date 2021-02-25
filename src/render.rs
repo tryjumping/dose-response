@@ -2,7 +2,6 @@ use crate::{
     color,
     engine::{Display, TextMetrics},
     formula, graphics, monster,
-    palette::Palette,
     player::Bonus,
     point::{Point, SquareArea},
     rect::Rectangle,
@@ -12,7 +11,7 @@ use crate::{
 
 pub fn render_game(
     state: &State,
-    metrics: &dyn TextMetrics,
+    _metrics: &dyn TextMetrics,
     display: &mut Display,
     highlighted_tile: Option<Point>,
 ) {
@@ -234,158 +233,4 @@ pub fn render_game(
             display.set_background(pos, state.player.color(&state.palette));
         }
     }
-
-    if state.show_keboard_movement_hints && !state.game_ended {
-        render_controls_help(state.map_size, metrics, display, &state.palette);
-    }
-
-    let mouse_inside_map = state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
-    if mouse_inside_map && state.mouse.right_is_down {
-        render_monster_info(state, display);
-    }
-}
-
-fn render_monster_info(state: &State, display: &mut Display) {
-    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
-    let mouse_world_pos = screen_left_top_corner + state.mouse.tile_pos;
-    // TODO: world.monster_on_pos is mutable, let's add an immutable version
-    let monster_area = Rectangle::from_point_and_size(mouse_world_pos, (1, 1).into());
-    let mut debug_text = None;
-    for monster in state.world.monsters(monster_area) {
-        if monster.position == mouse_world_pos {
-            debug_text = Some(format!("{:#?}", monster));
-        }
-    }
-    if mouse_world_pos == state.player.pos {
-        debug_text = Some(format!("{:#?}", state.player));
-    }
-
-    if let Some(debug_text) = debug_text {
-        let height = debug_text.lines().count();
-        let width = debug_text.lines().map(|s| s.chars().count()).max().unwrap();
-        display.draw_rectangle(
-            Rectangle::from_point_and_size(
-                Point::from_i32(0),
-                Point::new(width as i32, height as i32),
-            ),
-            state.palette.gui_window_background,
-        );
-        for (index, line) in debug_text.lines().enumerate() {
-            display.draw_text_in_tile_coordinates(
-                Point {
-                    x: 0,
-                    y: index as i32,
-                },
-                line,
-                state.palette.gui_text,
-                Default::default(),
-                display.tile_size,
-            );
-        }
-    }
-}
-
-fn render_controls_help(
-    map_size: Point,
-    metrics: &dyn TextMetrics,
-    display: &mut Display,
-    palette: &Palette,
-) {
-    let rect_dim = |lines: &[&str]| {
-        let longest_line = lines
-            .iter()
-            .map(|l| metrics.get_text_width(l, Default::default()))
-            .max()
-            .unwrap();
-        (longest_line, lines.len() as i32)
-    };
-
-    fn draw_rect(
-        lines: &[&'static str],
-        start: Point,
-        w: i32,
-        h: i32,
-        display: &mut Display,
-        palette: &Palette,
-    ) {
-        display.draw_rectangle(
-            Rectangle::from_point_and_size(start, Point::new(w, h)),
-            palette.dim_background,
-        );
-        for (index, &line) in lines.iter().enumerate() {
-            display.draw_text_in_tile_coordinates(
-                start + Point::new(0, index as i32),
-                line,
-                palette.gui_text,
-                Default::default(),
-                display.tile_size,
-            );
-        }
-    };
-
-    let padding = 1;
-
-    let lines = &["Up", "Num 8", "or: K"];
-    let (width, height) = rect_dim(lines);
-    let start = Point {
-        x: (map_size.x - width) / 2,
-        y: padding,
-    };
-    draw_rect(lines, start, width, height, display, palette);
-
-    let lines = &["Down", "Num 2", "or: J"];
-    let (width, height) = rect_dim(lines);
-    let start = Point {
-        x: (map_size.x - width) / 2,
-        y: map_size.y - height - padding,
-    };
-    draw_rect(lines, start, width, height, display, palette);
-
-    let lines = &["Left", "Num 4", "or: H"];
-    let (width, height) = rect_dim(lines);
-    let start = Point {
-        x: padding,
-        y: (map_size.y - height) / 2,
-    };
-    draw_rect(lines, start, width, height, display, palette);
-
-    let lines = &["Right", "Num 6", "or: L"];
-    let (width, height) = rect_dim(lines);
-    let start = Point {
-        x: map_size.x - width - padding,
-        y: (map_size.y - height) / 2,
-    };
-    draw_rect(lines, start, width, height, display, palette);
-
-    let lines = &["Shift+Left", "Num 7", "or: Y"];
-    let (width, height) = rect_dim(lines);
-    let start = Point {
-        x: padding,
-        y: padding,
-    };
-    draw_rect(lines, start, width, height, display, palette);
-
-    let lines = &["Shift+Right", "Num 9", "or: U"];
-    let (width, height) = rect_dim(lines);
-    let start = Point {
-        x: map_size.x - width - padding,
-        y: padding,
-    };
-    draw_rect(lines, start, width, height, display, palette);
-
-    let lines = &["Ctrl+Left", "Num 1", "or: B"];
-    let (width, height) = rect_dim(lines);
-    let start = Point {
-        x: padding,
-        y: map_size.y - height - padding,
-    };
-    draw_rect(lines, start, width, height, display, palette);
-
-    let lines = &["Ctrl+Right", "Num 3", "or: N"];
-    let (width, height) = rect_dim(lines);
-    let start = Point {
-        x: map_size.x - width - padding,
-        y: map_size.y - height - padding,
-    };
-    draw_rect(lines, start, width, height, display, palette);
 }

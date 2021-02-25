@@ -249,7 +249,7 @@ impl LoopState {
         let mut opengl_app = OpenGlApp::new(vs_source, fs_source);
         log::debug!("Created opengl app.");
 
-        opengl_app.initialise(&self.fontmap, &self.glyphmap, &self.tilemap);
+        opengl_app.initialise(&self.glyphmap, &self.tilemap);
         log::debug!("Initialised opengl app.");
         opengl_app
     }

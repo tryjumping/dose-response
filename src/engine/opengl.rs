@@ -20,8 +20,6 @@ pub struct OpenGlApp {
     pub fragment_shader: GLuint,
     pub vao: GLuint,
     pub vbo: GLuint,
-    pub fontmap: GLuint,
-    pub fontmap_size_px: [f32; 2],
     pub glyphmap: GLuint,
     pub glyphmap_size_px: [f32; 2],
     pub tilemap: GLuint,
@@ -46,9 +44,6 @@ impl OpenGlApp {
             gl::GenBuffers(1, &mut app.vbo);
             check_gl_error("GenBuffers");
 
-            gl::GenTextures(1, &mut app.fontmap);
-            check_gl_error("GenTextures font texture");
-
             gl::GenTextures(1, &mut app.glyphmap);
             check_gl_error("GenTextures glyph texture");
 
@@ -63,7 +58,7 @@ impl OpenGlApp {
     }
 
     #[allow(unsafe_code)]
-    pub fn initialise(&mut self, fontmap: &RgbaImage, glyphmap: &RgbaImage, tilemap: &RgbaImage) {
+    pub fn initialise(&mut self, glyphmap: &RgbaImage, tilemap: &RgbaImage) {
         unsafe {
             gl::Enable(gl::SCISSOR_TEST);
             check_gl_error("Enable SCISSOR_TEST");
@@ -84,12 +79,10 @@ impl OpenGlApp {
             check_gl_error("BindFragDataLocation");
         }
 
-        self.fontmap_size_px = [fontmap.width() as f32, fontmap.height() as f32];
         self.glyphmap_size_px = [glyphmap.width() as f32, glyphmap.height() as f32];
         self.tilemap_size_px = [tilemap.width() as f32, tilemap.height() as f32];
 
         self.upload_texture(self.glyphmap, "glyphmap", glyphmap);
-        self.upload_texture(self.fontmap, "fontmap", fontmap);
         self.upload_texture(self.tilemap, "tilemap", tilemap);
     }
 
@@ -292,14 +285,6 @@ impl OpenGlApp {
             );
             check_gl_error("Uniform2f display_px");
 
-            let texture_size_px_cstr = CString::new("textmap_size_px").unwrap();
-            gl::Uniform2f(
-                gl::GetUniformLocation(program, texture_size_px_cstr.as_ptr()),
-                self.fontmap_size_px[0],
-                self.fontmap_size_px[1],
-            );
-            check_gl_error("Uniform2f textmap_size_px");
-
             let glyphmap_size_px_cstr = CString::new("glyphmap_size_px").unwrap();
             gl::Uniform2f(
                 gl::GetUniformLocation(program, glyphmap_size_px_cstr.as_ptr()),
@@ -368,16 +353,6 @@ impl OpenGlApp {
                 (5 * mem::size_of::<GLfloat>()) as *const GLvoid,
             );
             check_gl_error("VertexAttribPointer color");
-
-            gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, self.fontmap);
-            check_gl_error("BindTexture font");
-            let texture_index = 0;
-            let fontmap_cstr = CString::new("textmap").unwrap();
-            gl::Uniform1i(
-                gl::GetUniformLocation(program, fontmap_cstr.as_ptr()),
-                texture_index,
-            );
         }
     }
 
@@ -445,7 +420,7 @@ impl Drop for OpenGlApp {
             gl::DeleteShader(self.vertex_shader);
             gl::DeleteBuffers(1, &self.vbo);
             gl::DeleteVertexArrays(1, &self.vao);
-            gl::DeleteTextures(1, &self.fontmap);
+            gl::DeleteTextures(1, &self.glyphmap);
             gl::DeleteTextures(1, &self.tilemap);
         }
     }

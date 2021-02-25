@@ -5,7 +5,6 @@ use crate::{
     graphic::{self, Graphic, TILE_SIZE},
     point::Point,
     rect::Rectangle,
-    ui::Button,
     util,
 };
 
@@ -31,15 +30,14 @@ pub const VERTEX_COMPONENT_COUNT: usize = 9;
 const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * VERTEX_CAPACITY;
 
 const TEXTURE_EGUI: u64 = 0;
-const TEXTURE_TEXT: u64 = 1;
-const TEXTURE_GLYPH: u64 = 2;
-const TEXTURE_TILEMAP: u64 = 3;
+// TODO: update the numbers here
+const TEXTURE_GLYPH: u64 = 1;
+const TEXTURE_TILEMAP: u64 = 2;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum Texture {
     Egui = TEXTURE_EGUI,
-    Text = TEXTURE_TEXT,
     Glyph = TEXTURE_GLYPH,
     Tilemap = TEXTURE_TILEMAP,
 }
@@ -55,7 +53,6 @@ impl Into<egui::TextureId> for Texture {
         use egui::TextureId;
         match self {
             Texture::Egui => TextureId::Egui,
-            Texture::Text => TextureId::User(self as u64),
             Texture::Glyph => TextureId::User(self as u64),
             Texture::Tilemap => TextureId::User(self as u64),
         }
@@ -291,7 +288,6 @@ fn build_vertices<T: VertexStore>(
                 let (tile_width, tile_height) = (dst.width() as f32, dst.height() as f32);
                 let (tilemap_x, tilemap_y) = (src.top_left().x as f32, src.top_left().y as f32);
                 let (texture_width, texture_height) = match texture {
-                    Texture::Text => (tile_width, tile_height),
                     Texture::Glyph => (tile_width, tile_height),
                     Texture::Tilemap => (TILE_SIZE as f32, TILE_SIZE as f32),
                     // NOTE: Egui shouldn't appear in drawcalls, adding it here for completeness
@@ -411,133 +407,6 @@ pub trait TextMetrics {
     fn tile_width_px(&self) -> i32;
 
     fn text_width_px(&self) -> i32;
-
-    fn advance_width_px(&self, glyph: char) -> i32 {
-        // NOTE: we're assuming that font_size and tilesize always match!
-        let font_size = self.tile_width_px() as u32;
-        glyph_advance_width(font_size, glyph).unwrap_or(self.tile_width_px())
-    }
-
-    /// Return the height in tiles of the given text.
-    ///
-    /// Panics when `text_drawcall` is not `Draw::Text`
-    fn get_text_height(&self, text: &str, options: TextOptions) -> i32 {
-        if options.wrap && options.width > 0 {
-            let font_size = self.text_width_px() as u32;
-            // TODO: this does a needless allocation by
-            // returning Vec<String> we don't use here.
-            let lines = wrap_text(&text, font_size, options.width, self.tile_width_px());
-            lines.len() as i32
-        } else {
-            1
-        }
-    }
-
-    /// Return the width in tiles of the given text.
-    ///
-    /// Panics when `text_drawcall` is not `Draw::Text`
-    fn get_text_width(&self, text: &str, options: TextOptions) -> i32 {
-        let font_size = self.text_width_px() as u32;
-        let pixel_width = if options.wrap && options.width > 0 {
-            // // TODO: handle text alignment for wrapped text
-            let lines = wrap_text(text, font_size, options.width, self.tile_width_px());
-            lines
-                .iter()
-                .map(|line| text_width_px(line, font_size, self.tile_width_px()))
-                .max()
-                .unwrap_or(0)
-        } else {
-            text_width_px(text, font_size, self.tile_width_px())
-        };
-        let tile_width = (pixel_width as f32 / self.tile_width_px() as f32).ceil();
-        tile_width as i32
-    }
-
-    /// Return the width and height of the given text in tiles.
-    ///
-    /// Panics when `text_drawcall` is not `Draw::Text`
-    fn text_size(&self, text: &str, options: TextOptions) -> Point {
-        Point::new(
-            self.get_text_width(text, options),
-            self.get_text_height(text, options),
-        )
-    }
-
-    /// Return the rectangle the text will be rendered in.
-    ///
-    /// Panics when `text_drawcall` is not `Draw::Text`
-    fn text_rect(&self, start_pos: Point, text: &str, options: TextOptions) -> Rectangle {
-        let size = self.text_size(text, options);
-        let top_left = if options.wrap && options.width > 0 {
-            start_pos
-        } else {
-            use crate::engine::TextAlign::*;
-            match options.align {
-                Left => start_pos,
-                Right => start_pos + (1 - size.x, 0),
-                Center => {
-                    if options.width < 1 || (size.x > options.width) {
-                        start_pos
-                    } else {
-                        start_pos + Point::new((options.width - size.x) / 2, 0)
-                    }
-                }
-            }
-        };
-
-        Rectangle::from_point_and_size(top_left, size)
-    }
-
-    fn button_rect(&self, button: &Button) -> Rectangle {
-        let rect = self.text_rect(button.pos, &button.text, button.text_options);
-        if rect.height() < button.text_options.height {
-            let new_size = rect.size() + (0, button.text_options.height - rect.height());
-            Rectangle::from_point_and_size(rect.top_left(), new_size)
-        } else {
-            rect
-        }
-    }
-}
-
-// Calculate the width in pixels of a given text
-fn text_width_px(text: &str, font_size: u32, max_glyph_width_px: i32) -> i32 {
-    text.chars()
-        .map(|chr| glyph_advance_width(font_size, chr).unwrap_or(max_glyph_width_px as i32))
-        .sum()
-}
-
-/// Wrap the string with a specified font size based on the width in tiles.
-/// `tile_width_px` determines the width of a single tile.
-/// TODO That kinda seems weird? Why do we need it instead of just setting pixels?
-fn wrap_text(text: &str, font_size: u32, width_tiles: i32, tile_width_px: i32) -> Vec<String> {
-    let mut result = vec![];
-    let wrap_width_px = width_tiles * tile_width_px;
-    let space_width = glyph_advance_width(font_size, ' ').unwrap_or(tile_width_px as i32);
-
-    let mut current_line = String::new();
-    let mut current_width_px = 0;
-
-    let mut words = text.split(' ');
-    if let Some(word) = words.next() {
-        current_width_px += text_width_px(word, font_size, tile_width_px);
-        current_line.push_str(word);
-    }
-
-    for word in words {
-        let word_width = text_width_px(word, font_size, tile_width_px);
-        if current_width_px + space_width + word_width <= wrap_width_px {
-            current_width_px += space_width + word_width;
-            current_line.push(' ');
-            current_line.push_str(word);
-        } else {
-            result.push(current_line);
-            current_width_px = word_width;
-            current_line = String::from(word);
-        }
-    }
-    result.push(current_line);
-
-    result
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -777,130 +646,6 @@ impl Display {
         self.drawcalls.push(Drawcall::Rectangle(rect, color.into()));
     }
 
-    /// Draw a Button
-    pub fn draw_button(&mut self, button: &Button) {
-        self.draw_text_in_tile_coordinates(
-            button.pos,
-            &button.text,
-            button.color,
-            button.text_options,
-            self.tile_size,
-        );
-    }
-
-    /// Draw a glyph at the given pixel position.
-    ///
-    /// No offset or tile structure is applied. This is a raw command
-    /// for when you really need to position a character precisely.
-    pub fn draw_glyph_abs_px(&mut self, x: i32, y: i32, glyph: char, color: Color) {
-        let (texture_px_x, texture_px_y) =
-            texture_coords_px_from_char(self.text_size as u32, glyph).unwrap_or((0, 0));
-
-        let src = Rectangle::from_point_and_size(
-            Point::new(texture_px_x, texture_px_y),
-            Point::from_i32(self.text_size),
-        );
-        let dst = Rectangle::from_point_and_size(Point::new(x, y), Point::from_i32(self.text_size));
-
-        self.drawcalls
-            .push(Drawcall::Image(Texture::Text, src, dst, color));
-    }
-
-    /// Draw text with tile coordinates rather than pixels.
-    ///
-    /// Shorthand for `draw_text`
-    pub fn draw_text_in_tile_coordinates(
-        &mut self,
-        start_pos_tile: Point,
-        text: &str,
-        color: Color,
-        options: TextOptions,
-        tilesize: i32,
-    ) -> DrawResult {
-        let start_pos_px = start_pos_tile * tilesize;
-        self.draw_text_in_pixel_coordinates(start_pos_px, text, color, options)
-    }
-
-    pub fn draw_text_in_pixel_coordinates(
-        &mut self,
-        start_pos_px: Point,
-        text: &str,
-        color: Color,
-        options: TextOptions,
-    ) -> DrawResult {
-        // Pull these out to variables prevent mutable borrow conflicts in the `render_line` closure:
-        let text_size = self.text_size;
-        let tile_size = self.tile_size;
-        let mut render_line = |pos_px: Point, line: &str| {
-            let mut offset_x = 0;
-
-            // TODO: we need to split this by words or it
-            // won't do word breaks, split at punctuation,
-            // etc.
-
-            // TODO: also, we're no longer calculating the
-            // line height correctly. Needs to be set on the
-            // actual result here.
-            for chr in line.chars() {
-                let (texture_px_x, texture_px_y) =
-                    texture_coords_px_from_char(text_size as u32, chr).unwrap_or((0, 0));
-
-                let src = Rectangle::from_point_and_size(
-                    Point::new(texture_px_x, texture_px_y),
-                    Point::from_i32(text_size),
-                );
-                let dst = Rectangle::from_point_and_size(
-                    pos_px + (offset_x, 0),
-                    Point::from_i32(text_size),
-                );
-
-                self.drawcalls
-                    .push(Drawcall::Image(Texture::Text, src, dst, color));
-
-                let advance_width = glyph_advance_width(text_size as u32, chr).unwrap_or(text_size);
-                offset_x += advance_width;
-            }
-        };
-
-        if options.wrap && options.width > 0 {
-            // TODO: handle text alignment for wrapped text
-            let lines = wrap_text(text, text_size as u32, options.width, tile_size);
-            for (index, line) in lines.iter().skip(options.skip as usize).enumerate() {
-                if (index as i32) < options.height {
-                    let pos = start_pos_px + Point::new(0, index as i32) * text_size;
-                    render_line(pos, line);
-                } else {
-                    return DrawResult::Overflow;
-                }
-            }
-        } else {
-            use crate::engine::TextAlign::*;
-            let pos = match options.align {
-                Left => start_pos_px,
-                Right => {
-                    (start_pos_px + Point::new(1, 0) * tile_size)
-                        - Point::new(text_width_px(text, text_size as u32, tile_size), 0)
-                }
-                Center => {
-                    let text_width = text_width_px(text, text_size as u32, tile_size);
-                    let max_width = options.width * tile_size;
-                    if max_width < 1 || (text_width > max_width) {
-                        start_pos_px
-                    } else {
-                        start_pos_px + Point::new((max_width - text_width) / 2, 0)
-                    }
-                }
-            };
-            if options.skip == 0 {
-                render_line(pos, text);
-            } else {
-                return DrawResult::Overflow;
-            }
-        }
-
-        DrawResult::Fit
-    }
-
     pub fn get(&self, pos: Point) -> Color {
         if let Some(ix) = self.index(pos) {
             self.map[ix].background
@@ -954,7 +699,6 @@ impl Display {
             };
 
             let texture_size = match texture {
-                Texture::Text => self.text_size,
                 Texture::Glyph => self.tile_size,
                 Texture::Tilemap => TILE_SIZE,
                 // NOTE: Egui shouldn't appear in drawcalls, adding it here for completeness
@@ -973,14 +717,6 @@ impl Display {
             );
 
             let x_offset = match texture {
-                // NOTE: We should never get `Texture::Text` in the cells iterator, right?
-                Texture::Text => {
-                    // NOTE: Center the glyphs in their cells
-                    let glyph_width =
-                        glyph_advance_width(self.text_size as u32, cell.graphic.into())
-                            .unwrap_or(self.tile_size);
-                    (self.tile_size as i32 - glyph_width) / 2
-                }
                 // TODO: we should center this in build.rs and set x_offset to zero
                 Texture::Glyph => {
                     // NOTE: Center the glyphs in their cells

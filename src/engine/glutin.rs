@@ -505,7 +505,6 @@ monitor ID: {:?}. Ignoring this request.",
                     // effect.
                     let texture_size = match mesh.texture_id {
                         egui::TextureId::Egui => [1.0, 1.0],
-                        egui::TextureId::User(engine::TEXTURE_TEXT) => opengl_app.fontmap_size_px,
                         egui::TextureId::User(engine::TEXTURE_GLYPH) => opengl_app.glyphmap_size_px,
                         egui::TextureId::User(engine::TEXTURE_TILEMAP) => {
                             opengl_app.tilemap_size_px

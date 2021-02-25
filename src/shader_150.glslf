@@ -1,7 +1,5 @@
 #version 150 core
 
-uniform sampler2D textmap;
-uniform vec2 textmap_size_px;
 uniform sampler2D glyphmap;
 uniform vec2 glyphmap_size_px;
 uniform sampler2D tilemap;
@@ -27,10 +25,8 @@ void main() {
     // That means we shouldn't divide them by eguimap_size_px as they're in the [0, 1] range already.
     out_color = texture(eguimap, v_tile_pos) * v_color;
   } else if (v_texture_id == 1.0) {
-    out_color = texture(textmap, v_tile_pos / textmap_size_px) * v_color;
-  } else if (v_texture_id == 2.0) {
     out_color = texture(glyphmap, v_tile_pos / glyphmap_size_px) * v_color;
-  } else if (v_texture_id == 3.0) {
+  } else if (v_texture_id == 2.0) {
     out_color = texture(tilemap, v_tile_pos / tilemap_size_px) * v_color;
   }
 }

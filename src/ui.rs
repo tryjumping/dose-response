@@ -9,7 +9,7 @@ use crate::{
     rect::Rectangle,
 };
 
-use egui::{self, widgets, Color32, Pos2, Rect, Response, Sense, TextureId, Ui, Vec2, Widget};
+use egui::{self, widgets, Color32, Rect, Response, Sense, Ui, Vec2, Widget};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Text<'a> {
@@ -160,13 +160,13 @@ pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
 /// conventions) followed up by a text.
 #[derive(Clone, Debug)]
 pub struct ImageTextButton {
-    texture_id: TextureId,
+    texture: Texture,
     text: String,
     prefix_text: String,
     sense: Sense,
     frame: bool,
     selected: bool,
-    uv: Rect,
+    graphic: Graphic,
     image_color: Color32,
     text_color: Color32,
     text_disabled_color: Color32,
@@ -176,24 +176,18 @@ pub struct ImageTextButton {
 impl ImageTextButton {
     pub fn new(texture: Texture, text: impl Into<String>) -> Self {
         Self {
-            texture_id: texture.into(),
+            texture,
             text: text.into(),
             prefix_text: String::new(),
             sense: Sense::click(),
             frame: true,
             selected: true,
-            uv: Rect::from_min_size(Pos2::ZERO, Vec2::splat(1.0)),
+            graphic: Graphic::default(),
             image_color: color::WHITE.into(),
             text_color: color::WHITE.into(),
             text_disabled_color: color::WHITE.into(),
             background_color: color::BLACK.into(),
         }
-    }
-
-    /// Select UV range. Default is (0,0) in top-left, (1,1) bottom right.
-    pub fn uv(mut self, uv: impl Into<Rect>) -> Self {
-        self.uv = uv.into();
-        self
     }
 
     /// Set the optional text that appears before the image.
@@ -204,17 +198,9 @@ impl ImageTextButton {
 
     /// Set the tile by passing in the `Graphic` enum rather than the
     /// `uv` coordinates.
-    pub fn tile(self, tile: Graphic) -> Self {
-        // TODO: Get the tilemap_size properly rather than hardcoding.
-        // NOTE: The glyphmap coordinates are coming from a different function as well
-        // so this is going to be a bit more complicated.
-        let tilemap_size = 180.0;
-        let tilesize = 10.0;
-        let (x, y) = graphic::tilemap_coords_px(0, tile).unwrap();
-        self.uv(egui::Rect::from_min_size(
-            (x as f32 / tilemap_size, y as f32 / tilemap_size).into(),
-            Vec2::splat(tilesize / tilemap_size),
-        ))
+    pub fn tile(mut self, tile: Graphic) -> Self {
+        self.graphic = tile;
+        self
     }
 
     /// Multiply image color with this. Default is WHITE (no tint).
@@ -261,13 +247,13 @@ impl ImageTextButton {
 impl Widget for ImageTextButton {
     fn ui(self, ui: &mut Ui) -> Response {
         let Self {
-            texture_id,
+            texture,
             text,
             prefix_text,
             sense,
             frame,
             selected,
-            uv,
+            graphic,
             image_color,
             text_color,
             text_disabled_color,
@@ -279,7 +265,41 @@ impl Widget for ImageTextButton {
         let prefix_galley = font.layout_no_wrap(prefix_text);
         let text_galley = font.layout_no_wrap(text);
 
-        let image = widgets::Image::new(texture_id, Vec2::splat(text_galley.size.y))
+        let uv = {
+            let (x, y, tw, th, tilesize) = match self.texture {
+                Texture::Tilemap => {
+                    // TODO: Get the tilemap_size properly rather than hardcoding.
+                    let tilemap_size = 180.0;
+                    // NOTE: the graphical texture only has the 10px size. Still, don't hardcode
+                    let tilesize = 10.0;
+                    let (x, y) = graphic::tilemap_coords_px(0, graphic).unwrap_or((0, 0));
+                    (x, y, tilemap_size, tilemap_size, tilesize)
+                }
+                Texture::Glyph => {
+                    let tilesize = text_galley.size.y;
+                    let tilemap_width = crate::engine::TILE_TEXTURE_WIDTH as f32;
+                    let tilemap_height = crate::engine::TILE_TEXTURE_HEIGHT as f32;
+                    let (x, y) =
+                        crate::engine::glyph_coords_px_from_char(tilesize as u32, graphic.into())
+                            .unwrap_or((0, 0));
+                    (x, y, tilemap_width, tilemap_height, tilesize)
+                }
+                texture => {
+                    log::error!(
+                        "ERROR: ImageTextButton: unexpected texture type: {:?}",
+                        texture
+                    );
+                    (0, 0, 0.0, 0.0, 0.0)
+                }
+            };
+
+            egui::Rect::from_min_size(
+                (x as f32 / tw, y as f32 / th).into(),
+                Vec2::new(tilesize / tw, tilesize / th),
+            )
+        };
+
+        let image = widgets::Image::new(texture.into(), Vec2::splat(text_galley.size.y))
             .uv(uv)
             .tint(image_color)
             .bg_fill(background_color);

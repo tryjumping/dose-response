@@ -171,10 +171,10 @@ fn main() {
         backends,
     ));
 
+    let text_sizes = [28, 21, 16];
     // NOTE: Generate the text map texture
     {
         let default_text_size = 21;
-        let text_sizes = [28, 21, 16];
         assert!(text_sizes.contains(&default_text_size));
 
         // NOTE: recardless of what value we set here, always keep it power of two!
@@ -282,7 +282,7 @@ fn main() {
         // NOTE: Generate the `texture_coords_from_char` query function
 
         lookup_table_contents.push_str(
-            "fn texture_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n",
+            "pub fn texture_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n",
         );
         lookup_table_contents.push_str("match (size, chr) {\n");
         for &(font_size, ref _glyph, chr, tilepos_x, tilepos_y) in &glyphs {
@@ -331,7 +331,7 @@ fn main() {
         let tile_chars = " #.@&aDhSviI+x%!".chars().collect::<Vec<_>>();
 
         // NOTE: recardless of what value we set here, always keep it power of two!
-        let texture_width = 256;
+        let texture_width = 512;
         let texture_height = 256;
 
         lookup_table_contents.push_str(&format!(
@@ -370,10 +370,14 @@ fn main() {
 
         // NOTE: the packing can be made more efficient if we place the
         // biggest glyphs first.
-        let mut tile_sizes = tile_sizes.clone();
-        tile_sizes.sort_by(|a, b| b.cmp(a));
+        let all_sizes = {
+            let mut sizes: Vec<_> = tile_sizes.into();
+            sizes.extend(&text_sizes);
+            sizes.sort_by(|a, b| b.cmp(a));
+            sizes
+        };
 
-        for &size in &tile_sizes {
+        for &size in &all_sizes {
             let height = size as f32;
             let scale = Scale::uniform(height);
             let v_metrics = font.v_metrics(scale);
@@ -420,7 +424,7 @@ fn main() {
         // NOTE: Generate the `texture_coords_from_char` query function
 
         lookup_table_contents.push_str(
-            "fn glyph_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n",
+            "pub fn glyph_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n",
         );
         lookup_table_contents.push_str("match (size, chr) {\n");
         for &(font_size, ref _glyph, chr, tilepos_x, tilepos_y) in &glyphs {
@@ -466,6 +470,7 @@ fn main() {
     // We want these artifacts in the target dir right next to the
     // binaries, not just in the hard-to-find out-dir
     copy_output_artifacts_to_target("text.png");
+    copy_output_artifacts_to_target("glyph.png");
     copy_output_artifacts_to_target("webgl_vertex_shader.glsl");
     copy_output_artifacts_to_target("webgl_fragment_shader.glsl");
 

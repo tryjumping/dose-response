@@ -146,8 +146,7 @@ impl Widget for ImageTextButton {
                 Texture::Tilemap => {
                     // TODO: Get the tilemap_size properly rather than hardcoding.
                     let tilemap_size = 180.0;
-                    // NOTE: the graphical texture only has the 10px size. Still, don't hardcode
-                    let tilesize = 10.0;
+                    let tilesize = graphic::TILE_SIZE as f32;
                     let (x, y) = graphic::tilemap_coords_px(0, graphic).unwrap_or((0, 0));
                     (x, y, tilemap_size, tilemap_size, tilesize)
                 }

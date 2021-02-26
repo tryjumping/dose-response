@@ -104,7 +104,6 @@ pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
     pub display: Display,
-    pub fontmap: RgbaImage,
     pub glyphmap: RgbaImage,
     pub tilemap: RgbaImage,
     pub egui_texture_version: Option<u64>,
@@ -149,14 +148,6 @@ impl LoopState {
             display.display_size.x,
             display.display_size.y
         );
-
-        let fontmap = {
-            let data = &include_bytes!(concat!(env!("OUT_DIR"), "/text.png"))[..];
-            image::load_from_memory_with_format(data, image::PNG)
-                .unwrap()
-                .to_rgba()
-        };
-        log::debug!("Loaded text tilemap.");
 
         let glyphmap = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/glyph.png"))[..];
@@ -223,7 +214,6 @@ impl LoopState {
             settings,
             previous_settings,
             display,
-            fontmap,
             glyphmap,
             tilemap,
             egui_texture_version,

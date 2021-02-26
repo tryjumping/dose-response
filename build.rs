@@ -185,6 +185,21 @@ fn main() {
         text_sizes,
     ));
 
+    // NOTE: Load the tilemap dimensions so they're available to the whole program
+    {
+        let (width, height) = image::image_dimensions("assets/tiles.png").unwrap();
+
+        lookup_table_contents.push_str(&format!(
+            "pub const TILEMAP_TEXTURE_WIDTH: u32 = {};\n",
+            width as u32
+        ));
+
+        lookup_table_contents.push_str(&format!(
+            "pub const TILEMAP_TEXTURE_HEIGHT: u32 = {};\n",
+            height as u32
+        ));
+    }
+
     // NOTE: generate the glyph map texture
     {
         let default_tile_size = 30;
@@ -205,12 +220,12 @@ fn main() {
         ));
 
         lookup_table_contents.push_str(&format!(
-            "pub const TILE_TEXTURE_WIDTH: u32 = {};\n",
+            "pub const GLYPHMAP_TEXTURE_WIDTH: u32 = {};\n",
             texture_width as u32
         ));
 
         lookup_table_contents.push_str(&format!(
-            "pub const TILE_TEXTURE_HEIGHT: u32 = {};\n",
+            "pub const GLYPHMAP_TEXTURE_HEIGHT: u32 = {};\n",
             texture_height as u32
         ));
 

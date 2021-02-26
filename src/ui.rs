@@ -144,16 +144,16 @@ impl Widget for ImageTextButton {
         let uv = {
             let (x, y, tw, th, tilesize) = match self.texture {
                 Texture::Tilemap => {
-                    // TODO: Get the tilemap_size properly rather than hardcoding.
-                    let tilemap_size = 180.0;
                     let tilesize = graphic::TILE_SIZE as f32;
+                    let tilemap_width = crate::engine::TILEMAP_TEXTURE_WIDTH as f32;
+                    let tilemap_height = crate::engine::TILEMAP_TEXTURE_HEIGHT as f32;
                     let (x, y) = graphic::tilemap_coords_px(0, graphic).unwrap_or((0, 0));
-                    (x, y, tilemap_size, tilemap_size, tilesize)
+                    (x, y, tilemap_width, tilemap_height, tilesize)
                 }
                 Texture::Glyph => {
                     let tilesize = text_galley.size.y;
-                    let tilemap_width = crate::engine::TILE_TEXTURE_WIDTH as f32;
-                    let tilemap_height = crate::engine::TILE_TEXTURE_HEIGHT as f32;
+                    let tilemap_width = crate::engine::GLYPHMAP_TEXTURE_WIDTH as f32;
+                    let tilemap_height = crate::engine::GLYPHMAP_TEXTURE_HEIGHT as f32;
                     let (x, y) =
                         crate::engine::glyph_coords_px_from_char(tilesize as u32, graphic.into())
                             .unwrap_or((0, 0));

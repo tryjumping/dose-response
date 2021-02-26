@@ -716,28 +716,12 @@ impl Display {
                 Point::from_i32(self.tile_size),
             );
 
-            let x_offset = match texture {
-                // TODO: we should center this in build.rs and set x_offset to zero
-                Texture::Glyph => {
-                    // NOTE: Center the glyphs in their cells
-                    let glyph_width =
-                        glyph_advance_width(self.text_size as u32, cell.graphic.into())
-                            .unwrap_or(self.tile_size);
-                    (self.tile_size as i32 - glyph_width) / 2
-                }
-                // NOTE: The graphical tiles are positioned correctly already
-                Texture::Tilemap => 0,
-                // NOTE: Egui shouldn't appear in drawcalls, adding it here for completeness
-                Texture::Egui => 0,
-            };
-            let glyph_dst = background_dst.offset(Point::new(x_offset, 0));
-
             if rect_intersects_area(background_dst, display_size_px) {
                 drawcalls.push(Drawcall::Rectangle(background_dst, cell.background.into()));
                 drawcalls.push(Drawcall::Image(
                     texture,
                     texture_src,
-                    glyph_dst,
+                    background_dst,
                     cell.foreground,
                 ));
             }

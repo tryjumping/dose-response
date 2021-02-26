@@ -229,7 +229,6 @@ fn main() {
             .map(|(index, &chr)| (index, chr))
             .collect::<Vec<_>>();
 
-        let mut glyph_advance_width_entries = vec![];
         let mut glyphs = vec![];
 
         let tilemap_offset_x = 0;
@@ -249,33 +248,25 @@ fn main() {
             let scale = Scale::uniform(height);
             let v_metrics = font.v_metrics(scale);
 
-            let h_metrics = lookup_table
-                .iter()
-                .map(|&(_index, chr)| font.glyph(chr).scaled(scale).h_metrics().advance_width);
-
-            for (&(_index, chr), advance_width) in lookup_table.iter().zip(h_metrics) {
-                glyph_advance_width_entries.push((height as u32, chr, advance_width as i32));
-            }
-
             let tiles_per_texture_width = texture_width / size;
 
             let glyphs_iter = lookup_table
                 .iter()
                 .filter(|&(_index, chr)| tile_chars.contains(chr))
                 .map(|&(index, chr)| {
+                    let glyph = font.glyph(chr).scaled(scale);
+                    let advance_width = glyph.h_metrics().advance_width;
+                    let offset_x = (size as f32 - advance_width) / 2.0;
                     let column = index as i32 % tiles_per_texture_width;
                     let line = index as i32 / tiles_per_texture_width;
                     let tilepos_x = column * size + tilemap_offset_x;
                     let tilepos_y = line * size + tilemap_offset_y;
-                    let glyph = font
-                        .glyph(chr)
-                        .scaled(scale)
-                        // TODO: center the glyph here so we don't have to do it in the game code
-                        // USE the glyph_advance_width function to find out where to center
-                        .positioned(point(tilepos_x as f32, tilepos_y as f32 + v_metrics.ascent));
-                    (size, glyph, chr, tilepos_x, tilepos_y)
+                    let positioned_glyph = glyph.positioned(point(
+                        tilepos_x as f32 + offset_x,
+                        tilepos_y as f32 + v_metrics.ascent,
+                    ));
+                    (size, positioned_glyph, chr, tilepos_x, tilepos_y)
                 });
-
             glyphs.extend(glyphs_iter);
 
             let full_font_width_px = lookup_table.len() as i32 * size;
@@ -290,23 +281,7 @@ fn main() {
             }
         }
 
-        // NOTE: Generate the `glyph_advance_width` query function
-        lookup_table_contents
-            .push_str("pub fn glyph_advance_width(size: u32, chr: char) -> Option<i32> {\n");
-        lookup_table_contents.push_str("match (size, chr) {\n");
-
-        for (font_size, chr, advance_width) in &glyph_advance_width_entries {
-            lookup_table_contents.push_str(&format!(
-                "    ({:?}, {:?}) => Some({}),\n",
-                font_size, chr, advance_width
-            ));
-        }
-
-        lookup_table_contents.push_str("_ => None,\n}\n\n");
-        lookup_table_contents.push_str("}\n");
-
         // NOTE: Generate the `texture_coords_from_char` query function
-
         lookup_table_contents.push_str(
             "pub fn glyph_coords_px_from_char(size: u32, chr: char) -> Option<(i32, i32)> {\n",
         );

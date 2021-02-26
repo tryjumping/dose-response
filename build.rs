@@ -187,13 +187,11 @@ fn main() {
 
     // NOTE: generate the glyph map texture
     {
-        // TODO: render a separate glyphmap for the game tiles as opposed to generic text
-        // NOTE: We can center them properly and not have to do the position fixup in the game
         let default_tile_size = 30;
         let tile_sizes = [40, 30, 20];
         assert!(tile_sizes.contains(&default_tile_size));
 
-        // TODO: get this out of graphics somehow?
+        // TODO: get this out of the graphics module somehow?
         // Or like, validate all the glyphs from Graphics are covered?
         let tile_chars = " #.@&aDhSviI+x%!".chars().collect::<Vec<_>>();
 

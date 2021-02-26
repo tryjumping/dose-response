@@ -60,15 +60,12 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
 
     for (index, &alpha) in egui_texture.pixels.iter().enumerate() {
         let alpha_pixel = egui::Rgba::from_white_alpha(alpha as f32 / 255.0);
-        let pixel = Rgba {
-            // TODO: can this just be [255, 255, 255, alpha]??
-            data: [
-                (alpha_pixel.r() * 255.0) as u8,
-                (alpha_pixel.g() * 255.0) as u8,
-                (alpha_pixel.b() * 255.0) as u8,
-                (alpha_pixel.a() * 255.0) as u8,
-            ],
-        };
+        let pixel = Rgba([
+            (alpha_pixel.r() * 255.0) as u8,
+            (alpha_pixel.g() * 255.0) as u8,
+            (alpha_pixel.b() * 255.0) as u8,
+            (alpha_pixel.a() * 255.0) as u8,
+        ]);
         texture.put_pixel(index as u32 % width, index as u32 / width, pixel);
     }
 
@@ -151,19 +148,18 @@ impl LoopState {
 
         let glyphmap = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/glyph.png"))[..];
-            image::load_from_memory_with_format(data, image::PNG)
+            image::load_from_memory_with_format(data, image::ImageFormat::Png)
                 .unwrap()
-                .to_rgba()
+                .to_rgba8()
         };
         log::debug!("Loaded glyph tilemap.");
 
         let mut tilemap = {
-            //let data = &include_bytes!("../../assets/bountiful-bits/Natural-no-bg.png")[..];
             // NOTE: including a manually-edited tileset based on Bountiful Bits
             let data = &include_bytes!("../../assets/tiles.png")[..];
-            image::load_from_memory_with_format(data, image::PNG)
+            image::load_from_memory_with_format(data, image::ImageFormat::Png)
                 .unwrap()
-                .to_rgba()
+                .to_rgba8()
         };
         log::debug!("Loaded the graphics tilemap.");
         // Normalise the tilemap colours.

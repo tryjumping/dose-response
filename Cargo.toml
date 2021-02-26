@@ -28,7 +28,7 @@ egui = "0.9"
 #egui = { path = "../../3pc/src/github.com/emilk/emigui/egui" }
 gl = { version = "0.10", optional = true }
 glutin = { version = "0.24", optional = true }
-image = { version = "0.20", optional = true }
+image = { version = "0.23.13", optional = true }
 line_drawing = "0.7"
 log = "0.4.1"
 log-panics = { version = "2.0", features = ["with-backtrace"], optional = true }
@@ -43,7 +43,7 @@ zmq = { version = "0.8", optional = true }
 
 [build-dependencies]
 rusttype = "0.7"
-image = "0.20"
+image = "0.23.13"
 
 # Only compile winres on Windows targets.
 [target.'cfg(windows)'.build-dependencies]

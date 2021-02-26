@@ -305,9 +305,7 @@ fn main() {
                     // the boundaries of the bitmap
                     if x >= 0 && x < texture_width as i32 && y >= 0 && y < texture_height as i32 {
                         let alpha = (v * 255.0) as u8;
-                        let pixel = Rgba {
-                            data: [255, 255, 255, alpha],
-                        };
+                        let pixel = Rgba([255, 255, 255, alpha]);
                         textmap.put_pixel(x as u32, y as u32, pixel);
                     }
                 })

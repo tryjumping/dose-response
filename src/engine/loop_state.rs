@@ -60,12 +60,7 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
 
     for (index, &alpha) in egui_texture.pixels.iter().enumerate() {
         let alpha_pixel = egui::Rgba::from_white_alpha(alpha as f32 / 255.0);
-        let pixel = Rgba([
-            (alpha_pixel.r() * 255.0) as u8,
-            (alpha_pixel.g() * 255.0) as u8,
-            (alpha_pixel.b() * 255.0) as u8,
-            (alpha_pixel.a() * 255.0) as u8,
-        ]);
+        let pixel = Rgba([255, 255, 255, (alpha_pixel.a() * 255.0) as u8]);
         texture.put_pixel(index as u32 % width, index as u32 / width, pixel);
     }
 

@@ -167,7 +167,7 @@ impl Monster {
         rng: &mut Random,
     ) -> (Update, Action) {
         if self.dead {
-            panic!(format!("{:?} is dead, cannot run actions on it.", self));
+            panic!("{:?} is dead, cannot run actions on it.", self);
         }
         match self.behavior {
             Behavior::LoneAttacker => ai::lone_attacker_act(self, player_info, world, rng),

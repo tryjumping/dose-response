@@ -3,7 +3,7 @@
 use crate::{
     color::{self, Color},
     engine::{TextOptions, Texture},
-    graphic::{self, Graphic},
+    graphic::Graphic,
     palette::Palette,
     point::Point,
 };

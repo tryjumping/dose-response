@@ -324,7 +324,36 @@ pub fn process(
                         highlighted_tile_offset_from_player_pos = Some((0, -1));
                     }
 
-                    ui.add(egui::Button::new("@").enabled(false));
+                    // Add the player image
+                    {
+                        let texture = match settings.visual_style {
+                            VisualStyle::Graphical => Texture::Tilemap,
+                            VisualStyle::Textual => Texture::Glyph,
+                        };
+                        let (uv, tilesize) = ui::image_uv_tilesize(texture, state.player.graphic);
+                        let image_color = state.palette.player(state.player.color_index);
+                        let image =
+                            egui::widgets::Image::new(texture.into(), Vec2::splat(tilesize))
+                                .uv(uv)
+                                .tint(image_color);
+
+                        // Allocate the same UI space as any other button to keep the layout correct
+                        let sense = egui::Sense::click();
+                        let (rect, _response) = ui.allocate_exact_size(btn.rect.size(), sense);
+
+                        // Calculate the size of the actual rendered image and centre it
+                        let image_rect = {
+                            let text_size = settings.text_size as f32;
+                            // NOTE: this will return a rect with floating point values:
+                            let r = Rect::from_center_size(rect.center(), Vec2::splat(text_size));
+                            // We need to convert it to integers:
+                            Rect {
+                                min: r.min.floor(),
+                                max: r.max.floor(),
+                            }
+                        };
+                        image.paint_at(ui, image_rect);
+                    };
 
                     let btn = ui.add(ui::button("2", active, &state.palette));
                     if btn.clicked() {

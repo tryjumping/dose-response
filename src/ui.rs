@@ -32,7 +32,7 @@ pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
         .enabled(enabled)
 }
 
-pub fn image_uv_tilesize(texture: Texture, graphic: Graphic) -> (egui::Rect, f32) {
+pub fn image_uv_tilesize(texture: Texture, graphic: Graphic, text_size: f32) -> (egui::Rect, f32) {
     let (x, y, tw, th, tilesize) = match texture {
         Texture::Tilemap => {
             let tilesize = crate::graphic::TILE_SIZE as f32;
@@ -42,16 +42,12 @@ pub fn image_uv_tilesize(texture: Texture, graphic: Graphic) -> (egui::Rect, f32
             (x, y, tilemap_width, tilemap_height, tilesize)
         }
         Texture::Glyph => {
-            // let tilesize = text_galley.size.y;
-            // let tilemap_width = crate::engine::GLYPHMAP_TEXTURE_WIDTH as f32;
-            // let tilemap_height = crate::engine::GLYPHMAP_TEXTURE_HEIGHT as f32;
-            // let (x, y) = crate::engine::glyph_coords_px_from_char(
-            //     tilesize as u32,
-            //     graphic.into(),
-            // )
-            // .unwrap_or((0, 0));
-            // (x, y, tilemap_width, tilemap_height, tilesize)
-            todo!()
+            let tilesize = text_size;
+            let tilemap_width = crate::engine::GLYPHMAP_TEXTURE_WIDTH as f32;
+            let tilemap_height = crate::engine::GLYPHMAP_TEXTURE_HEIGHT as f32;
+            let (x, y) = crate::engine::glyph_coords_px_from_char(tilesize as u32, graphic.into())
+                .unwrap_or((0, 0));
+            (x, y, tilemap_width, tilemap_height, tilesize)
         }
         texture => {
             log::error!(
@@ -179,7 +175,7 @@ impl Widget for ImageTextButton {
         let prefix_galley = font.layout_no_wrap(prefix_text);
         let text_galley = font.layout_no_wrap(text);
 
-        let (uv, _tilesize) = image_uv_tilesize(texture, graphic);
+        let (uv, _tilesize) = image_uv_tilesize(texture, graphic, text_galley.size.y);
 
         let image = widgets::Image::new(texture.into(), Vec2::splat(text_galley.size.y))
             .uv(uv)

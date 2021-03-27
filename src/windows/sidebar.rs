@@ -330,7 +330,9 @@ pub fn process(
                             VisualStyle::Graphical => Texture::Tilemap,
                             VisualStyle::Textual => Texture::Glyph,
                         };
-                        let (uv, tilesize) = ui::image_uv_tilesize(texture, state.player.graphic);
+                        let text_size = settings.text_size as f32;
+                        let (uv, tilesize) =
+                            ui::image_uv_tilesize(texture, state.player.graphic, text_size);
                         let image_color = state.palette.player(state.player.color_index);
                         let image =
                             egui::widgets::Image::new(texture.into(), Vec2::splat(tilesize))
@@ -343,7 +345,6 @@ pub fn process(
 
                         // Calculate the size of the actual rendered image and centre it
                         let image_rect = {
-                            let text_size = settings.text_size as f32;
                             // NOTE: this will return a rect with floating point values:
                             let r = Rect::from_center_size(rect.center(), Vec2::splat(text_size));
                             // We need to convert it to integers:

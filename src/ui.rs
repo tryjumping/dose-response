@@ -32,6 +32,44 @@ pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
         .enabled(enabled)
 }
 
+pub fn image_uv_tilesize(texture: Texture, graphic: Graphic) -> (egui::Rect, f32) {
+    let (x, y, tw, th, tilesize) = match texture {
+        Texture::Tilemap => {
+            let tilesize = crate::graphic::TILE_SIZE as f32;
+            let tilemap_width = crate::engine::TILEMAP_TEXTURE_WIDTH as f32;
+            let tilemap_height = crate::engine::TILEMAP_TEXTURE_HEIGHT as f32;
+            let (x, y) = crate::graphic::tilemap_coords_px(0, graphic).unwrap_or((0, 0));
+            (x, y, tilemap_width, tilemap_height, tilesize)
+        }
+        Texture::Glyph => {
+            // let tilesize = text_galley.size.y;
+            // let tilemap_width = crate::engine::GLYPHMAP_TEXTURE_WIDTH as f32;
+            // let tilemap_height = crate::engine::GLYPHMAP_TEXTURE_HEIGHT as f32;
+            // let (x, y) = crate::engine::glyph_coords_px_from_char(
+            //     tilesize as u32,
+            //     graphic.into(),
+            // )
+            // .unwrap_or((0, 0));
+            // (x, y, tilemap_width, tilemap_height, tilesize)
+            todo!()
+        }
+        texture => {
+            log::error!(
+                "ERROR: ImageTextButton: unexpected texture type: {:?}",
+                texture
+            );
+            (0, 0, 0.0, 0.0, 0.0)
+        }
+    };
+
+    let uv = egui::Rect::from_min_size(
+        (x as f32 / tw, y as f32 / th).into(),
+        Vec2::new(tilesize / tw, tilesize / th),
+    );
+
+    (uv, tilesize)
+}
+
 /// A clickable button that shows an icon (following the `egui::Image`
 /// conventions) followed up by a text.
 #[derive(Clone, Debug)]
@@ -141,38 +179,7 @@ impl Widget for ImageTextButton {
         let prefix_galley = font.layout_no_wrap(prefix_text);
         let text_galley = font.layout_no_wrap(text);
 
-        let uv = {
-            let (x, y, tw, th, tilesize) = match self.texture {
-                Texture::Tilemap => {
-                    let tilesize = graphic::TILE_SIZE as f32;
-                    let tilemap_width = crate::engine::TILEMAP_TEXTURE_WIDTH as f32;
-                    let tilemap_height = crate::engine::TILEMAP_TEXTURE_HEIGHT as f32;
-                    let (x, y) = graphic::tilemap_coords_px(0, graphic).unwrap_or((0, 0));
-                    (x, y, tilemap_width, tilemap_height, tilesize)
-                }
-                Texture::Glyph => {
-                    let tilesize = text_galley.size.y;
-                    let tilemap_width = crate::engine::GLYPHMAP_TEXTURE_WIDTH as f32;
-                    let tilemap_height = crate::engine::GLYPHMAP_TEXTURE_HEIGHT as f32;
-                    let (x, y) =
-                        crate::engine::glyph_coords_px_from_char(tilesize as u32, graphic.into())
-                            .unwrap_or((0, 0));
-                    (x, y, tilemap_width, tilemap_height, tilesize)
-                }
-                texture => {
-                    log::error!(
-                        "ERROR: ImageTextButton: unexpected texture type: {:?}",
-                        texture
-                    );
-                    (0, 0, 0.0, 0.0, 0.0)
-                }
-            };
-
-            egui::Rect::from_min_size(
-                (x as f32 / tw, y as f32 / th).into(),
-                Vec2::new(tilesize / tw, tilesize / th),
-            )
-        };
+        let (uv, _tilesize) = image_uv_tilesize(texture, graphic);
 
         let image = widgets::Image::new(texture.into(), Vec2::splat(text_galley.size.y))
             .uv(uv)

@@ -191,26 +191,27 @@ fn endgame_tip(state: &State) -> String {
 
     let overdosed_tips = &[
         "Using another dose when High will likely cause overdose early on.",
-        "When you get too close to a dose, it will be impossible to resist.",
-        "The `+`, `x` and `I` doses are much stronger. Early on, you'll likely overdose on them.",
+        "When you get too close to a Dose, it will be impossible to resist.",
+        "The Cardinal, Diagonal and Strong Doses are much stronger. Early on, you'll likely overdose on them.",
     ];
 
-    let food_tips = &["Eat food (by pressing [1]) or use a dose to stave off withdrawal."];
+    let food_tips = &["Eat Food (by pressing [1]) or use a Dose to stave off withdrawal."];
 
     let hunger_tips = &[
-        "Being hit by `h` will quickly get you into a withdrawal.",
-        "The `h` monsters can swarm you.",
+        "Being hit by Hunger will quickly get you into a withdrawal.",
+        "The Hunger monsters can swarm you.",
     ];
 
-    let anxiety_tips = &["Being hit by `a` reduces your Will. You lose when it reaches zero."];
+    let anxiety_tips =
+        &["Being hit by an Anxiety reduces your Will. You lose when it reaches zero."];
 
     let unsorted_tips = &[
         "As you use doses, you slowly build up tolerance.",
         "Even the doses of the same kind can have different strength. Their purity varies.",
-        "Directly confronting `a` will slowly increase your Will.",
+        "Directly confronting Anxiety will slowly increase your Will.",
         "The other characters won't talk to you while you're High.",
-        "Bumping to another person sober will give you a bonus.",
-        "The `D` monsters move twice as fast as you. Be careful.",
+        "Talking to another person sober will give you a bonus.",
+        "The Depression monsters move twice as fast as you. Be careful.",
     ];
 
     let all_tips = overdosed_tips

@@ -113,30 +113,31 @@ h-@-l
 b j n
 ";
 
-pub const HOW_TO_PLAY: &str = r#"Your character ('@') is an addict. Stay long without using a Dose ('i'), and the game is over. Eat food ('%') to remain sober for longer. Using a Dose or eating Food will also defeat nearby enemies.
+pub const HOW_TO_PLAY: &str = r#"Your character is an addict. Stay long without using a Dose, and the game is over. Eat Food to remain sober for longer. Using a Dose or eating Food will also defeat nearby enemies.
 
-If you step into the glow around a Dose, you can't resist even if it means Overdosing yourself. At the beginning, you will also Overdose by using a Dose when you're still High or using a Dose that's too strong ('+', 'x' or 'I'). By using Doses you build up tolerance. You'll need stronger Doses later on.
+If you step into the glow around a Dose, you can't resist even if it means Overdosing yourself. At the beginning, you will also Overdose by using a Dose when you're still High or using a Dose that's too strong. By using Doses you build up tolerance. You'll need stronger Doses later on.
 
-The letters ('h', 'v', 'S', 'a' and 'D') are enemies. Each has their own way of harming you. The Depression ('D') moves twice as fast. The Anxiety ('a') will reduce your Will on each hit. When it reaches zero, you will lose.
+Each enemy has their own way of harming you. The Depression moves twice as fast. The Anxiety will reduce your Will on each hit. When it reaches zero, you will lose.
 
-To progress, your Will needs to get stronger. Defeat enough Anxieties ('a') to make it go up. The Dose or Food "explosions" don't count though! Higher Will shrinks the irresistible area around Doses. It also lets you pick them up!
+To progress, your Will needs to get stronger. Defeat enough Anxieties to make it go up. The Dose or Food "explosions" don't count though! Higher Will shrinks the irresistible area around Doses. It also lets you pick them up!
 
-If you see another '@' characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober. You can have only one bonus active at a time."#;
+If you see another player characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober. You can have only one bonus active at a time."#;
 
 pub const LEGEND: &str = "Monsters:
-'a' (anxiety): takes Will away when it hits you. Defeat them to win the game.
-'D' (depression): moves twice as fast. You lose immediately when it hits you.
-'h' (hunger): summons other Hungers nearby. Reduces your mind state.
-'v' (hearing voices): paralyzes you for three turns.
-'S' (seeing shadows): makes you move randomly for three turns.
-'@' (friendly): ignores you when High. Bump into them Sober for a bonus.
+Anxiety: takes Will away when it hits you. Defeat them to win the game.
+Depression: moves twice as fast. You lose immediately when it hits you.
+Hunger: summons other Hungers nearby. Reduces your mind state.
+Hearing Voices: paralyzes you for three turns.
+Seeing Shadows: makes you move randomly for three turns.
+
+NPC: ignores you when High. Talk to them Sober for a bonus.
 
 Items:
-'%' (food): prolongs being Sober or in a Withdrawal. Kills monsters around you.
-'i' (dose): makes you High. When you're High already, you'll likely Overdose.
-'+' (cardinal dose): Destroys trees in the horizontal and vertical lines.
-'x' (diagonal dose): Destroys trees in the diagonal lines.
-'I' (strong dose): very strong Dose. Don't walk into it by accident.
+Food: prolongs being Sober or in a Withdrawal. Kills monsters around you.
+Dose: makes you High. When you're High already, you'll likely Overdose.
+Cardinal Dose: Destroys trees in the horizontal and vertical lines.
+Diagonal Dose: Destroys trees in the diagonal lines.
+Strong Dose: very strong Dose. Don't walk into it by accident.
 
 Each Dose has a faint glow around it. If you step into it, you will not be able to resist.
 

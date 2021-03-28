@@ -598,6 +598,32 @@ fn process_game(
 
     let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
     let screen_coords_from_world = |pos| pos - screen_left_top_corner;
+    let mouse_world_position = screen_left_top_corner + state.mouse.tile_pos;
+
+    let explored = state
+        .world
+        .cell(mouse_world_position)
+        .map_or(true, |cell| cell.explored);
+
+    // NOTE: show tooltip of a hovered-over object
+    let tooltip = if !explored && settings.hide_unseen_tiles {
+        None
+    } else if mouse_world_position == state.player.pos {
+        Some("Player Character")
+    } else if let Some(monster) = state.world.monster_on_pos(mouse_world_position) {
+        Some(monster.name())
+    } else if let Some(cell) = state.world.cell(mouse_world_position) {
+        if let Some(item) = cell.items.get(0) {
+            Some(item.kind.name())
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    if let Some(tooltip) = tooltip {
+        egui::show_tooltip_text(ui.ctx(), egui::Id::new("Tile Tooltip"), tooltip);
+    }
 
     // NOTE: update the dose/food explosion animations
     state.explosion_animation = state.explosion_animation.take().and_then(|mut animation| {

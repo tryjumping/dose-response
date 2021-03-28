@@ -26,13 +26,7 @@ impl std::fmt::Display for Kind {
                 StrongDose => "Strong Dose",
             }
         } else {
-            match *self {
-                Food => "Food",
-                Dose => "Dose",
-                CardinalDose => "Cardinal Dose",
-                DiagonalDose => "Diagonal Dose",
-                StrongDose => "Strong Dose",
-            }
+            self.name()
         };
         f.write_str(s)
     }
@@ -42,6 +36,16 @@ impl Kind {
     pub fn iter() -> KindIterator {
         KindIterator {
             current: Some(self::Kind::Food),
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        match *self {
+            Food => "Food",
+            Dose => "Dose",
+            CardinalDose => "Cardinal Dose",
+            DiagonalDose => "Diagonal Dose",
+            StrongDose => "Strong Dose",
         }
     }
 }

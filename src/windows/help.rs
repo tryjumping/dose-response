@@ -228,12 +228,10 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                     }
 
                     Page::HowToPlay => {
-                        // TODO: Add the graphical tiles here!
                         ui.label(HOW_TO_PLAY);
                     }
 
                     Page::Legend => {
-                        // TODO: Add the graphical tiles here!
                         ui.label(LEGEND);
                     }
 

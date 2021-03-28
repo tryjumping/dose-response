@@ -4,7 +4,9 @@ use crate::{
     blocker::Blocker,
     color,
     engine::{Display, Mouse, TextMetrics},
-    formula, item,
+    formula,
+    graphic::Graphic,
+    item,
     keys::{Key, KeyCode, Keys},
     level::TileKind,
     monster::{self, CompanionBonus},
@@ -535,6 +537,7 @@ fn process_game(
             if effect.contains(animation::TileEffect::SHATTER) {
                 if let Some(cell) = state.world.cell_mut(pos) {
                     cell.tile.kind = TileKind::Empty;
+                    cell.tile.graphic = Graphic::Empty;
                     cell.items.clear();
                 }
             }

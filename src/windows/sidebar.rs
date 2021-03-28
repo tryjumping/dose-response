@@ -84,7 +84,8 @@ pub fn process(
 
     let bg_progress_bar_pos = ui.painter().add(Shape::Noop);
     let fg_progress_bar_pos = ui.painter().add(Shape::Noop);
-    let mindstate_rect = ui.label(mind_str).rect;
+    let progress_padding = 2.0;
+    let mindstate_rect = ui.label(mind_str).rect.expand(progress_padding);
 
     ui::progress_bar(
         &mut ui,
@@ -104,15 +105,18 @@ pub fn process(
 
     // Show the anxiety counter as a progress bar next to the `Will` number
     if state.show_anxiety_counter {
-        let top_left: egui::Pos2 =
-            [anxiety_counter_rect.right(), anxiety_counter_rect.top()].into();
+        let top_left: egui::Pos2 = [
+            anxiety_counter_rect.right() + progress_padding,
+            anxiety_counter_rect.top(),
+        ]
+        .into();
 
         ui::progress_bar(
             &mut ui,
             bg_anxiety_paint_pos,
             fg_anxiety_paint_pos,
             top_left,
-            ui_rect.right() - top_left.x,
+            ui_rect.right() - top_left.x - progress_padding,
             anxiety_counter_rect.height(),
             player.anxiety_counter.percent(),
             state.palette.gui_anxiety_progress_bar_bg,

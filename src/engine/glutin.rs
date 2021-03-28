@@ -426,7 +426,13 @@ monitor ID: {:?}. Ignoring this request.",
 
                 // NOTE: the egui output contains only the cursor, url to open and text
                 // to copy to the clipboard. So we can safely ignore that for now.
-                let (_output, paint_batches) = loop_state.egui_context.end_frame();
+                let (output, paint_batches) = loop_state.egui_context.end_frame();
+                if let Some(url) = output.open_url {
+                    if let Err(err) = webbrowser::open(&url) {
+                        log::warn!("Error opening URL {} in the external browser!", url);
+                        log::warn!("{}", err);
+                    }
+                }
                 ui_paint_batches = loop_state.egui_context.tessellate(paint_batches);
 
                 if cfg!(feature = "fullscreen") {

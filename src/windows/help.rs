@@ -143,21 +143,24 @@ Each Dose has a faint glow around it. If you step into it, you will not be able 
 
 When the glow disappears completely, you can pick the dose up and use it later. Don't lose Will if you're carrying doses though!";
 
-pub const CREDITS_DEV: &str =
-    "Design and development by Tomas Sedovic at https://tomas.sedovic.cz/";
+pub const CREDITS_DEV: &str = "Design and development by Tomas Sedovic: https://tomas.sedovic.cz/";
+pub const TOMAS_URL: &str = "https://tomas.sedovic.cz/";
 
-pub const CREDITS_TILES: &str = "Tiles by VEXED at https://vexed.zone/
-licensed under Creative Commons 0";
+pub const CREDITS_TILES: &str = "Tiles by VEXED: https://vexed.zone/";
+pub const TILES_LICENSE: &str = "licensed under Creative Commons 0";
+pub const VEXED_URL: &str = "https://vexed.zone/";
 
-pub const CREDITS_FONT: &str = "Mononoki typeface by Matthias Tellen at https://github.com/madmalik
-Copyright (c) 2013, Matthias Tellen matthias.tellen@googlemail.com
+pub const CREDITS_FONT: &str = "Mononoki typeface by Matthias Tellen: https://github.com/madmalik";
+pub const MONONOKI_URL: &str = "https://github.com/madmalik";
+pub const FONT_LICENSE: &str =
+    "Copyright (c) 2013, Matthias Tellen <matthias.tellen@googlemail.com>
 licensed under the SIL Open Font License, Version 1.1";
 
 pub const CODE_LICENSE_ONELINE: &str =
     "licensed under GNU Affero General Public License 3 or later";
 
-pub const CODE_LICENSE_BLOCK: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU Affero General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:
-https://www.gnu.org/licenses/agpl-3.0.en.html";
+pub const CODE_LICENSE_BLOCK: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU Affero General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:";
+pub const AGPL_URL: &str = "https://www.gnu.org/licenses/agpl-3.0.en.html";
 
 pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningState {
     let mut visible = true;
@@ -235,13 +238,15 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                     }
 
                     Page::Credits => {
-                        ui.label(CREDITS_DEV);
+                        ui.hyperlink_to(CREDITS_DEV, TOMAS_URL);
                         ui.label(copyright);
                         ui.label(CODE_LICENSE_ONELINE);
                         ui.label("");
-                        ui.label(CREDITS_TILES);
+                        ui.hyperlink_to(CREDITS_TILES, VEXED_URL);
+                        ui.label(TILES_LICENSE);
                         ui.label("");
-                        ui.label(CREDITS_FONT);
+                        ui.hyperlink_to(CREDITS_FONT, MONONOKI_URL);
+                        ui.label(FONT_LICENSE);
                     }
 
                     Page::About => {
@@ -252,7 +257,10 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                         );
 
                         ui.label(version);
-                        ui.label(format!("Homepage: {}", crate::metadata::HOMEPAGE));
+                        ui.hyperlink_to(
+                            format!("Homepage: {}", crate::metadata::HOMEPAGE),
+                            crate::metadata::HOMEPAGE,
+                        );
 
                         if !crate::metadata::GIT_HASH.trim().is_empty() {
                             ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
@@ -260,6 +268,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
 
                         ui.label("");
                         ui.label(CODE_LICENSE_BLOCK);
+                        ui.hyperlink(AGPL_URL);
                         ui.label("");
                         ui.label(copyright);
                     }

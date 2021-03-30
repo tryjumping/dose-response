@@ -151,8 +151,8 @@ impl Monster {
                 will: 0,
                 state_of_mind: -20,
             },
-            Shadows => Panic(4),
-            Voices => Stun(4),
+            Shadows => Panic(3),
+            Voices => Stun(3),
             Npc | Signpost => Attribute {
                 will: 0,
                 state_of_mind: 0,

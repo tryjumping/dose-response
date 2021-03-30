@@ -191,6 +191,8 @@ impl Player {
     pub fn spend_ap(&mut self, count: i32) {
         assert!(count <= self.ap);
         self.ap -= count;
+        self.panic -= count;
+        self.stun -= count;
     }
 
     pub fn has_ap(&self, count: i32) -> bool {
@@ -199,9 +201,6 @@ impl Player {
 
     pub fn new_turn(&mut self) {
         if self.alive() {
-            self.stun -= 1;
-            self.panic -= 1;
-
             let mind_drop = formula::mind_drop_per_turn(&self.bonuses);
             self.mind = formula::mind_take_turn(self.mind, mind_drop);
             self.ap = self.max_ap();

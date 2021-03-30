@@ -96,6 +96,7 @@ pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
     pub display: Display,
+    pub dpi: Option<f32>,
     pub glyphmap: RgbaImage,
     pub tilemap: RgbaImage,
     pub egui_texture_version: Option<u64>,
@@ -205,6 +206,7 @@ impl LoopState {
             settings,
             previous_settings,
             display,
+            dpi: None,
             glyphmap,
             tilemap,
             egui_texture_version,
@@ -331,8 +333,7 @@ impl LoopState {
             )),
             events,
 
-            // TODO: handle DPI here
-            // pixels_per_point: None,
+            pixels_per_point: self.dpi,
             ..Default::default()
         }
     }

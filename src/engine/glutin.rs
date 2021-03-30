@@ -200,6 +200,8 @@ pub fn main_loop<S>(
 
     let dpi = context.window().scale_factor();
     log::info!("Window HIDPI factor: {:?}", dpi);
+    loop_state.dpi = Some(dpi.floor() as f32);
+
     log::info!(
         "Window inner size (physical): {:?}",
         context.window().inner_size()

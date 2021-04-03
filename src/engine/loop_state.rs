@@ -14,6 +14,8 @@ use egui::{self, Event, RawInput};
 
 use image::{Rgba, RgbaImage};
 
+use rodio::Sink;
+
 pub enum FullscreenAction {
     SwitchToFullscreen,
     SwitchToWindowed,
@@ -101,6 +103,7 @@ pub struct LoopState {
     pub tilemap: RgbaImage,
     pub egui_texture_version: Option<u64>,
     pub egui_context: egui::CtxRef,
+    pub background_sink: Sink,
     pub default_background: Color,
     pub drawcalls: Vec<Drawcall>,
     pub overall_max_drawcall_count: usize,

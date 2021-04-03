@@ -65,6 +65,13 @@ pub fn update(
     state.clock += dt;
     state.replay_step += dt;
 
+    // TODO: only check this every say 10 or 100 frames?
+    // We just wanna make sure there are items in the queue.
+    if background_sink.len() <= 1 {
+        let random_bg_sound = todo!();
+        background_sink.append();
+    }
+
     // TODO: remove `state.map_size` if we're always recalculating it
     // here anyway?? The map size now depends solely on the window
     // size in pixels anyway so there's little sense carrying it

@@ -328,6 +328,37 @@ fn process_cli_and_run_game() {
     let background = palette.unexplored_background;
     let game_title = metadata::TITLE;
 
+    use rodio::{source::Source, Decoder, OutputStream, Sink};
+
+    // Get a output stream handle to the default physical sound device
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let music = include_bytes!("../assets/music/AMBForst_Forest (ID 0100)_BSB.ogg");
+    let sound = include_bytes!("../assets/sound/ANMLFarm_Sheep 7 (ID 2349)_BSB.ogg");
+
+    let music = std::io::Cursor::new(&music[..]);
+    let sound = std::io::Cursor::new(&sound[..]);
+
+    let music = Decoder::new(music).unwrap();
+    let sound = Decoder::new(sound).unwrap();
+
+    // TODO: what we need to do with the bellow is WRITE THE USAGE CODE FIRST
+    // 1. Write the code for playing background music
+    // 2. Write the code for triggering sound effects
+
+    // TODO ALRIGHT: this should move to loop_state, we need a sound/nosound settings option
+    // and also opportunity to access both sink queues from the game logic
+    // The "background" queue could be just in-engine (if the queue runs low, enqueue another random background sound file)
+    // but the effect one needs to be able to enqueue and possibly mix multiple sounds on-demand
+    // TODO: and of course I need to find some good sounds to put there!
+    let background_sink = Sink::try_new(&stream_handle).unwrap();
+    let effect_sink = Sink::try_new(&stream_handle).unwrap();
+    background_sink.append(music.repeat_infinite());
+    effect_sink.append(
+        sound
+            .delay(std::time::Duration::new(3, 0))
+            .repeat_infinite(),
+    );
+
     match backend.as_str() {
         "remote" => run_remote(display_size, background, game_title, settings_store, state),
         "glutin" => run_glutin(background, game_title, settings_store, state),

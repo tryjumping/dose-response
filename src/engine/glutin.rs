@@ -21,6 +21,8 @@ use glutin::{
     window::Fullscreen,
 };
 
+use rodio::OutputStream;
+
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
         BackendKey::Return => Some(KeyCode::Enter),
@@ -151,11 +153,15 @@ pub fn main_loop<S>(
 
     let egui_context = CtxRef::default();
 
+    // TODO: handle the error
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+
     let mut loop_state = LoopState::initialise(
         settings_store.load(),
         initial_default_background,
         initial_state,
         egui_context,
+        &stream_handle,
     );
 
     let event_loop = glutin::event_loop::EventLoop::new();

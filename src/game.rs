@@ -1,6 +1,7 @@
 use crate::{
     ai,
     animation::{self, AreaOfEffect},
+    audio::Audio,
     blocker::Blocker,
     color,
     engine::{Display, Mouse, TextMetrics},
@@ -60,6 +61,7 @@ pub fn update(
     metrics: &dyn TextMetrics,
     settings_store: &mut dyn SettingsStore,
     display: &mut Display, // TODO: remove this from the engine and keep a transient state instead
+    audio: &mut Audio,
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();
     state.clock += dt;
@@ -67,9 +69,17 @@ pub fn update(
 
     // TODO: only check this every say 10 or 100 frames?
     // We just wanna make sure there are items in the queue.
-    if background_sink.len() <= 1 {
-        let random_bg_sound = todo!();
-        background_sink.append();
+    if audio.background_queue.len() <= 1 {
+        let throwaway_rng = &mut state.rng.clone();
+        let sound = audio.background_sounds.random(throwaway_rng);
+        match rodio::Decoder::new(sound) {
+            Ok(sound) => {
+                audio.background_queue.append(sound);
+            }
+            Err(error) => {
+                log::error!("Error decoding sound: {}. Skipping playback.", error);
+            }
+        }
     }
 
     // TODO: remove `state.map_size` if we're always recalculating it

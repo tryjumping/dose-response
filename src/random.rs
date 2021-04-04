@@ -1,3 +1,5 @@
+use crate::util;
+
 use oorandom::Rand32;
 
 use serde::{Deserialize, Serialize};
@@ -9,6 +11,10 @@ pub struct Random {
 }
 
 impl Random {
+    pub fn new() -> Self {
+        Self::from_seed(u64::from(util::random_seed()))
+    }
+
     pub fn from_seed(seed: u64) -> Self {
         Self {
             rng: oorandom::Rand32::new(seed),

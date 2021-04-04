@@ -70,11 +70,18 @@ pub fn update(
     // TODO: only check this every say 10 or 100 frames?
     // We just wanna make sure there are items in the queue.
     if audio.background_queue.len() <= 1 {
-        let throwaway_rng = &mut state.rng.clone();
-        let sound = audio.background_sounds.random(throwaway_rng);
+        let sound = audio.background_sounds.random(&mut audio.rng);
         match rodio::Decoder::new(sound) {
             Ok(sound) => {
-                audio.background_queue.append(sound);
+                use rodio::Source;
+                use std::convert::TryInto;
+                let delay = if audio.background_queue.len() == 0 {
+                    Duration::from_secs(0)
+                } else {
+                    let secs: u64 = audio.rng.range_inclusive(1, 5).try_into().unwrap_or(1);
+                    Duration::from_secs(secs)
+                };
+                audio.background_queue.append(sound.delay(delay));
             }
             Err(error) => {
                 log::error!("Error decoding sound: {}. Skipping playback.", error);

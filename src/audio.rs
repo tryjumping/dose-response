@@ -50,6 +50,11 @@ impl Audio {
             std::io::Cursor::new(&bytes[..])
         };
 
+        let monster_hit = {
+            let bytes = include_bytes!("../assets/sound/monster-hit.ogg");
+            std::io::Cursor::new(&bytes[..])
+        };
+
         Self {
             backgrounds: BackgroundSounds {
                 ambient_forrest: forrest,
@@ -57,6 +62,7 @@ impl Audio {
             },
             effects: EffectSounds {
                 walk: [walk_1, walk_2, walk_3, walk_4],
+                monster_hit,
             },
             background_sound_queue,
             sound_effect_queue,
@@ -72,6 +78,9 @@ impl Audio {
                 .rng
                 .choose_with_fallback(&self.effects.walk, &self.effects.walk[0])
                 .clone(),
+
+            MonsterHit => self.effects.monster_hit.clone(),
+
             // TODO: remove the fallback and instead use all sound effects
             _ => self.backgrounds.cow.clone(),
         };
@@ -124,11 +133,12 @@ impl BackgroundSounds {
 
 pub struct EffectSounds {
     pub walk: [std::io::Cursor<&'static [u8]>; 4],
+    pub monster_hit: std::io::Cursor<&'static [u8]>,
 }
 
 pub enum Effect {
     Walk,
-    Bump,
+    MonsterHit,
     EatFood,
     UseDose,
 }

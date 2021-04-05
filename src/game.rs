@@ -468,6 +468,7 @@ fn process_game(
                     &mut state.player,
                     simulation_area,
                     &mut state.rng,
+                    audio,
                 );
             } else {
                 log::debug!("Monsters waiting for player.");
@@ -558,7 +559,7 @@ fn process_game(
     if let Some(ref anim) = state.explosion_animation {
         for (pos, _, effect) in anim.tiles() {
             if effect.contains(animation::TileEffect::KILL) {
-                kill_monster(pos, &mut state.world);
+                kill_monster(pos, &mut state.world, audio);
             }
             if effect.contains(animation::TileEffect::SHATTER) {
                 if let Some(cell) = state.world.cell_mut(pos) {
@@ -721,6 +722,7 @@ fn process_monsters(
     player: &mut player::Player,
     area: Rectangle,
     rng: &mut Random,
+    audio: &mut Audio,
 ) {
     if !player.alive() {
         return;
@@ -813,7 +815,7 @@ fn process_monsters(
                 assert!(target_pos == player.pos);
                 player.take_effect(damage);
                 if monster_readonly.die_after_attack {
-                    kill_monster(monster_readonly.position, world);
+                    kill_monster(monster_readonly.position, world, audio);
                 }
                 if !player.alive() {
                     player.perpetrator = Some(monster_readonly.clone());
@@ -993,9 +995,7 @@ fn process_player_action<W>(
 
                             _ => {}
                         }
-                        // TODO: change this based on what we're bumping into?
-                        audio.play_sound_effect(Effect::Bump);
-                        kill_monster(dest, world);
+                        kill_monster(dest, world, audio);
                     }
                 } else if dest_walkable {
                     player.spend_ap(1);
@@ -1020,7 +1020,6 @@ fn process_player_action<W>(
                     }
                 } else {
                     // NOTE: we bumped into a wall, don't do anything
-                    audio.play_sound_effect(Effect::Bump);
                 }
             }
 
@@ -1322,7 +1321,7 @@ pub fn inventory_key(kind: item::Kind) -> u8 {
     unreachable!()
 }
 
-fn kill_monster(monster_position: Point, world: &mut World) {
+fn kill_monster(monster_position: Point, world: &mut World, audio: &mut Audio) {
     let invincible = world
         .monster_on_pos(monster_position)
         .map_or(false, |m| m.invincible);
@@ -1331,6 +1330,7 @@ fn kill_monster(monster_position: Point, world: &mut World) {
     } else {
         if let Some(monster) = world.monster_on_pos(monster_position) {
             monster.dead = true;
+            audio.play_sound_effect(Effect::MonsterHit);
         }
         world.remove_monster(monster_position);
     }

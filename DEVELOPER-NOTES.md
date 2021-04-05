@@ -10,6 +10,20 @@ The published release (version 1.0) uses SDL2, but the master (and
 future releases) uses pure Rust windowing libraries instead.
 
 
+Dependencies
+------------
+
+The "alsa" development sources.
+
+Fedora:
+
+    # dnf install alsa-lib-devel
+
+Debian/Ubuntu:
+
+    # apt-get install libasound2-dev
+
+
 Pure Rust
 ---------
 

@@ -12,6 +12,7 @@
 
 mod ai;
 mod animation;
+mod audio;
 mod blocker;
 mod color;
 mod engine;

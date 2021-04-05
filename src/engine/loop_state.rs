@@ -1,4 +1,5 @@
 use crate::{
+    audio::Audio,
     color::Color,
     engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex},
     keys::Key,
@@ -96,6 +97,7 @@ pub struct LoopState {
     pub settings: Settings,
     pub previous_settings: Settings,
     pub display: Display,
+    pub audio: Audio,
     pub dpi: Option<f32>,
     pub glyphmap: RgbaImage,
     pub tilemap: RgbaImage,
@@ -124,6 +126,7 @@ impl LoopState {
         default_background: Color,
         game_state: Box<State>,
         egui_context: egui::CtxRef,
+        stream_handle: &rodio::OutputStreamHandle,
     ) -> Self {
         // TODO: do this for every Display creatio / window resize
         let window_size_px =
@@ -206,6 +209,7 @@ impl LoopState {
             settings,
             previous_settings,
             display,
+            audio: Audio::new(stream_handle),
             dpi: None,
             glyphmap,
             tilemap,
@@ -280,6 +284,7 @@ impl LoopState {
             },
             settings_store,
             &mut self.display,
+            &mut self.audio,
         );
 
         match update_result {

@@ -162,6 +162,8 @@ Unchecked: the entire map is uncovered.",
                 };
             });
 
+            // NOTE: on linux, the separator is visible but super thin, almost invisible
+            // on macos, it's working just fine
             ui.separator();
             ui.horizontal(|ui| {
                 if ui

@@ -274,6 +274,8 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
             });
 
             // TODO: looks like the separator is no longer being rendered??
+            // NOTE: on linux, the separator is visible but super thin, almost invisible
+            // on macos, it's working just fine
             ui.separator();
             ui.columns(2, |c| {
                 state.current_help_window.prev().map(|text| {

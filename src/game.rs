@@ -1,7 +1,7 @@
 use crate::{
     ai,
     animation::{self, AreaOfEffect},
-    audio::Audio,
+    audio::{Audio, Effect},
     blocker::Blocker,
     color,
     engine::{Display, Mouse, TextMetrics},
@@ -69,19 +69,19 @@ pub fn update(
 
     // TODO: only check this every say 10 or 100 frames?
     // We just wanna make sure there are items in the queue.
-    if audio.background_queue.len() <= 1 {
-        let sound = audio.background_sounds.random(&mut audio.rng);
+    if audio.background_sound_queue.len() <= 1 {
+        let sound = audio.backgrounds.random(&mut audio.rng);
         match rodio::Decoder::new(sound) {
             Ok(sound) => {
                 use rodio::Source;
                 use std::convert::TryInto;
-                let delay = if audio.background_queue.len() == 0 {
+                let delay = if audio.background_sound_queue.empty() {
                     Duration::from_secs(0)
                 } else {
                     let secs: u64 = audio.rng.range_inclusive(1, 5).try_into().unwrap_or(1);
                     Duration::from_secs(secs)
                 };
-                audio.background_queue.append(sound.delay(delay));
+                audio.background_sound_queue.append(sound.delay(delay));
             }
             Err(error) => {
                 log::error!("Error decoding sound: {}. Skipping playback.", error);
@@ -174,8 +174,9 @@ pub fn update(
                     display.fade = color::INVISIBLE;
                 }
                 Window::Game => {
-                    let (result, highlighted_tile) =
-                        process_game(state, ui, settings, metrics, display, dt, fps, top_level);
+                    let (result, highlighted_tile) = process_game(
+                        state, ui, settings, metrics, display, audio, dt, fps, top_level,
+                    );
                     render::render_game(state, metrics, display, highlighted_tile);
                     game_update_result = result;
                 }
@@ -273,6 +274,7 @@ fn process_game(
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &Display,
+    audio: &Audio,
     dt: Duration,
     fps: i32,
     active: bool,
@@ -454,7 +456,7 @@ fn process_game(
 
         let player_ap = state.player.ap();
         if state.player.ap() >= 1 {
-            process_player(state, simulation_area);
+            process_player(state, audio, simulation_area);
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
@@ -835,6 +837,7 @@ fn process_player_action<W>(
     command_logger: &mut W,
     window_stack: &mut crate::windows::Windows<Window>,
     palette: &Palette,
+    audio: &Audio,
 ) where
     W: Write,
 {
@@ -990,11 +993,14 @@ fn process_player_action<W>(
 
                             _ => {}
                         }
+                        // TODO: change this based on what we're bumping into?
+                        audio.play_sound_effect(Effect::Bump);
                         kill_monster(dest, world);
                     }
                 } else if dest_walkable {
                     player.spend_ap(1);
                     player.move_to(dest);
+                    audio.play_sound_effect(Effect::Move);
                     while let Some(item) = world.pickup_item(dest) {
                         use crate::item::Kind::*;
                         match item.kind {
@@ -1014,6 +1020,7 @@ fn process_player_action<W>(
                     }
                 } else {
                     // NOTE: we bumped into a wall, don't do anything
+                    audio.play_sound_effect(Effect::Bump);
                 }
             }
 
@@ -1024,6 +1031,7 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::Food)
                 {
                     player.spend_ap(1);
+                    audio.play_sound_effect(Effect::EatFood);
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
@@ -1044,6 +1052,7 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::Dose)
                 {
                     player.spend_ap(1);
+                    audio.play_sound_effect(Effect::UseDose);
                     let dose = player.inventory.remove(dose_index);
                     use_dose(player, explosion_animation, dose, palette);
                 }
@@ -1056,6 +1065,7 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::StrongDose)
                 {
                     player.spend_ap(1);
+                    audio.play_sound_effect(Effect::UseDose);
                     let dose = player.inventory.remove(dose_index);
                     use_dose(player, explosion_animation, dose, palette);
                 }
@@ -1068,6 +1078,7 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::CardinalDose)
                 {
                     player.spend_ap(1);
+                    audio.play_sound_effect(Effect::UseDose);
                     let dose = player.inventory.remove(dose_index);
                     use_dose(player, explosion_animation, dose, palette);
                 }
@@ -1080,6 +1091,7 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::DiagonalDose)
                 {
                     player.spend_ap(1);
+                    audio.play_sound_effect(Effect::UseDose);
                     let dose = player.inventory.remove(dose_index);
                     use_dose(player, explosion_animation, dose, palette);
                 }
@@ -1092,7 +1104,7 @@ fn process_player_action<W>(
     }
 }
 
-fn process_player(state: &mut State, simulation_area: Rectangle) {
+fn process_player(state: &mut State, audio: &Audio, simulation_area: Rectangle) {
     {
         // appease borrowck
         let player = &mut state.player;
@@ -1134,6 +1146,7 @@ fn process_player(state: &mut State, simulation_area: Rectangle) {
         &mut state.command_logger,
         &mut state.window_stack,
         &state.palette,
+        &audio,
     );
 
     // If the player ever picks up a dose, mark it in this variable:

@@ -44,15 +44,15 @@ impl Audio {
         // TODO: use the actual sound effects rather than hardcoding the backgrounds.cow sound
         match rodio::Decoder::new(self.backgrounds.cow.clone()) {
             Ok(sound) => {
-                // TODO Mix the sounds together. `queue.append` always waits for the sound to finish
-                // I *think* we'll need to add multiple sinks here and pick the one that's empty
-                if self.sound_effect_queue[0].empty() {
-                    self.sound_effect_queue[0].append(sound);
-                } else if self.sound_effect_queue[1].empty() {
-                    self.sound_effect_queue[1].append(sound);
-                } else if self.sound_effect_queue[2].empty() {
-                    self.sound_effect_queue[2].append(sound);
-                } else {
+                let mut all_queues_full = true;
+                for sink in self.sound_effect_queue.iter() {
+                    if sink.empty() {
+                        sink.append(sound);
+                        all_queues_full = false;
+                        break;
+                    }
+                }
+                if all_queues_full {
                     log::warn!("play_sound_effect: no empty queue found. Skipping playback.");
                 }
             }

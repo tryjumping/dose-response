@@ -22,45 +22,25 @@ impl Audio {
             Sink::try_new(&stream_handle).unwrap_or_else(|_| Sink::new_idle().0),
         ];
 
-        let forrest = {
-            let bytes = include_bytes!("../assets/music/AMBForst_Forest (ID 0100)_BSB.ogg");
-            SoundData::new(&bytes[..])
-        };
+        let forrest = SoundData::new(
+            &include_bytes!("../assets/music/AMBForst_Forest (ID 0100)_BSB.ogg")[..],
+        );
 
-        let cow = {
-            let bytes = include_bytes!("../assets/sound/ANMLFarm_Sheep 7 (ID 2349)_BSB.ogg");
-            SoundData::new(&bytes[..])
-        };
+        let cow = SoundData::new(
+            &include_bytes!("../assets/sound/ANMLFarm_Sheep 7 (ID 2349)_BSB.ogg")[..],
+        );
 
-        let walk_1 = {
-            let bytes = include_bytes!("../assets/sound/walk-1.ogg");
-            SoundData::new(&bytes[..])
-        };
+        let walk_1 = SoundData::new(&include_bytes!("../assets/sound/walk-1.ogg")[..]);
 
-        let walk_2 = {
-            let bytes = include_bytes!("../assets/sound/walk-2.ogg");
-            SoundData::new(&bytes[..])
-        };
+        let walk_2 = SoundData::new(&include_bytes!("../assets/sound/walk-2.ogg")[..]);
 
-        let walk_3 = {
-            let bytes = include_bytes!("../assets/sound/walk-3.ogg");
-            SoundData::new(&bytes[..])
-        };
+        let walk_3 = SoundData::new(&include_bytes!("../assets/sound/walk-3.ogg")[..]);
 
-        let walk_4 = {
-            let bytes = include_bytes!("../assets/sound/walk-4.ogg");
-            SoundData::new(&bytes[..])
-        };
+        let walk_4 = SoundData::new(&include_bytes!("../assets/sound/walk-4.ogg")[..]);
 
-        let monster_hit = {
-            let bytes = include_bytes!("../assets/sound/monster-hit.ogg");
-            SoundData::new(&bytes[..])
-        };
+        let monster_hit = SoundData::new(&include_bytes!("../assets/sound/monster-hit.ogg")[..]);
 
-        let explosion = {
-            let bytes = include_bytes!("../assets/sound/explosion.ogg");
-            SoundData::new(&bytes[..])
-        };
+        let explosion = SoundData::new(&include_bytes!("../assets/sound/explosion.ogg")[..]);
 
         Self {
             backgrounds: BackgroundSounds {

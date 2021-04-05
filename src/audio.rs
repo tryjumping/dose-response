@@ -1,6 +1,8 @@
 use crate::random::Random;
 
-use rodio::{OutputStreamHandle, Sink};
+use std::{convert::TryInto, time::Duration};
+
+use rodio::{OutputStreamHandle, Sink, Source};
 
 type SoundData = std::io::Cursor<&'static [u8]>;
 
@@ -10,6 +12,7 @@ pub struct Audio {
     pub effects: EffectSounds,
     pub sound_effect_queue: [Sink; 3],
     pub rng: Random,
+    sound_effects: Vec<Effect>,
 }
 
 impl Audio {
@@ -61,47 +64,64 @@ impl Audio {
             background_sound_queue,
             sound_effect_queue,
             rng: Random::new(),
+            sound_effects: vec![],
         }
     }
 
-    pub fn play_sound_effect(&mut self, effect: Effect) {
+    // TODO: require a delay here?
+    pub fn mix_sound_effect(&mut self, effect: Effect) {
+        self.sound_effects.push(effect);
+    }
+
+    fn random_delay(&mut self) -> Duration {
+        Duration::from_millis(self.rng.range_inclusive(1, 50).try_into().unwrap_or(0))
+    }
+
+    fn data_from_effect(&mut self, effect: Effect) -> (SoundData, Duration) {
         use Effect::*;
+        match effect {
+            Walk => {
+                let data = self
+                    .rng
+                    .choose_with_fallback(&self.effects.walk, &self.effects.walk[0])
+                    .clone();
+                (data, Duration::from_secs(0))
+            }
+            MonsterHit => (self.effects.monster_hit.clone(), self.random_delay()),
+            MonsterMoved => (self.effects.monster_moved.clone(), self.random_delay()),
+            Explosion => (self.effects.explosion.clone(), self.random_delay()),
+            GameOver => (self.effects.game_over.clone(), self.random_delay()),
+        }
+    }
 
-        let data = match effect {
-            Walk => self
-                .rng
-                .choose_with_fallback(&self.effects.walk, &self.effects.walk[0])
-                .clone(),
+    pub fn play_mixed_sound_effects(&mut self) {
+        if let Some(effect) = self.sound_effects.pop() {
+            let (data, delay) = self.data_from_effect(effect);
 
-            MonsterHit => self.effects.monster_hit.clone(),
-
-            MonsterMoved => self.effects.monster_moved.clone(),
-
-            Explosion => self.effects.explosion.clone(),
-
-            GameOver => self.effects.game_over.clone(),
-        };
-
-        match rodio::Decoder::new(data) {
-            Ok(sound) => {
-                let mut all_queues_full = true;
-                for sink in self.sound_effect_queue.iter() {
-                    if sink.empty() {
-                        sink.append(sound);
-                        all_queues_full = false;
-                        break;
+            if let Ok(sound) = rodio::Decoder::new(data) {
+                let mut sound: Box<dyn Source<Item = i16> + Send> = Box::new(sound.delay(delay));
+                while let Some(effect) = self.sound_effects.pop() {
+                    let (data, delay) = self.data_from_effect(effect);
+                    if let Ok(s) = rodio::Decoder::new(data) {
+                        sound = Box::new(sound.mix(s.delay(delay)));
                     }
                 }
-                if all_queues_full {
-                    log::warn!("play_sound_effect: no empty queue found. Skipping playback.");
-                }
+                self.play_sound(sound);
             }
-            Err(error) => {
-                log::error!(
-                    "play_sound_effect: Error decoding sound: {}. Skipping playback.",
-                    error
-                );
+        }
+    }
+
+    fn play_sound<S: 'static + Source<Item = i16> + Send>(&mut self, sound: S) {
+        let mut all_queues_full = true;
+        for sink in self.sound_effect_queue.iter() {
+            if sink.empty() {
+                sink.append(sound);
+                all_queues_full = false;
+                break;
             }
+        }
+        if all_queues_full {
+            log::warn!("play_sound_effect: no empty queue found. Skipping playback.");
         }
     }
 }
@@ -136,6 +156,7 @@ pub struct EffectSounds {
     pub game_over: SoundData,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Effect {
     Walk,
     MonsterHit,

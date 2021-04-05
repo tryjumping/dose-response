@@ -1013,7 +1013,7 @@ fn process_player_action<W>(
                                 if resist_radius == 0 {
                                     player.inventory.push(item);
                                 } else {
-                                    use_dose(player, explosion_animation, item, palette);
+                                    use_dose(player, explosion_animation, item, palette, audio);
                                 }
                             }
                         }
@@ -1052,9 +1052,8 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::Dose)
                 {
                     player.spend_ap(1);
-                    audio.play_sound_effect(Effect::UseDose);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, explosion_animation, dose, palette);
+                    use_dose(player, explosion_animation, dose, palette, audio);
                 }
             }
 
@@ -1065,9 +1064,8 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::StrongDose)
                 {
                     player.spend_ap(1);
-                    audio.play_sound_effect(Effect::UseDose);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, explosion_animation, dose, palette);
+                    use_dose(player, explosion_animation, dose, palette, audio);
                 }
             }
 
@@ -1078,9 +1076,8 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::CardinalDose)
                 {
                     player.spend_ap(1);
-                    audio.play_sound_effect(Effect::UseDose);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, explosion_animation, dose, palette);
+                    use_dose(player, explosion_animation, dose, palette, audio);
                 }
             }
 
@@ -1091,9 +1088,8 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::DiagonalDose)
                 {
                     player.spend_ap(1);
-                    audio.play_sound_effect(Effect::UseDose);
                     let dose = player.inventory.remove(dose_index);
-                    use_dose(player, explosion_animation, dose, palette);
+                    use_dose(player, explosion_animation, dose, palette, audio);
                 }
             }
 
@@ -1345,10 +1341,12 @@ fn use_dose(
     explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
     item: item::Item,
     palette: &Palette,
+    audio: &mut Audio,
 ) {
     use crate::item::Kind::*;
     use crate::player::Modifier::*;
     log::debug!("Using dose");
+    audio.play_sound_effect(Effect::UseDose);
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = if state_of_mind <= 100 { 4 } else { 6 };

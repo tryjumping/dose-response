@@ -804,6 +804,9 @@ fn process_monsters(
                 };
 
                 world.move_monster(pos, newpos, player.pos);
+                if newpos.tile_distance(player.pos) < formula::exploration_radius(player.mind) {
+                    audio.play_sound_effect(Effect::MonsterMoved);
+                }
                 if let Some(monster) = world.monster_on_pos(newpos) {
                     monster.path = newpath;
                     if monster.has_ap(1) {

@@ -40,6 +40,8 @@ impl Audio {
 
         let monster_hit = SoundData::new(&include_bytes!("../assets/sound/monster-hit.ogg")[..]);
 
+        let monster_moved = SoundData::new(&include_bytes!("../assets/sound/blip.ogg")[..]);
+
         let explosion = SoundData::new(&include_bytes!("../assets/sound/explosion.ogg")[..]);
 
         let game_over = SoundData::new(&include_bytes!("../assets/sound/game-over.ogg")[..]);
@@ -52,6 +54,7 @@ impl Audio {
             effects: EffectSounds {
                 walk: [walk_1, walk_2, walk_3, walk_4],
                 monster_hit,
+                monster_moved,
                 explosion,
                 game_over,
             },
@@ -71,6 +74,8 @@ impl Audio {
                 .clone(),
 
             MonsterHit => self.effects.monster_hit.clone(),
+
+            MonsterMoved => self.effects.monster_moved.clone(),
 
             Explosion => self.effects.explosion.clone(),
 
@@ -126,6 +131,7 @@ impl BackgroundSounds {
 pub struct EffectSounds {
     pub walk: [SoundData; 4],
     pub monster_hit: SoundData,
+    pub monster_moved: SoundData,
     pub explosion: SoundData,
     pub game_over: SoundData,
 }
@@ -133,6 +139,7 @@ pub struct EffectSounds {
 pub enum Effect {
     Walk,
     MonsterHit,
+    MonsterMoved,
     Explosion,
     GameOver,
 }

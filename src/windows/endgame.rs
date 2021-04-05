@@ -222,14 +222,19 @@ fn endgame_tip(state: &State) -> String {
         .chain(unsorted_tips)
         .collect::<Vec<_>>();
 
+    let fallback = &"Losing a game is normal. Think about what happened and try again!";
     let cause_of_death = formula::cause_of_death(&state.player);
     let perpetrator = state.player.perpetrator.as_ref();
     let selected_tip = match (cause_of_death, perpetrator) {
-        (Some(Overdosed), _) => *throwavay_rng.choose(overdosed_tips).unwrap(),
-        (Some(Exhausted), Some(_monster)) => *throwavay_rng.choose(hunger_tips).unwrap(),
-        (Some(Exhausted), None) => *throwavay_rng.choose(food_tips).unwrap(),
-        (Some(LostWill), Some(_monster)) => *throwavay_rng.choose(anxiety_tips).unwrap(),
-        _ => *throwavay_rng.choose(&all_tips).unwrap(),
+        (Some(Overdosed), _) => *throwavay_rng.choose_with_fallback(overdosed_tips, &fallback),
+        (Some(Exhausted), Some(_monster)) => {
+            *throwavay_rng.choose_with_fallback(hunger_tips, &fallback)
+        }
+        (Some(Exhausted), None) => *throwavay_rng.choose_with_fallback(food_tips, &fallback),
+        (Some(LostWill), Some(_monster)) => {
+            *throwavay_rng.choose_with_fallback(anxiety_tips, &fallback)
+        }
+        _ => *throwavay_rng.choose_with_fallback(&all_tips, &fallback),
     };
 
     String::from(selected_tip)

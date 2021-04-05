@@ -655,10 +655,7 @@ impl World {
                 walkables.push(pos)
             }
         }
-        match rng.choose(&walkables) {
-            Some(&random_pos) => random_pos,
-            None => starting_pos, // Nowhere to go
-        }
+        *rng.choose_with_fallback(&walkables, &starting_pos)
     }
 
     pub fn random_position_in_range(

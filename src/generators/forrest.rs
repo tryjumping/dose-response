@@ -69,7 +69,8 @@ fn generate_map(
                         Graphic::Tree9,
                         Graphic::Tree10,
                     ];
-                    tile.graphic = *throwavay_rng.choose(&graphic_options).unwrap();
+                    tile.graphic =
+                        *throwavay_rng.choose_with_fallback(&graphic_options, &Graphic::Tree1);
                 }
                 TileKind::Empty => {
                     let options = [
@@ -100,7 +101,7 @@ fn generate_map(
                         Graphic::Leaves4,
                         Graphic::Leaves5,
                     ];
-                    let graphic = *throwavay_rng.choose(&options).unwrap();
+                    let graphic = *throwavay_rng.choose_with_fallback(&options, &Graphic::Ground2);
                     tile.graphic = graphic;
                 }
             };
@@ -195,8 +196,8 @@ fn new_item(kind: item::Kind, rng: &mut Random) -> Item {
         }
         Food => {
             let mut item = formula::FOOD_PREFAB;
-            item.graphic = *rng
-                .choose(&[
+            item.graphic = *rng.choose_with_fallback(
+                &[
                     Graphic::FoodAcornWide,
                     Graphic::FoodAcornThin,
                     Graphic::FoodCarrotWide,
@@ -206,8 +207,9 @@ fn new_item(kind: item::Kind, rng: &mut Random) -> Item {
                     Graphic::FoodTurnipBigLeaves,
                     Graphic::FoodTurnipHeart,
                     Graphic::FoodStriped,
-                ])
-                .unwrap_or(&Graphic::FoodAcornWide);
+                ],
+                &Graphic::FoodAcornWide,
+            );
             item
         }
     }

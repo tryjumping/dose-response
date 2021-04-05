@@ -2,6 +2,8 @@ use crate::random::Random;
 
 use rodio::{OutputStreamHandle, Sink};
 
+type SoundData = std::io::Cursor<&'static [u8]>;
+
 pub struct Audio {
     pub backgrounds: BackgroundSounds,
     pub background_sound_queue: Sink,
@@ -22,42 +24,42 @@ impl Audio {
 
         let forrest = {
             let bytes = include_bytes!("../assets/music/AMBForst_Forest (ID 0100)_BSB.ogg");
-            std::io::Cursor::new(&bytes[..])
+            SoundData::new(&bytes[..])
         };
 
         let cow = {
             let bytes = include_bytes!("../assets/sound/ANMLFarm_Sheep 7 (ID 2349)_BSB.ogg");
-            std::io::Cursor::new(&bytes[..])
+            SoundData::new(&bytes[..])
         };
 
         let walk_1 = {
             let bytes = include_bytes!("../assets/sound/walk-1.ogg");
-            std::io::Cursor::new(&bytes[..])
+            SoundData::new(&bytes[..])
         };
 
         let walk_2 = {
             let bytes = include_bytes!("../assets/sound/walk-2.ogg");
-            std::io::Cursor::new(&bytes[..])
+            SoundData::new(&bytes[..])
         };
 
         let walk_3 = {
             let bytes = include_bytes!("../assets/sound/walk-3.ogg");
-            std::io::Cursor::new(&bytes[..])
+            SoundData::new(&bytes[..])
         };
 
         let walk_4 = {
             let bytes = include_bytes!("../assets/sound/walk-4.ogg");
-            std::io::Cursor::new(&bytes[..])
+            SoundData::new(&bytes[..])
         };
 
         let monster_hit = {
             let bytes = include_bytes!("../assets/sound/monster-hit.ogg");
-            std::io::Cursor::new(&bytes[..])
+            SoundData::new(&bytes[..])
         };
 
         let explosion = {
             let bytes = include_bytes!("../assets/sound/explosion.ogg");
-            std::io::Cursor::new(&bytes[..])
+            SoundData::new(&bytes[..])
         };
 
         Self {
@@ -115,13 +117,13 @@ impl Audio {
 }
 
 pub struct BackgroundSounds {
-    pub ambient_forrest: std::io::Cursor<&'static [u8]>,
+    pub ambient_forrest: SoundData,
     // TODO: replace this with proper other ambient sound effects
-    pub cow: std::io::Cursor<&'static [u8]>,
+    pub cow: SoundData,
 }
 
 impl BackgroundSounds {
-    pub fn random(&self, rng: &mut Random) -> std::io::Cursor<&'static [u8]> {
+    pub fn random(&self, rng: &mut Random) -> SoundData {
         match rng.range_inclusive(1, 2) {
             1 => self.ambient_forrest.clone(),
             2 => self.cow.clone(),
@@ -137,9 +139,9 @@ impl BackgroundSounds {
 }
 
 pub struct EffectSounds {
-    pub walk: [std::io::Cursor<&'static [u8]>; 4],
-    pub monster_hit: std::io::Cursor<&'static [u8]>,
-    pub explosion: std::io::Cursor<&'static [u8]>,
+    pub walk: [SoundData; 4],
+    pub monster_hit: SoundData,
+    pub explosion: SoundData,
 }
 
 pub enum Effect {

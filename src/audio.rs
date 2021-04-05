@@ -5,6 +5,7 @@ use rodio::{OutputStreamHandle, Sink};
 pub struct Audio {
     pub backgrounds: BackgroundSounds,
     pub background_sound_queue: Sink,
+    pub effects: EffectSounds,
     pub sound_effect_queue: [Sink; 3],
     pub rng: Random,
 }
@@ -29,10 +30,33 @@ impl Audio {
             std::io::Cursor::new(&bytes[..])
         };
 
+        let walk_1 = {
+            let bytes = include_bytes!("../assets/sound/walk-1.ogg");
+            std::io::Cursor::new(&bytes[..])
+        };
+
+        let walk_2 = {
+            let bytes = include_bytes!("../assets/sound/walk-2.ogg");
+            std::io::Cursor::new(&bytes[..])
+        };
+
+        let walk_3 = {
+            let bytes = include_bytes!("../assets/sound/walk-3.ogg");
+            std::io::Cursor::new(&bytes[..])
+        };
+
+        let walk_4 = {
+            let bytes = include_bytes!("../assets/sound/walk-4.ogg");
+            std::io::Cursor::new(&bytes[..])
+        };
+
         Self {
             backgrounds: BackgroundSounds {
                 ambient_forrest: forrest,
                 cow: cow,
+            },
+            effects: EffectSounds {
+                walk: [walk_1, walk_2, walk_3, walk_4],
             },
             background_sound_queue,
             sound_effect_queue,
@@ -40,9 +64,19 @@ impl Audio {
         }
     }
 
-    pub fn play_sound_effect(&self, effect: Effect) {
-        // TODO: use the actual sound effects rather than hardcoding the backgrounds.cow sound
-        match rodio::Decoder::new(self.backgrounds.cow.clone()) {
+    pub fn play_sound_effect(&mut self, effect: Effect) {
+        use Effect::*;
+
+        let data = match effect {
+            Walk => self
+                .rng
+                .choose_with_fallback(&self.effects.walk, &self.effects.walk[0])
+                .clone(),
+            // TODO: remove the fallback and instead use all sound effects
+            _ => self.backgrounds.cow.clone(),
+        };
+
+        match rodio::Decoder::new(data) {
             Ok(sound) => {
                 let mut all_queues_full = true;
                 for sink in self.sound_effect_queue.iter() {
@@ -88,9 +122,13 @@ impl BackgroundSounds {
     }
 }
 
+pub struct EffectSounds {
+    pub walk: [std::io::Cursor<&'static [u8]>; 4],
+}
+
 pub enum Effect {
+    Walk,
     Bump,
-    Move,
     EatFood,
     UseDose,
 }

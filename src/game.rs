@@ -274,7 +274,7 @@ fn process_game(
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &Display,
-    audio: &Audio,
+    audio: &mut Audio,
     dt: Duration,
     fps: i32,
     active: bool,
@@ -837,7 +837,7 @@ fn process_player_action<W>(
     command_logger: &mut W,
     window_stack: &mut crate::windows::Windows<Window>,
     palette: &Palette,
-    audio: &Audio,
+    audio: &mut Audio,
 ) where
     W: Write,
 {
@@ -1000,7 +1000,7 @@ fn process_player_action<W>(
                 } else if dest_walkable {
                     player.spend_ap(1);
                     player.move_to(dest);
-                    audio.play_sound_effect(Effect::Move);
+                    audio.play_sound_effect(Effect::Walk);
                     while let Some(item) = world.pickup_item(dest) {
                         use crate::item::Kind::*;
                         match item.kind {
@@ -1104,7 +1104,7 @@ fn process_player_action<W>(
     }
 }
 
-fn process_player(state: &mut State, audio: &Audio, simulation_area: Rectangle) {
+fn process_player(state: &mut State, audio: &mut Audio, simulation_area: Rectangle) {
     {
         // appease borrowck
         let player = &mut state.player;
@@ -1146,7 +1146,7 @@ fn process_player(state: &mut State, audio: &Audio, simulation_area: Rectangle) 
         &mut state.command_logger,
         &mut state.window_stack,
         &state.palette,
-        &audio,
+        audio,
     );
 
     // If the player ever picks up a dose, mark it in this variable:

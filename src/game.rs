@@ -574,6 +574,7 @@ fn process_game(
     // Set the fadeout animation on death
     if player_was_alive && !state.player.alive() {
         use crate::player::CauseOfDeath::*;
+        audio.play_sound_effect(Effect::GameOver);
         let cause_of_death = formula::cause_of_death(&state.player);
         let fade_color = if cfg!(feature = "recording") {
             state.palette.fade_to_black_animation

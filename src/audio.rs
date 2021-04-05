@@ -42,6 +42,8 @@ impl Audio {
 
         let explosion = SoundData::new(&include_bytes!("../assets/sound/explosion.ogg")[..]);
 
+        let game_over = SoundData::new(&include_bytes!("../assets/sound/game-over.ogg")[..]);
+
         Self {
             backgrounds: BackgroundSounds {
                 ambient_forrest: forrest,
@@ -51,6 +53,7 @@ impl Audio {
                 walk: [walk_1, walk_2, walk_3, walk_4],
                 monster_hit,
                 explosion,
+                game_over,
             },
             background_sound_queue,
             sound_effect_queue,
@@ -70,6 +73,8 @@ impl Audio {
             MonsterHit => self.effects.monster_hit.clone(),
 
             Explosion => self.effects.explosion.clone(),
+
+            GameOver => self.effects.game_over.clone(),
         };
 
         match rodio::Decoder::new(data) {
@@ -122,10 +127,12 @@ pub struct EffectSounds {
     pub walk: [SoundData; 4],
     pub monster_hit: SoundData,
     pub explosion: SoundData,
+    pub game_over: SoundData,
 }
 
 pub enum Effect {
     Walk,
     MonsterHit,
     Explosion,
+    GameOver,
 }

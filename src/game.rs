@@ -1030,7 +1030,7 @@ fn process_player_action<W>(
                     .position(|&i| i.kind == item::Kind::Food)
                 {
                     player.spend_ap(1);
-                    audio.play_sound_effect(Effect::EatFood);
+                    audio.play_sound_effect(Effect::Explosion);
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
@@ -1346,7 +1346,7 @@ fn use_dose(
     use crate::item::Kind::*;
     use crate::player::Modifier::*;
     log::debug!("Using dose");
-    audio.play_sound_effect(Effect::UseDose);
+    audio.play_sound_effect(Effect::Explosion);
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = if state_of_mind <= 100 { 4 } else { 6 };

@@ -55,6 +55,11 @@ impl Audio {
             std::io::Cursor::new(&bytes[..])
         };
 
+        let explosion = {
+            let bytes = include_bytes!("../assets/sound/explosion.ogg");
+            std::io::Cursor::new(&bytes[..])
+        };
+
         Self {
             backgrounds: BackgroundSounds {
                 ambient_forrest: forrest,
@@ -63,6 +68,7 @@ impl Audio {
             effects: EffectSounds {
                 walk: [walk_1, walk_2, walk_3, walk_4],
                 monster_hit,
+                explosion,
             },
             background_sound_queue,
             sound_effect_queue,
@@ -81,8 +87,7 @@ impl Audio {
 
             MonsterHit => self.effects.monster_hit.clone(),
 
-            // TODO: remove the fallback and instead use all sound effects
-            _ => self.backgrounds.cow.clone(),
+            Explosion => self.effects.explosion.clone(),
         };
 
         match rodio::Decoder::new(data) {
@@ -134,11 +139,11 @@ impl BackgroundSounds {
 pub struct EffectSounds {
     pub walk: [std::io::Cursor<&'static [u8]>; 4],
     pub monster_hit: std::io::Cursor<&'static [u8]>,
+    pub explosion: std::io::Cursor<&'static [u8]>,
 }
 
 pub enum Effect {
     Walk,
     MonsterHit,
-    EatFood,
-    UseDose,
+    Explosion,
 }

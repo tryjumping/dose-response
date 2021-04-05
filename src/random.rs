@@ -66,6 +66,10 @@ impl Random {
             options.get(index)
         }
     }
+
+    pub fn choose_with_fallback<'a, T>(&mut self, options: &'a [T], fallback: &'a T) -> &'a T {
+        self.choose(options).unwrap_or(&fallback)
+    }
 }
 
 // This is a module that handles all the Serde trait deriving, tucked

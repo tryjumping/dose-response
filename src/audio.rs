@@ -12,7 +12,7 @@ pub struct Audio {
     pub effects: EffectSounds,
     pub sound_effect_queue: [Sink; 3],
     pub rng: Random,
-    sound_effects: Vec<Effect>,
+    sound_effects: Vec<(Effect, Duration)>,
 }
 
 impl Audio {
@@ -68,40 +68,36 @@ impl Audio {
         }
     }
 
-    // TODO: require a delay here?
-    pub fn mix_sound_effect(&mut self, effect: Effect) {
-        self.sound_effects.push(effect);
+    pub fn mix_sound_effect(&mut self, effect: Effect, delay: Duration) {
+        self.sound_effects.push((effect, delay));
     }
 
-    fn random_delay(&mut self) -> Duration {
+    pub fn random_delay(&mut self) -> Duration {
         Duration::from_millis(self.rng.range_inclusive(1, 50).try_into().unwrap_or(0))
     }
 
-    fn data_from_effect(&mut self, effect: Effect) -> (SoundData, Duration) {
+    fn data_from_effect(&mut self, effect: Effect) -> SoundData {
         use Effect::*;
         match effect {
-            Walk => {
-                let data = self
-                    .rng
-                    .choose_with_fallback(&self.effects.walk, &self.effects.walk[0])
-                    .clone();
-                (data, Duration::from_secs(0))
-            }
-            MonsterHit => (self.effects.monster_hit.clone(), self.random_delay()),
-            MonsterMoved => (self.effects.monster_moved.clone(), self.random_delay()),
-            Explosion => (self.effects.explosion.clone(), self.random_delay()),
-            GameOver => (self.effects.game_over.clone(), self.random_delay()),
+            Walk => self
+                .rng
+                .choose_with_fallback(&self.effects.walk, &self.effects.walk[0])
+                .clone(),
+            MonsterHit => self.effects.monster_hit.clone(),
+            MonsterMoved => self.effects.monster_moved.clone(),
+            Explosion => self.effects.explosion.clone(),
+            GameOver => self.effects.game_over.clone(),
         }
     }
 
     pub fn play_mixed_sound_effects(&mut self) {
-        if let Some(effect) = self.sound_effects.pop() {
-            let (data, delay) = self.data_from_effect(effect);
+        if let Some((effect, delay)) = self.sound_effects.pop() {
+            let data = self.data_from_effect(effect);
 
             if let Ok(sound) = rodio::Decoder::new(data) {
                 let mut sound: Box<dyn Source<Item = i16> + Send> = Box::new(sound.delay(delay));
-                while let Some(effect) = self.sound_effects.pop() {
-                    let (data, delay) = self.data_from_effect(effect);
+                while let Some((effect, delay)) = self.sound_effects.pop() {
+                    let data = self.data_from_effect(effect);
                     if let Ok(s) = rodio::Decoder::new(data) {
                         sound = Box::new(sound.mix(s.delay(delay)));
                     }

@@ -91,20 +91,15 @@ impl Audio {
     }
 
     pub fn play_mixed_sound_effects(&mut self) {
-        if let Some((effect, delay)) = self.sound_effects.pop() {
+        use rodio::{decoder::Decoder, source::Empty};
+        let mut mixed_sound: Box<dyn Source<Item = i16> + Send> = Box::new(Empty::new());
+        while let Some((effect, delay)) = self.sound_effects.pop() {
             let data = self.data_from_effect(effect);
-
-            if let Ok(sound) = rodio::Decoder::new(data) {
-                let mut sound: Box<dyn Source<Item = i16> + Send> = Box::new(sound.delay(delay));
-                while let Some((effect, delay)) = self.sound_effects.pop() {
-                    let data = self.data_from_effect(effect);
-                    if let Ok(s) = rodio::Decoder::new(data) {
-                        sound = Box::new(sound.mix(s.delay(delay)));
-                    }
-                }
-                self.play_sound(sound);
+            if let Ok(sound) = Decoder::new(data) {
+                mixed_sound = Box::new(mixed_sound.mix(sound.delay(delay)));
             }
         }
+        self.play_sound(mixed_sound);
     }
 
     fn play_sound<S: 'static + Source<Item = i16> + Send>(&mut self, sound: S) {

@@ -119,6 +119,8 @@ If you step into the glow around a Dose, you can't resist even if it means Overd
 
 Each enemy has their own way of harming you. The Depression moves twice as fast. The Anxiety will reduce your Will on each hit. When it reaches zero, you will lose.
 
+You attack enemies by bumping into them. Just move into the monster's tile and your character will attack it.
+
 To progress, your Will needs to get stronger. Defeat enough Anxieties to make it go up. The Dose or Food "explosions" don't count though! Higher Will shrinks the irresistible area around Doses. It also lets you pick them up!
 
 If you see another player characters, they are friendly. They will give you a bonus and follow you around, but only while you're Sober. You can have only one bonus active at a time."#;

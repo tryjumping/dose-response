@@ -187,6 +187,11 @@ pub fn process(
 
 fn endgame_tip(state: &State) -> String {
     use self::CauseOfDeath::*;
+
+    if state.player_picked_up_a_dose == false {
+        return String::from("Attack monsters by bumping (moving) into them!");
+    }
+
     let throwavay_rng = &mut state.rng.clone();
 
     let overdosed_tips = &[

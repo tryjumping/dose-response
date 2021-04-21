@@ -845,6 +845,7 @@ fn process_player_action<W>(
     rng: &mut Random,
     command_logger: &mut W,
     window_stack: &mut crate::windows::Windows<Window>,
+    bumped_into_a_monster: &mut bool,
     palette: &Palette,
     audio: &mut Audio,
 ) where
@@ -1003,6 +1004,10 @@ fn process_player_action<W>(
                             _ => {}
                         }
                         kill_monster(dest, world, audio);
+
+                        if kind.is_monster() {
+                            *bumped_into_a_monster = true;
+                        }
                     }
                 } else if dest_walkable {
                     player.spend_ap(1);
@@ -1147,6 +1152,7 @@ fn process_player(state: &mut State, audio: &mut Audio, simulation_area: Rectang
         &mut state.rng,
         &mut state.command_logger,
         &mut state.window_stack,
+        &mut state.player_bumped_into_a_monster,
         &state.palette,
         audio,
     );

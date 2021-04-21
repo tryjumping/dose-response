@@ -54,6 +54,20 @@ pub enum Kind {
     Signpost,
 }
 
+impl Kind {
+    pub fn is_monster(&self) -> bool {
+        match *self {
+            Anxiety => true,
+            Depression => true,
+            Hunger => true,
+            Shadows => true,
+            Voices => true,
+            Npc => false,
+            Signpost => false,
+        }
+    }
+}
+
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum CompanionBonus {
     DoubleWillGrowth,

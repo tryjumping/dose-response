@@ -118,11 +118,13 @@ pub fn process(
             action = Some(MenuItem::Settings);
         }
 
-        if ui
-            .add(ui::button("[S]ave and Quit", active, &state.palette))
-            .clicked()
-        {
-            action = Some(MenuItem::SaveAndQuit);
+        if !state.game_ended && state.world.initialised() {
+            if ui
+                .add(ui::button("[S]ave and Quit", active, &state.palette))
+                .clicked()
+            {
+                action = Some(MenuItem::SaveAndQuit);
+            }
         }
 
         if ui
@@ -132,10 +134,13 @@ pub fn process(
             action = Some(MenuItem::Load);
         }
 
-        if ui
-            .add(ui::button("[Q]uit without saving", active, &state.palette))
-            .clicked()
-        {
+        let quit_button = if !state.game_ended && state.world.initialised() {
+            ui::button("[Q]uit without saving", active, &state.palette)
+        } else {
+            ui::button("[Q]uit", active, &state.palette)
+        };
+
+        if ui.add(quit_button).clicked() {
             log::info!("Clicked!");
             action = Some(MenuItem::Quit);
         };

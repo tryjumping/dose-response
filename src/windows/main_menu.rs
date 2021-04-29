@@ -88,7 +88,9 @@ pub fn process(
         ui.label("By Tomas Sedovic");
         ui.label("");
 
-        if !state.game_ended && state.world.initialised() {
+        let game_in_progress = !state.game_ended && state.world.initialised();
+
+        if game_in_progress {
             if ui
                 .add(ui::button("[R]esume", active, &state.palette))
                 .clicked()
@@ -118,7 +120,7 @@ pub fn process(
             action = Some(MenuItem::Settings);
         }
 
-        if !state.game_ended && state.world.initialised() {
+        if game_in_progress {
             if ui
                 .add(ui::button("[S]ave and Quit", active, &state.palette))
                 .clicked()
@@ -134,7 +136,7 @@ pub fn process(
             action = Some(MenuItem::Load);
         }
 
-        let quit_button = if !state.game_ended && state.world.initialised() {
+        let quit_button = if game_in_progress {
             ui::button("[Q]uit without saving", active, &state.palette)
         } else {
             ui::button("[Q]uit", active, &state.palette)

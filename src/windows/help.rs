@@ -139,7 +139,7 @@ Food: prolongs being Sober or in a Withdrawal. Kills monsters around you.
 Dose: makes you High. When you're High already, you'll likely Overdose.
 Cardinal Dose: Destroys trees in the horizontal and vertical lines.
 Diagonal Dose: Destroys trees in the diagonal lines.
-Strong Dose: very strong Dose. Don't walk into it by accident.
+Strong Dose: very strong Dose. Don't use it by accident.
 
 Each Dose has a faint glow around it. If you step into it, you will not be able to resist.
 

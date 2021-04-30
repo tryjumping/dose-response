@@ -138,7 +138,6 @@ pub fn process(
 
         let first_startup = !state.world.initialised() && !state.game_ended;
         let game_over = state.world.initialised() && state.game_ended;
-        dbg!(state.world.initialised(), state.game_ended);
         let quit_label = if first_startup {
             "[Q]uit without playing"
         } else if game_over {

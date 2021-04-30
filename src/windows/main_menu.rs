@@ -136,14 +136,22 @@ pub fn process(
             action = Some(MenuItem::Load);
         }
 
-        let quit_button = if game_in_progress {
-            ui::button("[Q]uit without saving", active, &state.palette)
+        let first_startup = !state.world.initialised() && !state.game_ended;
+        let game_over = state.world.initialised() && state.game_ended;
+        dbg!(state.world.initialised(), state.game_ended);
+        let quit_label = if first_startup {
+            "[Q]uit without playing"
+        } else if game_over {
+            "[Q]uit"
         } else {
-            ui::button("[Q]uit", active, &state.palette)
+            // the game is in progress
+            "[Q]uit without saving"
         };
 
-        if ui.add(quit_button).clicked() {
-            log::info!("Clicked!");
+        if ui
+            .add(ui::button(quit_label, active, &state.palette))
+            .clicked()
+        {
             action = Some(MenuItem::Quit);
         };
 

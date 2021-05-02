@@ -120,7 +120,7 @@ Unchecked: the entire map is uncovered.",
                 }
 
                 c[2].label("");
-                c[2].label("Tile::");
+                c[2].label("Tile:");
                 if c[2]
                     .radio(
                         settings.visual_style == VisualStyle::Graphical,

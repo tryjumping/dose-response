@@ -1,4 +1,4 @@
-use crate::{engine, palette, state};
+use crate::{engine, palette, state, util};
 
 use serde::{Deserialize, Serialize};
 
@@ -35,6 +35,8 @@ pub const BACKEND: &str = "backend";
 pub const HIDE_UNSEEN_TILES: &str = "hide_unseen_tiles";
 pub const FAST_DEPRESSION: &str = "fast_depression";
 pub const PERMADEATH: &str = "permadeath";
+pub const BACKGROUND_VOLUME: &str = "background_volume";
+pub const SOUND_VOLUME: &str = "sound_volume";
 
 /// The colour palette that the user can select
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -77,6 +79,8 @@ pub struct Settings {
     pub hide_unseen_tiles: bool,
     pub fast_depression: bool,
     pub permadeath: bool,
+    pub background_volume: f32,
+    pub sound_volume: f32,
 }
 
 impl Default for Settings {
@@ -100,6 +104,8 @@ impl Default for Settings {
             hide_unseen_tiles: true,
             fast_depression: true,
             permadeath: true,
+            background_volume: 1.0,
+            sound_volume: 1.0,
         };
 
         debug_assert!(settings.valid());
@@ -202,6 +208,14 @@ impl Settings {
 
         out.push_str(&format!("{} = \"{}\"\n", PERMADEATH, self.permadeath));
 
+        out.push_str(&format!("# Options: <0.0, 1.0>\n"));
+        out.push_str(&format!(
+            "{} = \"{}\"\n",
+            BACKGROUND_VOLUME, self.background_volume
+        ));
+        out.push_str(&format!("# Options: <0.0, 1.0>\n"));
+        out.push_str(&format!("{} = \"{}\"\n", SOUND_VOLUME, self.sound_volume));
+
         out
     }
 }
@@ -258,8 +272,7 @@ impl FileSystemStore {
     }
 
     fn write_settings_toml(path: &Path, toml: &TomlDocument) -> Result<(), Box<dyn Error>> {
-        let contents = format!("{}", toml);
-        std::fs::write(path, contents)?;
+        std::fs::write(path, toml.to_string_in_original_order())?;
         Ok(())
     }
 }
@@ -451,6 +464,33 @@ impl Store for FileSystemStore {
             None => log::error!("Settings: missing `{}` entry.", PERMADEATH),
         }
 
+        match self.toml[BACKGROUND_VOLUME].as_float() {
+            Some(volume) => {
+                settings.background_volume = util::clampf(0.0, volume as f32, 1.0);
+            }
+            // toml_edit uses `f64.as_string()` which outputs e.g.
+            // `1.0` as `1`. This then gets parsed here as integer not
+            // float so we need to handle that case separately.
+            None => match self.toml[BACKGROUND_VOLUME].as_integer() {
+                Some(volume) => {
+                    settings.background_volume = util::clampf(0.0, volume as f32, 1.0);
+                }
+                None => log::error!("Settings: missing `{}` entry.", BACKGROUND_VOLUME),
+            },
+        }
+
+        match self.toml[SOUND_VOLUME].as_float() {
+            Some(volume) => {
+                settings.sound_volume = util::clampf(0.0, volume as f32, 1.0);
+            }
+            None => match self.toml[SOUND_VOLUME].as_integer() {
+                Some(volume) => {
+                    settings.sound_volume = util::clampf(0.0, volume as f32, 1.0);
+                }
+                None => log::error!("Settings: missing `{}` entry.", SOUND_VOLUME),
+            },
+        }
+
         debug_assert!(settings.valid());
 
         log::info!("Loaded settings: {:?}", settings);
@@ -484,6 +524,10 @@ impl Store for FileSystemStore {
         self.toml[FAST_DEPRESSION] = toml_edit::value(settings.fast_depression);
 
         self.toml[PERMADEATH] = toml_edit::value(settings.permadeath);
+
+        self.toml[BACKGROUND_VOLUME] = toml_edit::value(settings.background_volume as f64);
+
+        self.toml[SOUND_VOLUME] = toml_edit::value(settings.sound_volume as f64);
 
         if let Err(err) = Self::write_settings_toml(&self.path, &self.toml) {
             log::error!("Could not write settings to the storage: {:?}", err);

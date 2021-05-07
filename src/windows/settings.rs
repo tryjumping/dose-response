@@ -20,6 +20,8 @@ pub enum Action {
     Palette(Palette),
     TileSize(i32),
     TextSize(i32),
+    MusicVolume(f32),
+    SoundVolume(f32),
     Back,
     Apply,
 }
@@ -110,6 +112,26 @@ Unchecked: the entire map is uncovered.",
                     };
                     available_key_shortcut += 1;
                 }
+
+                c[1].label("");
+                c[1].label("Audio:");
+                let mut play_music = settings.background_volume != 0.0;
+                if c[1].checkbox(&mut play_music, "Play [M]usic").clicked() {
+                    let volume = match play_music {
+                        true => 1.0,
+                        false => 0.0,
+                    };
+                    action = Some(Action::MusicVolume(volume));
+                };
+
+                let mut play_sound = settings.sound_volume != 0.0;
+                if c[1].checkbox(&mut play_sound, "Play So[u]nd").clicked() {
+                    let volume = match play_sound {
+                        true => 1.0,
+                        false => 0.0,
+                    };
+                    action = Some(Action::SoundVolume(volume));
+                };
 
                 c[2].label("Display:");
                 if c[2].radio(settings.fullscreen, "[F]ullscreen").clicked() {
@@ -206,12 +228,24 @@ Unchecked: the entire map is uncovered.",
             action = Some(Action::VisualStyle(VisualStyle::Graphical));
         } else if state.keys.matches_code(KeyCode::H) {
             action = Some(Action::HideUnseenTiles)
+        } else if state.keys.matches_code(KeyCode::M) {
+            let volume = match settings.background_volume == 0.0 {
+                true => 1.0,
+                false => 0.0,
+            };
+            action = Some(Action::MusicVolume(volume))
         } else if state.keys.matches_code(KeyCode::O) {
             action = Some(Action::Permadeath)
         } else if state.keys.matches_code(KeyCode::R) {
             action = Some(Action::Palette(Palette::Greyscale));
         } else if state.keys.matches_code(KeyCode::S) {
             action = Some(Action::Palette(Palette::Classic));
+        } else if state.keys.matches_code(KeyCode::U) {
+            let volume = match settings.sound_volume == 0.0 {
+                true => 1.0,
+                false => 0.0,
+            };
+            action = Some(Action::SoundVolume(volume));
         } else if state.keys.matches_code(KeyCode::W) {
             action = Some(Action::Window);
         } else if state.keys.matches_code(KeyCode::T) {
@@ -300,6 +334,14 @@ Unchecked: the entire map is uncovered.",
             Action::TextSize(text_size) => {
                 log::info!("Changing text size to: {}", text_size);
                 settings.text_size = text_size;
+            }
+
+            Action::MusicVolume(volume) => {
+                settings.background_volume = volume;
+            }
+
+            Action::SoundVolume(volume) => {
+                settings.sound_volume = volume;
             }
 
             Action::Back => {

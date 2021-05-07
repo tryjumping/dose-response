@@ -89,6 +89,9 @@ pub fn update(
         }
     }
 
+    audio.set_background_volume(settings.background_volume);
+    audio.set_effects_volume(settings.sound_volume);
+
     // TODO: remove `state.map_size` if we're always recalculating it
     // here anyway?? The map size now depends solely on the window
     // size in pixels anyway so there's little sense carrying it

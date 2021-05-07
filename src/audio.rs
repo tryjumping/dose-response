@@ -1,4 +1,4 @@
-use crate::random::Random;
+use crate::{random::Random, util};
 
 use std::{convert::TryInto, time::Duration};
 
@@ -126,6 +126,18 @@ impl Audio {
         }
         if all_queues_full {
             log::warn!("play_sound_effect: no empty queue found. Skipping playback.");
+        }
+    }
+
+    pub fn set_background_volume(&mut self, volume: f32) {
+        let volume = util::clampf(0.0, volume, 1.0);
+        self.background_sound_queue.set_volume(volume);
+    }
+
+    pub fn set_effects_volume(&mut self, volume: f32) {
+        let volume = util::clampf(0.0, volume, 1.0);
+        for queue in self.sound_effect_queue.iter_mut() {
+            queue.set_volume(volume);
         }
     }
 }

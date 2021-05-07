@@ -126,7 +126,7 @@ impl LoopState {
         default_background: Color,
         game_state: Box<State>,
         egui_context: egui::CtxRef,
-        stream_handle: &rodio::OutputStreamHandle,
+        stream_handle: Option<&rodio::OutputStreamHandle>,
     ) -> Self {
         // TODO: do this for every Display creatio / window resize
         let window_size_px =

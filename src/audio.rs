@@ -16,13 +16,26 @@ pub struct Audio {
 }
 
 impl Audio {
-    pub fn new(stream_handle: &OutputStreamHandle) -> Self {
-        let background_sound_queue =
-            Sink::try_new(&stream_handle).unwrap_or_else(|_| Sink::new_idle().0);
+    pub fn new(stream_handle: Option<&OutputStreamHandle>) -> Self {
+        fn empty_sink() -> Sink {
+            Sink::new_idle().0
+        }
+
+        fn new_sink(handle: &OutputStreamHandle) -> Sink {
+            match Sink::try_new(handle) {
+                Ok(sink) => sink,
+                Err(e) => {
+                    log::error!("Couldn't create sink: {:?}. Falling back to empty one", e);
+                    empty_sink()
+                }
+            }
+        }
+
+        let background_sound_queue = stream_handle.map_or_else(empty_sink, new_sink);
         let sound_effect_queue = [
-            Sink::try_new(&stream_handle).unwrap_or_else(|_| Sink::new_idle().0),
-            Sink::try_new(&stream_handle).unwrap_or_else(|_| Sink::new_idle().0),
-            Sink::try_new(&stream_handle).unwrap_or_else(|_| Sink::new_idle().0),
+            stream_handle.map_or_else(empty_sink, new_sink),
+            stream_handle.map_or_else(empty_sink, new_sink),
+            stream_handle.map_or_else(empty_sink, new_sink),
         ];
 
         let forrest = SoundData::new(

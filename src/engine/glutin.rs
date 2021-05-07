@@ -153,15 +153,24 @@ pub fn main_loop<S>(
 
     let egui_context = CtxRef::default();
 
-    // TODO: handle the error
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    // NOTE: we need to store the stream to a variable here and then
+    // match on a reference to it. Otherwise, it will be dropped and
+    // the stream will close.
+    let stream_result = OutputStream::try_default();
+    let stream_handle = match &stream_result {
+        Ok((_stream, stream_handle)) => Some(stream_handle),
+        Err(error) => {
+            log::error!("Cannot open the audio output stream: {:?}", error);
+            None
+        }
+    };
 
     let mut loop_state = LoopState::initialise(
         settings_store.load(),
         initial_default_background,
         initial_state,
         egui_context,
-        &stream_handle,
+        stream_handle,
     );
 
     let event_loop = glutin::event_loop::EventLoop::new();

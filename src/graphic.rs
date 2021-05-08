@@ -152,7 +152,7 @@ pub fn tilemap_coords_px(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)>
         Grass8 => Some((9, 7)),
         Grass9 => Some((10, 7)),
 
-        Corpse => Some((3, 13)),
+        Corpse => Some((3 + 5, 13 - 3)),
 
         Anxiety => Some((0, 10)),
         Hunger => Some((1, 10)),
@@ -165,35 +165,35 @@ pub fn tilemap_coords_px(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)>
         DiagonalDose => Some((2, 11)),
         StrongDose => Some((3, 11)),
 
-        FoodAcornWide => Some((2, 12)),
-        FoodAcornThin => Some((3, 12)),
-        FoodCarrotWide => Some((1, 12)),
-        FoodCarrotSideways => Some((0, 12)),
-        FoodCarrotThin => Some((6, 12)),
-        FoodTurnipSmallLeaves => Some((5, 12)),
-        FoodTurnipBigLeaves => Some((7, 12)),
-        FoodTurnipHeart => Some((8, 12)),
-        FoodStriped => Some((4, 12)),
+        FoodAcornWide => Some((2 + 3, 12 - 3)),
+        FoodAcornThin => Some((3 + 3, 12 - 3)),
+        FoodCarrotWide => Some((1 + 3, 12 - 3)),
+        FoodCarrotSideways => Some((0 + 3, 12 - 3)),
+        FoodCarrotThin => Some((6 + 3, 12 - 3)),
+        FoodTurnipSmallLeaves => Some((5 + 3, 12 - 3)),
+        FoodTurnipBigLeaves => Some((7 + 3, 12 - 3)),
+        FoodTurnipHeart => Some((8 + 3, 12 - 3)),
+        FoodStriped => Some((4 + 3, 12 - 3)),
 
         // PCs
-        CharacterTrousers => Some((0, 13)),
-        CharacterSkirt => Some((1, 13)),
+        CharacterTrousers => Some((0 + 5, 13 - 3)),
+        CharacterSkirt => Some((1 + 5, 13 - 3)),
 
         // NPC
-        CharacterBelly => Some((2, 13)),
+        CharacterBelly => Some((2 + 5, 13 - 3)),
 
         // Tribal NPC set
-        CharacterTribalStaffTrousers => Some((0, 14)),
-        CharacterTribalStaffBelly => Some((1, 14)),
-        CharacterTribalMoon => Some((2, 14)),
+        CharacterTribalStaffTrousers => Some((0 + 5, 14 - 3)),
+        CharacterTribalStaffBelly => Some((1 + 5, 14 - 3)),
+        CharacterTribalMoon => Some((2 + 5, 14 - 3)),
 
         // Animal Set
-        Bird1 => Some((0, 15)),
-        Fox => Some((1, 15)),
-        Snake => Some((2, 15)),
-        Bat => Some((3, 15)),
+        Bird1 => Some((0 + 8, 15 - 4)),
+        Fox => Some((1 + 8, 15 - 4)),
+        Snake => Some((2 + 8, 15 - 4)),
+        Bat => Some((3 + 8, 15 - 4)),
 
-        Signpost => Some((12, 8)),
+        Signpost => Some((12 - 1, 8)),
     };
     coords.map(|(tile_x, tile_y)| (tile_x * TILE_SIZE, tile_y * TILE_SIZE))
 }

@@ -188,6 +188,16 @@ fn main() {
     // NOTE: Load the tilemap dimensions so they're available to the whole program
     {
         let (width, height) = image::image_dimensions("assets/tiles.png").unwrap();
+        assert_eq!(
+            width,
+            (width as f32).log2().floor().exp2().floor() as u32,
+            "Tilemap width must be a power of two!"
+        );
+        assert_eq!(
+            height,
+            (height as f32).log2().floor().exp2().floor() as u32,
+            "Tilemap height must be a power of two!"
+        );
 
         lookup_table_contents.push_str(&format!(
             "pub const TILEMAP_TEXTURE_WIDTH: u32 = {};\n",
@@ -213,6 +223,16 @@ fn main() {
         // NOTE: recardless of what value we set here, always keep it power of two!
         let texture_width = 512;
         let texture_height = 256;
+        assert_eq!(
+            texture_width,
+            (texture_width as f32).log2().floor().exp2().floor() as i32,
+            "texture_width must be a power of two!"
+        );
+        assert_eq!(
+            texture_height,
+            (texture_height as f32).log2().floor().exp2().floor() as i32,
+            "texture_height must be a power of two!"
+        );
 
         lookup_table_contents.push_str(&format!(
             "pub const DEFAULT_TILE_SIZE: i32 = {};\n",

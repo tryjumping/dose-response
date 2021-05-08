@@ -1,5 +1,5 @@
 use crate::{
-    engine::{Display, VisualStyle},
+    engine::{self, Display, VisualStyle},
     game::RunningState,
     keys::KeyCode,
     settings::{Palette, Settings, Store as SettingsStore},
@@ -82,13 +82,15 @@ Unchecked: the entire map is uncovered.",
 
                 let mut available_key_shortcut = 1;
 
+                let tile_size_labels = ["Small", "Medium", "Large"];
+
                 c[1].label("Tile Size:");
-                for &tile_size in crate::engine::AVAILABLE_TILE_SIZES.iter().rev() {
+                for (index, &tile_size) in engine::AVAILABLE_TILE_SIZES.iter().rev().enumerate() {
                     let selected = tile_size == settings.tile_size;
                     if c[1]
                         .radio(
                             selected,
-                            format!("[{}] {}px", available_key_shortcut, tile_size),
+                            format!("[{}] {}", available_key_shortcut, tile_size_labels[index]),
                         )
                         .clicked()
                     {
@@ -97,14 +99,16 @@ Unchecked: the entire map is uncovered.",
                     available_key_shortcut += 1;
                 }
 
+                let text_size_labels = ["Small", "Medium", "Large"];
+
                 c[1].label("");
                 c[1].label("Text Size:");
-                for &text_size in crate::engine::AVAILABLE_TEXT_SIZES.iter().rev() {
+                for (index, &text_size) in engine::AVAILABLE_TEXT_SIZES.iter().rev().enumerate() {
                     let selected = text_size == settings.text_size;
                     if c[1]
                         .radio(
                             selected,
-                            format!("[{}] {}px", available_key_shortcut, text_size),
+                            format!("[{}] {}", available_key_shortcut, text_size_labels[index]),
                         )
                         .clicked()
                     {

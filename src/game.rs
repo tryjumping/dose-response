@@ -12,7 +12,8 @@ use crate::{
     level::TileKind,
     monster::{self, CompanionBonus},
     palette::Palette,
-    pathfinding, player,
+    pathfinding,
+    player::{self, Modifier},
     point::{self, Point},
     random::Random,
     ranged_int::{InclusiveRange, Ranged},
@@ -969,6 +970,13 @@ fn process_player_action<W>(
                                     player.will += 1;
                                     player.anxiety_counter.set_to_min();
                                 }
+                            }
+                            monster::Kind::Hunger => {
+                                let modifier = Modifier::Attribute {
+                                    state_of_mind: 3,
+                                    will: 0,
+                                };
+                                player.take_effect(modifier);
                             }
                             // NOTE: NPCs don't give bonuses or accompany the player when high.
                             monster::Kind::Npc if player.mind.is_sober() => {

@@ -104,6 +104,8 @@ pub const ARROW_CONTROLS: &str = r"Shift+Left  Up  Shift+Right
 Ctrl+Left  Down Ctrl+Right
 ";
 
+pub const MODIFIER_KEYS: &str = r"Instead of [Ctrl], you can also use any of: [Alt], [command], [option] and [control]. Whether these keys exist and are available depends on your system.";
+
 pub const VI_KEYS_TEXT: &str = r#"You can also move using the "Vi keys". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor."#;
 
 pub const VI_KEYS_CONTROLS: &str = r"y k u
@@ -214,6 +216,8 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                                 ui.label(ARROW_CONTROLS);
                             });
                         });
+                        ui.label(MODIFIER_KEYS);
+                        ui.label("");
                         ui.label(CONTROLS_FOOTER);
                     }
 

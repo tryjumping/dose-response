@@ -189,6 +189,7 @@ mod test {
     fn make_board(text: &str) -> Board {
         use crate::level::Tile;
         use crate::level::TileKind::{Empty, Tree};
+        use crate::random::Random;
         let mut start = Point { x: 0, y: 0 };
         let mut destination = Point { x: 0, y: 0 };
         let mut x = 0;
@@ -201,14 +202,16 @@ mod test {
         assert!(width > 0);
         assert!(lines.iter().all(|line| line.chars().count() == width));
 
-        let mut rng = rand::IsaacRng::new_from_u64(0);
+        let mut rng = Random::from_seed(0);
         let player_info = PlayerInfo {
             pos: Point::new(0, 0),
             mind: Mind::Sober(crate::ranged_int::Ranged::new_max(crate::formula::SOBER)),
             max_ap: 1,
             will: 3,
         };
-        let mut world = World::new(&mut rng, 0, 64, 32, player_info);
+        let challenge = Default::default();
+        let mut world = World::default();
+        world.initialise(&mut rng, 0, 64, 32, player_info, challenge);
         // clear out the world
         for x in 0..16 {
             for y in 0..16 {
@@ -286,6 +289,7 @@ mod test {
             &mut board.world,
             Blocker::WALL,
             Point::new(0, 0),
+            50,
         );
         assert_eq!(1, path.len());
         let expected = [(2, 1)]
@@ -313,6 +317,7 @@ mod test {
             &mut board.world,
             Blocker::WALL,
             Point::new(0, 0),
+            50,
         );
         assert_eq!(0, path.len());
         let expected: Vec<Point> = vec![];
@@ -335,6 +340,7 @@ mod test {
             &mut board.world,
             Blocker::WALL,
             Point::new(0, 0),
+            50,
         );
         assert_eq!(7, path.len());
         let expected = [(2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)]
@@ -361,6 +367,7 @@ s..........
             &mut board.world,
             Blocker::WALL,
             Point::new(0, 0),
+            50,
         );
         assert_eq!(3, path.len());
         let expected = [(1, 1), (2, 2), (3, 3)]
@@ -387,6 +394,7 @@ xxxxx......
             &mut board.world,
             Blocker::WALL,
             Point::new(0, 0),
+            50,
         );
         assert_eq!(0, path.len());
     }
@@ -407,6 +415,7 @@ xxxxx......
             &mut board.world,
             Blocker::WALL,
             Point::new(0, 0),
+            50,
         );
         assert_eq!(7, path.len());
         let expected = [(2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
@@ -438,6 +447,7 @@ xxxxx......
             &mut board.world,
             Blocker::WALL,
             Point::new(0, 0),
+            50,
         );
         assert_eq!(9, path.len());
         let expected = [

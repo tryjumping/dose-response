@@ -45,4 +45,3 @@ jobs:
     - name: Build
       run: |
         cargo build --verbose --release --no-default-features --features "prod macos-extra-features" -- -C lto
-      run: cargo build --verbose

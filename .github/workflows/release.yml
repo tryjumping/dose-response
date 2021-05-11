@@ -28,7 +28,7 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION_NAME }}
     - name: Deploy the release artefact to an AWS S3 bucket
       run: |
-        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/dose-response-${{ GITHUB_REF }}
+        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/dose-response-$GITHUB_REF
 
   release-windows:
     runs-on: windows-latest

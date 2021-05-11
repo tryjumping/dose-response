@@ -1,0 +1,48 @@
+name: Build a release version of Dose Response
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install build-time dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libasound2-dev
+    - name: Build
+      run: |
+        cargo build --verbose --release --no-default-features --features "prod linux-extra-features" -- -C lto
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION_NAME }}
+    - name: Deploy the release artefact to an AWS S3 bucket
+      run: |
+        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/dose-response-${{ GITHUB_REF }}
+
+  release-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: |
+        cargo build --verbose --release --no-default-features --features "prod windows-extra-features" -- -C lto
+
+  release-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: |
+        cargo build --verbose --release --no-default-features --features "prod macos-extra-features" -- -C lto
+      run: cargo build --verbose

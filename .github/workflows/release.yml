@@ -39,6 +39,11 @@ jobs:
     - name: Build
       run: |
         cargo build --verbose --release --no-default-features --features "prod windows-extra-features"
+    - id: get_version
+      uses: battila7/get-version-action@v2
+    - name: Deploy the release artefact to an AWS S3 bucket
+      run: |
+        aws s3 cp ./target/release/dose-response.exe ${{ secrets.AWS_S3_URI }}/dose-response-${{ steps.get_version.outputs.version }}-windows.exe
 
   release-macos:
     runs-on: macos-latest
@@ -47,3 +52,8 @@ jobs:
     - name: Build
       run: |
         cargo build --verbose --release --no-default-features --features "prod macos-extra-features"
+    - id: get_version
+      uses: battila7/get-version-action@v2
+    - name: Deploy the release artefact to an AWS S3 bucket
+      run: |
+        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/dose-response-${{ steps.get_version.outputs.version }}-macos

@@ -168,6 +168,9 @@ pub fn main_loop<S>(
     #[cfg(target_os = "windows")]
     let window = {
         use glutin::platform::windows::WindowBuilderExtWindows;
+        // NOTE: on Windows the game crashes with: OleInitialize failed! Result was: `RPC_E_CHANGED_MODE`
+        // https://github.com/rust-windowing/winit/blob/078b9719cc3ba06630291d5bc05c90787bd84c4f/src/platform_impl/windows/window.rs#L86-L89
+        // Disabling Drag & Drop fixes it so that's what we're doing here
         log::debug!("We're on Windows, disabling drag and drop!");
         window.with_drag_and_drop(false)
     };

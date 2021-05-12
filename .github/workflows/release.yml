@@ -51,7 +51,7 @@ jobs:
       uses: battila7/get-version-action@v2
     - name: Deploy the release artefact to an AWS S3 bucket
       run: |
-        aws s3 cp ./target/release/dose-response.exe ${{ secrets.AWS_S3_URI }}/dose-response-${{ steps.get_version.outputs.version }}-windows.exe
+        aws s3 cp ./target/debug/dose-response.exe ${{ secrets.AWS_S3_URI }}/dose-response-${{ steps.get_version.outputs.version }}-windows.exe
 
   # release-macos:
   #   runs-on: macos-latest

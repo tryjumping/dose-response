@@ -27,7 +27,7 @@ egui = "0.10"
 #egui = { git = "https://github.com/tomassedovic/emigui.git" }
 #egui = { path = "../../3pc/src/github.com/emilk/emigui/egui" }
 gl = { version = "0.10", optional = true }
-glutin = { version = "0.24", optional = true }
+glutin = { version = "0.26", optional = true }
 image = { version = "0.23.13", optional = true }
 line_drawing = "0.7"
 log = "0.4.1"

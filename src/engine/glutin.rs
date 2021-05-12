@@ -381,7 +381,7 @@ monitor ID: {:?}. Ignoring this request.",
                     use glutin::event::MouseScrollDelta::*;
                     match delta {
                         LineDelta(x, y) => loop_state.mouse.scroll_delta = [x as f32, y as f32],
-                        PixelDelta(glutin::dpi::LogicalPosition { x: x_px, y: y_px }) => {
+                        PixelDelta(glutin::dpi::PhysicalPosition { x: x_px, y: y_px }) => {
                             let line_height_px = loop_state.settings.text_size as f32;
                             loop_state.mouse.scroll_delta =
                                 [x_px as f32 / line_height_px, y_px as f32 / line_height_px]
@@ -468,9 +468,9 @@ monitor ID: {:?}. Ignoring this request.",
                                 // decorations explicitly. Remove this line if
                                 // we don't actually need it.
                                 //context.window().set_decorations(false);
-                                context
-                                    .window()
-                                    .set_fullscreen(Some(Fullscreen::Borderless(monitor.clone())));
+                                context.window().set_fullscreen(Some(Fullscreen::Borderless(
+                                    Some(monitor.clone()),
+                                )));
                             } else {
                                 log::warn!("`current_monitor` is not set!??");
                             }

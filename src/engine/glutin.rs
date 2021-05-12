@@ -184,6 +184,11 @@ pub fn main_loop<S>(
         .with_title(window_title)
         .with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT))
         .with_inner_size(desired_size);
+    #[cfg(target_os = "windows")]
+    let window = {
+        log::debug!("We're on Windows, disabling drag and drop!");
+        window.with_drag_and_drop(false)
+    };
     log::debug!("Created window builder: {:?}", window);
     let context = glutin::ContextBuilder::new()
         .with_vsync(true)

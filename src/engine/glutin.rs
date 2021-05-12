@@ -186,6 +186,7 @@ pub fn main_loop<S>(
         .with_inner_size(desired_size);
     #[cfg(target_os = "windows")]
     let window = {
+        use glutin::platform::windows::WindowBuilderExtWindows;
         log::debug!("We're on Windows, disabling drag and drop!");
         window.with_drag_and_drop(false)
     };

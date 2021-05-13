@@ -30,7 +30,7 @@ jobs:
       uses: battila7/get-version-action@v2
     - name: Deploy the release artefact to an AWS S3 bucket
       run: |
-        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/dose-response-${{ steps.get_version.outputs.version }}-linux
+        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/linux/dose-response
 
   release-windows:
     runs-on: windows-latest
@@ -49,7 +49,7 @@ jobs:
       uses: battila7/get-version-action@v2
     - name: Deploy the release artefact to an AWS S3 bucket
       run: |
-        aws s3 cp ./target/release/dose-response.exe ${{ secrets.AWS_S3_URI }}/dose-response-${{ steps.get_version.outputs.version }}-windows.exe
+        aws s3 cp ./target/release/dose-response.exe ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/windows/dose-response.exe
 
   release-macos:
     runs-on: macos-latest
@@ -68,4 +68,4 @@ jobs:
       uses: battila7/get-version-action@v2
     - name: Deploy the release artefact to an AWS S3 bucket
       run: |
-        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/dose-response-${{ steps.get_version.outputs.version }}-macos
+        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/macos/dose-response

@@ -11,6 +11,9 @@ env:
 jobs:
   release-linux:
     runs-on: ubuntu-latest
+    env:
+      TARGET_TRIPLE: x86_64-unknown-linux-gnu
+      ARCHIVE_EXT: tar.gz
     steps:
     - uses: actions/checkout@v2
     - name: Install build-time dependencies
@@ -28,12 +31,18 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION_NAME }}
     - id: get_version
       uses: battila7/get-version-action@v2
+    - name: Package the files
+      run: |
+        python3 bin/process-artefacts.py "${{ env.TARGET_TRIPLE }}" "${{ steps.get_version.outputs.version }}" "${{ github.sha }}"
     - name: Deploy the release artefact to an AWS S3 bucket
       run: |
-        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/linux/dose-response
+        aws s3 cp ./target/publish/dose-response.${{ env.ARCHIVE_EXT }} ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/dose-response-${{ env.TARGET_TRIPLE }}.${{ env.ARCHIVE_EXT }}
 
   release-windows:
     runs-on: windows-latest
+    env:
+      TARGET_TRIPLE: x86_64-pc-windows-msvc
+      ARCHIVE_EXT: zip
     steps:
     - uses: actions/checkout@v2
     - name: Build
@@ -47,12 +56,18 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION_NAME }}
     - id: get_version
       uses: battila7/get-version-action@v2
+    - name: Package the files
+      run: |
+        python3 bin/process-artefacts.py "${{ env.TARGET_TRIPLE }}" "${{ steps.get_version.outputs.version }}" "${{ github.sha }}"
     - name: Deploy the release artefact to an AWS S3 bucket
       run: |
-        aws s3 cp ./target/release/dose-response.exe ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/windows/dose-response.exe
+        aws s3 cp ./target/publish/dose-response.${{ env.ARCHIVE_EXT }} ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/dose-response-${{ env.TARGET_TRIPLE }}.${{ env.ARCHIVE_EXT }}
 
   release-macos:
     runs-on: macos-latest
+    env:
+      TARGET_TRIPLE: x86_64-apple-darwin
+      ARCHIVE_EXT: zip
     steps:
     - uses: actions/checkout@v2
     - name: Build
@@ -66,6 +81,9 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION_NAME }}
     - id: get_version
       uses: battila7/get-version-action@v2
+    - name: Package the files
+      run: |
+        python3 bin/process-artefacts.py "${{ env.TARGET_TRIPLE }}" "${{ steps.get_version.outputs.version }}" "${{ github.sha }}"
     - name: Deploy the release artefact to an AWS S3 bucket
       run: |
-        aws s3 cp ./target/release/dose-response ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/macos/dose-response
+        aws s3 cp ./target/publish/dose-response.${{ env.ARCHIVE_EXT }} ${{ secrets.AWS_S3_URI }}/${{ steps.get_version.outputs.version }}/dose-response-${{ env.TARGET_TRIPLE }}.${{ env.ARCHIVE_EXT }}

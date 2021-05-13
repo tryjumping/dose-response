@@ -1,103 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from ConfigParser import SafeConfigParser
 from glob import glob
 import os
+import platform
 import shutil
 from sys import argv
-import tarfile
-import tempfile
-import urllib
-
-
-def noop(*args):
-    pass
-
-
-def add_lib(target, version, sources):
-    shutil.copytree(os.path.join('lib', target['triple']),
-                        os.path.join(sources, 'Dose Response', 'lib'))
-
-
-TARGETS = [
-    {
-        'triple': 'x86_64-unknown-linux-gnu',
-        'extension': 'tar.gz',
-        'process': add_lib,
-        'platform-name': 'linux64',
-    },
-    {
-        'triple': 'x86_64-pc-windows-msvc',
-        'extension': 'zip',
-        'process': noop,
-        'platform-name': 'win64',
-    },
-    {
-        'triple': 'x86_64-apple-darwin',
-        'extension': 'tar.gz',
-        'process': noop,
-        'platform-name': 'osx64',
-    },
-]
-
-
-def input_filename(target, version):
-    return "dose-response-{version}-{triple}.tar.gz".format(
-        version=version,
-        triple=target['triple'])
-
-
-def remote_url(target, version):
-    return ("https://github.com/tryjumping/dose-response/releases/download/"
-           "{version}/dose-response-{version}-{triple}.tar.gz").format(
-        version=version,
-        triple=target['triple'],
-        extension=target['extension']
-        )
-
-
-def download_file(source_url):
-    temp = tempfile.mkstemp()
-    path = temp[1]
-    downloaded_path, result = urllib.FancyURLopener().retrieve(source_url, path)
-    assert downloaded_path, path
-    # NOTE: it seems that when the download succeeds, the `status` can be `None`
-    status = result.get('status')
-    downloaded_ok = status is None or status.startswith('200')
-    if downloaded_ok:
-        return path
-    else:
-        print "Error retrieving URL: {}".format(result.get('status'))
-        return None
-
-
-def extract_file(source_path):
-    destination_dir = tempfile.mkdtemp("dose-response");
-    tar = tarfile.open(source_path, "r:gz")
-    tar.extractall(path=destination_dir)
-    return destination_dir
-
-
-def output_filename(target, version):
-    return "dose-response-{version}-{platform}".format(
-        version=version,
-        platform=target['platform-name'])
-
-
-
-def package_sources(target, version, sources):
-    out_path = os.path.join("target", "publish", version,
-                                output_filename(target, version))
-    mkdir_p(out_path)
-    ext = target['extension']
-    if ext == 'zip':
-        archive_format = 'zip'
-    elif ext == 'tar.gz':
-        archive_format = 'gztar'
-    else:
-        raise Exception("Unknown output extension: {}".format(ext))
-    shutil.make_archive(out_path, archive_format, sources)
-    return '{}.{}'.format(out_path, ext)
 
 
 def mkdir_p(directory):
@@ -108,45 +15,54 @@ def mkdir_p(directory):
     return directory
 
 
-def add_icons(target, version, sources):
-    icons_destination_path = os.path.join(sources, 'Dose Response', 'icons')
+if __name__ == '__main__':
+    print(repr(argv))
+    target_triple = argv[1]
+    tag = argv[2]
+    commit_hash = argv[3]
+
+    out_path = os.path.join("target", "publish", "Dose Response")
+    mkdir_p(out_path)
+
+    system = platform.system()
+    exe_name = 'dose-response'
+    exe_extension = ''
+    debug_script = 'debug.sh'
+    if system == 'Windows':
+        exe_extension = '.exe'
+        debug_script = 'Debug.bat'
+    full_exe_name = exe_name + exe_extension
+    shutil.copy(os.path.join("target", "release", full_exe_name), out_path)
+
+    # NOTE: this converts the line endings into the current platform's expected format:
+    with open("README.md", 'r') as source:
+        with open(os.path.join(out_path, 'README.txt'), 'w') as destination:
+            destination.writelines(source.readlines())
+    with open("COPYING.txt", 'r') as source:
+        with open(os.path.join(out_path, 'LICENSE.txt'), 'w') as destination:
+            destination.writelines(source.readlines())
+    shutil.copy(debug_script, out_path)
+
+    version_contents = f"Version: {tag}\nFull Version: dose-response-{tag}-{target_triple}\nCommit: {commit_hash}\n"
+    with open(os.path.join(out_path, 'VERSION.txt'), 'w') as f:
+        f.write(version_contents)
+
+    print("Adding icons...")
+    icons_destination_path = os.path.join(out_path, 'icons')
     mkdir_p(icons_destination_path)
     for filename in glob('assets/icon*'):
         shutil.copy(filename, icons_destination_path)
 
+    archive_extension = 'tar.gz'
+    if system in ('Windows', 'Darwin'):
+        archive_extension = 'zip'
 
-if __name__ == '__main__':
-    if len(argv) > 1:
-        version = argv[1]
+    if archive_extension == 'zip':
+        archive_format = 'zip'
+    elif archive_extension == 'tar.gz':
+        archive_format = 'gztar'
     else:
-        cargo_toml = SafeConfigParser()
-        cargo_toml.readfp(open('Cargo.toml'))
-
-        # NOTE: the string comming out of the file is quoted, so we drop the first
-        # and last characters:
-        version = cargo_toml.get('package', 'version')[1:-1]
-        # NOTE: the versions on github have the `v` prefix:
-        version = "v" + version
-
-    for target in TARGETS:
-        src_url = remote_url(target, version)
-        src_filename = input_filename(target, version)
-        #input_directory = os.path.join("target", "publish", version, 'in')
-        #mkdir_p(input_directory)
-        #input_destination = os.path.join(input_directory, src_filename)
-        print "Downloading file:", src_url
-        #print "to:", input_destination
-        downloaded_path = download_file(src_url)
-        if not downloaded_path:
-            continue
-        print "Downloaded to:", downloaded_path
-        sources = extract_file(downloaded_path)
-        print "Extracted to: '{}'".format(sources)
-        target['process'](target, version, sources)
-        print "Adding icons..."
-        add_icons(target, version, sources)
-        artifact_path = package_sources(target, version, sources)
-        print "Build created in: '{}'".format(artifact_path)
-        shutil.rmtree(sources)
-        os.remove(downloaded_path)
-        print '---'
+        raise Exception("Unknown output extension: {}".format(ext))
+    archive_path = os.path.join("target", "publish", 'dose-response')
+    shutil.make_archive(archive_path, archive_format, out_path)
+    print(f"Build created in: '{archive_path}.{archive_extension}'")

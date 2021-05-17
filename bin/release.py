@@ -39,6 +39,7 @@ if __name__ == '__main__':
     run_id = env['GITHUB_RUN_ID']
     run_number = env['GITHUB_RUN_NUMBER']
     system = platform.system()
+    print_env('GITHUB_REF')
     ref_name = env.get('GITHUB_REF', '').split('/')[-1]
     archive_extension = env.get('ARCHIVE_EXT', 'tar.gz')
 

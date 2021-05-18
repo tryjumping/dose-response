@@ -48,7 +48,9 @@ if __name__ == '__main__':
     out_dir = target_dir / 'publish' / 'Dose Response'
 
     # Ref formats:
-    # refs/pull/13/merge
+    # Pull request: refs/pull/13/merge
+    # Push to master: refs/heads/master
+    # Tag/release: refs/tags/v2.0.0-ci-16
     if ref_name in ('master', 'main'):
         print("This is a nightly")
         nightly = True

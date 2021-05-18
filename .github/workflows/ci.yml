@@ -2,11 +2,11 @@ name: Build and Test Dose Response
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, 1.1.x, 1.0.x ]
     tags:
       - 'v*.*.*'
   pull_request:
-    branches: [ master ]
+    branches: [ master, 1.1.x, 1.0.x ]
 
 env:
   CARGO_TERM_COLOR: always

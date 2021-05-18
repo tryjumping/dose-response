@@ -425,7 +425,7 @@ pub fn main_loop<S>(
                                 // decorations explicitly. Remove this line if
                                 // we don't actually need it.
                                 //context.window().set_decorations(false);
-                                context.window().set_fullscreen(Some(Fullscreen::Borderless(monitor.clone())));
+                                context.window().set_fullscreen(Some(Fullscreen::Borderless(Some(monitor.clone()))));
                             } else {
                                 log::warn!("`current_monitor` is not set!??");
                             }

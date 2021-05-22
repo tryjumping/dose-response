@@ -158,7 +158,7 @@ function actually_play_game(canvas, loaded_callback) {
       }
 
       wasm_instance = wasm_result.instance;
-      gamestate_ptr = wasm_result.instance.exports.initialise();
+      gamestate_ptr = wasm_result.instance.exports.initialise(30, 9);
       programInfo = twgl.createProgramInfo(gl, [vertex_shader, fragment_shader]);
 
 
@@ -189,9 +189,9 @@ function actually_play_game(canvas, loaded_callback) {
 
       var getMousePos = function(canvas, event) {
         var rect = canvas.getBoundingClientRect();
-        let x = (event.clientX - rect.left) / (rect.right - rect.left) * canvas.width;
-        let y = (event.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height;
-        if(x >= 0 && y >= 0 && x < canvas.width && y < canvas.height) {
+        let x = (event.clientX - rect.left) / (rect.right - rect.left) * gl.canvas.width;
+        let y = (event.clientY - rect.top) / (rect.bottom - rect.top) * gl.canvas.height;
+        if(x >= 0 && y >= 0 && x < gl.canvas.width && y < gl.canvas.height) {
           return {
             x: Math.floor(x),
             y: Math.floor(y)

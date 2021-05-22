@@ -89,6 +89,7 @@ const DISPLAY_SIZE: point::Point = PHONE_DISPLAY_SIZE;
 #[cfg(not(feature = "mobile-ui"))]
 const PANEL_WIDTH: i32 = DESKTOP_PANEL_WIDTH;
 #[cfg(not(feature = "mobile-ui"))]
+#[allow(dead_code)]
 const DISPLAY_SIZE: point::Point = DESKTOP_DISPLAY_SIZE;
 
 const WORLD_SIZE: point::Point = point::Point {

@@ -338,6 +338,7 @@ impl Window {
             };
 
             // Highlight the target tile the player would walk to if clicked in the sidebar numpad:
+            #[cfg(not(feature = "web"))]
             if let Some(offset) = offset {
                 let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
                 let player_screen_pos = state.player.pos - screen_left_top_corner;

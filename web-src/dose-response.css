@@ -5,10 +5,16 @@
   src: local('mononoki'), url('mononoki-Regular.ttf'), url('fonts/mononoki-Regular.ttf') format('truetype');
 }
 
+body {
+  margin: 0;
+  padding: 0;
+}
+
 canvas {
+  position: absolute;
   background: black;
-  width: 100%;
-  max-width: 987px;
   height: 100%;
-  max-height: 425px;
+  width: 100%;
+  max-width: 1272px;
+  max-height: 720px;
 }

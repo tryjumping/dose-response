@@ -186,12 +186,16 @@ pub extern "C" fn key_pressed(
 
 #[allow(unsafe_code)]
 #[no_mangle]
-pub extern "C" fn initialise() -> *mut Wasm {
+pub extern "C" fn initialise(display_size: i32, panel_width: i32) -> *mut Wasm {
     log::info!("Initialising {} for WebAssembly", crate::metadata::TITLE);
+    let displayed_map_size = Point {
+        x: display_size - panel_width,
+        y: display_size,
+    };
     let state = Box::new(State::new_game(
         crate::WORLD_SIZE,
-        Point::from_i32(crate::DISPLAYED_MAP_SIZE),
-        crate::PANEL_WIDTH,
+        displayed_map_size,
+        panel_width,
         false, // exit-after
         None,  // replay file
         false, // invincible
@@ -199,7 +203,7 @@ pub extern "C" fn initialise() -> *mut Wasm {
     let drawcalls = Box::new(Vec::with_capacity(crate::engine::DRAWCALL_CAPACITY));
     let vertices = Box::new(Vec::with_capacity(VERTEX_CAPACITY));
     let display = Box::new(crate::engine::Display::new(
-        crate::DISPLAY_SIZE,
+        Point::from_i32(display_size),
         DEFAULT_TILESIZE as i32,
     ));
 

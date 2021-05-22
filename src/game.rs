@@ -23,7 +23,7 @@ use crate::{
     state::{self, Challenge, Command, Side, State},
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
-    util,
+    ui, util,
     window::{self, Window},
     windows::{endgame, help, main_menu, message, settings, sidebar},
     world::World,
@@ -163,7 +163,8 @@ pub fn update(
     // other windows.
     let mut game_update_result = RunningState::Running;
 
-    egui::TopPanel::top(egui::Id::new("main")).show(egui_ctx, |ui| {
+    let screen_rect = egui::Rect::from_min_max(egui::Pos2::ZERO, display.screen_size_px.into());
+    ui::egui_root(egui_ctx, screen_rect, |ui| {
         // NOTE: cloning the window list here to let us iterate it and mutate state.
         let windows = state.window_stack.clone();
         for window in windows.windows() {

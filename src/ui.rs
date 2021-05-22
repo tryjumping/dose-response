@@ -10,7 +10,7 @@ use crate::{
 
 use std::sync::Arc;
 
-use egui::{self, widgets, Color32, Rect, Response, Sense, Ui, Vec2, Widget};
+use egui::{self, widgets, Color32, CtxRef, Rect, Response, Sense, Ui, Vec2, Widget};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Text<'a> {
@@ -19,6 +19,23 @@ pub enum Text<'a> {
     EmptySpace(i32),
     Paragraph(&'a str),
     SquareTiles(&'a str),
+}
+
+/// Egui container area with no bells and whistles. No border, no
+/// elements, no padding, just a regular box you can draw your UI
+/// into.
+pub fn egui_root(ctx: &CtxRef, rect: Rect, add_contents: impl FnOnce(&mut Ui)) {
+    let layer_id = egui::LayerId::background();
+    let panel_rect = rect;
+    let clip_rect = rect;
+    let ui = &mut Ui::new(
+        ctx.clone(),
+        layer_id,
+        egui::Id::new("Root UI Area"),
+        panel_rect,
+        clip_rect,
+    );
+    add_contents(ui);
 }
 
 /// Helper for creating an egui button with the default background and

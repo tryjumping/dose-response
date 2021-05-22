@@ -88,7 +88,7 @@ impl Window {
             .iter()
             .enumerate()
             .map(|(index, &tile_size)| {
-                let window = crate::DISPLAY_SIZE * tile_size;
+                let window = display.size_without_padding() * tile_size;
                 let text = format!(
                     "[{}] {}px ({}x{})",
                     index + 1,

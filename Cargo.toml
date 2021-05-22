@@ -22,10 +22,12 @@ bincode = "1.0"  # For serialising the game save state into a binary format
 bitflags = "1.0"
 clap = { version = "2.20.1", optional = true }
 chrono = { version = "0.4.0", optional = true }
-egui = "0.10"
 #egui = { git = "https://github.com/emilk/emigui.git" }
-#egui = { git = "https://github.com/tomassedovic/emigui.git" }
+# TODO: switch back to crates.io once this issue is in a release (probably in 0.13)
+# https://github.com/emilk/egui/issues/385 (fixed in master after 0.12)
+egui = { git = "https://github.com/tomassedovic/emigui.git" }
 #egui = { path = "../../3pc/src/github.com/emilk/emigui/egui" }
+#egui = "0.12"
 gl = { version = "0.10", optional = true }
 glutin = { version = "0.26", optional = true }
 image = { version = "0.23.13", optional = true }

@@ -85,7 +85,10 @@ pub fn process(
     let bg_progress_bar_pos = ui.painter().add(Shape::Noop);
     let fg_progress_bar_pos = ui.painter().add(Shape::Noop);
     let progress_padding = 2.0;
-    let mindstate_rect = ui.label(mind_str).rect.expand(progress_padding);
+    let mindstate_rect = ui
+        .colored_label(state.palette.gui_text, mind_str)
+        .rect
+        .expand(progress_padding);
 
     ui::progress_bar(
         &mut ui,

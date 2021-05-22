@@ -454,8 +454,8 @@ monitor ID: {:?}. Ignoring this request.",
                 // to copy to the clipboard. So we can safely ignore that for now.
                 let (output, paint_batches) = loop_state.egui_context.end_frame();
                 if let Some(url) = output.open_url {
-                    if let Err(err) = webbrowser::open(&url) {
-                        log::warn!("Error opening URL {} in the external browser!", url);
+                    if let Err(err) = webbrowser::open(&url.url) {
+                        log::warn!("Error opening URL {} in the external browser!", url.url);
                         log::warn!("{}", err);
                     }
                 }

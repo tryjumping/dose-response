@@ -8,6 +8,8 @@ use crate::{
     point::Point,
 };
 
+use std::sync::Arc;
+
 use egui::{self, widgets, Color32, Rect, Response, Sense, Ui, Vec2, Widget};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -172,8 +174,8 @@ impl Widget for ImageTextButton {
 
         let text_style = egui::TextStyle::Button;
         let font = &ui.fonts()[text_style];
-        let prefix_galley = font.layout_no_wrap(prefix_text);
-        let text_galley = font.layout_no_wrap(text);
+        let prefix_galley = Arc::new(font.layout_no_wrap(prefix_text));
+        let text_galley = Arc::new(font.layout_no_wrap(text));
 
         let (uv, _tilesize) = image_uv_tilesize(texture, graphic, text_galley.size.y);
 
@@ -204,13 +206,8 @@ impl Widget for ImageTextButton {
                     background_color,
                     visuals.bg_stroke,
                 );
-                painter.galley(
-                    rect.min + button_padding,
-                    prefix_galley,
-                    text_style,
-                    text_color,
-                );
-                painter.galley(text_pos, text_galley, text_style, text_color);
+                painter.galley(rect.min + button_padding, prefix_galley, text_color);
+                painter.galley(text_pos, text_galley, text_color);
             } else if frame {
                 painter.rect(
                     rect.expand(visuals.expansion),
@@ -221,10 +218,9 @@ impl Widget for ImageTextButton {
                 painter.galley(
                     rect.min + button_padding,
                     prefix_galley,
-                    text_style,
                     text_disabled_color,
                 );
-                painter.galley(text_pos, text_galley, text_style, text_disabled_color);
+                painter.galley(text_pos, text_galley, text_disabled_color);
             }
 
             let image_rect = ui.layout().align_size_within_rect(

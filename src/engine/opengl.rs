@@ -375,7 +375,6 @@ impl OpenGlApp {
         clip_rect: [f32; 4],
         vertex_range: (i32, i32),
     ) {
-        use egui::math::clamp;
         unsafe {
             // NOTE: use gl::Scissor to only render the pixels within
             // clip_rect. This makes the shader simpler compared to
@@ -388,10 +387,10 @@ impl OpenGlApp {
             let clip_min_y = pixels_per_point * clip_rect[1];
             let clip_max_x = pixels_per_point * clip_rect[2];
             let clip_max_y = pixels_per_point * clip_rect[3];
-            let clip_min_x = clamp(clip_min_x, 0.0..=screen_size_width);
-            let clip_min_y = clamp(clip_min_y, 0.0..=screen_size_height);
-            let clip_max_x = clamp(clip_max_x, clip_min_x..=screen_size_width);
-            let clip_max_y = clamp(clip_max_y, clip_min_y..=screen_size_height);
+            let clip_min_x = clip_min_x.clamp(0.0, screen_size_width);
+            let clip_min_y = clip_min_y.clamp(0.0, screen_size_height);
+            let clip_max_x = clip_max_x.clamp(clip_min_x, screen_size_width);
+            let clip_max_y = clip_max_y.clamp(clip_min_y, screen_size_height);
             let clip_min_x = clip_min_x.round() as i32;
             let clip_min_y = clip_min_y.round() as i32;
             let clip_max_x = clip_max_x.round() as i32;

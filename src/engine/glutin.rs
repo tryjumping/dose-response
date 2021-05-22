@@ -269,6 +269,7 @@ pub fn main_loop<S>(
     let mut previous_frame_start_time = Instant::now();
     let mut modifiers = Default::default();
 
+    let mut exiting = false;
     event_loop.run(move |event, _, control_flow| {
         log::debug!("{:?}", event);
         match event {
@@ -637,7 +638,10 @@ monitor ID: {:?}. Ignoring this request.",
         // NOTE: this is mostly for the window size which doesn't have
         // actual GUI options in the Settings dialog. Rather, we want
         // to save whatever the current window size is.
-        if *control_flow == glutin::event_loop::ControlFlow::Exit {
+        if *control_flow == glutin::event_loop::ControlFlow::Exit && !exiting {
+            // NOTE: this block is normally called multiple times. By
+            // setting the `exiting` bool, it only gets called once.
+            exiting = true;
             settings_store.save(&loop_state.settings);
         }
     });

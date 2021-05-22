@@ -159,7 +159,7 @@ impl OpenGlApp {
         }
     }
 
-    #[allow(unsafe_code, too_many_arguments)]
+    #[allow(unsafe_code)]
     pub fn render(
         &self,
         clear_color: Color,

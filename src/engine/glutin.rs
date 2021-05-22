@@ -123,7 +123,7 @@ fn get_current_monitor(monitors: &[MonitorHandle], window_pos: Point) -> Option<
     monitors.iter().cloned().next()
 }
 
-#[allow(cyclomatic_complexity, unsafe_code)]
+#[allow(unsafe_code)]
 pub fn main_loop<S>(
     initial_game_display_size: Point,
     initial_default_background: Color,

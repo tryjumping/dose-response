@@ -498,7 +498,7 @@ fn render_controls_help(map_size: Point, metrics: &dyn TextMetrics, display: &mu
                 Default::default(),
             );
         }
-    };
+    }
 
     let padding = 1;
 

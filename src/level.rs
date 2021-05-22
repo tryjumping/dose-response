@@ -143,7 +143,6 @@ impl Level {
         !(blocked_by_wall || blocked_by_monster)
     }
 
-    #[allow(map_entry)]
     pub fn move_monster(&mut self, monster_position: LevelPosition, destination: LevelPosition) {
         // There can be only one monster on each cell. Bail if the destination
         // is already occupied:

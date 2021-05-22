@@ -184,6 +184,7 @@ pub extern "C" fn key_pressed(
     mem::forget(wasm);
 }
 
+#[allow(unsafe_code)]
 #[no_mangle]
 pub extern "C" fn initialise() -> *mut Wasm {
     log::info!("Initialising {} for WebAssembly", crate::metadata::TITLE);

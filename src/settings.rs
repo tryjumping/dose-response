@@ -514,8 +514,17 @@ impl Store for FileSystemStore {
 
         self.toml[TEXT_SIZE] = toml_edit::value(settings.text_size as i64);
 
-        self.toml[WINDOW_WIDTH] = toml_edit::value(settings.window_width as i64);
-        self.toml[WINDOW_HEIGHT] = toml_edit::value(settings.window_height as i64);
+        if settings.fullscreen {
+            // NOTE: don't save the window width/height when we're in
+            // the full screen mode. Because that means once we
+            // switched to windowed, the window would keep the fullscreen size.
+            //
+            // Instead, we want to return to the size the window had
+            // before going full screen.
+        } else {
+            self.toml[WINDOW_WIDTH] = toml_edit::value(settings.window_width as i64);
+            self.toml[WINDOW_HEIGHT] = toml_edit::value(settings.window_height as i64);
+        }
 
         self.toml[BACKEND] = toml_edit::value(settings.backend.clone());
 

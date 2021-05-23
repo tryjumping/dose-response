@@ -10,7 +10,7 @@ pub struct Audio {
     pub backgrounds: BackgroundSounds,
     pub background_sound_queue: Sink,
     pub effects: EffectSounds,
-    pub sound_effect_queue: [Sink; 3],
+    pub sound_effect_queue: [Sink; 6],
     pub rng: Random,
     sound_effects: Vec<(Effect, Duration)>,
 }
@@ -33,6 +33,9 @@ impl Audio {
 
         let background_sound_queue = stream_handle.map_or_else(empty_sink, new_sink);
         let sound_effect_queue = [
+            stream_handle.map_or_else(empty_sink, new_sink),
+            stream_handle.map_or_else(empty_sink, new_sink),
+            stream_handle.map_or_else(empty_sink, new_sink),
             stream_handle.map_or_else(empty_sink, new_sink),
             stream_handle.map_or_else(empty_sink, new_sink),
             stream_handle.map_or_else(empty_sink, new_sink),

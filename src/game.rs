@@ -743,12 +743,17 @@ fn process_monsters(
         .filter(|m| m.has_ap(1))
         .map(|m| (m.ap.to_int(), m.position))
         .collect::<Vec<_>>();
-    // TODO: Sort by how far it is from the player?
     // NOTE: `world.monsters` does not give a stable result so we need to sort
     // it here to ensure correct replays.
     // NOTE: there's always at most one monster at a given position so this should always produce
     // the same ordering.
-    monster_positions_vec.sort_by_key(|&(ap, pos)| (ap, pos.x, pos.y));
+    //
+    // We sort by action points (so depression always goes first), by
+    // distance to player (so a closer monster can move first and make
+    // space for another one near by) and then by coordinates just to
+    // have some awy to always produce a stable ordering.
+    monster_positions_vec
+        .sort_by_key(|&(ap, pos)| (ap, player.pos.distance(pos) as i32, pos.x, pos.y));
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
 
     while let Some((_, monster_position)) = monster_positions_to_process.pop_front() {

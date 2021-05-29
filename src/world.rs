@@ -23,6 +23,14 @@ pub struct MonsterId {
     monster_index: usize,
 }
 
+/// What's the most significant thing placed on the tile?
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum TileContents {
+    Monster,
+    Item,
+    Empty,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Chunk {
     position: Point,
@@ -482,6 +490,27 @@ impl World {
         }
     }
 
+    /// Return the main "thing" that's on the tile. Generally either an
+    /// item, a monster or nothing.
+    pub fn tile_contents(&self, world_pos: Point) -> TileContents {
+        if self.within_bounds(world_pos) {
+            if let Some(chunk) = self.chunk(world_pos) {
+                let level_position = chunk.level_position(world_pos);
+                let has_monster = chunk.level.monster_on_pos(level_position).is_some();
+                let has_item = !chunk.level.cell(level_position).items.is_empty();
+                match (has_monster, has_item) {
+                    (true, _) => TileContents::Monster,
+                    (false, true) => TileContents::Item,
+                    (false, false) => TileContents::Empty,
+                }
+            } else {
+                TileContents::Empty
+            }
+        } else {
+            TileContents::Empty
+        }
+    }
+
     /// Return a reference to a `Monster` given its `MonsterId`.
     pub fn monster(&self, id: MonsterId) -> Option<&Monster> {
         self.chunk(id.chunk_position.position)
@@ -507,12 +536,10 @@ impl World {
             return;
         }
         let blocker = Blocker::PLAYER | Blocker::MONSTER | Blocker::WALL;
-        assert!(
-            self.walkable(destination, blocker, player_position),
-            "Moster at {:?} cannot move to {:?} because it's occupied.",
-            monster_position,
-            destination
-        );
+        if !self.walkable(destination, blocker, player_position) {
+            return;
+        }
+
         let monster_chunk_pos = self.chunk_pos_from_world_pos(monster_position);
         let destination_chunk_pos = self.chunk_pos_from_world_pos(destination);
         if monster_chunk_pos == destination_chunk_pos {

@@ -1,4 +1,8 @@
-use crate::{blocker, point::Point, world::World};
+use crate::{
+    blocker,
+    point::Point,
+    world::{TileContents, World},
+};
 
 use std::{
     cmp::Ordering,
@@ -50,17 +54,8 @@ impl Path {
                 .filter(|&point| {
                     world.within_bounds(point) && world.walkable(point, blockers, player_position)
                 })
+                .map(|point| (point, world.tile_contents(point)))
                 .collect::<Vec<_>>()
-        };
-
-        let cost = |current: Point, next: Point| -> f32 {
-            assert!((current.x - next.x).abs() <= 1);
-            assert!((current.y - next.y).abs() <= 1);
-            1.0
-        };
-
-        let heuristic = |destination: Point, next: Point| -> f32 {
-            ((destination.x - next.x).abs() + (destination.y - next.y).abs()) as f32
         };
 
         let mut frontier = BinaryHeap::new();
@@ -86,8 +81,9 @@ impl Path {
                 calculation_steps += 1;
             }
             let neigh = neighbors(current.position);
-            for &next in &neigh {
-                let new_cost = cost_so_far[&current.position] + cost(current.position, next);
+            for &(next, tile_contents) in &neigh {
+                let new_cost =
+                    cost_so_far[&current.position] + cost(current.position, next, tile_contents);
                 let val = cost_so_far.entry(next).or_insert(f32::MAX);
                 if new_cost < *val {
                     *val = new_cost;
@@ -142,6 +138,33 @@ impl Iterator for Path {
     fn next(&mut self) -> Option<Self::Item> {
         self.path.pop()
     }
+}
+
+/// Calculate the pathfinding cost of moving to the next Point.
+///
+/// The higher the cost, the harder to move to the tile. The
+/// `tile_contents` variable can help determine the underlying cost.
+///
+/// The destination is expected to be walkable (this function always
+/// returns a finite cost).
+fn cost(current: Point, next: Point, tile_contents: TileContents) -> f32 {
+    use TileContents::*;
+    assert!((current.x - next.x).abs() <= 1);
+    assert!((current.y - next.y).abs() <= 1);
+
+    // NOTE: the values here are set for monster pathfinding. The
+    // player might have different weights though these shouldn't
+    // hurt. I guess we might want to pass the weights into this
+    // function at some later point.
+    match tile_contents {
+        Monster => 1.3,
+        Item => 1.0,
+        Empty => 1.0,
+    }
+}
+
+fn heuristic(destination: Point, next: Point) -> f32 {
+    ((destination.x - next.x).abs() + (destination.y - next.y).abs()) as f32
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]

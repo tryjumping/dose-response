@@ -52,6 +52,21 @@ Now open [http://0.0.0.0:8000/](http://0.0.0.0:8000/) in your web
 browser.
 
 
+Publishing
+----------
+
+1. Update copyright notice (year) in README
+2. Update copyright notice (year) in src/windows/help.rs
+3. Update the version in Cargo.toml
+4. Build the game
+
+## Publishing on the web
+1. Do the publishing steps
+2. Run `make wasm-release`
+3. `cp target/web/* path/to/website/play/`
+4. Update the website (release numbers, copyright years)
+
+
 Recording a video
 -----------------
 

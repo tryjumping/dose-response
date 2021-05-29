@@ -220,7 +220,7 @@ impl Window {
             crate::metadata::VERSION
         );
 
-        let copyright = format!("Copyright 2013-2020 {}", crate::metadata::AUTHORS);
+        let copyright = format!("Copyright 2013-2021 {}", crate::metadata::AUTHORS);
         let homepage = &format!("Homepage: {}", crate::metadata::HOMEPAGE);
         let git_msg = &format!("Git commit: {}", crate::metadata::GIT_HASH);
 

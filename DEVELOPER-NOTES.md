@@ -6,8 +6,8 @@ Building
 
 Requires Rust 1.31 (the code uses the [Rust 2018 edition][edition]).
 
-The published release (version 1.0) uses SDL2, but the master (and
-future releases) uses pure Rust windowing libraries instead.
+The published release (versions 1.0 and 1.1) uses SDL2, but the master
+(and future releases) uses pure Rust windowing libraries instead.
 
 
 Dependencies
@@ -24,77 +24,13 @@ Debian/Ubuntu:
     # apt-get install libasound2-dev
 
 
-Pure Rust
----------
+Publishing
+----------
 
-This is the default on master.
-
-If you want to try the pure Rust graphics backend
-([winit][winit] & [glutin][glutin]), compile the
-project like so:
-
-Just run:
-
-    $ cargo build
-
-To run the built binary you can use cargo:
-
-    $ cargo run
-
-Or run it directly:
-
-    $ ./target/debug/dose-response
-
-
-SDL2
-----
-
-For the SDL backend you also need the [SDL2][sdl] library available
-wherever your OS looks for libraries.
-
-To add the SDL support, you must enable the `sdl-backend` Cargo feature:
-
-    $ cargo build --features sdl-backend
-
-And to use the SDL backend when running the game you must edit the game's settings and set the `backend = "sdl"` option:
-
-    $ $EDITOR target/debug/settings.toml
-    backend = "sdl"
-
-(the backends are currently not selectable in-game)
-
-And then run the game:
-
-    $ cargo run --features sdl-backend
-
-Or:
-
-    $ ./target/debug/dose-response
-
-
-Webassembly
------------
-
-Install the wasm toolchain:
-
-    rustup update stable
-    rustup target add wasm32-unknown-unknown
-
-Compile:
-
-    cargo build --release --target wasm32-unknown-unknown --no-default-features --features web
-
-The compiled file will be created in: `target/wasm32-unknown-unknown/release/dose-response.wasm`
-
-You can test it by serving the contents of `web-src`. Something like
-this should work if you've got `python3` installed:
-
-    $ cd dose-response/web-src
-    $ python3 -m http.server
-    Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
-
-Now open [http://0.0.0.0:8000/](http://0.0.0.0:8000/) in your web
-browser.
+1. Update copyright notice (year) in README
+2. Update copyright notice (year) in src/windows/help.rs
+3. Update the version in Cargo.toml
+4. Build the game
 
 
 Recording a video

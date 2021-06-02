@@ -14,11 +14,15 @@ use std::time::Instant;
 
 use egui::CtxRef;
 
-use glutin::{
-    dpi::LogicalSize,
-    event::{ElementState, Event, KeyboardInput, VirtualKeyCode as BackendKey, WindowEvent},
+use winit::{
+    dpi::{LogicalSize, PhysicalPosition},
+    event::{
+        ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta,
+        VirtualKeyCode as BackendKey, WindowEvent,
+    },
+    event_loop::{ControlFlow, EventLoop},
     monitor::MonitorHandle,
-    window::Fullscreen,
+    window::{Fullscreen, WindowBuilder},
 };
 
 use rodio::OutputStream;
@@ -173,20 +177,20 @@ pub fn main_loop<S>(
         stream_handle,
     );
 
-    let event_loop = glutin::event_loop::EventLoop::new();
+    let event_loop = EventLoop::new();
     log::debug!("Created events loop: {:?}", event_loop);
     let desired_size = {
         let size = loop_state.desired_window_size_px();
         LogicalSize::new(size.0, size.1)
     };
 
-    let window = glutin::window::WindowBuilder::new()
+    let window = WindowBuilder::new()
         .with_title(window_title)
         .with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT))
         .with_inner_size(desired_size);
     #[cfg(target_os = "windows")]
     let window = {
-        use glutin::platform::windows::WindowBuilderExtWindows;
+        use winit::platform::windows::WindowBuilderExtWindows;
         // NOTE: on Windows the game crashes with: OleInitialize failed! Result was: `RPC_E_CHANGED_MODE`
         // https://github.com/rust-windowing/winit/blob/078b9719cc3ba06630291d5bc05c90787bd84c4f/src/platform_impl/windows/window.rs#L86-L89
         // Disabling Drag & Drop fixes it so that's what we're doing here
@@ -194,6 +198,19 @@ pub fn main_loop<S>(
         window.with_drag_and_drop(false)
     };
     log::debug!("Created window builder: {:?}", window);
+
+    // NOTE: this is the only thing we're using glutin for: creating
+    // the OpenGL context. That is not possible to do with Winit
+    // directly (winit has RawWindowHandle but not a corresponding
+    // OpenGL context).
+    //
+    // There are crates other than glutin out there than handle this,
+    // but they're less maintained, support fewer platforms and would
+    // be a risk to introduce.
+    //
+    // TBH the only reason I'd like to drop glutin is because it ships
+    // its own winit version which means I need to wait for it to sync
+    // up before I can update the winit version myself. But oh well.
     let context = glutin::ContextBuilder::new()
         .with_vsync(true)
         .build_windowed(window, &event_loop);
@@ -276,9 +293,7 @@ pub fn main_loop<S>(
             Event::NewEvents(..) => {}
 
             Event::WindowEvent { event, .. } => match event {
-                WindowEvent::CloseRequested => {
-                    *control_flow = glutin::event_loop::ControlFlow::Exit
-                }
+                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
 
                 WindowEvent::Resized(size) => {
                     log::info!("WindowEvent::Resized: {:?}", size);
@@ -388,10 +403,10 @@ monitor ID: {:?}. Ignoring this request.",
                 }
 
                 WindowEvent::MouseWheel { delta, .. } => {
-                    use glutin::event::MouseScrollDelta::*;
+                    use MouseScrollDelta::*;
                     match delta {
                         LineDelta(x, y) => loop_state.mouse.scroll_delta = [x as f32, y as f32],
-                        PixelDelta(glutin::dpi::PhysicalPosition { x: x_px, y: y_px }) => {
+                        PixelDelta(PhysicalPosition { x: x_px, y: y_px }) => {
                             let line_height_px = loop_state.settings.text_size as f32;
                             loop_state.mouse.scroll_delta =
                                 [x_px as f32 / line_height_px, y_px as f32 / line_height_px]
@@ -404,7 +419,7 @@ monitor ID: {:?}. Ignoring this request.",
                     button,
                     ..
                 } => {
-                    use glutin::event::MouseButton::*;
+                    use MouseButton::*;
                     match button {
                         Left => {
                             loop_state.mouse.left_is_down = true;
@@ -421,7 +436,7 @@ monitor ID: {:?}. Ignoring this request.",
                     button,
                     ..
                 } => {
-                    use glutin::event::MouseButton::*;
+                    use MouseButton::*;
                     match button {
                         Left => {
                             loop_state.mouse.left_clicked = true;
@@ -445,9 +460,7 @@ monitor ID: {:?}. Ignoring this request.",
                 loop_state.update_fps(dt);
 
                 match loop_state.update_game(dt, &mut settings_store) {
-                    UpdateResult::QuitRequested => {
-                        *control_flow = glutin::event_loop::ControlFlow::Exit
-                    }
+                    UpdateResult::QuitRequested => *control_flow = ControlFlow::Exit,
                     UpdateResult::KeepGoing => {}
                 }
 
@@ -544,7 +557,7 @@ monitor ID: {:?}. Ignoring this request.",
                         }
                         id => {
                             log::error!(
-                                "ERROR[Glutin RedrawRequested]: unknown texture ID: `{:?}`",
+                                "ERROR[Winit RedrawRequested]: unknown texture ID: `{:?}`",
                                 id
                             );
                             [1.0, 1.0]
@@ -638,7 +651,7 @@ monitor ID: {:?}. Ignoring this request.",
         // NOTE: this is mostly for the window size which doesn't have
         // actual GUI options in the Settings dialog. Rather, we want
         // to save whatever the current window size is.
-        if *control_flow == glutin::event_loop::ControlFlow::Exit && !exiting {
+        if *control_flow == ControlFlow::Exit && !exiting {
             // NOTE: this block is normally called multiple times. By
             // setting the `exiting` bool, it only gets called once.
             exiting = true;

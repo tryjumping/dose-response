@@ -702,6 +702,7 @@ dependencies = [
  "simplelog",
  "toml_edit",
  "webbrowser",
+ "winit",
  "winres",
  "zmq",
 ]

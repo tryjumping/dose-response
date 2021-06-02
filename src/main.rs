@@ -57,37 +57,11 @@ mod world;
 // the perfect aspect ratio, but it seems to be good enough.
 const DISPLAYED_MAP_SIZE: i32 = 30;
 
-// NOTE: 26 is the current minimum sidebar height
-
-// NOTE: 13 is the minimum size where the current Will bar is fully visible
-// NOTE: 17 is the default size
-// NOTE: 9 is an acceptable width on my phone and we *should* be able to fit everything in
-// TODO: keep this const as the default value for new windows but then adjust dynamically
-
-#[allow(dead_code)]
-const DESKTOP_PANEL_WIDTH: i32 = 17;
-#[allow(dead_code)]
-const DESKTOP_DISPLAY_SIZE: point::Point = point::Point {
+const PANEL_WIDTH: i32 = 17;
+const DISPLAY_SIZE: point::Point = point::Point {
     x: DISPLAYED_MAP_SIZE + PANEL_WIDTH,
     y: DISPLAYED_MAP_SIZE,
 };
-#[allow(dead_code)]
-const PHONE_PANEL_WIDTH: i32 = 9;
-#[allow(dead_code)]
-const PHONE_DISPLAY_SIZE: point::Point = point::Point {
-    x: DISPLAYED_MAP_SIZE + PANEL_WIDTH,
-    y: 19,
-};
-
-#[cfg(feature = "mobile-ui")]
-const PANEL_WIDTH: i32 = PHONE_PANEL_WIDTH;
-#[cfg(feature = "mobile-ui")]
-const DISPLAY_SIZE: point::Point = PHONE_DISPLAY_SIZE;
-
-#[cfg(not(feature = "mobile-ui"))]
-const PANEL_WIDTH: i32 = DESKTOP_PANEL_WIDTH;
-#[cfg(not(feature = "mobile-ui"))]
-const DISPLAY_SIZE: point::Point = DESKTOP_DISPLAY_SIZE;
 
 const WORLD_SIZE: point::Point = point::Point {
     x: 1_073_741_824,

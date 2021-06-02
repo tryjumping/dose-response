@@ -10,7 +10,7 @@ pub struct Audio {
     pub backgrounds: BackgroundSounds,
     pub background_sound_queue: Sink,
     pub effects: EffectSounds,
-    pub sound_effect_queue: [Sink; 6],
+    pub sound_effect_queue: [Sink; 2],
     pub rng: Random,
     sound_effects: Vec<(Effect, Duration)>,
 }
@@ -33,10 +33,6 @@ impl Audio {
 
         let background_sound_queue = stream_handle.map_or_else(empty_sink, new_sink);
         let sound_effect_queue = [
-            stream_handle.map_or_else(empty_sink, new_sink),
-            stream_handle.map_or_else(empty_sink, new_sink),
-            stream_handle.map_or_else(empty_sink, new_sink),
-            stream_handle.map_or_else(empty_sink, new_sink),
             stream_handle.map_or_else(empty_sink, new_sink),
             stream_handle.map_or_else(empty_sink, new_sink),
         ];
@@ -119,16 +115,11 @@ impl Audio {
     }
 
     fn play_sound<S: 'static + Source<Item = i16> + Send>(&mut self, sound: S) {
-        let mut all_queues_full = true;
         for sink in self.sound_effect_queue.iter() {
             if sink.empty() {
                 sink.append(sound);
-                all_queues_full = false;
                 break;
             }
-        }
-        if all_queues_full {
-            log::warn!("play_sound_effect: no empty queue found. Skipping playback.");
         }
     }
 

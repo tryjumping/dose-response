@@ -22,7 +22,7 @@ use winit::{
     },
     event_loop::{ControlFlow, EventLoop},
     monitor::MonitorHandle,
-    window::{Fullscreen, WindowBuilder},
+    window::{Fullscreen, Icon, WindowBuilder},
 };
 
 use rodio::OutputStream;
@@ -184,8 +184,28 @@ pub fn main_loop<S>(
         LogicalSize::new(size.0, size.1)
     };
 
+    let window_icon = {
+        let data = &include_bytes!("../../assets/icon_256x256.png")[..];
+        let result = image::load_from_memory_with_format(data, image::ImageFormat::Png)
+            .map(image::DynamicImage::into_rgba8)
+            .map(|i| (i.dimensions(), i.into_raw()))
+            .map(|((width, height), rgba)| Icon::from_rgba(rgba, width, height));
+        match result {
+            Ok(Ok(icon)) => Some(icon),
+            Ok(Err(e)) => {
+                log::warn!("Could not load window icon data: {:?}", e);
+                None
+            }
+            Err(e) => {
+                log::warn!("Could not load icon from data: {:?}", e);
+                None
+            }
+        }
+    };
+
     let window = WindowBuilder::new()
         .with_title(window_title)
+        .with_window_icon(window_icon.clone())
         .with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT))
         .with_inner_size(desired_size);
     #[cfg(target_os = "windows")]
@@ -195,7 +215,7 @@ pub fn main_loop<S>(
         // https://github.com/rust-windowing/winit/blob/078b9719cc3ba06630291d5bc05c90787bd84c4f/src/platform_impl/windows/window.rs#L86-L89
         // Disabling Drag & Drop fixes it so that's what we're doing here
         log::debug!("We're on Windows, disabling drag and drop!");
-        window.with_drag_and_drop(false)
+        window.with_drag_and_drop(false).with_taskbar_icon(icon)
     };
     log::debug!("Created window builder: {:?}", window);
 

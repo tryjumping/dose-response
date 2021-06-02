@@ -144,8 +144,7 @@ fn run_remote(
     log::error!("The \"remote\" feature was not compiled in.");
 }
 
-#[cfg(feature = "cli")]
-fn process_cli_and_run_game() {
+fn main() {
     use crate::settings::Store;
     use clap::{App, Arg};
     use simplelog::{CombinedLogger, Config, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
@@ -336,16 +335,4 @@ fn process_cli_and_run_game() {
             log::error!("Unknown backend: {}", backend);
         }
     }
-}
-
-// NOTE: this function is intentionally empty and should stay here.
-// Under wasm we don't want to run the game immediately because the
-// game loop must be controlled from the browser not Rust. So we've
-// provided external endpoints the browser will call in. But `main`
-// still gets executed when the wasm binary is loaded.
-#[cfg(not(feature = "cli"))]
-fn process_cli_and_run_game() {}
-
-fn main() {
-    process_cli_and_run_game();
 }

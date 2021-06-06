@@ -500,6 +500,18 @@ Reason: '{}'.",
 
         Ok(state)
     }
+
+    pub fn screen_left_top_corner(&self) -> Point {
+        self.screen_position_in_world - (self.map_size / 2)
+    }
+
+    pub fn screen_pos_from_world_pos(&self, world_pos: Point) -> Point {
+        world_pos - self.screen_left_top_corner()
+    }
+
+    pub fn mouse_world_position(&self) -> Point {
+        self.screen_left_top_corner() + self.mouse.tile_pos
+    }
 }
 
 /// The various challenges that the player can take. Persisted via

@@ -473,18 +473,14 @@ fn process_game(
         let mouse_inside_map =
             state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
 
-        let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
-        let mouse_world_position = screen_left_top_corner + state.mouse.tile_pos;
-        let visible = mouse_world_position.inside_circular_area(
+        let visible = state.mouse_world_position().inside_circular_area(
             state.player.pos,
             formula::exploration_radius(state.player.mind),
         );
 
         if state.world.initialised() && state.player.alive() && mouse_inside_map && visible {
-            let screen_coords_from_world = |pos| pos - screen_left_top_corner;
-
             let source = state.player.pos;
-            let destination = mouse_world_position;
+            let destination = state.mouse_world_position();
             let path = pathfinding::Path::find(
                 source,
                 destination,
@@ -494,7 +490,7 @@ fn process_game(
                 formula::PATHFINDING_PLAYER_MOUSE_LIMIT,
             );
             for point in path.clone() {
-                let screen_pos = screen_coords_from_world(point);
+                let screen_pos = state.screen_pos_from_world_pos(point);
                 highlighted_tiles.push(screen_pos);
             }
 
@@ -680,23 +676,19 @@ fn process_game(
         ));
     }
 
-    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
-    let screen_coords_from_world = |pos| pos - screen_left_top_corner;
-    let mouse_world_position = screen_left_top_corner + state.mouse.tile_pos;
-
     let explored = state
         .world
-        .cell(mouse_world_position)
+        .cell(state.mouse_world_position())
         .map_or(true, |cell| cell.explored);
 
     // NOTE: show tooltip of a hovered-over object
     let tooltip = if !explored && settings.hide_unseen_tiles {
         None
-    } else if mouse_world_position == state.player.pos {
+    } else if state.mouse_world_position() == state.player.pos {
         Some("Player Character")
-    } else if let Some(monster) = state.world.monster_on_pos(mouse_world_position) {
+    } else if let Some(monster) = state.world.monster_on_pos(state.mouse_world_position()) {
         Some(monster.name())
-    } else if let Some(cell) = state.world.cell(mouse_world_position) {
+    } else if let Some(cell) = state.world.cell(state.mouse_world_position()) {
         if let Some(item) = cell.items.get(0) {
             Some(item.kind.name())
         } else {
@@ -722,7 +714,7 @@ fn process_game(
     // NOTE: re-centre the display if the player reached the end of the screen
     let no_left_mouse = !state.mouse.left_is_down && !state.mouse.left_clicked;
     if state.pos_timer.finished() && no_left_mouse {
-        let display_pos = state.player.pos - screen_left_top_corner;
+        let display_pos = state.screen_pos_from_world_pos(state.player.pos);
         // NOTE: this is the re-center speed. We calculate it based on
         // the map size. That way the speed itself remains more or
         // less constant.
@@ -753,7 +745,7 @@ fn process_game(
     {
         // NOTE: this is no longer having any effect. Hints are disabled in `State::new`.
 
-        let player_screen_pos = screen_coords_from_world(state.player.pos);
+        let player_screen_pos = state.screen_pos_from_world_pos(state.player.pos);
         let d = 10;
         if player_screen_pos.x < d
             || player_screen_pos.y < d
@@ -1208,9 +1200,7 @@ fn process_player(state: &mut State, audio: &mut Audio, simulation_area: Rectang
     }
 
     // NOTE: If the player is following a path move them one step along the path
-    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
-    let mouse_world_position = screen_left_top_corner + state.mouse.tile_pos;
-    let visible = mouse_world_position.inside_circular_area(
+    let visible = state.mouse_world_position().inside_circular_area(
         state.player.pos,
         formula::exploration_radius(state.player.mind),
     );

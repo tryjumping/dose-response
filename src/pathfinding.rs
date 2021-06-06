@@ -24,6 +24,7 @@ impl Path {
         world: &World,
         blockers: blocker::Blocker,
         player_position: Point,
+        player_will: i32,
         calculation_limit: i32,
         cost: &dyn Fn(Point, Point, TileContents) -> f32,
     ) -> Self {
@@ -57,7 +58,7 @@ impl Path {
                 .filter(|&point| {
                     world.within_bounds(point) && world.walkable(point, blockers, player_position)
                 })
-                .map(|point| (point, world.tile_contents(point)))
+                .map(|point| (point, world.tile_contents(point, player_will)))
                 .collect::<Vec<_>>()
         };
 
@@ -157,6 +158,7 @@ pub fn direct_cost(_current: Point, _next: Point, tile_contents: TileContents) -
     match tile_contents {
         TileContents::Monster => 1.0,
         TileContents::Item => 1.0,
+        TileContents::Irresistible => 1.0,
         TileContents::Empty => 1.0,
     }
 }
@@ -165,14 +167,16 @@ pub fn monster_cost(_current: Point, _next: Point, tile_contents: TileContents) 
     match tile_contents {
         TileContents::Monster => 2.1,
         TileContents::Item => 1.0,
+        TileContents::Irresistible => 1.0,
         TileContents::Empty => 1.0,
     }
 }
 
 pub fn player_cost(_current: Point, _next: Point, tile_contents: TileContents) -> f32 {
     match tile_contents {
-        TileContents::Monster => 2.1,
+        TileContents::Monster => 1.0,
         TileContents::Item => 1.0,
+        TileContents::Irresistible => 4.0,
         TileContents::Empty => 1.0,
     }
 }

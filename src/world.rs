@@ -28,6 +28,7 @@ pub struct MonsterId {
 pub enum TileContents {
     Monster,
     Item,
+    Irresistible,
     Empty,
 }
 
@@ -492,16 +493,29 @@ impl World {
 
     /// Return the main "thing" that's on the tile. Generally either an
     /// item, a monster or nothing.
-    pub fn tile_contents(&self, world_pos: Point) -> TileContents {
+    pub fn tile_contents(&self, world_pos: Point, player_will: i32) -> TileContents {
         if self.within_bounds(world_pos) {
+            // TODO: oof, I think this calculation is quite convoluted
+            // and it's slowed down the game update times
+            // significantly. Need to measure the release mode but if
+            // this is a problem, we'll need to speed it up. Maybe set
+            // the "irresistible" marker on the cells and just update
+            // them every frame?
+            let irresistible = self
+                .nearest_dose(world_pos, 5)
+                .map_or(false, |(dose_pos, dose)| {
+                    world_pos.tile_distance(dose_pos)
+                        < formula::player_resist_radius(dose.irresistible, player_will) as i32
+                });
             if let Some(chunk) = self.chunk(world_pos) {
                 let level_position = chunk.level_position(world_pos);
                 let has_monster = chunk.level.monster_on_pos(level_position).is_some();
                 let has_item = !chunk.level.cell(level_position).items.is_empty();
-                match (has_monster, has_item) {
-                    (true, _) => TileContents::Monster,
-                    (false, true) => TileContents::Item,
-                    (false, false) => TileContents::Empty,
+                match (has_monster, irresistible, has_item) {
+                    (true, _, _) => TileContents::Monster,
+                    (false, true, _) => TileContents::Irresistible,
+                    (false, _, true) => TileContents::Item,
+                    (false, _, false) => TileContents::Empty,
                 }
             } else {
                 TileContents::Empty
@@ -638,7 +652,7 @@ impl World {
 
     /// Get a dose within the given radius that's nearest to the
     /// specified point.
-    pub fn nearest_dose(&mut self, centre: Point, radius: i32) -> Option<(Point, Item)> {
+    pub fn nearest_dose(&self, centre: Point, radius: i32) -> Option<(Point, Item)> {
         let mut doses = vec![];
         for pos in CircularArea::new(centre, radius) {
             // Make sure we don't go out of bounds with self.cell(pos):

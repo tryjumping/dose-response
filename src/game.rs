@@ -487,6 +487,7 @@ fn process_game(
                 &state.world,
                 Blocker::WALL,
                 state.player.pos,
+                state.player.will.to_int(),
                 formula::PATHFINDING_PLAYER_MOUSE_LIMIT,
                 &pathfinding::player_cost,
             );
@@ -844,6 +845,7 @@ fn process_monsters(
                         world,
                         monster_readonly.blockers,
                         player.pos,
+                        player.will.to_int(),
                         formula::PATHFINDING_MONSTER_LIMIT,
                         &pathfinding::monster_cost,
                     );
@@ -959,6 +961,7 @@ fn process_player_action<W>(
                     world,
                     Blocker::WALL,
                     player.pos,
+                    player.will.to_int(),
                     formula::PATHFINDING_DOSE_RESIST_LIMIT,
                     &pathfinding::direct_cost,
                 );
@@ -1666,6 +1669,7 @@ fn place_victory_npc(state: &mut State) -> Point {
             &state.world,
             blockers,
             state.player.pos,
+            state.player.will.to_int(),
             formula::PATHFINDING_VNPC_REACHABILITY_LIMIT,
             &pathfinding::direct_cost,
         );

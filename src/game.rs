@@ -469,12 +469,12 @@ fn process_game(
             state.path_walking_timer.update(dt);
         }
 
-        let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
-        let mouse_world_position = screen_left_top_corner + state.mouse.tile_pos;
-
         // NOTE: Show the path from the player to the mouse pointer
         let mouse_inside_map =
             state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
+
+        let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+        let mouse_world_position = screen_left_top_corner + state.mouse.tile_pos;
         let visible = mouse_world_position.inside_circular_area(
             state.player.pos,
             formula::exploration_radius(state.player.mind),
@@ -1208,7 +1208,13 @@ fn process_player(state: &mut State, audio: &mut Audio, simulation_area: Rectang
     }
 
     // NOTE: If the player is following a path move them one step along the path
-    if state.mouse.left_is_down && state.path_walking_timer.finished() {
+    let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+    let mouse_world_position = screen_left_top_corner + state.mouse.tile_pos;
+    let visible = mouse_world_position.inside_circular_area(
+        state.player.pos,
+        formula::exploration_radius(state.player.mind),
+    );
+    if state.mouse.left_is_down && visible && state.path_walking_timer.finished() {
         state.path_walking_timer.reset();
         if let Some(destination) = state.player_path.next() {
             let command = match destination - state.player.pos {

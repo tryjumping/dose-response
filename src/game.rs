@@ -488,6 +488,7 @@ fn process_game(
                 Blocker::WALL,
                 state.player.pos,
                 formula::PATHFINDING_PLAYER_MOUSE_LIMIT,
+                &pathfinding::player_cost,
             );
             for point in path.clone() {
                 let screen_pos = state.screen_pos_from_world_pos(point);
@@ -844,6 +845,7 @@ fn process_monsters(
                         monster_readonly.blockers,
                         player.pos,
                         formula::PATHFINDING_MONSTER_LIMIT,
+                        &pathfinding::monster_cost,
                     );
                     let newpos = path.next().unwrap_or(pos);
                     // Cache the path-finding result
@@ -958,6 +960,7 @@ fn process_player_action<W>(
                     Blocker::WALL,
                     player.pos,
                     formula::PATHFINDING_DOSE_RESIST_LIMIT,
+                    &pathfinding::direct_cost,
                 );
 
                 let new_pos_opt = if path.len() <= resist_radius {
@@ -1664,6 +1667,7 @@ fn place_victory_npc(state: &mut State) -> Point {
             blockers,
             state.player.pos,
             formula::PATHFINDING_VNPC_REACHABILITY_LIMIT,
+            &pathfinding::direct_cost,
         );
         if path_to_vnpc.len() == 0 {
             log::warn!("Failed to find path from player to Victory NPC!")

@@ -25,6 +25,7 @@ impl Path {
         blockers: blocker::Blocker,
         player_position: Point,
         calculation_limit: i32,
+        cost: &dyn Fn(Point, Point, TileContents) -> f32,
     ) -> Self {
         if from == to {
             return Path { path: vec![] };
@@ -84,6 +85,8 @@ impl Path {
             }
             let neigh = neighbors(current.position);
             for &(next, tile_contents) in &neigh {
+                assert!((current.position.x - next.x).abs() <= 1);
+                assert!((current.position.y - next.y).abs() <= 1);
                 let new_cost =
                     cost_so_far[&current.position] + cost(current.position, next, tile_contents);
                 let val = cost_so_far.entry(next).or_insert(f32::MAX);
@@ -149,19 +152,28 @@ impl Iterator for Path {
 ///
 /// The destination is expected to be walkable (this function always
 /// returns a finite cost).
-fn cost(current: Point, next: Point, tile_contents: TileContents) -> f32 {
-    use TileContents::*;
-    assert!((current.x - next.x).abs() <= 1);
-    assert!((current.y - next.y).abs() <= 1);
 
-    // NOTE: the values here are set for monster pathfinding. The
-    // player might have different weights though these shouldn't
-    // hurt. I guess we might want to pass the weights into this
-    // function at some later point.
+pub fn direct_cost(_current: Point, _next: Point, tile_contents: TileContents) -> f32 {
     match tile_contents {
-        Monster => 2.1,
-        Item => 1.0,
-        Empty => 1.0,
+        TileContents::Monster => 1.0,
+        TileContents::Item => 1.0,
+        TileContents::Empty => 1.0,
+    }
+}
+
+pub fn monster_cost(_current: Point, _next: Point, tile_contents: TileContents) -> f32 {
+    match tile_contents {
+        TileContents::Monster => 2.1,
+        TileContents::Item => 1.0,
+        TileContents::Empty => 1.0,
+    }
+}
+
+pub fn player_cost(_current: Point, _next: Point, tile_contents: TileContents) -> f32 {
+    match tile_contents {
+        TileContents::Monster => 2.1,
+        TileContents::Item => 1.0,
+        TileContents::Empty => 1.0,
     }
 }
 

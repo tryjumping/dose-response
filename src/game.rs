@@ -862,7 +862,9 @@ fn process_monsters(
                 };
 
                 world.move_monster(pos, newpos, player.pos);
-                if newpos.tile_distance(player.pos) < formula::exploration_radius(player.mind) {
+                let monster_visible = newpos
+                    .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
+                if monster_visible {
                     let delay = audio.random_delay();
                     audio.mix_sound_effect(Effect::MonsterMoved, delay);
                 }

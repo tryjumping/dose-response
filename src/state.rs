@@ -1,6 +1,7 @@
 use crate::{
     animation::{AreaOfEffect, ScreenFade},
     engine::Mouse,
+    formula,
     graphic::Graphic,
     keys::Keys,
     monster,
@@ -234,7 +235,7 @@ impl State {
             replay_step: Duration::new(0, 0),
             stats: Default::default(),
             pos_timer: Timer::new(Duration::from_millis(0)),
-            path_walking_timer: Timer::new_elapsed(Duration::from_millis(350), 1.0),
+            path_walking_timer: Timer::new_elapsed(formula::PLAYER_PATH_WALKING_DELAY, 1.0),
             old_screen_pos: (0, 0).into(),
             new_screen_pos: (0, 0).into(),
             offset_px: Point::zero(),

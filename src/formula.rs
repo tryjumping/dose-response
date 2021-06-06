@@ -9,7 +9,7 @@ use crate::{
     state::Challenge,
 };
 
-use std::cmp;
+use std::{cmp, time::Duration};
 
 use num_rational::{Ratio, Rational32};
 
@@ -129,6 +129,8 @@ pub const PATHFINDING_MONSTER_LIMIT: i32 = 50;
 pub const PATHFINDING_PLAYER_MOUSE_LIMIT: i32 = 50;
 pub const PATHFINDING_DOSE_RESIST_LIMIT: i32 = 50;
 pub const PATHFINDING_VNPC_REACHABILITY_LIMIT: i32 = 500;
+
+pub const PLAYER_PATH_WALKING_DELAY: Duration = Duration::from_millis(350);
 
 pub fn exploration_radius(mental_state: Mind) -> i32 {
     use crate::player::Mind::*;

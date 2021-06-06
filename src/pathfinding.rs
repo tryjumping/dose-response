@@ -314,9 +314,24 @@ mod test {
         }
     }
 
+    fn find_path(board: &Board, blockers: Blocker, calculation_limit: i32) -> Path {
+        let player_position = Point::new(0, 0);
+        let will = 2;
+        Path::find(
+            board.start,
+            board.destination,
+            &board.world,
+            blockers,
+            player_position,
+            will,
+            calculation_limit,
+            &super::direct_cost,
+        )
+    }
+
     #[test]
     fn test_neighbor() {
-        let mut board = make_board(
+        let board = make_board(
             "
 ...........
 .sd........
@@ -324,14 +339,7 @@ mod test {
 ...........
 ",
         );
-        let path: Path = Path::find(
-            board.start,
-            board.destination,
-            &mut board.world,
-            Blocker::WALL,
-            Point::new(0, 0),
-            50,
-        );
+        let path = find_path(&board, Blocker::WALL, 50);
         assert_eq!(1, path.len());
         let expected = [(2, 1)]
             .iter()
@@ -352,14 +360,7 @@ mod test {
 ",
         );
         board.destination = board.start;
-        let path: Path = Path::find(
-            board.start,
-            board.destination,
-            &mut board.world,
-            Blocker::WALL,
-            Point::new(0, 0),
-            50,
-        );
+        let path = find_path(&board, Blocker::WALL, 50);
         assert_eq!(0, path.len());
         let expected: Vec<Point> = vec![];
         assert_eq!(expected, path.collect::<Vec<_>>());
@@ -367,7 +368,7 @@ mod test {
 
     #[test]
     fn test_straight_path() {
-        let mut board = make_board(
+        let board = make_board(
             "
 ...........
 .s******d..
@@ -375,14 +376,7 @@ mod test {
 ...........
 ",
         );
-        let path: Path = Path::find(
-            board.start,
-            board.destination,
-            &mut board.world,
-            Blocker::WALL,
-            Point::new(0, 0),
-            50,
-        );
+        let path = find_path(&board, Blocker::WALL, 50);
         assert_eq!(7, path.len());
         let expected = [(2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)]
             .iter()
@@ -394,7 +388,7 @@ mod test {
 
     #[test]
     fn test_diagonal_path() {
-        let mut board = make_board(
+        let board = make_board(
             "
 s..........
 .*.........
@@ -402,14 +396,7 @@ s..........
 ...d.......
 ",
         );
-        let path: Path = Path::find(
-            board.start,
-            board.destination,
-            &mut board.world,
-            Blocker::WALL,
-            Point::new(0, 0),
-            50,
-        );
+        let path = find_path(&board, Blocker::WALL, 50);
         assert_eq!(3, path.len());
         let expected = [(1, 1), (2, 2), (3, 3)]
             .iter()
@@ -421,7 +408,7 @@ s..........
 
     #[test]
     fn test_no_path() {
-        let mut board = make_board(
+        let board = make_board(
             "
 xxxxx......
 xs..x...d..
@@ -429,20 +416,13 @@ x...x......
 xxxxx......
 ",
         );
-        let path: Path = Path::find(
-            board.start,
-            board.destination,
-            &mut board.world,
-            Blocker::WALL,
-            Point::new(0, 0),
-            50,
-        );
+        let path = find_path(&board, Blocker::WALL, 50);
         assert_eq!(0, path.len());
     }
 
     #[test]
     fn test_line_obstacle() {
-        let mut board = make_board(
+        let board = make_board(
             "
 ....x......
 .s..x......
@@ -450,14 +430,7 @@ xxxxx......
 ...*****d..
 ",
         );
-        let path: Path = Path::find(
-            board.start,
-            board.destination,
-            &mut board.world,
-            Blocker::WALL,
-            Point::new(0, 0),
-            50,
-        );
+        let path = find_path(&board, Blocker::WALL, 50);
         assert_eq!(7, path.len());
         let expected = [(2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
             .iter()
@@ -469,7 +442,7 @@ xxxxx......
 
     #[test]
     fn test_concave_obstacle() {
-        let mut board = make_board(
+        let board = make_board(
             "
 ......x....
 ......x....
@@ -482,14 +455,7 @@ xxxxx......
 ...****....
 ",
         );
-        let path: Path = Path::find(
-            board.start,
-            board.destination,
-            &mut board.world,
-            Blocker::WALL,
-            Point::new(0, 0),
-            50,
-        );
+        let path = find_path(&board, Blocker::WALL, 50);
         assert_eq!(9, path.len());
         let expected = [
             (2, 6),

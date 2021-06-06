@@ -159,7 +159,7 @@ fn cost(current: Point, next: Point, tile_contents: TileContents) -> f32 {
     // hurt. I guess we might want to pass the weights into this
     // function at some later point.
     match tile_contents {
-        Monster => 1.3,
+        Monster => 2.1,
         Item => 1.0,
         Empty => 1.0,
     }

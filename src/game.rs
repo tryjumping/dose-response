@@ -720,7 +720,8 @@ fn process_game(
     });
 
     // NOTE: re-centre the display if the player reached the end of the screen
-    if state.pos_timer.finished() {
+    let no_left_mouse = !state.mouse.left_is_down && !state.mouse.left_clicked;
+    if state.pos_timer.finished() && no_left_mouse {
         let display_pos = state.player.pos - screen_left_top_corner;
         // NOTE: this is the re-center speed. We calculate it based on
         // the map size. That way the speed itself remains more or
@@ -748,7 +749,6 @@ fn process_game(
             // Do nothing
         }
     }
-
     // Hide the keyboard movement hints if the player gets too close
     {
         // NOTE: this is no longer having any effect. Hints are disabled in `State::new`.

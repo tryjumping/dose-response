@@ -13,7 +13,7 @@ pub fn render_game(
     state: &State,
     _metrics: &dyn TextMetrics,
     display: &mut Display,
-    highlighted_tile: Option<Point>,
+    highlighted_tiles: Vec<Point>,
 ) {
     let mut offset_px = state.offset_px;
 
@@ -225,8 +225,9 @@ pub fn render_game(
         );
     }
 
-    // Highlight the target tile the player would walk to if clicked in the sidebar numpad:
-    if let Some(pos) = highlighted_tile {
+    // Highlight the tiles the player would walk to if clicked in the
+    // sidebar numpad or followed the pathfinding suggestion:
+    for pos in highlighted_tiles {
         // Only highlight when we're not re-centering the
         // screen (because that looks weird)
         if state.pos_timer.finished() {

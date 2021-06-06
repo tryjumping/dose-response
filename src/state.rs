@@ -5,6 +5,7 @@ use crate::{
     keys::Keys,
     monster,
     palette::Palette,
+    pathfinding::Path,
     player::Player,
     point::Point,
     random::Random,
@@ -122,6 +123,7 @@ pub struct State {
     pub keys: Keys,
     pub mouse: Mouse,
     pub commands: VecDeque<Command>,
+    pub player_path: Path,
     #[serde(skip_serializing, skip_deserializing)]
     pub verifications: VecDeque<Verification>,
     #[serde(skip_serializing, skip_deserializing, default = "empty_command_logger")]
@@ -137,6 +139,7 @@ pub struct State {
     #[serde(skip_serializing, skip_deserializing)]
     pub stats: Stats,
     pub pos_timer: Timer,
+    pub path_walking_timer: Timer,
     pub paused: bool,
     pub old_screen_pos: Point,
     pub new_screen_pos: Point,
@@ -218,6 +221,7 @@ impl State {
             keys: Keys::new(),
             mouse: Default::default(),
             commands,
+            player_path: Path::default(),
             verifications,
             command_logger: Box::new(log_writer),
             side: Side::Player,
@@ -230,6 +234,7 @@ impl State {
             replay_step: Duration::new(0, 0),
             stats: Default::default(),
             pos_timer: Timer::new(Duration::from_millis(0)),
+            path_walking_timer: Timer::new_elapsed(Duration::from_millis(350), 1.0),
             old_screen_pos: (0, 0).into(),
             new_screen_pos: (0, 0).into(),
             offset_px: Point::zero(),

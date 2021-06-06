@@ -43,6 +43,10 @@ impl Point {
         let other = other.into();
         max((self.x - other.x).abs(), (self.y - other.y).abs())
     }
+
+    pub fn inside_circular_area<P: Into<Point>>(self, centre: P, radius: i32) -> bool {
+        CircularArea::new(centre.into(), radius).contains(self)
+    }
 }
 
 impl Into<Point> for (i32, i32) {
@@ -218,6 +222,11 @@ impl CircularArea {
             initial_x: center.x - radius,
             max: center + (radius, radius),
         }
+    }
+
+    pub fn contains<P: Into<Point>>(mut self, point: P) -> bool {
+        let point = point.into();
+        self.any(|p| p == point)
     }
 }
 

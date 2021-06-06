@@ -36,6 +36,14 @@ impl Timer {
         }
     }
 
+    pub fn finish(&mut self) {
+        self.current = Duration::new(0, 0);
+    }
+
+    pub fn reset(&mut self) {
+        self.current = self.max;
+    }
+
     pub fn percentage_remaining(&self) -> f32 {
         self.current.as_secs_f32() / self.max.as_secs_f32()
     }

@@ -153,12 +153,6 @@ pub fn update(
     // display.set_glyph(origin + (1, 1), 'i', color::dose);
     // display.set_fade(color::BLACK, 1.0);
 
-    // // NOTE: DEBUG: Show the tile under mouse pointer:
-    // display.draw_rectangle(
-    //     Rectangle::from_point_and_size(state.mouse.tile_pos, Point::from_i32(1)),
-    //     color::gui_text,
-    // );
-
     // TODO: This might be inefficient for windows fully covering
     // other windows.
     let mut game_update_result = RunningState::Running;
@@ -179,10 +173,20 @@ pub fn update(
                     display.fade = color::INVISIBLE;
                 }
                 Window::Game => {
-                    let (result, highlighted_tile) = process_game(
-                        state, ui, settings, metrics, display, audio, dt, fps, top_level,
+                    let mut highlighted_tiles = Vec::with_capacity(15);
+                    let result = process_game(
+                        state,
+                        ui,
+                        settings,
+                        metrics,
+                        display,
+                        audio,
+                        dt,
+                        fps,
+                        top_level,
+                        &mut highlighted_tiles,
                     );
-                    render::render_game(state, metrics, display, highlighted_tile);
+                    render::render_game(state, metrics, display, highlighted_tiles);
                     game_update_result = result;
                 }
                 Window::Settings => {
@@ -285,14 +289,18 @@ fn process_game(
     dt: Duration,
     fps: i32,
     active: bool,
-) -> (RunningState, Option<Point>) {
+    highlighted_tiles: &mut Vec<Point>,
+) -> RunningState {
     use self::sidebar::Action;
 
     let (mut option, highlighted_tile) =
         sidebar::process(state, ui, settings, dt, fps, display, active);
+    if let Some(pos) = highlighted_tile {
+        highlighted_tiles.push(pos);
+    }
 
     if !active {
-        return (RunningState::Running, None);
+        return RunningState::Running;
     }
 
     if option.is_none() {
@@ -308,11 +316,11 @@ fn process_game(
     match option {
         Some(Action::MainMenu) => {
             state.window_stack.push(Window::MainMenu);
-            return (RunningState::Running, None);
+            return RunningState::Running;
         }
         Some(Action::Help) => {
             state.window_stack.push(Window::Help);
-            return (RunningState::Running, None);
+            return RunningState::Running;
         }
         _ => {}
     }
@@ -323,7 +331,7 @@ fn process_game(
         && (state.keys.matches(|_| true) || state.mouse.right_clicked)
     {
         state.window_stack.push(Window::Endgame);
-        return (RunningState::Running, None);
+        return RunningState::Running;
     }
 
     let player_was_alive = state.player.alive();
@@ -453,6 +461,44 @@ fn process_game(
 
         if let Some(command) = mouse_command {
             state.commands.push_front(command);
+        }
+
+        if state.mouse.left_clicked {
+            state.path_walking_timer.finish();
+        } else {
+            state.path_walking_timer.update(dt);
+        }
+
+        let screen_left_top_corner = state.screen_position_in_world - (state.map_size / 2);
+        let mouse_world_position = screen_left_top_corner + state.mouse.tile_pos;
+
+        // NOTE: Show the path from the player to the mouse pointer
+        let mouse_inside_map =
+            state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
+        let visible = mouse_world_position.inside_circular_area(
+            state.player.pos,
+            formula::exploration_radius(state.player.mind),
+        );
+
+        if state.world.initialised() && state.player.alive() && mouse_inside_map && visible {
+            let screen_coords_from_world = |pos| pos - screen_left_top_corner;
+
+            let source = state.player.pos;
+            let destination = mouse_world_position;
+            let path = pathfinding::Path::find(
+                source,
+                destination,
+                &state.world,
+                Blocker::WALL,
+                state.player.pos,
+                formula::PATHFINDING_PLAYER_MOUSE_LIMIT,
+            );
+            for point in path.clone() {
+                let screen_pos = screen_coords_from_world(point);
+                highlighted_tiles.push(screen_pos);
+            }
+
+            state.player_path = path;
         }
 
         // NOTE: Process 1 action point of the player and then 1 AP of
@@ -722,7 +768,7 @@ fn process_game(
         }
     }
 
-    (RunningState::Running, highlighted_tile)
+    RunningState::Running
 }
 
 fn process_monsters(
@@ -1159,6 +1205,29 @@ fn process_player(state: &mut State, audio: &mut Audio, simulation_area: Rectang
         player.bonuses.extend(npc_bonuses);
     }
 
+    // NOTE: If the player is following a path move them one step along the path
+    if state.mouse.left_is_down && state.path_walking_timer.finished() {
+        state.path_walking_timer.reset();
+        if let Some(destination) = state.player_path.next() {
+            let command = match destination - state.player.pos {
+                Point { x: 0, y: -1 } => Some(Command::N),
+                Point { x: 0, y: 1 } => Some(Command::S),
+                Point { x: -1, y: 0 } => Some(Command::W),
+                Point { x: 1, y: 0 } => Some(Command::E),
+
+                Point { x: -1, y: -1 } => Some(Command::NW),
+                Point { x: -1, y: 1 } => Some(Command::SW),
+                Point { x: 1, y: -1 } => Some(Command::NE),
+                Point { x: 1, y: 1 } => Some(Command::SE),
+
+                _ => None,
+            };
+            if let Some(command) = command {
+                state.commands.push_front(command)
+            }
+        }
+    }
+
     let previous_action_points = state.player.ap();
     process_player_action(
         &mut state.player,
@@ -1593,7 +1662,7 @@ fn place_victory_npc(state: &mut State) -> Point {
         let path_to_vnpc = pathfinding::Path::find(
             state.player.pos,
             vnpc_pos,
-            &mut state.world,
+            &state.world,
             blockers,
             state.player.pos,
             formula::PATHFINDING_VNPC_REACHABILITY_LIMIT,

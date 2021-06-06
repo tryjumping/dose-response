@@ -10,7 +10,9 @@ use std::{
     f32,
 };
 
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Path {
     path: Vec<Point>,
 }
@@ -19,7 +21,7 @@ impl Path {
     pub fn find(
         from: Point,
         to: Point,
-        world: &mut World,
+        world: &World,
         blockers: blocker::Blocker,
         player_position: Point,
         calculation_limit: i32,

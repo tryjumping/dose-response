@@ -55,20 +55,20 @@ impl Random {
                 choice -= *weight;
             }
         }
-        return None;
+        None
     }
 
     pub fn choose<'a, T>(&mut self, options: &'a [T]) -> Option<&'a T> {
         if options.is_empty() {
             None
         } else {
-            let index = self.rng.rand_range(0 as u32..options.len() as u32) as usize;
+            let index = self.rng.rand_range(0_u32..options.len() as u32) as usize;
             options.get(index)
         }
     }
 
     pub fn choose_with_fallback<'a, T>(&mut self, options: &'a [T], fallback: &'a T) -> &'a T {
-        self.choose(options).unwrap_or(&fallback)
+        self.choose(options).unwrap_or(fallback)
     }
 }
 

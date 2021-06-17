@@ -208,12 +208,12 @@ impl Settings {
 
         out.push_str(&format!("{} = \"{}\"\n", PERMADEATH, self.permadeath));
 
-        out.push_str(&format!("# Options: <0.0, 1.0>\n"));
+        out.push_str(&"# Options: <0.0, 1.0>\n".to_string());
         out.push_str(&format!(
             "{} = \"{}\"\n",
             BACKGROUND_VOLUME, self.background_volume
         ));
-        out.push_str(&format!("# Options: <0.0, 1.0>\n"));
+        out.push_str(&"# Options: <0.0, 1.0>\n".to_string());
         out.push_str(&format!("{} = \"{}\"\n", SOUND_VOLUME, self.sound_volume));
 
         out
@@ -390,8 +390,7 @@ impl Store for FileSystemStore {
                         WINDOW_WIDTH,
                         MIN_WINDOW_WIDTH
                     )
-                } else {
-                    if window_width > MAX_WINDOW_WIDTH as i64 {
+                } else if window_width > MAX_WINDOW_WIDTH as i64 {
                         log::error!(
                             "Settings error: `{}` cannot be greater than {}.",
                             WINDOW_WIDTH,
@@ -400,7 +399,6 @@ impl Store for FileSystemStore {
                     } else {
                         settings.window_width = window_width as u32;
                     }
-                }
             }
             None => log::error!("Settings: missing `{}` entry.", WINDOW_WIDTH),
         }
@@ -413,8 +411,7 @@ impl Store for FileSystemStore {
                         WINDOW_HEIGHT,
                         MIN_WINDOW_HEIGHT
                     )
-                } else {
-                    if window_height > MAX_WINDOW_HEIGHT as i64 {
+                } else if window_height > MAX_WINDOW_HEIGHT as i64 {
                         log::error!(
                             "Settings error: `{}` cannot be greater than {}.",
                             WINDOW_HEIGHT,
@@ -423,7 +420,6 @@ impl Store for FileSystemStore {
                     } else {
                         settings.window_height = window_height as u32;
                     }
-                }
             }
             None => log::error!("Settings: missing `{}` entry.", WINDOW_HEIGHT),
         }

@@ -205,9 +205,6 @@ impl<'a> Iterator for Cells<'a> {
         let pos = (self.index % self.width, self.index / self.width).into();
         let level_position = LevelPosition { pos };
         self.index += 1;
-        match self.inner.next() {
-            Some(cell) => Some((level_position, cell)),
-            None => None,
-        }
+        self.inner.next().map(|cell| (level_position, cell))
     }
 }

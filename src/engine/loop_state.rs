@@ -519,7 +519,7 @@ impl LoopState {
 
         self.check_vertex_buffer_capacity();
 
-        self.render(&opengl_app, dpi, &batches);
+        self.render(opengl_app, dpi, &batches);
     }
 
     pub fn check_vertex_buffer_capacity(&self) {

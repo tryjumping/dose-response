@@ -157,7 +157,7 @@ def run_game():
     socket.linger = 250
     socket.connect("ipc:///tmp/dose-response.ipc")
 
-    print "... connected."
+    print("... connected.")
 
     turns = 0
     max_turns = 200 + random.randint(10, 200)
@@ -196,21 +196,21 @@ def run_game():
             print("ERROR: Timed out waiting for a response")
             break
 
-    print "Closing the connection"
+    print("Closing the connection")
     socket.close()
     context.term()
 
 
 def test_run():
-    print "Building dose-response"
+    print("Building dose-response")
     rc = subprocess.call(['cargo', 'build', '--features=remote'])
     if rc != 0:
-        print "Error building dose-response"
+        print("Error building dose-response")
         return 'UNEXPECTED'
     replay_file = tempfile.NamedTemporaryFile(delete=False)
     replay_file.close()  # We won't write anything, the game will
-    print "Running the game with a replay destination: {}".format(
-        replay_file.name)
+    print("Running the game with a replay destination: {}".format(
+        replay_file.name))
     game_command = ['cargo', 'run', '--features=remote', '--',
                     '--remote', '--exit-after', '--invincible',
                     '--replay-file', replay_file.name]
@@ -219,25 +219,25 @@ def test_run():
     time.sleep(1)
 
     if game.poll() is None:
-        print "Sending commands"
+        print("Sending commands")
         run_game()
     else:
-        print "ERROR: game ended prematurely."
-        print "stdout: {}".format(game.stdout.read())
-        print "stderr: {}".format(game.stderr.read())
+        print("ERROR: game ended prematurely.")
+        print("stdout: {}".format(game.stdout.read()))
+        print("stderr: {}".format(game.stderr.read()))
         return 'UNEXPECTED'
 
-    print "The game ended, getting its status"
+    print("The game ended, getting its status")
     time.sleep(1)
     rc = game.poll()
     if rc is None:
         game.kill()  # The game was still running, kill it
     elif rc == 0:
-        print "Starting the replay"
+        print("Starting the replay")
     else:
-        print "Dose response finished with return code: {}".format(rc)
-        print "stdout: {}".format(game.stdout.read())
-        print "stderr: {}".format(game.stderr.read())
+        print("Dose response finished with return code: {}".format(rc))
+        print("stdout: {}".format(game.stdout.read()))
+        print("stderr: {}".format(game.stderr.read()))
         return 'UNEXPECTED'
 
     replay_command = ['cargo', 'run', '--features=remote', '--',
@@ -247,18 +247,18 @@ def test_run():
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     rc = game.wait()
     if rc == 0:
-        print "Replay finished successfully. No need to store it."
+        print("Replay finished successfully. No need to store it.")
         os.unlink(replay_file.name)
         return 'SUCCESS'
     else:
         # We got a bug / replay failure
-        print "Return code: {}".format(rc)
-        print "stdout: {}".format(game.stdout.read())
-        print "stderr: {}".format(game.stderr.read())
+        print("Return code: {}".format(rc))
+        print("stdout: {}".format(game.stdout.read()))
+        print("stderr: {}".format(game.stderr.read()))
         target_dir = os.path.join(os.curdir, 'replays', 'bugs')
         now = datetime.datetime.now()
         bug_path = os.path.join(target_dir, now.strftime('%Y-%m-%dT%H-%M-%S'))
-        print "Recording crash to: {}".format(bug_path)
+        print("Recording crash to: {}".format(bug_path))
         if not os.path.isdir(target_dir):
             os.mkdir(target_dir)
         shutil.copyfile(replay_file.name, bug_path)
@@ -280,14 +280,14 @@ if __name__ == '__main__':
 
     try:
         for i in range(test_count):
-            print "Running test number {}".format(i + 1)
+            print("Running test number {}".format(i + 1))
             result = test_run()
             results[result] += 1
-        print "\n\nAll {} tests finished.".format(test_count)
+        print("\n\nAll {} tests finished.".format(test_count))
     except KeyboardInterrupt:
-        print "\n\n{} out of {} tests finished.".format(i, test_count)
+        print("\n\n{} out of {} tests finished.".format(i, test_count))
 
-    print "Results:\n{}".format(results)
+    print("Results:\n{}".format(results))
 
     if results['SUCCESS'] == test_count:
         return_code = 0

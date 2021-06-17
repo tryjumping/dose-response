@@ -127,7 +127,7 @@ fn current_git_commit() -> Option<String> {
 
 fn main() {
     let git_hash = env::var_os("APPVEYOR_REPO_COMMIT")
-        .or(env::var_os("TRAVIS_COMMIT"))
+        .or_else(|| env::var_os("TRAVIS_COMMIT"))
         .and_then(|s| s.into_string().ok())
         .or_else(current_git_commit)
         .unwrap_or_default();

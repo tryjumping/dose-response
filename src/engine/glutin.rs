@@ -597,7 +597,7 @@ monitor ID: {:?}. Ignoring this request.",
 
                         let pos = egui_vertex.pos;
                         let vertex = engine::Vertex {
-                            texture_id: texture_id,
+                            texture_id,
                             pos_px: [pos.x, pos.y],
                             tile_pos: [u * texture_size[0], v * texture_size[1]],
                             color: color.into(),

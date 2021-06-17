@@ -236,7 +236,7 @@ mod test {
         let mut x = 0;
         let mut y = 0;
 
-        let lines = text.split('\n').filter(|l| l.len() > 0).collect::<Vec<_>>();
+        let lines = text.split('\n').filter(|l| !l.is_empty()).collect::<Vec<_>>();
         let height = lines.len();
         assert!(height > 0);
         let width = lines[0].len();
@@ -308,9 +308,9 @@ mod test {
         assert!(destination != Point { x: -1, y: -1 });
 
         Board {
-            start: start,
-            destination: destination,
-            world: world,
+            start,
+            destination,
+            world,
         }
     }
 

@@ -18,6 +18,9 @@ jobs:
       TARGET_TRIPLE: x86_64-unknown-linux-gnu
       ARCHIVE_EXT: tar.gz
       EXTRA_FEATURES: linux-extra-features
+      # Workaround for secrets not working in conditionals:
+      # https://github.com/actions/runner/issues/520
+      HAS_SECRETS: ${{ secrets.AWS_REGION_NAME != '' }}
     steps:
     - uses: actions/checkout@v2
     - name: Install build-time dependencies
@@ -34,14 +37,17 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION_NAME }}
+      if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Build the release
       run: >
         cargo build --verbose --release --no-default-features
         --features "prod ${{ env.EXTRA_FEATURES }}"
+      if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Package and upload the release
       run: |
         python3 -m pip install --upgrade boto3
         python3 bin/release.py ${{ secrets.AWS_S3_BUCKET_NAME }}
+      if: ${{ env.HAS_SECRETS == 'true' }}
 
   build-windows:
     runs-on: windows-latest
@@ -49,6 +55,7 @@ jobs:
       TARGET_TRIPLE: x86_64-pc-windows-msvc
       ARCHIVE_EXT: zip
       EXTRA_FEATURES: windows-extra-features
+      HAS_SECRETS: ${{ secrets.AWS_REGION_NAME != '' }}
     steps:
     - uses: actions/checkout@v2
     - run: python -m pip install --upgrade boto3
@@ -62,14 +69,17 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION_NAME }}
+      if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Build the release
       run: >
         cargo build --verbose --release --no-default-features
         --features "prod ${{ env.EXTRA_FEATURES }}"
+      if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Package and upload the release
       run: |
         python3 -m pip install --upgrade boto3
         python3 bin/release.py ${{ secrets.AWS_S3_BUCKET_NAME }}
+      if: ${{ env.HAS_SECRETS == 'true' }}
 
   build-macos:
     runs-on: macos-latest
@@ -77,6 +87,7 @@ jobs:
       TARGET_TRIPLE: x86_64-apple-darwin
       ARCHIVE_EXT: zip
       EXTRA_FEATURES: macos-extra-features
+      HAS_SECRETS: ${{ secrets.AWS_REGION_NAME != '' }}
     steps:
     - uses: actions/checkout@v2
     - run: python -m pip install --upgrade boto3
@@ -90,11 +101,14 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION_NAME }}
+      if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Build the release
       run: >
         cargo build --verbose --release --no-default-features
         --features "prod ${{ env.EXTRA_FEATURES }}"
+      if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Package and upload the release
       run: |
         python3 -m pip install --upgrade boto3
         python3 bin/release.py ${{ secrets.AWS_S3_BUCKET_NAME }}
+      if: ${{ env.HAS_SECRETS == 'true' }}

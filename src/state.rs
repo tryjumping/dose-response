@@ -214,7 +214,7 @@ impl State {
             chunk_size: 32,
             world_size,
             world,
-            map_size: map_size,
+            map_size,
             panel_width,
             screen_position_in_world: world_centre,
             seed,

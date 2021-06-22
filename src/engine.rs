@@ -127,7 +127,7 @@ impl Vertex {
     #[allow(dead_code)]
     fn to_f32_array(&self) -> [f32; 9] {
         [
-            self.texture_id.into(),
+            self.texture_id,
             self.pos_px[0],
             self.pos_px[1],
             self.tile_pos[0],

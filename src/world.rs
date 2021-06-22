@@ -130,7 +130,7 @@ impl Chunk {
             chunk_position: ChunkPosition {
                 position: self.position,
             },
-            monster_index: monster_index,
+            monster_index,
         }
     }
 
@@ -482,7 +482,7 @@ impl World {
                 chunk
                     .level
                     .monster_on_pos(level_position)
-                    .and_then(move |monster_index| Some(&mut chunk.monsters[monster_index]))
+                    .map(move |monster_index| &mut chunk.monsters[monster_index])
             } else {
                 None
             }
@@ -732,7 +732,7 @@ impl World {
         let chunk_size = self.chunk_size;
         self.chunks
             .iter()
-            .filter(move |&(pos, ref _chunk)| {
+            .filter(move |&(pos, _chunk)| {
                 let chunk_area =
                     Rectangle::from_point_and_size(pos.position, Point::from_i32(chunk_size));
                 area.intersects(chunk_area)

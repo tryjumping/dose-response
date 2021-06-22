@@ -320,7 +320,7 @@ impl OpenGlApp {
                 gl::FLOAT,
                 gl::FALSE as GLboolean,
                 stride,
-                (1 * mem::size_of::<GLfloat>()) as *const GLvoid,
+                mem::size_of::<GLfloat>() as *const GLvoid,
             );
             check_gl_error("VertexAttribPointer pos_px");
 

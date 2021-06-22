@@ -426,7 +426,7 @@ mod test {
         let mut expected = Vec::new();
         for y in -4..5 {
             for x in -4..5 {
-                expected.push(Point { x: x, y: y });
+                expected.push(Point { x, y });
             }
         }
         assert_eq!(actual, expected);

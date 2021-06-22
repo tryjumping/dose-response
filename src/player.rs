@@ -42,10 +42,7 @@ pub enum Mind {
 
 impl Mind {
     pub fn is_high(&self) -> bool {
-        match self {
-            Mind::High(_) => true,
-            _ => false,
-        }
+        matches!(self, Mind::High(_))
     }
 
     pub fn is_sober(&self) -> bool {

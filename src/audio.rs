@@ -64,7 +64,7 @@ impl Audio {
         Self {
             backgrounds: BackgroundSounds {
                 ambient_forrest: forrest,
-                cow: cow,
+                cow,
             },
             effects: EffectSounds {
                 walk: [walk_1, walk_2, walk_3, walk_4],

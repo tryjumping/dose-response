@@ -36,12 +36,12 @@ pub fn process(
         (Some(LostWill), Some(monster)) => format!("Lost all Will due to {}", monster.name(),),
         (Some(LostWill), None) => {
             log::error!("Lost all will without any apparent cause.");
-            format!("Lost all will")
+            "Lost all will".to_string()
         }
         (Some(Killed), Some(monster)) => format!("Defeated by {}", monster.name()),
         (Some(Killed), None) => {
             // NOTE: this happens when the player kills itself using a cheat command.
-            format!("Lost")
+            "Lost".to_string()
         }
         (None, _) => "".into(), // Victory
     };
@@ -188,7 +188,7 @@ pub fn process(
 fn endgame_tip(state: &State) -> String {
     use self::CauseOfDeath::*;
 
-    if state.player_picked_up_a_dose == false {
+    if !state.player_picked_up_a_dose {
         return String::from("Attack monsters by bumping (moving) into them!");
     }
 
@@ -231,13 +231,13 @@ fn endgame_tip(state: &State) -> String {
     let cause_of_death = formula::cause_of_death(&state.player);
     let perpetrator = state.player.perpetrator.as_ref();
     let selected_tip = match (cause_of_death, perpetrator) {
-        (Some(Overdosed), _) => *throwavay_rng.choose_with_fallback(overdosed_tips, &fallback),
+        (Some(Overdosed), _) => *throwavay_rng.choose_with_fallback(overdosed_tips, fallback),
         (Some(Exhausted), Some(_monster)) => {
-            *throwavay_rng.choose_with_fallback(hunger_tips, &fallback)
+            *throwavay_rng.choose_with_fallback(hunger_tips, fallback)
         }
-        (Some(Exhausted), None) => *throwavay_rng.choose_with_fallback(food_tips, &fallback),
+        (Some(Exhausted), None) => *throwavay_rng.choose_with_fallback(food_tips, fallback),
         (Some(LostWill), Some(_monster)) => {
-            *throwavay_rng.choose_with_fallback(anxiety_tips, &fallback)
+            *throwavay_rng.choose_with_fallback(anxiety_tips, fallback)
         }
         _ => *throwavay_rng.choose_with_fallback(&all_tips, &fallback),
     };

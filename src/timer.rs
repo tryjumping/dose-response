@@ -69,6 +69,6 @@ impl Stopwatch {
     }
 
     pub fn finish(self) -> Duration {
-        return Instant::now().duration_since(self.start);
+        Instant::now().duration_since(self.start)
     }
 }

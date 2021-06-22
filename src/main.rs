@@ -1,12 +1,12 @@
 #![deny(overflowing_literals, unsafe_code)]
 #![allow(
     unknown_lints,
-    match_wild_err_arm,
-    too_many_arguments,
+    clippy::match_wild_err_arm,
     cyclomatic_complexity,
-    expect_fun_call,
-    or_fun_call,
-    unused_macros
+    clippy::expect_fun_call,
+    clippy::or_fun_call,
+    unused_macros,
+    clippy::identity_op
 )]
 #![windows_subsystem = "windows"]
 
@@ -68,7 +68,7 @@ const WORLD_SIZE: point::Point = point::Point {
     y: 1_073_741_824,
 };
 
-#[allow(unused_variables, dead_code, needless_pass_by_value)]
+#[allow(unused_variables, dead_code, clippy::needless_pass_by_value)]
 fn run_glutin(
     default_background: color::Color,
     window_title: &str,
@@ -96,7 +96,7 @@ fn run_glutin(
     log::error!("The \"glutin-backend\" feature was not compiled in.");
 }
 
-#[allow(unused_variables, dead_code, needless_pass_by_value)]
+#[allow(unused_variables, dead_code, clippy::needless_pass_by_value)]
 fn run_remote(
     display_size: point::Point,
     default_background: color::Color,
@@ -264,7 +264,7 @@ fn main() {
             WORLD_SIZE,
             point::Point::from_i32(DISPLAYED_MAP_SIZE),
             PANEL_WIDTH,
-            &replay_path,
+            replay_path,
             matches.is_present("cheating"),
             matches.is_present("invincible"),
             matches.is_present("replay-full-speed"),

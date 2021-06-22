@@ -124,10 +124,7 @@ impl Monster {
             Signpost => Behavior::Immobile,
         };
 
-        let invincible = match kind {
-            Npc | Signpost => true,
-            _ => false,
-        };
+        let invincible = matches!(kind, Npc | Signpost);
 
         // NOTE: NPCs can't walk into the player, monsters can
         let blockers = match kind {

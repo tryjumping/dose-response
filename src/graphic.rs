@@ -176,19 +176,19 @@ pub fn tilemap_coords_px(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)>
         FoodStriped => Some((4 + 3, 12 - 3)),
 
         // PCs
-        CharacterTrousers => Some((0 + 5, 13 - 3)),
+        CharacterTrousers => Some((5, 13 - 3)),
         CharacterSkirt => Some((1 + 5, 13 - 3)),
 
         // NPC
         CharacterBelly => Some((2 + 5, 13 - 3)),
 
         // Tribal NPC set
-        CharacterTribalStaffTrousers => Some((0 + 5, 14 - 3)),
+        CharacterTribalStaffTrousers => Some((5, 14 - 3)),
         CharacterTribalStaffBelly => Some((1 + 5, 14 - 3)),
         CharacterTribalMoon => Some((2 + 5, 14 - 3)),
 
         // Animal Set
-        Bird1 => Some((0 + 8, 15 - 4)),
+        Bird1 => Some((8, 15 - 4)),
         Fox => Some((1 + 8, 15 - 4)),
         Snake => Some((2 + 8, 15 - 4)),
         Bat => Some((3 + 8, 15 - 4)),

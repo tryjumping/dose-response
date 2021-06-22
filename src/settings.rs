@@ -241,8 +241,8 @@ impl FileSystemStore {
     pub fn new() -> Self {
         let filename = "settings.toml";
         let mut path = std::env::current_exe()
-            .or(std::env::current_dir())
-            .unwrap_or(PathBuf::new());
+            .or_else(|_| std::env::current_dir())
+            .unwrap_or_default();
         path.set_file_name(filename);
         log::info!("Settings will be stored at: '{}'", path.display());
 
@@ -391,14 +391,14 @@ impl Store for FileSystemStore {
                         MIN_WINDOW_WIDTH
                     )
                 } else if window_width > MAX_WINDOW_WIDTH as i64 {
-                        log::error!(
-                            "Settings error: `{}` cannot be greater than {}.",
-                            WINDOW_WIDTH,
-                            MAX_WINDOW_WIDTH
-                        );
-                    } else {
-                        settings.window_width = window_width as u32;
-                    }
+                    log::error!(
+                        "Settings error: `{}` cannot be greater than {}.",
+                        WINDOW_WIDTH,
+                        MAX_WINDOW_WIDTH
+                    );
+                } else {
+                    settings.window_width = window_width as u32;
+                }
             }
             None => log::error!("Settings: missing `{}` entry.", WINDOW_WIDTH),
         }
@@ -412,14 +412,14 @@ impl Store for FileSystemStore {
                         MIN_WINDOW_HEIGHT
                     )
                 } else if window_height > MAX_WINDOW_HEIGHT as i64 {
-                        log::error!(
-                            "Settings error: `{}` cannot be greater than {}.",
-                            WINDOW_HEIGHT,
-                            MAX_WINDOW_HEIGHT
-                        );
-                    } else {
-                        settings.window_height = window_height as u32;
-                    }
+                    log::error!(
+                        "Settings error: `{}` cannot be greater than {}.",
+                        WINDOW_HEIGHT,
+                        MAX_WINDOW_HEIGHT
+                    );
+                } else {
+                    settings.window_height = window_height as u32;
+                }
             }
             None => log::error!("Settings: missing `{}` entry.", WINDOW_HEIGHT),
         }

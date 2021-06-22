@@ -212,152 +212,154 @@ impl World {
     /// Remove some of the monsters from player's initial vicinity,
     /// place some food nearby and a dose in sight.
     fn prepare_initial_playing_area(&mut self, player_info: PlayerInfo, rng: &mut Random) {
-        assert!(formula::INITIAL_SAFE_RADIUS <= formula::INITIAL_EASY_RADIUS);
+        if formula::INITIAL_SAFE_RADIUS <= formula::INITIAL_EASY_RADIUS {
+            let safe_area = Rectangle::center(
+                player_info.pos,
+                Point::from_i32(formula::INITIAL_SAFE_RADIUS),
+            );
 
-        let safe_area = Rectangle::center(
-            player_info.pos,
-            Point::from_i32(formula::INITIAL_SAFE_RADIUS),
-        );
+            let easy_area = Rectangle::center(
+                player_info.pos,
+                Point::from_i32(formula::INITIAL_EASY_RADIUS),
+            );
 
-        let easy_area = Rectangle::center(
-            player_info.pos,
-            Point::from_i32(formula::INITIAL_EASY_RADIUS),
-        );
-
-        for pos in easy_area.points() {
-            self.ensure_chunk_at_pos(pos);
-        }
-
-        // Remove monsters from the starting area
-        for pos in easy_area.points() {
-            let remove_monster = self.monster_on_pos(pos).map_or(false, |m| {
-                use crate::monster::Kind::*;
-                let easy_monster = match m.kind {
-                    Shadows | Voices => false,
-                    Hunger | Anxiety | Depression | Npc => true,
-                    Signpost => true, // NOTE: should never be generated on its own
-                };
-                safe_area.contains(pos) || easy_monster
-            });
-            if remove_monster {
-                self.remove_monster(pos)
+            for pos in easy_area.points() {
+                self.ensure_chunk_at_pos(pos);
             }
-        }
 
-        // Remove strong doses from the starting area
-        let no_lethal_dose_area = Rectangle::center(
-            player_info.pos,
-            Point::from_i32(formula::NO_LETHAL_DOSE_RADIUS),
-        );
+            // Remove monsters from the starting area
+            for pos in easy_area.points() {
+                let remove_monster = self.monster_on_pos(pos).map_or(false, |m| {
+                    use crate::monster::Kind::*;
+                    let easy_monster = match m.kind {
+                        Shadows | Voices => false,
+                        Hunger | Anxiety | Depression | Npc => true,
+                        Signpost => true, // NOTE: should never be generated on its own
+                    };
+                    safe_area.contains(pos) || easy_monster
+                });
+                if remove_monster {
+                    self.remove_monster(pos)
+                }
+            }
 
-        // Clear any doses whos irresistible area touches the player's
-        // position.
-        {
-            let resist_radius =
-                formula::player_resist_radius(formula::DOSE_PREFAB.irresistible, player_info.will);
-            let resist_area = Rectangle::center(player_info.pos, Point::from_i32(resist_radius));
-            for point in resist_area.points() {
-                if let Some(cell) = self.cell_mut(point) {
+            // Remove strong doses from the starting area
+            let no_lethal_dose_area = Rectangle::center(
+                player_info.pos,
+                Point::from_i32(formula::NO_LETHAL_DOSE_RADIUS),
+            );
+
+            // Clear any doses whos irresistible area touches the player's
+            // position.
+            {
+                let resist_radius = formula::player_resist_radius(
+                    formula::DOSE_PREFAB.irresistible,
+                    player_info.will,
+                );
+                let resist_area =
+                    Rectangle::center(player_info.pos, Point::from_i32(resist_radius));
+                for point in resist_area.points() {
+                    if let Some(cell) = self.cell_mut(point) {
+                        for index in (0..cell.items.len()).rev() {
+                            if cell.items[index].is_dose() {
+                                cell.items.remove(index);
+                            }
+                        }
+                    }
+                }
+            }
+
+            for pos in no_lethal_dose_area.points() {
+                if let Some(cell) = self.cell_mut(pos) {
                     for index in (0..cell.items.len()).rev() {
-                        if cell.items[index].is_dose() {
+                        use crate::item::Kind::*;
+                        let lethal_dose = match cell.items[index].kind {
+                            Food | Dose => false,
+                            StrongDose | CardinalDose | DiagonalDose => true,
+                        };
+                        if lethal_dose {
                             cell.items.remove(index);
                         }
                     }
                 }
             }
-        }
 
-        for pos in no_lethal_dose_area.points() {
-            if let Some(cell) = self.cell_mut(pos) {
-                for index in (0..cell.items.len()).rev() {
-                    use crate::item::Kind::*;
-                    let lethal_dose = match cell.items[index].kind {
-                        Food | Dose => false,
-                        StrongDose | CardinalDose | DiagonalDose => true,
-                    };
-                    if lethal_dose {
-                        cell.items.remove(index);
+            // Generate a usable dose nearby, give up after some time
+            let attempts = if cfg!(feature = "recording") { 1 } else { 100 };
+            for _ in 0..attempts {
+                let offset = Point {
+                    x: rng.range_inclusive(-3, 3),
+                    y: rng.range_inclusive(-3, 3),
+                };
+                if offset == (0, 0) {
+                    continue;
+                }
+                let pos = player_info.pos + offset;
+                if self.walkable(pos, Blocker::WALL, player_info.pos) {
+                    // Skip if there already is an item at the position
+                    if !self.cell(pos).map_or(true, |cell| cell.items.is_empty()) {
+                        continue;
+                    }
+
+                    let dose = formula::DOSE_PREFAB;
+
+                    let resist_radius =
+                        formula::player_resist_radius(dose.irresistible, player_info.will);
+                    let resist_area = Rectangle::center(pos, Point::from_i32(resist_radius));
+
+                    // Bail if the player would be in the resist radius
+                    if resist_area.contains(player_info.pos) {
+                        continue;
+                    }
+
+                    // Bail if another dose is in the resist area
+                    let irresistable_dose = resist_area.points().any(|irresistable_point| {
+                        self.cell(irresistable_point)
+                            .map_or(false, |cell| cell.items.iter().any(|item| item.is_dose()))
+                    });
+                    if irresistable_dose {
+                        continue;
+                    }
+
+                    // Try to place the dose and exit
+                    if let Some(chunk) = self.chunk_mut(pos) {
+                        let level_position = chunk.level_position(pos);
+                        chunk.level.add_item(level_position, dose);
+                        break;
                     }
                 }
             }
-        }
 
-        // Generate a usable dose nearby, give up after some time
-        let attempts = if cfg!(feature = "recording") { 1 } else { 100 };
-        for _ in 0..attempts {
-            let offset = Point {
-                x: rng.range_inclusive(-3, 3),
-                y: rng.range_inclusive(-3, 3),
-            };
-            if offset == (0, 0) {
-                continue;
-            }
-            let pos = player_info.pos + offset;
-            if self.walkable(pos, Blocker::WALL, player_info.pos) {
-                // Skip if there already is an item at the position
-                if !self.cell(pos).map_or(true, |cell| cell.items.is_empty()) {
-                    continue;
-                }
+            // Generate food near the starting area, bail after 50 attempts
+            let mut amount_of_food_to_generate = rng.range_inclusive(1, 3);
+            for _ in 0..50 {
+                let offset = Point {
+                    x: rng.range_inclusive(-5, 5),
+                    y: rng.range_inclusive(-5, 5),
+                };
+                let pos = player_info.pos + offset;
+                if self.walkable(pos, Blocker::WALL, player_info.pos) {
+                    let food = formula::FOOD_PREFAB;
+                    if let Some(chunk) = self.chunk_mut(pos) {
+                        let level_position = chunk.level_position(pos);
+                        if chunk.level.cell(level_position).items.is_empty() {
+                            chunk.level.add_item(level_position, food);
+                            amount_of_food_to_generate -= 1;
+                        }
+                    }
 
-                let dose = formula::DOSE_PREFAB;
-
-                let resist_radius =
-                    formula::player_resist_radius(dose.irresistible, player_info.will);
-                let resist_area = Rectangle::center(pos, Point::from_i32(resist_radius));
-
-                // Bail if the player would be in the resist radius
-                if resist_area.contains(player_info.pos) {
-                    continue;
-                }
-
-                // Bail if another dose is in the resist area
-                let irresistable_dose = resist_area.points().any(|irresistable_point| {
-                    self.cell(irresistable_point)
-                        .map_or(false, |cell| cell.items.iter().any(|item| item.is_dose()))
-                });
-                if irresistable_dose {
-                    continue;
-                }
-
-                // Try to place the dose and exit
-                if let Some(chunk) = self.chunk_mut(pos) {
-                    let level_position = chunk.level_position(pos);
-                    chunk.level.add_item(level_position, dose);
-                    break;
-                }
-            }
-        }
-
-        // Generate food near the starting area, bail after 50 attempts
-        let mut amount_of_food_to_generate = rng.range_inclusive(1, 3);
-        for _ in 0..50 {
-            let offset = Point {
-                x: rng.range_inclusive(-5, 5),
-                y: rng.range_inclusive(-5, 5),
-            };
-            let pos = player_info.pos + offset;
-            if self.walkable(pos, Blocker::WALL, player_info.pos) {
-                let food = formula::FOOD_PREFAB;
-                if let Some(chunk) = self.chunk_mut(pos) {
-                    let level_position = chunk.level_position(pos);
-                    if chunk.level.cell(level_position).items.is_empty() {
-                        chunk.level.add_item(level_position, food);
-                        amount_of_food_to_generate -= 1;
+                    if amount_of_food_to_generate <= 0 {
+                        break;
                     }
                 }
-
-                if amount_of_food_to_generate <= 0 {
-                    break;
-                }
             }
-        }
 
-        // Remove anything at the player's position
-        if let Some(cell) = self.cell_mut(player_info.pos) {
-            cell.items.clear();
+            // Remove anything at the player's position
+            if let Some(cell) = self.cell_mut(player_info.pos) {
+                cell.items.clear();
+            }
         }
     }
-
     /// Return the ChunkPosition for a given point within the chunk.
     ///
     /// Chunks have equal width and height and can have negative
@@ -560,10 +562,13 @@ impl World {
             if let Some(monster) = self.monster_on_pos(monster_position) {
                 monster.position = destination;
             }
-            let chunk = self.chunk_mut(monster_position).expect(&format!(
-                "Chunk with monster {:?} doesn't exist.",
-                monster_position
-            ));
+            let chunk = self.chunk_mut(monster_position).unwrap_or_else(|| {
+                panic!(
+                    "Chunk with monster {:?} doesn't \
+            exist.",
+                    monster_position
+                )
+            });
             let level_monster_pos = chunk.level_position(monster_position);
             let level_destination_pos = chunk.level_position(destination);
             chunk
@@ -591,11 +596,9 @@ impl World {
                 self.remove_monster(monster_position);
                 assert!(self.walkable(monster_position, blocker, player_position));
                 new_monster.position = destination;
-                let destination_chunk = self.chunk_mut(destination).expect(&format!(
-                    "Destination chunk at {:?} doesn't \
-                     exist.",
-                    destination
-                ));
+                let destination_chunk = self.chunk_mut(destination).unwrap_or_else(|| {
+                    panic!("Destination chunk at {:?} doesn't exist.", destination)
+                });
                 destination_chunk.add_monster(new_monster);
             }
 

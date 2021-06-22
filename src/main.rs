@@ -1,13 +1,5 @@
 #![deny(overflowing_literals, unsafe_code)]
-#![allow(
-    unknown_lints,
-    clippy::match_wild_err_arm,
-    cyclomatic_complexity,
-    clippy::expect_fun_call,
-    clippy::or_fun_call,
-    unused_macros,
-    clippy::identity_op
-)]
+#![allow(clippy::identity_op)]
 #![windows_subsystem = "windows"]
 
 mod ai;

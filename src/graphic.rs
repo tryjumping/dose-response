@@ -198,10 +198,10 @@ pub fn tilemap_coords_px(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)>
     coords.map(|(tile_x, tile_y)| (tile_x * TILE_SIZE, tile_y * TILE_SIZE))
 }
 
-impl Into<char> for Graphic {
-    fn into(self) -> char {
+impl From<Graphic> for char {
+    fn from(graphic: Graphic) -> char {
         use Graphic::*;
-        match self {
+        match graphic {
             Empty => ' ',
             Tree1 => '#',
             Tree2 => '#',

@@ -163,7 +163,7 @@ licensed under the SIL Open Font License, Version 1.1";
 pub const CODE_LICENSE_ONELINE: &str =
     "licensed under GNU Affero General Public License 3 or later";
 
-pub const CODE_LICENSE_BLOCK: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU Affero General Public License version 3 or later. If you did not receieve the license text with the program, you can read it here:";
+pub const CODE_LICENSE_BLOCK: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU Affero General Public License version 3 or later. If you did not receive the license text with the program, you can read it here:";
 pub const AGPL_URL: &str = "https://www.gnu.org/licenses/agpl-3.0.en.html";
 
 pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningState {
@@ -281,7 +281,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
 
             // TODO: looks like the separator is no longer being rendered??
             // NOTE: on linux, the separator is visible but super thin, almost invisible
-            // on macos, it's working just fine
+            // on macOS, it's working just fine
             ui.separator();
             ui.columns(2, |c| {
                 if let Some(text) = state.current_help_window.prev() {

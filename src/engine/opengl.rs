@@ -191,7 +191,7 @@ impl OpenGlApp {
         let vbo = self.vbo;
         unsafe {
             // NOTE: this ignores the `extra_px` value. Which means
-            // the viewport size will allways have the same aspect
+            // the viewport size will always have the same aspect
             // ratio as `display_px`. Specifically, it's `display_px *
             // DPI`.
             //

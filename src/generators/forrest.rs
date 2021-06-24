@@ -17,7 +17,7 @@ use crate::{
 // few places as possible.
 fn generate_map(
     rng: &mut Random,
-    throwavay_rng: &mut Random,
+    throwaway_rng: &mut Random,
     map_size: Point,
     player_pos: Point,
 ) -> Vec<(Point, Tile)> {
@@ -55,7 +55,7 @@ fn generate_map(
             match tile.kind {
                 TileKind::Tree => {
                     tile.color_index =
-                        throwavay_rng.range_inclusive(0, palette::TREE_COUNT as i32 - 1) as usize;
+                        throwaway_rng.range_inclusive(0, palette::TREE_COUNT as i32 - 1) as usize;
 
                     let graphic_options = [
                         Graphic::Tree1,
@@ -70,7 +70,7 @@ fn generate_map(
                         Graphic::Tree10,
                     ];
                     tile.graphic =
-                        *throwavay_rng.choose_with_fallback(&graphic_options, &Graphic::Tree1);
+                        *throwaway_rng.choose_with_fallback(&graphic_options, &Graphic::Tree1);
                 }
                 TileKind::Empty => {
                     let options = [
@@ -101,7 +101,7 @@ fn generate_map(
                         Graphic::Leaves4,
                         Graphic::Leaves5,
                     ];
-                    let graphic = *throwavay_rng.choose_with_fallback(&options, &Graphic::Ground2);
+                    let graphic = *throwaway_rng.choose_with_fallback(&options, &Graphic::Ground2);
                     tile.graphic = graphic;
                 }
             };
@@ -263,12 +263,12 @@ fn generate_items(rng: &mut Random, map: &[(Point, Tile)]) -> Vec<(Point, Item)>
 
 pub fn generate(
     rng: &mut Random,
-    throwavay_rng: &mut Random,
+    throwaway_rng: &mut Random,
     size: Point,
     player: Point,
     challenge: Challenge,
 ) -> GeneratedWorld {
-    let map = generate_map(rng, throwavay_rng, size, player);
+    let map = generate_map(rng, throwaway_rng, size, player);
     let monsters = generate_monsters(rng, &map, challenge);
     let items = generate_items(rng, &map);
     (map, monsters, items)

@@ -192,7 +192,7 @@ fn endgame_tip(state: &State) -> String {
         return String::from("Attack monsters by bumping (moving) into them!");
     }
 
-    let throwavay_rng = &mut state.rng.clone();
+    let throwaway_rng = &mut state.rng.clone();
 
     let overdosed_tips = &[
         "Using another dose when High will likely cause overdose early on.",
@@ -231,15 +231,15 @@ fn endgame_tip(state: &State) -> String {
     let cause_of_death = formula::cause_of_death(&state.player);
     let perpetrator = state.player.perpetrator.as_ref();
     let selected_tip = match (cause_of_death, perpetrator) {
-        (Some(Overdosed), _) => *throwavay_rng.choose_with_fallback(overdosed_tips, fallback),
+        (Some(Overdosed), _) => *throwaway_rng.choose_with_fallback(overdosed_tips, fallback),
         (Some(Exhausted), Some(_monster)) => {
-            *throwavay_rng.choose_with_fallback(hunger_tips, fallback)
+            *throwaway_rng.choose_with_fallback(hunger_tips, fallback)
         }
-        (Some(Exhausted), None) => *throwavay_rng.choose_with_fallback(food_tips, fallback),
+        (Some(Exhausted), None) => *throwaway_rng.choose_with_fallback(food_tips, fallback),
         (Some(LostWill), Some(_monster)) => {
-            *throwavay_rng.choose_with_fallback(anxiety_tips, fallback)
+            *throwaway_rng.choose_with_fallback(anxiety_tips, fallback)
         }
-        _ => *throwavay_rng.choose_with_fallback(&all_tips, &fallback),
+        _ => *throwaway_rng.choose_with_fallback(&all_tips, &fallback),
     };
 
     String::from(selected_tip)

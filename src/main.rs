@@ -262,7 +262,7 @@ fn main() {
             matches.is_present("replay-full-speed"),
             matches.is_present("exit-after"),
             challenge,
-            palette.clone(),
+            palette,
         )
         .expect("Could not load the replay file")
     } else {
@@ -283,7 +283,7 @@ fn main() {
             matches.is_present("exit-after"),
             replay_file,
             challenge,
-            palette.clone(),
+            palette,
         );
         state.player.invincible = matches.is_present("invincible");
         state.window_stack.push(window::Window::MainMenu);

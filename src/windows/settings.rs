@@ -68,7 +68,7 @@ Unchecked: Depression moves one tile per turn.",
                     );
                 // NOTE: this how do we handle persistentcases like
                 // exhaustion, overdose, loss of will, etc.? I think
-                // we'll prolly want to drop thisone.
+                // we'll probably want to drop this one.
                 c[0].checkbox(&mut settings.permadeath, "[O]nly one chance")
                     .on_hover_text(
                     "Checked: the game ends when the player loses (via overdose, depression, etc.).

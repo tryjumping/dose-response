@@ -207,7 +207,7 @@ fn build_vertices<T: VertexStore>(
     let (display_size_x, display_size_y) = (display_size[0], display_size[1]);
     for drawcall in drawcalls {
         match drawcall {
-            // NOTE: Rectangle, ColorAlpha)
+            // NOTE: (Rectangle, ColorAlpha)
             Drawcall::Rectangle(rect, color) => {
                 let top_left_px = rect.top_left();
                 let size_px = rect.size();
@@ -526,7 +526,7 @@ pub struct Display {
 impl Display {
     /// Create a new Display.
     ///
-    /// `screen_size_px`: dimension of the game windo in logical pixels.
+    /// `screen_size_px`: dimension of the game window in logical pixels.
     /// `tilesize`: size (in pixels) of a single tile. Tiles are square.
     pub fn new(screen_size_px: Point, tile_size: i32, text_size: i32) -> Self {
         assert!(screen_size_px > Point::zero());
@@ -585,7 +585,7 @@ impl Display {
     ///
     /// There is no padding here -- this should correspond to what's
     /// shown on the screen when there is no scrolling or other
-    /// shennanigans going on.
+    /// shenanigans going on.
     pub fn size_without_padding(&self) -> Point {
         self.display_size
     }
@@ -679,7 +679,7 @@ impl Display {
                 VisualStyle::Graphical => {
                     match graphic::tilemap_coords_px(self.tile_size as u32, cell.graphic) {
                         Some((tx, ty)) => (Texture::Tilemap, tx, ty),
-                        // NOTE: Fall back to glyphs if the graphic coordinaces can't be provided:
+                        // NOTE: Fall back to glyphs if the graphic coordinates can't be provided:
                         None => {
                             let (tx, ty) = glyph_coords_px_from_char(
                                 self.tile_size as u32,

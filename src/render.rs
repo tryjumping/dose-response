@@ -59,7 +59,7 @@ pub fn render_game(
 
     let player_will = state.player.will.to_int();
     // NOTE: this is here to appease the borrow checker. If we
-    // borrowed the state here as immutable, we wouln't need it.
+    // borrowed the state here as immutable, we wouldn't need it.
     let show_intoxication_effect = state.player.alive() && state.player.mind.is_high();
 
     if state.player.alive() && state.screen_fading.is_none() {

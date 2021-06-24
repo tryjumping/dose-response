@@ -8,7 +8,7 @@ pub mod greyscale;
 
 pub const TREE_COUNT: usize = 3;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Copy)]
 pub struct Palette {
     pub gui_text: Color,
     pub gui_text_inactive: Color,

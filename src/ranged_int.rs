@@ -203,7 +203,6 @@ impl SubAssign<i32> for Ranged {
 #[cfg(test)]
 mod test {
     use super::{InclusiveRange, Ranged};
-    use std::i32::{MAX, MIN};
 
     #[test]
     fn new() {
@@ -272,7 +271,7 @@ mod test {
             Ranged::new(5, InclusiveRange(-5, 5))
         );
         assert_eq!(
-            Ranged::new(1, InclusiveRange(-5, 5)) + MAX,
+            Ranged::new(1, InclusiveRange(-5, 5)) + i32::MAX,
             Ranged::new(5, InclusiveRange(-5, 5))
         );
     }
@@ -300,7 +299,7 @@ mod test {
             Ranged::new(-5, InclusiveRange(-5, 5))
         );
         assert_eq!(
-            Ranged::new(1, InclusiveRange(-5, 5)) + MIN,
+            Ranged::new(1, InclusiveRange(-5, 5)) + i32::MIN,
             Ranged::new(-5, InclusiveRange(-5, 5))
         );
     }
@@ -328,7 +327,7 @@ mod test {
             Ranged::new(-5, InclusiveRange(-5, 5))
         );
         assert_eq!(
-            Ranged::new(1, InclusiveRange(-5, 5)) - MAX,
+            Ranged::new(1, InclusiveRange(-5, 5)) - i32::MAX,
             Ranged::new(-5, InclusiveRange(-5, 5))
         );
     }
@@ -356,7 +355,7 @@ mod test {
             Ranged::new(5, InclusiveRange(-5, 5))
         );
         assert_eq!(
-            Ranged::new(1, InclusiveRange(-5, 5)) - MIN,
+            Ranged::new(1, InclusiveRange(-5, 5)) - i32::MIN,
             Ranged::new(5, InclusiveRange(-5, 5))
         );
     }
@@ -372,7 +371,7 @@ mod test {
         assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
         a += 23898923;
         assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
-        a += MAX;
+        a += i32::MAX;
         assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
     }
 
@@ -387,7 +386,7 @@ mod test {
         assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
         b += -23898923;
         assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
-        b += MIN;
+        b += i32::MIN;
         assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
     }
 
@@ -402,7 +401,7 @@ mod test {
         assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
         a -= 389832;
         assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
-        a -= MAX;
+        a -= i32::MAX;
         assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
     }
 
@@ -417,7 +416,7 @@ mod test {
         assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
         b -= -389832;
         assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
-        b -= MIN;
+        b -= i32::MIN;
         assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
     }
 

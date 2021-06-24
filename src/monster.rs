@@ -41,7 +41,7 @@ pub struct Monster {
 }
 
 // TODO: we should make the various behaviours dependent on data
-// assigned to the entity, rather then matching over the entity type
+// assigned to the entity, rather than matching over the entity type
 // every time.
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Kind {

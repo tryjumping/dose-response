@@ -17,15 +17,15 @@ struct ZeroMQ {
 }
 
 impl ZeroMQ {
-    fn new(connection: &str) -> Result<Self, Box<Error>> {
+    fn new(connection: &str) -> Result<Self, Box<dyn Error>> {
         let ctx = zmq::Context::new();
         let socket = ctx.socket(zmq::REP)?;
         socket.bind(connection)?;
 
-        Ok(ZeroMQ { socket: socket })
+        Ok(ZeroMQ { socket })
     }
 
-    fn try_read_key(&self) -> Result<Option<Key>, Box<Error>> {
+    fn try_read_key(&self) -> Result<Option<Key>, Box<dyn Error>> {
         let poll_status = self.socket.poll(zmq::POLLIN, 0)?;
         if poll_status == 0 {
             Ok(None)
@@ -39,7 +39,7 @@ impl ZeroMQ {
         }
     }
 
-    fn send_display(&self, display: &RemoteDisplay) -> Result<(), Box<Error>> {
+    fn send_display(&self, display: &RemoteDisplay) -> Result<(), Box<dyn Error>> {
         let message = serde_json::to_string(display)?;
         self.socket.send(message.as_bytes(), 0)?;
 
@@ -72,8 +72,8 @@ struct RemoteDisplay {
 impl RemoteDisplay {
     fn new(width: i32, height: i32) -> Self {
         RemoteDisplay {
-            width: width,
-            height: height,
+            width,
+            height,
             cells: vec![' '; (width * height) as usize],
         }
     }
@@ -136,6 +136,7 @@ pub fn main_loop(
             &mut settings,
             &Metrics {
                 tile_width_px: tilesize as i32,
+                text_width_px: 0,
             },
             &mut display,
         ) {

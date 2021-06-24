@@ -90,13 +90,13 @@ pub fn process(
 
         let game_in_progress = !state.game_ended && state.world.initialised();
 
-        if game_in_progress && ui
+        if game_in_progress
+            && ui
                 .add(ui::button("[R]esume", active, &state.palette))
                 .clicked()
-            {
-                action = Some(MenuItem::Resume);
-            }
-
+        {
+            action = Some(MenuItem::Resume);
+        }
 
         if ui
             .add(ui::button("[N]ew Game", active, &state.palette))
@@ -119,13 +119,13 @@ pub fn process(
             action = Some(MenuItem::Settings);
         }
 
-        if game_in_progress && ui
+        if game_in_progress
+            && ui
                 .add(ui::button("[S]ave and Quit", active, &state.palette))
                 .clicked()
-            {
-                action = Some(MenuItem::SaveAndQuit);
-            }
-
+        {
+            action = Some(MenuItem::SaveAndQuit);
+        }
 
         if ui
             .add(ui::button("[L]oad game", active, &state.palette))

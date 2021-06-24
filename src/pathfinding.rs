@@ -236,7 +236,10 @@ mod test {
         let mut x = 0;
         let mut y = 0;
 
-        let lines = text.split('\n').filter(|l| !l.is_empty()).collect::<Vec<_>>();
+        let lines = text
+            .split('\n')
+            .filter(|l| !l.is_empty())
+            .collect::<Vec<_>>();
         let height = lines.len();
         assert!(height > 0);
         let width = lines[0].len();

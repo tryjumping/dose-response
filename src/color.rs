@@ -1,3 +1,4 @@
+use egui::Color32;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -34,15 +35,15 @@ impl Default for Color {
     }
 }
 
-impl Into<ColorAlpha> for Color {
-    fn into(self) -> ColorAlpha {
-        self.alpha(255)
+impl From<Color> for ColorAlpha {
+    fn from(color: Color) -> ColorAlpha {
+        color.alpha(255)
     }
 }
 
-impl Into<egui::Rgba> for Color {
-    fn into(self) -> egui::Rgba {
-        let color: ColorAlpha = self.into();
+impl From<Color> for egui::Rgba {
+    fn from(color: Color) -> egui::Rgba {
+        let color: ColorAlpha = color.into();
         egui::Rgba::from_rgba_premultiplied(
             color.rgb.r as f32 / 255.0,
             color.rgb.g as f32 / 255.0,
@@ -52,10 +53,10 @@ impl Into<egui::Rgba> for Color {
     }
 }
 
-impl Into<egui::Color32> for Color {
-    fn into(self) -> egui::Color32 {
-        let color: ColorAlpha = self.into();
-        egui::Color32::from_rgba_premultiplied(color.rgb.r, color.rgb.g, color.rgb.b, color.alpha)
+impl From<Color> for Color32 {
+    fn from(color: Color) -> Color32 {
+        let color: ColorAlpha = color.into();
+        Color32::from_rgba_premultiplied(color.rgb.r, color.rgb.g, color.rgb.b, color.alpha)
     }
 }
 

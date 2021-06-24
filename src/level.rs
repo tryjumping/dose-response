@@ -2,6 +2,7 @@ use crate::{blocker, color::Color, graphic::Graphic, item::Item, palette::Palett
 
 use std::collections::HashMap;
 
+use crate::point::Point;
 use serde::{Deserialize, Serialize};
 
 /// Position within a level. Ensured to be always within bounds.
@@ -10,9 +11,9 @@ pub struct LevelPosition {
     pos: point::Point,
 }
 
-impl Into<point::Point> for LevelPosition {
-    fn into(self) -> point::Point {
-        self.pos
+impl From<LevelPosition> for Point {
+    fn from(lp: LevelPosition) -> Point {
+        lp.pos
     }
 }
 

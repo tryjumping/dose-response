@@ -73,14 +73,14 @@ impl Stats {
         self.longest_updates
             .last()
             .cloned()
-            .unwrap_or(Duration::new(0, 0))
+            .unwrap_or_else(|| Duration::new(0, 0))
     }
 
     pub fn longest_drawcalls(&self) -> Duration {
         self.longest_drawcalls
             .last()
             .cloned()
-            .unwrap_or(Duration::new(0, 0))
+            .unwrap_or_else(|| Duration::new(0, 0))
     }
 
     pub fn mean_update(&self) -> f32 {

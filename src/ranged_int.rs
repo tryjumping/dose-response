@@ -100,7 +100,7 @@ impl Ranged {
         self.val == self.max
     }
 
-    pub fn to_int(&self) -> i32 {
+    pub fn to_int(self) -> i32 {
         self.val.to_integer()
     }
 

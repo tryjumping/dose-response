@@ -284,16 +284,16 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
             // on macos, it's working just fine
             ui.separator();
             ui.columns(2, |c| {
-                state.current_help_window.prev().map(|text| {
+                if let Some(text) = state.current_help_window.prev() {
                     if c[0]
                         .add(ui::button(&format!("[<-] {}", text), true, &state.palette))
                         .clicked()
                     {
                         action = Some(Action::PrevPage);
                     }
-                });
+                };
 
-                state.current_help_window.next().map(|text| {
+                if let Some(text) = state.current_help_window.next() {
                     c[1].with_layout(egui::Layout::top_down_justified(egui::Align::Max), |ui| {
                         if ui
                             .add(ui::button(&format!("[->] {}", text), true, &state.palette))
@@ -302,7 +302,7 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
                             action = Some(Action::NextPage);
                         }
                     });
-                });
+                };
             });
         });
 

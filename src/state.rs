@@ -368,20 +368,15 @@ Reason: '{}'.",
                 None => error!("The replay file is missing the commit hash."),
             };
 
-            loop {
-                match lines.next() {
-                    Some(line) => {
-                        let line = line?;
-                        let command = serde_json::from_str(&line);
-                        // Try parsing it as a command, otherwise it's a verification
-                        if let Ok(command) = command {
-                            commands.push_back(command);
-                        } else {
-                            let verification = serde_json::from_str(&line)?;
-                            verifications.push_back(verification);
-                        }
-                    }
-                    None => break,
+            for line in lines {
+                let line = line?;
+                let command = serde_json::from_str(&line);
+                // Try parsing it as a command, otherwise it's a verification
+                if let Ok(command) = command {
+                    commands.push_back(command);
+                } else {
+                    let verification = serde_json::from_str(&line)?;
+                    verifications.push_back(verification);
                 }
             }
 
@@ -545,26 +540,32 @@ pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
 }
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
-    let json_command = serde_json::to_string(&command).expect(&format!(
-        "Could not \
+    let json_command = serde_json::to_string(&command).unwrap_or_else(|_| {
+        panic!(
+            "Could not \
          serialise {:?} to \
          json.",
-        command
-    ));
+            command
+        )
+    });
     writeln!(writer, "{}", json_command).unwrap();
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: &Verification) {
-    let json = serde_json::to_string(&verification).expect(&format!(
-        "Could not \
+    let json = serde_json::to_string(&verification).unwrap_or_else(|_| {
+        panic!(
+            "Could not \
          serialise \
          {:?} to json.",
-        verification
-    ));
-    writeln!(writer, "{}", json).expect(&format!(
-        "Could not write the \
+            verification
+        )
+    });
+    writeln!(writer, "{}", json).unwrap_or_else(|_| {
+        panic!(
+            "Could not write the \
          verification: '{}' to the \
          replay log.",
-        json
-    ));
+            json
+        )
+    });
 }

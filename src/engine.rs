@@ -10,6 +10,7 @@ use crate::{
 
 use std::fmt;
 
+use egui::TextureId;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "glutin-backend")]
@@ -42,19 +43,18 @@ pub enum Texture {
     Tilemap = TEXTURE_TILEMAP,
 }
 
-impl Into<f32> for Texture {
-    fn into(self) -> f32 {
-        self as u64 as f32
+impl From<Texture> for f32 {
+    fn from(tex: Texture) -> f32 {
+        tex as u64 as f32
     }
 }
 
-impl Into<egui::TextureId> for Texture {
-    fn into(self) -> egui::TextureId {
-        use egui::TextureId;
-        match self {
+impl From<Texture> for TextureId {
+    fn from(tex: Texture) -> TextureId {
+        match tex {
             Texture::Egui => TextureId::Egui,
-            Texture::Glyph => TextureId::User(self as u64),
-            Texture::Tilemap => TextureId::User(self as u64),
+            Texture::Glyph => TextureId::User(tex as u64),
+            Texture::Tilemap => TextureId::User(tex as u64),
         }
     }
 }
@@ -125,7 +125,7 @@ pub struct Vertex {
 
 impl Vertex {
     #[allow(dead_code)]
-    fn to_f32_array(&self) -> [f32; 9] {
+    fn to_f32_array(self) -> [f32; 9] {
         [
             self.texture_id,
             self.pos_px[0],
@@ -140,13 +140,13 @@ impl Vertex {
     }
 }
 
-impl Into<[f32; 4]> for ColorAlpha {
-    fn into(self) -> [f32; 4] {
+impl From<ColorAlpha> for [f32; 4] {
+    fn from(coloralpha: ColorAlpha) -> [f32; 4] {
         [
-            f32::from(self.rgb.r) / 255.0,
-            f32::from(self.rgb.g) / 255.0,
-            f32::from(self.rgb.b) / 255.0,
-            f32::from(self.alpha) / 255.0,
+            f32::from(coloralpha.rgb.r) / 255.0,
+            f32::from(coloralpha.rgb.g) / 255.0,
+            f32::from(coloralpha.rgb.b) / 255.0,
+            f32::from(coloralpha.alpha) / 255.0,
         ]
     }
 }

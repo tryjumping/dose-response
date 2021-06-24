@@ -49,27 +49,24 @@ impl Point {
     }
 }
 
-impl Into<Point> for (i32, i32) {
-    fn into(self) -> Point {
+impl From<(i32, i32)> for Point {
+    fn from(num: (i32, i32)) -> Point {
+        Point { x: num.0, y: num.1 }
+    }
+}
+
+impl From<(u32, u32)> for Point {
+    fn from(num: (u32, u32)) -> Point {
         Point {
-            x: self.0,
-            y: self.1,
+            x: num.0 as i32,
+            y: num.1 as i32,
         }
     }
 }
 
-impl Into<Point> for (u32, u32) {
-    fn into(self) -> Point {
-        Point {
-            x: self.0 as i32,
-            y: self.1 as i32,
-        }
-    }
-}
-
-impl Into<egui::Pos2> for Point {
-    fn into(self) -> egui::Pos2 {
-        egui::Pos2::new(self.x as f32, self.y as f32)
+impl From<Point> for egui::Pos2 {
+    fn from(point: Point) -> egui::Pos2 {
+        egui::Pos2::new(point.x as f32, point.y as f32)
     }
 }
 
@@ -448,8 +445,8 @@ mod test {
         assert_eq!(Point::new(1, 0) > Point::new(0, 0), false);
         assert_eq!(Point::new(0, 1) > Point::new(0, 0), false);
 
-        assert_eq!(Point::new(1, 0) >= Point::new(0, 0), true);
-        assert_eq!(Point::new(0, 1) >= Point::new(0, 0), true);
+        assert!(Point::new(1, 0) >= Point::new(0, 0));
+        assert!(Point::new(0, 1) >= Point::new(0, 0));
     }
 
     #[test]
@@ -468,8 +465,8 @@ mod test {
         assert_eq!(Point::new(1, 0) > (0, 0), false);
         assert_eq!(Point::new(0, 1) > (0, 0), false);
 
-        assert_eq!(Point::new(1, 0) >= (0, 0), true);
-        assert_eq!(Point::new(0, 1) >= (0, 0), true);
+        assert!(Point::new(1, 0) >= (0, 0));
+        assert!(Point::new(0, 1) >= (0, 0));
     }
 
     #[test]
@@ -478,14 +475,14 @@ mod test {
         let display_size = Point::new(10, 10);
         let within_bounds = |pos| pos >= top_left_corner && pos < display_size;
 
-        assert_eq!(within_bounds(Point::new(0, 0)), true);
-        assert_eq!(within_bounds(Point::new(1, 0)), true);
-        assert_eq!(within_bounds(Point::new(0, 1)), true);
-        assert_eq!(within_bounds(Point::new(1, 1)), true);
-        assert_eq!(within_bounds(Point::new(3, 4)), true);
-        assert_eq!(within_bounds(Point::new(9, 9)), true);
-        assert_eq!(within_bounds(Point::new(2, 9)), true);
-        assert_eq!(within_bounds(Point::new(9, 2)), true);
+        assert!(within_bounds(Point::new(0, 0)));
+        assert!(within_bounds(Point::new(1, 0)));
+        assert!(within_bounds(Point::new(0, 1)));
+        assert!(within_bounds(Point::new(1, 1)));
+        assert!(within_bounds(Point::new(3, 4)));
+        assert!(within_bounds(Point::new(9, 9)));
+        assert!(within_bounds(Point::new(2, 9)));
+        assert!(within_bounds(Point::new(9, 2)));
 
         assert_eq!(within_bounds(Point::new(-1, 0)), false);
         assert_eq!(within_bounds(Point::new(0, -1)), false);

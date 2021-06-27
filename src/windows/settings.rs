@@ -38,12 +38,12 @@ pub fn process(
 
     let screen_size_px = display.screen_size_px;
     let window_size_px = [
-        (screen_size_px.x - 150) as f32,
-        (screen_size_px.y - 150) as f32,
+        ((screen_size_px.x - 150).min(1024)) as f32,
+        ((screen_size_px.y - 150).min(768)) as f32,
     ];
     let window_pos_px = [
         (screen_size_px.x as f32 - window_size_px[0]) / 2.0,
-        (screen_size_px.y as f32 - window_size_px[1]) / 2.0,
+        ((screen_size_px.y as f32 - window_size_px[1]) / 2.0).min(250.0),
     ];
 
     egui::Window::new("Settings")

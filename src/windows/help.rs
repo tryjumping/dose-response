@@ -173,8 +173,8 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
 
     let screen_size_px = display.screen_size_px;
     let window_size_px = [
-        (screen_size_px.x - 150) as f32,
-        (screen_size_px.y - 350) as f32,
+        (screen_size_px.x - 150).min(1024) as f32,
+        (screen_size_px.y - 350).min(600) as f32,
     ];
     let window_pos_px = [(screen_size_px.x as f32 - window_size_px[0]) / 2.0, 100.0];
 

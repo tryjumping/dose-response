@@ -23,11 +23,9 @@ bitflags = "1.2"
 clap = { version = "2.33.3", optional = true }
 chrono = { version = "0.4.19", optional = true }
 #egui = { git = "https://github.com/emilk/emigui.git" }
-# TODO: switch back to crates.io once this issue is in a release (probably in 0.13)
-# https://github.com/emilk/egui/issues/385 (fixed in master after 0.12)
-egui = { git = "https://github.com/tomassedovic/emigui.git" }
+#egui = { git = "https://github.com/tomassedovic/emigui.git" }
 #egui = { path = "../../3pc/src/github.com/emilk/emigui/egui" }
-#egui = "0.12"
+egui = "0.13"
 gl = { version = "0.14", optional = true }
 glutin = { version = "0.27", optional = true }
 image = { version = "0.23.14", optional = true }

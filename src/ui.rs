@@ -46,7 +46,7 @@ pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
         false => palette.gui_text_inactive,
     };
     egui::Button::new(text)
-        .fill(Some(palette.gui_button_background.into()))
+        .fill(palette.gui_button_background)
         .text_color(color.into())
         .enabled(enabled)
 }

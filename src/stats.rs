@@ -12,6 +12,9 @@ pub struct Stats {
     frame_stats: VecDeque<FrameStats>,
     longest_updates: Vec<Duration>,
     longest_drawcalls: Vec<Duration>,
+    lowest_fps: i32,
+    current_fps_average: f32,
+    total_fps_entries_processes: f32,
 }
 
 impl Stats {
@@ -21,6 +24,9 @@ impl Stats {
             frame_stats: VecDeque::with_capacity(frames),
             longest_updates: Vec::with_capacity(updates),
             longest_drawcalls: Vec::with_capacity(drawcalls),
+            lowest_fps: 60,
+            current_fps_average: 60.0,
+            total_fps_entries_processes: 1.0,
         }
     }
 
@@ -53,6 +59,16 @@ impl Stats {
         }
 
         self.frame_stats.push_back(frame_stats);
+    }
+
+    pub fn update_fps(&mut self, fps: i32) {
+        self.total_fps_entries_processes += 1.0;
+        let new_fps = self.current_fps_average
+            + ((fps as f32 - self.current_fps_average) / self.total_fps_entries_processes);
+        self.current_fps_average = new_fps;
+        if self.lowest_fps > fps {
+            self.lowest_fps = fps;
+        }
     }
 
     #[allow(dead_code)]
@@ -105,6 +121,14 @@ impl Stats {
 
     pub fn longest_drawcall_durations(&self) -> &[Duration] {
         &self.longest_drawcalls
+    }
+
+    pub fn mean_fps(&self) -> f32 {
+        self.current_fps_average
+    }
+
+    pub fn lowest_fps(&self) -> i32 {
+        self.lowest_fps
     }
 }
 

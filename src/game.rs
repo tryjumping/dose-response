@@ -268,6 +268,9 @@ pub fn update(
             update: update_duration,
             drawcalls: drawcall_duration,
         });
+        if state.clock > Duration::new(5, 0) {
+            state.stats.update_fps(fps);
+        }
     }
 
     if let RunningState::Stopped = game_update_result {
@@ -1505,6 +1508,9 @@ fn show_exit_stats(stats: &Stats) {
         stats.mean_update(),
         stats.mean_drawcalls()
     );
+
+    log::info!("Mean FPS: {}", stats.mean_fps());
+    log::info!("Lowest FPS: {}", stats.lowest_fps());
 }
 
 fn verify_states(expected: &state::Verification, actual: &state::Verification) {

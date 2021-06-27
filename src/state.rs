@@ -111,7 +111,7 @@ pub struct State {
     pub world: World,
 
     /// The size of the game map inside the game window. We're keeping
-    /// this square so this value repesents both width and heigh.
+    /// this square so this value represents both width and height.
     /// It's a window into the game world that is actually rendered.
     pub map_size: Point,
 
@@ -154,7 +154,7 @@ pub struct State {
 
     pub window_stack: windows::Windows<Window>,
 
-    pub show_keboard_movement_hints: bool,
+    pub show_keyboard_movement_hints: bool,
     pub show_anxiety_counter: bool,
     pub player_picked_up_a_dose: bool,
     pub player_bumped_into_a_monster: bool,
@@ -166,7 +166,7 @@ pub struct State {
     /// map during the transition from screen fade out to fade in
     /// phase. This is purely a visual effect and the values here are
     /// a bit of a hack. If there's more instances of us wanting to do
-    /// this, we hould just have a list of screen fade transition
+    /// this, we should just have a list of screen fade transition
     /// effects here instead.
     pub show_endscreen_and_uncover_map_during_fadein: bool,
     pub uncovered_map: bool,
@@ -248,7 +248,7 @@ impl State {
             // hints in the sidebar, let's see if we can just show
             // them never. We might even remove the whole thing at
             // some point.
-            show_keboard_movement_hints: false,
+            show_keyboard_movement_hints: false,
             show_anxiety_counter: false,
             player_picked_up_a_dose: false,
             player_bumped_into_a_monster: false,
@@ -448,7 +448,7 @@ Reason: '{}'.",
     }
 
     pub fn save_to_file(&self) -> Result<(), Box<dyn Error>> {
-        // TODO: select the filename dynamicaly!
+        // TODO: select the filename dynamically!
         let filename = "SAVEDGAME.sav";
         let version_data = bincode::serialize(crate::metadata::VERSION)?;
         let commit_data = bincode::serialize(crate::metadata::GIT_HASH)?;

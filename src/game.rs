@@ -140,7 +140,7 @@ pub fn update(
         state.window_stack.pop();
     }
 
-    // NOTE: Clear the whole screenscreen
+    // NOTE: Clear the whole screen
     display.clear(state.palette.unexplored_background);
 
     // // NOTE: This renders the game's icon. Change the tilesize to an
@@ -636,7 +636,7 @@ fn process_game(
                 Some(_) => state.palette.death_animation,
                 None => {
                     // NOTE: this shouldn't happen (there should always be
-                    // a cause of death) but if it deas, we won't crash
+                    // a cause of death) but if it did, we won't crash
                     state.palette.death_animation
                 }
             }
@@ -750,11 +750,11 @@ fn process_game(
             || state.map_size.x - player_screen_pos.x < d
             || state.map_size.y - player_screen_pos.y < d
         {
-            state.show_keboard_movement_hints = false;
+            state.show_keyboard_movement_hints = false;
         }
 
         if cfg!(feature = "recording") {
-            state.show_keboard_movement_hints = false;
+            state.show_keyboard_movement_hints = false;
         }
     }
 
@@ -869,7 +869,7 @@ fn process_monsters(
             }
 
             Action::Attack(target_pos, damage) => {
-                assert!(target_pos == player.pos);
+                assert_eq!(target_pos, player.pos);
                 player.take_effect(damage);
                 if monster_readonly.die_after_attack {
                     kill_monster(monster_readonly.position, world, audio);
@@ -902,12 +902,12 @@ fn process_player_action<W>(
     W: Write,
 {
     if !player.alive() {
-        log::debug!("Proccessing player action, but the player is dead.");
+        log::debug!("Processing player action, but the player is dead.");
         return;
     }
     if !player.has_ap(1) {
         log::debug!(
-            "Proccessing player action, but the player has no AP: {}",
+            "Processing player action, but the player has no AP: {}",
             player.ap()
         );
         return;
@@ -971,7 +971,7 @@ fn process_player_action<W>(
                 if let Some(new_pos) = new_pos_opt {
                     action = Action::Move(new_pos);
                 } else {
-                    // NOTE: no path leading to the irresistable dose
+                    // NOTE: no path leading to the irresistible dose
                 }
             }
         }
@@ -1573,7 +1573,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
             }
         }
     }
-    assert!(expected == actual, "Validation failed!");
+    assert_eq!(expected, actual, "Validation failed!");
 }
 
 pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
@@ -1584,7 +1584,7 @@ pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
         state.exit_after,
         state::generate_replay_path(),
         new_challenge,
-        state.palette.clone(),
+        state.palette,
     );
     state.generate_world();
     state
@@ -1623,8 +1623,8 @@ fn place_victory_npc(state: &mut State) -> Point {
 
         // NOTE: this is a little convoluted. We test if the Victory
         // NPC position is walkable. And if it's not, we try other
-        // positions in its immadiate vicinity instead of generating a
-        // new candidade position via `formula::victory_npc_position`.
+        // positions in its immediate vicinity instead of generating a
+        // new candidate position via `formula::victory_npc_position`.
         //
         // We do this, because the walkability test requires we have a
         // World Chunk in place and generating these can be expensive.
@@ -1753,6 +1753,6 @@ fn walkable_place_nearby(
     blockers: Blocker,
     player_pos: Point,
 ) -> Option<Point> {
-    // Radius `2` means the central point and the eight surroinding ones.
+    // Radius `2` means the central point and the eight surrounding ones.
     point::SquareArea::new(pos, 2).find(|&point| world.walkable(point, blockers, player_pos))
 }

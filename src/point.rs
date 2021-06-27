@@ -322,7 +322,6 @@ impl Iterator for Line {
 #[cfg(test)]
 mod test {
     use super::{Point, SquareArea};
-    use std::f32::EPSILON;
     use std::iter::FromIterator;
 
     #[test]
@@ -351,39 +350,39 @@ mod test {
     fn test_euclidean_distance() {
         let actual = Point { x: 0, y: 0 }.distance((0, 0));
         let expected = 0.0;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((10, 10));
         let expected = 14.142136;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((10, -10));
         let expected = 14.142136;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((-10, 10));
         let expected = 14.142136;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((10, -10));
         let expected = 14.142136;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((3, 4));
         let expected = 5.0;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((-3, 4));
         let expected = 5.0;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((3, -4));
         let expected = 5.0;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((-3, -4));
         let expected = 5.0;
-        assert!((actual - expected).abs() <= EPSILON);
+        assert!((actual - expected).abs() <= f32::EPSILON);
     }
 
     #[test]

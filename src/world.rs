@@ -67,10 +67,10 @@ impl Chunk {
             monsters: vec![],
         };
 
-        let mut throwavay_rng = chunk.rng.clone();
+        let mut throwaway_rng = chunk.rng.clone();
         let generated_data = generators::forrest::generate(
             &mut chunk.rng,
-            &mut throwavay_rng,
+            &mut throwaway_rng,
             chunk.level.size(),
             player_position,
             challenge,
@@ -201,7 +201,7 @@ impl World {
         self.challenge = challenge;
 
         // TODO: I don't think this code belongs in World. Move it
-        // into the level generators or osmething?
+        // into the level generators or something?
         self.prepare_initial_playing_area(player_info, rng);
     }
 
@@ -249,7 +249,7 @@ impl World {
                 Point::from_i32(formula::NO_LETHAL_DOSE_RADIUS),
             );
 
-            // Clear any doses whos irresistible area touches the player's
+            // Clear any doses who's irresistible area touches the player's
             // position.
             {
                 let resist_radius = formula::player_resist_radius(
@@ -313,11 +313,11 @@ impl World {
                     }
 
                     // Bail if another dose is in the resist area
-                    let irresistable_dose = resist_area.points().any(|irresistable_point| {
-                        self.cell(irresistable_point)
+                    let irresistible_dose = resist_area.points().any(|irresistible_point| {
+                        self.cell(irresistible_point)
                             .map_or(false, |cell| cell.items.iter().any(|item| item.is_dose()))
                     });
-                    if irresistable_dose {
+                    if irresistible_dose {
                         continue;
                     }
 
@@ -621,7 +621,7 @@ impl World {
     }
 
     pub fn remove_monster_by_id(&mut self, id: MonsterId) {
-        // TODO: this should prolly be the primary way of removing
+        // TODO: this should probably be the primary way of removing
         // monsters rather than calling `remove_monster` with the
         // position here.
         let monster_pos = self.monster(id).map(|monster| monster.position);

@@ -7,7 +7,6 @@ use crate::{
 use std::{
     cmp::Ordering,
     collections::{BinaryHeap, HashMap},
-    f32,
 };
 
 use serde::{Deserialize, Serialize};
@@ -307,8 +306,8 @@ mod test {
             x = 0;
         }
 
-        assert!(start != Point { x: -1, y: -1 });
-        assert!(destination != Point { x: -1, y: -1 });
+        assert_ne!(start, Point { x: -1, y: -1 });
+        assert_ne!(destination, Point { x: -1, y: -1 });
 
         Board {
             start,

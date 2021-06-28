@@ -61,6 +61,8 @@ impl Audio {
 
         let game_over = SoundData::new(&include_bytes!("../assets/sound/game-over.ogg")[..]);
 
+        let click = SoundData::new(&include_bytes!("../assets/sound/click.ogg")[..]);
+
         Self {
             backgrounds: BackgroundSounds {
                 ambient_forrest: forrest,
@@ -72,6 +74,7 @@ impl Audio {
                 monster_moved,
                 explosion,
                 game_over,
+                click,
             },
             background_sound_queue,
             sound_effect_queue,
@@ -99,6 +102,7 @@ impl Audio {
             MonsterMoved => self.effects.monster_moved.clone(),
             Explosion => self.effects.explosion.clone(),
             GameOver => self.effects.game_over.clone(),
+            Click => self.effects.click.clone(),
         }
     }
 
@@ -164,6 +168,7 @@ pub struct EffectSounds {
     pub monster_moved: SoundData,
     pub explosion: SoundData,
     pub game_over: SoundData,
+    pub click: SoundData,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -173,4 +178,5 @@ pub enum Effect {
     MonsterMoved,
     Explosion,
     GameOver,
+    Click,
 }

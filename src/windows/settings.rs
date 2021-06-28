@@ -1,4 +1,5 @@
 use crate::{
+    audio::{Audio, Effect},
     engine::{self, Display, VisualStyle},
     game::RunningState,
     keys::KeyCode,
@@ -6,6 +7,8 @@ use crate::{
     state::State,
     ui,
 };
+
+use std::time::Duration;
 
 use egui::{self, Ui};
 
@@ -31,6 +34,7 @@ pub fn process(
     ui: &mut Ui,
     settings: &mut Settings,
     display: &mut Display,
+    audio: &mut Audio,
     settings_store: &mut dyn SettingsStore,
 ) -> RunningState {
     let mut visible = true;
@@ -61,24 +65,39 @@ pub fn process(
                 // TODO: file a bug in egui for this.
 
                 c[0].label("Challenge:");
-                c[0].checkbox(&mut settings.fast_depression, "Fast D[e]pression")
+                if c[0]
+                    .checkbox(&mut settings.fast_depression, "Fast D[e]pression")
                     .on_hover_text(
                         "Checked: Depression moves two tiles per turn.
 Unchecked: Depression moves one tile per turn.",
-                    );
+                    )
+                    .clicked()
+                {
+                    audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                }
+
                 // NOTE: this how do we handle persistentcases like
                 // exhaustion, overdose, loss of will, etc.? I think
                 // we'll probably want to drop this one.
-                c[0].checkbox(&mut settings.permadeath, "[O]nly one chance")
+                if c[0].checkbox(&mut settings.permadeath, "[O]nly one chance")
                     .on_hover_text(
                     "Checked: the game ends when the player loses (via overdose, depression, etc.).
 Unchecked: all player effects are removed on losing. The game continues.",
-                );
-                c[0].checkbox(&mut settings.hide_unseen_tiles, "[H]ide unseen tiles")
+                    ).clicked()
+                {
+                    audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                }
+
+                if c[0]
+                    .checkbox(&mut settings.hide_unseen_tiles, "[H]ide unseen tiles")
                     .on_hover_text(
                         "Checked: only previously seen tiles are visible.
 Unchecked: the entire map is uncovered.",
-                    );
+                    )
+                    .clicked()
+                {
+                    audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                }
 
                 let mut available_key_shortcut = 1;
 
@@ -302,6 +321,7 @@ Unchecked: the entire map is uncovered.",
     }
 
     if let Some(action) = action {
+        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
         match action {
             Action::FastDepression => {
                 settings.fast_depression = !settings.fast_depression;

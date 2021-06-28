@@ -1,4 +1,5 @@
 use crate::{
+    audio::{Audio, Effect},
     engine::{Display, TextMetrics},
     game,
     game::RunningState,
@@ -14,6 +15,8 @@ use egui::{
     paint::{Shape, Stroke},
     Rect, Ui,
 };
+
+use std::time::Duration;
 
 #[derive(Debug)]
 pub enum MenuItem {
@@ -32,6 +35,7 @@ pub fn process(
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &mut Display,
+    audio: &mut Audio,
     active: bool,
 ) -> RunningState {
     // TODO: check all the UI padding & layouting work on mobile.
@@ -180,6 +184,7 @@ pub fn process(
     }
 
     if let Some(action) = action {
+        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
         match action {
             MenuItem::Resume => {
                 if state.world.initialised() {

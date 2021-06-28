@@ -1,6 +1,16 @@
-use crate::{engine::Display, game::RunningState, keys::KeyCode, state::State, ui};
+use crate::{
+    audio::{Audio, Effect},
+    engine::Display,
+    game::RunningState,
+    keys::KeyCode,
+    state::State,
+    ui,
+};
 
-use std::fmt::{Display as FmtDisplay, Error, Formatter};
+use std::{
+    fmt::{Display as FmtDisplay, Error, Formatter},
+    time::Duration,
+};
 
 use egui::{self, ScrollArea, Ui};
 
@@ -166,7 +176,12 @@ pub const CODE_LICENSE_ONELINE: &str =
 pub const CODE_LICENSE_BLOCK: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU Affero General Public License version 3 or later. If you did not receive the license text with the program, you can read it here:";
 pub const AGPL_URL: &str = "https://www.gnu.org/licenses/agpl-3.0.en.html";
 
-pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningState {
+pub fn process(
+    state: &mut State,
+    ui: &mut Ui,
+    display: &Display,
+    audio: &mut Audio,
+) -> RunningState {
     let mut visible = true;
 
     let mut action = None;
@@ -326,38 +341,40 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
         }
     }
 
-    match action {
-        Some(Action::NextPage) => {
-            let new_help_window = state
-                .current_help_window
-                .next()
-                .unwrap_or(state.current_help_window);
-            state.current_help_window = new_help_window;
-            state.help_starting_line = 0;
-        }
+    if let Some(action) = action {
+        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        match action {
+            Action::NextPage => {
+                let new_help_window = state
+                    .current_help_window
+                    .next()
+                    .unwrap_or(state.current_help_window);
+                state.current_help_window = new_help_window;
+                state.help_starting_line = 0;
+            }
 
-        Some(Action::PrevPage) => {
-            let new_help_window = state
-                .current_help_window
-                .prev()
-                .unwrap_or(state.current_help_window);
-            state.current_help_window = new_help_window;
-            state.help_starting_line = 0;
-        }
+            Action::PrevPage => {
+                let new_help_window = state
+                    .current_help_window
+                    .prev()
+                    .unwrap_or(state.current_help_window);
+                state.current_help_window = new_help_window;
+                state.help_starting_line = 0;
+            }
 
-        Some(Action::LineUp) => {
-            if state.help_starting_line > 0 {
-                state.help_starting_line -= 1;
+            Action::LineUp => {
+                if state.help_starting_line > 0 {
+                    state.help_starting_line -= 1;
+                }
+            }
+
+            Action::LineDown => state.help_starting_line += 1,
+
+            Action::Close => {
+                state.window_stack.pop();
+                return RunningState::Running;
             }
         }
-        Some(Action::LineDown) => state.help_starting_line += 1,
-
-        Some(Action::Close) => {
-            state.window_stack.pop();
-            return RunningState::Running;
-        }
-
-        None => {}
     }
 
     RunningState::Running

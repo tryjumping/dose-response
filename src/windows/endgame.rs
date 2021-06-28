@@ -1,4 +1,5 @@
 use crate::{
+    audio::{Audio, Effect},
     engine::{Display, TextMetrics},
     formula,
     game::{self, RunningState},
@@ -8,6 +9,8 @@ use crate::{
     state::{Side, State},
     ui, window,
 };
+
+use std::time::Duration;
 
 use egui::{self, Ui};
 
@@ -24,6 +27,7 @@ pub fn process(
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &Display,
+    audio: &mut Audio,
     active: bool,
 ) -> RunningState {
     use CauseOfDeath::*;
@@ -156,6 +160,10 @@ pub fn process(
 
     if !active {
         action = None;
+    }
+
+    if action.is_some() {
+        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
     }
 
     match action {

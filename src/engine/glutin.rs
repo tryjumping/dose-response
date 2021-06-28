@@ -203,6 +203,11 @@ pub fn main_loop<S>(
         }
     };
 
+    // NOTE: The `window_icon` clone looks redundant on non-windows
+    // platforms because that windows-specific code is compiled out.
+    // But it needs to be here. Therefore, disabling the clippy
+    // warning.
+    #[allow(clippy::redundant_clone)]
     let window = WindowBuilder::new()
         .with_title(window_title)
         .with_window_icon(window_icon.clone())

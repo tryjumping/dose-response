@@ -287,8 +287,8 @@ pub fn process(
 
         ui.label("Numpad Controls:");
         ui.columns(3, |c| {
-            for index in 0..=2 {
-                c[index].style_mut().spacing.button_padding = [0.0, 25.0].into();
+            for column in c.iter_mut() {
+                column.style_mut().spacing.button_padding = [0.0, 25.0].into();
             }
 
             c[0].with_layout(

@@ -32,7 +32,6 @@ use crate::{
 use std::{
     collections::{HashMap, VecDeque},
     io::Write,
-    iter::FromIterator,
     time::Duration,
 };
 
@@ -316,19 +315,17 @@ fn process_game(
         };
     }
 
-    match option {
-        Some(
-            Action::MainMenu
-            | Action::Help
-            | Action::UseFood
-            | Action::UseDose
-            | Action::UseCardinalDose
-            | Action::UseDiagonalDose
-            | Action::UseStrongDose,
-        ) => {
-            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
-        }
-        _ => {}
+    if let Some(
+        Action::MainMenu
+        | Action::Help
+        | Action::UseFood
+        | Action::UseDose
+        | Action::UseCardinalDose
+        | Action::UseDiagonalDose
+        | Action::UseStrongDose,
+    ) = option
+    {
+        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
     }
 
     match option {
@@ -1551,18 +1548,16 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
         );
     }
     if expected.monsters != actual.monsters {
-        let expected_monsters: HashMap<Point, (Point, monster::Kind)> = FromIterator::from_iter(
-            expected
-                .monsters
-                .iter()
-                .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))),
-        );
-        let actual_monsters: HashMap<Point, (Point, monster::Kind)> = FromIterator::from_iter(
-            actual
-                .monsters
-                .iter()
-                .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster))),
-        );
+        let expected_monsters: HashMap<Point, (Point, monster::Kind)> = expected
+            .monsters
+            .iter()
+            .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster)))
+            .collect();
+        let actual_monsters: HashMap<Point, (Point, monster::Kind)> = actual
+            .monsters
+            .iter()
+            .map(|&(pos, chunk_pos, monster)| (pos, (chunk_pos, monster)))
+            .collect();
 
         for (pos, expected) in &expected_monsters {
             match actual_monsters.get(pos) {

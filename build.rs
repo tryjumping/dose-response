@@ -165,7 +165,7 @@ fn main() {
     }
 
     lookup_table_contents.push_str(&format!(
-        "pub const AVAILABLE_BACKENDS: [&'static str; {}] = {:?};\n",
+        "pub const AVAILABLE_BACKENDS: [&str; {}] = {:?};\n",
         backends.len(),
         backends,
     ));

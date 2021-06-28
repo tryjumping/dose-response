@@ -315,15 +315,13 @@ fn process_game(
         };
     }
 
-    if let Some(
-        Action::MainMenu
-        | Action::Help
-        | Action::UseFood
-        | Action::UseDose
-        | Action::UseCardinalDose
-        | Action::UseDiagonalDose
-        | Action::UseStrongDose,
-    ) = option
+    if let Some(Action::MainMenu)
+    | Some(Action::Help)
+    | Some(Action::UseFood)
+    | Some(Action::UseDose)
+    | Some(Action::UseCardinalDose)
+    | Some(Action::UseDiagonalDose)
+    | Some(Action::UseStrongDose) = option
     {
         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
     }

@@ -43,10 +43,6 @@ if __name__ == '__main__':
     ref_name = env.get('GITHUB_REF', '').split('/')[-1]
     archive_extension = env.get('ARCHIVE_EXT', 'tar.gz')
 
-    target_dir = Path('target')
-    release_dir = target_dir / 'release'
-    out_dir = target_dir / 'publish' / 'Dose Response'
-
     # Ref formats:
     # Pull request: refs/pull/13/merge
     # Push to master: refs/heads/master
@@ -58,7 +54,7 @@ if __name__ == '__main__':
         print(f"This is a release tag: {ref_name}")
         nightly = False
     else:
-        print(f"The is neither a tag nor push to the main branch: '{ref_name}'")
+        print(f"The ref is neither a tag nor push to the main branch: '{ref_name}'")
         nightly = True
         # TODO: comment this out if you want to test release payload uploads to S3
         sys.exit(0)
@@ -93,6 +89,12 @@ if __name__ == '__main__':
     archive_name = full_version
     print(f"Archive name: {archive_name}")
 
+    target_dir = Path('target')
+    release_dir = target_dir / 'release'
+    publish_dir = target_dir / 'publish'
+    out_dir = f'Dose Response {release_version}'
+    out_path =  publish_dir / out_dir
+
     # Nightly URL format:
     # s3://<bucket>/nightlies/2021-05-17-232/dose-response-2021-05-17-232-x86_64-pc-windows-msvc.zip
     # Release URL format:
@@ -100,32 +102,32 @@ if __name__ == '__main__':
     s3_destination_path = f'{releases_destination}/{release_version}/{archive_name}.{archive_extension}'
     print(f"S3 Destination path: {s3_destination_path}")
 
-    mkdir_p(out_dir)
-    shutil.copy(release_dir / full_exe_name, out_dir)
+    mkdir_p(out_path)
+    shutil.copy(release_dir / full_exe_name, out_path)
 
     # NOTE: this converts the line endings into the current platform's expected format:
     with open("README.md", 'r') as source:
-        with open(out_dir / 'README.txt', 'w') as destination:
+        with open(out_path / 'README.txt', 'w') as destination:
             destination.writelines(source.readlines())
     with open("COPYING.txt", 'r') as source:
-        with open(out_dir / 'LICENSE.txt', 'w') as destination:
+        with open(out_path / 'LICENSE.txt', 'w') as destination:
             destination.writelines(source.readlines())
 
-    shutil.copy(debug_script, out_dir)
+    shutil.copy(debug_script, out_path)
 
     version_contents = f"Version: {release_version}\nFull Version: {full_version}\nCommit: {commit_hash}\n"
-    with open(out_dir / 'VERSION.txt', 'w') as f:
+    with open(out_path / 'VERSION.txt', 'w') as f:
         f.write(version_contents)
 
     print("Adding icons...")
-    icons_destination_path = out_dir / 'icons'
+    icons_destination_path = out_path / 'icons'
     mkdir_p(icons_destination_path)
     for filename in glob('assets/icon*'):
         shutil.copy(filename, icons_destination_path)
 
     # NOTE: `shutil.make_archive` will provide the archive extension, don't pass it in the filename
     archive_path = target_dir / 'publish' / archive_name
-    shutil.make_archive(archive_path, archive_format, out_dir)
+    shutil.make_archive(archive_path, archive_format, publish_dir, out_dir)
     archive_full_file_path = f'{archive_path}.{archive_extension}'
     print(f"Build created in: '{archive_full_file_path}'")
 

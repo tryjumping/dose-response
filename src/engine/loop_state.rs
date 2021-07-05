@@ -125,7 +125,7 @@ impl LoopState {
         settings: Settings,
         default_background: Color,
         game_state: Box<State>,
-        egui_context: egui::CtxRef,
+        mut egui_context: egui::CtxRef,
         stream_handle: Option<&rodio::OutputStreamHandle>,
     ) -> Self {
         // TODO: do this for every Display creatio / window resize
@@ -175,14 +175,22 @@ impl LoopState {
         log::debug!("Normalised the graphics tilemap colours.");
         let tilemap = tilemap; // Disable `mut`
 
-        // Set the Egui font family and size:
-        egui_set_font_size(&egui_context, settings.text_size as f32);
+        // NOTE: we must create at least one frame befoce calling some
+        // of the other code later on. Setting the font must also be
+        // done in the context of a frame at least on macOS.
+        {
+            egui_context.begin_frame(Default::default());
 
-        // Customise the default egui style:
-        let mut style = egui::Style::default();
-        // NOTE: this applies to check/radio boxes as well, not just regular buttons:
-        style.spacing.button_padding = [7.0, 3.0].into();
-        egui_context.set_style(Arc::new(style));
+            // Set the Egui font family and size:
+            egui_set_font_size(&egui_context, settings.text_size as f32);
+
+            // Customise the default egui style:
+            let mut style = egui::Style::default();
+            // NOTE: this applies to check/radio boxes as well, not just regular buttons:
+            style.spacing.button_padding = [7.0, 3.0].into();
+            egui_context.set_style(Arc::new(style));
+            let _ = egui_context.end_frame();
+        }
 
         let egui_texture_version = None;
 

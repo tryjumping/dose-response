@@ -26,7 +26,7 @@ chrono = { version = "0.4.19", optional = true }
 #egui = { git = "https://github.com/tomassedovic/emigui.git" }
 #egui = { path = "../../3pc/src/github.com/emilk/emigui/egui" }
 # NOTE: by disabling default features, we're excluding the bundled font
-egui = { version = "0.13", default-features = false, features = ["single_threaded"] }
+egui = { version = "0.13.1", default-features = false, features = ["single_threaded"] }
 gl = { version = "0.14", optional = true }
 glutin = { version = "0.27", optional = true }
 image = { version = "0.23.14", optional = true }

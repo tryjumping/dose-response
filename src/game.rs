@@ -257,6 +257,18 @@ pub fn update(
 
     let update_duration = update_stopwatch.finish();
 
+    if cfg!(feature = "stats") {
+        let expected_ms = 10;
+        if update_duration > Duration::from_millis(expected_ms) {
+            log::warn!(
+                "Game update took too long: {:?} (expected: {}ms)",
+                update_duration,
+                expected_ms
+            );
+            display.clear(color::WHITE);
+        }
+    }
+
     // TODO: we can no longer sensibly distinguish between building the drawcalls
     // due to egui and having to bundle the update and rendering code.
     let drawcall_stopwatch = Stopwatch::start();

@@ -37,14 +37,6 @@ impl Audio {
             stream_handle.map_or_else(empty_sink, new_sink),
         ];
 
-        let forrest = SoundData::new(
-            &include_bytes!("../assets/music/AMBForst_Forest (ID 0100)_BSB.ogg")[..],
-        );
-
-        let cow = SoundData::new(
-            &include_bytes!("../assets/sound/ANMLFarm_Sheep 7 (ID 2349)_BSB.ogg")[..],
-        );
-
         let walk_1 = SoundData::new(&include_bytes!("../assets/sound/walk-1.ogg")[..]);
 
         let walk_2 = SoundData::new(&include_bytes!("../assets/sound/walk-2.ogg")[..]);
@@ -65,8 +57,23 @@ impl Audio {
 
         Self {
             backgrounds: BackgroundSounds {
-                ambient_forrest: forrest,
-                cow,
+                // Credits: Exit Exit by P C III (CC-BY)
+                // https://freemusicarchive.org/music/P_C_III
+                exit_exit: SoundData::new(
+                    &include_bytes!("../assets/music/P C III - Exit Exit.ogg")[..],
+                ),
+                //https://freemusicarchive.org/music/P_C_III/earth2earth/earth2earth_1392
+                // Credits: earth2earth by P C III (CC-BY)
+                // https://freemusicarchive.org/music/P_C_III
+                family_breaks: SoundData::new(
+                    &include_bytes!("../assets/music/P C III - The Family Breaks.ogg")[..],
+                ),
+                // https://freemusicarchive.org/music/P_C_III/The_Family_Breaks/The_Family_Breaks_1795
+                // Credit: The Family Breaks by P C III (CC-BY)
+                // https://freemusicarchive.org/music/P_C_III
+                earth2earth: SoundData::new(
+                    &include_bytes!("../assets/music/P C III - earth2earth.ogg")[..],
+                ),
             },
             effects: EffectSounds {
                 walk: [walk_1, walk_2, walk_3, walk_4],
@@ -141,22 +148,23 @@ impl Audio {
 }
 
 pub struct BackgroundSounds {
-    pub ambient_forrest: SoundData,
-    // TODO: replace this with proper other ambient sound effects
-    pub cow: SoundData,
+    pub exit_exit: SoundData,
+    pub family_breaks: SoundData,
+    pub earth2earth: SoundData,
 }
 
 impl BackgroundSounds {
     pub fn random(&self, rng: &mut Random) -> SoundData {
-        match rng.range_inclusive(1, 2) {
-            1 => self.ambient_forrest.clone(),
-            2 => self.cow.clone(),
+        match rng.range_inclusive(1, 3) {
+            1 => self.exit_exit.clone(),
+            2 => self.family_breaks.clone(),
+            3 => self.earth2earth.clone(),
             unexpected => {
                 log::error!(
                     "BackgroundSounds::random: Unexpected random number came up: {}",
                     unexpected
                 );
-                self.ambient_forrest.clone()
+                self.exit_exit.clone()
             }
         }
     }

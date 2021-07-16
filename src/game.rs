@@ -67,6 +67,13 @@ pub fn update(
     state.clock += dt;
     state.replay_step += dt;
 
+    // The music won't play during the initial main menu screen so
+    // start it after the game starts and then just keep playing
+    // forever.
+    if state.world.initialised() {
+        audio.background_sound_queue.play();
+    }
+
     // TODO: only check this every say 10 or 100 frames?
     // We just wanna make sure there are items in the queue.
     if audio.background_sound_queue.len() <= 1 {

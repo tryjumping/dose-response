@@ -32,6 +32,8 @@ impl Audio {
         }
 
         let background_sound_queue = stream_handle.map_or_else(empty_sink, new_sink);
+        background_sound_queue.pause();
+
         let sound_effect_queue = [
             stream_handle.map_or_else(empty_sink, new_sink),
             stream_handle.map_or_else(empty_sink, new_sink),

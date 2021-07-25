@@ -60,7 +60,7 @@ pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
     let mut texture = RgbaImage::new(width, height);
 
     for (index, &alpha) in egui_texture.pixels.iter().enumerate() {
-        let alpha_pixel = egui::Rgba::from_white_alpha(alpha as f32 / 255.0);
+        let alpha_pixel = egui::Rgba::from_white_alpha(f32::from(alpha) / 255.0);
         let pixel = Rgba([255, 255, 255, (alpha_pixel.a() * 255.0) as u8]);
         texture.put_pixel(index as u32 % width, index as u32 / width, pixel);
     }
@@ -541,7 +541,9 @@ impl LoopState {
     }
 
     pub fn fullscreen_action(&mut self) -> Option<FullscreenAction> {
-        if self.previous_settings.fullscreen != self.settings.fullscreen {
+        if self.previous_settings.fullscreen == self.settings.fullscreen {
+            None
+        } else {
             if self.settings.fullscreen {
                 log::info!("[{}] Switching to fullscreen", self.current_frame_id);
                 Some(FullscreenAction::SwitchToFullscreen)
@@ -550,8 +552,6 @@ impl LoopState {
                 self.switched_from_fullscreen = true;
                 Some(FullscreenAction::SwitchToWindowed)
             }
-        } else {
-            None
         }
     }
 

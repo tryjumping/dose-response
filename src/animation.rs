@@ -178,10 +178,9 @@ impl Iterator for CrossIterator {
             if x_offset <= self.range {
                 self.x_offset += 1;
                 return Some(self.center + (x_offset, 0));
-            } else {
-                self.horizontal = false;
-                self.vertical = true;
             }
+            self.horizontal = false;
+            self.vertical = true;
         }
 
         if self.vertical {
@@ -189,9 +188,8 @@ impl Iterator for CrossIterator {
             if y_offset <= self.range {
                 self.y_offset += 1;
                 return Some(self.center + (0, y_offset));
-            } else {
-                self.vertical = false;
             }
+            self.vertical = false;
         }
 
         None
@@ -302,10 +300,9 @@ impl Iterator for XIterator {
             if x_offset <= self.range {
                 self.x_offset += 1;
                 return Some(self.center + (x_offset, -x_offset));
-            } else {
-                self.horizontal = false;
-                self.vertical = true;
             }
+            self.horizontal = false;
+            self.vertical = true;
         }
 
         if self.vertical {
@@ -313,9 +310,8 @@ impl Iterator for XIterator {
             if y_offset <= self.range {
                 self.y_offset += 1;
                 return Some(self.center + (y_offset, y_offset));
-            } else {
-                self.vertical = false;
             }
+            self.vertical = false;
         }
 
         None

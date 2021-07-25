@@ -14,8 +14,7 @@ pub enum Kind {
 }
 
 impl std::fmt::Display for Kind {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        use self::Kind::*;
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         let precision = f.precision().unwrap_or(1000);
         let s = if precision < 12 {
             match *self {
@@ -58,7 +57,6 @@ impl Iterator for KindIterator {
     type Item = Kind;
 
     fn next(&mut self) -> Option<Self::Item> {
-        use self::Kind::*;
         let current = self.current;
         self.current = match current {
             Some(Food) => Some(Dose),

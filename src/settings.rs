@@ -8,6 +8,7 @@ use std::{
     fs::File,
     io::prelude::*,
     path::{Path, PathBuf},
+    string::ToString,
 };
 
 use toml_edit::Document as TomlDocument;
@@ -170,7 +171,7 @@ impl Settings {
 
         let tile_sizes_str = crate::engine::AVAILABLE_TILE_SIZES
             .iter()
-            .map(|num| num.to_string())
+            .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
         out.push_str(&format!("# Options: {}\n", tile_sizes_str));
@@ -178,7 +179,7 @@ impl Settings {
 
         let text_sizes_str = crate::engine::AVAILABLE_TEXT_SIZES
             .iter()
-            .map(|num| num.to_string())
+            .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
         out.push_str(&format!("# Options: {}\n", text_sizes_str));
@@ -384,13 +385,13 @@ impl Store for FileSystemStore {
 
         match self.toml[WINDOW_WIDTH].as_integer() {
             Some(window_width) => {
-                if window_width < MIN_WINDOW_WIDTH as i64 {
+                if window_width < i64::from(MIN_WINDOW_WIDTH) {
                     log::error!(
                         "Settings error: `{}` must be at least {}.",
                         WINDOW_WIDTH,
                         MIN_WINDOW_WIDTH
                     )
-                } else if window_width > MAX_WINDOW_WIDTH as i64 {
+                } else if window_width > i64::from(MAX_WINDOW_WIDTH) {
                     log::error!(
                         "Settings error: `{}` cannot be greater than {}.",
                         WINDOW_WIDTH,
@@ -405,13 +406,13 @@ impl Store for FileSystemStore {
 
         match self.toml[WINDOW_HEIGHT].as_integer() {
             Some(window_height) => {
-                if window_height < MIN_WINDOW_HEIGHT as i64 {
+                if window_height < i64::from(MIN_WINDOW_HEIGHT) {
                     log::error!(
                         "Settings error: `{}` must be at least {}.",
                         WINDOW_HEIGHT,
                         MIN_WINDOW_HEIGHT
                     )
-                } else if window_height > MAX_WINDOW_HEIGHT as i64 {
+                } else if window_height > i64::from(MAX_WINDOW_HEIGHT) {
                     log::error!(
                         "Settings error: `{}` cannot be greater than {}.",
                         WINDOW_HEIGHT,
@@ -506,9 +507,9 @@ impl Store for FileSystemStore {
 
         self.toml[PALETTE] = toml_edit::value(settings.palette.to_string());
 
-        self.toml[TILE_SIZE] = toml_edit::value(settings.tile_size as i64);
+        self.toml[TILE_SIZE] = toml_edit::value(i64::from(settings.tile_size));
 
-        self.toml[TEXT_SIZE] = toml_edit::value(settings.text_size as i64);
+        self.toml[TEXT_SIZE] = toml_edit::value(i64::from(settings.text_size));
 
         if settings.fullscreen {
             // NOTE: don't save the window width/height when we're in
@@ -518,8 +519,8 @@ impl Store for FileSystemStore {
             // Instead, we want to return to the size the window had
             // before going full screen.
         } else {
-            self.toml[WINDOW_WIDTH] = toml_edit::value(settings.window_width as i64);
-            self.toml[WINDOW_HEIGHT] = toml_edit::value(settings.window_height as i64);
+            self.toml[WINDOW_WIDTH] = toml_edit::value(i64::from(settings.window_width));
+            self.toml[WINDOW_HEIGHT] = toml_edit::value(i64::from(settings.window_height));
         }
 
         self.toml[BACKEND] = toml_edit::value(settings.backend.clone());
@@ -530,9 +531,9 @@ impl Store for FileSystemStore {
 
         self.toml[PERMADEATH] = toml_edit::value(settings.permadeath);
 
-        self.toml[BACKGROUND_VOLUME] = toml_edit::value(settings.background_volume as f64);
+        self.toml[BACKGROUND_VOLUME] = toml_edit::value(f64::from(settings.background_volume));
 
-        self.toml[SOUND_VOLUME] = toml_edit::value(settings.sound_volume as f64);
+        self.toml[SOUND_VOLUME] = toml_edit::value(f64::from(settings.sound_volume));
 
         if let Err(err) = Self::write_settings_toml(&self.path, &self.toml) {
             log::error!("Could not write settings to the storage: {:?}", err);

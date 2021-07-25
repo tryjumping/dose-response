@@ -87,7 +87,7 @@ impl Chunk {
             let pos = self.level.level_position(pos);
             self.level.set_tile(pos, tile);
         }
-        for mut monster in generated_monsters.into_iter() {
+        for mut monster in generated_monsters {
             // TODO: the pos conversion would not be necessary if the
             // worldgen operated with world positions in the first
             // place.
@@ -233,8 +233,7 @@ impl World {
                     use crate::monster::Kind::*;
                     let easy_monster = match m.kind {
                         Shadows | Voices => false,
-                        Hunger | Anxiety | Depression | Npc => true,
-                        Signpost => true, // NOTE: should never be generated on its own
+                        Hunger | Anxiety | Depression | Npc | Signpost => true, // NOTE: Signpost should never be generated on its own
                     };
                     safe_area.contains(pos) || easy_monster
                 });
@@ -315,7 +314,7 @@ impl World {
                     // Bail if another dose is in the resist area
                     let irresistible_dose = resist_area.points().any(|irresistible_point| {
                         self.cell(irresistible_point)
-                            .map_or(false, |cell| cell.items.iter().any(|item| item.is_dose()))
+                            .map_or(false, |cell| cell.items.iter().any(Item::is_dose))
                     });
                     if irresistible_dose {
                         continue;
@@ -360,7 +359,7 @@ impl World {
             }
         }
     }
-    /// Return the ChunkPosition for a given point within the chunk.
+    /// Return the `ChunkPosition` for a given point within the chunk.
     ///
     /// Chunks have equal width and height and can have negative
     /// positions. There is a chunk at `(0, 0)` and then at
@@ -450,17 +449,14 @@ impl World {
     /// `blockers` option controls can influence the logic: are
     /// monster treated as blocking or not?
     pub fn walkable(&self, pos: Point, blockers: Blocker, player_pos: Point) -> bool {
-        let level_cell_walkable = self
-            .chunk(pos)
-            .map(|chunk| {
-                let blocks_player = blockers.contains(Blocker::PLAYER) && pos == player_pos;
-                let level_position = chunk.level_position(pos);
-                chunk
-                    .level
-                    .walkable(level_position, blockers - Blocker::PLAYER)
-                    && !blocks_player
-            })
-            .unwrap_or(false);
+        let level_cell_walkable = self.chunk(pos).map_or(false, |chunk| {
+            let blocks_player = blockers.contains(Blocker::PLAYER) && pos == player_pos;
+            let level_position = chunk.level_position(pos);
+            chunk
+                .level
+                .walkable(level_position, blockers - Blocker::PLAYER)
+                && !blocks_player
+        });
         self.within_bounds(pos) && level_cell_walkable
     }
 
@@ -641,7 +637,7 @@ impl World {
         }
     }
 
-    /// Set cells within the given radius as always_visible.
+    /// Set cells within the given radius as `always_visible`.
     pub fn always_visible(&mut self, centre: Point, radius: i32) {
         for pos in CircularArea::new(centre, radius) {
             if self.within_bounds(pos) {

@@ -80,9 +80,8 @@ impl Path {
             }
             if calculation_steps >= calculation_limit {
                 break;
-            } else {
-                calculation_steps += 1;
             }
+            calculation_steps += 1;
             let neigh = neighbors(current.position);
             for &(next, tile_contents) in &neigh {
                 assert!((current.position.x - next.x).abs() <= 1);
@@ -215,10 +214,12 @@ impl PartialOrd for State {
 #[cfg(test)]
 mod test {
     use super::Path;
-    use crate::blocker::Blocker;
-    use crate::player::{Mind, PlayerInfo};
-    use crate::point::Point;
-    use crate::world::World;
+    use crate::{
+        blocker::Blocker,
+        player::{Mind, PlayerInfo},
+        point::Point,
+        world::World,
+    };
 
     struct Board {
         start: Point,
@@ -227,9 +228,13 @@ mod test {
     }
 
     fn make_board(text: &str) -> Board {
-        use crate::level::Tile;
-        use crate::level::TileKind::{Empty, Tree};
-        use crate::random::Random;
+        use crate::{
+            level::{
+                Tile,
+                TileKind::{Empty, Tree},
+            },
+            random::Random,
+        };
         let mut start = Point { x: 0, y: 0 };
         let mut destination = Point { x: 0, y: 0 };
         let mut x = 0;
@@ -345,7 +350,7 @@ mod test {
         assert_eq!(1, path.len());
         let expected = [(2, 1)]
             .iter()
-            .cloned()
+            .copied()
             .map(Into::into)
             .collect::<Vec<Point>>();
         assert_eq!(expected, path.collect::<Vec<_>>());
@@ -382,7 +387,7 @@ mod test {
         assert_eq!(7, path.len());
         let expected = [(2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)]
             .iter()
-            .cloned()
+            .copied()
             .map(Into::into)
             .collect::<Vec<Point>>();
         assert_eq!(expected, path.collect::<Vec<_>>());
@@ -402,7 +407,7 @@ s..........
         assert_eq!(3, path.len());
         let expected = [(1, 1), (2, 2), (3, 3)]
             .iter()
-            .cloned()
+            .copied()
             .map(Into::into)
             .collect::<Vec<Point>>();
         assert_eq!(expected, path.collect::<Vec<_>>());
@@ -436,7 +441,7 @@ xxxxx......
         assert_eq!(7, path.len());
         let expected = [(2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
             .iter()
-            .cloned()
+            .copied()
             .map(Into::into)
             .collect::<Vec<Point>>();
         assert_eq!(expected, path.collect::<Vec<_>>());
@@ -471,7 +476,7 @@ xxxxx......
             (7, 5),
         ]
         .iter()
-        .cloned()
+        .copied()
         .map(Into::into)
         .collect::<Vec<Point>>();
         assert_eq!(expected, path.collect::<Vec<_>>());

@@ -33,8 +33,8 @@ impl Rectangle {
     /// Create a new rectangle defined by its middle point and
     /// (half-width, half-height).
     ///
-    /// The result will have dimensions `half_size.x * 2, half_size.y
-    /// * 2`.
+    /// The result will have dimensions `half_size.x` * 2, `half_size.y`
+    /// * 2.
     pub fn center(center: Point, half_size: Point) -> Self {
         let half_size = if half_size >= (0, 0) {
             half_size

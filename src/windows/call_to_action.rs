@@ -1,12 +1,10 @@
-#![allow(warnings)]
-use crate::color;
-use crate::engine::{Display, TextMetrics};
-use crate::formula;
-use crate::player::CauseOfDeath;
-use crate::point::Point;
-use crate::rect::Rectangle;
-use crate::state::{Side, State};
-use crate::ui::{self, Button};
+#![allow(unused_variables, dead_code)]
+use crate::{
+    engine::{Display, TextMetrics},
+    point::Point,
+    rect::Rectangle,
+    state::State,
+};
 
 struct Layout {
     window_rect: Rectangle,

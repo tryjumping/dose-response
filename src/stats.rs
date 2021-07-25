@@ -88,14 +88,14 @@ impl Stats {
     pub fn longest_update(&self) -> Duration {
         self.longest_updates
             .last()
-            .cloned()
+            .copied()
             .unwrap_or_else(|| Duration::new(0, 0))
     }
 
     pub fn longest_drawcalls(&self) -> Duration {
         self.longest_drawcalls
             .last()
-            .cloned()
+            .copied()
             .unwrap_or_else(|| Duration::new(0, 0))
     }
 

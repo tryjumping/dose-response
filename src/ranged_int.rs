@@ -369,7 +369,7 @@ mod test {
         assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
         a += 1;
         assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
-        a += 23898923;
+        a += 23_898_923;
         assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
         a += i32::MAX;
         assert_eq!(a, Ranged::new(5, InclusiveRange(-5, 5)));
@@ -384,7 +384,7 @@ mod test {
         assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
         b += -1;
         assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
-        b += -23898923;
+        b += -23_898_923;
         assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
         b += i32::MIN;
         assert_eq!(b, Ranged::new(-5, InclusiveRange(-5, 5)));
@@ -399,7 +399,7 @@ mod test {
         assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
         a -= 1;
         assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
-        a -= 389832;
+        a -= 389_832;
         assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
         a -= i32::MAX;
         assert_eq!(a, Ranged::new(-5, InclusiveRange(-5, 5)));
@@ -414,7 +414,7 @@ mod test {
         assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
         b -= -1;
         assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
-        b -= -389832;
+        b -= -389_832;
         assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));
         b -= i32::MIN;
         assert_eq!(b, Ranged::new(5, InclusiveRange(-5, 5)));

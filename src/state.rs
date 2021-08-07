@@ -107,7 +107,6 @@ pub struct State {
     /// The actual size of the game world in tiles. Could be infinite
     /// but we're limiting it for performance reasons for now.
     pub world_size: Point,
-    pub chunk_size: i32,
     pub world: World,
 
     /// The size of the game map inside the game window. We're keeping
@@ -211,7 +210,6 @@ impl State {
         State {
             player,
             explosion_animation: None,
-            chunk_size: 32,
             world_size,
             world,
             map_size,
@@ -384,7 +382,7 @@ Reason: '{}'.",
             let cheating = cheating;
             let invincible = invincible;
             let replay = true;
-            Ok(State::new(
+            let mut state = State::new(
                 world_size,
                 map_size,
                 panel_width,
@@ -399,19 +397,25 @@ Reason: '{}'.",
                 exit_after,
                 challenge,
                 palette,
-            ))
+            );
+            state.generate_world();
+            Ok(state)
         }
 
         #[cfg(not(feature = "replay"))]
-        Ok(Self::new_game(
-            world_size,
-            map_size,
-            panel_width,
-            exit_after,
-            None,
-            challenge,
-            palette,
-        ))
+        {
+            let mut state = Self::new_game(
+                world_size,
+                map_size,
+                panel_width,
+                exit_after,
+                None,
+                challenge,
+                palette,
+            );
+            state.generate_world();
+            Ok(state)
+        }
     }
 
     pub fn generate_world(&mut self) {

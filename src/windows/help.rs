@@ -170,6 +170,17 @@ pub const FONT_LICENSE: &str =
     "Copyright (c) 2013, Matthias Tellen <matthias.tellen@googlemail.com>
 licensed under the SIL Open Font License, Version 1.1";
 
+pub const CREDITS_MUSIC: &str = r#"Music:
+"Exit Exit" by P C III
+License: Creative Commons Attribution (cc-by)
+
+"earth2earth" by P C III
+License: Creative Commons Attribution (cc-by)
+
+"The Family Breaks" by P C III
+License: Creative Commons Attribution (cc-by)
+"#;
+
 pub const CODE_LICENSE_ONELINE: &str =
     "licensed under GNU Affero General Public License 3 or later";
 
@@ -266,6 +277,8 @@ pub fn process(
                         ui.label("");
                         ui.hyperlink_to(CREDITS_FONT, MONONOKI_URL);
                         ui.label(FONT_LICENSE);
+                        ui.label("");
+                        ui.label(CREDITS_MUSIC);
                     }
 
                     Page::About => {

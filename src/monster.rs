@@ -55,8 +55,8 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub fn is_monster(&self) -> bool {
-        match *self {
+    pub fn is_monster(self) -> bool {
+        match self {
             Anxiety => true,
             Depression => true,
             Hunger => true,

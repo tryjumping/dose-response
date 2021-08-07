@@ -12,8 +12,6 @@ use crate::{
 
 use std::time::Instant;
 
-use egui::CtxRef;
-
 use winit::{
     dpi::{LogicalSize, PhysicalPosition},
     event::{
@@ -25,6 +23,7 @@ use winit::{
     window::{Fullscreen, Icon, WindowBuilder},
 };
 
+use egui::CtxRef;
 use rodio::OutputStream;
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
@@ -261,7 +260,7 @@ pub fn main_loop<S>(
         }
     };
 
-    gl::load_with(|symbol| context.get_proc_address(symbol) as *const _);
+    gl::load_with(|symbol| context.get_proc_address(symbol).cast());
     log::debug!("Loaded OpenGL symbols.");
 
     let mut opengl_app = loop_state.opengl_app();
@@ -304,9 +303,9 @@ pub fn main_loop<S>(
     }
     log::info!(
         "Current monitor: {:?}, pos: {:?}, size: {:?}",
-        current_monitor.as_ref().map(|m| m.name()),
-        current_monitor.as_ref().map(|m| m.position()),
-        current_monitor.as_ref().map(|m| m.size())
+        current_monitor.as_ref().map(MonitorHandle::name),
+        current_monitor.as_ref().map(MonitorHandle::position),
+        current_monitor.as_ref().map(MonitorHandle::size)
     );
     let mut ui_paint_batches = vec![];
 
@@ -362,9 +361,9 @@ monitor ID: {:?}. Ignoring this request.",
                         current_monitor = get_current_monitor(&monitors, window_pos);
                         log::debug!(
                             "Current monitor: {:?}, pos: {:?}, size: {:?}",
-                            current_monitor.as_ref().map(|m| m.name()),
-                            current_monitor.as_ref().map(|m| m.position()),
-                            current_monitor.as_ref().map(|m| m.size())
+                            current_monitor.as_ref().map(MonitorHandle::name),
+                            current_monitor.as_ref().map(MonitorHandle::position),
+                            current_monitor.as_ref().map(MonitorHandle::size)
                         );
                     }
                 }
@@ -647,7 +646,7 @@ monitor ID: {:?}. Ignoring this request.",
                     // expected size again and leave it at that.
                     log::info!(
                         "Current monitor size: {:?}",
-                        current_monitor.as_ref().map(|m| m.size())
+                        current_monitor.as_ref().map(MonitorHandle::size)
                     );
                 }
 

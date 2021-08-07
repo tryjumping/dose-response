@@ -11,6 +11,7 @@ use image::RgbaImage;
 
 use gl::types::*;
 
+#[allow(clippy::doc_markdown)]
 /// The OpenGl context of our rendering pipeline. Contains the
 /// shaders, textures, vao and vbos, etc.
 #[derive(Default)]
@@ -29,7 +30,6 @@ pub struct OpenGlApp {
 }
 
 impl OpenGlApp {
-    #[allow(unsafe_code)]
     pub fn new(vertex_source: &str, fragment_source: &str) -> Self {
         let mut app: OpenGlApp = Default::default();
 
@@ -57,7 +57,6 @@ impl OpenGlApp {
         app
     }
 
-    #[allow(unsafe_code)]
     pub fn initialise(&mut self, glyphmap: &RgbaImage, tilemap: &RgbaImage) {
         unsafe {
             gl::Enable(gl::SCISSOR_TEST);
@@ -86,7 +85,6 @@ impl OpenGlApp {
         self.upload_texture(self.tilemap, "tilemap", tilemap);
     }
 
-    #[allow(unsafe_code)]
     pub fn upload_texture(&mut self, id: GLuint, name: &str, texture: &RgbaImage) {
         let (width, height) = texture.dimensions();
         // NOTE(shadower): as far as I can tell (though the opengl
@@ -112,13 +110,12 @@ impl OpenGlApp {
                 0,
                 gl::RGBA,
                 gl::UNSIGNED_BYTE,
-                data_ptr as *const os::raw::c_void,
+                data_ptr.cast::<std::ffi::c_void>(),
             );
             check_gl_error(&format!("TexImage2D {}", name));
         }
     }
 
-    #[allow(unsafe_code)]
     pub fn compile_shader(src: &str, ty: GLenum) -> GLuint {
         let shader;
         unsafe {
@@ -153,7 +150,6 @@ impl OpenGlApp {
         shader
     }
 
-    #[allow(unsafe_code)]
     pub fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
         unsafe {
             let program = gl::CreateProgram();
@@ -185,7 +181,6 @@ impl OpenGlApp {
         }
     }
 
-    #[allow(unsafe_code)]
     pub fn render(&self, clear_color: Color, display_info: DisplayInfo, vertex_buffer: &[f32]) {
         let program = self.program;
         let vbo = self.vbo;
@@ -411,7 +406,6 @@ impl OpenGlApp {
 }
 
 impl Drop for OpenGlApp {
-    #[allow(unsafe_code)]
     fn drop(&mut self) {
         unsafe {
             gl::DeleteProgram(self.program);
@@ -425,7 +419,6 @@ impl Drop for OpenGlApp {
     }
 }
 
-#[allow(unsafe_code)]
 fn check_gl_error(source: &str) {
     let err = unsafe { gl::GetError() };
     if err != gl::NO_ERROR {

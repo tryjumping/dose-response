@@ -119,7 +119,7 @@ impl Audio {
     }
 
     fn play_sound<S: 'static + Source<Item = i16> + Send>(&mut self, sound: S) {
-        for sink in self.sound_effect_queue.iter() {
+        for sink in &self.sound_effect_queue {
             if sink.empty() {
                 sink.append(sound);
                 break;
@@ -134,7 +134,7 @@ impl Audio {
 
     pub fn set_effects_volume(&mut self, volume: f32) {
         let volume = util::clampf(0.0, volume, 1.0);
-        for queue in self.sound_effect_queue.iter_mut() {
+        for queue in &mut self.sound_effect_queue {
             queue.set_volume(volume);
         }
     }

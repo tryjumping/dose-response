@@ -51,9 +51,8 @@ impl Random {
         for (value, weight) in options {
             if choice <= *weight {
                 return Some(value);
-            } else {
-                choice -= *weight;
             }
+            choice -= *weight;
         }
         None
     }
@@ -87,7 +86,8 @@ mod derive_serde {
         r.state().1
     }
 
-    #[derive(Clone, Serialize, Deserialize)]
+    #[allow(missing_copy_implementations)]
+    #[derive(Clone, Debug, Serialize, Deserialize)]
     #[serde(remote = "Rand32")]
     pub struct Rand32Serde {
         #[serde(getter = "rand32_get_state")]

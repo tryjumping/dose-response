@@ -113,7 +113,7 @@ impl Level {
         }
     }
 
-    /// Convert a bare Point into LevelPosition. Panics when the point
+    /// Convert a bare Point into `LevelPosition`. Panics when the point
     /// is not inside the level.
     pub fn level_position(&self, pos: point::Point) -> LevelPosition {
         assert!(pos.x >= 0);
@@ -146,7 +146,7 @@ impl Level {
     }
 
     pub fn monster_on_pos(&self, pos: LevelPosition) -> Option<usize> {
-        self.monsters.get(&pos).cloned()
+        self.monsters.get(&pos).copied()
     }
 
     pub fn add_item(&mut self, pos: LevelPosition, item: Item) {

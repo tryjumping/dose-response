@@ -243,15 +243,14 @@ impl Iterator for CircularArea {
             }
             if self.center.distance(current_point) < self.radius as f32 {
                 return Some(current_point);
-            } else {
-                // Keep looping for another point
             }
+            // Keep looping for another point
         }
     }
 }
 
-/// A square area defined by its "half_side" or radius.
-/// A half_side of 0 means no points. Radius of 1 means the centre point.
+/// A square area defined by its `half_side` or radius.
+/// A `half_side` of 0 means no points. Radius of 1 means the centre point.
 /// Radius of 2 means a square of 9 points, and so on.
 pub struct SquareArea {
     pos: Point,
@@ -313,7 +312,7 @@ impl Iterator for Line {
 
     /// Draw a line between two points. Uses Bresenham's line
     /// algorithm:
-    /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+    /// <https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm>
     fn next(&mut self) -> Option<Point> {
         self.inner.next().map(Into::into)
     }
@@ -353,19 +352,19 @@ mod test {
         assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((10, 10));
-        let expected = 14.142136;
+        let expected = 14.142_136;
         assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((10, -10));
-        let expected = 14.142136;
+        let expected = 14.142_136;
         assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((-10, 10));
-        let expected = 14.142136;
+        let expected = 14.142_136;
         assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((10, -10));
-        let expected = 14.142136;
+        let expected = 14.142_136;
         assert!((actual - expected).abs() <= f32::EPSILON);
 
         let actual = Point { x: 0, y: 0 }.distance((3, 4));

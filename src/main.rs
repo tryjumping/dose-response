@@ -1,6 +1,42 @@
-#![deny(overflowing_literals, unsafe_code)]
-#![allow(clippy::identity_op)]
+#![forbid(overflowing_literals)]
+#![deny(
+    unsafe_code,
+    rust_2018_idioms,
+    rust_2018_compatibility,
+    unused,
+    unused_extern_crates,
+    nonstandard_style,
+    future_incompatible,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    clippy::explicit_iter_loop,
+    clippy::cast_lossless,
+    clippy::redundant_closure_for_method_calls,
+    clippy::cloned_instead_of_copied,
+    clippy::unnested_or_patterns,
+    clippy::if_not_else,
+    clippy::map_unwrap_or,
+    clippy::unreadable_literal,
+    clippy::unseparated_literal_suffix,
+    clippy::doc_markdown
+)]
+#![allow(
+    clippy::identity_op,
+    clippy::wildcard_imports,
+    clippy::match_bool,
+    clippy::single_match_else,
+    clippy::match_wildcard_for_single_variants,
+    clippy::match_same_arms,
+    clippy::default_trait_access,
+    clippy::ptr_as_ptr,
+    clippy::float_cmp,
+    clippy::from_iter_instead_of_collect,
+    clippy::collapsible_else_if,
+    clippy::bool_assert_comparison
+)]
 #![windows_subsystem = "windows"]
+
+use simplelog::Config;
 
 mod ai;
 mod animation;
@@ -113,7 +149,7 @@ fn run_remote(
 fn main() {
     use crate::settings::Store;
     use clap::{App, Arg};
-    use simplelog::{CombinedLogger, Config, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
+    use simplelog::{CombinedLogger, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
 
     let mut app = App::new(metadata::TITLE)

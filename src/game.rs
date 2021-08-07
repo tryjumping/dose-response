@@ -107,7 +107,7 @@ pub fn update(
         (state.map_size.x + panel_width_tiles, state.map_size.y)
     );
 
-    state.keys.extend(new_keys.iter().cloned());
+    state.keys.extend(new_keys.iter().copied());
     state.mouse = mouse;
 
     // Quit the game when Q is pressed or on replay and requested
@@ -315,13 +315,15 @@ fn process_game(
         };
     }
 
-    if let Some(Action::MainMenu)
-    | Some(Action::Help)
-    | Some(Action::UseFood)
-    | Some(Action::UseDose)
-    | Some(Action::UseCardinalDose)
-    | Some(Action::UseDiagonalDose)
-    | Some(Action::UseStrongDose) = option
+    if let Some(
+        Action::MainMenu
+        | Action::Help
+        | Action::UseFood
+        | Action::UseDose
+        | Action::UseCardinalDose
+        | Action::UseDiagonalDose
+        | Action::UseStrongDose,
+    ) = option
     {
         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
     }
@@ -408,15 +410,15 @@ fn process_game(
     // Animation to re-center the screen around the player when they
     // get too close to an edge.
     state.pos_timer.update(dt);
-    if !state.pos_timer.finished() {
+    if state.pos_timer.finished() {
+        state.screen_position_in_world = state.new_screen_pos;
+        state.offset_px = Point::zero();
+    } else {
         let tilesize = settings.tile_size as f32;
         let percentage = util::sine_curve(state.pos_timer.percentage_elapsed());
         let x = ((state.old_screen_pos.x - state.new_screen_pos.x) as f32) * percentage * tilesize;
         let y = ((state.old_screen_pos.y - state.new_screen_pos.y) as f32) * percentage * tilesize;
         state.offset_px = Point::new(x as i32, y as i32);
-    } else {
-        state.screen_position_in_world = state.new_screen_pos;
-        state.offset_px = Point::zero();
     }
 
     let running = !state.paused && !state.replay;
@@ -833,8 +835,9 @@ fn process_monsters(
                 let path_changed = monster_readonly
                     .path
                     .last()
-                    .map(|&cached_destination| cached_destination != destination)
-                    .unwrap_or(true);
+                    .map_or(true, |&cached_destination| {
+                        cached_destination != destination
+                    });
 
                 // NOTE: we keep a cache of any previously calculated
                 // path in `monster.path`. If the precalculated path
@@ -1391,8 +1394,7 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
 }
 
 fn inventory_commands(key: Key) -> Option<Command> {
-    use crate::item::Kind;
-    use crate::keys::KeyCode::*;
+    use crate::{item::Kind, keys::KeyCode::*};
 
     for kind in Kind::iter() {
         let num_key = match inventory_key(kind) {
@@ -1455,8 +1457,7 @@ fn use_dose(
     palette: &Palette,
     audio: &mut Audio,
 ) {
-    use crate::item::Kind::*;
-    use crate::player::Modifier::*;
+    use crate::{item::Kind::*, player::Modifier::*};
     log::debug!("Using dose");
     audio.mix_sound_effect(Effect::Explosion, Duration::from_millis(0));
     // TODO: do a different explosion animation for the cardinal dose

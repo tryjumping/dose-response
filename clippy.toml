@@ -1,2 +1,5 @@
 too-many-arguments-threshold = 14
 type-complexity-threshold = 170
+too-many-lines-threshold = 410
+max-struct-bools = 12
+max-fn-params-bools = 5

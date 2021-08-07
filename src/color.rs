@@ -45,10 +45,10 @@ impl From<Color> for egui::Rgba {
     fn from(color: Color) -> egui::Rgba {
         let color: ColorAlpha = color.into();
         egui::Rgba::from_rgba_premultiplied(
-            color.rgb.r as f32 / 255.0,
-            color.rgb.g as f32 / 255.0,
-            color.rgb.b as f32 / 255.0,
-            color.alpha as f32 / 255.0,
+            f32::from(color.rgb.r) / 255.0,
+            f32::from(color.rgb.g) / 255.0,
+            f32::from(color.rgb.b) / 255.0,
+            f32::from(color.alpha) / 255.0,
         )
     }
 }

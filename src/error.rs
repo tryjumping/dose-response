@@ -1,3 +1,5 @@
+#![allow(dead_code, unused_macros)]
+
 use std::fmt;
 
 #[derive(Debug)]

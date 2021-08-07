@@ -3,11 +3,9 @@
     unsafe_code,
     rust_2018_idioms,
     rust_2018_compatibility,
-    unused,
     unused_extern_crates,
     nonstandard_style,
     future_incompatible,
-    missing_copy_implementations,
     missing_debug_implementations,
     clippy::explicit_iter_loop,
     clippy::cast_lossless,
@@ -20,6 +18,7 @@
     clippy::unseparated_literal_suffix,
     clippy::doc_markdown
 )]
+#![warn(missing_copy_implementations)]
 #![allow(
     clippy::identity_op,
     clippy::wildcard_imports,

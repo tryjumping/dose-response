@@ -76,25 +76,7 @@ pub fn update(
 
     // TODO: only check this every say 10 or 100 frames?
     // We just wanna make sure there are items in the queue.
-    if audio.background_sound_queue.len() <= 1 {
-        let sound = audio.backgrounds.random(&mut audio.rng);
-        match rodio::Decoder::new(sound) {
-            Ok(sound) => {
-                use rodio::Source;
-                use std::convert::TryInto;
-                let delay = if audio.background_sound_queue.empty() {
-                    Duration::from_secs(0)
-                } else {
-                    let secs: u64 = audio.rng.range_inclusive(1, 5).try_into().unwrap_or(1);
-                    Duration::from_secs(secs)
-                };
-                audio.background_sound_queue.append(sound.delay(delay));
-            }
-            Err(error) => {
-                log::error!("Error decoding sound: {}. Skipping playback.", error);
-            }
-        }
-    }
+    enqueue_background_music(audio);
 
     audio.set_background_volume(settings.background_volume);
     audio.set_effects_volume(settings.sound_volume);
@@ -298,6 +280,28 @@ pub fn update(
     }
 
     game_update_result
+}
+
+fn enqueue_background_music(audio: &mut Audio) {
+    if audio.background_sound_queue.len() <= 1 {
+        let sound = audio.backgrounds.random(&mut audio.rng);
+        match rodio::Decoder::new(sound) {
+            Ok(sound) => {
+                use rodio::Source;
+                use std::convert::TryInto;
+                let delay = if audio.background_sound_queue.empty() {
+                    Duration::from_secs(0)
+                } else {
+                    let secs: u64 = audio.rng.range_inclusive(1, 5).try_into().unwrap_or(1);
+                    Duration::from_secs(secs)
+                };
+                audio.background_sound_queue.append(sound.delay(delay));
+            }
+            Err(error) => {
+                log::error!("Error decoding sound: {}. Skipping playback.", error);
+            }
+        }
+    }
 }
 
 fn process_game(

@@ -2,9 +2,13 @@ use crate::{random::Random, util};
 
 use std::{convert::TryInto, time::Duration};
 
-use rodio::{OutputStreamHandle, Sink, Source};
+use rodio::{
+    source::{Buffered, Empty},
+    Decoder, OutputStreamHandle, Sink, Source,
+};
 
 type SoundData = std::io::Cursor<&'static [u8]>;
+type Sound = Option<Buffered<Decoder<SoundData>>>;
 
 pub struct Audio {
     pub backgrounds: BackgroundSounds,
@@ -39,23 +43,41 @@ impl Audio {
             stream_handle.map_or_else(empty_sink, new_sink),
         ];
 
-        let walk_1 = SoundData::new(&include_bytes!("../assets/sound/walk-1.ogg")[..]);
+        let walk_1 = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/walk-1.ogg")[..],
+        ));
 
-        let walk_2 = SoundData::new(&include_bytes!("../assets/sound/walk-2.ogg")[..]);
+        let walk_2 = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/walk-2.ogg")[..],
+        ));
 
-        let walk_3 = SoundData::new(&include_bytes!("../assets/sound/walk-3.ogg")[..]);
+        let walk_3 = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/walk-3.ogg")[..],
+        ));
 
-        let walk_4 = SoundData::new(&include_bytes!("../assets/sound/walk-4.ogg")[..]);
+        let walk_4 = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/walk-4.ogg")[..],
+        ));
 
-        let monster_hit = SoundData::new(&include_bytes!("../assets/sound/monster-hit.ogg")[..]);
+        let monster_hit = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/monster-hit.ogg")[..],
+        ));
 
-        let monster_moved = SoundData::new(&include_bytes!("../assets/sound/blip.ogg")[..]);
+        let monster_moved = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/blip.ogg")[..],
+        ));
 
-        let explosion = SoundData::new(&include_bytes!("../assets/sound/explosion.ogg")[..]);
+        let explosion = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/explosion.ogg")[..],
+        ));
 
-        let game_over = SoundData::new(&include_bytes!("../assets/sound/game-over.ogg")[..]);
+        let game_over = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/game-over.ogg")[..],
+        ));
 
-        let click = SoundData::new(&include_bytes!("../assets/sound/click.ogg")[..]);
+        let click = load_sound(SoundData::new(
+            &include_bytes!("../assets/sound/click.ogg")[..],
+        ));
 
         Self {
             backgrounds: BackgroundSounds {
@@ -100,7 +122,7 @@ impl Audio {
         Duration::from_millis(self.rng.range_inclusive(1, 50).try_into().unwrap_or(0))
     }
 
-    fn data_from_effect(&mut self, effect: Effect) -> SoundData {
+    fn data_from_effect(&mut self, effect: Effect) -> Sound {
         use Effect::*;
         match effect {
             Walk => self
@@ -116,11 +138,9 @@ impl Audio {
     }
 
     pub fn play_mixed_sound_effects(&mut self) {
-        use rodio::{decoder::Decoder, source::Empty};
         let mut mixed_sound: Box<dyn Source<Item = i16> + Send> = Box::new(Empty::new());
         while let Some((effect, delay)) = self.sound_effects.pop() {
-            let data = self.data_from_effect(effect);
-            if let Ok(sound) = Decoder::new(data) {
+            if let Some(sound) = self.data_from_effect(effect) {
                 mixed_sound = Box::new(mixed_sound.mix(sound.delay(delay)));
             }
         }
@@ -149,6 +169,10 @@ impl Audio {
     }
 }
 
+fn load_sound(input: SoundData) -> Sound {
+    Decoder::new(input).map(Decoder::buffered).ok()
+}
+
 pub struct BackgroundSounds {
     pub exit_exit: SoundData,
     pub family_breaks: SoundData,
@@ -173,12 +197,12 @@ impl BackgroundSounds {
 }
 
 pub struct EffectSounds {
-    pub walk: [SoundData; 4],
-    pub monster_hit: SoundData,
-    pub monster_moved: SoundData,
-    pub explosion: SoundData,
-    pub game_over: SoundData,
-    pub click: SoundData,
+    pub walk: [Sound; 4],
+    pub monster_hit: Sound,
+    pub monster_moved: Sound,
+    pub explosion: Sound,
+    pub game_over: Sound,
+    pub click: Sound,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

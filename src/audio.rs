@@ -43,59 +43,41 @@ impl Audio {
             stream_handle.map_or_else(empty_sink, new_sink),
         ];
 
-        let walk_1 = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/walk-1.ogg")[..],
-        ));
+        let walk_1 = load_sound(&include_bytes!("../assets/sound/walk-1.ogg")[..]);
 
-        let walk_2 = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/walk-2.ogg")[..],
-        ));
+        let walk_2 = load_sound(&include_bytes!("../assets/sound/walk-2.ogg")[..]);
 
-        let walk_3 = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/walk-3.ogg")[..],
-        ));
+        let walk_3 = load_sound(&include_bytes!("../assets/sound/walk-3.ogg")[..]);
 
-        let walk_4 = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/walk-4.ogg")[..],
-        ));
+        let walk_4 = load_sound(&include_bytes!("../assets/sound/walk-4.ogg")[..]);
 
-        let monster_hit = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/monster-hit.ogg")[..],
-        ));
+        let monster_hit = load_sound(&include_bytes!("../assets/sound/monster-hit.ogg")[..]);
 
-        let monster_moved = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/blip.ogg")[..],
-        ));
+        let monster_moved = load_sound(&include_bytes!("../assets/sound/blip.ogg")[..]);
 
-        let explosion = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/explosion.ogg")[..],
-        ));
+        let explosion = load_sound(&include_bytes!("../assets/sound/explosion.ogg")[..]);
 
-        let game_over = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/game-over.ogg")[..],
-        ));
+        let game_over = load_sound(&include_bytes!("../assets/sound/game-over.ogg")[..]);
 
-        let click = load_sound(SoundData::new(
-            &include_bytes!("../assets/sound/click.ogg")[..],
-        ));
+        let click = load_sound(&include_bytes!("../assets/sound/click.ogg")[..]);
 
         Self {
             backgrounds: BackgroundSounds {
                 // Credits: Exit Exit by P C III (CC-BY)
                 // https://freemusicarchive.org/music/P_C_III
-                exit_exit: SoundData::new(
+                exit_exit: load_sound(
                     &include_bytes!("../assets/music/P C III - Exit Exit.ogg")[..],
                 ),
                 //https://freemusicarchive.org/music/P_C_III/earth2earth/earth2earth_1392
                 // Credits: earth2earth by P C III (CC-BY)
                 // https://freemusicarchive.org/music/P_C_III
-                family_breaks: SoundData::new(
+                family_breaks: load_sound(
                     &include_bytes!("../assets/music/P C III - The Family Breaks.ogg")[..],
                 ),
                 // https://freemusicarchive.org/music/P_C_III/The_Family_Breaks/The_Family_Breaks_1795
                 // Credit: The Family Breaks by P C III (CC-BY)
                 // https://freemusicarchive.org/music/P_C_III
-                earth2earth: SoundData::new(
+                earth2earth: load_sound(
                     &include_bytes!("../assets/music/P C III - earth2earth.ogg")[..],
                 ),
             },
@@ -169,18 +151,20 @@ impl Audio {
     }
 }
 
-fn load_sound(input: SoundData) -> Sound {
-    Decoder::new(input).map(Decoder::buffered).ok()
+fn load_sound(input: &'static [u8]) -> Sound {
+    Decoder::new(SoundData::new(input))
+        .map(Decoder::buffered)
+        .ok()
 }
 
 pub struct BackgroundSounds {
-    pub exit_exit: SoundData,
-    pub family_breaks: SoundData,
-    pub earth2earth: SoundData,
+    pub exit_exit: Sound,
+    pub family_breaks: Sound,
+    pub earth2earth: Sound,
 }
 
 impl BackgroundSounds {
-    pub fn random(&self, rng: &mut Random) -> SoundData {
+    pub fn random(&self, rng: &mut Random) -> Sound {
         match rng.range_inclusive(1, 3) {
             1 => self.exit_exit.clone(),
             2 => self.family_breaks.clone(),

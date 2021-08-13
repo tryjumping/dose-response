@@ -284,22 +284,16 @@ pub fn update(
 
 fn enqueue_background_music(audio: &mut Audio) {
     if audio.background_sound_queue.len() <= 1 {
-        let sound = audio.backgrounds.random(&mut audio.rng);
-        match rodio::Decoder::new(sound) {
-            Ok(sound) => {
-                use rodio::Source;
-                use std::convert::TryInto;
-                let delay = if audio.background_sound_queue.empty() {
-                    Duration::from_secs(0)
-                } else {
-                    let secs: u64 = audio.rng.range_inclusive(1, 5).try_into().unwrap_or(1);
-                    Duration::from_secs(secs)
-                };
-                audio.background_sound_queue.append(sound.delay(delay));
-            }
-            Err(error) => {
-                log::error!("Error decoding sound: {}. Skipping playback.", error);
-            }
+        if let Some(sound) = audio.backgrounds.random(&mut audio.rng) {
+            use rodio::Source;
+            use std::convert::TryInto;
+            let delay = if audio.background_sound_queue.empty() {
+                Duration::from_secs(0)
+            } else {
+                let secs: u64 = audio.rng.range_inclusive(1, 5).try_into().unwrap_or(1);
+                Duration::from_secs(secs)
+            };
+            audio.background_sound_queue.append(sound.delay(delay));
         }
     }
 }

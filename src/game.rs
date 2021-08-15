@@ -513,6 +513,7 @@ fn process_game(
         if state.world.initialised() && state.player.alive() && mouse_inside_map && visible {
             let source = state.player.pos;
             let destination = state.mouse_world_position();
+            let check_irresistible = true;
             let path = pathfinding::Path::find(
                 source,
                 destination,
@@ -520,6 +521,7 @@ fn process_game(
                 Blocker::WALL,
                 state.player.pos,
                 state.player.will.to_int(),
+                check_irresistible,
                 formula::PATHFINDING_PLAYER_MOUSE_LIMIT,
                 &pathfinding::player_cost,
             );
@@ -868,6 +870,7 @@ fn process_monsters(
                         player.pos,
                     ) {
                     // Calculate a new path or recalculate the existing one.
+                    let check_irresistible = false;
                     let mut path = pathfinding::Path::find(
                         pos,
                         destination,
@@ -875,6 +878,7 @@ fn process_monsters(
                         monster_readonly.blockers,
                         player.pos,
                         player.will.to_int(),
+                        check_irresistible,
                         formula::PATHFINDING_MONSTER_LIMIT,
                         &pathfinding::monster_cost,
                     );
@@ -984,6 +988,8 @@ fn process_player_action<W>(
             let resist_radius =
                 formula::player_resist_radius(dose.irresistible, player.will.to_int()) as usize;
             if player.pos.tile_distance(dose_pos) < resist_radius as i32 {
+                // We're already in the resist radius so we don't care about the cost.
+                let check_irresistible = false;
                 let mut path = pathfinding::Path::find(
                     player.pos,
                     dose_pos,
@@ -991,6 +997,7 @@ fn process_player_action<W>(
                     Blocker::WALL,
                     player.pos,
                     player.will.to_int(),
+                    check_irresistible,
                     formula::PATHFINDING_DOSE_RESIST_LIMIT,
                     &pathfinding::direct_cost,
                 );
@@ -1691,6 +1698,7 @@ fn place_victory_npc(state: &mut State) -> Point {
             vnpc_pos
         );
         // TODO: make sure the world chunks exist before trying to find path
+        let check_irresistible = false;
         let path_to_vnpc = pathfinding::Path::find(
             state.player.pos,
             vnpc_pos,
@@ -1698,6 +1706,7 @@ fn place_victory_npc(state: &mut State) -> Point {
             blockers,
             state.player.pos,
             state.player.will.to_int(),
+            check_irresistible,
             formula::PATHFINDING_VNPC_REACHABILITY_LIMIT,
             &pathfinding::direct_cost,
         );

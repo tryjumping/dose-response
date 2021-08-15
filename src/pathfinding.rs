@@ -24,9 +24,14 @@ impl Path {
         blockers: blocker::Blocker,
         player_position: Point,
         player_will: i32,
+        // Are we interested in knowing about irresistible doses in the path?
+        check_irresistible: bool,
         calculation_limit: i32,
         cost: &dyn Fn(Point, Point, TileContents) -> f32,
     ) -> Self {
+        // TODO: if the cost was a struct/trait rather than a `fn`, we
+        // could express the "are we interested in knowing about
+        // irresistible doses?" there.
         if from == to {
             return Path { path: vec![] };
         }
@@ -57,7 +62,12 @@ impl Path {
                 .filter(|&point| {
                     world.within_bounds(point) && world.walkable(point, blockers, player_position)
                 })
-                .map(|point| (point, world.tile_contents(point, player_will)))
+                .map(|point| {
+                    (
+                        point,
+                        world.tile_contents(point, player_will, check_irresistible),
+                    )
+                })
                 .collect::<Vec<_>>()
         };
 
@@ -328,6 +338,7 @@ mod test {
     fn find_path(board: &Board, blockers: Blocker, calculation_limit: i32) -> Path {
         let player_position = Point::new(0, 0);
         let will = 2;
+        let check_irresistible = false;
         Path::find(
             board.start,
             board.destination,
@@ -335,6 +346,7 @@ mod test {
             blockers,
             player_position,
             will,
+            check_irresistible,
             calculation_limit,
             &super::direct_cost,
         )

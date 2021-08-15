@@ -134,6 +134,10 @@ impl Path {
     pub fn len(&self) -> usize {
         self.path.len()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.path.is_empty()
+    }
 }
 
 impl Iterator for Path {

@@ -1701,7 +1701,7 @@ fn place_victory_npc(state: &mut State) -> Point {
             formula::PATHFINDING_VNPC_REACHABILITY_LIMIT,
             &pathfinding::direct_cost,
         );
-        if path_to_vnpc.len() == 0 {
+        if path_to_vnpc.is_empty() {
             log::warn!("Failed to find path from player to Victory NPC!")
         } else {
             log::info!("Path to Victory NPC takes {} steps", path_to_vnpc.len());

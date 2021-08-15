@@ -1,3 +1,18 @@
+#![allow(
+    clippy::identity_op,
+    clippy::wildcard_imports,
+    clippy::match_bool,
+    clippy::single_match_else,
+    clippy::match_wildcard_for_single_variants,
+    clippy::match_same_arms,
+    clippy::default_trait_access,
+    clippy::ptr_as_ptr,
+    clippy::float_cmp,
+    clippy::from_iter_instead_of_collect,
+    clippy::collapsible_else_if,
+    clippy::bool_assert_comparison
+)]
+
 pub mod ai;
 pub mod animation;
 pub mod audio;

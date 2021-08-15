@@ -491,20 +491,32 @@ impl World {
 
     /// Return the main "thing" that's on the tile. Generally either an
     /// item, a monster or nothing.
-    pub fn tile_contents(&self, world_pos: Point, player_will: i32) -> TileContents {
+    pub fn tile_contents(
+        &self,
+        world_pos: Point,
+        player_will: i32,
+        check_irresistible: bool,
+    ) -> TileContents {
         if self.within_bounds(world_pos) {
-            // TODO: oof, I think this calculation is quite convoluted
-            // and it's slowed down the game update times
-            // significantly. Need to measure the release mode but if
-            // this is a problem, we'll need to speed it up. Maybe set
-            // the "irresistible" marker on the cells and just update
-            // them every frame?
-            let irresistible = self
-                .nearest_dose(world_pos, 5)
-                .map_or(false, |(dose_pos, dose)| {
-                    world_pos.tile_distance(dose_pos)
-                        < formula::player_resist_radius(dose.irresistible, player_will) as i32
-                });
+            // NOTE: checking for the irresistible doses is quite
+            // expensive (and not immediately trivial to optimise). So
+            // we only do it if the caller is interested in
+            // knowing about irresistible doses.
+            let irresistible = if check_irresistible {
+                // TODO: oof, I think this calculation is quite convoluted
+                // and it's slowed down the game update times
+                // significantly. Need to measure the release mode but if
+                // this is a problem, we'll need to speed it up. Maybe set
+                // the "irresistible" marker on the cells and just update
+                // them every frame?
+                self.nearest_dose(world_pos, 5)
+                    .map_or(false, |(dose_pos, dose)| {
+                        world_pos.tile_distance(dose_pos)
+                            < formula::player_resist_radius(dose.irresistible, player_will) as i32
+                    })
+            } else {
+                false
+            };
             if let Some(chunk) = self.chunk(world_pos) {
                 let level_position = chunk.level_position(world_pos);
                 let has_monster = chunk.level.monster_on_pos(level_position).is_some();

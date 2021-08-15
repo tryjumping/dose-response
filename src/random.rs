@@ -71,6 +71,12 @@ impl Random {
     }
 }
 
+impl Default for Random {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // This is a module that handles all the Serde trait deriving, tucked
 // away from the main reason code for the `random` module. Basically
 // we need this because oorandom doesn't provide the Serde traits and

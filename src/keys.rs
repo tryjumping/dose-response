@@ -146,4 +146,14 @@ impl Keys {
     pub fn len(&self) -> usize {
         self.keys.len()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.keys.is_empty()
+    }
+}
+
+impl Default for Keys {
+    fn default() -> Self {
+        Self::new()
+    }
 }

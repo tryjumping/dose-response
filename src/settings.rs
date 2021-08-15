@@ -278,6 +278,12 @@ impl FileSystemStore {
     }
 }
 
+impl Default for FileSystemStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Store for FileSystemStore {
     fn load(&self) -> Settings {
         let mut settings = Settings::default();

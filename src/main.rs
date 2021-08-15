@@ -19,59 +19,11 @@
     clippy::doc_markdown
 )]
 #![warn(missing_copy_implementations)]
-#![allow(
-    clippy::identity_op,
-    clippy::wildcard_imports,
-    clippy::match_bool,
-    clippy::single_match_else,
-    clippy::match_wildcard_for_single_variants,
-    clippy::match_same_arms,
-    clippy::default_trait_access,
-    clippy::ptr_as_ptr,
-    clippy::float_cmp,
-    clippy::from_iter_instead_of_collect,
-    clippy::collapsible_else_if,
-    clippy::bool_assert_comparison
-)]
 #![windows_subsystem = "windows"]
 
-use simplelog::Config;
+use dose_response::*;
 
-mod ai;
-mod animation;
-mod audio;
-mod blocker;
-mod color;
-mod engine;
-mod graphic;
-#[macro_use]
-mod error;
-mod formula;
-mod game;
-mod generators;
-mod graphics;
-mod item;
-mod keys;
-mod level;
-mod metadata;
-mod monster;
-mod palette;
-mod pathfinding;
-mod player;
-mod point;
-mod random;
-mod ranged_int;
-mod rect;
-mod render;
-mod settings;
-mod state;
-mod stats;
-mod timer;
-mod ui;
-mod util;
-mod window;
-mod windows;
-mod world;
+use simplelog::Config;
 
 // These are all in tiles and relate to how much we show on the screen.
 //
@@ -88,11 +40,6 @@ const PANEL_WIDTH: i32 = 17;
 const DISPLAY_SIZE: point::Point = point::Point {
     x: DISPLAYED_MAP_SIZE + PANEL_WIDTH,
     y: DISPLAYED_MAP_SIZE,
-};
-
-const WORLD_SIZE: point::Point = point::Point {
-    x: 1_073_741_824,
-    y: 1_073_741_824,
 };
 
 #[allow(unused_variables, dead_code, clippy::needless_pass_by_value)]

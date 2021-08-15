@@ -17,6 +17,10 @@ exclude = ["bin/*", "scripts/*", "replays/*", "screenshots/*", "ci/*",
 name = "dose-response"
 path = "src/main.rs"
 
+[[bench]]
+name = "pathfinding"
+harness = false
+
 [dependencies]
 bincode = "1.3"  # For serialising the game save state into a binary format
 bitflags = "1.2"
@@ -48,6 +52,9 @@ zmq = { version = "0.9", optional = true }
 [build-dependencies]
 rusttype = "0.8"
 image = "0.23.14"
+
+[dev-dependencies]
+bencher = "0.1"
 
 # Only compile winres on Windows targets.
 [target.'cfg(windows)'.build-dependencies]
@@ -84,3 +91,5 @@ windows-extra-features = []
 [profile.release]
 codegen-units = 1
 lto = true
+# We only use debug info for profiling, but not otherwise
+#debug = true

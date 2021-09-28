@@ -193,18 +193,23 @@ impl State {
     ) -> State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
+        log::info!("Using seed: {:?}", seed);
+        let mut rng = Random::from_seed(u64::from(seed));
         let player_position = world_centre;
         let player = {
             let mut player = Player::new(player_position, invincible);
-            // Poor man's RNG:
-            player.graphic = match seed % 2 == 0 {
-                true => Graphic::CharacterSkirt,
-                false => Graphic::CharacterTrousers,
-            };
-            player.color_index = (seed as usize % 6) + 1;
+            if let Some(&graphic) =
+                rng.choose(&[Graphic::CharacterSkirt, Graphic::CharacterTrousers])
+            {
+                player.graphic = graphic;
+            }
+
+            if let Some(&color_index) = rng.choose(&[0, 1, 2, 3, 4, 5]) {
+                player.color_index = color_index;
+            }
+
             player
         };
-        let rng = Random::from_seed(u64::from(seed));
         let world = World::default();
 
         State {

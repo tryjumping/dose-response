@@ -1,1 +1,1 @@
-"Dose Response.exe" --debug
+"dose-response.exe" --debug

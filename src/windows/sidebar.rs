@@ -275,9 +275,10 @@ pub fn process(
     let mut highlighted_tile = None;
 
     {
+        let bottom_offset = formula::sidebar_numpad_offset_px(settings.text_size);
         let mut ui = ui.child_ui(
             Rect::from_min_max(
-                [ui_rect.left(), help_rect.min.y - 250.0].into(),
+                [ui_rect.left(), help_rect.min.y - bottom_offset].into(),
                 ui_rect.right_bottom(),
             ),
             *ui.layout(),

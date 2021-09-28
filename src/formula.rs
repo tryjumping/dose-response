@@ -303,6 +303,14 @@ pub fn sidebar_width_px(text_size_px: i32) -> i32 {
     }
 }
 
+pub fn sidebar_numpad_offset_px(text_size_px: i32) -> f32 {
+    if text_size_px <= 21 {
+        250.0
+    } else {
+        300.0
+    }
+}
+
 pub fn depression_max_ap(challenge: Challenge) -> i32 {
     if challenge.fast_depression {
         2

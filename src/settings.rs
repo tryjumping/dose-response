@@ -39,6 +39,8 @@ pub const PERMADEATH: &str = "permadeath";
 pub const BACKGROUND_VOLUME: &str = "background_volume";
 pub const SOUND_VOLUME: &str = "sound_volume";
 
+pub const FIRST_EVER_STARTUP: &str = "first_ever_startup";
+
 /// The colour palette that the user can select
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Palette {
@@ -82,6 +84,7 @@ pub struct Settings {
     pub permadeath: bool,
     pub background_volume: f32,
     pub sound_volume: f32,
+    pub first_ever_startup: bool,
 }
 
 impl Default for Settings {
@@ -107,6 +110,7 @@ impl Default for Settings {
             permadeath: true,
             background_volume: 1.0,
             sound_volume: 1.0,
+            first_ever_startup: true,
         };
 
         debug_assert!(settings.valid());
@@ -215,6 +219,11 @@ impl Settings {
         ));
         out.push_str(&"# Options: <0.0, 1.0>\n".to_string());
         out.push_str(&format!("{} = \"{}\"\n", SOUND_VOLUME, self.sound_volume));
+
+        out.push_str(&format!(
+            "{} = \"{}\"\n",
+            FIRST_EVER_STARTUP, self.first_ever_startup
+        ));
 
         out
     }
@@ -493,6 +502,13 @@ impl Store for FileSystemStore {
             },
         }
 
+        match self.toml[FIRST_EVER_STARTUP].as_bool() {
+            Some(first_ever_startup) => {
+                settings.first_ever_startup = first_ever_startup;
+            }
+            None => log::error!("Settings: missing `{}` entry.", FIRST_EVER_STARTUP),
+        }
+
         debug_assert!(settings.valid());
 
         log::info!("Loaded settings: {:?}", settings);
@@ -539,6 +555,8 @@ impl Store for FileSystemStore {
         self.toml[BACKGROUND_VOLUME] = toml_edit::value(f64::from(settings.background_volume));
 
         self.toml[SOUND_VOLUME] = toml_edit::value(f64::from(settings.sound_volume));
+
+        self.toml[FIRST_EVER_STARTUP] = toml_edit::value(settings.first_ever_startup);
 
         if let Err(err) = Self::write_settings_toml(&self.path, &self.toml) {
             log::error!("Could not write settings to the storage: {:?}", err);

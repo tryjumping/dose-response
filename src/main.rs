@@ -220,8 +220,8 @@ fn main() {
         crate::engine::AVAILABLE_BACKENDS
     );
 
-    let settings_store = settings::FileSystemStore::new();
-    let settings = settings_store.load();
+    let mut settings_store = settings::FileSystemStore::new();
+    let mut settings = settings_store.load();
     let backend = settings.backend.clone();
     let challenge = settings.challenge();
     let palette = settings.palette();
@@ -268,7 +268,21 @@ fn main() {
             palette,
         );
         state.player.invincible = matches.is_present("invincible");
-        state.window_stack.push(window::Window::MainMenu);
+
+        state.window_stack = windows::Windows::new(window::Window::Game);
+        if settings.first_ever_startup {
+            // Start the game with the game on top, don't push in any other window.
+            // Just like in Braid, basically.
+            state.generate_world();
+            //
+            // Mark any future runs as not the very first one:
+            settings.first_ever_startup = false;
+            settings_store.save(&settings);
+        } else {
+            // Open
+            state.window_stack.push(window::Window::MainMenu);
+        }
+
         state
     };
 

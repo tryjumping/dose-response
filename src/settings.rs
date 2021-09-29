@@ -161,12 +161,11 @@ impl Settings {
         out.push_str(&format!("{} = \"{}\"\n\n", VISUAL_STYLE, self.visual_style));
 
         out.push_str(&format!(
-            "# Options: \"{}\", \"{}\" or \"{}\"",
+            "# Options: \"{}\", \"{}\" or \"{}\"\n",
             Palette::Classic,
             Palette::Accessible,
             Palette::Greyscale
         ));
-
         out.push_str(&format!("{} = \"{}\"\n\n", PALETTE, self.palette));
 
         let tile_sizes_str = crate::engine::AVAILABLE_TILE_SIZES

@@ -209,7 +209,7 @@ impl Widget for ImageTextButton {
         let text_pos = rect.min
             + Vec2::new(prefix_galley.size.x, 0.0)
             + Vec2::new(image.size().x + button_padding.x * 2.0, button_padding.y);
-        let prefix_translate = Vec2::new(prefix_galley.size.x + 2.0, button_padding.y);
+        let prefix_translate = Vec2::new(prefix_galley.size.x + 2.0, 0.0);
 
         if ui.clip_rect().intersects(rect) {
             let visuals = ui.style().interact(&response);

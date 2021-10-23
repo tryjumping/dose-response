@@ -170,8 +170,8 @@ fn main() {
         backends,
     ));
 
-    let text_sizes = [28, 21, 16];
-    let default_text_size = 21;
+    let text_sizes = [28, 22, 16];
+    let default_text_size = 22;
     assert!(text_sizes.contains(&default_text_size));
 
     lookup_table_contents.push_str(&format!(

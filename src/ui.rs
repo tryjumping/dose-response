@@ -96,6 +96,7 @@ pub struct ImageTextButton {
     frame: bool,
     selected: bool,
     graphic: Graphic,
+    tile_offset_px: Vec2,
     image_color: Color32,
     text_color: Color32,
     text_disabled_color: Color32,
@@ -112,6 +113,7 @@ impl ImageTextButton {
             frame: true,
             selected: true,
             graphic: Graphic::default(),
+            tile_offset_px: Vec2::ZERO,
             image_color: color::WHITE.into(),
             text_color: color::WHITE.into(),
             text_disabled_color: color::WHITE.into(),
@@ -129,6 +131,12 @@ impl ImageTextButton {
     /// `uv` coordinates.
     pub fn tile(mut self, tile: Graphic) -> Self {
         self.graphic = tile;
+        self
+    }
+
+    /// Move the tile in the button by this much.
+    pub fn tile_offset_px(mut self, offset: impl Into<Vec2>) -> Self {
+        self.tile_offset_px = offset.into();
         self
     }
 
@@ -183,6 +191,7 @@ impl Widget for ImageTextButton {
             frame,
             selected,
             graphic,
+            tile_offset_px,
             image_color,
             text_color,
             text_disabled_color,
@@ -209,7 +218,8 @@ impl Widget for ImageTextButton {
         let text_pos = rect.min
             + Vec2::new(prefix_galley.size.x, 0.0)
             + Vec2::new(image.size().x + button_padding.x * 2.0, button_padding.y);
-        let prefix_translate = Vec2::new(prefix_galley.size.x + 2.0, 0.0);
+
+        let prefix_translate = Vec2::new(prefix_galley.size.x + tile_offset_px.x, tile_offset_px.y);
 
         if ui.clip_rect().intersects(rect) {
             let visuals = ui.style().interact(&response);

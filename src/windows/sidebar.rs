@@ -201,6 +201,16 @@ pub fn process(
             item::Kind::StrongDose => state.palette.dose,
         };
 
+        let tile_offset = match (settings.visual_style, settings.text_size) {
+            (VisualStyle::Textual, 16) => Vec2::new(3.0, -2.0),
+            (VisualStyle::Textual, 22) => Vec2::new(3.0, -1.0),
+            (VisualStyle::Textual, 28) => Vec2::new(3.0, 0.0),
+            (VisualStyle::Graphical, 16) => Vec2::new(3.0, -2.0),
+            (VisualStyle::Graphical, 22) => Vec2::new(3.0, -1.0),
+            (VisualStyle::Graphical, 28) => Vec2::new(3.0, 0.0),
+            _ => Vec2::ZERO,
+        };
+
         let panel_width_chars =
             (ui_rect.width() / settings.text_size as f32).abs().floor() as usize;
         let button_label = format!("{:.pr$}: {}", kind, count, pr = panel_width_chars);
@@ -212,6 +222,7 @@ pub fn process(
         let button = ui::ImageTextButton::new(texture, button_label)
             .prefix_text(format!("[{}]", game::inventory_key(kind)))
             .tile(graphic)
+            .tile_offset_px(tile_offset)
             .image_color(item_color)
             .text_color(state.palette.gui_text)
             .text_disabled_color(state.palette.gui_text_inactive)

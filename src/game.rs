@@ -248,7 +248,7 @@ pub fn update(
 
     let update_duration = update_stopwatch.finish();
 
-    if cfg!(feature = "stats") {
+    if cfg!(feature = "stats") && cfg!(not(feature = "recording")) {
         let expected_ms = 10;
         if update_duration > Duration::from_millis(expected_ms) {
             log::warn!(
@@ -286,7 +286,12 @@ pub fn update(
 
 fn enqueue_background_music(audio: &mut Audio) {
     if audio.background_sound_queue.len() <= 1 {
-        if let Some(sound) = audio.backgrounds.random(&mut audio.rng) {
+        let sound = if cfg!(feature = "recording") {
+            audio.backgrounds.family_breaks.clone()
+        } else {
+            audio.backgrounds.random(&mut audio.rng)
+        };
+        if let Some(sound) = sound {
             use rodio::Source;
             use std::convert::TryInto;
             let delay = if audio.background_sound_queue.empty() {
@@ -681,7 +686,7 @@ fn process_game(
         let fade = formula::mind_fade_value(state.player.mind);
 
         let fade_out_ms = if cfg!(feature = "recording") {
-            700
+            2500
         } else if state.replay_full_speed {
             500
         } else {
@@ -689,7 +694,7 @@ fn process_game(
         };
 
         let fade_in_ms = if cfg!(feature = "recording") {
-            700
+            1300
         } else if state.replay_full_speed {
             200
         } else {

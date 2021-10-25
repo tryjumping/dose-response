@@ -193,6 +193,11 @@ impl State {
     ) -> State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
+        let seed = if cfg!(feature = "recording") {
+            518723646
+        } else {
+            seed
+        };
         log::info!("Using seed: {:?}", seed);
         let mut rng = Random::from_seed(u64::from(seed));
         let player_position = world_centre;

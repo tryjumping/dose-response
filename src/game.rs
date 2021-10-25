@@ -193,14 +193,16 @@ pub fn update(
                     display.fade = color::INVISIBLE;
                 }
                 Window::Endgame => {
-                    game_update_result =
-                        endgame::process(state, ui, settings, metrics, display, audio, top_level);
-
-                    if cfg!(feature = "recording") {
-                        let window = crate::windows::call_to_action::Window;
-                        window.render(state, metrics, display);
-                    }
                     display.fade = color::INVISIBLE;
+                    if top_level {
+                        game_update_result = if cfg!(feature = "recording") {
+                            crate::windows::call_to_action::process(state, ui, display)
+                        } else {
+                            endgame::process(
+                                state, ui, settings, metrics, display, audio, top_level,
+                            )
+                        };
+                    }
                 }
                 Window::Message {
                     ref title,

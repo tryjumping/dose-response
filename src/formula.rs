@@ -54,7 +54,7 @@ pub const DOSE_PREFAB: Item = Item {
         state_of_mind: 30,
         tolerance_increase: 4,
     },
-    graphic: Default::default(),
+    graphic: Graphic::Dose,
 };
 
 #[cfg(not(feature = "recording"))]

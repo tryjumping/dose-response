@@ -62,9 +62,10 @@ winres = "0.1"
 
 
 [features]
-# Add the `mobile-ui` feature to switch to the mobile UI size
+# NOTE: Add the `mobile-ui` feature to switch to the mobile UI size
 # default = ["dev", "mobile-ui"]
 default = ["dev"]
+# NOTE: Add the `recording` feature to test/record the trailer mode
 prod = ["desktop", "glutin-backend"]
 dev = ["desktop", "glutin-backend", "cheating", "replay", "stats", "verifications"]
 test = ["dev", "prod", "all-backends"]

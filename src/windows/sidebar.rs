@@ -10,11 +10,7 @@ use crate::{
     ui,
 };
 
-use egui::{
-    self,
-    paint::{Shape, Stroke},
-    Pos2, Rect, Ui, Vec2,
-};
+use egui::{self, paint::Shape, Pos2, Rect, Ui, Vec2};
 
 use std::{collections::HashMap, time::Duration};
 
@@ -66,12 +62,11 @@ pub fn process(
 
     ui.style_mut().visuals.override_text_color = Some(state.palette.gui_text.into());
 
-    ui.painter().add(Shape::Rect {
-        rect: full_rect,
-        corner_radius: 0.0,
-        stroke: Stroke::none(),
-        fill: state.palette.gui_sidebar_background.into(),
-    });
+    ui.painter().add(Shape::rect_filled(
+        full_rect,
+        0.0,
+        state.palette.gui_sidebar_background,
+    ));
 
     let player = &state.player;
 
@@ -238,13 +233,10 @@ pub fn process(
 
     // NOTE: `Layout::reverse()` builds it up from the bottom:
     ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
-        if ui
-            .add(ui::button("[Esc] Main Menu", active, &state.palette))
-            .clicked()
-        {
+        if ui::button(ui, "[Esc] Main Menu", active, &state.palette).clicked() {
             action = Some(Action::MainMenu);
         }
-        let gui_response = ui.add(ui::button("[?] Help", active, &state.palette));
+        let gui_response = ui::button(ui, "[?] Help", active, &state.palette);
         if gui_response.clicked() {
             action = Some(Action::Help);
         }
@@ -306,7 +298,7 @@ pub fn process(
             c[0].with_layout(
                 egui::Layout::top_down_justified(egui::Align::Center),
                 |ui| {
-                    let btn = ui.add(ui::button("7", active, &state.palette));
+                    let btn = ui::button(ui, "7", active, &state.palette);
                     if btn.clicked() {
                         action = Some(Action::MoveNW);
                     };
@@ -314,7 +306,7 @@ pub fn process(
                         highlighted_tile_offset_from_player_pos = Some((-1, -1));
                     }
 
-                    let btn = ui.add(ui::button("4", active, &state.palette));
+                    let btn = ui::button(ui, "4", active, &state.palette);
                     if btn.clicked() {
                         action = Some(Action::MoveW);
                     };
@@ -322,7 +314,7 @@ pub fn process(
                         highlighted_tile_offset_from_player_pos = Some((-1, 0));
                     }
 
-                    let btn = ui.add(ui::button("1", active, &state.palette));
+                    let btn = ui::button(ui, "1", active, &state.palette);
                     if btn.clicked() {
                         action = Some(Action::MoveSW);
                     };
@@ -335,7 +327,7 @@ pub fn process(
             c[1].with_layout(
                 egui::Layout::top_down_justified(egui::Align::Center),
                 |ui| {
-                    let btn = ui.add(ui::button("8", active, &state.palette));
+                    let btn = ui::button(ui, "8", active, &state.palette);
                     if btn.clicked() {
                         action = Some(Action::MoveN);
                     };
@@ -375,7 +367,7 @@ pub fn process(
                         image.paint_at(ui, image_rect);
                     };
 
-                    let btn = ui.add(ui::button("2", active, &state.palette));
+                    let btn = ui::button(ui, "2", active, &state.palette);
                     if btn.clicked() {
                         action = Some(Action::MoveS);
                     };
@@ -388,7 +380,7 @@ pub fn process(
             c[2].with_layout(
                 egui::Layout::top_down_justified(egui::Align::Center),
                 |ui| {
-                    let btn = ui.add(ui::button("9", active, &state.palette));
+                    let btn = ui::button(ui, "9", active, &state.palette);
                     if btn.clicked() {
                         action = Some(Action::MoveNE);
                     };
@@ -396,7 +388,7 @@ pub fn process(
                         highlighted_tile_offset_from_player_pos = Some((1, -1));
                     }
 
-                    let btn = ui.add(ui::button("6", active, &state.palette));
+                    let btn = ui::button(ui, "6", active, &state.palette);
                     if btn.clicked() {
                         action = Some(Action::MoveE);
                     };
@@ -404,7 +396,7 @@ pub fn process(
                         highlighted_tile_offset_from_player_pos = Some((1, 0));
                     }
 
-                    let btn = ui.add(ui::button("3", active, &state.palette));
+                    let btn = ui::button(ui, "3", active, &state.palette);
                     if btn.clicked() {
                         action = Some(Action::MoveSE);
                     };

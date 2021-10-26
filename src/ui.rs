@@ -8,8 +8,6 @@ use crate::{
     point::Point,
 };
 
-use std::sync::Arc;
-
 use egui::{self, widgets, Color32, CtxRef, Rect, Response, Sense, Ui, Vec2, Widget};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -40,15 +38,11 @@ pub fn egui_root(ctx: &CtxRef, rect: Rect, add_contents: impl FnOnce(&mut Ui)) {
 
 /// Helper for creating an egui button with the default background and
 /// an enabled state.
-pub fn button(text: &str, enabled: bool, palette: &Palette) -> egui::Button {
-    let color = match enabled {
-        true => palette.gui_text,
-        false => palette.gui_text_inactive,
-    };
-    egui::Button::new(text)
+pub fn button(ui: &mut Ui, text: &str, enabled: bool, palette: &Palette) -> egui::Response {
+    let button = egui::Button::new(text)
         .fill(palette.gui_button_background)
-        .text_color(color.into())
-        .enabled(enabled)
+        .text_color(palette.gui_text.into());
+    ui.add_enabled(enabled, button)
 }
 
 pub fn image_uv_tilesize(texture: Texture, graphic: Graphic, text_size: f32) -> (egui::Rect, f32) {
@@ -199,27 +193,34 @@ impl Widget for ImageTextButton {
         } = self;
 
         let text_style = egui::TextStyle::Button;
-        let font = &ui.fonts()[text_style];
-        let prefix_galley = Arc::new(font.layout_no_wrap(prefix_text));
-        let text_galley = Arc::new(font.layout_no_wrap(text));
+        //let font = &ui.fonts()[text_style];
+        let prefix_galley = ui
+            .fonts()
+            .layout_no_wrap(prefix_text, text_style, text_color);
+        let text_galley = ui.fonts().layout_no_wrap(text, text_style, text_color);
 
-        let (uv, _tilesize) = image_uv_tilesize(texture, graphic, text_galley.size.y);
+        let (uv, _tilesize) = image_uv_tilesize(texture, graphic, text_galley.rect.height());
 
-        let image = widgets::Image::new(texture.into(), Vec2::splat(text_galley.size.y))
+        let image = widgets::Image::new(texture.into(), Vec2::splat(text_galley.rect.height()))
             .uv(uv)
             .tint(image_color)
             .bg_fill(background_color);
 
         let button_padding = ui.spacing().button_padding;
-        let size = Vec2::new(prefix_galley.size.x + button_padding.x, button_padding.y)
-            + (image.size() + 3.0 * button_padding)
-            + Vec2::new(text_galley.size.x, 0.0);
+        let size = Vec2::new(
+            prefix_galley.rect.width() + button_padding.x,
+            button_padding.y,
+        ) + (image.size() + 3.0 * button_padding)
+            + Vec2::new(text_galley.rect.width(), 0.0);
         let (rect, response) = ui.allocate_exact_size(size, sense);
         let text_pos = rect.min
-            + Vec2::new(prefix_galley.size.x, 0.0)
+            + Vec2::new(prefix_galley.rect.width(), 0.0)
             + Vec2::new(image.size().x + button_padding.x * 2.0, button_padding.y);
 
-        let prefix_translate = Vec2::new(prefix_galley.size.x + tile_offset_px.x, tile_offset_px.y);
+        let prefix_translate = Vec2::new(
+            prefix_galley.rect.width() + tile_offset_px.x,
+            tile_offset_px.y,
+        );
 
         if ui.clip_rect().intersects(rect) {
             let visuals = ui.style().interact(&response);
@@ -233,8 +234,8 @@ impl Widget for ImageTextButton {
                     background_color,
                     visuals.bg_stroke,
                 );
-                painter.galley(rect.min + button_padding, prefix_galley, text_color);
-                painter.galley(text_pos, text_galley, text_color);
+                painter.galley(rect.min + button_padding, prefix_galley);
+                painter.galley(text_pos, text_galley);
             } else if frame {
                 painter.rect(
                     rect.expand(visuals.expansion),
@@ -242,12 +243,12 @@ impl Widget for ImageTextButton {
                     background_color,
                     visuals.bg_stroke,
                 );
-                painter.galley(
+                painter.galley_with_color(
                     rect.min + button_padding,
                     prefix_galley,
                     text_disabled_color,
                 );
-                painter.galley(text_pos, text_galley, text_disabled_color);
+                painter.galley_with_color(text_pos, text_galley, text_disabled_color);
             }
 
             let image_rect = ui.layout().align_size_within_rect(
@@ -272,22 +273,20 @@ pub fn progress_bar(
     bg_color: Color,
     fg_color: Color,
 ) {
-    use egui::paint::{Shape, Stroke};
+    use egui::paint::Shape;
 
     let percent = crate::util::clampf(0.0, percent, 1.0);
+    let background_rect = Shape::rect_filled(
+        Rect::from_min_size(top_left, [width, height].into()),
+        0.0,
+        bg_color,
+    );
 
-    let background_rect = Shape::Rect {
-        rect: Rect::from_min_size(top_left, [width, height].into()),
-        corner_radius: 0.0,
-        stroke: Stroke::none(),
-        fill: bg_color.into(),
-    };
-    let foreground_rect = Shape::Rect {
-        rect: Rect::from_min_size(top_left, [width * percent, height].into()),
-        corner_radius: 0.0,
-        stroke: Stroke::none(),
-        fill: fg_color.into(),
-    };
+    let foreground_rect = Shape::rect_filled(
+        Rect::from_min_size(top_left, [width * percent, height].into()),
+        0.0,
+        fg_color,
+    );
 
     ui.painter().set(bg_cmd_index, background_rect);
 

@@ -211,17 +211,11 @@ Unchecked: the entire map is uncovered.",
             // on macos, it's working just fine
             ui.separator();
             ui.horizontal(|ui| {
-                if ui
-                    .add(ui::button("[A]ccept Changes", true, &state.palette))
-                    .clicked()
-                {
+                if ui::button(ui, "[A]ccept Changes", true, &state.palette).clicked() {
                     action = Some(Action::Apply);
                 }
 
-                if ui
-                    .add(ui::button("[D]iscard Changes", true, &state.palette))
-                    .clicked()
-                {
+                if ui::button(ui, "[D]iscard Changes", true, &state.palette).clicked() {
                     action = Some(Action::Back);
                 }
             });

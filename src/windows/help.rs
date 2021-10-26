@@ -210,102 +210,113 @@ pub fn process(
         .fixed_pos(window_pos_px)
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
-            ScrollArea::from_max_height(window_size_px[1]).show(ui, |ui| {
-                // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
-                ui.set_min_height(window_size_px[1] - 7.0);
-                let copyright = format!("Copyright 2013-2021 {}", crate::metadata::AUTHORS);
-                match state.current_help_window {
-                    Page::DoseResponse => {
-                        ui.label(OVERVIEW);
-                    }
-
-                    Page::NumpadControls => {
-                        ui.label(CONTROLS_HEADER);
-                        ui.label(NUMPAD_TEXT);
-                        ui.label("");
-                        // NOTE: this is a hack for not having a
-                        // way to center a label but it works:
-                        ui.columns(1, |c| {
-                            c[0].with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                                ui.label(NUMPAD_CONTROLS);
-                            });
-                        });
-                        ui.label(CONTROLS_FOOTER);
-                    }
-
-                    Page::ArrowControls => {
-                        ui.label(CONTROLS_HEADER);
-                        ui.label(ARROW_TEXT);
-                        ui.label("");
-                        ui.columns(1, |c| {
-                            c[0].with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                                ui.label(ARROW_CONTROLS);
-                            });
-                        });
-                        ui.label(MODIFIER_KEYS);
-                        ui.label("");
-                        ui.label(CONTROLS_FOOTER);
-                    }
-
-                    Page::ViKeys => {
-                        ui.label(CONTROLS_HEADER);
-                        ui.label(VI_KEYS_TEXT);
-                        ui.label("");
-                        ui.columns(1, |c| {
-                            c[0].with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                                ui.label(VI_KEYS_CONTROLS);
-                            });
-                        });
-                        ui.label(CONTROLS_FOOTER);
-                    }
-
-                    Page::HowToPlay => {
-                        ui.label(HOW_TO_PLAY);
-                    }
-
-                    Page::Legend => {
-                        ui.label(LEGEND);
-                    }
-
-                    Page::Credits => {
-                        ui.hyperlink_to(CREDITS_DEV, TOMAS_URL);
-                        ui.label(copyright);
-                        ui.label(CODE_LICENSE_ONELINE);
-                        ui.label("");
-                        ui.hyperlink_to(CREDITS_TILES, VEXED_URL);
-                        ui.label(TILES_LICENSE);
-                        ui.label("");
-                        ui.hyperlink_to(CREDITS_FONT, MONONOKI_URL);
-                        ui.label(FONT_LICENSE);
-                        ui.label("");
-                        ui.label(CREDITS_MUSIC);
-                    }
-
-                    Page::About => {
-                        let version = format!(
-                            "{} version: {}",
-                            crate::metadata::TITLE,
-                            crate::metadata::VERSION
-                        );
-
-                        ui.label(version);
-                        ui.hyperlink_to(
-                            format!("Homepage: {}", crate::metadata::HOMEPAGE),
-                            crate::metadata::HOMEPAGE,
-                        );
-
-                        if !crate::metadata::GIT_HASH.trim().is_empty() {
-                            ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
+            ScrollArea::vertical()
+                .max_height(window_size_px[1])
+                .show(ui, |ui| {
+                    // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
+                    ui.set_min_height(window_size_px[1] - 7.0);
+                    let copyright = format!("Copyright 2013-2021 {}", crate::metadata::AUTHORS);
+                    match state.current_help_window {
+                        Page::DoseResponse => {
+                            ui.label(OVERVIEW);
                         }
 
-                        ui.label("");
-                        ui.label(CODE_LICENSE_BLOCK);
-                        ui.hyperlink(AGPL_URL);
-                        ui.label("");
-                        ui.label(copyright);
-                    }
-                };
-            });
+                        Page::NumpadControls => {
+                            ui.label(CONTROLS_HEADER);
+                            ui.label(NUMPAD_TEXT);
+                            ui.label("");
+                            // NOTE: this is a hack for not having a
+                            // way to center a label but it works:
+                            ui.columns(1, |c| {
+                                c[0].with_layout(
+                                    egui::Layout::top_down(egui::Align::Center),
+                                    |ui| {
+                                        ui.label(NUMPAD_CONTROLS);
+                                    },
+                                );
+                            });
+                            ui.label(CONTROLS_FOOTER);
+                        }
+
+                        Page::ArrowControls => {
+                            ui.label(CONTROLS_HEADER);
+                            ui.label(ARROW_TEXT);
+                            ui.label("");
+                            ui.columns(1, |c| {
+                                c[0].with_layout(
+                                    egui::Layout::top_down(egui::Align::Center),
+                                    |ui| {
+                                        ui.label(ARROW_CONTROLS);
+                                    },
+                                );
+                            });
+                            ui.label(MODIFIER_KEYS);
+                            ui.label("");
+                            ui.label(CONTROLS_FOOTER);
+                        }
+
+                        Page::ViKeys => {
+                            ui.label(CONTROLS_HEADER);
+                            ui.label(VI_KEYS_TEXT);
+                            ui.label("");
+                            ui.columns(1, |c| {
+                                c[0].with_layout(
+                                    egui::Layout::top_down(egui::Align::Center),
+                                    |ui| {
+                                        ui.label(VI_KEYS_CONTROLS);
+                                    },
+                                );
+                            });
+                            ui.label(CONTROLS_FOOTER);
+                        }
+
+                        Page::HowToPlay => {
+                            ui.label(HOW_TO_PLAY);
+                        }
+
+                        Page::Legend => {
+                            ui.label(LEGEND);
+                        }
+
+                        Page::Credits => {
+                            ui.hyperlink_to(CREDITS_DEV, TOMAS_URL);
+                            ui.label(copyright);
+                            ui.label(CODE_LICENSE_ONELINE);
+                            ui.label("");
+                            ui.hyperlink_to(CREDITS_TILES, VEXED_URL);
+                            ui.label(TILES_LICENSE);
+                            ui.label("");
+                            ui.hyperlink_to(CREDITS_FONT, MONONOKI_URL);
+                            ui.label(FONT_LICENSE);
+                            ui.label("");
+                            ui.label(CREDITS_MUSIC);
+                        }
+
+                        Page::About => {
+                            let version = format!(
+                                "{} version: {}",
+                                crate::metadata::TITLE,
+                                crate::metadata::VERSION
+                            );
+
+                            ui.label(version);
+                            ui.hyperlink_to(
+                                format!("Homepage: {}", crate::metadata::HOMEPAGE),
+                                crate::metadata::HOMEPAGE,
+                            );
+
+                            if !crate::metadata::GIT_HASH.trim().is_empty() {
+                                ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
+                            }
+
+                            ui.label("");
+                            ui.label(CODE_LICENSE_BLOCK);
+                            ui.hyperlink(AGPL_URL);
+                            ui.label("");
+                            ui.label(copyright);
+                        }
+                    };
+                });
 
             // TODO: looks like the separator is no longer being rendered??
             // NOTE: on linux, the separator is visible but super thin, almost invisible
@@ -313,8 +324,7 @@ pub fn process(
             ui.separator();
             ui.columns(2, |c| {
                 if let Some(text) = state.current_help_window.prev() {
-                    if c[0]
-                        .add(ui::button(&format!("[<-] {}", text), true, &state.palette))
+                    if ui::button(&mut c[0], &format!("[<-] {}", text), true, &state.palette)
                         .clicked()
                     {
                         action = Some(Action::PrevPage);
@@ -323,9 +333,7 @@ pub fn process(
 
                 if let Some(text) = state.current_help_window.next() {
                     c[1].with_layout(egui::Layout::top_down_justified(egui::Align::Max), |ui| {
-                        if ui
-                            .add(ui::button(&format!("[->] {}", text), true, &state.palette))
-                            .clicked()
+                        if ui::button(ui, &format!("[->] {}", text), true, &state.palette).clicked()
                         {
                             action = Some(Action::NextPage);
                         }

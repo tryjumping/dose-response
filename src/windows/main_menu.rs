@@ -51,7 +51,7 @@ pub fn process(
     // as wide, we'll see the desired thickness.
     let border_width_px = 30.0 * 2.0;
 
-    ui.painter().add(Shape::Rect {
+    ui.painter().add(Shape::Rect(egui::epaint::RectShape {
         rect: Rect {
             min: [0.0, 0.0].into(),
             max: window_size_px.into(),
@@ -62,7 +62,7 @@ pub fn process(
             width: border_width_px,
             color: state.palette.gui_window_edge.into(),
         },
-    });
+    }));
 
     ui.painter().text(
         Into::<egui::Pos2>::into(window_size_px) - egui::Vec2::splat(70.0),
@@ -94,47 +94,27 @@ pub fn process(
 
         let game_in_progress = !state.game_ended && state.world.initialised();
 
-        if game_in_progress
-            && ui
-                .add(ui::button("[R]esume", active, &state.palette))
-                .clicked()
-        {
+        if game_in_progress && ui::button(ui, "[R]esume", active, &state.palette).clicked() {
             action = Some(MenuItem::Resume);
         }
 
-        if ui
-            .add(ui::button("[N]ew Game", active, &state.palette))
-            .clicked()
-        {
+        if ui::button(ui, "[N]ew Game", active, &state.palette).clicked() {
             action = Some(MenuItem::NewGame);
         }
 
-        if ui
-            .add(ui::button("[H]elp", active, &state.palette))
-            .clicked()
-        {
+        if ui::button(ui, "[H]elp", active, &state.palette).clicked() {
             action = Some(MenuItem::Help);
         }
 
-        if ui
-            .add(ui::button("S[e]ttings", active, &state.palette))
-            .clicked()
-        {
+        if ui::button(ui, "S[e]ttings", active, &state.palette).clicked() {
             action = Some(MenuItem::Settings);
         }
 
-        if game_in_progress
-            && ui
-                .add(ui::button("[S]ave and Quit", active, &state.palette))
-                .clicked()
-        {
+        if game_in_progress && ui::button(ui, "[S]ave and Quit", active, &state.palette).clicked() {
             action = Some(MenuItem::SaveAndQuit);
         }
 
-        if ui
-            .add(ui::button("[L]oad game", active, &state.palette))
-            .clicked()
-        {
+        if ui::button(ui, "[L]oad game", active, &state.palette).clicked() {
             action = Some(MenuItem::Load);
         }
 
@@ -149,10 +129,7 @@ pub fn process(
             "[Q]uit without saving"
         };
 
-        if ui
-            .add(ui::button(quit_label, active, &state.palette))
-            .clicked()
-        {
+        if ui::button(ui, quit_label, active, &state.palette).clicked() {
             action = Some(MenuItem::Quit);
         };
 

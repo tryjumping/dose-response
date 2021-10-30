@@ -177,28 +177,6 @@ impl VertexStore for Vec<f32> {
     }
 }
 
-impl VertexStore for Vec<u8> {
-    fn push(&mut self, vertex: Vertex) {
-        for value in &vertex.to_f32_array() {
-            // NOTE: WASM specifies the little endian ordering
-            let bits: u32 = value.to_bits().to_le();
-            let b1: u8 = (bits & 0xff) as u8;
-            let b2: u8 = ((bits >> 8) & 0xff) as u8;
-            let b3: u8 = ((bits >> 16) & 0xff) as u8;
-            let b4: u8 = ((bits >> 24) & 0xff) as u8;
-
-            self.push(b1);
-            self.push(b2);
-            self.push(b3);
-            self.push(b4);
-        }
-    }
-
-    fn count(&self) -> usize {
-        todo!()
-    }
-}
-
 fn build_vertices<T: VertexStore>(
     drawcalls: &[Drawcall],
     vertices: &mut T,

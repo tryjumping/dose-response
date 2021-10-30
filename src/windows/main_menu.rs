@@ -5,7 +5,7 @@ use crate::{
     game::RunningState,
     keys::KeyCode,
     settings::Settings,
-    state::State,
+    state::{GameSession, State},
     ui,
     window::{self, Window},
 };
@@ -92,7 +92,7 @@ pub fn process(
         ui.label("By Tomas Sedovic");
         ui.label("");
 
-        let game_in_progress = !state.game_ended && state.world.initialised();
+        let game_in_progress = state.game_session == GameSession::InProgress;
 
         if game_in_progress && ui::button(ui, "[R]esume", active, &state.palette).clicked() {
             action = Some(MenuItem::Resume);
@@ -118,15 +118,10 @@ pub fn process(
             action = Some(MenuItem::Load);
         }
 
-        let first_startup = !state.world.initialised() && !state.game_ended;
-        let game_over = state.world.initialised() && state.game_ended;
-        let quit_label = if first_startup {
-            "[Q]uit without playing"
-        } else if game_over {
-            "[Q]uit"
-        } else {
-            // the game is in progress
-            "[Q]uit without saving"
+        let quit_label = match state.game_session {
+            GameSession::NotStarted => "[Q]uit without playing",
+            GameSession::InProgress => "[Q]uit without saving",
+            GameSession::Ended => "[Q]uit",
         };
 
         if ui::button(ui, quit_label, active, &state.palette).clicked() {
@@ -164,17 +159,17 @@ pub fn process(
         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
         match action {
             MenuItem::Resume => {
-                if state.world.initialised() {
+                if state.game_session.started() {
                     state.window_stack.pop();
                 }
                 return RunningState::Running;
             }
 
             MenuItem::NewGame => {
-                return RunningState::NewGame(Box::new(game::create_new_game_state(
-                    state,
-                    settings.challenge(),
-                )));
+                let mut new_state =
+                    Box::new(game::create_new_game_state(state, settings.challenge()));
+                new_state.game_session = GameSession::InProgress;
+                return RunningState::NewGame(new_state);
             }
 
             MenuItem::Help => {
@@ -188,7 +183,7 @@ pub fn process(
             }
 
             MenuItem::SaveAndQuit => {
-                if !state.game_ended {
+                if state.game_session == GameSession::InProgress {
                     match state.save_to_file() {
                         Ok(()) => return RunningState::Stopped,
                         Err(error) => {

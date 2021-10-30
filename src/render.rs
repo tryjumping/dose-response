@@ -5,7 +5,7 @@ use crate::{
     player::Bonus,
     point::{Point, SquareArea},
     rect::Rectangle,
-    state::State,
+    state::{GameSession, State},
     world::Chunk,
 };
 
@@ -149,7 +149,10 @@ pub fn render_game(
                         .world
                         .cell(point)
                         .map_or(false, |cell| cell.always_visible);
-                    if in_fov(point) || cell_visible || (state.game_ended && state.uncovered_map) {
+                    if in_fov(point)
+                        || cell_visible
+                        || (state.game_session == GameSession::Ended && state.uncovered_map)
+                    {
                         let screen_coords = screen_coords_from_world(point);
                         display.set_background(
                             screen_coords,

@@ -32,6 +32,8 @@ use std::fs;
 
 use serde::{Deserialize, Serialize};
 
+const CHUNK_SIZE: i32 = 32;
+
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the
 // player won? Lost?
@@ -39,6 +41,28 @@ use serde::{Deserialize, Serialize};
 pub enum Side {
     Player,
     Victory,
+}
+
+/// The status of the current game session. Whether it's not even
+/// started (e.g. we just opened the app but didn't click "New Game"),
+/// it's currently running or has been finished (by winning or
+/// losing).
+#[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
+pub enum GameSession {
+    NotStarted,
+    InProgress,
+    Ended,
+}
+
+impl GameSession {
+    pub fn started(&self) -> bool {
+        use GameSession::*;
+        match *self {
+            NotStarted => false,
+            InProgress => true,
+            Ended => true,
+        }
+    }
 }
 
 // TODO: rename this to Input or something like that. This represents the raw
@@ -146,9 +170,10 @@ pub struct State {
     pub screen_fading: Option<ScreenFade>,
     pub offset_px: Point,
 
-    /// Whether the game is over (one way or another) and we should
-    /// show the endgame screen -- uncovered map, the score, etc.
-    pub game_ended: bool,
+    /// Whether the game has started, is currently running or is over
+    /// (one way or another) and we should show the endgame screen --
+    /// uncovered map, the score, etc.
+    pub game_session: GameSession,
     pub victory_npc_id: Option<MonsterId>,
 
     pub window_stack: windows::Windows<Window>,
@@ -215,7 +240,8 @@ impl State {
 
             player
         };
-        let world = World::default();
+
+        let world = World::initialise(seed, world_size.x, CHUNK_SIZE, player.info(), challenge);
 
         State {
             player,
@@ -249,7 +275,7 @@ impl State {
             offset_px: Point::zero(),
             paused: false,
             screen_fading: None,
-            game_ended: false,
+            game_session: GameSession::NotStarted,
             victory_npc_id: None,
             window_stack: windows::Windows::new(Window::Game),
             // NOTE: Since we've got the mouse support and the numpad
@@ -429,11 +455,10 @@ Reason: '{}'.",
     }
 
     pub fn generate_world(&mut self) {
-        self.world.initialise(
-            &mut self.rng,
+        self.world = World::initialise(
             self.seed,
             self.world_size.x,
-            32,
+            CHUNK_SIZE,
             self.player.info(),
             self.challenge,
         );

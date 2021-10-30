@@ -20,7 +20,7 @@ use crate::{
     rect::Rectangle,
     render,
     settings::{Settings, Store as SettingsStore},
-    state::{self, Challenge, Command, Side, State},
+    state::{self, Challenge, Command, GameSession, Side, State},
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
     ui, util,
@@ -70,7 +70,7 @@ pub fn update(
     // The music won't play during the initial main menu screen so
     // start it after the game starts and then just keep playing
     // forever.
-    if state.world.initialised() {
+    if state.game_session.started() {
         audio.background_sound_queue.play();
     }
 
@@ -365,7 +365,7 @@ fn process_game(
     }
 
     // Show the endgame screen on any pressed key:
-    if state.game_ended
+    if state.game_session == GameSession::Ended
         && state.screen_fading.is_none()
         && (state.keys.matches(|_| true) || state.mouse.right_clicked)
     {
@@ -517,7 +517,7 @@ fn process_game(
             formula::exploration_radius(state.player.mind),
         );
 
-        if state.world.initialised() && state.player.alive() && mouse_inside_map && visible {
+        if state.game_session.started() && state.player.alive() && mouse_inside_map && visible {
             let source = state.player.pos;
             let destination = state.mouse_world_position();
             let check_irresistible = true;
@@ -703,7 +703,7 @@ fn process_game(
 
         let initial_fade_percentage = 1.0 - fade;
         if state.challenge.one_chance {
-            state.game_ended = true;
+            state.game_session = GameSession::Ended;
             state.show_endscreen_and_uncover_map_during_fadein = true;
             log::debug!("Game real time: {:?}", state.clock);
         } else {
@@ -1789,7 +1789,7 @@ fn place_victory_npc(state: &mut State) -> Point {
 
 fn win_the_game(state: &mut State) {
     state.side = Side::Victory;
-    state.game_ended = true;
+    state.game_session = GameSession::Ended;
     state.uncovered_map = true;
     state.window_stack.push(Window::Endgame);
 }

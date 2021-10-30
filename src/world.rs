@@ -174,7 +174,7 @@ pub struct World {
 }
 
 impl World {
-    pub fn initialise(
+    pub fn new(
         seed: u32,
         dimension: i32,
         chunk_size: i32,

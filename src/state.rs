@@ -241,7 +241,7 @@ impl State {
             player
         };
 
-        let world = World::initialise(seed, world_size.x, CHUNK_SIZE, player.info(), challenge);
+        let world = World::new(seed, world_size.x, CHUNK_SIZE, player.info(), challenge);
 
         State {
             player,
@@ -455,7 +455,7 @@ Reason: '{}'.",
     }
 
     pub fn generate_world(&mut self) {
-        self.world = World::initialise(
+        self.world = World::new(
             self.seed,
             self.world_size.x,
             CHUNK_SIZE,

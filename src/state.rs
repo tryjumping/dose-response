@@ -199,7 +199,7 @@ impl State {
             seed
         };
         log::info!("Using seed: {:?}", seed);
-        let mut rng = Random::from_seed(u64::from(seed));
+        let mut rng = Random::from_seed(seed);
         let player_position = world_centre;
         let player = {
             let mut player = Player::new(player_position, invincible);

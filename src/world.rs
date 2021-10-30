@@ -53,9 +53,9 @@ impl Chunk {
         // NOTE: `x` and `y` overflow on negative values here, but all
         // we care about is having a distinct value for each position
         // so our seeds don't repeat. So this is fine here.
-        let seed = Wrapping(u64::from(world_seed))
-            + (Wrapping(13) * Wrapping(pos.x as u64))
-            + (Wrapping(17) * Wrapping(pos.y as u64));
+        let seed = Wrapping(u32::from(world_seed))
+            + (Wrapping(13) * Wrapping(pos.x as u32))
+            + (Wrapping(17) * Wrapping(pos.y as u32));
 
         // TODO: Monsters in different chunks will now have identical
         // IDs. We need to investigate whether that's a problem.

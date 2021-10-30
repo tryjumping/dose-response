@@ -12,12 +12,12 @@ pub struct Random {
 
 impl Random {
     pub fn new() -> Self {
-        Self::from_seed(u64::from(util::random_seed()))
+        Self::from_seed(util::random_seed())
     }
 
-    pub fn from_seed(seed: u64) -> Self {
+    pub fn from_seed(seed: u32) -> Self {
         Self {
-            rng: oorandom::Rand32::new(seed),
+            rng: oorandom::Rand32::new(u64::from(seed)),
         }
     }
 

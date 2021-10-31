@@ -15,12 +15,14 @@ pub mod sidebar;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Windows<T> {
     stack: Vec<T>,
+    default: T,
 }
 
 impl<T: Clone> Windows<T> {
     pub fn new(default: T) -> Self {
         Windows {
-            stack: vec![default],
+            stack: vec![default.clone()],
+            default,
         }
     }
 
@@ -35,7 +37,10 @@ impl<T: Clone> Windows<T> {
     }
 
     pub fn top(&self) -> T {
-        self.stack.last().unwrap().clone()
+        // NOTE: it should be impossible for the stack to be empty,
+        // but just in case, return the default value rather than
+        // panicking.
+        self.stack.last().unwrap_or(&self.default.clone()).clone()
     }
 
     pub fn top_mut(&mut self) -> &mut T {

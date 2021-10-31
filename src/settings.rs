@@ -258,7 +258,11 @@ impl FileSystemStore {
         let toml = Self::read_settings_toml(&path).unwrap_or_else(|err| {
             log::error!("Could not open settings: {:?}", err);
             log::info!("Falling back to default settings.");
-            let toml = Settings::default().as_toml().parse().unwrap();
+            let toml = Settings::default().as_toml().parse().unwrap_or_else(|err| {
+                log::error!("Could not parse the default hardcoded settings: {}", err);
+                log::info!("Generating an empty TOML document.");
+                TomlDocument::new()
+            });
 
             log::info!("Creating settings file at: {}", path.display());
             if let Err(err) = Self::write_settings_toml(&path, &toml) {

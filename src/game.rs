@@ -1243,7 +1243,17 @@ fn process_player(state: &mut State, audio: &mut Audio, simulation_area: Rectang
             .filter(|m| {
                 m.kind == monster::Kind::Npc && m.accompanying_player && m.companion_bonus.is_some()
             })
-            .map(|m| m.companion_bonus.unwrap());
+            .map(|m| {
+                // NOTE: this unwrap should always succeed due to the
+                // filter check above. Providing a fallback to prevent
+                // any crasches caused by future refactoring.
+                m.companion_bonus.unwrap_or_else(|| {
+                    log::error!(
+                        "Trying to get a companion bonus where one doesn't exist, but  it should."
+                    );
+                    CompanionBonus::DoubleWillGrowth
+                })
+            });
         player.bonuses.clear();
         player.bonuses.extend(npc_bonuses);
     }

@@ -102,7 +102,7 @@ pub fn generate_replay_path() -> Option<PathBuf> {
         let replay_dir = &std::path::Path::new("replays");
         assert!(replay_dir.is_relative());
         if !replay_dir.exists() {
-            fs::create_dir_all(replay_dir).unwrap();
+            let _ = fs::create_dir_all(replay_dir);
         }
         let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
         Some(replay_path.into())
@@ -469,9 +469,11 @@ Reason: '{}'.",
         let chunks = self.world.positions_of_all_chunks();
         let mut monsters = vec![];
         for &chunk_pos in &chunks {
-            for monster in self.world.chunk(chunk_pos).unwrap().monsters() {
-                if !monster.dead {
-                    monsters.push((monster.position, chunk_pos, monster.kind));
+            if let Some(chunk) = self.world.chunk(chunk_pos) {
+                for monster in chunk.monsters() {
+                    if !monster.dead {
+                        monsters.push((monster.position, chunk_pos, monster.kind));
+                    }
                 }
             }
         }
@@ -573,9 +575,9 @@ fn empty_command_logger() -> Box<dyn Write> {
 }
 
 pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
-    writeln!(writer, "{}", seed).unwrap();
-    writeln!(writer, "{}", crate::metadata::VERSION).unwrap();
-    writeln!(writer, "{}", crate::metadata::GIT_HASH).unwrap();
+    let _ = writeln!(writer, "{}", seed);
+    let _ = writeln!(writer, "{}", crate::metadata::VERSION);
+    let _ = writeln!(writer, "{}", crate::metadata::GIT_HASH);
 }
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
@@ -587,7 +589,7 @@ pub fn log_command<W: Write>(writer: &mut W, command: Command) {
             command
         )
     });
-    writeln!(writer, "{}", json_command).unwrap();
+    let _ = writeln!(writer, "{}", json_command);
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: &Verification) {

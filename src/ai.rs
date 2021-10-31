@@ -184,8 +184,10 @@ fn idle_destination(
     rng: &mut Random,
     player_position: Point,
 ) -> Point {
-    if actor.path.is_empty() {
-        // Move randomly about
+    if let Some(&destination) = actor.path.last() {
+        destination
+    } else {
+        // The path is empty, move randomly about
         world
             .random_position_in_range(
                 rng,
@@ -203,9 +205,6 @@ fn idle_destination(
                     player_position,
                 )
             })
-    } else {
-        // We already have a path, just set the same destination:
-        *actor.path.last().unwrap()
     }
 }
 

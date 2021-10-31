@@ -148,7 +148,11 @@ impl LoopState {
         let glyphmap = {
             let data = &include_bytes!(concat!(env!("OUT_DIR"), "/glyph.png"))[..];
             image::load_from_memory_with_format(data, image::ImageFormat::Png)
-                .unwrap()
+                .unwrap_or_else(|e| {
+                    log::error!("Error loading the glyph tilemap image: {}", e);
+                    log::warn!("Generating an empty 32x32 pixels image as a fallback.");
+                    image::DynamicImage::new_rgba8(32, 32)
+                })
                 .to_rgba8()
         };
         log::debug!("Loaded glyph tilemap.");
@@ -157,7 +161,11 @@ impl LoopState {
             // NOTE: including a manually-edited tileset based on Bountiful Bits
             let data = &include_bytes!("../../assets/tiles.png")[..];
             image::load_from_memory_with_format(data, image::ImageFormat::Png)
-                .unwrap()
+                .unwrap_or_else(|e| {
+                    log::error!("Error loading the graphics tilemap image: {}", e);
+                    log::warn!("Generating an empty 32x32 pixels image as a fallback.");
+                    image::DynamicImage::new_rgba8(32, 32)
+                })
                 .to_rgba8()
         };
         log::debug!("Loaded the graphics tilemap.");

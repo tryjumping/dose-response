@@ -628,7 +628,9 @@ monitor ID: {:?}. Ignoring this request.",
                     dpi,
                     &batches,
                 );
-                context.swap_buffers().unwrap();
+                if let Err(e) = context.swap_buffers() {
+                    log::error!("Error swapping buffers: {}", e);
+                };
 
                 loop_state.previous_settings = loop_state.settings.clone();
 

@@ -35,8 +35,11 @@ impl SquareExplosion {
     pub fn new(center: Point, max_radius: i32, initial_radius: i32, color: Color) -> Self {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
+        let init_duration = Duration::from_millis(100);
         let wave_count = max_radius - initial_radius + 1;
-        let wave_duration = Duration::from_millis(100);
+        let wave_duration = init_duration
+            .checked_mul(wave_count as u32)
+            .unwrap_or(init_duration);
         SquareExplosion {
             center,
             max_radius,
@@ -44,7 +47,7 @@ impl SquareExplosion {
             current_radius: initial_radius,
             color,
             wave_count,
-            timer: Timer::new(wave_duration.checked_mul(wave_count as u32).unwrap()),
+            timer: Timer::new(wave_duration),
         }
     }
 }
@@ -99,8 +102,11 @@ impl CardinalExplosion {
     ) -> Self {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
+        let init_duration = Duration::from_millis(100);
         let wave_count = max_radius - initial_radius + 1;
-        let wave_duration = Duration::from_millis(100);
+        let wave_duration = init_duration
+            .checked_mul(wave_count as u32)
+            .unwrap_or(init_duration);
         CardinalExplosion {
             center,
             max_radius,
@@ -109,7 +115,7 @@ impl CardinalExplosion {
             kill_color,
             shatter_color,
             wave_count,
-            timer: Timer::new(wave_duration.checked_mul(wave_count as u32).unwrap()),
+            timer: Timer::new(wave_duration),
         }
     }
 }
@@ -218,8 +224,11 @@ impl DiagonalExplosion {
     ) -> Self {
         assert!(initial_radius <= max_radius);
         // Count the initial wave plus the rest that makes the difference
+        let init_duration = Duration::from_millis(100);
         let wave_count = max_radius - initial_radius + 1;
-        let wave_duration = Duration::from_millis(100);
+        let wave_duration = init_duration
+            .checked_mul(wave_count as u32)
+            .unwrap_or(init_duration);
         DiagonalExplosion {
             center,
             max_radius,
@@ -228,7 +237,7 @@ impl DiagonalExplosion {
             kill_color,
             shatter_color,
             wave_count,
-            timer: Timer::new(wave_duration.checked_mul(wave_count as u32).unwrap()),
+            timer: Timer::new(wave_duration),
         }
     }
 }

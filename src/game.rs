@@ -248,7 +248,7 @@ pub fn update(
 
     let update_duration = update_stopwatch.finish();
 
-    if cfg!(feature = "stats") && cfg!(not(feature = "recording")) {
+    if cfg!(feature = "missed-frames") && cfg!(not(feature = "recording")) {
         let expected_ms = 10;
         if update_duration > Duration::from_millis(expected_ms) {
             log::warn!(

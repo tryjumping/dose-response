@@ -563,18 +563,15 @@ impl World {
             if let Some(monster) = self.monster_on_pos(monster_position) {
                 monster.position = destination;
             }
-            let chunk = self.chunk_mut(monster_position).unwrap_or_else(|| {
-                panic!(
-                    "Chunk with monster {:?} doesn't \
-            exist.",
-                    monster_position
-                )
-            });
-            let level_monster_pos = chunk.level_position(monster_position);
-            let level_destination_pos = chunk.level_position(destination);
-            chunk
-                .level
-                .move_monster(level_monster_pos, level_destination_pos);
+            if let Some(chunk) = self.chunk_mut(monster_position) {
+                let level_monster_pos = chunk.level_position(monster_position);
+                let level_destination_pos = chunk.level_position(destination);
+                chunk
+                    .level
+                    .move_monster(level_monster_pos, level_destination_pos);
+            } else {
+                log::error!("Chunk with monster {:?} doesn't exist.", monster_position)
+            }
         } else {
             // Need to move the monster to another chunk
             // NOTE: We're not removing the monster from the
@@ -583,24 +580,23 @@ impl World {
             //
             // Instead, we make it dead here (without any of the
             // normal connotations) and just remove it from the level.
-            let mut new_monster = {
-                let monster = self.monster_on_pos(monster_position).expect(
-                    "Trying to move a monster, but there's nothing \
-                     there.",
-                );
-                let result = monster.clone();
+            if let Some(monster) = self.monster_on_pos(monster_position) {
+                let mut new_monster = monster.clone();
                 monster.dead = true;
-                result
-            };
 
-            {
                 self.remove_monster(monster_position);
                 assert!(self.walkable(monster_position, blocker, player_position));
                 new_monster.position = destination;
-                let destination_chunk = self.chunk_mut(destination).unwrap_or_else(|| {
-                    panic!("Destination chunk at {:?} doesn't exist.", destination)
-                });
-                destination_chunk.add_monster(new_monster);
+                if let Some(destination_chunk) = self.chunk_mut(destination) {
+                    destination_chunk.add_monster(new_monster);
+                } else {
+                    log::error!("Destination chunk at {:?} doesn't exist.", destination);
+                }
+            } else {
+                log::error!(
+                    "Trying to move a monster at {}, but there's nothing there.",
+                    monster_position,
+                );
             }
 
             assert!(!self.walkable(destination, Blocker::MONSTER, player_position));

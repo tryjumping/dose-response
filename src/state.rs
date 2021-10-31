@@ -314,12 +314,15 @@ impl State {
                     log::info!("Recording the gameplay to '{}'", replay_path.display());
                     Box::new(f)
                 }
-                Err(msg) => panic!(
-                    "Failed to create the replay file at '{:?}'.
+                Err(msg) => {
+                    log::error!(
+                        "Failed to create the replay file at '{:?}'.
 Reason: '{}'.",
-                    replay_path.display(),
-                    msg
-                ),
+                        replay_path.display(),
+                        msg
+                    );
+                    Box::new(io::sink())
+                }
             }
         } else {
             Box::new(io::sink())
@@ -371,7 +374,7 @@ Reason: '{}'.",
             let mut lines = BufReader::new(file).lines();
             match lines.next() {
                 Some(seed_str) => seed = seed_str?.parse()?,
-                None => error!("The replay file is empty."),
+                None => throw!("The replay file is empty."),
             };
 
             match lines.next() {
@@ -385,7 +388,7 @@ Reason: '{}'.",
                         );
                     }
                 }
-                None => error!("The replay file is missing the version."),
+                None => throw!("The replay file is missing the version."),
             };
 
             match lines.next() {
@@ -399,7 +402,7 @@ Reason: '{}'.",
                         );
                     }
                 }
-                None => error!("The replay file is missing the commit hash."),
+                None => throw!("The replay file is missing the commit hash."),
             };
 
             for line in lines {
@@ -581,32 +584,23 @@ pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
 }
 
 pub fn log_command<W: Write>(writer: &mut W, command: Command) {
-    let json_command = serde_json::to_string(&command).unwrap_or_else(|_| {
-        panic!(
-            "Could not \
-         serialise {:?} to \
-         json.",
-            command
-        )
-    });
-    let _ = writeln!(writer, "{}", json_command);
+    match serde_json::to_string(&command) {
+        Ok(json_command) => {
+            let _ = writeln!(writer, "{}", json_command);
+        }
+        Err(err) => {
+            log::error!("Could not serialise {:?} to JSON: {}", command, err);
+        }
+    }
 }
 
 pub fn log_verification<W: Write>(writer: &mut W, verification: &Verification) {
-    let json = serde_json::to_string(&verification).unwrap_or_else(|_| {
-        panic!(
-            "Could not \
-         serialise \
-         {:?} to json.",
-            verification
-        )
-    });
-    writeln!(writer, "{}", json).unwrap_or_else(|_| {
-        panic!(
-            "Could not write the \
-         verification: '{}' to the \
-         replay log.",
-            json
-        )
-    });
+    match serde_json::to_string(&verification) {
+        Ok(json) => {
+            let _ = writeln!(writer, "{}", json);
+        }
+        Err(error) => {
+            log::error!("Could not serialise {:?} to JSON: {}", verification, error);
+        }
+    }
 }

@@ -12,6 +12,22 @@
     clippy::collapsible_else_if,
     clippy::bool_assert_comparison
 )]
+#![deny(
+    // Prevent panics
+    clippy::expect_used,
+    clippy::unwrap_used,
+    clippy::ok_expect,
+    clippy::panic,
+    clippy::match_on_vec_items,
+    clippy::manual_strip,
+    clippy::await_holding_refcell_ref
+)]
+
+macro_rules! throw {
+    ($message:expr) => {
+        return core::result::Result::Err(std::boxed::Box::new(crate::error::Error::new($message)))
+    };
+}
 
 pub mod ai;
 pub mod animation;
@@ -28,8 +44,6 @@ pub mod graphics;
 pub mod item;
 pub mod keys;
 pub mod level;
-#[macro_use]
-pub mod macros;
 pub mod metadata;
 pub mod monster;
 pub mod palette;

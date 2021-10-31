@@ -119,9 +119,8 @@ impl OpenGlApp {
     }
 
     pub fn compile_shader(src: &str, ty: GLenum) -> GLuint {
-        let shader;
         unsafe {
-            shader = gl::CreateShader(ty);
+            let shader = gl::CreateShader(ty);
             // NOTE: This will be used if we can't compile the shader in `src`:
             let empty_cstr_fallback = cstr!("").to_owned();
             // Attempt to compile the shader
@@ -149,13 +148,13 @@ impl OpenGlApp {
                     ptr::null_mut(),
                     buf.as_mut_ptr() as *mut GLchar,
                 );
-                panic!(
-                    "{}",
-                    ::std::str::from_utf8(&buf).expect("ShaderInfoLog not valid utf8")
+                log::error!(
+                    "Error compling shader with GetShaderInfoLog: {}",
+                    String::from_utf8_lossy(&buf)
                 );
             }
+            shader
         }
-        shader
     }
 
     pub fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
@@ -180,9 +179,9 @@ impl OpenGlApp {
                     ptr::null_mut(),
                     buf.as_mut_ptr() as *mut GLchar,
                 );
-                panic!(
-                    "{}",
-                    ::std::str::from_utf8(&buf).expect("ProgramInfoLog not valid utf8")
+                log::error!(
+                    "Error linking program with GetProgramInfoLog: {}",
+                    String::from_utf8_lossy(&buf)
                 );
             }
             program

@@ -586,24 +586,30 @@ impl Display {
 
     pub fn set(&mut self, pos: Point, graphic: Graphic, foreground: Color, background: Color) {
         if let Some(ix) = self.index(pos) {
-            self.map[ix] = Cell {
-                graphic,
-                foreground,
-                background,
-            };
+            if let Some(entry) = self.map.get_mut(ix) {
+                *entry = Cell {
+                    graphic,
+                    foreground,
+                    background,
+                };
+            }
         }
     }
 
     pub fn set_graphic(&mut self, pos: Point, graphic: Graphic, foreground: Color) {
         if let Some(ix) = self.index(pos) {
-            self.map[ix].graphic = graphic;
-            self.map[ix].foreground = foreground;
+            if let Some(entry) = self.map.get_mut(ix) {
+                entry.graphic = graphic;
+                entry.foreground = foreground;
+            }
         }
     }
 
     pub fn set_background(&mut self, pos: Point, background: Color) {
         if let Some(ix) = self.index(pos) {
-            self.map[ix].background = background;
+            if let Some(entry) = self.map.get_mut(ix) {
+                entry.background = background;
+            }
         }
     }
 
@@ -626,7 +632,10 @@ impl Display {
 
     pub fn get(&self, pos: Point) -> Color {
         if let Some(ix) = self.index(pos) {
-            self.map[ix].background
+            self.map
+                .get(ix)
+                .map(|cell| cell.background)
+                .unwrap_or_default()
         } else {
             Default::default()
         }

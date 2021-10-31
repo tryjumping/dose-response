@@ -16,15 +16,26 @@
     clippy::map_unwrap_or,
     clippy::unreadable_literal,
     clippy::unseparated_literal_suffix,
-    clippy::doc_markdown
+    clippy::doc_markdown,
+    // Prevent panics
+    clippy::expect_used,
+    clippy::unwrap_used,
+    clippy::ok_expect,
+    clippy::integer_division,
+    clippy::integer_arithmetic,
+    clippy::panic,
+    clippy::match_on_vec_items,
+    clippy::manual_strip,
+    clippy::await_holding_refcell_ref
 )]
 #![warn(missing_copy_implementations)]
 #![windows_subsystem = "windows"]
 
-// TODO: Looks like macros need to be imported explicitly and the `use
-// dose_response::*` call below doesn't cut it.
-#[macro_use]
-pub mod macros;
+macro_rules! throw {
+    ($message:expr) => {
+        return core::result::Result::Err(std::boxed::Box::new(crate::error::Error::new($message)))
+    };
+}
 
 use dose_response::*;
 
@@ -64,12 +75,15 @@ fn run_glutin(
     // };
 
     #[cfg(feature = "glutin-backend")]
-    engine::glutin::main_loop(
+    let result = engine::glutin::main_loop(
         default_background,
         window_title,
         settings_store,
         Box::new(state),
     );
+    if let Err(err) = result {
+        log::error!("Error occured in the glutin main_loop: {}", err);
+    };
 
     #[cfg(not(feature = "glutin-backend"))]
     log::error!("The \"glutin-backend\" feature was not compiled in.");
@@ -97,7 +111,7 @@ fn run_remote(
     log::error!("The \"remote\" feature was not compiled in.");
 }
 
-fn main() {
+fn run() -> Result<(), Box<dyn std::error::Error>> {
     use crate::settings::Store;
     use clap::{App, Arg};
     use simplelog::{CombinedLogger, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
@@ -233,7 +247,7 @@ fn main() {
 
     let state = if let Some(replay) = matches.value_of("replay") {
         if matches.is_present("replay-file") {
-            panic!(
+            throw!(
                 "The `replay-file` option can only be used during regular \
                  game, not replay."
             );
@@ -250,11 +264,10 @@ fn main() {
             matches.is_present("exit-after"),
             challenge,
             palette,
-        )
-        .expect("Could not load the replay file")
+        )?
     } else {
         if matches.is_present("replay-full-speed") {
-            panic!(
+            throw!(
                 "The `full-replay-speed` option can only be used if the \
                  replay log is passed."
             );
@@ -302,4 +315,17 @@ fn main() {
             log::error!("Unknown backend: {}", backend);
         }
     }
+
+    Ok(())
+}
+
+fn main() {
+    match run() {
+        Ok(_) => {
+            log::info!("Quitting the program.");
+        }
+        Err(err) => {
+            log::error!("Reached a top-level error: {}", err);
+        }
+    };
 }

@@ -136,7 +136,8 @@ pub fn main_loop<S>(
     window_title: &str,
     mut settings_store: S,
     initial_state: Box<State>,
-) where
+) -> Result<(), Box<dyn std::error::Error>>
+where
     S: SettingsStore + 'static,
 {
     // Force winit unix backend to X11.
@@ -245,7 +246,7 @@ pub fn main_loop<S>(
         Ok(context) => context,
         Err(error) => {
             log::error!("Could not create context: {:?}", error);
-            panic!("Aborting!");
+            throw!("Aborting!");
         }
     };
 
@@ -255,7 +256,7 @@ pub fn main_loop<S>(
             Ok(context) => context,
             Err(error) => {
                 log::error!("Could not make context current: {:?}", error);
-                panic!("Aborting!");
+                throw!("Aborting!");
             }
         }
     };
@@ -590,7 +591,13 @@ monitor ID: {:?}. Ignoring this request.",
                         }
                     };
                     for &index in &mesh.indices {
-                        let egui_vertex = mesh.vertices[index as usize];
+                        let egui_vertex = match mesh.vertices.get(index as usize) {
+                            Some(vertex) => vertex,
+                            None => {
+                                log::error!("Can't index into the mesh.vertices");
+                                continue;
+                            }
+                        };
                         let color = Color {
                             r: egui_vertex.color.r(),
                             g: egui_vertex.color.g(),

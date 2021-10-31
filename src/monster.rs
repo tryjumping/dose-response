@@ -180,13 +180,15 @@ impl Monster {
         rng: &mut Random,
     ) -> (Update, Action) {
         if self.dead {
-            panic!("{:?} is dead, cannot run actions on it.", self);
-        }
-        match self.behavior {
-            Behavior::LoneAttacker => ai::lone_attacker_act(self, player_info, world, rng),
-            Behavior::PackAttacker => ai::pack_attacker_act(self, player_info, world, rng),
-            Behavior::Friendly => ai::friendly_act(self, player_info, world, rng),
-            Behavior::Immobile => ai::noop_act(self, player_info, world, rng),
+            log::error!("{:?} is dead, cannot run actions on it.", self);
+            ai::noop_action(self)
+        } else {
+            match self.behavior {
+                Behavior::LoneAttacker => ai::lone_attacker_act(self, player_info, world, rng),
+                Behavior::PackAttacker => ai::pack_attacker_act(self, player_info, world, rng),
+                Behavior::Friendly => ai::friendly_act(self, player_info, world, rng),
+                Behavior::Immobile => ai::noop_act(self, player_info, world, rng),
+            }
         }
     }
 

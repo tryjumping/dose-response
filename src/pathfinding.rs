@@ -122,8 +122,8 @@ impl Path {
                             path_buffer.push(current);
                         }
                     }
-                    Some(&None) => panic!(
-                        "Every point except for the initial \
+                    Some(&None) => log::error!(
+                        "Pathfinding: Every point except for the initial \
                          one (`from`) one should be some."
                     ),
                     None => {

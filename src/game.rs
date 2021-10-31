@@ -607,6 +607,7 @@ fn process_game(
                 let actual = state.verification();
                 verify_states(&expected, &actual);
 
+                #[allow(clippy::panic)]
                 if player_was_alive && !state.player.alive() && !state.commands.is_empty() {
                     panic!(
                         "Game quit too early -- there are still {} \
@@ -834,98 +835,96 @@ fn process_monsters(
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
 
     while let Some((_, monster_position)) = monster_positions_to_process.pop_front() {
-        let monster_readonly = world
-            .monster_on_pos(monster_position)
-            .expect("Monster should exist on this position")
-            .clone();
-        let action = {
-            let (update, action) = monster_readonly.act(player.info(), world, rng);
-            if let Some(monster) = world.monster_on_pos(monster_position) {
-                monster.ai_state = update.ai_state;
-                monster.ap = Ranged::new(
-                    monster.ap.to_int(),
-                    InclusiveRange(monster.ap.min(), update.max_ap),
-                );
-
-                monster.spend_ap(1);
-            }
-            action
-        };
-
-        match action {
-            Action::Move(destination) => {
-                assert_eq!(monster_position, monster_readonly.position);
-
-                let pos = monster_readonly.position;
-
-                let path_changed = monster_readonly
-                    .path
-                    .last()
-                    .map_or(true, |&cached_destination| {
-                        cached_destination != destination
-                    });
-
-                // NOTE: we keep a cache of any previously calculated
-                // path in `monster.path`. If the precalculated path
-                // is blocked or there is none, calculate a new one
-                // and cache it. Otherwise, just walk it.
-                let (newpos, newpath) = if monster_readonly.path.is_empty()
-                    || path_changed
-                    || !world.walkable(
-                        monster_readonly.path[0],
-                        monster_readonly.blockers,
-                        player.pos,
-                    ) {
-                    // Calculate a new path or recalculate the existing one.
-                    let check_irresistible = false;
-                    let mut path = pathfinding::Path::find(
-                        pos,
-                        destination,
-                        world,
-                        monster_readonly.blockers,
-                        player.pos,
-                        player.will.to_int(),
-                        check_irresistible,
-                        formula::PATHFINDING_MONSTER_LIMIT,
-                        &pathfinding::monster_cost,
+        if let Some(monster_readonly) = world.monster_on_pos(monster_position).cloned() {
+            let action = {
+                let (update, action) = monster_readonly.act(player.info(), world, rng);
+                if let Some(monster) = world.monster_on_pos(monster_position) {
+                    monster.ai_state = update.ai_state;
+                    monster.ap = Ranged::new(
+                        monster.ap.to_int(),
+                        InclusiveRange(monster.ap.min(), update.max_ap),
                     );
-                    let newpos = path.next().unwrap_or(pos);
-                    // Cache the path-finding result
-                    let newpath = path.collect();
-                    (newpos, newpath)
-                } else {
-                    (monster_readonly.path[0], monster_readonly.path[1..].into())
-                };
 
-                world.move_monster(pos, newpos, player.pos);
-                let monster_visible = newpos
-                    .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
-                if monster_visible {
-                    let delay = audio.random_delay();
-                    audio.mix_sound_effect(Effect::MonsterMoved, delay);
+                    monster.spend_ap(1);
                 }
-                if let Some(monster) = world.monster_on_pos(newpos) {
-                    monster.path = newpath;
-                    if monster.has_ap(1) {
-                        monster.trail = Some(newpos);
+                action
+            };
+
+            match action {
+                Action::Move(destination) => {
+                    assert_eq!(monster_position, monster_readonly.position);
+
+                    let pos = monster_readonly.position;
+
+                    let path_changed = monster_readonly
+                        .path
+                        .last()
+                        .map_or(true, |&cached_destination| {
+                            cached_destination != destination
+                        });
+
+                    // NOTE: we keep a cache of any previously calculated
+                    // path in `monster.path`. If the precalculated path
+                    // is blocked or there is none, calculate a new one
+                    // and cache it. Otherwise, just walk it.
+                    let (newpos, newpath) = if monster_readonly.path.is_empty()
+                        || path_changed
+                        || !world.walkable(
+                            monster_readonly.path[0],
+                            monster_readonly.blockers,
+                            player.pos,
+                        ) {
+                        // Calculate a new path or recalculate the existing one.
+                        let check_irresistible = false;
+                        let mut path = pathfinding::Path::find(
+                            pos,
+                            destination,
+                            world,
+                            monster_readonly.blockers,
+                            player.pos,
+                            player.will.to_int(),
+                            check_irresistible,
+                            formula::PATHFINDING_MONSTER_LIMIT,
+                            &pathfinding::monster_cost,
+                        );
+                        let newpos = path.next().unwrap_or(pos);
+                        // Cache the path-finding result
+                        let newpath = path.collect();
+                        (newpos, newpath)
+                    } else {
+                        (monster_readonly.path[0], monster_readonly.path[1..].into())
+                    };
+
+                    world.move_monster(pos, newpos, player.pos);
+                    let monster_visible = newpos
+                        .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
+                    if monster_visible {
+                        let delay = audio.random_delay();
+                        audio.mix_sound_effect(Effect::MonsterMoved, delay);
+                    }
+                    if let Some(monster) = world.monster_on_pos(newpos) {
+                        monster.path = newpath;
+                        if monster.has_ap(1) {
+                            monster.trail = Some(newpos);
+                        }
                     }
                 }
-            }
 
-            Action::Attack(target_pos, damage) => {
-                assert_eq!(target_pos, player.pos);
-                player.take_effect(damage);
-                if monster_readonly.die_after_attack {
-                    kill_monster(monster_readonly.position, world, audio);
+                Action::Attack(target_pos, damage) => {
+                    assert_eq!(target_pos, player.pos);
+                    player.take_effect(damage);
+                    if monster_readonly.die_after_attack {
+                        kill_monster(monster_readonly.position, world, audio);
+                    }
+                    if !player.alive() {
+                        player.perpetrator = Some(monster_readonly);
+                        // The player's dead, no need to process other monsters
+                        return;
+                    }
                 }
-                if !player.alive() {
-                    player.perpetrator = Some(monster_readonly);
-                    // The player's dead, no need to process other monsters
-                    return;
-                }
-            }
 
-            Action::Use(_) => unreachable!(),
+                Action::Use(_) => unreachable!(),
+            }
         }
     }
 }

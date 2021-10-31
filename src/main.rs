@@ -21,6 +21,11 @@
 #![warn(missing_copy_implementations)]
 #![windows_subsystem = "windows"]
 
+// TODO: Looks like macros need to be imported explicitly and the `use
+// dose_response::*` call below doesn't cut it.
+#[macro_use]
+pub mod macros;
+
 use dose_response::*;
 
 use simplelog::Config;

@@ -19,16 +19,17 @@ pub mod audio;
 pub mod blocker;
 pub mod color;
 pub mod engine;
-pub mod graphic;
-#[macro_use]
 pub mod error;
 pub mod formula;
 pub mod game;
 pub mod generators;
+pub mod graphic;
 pub mod graphics;
 pub mod item;
 pub mod keys;
 pub mod level;
+#[macro_use]
+pub mod macros;
 pub mod metadata;
 pub mod monster;
 pub mod palette;

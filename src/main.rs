@@ -292,6 +292,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             // Start the game with the game on top, don't push in any other window.
             // Just like in Braid, basically.
             state.generate_world();
+            state.game_session = state::GameSession::InProgress;
             //
             // Mark any future runs as not the very first one:
             settings.first_ever_startup = false;

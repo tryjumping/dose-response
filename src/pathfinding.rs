@@ -242,12 +242,9 @@ mod test {
     }
 
     fn make_board(text: &str) -> Board {
-        use crate::{
-            level::{
-                Tile,
-                TileKind::{Empty, Tree},
-            },
-            random::Random,
+        use crate::level::{
+            Tile,
+            TileKind::{Empty, Tree},
         };
         let mut start = Point { x: 0, y: 0 };
         let mut destination = Point { x: 0, y: 0 };

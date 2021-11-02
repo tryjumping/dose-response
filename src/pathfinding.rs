@@ -264,7 +264,7 @@ mod test {
         assert!(width > 0);
         assert!(lines.iter().all(|line| line.chars().count() == width));
 
-        let mut rng = Random::from_seed(0);
+        let seed = 0;
         let player_info = PlayerInfo {
             pos: Point::new(0, 0),
             mind: Mind::Sober(crate::ranged_int::Ranged::new_max(crate::formula::SOBER)),
@@ -272,8 +272,7 @@ mod test {
             will: 3,
         };
         let challenge = Default::default();
-        let mut world = World::default();
-        world.initialise(&mut rng, 0, 64, 32, player_info, challenge);
+        let mut world = World::new(seed, 64, 32, player_info, challenge);
         // clear out the world
         for x in 0..16 {
             for y in 0..16 {

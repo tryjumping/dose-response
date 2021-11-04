@@ -56,6 +56,7 @@ impl Timer {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Stopwatch {
     start: Instant,
 }

@@ -219,7 +219,7 @@ impl State {
         let world_centre = (0, 0).into();
         assert_eq!(world_size.x, world_size.y);
         let seed = if cfg!(feature = "recording") {
-            518723646
+            518_723_646
         } else {
             seed
         };

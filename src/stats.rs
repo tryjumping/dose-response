@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, time::Duration};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct FrameStats {
     pub update: Duration,
     pub drawcalls: Duration,

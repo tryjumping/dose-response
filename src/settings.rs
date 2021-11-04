@@ -568,7 +568,7 @@ impl Store for FileSystemStore {
     }
 }
 
-#[allow(dead_code)]
+#[allow(dead_code, missing_copy_implementations)]
 pub struct NoOpStore;
 
 impl Store for NoOpStore {

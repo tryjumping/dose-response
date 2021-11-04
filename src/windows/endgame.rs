@@ -14,6 +14,7 @@ use std::time::Duration;
 
 use egui::{self, Ui};
 
+#[derive(Copy, Clone)]
 pub enum Action {
     NewGame,
     Help,

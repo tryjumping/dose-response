@@ -49,6 +49,7 @@ impl Kind {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct KindIterator {
     current: Option<Kind>,
 }

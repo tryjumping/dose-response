@@ -1,3 +1,5 @@
+#![allow(missing_copy_implementations)]
+
 use crate::util;
 
 use oorandom::Rand32;

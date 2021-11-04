@@ -18,7 +18,7 @@ use egui::{
 
 use std::time::Duration;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum MenuItem {
     Resume,
     NewGame,

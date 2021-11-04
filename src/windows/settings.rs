@@ -12,7 +12,7 @@ use std::time::Duration;
 
 use egui::{self, Ui};
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Action {
     FastDepression,
     Permadeath,

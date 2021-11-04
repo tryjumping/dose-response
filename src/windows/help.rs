@@ -16,6 +16,7 @@ use egui::{self, ScrollArea, Ui};
 
 use serde::{Deserialize, Serialize};
 
+#[derive(Copy, Clone)]
 pub enum Action {
     NextPage,
     PrevPage,

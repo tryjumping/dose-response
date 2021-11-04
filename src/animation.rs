@@ -1,3 +1,5 @@
+#![allow(missing_copy_implementations)]
+
 use crate::{
     color::Color,
     point::{Point, SquareArea},

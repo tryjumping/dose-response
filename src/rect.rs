@@ -1,3 +1,5 @@
+#![allow(missing_copy_implementations)]
+
 use crate::point::Point;
 
 use serde::{Deserialize, Serialize};

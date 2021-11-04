@@ -1,3 +1,5 @@
+#![allow(missing_copy_implementations)]
+
 use std::{
     cmp::{max, Ordering},
     fmt::{self, Display, Error, Formatter},

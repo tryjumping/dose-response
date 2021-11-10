@@ -69,9 +69,9 @@ jobs:
         RUSTFLAGS: -D warnings
     - name: Generate the third-party-licenses.html file
       run: >
-        cargo about --no-default-features
-        --features "prod ${{ matrix.platform.extra_features }}"
-        generate about.hbs
+        cargo about generate
+        --features "prod ${{ matrix.platform.extra_features }}" --no-default-features
+        about.hbs
         --output-file third-party-licenses.html
     - name: Build the release
       run: >

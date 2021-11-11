@@ -8,6 +8,7 @@ from pathlib import Path
 import platform
 import shutil
 import sys
+import locale
 
 
 def mkdir_p(directory):
@@ -57,7 +58,8 @@ if __name__ == '__main__':
         print(f"The ref is neither a tag nor push to the main branch: '{ref_name}'")
         nightly = True
         # TODO: comment this out if you want to test release payload uploads to S3
-        sys.exit(0)
+        # TODO: remove the exit here and just skip the upload at the end
+        #sys.exit(0)
 
     if nightly:
         releases_destination = 'nightlies'
@@ -105,21 +107,27 @@ if __name__ == '__main__':
     mkdir_p(out_path)
     shutil.copy(release_dir / full_exe_name, out_path)
 
+    print(f"Locale preferred encoding: {locale.getpreferredencoding()}")
+
+
     # NOTE: this converts the line endings into the current platform's expected format:
     with open("README.md", 'r', encoding='utf-8') as source:
-        with open(out_path / 'README.txt', 'w') as destination:
+        with open(out_path / 'README.txt', 'w', encoding='utf-8') as destination:
             destination.writelines(source.readlines())
     with open("COPYING.txt", 'r', encoding='utf-8') as source:
-        with open(out_path / 'LICENSE.txt', 'w') as destination:
+        with open(out_path / 'LICENSE.txt', 'w', encoding='utf-8') as destination:
             destination.writelines(source.readlines())
     with open("third-party-licenses.html", 'r', encoding='utf-8') as source:
-        with open(out_path / 'third-party-licenses.html', 'w') as destination:
-            destination.writelines(source.readlines())
+        print(f"Source encoding: {source.encoding}")
+        with open(out_path / 'third-party-licenses.html', 'w', encoding='utf-8') as destination:
+            print(f"Destination encoding: {destination.encoding}")
+            lines = source.readlines()
+            destination.writelines(lines)
 
     shutil.copy(debug_script, out_path)
 
     version_contents = f"Version: {release_version}\nFull Version: {full_version}\nCommit: {commit_hash}\n"
-    with open(out_path / 'VERSION.txt', 'w') as f:
+    with open(out_path / 'VERSION.txt', 'w', encoding='utf-8') as f:
         f.write(version_contents)
 
     print("Adding icons...")
@@ -134,5 +142,6 @@ if __name__ == '__main__':
     archive_full_file_path = f'{archive_path}.{archive_extension}'
     print(f"Build created in: '{archive_full_file_path}'")
 
-    s3 = boto3.resource('s3')
-    s3.Bucket(bucket_name).upload_file(archive_full_file_path, s3_destination_path)
+    # TODO: Commenting this out, we want to test the release script in the PR so we can iterate, but not actually upload stuff
+    # s3 = boto3.resource('s3')
+    # s3.Bucket(bucket_name).upload_file(archive_full_file_path, s3_destination_path)

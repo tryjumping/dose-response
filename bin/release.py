@@ -112,14 +112,14 @@ if __name__ == '__main__':
 
     # NOTE: this converts the line endings into the current platform's expected format:
     with open("README.md", 'r', encoding='utf-8') as source:
-        with open(out_path / 'README.txt', 'w') as destination:
+        with open(out_path / 'README.txt', 'w', encoding='utf-8') as destination:
             destination.writelines(source.readlines())
     with open("COPYING.txt", 'r', encoding='utf-8') as source:
-        with open(out_path / 'LICENSE.txt', 'w') as destination:
+        with open(out_path / 'LICENSE.txt', 'w', encoding='utf-8') as destination:
             destination.writelines(source.readlines())
     with open("third-party-licenses.html", 'r', encoding='utf-8') as source:
         print(f"Source encoding: {source.encoding}")
-        with open(out_path / 'third-party-licenses.html', 'w') as destination:
+        with open(out_path / 'third-party-licenses.html', 'w', encoding='utf-8') as destination:
             print(f"Destination encoding: {destination.encoding}")
             lines = source.readlines()
             destination.writelines(lines)
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     shutil.copy(debug_script, out_path)
 
     version_contents = f"Version: {release_version}\nFull Version: {full_version}\nCommit: {commit_hash}\n"
-    with open(out_path / 'VERSION.txt', 'w') as f:
+    with open(out_path / 'VERSION.txt', 'w', encoding='utf-8') as f:
         f.write(version_contents)
 
     print("Adding icons...")

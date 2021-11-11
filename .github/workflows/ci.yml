@@ -47,7 +47,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install build-time dependencies
       run: |
-        cargo install cargo-about
+        # NOTE: install a known-to-work version to prevent breakages when the tool gets updated:
+        cargo install cargo-about --version "0.4.1"
         ${{ matrix.platform.build_time_dependencies }}
     # A regular cargo check: fail fast if something is wrong
     - name: Check default code syntax

@@ -8,6 +8,7 @@ from pathlib import Path
 import platform
 import shutil
 import sys
+import locale
 
 
 def mkdir_p(directory):

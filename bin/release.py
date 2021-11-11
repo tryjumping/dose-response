@@ -112,6 +112,9 @@ if __name__ == '__main__':
     with open("COPYING.txt", 'r') as source:
         with open(out_path / 'LICENSE.txt', 'w') as destination:
             destination.writelines(source.readlines())
+    with open("third-party-licenses.html", 'r') as source:
+        with open(out_path / 'third-party-licenses.html', 'w') as destination:
+            destination.writelines(source.readlines())
 
     shutil.copy(debug_script, out_path)
 

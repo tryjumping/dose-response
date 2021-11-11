@@ -188,6 +188,8 @@ pub const CODE_LICENSE_ONELINE: &str =
 pub const CODE_LICENSE_BLOCK: &str = "Dose Response is a Free and Open Source software provided under the terms of GNU Affero General Public License version 3 or later. If you did not receive the license text with the program, you can read it here:";
 pub const AGPL_URL: &str = "https://www.gnu.org/licenses/agpl-3.0.en.html";
 
+pub const THIRD_PARTY_CODE_LICENSE: &str = "To see the license for the third-party code used in this game, open the third-party-licenses.html file.";
+
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
@@ -313,6 +315,8 @@ pub fn process(
                             ui.label("");
                             ui.label(CODE_LICENSE_BLOCK);
                             ui.hyperlink(AGPL_URL);
+                            ui.label("");
+                            ui.label(THIRD_PARTY_CODE_LICENSE);
                             ui.label("");
                             ui.label(copyright);
                         }

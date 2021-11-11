@@ -46,7 +46,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install build-time dependencies
-      run: ${{ matrix.platform.build_time_dependencies }}
+      run: |
+        cargo install cargo-about
+        ${{ matrix.platform.build_time_dependencies }}
     # A regular cargo check: fail fast if something is wrong
     - name: Check default code syntax
       run: cargo check
@@ -65,6 +67,12 @@ jobs:
         cargo clippy
       env:
         RUSTFLAGS: -D warnings
+    - name: Generate the third-party-licenses.html file
+      run: >
+        cargo about generate
+        --features "prod ${{ matrix.platform.extra_features }}" --no-default-features
+        about.hbs
+        --output-file third-party-licenses.html
     - name: Build the release
       run: >
         cargo build --verbose --release --no-default-features

@@ -43,6 +43,7 @@ if __name__ == '__main__':
     print_env('GITHUB_REF')
     ref_name = env.get('GITHUB_REF', '').split('/')[-1]
     archive_extension = env.get('ARCHIVE_EXT', 'tar.gz')
+    upload_release = False
 
     # Ref formats:
     # Pull request: refs/pull/13/merge
@@ -51,15 +52,15 @@ if __name__ == '__main__':
     if ref_name in ('master', 'main'):
         print("This is a nightly")
         nightly = True
+        upload_release = True
     elif ref_name.startswith('v'):
         print(f"This is a release tag: {ref_name}")
         nightly = False
+        upload_release = True
     else:
         print(f"The ref is neither a tag nor push to the main branch: '{ref_name}'")
         nightly = True
-        # TODO: comment this out if you want to test release payload uploads to S3
-        # TODO: remove the exit here and just skip the upload at the end
-        #sys.exit(0)
+        upload_release = False
 
     if nightly:
         releases_destination = 'nightlies'
@@ -142,6 +143,6 @@ if __name__ == '__main__':
     archive_full_file_path = f'{archive_path}.{archive_extension}'
     print(f"Build created in: '{archive_full_file_path}'")
 
-    # TODO: Commenting this out, we want to test the release script in the PR so we can iterate, but not actually upload stuff
-    # s3 = boto3.resource('s3')
-    # s3.Bucket(bucket_name).upload_file(archive_full_file_path, s3_destination_path)
+    if upload_release:
+        s3 = boto3.resource('s3')
+        s3.Bucket(bucket_name).upload_file(archive_full_file_path, s3_destination_path)

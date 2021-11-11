@@ -106,13 +106,13 @@ if __name__ == '__main__':
     shutil.copy(release_dir / full_exe_name, out_path)
 
     # NOTE: this converts the line endings into the current platform's expected format:
-    with open("README.md", 'r') as source:
+    with open("README.md", 'r', encoding='utf-8') as source:
         with open(out_path / 'README.txt', 'w') as destination:
             destination.writelines(source.readlines())
-    with open("COPYING.txt", 'r') as source:
+    with open("COPYING.txt", 'r', encoding='utf-8') as source:
         with open(out_path / 'LICENSE.txt', 'w') as destination:
             destination.writelines(source.readlines())
-    with open("third-party-licenses.html", 'r') as source:
+    with open("third-party-licenses.html", 'r', encoding='utf-8') as source:
         with open(out_path / 'third-party-licenses.html', 'w') as destination:
             destination.writelines(source.readlines())
 

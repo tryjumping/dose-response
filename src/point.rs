@@ -49,6 +49,10 @@ impl Point {
     pub fn inside_circular_area<P: Into<Point>>(self, centre: P, radius: i32) -> bool {
         CircularArea::new(centre.into(), radius).contains(self)
     }
+
+    pub fn is_zero(self) -> bool {
+        self.x == 0 && self.y == 0
+    }
 }
 
 impl From<(i32, i32)> for Point {

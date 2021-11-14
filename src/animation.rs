@@ -442,9 +442,7 @@ impl Move {
             let new_state = match (self.state, self.bounce) {
                 (MoveState::There, true) => {
                     self.timer.reset();
-                    let tmp = self.source;
-                    self.source = self.destination;
-                    self.destination = tmp;
+                    std::mem::swap(&mut self.source, &mut self.destination);
                     MoveState::Back
                 }
                 (MoveState::There, false) => MoveState::Finished,

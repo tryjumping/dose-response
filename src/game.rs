@@ -1047,9 +1047,9 @@ fn process_player_action<W>(
                     player.spend_ap(1);
                     // info!("Player attacks {:?}", monster);
                     player.motion_animation = animation::Move::bounce(
-                        player.pos * (tile_size / 2),
-                        dest * (tile_size / 2),
-                        Duration::from_millis(100),
+                        player.pos * (tile_size / 3),
+                        dest * (tile_size / 3),
+                        Duration::from_millis(75),
                     );
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {

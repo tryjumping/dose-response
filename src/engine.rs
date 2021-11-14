@@ -608,7 +608,7 @@ impl Display {
         }
     }
 
-    pub fn set_background(&mut self, pos: Point, background: Color) {
+    pub fn set_background_color(&mut self, pos: Point, background: Color) {
         if let Some(ix) = self.index(pos) {
             if let Some(entry) = self.map.get_mut(ix) {
                 entry.background = background;

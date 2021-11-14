@@ -154,7 +154,7 @@ pub fn render_game(
                         || (state.game_session == GameSession::Ended && state.uncovered_map)
                     {
                         let screen_coords = screen_coords_from_world(point);
-                        display.set_background(
+                        display.set_background_color(
                             screen_coords,
                             state.palette.dose_irresistible_background,
                         );
@@ -166,7 +166,7 @@ pub fn render_game(
 
     if let Some(ref animation) = state.explosion_animation {
         for (world_pos, color, _) in animation.tiles() {
-            display.set_background(screen_coords_from_world(world_pos), color);
+            display.set_background_color(screen_coords_from_world(world_pos), color);
         }
     }
 
@@ -262,7 +262,7 @@ pub fn render_game(
         // Only highlight when we're not re-centering the
         // screen (because that looks weird)
         if state.pos_timer.finished() {
-            display.set_background(pos, state.player.color(&state.palette));
+            display.set_background_color(pos, state.player.color(&state.palette));
         }
     }
 }

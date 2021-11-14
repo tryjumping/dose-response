@@ -4,6 +4,7 @@ use crate::{
     color::Color,
     point::{Point, SquareArea},
     timer::Timer,
+    util,
 };
 
 use serde::{Deserialize, Serialize};
@@ -385,5 +386,86 @@ impl ScreenFade {
                 }
             }
         }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum MoveState {
+    There,
+    Back,
+    Finished,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Move {
+    pub source: Point,
+    pub destination: Point,
+    pub bounce: bool,
+    pub state: MoveState,
+    timer: Timer,
+}
+
+impl Move {
+    pub fn none() -> Self {
+        Move {
+            source: Point::zero(),
+            destination: Point::zero(),
+            bounce: false,
+            state: MoveState::Finished,
+            timer: Timer::new(Duration::new(0, 0)),
+        }
+    }
+
+    pub fn bounce(source: Point, destination: Point, duration: Duration) -> Self {
+        Move {
+            source,
+            destination,
+            bounce: true,
+            state: MoveState::There,
+            timer: Timer::new(duration),
+        }
+    }
+
+    pub fn ease(source: Point, destination: Point, duration: Duration) -> Self {
+        Move {
+            source,
+            destination,
+            bounce: false,
+            state: MoveState::There,
+            timer: Timer::new(duration),
+        }
+    }
+
+    pub fn update(&mut self, dt: Duration) {
+        self.timer.update(dt);
+        if self.timer.finished() {
+            let new_state = match (self.state, self.bounce) {
+                (MoveState::There, true) => {
+                    self.timer.reset();
+                    let tmp = self.source;
+                    self.source = self.destination;
+                    self.destination = tmp;
+                    MoveState::Back
+                }
+                (MoveState::There, false) => MoveState::Finished,
+                (MoveState::Back, _) => MoveState::Finished,
+                (MoveState::Finished, _) => MoveState::Finished,
+            };
+            self.state = new_state;
+        }
+    }
+
+    pub fn current_offset_px(&self) -> Point {
+        let percentage = util::sine_curve(self.timer.percentage_elapsed());
+        Point {
+            x: ((self.destination.x as f32 - self.source.x as f32) * percentage).round() as i32,
+            y: ((self.destination.y as f32 - self.source.y as f32) * percentage).round() as i32,
+        }
+    }
+}
+
+impl Default for Move {
+    fn default() -> Self {
+        Self::none()
     }
 }

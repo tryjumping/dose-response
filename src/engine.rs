@@ -465,6 +465,7 @@ pub struct Cell {
     pub graphic: Graphic,
     pub foreground: Color,
     pub background: Color,
+    pub offset_px: Point,
 }
 
 impl Default for Cell {
@@ -473,6 +474,7 @@ impl Default for Cell {
             graphic: Graphic::Empty,
             foreground: Color { r: 0, g: 0, b: 0 },
             background: Color { r: 0, g: 0, b: 0 },
+            offset_px: Point::zero(),
         }
     }
 }
@@ -591,6 +593,7 @@ impl Display {
                     graphic,
                     foreground,
                     background,
+                    offset_px: Point::zero(),
                 };
             }
         }
@@ -609,6 +612,14 @@ impl Display {
         if let Some(ix) = self.index(pos) {
             if let Some(entry) = self.map.get_mut(ix) {
                 entry.background = background;
+            }
+        }
+    }
+
+    pub fn set_offset(&mut self, pos: Point, offset_px: Point) {
+        if let Some(ix) = self.index(pos) {
+            if let Some(entry) = self.map.get_mut(ix) {
+                entry.offset_px = offset_px;
             }
         }
     }
@@ -652,13 +663,15 @@ impl Display {
     }
 
     pub fn push_drawcalls(&self, visual_style: VisualStyle, drawcalls: &mut Vec<Drawcall>) {
-        let offset_px = self.offset_px;
+        let display_offset_px = self.offset_px;
         let display_size_px = self.display_size * self.tile_size;
 
         if let Some(bg) = self.clear_background_color {
             let full_screen_rect = Rectangle::from_point_and_size(Point::zero(), display_size_px);
             drawcalls.push(Drawcall::Rectangle(full_screen_rect, bg.into()));
         }
+
+        let mut deferred_drawcalls = vec![];
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
@@ -697,23 +710,43 @@ impl Display {
             );
             let background_dst = Rectangle::from_point_and_size(
                 Point::new(
-                    pos.x * self.tile_size + offset_px.x,
-                    pos.y * self.tile_size + offset_px.y,
+                    pos.x * self.tile_size + display_offset_px.x,
+                    pos.y * self.tile_size + display_offset_px.y,
                 ),
                 Point::from_i32(self.tile_size),
             );
 
+            // NOTE: Only render areas within the display size
             if rect_intersects_area(background_dst, display_size_px) {
                 drawcalls.push(Drawcall::Rectangle(background_dst, cell.background.into()));
-                drawcalls.push(Drawcall::Image(
+                let image = Drawcall::Image(
                     texture,
                     texture_src,
-                    background_dst,
+                    background_dst.offset(cell.offset_px),
                     cell.foreground,
-                ));
+                );
+                if cell.offset_px.is_zero() {
+                    drawcalls.push(image);
+                } else {
+                    // NOTE: we can't render the image now because it
+                    // would be overwritten by all the other images on the grid.
+                    //
+                    // So everything that's got an offset to it will
+                    // be deferred and only rendered after all the
+                    // grid-aligned tiles are rendered.
+                    //
+                    // This also means all the offset cells are
+                    // rendered on top of the non-offset ones.
+                    //
+                    // If there are two cells with an offset that
+                    // overlap, they will of course overlap on screen
+                    // too.
+                    deferred_drawcalls.push(image);
+                }
             }
         }
 
+        drawcalls.extend(deferred_drawcalls);
         drawcalls.extend(self.drawcalls.iter());
 
         if self.fade.alpha > 0 {

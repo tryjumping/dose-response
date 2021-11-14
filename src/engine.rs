@@ -462,18 +462,22 @@ impl Mouse {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Cell {
-    pub graphic: Graphic,
+    pub background_graphic: Graphic,
+    pub foreground_graphic: Graphic,
     pub foreground: Color,
-    pub background: Color,
+    pub empty_color: Color,
+    pub background_color: Color,
     pub offset_px: Point,
 }
 
 impl Default for Cell {
     fn default() -> Self {
         Cell {
-            graphic: Graphic::Empty,
+            background_graphic: Graphic::Empty,
+            foreground_graphic: Graphic::Empty,
             foreground: Color { r: 0, g: 0, b: 0 },
-            background: Color { r: 0, g: 0, b: 0 },
+            empty_color: Color { r: 0, g: 0, b: 0 },
+            background_color: Color { r: 0, g: 0, b: 0 },
             offset_px: Point::zero(),
         }
     }
@@ -544,16 +548,16 @@ impl Display {
         }
     }
 
-    pub fn clear(&mut self, background: Color) {
+    pub fn clear(&mut self, empty_color: Color) {
         for cell in &mut self.map {
             *cell = Cell {
-                background,
+                empty_color,
                 ..Default::default()
             };
         }
         self.drawcalls.clear();
         self.fade = color::INVISIBLE;
-        self.clear_background_color = Some(background);
+        self.clear_background_color = Some(empty_color);
     }
 
     /// This is the full display size: game plus padding.
@@ -586,32 +590,45 @@ impl Display {
         pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y
     }
 
-    pub fn set(&mut self, pos: Point, graphic: Graphic, foreground: Color, background: Color) {
+    pub fn set_cell(
+        &mut self,
+        pos: Point,
+        graphic: Graphic,
+        graphic_color: Color,
+        empty_color: Color,
+    ) {
         if let Some(ix) = self.index(pos) {
             if let Some(entry) = self.map.get_mut(ix) {
                 *entry = Cell {
-                    graphic,
-                    foreground,
-                    background,
+                    background_graphic: graphic,
+                    foreground_graphic: graphic,
+                    empty_color,
+                    foreground: graphic_color,
+                    background_color: graphic_color,
                     offset_px: Point::zero(),
                 };
             }
         }
     }
 
-    pub fn set_graphic(&mut self, pos: Point, graphic: Graphic, foreground: Color) {
+    pub fn set_foreground_graphic(
+        &mut self,
+        pos: Point,
+        foreground_graphic: Graphic,
+        foreground: Color,
+    ) {
         if let Some(ix) = self.index(pos) {
             if let Some(entry) = self.map.get_mut(ix) {
-                entry.graphic = graphic;
+                entry.foreground_graphic = foreground_graphic;
                 entry.foreground = foreground;
             }
         }
     }
 
-    pub fn set_background_color(&mut self, pos: Point, background: Color) {
+    pub fn set_empty_color(&mut self, pos: Point, empty_color: Color) {
         if let Some(ix) = self.index(pos) {
             if let Some(entry) = self.map.get_mut(ix) {
-                entry.background = background;
+                entry.empty_color = empty_color;
             }
         }
     }
@@ -645,7 +662,7 @@ impl Display {
         if let Some(ix) = self.index(pos) {
             self.map
                 .get(ix)
-                .map(|cell| cell.background)
+                .map(|cell| cell.empty_color)
                 .unwrap_or_default()
         } else {
             Default::default()
@@ -675,15 +692,17 @@ impl Display {
 
         // Render the background tiles separately and before all the other drawcalls.
         for (pos, cell) in self.cells() {
-            let (texture, texture_px_x, texture_px_y) = match visual_style {
+            let (fg_texture, fg_texture_px_x, fg_texture_px_y) = match visual_style {
                 VisualStyle::Graphical => {
-                    match graphic::tilemap_coords_px(self.tile_size as u32, cell.graphic) {
+                    // TODO: handle background graphics here too!
+                    match graphic::tilemap_coords_px(self.tile_size as u32, cell.foreground_graphic)
+                    {
                         Some((tx, ty)) => (Texture::Tilemap, tx, ty),
                         // NOTE: Fall back to glyphs if the graphic coordinates can't be provided:
                         None => {
                             let (tx, ty) = glyph_coords_px_from_char(
                                 self.tile_size as u32,
-                                cell.graphic.into(),
+                                cell.foreground_graphic.into(),
                             )
                             .unwrap_or((0, 0));
                             (Texture::Glyph, tx, ty)
@@ -691,21 +710,23 @@ impl Display {
                     }
                 }
                 VisualStyle::Textual => {
-                    let (tx, ty) =
-                        glyph_coords_px_from_char(self.tile_size as u32, cell.graphic.into())
-                            .unwrap_or((0, 0));
+                    let (tx, ty) = glyph_coords_px_from_char(
+                        self.tile_size as u32,
+                        cell.foreground_graphic.into(),
+                    )
+                    .unwrap_or((0, 0));
                     (Texture::Glyph, tx, ty)
                 }
             };
 
-            let texture_size = match texture {
+            let texture_size = match fg_texture {
                 Texture::Glyph => self.tile_size,
                 Texture::Tilemap => TILE_SIZE,
                 // NOTE: Egui shouldn't appear in drawcalls, adding it here for completeness
                 Texture::Egui => self.tile_size,
             };
-            let texture_src = Rectangle::from_point_and_size(
-                Point::new(texture_px_x, texture_px_y),
+            let fg_texture_src = Rectangle::from_point_and_size(
+                Point::new(fg_texture_px_x, fg_texture_px_y),
                 Point::from_i32(texture_size),
             );
             let background_dst = Rectangle::from_point_and_size(
@@ -716,12 +737,50 @@ impl Display {
                 Point::from_i32(self.tile_size),
             );
 
+            let (bg_texture, bg_texture_px_x, bg_texture_px_y) = match visual_style {
+                VisualStyle::Graphical => {
+                    // TODO: handle background graphics here too!
+                    match graphic::tilemap_coords_px(self.tile_size as u32, cell.background_graphic)
+                    {
+                        Some((tx, ty)) => (Texture::Tilemap, tx, ty),
+                        // NOTE: Fall back to glyphs if the graphic coordinates can't be provided:
+                        None => {
+                            let (tx, ty) = glyph_coords_px_from_char(
+                                self.tile_size as u32,
+                                cell.foreground_graphic.into(),
+                            )
+                            .unwrap_or((0, 0));
+                            (Texture::Glyph, tx, ty)
+                        }
+                    }
+                }
+                VisualStyle::Textual => {
+                    let (tx, ty) = glyph_coords_px_from_char(
+                        self.tile_size as u32,
+                        cell.foreground_graphic.into(),
+                    )
+                    .unwrap_or((0, 0));
+                    (Texture::Glyph, tx, ty)
+                }
+            };
+            let bg_texture_src = Rectangle::from_point_and_size(
+                Point::new(bg_texture_px_x, bg_texture_px_y),
+                Point::from_i32(texture_size),
+            );
+
             // NOTE: Only render areas within the display size
             if rect_intersects_area(background_dst, display_size_px) {
-                drawcalls.push(Drawcall::Rectangle(background_dst, cell.background.into()));
+                drawcalls.push(Drawcall::Rectangle(background_dst, cell.empty_color.into()));
+                let bg_image = Drawcall::Image(
+                    bg_texture,
+                    bg_texture_src,
+                    background_dst,
+                    cell.background_color,
+                );
+                drawcalls.push(bg_image);
                 let image = Drawcall::Image(
-                    texture,
-                    texture_src,
+                    fg_texture,
+                    fg_texture_src,
                     background_dst.offset(cell.offset_px),
                     cell.foreground,
                 );

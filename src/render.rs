@@ -104,14 +104,14 @@ pub fn render_game(
         }
 
         if in_fov(world_pos) || cell.always_visible || state.uncovered_map {
-            display.set(
+            display.set_cell(
                 display_pos,
                 cell.tile.graphic,
                 fg_color,
                 state.palette.explored_background,
             );
         } else if cell.explored || uncovered_map {
-            display.set(
+            display.set_cell(
                 display_pos,
                 cell.tile.graphic,
                 fg_color,
@@ -129,7 +129,11 @@ pub fn render_game(
             || uncovered_map
         {
             for item in &cell.items {
-                display.set_graphic(display_pos, item.graphic(), item.color(&state.palette));
+                display.set_foreground_graphic(
+                    display_pos,
+                    item.graphic(),
+                    item.color(&state.palette),
+                );
             }
         }
     }
@@ -154,7 +158,7 @@ pub fn render_game(
                         || (state.game_session == GameSession::Ended && state.uncovered_map)
                     {
                         let screen_coords = screen_coords_from_world(point);
-                        display.set_background_color(
+                        display.set_empty_color(
                             screen_coords,
                             state.palette.dose_irresistible_background,
                         );
@@ -166,7 +170,7 @@ pub fn render_game(
 
     if let Some(ref animation) = state.explosion_animation {
         for (world_pos, color, _) in animation.tiles() {
-            display.set_background_color(screen_coords_from_world(world_pos), color);
+            display.set_empty_color(screen_coords_from_world(world_pos), color);
         }
     }
 
@@ -214,7 +218,7 @@ pub fn render_game(
             } else {
                 monster.color(&state.palette)
             };
-            display.set_graphic(display_pos, monster.graphic(), color);
+            display.set_foreground_graphic(display_pos, monster.graphic(), color);
         }
     }
 
@@ -223,7 +227,7 @@ pub fn render_game(
         use crate::animation::MoveState;
 
         let display_pos = screen_coords_from_world(state.player.pos);
-        display.set_graphic(
+        display.set_foreground_graphic(
             display_pos,
             state.player.graphic(),
             state.player.color(&state.palette),
@@ -262,7 +266,7 @@ pub fn render_game(
         // Only highlight when we're not re-centering the
         // screen (because that looks weird)
         if state.pos_timer.finished() {
-            display.set_background_color(pos, state.player.color(&state.palette));
+            display.set_empty_color(pos, state.player.color(&state.palette));
         }
     }
 }

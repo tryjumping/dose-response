@@ -220,12 +220,40 @@ pub fn render_game(
 
     // NOTE: render the player
     {
+        use crate::animation::MoveState;
+
         let display_pos = screen_coords_from_world(state.player.pos);
         display.set_graphic(
             display_pos,
             state.player.graphic(),
             state.player.color(&state.palette),
         );
+        let anim = &state.player.motion_animation;
+        let cell_offset = anim.current_offset_px();
+
+        // NOTE: yep, this is pretty fucking ugly.
+        //
+        // Since the actual player movement is immediate but the
+        // animation takes time, there are times when the offset e.g.
+        // refers to the player's original position but the
+        // `player.pos` value is now the animation's destination.
+        //
+        // Since the offset is relative, this can cause weird jumps
+        // and rendering the player in a wrong location.
+        //
+        // This `fixup` fudges the offset to do the right thing
+        // visually.
+        //
+        // TODO: can we get rid of this hack and do it more cleanly?
+        // If the animation had an absolute value instead of a
+        // relative, this wouldn't be necessary.
+        let fixup = match (anim.state, anim.bounce) {
+            (MoveState::There, true) => Point::zero(),
+            (MoveState::Back, true) => anim.source - anim.destination,
+            (MoveState::Finished, true) => anim.source - anim.destination,
+            (_, false) => anim.source - anim.destination,
+        };
+        display.set_offset(display_pos, cell_offset + fixup);
     }
 
     // Highlight the tiles the player would walk to if clicked in the

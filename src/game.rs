@@ -540,6 +540,8 @@ fn process_game(
             state.player_path = path;
         }
 
+        state.player.motion_animation.update(dt);
+
         // NOTE: Process 1 action point of the player and then 1 AP of
         // all monsters. This means that their turns will alternate.
         // E.g. if the player has 2 APs and they're close to a
@@ -548,7 +550,7 @@ fn process_game(
 
         let player_ap = state.player.ap();
         if state.player.ap() >= 1 {
-            process_player(state, audio, simulation_area);
+            process_player(state, display, audio, simulation_area);
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
@@ -939,6 +941,7 @@ fn process_player_action<W>(
     command_logger: &mut W,
     window_stack: &mut crate::windows::Windows<Window>,
     bumped_into_a_monster: &mut bool,
+    tile_size: i32,
     palette: &Palette,
     audio: &mut Audio,
 ) where
@@ -1043,6 +1046,11 @@ fn process_player_action<W>(
                 if bumping_into_monster {
                     player.spend_ap(1);
                     // info!("Player attacks {:?}", monster);
+                    player.motion_animation = animation::Move::bounce(
+                        player.pos * (tile_size / 2),
+                        dest * (tile_size / 2),
+                        Duration::from_millis(100),
+                    );
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
                             monster::Kind::Anxiety => {
@@ -1116,6 +1124,11 @@ fn process_player_action<W>(
                     }
                 } else if dest_walkable {
                     player.spend_ap(1);
+                    player.motion_animation = animation::Move::ease(
+                        player.pos * tile_size,
+                        dest * tile_size,
+                        Duration::from_millis(100),
+                    );
                     player.move_to(dest);
                     audio.mix_sound_effect(Effect::Walk, Duration::from_millis(0));
                     while let Some(item) = world.pickup_item(dest) {
@@ -1216,7 +1229,12 @@ fn process_player_action<W>(
     }
 }
 
-fn process_player(state: &mut State, audio: &mut Audio, simulation_area: Rectangle) {
+fn process_player(
+    state: &mut State,
+    display: &Display,
+    audio: &mut Audio,
+    simulation_area: Rectangle,
+) {
     {
         // appease borrowck
         let player = &mut state.player;
@@ -1295,6 +1313,7 @@ fn process_player(state: &mut State, audio: &mut Audio, simulation_area: Rectang
         &mut state.command_logger,
         &mut state.window_stack,
         &mut state.player_bumped_into_a_monster,
+        display.tile_size,
         &state.palette,
         audio,
     );

@@ -1,4 +1,5 @@
 use crate::{
+    animation,
     color::Color,
     formula::{self, ANXIETIES_PER_WILL, WILL, WITHDRAWAL},
     graphic::Graphic,
@@ -108,6 +109,7 @@ pub struct Player {
     pub stun: Ranged,
 
     pub pos: Point,
+    pub motion_animation: animation::Move,
     pub color_index: usize,
     pub graphic: Graphic,
     pub inventory: Vec<Item>,

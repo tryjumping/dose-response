@@ -1,4 +1,5 @@
 use crate::{
+    animation::{self, MoveState},
     color,
     engine::{Display, TextMetrics},
     formula, graphics, monster,
@@ -8,6 +9,40 @@ use crate::{
     state::{GameSession, State},
     world::Chunk,
 };
+
+pub fn render_move_animation(
+    animation: &animation::Move,
+    display_pos: Point,
+    display: &mut Display,
+) {
+    let cell_offset = animation.current_offset_px();
+
+    // NOTE: yep, this is pretty fucking ugly.
+    //
+    // Since the actual player movement is immediate but the
+    // animation takes time, there are times when the offset e.g.
+    // refers to the player's original position but the
+    // `player.pos` value is now the animation's destination.
+    //
+    // Since the offset is relative, this can cause weird jumps
+    // and rendering the player in a wrong location.
+    //
+    // This `fixup` fudges the offset to do the right thing
+    // visually.
+    //
+    // TODO: can we get rid of this hack and do it more cleanly?
+    // If the animation had an absolute value instead of a
+    // relative, this wouldn't be necessary.
+    let fixup = match (animation.state, animation.bounce) {
+        (MoveState::There, true) => Point::zero(),
+        (MoveState::Back, true) => animation.source - animation.destination,
+        (MoveState::Finished, true) => animation.source - animation.destination,
+        (_, false) => animation.source - animation.destination,
+    };
+    if !animation.finished() {
+        display.set_offset(display_pos, cell_offset + fixup);
+    }
+}
 
 pub fn render_game(
     state: &State,
@@ -219,45 +254,21 @@ pub fn render_game(
                 monster.color(&state.palette)
             };
             display.set_foreground_graphic(display_pos, monster.graphic(), color);
+
+            render_move_animation(&monster.motion_animation, display_pos, display);
         }
     }
 
     // NOTE: render the player
     {
-        use crate::animation::MoveState;
-
         let display_pos = screen_coords_from_world(state.player.pos);
         display.set_foreground_graphic(
             display_pos,
             state.player.graphic(),
             state.player.color(&state.palette),
         );
-        let anim = &state.player.motion_animation;
-        let cell_offset = anim.current_offset_px();
 
-        // NOTE: yep, this is pretty fucking ugly.
-        //
-        // Since the actual player movement is immediate but the
-        // animation takes time, there are times when the offset e.g.
-        // refers to the player's original position but the
-        // `player.pos` value is now the animation's destination.
-        //
-        // Since the offset is relative, this can cause weird jumps
-        // and rendering the player in a wrong location.
-        //
-        // This `fixup` fudges the offset to do the right thing
-        // visually.
-        //
-        // TODO: can we get rid of this hack and do it more cleanly?
-        // If the animation had an absolute value instead of a
-        // relative, this wouldn't be necessary.
-        let fixup = match (anim.state, anim.bounce) {
-            (MoveState::There, true) => Point::zero(),
-            (MoveState::Back, true) => anim.source - anim.destination,
-            (MoveState::Finished, true) => anim.source - anim.destination,
-            (_, false) => anim.source - anim.destination,
-        };
-        display.set_offset(display_pos, cell_offset + fixup);
+        render_move_animation(&state.player.motion_animation, display_pos, display);
     }
 
     // Highlight the tiles the player would walk to if clicked in the

@@ -2,6 +2,7 @@ use self::Kind::*;
 
 use crate::{
     ai::{self, AIState, Behavior, Update},
+    animation,
     blocker::Blocker,
     color::Color,
     formula,
@@ -25,6 +26,7 @@ pub struct Monster {
     pub kind: Kind,
     /// The *world position* of the monster
     pub position: Point,
+    pub motion_animation: animation::Move,
     pub dead: bool,
     pub npc_color_index: usize,
     pub die_after_attack: bool,
@@ -137,6 +139,7 @@ impl Monster {
         Monster {
             kind,
             position,
+            motion_animation: animation::Move::none(),
             dead: false,
             npc_color_index: 0,
             die_after_attack,

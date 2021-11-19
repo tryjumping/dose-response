@@ -541,6 +541,9 @@ fn process_game(
         }
 
         state.player.motion_animation.update(dt);
+        for monster in state.world.monsters_mut(simulation_area) {
+            monster.motion_animation.update(dt);
+        }
 
         // NOTE: Process 1 action point of the player and then 1 AP of
         // all monsters. This means that their turns will alternate.
@@ -561,6 +564,7 @@ fn process_game(
                     &mut state.world,
                     &mut state.player,
                     simulation_area,
+                    display.tile_size,
                     &mut state.rng,
                     audio,
                 );
@@ -809,6 +813,7 @@ fn process_monsters(
     world: &mut World,
     player: &mut player::Player,
     area: Rectangle,
+    tile_size: i32,
     rng: &mut Random,
     audio: &mut Audio,
 ) {
@@ -852,7 +857,7 @@ fn process_monsters(
                 action
             };
 
-            match action {
+            let (animated_monster_position, animation) = match action {
                 Action::Move(destination) => {
                     assert_eq!(monster_position, monster_readonly.position);
 
@@ -910,6 +915,14 @@ fn process_monsters(
                             monster.trail = Some(newpos);
                         }
                     }
+
+                    let anim = animation::Move::ease(
+                        pos * tile_size,
+                        newpos * tile_size,
+                        formula::ANIMATION_MOVE_DURATION,
+                    );
+                    assert_eq!(anim.finished(), false);
+                    (newpos, anim)
                 }
 
                 Action::Attack(target_pos, damage) => {
@@ -923,9 +936,23 @@ fn process_monsters(
                         // The player's dead, no need to process other monsters
                         return;
                     }
+
+                    let anim = animation::Move::bounce(
+                        monster_readonly.position * (tile_size / 3),
+                        target_pos * (tile_size / 3),
+                        formula::ANIMATION_ATTACK_DURATION,
+                    );
+                    (monster_readonly.position, anim)
                 }
 
-                Action::Use(_) => unreachable!(),
+                Action::Use(_) => {
+                    log::error!("Trying to run the Use action on a monster. That's not defined!");
+                    (monster_readonly.position, animation::Move::none())
+                }
+            };
+
+            if let Some(monster) = world.monster_on_pos(animated_monster_position) {
+                monster.motion_animation = animation;
             }
         }
     }

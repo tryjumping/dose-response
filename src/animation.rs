@@ -389,14 +389,14 @@ impl ScreenFade {
     }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum MoveState {
     There,
     Back,
     Finished,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Move {
     pub source: Point,
     pub destination: Point,
@@ -459,6 +459,10 @@ impl Move {
             x: ((self.destination.x as f32 - self.source.x as f32) * percentage).round() as i32,
             y: ((self.destination.y as f32 - self.source.y as f32) * percentage).round() as i32,
         }
+    }
+
+    pub fn finished(&self) -> bool {
+        self.state == MoveState::Finished
     }
 }
 

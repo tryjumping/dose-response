@@ -1049,7 +1049,7 @@ fn process_player_action<W>(
                     player.motion_animation = animation::Move::bounce(
                         player.pos * (tile_size / 3),
                         dest * (tile_size / 3),
-                        Duration::from_millis(75),
+                        formula::ANIMATION_ATTACK_DURATION,
                     );
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
@@ -1127,7 +1127,7 @@ fn process_player_action<W>(
                     player.motion_animation = animation::Move::ease(
                         player.pos * tile_size,
                         dest * tile_size,
-                        Duration::from_millis(100),
+                        formula::ANIMATION_MOVE_DURATION,
                     );
                     player.move_to(dest);
                     audio.mix_sound_effect(Effect::Walk, Duration::from_millis(0));

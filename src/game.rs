@@ -938,6 +938,7 @@ fn process_monsters(
                 Action::Attack(target_pos, damage) => {
                     assert_eq!(target_pos, player.pos);
                     player.take_effect(damage);
+                    audio.mix_sound_effect(Effect::PlayerHit, Duration::from_millis(0));
                     if monster_readonly.die_after_attack {
                         kill_monster(monster_readonly.position, world, audio);
                     }

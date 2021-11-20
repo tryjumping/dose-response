@@ -541,6 +541,9 @@ fn process_game(
         }
 
         state.player.motion_animation.update(dt);
+        for monster in state.world.monsters_mut(simulation_area) {
+            monster.motion_animation.update(dt);
+        }
 
         // NOTE: Process 1 action point of the player and then 1 AP of
         // all monsters. This means that their turns will alternate.
@@ -561,6 +564,7 @@ fn process_game(
                     &mut state.world,
                     &mut state.player,
                     simulation_area,
+                    display.tile_size,
                     &mut state.rng,
                     audio,
                 );
@@ -809,6 +813,7 @@ fn process_monsters(
     world: &mut World,
     player: &mut player::Player,
     area: Rectangle,
+    tile_size: i32,
     rng: &mut Random,
     audio: &mut Audio,
 ) {
@@ -837,6 +842,16 @@ fn process_monsters(
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
 
     while let Some((_, monster_position)) = monster_positions_to_process.pop_front() {
+        if !player.alive() {
+            // Don't process any new monsters if the player's alive
+            // because we want the game to stop and freeze at that
+            // time.
+            //
+            // But we still want all the effects (e.g. attack
+            // animatino) that started to finish so we don't want to
+            // quit the loop as soon as the player dies.
+            continue;
+        }
         if let Some(monster_readonly) = world.monster_on_pos(monster_position).cloned() {
             let action = {
                 let (update, action) = monster_readonly.act(player.info(), world, rng);
@@ -852,7 +867,7 @@ fn process_monsters(
                 action
             };
 
-            match action {
+            let (animated_monster_position, animation) = match action {
                 Action::Move(destination) => {
                     assert_eq!(monster_position, monster_readonly.position);
 
@@ -910,22 +925,44 @@ fn process_monsters(
                             monster.trail = Some(newpos);
                         }
                     }
+
+                    let anim = animation::Move::ease(
+                        pos * tile_size,
+                        newpos * tile_size,
+                        formula::ANIMATION_MOVE_DURATION,
+                    );
+                    assert_eq!(anim.finished(), false);
+                    (newpos, anim)
                 }
 
                 Action::Attack(target_pos, damage) => {
                     assert_eq!(target_pos, player.pos);
                     player.take_effect(damage);
+                    audio.mix_sound_effect(Effect::PlayerHit, Duration::from_millis(0));
                     if monster_readonly.die_after_attack {
                         kill_monster(monster_readonly.position, world, audio);
                     }
                     if !player.alive() {
-                        player.perpetrator = Some(monster_readonly);
-                        // The player's dead, no need to process other monsters
-                        return;
+                        // NOTE: this monster killed the player, set the perpetrator.
+                        player.perpetrator = Some(monster_readonly.clone());
                     }
+
+                    let anim = animation::Move::bounce(
+                        monster_readonly.position * (tile_size / 3),
+                        target_pos * (tile_size / 3),
+                        formula::ANIMATION_ATTACK_DURATION,
+                    );
+                    (monster_readonly.position, anim)
                 }
 
-                Action::Use(_) => unreachable!(),
+                Action::Use(_) => {
+                    log::error!("Trying to run the Use action on a monster. That's not defined!");
+                    (monster_readonly.position, animation::Move::none())
+                }
+            };
+
+            if let Some(monster) = world.monster_on_pos(animated_monster_position) {
+                monster.motion_animation = animation;
             }
         }
     }
@@ -1049,7 +1086,7 @@ fn process_player_action<W>(
                     player.motion_animation = animation::Move::bounce(
                         player.pos * (tile_size / 3),
                         dest * (tile_size / 3),
-                        Duration::from_millis(75),
+                        formula::ANIMATION_ATTACK_DURATION,
                     );
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
@@ -1127,7 +1164,7 @@ fn process_player_action<W>(
                     player.motion_animation = animation::Move::ease(
                         player.pos * tile_size,
                         dest * tile_size,
-                        Duration::from_millis(100),
+                        formula::ANIMATION_MOVE_DURATION,
                     );
                     player.move_to(dest);
                     audio.mix_sound_effect(Effect::Walk, Duration::from_millis(0));

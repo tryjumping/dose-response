@@ -57,6 +57,8 @@ impl Audio {
 
         let explosion = load_sound(&include_bytes!("../assets/sound/explosion.ogg")[..]);
 
+        let player_hit = load_sound(&include_bytes!("../assets/sound/player-hit.ogg")[..]);
+
         let game_over = load_sound(&include_bytes!("../assets/sound/game-over.ogg")[..]);
 
         let click = load_sound(&include_bytes!("../assets/sound/click.ogg")[..]);
@@ -86,6 +88,7 @@ impl Audio {
                 monster_hit,
                 monster_moved,
                 explosion,
+                player_hit,
                 game_over,
                 click,
             },
@@ -114,6 +117,7 @@ impl Audio {
             MonsterHit => self.effects.monster_hit.clone(),
             MonsterMoved => self.effects.monster_moved.clone(),
             Explosion => self.effects.explosion.clone(),
+            PlayerHit => self.effects.player_hit.clone(),
             GameOver => self.effects.game_over.clone(),
             Click => self.effects.click.clone(),
         }
@@ -185,6 +189,7 @@ pub struct EffectSounds {
     pub monster_hit: Sound,
     pub monster_moved: Sound,
     pub explosion: Sound,
+    pub player_hit: Sound,
     pub game_over: Sound,
     pub click: Sound,
 }
@@ -195,6 +200,7 @@ pub enum Effect {
     MonsterHit,
     MonsterMoved,
     Explosion,
+    PlayerHit,
     GameOver,
     Click,
 }

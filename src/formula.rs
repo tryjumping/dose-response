@@ -133,6 +133,9 @@ pub const PATHFINDING_VNPC_REACHABILITY_LIMIT: i32 = 500;
 
 pub const PLAYER_PATH_WALKING_DELAY: Duration = Duration::from_millis(300);
 
+pub const ANIMATION_ATTACK_DURATION: Duration = Duration::from_millis(75);
+pub const ANIMATION_MOVE_DURATION: Duration = Duration::from_millis(100);
+
 pub fn exploration_radius(mental_state: Mind) -> i32 {
     use crate::player::Mind::*;
     match mental_state {

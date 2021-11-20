@@ -842,6 +842,16 @@ fn process_monsters(
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
 
     while let Some((_, monster_position)) = monster_positions_to_process.pop_front() {
+        if !player.alive() {
+            // Don't process any new monsters if the player's alive
+            // because we want the game to stop and freeze at that
+            // time.
+            //
+            // But we still want all the effects (e.g. attack
+            // animatino) that started to finish so we don't want to
+            // quit the loop as soon as the player dies.
+            continue;
+        }
         if let Some(monster_readonly) = world.monster_on_pos(monster_position).cloned() {
             let action = {
                 let (update, action) = monster_readonly.act(player.info(), world, rng);
@@ -932,9 +942,8 @@ fn process_monsters(
                         kill_monster(monster_readonly.position, world, audio);
                     }
                     if !player.alive() {
-                        player.perpetrator = Some(monster_readonly);
-                        // The player's dead, no need to process other monsters
-                        return;
+                        // NOTE: this monster killed the player, set the perpetrator.
+                        player.perpetrator = Some(monster_readonly.clone());
                     }
 
                     let anim = animation::Move::bounce(

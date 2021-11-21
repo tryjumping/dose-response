@@ -483,6 +483,14 @@ impl Default for Cell {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct OffsetTile {
+    pub pos: Point,
+    pub graphic: Graphic,
+    pub color: Color,
+    pub offset_px: Point,
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum DrawResult {
     Fit,
@@ -501,6 +509,7 @@ pub struct Display {
     /// This is the padding that makes the game fit a display of a different ratio
     padding: Point,
     map: Vec<Cell>,
+    pub offset_tiles: Vec<OffsetTile>,
     drawcalls: Vec<Drawcall>,
     pub fade: ColorAlpha,
     clear_background_color: Option<Color>,
@@ -542,6 +551,7 @@ impl Display {
             tile_size,
             text_size,
             map: vec![Default::default(); (size.x * size.y) as usize],
+            offset_tiles: vec![],
             drawcalls: Vec::with_capacity(DRAWCALL_CAPACITY),
             fade: color::INVISIBLE,
             ..Default::default()
@@ -558,6 +568,7 @@ impl Display {
         self.drawcalls.clear();
         self.fade = color::INVISIBLE;
         self.clear_background_color = Some(empty_color);
+        self.offset_tiles.clear();
     }
 
     /// This is the full display size: game plus padding.
@@ -803,6 +814,57 @@ impl Display {
                     deferred_drawcalls.push(image);
                 }
             }
+        }
+
+        for tile in &self.offset_tiles {
+            let (texture, texture_px_x, texture_px_y) = match visual_style {
+                VisualStyle::Graphical => {
+                    // TODO: handle background graphics here too!
+                    match graphic::tilemap_coords_px(self.tile_size as u32, tile.graphic) {
+                        Some((tx, ty)) => (Texture::Tilemap, tx, ty),
+                        // NOTE: Fall back to glyphs if the graphic coordinates can't be provided:
+                        None => {
+                            let (tx, ty) = glyph_coords_px_from_char(
+                                self.tile_size as u32,
+                                tile.graphic.into(),
+                            )
+                            .unwrap_or((0, 0));
+                            (Texture::Glyph, tx, ty)
+                        }
+                    }
+                }
+                VisualStyle::Textual => {
+                    let (tx, ty) =
+                        glyph_coords_px_from_char(self.tile_size as u32, tile.graphic.into())
+                            .unwrap_or((0, 0));
+                    (Texture::Glyph, tx, ty)
+                }
+            };
+
+            let texture_size = match texture {
+                Texture::Glyph => self.tile_size,
+                Texture::Tilemap => TILE_SIZE,
+                // NOTE: Egui shouldn't appear in drawcalls, adding it here for completeness
+                Texture::Egui => self.tile_size,
+            };
+            let texture_src = Rectangle::from_point_and_size(
+                Point::new(texture_px_x, texture_px_y),
+                Point::from_i32(texture_size),
+            );
+            let background_dst = Rectangle::from_point_and_size(
+                Point::new(
+                    tile.pos.x * self.tile_size + display_offset_px.x,
+                    tile.pos.y * self.tile_size + display_offset_px.y,
+                ),
+                Point::from_i32(self.tile_size),
+            );
+            let image = Drawcall::Image(
+                texture,
+                texture_src,
+                background_dst.offset(tile.offset_px),
+                tile.color,
+            );
+            drawcalls.push(image);
         }
 
         drawcalls.extend(deferred_drawcalls);

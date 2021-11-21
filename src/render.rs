@@ -1,7 +1,7 @@
 use crate::{
     animation::{self, MoveState},
     color,
-    engine::{Display, TextMetrics},
+    engine::{Display, OffsetTile, TextMetrics},
     formula, graphics, monster,
     player::Bonus,
     point::{Point, SquareArea},
@@ -256,6 +256,19 @@ pub fn render_game(
             display.set_foreground_graphic(display_pos, monster.graphic(), color);
 
             render_move_animation(&monster.motion_animation, display_pos, display);
+        }
+    }
+
+    // NOTE: Render the extra animations
+    {
+        for animation in &state.extra_animations {
+            let tile = OffsetTile {
+                pos: screen_coords_from_world(animation.pos),
+                graphic: animation.graphic,
+                color: animation.color,
+                offset_px: animation.animation.current_offset_px(),
+            };
+            display.offset_tiles.push(tile);
         }
     }
 

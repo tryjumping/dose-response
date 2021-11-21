@@ -1,5 +1,6 @@
 use crate::{
-    animation::{AreaOfEffect, ScreenFade},
+    animation::{self, AreaOfEffect, ScreenFade},
+    color::Color,
     engine::Mouse,
     formula,
     graphic::Graphic,
@@ -127,6 +128,8 @@ pub struct State {
     pub player: Player,
     #[serde(skip_serializing, skip_deserializing)]
     pub explosion_animation: Option<Box<dyn AreaOfEffect>>,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub extra_animations: Vec<MotionAnimation>,
 
     /// The actual size of the game world in tiles. Could be infinite
     /// but we're limiting it for performance reasons for now.
@@ -246,6 +249,7 @@ impl State {
         State {
             player,
             explosion_animation: None,
+            extra_animations: vec![],
             world_size,
             world,
             map_size,
@@ -551,6 +555,14 @@ Reason: '{}'.",
     pub fn mouse_world_position(&self) -> Point {
         self.screen_left_top_corner() + self.mouse.tile_pos
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct MotionAnimation {
+    pub pos: Point,
+    pub graphic: Graphic,
+    pub color: Color,
+    pub animation: animation::Move,
 }
 
 /// The various challenges that the player can take. Persisted via

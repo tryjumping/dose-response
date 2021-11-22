@@ -464,6 +464,10 @@ impl Move {
     pub fn finished(&self) -> bool {
         self.state == MoveState::Finished
     }
+
+    pub fn in_progress(&self) -> bool {
+        !self.finished()
+    }
 }
 
 impl Default for Move {

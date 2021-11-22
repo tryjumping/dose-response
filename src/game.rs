@@ -811,13 +811,7 @@ fn process_game(
     }
 
     // NOTE: Remove any animations that are already finished.
-    state.extra_animations = state
-        .extra_animations
-        .iter()
-        .filter(|a| !a.animation.finished())
-        .cloned()
-        .collect();
-
+    state.extra_animations.retain(|a| a.animation.in_progress());
     RunningState::Running
 }
 

@@ -253,6 +253,7 @@ pub fn render_game(
             } else {
                 monster.color(&state.palette)
             };
+            display.push_fg_to_bg(display_pos);
             display.set_foreground_graphic(display_pos, monster.graphic(), color);
 
             render_move_animation(&monster.motion_animation, display_pos, display);
@@ -275,6 +276,7 @@ pub fn render_game(
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
+        display.push_fg_to_bg(display_pos);
         display.set_foreground_graphic(
             display_pos,
             state.player.graphic(),

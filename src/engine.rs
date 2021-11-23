@@ -652,6 +652,15 @@ impl Display {
         }
     }
 
+    pub fn push_fg_to_bg(&mut self, pos: Point) {
+        if let Some(ix) = self.index(pos) {
+            if let Some(cell) = self.map.get_mut(ix) {
+                cell.background_graphic = cell.foreground_graphic;
+                cell.background_color = cell.foreground;
+            }
+        }
+    }
+
     /// Set the value (RGBA) to fade the screen with.
     /// Unlike alpha, the `fade` argument is inverted: 1.0 means no fade, 0.0 means fully faded.
     pub fn set_fade(&mut self, color: Color, fade: f32) {

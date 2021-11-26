@@ -20,7 +20,7 @@ use crate::{
     rect::Rectangle,
     render,
     settings::{Settings, Store as SettingsStore},
-    state::{self, Challenge, Command, GameSession, Side, State},
+    state::{self, Challenge, Command, GameSession, MotionAnimation, Side, State},
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
     ui, util,
@@ -543,6 +543,9 @@ fn process_game(
         for monster in state.world.monsters_mut(simulation_area) {
             monster.motion_animation.update(dt);
         }
+        for motion_animation in &mut state.extra_animations {
+            motion_animation.animation.update(dt);
+        }
 
         // NOTE: Process 1 action point of the player and then 1 AP of
         // all monsters. This means that their turns will alternate.
@@ -566,6 +569,8 @@ fn process_game(
                     display.tile_size,
                     &mut state.rng,
                     audio,
+                    &state.palette,
+                    &mut state.extra_animations,
                 );
             } else {
                 log::debug!("Monsters waiting for player.");
@@ -805,6 +810,8 @@ fn process_game(
         }
     }
 
+    // NOTE: Remove any animations that are already finished.
+    state.extra_animations.retain(|a| a.animation.in_progress());
     RunningState::Running
 }
 
@@ -815,6 +822,8 @@ fn process_monsters(
     tile_size: i32,
     rng: &mut Random,
     audio: &mut Audio,
+    palette: &Palette,
+    extra_animations: &mut Vec<MotionAnimation>,
 ) {
     if !player.alive() {
         return;
@@ -938,19 +947,27 @@ fn process_monsters(
                     assert_eq!(target_pos, player.pos);
                     player.take_effect(damage);
                     audio.mix_sound_effect(Effect::PlayerHit, Duration::from_millis(0));
-                    if monster_readonly.die_after_attack {
-                        kill_monster(monster_readonly.position, world, audio);
-                    }
-                    if !player.alive() {
-                        // NOTE: this monster killed the player, set the perpetrator.
-                        player.perpetrator = Some(monster_readonly.clone());
-                    }
 
                     let anim = animation::Move::bounce(
                         monster_readonly.position * (tile_size / 3),
                         target_pos * (tile_size / 3),
                         formula::ANIMATION_ATTACK_DURATION,
                     );
+
+                    if monster_readonly.die_after_attack {
+                        kill_monster(monster_readonly.position, world, audio);
+                        extra_animations.push(MotionAnimation {
+                            pos: monster_readonly.position,
+                            graphic: monster_readonly.graphic(),
+                            color: monster_readonly.color(palette),
+                            animation: anim.clone(),
+                        });
+                    }
+                    if !player.alive() {
+                        // NOTE: this monster killed the player, set the perpetrator.
+                        player.perpetrator = Some(monster_readonly.clone());
+                    }
+
                     (monster_readonly.position, anim)
                 }
 

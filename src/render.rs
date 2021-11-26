@@ -1,12 +1,13 @@
 use crate::{
     animation::{self, MoveState},
     color,
-    engine::{Display, TextMetrics},
+    engine::{Display, OffsetTile, TextMetrics},
     formula, graphics, monster,
     player::Bonus,
     point::{Point, SquareArea},
     rect::Rectangle,
     state::{GameSession, State},
+    util,
     world::Chunk,
 };
 
@@ -164,11 +165,20 @@ pub fn render_game(
             || uncovered_map
         {
             for item in &cell.items {
-                display.set_foreground_graphic(
-                    display_pos,
-                    item.graphic(),
-                    item.color(&state.palette),
-                );
+                let item_default_color = item.color(&state.palette);
+                let fade_progress = {
+                    // Colour fade period duration in milliseconds (without the bounce back)
+                    let p = 1000.0 * 1.5;
+                    let progress = (((total_time_ms as f32 % (2.0 * p)) - p) / p).abs();
+                    util::sine_curve(progress)
+                };
+                let faded_color = if item.is_dose() {
+                    state.player.color(&state.palette)
+                } else {
+                    item_default_color
+                };
+                let color = graphics::fade_color(faded_color, item_default_color, fade_progress);
+                display.set_foreground_graphic(display_pos, item.graphic(), color);
             }
         }
     }
@@ -253,15 +263,30 @@ pub fn render_game(
             } else {
                 monster.color(&state.palette)
             };
+            display.push_fg_to_bg(display_pos);
             display.set_foreground_graphic(display_pos, monster.graphic(), color);
 
             render_move_animation(&monster.motion_animation, display_pos, display);
         }
     }
 
+    // NOTE: Render the extra animations
+    {
+        for animation in &state.extra_animations {
+            let tile = OffsetTile {
+                pos: screen_coords_from_world(animation.pos),
+                graphic: animation.graphic,
+                color: animation.color,
+                offset_px: animation.animation.current_offset_px(),
+            };
+            display.offset_tiles.push(tile);
+        }
+    }
+
     // NOTE: render the player
     {
         let display_pos = screen_coords_from_world(state.player.pos);
+        display.push_fg_to_bg(display_pos);
         display.set_foreground_graphic(
             display_pos,
             state.player.graphic(),

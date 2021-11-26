@@ -7,6 +7,7 @@ use crate::{
     point::{Point, SquareArea},
     rect::Rectangle,
     state::{GameSession, State},
+    util,
     world::Chunk,
 };
 
@@ -164,11 +165,20 @@ pub fn render_game(
             || uncovered_map
         {
             for item in &cell.items {
-                display.set_foreground_graphic(
-                    display_pos,
-                    item.graphic(),
-                    item.color(&state.palette),
-                );
+                let item_default_color = item.color(&state.palette);
+                let fade_progress = {
+                    // Colour fade period duration in milliseconds (without the bounce back)
+                    let p = 1000.0 * 1.5;
+                    let progress = (((total_time_ms as f32 % (2.0 * p)) - p) / p).abs();
+                    util::sine_curve(progress)
+                };
+                let faded_color = if item.is_dose() {
+                    state.player.color(&state.palette)
+                } else {
+                    item_default_color
+                };
+                let color = graphics::fade_color(faded_color, item_default_color, fade_progress);
+                display.set_foreground_graphic(display_pos, item.graphic(), color);
             }
         }
     }

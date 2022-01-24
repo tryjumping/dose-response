@@ -139,19 +139,27 @@ impl OpenGlApp {
             // Fail on error
             if status != i32::from(gl::TRUE) {
                 let mut len = 0;
+                // NOTE: `GetShaderiv` returns the length of the C-string:
+                // https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetShaderiv.xml
+                // In other words, number of bytes plus 1 for the trailing zero.
                 gl::GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut len);
-                let mut buf = Vec::with_capacity(len as usize);
-                buf.set_len((len as usize) - 1); // subtract 1 to skip the trailing null character
+                let mut buf: Vec<u8> = vec![0; len as usize];
                 gl::GetShaderInfoLog(
                     shader,
                     len,
                     ptr::null_mut(),
                     buf.as_mut_ptr() as *mut GLchar,
                 );
+                // NOTE: subtract 1 to skip the trailing null character from the buffer:
+                buf.set_len((len as usize) - 1);
+                // NOTE: from_utf8_lossy handles null bytes no problem.
+                // It just skips them in the final representation.
+                // That said, I'd like the buffer to
                 log::error!(
                     "Error compling shader with GetShaderInfoLog: {}",
                     String::from_utf8_lossy(&buf)
                 );
+                log::error!("Shader source:\n{}", src);
             }
             shader
         }
@@ -170,15 +178,16 @@ impl OpenGlApp {
             // Fail on error
             if status != i32::from(gl::TRUE) {
                 let mut len: GLint = 0;
+                // NOTE: See `compile_shader` for buf/len semantics and safety notes.
                 gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut len);
-                let mut buf = Vec::with_capacity(len as usize);
-                buf.set_len((len as usize) - 1); // subtract 1 to skip the trailing null character
+                let mut buf: Vec<u8> = vec![0; len as usize];
                 gl::GetProgramInfoLog(
                     program,
                     len,
                     ptr::null_mut(),
                     buf.as_mut_ptr() as *mut GLchar,
                 );
+                buf.set_len((len as usize) - 1);
                 log::error!(
                     "Error linking program with GetProgramInfoLog: {}",
                     String::from_utf8_lossy(&buf)

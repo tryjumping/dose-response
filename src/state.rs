@@ -373,11 +373,10 @@ Reason: '{}'.",
             use std::io::{BufRead, BufReader};
             let mut commands = VecDeque::new();
             let mut verifications = VecDeque::new();
-            let seed: u32;
             let file = File::open(replay_path)?;
             let mut lines = BufReader::new(file).lines();
-            match lines.next() {
-                Some(seed_str) => seed = seed_str?.parse()?,
+            let seed: u32 = match lines.next() {
+                Some(seed_str) => seed_str?.parse()?,
                 None => throw!("The replay file is empty."),
             };
 

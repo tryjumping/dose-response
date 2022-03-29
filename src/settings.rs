@@ -212,12 +212,12 @@ impl Settings {
 
         out.push_str(&format!("{} = \"{}\"\n", PERMADEATH, self.permadeath));
 
-        out.push_str(&"# Options: <0.0, 1.0>\n".to_string());
+        out.push_str("# Options: <0.0, 1.0>\n");
         out.push_str(&format!(
             "{} = \"{}\"\n",
             BACKGROUND_VOLUME, self.background_volume
         ));
-        out.push_str(&"# Options: <0.0, 1.0>\n".to_string());
+        out.push_str("# Options: <0.0, 1.0>\n");
         out.push_str(&format!("{} = \"{}\"\n", SOUND_VOLUME, self.sound_volume));
 
         out.push_str(&format!(

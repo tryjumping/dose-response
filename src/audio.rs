@@ -67,6 +67,7 @@ impl Audio {
             backgrounds: BackgroundSounds {
                 // Credits: Exit Exit by P C III (CC-BY)
                 // https://freemusicarchive.org/music/P_C_III
+                // https://soundcloud.com/pipe-choir-2/exit-exit
                 exit_exit: load_sound(
                     &include_bytes!("../assets/music/P C III - Exit Exit.ogg")[..],
                 ),

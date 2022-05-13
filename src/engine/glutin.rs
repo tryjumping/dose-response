@@ -127,7 +127,7 @@ fn get_current_monitor(monitors: &[MonitorHandle], window_pos: Point) -> Option<
         }
     }
 
-    monitors.iter().cloned().next()
+    monitors.iter().next().cloned()
 }
 
 #[allow(unsafe_code)]

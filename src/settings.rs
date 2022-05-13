@@ -369,20 +369,28 @@ impl Store for FileSystemStore {
             ),
         }
 
-        match self.toml[TILE_SIZE].as_integer() {
-            Some(tile_size) => {
-                let tile_size = tile_size as i32;
-                if crate::engine::AVAILABLE_TILE_SIZES.contains(&tile_size) {
-                    settings.tile_size = tile_size;
-                } else {
-                    log::error!("Settings: unsupported `{}`: {}", TILE_SIZE, tile_size);
-                    log::info!(
-                        "Available tile sizes: {:?}",
-                        crate::engine::AVAILABLE_TILE_SIZES
-                    );
+        if cfg!(feature = "recording") {
+            // Select the largest tile for the recording sessions.
+            settings.tile_size = crate::engine::AVAILABLE_TILE_SIZES
+                .first()
+                .copied()
+                .unwrap_or_else(|| Settings::default().tile_size);
+        } else {
+            match self.toml[TILE_SIZE].as_integer() {
+                Some(tile_size) => {
+                    let tile_size = tile_size as i32;
+                    if crate::engine::AVAILABLE_TILE_SIZES.contains(&tile_size) {
+                        settings.tile_size = tile_size;
+                    } else {
+                        log::error!("Settings: unsupported `{}`: {}", TILE_SIZE, tile_size);
+                        log::info!(
+                            "Available tile sizes: {:?}",
+                            crate::engine::AVAILABLE_TILE_SIZES
+                        );
+                    }
                 }
+                None => log::error!("Settings: missing `{}` entry.", TILE_SIZE),
             }
-            None => log::error!("Settings: missing `{}` entry.", TILE_SIZE),
         }
 
         match self.toml[TEXT_SIZE].as_integer() {

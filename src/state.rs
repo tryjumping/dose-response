@@ -66,9 +66,6 @@ impl GameSession {
     }
 }
 
-// TODO: rename this to Input or something like that. This represents the raw
-// commands from the player or AI abstracted from keyboard, joystick or
-// whatever. But they shouldn't carry any context or data.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Command {
     N,
@@ -89,6 +86,21 @@ pub enum Command {
         title: String,
         message: String,
     },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Input {
+    pub command: Command,
+    pub frame_id: Option<i32>,
+}
+
+impl From<Command> for Input {
+    fn from(command: Command) -> Self {
+        Self {
+            command,
+            frame_id: None,
+        }
+    }
 }
 
 pub fn generate_replay_path() -> Option<PathBuf> {
@@ -149,7 +161,7 @@ pub struct State {
     pub rng: Random,
     pub keys: Keys,
     pub mouse: Mouse,
-    pub commands: VecDeque<Command>,
+    pub inputs: VecDeque<Input>,
     pub player_path: Path,
     #[serde(skip_serializing, skip_deserializing)]
     pub verifications: VecDeque<Verification>,
@@ -207,7 +219,7 @@ impl State {
         world_size: Point,
         map_size: Point,
         panel_width: i32,
-        commands: VecDeque<Command>,
+        inputs: VecDeque<Input>,
         verifications: VecDeque<Verification>,
         log_writer: W,
         seed: u32,
@@ -259,7 +271,7 @@ impl State {
             rng,
             keys: Keys::new(),
             mouse: Default::default(),
-            commands,
+            inputs,
             player_path: Path::default(),
             verifications,
             command_logger: Box::new(log_writer),
@@ -371,7 +383,7 @@ Reason: '{}'.",
         #[cfg(feature = "replay")]
         {
             use std::io::{BufRead, BufReader};
-            let mut commands = VecDeque::new();
+            let mut inputs = VecDeque::new();
             let mut verifications = VecDeque::new();
             let file = File::open(replay_path)?;
             let mut lines = BufReader::new(file).lines();
@@ -413,7 +425,7 @@ Reason: '{}'.",
                 let command = serde_json::from_str(&line);
                 // Try parsing it as a command, otherwise it's a verification
                 if let Ok(command) = command {
-                    commands.push_back(command);
+                    inputs.push_back(command);
                 } else {
                     let verification = serde_json::from_str(&line)?;
                     verifications.push_back(verification);
@@ -428,7 +440,7 @@ Reason: '{}'.",
                 world_size,
                 map_size,
                 panel_width,
-                commands,
+                inputs,
                 verifications,
                 Box::new(io::sink()),
                 seed,
@@ -594,13 +606,13 @@ pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
     let _ = writeln!(writer, "{}", crate::metadata::GIT_HASH);
 }
 
-pub fn log_command<W: Write>(writer: &mut W, command: Command) {
-    match serde_json::to_string(&command) {
-        Ok(json_command) => {
-            let _ = writeln!(writer, "{}", json_command);
+pub fn log_input<W: Write>(writer: &mut W, input: Input) {
+    match serde_json::to_string(&input) {
+        Ok(json_input) => {
+            let _ = writeln!(writer, "{}", json_input);
         }
         Err(err) => {
-            log::error!("Could not serialise {:?} to JSON: {}", command, err);
+            log::error!("Could not serialise {:?} to JSON: {}", input, err);
         }
     }
 }

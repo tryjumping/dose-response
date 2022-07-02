@@ -55,6 +55,7 @@ pub fn update(
     egui_ctx: &CtxRef,
     dt: Duration,
     fps: i32,
+    frame_id: i32,
     new_keys: &[Key],
     mouse: Mouse,
     settings: &mut Settings,
@@ -171,6 +172,7 @@ pub fn update(
                         audio,
                         dt,
                         fps,
+                        frame_id,
                         top_level,
                         &mut highlighted_tiles,
                     );
@@ -313,6 +315,7 @@ fn process_game(
     audio: &mut Audio,
     dt: Duration,
     fps: i32,
+    frame_id: i32,
     active: bool,
     highlighted_tiles: &mut Vec<Point>,
 ) -> RunningState {
@@ -477,7 +480,7 @@ fn process_game(
             monster_cumulative_ap
         );
 
-        process_keys(&mut state.keys, &mut state.inputs);
+        process_keys(&mut state.keys, &mut state.inputs, frame_id);
         let mouse_command = match option {
             Some(Action::UseFood) => Some(Command::UseFood),
             Some(Action::UseDose) => Some(Command::UseDose),
@@ -498,7 +501,8 @@ fn process_game(
         };
 
         if let Some(command) = mouse_command {
-            state.inputs.push_front(command.into());
+            let input = Input { command, frame_id };
+            state.inputs.push_front(input);
         }
 
         if state.mouse.left_clicked {
@@ -555,7 +559,7 @@ fn process_game(
 
         let player_ap = state.player.ap();
         if state.player.ap() >= 1 {
-            process_player(state, display, audio, simulation_area);
+            process_player(state, display, audio, simulation_area, frame_id);
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
@@ -1287,6 +1291,7 @@ fn process_player(
     display: &Display,
     audio: &mut Audio,
     simulation_area: Rectangle,
+    frame_id: i32,
 ) {
     {
         // appease borrowck
@@ -1350,7 +1355,8 @@ fn process_player(
                 _ => None,
             };
             if let Some(command) = command {
-                state.inputs.push_front(command.into())
+                let input = Input { command, frame_id };
+                state.inputs.push_front(input)
             }
         }
     }
@@ -1412,95 +1418,93 @@ fn process_player(
     );
 }
 
-fn process_keys(keys: &mut Keys, inputs: &mut VecDeque<Input>) {
+fn process_keys(keys: &mut Keys, inputs: &mut VecDeque<Input>, frame_id: i32) {
     use crate::keys::KeyCode::*;
     while let Some(key) = keys.get() {
-        match key {
+        let command = match key {
             // Numpad (8246 for cardinal and 7193 for diagonal movement)
-            Key { code: NumPad8, .. } => inputs.push_back(Command::N.into()),
-            Key { code: NumPad2, .. } => inputs.push_back(Command::S.into()),
-            Key { code: NumPad4, .. } => inputs.push_back(Command::W.into()),
-            Key { code: NumPad6, .. } => inputs.push_back(Command::E.into()),
-            Key { code: NumPad7, .. } => inputs.push_back(Command::NW.into()),
-            Key { code: NumPad1, .. } => inputs.push_back(Command::SW.into()),
-            Key { code: NumPad9, .. } => inputs.push_back(Command::NE.into()),
-            Key { code: NumPad3, .. } => inputs.push_back(Command::SE.into()),
+            Key { code: NumPad8, .. } => Some(Command::N),
+            Key { code: NumPad2, .. } => Some(Command::S),
+            Key { code: NumPad4, .. } => Some(Command::W),
+            Key { code: NumPad6, .. } => Some(Command::E),
+            Key { code: NumPad7, .. } => Some(Command::NW),
+            Key { code: NumPad1, .. } => Some(Command::SW),
+            Key { code: NumPad9, .. } => Some(Command::NE),
+            Key { code: NumPad3, .. } => Some(Command::SE),
 
             // NotEye (arrow keys plus Ctrl and Shift modifiers for
             // horizontal movement)
-            Key { code: Up, .. } => inputs.push_back(Command::N.into()),
-            Key { code: Down, .. } => inputs.push_back(Command::S.into()),
+            Key { code: Up, .. } => Some(Command::N),
+            Key { code: Down, .. } => Some(Command::S),
             Key {
                 code: Left,
                 ctrl: false,
                 shift: true,
                 ..
-            } => inputs.push_back(Command::NW.into()),
+            } => Some(Command::NW),
             Key {
                 code: Left,
                 ctrl: true,
                 shift: false,
                 ..
-            } => inputs.push_back(Command::SW.into()),
+            } => Some(Command::SW),
             Key {
                 code: Left,
                 alt: true,
                 shift: false,
                 ..
-            } => inputs.push_back(Command::SW.into()),
+            } => Some(Command::SW),
             Key {
                 code: Left,
                 logo: true,
                 shift: false,
                 ..
-            } => inputs.push_back(Command::SW.into()),
-            Key { code: Left, .. } => inputs.push_back(Command::W.into()),
+            } => Some(Command::SW),
+            Key { code: Left, .. } => Some(Command::W),
             Key {
                 code: Right,
                 ctrl: false,
                 shift: true,
                 ..
-            } => inputs.push_back(Command::NE.into()),
+            } => Some(Command::NE),
             Key {
                 code: Right,
                 ctrl: true,
                 shift: false,
                 ..
-            } => inputs.push_back(Command::SE.into()),
+            } => Some(Command::SE),
             Key {
                 code: Right,
                 alt: true,
                 shift: false,
                 ..
-            } => inputs.push_back(Command::SE.into()),
+            } => Some(Command::SE),
             Key {
                 code: Right,
                 logo: true,
                 shift: false,
                 ..
-            } => inputs.push_back(Command::SE.into()),
-            Key { code: Right, .. } => inputs.push_back(Command::E.into()),
+            } => Some(Command::SE),
+            Key { code: Right, .. } => Some(Command::E),
 
             // Vi keys (hjkl for cardinal and yubn for diagonal movement)
-            Key { code: K, .. } => inputs.push_back(Command::N.into()),
-            Key { code: J, .. } => inputs.push_back(Command::S.into()),
-            Key { code: H, .. } => inputs.push_back(Command::W.into()),
-            Key { code: L, .. } => inputs.push_back(Command::E.into()),
-            Key { code: Y, .. } => inputs.push_back(Command::NW.into()),
-            Key { code: B, .. } => inputs.push_back(Command::SW.into()),
-            Key { code: U, .. } => inputs.push_back(Command::NE.into()),
-            Key { code: N, .. } => inputs.push_back(Command::SE.into()),
+            Key { code: K, .. } => Some(Command::N),
+            Key { code: J, .. } => Some(Command::S),
+            Key { code: H, .. } => Some(Command::W),
+            Key { code: L, .. } => Some(Command::E),
+            Key { code: Y, .. } => Some(Command::NW),
+            Key { code: B, .. } => Some(Command::SW),
+            Key { code: U, .. } => Some(Command::NE),
+            Key { code: N, .. } => Some(Command::SE),
 
             // Non-movement commands
-            Key { code: E, .. } => {
-                inputs.push_back(Command::UseFood.into());
-            }
+            Key { code: E, .. } => Some(Command::UseFood),
 
-            _ => {
-                if let Some(command) = inventory_commands(key) {
-                    inputs.push_back(command.into())
-                }
-            }
+            _ => inventory_commands(key),
+        };
+        if let Some(command) = command {
+            let input = Input { command, frame_id };
+            inputs.push_back(input);
         }
     }
 }

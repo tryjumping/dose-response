@@ -91,16 +91,7 @@ pub enum Command {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Input {
     pub command: Command,
-    pub frame_id: Option<i32>,
-}
-
-impl From<Command> for Input {
-    fn from(command: Command) -> Self {
-        Self {
-            command,
-            frame_id: None,
-        }
-    }
+    pub frame_id: i32,
 }
 
 pub fn generate_replay_path() -> Option<PathBuf> {

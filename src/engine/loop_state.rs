@@ -291,7 +291,6 @@ impl LoopState {
             &self.egui_context,
             dt,
             self.fps,
-            self.current_frame_id,
             &self.keys,
             self.mouse,
             &mut self.settings,

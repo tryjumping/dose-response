@@ -91,7 +91,7 @@ pub enum Command {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Input {
     pub command: Command,
-    pub frame_id: i32,
+    pub tick_id: i32,
 }
 
 pub fn generate_replay_path() -> Option<PathBuf> {
@@ -160,6 +160,7 @@ pub struct State {
     pub command_logger: Box<dyn Write>,
     pub side: Side,
     pub turn: i32,
+    pub tick_id: i32,
     pub cheating: bool,
     pub replay: bool,
     pub replay_full_speed: bool,
@@ -268,6 +269,7 @@ impl State {
             command_logger: Box::new(log_writer),
             side: Side::Player,
             turn: 0,
+            tick_id: 0,
             cheating,
             replay,
             replay_full_speed,
@@ -426,7 +428,14 @@ Reason: '{}'.",
             log::info!("Replaying game log: '{}'", replay_path.display());
             let cheating = cheating;
             let invincible = invincible;
-            let replay = true;
+            // NOTE: Setting `replay` to `false` here. The previous
+            // fixed framerate stuff we were doing in replays messes
+            // up with the visuals when we're doing a tick (aka player
+            // timing) aligned replays. So let's turn them off for now
+            // and see about fixing it later.
+            //
+            // let replay = true;
+            let replay = false;
             let mut state = State::new(
                 world_size,
                 map_size,

@@ -55,7 +55,6 @@ pub fn update(
     egui_ctx: &CtxRef,
     dt: Duration,
     fps: i32,
-    frame_id: i32,
     new_keys: &[Key],
     mouse: Mouse,
     settings: &mut Settings,
@@ -67,6 +66,7 @@ pub fn update(
     let update_stopwatch = Stopwatch::start();
     state.clock += dt;
     state.replay_step += dt;
+    state.tick_id += 1;
 
     // The music won't play during the initial main menu screen so
     // start it after the game starts and then just keep playing
@@ -172,7 +172,7 @@ pub fn update(
                         audio,
                         dt,
                         fps,
-                        frame_id,
+                        state.tick_id,
                         top_level,
                         &mut highlighted_tiles,
                     );
@@ -315,7 +315,7 @@ fn process_game(
     audio: &mut Audio,
     dt: Duration,
     fps: i32,
-    frame_id: i32,
+    tick_id: i32,
     active: bool,
     highlighted_tiles: &mut Vec<Point>,
 ) -> RunningState {
@@ -480,7 +480,7 @@ fn process_game(
             monster_cumulative_ap
         );
 
-        process_keys(&mut state.keys, &mut state.inputs, frame_id);
+        process_keys(&mut state.keys, &mut state.inputs, tick_id);
         let mouse_command = match option {
             Some(Action::UseFood) => Some(Command::UseFood),
             Some(Action::UseDose) => Some(Command::UseDose),
@@ -501,7 +501,7 @@ fn process_game(
         };
 
         if let Some(command) = mouse_command {
-            let input = Input { command, frame_id };
+            let input = Input { command, tick_id };
             state.inputs.push_front(input);
         }
 
@@ -559,7 +559,7 @@ fn process_game(
 
         let player_ap = state.player.ap();
         if state.player.ap() >= 1 {
-            process_player(state, display, audio, simulation_area, frame_id);
+            process_player(state, display, audio, simulation_area, tick_id);
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
@@ -991,6 +991,7 @@ fn process_monsters(
 fn process_player_action<W>(
     player: &mut player::Player,
     inputs: &mut VecDeque<Input>,
+    tick_id: i32,
     world: &mut World,
     simulation_area: Rectangle,
     explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
@@ -1015,6 +1016,22 @@ fn process_player_action<W>(
         );
         return;
     }
+
+    if let Some(input) = inputs.front() {
+        let input_tick_id = input.tick_id;
+        let process_input = input_tick_id <= tick_id;
+        if !process_input {
+            log::debug!("Skipping user input processing. Its frame_id ({input_tick_id}) is greater than the current frame's tick_id ({tick_id})");
+            return;
+        } else {
+            log::debug!(
+                "Processing input: current_tick_id: {tick_id}, input_frame_id: {input_tick_id}"
+            )
+        }
+    } else {
+        log::debug!("No user input to process");
+    }
+
     if let Some(input) = inputs.pop_front() {
         state::log_input(command_logger, input.clone());
         let mut action = match input.command {
@@ -1291,7 +1308,7 @@ fn process_player(
     display: &Display,
     audio: &mut Audio,
     simulation_area: Rectangle,
-    frame_id: i32,
+    tick_id: i32,
 ) {
     {
         // appease borrowck
@@ -1355,7 +1372,7 @@ fn process_player(
                 _ => None,
             };
             if let Some(command) = command {
-                let input = Input { command, frame_id };
+                let input = Input { command, tick_id };
                 state.inputs.push_front(input)
             }
         }
@@ -1365,6 +1382,7 @@ fn process_player(
     process_player_action(
         &mut state.player,
         &mut state.inputs,
+        state.tick_id,
         &mut state.world,
         simulation_area,
         &mut state.explosion_animation,
@@ -1418,7 +1436,7 @@ fn process_player(
     );
 }
 
-fn process_keys(keys: &mut Keys, inputs: &mut VecDeque<Input>, frame_id: i32) {
+fn process_keys(keys: &mut Keys, inputs: &mut VecDeque<Input>, tick_id: i32) {
     use crate::keys::KeyCode::*;
     while let Some(key) = keys.get() {
         let command = match key {
@@ -1503,7 +1521,7 @@ fn process_keys(keys: &mut Keys, inputs: &mut VecDeque<Input>, frame_id: i32) {
             _ => inventory_commands(key),
         };
         if let Some(command) = command {
-            let input = Input { command, frame_id };
+            let input = Input { command, tick_id };
             inputs.push_back(input);
         }
     }

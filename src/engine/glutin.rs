@@ -224,7 +224,7 @@ where
             .with_drag_and_drop(false)
             .with_taskbar_icon(window_icon)
     };
-    log::debug!("Created window builder: {:?}", window);
+    log::debug!("Created window builder.");
 
     // NOTE: this is the only thing we're using glutin for: creating
     // the OpenGL context. That is not possible to do with Winit

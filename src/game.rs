@@ -1020,13 +1020,13 @@ fn process_player_action<W>(
     if let Some(input) = inputs.front() {
         let input_tick_id = input.tick_id;
         let process_input = input_tick_id <= tick_id;
-        if !process_input {
-            log::debug!("Skipping user input processing. Its frame_id ({input_tick_id}) is greater than the current frame's tick_id ({tick_id})");
-            return;
-        } else {
+        if process_input {
             log::debug!(
                 "Processing input: current_tick_id: {tick_id}, input_frame_id: {input_tick_id}"
             )
+        } else {
+            log::debug!("Skipping user input processing. Its frame_id ({input_tick_id}) is greater than the current frame's tick_id ({tick_id})");
+            return;
         }
     } else {
         log::debug!("No user input to process");

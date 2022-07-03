@@ -255,7 +255,11 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if let Ok(logfile) = File::create("dose-response.log") {
-        loggers.push(WriteLogger::new(log_level, Config::default(), logfile));
+        loggers.push(WriteLogger::new(
+            LevelFilter::Trace,
+            Config::default(),
+            logfile,
+        ));
     }
 
     // NOTE: ignore the loggers if we can't initialise them. The game

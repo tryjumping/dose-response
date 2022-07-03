@@ -452,6 +452,7 @@ Reason: '{}'.",
                 challenge,
                 palette,
             );
+            state.game_session = GameSession::InProgress;
             state.generate_world();
             Ok(state)
         }

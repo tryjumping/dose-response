@@ -77,7 +77,7 @@ pub fn update(
 
     // TODO: only check this every say 10 or 100 frames?
     // We just wanna make sure there are items in the queue.
-    enqueue_background_music(audio);
+    enqueue_background_music(audio, &mut state.audio_rng);
 
     audio.set_background_volume(settings.background_volume);
     audio.set_effects_volume(settings.sound_volume);
@@ -243,7 +243,7 @@ pub fn update(
         }
     }
 
-    audio.play_mixed_sound_effects();
+    audio.play_mixed_sound_effects(&mut state.audio_rng);
 
     // NOTE: Clear any unprocessed keys
     while let Some(_key) = state.keys.get() {}
@@ -286,19 +286,19 @@ pub fn update(
     game_update_result
 }
 
-fn enqueue_background_music(audio: &mut Audio) {
+fn enqueue_background_music(audio: &mut Audio, audio_rng: &mut Random) {
     if audio.background_sound_queue.len() <= 1 {
         let sound = if cfg!(feature = "recording") {
             audio.backgrounds.family_breaks.clone()
         } else {
-            audio.backgrounds.random(&mut audio.rng)
+            audio.backgrounds.random(audio_rng)
         };
         if let Some(sound) = sound {
             use rodio::Source;
             let delay = if audio.background_sound_queue.empty() {
                 Duration::from_secs(0)
             } else {
-                let secs: u64 = audio.rng.range_inclusive(1, 5).try_into().unwrap_or(1);
+                let secs: u64 = audio_rng.range_inclusive(1, 5).try_into().unwrap_or(1);
                 Duration::from_secs(secs)
             };
             audio.background_sound_queue.append(sound.delay(delay));
@@ -572,6 +572,7 @@ fn process_game(
                     simulation_area,
                     display.tile_size,
                     &mut state.rng,
+                    &mut state.audio_rng,
                     audio,
                     &state.palette,
                     &mut state.extra_animations,
@@ -825,6 +826,7 @@ fn process_monsters(
     area: Rectangle,
     tile_size: i32,
     rng: &mut Random,
+    audio_rng: &mut Random,
     audio: &mut Audio,
     palette: &Palette,
     extra_animations: &mut Vec<MotionAnimation>,
@@ -928,7 +930,7 @@ fn process_monsters(
                     let monster_visible = newpos
                         .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
                     if monster_visible {
-                        let delay = audio.random_delay();
+                        let delay = audio.random_delay(audio_rng);
                         audio.mix_sound_effect(Effect::MonsterMoved, delay);
                     }
                     if let Some(monster) = world.monster_on_pos(newpos) {

@@ -416,6 +416,7 @@ fn process_game(
         }
     }
 
+    // TODO: don't count paused frames for reploy!!
     state.paused = if state.replay && state.keys.matches_code(KeyCode::Space) {
         !state.paused
     } else {
@@ -423,15 +424,6 @@ fn process_game(
     };
 
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
-    let timed_step = if state.replay
-        && !state.paused
-        && (state.replay_step.as_millis() >= 50 || state.replay_full_speed)
-    {
-        state.replay_step = Duration::new(0, 0);
-        true
-    } else {
-        false
-    };
 
     // Animation to re-center the screen around the player when they
     // get too close to an edge.
@@ -447,20 +439,10 @@ fn process_game(
         state.offset_px = Point::new(x as i32, y as i32);
     }
 
-    let running = !state.paused && !state.replay;
     let mut entire_turn_ended = false;
-    // Pause entity processing during animations when replaying (so
-    // it's all easy to see) but allow the keys to be processed when
-    // playing the game normally. I.e. the players can move even
-    // during animations if they so please.
-    let no_animations = if state.replay {
-        state.explosion_animation.is_none() && state.pos_timer.finished()
-    } else {
-        true
-    };
     let simulation_area = Rectangle::center(state.player.pos, state.map_size);
 
-    if (running || paused_one_step || timed_step) && state.side != Side::Victory && no_animations {
+    if (!state.paused || paused_one_step) && state.side != Side::Victory {
         let monster_count = state.world.monsters(simulation_area).count();
         let monster_with_ap_count = state
             .world

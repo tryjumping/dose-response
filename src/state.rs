@@ -431,14 +431,7 @@ Reason: '{}'.",
             log::info!("Replaying game log: '{}'", replay_path.display());
             let cheating = cheating;
             let invincible = invincible;
-            // NOTE: Setting `replay` to `false` here. The previous
-            // fixed framerate stuff we were doing in replays messes
-            // up with the visuals when we're doing a tick (aka player
-            // timing) aligned replays. So let's turn them off for now
-            // and see about fixing it later.
-            //
-            // let replay = true;
-            let replay = false;
+            let replay = true;
             let mut state = State::new(
                 world_size,
                 map_size,

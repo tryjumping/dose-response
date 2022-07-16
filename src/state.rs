@@ -94,6 +94,12 @@ pub struct Input {
     pub tick_id: i32,
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct MouseInput {
+    pub mouse: Mouse,
+    pub tick_id: i32,
+}
+
 pub fn generate_replay_path() -> Option<PathBuf> {
     #[cfg(feature = "replay")]
     {
@@ -153,7 +159,12 @@ pub struct State {
     pub audio_rng: Random,
     pub keys: Keys,
     pub mouse: Mouse,
+    // TODO: Rename it back to commands? Or Keyboard or something?
+    // It might actually be more consistend if we were logging keys just like we're logging mouse now.
+    #[serde(skip_serializing, skip_deserializing)]
     pub inputs: VecDeque<Input>,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub mouse_inputs: Vec<Mouse>,
     pub player_path: Path,
     #[serde(skip_serializing, skip_deserializing)]
     pub verifications: VecDeque<Verification>,
@@ -208,11 +219,13 @@ pub struct State {
 }
 
 impl State {
+    #[allow(clippy::too_many_arguments)]
     fn new<W: Write + 'static>(
         world_size: Point,
         map_size: Point,
         panel_width: i32,
         inputs: VecDeque<Input>,
+        mouse_inputs: Vec<Mouse>,
         verifications: VecDeque<Verification>,
         log_writer: W,
         seed: u32,
@@ -267,6 +280,7 @@ impl State {
             keys: Keys::new(),
             mouse: Default::default(),
             inputs,
+            mouse_inputs,
             player_path: Path::default(),
             verifications,
             command_logger: Box::new(log_writer),
@@ -318,6 +332,7 @@ impl State {
         palette: Palette,
     ) -> State {
         let commands = VecDeque::new();
+        let mouse_inputs = vec![];
         let verifications = VecDeque::new();
         let seed = util::random_seed();
         let mut writer: Box<dyn Write> = if let Some(replay_path) = replay_path {
@@ -350,6 +365,7 @@ Reason: '{}'.",
             map_size,
             panel_width,
             commands,
+            mouse_inputs,
             verifications,
             writer,
             seed,
@@ -380,6 +396,7 @@ Reason: '{}'.",
         {
             use std::io::{BufRead, BufReader};
             let mut inputs = VecDeque::new();
+            let mut mouse_inputs = vec![];
             let mut verifications = VecDeque::new();
             let file = File::open(replay_path)?;
             let mut lines = BufReader::new(file).lines();
@@ -418,13 +435,30 @@ Reason: '{}'.",
 
             for line in lines {
                 let line = line?;
-                let command = serde_json::from_str(&line);
-                // Try parsing it as a command, otherwise it's a verification
-                if let Ok(command) = command {
-                    inputs.push_back(command);
+                // Try parsing it as a command first, otherwise it's a verification
+                if let Ok(input) = serde_json::from_str(&line) {
+                    // TODO: Okay, so this is a problem. When we use the mouse input clicks, they generate commands. So we load and replay both the click and the command. Which results in a broken replay.
+
+                    // I can see two ways of fixing this.
+
+                    // 1. a quick hack maybe: don't act on mouse clicks when you load them in game.rs. Just rely on the mouse position.
+                    // 2. do the right thing and just log the user inputs. That means Mouse and Keyboard. Instead of commands. That way the replay will be more "raw" and we should be able to unify it to a single Input struct.
+
+                    inputs.push_back(input);
                 } else {
-                    let verification = serde_json::from_str(&line)?;
-                    verifications.push_back(verification);
+                    // Try a mouse next
+                    if let Ok(MouseInput { mouse, tick_id }) = serde_json::from_str(&line) {
+                        assert!(tick_id > 0);
+                        let tick_id = tick_id as usize;
+                        assert_eq!(mouse_inputs.len(), tick_id - 1);
+                        // TODO: this will blow up with index out of bounds errors
+                        mouse_inputs.push(mouse);
+                        //mouse_inputs[tick_id - 1] = mouse;
+                    } else {
+                        // Must be a verification, then
+                        let verification = serde_json::from_str(&line)?;
+                        verifications.push_back(verification);
+                    }
                 }
             }
 
@@ -437,6 +471,7 @@ Reason: '{}'.",
                 map_size,
                 panel_width,
                 inputs,
+                mouse_inputs,
                 verifications,
                 Box::new(io::sink()),
                 seed,
@@ -610,6 +645,17 @@ pub fn log_input<W: Write>(writer: &mut W, input: Input) {
         }
         Err(err) => {
             log::error!("Could not serialise {:?} to JSON: {}", input, err);
+        }
+    }
+}
+
+pub fn log_mouse<W: Write>(writer: &mut W, mouse: MouseInput) {
+    match serde_json::to_string(&mouse) {
+        Ok(json_input) => {
+            let _ = writeln!(writer, "{json_input}");
+        }
+        Err(err) => {
+            log::error!("Could not serialise {:?} to JSON: {err}", mouse);
         }
     }
 }

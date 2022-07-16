@@ -97,8 +97,39 @@ pub fn update(
         (state.map_size.x + panel_width_tiles, state.map_size.y)
     );
 
+    state::log_mouse(
+        &mut state.command_logger,
+        state::MouseInput {
+            mouse,
+            tick_id: state.tick_id,
+        },
+    );
+
     state.keys.extend(new_keys.iter().copied());
+
     state.mouse = mouse;
+    // NOTE: don't set the actual mouse commands because that would
+    // cause applying them twice. Once through the "Command" structure
+    // that's awlays been in replays and once through the mouse input.
+    // This is a hack and we should switch to using a single input
+    // struct that just collects user's inputs and nothing else.
+    if state.replay {
+        if let Some(mouse) = state.mouse_inputs.get(state.tick_id as usize) {
+            state.mouse.tile_pos = mouse.tile_pos;
+            state.mouse.screen_pos = mouse.screen_pos;
+        }
+    }
+
+    // state.mouse = if state.replay {
+    //     // Switch back to using regular mouse once the pre-recorded inputs ran out:
+    //     state
+    //         .mouse_inputs
+    //         .get(state.tick_id as usize)
+    //         .copied()
+    //         .unwrap_or(mouse)
+    // } else {
+    //     mouse
+    // };
 
     // Quit the game when Q is pressed or on replay and requested
     if (!state.player.alive() && state.exit_after)

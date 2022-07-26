@@ -4,7 +4,7 @@ use crate::{
     engine::Mouse,
     formula,
     graphic::Graphic,
-    keys::Keys,
+    keys::{Key, Keys},
     monster,
     palette::Palette,
     pathfinding::Path,
@@ -90,12 +90,7 @@ pub enum Command {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Input {
-    pub command: Command,
-    pub tick_id: i32,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub struct MouseInput {
+    pub keys: Vec<Key>,
     pub mouse: Mouse,
     pub tick_id: i32,
 }
@@ -157,19 +152,18 @@ pub struct State {
     pub seed: u32,
     pub rng: Random,
     pub audio_rng: Random,
+    // Keys pressed this turn (or loaded from the replay file)
     pub keys: Keys,
+    // Mouse config read from the player this turn (or loaded from the replay file)
     pub mouse: Mouse,
-    // TODO: Rename it back to commands? Or Keyboard or something?
-    // It might actually be more consistend if we were logging keys just like we're logging mouse now.
     #[serde(skip_serializing, skip_deserializing)]
     pub inputs: VecDeque<Input>,
-    #[serde(skip_serializing, skip_deserializing)]
-    pub mouse_inputs: Vec<Mouse>,
+    pub commands: VecDeque<Command>,
     pub player_path: Path,
     #[serde(skip_serializing, skip_deserializing)]
     pub verifications: VecDeque<Verification>,
     #[serde(skip_serializing, skip_deserializing, default = "empty_command_logger")]
-    pub command_logger: Box<dyn Write>,
+    pub input_logger: Box<dyn Write>,
     pub side: Side,
     pub turn: i32,
     pub tick_id: i32,
@@ -225,7 +219,6 @@ impl State {
         map_size: Point,
         panel_width: i32,
         inputs: VecDeque<Input>,
-        mouse_inputs: Vec<Mouse>,
         verifications: VecDeque<Verification>,
         log_writer: W,
         seed: u32,
@@ -265,6 +258,8 @@ impl State {
 
         let world = World::new(seed, world_size.x, CHUNK_SIZE, player.info(), challenge);
 
+        // TODO: I think we'll want to create a Commands queue again here and then use that from everything
+
         State {
             player,
             explosion_animation: None,
@@ -280,10 +275,10 @@ impl State {
             keys: Keys::new(),
             mouse: Default::default(),
             inputs,
-            mouse_inputs,
+            commands: VecDeque::new(),
             player_path: Path::default(),
             verifications,
-            command_logger: Box::new(log_writer),
+            input_logger: Box::new(log_writer),
             side: Side::Player,
             turn: 0,
             tick_id: 0,
@@ -331,8 +326,7 @@ impl State {
         challenge: Challenge,
         palette: Palette,
     ) -> State {
-        let commands = VecDeque::new();
-        let mouse_inputs = vec![];
+        let inputs = VecDeque::new();
         let verifications = VecDeque::new();
         let seed = util::random_seed();
         let mut writer: Box<dyn Write> = if let Some(replay_path) = replay_path {
@@ -364,8 +358,7 @@ Reason: '{}'.",
             world_size,
             map_size,
             panel_width,
-            commands,
-            mouse_inputs,
+            inputs,
             verifications,
             writer,
             seed,
@@ -396,7 +389,6 @@ Reason: '{}'.",
         {
             use std::io::{BufRead, BufReader};
             let mut inputs = VecDeque::new();
-            let mut mouse_inputs = vec![];
             let mut verifications = VecDeque::new();
             let file = File::open(replay_path)?;
             let mut lines = BufReader::new(file).lines();
@@ -435,30 +427,16 @@ Reason: '{}'.",
 
             for line in lines {
                 let line = line?;
-                // Try parsing it as a command first, otherwise it's a verification
-                if let Ok(input) = serde_json::from_str(&line) {
-                    // TODO: Okay, so this is a problem. When we use the mouse input clicks, they generate commands. So we load and replay both the click and the command. Which results in a broken replay.
-
-                    // I can see two ways of fixing this.
-
-                    // 1. a quick hack maybe: don't act on mouse clicks when you load them in game.rs. Just rely on the mouse position.
-                    // 2. do the right thing and just log the user inputs. That means Mouse and Keyboard. Instead of commands. That way the replay will be more "raw" and we should be able to unify it to a single Input struct.
+                // Try parsing it as an `Input` first, otherwise it's a `Verification`
+                if let Ok(input) = serde_json::from_str::<Input>(&line) {
+                    assert!(input.tick_id > 0);
+                    assert_eq!(inputs.len(), input.tick_id as usize - 1);
 
                     inputs.push_back(input);
                 } else {
-                    // Try a mouse next
-                    if let Ok(MouseInput { mouse, tick_id }) = serde_json::from_str(&line) {
-                        assert!(tick_id > 0);
-                        let tick_id = tick_id as usize;
-                        assert_eq!(mouse_inputs.len(), tick_id - 1);
-                        // TODO: this will blow up with index out of bounds errors
-                        mouse_inputs.push(mouse);
-                        //mouse_inputs[tick_id - 1] = mouse;
-                    } else {
-                        // Must be a verification, then
-                        let verification = serde_json::from_str(&line)?;
-                        verifications.push_back(verification);
-                    }
+                    // Must be a verification, then
+                    let verification = serde_json::from_str(&line)?;
+                    verifications.push_back(verification);
                 }
             }
 
@@ -471,7 +449,6 @@ Reason: '{}'.",
                 map_size,
                 panel_width,
                 inputs,
-                mouse_inputs,
                 verifications,
                 Box::new(io::sink()),
                 seed,
@@ -645,17 +622,6 @@ pub fn log_input<W: Write>(writer: &mut W, input: Input) {
         }
         Err(err) => {
             log::error!("Could not serialise {:?} to JSON: {}", input, err);
-        }
-    }
-}
-
-pub fn log_mouse<W: Write>(writer: &mut W, mouse: MouseInput) {
-    match serde_json::to_string(&mouse) {
-        Ok(json_input) => {
-            let _ = writeln!(writer, "{json_input}");
-        }
-        Err(err) => {
-            log::error!("Could not serialise {:?} to JSON: {err}", mouse);
         }
     }
 }

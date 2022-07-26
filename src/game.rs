@@ -31,7 +31,6 @@ use crate::{
 
 use std::{
     collections::{HashMap, VecDeque},
-    io::Write,
     time::Duration,
 };
 
@@ -97,39 +96,32 @@ pub fn update(
         (state.map_size.x + panel_width_tiles, state.map_size.y)
     );
 
-    state::log_mouse(
-        &mut state.command_logger,
-        state::MouseInput {
-            mouse,
-            tick_id: state.tick_id,
-        },
-    );
+    let input = Input {
+        keys: new_keys.to_vec(),
+        mouse,
+        tick_id: state.tick_id,
+    };
 
-    state.keys.extend(new_keys.iter().copied());
+    state::log_input(&mut state.input_logger, input);
 
-    state.mouse = mouse;
-    // NOTE: don't set the actual mouse commands because that would
-    // cause applying them twice. Once through the "Command" structure
-    // that's awlays been in replays and once through the mouse input.
-    // This is a hack and we should switch to using a single input
-    // struct that just collects user's inputs and nothing else.
     if state.replay {
-        if let Some(mouse) = state.mouse_inputs.get(state.tick_id as usize) {
-            state.mouse.tile_pos = mouse.tile_pos;
-            state.mouse.screen_pos = mouse.screen_pos;
+        if let Some(input) = state.inputs.get(state.tick_id as usize) {
+            state.keys.extend(input.keys.iter().copied())
         }
+    } else {
+        state.keys.extend(new_keys.iter().copied());
     }
 
-    // state.mouse = if state.replay {
-    //     // Switch back to using regular mouse once the pre-recorded inputs ran out:
-    //     state
-    //         .mouse_inputs
-    //         .get(state.tick_id as usize)
-    //         .copied()
-    //         .unwrap_or(mouse)
-    // } else {
-    //     mouse
-    // };
+    state.mouse = if state.replay {
+        // Switch back to using regular mouse once the pre-recorded inputs ran out:
+        state
+            .inputs
+            .get(state.tick_id as usize)
+            .cloned()
+            .map_or(mouse, |i| i.mouse)
+    } else {
+        mouse
+    };
 
     // Quit the game when Q is pressed or on replay and requested
     if (!state.player.alive() && state.exit_after)
@@ -203,7 +195,6 @@ pub fn update(
                         audio,
                         dt,
                         fps,
-                        state.tick_id,
                         top_level,
                         &mut highlighted_tiles,
                     );
@@ -346,7 +337,6 @@ fn process_game(
     audio: &mut Audio,
     dt: Duration,
     fps: i32,
-    tick_id: i32,
     active: bool,
     highlighted_tiles: &mut Vec<Point>,
 ) -> RunningState {
@@ -493,30 +483,7 @@ fn process_game(
             monster_cumulative_ap
         );
 
-        process_keys(&mut state.keys, &mut state.inputs, tick_id);
-        let mouse_command = match option {
-            Some(Action::UseFood) => Some(Command::UseFood),
-            Some(Action::UseDose) => Some(Command::UseDose),
-            Some(Action::UseCardinalDose) => Some(Command::UseCardinalDose),
-            Some(Action::UseDiagonalDose) => Some(Command::UseDiagonalDose),
-            Some(Action::UseStrongDose) => Some(Command::UseStrongDose),
-
-            Some(Action::MoveN) => Some(Command::N),
-            Some(Action::MoveS) => Some(Command::S),
-            Some(Action::MoveW) => Some(Command::W),
-            Some(Action::MoveE) => Some(Command::E),
-
-            Some(Action::MoveNW) => Some(Command::NW),
-            Some(Action::MoveNE) => Some(Command::NE),
-            Some(Action::MoveSW) => Some(Command::SW),
-            Some(Action::MoveSE) => Some(Command::SE),
-            _ => None,
-        };
-
-        if let Some(command) = mouse_command {
-            let input = Input { command, tick_id };
-            state.inputs.push_front(input);
-        }
+        process_keys(&mut state.keys, &mut state.commands);
 
         if state.mouse.left_clicked {
             state.path_walking_timer.finish();
@@ -572,7 +539,7 @@ fn process_game(
 
         let player_ap = state.player.ap();
         if state.player.ap() >= 1 {
-            process_player(state, display, audio, simulation_area, tick_id);
+            process_player(state, display, audio, simulation_area);
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
@@ -649,7 +616,7 @@ fn process_game(
             }
         } else if cfg!(feature = "verifications") {
             let verification = state.verification();
-            state::log_verification(&mut state.command_logger, &verification);
+            state::log_verification(&mut state.input_logger, &verification);
         }
     }
 
@@ -1003,23 +970,19 @@ fn process_monsters(
     }
 }
 
-fn process_player_action<W>(
+fn process_player_action(
     player: &mut player::Player,
-    inputs: &mut VecDeque<Input>,
-    tick_id: i32,
+    commands: &mut VecDeque<Command>,
     world: &mut World,
     simulation_area: Rectangle,
     explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
     rng: &mut Random,
-    command_logger: &mut W,
     window_stack: &mut crate::windows::Windows<Window>,
     bumped_into_a_monster: &mut bool,
     tile_size: i32,
     palette: &Palette,
     audio: &mut Audio,
-) where
-    W: Write,
-{
+) {
     if !player.alive() {
         log::debug!("Processing player action, but the player is dead.");
         return;
@@ -1032,24 +995,8 @@ fn process_player_action<W>(
         return;
     }
 
-    if let Some(input) = inputs.front() {
-        let input_tick_id = input.tick_id;
-        let process_input = input_tick_id <= tick_id;
-        if process_input {
-            log::debug!(
-                "Processing input: current_tick_id: {tick_id}, input_frame_id: {input_tick_id}"
-            )
-        } else {
-            log::debug!("Skipping user input processing. Its frame_id ({input_tick_id}) is greater than the current frame's tick_id ({tick_id})");
-            return;
-        }
-    } else {
-        log::debug!("No user input to process");
-    }
-
-    if let Some(input) = inputs.pop_front() {
-        state::log_input(command_logger, input.clone());
-        let mut action = match input.command {
+    if let Some(command) = commands.pop_front() {
+        let mut action = match command {
             Command::N => Action::Move(player.pos + (0, -1)),
             Command::S => Action::Move(player.pos + (0, 1)),
             Command::W => Action::Move(player.pos + (-1, 0)),
@@ -1323,7 +1270,6 @@ fn process_player(
     display: &Display,
     audio: &mut Audio,
     simulation_area: Rectangle,
-    tick_id: i32,
 ) {
     {
         // appease borrowck
@@ -1387,8 +1333,7 @@ fn process_player(
                 _ => None,
             };
             if let Some(command) = command {
-                let input = Input { command, tick_id };
-                state.inputs.push_front(input)
+                state.commands.push_front(command)
             }
         }
     }
@@ -1396,13 +1341,11 @@ fn process_player(
     let previous_action_points = state.player.ap();
     process_player_action(
         &mut state.player,
-        &mut state.inputs,
-        state.tick_id,
+        &mut state.commands,
         &mut state.world,
         simulation_area,
         &mut state.explosion_animation,
         &mut state.rng,
-        &mut state.command_logger,
         &mut state.window_stack,
         &mut state.player_bumped_into_a_monster,
         display.tile_size,
@@ -1451,7 +1394,7 @@ fn process_player(
     );
 }
 
-fn process_keys(keys: &mut Keys, inputs: &mut VecDeque<Input>, tick_id: i32) {
+fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
     use crate::keys::KeyCode::*;
     while let Some(key) = keys.get() {
         let command = match key {
@@ -1536,8 +1479,7 @@ fn process_keys(keys: &mut Keys, inputs: &mut VecDeque<Input>, tick_id: i32) {
             _ => inventory_commands(key),
         };
         if let Some(command) = command {
-            let input = Input { command, tick_id };
-            inputs.push_back(input);
+            commands.push_back(command);
         }
     }
 }

@@ -1,6 +1,9 @@
+#![allow(unused_must_use)]
+
 use std::{
     env,
     error::Error,
+    fmt::Write as _,
     fs::File,
     io::Write,
     path::{Path, PathBuf},
@@ -164,26 +167,29 @@ fn main() {
         }
     }
 
-    lookup_table_contents.push_str(&format!(
-        "pub const AVAILABLE_BACKENDS: [&str; {}] = {:?};\n",
+    writeln!(
+        lookup_table_contents,
+        "pub const AVAILABLE_BACKENDS: [&str; {}] = {:?};",
         backends.len(),
         backends,
-    ));
+    );
 
     let text_sizes = [28, 22, 16];
     let default_text_size = 22;
     assert!(text_sizes.contains(&default_text_size));
 
-    lookup_table_contents.push_str(&format!(
-        "pub const DEFAULT_TEXT_SIZE: i32 = {};\n",
+    writeln!(
+        lookup_table_contents,
+        "pub const DEFAULT_TEXT_SIZE: i32 = {};",
         default_text_size
-    ));
+    );
 
-    lookup_table_contents.push_str(&format!(
-        "pub const AVAILABLE_TEXT_SIZES: [i32; {}] = {:?};\n",
+    writeln!(
+        lookup_table_contents,
+        "pub const AVAILABLE_TEXT_SIZES: [i32; {}] = {:?};",
         text_sizes.len(),
         text_sizes,
-    ));
+    );
 
     // NOTE: Load the tilemap dimensions so they're available to the whole program
     {
@@ -199,15 +205,17 @@ fn main() {
             "Tilemap height must be a power of two!"
         );
 
-        lookup_table_contents.push_str(&format!(
-            "pub const TILEMAP_TEXTURE_WIDTH: u32 = {};\n",
+        writeln!(
+            lookup_table_contents,
+            "pub const TILEMAP_TEXTURE_WIDTH: u32 = {};",
             width as u32
-        ));
+        );
 
-        lookup_table_contents.push_str(&format!(
-            "pub const TILEMAP_TEXTURE_HEIGHT: u32 = {};\n",
+        writeln!(
+            lookup_table_contents,
+            "pub const TILEMAP_TEXTURE_HEIGHT: u32 = {};",
             height as u32
-        ));
+        );
     }
 
     // NOTE: generate the glyph map texture
@@ -234,26 +242,30 @@ fn main() {
             "texture_height must be a power of two!"
         );
 
-        lookup_table_contents.push_str(&format!(
-            "pub const DEFAULT_TILE_SIZE: i32 = {};\n",
+        writeln!(
+            lookup_table_contents,
+            "pub const DEFAULT_TILE_SIZE: i32 = {};",
             default_tile_size
-        ));
+        );
 
-        lookup_table_contents.push_str(&format!(
-            "pub const GLYPHMAP_TEXTURE_WIDTH: u32 = {};\n",
+        writeln!(
+            lookup_table_contents,
+            "pub const GLYPHMAP_TEXTURE_WIDTH: u32 = {};",
             texture_width as u32
-        ));
+        );
 
-        lookup_table_contents.push_str(&format!(
-            "pub const GLYPHMAP_TEXTURE_HEIGHT: u32 = {};\n",
+        writeln!(
+            lookup_table_contents,
+            "pub const GLYPHMAP_TEXTURE_HEIGHT: u32 = {};",
             texture_height as u32
-        ));
+        );
 
-        lookup_table_contents.push_str(&format!(
-            "pub const AVAILABLE_TILE_SIZES: [i32; {}] = {:?};\n",
+        writeln!(
+            lookup_table_contents,
+            "pub const AVAILABLE_TILE_SIZES: [i32; {}] = {:?};",
             tile_sizes.len(),
             tile_sizes,
-        ));
+        );
 
         // Lookup table for the printable ASCII chars (32 to 125)
         let lookup_table = tile_chars
@@ -320,10 +332,11 @@ fn main() {
         );
         lookup_table_contents.push_str("match (size, chr) {\n");
         for &(font_size, ref _glyph, chr, tilepos_x, tilepos_y) in &glyphs {
-            lookup_table_contents.push_str(&format!(
-                "  ({:?}, {:?}) => Some(({}, {})),\n",
+            writeln!(
+                lookup_table_contents,
+                "  ({:?}, {:?}) => Some(({}, {})),",
                 font_size, chr, tilepos_x, tilepos_y
-            ));
+            );
         }
 
         lookup_table_contents.push_str("_ => None,\n}\n}\n\n");

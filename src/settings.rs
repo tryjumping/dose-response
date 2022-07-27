@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{
     error::Error,
-    fmt,
+    fmt::{self, Write},
     fs::File,
     io::prelude::*,
     path::{Path, PathBuf},
@@ -151,79 +151,78 @@ impl Settings {
 
     pub fn as_toml(&self) -> String {
         let mut out = String::with_capacity(1000);
-        out.push_str(&format!(
-            "# Options: \"{}\" or \"{}\"\n",
-            FULLSCREEN, WINDOW
-        ));
-        out.push_str(&format!("{} = \"{}\"\n\n", DISPLAY, WINDOW));
+        let _ = writeln!(out, "# Options: \"{}\" or \"{}\"", FULLSCREEN, WINDOW);
+        let _ = writeln!(out, "{} = \"{}\"\n", DISPLAY, WINDOW);
 
-        out.push_str(&format!(
-            "# Options: \"{}\" or \"{}\"\n",
+        let _ = writeln!(
+            out,
+            "# Options: \"{}\" or \"{}\"",
             engine::VisualStyle::Graphical,
             engine::VisualStyle::Textual
-        ));
-        out.push_str(&format!("{} = \"{}\"\n\n", VISUAL_STYLE, self.visual_style));
+        );
+        let _ = writeln!(out, "{} = \"{}\"\n", VISUAL_STYLE, self.visual_style);
 
-        out.push_str(&format!(
-            "# Options: \"{}\", \"{}\" or \"{}\"\n",
+        let _ = writeln!(
+            out,
+            "# Options: \"{}\", \"{}\" or \"{}\"",
             Palette::Classic,
             Palette::Accessible,
             Palette::Greyscale
-        ));
-        out.push_str(&format!("{} = \"{}\"\n\n", PALETTE, self.palette));
+        );
+        let _ = writeln!(out, "{} = \"{}\"\n", PALETTE, self.palette);
 
         let tile_sizes_str = crate::engine::AVAILABLE_TILE_SIZES
             .iter()
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
-        out.push_str(&format!("# Options: {}\n", tile_sizes_str));
-        out.push_str(&format!("{} = {}\n\n", TILE_SIZE, self.tile_size));
+        let _ = writeln!(out, "# Options: {}", tile_sizes_str);
+        let _ = writeln!(out, "{} = {}\n", TILE_SIZE, self.tile_size);
 
         let text_sizes_str = crate::engine::AVAILABLE_TEXT_SIZES
             .iter()
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
-        out.push_str(&format!("# Options: {}\n", text_sizes_str));
-        out.push_str(&format!("{} = {}\n\n", TEXT_SIZE, self.text_size));
+        let _ = writeln!(out, "# Options: {}", text_sizes_str);
+        let _ = writeln!(out, "{} = {}\n", TEXT_SIZE, self.text_size);
 
-        out.push_str(&format!("{} = {}\n", WINDOW_WIDTH, self.window_width));
-        out.push_str(&format!("{} = {}\n\n", WINDOW_HEIGHT, self.window_height));
+        let _ = writeln!(out, "{} = {}", WINDOW_WIDTH, self.window_width);
+        let _ = writeln!(out, "{} = {}\n", WINDOW_HEIGHT, self.window_height);
 
         let backends_str = crate::engine::AVAILABLE_BACKENDS
             .iter()
             .map(|b| format!("\"{}\"", b))
             .collect::<Vec<_>>()
             .join(", ");
-        out.push_str(&format!("# Options: {}\n", backends_str));
+        let _ = writeln!(out, "# Options: {}", backends_str);
 
-        out.push_str(&format!("{} = \"{}\"\n", BACKEND, self.backend));
+        let _ = writeln!(out, "{} = \"{}\"", BACKEND, self.backend);
 
-        out.push_str(&format!(
-            "{} = \"{}\"\n",
+        let _ = writeln!(
+            out,
+            "{} = \"{}\"",
             HIDE_UNSEEN_TILES, self.hide_unseen_tiles
-        ));
+        );
 
-        out.push_str(&format!(
-            "{} = \"{}\"\n",
-            FAST_DEPRESSION, self.fast_depression
-        ));
+        let _ = writeln!(out, "{} = \"{}\"", FAST_DEPRESSION, self.fast_depression);
 
-        out.push_str(&format!("{} = \"{}\"\n", PERMADEATH, self.permadeath));
+        let _ = writeln!(out, "{} = \"{}\"", PERMADEATH, self.permadeath);
 
         out.push_str("# Options: <0.0, 1.0>\n");
-        out.push_str(&format!(
-            "{} = \"{}\"\n",
+        let _ = writeln!(
+            out,
+            "{} = \"{}\"",
             BACKGROUND_VOLUME, self.background_volume
-        ));
+        );
         out.push_str("# Options: <0.0, 1.0>\n");
-        out.push_str(&format!("{} = \"{}\"\n", SOUND_VOLUME, self.sound_volume));
+        let _ = writeln!(out, "{} = \"{}\"", SOUND_VOLUME, self.sound_volume);
 
-        out.push_str(&format!(
-            "{} = \"{}\"\n",
+        let _ = writeln!(
+            out,
+            "{} = \"{}\"",
             FIRST_EVER_STARTUP, self.first_ever_startup
-        ));
+        );
 
         out
     }

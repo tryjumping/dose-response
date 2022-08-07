@@ -318,13 +318,10 @@ impl LoopState {
 
     pub fn egui_raw_input(&self) -> RawInput {
         let text_size = self.settings.text_size as f32;
-        let mouse_pos = [
-            self.mouse.screen_pos.x as f32,
-            self.mouse.screen_pos.y as f32,
-        ]
-        .into();
+        let mouse = self.game_state.mouse;
+        let mouse_pos = [mouse.screen_pos.x as f32, mouse.screen_pos.y as f32].into();
         let mut events = vec![Event::PointerMoved(mouse_pos)];
-        if self.mouse.left_clicked {
+        if mouse.left_clicked {
             events.push(Event::PointerButton {
                 pos: mouse_pos,
                 button: egui::PointerButton::Primary,
@@ -340,8 +337,8 @@ impl LoopState {
         }
         RawInput {
             scroll_delta: [
-                self.mouse.scroll_delta[0] * text_size,
-                self.mouse.scroll_delta[1] * text_size,
+                mouse.scroll_delta[0] * text_size,
+                mouse.scroll_delta[1] * text_size,
             ]
             .into(),
             screen_rect: Some(egui::Rect::from_min_size(

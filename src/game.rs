@@ -65,7 +65,14 @@ pub fn update(
     let update_stopwatch = Stopwatch::start();
     state.clock += dt;
     state.replay_step += dt;
-    state.tick_id += 1;
+
+    if state.window_stack.top() == Window::Game {
+        state.previous_tick = state.tick_id;
+        state.tick_id += 1;
+        log::debug!("Starting new tick with ID: {}", state.tick_id);
+    } else {
+        //log::warn!("NOT A GAME FRAME!!");
+    }
 
     // The music won't play during the initial main menu screen so
     // start it after the game starts and then just keep playing
@@ -96,32 +103,71 @@ pub fn update(
         (state.map_size.x + panel_width_tiles, state.map_size.y)
     );
 
-    let input = Input {
-        keys: new_keys.to_vec(),
-        mouse,
-        tick_id: state.tick_id,
+    let input = {
+        let mut i = Input {
+            keys: new_keys.to_vec(),
+            mouse,
+            tick_id: state.tick_id,
+            verification: None,
+        };
+        if cfg!(feature = "verifications") {
+            // NOTE: we're not logging a verification every frame!
+            i.verification = Some(state.verification());
+        }
+        i
     };
 
-    state::log_input(&mut state.input_logger, input);
+    if state.window_stack.top() == Window::Game {
+        state::log_input(&mut state.input_logger, input);
+        log::info!(
+            "[TICK {}] state.player.pos: {}",
+            state.tick_id,
+            state.player.pos
+        );
+    }
 
     if state.replay {
-        if let Some(input) = state.inputs.get(state.tick_id as usize) {
-            state.keys.extend(input.keys.iter().copied())
+        let replay_input_index = state.tick_id as usize - 1;
+        assert_eq!(state.tick_id, state.previous_tick + 1);
+        if let Some(input) = state.inputs.get(replay_input_index) {
+            // log::warn!(
+            //     "Loading input for: tick id: {}, index: {replay_input_index}",
+            //     state.tick_id
+            // );
+
+            assert_eq!(state.tick_id, input.tick_id);
+
+            if let Some(expected) = &input.verification {
+                let actual = state.verification();
+                verify_states(expected, &actual);
+                // log::info!("Verification succeeded.");
+            }
+
+            state.keys.extend(input.keys.iter().copied());
+            state.mouse = input.mouse;
+        } else {
+            #[allow(clippy::panic)]
+            {
+                panic!("Could not load input for {}", state.tick_id);
+            }
+        }
+
+        #[allow(clippy::panic)]
+        if !state.player.alive() && !state.inputs.is_empty() {
+            panic!(
+                "Game quit too early -- there are still {} \
+                         commands queued up.",
+                state.inputs.len()
+            );
         }
     } else {
         state.keys.extend(new_keys.iter().copied());
+        state.mouse = mouse;
     }
 
-    state.mouse = if state.replay {
-        // Switch back to using regular mouse once the pre-recorded inputs ran out:
-        state
-            .inputs
-            .get(state.tick_id as usize)
-            .cloned()
-            .map_or(mouse, |i| i.mouse)
-    } else {
-        mouse
-    };
+    if state.window_stack.top() == Window::Game {
+        log::debug!("state.mouse: {:?}", state.mouse);
+    }
 
     // Quit the game when Q is pressed or on replay and requested
     if (!state.player.alive() && state.exit_after)
@@ -538,11 +584,13 @@ fn process_game(
         // Depression 1 etc.
 
         let player_ap = state.player.ap();
+        log::debug!("Player AP before processing: {player_ap}");
         if state.player.ap() >= 1 {
             process_player(state, display, audio, simulation_area);
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
+        log::debug!("Player AP: {player_ap}, Player took action: {player_took_action}, Monsters can move: {monsters_can_move}");
 
         if state.explosion_animation.is_none() {
             if monsters_can_move {
@@ -593,32 +641,70 @@ fn process_game(
             == 0;
 
         entire_turn_ended = player_turn_ended && monster_turn_ended;
+        log::debug!(
+            "Entire turn ended: {}, player turn ended: {}, monster turn ended: {}",
+            entire_turn_ended,
+            player_turn_ended,
+            monster_turn_ended
+        );
     }
 
-    // Log or check verifications
-    if entire_turn_ended {
-        if state.replay {
-            if let Some(expected) = state.verifications.pop_front() {
-                let actual = state.verification();
-                verify_states(&expected, &actual);
+    // // Log or check verifications
+    // if entire_turn_ended {
+    //     log::info!("Entire turn ended.");
+    //     if state.replay {
+    //         let verification_tick_id = state.verifications.front().map_or(0, |v| v.tick_id);
+    //         // TODO: NOTE: this effectively skips all verifications!! As soon as one doesn't match, it won't get popeed and then none will match.
+    //         // We'll need to not reset the turn if the verifications haven't been popped up yet
 
-                #[allow(clippy::panic)]
-                if player_was_alive && !state.player.alive() && !state.inputs.is_empty() {
-                    panic!(
-                        "Game quit too early -- there are still {} \
-                         commands queued up.",
-                        state.inputs.len()
-                    );
-                }
-            } else {
-                // NOTE: no verifications were loaded. Probably
-                // replaying a release build.
-            }
-        } else if cfg!(feature = "verifications") {
-            let verification = state.verification();
-            state::log_verification(&mut state.input_logger, &verification);
-        }
-    }
+    //         // I think what we should do is store verifications in a hashmap and read it with of the state.tick_id key.
+    //         // Otherwise there's too much stuff that could go desync.
+    //         //
+    //         // And it looks like afterwards, we'll still run into actual real desync issues
+    //         if verification_tick_id == state.tick_id {
+    //             if let Some(expected) = state.verifications.pop_front() {
+    //                 let actual = state.verification();
+    //                 // TODO: only take the verification when it's the right turn id!!
+    //                 //
+    //                 // NOTE: actually, since verifications are saved and read only in the "entire_turn_ended" situation,
+    //                 // and they don't have frame_ids as indices *and* we're checking both turn id and frame id in the `verify_states` call below, I think we can just blindly pop_front there and keep going. It will crash if something's wrong.
+    //                 verify_states(&expected, &actual);
+    //                 log::info!("Verification succeeded.");
+
+    //                 #[allow(clippy::panic)]
+    //                 if player_was_alive && !state.player.alive() && !state.inputs.is_empty() {
+    //                     panic!(
+    //                         "Game quit too early -- there are still {} \
+    //                      commands queued up.",
+    //                         state.inputs.len()
+    //                     );
+    //                 }
+    //             } else {
+    //                 // NOTE: no verifications were loaded. Probably
+    //                 // replaying a release build.
+    //             }
+    //         } else {
+    //             log::info!(
+    //                 "At the end of the turn, but state.tick_id {} doesn't match verification's {}.",
+    //                 state.tick_id,
+    //                 verification_tick_id
+    //             );
+
+    //             #[allow(clippy::panic)]
+    //             if player_was_alive && !state.player.alive() && !state.inputs.is_empty() {
+    //                 panic!(
+    //                     "Game quit too early -- there are still {} \
+    //                      commands queued up.",
+    //                     state.inputs.len()
+    //                 );
+    //             }
+    //         }
+    //     } else if cfg!(feature = "verifications") {
+    //         // NOTE: we're not logging a verification every frame!
+    //         let verification = state.verification();
+    //         state::log_verification(&mut state.input_logger, &verification);
+    //     }
+    // }
 
     // Reset the player & monster action points
     // NOTE: doing this only after we've logged the validations. Actually maybe we want to do this
@@ -662,6 +748,8 @@ fn process_game(
     // Set the fadeout animation on death
     if player_was_alive && !state.player.alive() {
         use crate::player::CauseOfDeath::*;
+        log::info!("Player died.");
+
         audio.mix_sound_effect(Effect::GameOver, Duration::from_millis(0));
         let cause_of_death = formula::cause_of_death(&state.player);
         let fade_color = if cfg!(feature = "recording") {
@@ -814,6 +902,8 @@ fn process_monsters(
     if !player.alive() {
         return;
     }
+    log::debug!("Processing monsters");
+
     // NOTE: one quarter of the map area should be a decent overestimate
     let monster_count_estimate = area.size().x * area.size().y / 4;
     assert!(monster_count_estimate > 0);
@@ -834,6 +924,10 @@ fn process_monsters(
     monster_positions_vec
         .sort_by_key(|&(ap, pos)| (ap, player.pos.distance(pos) as i32, pos.x, pos.y));
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
+    log::debug!(
+        "Monsters to process: {}",
+        monster_positions_to_process.len()
+    );
 
     while let Some((_, monster_position)) = monster_positions_to_process.pop_front() {
         if !player.alive() {
@@ -983,6 +1077,7 @@ fn process_player_action(
     palette: &Palette,
     audio: &mut Audio,
 ) {
+    log::debug!("Processing player action");
     if !player.alive() {
         log::debug!("Processing player action, but the player is dead.");
         return;
@@ -996,6 +1091,7 @@ fn process_player_action(
     }
 
     if let Some(command) = commands.pop_front() {
+        log::debug!("Player Command: {:?}", command);
         let mut action = match command {
             Command::N => Action::Move(player.pos + (0, -1)),
             Command::S => Action::Move(player.pos + (0, 1)),
@@ -1022,6 +1118,7 @@ fn process_player_action(
                 return;
             }
         };
+        log::debug!("Action from Command: {:?}", action);
 
         if player.stun.to_int() > 0 {
             action = Action::Move(player.pos);
@@ -1074,6 +1171,8 @@ fn process_player_action(
         if let Some(kind) = carried_irresistible_dose {
             action = Action::Use(kind);
         }
+
+        log::debug!("Final Action: {:?}", action);
         match action {
             Action::Move(dest) => {
                 let dest_walkable =
@@ -1262,6 +1361,8 @@ fn process_player_action(
                 unreachable!();
             }
         }
+    } else {
+        log::debug!("No Command found");
     }
 }
 
@@ -1272,6 +1373,8 @@ fn process_player(
     simulation_area: Rectangle,
 ) {
     {
+        log::debug!("Processing player");
+
         // appease borrowck
         let player = &mut state.player;
 
@@ -1316,6 +1419,14 @@ fn process_player(
         state.player.pos,
         formula::exploration_radius(state.player.mind),
     );
+
+    log::debug!(
+        "left down: {}, visible: {}, walking timer done: {}",
+        state.mouse.left_is_down,
+        visible,
+        state.path_walking_timer.finished()
+    );
+    log::debug!("Player path: {:?}", state.player_path);
     if state.mouse.left_is_down && visible && state.path_walking_timer.finished() {
         state.path_walking_timer.reset();
         if let Some(destination) = state.player_path.next() {
@@ -1330,14 +1441,21 @@ fn process_player(
                 Point { x: 1, y: -1 } => Some(Command::NE),
                 Point { x: 1, y: 1 } => Some(Command::SE),
 
-                _ => None,
+                unexpected => {
+                    log::debug!("Unexpected command point: {:?}", unexpected);
+                    None
+                }
             };
             if let Some(command) = command {
-                state.commands.push_front(command)
+                log::debug!("Pushing mouse trail command: {:?}", command);
+                state.commands.push_front(command);
+            } else {
+                log::debug!("We're in the player path section, but no command is pushed.");
             }
         }
     }
 
+    log::debug!("Commands: {:?}", state.commands);
     let previous_action_points = state.player.ap();
     process_player_action(
         &mut state.player,
@@ -1352,14 +1470,17 @@ fn process_player(
         &state.palette,
         audio,
     );
+    log::debug!("player action processed");
 
     // If the player ever picks up a dose, mark it in this variable:
     let player_picked_up_a_dose = state.player.inventory.iter().any(item::Item::is_dose);
     if player_picked_up_a_dose {
         state.player_picked_up_a_dose = true;
     }
+    log::debug!("Player picked up a dose: {}", player_picked_up_a_dose);
 
     let spent_ap_this_turn = previous_action_points > state.player.ap();
+    log::debug!("Player spent AP this turn: {}", spent_ap_this_turn);
 
     // Place the Victory NPC if the player behaved themself.
     if state.player.will.is_max() && !state.player.mind.is_high() && state.victory_npc_id.is_none()
@@ -1479,6 +1600,7 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
             _ => inventory_commands(key),
         };
         if let Some(command) = command {
+            log::debug!("Pushing Command: {:?} from Key: {:?}", command, key);
             commands.push_back(command);
         }
     }
@@ -1616,27 +1738,57 @@ fn show_exit_stats(stats: &Stats) {
 }
 
 fn verify_states(expected: &state::Verification, actual: &state::Verification) {
+    // NOTE: We're doing this rather than comparing the verifications directly, because
+    // we're failing on the tick.id comparison right now. I think that's something we'll want to fix, but maybe not right now.
+
+    // NOTE: Okay so even without tick_id we're still getting validation errors. I suspect the tick_ids are a harbringer of that and we're just lucky not hitting them earlier.
+
+    // NOTE: and yeah when we disable validations altogether, we get a desync.
+    let mut valid = true;
+
+    // Okay so at the point this verification is made, the actual tick_id is anything from 182 to 186.
+    // That's clearly an issue.
+    if expected.tick_id != actual.tick_id {
+        log::error!(
+            "Expected tick_id: {}, actual: {}",
+            expected.tick_id,
+            actual.tick_id
+        );
+        valid = false;
+    }
+
+    if expected.turn != actual.turn {
+        log::error!("Expected turn: {}, actual: {}", expected.turn, actual.turn);
+        valid = false;
+    }
+
     if expected.chunk_count != actual.chunk_count {
         log::error!(
             "Expected chunks: {}, actual: {}",
             expected.chunk_count,
             actual.chunk_count
         );
+        valid = false;
     }
+
     if expected.player_pos != actual.player_pos {
         log::error!(
             "Expected player position: {}, actual: {}",
             expected.player_pos,
             actual.player_pos
         );
+        valid = false;
     }
+
     if expected.monsters.len() != actual.monsters.len() {
         log::error!(
             "Expected monster count: {}, actual: {}",
             expected.monsters.len(),
             actual.monsters.len()
         );
+        valid = false;
     }
+
     if expected.monsters != actual.monsters {
         let expected_monsters: HashMap<Point, (Point, monster::Kind)> = expected
             .monsters
@@ -1660,6 +1812,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
                             expected,
                             actual
                         );
+                        valid = false;
                     }
                 }
                 None => {
@@ -1669,6 +1822,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
                         pos,
                         expected
                     );
+                    valid = false;
                 }
             }
         }
@@ -1676,10 +1830,18 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
         for (pos, actual) in &actual_monsters {
             if expected_monsters.get(pos).is_none() {
                 log::error!("There is an unexpected monster at: {}: {:?}.", pos, actual);
+                valid = false;
             }
         }
     }
-    assert_eq!(expected, actual, "Validation failed!");
+
+    // Use if+panic rather than `assert_eq`. The latter prints out both objects and they can be MASSIVE.
+    // We've got a more targeted expected/actual printout above so all we need here is to crash.
+    #[allow(clippy::panic)]
+    //if expected != actual {
+    if !valid {
+        panic!("Validation failed!");
+    }
 }
 
 pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {

@@ -88,11 +88,12 @@ pub enum Command {
     },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Input {
     pub keys: Vec<Key>,
     pub mouse: Mouse,
     pub tick_id: i32,
+    pub verification: Option<Verification>,
 }
 
 pub fn generate_replay_path() -> Option<PathBuf> {
@@ -122,6 +123,7 @@ pub fn generate_replay_path() -> Option<PathBuf> {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Verification {
     pub turn: i32,
+    pub tick_id: i32,
     pub chunk_count: usize,
     pub player_pos: Point,
     pub monsters: Vec<(Point, Point, monster::Kind)>,
@@ -160,13 +162,14 @@ pub struct State {
     pub inputs: VecDeque<Input>,
     pub commands: VecDeque<Command>,
     pub player_path: Path,
-    #[serde(skip_serializing, skip_deserializing)]
-    pub verifications: VecDeque<Verification>,
+    // #[serde(skip_serializing, skip_deserializing)]
+    // pub verifications: HashMap<i32, Verification>,
     #[serde(skip_serializing, skip_deserializing, default = "empty_command_logger")]
     pub input_logger: Box<dyn Write>,
     pub side: Side,
     pub turn: i32,
     pub tick_id: i32,
+    pub previous_tick: i32,
     pub cheating: bool,
     pub replay: bool,
     pub replay_full_speed: bool,
@@ -219,7 +222,6 @@ impl State {
         map_size: Point,
         panel_width: i32,
         inputs: VecDeque<Input>,
-        verifications: VecDeque<Verification>,
         log_writer: W,
         seed: u32,
         cheating: bool,
@@ -277,11 +279,11 @@ impl State {
             inputs,
             commands: VecDeque::new(),
             player_path: Path::default(),
-            verifications,
             input_logger: Box::new(log_writer),
             side: Side::Player,
             turn: 0,
             tick_id: 0,
+            previous_tick: 0,
             cheating,
             replay,
             replay_full_speed,
@@ -327,7 +329,6 @@ impl State {
         palette: Palette,
     ) -> State {
         let inputs = VecDeque::new();
-        let verifications = VecDeque::new();
         let seed = util::random_seed();
         let mut writer: Box<dyn Write> = if let Some(replay_path) = replay_path {
             match File::create(&replay_path) {
@@ -359,7 +360,6 @@ Reason: '{}'.",
             map_size,
             panel_width,
             inputs,
-            verifications,
             writer,
             seed,
             cheating,
@@ -389,7 +389,6 @@ Reason: '{}'.",
         {
             use std::io::{BufRead, BufReader};
             let mut inputs = VecDeque::new();
-            let mut verifications = VecDeque::new();
             let file = File::open(replay_path)?;
             let mut lines = BufReader::new(file).lines();
             let seed: u32 = match lines.next() {
@@ -428,16 +427,26 @@ Reason: '{}'.",
             for line in lines {
                 let line = line?;
                 // Try parsing it as an `Input` first, otherwise it's a `Verification`
-                if let Ok(input) = serde_json::from_str::<Input>(&line) {
-                    assert!(input.tick_id > 0);
-                    assert_eq!(inputs.len(), input.tick_id as usize - 1);
+                #[allow(clippy::expect_used)]
+                let input =
+                    serde_json::from_str::<Input>(&line).expect("Could not parse replay Input.");
+                assert!(input.tick_id > 0);
+                let index = input.tick_id as usize - 1;
+                assert_eq!(inputs.len(), index);
 
-                    inputs.push_back(input);
-                } else {
-                    // Must be a verification, then
-                    let verification = serde_json::from_str(&line)?;
-                    verifications.push_back(verification);
-                }
+                // log::warn!("Reading input {}", input.tick_id);
+                // log::warn!(
+                //     "Before insert: inputs.len(): {}, {index}, input.tick_id: {}",
+                //     inputs.len(),
+                //     input.tick_id
+                // );
+                inputs.push_back(input.clone());
+                // log::warn!(
+                //     "After insert: inputs.len(): {}, {index}, input.tick_id: {}",
+                //     inputs.len(),
+                //     input.tick_id
+                // );
+                assert_eq!(Some(input), inputs.get(index).cloned());
             }
 
             log::info!("Replaying game log: '{}'", replay_path.display());
@@ -449,7 +458,6 @@ Reason: '{}'.",
                 map_size,
                 panel_width,
                 inputs,
-                verifications,
                 Box::new(io::sink()),
                 seed,
                 cheating,
@@ -509,6 +517,7 @@ Reason: '{}'.",
 
         Verification {
             turn: self.turn,
+            tick_id: self.tick_id,
             chunk_count: chunks.len(),
             player_pos: self.player.pos,
             monsters,
@@ -622,17 +631,6 @@ pub fn log_input<W: Write>(writer: &mut W, input: Input) {
         }
         Err(err) => {
             log::error!("Could not serialise {:?} to JSON: {}", input, err);
-        }
-    }
-}
-
-pub fn log_verification<W: Write>(writer: &mut W, verification: &Verification) {
-    match serde_json::to_string(&verification) {
-        Ok(json) => {
-            let _ = writeln!(writer, "{}", json);
-        }
-        Err(error) => {
-            log::error!("Could not serialise {:?} to JSON: {}", verification, error);
         }
     }
 }

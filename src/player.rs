@@ -149,13 +149,16 @@ impl Player {
     }
 
     pub fn reset(&mut self) {
-        // NOTE: we're not resetting Will because if the player
-        // carries doses in the inventory, those would suddenly start
-        // going off.
+        log::info!("Resetting player to the initial state.");
+
         self.mind = Mind::Withdrawal(Ranged::new_max(WITHDRAWAL));
 
         if self.will.to_int() < formula::PLAYER_STARTING_WILL {
             self.will = Ranged::new(formula::PLAYER_STARTING_WILL, WILL);
+        } else {
+            // NOTE: we're not resetting Will to a lower value because
+            // if the player carries doses in the inventory, those
+            // would suddenly start going off.
         }
 
         self.panic = Ranged::new_min(formula::PANIC_TURNS);

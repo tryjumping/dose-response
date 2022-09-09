@@ -60,28 +60,24 @@ impl Timer {
     }
 
     pub fn percentage_remaining(&self) -> f32 {
-        // TODO: calculate percentage from frames
         self.current.as_secs_f32() / self.max.as_secs_f32()
     }
 
     pub fn percentage_elapsed(&self) -> f32 {
-        // TODO: calculate percentage from frames
         1.0 - self.percentage_remaining()
     }
 
     pub fn finished(&self) -> bool {
-        //self.current_frames == 0
-        // log::warn!(
-        //     "current_frames: {}; current duration: {:?}",
-        //     self.current_frames,
-        //     self.current
-        // );
-        let finished = self.current == Duration::new(0, 0);
-        // assert_eq!(
-        //     self.current == Duration::new(0, 0),
-        //     self.current_frames == 0
-        // );
-        //finished
+        // NOTE: basing whether the timer is finished on the Duration
+        // seems to result in a smoother experience. At least in the
+        // debug mode. Probably due to the fact that the variable dt
+        // smooths any framerate variations out.
+        //
+        // We need the deterministic current frames thing, but if this
+        // doesn't feel well, we'll need to do something. Like maybe
+        // switch this based on a feature flag.
+        //
+        //self.current == Duration::new(0, 0);
         self.current_frames == 0
     }
 }

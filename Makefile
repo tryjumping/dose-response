@@ -1,3 +1,10 @@
+# NOTE: we're using a quick check as the default target.
+# Previously, we were using `build-all` as the default.
+# But it's too easy to trigger and takes a very long time to finish.
+check:
+	cargo check
+.PHONY: check
+
 build-all:
 	cargo build --release --no-default-features --features prod
 	cargo check

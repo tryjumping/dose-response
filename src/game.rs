@@ -130,17 +130,11 @@ pub fn update(
         let replay_input_index = state.tick_id as usize - 1;
         assert_eq!(state.tick_id, state.previous_tick + 1);
         if let Some(input) = state.inputs.get(replay_input_index) {
-            // log::warn!(
-            //     "Loading input for: tick id: {}, index: {replay_input_index}",
-            //     state.tick_id
-            // );
-
             assert_eq!(state.tick_id, input.tick_id);
 
             if let Some(expected) = &input.verification {
                 let actual = state.verification();
                 verify_states(expected, &actual);
-                // log::info!("Verification succeeded.");
             }
 
             state.keys.extend(input.keys.iter().copied());
@@ -163,10 +157,6 @@ pub fn update(
     } else {
         state.keys.extend(new_keys.iter().copied());
         state.mouse = mouse;
-    }
-
-    if state.window_stack.top() == Window::Game {
-        log::debug!("state.mouse: {:?}", state.mouse);
     }
 
     // Quit the game when Q is pressed or on replay and requested
@@ -483,7 +473,7 @@ fn process_game(
         }
     }
 
-    // TODO: don't count paused frames for reploy!!
+    // TODO: don't count paused frames for replay!!
     state.paused = if state.replay && state.keys.matches_code(KeyCode::Space) {
         !state.paused
     } else {
@@ -648,63 +638,6 @@ fn process_game(
             monster_turn_ended
         );
     }
-
-    // // Log or check verifications
-    // if entire_turn_ended {
-    //     log::info!("Entire turn ended.");
-    //     if state.replay {
-    //         let verification_tick_id = state.verifications.front().map_or(0, |v| v.tick_id);
-    //         // TODO: NOTE: this effectively skips all verifications!! As soon as one doesn't match, it won't get popeed and then none will match.
-    //         // We'll need to not reset the turn if the verifications haven't been popped up yet
-
-    //         // I think what we should do is store verifications in a hashmap and read it with of the state.tick_id key.
-    //         // Otherwise there's too much stuff that could go desync.
-    //         //
-    //         // And it looks like afterwards, we'll still run into actual real desync issues
-    //         if verification_tick_id == state.tick_id {
-    //             if let Some(expected) = state.verifications.pop_front() {
-    //                 let actual = state.verification();
-    //                 // TODO: only take the verification when it's the right turn id!!
-    //                 //
-    //                 // NOTE: actually, since verifications are saved and read only in the "entire_turn_ended" situation,
-    //                 // and they don't have frame_ids as indices *and* we're checking both turn id and frame id in the `verify_states` call below, I think we can just blindly pop_front there and keep going. It will crash if something's wrong.
-    //                 verify_states(&expected, &actual);
-    //                 log::info!("Verification succeeded.");
-
-    //                 #[allow(clippy::panic)]
-    //                 if player_was_alive && !state.player.alive() && !state.inputs.is_empty() {
-    //                     panic!(
-    //                         "Game quit too early -- there are still {} \
-    //                      commands queued up.",
-    //                         state.inputs.len()
-    //                     );
-    //                 }
-    //             } else {
-    //                 // NOTE: no verifications were loaded. Probably
-    //                 // replaying a release build.
-    //             }
-    //         } else {
-    //             log::info!(
-    //                 "At the end of the turn, but state.tick_id {} doesn't match verification's {}.",
-    //                 state.tick_id,
-    //                 verification_tick_id
-    //             );
-
-    //             #[allow(clippy::panic)]
-    //             if player_was_alive && !state.player.alive() && !state.inputs.is_empty() {
-    //                 panic!(
-    //                     "Game quit too early -- there are still {} \
-    //                      commands queued up.",
-    //                     state.inputs.len()
-    //                 );
-    //             }
-    //         }
-    //     } else if cfg!(feature = "verifications") {
-    //         // NOTE: we're not logging a verification every frame!
-    //         let verification = state.verification();
-    //         state::log_verification(&mut state.input_logger, &verification);
-    //     }
-    // }
 
     // Reset the player & monster action points
     // NOTE: doing this only after we've logged the validations. Actually maybe we want to do this
@@ -931,7 +864,7 @@ fn process_monsters(
 
     while let Some((_, monster_position)) = monster_positions_to_process.pop_front() {
         if !player.alive() {
-            // Don't process any new monsters if the player's alive
+            // Don't process any new monsters if the player's dead
             // because we want the game to stop and freeze at that
             // time.
             //
@@ -1738,16 +1671,8 @@ fn show_exit_stats(stats: &Stats) {
 }
 
 fn verify_states(expected: &state::Verification, actual: &state::Verification) {
-    // NOTE: We're doing this rather than comparing the verifications directly, because
-    // we're failing on the tick.id comparison right now. I think that's something we'll want to fix, but maybe not right now.
-
-    // NOTE: Okay so even without tick_id we're still getting validation errors. I suspect the tick_ids are a harbringer of that and we're just lucky not hitting them earlier.
-
-    // NOTE: and yeah when we disable validations altogether, we get a desync.
     let mut valid = true;
 
-    // Okay so at the point this verification is made, the actual tick_id is anything from 182 to 186.
-    // That's clearly an issue.
     if expected.tick_id != actual.tick_id {
         log::error!(
             "Expected tick_id: {}, actual: {}",
@@ -1838,7 +1763,6 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
     // Use if+panic rather than `assert_eq`. The latter prints out both objects and they can be MASSIVE.
     // We've got a more targeted expected/actual printout above so all we need here is to crash.
     #[allow(clippy::panic)]
-    //if expected != actual {
     if !valid {
         panic!("Validation failed!");
     }

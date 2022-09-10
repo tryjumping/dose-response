@@ -117,7 +117,7 @@ pub fn update(
         i
     };
 
-    if state.window_stack.top() == Window::Game {
+    if state.window_stack.top() == Window::Game && state.player.alive() {
         state::log_input(&mut state.input_logger, input);
         log::info!(
             "[TICK {}] state.player.pos: {}",
@@ -126,7 +126,7 @@ pub fn update(
         );
     }
 
-    if state.replay {
+    if state.replay && state.player.alive() {
         let replay_input_index = state.tick_id as usize - 1;
         assert_eq!(state.tick_id, state.previous_tick + 1);
         if let Some(input) = state.inputs.get(replay_input_index) {

@@ -14,7 +14,7 @@ use egui::{self, paint::Shape, Pos2, Rect, Ui, Vec2};
 
 use std::{collections::HashMap, time::Duration};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Action {
     MainMenu,
     Help,
@@ -224,7 +224,13 @@ pub fn process(
             .selected(active)
             .background_color(state.palette.gui_button_background);
 
+        let dbg_btn = button.clone();
         if ui.add(button).clicked() {
+            log::info!(
+                "Button {:?} clicked! Click Action: {:?}",
+                dbg_btn,
+                button_action
+            );
             action = Some(button_action);
         };
     }

@@ -119,7 +119,7 @@ pub fn update(
 
     if state.window_stack.top() == Window::Game && state.player.alive() {
         state::log_input(&mut state.input_logger, input);
-        log::info!(
+        log::debug!(
             "[TICK {}] state.player.pos: {}",
             state.tick_id,
             state.player.pos
@@ -420,7 +420,35 @@ fn process_game(
             state.window_stack.push(Window::Help);
             return RunningState::Running;
         }
-        _ => {}
+        Some(sidebar_action) => {
+            let sidebar_command = match sidebar_action {
+                Action::UseFood => Some(Command::UseFood),
+                Action::UseDose => Some(Command::UseDose),
+                Action::UseCardinalDose => Some(Command::UseCardinalDose),
+                Action::UseDiagonalDose => Some(Command::UseDiagonalDose),
+                Action::UseStrongDose => Some(Command::UseStrongDose),
+
+                Action::MoveN => Some(Command::N),
+                Action::MoveS => Some(Command::S),
+                Action::MoveW => Some(Command::W),
+                Action::MoveE => Some(Command::E),
+
+                Action::MoveNW => Some(Command::NW),
+                Action::MoveNE => Some(Command::NE),
+                Action::MoveSW => Some(Command::SW),
+                Action::MoveSE => Some(Command::SE),
+
+                unexpected_action => {
+                    log::warn!("Unexpected sidebar action: {:?}", unexpected_action);
+                    None
+                }
+            };
+            if let Some(command) = sidebar_command {
+                state.commands.push_back(command);
+            }
+        }
+
+        None => {}
     }
 
     // Show the endgame screen on any pressed key:

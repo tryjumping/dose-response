@@ -60,7 +60,11 @@ impl Timer {
     }
 
     pub fn percentage_remaining(&self) -> f32 {
-        self.current.as_secs_f32() / self.max.as_secs_f32()
+        // NOTE: basing the percentage on the elapsed time means if
+        // frames take longer, you'll get a desync on replay.
+        //self.current.as_secs_f32() / self.max.as_secs_f32()
+
+        self.current_frames as f32 / self.max_frames as f32
     }
 
     pub fn percentage_elapsed(&self) -> f32 {

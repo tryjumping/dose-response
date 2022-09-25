@@ -27,6 +27,11 @@
 )]
 #![warn(missing_copy_implementations)]
 #![allow(
+    // TODO: see if we want to actually disable this or just fix this new warning in the codebase instead.
+    // https://rust-lang.github.io/rust-clippy/master/index.html#derive_partial_eq_without_eq
+    clippy::derive_partial_eq_without_eq,
+
+	
     clippy::identity_op,
     clippy::wildcard_imports,
     clippy::match_bool,
@@ -254,10 +259,15 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         loggers.push(SimpleLogger::new(log_level, Config::default()) as Box<dyn SharedLogger>);
     }
 
+    let file_log_config = simplelog::ConfigBuilder::new()
+    // // NOTE: This disables logging the datetime in messages. Useful for diffing playthroughts. Uncomment to disable datetime logging.
+    // 	.set_time_format_custom(time::macros::format_description!(""))
+        .build();
+
     if let Ok(logfile) = File::create("dose-response.log") {
         loggers.push(WriteLogger::new(
             LevelFilter::Trace,
-            Config::default(),
+            file_log_config,
             logfile,
         ));
     }

@@ -24,7 +24,7 @@ pub struct MonsterId {
 }
 
 /// What's the most significant thing placed on the tile?
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TileContents {
     Monster,
     Item,

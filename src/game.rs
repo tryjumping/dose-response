@@ -36,7 +36,7 @@ use std::{
 
 use egui::{CtxRef, Ui};
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Action {
     Move(Point),
     Attack(Point, player::Modifier),

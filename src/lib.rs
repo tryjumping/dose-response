@@ -27,11 +27,6 @@
 )]
 #![warn(missing_copy_implementations)]
 #![allow(
-    // TODO: see if we want to actually disable this or just fix this new warning in the codebase instead.
-    // https://rust-lang.github.io/rust-clippy/master/index.html#derive_partial_eq_without_eq
-    clippy::derive_partial_eq_without_eq,
-
-	
     clippy::identity_op,
     clippy::wildcard_imports,
     clippy::match_bool,

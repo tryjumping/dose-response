@@ -42,7 +42,7 @@ pub const SOUND_VOLUME: &str = "sound_volume";
 pub const FIRST_EVER_STARTUP: &str = "first_ever_startup";
 
 /// The colour palette that the user can select
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Palette {
     Classic,
     Accessible,

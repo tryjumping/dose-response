@@ -10,7 +10,7 @@ use crate::{
 
 use egui::{self, widgets, Color32, CtxRef, Rect, Response, Sense, Ui, Vec2, Widget};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Text<'a> {
     Centered(&'a str),
     Empty,

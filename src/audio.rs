@@ -192,7 +192,7 @@ pub struct EffectSounds {
     pub click: Sound,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Effect {
     Walk,
     MonsterHit,

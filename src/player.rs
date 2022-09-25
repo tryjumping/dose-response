@@ -14,7 +14,7 @@ use std::fmt::{Display, Error, Formatter};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Modifier {
     Death,
     // TODO: probably rename `state_of_mind` to something like hunger
@@ -34,7 +34,7 @@ pub enum Modifier {
     Stun(i32),
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Mind {
     Withdrawal(Ranged),
     Sober(Ranged),
@@ -69,7 +69,7 @@ impl Default for Mind {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Bonus {
     None,
     SeeMonstersAndItems,
@@ -82,7 +82,7 @@ impl Default for Bonus {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum CauseOfDeath {
     Exhausted,
     Overdosed,
@@ -92,7 +92,7 @@ pub enum CauseOfDeath {
 
 /// Values related to the Player the AI routines might want to
 /// investigate.
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct PlayerInfo {
     pub pos: Point,
     pub mind: Mind,

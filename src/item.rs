@@ -71,7 +71,7 @@ impl Iterator for KindIterator {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Item {
     pub kind: Kind,
     pub graphic: Graphic,

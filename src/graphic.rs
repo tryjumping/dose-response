@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub const TILE_SIZE: i32 = 10;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Graphic {
     Empty,
     Tree1,

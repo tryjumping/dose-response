@@ -35,7 +35,7 @@ const TEXTURE_EGUI: u64 = 0;
 const TEXTURE_GLYPH: u64 = 1;
 const TEXTURE_TILEMAP: u64 = 2;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum Texture {
     Egui = TEXTURE_EGUI,
@@ -60,7 +60,7 @@ impl From<Texture> for TextureId {
 }
 
 /// Visual style of the game.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum VisualStyle {
     /// Graphical tiles
     Graphical,
@@ -319,7 +319,7 @@ fn build_vertices<T: VertexStore>(
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TextOptions {
     /// Regular old text alignment: left, center, right.
     pub align: TextAlign,
@@ -374,7 +374,7 @@ impl Default for TextOptions {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TextAlign {
     Left,
     Right,
@@ -491,7 +491,7 @@ pub struct OffsetTile {
     pub offset_px: Point,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum DrawResult {
     Fit,
     Overflow,

@@ -38,7 +38,7 @@ const CHUNK_SIZE: i32 = 32;
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the
 // player won? Lost?
-#[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
 pub enum Side {
     Player,
     Victory,
@@ -48,7 +48,7 @@ pub enum Side {
 /// started (e.g. we just opened the app but didn't click "New Game"),
 /// it's currently running or has been finished (by winning or
 /// losing).
-#[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
 pub enum GameSession {
     NotStarted,
     InProgress,
@@ -120,7 +120,7 @@ pub fn generate_replay_path() -> Option<PathBuf> {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Verification {
     pub turn: i32,
     pub tick_id: i32,
@@ -597,7 +597,7 @@ pub struct MotionAnimation {
 /// The various challenges that the player can take. Persisted via
 /// settings, but available to the state for easier access within the
 /// game code.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Challenge {
     pub hide_unseen_tiles: bool,
     pub fast_depression: bool,

@@ -25,7 +25,7 @@ pub enum Action {
     Close,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Page {
     DoseResponse,
     NumpadControls,

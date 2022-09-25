@@ -1617,6 +1617,7 @@ fn kill_monster(monster_position: Point, world: &mut World, audio: &mut Audio) {
         // It's invincible: no-op
     } else {
         if let Some(monster) = world.monster_on_pos(monster_position) {
+            log::debug!("Killing monster: {:?}", monster);
             monster.dead = true;
             audio.mix_sound_effect(Effect::MonsterHit, Duration::from_millis(0));
         }

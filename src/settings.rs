@@ -93,7 +93,7 @@ impl Default for Settings {
         let backend = if crate::engine::AVAILABLE_BACKENDS.contains(&"glutin") {
             "glutin"
         } else {
-            crate::engine::AVAILABLE_BACKENDS.get(0).unwrap_or(&"none")
+            crate::engine::AVAILABLE_BACKENDS.first().unwrap_or(&"none")
         };
 
         let settings = Self {

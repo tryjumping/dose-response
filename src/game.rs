@@ -66,7 +66,23 @@ pub fn update(
     state.clock += dt;
     state.replay_step += dt;
 
-    if state.window_stack.top() == Window::Game {
+    // NOTE: we need to use `input.keys` because `state.keys` will
+    // only have the replay keys, not any new key presses.
+    //
+    // We also need to set this early before anything else (such as
+    // tick_id increase) happens so everything can work with the
+    // pause.
+    if state.replay {
+        let mut keys = Keys::new();
+        keys.extend(new_keys.iter().copied());
+        state.paused = if keys.matches_code(KeyCode::Space) {
+            !state.paused
+        } else {
+            state.paused
+        };
+    }
+
+    if state.window_stack.top() == Window::Game && !state.paused {
         state.previous_tick = state.tick_id;
         state.tick_id += 1;
         log::debug!("Starting new tick with ID: {}", state.tick_id);
@@ -126,7 +142,7 @@ pub fn update(
         );
     }
 
-    if state.replay && state.player.alive() {
+    if state.replay && state.player.alive() && !state.paused {
         let replay_input_index = state.tick_id as usize - 1;
         assert_eq!(state.tick_id, state.previous_tick + 1);
         if let Some(input) = state.inputs.get(replay_input_index) {
@@ -501,13 +517,7 @@ fn process_game(
         }
     }
 
-    // TODO: don't count paused frames for replay!!
-    state.paused = if state.replay && state.keys.matches_code(KeyCode::Space) {
-        !state.paused
-    } else {
-        state.paused
-    };
-
+    // TODO: NOTE: this now doesn't work on replays because state.keys only contains the replay keys
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
 
     // Animation to re-center the screen around the player when they

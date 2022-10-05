@@ -16,6 +16,12 @@ use num_rational::{Ratio, Rational32};
 const WIDE_SIDEBAR_WIDTH_PX: i32 = 375;
 const NARROW_SIDEBAR_WIDTH_PX: i32 = 300;
 
+/// Amount of tiles (a square with a starting point) that will be
+/// simulated. Currently, the only thing we simulate is the monster
+/// actions. We want this to be constant so it's not different on e.g.
+/// different window sizes, which would mess up the replays.
+pub const SIMULATION_RADIUS: i32 = 30;
+
 #[cfg(feature = "recording")]
 pub const INITIAL_SAFE_RADIUS: i32 = 7;
 #[cfg(not(feature = "recording"))]

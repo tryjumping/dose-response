@@ -535,7 +535,12 @@ fn process_game(
     }
 
     let mut entire_turn_ended = false;
-    let simulation_area = Rectangle::center(state.player.pos, state.map_size);
+
+    let simulation_area = Rectangle::center(
+        state.player.pos,
+        point::Point::from_i32(formula::SIMULATION_RADIUS),
+    );
+
 
     if (!state.paused || paused_one_step) && state.side != Side::Victory {
         let monster_count = state.world.monsters(simulation_area).count();

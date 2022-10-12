@@ -439,7 +439,9 @@ fn calculate_display_info(
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Mouse {
+    /// Position of the mouse on screen in tiles. The top-left corner is (0, 0), grows down and to the right.
     pub tile_pos: Point,
+    /// Position of the mouse on screen in pixels. The top-left corner is (0, 0), grows down and to the right.
     pub screen_pos: Point,
     /// The left button has clicked. I.e. pressed and released.
     pub left_clicked: bool,

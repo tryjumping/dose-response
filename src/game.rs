@@ -1390,7 +1390,6 @@ fn process_player(
         player.bonuses.extend(npc_bonuses);
     }
 
-    // NOTE: If the player is following a path move them one step along the path
     let visible = state.mouse_world_position().inside_circular_area(
         state.player.pos,
         formula::exploration_radius(state.player.mind),
@@ -1403,6 +1402,8 @@ fn process_player(
         state.path_walking_timer.finished()
     );
     log::debug!("Player path: {:?}", state.player_path);
+
+    // NOTE: If the player is following a path move them one step along the path
     if state.mouse.left_is_down && visible && state.path_walking_timer.finished() {
         state.path_walking_timer.reset();
         if let Some(destination) = state.player_path.next() {

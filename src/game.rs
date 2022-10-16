@@ -291,6 +291,36 @@ pub fn update(
                 }
             }
         }
+
+        if state.replay {
+            use egui::widgets::Image;
+
+            let tilesize = crate::graphic::TILE_SIZE as f32;
+            let tilemap_width = crate::engine::TILEMAP_TEXTURE_WIDTH as f32;
+            let tilemap_height = crate::engine::TILEMAP_TEXTURE_HEIGHT as f32;
+            let uv = egui::Rect::from_min_size(
+                // NOTE: coordinates
+                [110.0 / tilemap_width, 10.0 / tilemap_height].into(),
+                // NOTE: the doubling here means draw 2x2 tiles (total of four)
+                [
+                    (tilesize / tilemap_width) * 2.0,
+                    (tilesize / tilemap_height) * 2.0,
+                ]
+                .into(),
+            );
+
+            let image = Image::new(crate::engine::Texture::Tilemap.into(), egui::Vec2::ZERO).uv(uv);
+            let mouse_p = egui::Pos2::new(
+                state.mouse.screen_pos.x as f32,
+                state.mouse.screen_pos.y as f32,
+            );
+
+            // NOTE: if this doesn't match the
+            // `tilemap_{width,height}` in the `uv` calculations, it
+            // will resize the rendered image.
+            let image_size = egui::Vec2::new(20.0, 20.0);
+            image.paint_at(ui, egui::Rect::from_min_size(mouse_p, image_size));
+        }
     });
 
     // NOTE: process the screen fading animation animation.
@@ -540,7 +570,6 @@ fn process_game(
         state.player.pos,
         point::Point::from_i32(formula::SIMULATION_RADIUS),
     );
-
 
     if (!state.paused || paused_one_step) && state.side != Side::Victory {
         let monster_count = state.world.monsters(simulation_area).count();

@@ -716,7 +716,6 @@ impl Display {
         for (pos, cell) in self.cells() {
             let (fg_texture, fg_texture_px_x, fg_texture_px_y) = match visual_style {
                 VisualStyle::Graphical => {
-                    // TODO: handle background graphics here too!
                     match graphic::tilemap_coords_px(self.tile_size as u32, cell.foreground_graphic)
                     {
                         Some((tx, ty)) => (Texture::Tilemap, tx, ty),
@@ -761,7 +760,6 @@ impl Display {
 
             let (bg_texture, bg_texture_px_x, bg_texture_px_y) = match visual_style {
                 VisualStyle::Graphical => {
-                    // TODO: handle background graphics here too!
                     match graphic::tilemap_coords_px(self.tile_size as u32, cell.background_graphic)
                     {
                         Some((tx, ty)) => (Texture::Tilemap, tx, ty),
@@ -769,7 +767,7 @@ impl Display {
                         None => {
                             let (tx, ty) = glyph_coords_px_from_char(
                                 self.tile_size as u32,
-                                cell.foreground_graphic.into(),
+                                cell.background_graphic.into(),
                             )
                             .unwrap_or((0, 0));
                             (Texture::Glyph, tx, ty)
@@ -779,7 +777,7 @@ impl Display {
                 VisualStyle::Textual => {
                     let (tx, ty) = glyph_coords_px_from_char(
                         self.tile_size as u32,
-                        cell.foreground_graphic.into(),
+                        cell.background_graphic.into(),
                     )
                     .unwrap_or((0, 0));
                     (Texture::Glyph, tx, ty)

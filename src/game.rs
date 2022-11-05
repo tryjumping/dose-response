@@ -834,7 +834,11 @@ fn process_game(
         None
     };
     if let Some(tooltip) = tooltip {
-        egui::show_tooltip_text(ui.ctx(), egui::Id::new("Tile Tooltip"), tooltip);
+        // NOTE: only show tooltips when we're not scrolling the screen.
+        // It looks bad otherwise.
+        if state.pos_timer.finished() {
+            egui::show_tooltip_text(ui.ctx(), egui::Id::new("Tile Tooltip"), tooltip);
+        }
     }
 
     // NOTE: update the dose/food explosion animations

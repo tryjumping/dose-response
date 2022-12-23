@@ -275,7 +275,7 @@ pub fn progress_bar(
 ) {
     use egui::paint::Shape;
 
-    let percent = crate::util::clampf(0.0, percent, 1.0);
+    let percent = percent.clamp(0.0, 1.0);
     let background_rect = Shape::rect_filled(
         Rect::from_min_size(top_left, [width, height].into()),
         0.0,

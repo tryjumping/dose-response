@@ -6,7 +6,6 @@ use crate::{
     point::Point,
     settings::{Settings, Store as SettingsStore},
     state::State,
-    util,
 };
 
 use std::{convert::TryInto, sync::Arc, time::Duration};
@@ -440,8 +439,8 @@ impl LoopState {
     pub fn update_mouse_position(&mut self, dpi: f64, window_px_x: i32, window_px_y: i32) {
         let display_info = self.display_info(dpi);
 
-        let x = util::clamp(0, window_px_x, display_info.window_size_px[0] as i32 - 1);
-        let y = util::clamp(0, window_px_y, display_info.window_size_px[1] as i32 - 1);
+        let x = window_px_x.clamp(0, display_info.window_size_px[0] as i32 - 1);
+        let y = window_px_y.clamp(0, display_info.window_size_px[1] as i32 - 1);
 
         self.mouse.screen_pos = Point { x, y };
 

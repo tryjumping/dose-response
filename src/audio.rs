@@ -1,4 +1,4 @@
-use crate::{random::Random, util};
+use crate::random::Random;
 
 use std::time::Duration;
 
@@ -149,12 +149,12 @@ impl Audio {
     }
 
     pub fn set_background_volume(&mut self, volume: f32) {
-        let volume = util::clampf(0.0, volume, 1.0);
+        let volume = volume.clamp(0.0, 1.0);
         self.background_sound_queue.set_volume(volume);
     }
 
     pub fn set_effects_volume(&mut self, volume: f32) {
-        let volume = util::clampf(0.0, volume, 1.0);
+        let volume = volume.clamp(0.0, 1.0);
         for queue in &mut self.sound_effect_queue {
             queue.set_volume(volume);
         }

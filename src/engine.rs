@@ -5,7 +5,6 @@ use crate::{
     graphic::{self, Graphic, TILE_SIZE},
     point::Point,
     rect::Rectangle,
-    util,
 };
 
 use std::fmt;
@@ -658,7 +657,7 @@ impl Display {
     /// Set the value (RGBA) to fade the screen with.
     /// Unlike alpha, the `fade` argument is inverted: 1.0 means no fade, 0.0 means fully faded.
     pub fn set_fade(&mut self, color: Color, fade: f32) {
-        let fade = util::clampf(0.0, fade, 1.0);
+        let fade = fade.clamp(0.0, 1.0);
         let fade = (fade * 255.0) as u8;
         self.fade = color.alpha(255 - fade);
     }

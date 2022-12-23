@@ -1,4 +1,4 @@
-use crate::{engine, palette, state, util};
+use crate::{engine, palette, state};
 
 use serde::{Deserialize, Serialize};
 
@@ -488,14 +488,14 @@ impl Store for FileSystemStore {
 
         match self.toml[BACKGROUND_VOLUME].as_float() {
             Some(volume) => {
-                settings.background_volume = util::clampf(0.0, volume as f32, 1.0);
+                settings.background_volume = volume.clamp(0.0, 1.0) as f32;
             }
             // toml_edit uses `f64.as_string()` which outputs e.g.
             // `1.0` as `1`. This then gets parsed here as integer not
             // float so we need to handle that case separately.
             None => match self.toml[BACKGROUND_VOLUME].as_integer() {
                 Some(volume) => {
-                    settings.background_volume = util::clampf(0.0, volume as f32, 1.0);
+                    settings.background_volume = volume.clamp(0, 1) as f32;
                 }
                 None => log::error!("Settings: missing `{}` entry.", BACKGROUND_VOLUME),
             },
@@ -503,11 +503,11 @@ impl Store for FileSystemStore {
 
         match self.toml[SOUND_VOLUME].as_float() {
             Some(volume) => {
-                settings.sound_volume = util::clampf(0.0, volume as f32, 1.0);
+                settings.sound_volume = volume.clamp(0.0, 1.0) as f32;
             }
             None => match self.toml[SOUND_VOLUME].as_integer() {
                 Some(volume) => {
-                    settings.sound_volume = util::clampf(0.0, volume as f32, 1.0);
+                    settings.sound_volume = volume.clamp(0, 1) as f32;
                 }
                 None => log::error!("Settings: missing `{}` entry.", SOUND_VOLUME),
             },

@@ -131,13 +131,7 @@ impl Add<Rational32> for Ranged {
         match self.val.to_integer().checked_add(other.to_integer()) {
             Some(_) => {
                 let v = self.val + other;
-                let new_val = if v > self.max {
-                    self.max
-                } else if v < self.min {
-                    self.min
-                } else {
-                    v
-                };
+                let new_val = v.clamp(self.min, self.max);
                 Ranged::new(new_val, range)
             }
             None => {

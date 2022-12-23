@@ -114,7 +114,7 @@ fn get_current_monitor(monitors: &[MonitorHandle], window_pos: Point) -> Option<
     for monitor in monitors {
         let monitor_pos = {
             let pos = monitor.position();
-            Point::new(pos.x as i32, pos.y as i32)
+            Point::new(pos.x, pos.y)
         };
         let monitor_dimensions = {
             let dim = monitor.size();
@@ -287,7 +287,7 @@ where
     let mut window_pos = context
         .window()
         .outer_position()
-        .map(|p| Point::new(p.x as i32, p.y as i32))
+        .map(|p| Point::new(p.x, p.y))
         .unwrap_or_default();
     log::info!("Window pos: {:?}", window_pos);
     let mut pre_fullscreen_window_pos = window_pos;
@@ -337,8 +337,8 @@ monitor ID: {:?}. Ignoring this request.",
 
                     context.resize(size);
                     loop_state.handle_window_size_changed(
-                        logical_size.width as i32,
-                        logical_size.height as i32,
+                        logical_size.width,
+                        logical_size.height,
                     );
                 }
 
@@ -357,8 +357,8 @@ monitor ID: {:?}. Ignoring this request.",
                             loop_state.current_frame_id,
                             new_pos
                         );
-                        window_pos.x = new_pos.x as i32;
-                        window_pos.y = new_pos.y as i32;
+                        window_pos.x = new_pos.x;
+                        window_pos.y = new_pos.y;
                         current_monitor = get_current_monitor(&monitors, window_pos);
                         log::debug!(
                             "Current monitor: {:?}, pos: {:?}, size: {:?}",
@@ -432,7 +432,7 @@ monitor ID: {:?}. Ignoring this request.",
                 WindowEvent::MouseWheel { delta, .. } => {
                     use MouseScrollDelta::*;
                     match delta {
-                        LineDelta(x, y) => loop_state.mouse.scroll_delta = [x as f32, y as f32],
+                        LineDelta(x, y) => loop_state.mouse.scroll_delta = [x, y],
                         PixelDelta(PhysicalPosition { x: x_px, y: y_px }) => {
                             let line_height_px = loop_state.settings.text_size as f32;
                             loop_state.mouse.scroll_delta =

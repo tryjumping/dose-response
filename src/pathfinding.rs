@@ -287,15 +287,15 @@ mod test {
             for c in line.chars() {
                 if c == 's' {
                     start = Point {
-                        x: x as i32,
-                        y: y as i32,
+                        x,
+                        y,
                     };
                 }
 
                 if c == 'd' {
                     destination = Point {
-                        x: x as i32,
-                        y: y as i32,
+                        x,
+                        y,
                     };
                 }
 
@@ -308,8 +308,8 @@ mod test {
                     _ => unreachable!(),
                 };
                 let pos = Point {
-                    x: x as i32,
-                    y: y as i32,
+                    x,
+                    y,
                 };
                 if let Some(cell) = world.cell_mut(pos) {
                     cell.tile = Tile::new(tile_kind);

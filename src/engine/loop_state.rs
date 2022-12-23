@@ -372,7 +372,7 @@ impl LoopState {
     }
 
     pub fn change_tilesize_px(&mut self, new_tilesize_px: i32) {
-        if crate::engine::AVAILABLE_TILE_SIZES.contains(&(new_tilesize_px as i32)) {
+        if crate::engine::AVAILABLE_TILE_SIZES.contains(&new_tilesize_px) {
             log::info!(
                 "Changing tilesize from {} to {}",
                 self.display.tile_size,
@@ -395,7 +395,7 @@ impl LoopState {
     }
 
     pub fn change_text_size_px(&mut self, new_text_size_px: i32) {
-        if crate::engine::AVAILABLE_TEXT_SIZES.contains(&(new_text_size_px as i32)) {
+        if crate::engine::AVAILABLE_TEXT_SIZES.contains(&new_text_size_px) {
             log::info!(
                 "Changing text from {} to {}",
                 self.display.text_size,

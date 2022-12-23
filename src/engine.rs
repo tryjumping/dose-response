@@ -168,7 +168,7 @@ impl VertexStore for Vec<Vertex> {
 
 impl VertexStore for Vec<f32> {
     fn push(&mut self, vertex: Vertex) {
-        self.extend(&vertex.to_f32_array())
+        self.extend(vertex.to_f32_array())
     }
 
     fn count(&self) -> usize {
@@ -531,16 +531,8 @@ impl Display {
         // Without it, the partial tiles would not appear.
         let display_size = {
             let size = screen_size_px / tile_size;
-            let extra_x = if size.x * tile_size < screen_size_px.x {
-                1
-            } else {
-                0
-            };
-            let extra_y = if size.y * tile_size < screen_size_px.y {
-                1
-            } else {
-                0
-            };
+            let extra_x = i32::from(size.x * tile_size < screen_size_px.x);
+            let extra_y = i32::from(size.y * tile_size < screen_size_px.y);
             size + Point::new(extra_x, extra_y)
         };
         let padding = Point::from_i32(1);

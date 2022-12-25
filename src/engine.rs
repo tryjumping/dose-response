@@ -5,7 +5,6 @@ use crate::{
     graphic::{self, Graphic, TILE_SIZE},
     point::Point,
     rect::Rectangle,
-    util,
 };
 
 use std::fmt;
@@ -168,7 +167,7 @@ impl VertexStore for Vec<Vertex> {
 
 impl VertexStore for Vec<f32> {
     fn push(&mut self, vertex: Vertex) {
-        self.extend(&vertex.to_f32_array())
+        self.extend(vertex.to_f32_array())
     }
 
     fn count(&self) -> usize {
@@ -531,16 +530,8 @@ impl Display {
         // Without it, the partial tiles would not appear.
         let display_size = {
             let size = screen_size_px / tile_size;
-            let extra_x = if size.x * tile_size < screen_size_px.x {
-                1
-            } else {
-                0
-            };
-            let extra_y = if size.y * tile_size < screen_size_px.y {
-                1
-            } else {
-                0
-            };
+            let extra_x = i32::from(size.x * tile_size < screen_size_px.x);
+            let extra_y = i32::from(size.y * tile_size < screen_size_px.y);
             size + Point::new(extra_x, extra_y)
         };
         let padding = Point::from_i32(1);
@@ -666,7 +657,7 @@ impl Display {
     /// Set the value (RGBA) to fade the screen with.
     /// Unlike alpha, the `fade` argument is inverted: 1.0 means no fade, 0.0 means fully faded.
     pub fn set_fade(&mut self, color: Color, fade: f32) {
-        let fade = util::clampf(0.0, fade, 1.0);
+        let fade = fade.clamp(0.0, 1.0);
         let fade = (fade * 255.0) as u8;
         self.fade = color.alpha(255 - fade);
     }

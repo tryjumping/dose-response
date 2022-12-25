@@ -506,7 +506,7 @@ impl World {
                 self.nearest_dose(world_pos, 5)
                     .map_or(false, |(dose_pos, dose)| {
                         world_pos.tile_distance(dose_pos)
-                            < formula::player_resist_radius(dose.irresistible, player_will) as i32
+                            < formula::player_resist_radius(dose.irresistible, player_will)
                     })
             } else {
                 false

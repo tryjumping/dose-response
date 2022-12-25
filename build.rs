@@ -122,7 +122,7 @@ fn save_out_dir(cargo_manifest_dir: &str, out_dir: &Path) -> Result<(), Box<dyn 
 
 fn current_git_commit() -> Option<String> {
     Command::new("git")
-        .args(&["rev-parse", "HEAD"])
+        .args(["rev-parse", "HEAD"])
         .output()
         .ok()
         .and_then(|output| String::from_utf8(output.stdout).ok())
@@ -208,13 +208,13 @@ fn main() {
         writeln!(
             lookup_table_contents,
             "pub const TILEMAP_TEXTURE_WIDTH: u32 = {};",
-            width as u32
+            width
         );
 
         writeln!(
             lookup_table_contents,
             "pub const TILEMAP_TEXTURE_HEIGHT: u32 = {};",
-            height as u32
+            height
         );
     }
 
@@ -283,7 +283,7 @@ fn main() {
         // biggest glyphs first.
         let all_sizes = {
             let mut sizes: Vec<_> = tile_sizes.into();
-            sizes.extend(&text_sizes);
+            sizes.extend(text_sizes);
             sizes.sort_by(|a, b| b.cmp(a));
             sizes
         };
@@ -351,7 +351,7 @@ fn main() {
                     let y = y as i32 + bb.min.y;
                     // There's still a possibility that the glyph clips
                     // the boundaries of the bitmap
-                    if x >= 0 && x < texture_width as i32 && y >= 0 && y < texture_height as i32 {
+                    if x >= 0 && x < texture_width && y >= 0 && y < texture_height {
                         let alpha = (v * 255.0) as u8;
                         let pixel = Rgba([255, 255, 255, alpha]);
                         textmap.put_pixel(x as u32, y as u32, pixel);

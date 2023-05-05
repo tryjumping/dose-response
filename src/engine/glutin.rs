@@ -127,7 +127,7 @@ fn get_current_monitor(monitors: &[MonitorHandle], window_pos: Point) -> Option<
         }
     }
 
-    monitors.iter().cloned().next()
+    monitors.iter().next().cloned()
 }
 
 #[allow(unsafe_code)]
@@ -224,7 +224,7 @@ where
             .with_drag_and_drop(false)
             .with_taskbar_icon(window_icon)
     };
-    log::debug!("Created window builder: {:?}", window);
+    log::debug!("Created window builder.");
 
     // NOTE: this is the only thing we're using glutin for: creating
     // the OpenGL context. That is not possible to do with Winit

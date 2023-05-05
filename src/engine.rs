@@ -35,7 +35,7 @@ const TEXTURE_EGUI: u64 = 0;
 const TEXTURE_GLYPH: u64 = 1;
 const TEXTURE_TILEMAP: u64 = 2;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum Texture {
     Egui = TEXTURE_EGUI,
@@ -60,7 +60,7 @@ impl From<Texture> for TextureId {
 }
 
 /// Visual style of the game.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum VisualStyle {
     /// Graphical tiles
     Graphical,
@@ -319,7 +319,7 @@ fn build_vertices<T: VertexStore>(
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TextOptions {
     /// Regular old text alignment: left, center, right.
     pub align: TextAlign,
@@ -374,7 +374,7 @@ impl Default for TextOptions {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TextAlign {
     Left,
     Right,
@@ -439,7 +439,9 @@ fn calculate_display_info(
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Mouse {
+    /// Position of the mouse on screen in tiles. The top-left corner is (0, 0), grows down and to the right.
     pub tile_pos: Point,
+    /// Position of the mouse on screen in pixels. The top-left corner is (0, 0), grows down and to the right.
     pub screen_pos: Point,
     /// The left button has clicked. I.e. pressed and released.
     pub left_clicked: bool,
@@ -491,7 +493,7 @@ pub struct OffsetTile {
     pub offset_px: Point,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum DrawResult {
     Fit,
     Overflow,
@@ -714,7 +716,6 @@ impl Display {
         for (pos, cell) in self.cells() {
             let (fg_texture, fg_texture_px_x, fg_texture_px_y) = match visual_style {
                 VisualStyle::Graphical => {
-                    // TODO: handle background graphics here too!
                     match graphic::tilemap_coords_px(self.tile_size as u32, cell.foreground_graphic)
                     {
                         Some((tx, ty)) => (Texture::Tilemap, tx, ty),
@@ -759,7 +760,6 @@ impl Display {
 
             let (bg_texture, bg_texture_px_x, bg_texture_px_y) = match visual_style {
                 VisualStyle::Graphical => {
-                    // TODO: handle background graphics here too!
                     match graphic::tilemap_coords_px(self.tile_size as u32, cell.background_graphic)
                     {
                         Some((tx, ty)) => (Texture::Tilemap, tx, ty),
@@ -767,7 +767,7 @@ impl Display {
                         None => {
                             let (tx, ty) = glyph_coords_px_from_char(
                                 self.tile_size as u32,
-                                cell.foreground_graphic.into(),
+                                cell.background_graphic.into(),
                             )
                             .unwrap_or((0, 0));
                             (Texture::Glyph, tx, ty)
@@ -777,7 +777,7 @@ impl Display {
                 VisualStyle::Textual => {
                     let (tx, ty) = glyph_coords_px_from_char(
                         self.tile_size as u32,
-                        cell.foreground_graphic.into(),
+                        cell.background_graphic.into(),
                     )
                     .unwrap_or((0, 0));
                     (Texture::Glyph, tx, ty)

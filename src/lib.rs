@@ -254,8 +254,17 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         loggers.push(SimpleLogger::new(log_level, Config::default()) as Box<dyn SharedLogger>);
     }
 
+    let file_log_config = simplelog::ConfigBuilder::new()
+    // // NOTE: This disables logging the datetime in messages. Useful for diffing playthroughts. Uncomment to disable datetime logging.
+    // 	.set_time_format_custom(time::macros::format_description!(""))
+        .build();
+
     if let Ok(logfile) = File::create("dose-response.log") {
-        loggers.push(WriteLogger::new(log_level, Config::default(), logfile));
+        loggers.push(WriteLogger::new(
+            LevelFilter::Trace,
+            file_log_config,
+            logfile,
+        ));
     }
 
     // NOTE: ignore the loggers if we can't initialise them. The game

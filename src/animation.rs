@@ -340,7 +340,7 @@ pub struct ScreenFade {
     pub phase: ScreenFadePhase,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ScreenFadePhase {
     FadeOut,
     Wait,
@@ -389,14 +389,14 @@ impl ScreenFade {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MoveState {
     There,
     Back,
     Finished,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Move {
     pub source: Point,
     pub destination: Point,

@@ -1,6 +1,6 @@
 use crate::{random::Random, util};
 
-use std::{convert::TryInto, time::Duration};
+use std::time::Duration;
 
 use rodio::{
     source::{Buffered, Empty},
@@ -14,8 +14,7 @@ pub struct Audio {
     pub backgrounds: BackgroundSounds,
     pub background_sound_queue: Sink,
     pub effects: EffectSounds,
-    pub sound_effect_queue: [Sink; 2],
-    pub rng: Random,
+    pub sound_effect_queue: [Sink; 5],
     sound_effects: Vec<(Effect, Duration)>,
 }
 
@@ -39,6 +38,9 @@ impl Audio {
         background_sound_queue.pause();
 
         let sound_effect_queue = [
+            stream_handle.map_or_else(empty_sink, new_sink),
+            stream_handle.map_or_else(empty_sink, new_sink),
+            stream_handle.map_or_else(empty_sink, new_sink),
             stream_handle.map_or_else(empty_sink, new_sink),
             stream_handle.map_or_else(empty_sink, new_sink),
         ];
@@ -67,6 +69,7 @@ impl Audio {
             backgrounds: BackgroundSounds {
                 // Credits: Exit Exit by P C III (CC-BY)
                 // https://freemusicarchive.org/music/P_C_III
+                // https://soundcloud.com/pipe-choir-2/exit-exit
                 exit_exit: load_sound(
                     &include_bytes!("../assets/music/P C III - Exit Exit.ogg")[..],
                 ),
@@ -94,7 +97,6 @@ impl Audio {
             },
             background_sound_queue,
             sound_effect_queue,
-            rng: Random::new(),
             sound_effects: vec![],
         }
     }
@@ -103,15 +105,14 @@ impl Audio {
         self.sound_effects.push((effect, delay));
     }
 
-    pub fn random_delay(&mut self) -> Duration {
-        Duration::from_millis(self.rng.range_inclusive(1, 50).try_into().unwrap_or(0))
+    pub fn random_delay(&mut self, rng: &mut Random) -> Duration {
+        Duration::from_millis(rng.range_inclusive(1, 50).try_into().unwrap_or(0))
     }
 
-    fn data_from_effect(&mut self, effect: Effect) -> Sound {
+    fn data_from_effect(&mut self, effect: Effect, rng: &mut Random) -> Sound {
         use Effect::*;
         match effect {
-            Walk => self
-                .rng
+            Walk => rng
                 .choose_with_fallback(&self.effects.walk, &self.effects.walk[0])
                 .clone(),
             MonsterHit => self.effects.monster_hit.clone(),
@@ -123,10 +124,10 @@ impl Audio {
         }
     }
 
-    pub fn play_mixed_sound_effects(&mut self) {
+    pub fn play_mixed_sound_effects(&mut self, rng: &mut Random) {
         let mut mixed_sound: Box<dyn Source<Item = i16> + Send> = Box::new(Empty::new());
         while let Some((effect, delay)) = self.sound_effects.pop() {
-            if let Some(sound) = self.data_from_effect(effect) {
+            if let Some(sound) = self.data_from_effect(effect, rng) {
                 mixed_sound = Box::new(mixed_sound.mix(sound.delay(delay)));
             }
         }
@@ -134,11 +135,16 @@ impl Audio {
     }
 
     fn play_sound<S: 'static + Source<Item = i16> + Send>(&mut self, sound: S) {
+        let mut enqueued = false;
         for sink in &self.sound_effect_queue {
             if sink.empty() {
                 sink.append(sound);
+                enqueued = true;
                 break;
             }
+        }
+        if !enqueued {
+            log::warn!("Failed to enqueue a sound. All sinks are full.");
         }
     }
 
@@ -194,7 +200,7 @@ pub struct EffectSounds {
     pub click: Sound,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Effect {
     Walk,
     MonsterHit,

@@ -4,7 +4,7 @@ use crate::{
     engine::Mouse,
     formula,
     graphic::Graphic,
-    keys::Keys,
+    keys::{Key, Keys},
     monster,
     palette::Palette,
     pathfinding::Path,
@@ -38,7 +38,7 @@ const CHUNK_SIZE: i32 = 32;
 // TODO: Rename this to `GameState` and the existing `GameState` to
 // `Game`? It's no longer just who's side it is but also: did the
 // player won? Lost?
-#[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
 pub enum Side {
     Player,
     Victory,
@@ -48,7 +48,7 @@ pub enum Side {
 /// started (e.g. we just opened the app but didn't click "New Game"),
 /// it's currently running or has been finished (by winning or
 /// losing).
-#[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
 pub enum GameSession {
     NotStarted,
     InProgress,
@@ -66,9 +66,6 @@ impl GameSession {
     }
 }
 
-// TODO: rename this to Input or something like that. This represents the raw
-// commands from the player or AI abstracted from keyboard, joystick or
-// whatever. But they shouldn't carry any context or data.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Command {
     N,
@@ -89,6 +86,14 @@ pub enum Command {
         title: String,
         message: String,
     },
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Input {
+    pub keys: Vec<Key>,
+    pub mouse: Mouse,
+    pub tick_id: i32,
+    pub verification: Option<Verification>,
 }
 
 pub fn generate_replay_path() -> Option<PathBuf> {
@@ -115,9 +120,10 @@ pub fn generate_replay_path() -> Option<PathBuf> {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Verification {
     pub turn: i32,
+    pub tick_id: i32,
     pub chunk_count: usize,
     pub player_pos: Point,
     pub monsters: Vec<(Point, Point, monster::Kind)>,
@@ -147,16 +153,23 @@ pub struct State {
     pub screen_position_in_world: Point,
     pub seed: u32,
     pub rng: Random,
+    pub audio_rng: Random,
+    // Keys pressed this turn (or loaded from the replay file)
     pub keys: Keys,
+    // Mouse config read from the player this turn (or loaded from the replay file)
     pub mouse: Mouse,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub inputs: VecDeque<Input>,
     pub commands: VecDeque<Command>,
     pub player_path: Path,
-    #[serde(skip_serializing, skip_deserializing)]
-    pub verifications: VecDeque<Verification>,
+    // #[serde(skip_serializing, skip_deserializing)]
+    // pub verifications: HashMap<i32, Verification>,
     #[serde(skip_serializing, skip_deserializing, default = "empty_command_logger")]
-    pub command_logger: Box<dyn Write>,
+    pub input_logger: Box<dyn Write>,
     pub side: Side,
     pub turn: i32,
+    pub tick_id: i32,
+    pub previous_tick: i32,
     pub cheating: bool,
     pub replay: bool,
     pub replay_full_speed: bool,
@@ -203,12 +216,12 @@ pub struct State {
 }
 
 impl State {
+    #[allow(clippy::too_many_arguments)]
     fn new<W: Write + 'static>(
         world_size: Point,
         map_size: Point,
         panel_width: i32,
-        commands: VecDeque<Command>,
-        verifications: VecDeque<Verification>,
+        inputs: VecDeque<Input>,
         log_writer: W,
         seed: u32,
         cheating: bool,
@@ -228,6 +241,7 @@ impl State {
         };
         log::info!("Using seed: {:?}", seed);
         let mut rng = Random::from_seed(seed);
+        let audio_rng = rng.clone();
         let player_position = world_centre;
         let player = {
             let mut player = Player::new(player_position, invincible);
@@ -246,6 +260,8 @@ impl State {
 
         let world = World::new(seed, world_size.x, CHUNK_SIZE, player.info(), challenge);
 
+        // TODO: I think we'll want to create a Commands queue again here and then use that from everything
+
         State {
             player,
             explosion_animation: None,
@@ -257,14 +273,17 @@ impl State {
             screen_position_in_world: world_centre,
             seed,
             rng,
+            audio_rng,
             keys: Keys::new(),
             mouse: Default::default(),
-            commands,
+            inputs,
+            commands: VecDeque::new(),
             player_path: Path::default(),
-            verifications,
-            command_logger: Box::new(log_writer),
+            input_logger: Box::new(log_writer),
             side: Side::Player,
             turn: 0,
+            tick_id: 0,
+            previous_tick: 0,
             cheating,
             replay,
             replay_full_speed,
@@ -309,8 +328,7 @@ impl State {
         challenge: Challenge,
         palette: Palette,
     ) -> State {
-        let commands = VecDeque::new();
-        let verifications = VecDeque::new();
+        let inputs = VecDeque::new();
         let seed = util::random_seed();
         let mut writer: Box<dyn Write> = if let Some(replay_path) = replay_path {
             match File::create(&replay_path) {
@@ -341,8 +359,7 @@ Reason: '{}'.",
             world_size,
             map_size,
             panel_width,
-            commands,
-            verifications,
+            inputs,
             writer,
             seed,
             cheating,
@@ -371,13 +388,11 @@ Reason: '{}'.",
         #[cfg(feature = "replay")]
         {
             use std::io::{BufRead, BufReader};
-            let mut commands = VecDeque::new();
-            let mut verifications = VecDeque::new();
-            let seed: u32;
+            let mut inputs = VecDeque::new();
             let file = File::open(replay_path)?;
             let mut lines = BufReader::new(file).lines();
-            match lines.next() {
-                Some(seed_str) => seed = seed_str?.parse()?,
+            let seed: u32 = match lines.next() {
+                Some(seed_str) => seed_str?.parse()?,
                 None => throw!("The replay file is empty."),
             };
 
@@ -411,14 +426,27 @@ Reason: '{}'.",
 
             for line in lines {
                 let line = line?;
-                let command = serde_json::from_str(&line);
-                // Try parsing it as a command, otherwise it's a verification
-                if let Ok(command) = command {
-                    commands.push_back(command);
-                } else {
-                    let verification = serde_json::from_str(&line)?;
-                    verifications.push_back(verification);
-                }
+                // Try parsing it as an `Input` first, otherwise it's a `Verification`
+                #[allow(clippy::expect_used)]
+                let input =
+                    serde_json::from_str::<Input>(&line).expect("Could not parse replay Input.");
+                assert!(input.tick_id > 0);
+                let index = input.tick_id as usize - 1;
+                assert_eq!(inputs.len(), index);
+
+                // log::warn!("Reading input {}", input.tick_id);
+                // log::warn!(
+                //     "Before insert: inputs.len(): {}, {index}, input.tick_id: {}",
+                //     inputs.len(),
+                //     input.tick_id
+                // );
+                inputs.push_back(input.clone());
+                // log::warn!(
+                //     "After insert: inputs.len(): {}, {index}, input.tick_id: {}",
+                //     inputs.len(),
+                //     input.tick_id
+                // );
+                assert_eq!(Some(input), inputs.get(index).cloned());
             }
 
             log::info!("Replaying game log: '{}'", replay_path.display());
@@ -429,8 +457,7 @@ Reason: '{}'.",
                 world_size,
                 map_size,
                 panel_width,
-                commands,
-                verifications,
+                inputs,
                 Box::new(io::sink()),
                 seed,
                 cheating,
@@ -441,6 +468,7 @@ Reason: '{}'.",
                 challenge,
                 palette,
             );
+            state.game_session = GameSession::InProgress;
             state.generate_world();
             Ok(state)
         }
@@ -489,6 +517,7 @@ Reason: '{}'.",
 
         Verification {
             turn: self.turn,
+            tick_id: self.tick_id,
             chunk_count: chunks.len(),
             player_pos: self.player.pos,
             monsters,
@@ -568,7 +597,7 @@ pub struct MotionAnimation {
 /// The various challenges that the player can take. Persisted via
 /// settings, but available to the state for easier access within the
 /// game code.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Challenge {
     pub hide_unseen_tiles: bool,
     pub fast_depression: bool,
@@ -595,24 +624,13 @@ pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
     let _ = writeln!(writer, "{}", crate::metadata::GIT_HASH);
 }
 
-pub fn log_command<W: Write>(writer: &mut W, command: Command) {
-    match serde_json::to_string(&command) {
-        Ok(json_command) => {
-            let _ = writeln!(writer, "{}", json_command);
+pub fn log_input<W: Write>(writer: &mut W, input: Input) {
+    match serde_json::to_string(&input) {
+        Ok(json_input) => {
+            let _ = writeln!(writer, "{}", json_input);
         }
         Err(err) => {
-            log::error!("Could not serialise {:?} to JSON: {}", command, err);
-        }
-    }
-}
-
-pub fn log_verification<W: Write>(writer: &mut W, verification: &Verification) {
-    match serde_json::to_string(&verification) {
-        Ok(json) => {
-            let _ = writeln!(writer, "{}", json);
-        }
-        Err(error) => {
-            log::error!("Could not serialise {:?} to JSON: {}", verification, error);
+            log::error!("Could not serialise {:?} to JSON: {}", input, err);
         }
     }
 }

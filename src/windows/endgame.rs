@@ -6,7 +6,7 @@ use crate::{
     keys::KeyCode,
     player::CauseOfDeath,
     settings::Settings,
-    state::{Side, State},
+    state::{GameSession, Side, State},
     ui, window,
 };
 
@@ -159,10 +159,11 @@ pub fn process(
     }
 
     match action {
-        Some(Action::NewGame) => RunningState::NewGame(Box::new(game::create_new_game_state(
-            state,
-            settings.challenge(),
-        ))),
+        Some(Action::NewGame) => {
+            let mut new_state = Box::new(game::create_new_game_state(state, settings.challenge()));
+            new_state.game_session = GameSession::InProgress;
+            RunningState::NewGame(new_state)
+        }
         Some(Action::Menu) => {
             state.window_stack.pop();
             state.window_stack.push(window::Window::MainMenu);

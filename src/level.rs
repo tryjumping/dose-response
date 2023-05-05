@@ -25,7 +25,7 @@ pub struct Cell {
     pub always_visible: bool,
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum TileKind {
     Empty,
     Tree,

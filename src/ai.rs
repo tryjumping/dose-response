@@ -5,7 +5,7 @@ use crate::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Behavior {
     LoneAttacker,
     PackAttacker,
@@ -13,7 +13,7 @@ pub enum Behavior {
     Immobile,
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum AIState {
     Idle,
     Chasing,
@@ -21,7 +21,7 @@ pub enum AIState {
     NoOp,
 }
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 /// Values the AI can update about itself before performing the action
 /// it decided to make.
 pub struct Update {

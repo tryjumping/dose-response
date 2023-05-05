@@ -12,7 +12,7 @@ pub mod sidebar;
 ///
 /// There's always at least one Window present and there's always at
 /// least one that's active ("on top").
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Windows<T> {
     stack: Vec<T>,
     default: T,

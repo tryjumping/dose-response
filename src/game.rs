@@ -20,7 +20,7 @@ use crate::{
     rect::Rectangle,
     render,
     settings::{Settings, Store as SettingsStore},
-    state::{self, Challenge, Command, GameSession, MotionAnimation, Side, State},
+    state::{self, Challenge, Command, GameSession, Input, MotionAnimation, Side, State},
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
     ui, util,
@@ -31,13 +31,12 @@ use crate::{
 
 use std::{
     collections::{HashMap, VecDeque},
-    io::Write,
     time::Duration,
 };
 
 use egui::{CtxRef, Ui};
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Action {
     Move(Point),
     Attack(Point, player::Modifier),
@@ -67,6 +66,30 @@ pub fn update(
     state.clock += dt;
     state.replay_step += dt;
 
+    // NOTE: we need to use `input.keys` because `state.keys` will
+    // only have the replay keys, not any new key presses.
+    //
+    // We also need to set this early before anything else (such as
+    // tick_id increase) happens so everything can work with the
+    // pause.
+    if state.replay {
+        let mut keys = Keys::new();
+        keys.extend(new_keys.iter().copied());
+        state.paused = if keys.matches_code(KeyCode::Space) {
+            !state.paused
+        } else {
+            state.paused
+        };
+    }
+
+    if state.window_stack.top() == Window::Game && !state.paused {
+        state.previous_tick = state.tick_id;
+        state.tick_id += 1;
+        log::debug!("Starting new tick with ID: {}", state.tick_id);
+    } else {
+        //log::warn!("NOT A GAME FRAME!!");
+    }
+
     // The music won't play during the initial main menu screen so
     // start it after the game starts and then just keep playing
     // forever.
@@ -76,7 +99,7 @@ pub fn update(
 
     // TODO: only check this every say 10 or 100 frames?
     // We just wanna make sure there are items in the queue.
-    enqueue_background_music(audio);
+    enqueue_background_music(audio, &mut state.audio_rng);
 
     audio.set_background_volume(settings.background_volume);
     audio.set_effects_volume(settings.sound_volume);
@@ -96,14 +119,67 @@ pub fn update(
         (state.map_size.x + panel_width_tiles, state.map_size.y)
     );
 
-    state.keys.extend(new_keys.iter().copied());
-    state.mouse = mouse;
+    let input = {
+        let mut i = Input {
+            keys: new_keys.to_vec(),
+            mouse,
+            tick_id: state.tick_id,
+            verification: None,
+        };
+        if cfg!(feature = "verifications") {
+            // NOTE: we're not logging a verification every frame!
+            i.verification = Some(state.verification());
+        }
+        i
+    };
+
+    if state.window_stack.top() == Window::Game && state.player.alive() {
+        state::log_input(&mut state.input_logger, input);
+        log::debug!(
+            "[TICK {}] state.player.pos: {}",
+            state.tick_id,
+            state.player.pos
+        );
+    }
+
+    if state.replay && state.player.alive() && !state.paused {
+        let replay_input_index = state.tick_id as usize - 1;
+        assert_eq!(state.tick_id, state.previous_tick + 1);
+        if let Some(input) = state.inputs.get(replay_input_index) {
+            assert_eq!(state.tick_id, input.tick_id);
+
+            if let Some(expected) = &input.verification {
+                let actual = state.verification();
+                verify_states(expected, &actual);
+            }
+
+            state.keys.extend(input.keys.iter().copied());
+            state.mouse = input.mouse;
+        } else {
+            #[allow(clippy::panic)]
+            {
+                panic!("Could not load input for {}", state.tick_id);
+            }
+        }
+
+        #[allow(clippy::panic)]
+        if !state.player.alive() && !state.inputs.is_empty() {
+            panic!(
+                "Game quit too early -- there are still {} \
+                         commands queued up.",
+                state.inputs.len()
+            );
+        }
+    } else {
+        state.keys.extend(new_keys.iter().copied());
+        state.mouse = mouse;
+    }
 
     // Quit the game when Q is pressed or on replay and requested
     if (!state.player.alive() && state.exit_after)
         || (state.replay
             && state.exit_after
-            && (state.commands.is_empty()
+            && (state.inputs.is_empty()
                 || (!state.player.alive() && state.screen_fading.is_none())))
     {
         show_exit_stats(&state.stats);
@@ -215,6 +291,36 @@ pub fn update(
                 }
             }
         }
+
+        if state.replay {
+            use egui::widgets::Image;
+
+            let tilesize = crate::graphic::TILE_SIZE as f32;
+            let tilemap_width = crate::engine::TILEMAP_TEXTURE_WIDTH as f32;
+            let tilemap_height = crate::engine::TILEMAP_TEXTURE_HEIGHT as f32;
+            let uv = egui::Rect::from_min_size(
+                // NOTE: coordinates
+                [110.0 / tilemap_width, 10.0 / tilemap_height].into(),
+                // NOTE: the doubling here means draw 2x2 tiles (total of four)
+                [
+                    (tilesize / tilemap_width) * 2.0,
+                    (tilesize / tilemap_height) * 2.0,
+                ]
+                .into(),
+            );
+
+            let image = Image::new(crate::engine::Texture::Tilemap.into(), egui::Vec2::ZERO).uv(uv);
+            let mouse_p = egui::Pos2::new(
+                state.mouse.screen_pos.x as f32,
+                state.mouse.screen_pos.y as f32,
+            );
+
+            // NOTE: if this doesn't match the
+            // `tilemap_{width,height}` in the `uv` calculations, it
+            // will resize the rendered image.
+            let image_size = egui::Vec2::new(20.0, 20.0);
+            image.paint_at(ui, egui::Rect::from_min_size(mouse_p, image_size));
+        }
     });
 
     // NOTE: process the screen fading animation animation.
@@ -241,7 +347,7 @@ pub fn update(
         }
     }
 
-    audio.play_mixed_sound_effects();
+    audio.play_mixed_sound_effects(&mut state.audio_rng);
 
     // NOTE: Clear any unprocessed keys
     while let Some(_key) = state.keys.get() {}
@@ -284,19 +390,19 @@ pub fn update(
     game_update_result
 }
 
-fn enqueue_background_music(audio: &mut Audio) {
+fn enqueue_background_music(audio: &mut Audio, audio_rng: &mut Random) {
     if audio.background_sound_queue.len() <= 1 {
         let sound = if cfg!(feature = "recording") {
             audio.backgrounds.family_breaks.clone()
         } else {
-            audio.backgrounds.random(&mut audio.rng)
+            audio.backgrounds.random(audio_rng)
         };
         if let Some(sound) = sound {
             use rodio::Source;
             let delay = if audio.background_sound_queue.empty() {
                 Duration::from_secs(0)
             } else {
-                let secs: u64 = audio.rng.range_inclusive(1, 5).try_into().unwrap_or(1);
+                let secs: u64 = audio_rng.range_inclusive(1, 5).try_into().unwrap_or(1);
                 Duration::from_secs(secs)
             };
             audio.background_sound_queue.append(sound.delay(delay));
@@ -360,7 +466,35 @@ fn process_game(
             state.window_stack.push(Window::Help);
             return RunningState::Running;
         }
-        _ => {}
+        Some(sidebar_action) => {
+            let sidebar_command = match sidebar_action {
+                Action::UseFood => Some(Command::UseFood),
+                Action::UseDose => Some(Command::UseDose),
+                Action::UseCardinalDose => Some(Command::UseCardinalDose),
+                Action::UseDiagonalDose => Some(Command::UseDiagonalDose),
+                Action::UseStrongDose => Some(Command::UseStrongDose),
+
+                Action::MoveN => Some(Command::N),
+                Action::MoveS => Some(Command::S),
+                Action::MoveW => Some(Command::W),
+                Action::MoveE => Some(Command::E),
+
+                Action::MoveNW => Some(Command::NW),
+                Action::MoveNE => Some(Command::NE),
+                Action::MoveSW => Some(Command::SW),
+                Action::MoveSE => Some(Command::SE),
+
+                unexpected_action => {
+                    log::warn!("Unexpected sidebar action: {:?}", unexpected_action);
+                    None
+                }
+            };
+            if let Some(command) = sidebar_command {
+                state.commands.push_back(command);
+            }
+        }
+
+        None => {}
     }
 
     // Show the endgame screen on any pressed key:
@@ -413,22 +547,8 @@ fn process_game(
         }
     }
 
-    state.paused = if state.replay && state.keys.matches_code(KeyCode::Space) {
-        !state.paused
-    } else {
-        state.paused
-    };
-
+    // TODO: NOTE: this now doesn't work on replays because state.keys only contains the replay keys
     let paused_one_step = state.paused && state.keys.matches_code(KeyCode::Right);
-    let timed_step = if state.replay
-        && !state.paused
-        && (state.replay_step.as_millis() >= 50 || state.replay_full_speed)
-    {
-        state.replay_step = Duration::new(0, 0);
-        true
-    } else {
-        false
-    };
 
     // Animation to re-center the screen around the player when they
     // get too close to an edge.
@@ -444,20 +564,14 @@ fn process_game(
         state.offset_px = Point::new(x as i32, y as i32);
     }
 
-    let running = !state.paused && !state.replay;
     let mut entire_turn_ended = false;
-    // Pause entity processing during animations when replaying (so
-    // it's all easy to see) but allow the keys to be processed when
-    // playing the game normally. I.e. the players can move even
-    // during animations if they so please.
-    let no_animations = if state.replay {
-        state.explosion_animation.is_none() && state.pos_timer.finished()
-    } else {
-        true
-    };
-    let simulation_area = Rectangle::center(state.player.pos, state.map_size);
 
-    if (running || paused_one_step || timed_step) && state.side != Side::Victory && no_animations {
+    let simulation_area = Rectangle::center(
+        state.player.pos,
+        point::Point::from_i32(formula::SIMULATION_RADIUS),
+    );
+
+    if (!state.paused || paused_one_step) && state.side != Side::Victory {
         let monster_count = state.world.monsters(simulation_area).count();
         let monster_with_ap_count = state
             .world
@@ -478,28 +592,6 @@ fn process_game(
         );
 
         process_keys(&mut state.keys, &mut state.commands);
-        let mouse_command = match option {
-            Some(Action::UseFood) => Some(Command::UseFood),
-            Some(Action::UseDose) => Some(Command::UseDose),
-            Some(Action::UseCardinalDose) => Some(Command::UseCardinalDose),
-            Some(Action::UseDiagonalDose) => Some(Command::UseDiagonalDose),
-            Some(Action::UseStrongDose) => Some(Command::UseStrongDose),
-
-            Some(Action::MoveN) => Some(Command::N),
-            Some(Action::MoveS) => Some(Command::S),
-            Some(Action::MoveW) => Some(Command::W),
-            Some(Action::MoveE) => Some(Command::E),
-
-            Some(Action::MoveNW) => Some(Command::NW),
-            Some(Action::MoveNE) => Some(Command::NE),
-            Some(Action::MoveSW) => Some(Command::SW),
-            Some(Action::MoveSE) => Some(Command::SE),
-            _ => None,
-        };
-
-        if let Some(command) = mouse_command {
-            state.commands.push_front(command);
-        }
 
         if state.mouse.left_clicked {
             state.path_walking_timer.finish();
@@ -554,11 +646,13 @@ fn process_game(
         // Depression 1 etc.
 
         let player_ap = state.player.ap();
+        log::debug!("Player AP before processing: {player_ap}");
         if state.player.ap() >= 1 {
             process_player(state, display, audio, simulation_area);
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
+        log::debug!("Player AP: {player_ap}, Player took action: {player_took_action}, Monsters can move: {monsters_can_move}");
 
         if state.explosion_animation.is_none() {
             if monsters_can_move {
@@ -568,6 +662,7 @@ fn process_game(
                     simulation_area,
                     display.tile_size,
                     &mut state.rng,
+                    &mut state.audio_rng,
                     audio,
                     &state.palette,
                     &mut state.extra_animations,
@@ -608,31 +703,12 @@ fn process_game(
             == 0;
 
         entire_turn_ended = player_turn_ended && monster_turn_ended;
-    }
-
-    // Log or check verifications
-    if entire_turn_ended {
-        if state.replay {
-            if let Some(expected) = state.verifications.pop_front() {
-                let actual = state.verification();
-                verify_states(&expected, &actual);
-
-                #[allow(clippy::panic)]
-                if player_was_alive && !state.player.alive() && !state.commands.is_empty() {
-                    panic!(
-                        "Game quit too early -- there are still {} \
-                         commands queued up.",
-                        state.commands.len()
-                    );
-                }
-            } else {
-                // NOTE: no verifications were loaded. Probably
-                // replaying a release build.
-            }
-        } else if cfg!(feature = "verifications") {
-            let verification = state.verification();
-            state::log_verification(&mut state.command_logger, &verification);
-        }
+        log::debug!(
+            "Entire turn ended: {}, player turn ended: {}, monster turn ended: {}",
+            entire_turn_ended,
+            player_turn_ended,
+            monster_turn_ended
+        );
     }
 
     // Reset the player & monster action points
@@ -677,6 +753,8 @@ fn process_game(
     // Set the fadeout animation on death
     if player_was_alive && !state.player.alive() {
         use crate::player::CauseOfDeath::*;
+        log::info!("Player died.");
+
         audio.mix_sound_effect(Effect::GameOver, Duration::from_millis(0));
         let cause_of_death = formula::cause_of_death(&state.player);
         let fade_color = if cfg!(feature = "recording") {
@@ -735,8 +813,16 @@ fn process_game(
         .cell(state.mouse_world_position())
         .map_or(true, |cell| cell.explored);
 
+    let mouse_window_pos_px = state.mouse.screen_pos;
+    let window_size_px = display.screen_size_px;
+    let sidebar_width_px = formula::sidebar_width_px(display.text_size);
+    let game_area_px = Point::new(window_size_px.x - sidebar_width_px, window_size_px.y);
+
+    // NOTE: Is the mouse pointer inside the actual game map? Otherwise it's in the sidebar or something.
+    let pointer_inside_game_area = mouse_window_pos_px.x >= 0 && mouse_window_pos_px.y >= 0 && mouse_window_pos_px.x <= game_area_px.x && mouse_window_pos_px.y <= game_area_px.y;
+
     // NOTE: show tooltip of a hovered-over object
-    let tooltip = if !explored && settings.hide_unseen_tiles {
+    let tooltip = if !explored && settings.hide_unseen_tiles || !pointer_inside_game_area {
         None
     } else if state.mouse_world_position() == state.player.pos {
         Some("Player Character")
@@ -748,7 +834,11 @@ fn process_game(
         None
     };
     if let Some(tooltip) = tooltip {
-        egui::show_tooltip_text(ui.ctx(), egui::Id::new("Tile Tooltip"), tooltip);
+        // NOTE: only show tooltips when we're not scrolling the screen.
+        // It looks bad otherwise.
+        if state.pos_timer.finished() {
+            egui::show_tooltip_text(ui.ctx(), egui::Id::new("Tile Tooltip"), tooltip);
+        }
     }
 
     // NOTE: update the dose/food explosion animations
@@ -821,6 +911,7 @@ fn process_monsters(
     area: Rectangle,
     tile_size: i32,
     rng: &mut Random,
+    audio_rng: &mut Random,
     audio: &mut Audio,
     palette: &Palette,
     extra_animations: &mut Vec<MotionAnimation>,
@@ -828,6 +919,8 @@ fn process_monsters(
     if !player.alive() {
         return;
     }
+    log::debug!("Processing monsters");
+
     // NOTE: one quarter of the map area should be a decent overestimate
     let monster_count_estimate = area.size().x * area.size().y / 4;
     assert!(monster_count_estimate > 0);
@@ -848,10 +941,14 @@ fn process_monsters(
     monster_positions_vec
         .sort_by_key(|&(ap, pos)| (ap, player.pos.distance(pos) as i32, pos.x, pos.y));
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
+    log::debug!(
+        "Monsters to process: {}",
+        monster_positions_to_process.len()
+    );
 
     while let Some((_, monster_position)) = monster_positions_to_process.pop_front() {
         if !player.alive() {
-            // Don't process any new monsters if the player's alive
+            // Don't process any new monsters if the player's dead
             // because we want the game to stop and freeze at that
             // time.
             //
@@ -924,7 +1021,7 @@ fn process_monsters(
                     let monster_visible = newpos
                         .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
                     if monster_visible {
-                        let delay = audio.random_delay();
+                        let delay = audio.random_delay(audio_rng);
                         audio.mix_sound_effect(Effect::MonsterMoved, delay);
                     }
                     if let Some(monster) = world.monster_on_pos(newpos) {
@@ -984,22 +1081,20 @@ fn process_monsters(
     }
 }
 
-fn process_player_action<W>(
+fn process_player_action(
     player: &mut player::Player,
     commands: &mut VecDeque<Command>,
     world: &mut World,
     simulation_area: Rectangle,
     explosion_animation: &mut Option<Box<dyn AreaOfEffect>>,
     rng: &mut Random,
-    command_logger: &mut W,
     window_stack: &mut crate::windows::Windows<Window>,
     bumped_into_a_monster: &mut bool,
     tile_size: i32,
     palette: &Palette,
     audio: &mut Audio,
-) where
-    W: Write,
-{
+) {
+    log::debug!("Processing player action");
     if !player.alive() {
         log::debug!("Processing player action, but the player is dead.");
         return;
@@ -1011,8 +1106,9 @@ fn process_player_action<W>(
         );
         return;
     }
+
     if let Some(command) = commands.pop_front() {
-        state::log_command(command_logger, command.clone());
+        log::debug!("Player Command: {:?}", command);
         let mut action = match command {
             Command::N => Action::Move(player.pos + (0, -1)),
             Command::S => Action::Move(player.pos + (0, 1)),
@@ -1039,6 +1135,7 @@ fn process_player_action<W>(
                 return;
             }
         };
+        log::debug!("Action from Command: {:?}", action);
 
         if player.stun.to_int() > 0 {
             action = Action::Move(player.pos);
@@ -1091,6 +1188,8 @@ fn process_player_action<W>(
         if let Some(kind) = carried_irresistible_dose {
             action = Action::Use(kind);
         }
+
+        log::debug!("Final Action: {:?}", action);
         match action {
             Action::Move(dest) => {
                 let dest_walkable =
@@ -1279,6 +1378,8 @@ fn process_player_action<W>(
                 unreachable!();
             }
         }
+    } else {
+        log::debug!("No Command found");
     }
 }
 
@@ -1289,6 +1390,8 @@ fn process_player(
     simulation_area: Rectangle,
 ) {
     {
+        log::debug!("Processing player");
+
         // appease borrowck
         let player = &mut state.player;
 
@@ -1328,11 +1431,20 @@ fn process_player(
         player.bonuses.extend(npc_bonuses);
     }
 
-    // NOTE: If the player is following a path move them one step along the path
     let visible = state.mouse_world_position().inside_circular_area(
         state.player.pos,
         formula::exploration_radius(state.player.mind),
     );
+
+    log::debug!(
+        "left down: {}, visible: {}, walking timer done: {}",
+        state.mouse.left_is_down,
+        visible,
+        state.path_walking_timer.finished()
+    );
+    log::debug!("Player path: {:?}", state.player_path);
+
+    // NOTE: If the player is following a path move them one step along the path
     if state.mouse.left_is_down && visible && state.path_walking_timer.finished() {
         state.path_walking_timer.reset();
         if let Some(destination) = state.player_path.next() {
@@ -1347,14 +1459,21 @@ fn process_player(
                 Point { x: 1, y: -1 } => Some(Command::NE),
                 Point { x: 1, y: 1 } => Some(Command::SE),
 
-                _ => None,
+                unexpected => {
+                    log::debug!("Unexpected command point: {:?}", unexpected);
+                    None
+                }
             };
             if let Some(command) = command {
-                state.commands.push_front(command)
+                log::debug!("Pushing mouse trail command: {:?}", command);
+                state.commands.push_front(command);
+            } else {
+                log::debug!("We're in the player path section, but no command is pushed.");
             }
         }
     }
 
+    log::debug!("Commands: {:?}", state.commands);
     let previous_action_points = state.player.ap();
     process_player_action(
         &mut state.player,
@@ -1363,21 +1482,23 @@ fn process_player(
         simulation_area,
         &mut state.explosion_animation,
         &mut state.rng,
-        &mut state.command_logger,
         &mut state.window_stack,
         &mut state.player_bumped_into_a_monster,
         display.tile_size,
         &state.palette,
         audio,
     );
+    log::debug!("player action processed");
 
     // If the player ever picks up a dose, mark it in this variable:
     let player_picked_up_a_dose = state.player.inventory.iter().any(item::Item::is_dose);
     if player_picked_up_a_dose {
         state.player_picked_up_a_dose = true;
     }
+    log::debug!("Player picked up a dose: {}", player_picked_up_a_dose);
 
     let spent_ap_this_turn = previous_action_points > state.player.ap();
+    log::debug!("Player spent AP this turn: {}", spent_ap_this_turn);
 
     // Place the Victory NPC if the player behaved themself.
     if state.player.will.is_max() && !state.player.mind.is_high() && state.victory_npc_id.is_none()
@@ -1415,92 +1536,90 @@ fn process_player(
 fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
     use crate::keys::KeyCode::*;
     while let Some(key) = keys.get() {
-        match key {
+        let command = match key {
             // Numpad (8246 for cardinal and 7193 for diagonal movement)
-            Key { code: NumPad8, .. } => commands.push_back(Command::N),
-            Key { code: NumPad2, .. } => commands.push_back(Command::S),
-            Key { code: NumPad4, .. } => commands.push_back(Command::W),
-            Key { code: NumPad6, .. } => commands.push_back(Command::E),
-            Key { code: NumPad7, .. } => commands.push_back(Command::NW),
-            Key { code: NumPad1, .. } => commands.push_back(Command::SW),
-            Key { code: NumPad9, .. } => commands.push_back(Command::NE),
-            Key { code: NumPad3, .. } => commands.push_back(Command::SE),
+            Key { code: NumPad8, .. } => Some(Command::N),
+            Key { code: NumPad2, .. } => Some(Command::S),
+            Key { code: NumPad4, .. } => Some(Command::W),
+            Key { code: NumPad6, .. } => Some(Command::E),
+            Key { code: NumPad7, .. } => Some(Command::NW),
+            Key { code: NumPad1, .. } => Some(Command::SW),
+            Key { code: NumPad9, .. } => Some(Command::NE),
+            Key { code: NumPad3, .. } => Some(Command::SE),
 
             // NotEye (arrow keys plus Ctrl and Shift modifiers for
             // horizontal movement)
-            Key { code: Up, .. } => commands.push_back(Command::N),
-            Key { code: Down, .. } => commands.push_back(Command::S),
+            Key { code: Up, .. } => Some(Command::N),
+            Key { code: Down, .. } => Some(Command::S),
             Key {
                 code: Left,
                 ctrl: false,
                 shift: true,
                 ..
-            } => commands.push_back(Command::NW),
+            } => Some(Command::NW),
             Key {
                 code: Left,
                 ctrl: true,
                 shift: false,
                 ..
-            } => commands.push_back(Command::SW),
+            } => Some(Command::SW),
             Key {
                 code: Left,
                 alt: true,
                 shift: false,
                 ..
-            } => commands.push_back(Command::SW),
+            } => Some(Command::SW),
             Key {
                 code: Left,
                 logo: true,
                 shift: false,
                 ..
-            } => commands.push_back(Command::SW),
-            Key { code: Left, .. } => commands.push_back(Command::W),
+            } => Some(Command::SW),
+            Key { code: Left, .. } => Some(Command::W),
             Key {
                 code: Right,
                 ctrl: false,
                 shift: true,
                 ..
-            } => commands.push_back(Command::NE),
+            } => Some(Command::NE),
             Key {
                 code: Right,
                 ctrl: true,
                 shift: false,
                 ..
-            } => commands.push_back(Command::SE),
+            } => Some(Command::SE),
             Key {
                 code: Right,
                 alt: true,
                 shift: false,
                 ..
-            } => commands.push_back(Command::SE),
+            } => Some(Command::SE),
             Key {
                 code: Right,
                 logo: true,
                 shift: false,
                 ..
-            } => commands.push_back(Command::SE),
-            Key { code: Right, .. } => commands.push_back(Command::E),
+            } => Some(Command::SE),
+            Key { code: Right, .. } => Some(Command::E),
 
             // Vi keys (hjkl for cardinal and yubn for diagonal movement)
-            Key { code: K, .. } => commands.push_back(Command::N),
-            Key { code: J, .. } => commands.push_back(Command::S),
-            Key { code: H, .. } => commands.push_back(Command::W),
-            Key { code: L, .. } => commands.push_back(Command::E),
-            Key { code: Y, .. } => commands.push_back(Command::NW),
-            Key { code: B, .. } => commands.push_back(Command::SW),
-            Key { code: U, .. } => commands.push_back(Command::NE),
-            Key { code: N, .. } => commands.push_back(Command::SE),
+            Key { code: K, .. } => Some(Command::N),
+            Key { code: J, .. } => Some(Command::S),
+            Key { code: H, .. } => Some(Command::W),
+            Key { code: L, .. } => Some(Command::E),
+            Key { code: Y, .. } => Some(Command::NW),
+            Key { code: B, .. } => Some(Command::SW),
+            Key { code: U, .. } => Some(Command::NE),
+            Key { code: N, .. } => Some(Command::SE),
 
             // Non-movement commands
-            Key { code: E, .. } => {
-                commands.push_back(Command::UseFood);
-            }
+            Key { code: E, .. } => Some(Command::UseFood),
 
-            _ => {
-                if let Some(command) = inventory_commands(key) {
-                    commands.push_back(command)
-                }
-            }
+            _ => inventory_commands(key),
+        };
+        if let Some(command) = command {
+            log::debug!("Pushing Command: {:?} from Key: {:?}", command, key);
+            commands.push_back(command);
         }
     }
 }
@@ -1555,6 +1674,7 @@ fn kill_monster(monster_position: Point, world: &mut World, audio: &mut Audio) {
         // It's invincible: no-op
     } else {
         if let Some(monster) = world.monster_on_pos(monster_position) {
+            log::debug!("Killing monster: {:?}", monster);
             monster.dead = true;
             audio.mix_sound_effect(Effect::MonsterHit, Duration::from_millis(0));
         }
@@ -1637,27 +1757,49 @@ fn show_exit_stats(stats: &Stats) {
 }
 
 fn verify_states(expected: &state::Verification, actual: &state::Verification) {
+    let mut valid = true;
+
+    if expected.tick_id != actual.tick_id {
+        log::error!(
+            "Expected tick_id: {}, actual: {}",
+            expected.tick_id,
+            actual.tick_id
+        );
+        valid = false;
+    }
+
+    if expected.turn != actual.turn {
+        log::error!("Expected turn: {}, actual: {}", expected.turn, actual.turn);
+        valid = false;
+    }
+
     if expected.chunk_count != actual.chunk_count {
         log::error!(
             "Expected chunks: {}, actual: {}",
             expected.chunk_count,
             actual.chunk_count
         );
+        valid = false;
     }
+
     if expected.player_pos != actual.player_pos {
         log::error!(
             "Expected player position: {}, actual: {}",
             expected.player_pos,
             actual.player_pos
         );
+        valid = false;
     }
+
     if expected.monsters.len() != actual.monsters.len() {
         log::error!(
             "Expected monster count: {}, actual: {}",
             expected.monsters.len(),
             actual.monsters.len()
         );
+        valid = false;
     }
+
     if expected.monsters != actual.monsters {
         let expected_monsters: HashMap<Point, (Point, monster::Kind)> = expected
             .monsters
@@ -1681,6 +1823,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
                             expected,
                             actual
                         );
+                        valid = false;
                     }
                 }
                 None => {
@@ -1690,6 +1833,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
                         pos,
                         expected
                     );
+                    valid = false;
                 }
             }
         }
@@ -1697,10 +1841,17 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
         for (pos, actual) in &actual_monsters {
             if expected_monsters.get(pos).is_none() {
                 log::error!("There is an unexpected monster at: {}: {:?}.", pos, actual);
+                valid = false;
             }
         }
     }
-    assert_eq!(expected, actual, "Validation failed!");
+
+    // Use if+panic rather than `assert_eq`. The latter prints out both objects and they can be MASSIVE.
+    // We've got a more targeted expected/actual printout above so all we need here is to crash.
+    #[allow(clippy::panic)]
+    if !valid {
+        panic!("Validation failed!");
+    }
 }
 
 pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {

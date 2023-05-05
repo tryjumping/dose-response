@@ -1,4 +1,8 @@
 edition = "2018"
 use_try_shorthand = true
 use_field_init_shorthand = true
-imports_granularity = "Crate"
+# Merge imports under a top-level crate. This is my preferred style
+# but the option is currently unstable.
+#
+# Tracking issue: https://github.com/rust-lang/rustfmt/issues/4991
+#imports_granularity = "Crate"

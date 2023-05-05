@@ -4,7 +4,7 @@ use crate::point::Point;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Rectangle {
     top_left: Point,
     bottom_right: Point,

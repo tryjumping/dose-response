@@ -4,7 +4,6 @@ extern crate bencher;
 use dose_response::{
     player::{Mind, PlayerInfo},
     point::Point,
-    random::Random,
     state::Challenge,
     world::World,
     WORLD_SIZE,
@@ -14,17 +13,14 @@ use bencher::Bencher;
 
 fn setup() -> World {
     let seed = 42;
-    let mut rng = Random::from_seed(seed as u64);
     let player_info = PlayerInfo {
         pos: Point::new(0, 0),
         mind: Mind::default(),
         max_ap: 1,
         will: 3,
     };
-    let mut world = World::default();
     let challenge = Challenge::default();
-    world.initialise(&mut rng, seed, WORLD_SIZE.x, 32, player_info, challenge);
-    world
+    World::new(seed, WORLD_SIZE.x, 32, player_info, challenge)
 }
 
 // TODO: actually, maybe we don't care about nearest dose because it's not used for monsters

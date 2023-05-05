@@ -145,4 +145,8 @@ if __name__ == '__main__':
 
     if upload_release:
         s3 = boto3.resource('s3')
+        print("Uploading the build to S3...")
         s3.Bucket(bucket_name).upload_file(archive_full_file_path, s3_destination_path)
+        print("Upload finished.")
+    else:
+        print("Skipping the release upload")

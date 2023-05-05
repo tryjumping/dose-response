@@ -24,7 +24,7 @@ pub struct MonsterId {
 }
 
 /// What's the most significant thing placed on the tile?
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TileContents {
     Monster,
     Item,
@@ -181,6 +181,7 @@ impl World {
         player_info: PlayerInfo,
         challenge: Challenge,
     ) -> World {
+        log::info!("World::new(seed: {seed}, dimension: {dimension}, chunk_size: {chunk_size}, player_info: {:?}, challenge: {:?})", player_info, challenge);
         assert!(dimension > 0);
         assert!(chunk_size > 0);
         assert_eq!(dimension % 2, 0);

@@ -166,6 +166,15 @@ pub fn process(
             }
 
             MenuItem::NewGame => {
+                // NOTE: don't create a new state if we've just
+                // started the game. It's got a seend and world
+                // already generated so there's no need to throw it
+                // away and start a new one.
+                if state.game_session == GameSession::NotStarted {
+                    state.window_stack.pop();
+                    state.game_session = GameSession::InProgress;
+                    return RunningState::Running;
+                }
                 let mut new_state =
                     Box::new(game::create_new_game_state(state, settings.challenge()));
                 new_state.game_session = GameSession::InProgress;

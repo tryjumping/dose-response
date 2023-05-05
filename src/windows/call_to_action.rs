@@ -8,7 +8,7 @@ use egui::{self, Ui};
 /// It is not interactive and should not be visible during normal
 /// playtime.
 pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningState {
-    let expected_window_width: f32 = 600.0;
+    let expected_window_width: f32 = 700.0;
     let expected_window_height: f32 = 400.0;
     let padding = 50.0;
     let max_size = [
@@ -30,11 +30,12 @@ pub fn process(state: &mut State, ui: &mut Ui, display: &Display) -> RunningStat
         .fixed_size(window_size)
         .show(ui.ctx(), |ui| {
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                ui.label("By Tomas Sedovic");
+                ui.label("By: Try Jumping");
                 ui.label("");
                 ui.label("Visit:");
-                ui.label("https://tryjumping.com");
-                ui.label("");
+                //ui.label("https://tryjumping.com");
+                ui.label("https://store.steampowered.com/app/1750910/Dose_Response/");
+                ui.label("")
             });
         });
 

@@ -232,8 +232,9 @@ pub fn update(
             match window {
                 Window::MainMenu => {
                     let active = top_level;
-                    game_update_result =
-                        main_menu::process(state, ui, settings, metrics, display, audio, active);
+                    game_update_result = main_menu::process(
+                        state, ui, &gamepad, settings, metrics, display, audio, active,
+                    );
 
                     // Clear any fade set by the gameplay rendering
                     display.fade = color::INVISIBLE;

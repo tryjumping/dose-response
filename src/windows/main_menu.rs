@@ -3,6 +3,7 @@ use crate::{
     engine::{Display, TextMetrics},
     game,
     game::RunningState,
+    gamepad::Gamepad,
     keys::KeyCode,
     settings::Settings,
     state::{GameSession, State},
@@ -32,6 +33,7 @@ pub enum MenuItem {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    gamepad: &Gamepad,
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &mut Display,
@@ -152,6 +154,10 @@ pub fn process(
             action = Some(MenuItem::Resume);
         } else if state.keys.matches_code(KeyCode::S) {
             action = Some(MenuItem::SaveAndQuit);
+        } else if gamepad.south {
+            action = Some(MenuItem::NewGame)
+        } else if gamepad.east {
+            action = Some(MenuItem::Resume)
         }
     }
 

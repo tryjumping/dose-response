@@ -56,6 +56,7 @@ pub mod engine;
 pub mod error;
 pub mod formula;
 pub mod game;
+pub mod gamepad;
 pub mod generators;
 pub mod graphic;
 pub mod graphics;

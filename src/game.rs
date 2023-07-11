@@ -835,7 +835,10 @@ fn process_game(
     let game_area_px = Point::new(window_size_px.x - sidebar_width_px, window_size_px.y);
 
     // NOTE: Is the mouse pointer inside the actual game map? Otherwise it's in the sidebar or something.
-    let pointer_inside_game_area = mouse_window_pos_px.x >= 0 && mouse_window_pos_px.y >= 0 && mouse_window_pos_px.x <= game_area_px.x && mouse_window_pos_px.y <= game_area_px.y;
+    let pointer_inside_game_area = mouse_window_pos_px.x >= 0
+        && mouse_window_pos_px.y >= 0
+        && mouse_window_pos_px.x <= game_area_px.x
+        && mouse_window_pos_px.y <= game_area_px.y;
 
     // NOTE: show tooltip of a hovered-over object
     let tooltip = if !explored && settings.hide_unseen_tiles || !pointer_inside_game_area {

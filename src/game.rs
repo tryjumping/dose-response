@@ -6,6 +6,7 @@ use crate::{
     color,
     engine::{Display, Mouse, TextMetrics},
     formula,
+    gamepad::Gamepad,
     graphic::Graphic,
     item,
     keys::{Key, KeyCode, Keys},
@@ -56,6 +57,7 @@ pub fn update(
     fps: i32,
     new_keys: &[Key],
     mouse: Mouse,
+    gamepad: Gamepad,
     settings: &mut Settings,
     metrics: &dyn TextMetrics,
     settings_store: &mut dyn SettingsStore,
@@ -245,6 +247,7 @@ pub fn update(
                         metrics,
                         display,
                         audio,
+                        &gamepad,
                         dt,
                         fps,
                         top_level,
@@ -417,6 +420,7 @@ fn process_game(
     _metrics: &dyn TextMetrics,
     display: &Display,
     audio: &mut Audio,
+    gamepad: &Gamepad,
     dt: Duration,
     fps: i32,
     active: bool,
@@ -442,6 +446,18 @@ fn process_game(
         } else {
             None
         };
+    }
+    // gamepad processing
+    if gamepad.start {
+        option = Some(Action::MainMenu);
+    } else if gamepad.select {
+        option = Some(Action::Help);
+    } else if gamepad.east {
+        option = Some(Action::MainMenu);
+    } else if gamepad.south {
+        option = Some(Action::Help);
+    } else {
+        //dbg!(gamepad);
     }
 
     if let Some(

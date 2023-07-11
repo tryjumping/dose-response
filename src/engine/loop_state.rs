@@ -2,6 +2,7 @@ use crate::{
     audio::Audio,
     color::Color,
     engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex},
+    gamepad,
     keys::Key,
     point::Point,
     settings::{Settings, Store as SettingsStore},
@@ -11,6 +12,8 @@ use crate::{
 use std::{convert::TryInto, sync::Arc, time::Duration};
 
 use egui::{self, Event, RawInput};
+
+use gilrs::Gilrs;
 
 use image::{Rgba, RgbaImage};
 
@@ -102,6 +105,7 @@ pub struct LoopState {
     pub tilemap: RgbaImage,
     pub egui_texture_version: Option<u64>,
     pub egui_context: egui::CtxRef,
+    pub gilrs: Option<Gilrs>,
     pub default_background: Color,
     pub drawcalls: Vec<Drawcall>,
     pub overall_max_drawcall_count: usize,
@@ -201,6 +205,14 @@ impl LoopState {
 
         let egui_texture_version = None;
 
+        let gilrs = match Gilrs::new() {
+            Ok(gilrs) => Some(gilrs),
+            Err(err) => {
+                log::error!("Could not initialise gamepad. Error: {:?}", err);
+                None
+            }
+        };
+
         // Always start from a windowed mode. This will force the
         // fullscreen switch in the first frame if requested in the
         // settings we've loaded.
@@ -230,6 +242,7 @@ impl LoopState {
             tilemap,
             egui_texture_version,
             egui_context,
+            gilrs,
             default_background,
             drawcalls: Vec::with_capacity(engine::DRAWCALL_CAPACITY),
             overall_max_drawcall_count: 0,
@@ -292,6 +305,9 @@ impl LoopState {
             self.fps,
             &self.keys,
             self.mouse,
+            self.gilrs.as_mut().map_or(Default::default(), |gilrs| {
+                gamepad::process_gamepad_events(gilrs)
+            }),
             &mut self.settings,
             &Metrics {
                 tile_width_px,

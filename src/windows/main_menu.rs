@@ -3,7 +3,6 @@ use crate::{
     engine::{Display, TextMetrics},
     game,
     game::RunningState,
-    gamepad::Gamepad,
     keys::KeyCode,
     settings::Settings,
     state::{GameSession, State},
@@ -19,7 +18,7 @@ use egui::{
 
 use std::time::Duration;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum MenuItem {
     Resume,
     NewGame,
@@ -33,7 +32,6 @@ pub enum MenuItem {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
-    gamepad: &Gamepad,
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &mut Display,
@@ -96,28 +94,148 @@ pub fn process(
 
         let game_in_progress = state.game_session == GameSession::InProgress;
 
-        if game_in_progress && ui::button(ui, "[R]esume", active, &state.palette).clicked() {
-            action = Some(MenuItem::Resume);
+        if state.selected_menu_action.is_none() {
+            state.selected_menu_action = if game_in_progress {
+                Some(MenuItem::Resume)
+            } else {
+                Some(MenuItem::NewGame)
+            };
         }
 
-        if ui::button(ui, "[N]ew Game", active, &state.palette).clicked() {
-            action = Some(MenuItem::NewGame);
+        // TODO: NOTE: so okay we can just handle the keys and remove gamepad entirely
+        // The next step is to make sure gamepad.down actually translates to KeyCode::Down upstream
+        if state.keys.matches_code(KeyCode::Down) {
+            use MenuItem::*;
+            // TODO: this is ignoring any disabled items, we need to handle those!
+            let new_selected_action = match state.selected_menu_action {
+                Some(Resume) => NewGame,
+                Some(NewGame) => Help,
+                Some(Help) => Settings,
+                Some(Settings) => {
+                    if game_in_progress {
+                        SaveAndQuit
+                    } else {
+                        Load
+                    }
+                }
+                Some(SaveAndQuit) => Load,
+                Some(Load) => Quit,
+                Some(Quit) => {
+                    if game_in_progress {
+                        Resume
+                    } else {
+                        NewGame
+                    }
+                }
+                None => {
+                    if game_in_progress {
+                        Resume
+                    } else {
+                        NewGame
+                    }
+                }
+            };
+            log::info!("Selecting action: {:?}", new_selected_action);
+            state.selected_menu_action = Some(new_selected_action);
+            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
         }
 
-        if ui::button(ui, "[H]elp", active, &state.palette).clicked() {
-            action = Some(MenuItem::Help);
+        if state.keys.matches_code(KeyCode::Up) {
+            use MenuItem::*;
+            // TODO: this is ignoring any disabled items, we need to handle those!
+            let new_selected_action = match state.selected_menu_action {
+                Some(Resume) => Quit,
+                Some(NewGame) => {
+                    if game_in_progress {
+                        Resume
+                    } else {
+                        Quit
+                    }
+                }
+                Some(Help) => NewGame,
+                Some(Settings) => Help,
+                Some(SaveAndQuit) => Settings,
+                Some(Load) => {
+                    if game_in_progress {
+                        SaveAndQuit
+                    } else {
+                        Settings
+                    }
+                }
+                Some(Quit) => Load,
+                None => {
+                    if game_in_progress {
+                        Resume
+                    } else {
+                        NewGame
+                    }
+                }
+            };
+            log::info!("Selecting action: {:?}", new_selected_action);
+            state.selected_menu_action = Some(new_selected_action);
+            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
         }
 
-        if ui::button(ui, "S[e]ttings", active, &state.palette).clicked() {
-            action = Some(MenuItem::Settings);
+        // TODO: handle the "gamepad up" button too!
+
+        if game_in_progress {
+            let resp = ui::button(ui, "[R]esume", active, &state.palette);
+            if state.selected_menu_action == Some(MenuItem::Resume) {
+                resp.request_focus();
+            }
+            if resp.clicked() {
+                action = Some(MenuItem::Resume);
+            }
         }
 
-        if game_in_progress && ui::button(ui, "[S]ave and Quit", active, &state.palette).clicked() {
-            action = Some(MenuItem::SaveAndQuit);
+        {
+            let resp = ui::button(ui, "[N]ew Game", active, &state.palette);
+            if state.selected_menu_action == Some(MenuItem::NewGame) {
+                resp.request_focus();
+            }
+            if resp.clicked() {
+                action = Some(MenuItem::NewGame);
+            }
         }
 
-        if ui::button(ui, "[L]oad game", active, &state.palette).clicked() {
-            action = Some(MenuItem::Load);
+        {
+            let resp = ui::button(ui, "[H]elp", active, &state.palette);
+            if state.selected_menu_action == Some(MenuItem::Help) {
+                resp.request_focus();
+            }
+            if resp.clicked() {
+                action = Some(MenuItem::Help);
+            }
+        }
+
+        {
+            let resp = ui::button(ui, "S[e]ttings", active, &state.palette);
+            if state.selected_menu_action == Some(MenuItem::Settings) {
+                resp.request_focus();
+            }
+            if resp.clicked() {
+                action = Some(MenuItem::Settings);
+            }
+        }
+
+        if game_in_progress {
+            let resp = ui::button(ui, "[S]ave and Quit", active, &state.palette);
+            if state.selected_menu_action == Some(MenuItem::SaveAndQuit) {
+                resp.request_focus();
+            }
+            if resp.clicked() {
+                action = Some(MenuItem::SaveAndQuit);
+            }
+        }
+
+        {
+            let resp = ui::button(ui, "[L]oad game", active, &state.palette);
+            if state.selected_menu_action == Some(MenuItem::Load) {
+                resp.request_focus();
+            }
+            if resp.clicked() {
+                action = Some(MenuItem::Load);
+            }
         }
 
         let quit_label = match state.game_session {
@@ -126,9 +244,15 @@ pub fn process(
             GameSession::Ended => "[Q]uit",
         };
 
-        if ui::button(ui, quit_label, active, &state.palette).clicked() {
-            action = Some(MenuItem::Quit);
-        };
+        {
+            let resp = ui::button(ui, quit_label, active, &state.palette);
+            if state.selected_menu_action == Some(MenuItem::Quit) {
+                resp.request_focus();
+            }
+            if resp.clicked() {
+                action = Some(MenuItem::Quit);
+            };
+        }
 
         ui.label("");
         ui.label("\"You cannot lose if you do not play.\"\n-- Marla Daniels");
@@ -154,10 +278,8 @@ pub fn process(
             action = Some(MenuItem::Resume);
         } else if state.keys.matches_code(KeyCode::S) {
             action = Some(MenuItem::SaveAndQuit);
-        } else if gamepad.south {
-            action = Some(MenuItem::NewGame)
-        } else if gamepad.east {
-            action = Some(MenuItem::Resume)
+        } else if state.keys.matches_code(KeyCode::Enter) {
+            action = state.selected_menu_action;
         }
     }
 

@@ -11,6 +11,18 @@ pub struct Key {
     pub logo: bool,
 }
 
+impl From<KeyCode> for Key {
+    fn from(code: KeyCode) -> Self {
+        Self {
+            code,
+            alt: false,
+            ctrl: false,
+            shift: false,
+            logo: false,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum KeyCode {
     D1,

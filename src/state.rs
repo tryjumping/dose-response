@@ -198,6 +198,8 @@ pub struct State {
     pub show_anxiety_counter: bool,
     pub player_picked_up_a_dose: bool,
     pub player_bumped_into_a_monster: bool,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub selected_menu_action: Option<windows::main_menu::MenuItem>,
     pub current_help_window: windows::help::Page,
     /// Used for help contents pagination: which line should we start showing.
     pub help_starting_line: i32,
@@ -309,6 +311,7 @@ impl State {
             show_anxiety_counter: false,
             player_picked_up_a_dose: false,
             player_bumped_into_a_monster: false,
+	    selected_menu_action: None,
             current_help_window: windows::help::Page::DoseResponse,
             help_starting_line: 0,
             show_endscreen_and_uncover_map_during_fadein: false,

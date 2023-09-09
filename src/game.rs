@@ -121,6 +121,28 @@ pub fn update(
         (state.map_size.x + panel_width_tiles, state.map_size.y)
     );
 
+    let mut new_keys = new_keys.to_vec();
+
+    if gamepad.south {
+        new_keys.push(KeyCode::Enter.into());
+    }
+    if gamepad.east {
+        new_keys.push(KeyCode::Esc.into());
+    }
+    if gamepad.up {
+        new_keys.push(KeyCode::Up.into());
+    }
+    if gamepad.down {
+        new_keys.push(KeyCode::Down.into());
+        println!("pushed down");
+    }
+    if gamepad.left {
+        new_keys.push(KeyCode::Left.into());
+    }
+    if gamepad.right {
+        new_keys.push(KeyCode::Right.into());
+    }
+
     let input = {
         let mut i = Input {
             keys: new_keys.to_vec(),
@@ -128,6 +150,7 @@ pub fn update(
             tick_id: state.tick_id,
             verification: None,
         };
+
         if cfg!(feature = "verifications") {
             // NOTE: we're not logging a verification every frame!
             i.verification = Some(state.verification());
@@ -232,9 +255,8 @@ pub fn update(
             match window {
                 Window::MainMenu => {
                     let active = top_level;
-                    game_update_result = main_menu::process(
-                        state, ui, &gamepad, settings, metrics, display, audio, active,
-                    );
+                    game_update_result =
+                        main_menu::process(state, ui, settings, metrics, display, audio, active);
 
                     // Clear any fade set by the gameplay rendering
                     display.fade = color::INVISIBLE;
@@ -248,7 +270,6 @@ pub fn update(
                         metrics,
                         display,
                         audio,
-                        &gamepad,
                         dt,
                         fps,
                         top_level,
@@ -421,7 +442,6 @@ fn process_game(
     _metrics: &dyn TextMetrics,
     display: &Display,
     audio: &mut Audio,
-    gamepad: &Gamepad,
     dt: Duration,
     fps: i32,
     active: bool,
@@ -447,18 +467,6 @@ fn process_game(
         } else {
             None
         };
-    }
-    // gamepad processing
-    if gamepad.start {
-        option = Some(Action::MainMenu);
-    } else if gamepad.select {
-        option = Some(Action::Help);
-    } else if gamepad.east {
-        option = Some(Action::MainMenu);
-    } else if gamepad.south {
-        option = Some(Action::Help);
-    } else {
-        //dbg!(gamepad);
     }
 
     if let Some(

@@ -134,6 +134,7 @@ pub fn process(
             });
         });
 
+    // The Egui window close button was pressed. Actually do close the window:
     if !window_is_open {
         action = Some(Action::Close)
     };

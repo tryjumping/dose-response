@@ -336,10 +336,7 @@ monitor ID: {:?}. Ignoring this request.",
                     }
 
                     context.resize(size);
-                    loop_state.handle_window_size_changed(
-                        logical_size.width,
-                        logical_size.height,
-                    );
+                    loop_state.handle_window_size_changed(logical_size.width, logical_size.height);
                 }
 
                 WindowEvent::Moved(new_pos) => {

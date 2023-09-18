@@ -2,7 +2,7 @@ use crate::{
     audio::Audio,
     color::Color,
     engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex},
-    gamepad,
+    gamepad::{self, Gamepad},
     keys::Key,
     point::Point,
     settings::{Settings, Store as SettingsStore},
@@ -113,6 +113,7 @@ pub struct LoopState {
     pub game_state: Box<State>,
     pub mouse: Mouse,
     pub keys: Vec<Key>,
+    pub gamepad: Gamepad,
     pub fps_clock: Duration,
     pub switched_from_fullscreen: bool,
     pub frames_in_current_second: i32,
@@ -250,6 +251,7 @@ impl LoopState {
             game_state,
             mouse: Mouse::new(),
             keys: vec![],
+            gamepad: Gamepad::default(),
             fps_clock: Duration::new(0, 0),
             switched_from_fullscreen: false,
             frames_in_current_second: 0,
@@ -298,6 +300,11 @@ impl LoopState {
         let tile_width_px = self.settings.tile_size;
         let text_width_px = self.settings.text_size;
         self.egui_context.begin_frame(self.egui_raw_input());
+
+        self.gilrs.as_mut().map_or(Default::default(), |gilrs| {
+            gamepad::process_gamepad_events(gilrs, &mut self.gamepad)
+        });
+
         let update_result = crate::game::update(
             &mut self.game_state,
             &self.egui_context,
@@ -305,9 +312,7 @@ impl LoopState {
             self.fps,
             &self.keys,
             self.mouse,
-            self.gilrs.as_mut().map_or(Default::default(), |gilrs| {
-                gamepad::process_gamepad_events(gilrs)
-            }),
+            &mut self.gamepad,
             &mut self.settings,
             &Metrics {
                 tile_width_px,

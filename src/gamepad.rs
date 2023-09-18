@@ -31,11 +31,25 @@ pub struct Gamepad {
 
     /// The button next to the A/B/X/Y cluster on the right (Options)
     pub start: bool,
+
+    /// Left stick X axis value in range <-1.0, 1.0>
+    pub left_stick_x: f32,
+
+    /// Left stick Y axis value in range <-1.0, 1.0>
+    pub left_stick_y: f32,
 }
 
-pub fn process_gamepad_events(gilrs: &mut Gilrs) -> Gamepad {
-    let mut gamepad: Gamepad = Default::default();
+impl Gamepad {
+    pub fn reset_buttons(&mut self) {
+        *self = Gamepad {
+            left_stick_x: self.left_stick_x,
+            left_stick_y: self.left_stick_y,
+            ..Gamepad::default()
+        }
+    }
+}
 
+pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad) {
     // TODO: we're going to have to handle button presses and releases I think
     while let Some(Event {
         id: _,
@@ -60,15 +74,34 @@ pub fn process_gamepad_events(gilrs: &mut Gilrs) -> Gamepad {
 
                 _ => {
                     log::info!(
-                        "Prassed a gamepad button that wasn't handled: {:?} {:?}",
+                        "Pressed a gamepad button that wasn't handled: {:?} {:?}",
                         button,
                         code
                     );
                 }
             },
+
+            gilrs::EventType::AxisChanged(axis, value, _code) => {
+                use gilrs::ev::Axis::*;
+                match axis {
+                    LeftStickX => {
+                        gamepad.left_stick_x = value;
+                    }
+                    LeftStickY => {
+                        gamepad.left_stick_y = value;
+                    }
+                    _ => {}
+                }
+            }
             _ => {}
         }
     }
 
-    gamepad
+    let threshold = 0.4;
+    if gamepad.left_stick_x > -threshold && gamepad.left_stick_x < threshold {
+        gamepad.left_stick_x = 0.0;
+    }
+    if gamepad.left_stick_y > -threshold && gamepad.left_stick_y < threshold {
+        gamepad.left_stick_y = 0.0;
+    }
 }

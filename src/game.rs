@@ -57,7 +57,7 @@ pub fn update(
     fps: i32,
     new_keys: &[Key],
     mouse: Mouse,
-    gamepad: Gamepad,
+    gamepad: &mut Gamepad,
     settings: &mut Settings,
     metrics: &dyn TextMetrics,
     settings_store: &mut dyn SettingsStore,
@@ -134,7 +134,6 @@ pub fn update(
     }
     if gamepad.down {
         new_keys.push(KeyCode::Down.into());
-        println!("pushed down");
     }
     if gamepad.left {
         new_keys.push(KeyCode::Left.into());
@@ -142,6 +141,28 @@ pub fn update(
     if gamepad.right {
         new_keys.push(KeyCode::Right.into());
     }
+
+    gamepad.reset_buttons();
+
+    let gamepad_highlighted_tile = if gamepad.left_stick_x > 0.0 && gamepad.left_stick_y > 0.0 {
+        Some(Point::new(1, -1))
+    } else if gamepad.left_stick_x > 0.0 && gamepad.left_stick_y == 0.0 {
+        Some(Point::new(1, 0))
+    } else if gamepad.left_stick_x > 0.0 && gamepad.left_stick_y < 0.0 {
+        Some(Point::new(1, 1))
+    } else if gamepad.left_stick_x < 0.0 && gamepad.left_stick_y > 0.0 {
+        Some(Point::new(-1, -1))
+    } else if gamepad.left_stick_x < 0.0 && gamepad.left_stick_y == 0.0 {
+        Some(Point::new(-1, 0))
+    } else if gamepad.left_stick_x < 0.0 && gamepad.left_stick_y < 0.0 {
+        Some(Point::new(-1, 1))
+    } else if gamepad.left_stick_x == 0.0 && gamepad.left_stick_y > 0.0 {
+        Some(Point::new(0, -1))
+    } else if gamepad.left_stick_x == 0.0 && gamepad.left_stick_y < 0.0 {
+        Some(Point::new(0, 1))
+    } else {
+        None
+    };
 
     let input = {
         let mut i = Input {
@@ -274,6 +295,7 @@ pub fn update(
                         fps,
                         top_level,
                         &mut highlighted_tiles,
+                        gamepad_highlighted_tile,
                     );
                     render::render_game(state, metrics, display, highlighted_tiles);
                     game_update_result = result;
@@ -446,6 +468,7 @@ fn process_game(
     fps: i32,
     active: bool,
     highlighted_tiles: &mut Vec<Point>,
+    gamepad_highlighted_tile: Option<Point>,
 ) -> RunningState {
     use self::sidebar::Action;
 
@@ -618,7 +641,7 @@ fn process_game(
 
         process_keys(&mut state.keys, &mut state.commands);
 
-        if state.mouse.left_clicked {
+        if state.mouse.left_clicked || state.commands.front() == Some(&Command::WalkPath) {
             state.path_walking_timer.finish();
         } else {
             state.path_walking_timer.update(dt);
@@ -633,27 +656,50 @@ fn process_game(
             formula::exploration_radius(state.player.mind),
         );
 
-        if state.game_session.started() && state.player.alive() && mouse_inside_map && visible {
+        if state.game_session.started() && state.player.alive() {
             let source = state.player.pos;
-            let destination = state.mouse_world_position();
-            let check_irresistible = true;
-            let path = pathfinding::Path::find(
-                source,
-                destination,
-                &state.world,
-                Blocker::WALL,
-                state.player.pos,
-                state.player.will.to_int(),
-                check_irresistible,
-                formula::PATHFINDING_PLAYER_MOUSE_LIMIT,
-                &pathfinding::player_cost,
-            );
-            for point in path.clone() {
-                let screen_pos = state.screen_pos_from_world_pos(point);
-                highlighted_tiles.push(screen_pos);
-            }
 
-            state.player_path = path;
+            if let Some(destination_offset) = gamepad_highlighted_tile {
+                let destination = source + destination_offset;
+                let check_irresistible = true;
+                let path = pathfinding::Path::find(
+                    source,
+                    destination,
+                    &state.world,
+                    Blocker::WALL,
+                    state.player.pos,
+                    state.player.will.to_int(),
+                    check_irresistible,
+                    formula::PATHFINDING_PLAYER_MOUSE_LIMIT,
+                    &pathfinding::player_cost,
+                );
+                for point in path.clone() {
+                    let screen_pos = state.screen_pos_from_world_pos(point);
+                    highlighted_tiles.push(screen_pos);
+                }
+                state.player_path = path;
+            } else if mouse_inside_map && visible {
+                let destination = state.mouse_world_position();
+                let check_irresistible = true;
+                let path = pathfinding::Path::find(
+                    source,
+                    destination,
+                    &state.world,
+                    Blocker::WALL,
+                    state.player.pos,
+                    state.player.will.to_int(),
+                    check_irresistible,
+                    formula::PATHFINDING_PLAYER_MOUSE_LIMIT,
+                    &pathfinding::player_cost,
+                );
+                for point in path.clone() {
+                    let screen_pos = state.screen_pos_from_world_pos(point);
+                    highlighted_tiles.push(screen_pos);
+                }
+                state.player_path = path;
+            } else {
+                state.player_path.clear();
+            }
         }
 
         state.player.motion_animation.update(dt);
@@ -1154,6 +1200,9 @@ fn process_player_action(
             Command::UseDiagonalDose => Action::Use(item::Kind::DiagonalDose),
             Command::UseStrongDose => Action::Use(item::Kind::StrongDose),
 
+            // NOTE: ignore, this has been processed elsewhere
+            Command::WalkPath => return,
+
             Command::ShowMessageBox {
                 ttl,
                 title,
@@ -1472,8 +1521,15 @@ fn process_player(
     );
     log::debug!("Player path: {:?}", state.player_path);
 
+    let walk_the_path_command = state.commands.front() == Some(&Command::WalkPath);
+    if walk_the_path_command {
+        state.commands.pop_front();
+    }
+
     // NOTE: If the player is following a path move them one step along the path
-    if state.mouse.left_is_down && visible && state.path_walking_timer.finished() {
+    if (walk_the_path_command || (state.mouse.left_is_down && visible))
+        && state.path_walking_timer.finished()
+    {
         state.path_walking_timer.reset();
         if let Some(destination) = state.player_path.next() {
             let command = match destination - state.player.pos {
@@ -1642,6 +1698,8 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
 
             // Non-movement commands
             Key { code: E, .. } => Some(Command::UseFood),
+
+            Key { code: Enter, .. } => Some(Command::WalkPath),
 
             _ => inventory_commands(key),
         };

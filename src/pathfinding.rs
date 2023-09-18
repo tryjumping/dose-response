@@ -148,6 +148,10 @@ impl Path {
     pub fn is_empty(&self) -> bool {
         self.path.is_empty()
     }
+
+    pub fn clear(&mut self) {
+        self.path.clear();
+    }
 }
 
 impl Iterator for Path {
@@ -286,17 +290,11 @@ mod test {
         for line in lines {
             for c in line.chars() {
                 if c == 's' {
-                    start = Point {
-                        x,
-                        y,
-                    };
+                    start = Point { x, y };
                 }
 
                 if c == 'd' {
-                    destination = Point {
-                        x,
-                        y,
-                    };
+                    destination = Point { x, y };
                 }
 
                 let tile_kind = match c {
@@ -307,10 +305,7 @@ mod test {
                     'x' => Tree,
                     _ => unreachable!(),
                 };
-                let pos = Point {
-                    x,
-                    y,
-                };
+                let pos = Point { x, y };
                 if let Some(cell) = world.cell_mut(pos) {
                     cell.tile = Tile::new(tile_kind);
                 }

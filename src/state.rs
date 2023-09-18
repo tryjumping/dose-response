@@ -66,7 +66,7 @@ impl GameSession {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Command {
     N,
     E,
@@ -86,6 +86,7 @@ pub enum Command {
         title: String,
         message: String,
     },
+    WalkPath,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -311,7 +312,7 @@ impl State {
             show_anxiety_counter: false,
             player_picked_up_a_dose: false,
             player_bumped_into_a_monster: false,
-	    selected_menu_action: None,
+            selected_menu_action: None,
             current_help_window: windows::help::Page::DoseResponse,
             help_starting_line: 0,
             show_endscreen_and_uncover_map_during_fadein: false,

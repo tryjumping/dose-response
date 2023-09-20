@@ -664,7 +664,7 @@ impl World {
             }
             doses.extend(
                 self.cell(pos)
-                    .map_or(vec![].iter(), |cell| cell.items.iter())
+                    .map_or([].iter(), |cell| cell.items.iter())
                     .filter(|i| i.is_dose())
                     .map(|&item| (pos, item)),
             );

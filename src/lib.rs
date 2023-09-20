@@ -27,10 +27,12 @@
 )]
 #![warn(missing_copy_implementations)]
 #![allow(
+    clippy::explicit_iter_loop,
     clippy::identity_op,
     clippy::wildcard_imports,
     clippy::match_bool,
     clippy::single_match_else,
+    clippy::manual_slice_size_calculation,
     clippy::match_wildcard_for_single_variants,
     clippy::match_same_arms,
     clippy::default_trait_access,

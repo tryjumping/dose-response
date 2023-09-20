@@ -130,7 +130,7 @@ fn generate_monsters(
     ];
 
     let mut result = vec![];
-    for &(pos, tile) in map.iter() {
+    for &(pos, tile) in map {
         if tile.kind != TileKind::Empty {
             continue;
         }

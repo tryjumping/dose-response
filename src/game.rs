@@ -487,9 +487,8 @@ fn process_game(
     }
 
     if option.is_none() {
-        option = if state.keys.matches_code(KeyCode::Esc) {
-            Some(Action::MainMenu)
-        } else if state.keys.matches_code(KeyCode::Menu) {
+        option = if state.keys.matches_code(KeyCode::Esc) || state.keys.matches_code(KeyCode::Menu)
+        {
             Some(Action::MainMenu)
         } else if state.keys.matches_code(KeyCode::QuestionMark) {
             Some(Action::Help)

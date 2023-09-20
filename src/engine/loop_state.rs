@@ -301,9 +301,9 @@ impl LoopState {
         let text_width_px = self.settings.text_size;
         self.egui_context.begin_frame(self.egui_raw_input());
 
-        self.gilrs.as_mut().map_or(Default::default(), |gilrs| {
+        if let Some(gilrs) = self.gilrs.as_mut() {
             gamepad::process_gamepad_events(gilrs, &mut self.gamepad)
-        });
+        }
 
         let update_result = crate::game::update(
             &mut self.game_state,

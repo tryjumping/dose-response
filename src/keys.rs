@@ -91,6 +91,7 @@ pub enum KeyCode {
     Space,
     Esc,
     QuestionMark,
+    Menu,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

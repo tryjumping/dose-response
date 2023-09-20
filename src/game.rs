@@ -141,6 +141,9 @@ pub fn update(
     if gamepad.right {
         new_keys.push(KeyCode::Right.into());
     }
+    if gamepad.start {
+        new_keys.push(KeyCode::Menu.into());
+    }
 
     gamepad.reset_buttons();
 
@@ -485,6 +488,8 @@ fn process_game(
 
     if option.is_none() {
         option = if state.keys.matches_code(KeyCode::Esc) {
+            Some(Action::MainMenu)
+        } else if state.keys.matches_code(KeyCode::Menu) {
             Some(Action::MainMenu)
         } else if state.keys.matches_code(KeyCode::QuestionMark) {
             Some(Action::Help)

@@ -201,6 +201,8 @@ pub struct State {
     pub player_bumped_into_a_monster: bool,
     #[serde(skip_serializing, skip_deserializing)]
     pub selected_menu_action: Option<windows::main_menu::MenuItem>,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub selected_endgame_window_action: Option<windows::endgame::Action>,
     pub current_help_window: windows::help::Page,
     /// Used for help contents pagination: which line should we start showing.
     pub help_starting_line: i32,
@@ -313,6 +315,7 @@ impl State {
             player_picked_up_a_dose: false,
             player_bumped_into_a_monster: false,
             selected_menu_action: None,
+            selected_endgame_window_action: None,
             current_help_window: windows::help::Page::DoseResponse,
             help_starting_line: 0,
             show_endscreen_and_uncover_map_during_fadein: false,

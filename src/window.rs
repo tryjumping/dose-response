@@ -3,6 +3,11 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 
 /// An enum of windows in the game.
+///
+/// WARNING: We're cloning the `Window` stack in game (to avoid
+/// mutable borrow issues). That means though we can't really store
+/// any persistent window info (such as the selected button) here. It
+/// needs to go into the `State`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Window {
     MainMenu,

@@ -14,7 +14,7 @@ use std::time::Duration;
 
 use egui::{self, Ui};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum Action {
     NewGame,
     Help,
@@ -116,17 +116,29 @@ pub fn process(
                 ui.separator();
                 ui.columns(3, |c| {
                     c[0].with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                        if ui::button(ui, "[N]ew Game", active, &state.palette).clicked() {
+                        let button = ui::button(ui, "[N]ew Game", active, &state.palette);
+                        if state.selected_endgame_window_action == Some(Action::NewGame) {
+                            button.request_focus();
+                        }
+                        if button.clicked() {
                             action = Some(Action::NewGame);
                         };
                     });
                     c[1].with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                        if ui::button(ui, "[?] Help", active, &state.palette).clicked() {
+                        let button = ui::button(ui, "[?] Help", active, &state.palette);
+                        if state.selected_endgame_window_action == Some(Action::Help) {
+                            button.request_focus();
+                        }
+                        if button.clicked() {
                             action = Some(Action::Help);
                         };
                     });
                     c[2].with_layout(egui::Layout::top_down(egui::Align::Max), |ui| {
-                        if ui::button(ui, "[Esc] Main Menu", active, &state.palette).clicked() {
+                        let button = ui::button(ui, "[Esc] Main Menu", active, &state.palette);
+                        if state.selected_endgame_window_action == Some(Action::Menu) {
+                            button.request_focus();
+                        }
+                        if button.clicked() {
                             action = Some(Action::Menu);
                         };
                     });
@@ -148,6 +160,24 @@ pub fn process(
             || state.keys.matches_code(KeyCode::H)
         {
             action = Some(Action::Help);
+        } else if state.keys.matches_code(KeyCode::Enter) {
+            action = state.selected_endgame_window_action;
+        } else if state.keys.matches_code(KeyCode::Left) {
+            state.selected_endgame_window_action = match state.selected_endgame_window_action {
+                Some(Action::NewGame) => Some(Action::Menu),
+                Some(Action::Help) => Some(Action::NewGame),
+                Some(Action::Menu) => Some(Action::Help),
+                _ => Some(Action::NewGame),
+            };
+            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        } else if state.keys.matches_code(KeyCode::Right) {
+            state.selected_endgame_window_action = match state.selected_endgame_window_action {
+                Some(Action::NewGame) => Some(Action::Help),
+                Some(Action::Help) => Some(Action::Menu),
+                Some(Action::Menu) => Some(Action::NewGame),
+                _ => Some(Action::NewGame),
+            };
+            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
         }
     }
 

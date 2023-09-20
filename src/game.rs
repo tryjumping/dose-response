@@ -388,6 +388,7 @@ pub fn update(
                 && state.show_endscreen_and_uncover_map_during_fadein
             {
                 state.uncovered_map = true;
+                state.selected_endgame_window_action = Some(endgame::Action::NewGame);
                 state.window_stack.push(Window::Endgame);
             }
             state.screen_fading = Some(anim);
@@ -550,6 +551,7 @@ fn process_game(
         && state.screen_fading.is_none()
         && (state.keys.matches(|_| true) || state.mouse.right_clicked)
     {
+        state.selected_endgame_window_action = Some(endgame::Action::NewGame);
         state.window_stack.push(Window::Endgame);
         return RunningState::Running;
     }
@@ -2109,6 +2111,7 @@ fn win_the_game(state: &mut State) {
     state.side = Side::Victory;
     state.game_session = GameSession::Ended;
     state.uncovered_map = true;
+    state.selected_endgame_window_action = Some(endgame::Action::NewGame);
     state.window_stack.push(Window::Endgame);
 }
 

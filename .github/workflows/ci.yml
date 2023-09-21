@@ -23,7 +23,7 @@ jobs:
           extra_features: linux-extra-features
           build_time_dependencies: |
             sudo apt-get update
-            sudo apt-get install libasound2-dev
+            sudo apt-get install libasound2-dev libudev-dev
         - os: windows-latest
           target_triple: x86_64-pc-windows-msvc
           archive_ext: zip

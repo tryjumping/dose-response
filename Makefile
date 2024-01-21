@@ -10,6 +10,7 @@ build-all:
 	cargo check
 	cargo build
 	cargo build --release
+	cargo clippy
 .PHONY: build-all
 
 replay:

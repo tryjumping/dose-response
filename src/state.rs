@@ -457,8 +457,6 @@ Reason: '{}'.",
             }
 
             log::info!("Replaying game log: '{}'", replay_path.display());
-            let cheating = cheating;
-            let invincible = invincible;
             let replay = true;
             let mut state = State::new(
                 world_size,

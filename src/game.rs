@@ -570,7 +570,7 @@ fn process_game(
     // NOTE: this will not show up in the replay so that'll be out of
     // sync. We can pass `--invincible` while running the replay
     // though and that should always work, I think.
-    if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::I) && state.cheating {
+    if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::X) && state.cheating {
         log::info!("Making the player invincible, you cheat!");
         state.player.invincible = true;
     }

@@ -61,7 +61,7 @@ pub fn update(
     settings: &mut Settings,
     metrics: &dyn TextMetrics,
     settings_store: &mut dyn SettingsStore,
-    display: &mut Display, // TODO: remove this from the engine and keep a transient state instead
+    display: &mut Display, // TODO: remove this from the entgine and keep a transient state instead
     audio: &mut Audio,
 ) -> RunningState {
     let update_stopwatch = Stopwatch::start();

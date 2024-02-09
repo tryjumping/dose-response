@@ -648,7 +648,15 @@ fn process_game(
             monster_cumulative_ap
         );
 
-        process_keys(&mut state.keys, &mut state.commands);
+        if state.inventory_focused {
+            // Don't turn keys into commands. The player should not be
+            // controllable while the inventory is active.
+
+            // TODO: we need to do the same for mouse. Or make sure we
+            // close inventory on click at least.
+        } else {
+            process_keys(&mut state.keys, &mut state.commands);
+        }
 
         if state.mouse.left_clicked || state.commands.front() == Some(&Command::WalkPath) {
             state.path_walking_timer.finish();

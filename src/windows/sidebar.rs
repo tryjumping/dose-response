@@ -3,6 +3,7 @@ use crate::{
     formula, game,
     graphic::Graphic,
     item,
+    keys::KeyCode,
     player::Mind,
     point::Point,
     settings::Settings,
@@ -14,7 +15,7 @@ use egui::{self, paint::Shape, Pos2, Rect, Ui, Vec2};
 
 use std::{collections::HashMap, time::Duration};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Action {
     MainMenu,
     Help,
@@ -45,6 +46,48 @@ pub fn process(
     active: bool,
 ) -> (Option<Action>, Option<Point>) {
     let mut action = None;
+
+    if state.keys.matches_code(KeyCode::I) {
+        state.inventory_focused = !state.inventory_focused;
+        dbg!(state.inventory_focused);
+    }
+    if state.keys.matches_code(KeyCode::Enter) {
+        dbg!(state.selected_sidebar_action);
+        action = state.selected_sidebar_action;
+        // We've taken the action, leave the inventory and go back to the game.
+        state.inventory_focused = false;
+    }
+    if state.inventory_focused {
+        use Action::*;
+        if state.selected_sidebar_action.is_none() {
+            state.selected_sidebar_action = Some(UseFood);
+        }
+
+        if state.keys.matches_code(KeyCode::Down) {
+            let new_selected_action = match state.selected_sidebar_action {
+                Some(UseFood) => UseDose,
+                Some(UseDose) => UseCardinalDose,
+                Some(UseCardinalDose) => UseDiagonalDose,
+                Some(UseDiagonalDose) => UseStrongDose,
+                Some(UseStrongDose) => UseFood,
+                _ => UseFood,
+            };
+            state.selected_sidebar_action = Some(new_selected_action);
+        }
+        if state.keys.matches_code(KeyCode::Up) {
+            let new_selected_action = match state.selected_sidebar_action {
+                Some(UseFood) => UseStrongDose,
+                Some(UseDose) => UseFood,
+                Some(UseCardinalDose) => UseDose,
+                Some(UseDiagonalDose) => UseCardinalDose,
+                Some(UseStrongDose) => UseDiagonalDose,
+                _ => UseStrongDose,
+            };
+            state.selected_sidebar_action = Some(new_selected_action);
+        }
+    } else {
+        state.selected_sidebar_action = None;
+    }
 
     let width_px = formula::sidebar_width_px(display.text_size) as f32;
     let bottom_right = Pos2::new(
@@ -225,7 +268,13 @@ pub fn process(
             .background_color(state.palette.gui_button_background);
 
         let dbg_btn = button.clone();
-        if ui.add(button).clicked() {
+        let resp = ui.add(button);
+        if state.inventory_focused && Some(button_action) == state.selected_sidebar_action {
+            resp.request_focus();
+        } else {
+            resp.surrender_focus();
+        }
+        if resp.clicked() {
             log::info!(
                 "Button {:?} clicked! Click Action: {:?}",
                 dbg_btn,

@@ -129,6 +129,9 @@ pub fn update(
     if gamepad.east {
         new_keys.push(KeyCode::Esc.into());
     }
+    if gamepad.west {
+        new_keys.push(KeyCode::I.into());
+    }
     if gamepad.up {
         new_keys.push(KeyCode::Up.into());
     }

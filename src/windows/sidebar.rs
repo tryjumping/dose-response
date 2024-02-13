@@ -47,46 +47,48 @@ pub fn process(
 ) -> (Option<Action>, Option<Point>) {
     let mut action = None;
 
-    if state.keys.matches_code(KeyCode::I) {
-        state.inventory_focused = !state.inventory_focused;
-        dbg!(state.inventory_focused);
-    }
-    if state.keys.matches_code(KeyCode::Enter) {
-        dbg!(state.selected_sidebar_action);
-        action = state.selected_sidebar_action;
-        // We've taken the action, leave the inventory and go back to the game.
-        state.inventory_focused = false;
-    }
-    if state.inventory_focused {
-        use Action::*;
-        if state.selected_sidebar_action.is_none() {
-            state.selected_sidebar_action = Some(UseFood);
+    if active {
+        if state.keys.matches_code(KeyCode::I) {
+            state.inventory_focused = !state.inventory_focused;
+            dbg!(state.inventory_focused);
         }
+        if state.keys.matches_code(KeyCode::Enter) {
+            dbg!(state.selected_sidebar_action);
+            action = state.selected_sidebar_action;
+            // We've taken the action, leave the inventory and go back to the game.
+            state.inventory_focused = false;
+        }
+        if state.inventory_focused {
+            use Action::*;
+            if state.selected_sidebar_action.is_none() {
+                state.selected_sidebar_action = Some(UseFood);
+            }
 
-        if state.keys.matches_code(KeyCode::Down) {
-            let new_selected_action = match state.selected_sidebar_action {
-                Some(UseFood) => UseDose,
-                Some(UseDose) => UseCardinalDose,
-                Some(UseCardinalDose) => UseDiagonalDose,
-                Some(UseDiagonalDose) => UseStrongDose,
-                Some(UseStrongDose) => UseFood,
-                _ => UseFood,
-            };
-            state.selected_sidebar_action = Some(new_selected_action);
+            if state.keys.matches_code(KeyCode::Down) {
+                let new_selected_action = match state.selected_sidebar_action {
+                    Some(UseFood) => UseDose,
+                    Some(UseDose) => UseCardinalDose,
+                    Some(UseCardinalDose) => UseDiagonalDose,
+                    Some(UseDiagonalDose) => UseStrongDose,
+                    Some(UseStrongDose) => UseFood,
+                    _ => UseFood,
+                };
+                state.selected_sidebar_action = Some(new_selected_action);
+            }
+            if state.keys.matches_code(KeyCode::Up) {
+                let new_selected_action = match state.selected_sidebar_action {
+                    Some(UseFood) => UseStrongDose,
+                    Some(UseDose) => UseFood,
+                    Some(UseCardinalDose) => UseDose,
+                    Some(UseDiagonalDose) => UseCardinalDose,
+                    Some(UseStrongDose) => UseDiagonalDose,
+                    _ => UseStrongDose,
+                };
+                state.selected_sidebar_action = Some(new_selected_action);
+            }
+        } else {
+            state.selected_sidebar_action = None;
         }
-        if state.keys.matches_code(KeyCode::Up) {
-            let new_selected_action = match state.selected_sidebar_action {
-                Some(UseFood) => UseStrongDose,
-                Some(UseDose) => UseFood,
-                Some(UseCardinalDose) => UseDose,
-                Some(UseDiagonalDose) => UseCardinalDose,
-                Some(UseStrongDose) => UseDiagonalDose,
-                _ => UseStrongDose,
-            };
-            state.selected_sidebar_action = Some(new_selected_action);
-        }
-    } else {
-        state.selected_sidebar_action = None;
     }
 
     let width_px = formula::sidebar_width_px(display.text_size) as f32;

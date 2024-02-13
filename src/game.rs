@@ -920,7 +920,7 @@ fn process_game(
     } else if let Some(monster) = state.world.monster_on_pos(state.mouse_world_position()) {
         Some(monster.name())
     } else if let Some(cell) = state.world.cell(state.mouse_world_position()) {
-        cell.items.get(0).map(|item| item.kind.name())
+        cell.items.first().map(|item| item.kind.name())
     } else {
         None
     };

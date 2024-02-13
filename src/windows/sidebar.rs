@@ -180,7 +180,7 @@ pub fn process(
     // NOTE: this ignores if we've got more than one bonus. That's
     // correct as of right now, but if we ever support more than one
     // bonus, we'll need to update this code!
-    if let Some(bonus) = player.bonuses.get(0) {
+    if let Some(bonus) = player.bonuses.first() {
         ui.label(format!("Bonus: {}", bonus));
     } else {
         ui.label("");

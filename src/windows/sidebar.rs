@@ -52,6 +52,9 @@ pub fn process(
             state.inventory_focused = !state.inventory_focused;
             dbg!(state.inventory_focused);
         }
+        if state.inventory_focused && state.keys.matches_code(KeyCode::Esc) {
+            state.inventory_focused = false;
+        }
         if state.keys.matches_code(KeyCode::Enter) {
             dbg!(state.selected_sidebar_action);
             action = state.selected_sidebar_action;
@@ -70,18 +73,22 @@ pub fn process(
                     Some(UseDose) => UseCardinalDose,
                     Some(UseCardinalDose) => UseDiagonalDose,
                     Some(UseDiagonalDose) => UseStrongDose,
-                    Some(UseStrongDose) => UseFood,
+                    Some(UseStrongDose) => Help,
+                    Some(Help) => MainMenu,
+                    Some(MainMenu) => UseFood,
                     _ => UseFood,
                 };
                 state.selected_sidebar_action = Some(new_selected_action);
             }
             if state.keys.matches_code(KeyCode::Up) {
                 let new_selected_action = match state.selected_sidebar_action {
-                    Some(UseFood) => UseStrongDose,
+                    Some(UseFood) => MainMenu,
                     Some(UseDose) => UseFood,
                     Some(UseCardinalDose) => UseDose,
                     Some(UseDiagonalDose) => UseCardinalDose,
                     Some(UseStrongDose) => UseDiagonalDose,
+                    Some(Help) => UseStrongDose,
+                    Some(MainMenu) => Help,
                     _ => UseStrongDose,
                 };
                 state.selected_sidebar_action = Some(new_selected_action);
@@ -290,14 +297,26 @@ pub fn process(
 
     // NOTE: `Layout::reverse()` builds it up from the bottom:
     ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
-        if ui::button(ui, "[Esc] Main Menu", active, &state.palette).clicked() {
+        let menu_resp = ui::button(ui, "[Esc] Main Menu", active, &state.palette);
+        if state.inventory_focused && Some(Action::MainMenu) == state.selected_sidebar_action {
+            menu_resp.request_focus();
+        } else {
+            menu_resp.surrender_focus();
+        }
+        if menu_resp.clicked() {
             action = Some(Action::MainMenu);
         }
-        let gui_response = ui::button(ui, "[?] Help", active, &state.palette);
-        if gui_response.clicked() {
+
+        let help_response = ui::button(ui, "[?] Help", active, &state.palette);
+        if state.inventory_focused && Some(Action::Help) == state.selected_sidebar_action {
+            help_response.request_focus();
+        } else {
+            help_response.surrender_focus();
+        }
+        if help_response.clicked() {
             action = Some(Action::Help);
         }
-        help_rect = gui_response.rect;
+        help_rect = help_response.rect;
     });
 
     if state.cheating {

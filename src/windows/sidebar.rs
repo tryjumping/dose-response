@@ -52,17 +52,20 @@ pub fn process(
             state.inventory_focused = !state.inventory_focused;
             dbg!(state.inventory_focused);
         }
-        if state.inventory_focused && state.keys.matches_code(KeyCode::Esc) {
-            state.inventory_focused = false;
-        }
-        if state.keys.matches_code(KeyCode::Enter) {
-            dbg!(state.selected_sidebar_action);
-            action = state.selected_sidebar_action;
-            // We've taken the action, leave the inventory and go back to the game.
-            state.inventory_focused = false;
-        }
         if state.inventory_focused {
             use Action::*;
+
+            if state.keys.matches_code(KeyCode::Esc) {
+                state.inventory_focused = false;
+            }
+
+            if state.keys.matches_code(KeyCode::Enter) {
+                dbg!(state.selected_sidebar_action);
+                action = state.selected_sidebar_action;
+                // We've taken the action, leave the inventory and go back to the game.
+                state.inventory_focused = false;
+            }
+
             if state.selected_sidebar_action.is_none() {
                 state.selected_sidebar_action = Some(UseFood);
             }

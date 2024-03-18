@@ -4,6 +4,7 @@ use crate::{
     engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex},
     gamepad::{self, Gamepad},
     keys::Key,
+    palette::Palette,
     point::Point,
     settings::{Settings, Store as SettingsStore},
     state::State,
@@ -93,6 +94,27 @@ pub fn egui_set_font_size(ctx: &egui::Context, font_size_px: f32) {
         def
     };
     ctx.set_fonts(font_definitions);
+}
+
+pub fn egui_style(palette: &Palette) -> egui::Style {
+    let mut style = egui::Style::default();
+    // NOTE: this applies to check/radio boxes as well, not just regular buttons:
+    style.spacing.button_padding = [7.0, 3.0].into();
+
+    // TODO: and have it respond to the palette changes.
+
+    style.visuals.widgets.inactive.bg_fill = palette.gui_button_background.into();
+
+    style.visuals.widgets.active.bg_fill = palette.gui_button_highlighted_background.into();
+
+    style.visuals.widgets.active.bg_stroke.color = palette.gui_button_highlighted_stroke.into();
+    style.visuals.widgets.active.bg_stroke.width = 3.0;
+
+    style.visuals.widgets.hovered.bg_fill = palette.gui_button_highlighted_background.into();
+    style.visuals.widgets.hovered.bg_stroke.width = 0.0;
+    style.visuals.widgets.hovered.fg_stroke.width = 0.0;
+
+    style
 }
 
 pub struct LoopState {
@@ -196,11 +218,9 @@ impl LoopState {
             // Set the Egui font family and size:
             egui_set_font_size(&egui_context, settings.text_size as f32);
 
-            // Customise the default egui style:
-            let mut style = egui::Style::default();
-            // NOTE: this applies to check/radio boxes as well, not just regular buttons:
-            style.spacing.button_padding = [7.0, 3.0].into();
+            let style = egui_style(&game_state.palette);
             egui_context.set_style(Arc::new(style));
+
             let _ = egui_context.end_frame();
         }
 
@@ -305,6 +325,8 @@ impl LoopState {
             gamepad::process_gamepad_events(gilrs, &mut self.gamepad)
         }
 
+        let previous_palette = self.settings.palette();
+
         let update_result = crate::game::update(
             &mut self.game_state,
             &self.egui_context,
@@ -322,6 +344,12 @@ impl LoopState {
             &mut self.display,
             &mut self.audio,
         );
+
+        if previous_palette != self.settings.palette() {
+            // The palette has changed, we need to update the egui style
+            let style = egui_style(&self.settings.palette());
+            self.egui_context.set_style(Arc::new(style));
+        }
 
         match update_result {
             RunningState::Running => {}

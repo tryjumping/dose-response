@@ -8,11 +8,13 @@ pub mod greyscale;
 
 pub const TREE_COUNT: usize = 3;
 
-#[derive(Clone, Serialize, Deserialize, Copy)]
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct Palette {
     pub gui_text: Color,
     pub gui_text_inactive: Color,
     pub gui_button_background: Color,
+    pub gui_button_highlighted_background: Color,
+    pub gui_button_highlighted_stroke: Color,
     pub gui_mind_progress_bar_fg: Color,
     pub gui_mind_progress_bar_bg: Color,
     pub gui_anxiety_progress_bar_fg: Color,
@@ -72,6 +74,8 @@ impl Palette {
             gui_text: WHITE,
             gui_text_inactive: LIGHT_GREY,
             gui_button_background: DARK_RED,
+            gui_button_highlighted_background: NEON_PURPLE,
+            gui_button_highlighted_stroke: ORANGE,
             gui_mind_progress_bar_fg: BRIGHT_GREEN,
             gui_mind_progress_bar_bg: DIM_GREEN,
             gui_anxiety_progress_bar_fg: RED,
@@ -139,6 +143,8 @@ impl Palette {
             gui_text: WHITE,
             gui_text_inactive: GREY,
             gui_button_background: GREEN,
+            gui_button_highlighted_background: PURPLE,
+            gui_button_highlighted_stroke: ORANGE,
             gui_mind_progress_bar_fg: TEAL,
             gui_mind_progress_bar_bg: YELLOW,
             gui_anxiety_progress_bar_fg: RED,
@@ -197,8 +203,10 @@ impl Palette {
         use greyscale::*;
         Self {
             gui_text: WHITE,
-            gui_text_inactive: GREY,
+            gui_text_inactive: WHITE,
             gui_button_background: DARK_GREY,
+            gui_button_highlighted_background: GREY,
+            gui_button_highlighted_stroke: WHITE,
             gui_mind_progress_bar_fg: GREY,
             gui_mind_progress_bar_bg: DARK_GREY,
             gui_anxiety_progress_bar_fg: GREY,

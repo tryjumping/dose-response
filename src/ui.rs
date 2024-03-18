@@ -39,9 +39,7 @@ pub fn egui_root(ctx: &CtxRef, rect: Rect, add_contents: impl FnOnce(&mut Ui)) {
 /// Helper for creating an egui button with the default background and
 /// an enabled state.
 pub fn button(ui: &mut Ui, text: &str, enabled: bool, palette: &Palette) -> egui::Response {
-    let button = egui::Button::new(text)
-        .fill(palette.gui_button_background)
-        .text_color(palette.gui_text.into());
+    let button = egui::Button::new(text).text_color(palette.gui_text.into());
     ui.add_enabled(enabled, button)
 }
 
@@ -94,7 +92,6 @@ pub struct ImageTextButton {
     image_color: Color32,
     text_color: Color32,
     text_disabled_color: Color32,
-    background_color: Color32,
 }
 
 impl ImageTextButton {
@@ -111,7 +108,6 @@ impl ImageTextButton {
             image_color: color::WHITE.into(),
             text_color: color::WHITE.into(),
             text_disabled_color: color::WHITE.into(),
-            background_color: color::BLACK.into(),
         }
     }
 
@@ -150,11 +146,6 @@ impl ImageTextButton {
         self
     }
 
-    pub fn background_color(mut self, color: impl Into<Color32>) -> Self {
-        self.background_color = color.into();
-        self
-    }
-
     /// If `true`, mark this button as "selected".
     pub fn selected(mut self, selected: bool) -> Self {
         self.selected = selected;
@@ -189,7 +180,6 @@ impl Widget for ImageTextButton {
             image_color,
             text_color,
             text_disabled_color,
-            background_color,
         } = self;
 
         let text_style = egui::TextStyle::Button;
@@ -203,8 +193,7 @@ impl Widget for ImageTextButton {
 
         let image = widgets::Image::new(texture.into(), Vec2::splat(text_galley.rect.height()))
             .uv(uv)
-            .tint(image_color)
-            .bg_fill(background_color);
+            .tint(image_color);
 
         let button_padding = ui.spacing().button_padding;
         let size = Vec2::new(
@@ -231,7 +220,7 @@ impl Widget for ImageTextButton {
                 painter.rect(
                     rect,
                     visuals.corner_radius,
-                    background_color,
+                    visuals.bg_fill,
                     visuals.bg_stroke,
                 );
                 painter.galley(rect.min + button_padding, prefix_galley);
@@ -240,7 +229,7 @@ impl Widget for ImageTextButton {
                 painter.rect(
                     rect.expand(visuals.expansion),
                     visuals.corner_radius,
-                    background_color,
+                    visuals.bg_fill,
                     visuals.bg_stroke,
                 );
                 painter.galley_with_color(
@@ -255,7 +244,7 @@ impl Widget for ImageTextButton {
                 image.size(),
                 rect.shrink2(button_padding).translate(prefix_translate),
             );
-            image.paint_at(ui, image_rect);
+            image.bg_fill(visuals.bg_fill).paint_at(ui, image_rect);
         }
 
         response

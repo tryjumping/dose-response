@@ -276,8 +276,7 @@ pub fn process(
             .image_color(item_color)
             .text_color(state.palette.gui_text)
             .text_disabled_color(state.palette.gui_text_inactive)
-            .selected(active)
-            .background_color(state.palette.gui_button_background);
+            .selected(active);
 
         let dbg_btn = button.clone();
         let resp = ui.add(button);

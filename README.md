@@ -88,7 +88,7 @@ south-west, north-east and south-west.
 License: AGPL v3+
 -----------------
 
-Copyright (C) 2013-2020 Tomas Sedovic <tomas@sedovic.cz>
+Copyright (C) 2013-2024 Tomas Sedovic <tomas@sedovic.cz>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

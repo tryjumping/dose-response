@@ -658,6 +658,10 @@ fn process_game(
             process_keys(&mut state.keys, &mut state.commands);
         }
 
+        if state.mouse.left_clicked || state.mouse.right_clicked {
+            state.inventory_focused = false;
+        }
+
         if state.mouse.left_clicked || state.commands.front() == Some(&Command::WalkPath) {
             state.path_walking_timer.finish();
         } else {

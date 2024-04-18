@@ -7,6 +7,8 @@ on:
       - 'v*.*.*'
   pull_request:
     branches: [ master, 1.1.x, 1.0.x ]
+  schedule:
+    - cron: '0 17 * * *'
 
 env:
   CARGO_TERM_COLOR: always

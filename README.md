@@ -83,8 +83,6 @@ To move diagonally, press `y`, `b`, `u` and `n` to move north-west,
 south-west, north-east and south-west.
 
 
-
-
 License: AGPL v3+
 -----------------
 

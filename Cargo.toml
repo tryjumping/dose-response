@@ -96,3 +96,48 @@ codegen-units = 1
 lto = true
 # We only use debug info for profiling, but not otherwise
 #debug = true
+
+[lints.rust]
+overflowing_literals = "deny"
+unsafe_code = "deny"
+rust_2018_idioms = "deny"
+rust_2018_compatibility = "deny"
+unused_extern_crates = "deny"
+nonstandard_style = "deny"
+future_incompatible = "deny"
+missing_copy_implementations = "warn"
+
+[lints.clippy]
+explicit_iter_loop = "allow"
+identity_op = "allow"
+wildcard_imports = "allow"
+match_bool = "allow"
+single_match_else = "allow"
+manual_slice_size_calculation = "allow"
+match_wildcard_for_single_variants = "allow"
+match_same_arms = "allow"
+default_trait_access = "allow"
+ptr_as_ptr = "allow"
+float_cmp = "allow"
+from_iter_instead_of_collect = "allow"
+collapsible_else_if = "allow"
+bool_assert_comparison = "allow"
+
+cast_lossless = "deny"
+redundant_closure_for_method_calls = "deny"
+cloned_instead_of_copied = "deny"
+unnested_or_patterns = "deny"
+if_not_else = "deny"
+map_unwrap_or = "deny"
+unreadable_literal = "deny"
+unseparated_literal_suffix = "deny"
+doc_markdown = "deny"
+
+# These lints guard against common runtime panic situations:
+expect_used = "deny"
+unwrap_used = "deny"
+ok_expect = "deny"
+panic = "deny"
+match_on_vec_items = "deny"
+manual_strip = "deny"
+await_holding_refcell_ref = "deny"

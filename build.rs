@@ -1,4 +1,4 @@
-#![allow(unused_must_use)]
+#![allow(unused_must_use, clippy::panic, clippy::unwrap_used)]
 
 use std::{
     env,

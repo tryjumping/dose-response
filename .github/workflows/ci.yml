@@ -90,6 +90,5 @@ jobs:
       if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Package and upload the release
       run: |
-        python3 -m pip install --upgrade boto3
         python3 bin/release.py ${{ secrets.AWS_S3_BUCKET_NAME }}
       if: ${{ env.HAS_SECRETS == 'true' }}

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import boto3
 import datetime
 from glob import glob
 import os
 from pathlib import Path
 import platform
 import shutil
+import subprocess
 import sys
 import locale
 
@@ -144,9 +144,15 @@ if __name__ == '__main__':
     print(f"Build created in: '{archive_full_file_path}'")
 
     if upload_release:
-        s3 = boto3.resource('s3')
         print("Uploading the build to S3...")
-        s3.Bucket(bucket_name).upload_file(archive_full_file_path, s3_destination_path)
+        s3_destination_uri = f"s3://{bucket_name}/{s3_destination_path}"
+        result = subprocess.run(("aws", "s3", "cp", "--no-progress", archive_full_file_path, s3_destination_uri))
+        if result.stdout:
+            print(f"S3 stdout:\n{result.stdout}")
+        if result.stderr:
+            print(f"S3 stderr:\n{result.stderr}")
+        if result.returncode != 0:
+            die(f"Failed to upload release to S3. Process exited with code: {result.returncode}")
         print("Upload finished.")
     else:
         print("Skipping the release upload")

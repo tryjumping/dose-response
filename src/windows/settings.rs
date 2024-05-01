@@ -50,6 +50,32 @@ pub fn process(
         ((screen_size_px.y as f32 - window_size_px[1]) / 2.0).min(250.0),
     ];
 
+    if state.keys.matches_code(KeyCode::Up) {
+        state.selected_settings_position = match state.selected_settings_position {
+            Some((column, row)) => {
+                let row = if row <= 0 { 2 } else { row - 1 };
+                Some((column, row))
+            }
+
+            None => Some((0, 0)),
+        };
+    }
+
+    if state.keys.matches_code(KeyCode::Down) {
+        state.selected_settings_position = match state.selected_settings_position {
+            Some((column, row)) => Some((column, (row + 1) % 3)),
+            None => Some((0, 0)),
+        };
+    }
+
+    if state.keys.matches_code(KeyCode::Left) {
+        // TODO: set the current column to the one more left
+    }
+
+    if state.keys.matches_code(KeyCode::Right) {
+        // TODO: set the current column to the one more right
+    }
+
     egui::Window::new("Settings")
         .open(&mut visible)
         .collapsible(false)
@@ -65,37 +91,45 @@ pub fn process(
                 // TODO: file a bug in egui for this.
 
                 c[0].label("Gameplay:");
-                if c[0]
+                let resp = c[0]
                     .checkbox(&mut settings.fast_depression, "Fast D[e]pression")
                     .on_hover_text(
                         "Checked: Depression moves two tiles per turn.
 Unchecked: Depression moves one tile per turn.",
-                    )
-                    .clicked()
-                {
+                    );
+                if state.selected_settings_position == Some((0, 0)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                 }
 
                 // NOTE: this how do we handle persistentcases like
                 // exhaustion, overdose, loss of will, etc.? I think
                 // we'll probably want to drop this one.
-                if c[0].checkbox(&mut settings.permadeath, "[O]nly one chance")
+                let resp = c[0]
+		    .checkbox(&mut settings.permadeath, "[O]nly one chance")
                     .on_hover_text(
                     "Checked: the game ends when the player loses (via overdose, depression, etc.).
 Unchecked: all player effects are removed on losing. The game continues.",
-                    ).clicked()
-                {
+                    );
+                if state.selected_settings_position == Some((0, 1)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                 }
 
-                if c[0]
+                let resp = c[0]
                     .checkbox(&mut settings.hide_unseen_tiles, "[H]ide unseen tiles")
                     .on_hover_text(
                         "Checked: only previously seen tiles are visible.
 Unchecked: the entire map is uncovered.",
-                    )
-                    .clicked()
-                {
+                    );
+                if state.selected_settings_position == Some((0, 2)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                 }
 
@@ -211,7 +245,8 @@ Unchecked: the entire map is uncovered.",
             // on macos, it's working just fine
             ui.separator();
             ui.horizontal(|ui| {
-                if ui::button(ui, "[A]ccept Changes", true, &state.palette).clicked() {
+                let resp = ui::button(ui, "[A]ccept Changes", true, &state.palette);
+                if resp.clicked() {
                     action = Some(Action::Apply);
                 }
 

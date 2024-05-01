@@ -202,6 +202,8 @@ pub struct State {
     #[serde(skip_serializing, skip_deserializing)]
     pub selected_menu_action: Option<windows::main_menu::MenuItem>,
     #[serde(skip_serializing, skip_deserializing)]
+    pub selected_settings_position: Option<(i32, i32)>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub selected_endgame_window_action: Option<windows::endgame::Action>,
     #[serde(skip_serializing, skip_deserializing)]
     pub selected_sidebar_action: Option<windows::sidebar::Action>,
@@ -318,6 +320,7 @@ impl State {
             player_picked_up_a_dose: false,
             player_bumped_into_a_monster: false,
             selected_menu_action: None,
+            selected_settings_position: None,
             selected_endgame_window_action: None,
             selected_sidebar_action: None,
             current_help_window: windows::help::Page::DoseResponse,

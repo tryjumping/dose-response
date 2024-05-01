@@ -120,9 +120,16 @@ Unchecked: Depression moves one tile per turn.",
                     );
                 if state.selected_settings_position == Some((0, 0)) {
                     resp.request_focus();
+                    if state.keys.matches_code(KeyCode::Enter) {
+                        settings.fast_depression = !settings.fast_depression;
+                        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    }
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    state.selected_settings_position = None;
                 }
 
                 // NOTE: this how do we handle persistentcases like
@@ -136,9 +143,16 @@ Unchecked: all player effects are removed on losing. The game continues.",
                     );
                 if state.selected_settings_position == Some((0, 1)) {
                     resp.request_focus();
+                    if state.keys.matches_code(KeyCode::Enter) {
+                        settings.permadeath = !settings.permadeath;
+                        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    }
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    state.selected_settings_position = None;
                 }
 
                 let resp = c[0]
@@ -149,9 +163,16 @@ Unchecked: the entire map is uncovered.",
                     );
                 if state.selected_settings_position == Some((0, 2)) {
                     resp.request_focus();
+                    if state.keys.matches_code(KeyCode::Enter) {
+                        settings.hide_unseen_tiles = !settings.hide_unseen_tiles;
+                        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    }
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    state.selected_settings_position = None;
                 }
 
                 let mut available_key_shortcut = 1;
@@ -168,9 +189,16 @@ Unchecked: the entire map is uncovered.",
                     );
                     if state.selected_settings_position == Some((1, c1_row_index)) {
                         resp.request_focus();
+                        if state.keys.matches_code(KeyCode::Enter) {
+                            action = Some(Action::TileSize(tile_size));
+                            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                        }
+                    } else {
+                        resp.surrender_focus();
                     }
                     if resp.clicked() {
                         action = Some(Action::TileSize(tile_size));
+                        state.selected_settings_position = None;
                     };
                     available_key_shortcut += 1;
                     c1_row_index += 1;
@@ -188,9 +216,16 @@ Unchecked: the entire map is uncovered.",
                     );
                     if state.selected_settings_position == Some((1, c1_row_index)) {
                         resp.request_focus();
+                        if state.keys.matches_code(KeyCode::Enter) {
+                            action = Some(Action::TextSize(text_size));
+                            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                        }
+                    } else {
+                        resp.surrender_focus();
                     }
                     if resp.clicked() {
                         action = Some(Action::TextSize(text_size));
+                        state.selected_settings_position = None;
                     };
                     available_key_shortcut += 1;
                     c1_row_index += 1;
@@ -202,6 +237,15 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[1].checkbox(&mut play_music, "Play [M]usic");
                 if state.selected_settings_position == Some((1, 6)) {
                     resp.request_focus();
+                    if state.keys.matches_code(KeyCode::Enter) {
+                        let volume = match play_music {
+                            true => 0.0,
+                            false => 1.0,
+                        };
+                        action = Some(Action::MusicVolume(volume));
+                    }
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     let volume = match play_music {
@@ -209,12 +253,22 @@ Unchecked: the entire map is uncovered.",
                         false => 0.0,
                     };
                     action = Some(Action::MusicVolume(volume));
+                    state.selected_settings_position = None;
                 };
 
                 let mut play_sound = settings.sound_volume != 0.0;
                 let resp = c[1].checkbox(&mut play_sound, "Play So[u]nd");
                 if state.selected_settings_position == Some((1, 7)) {
                     resp.request_focus();
+                    if state.keys.matches_code(KeyCode::Enter) {
+                        let volume = match play_sound {
+                            true => 0.0,
+                            false => 1.0,
+                        };
+                        action = Some(Action::SoundVolume(volume));
+                    }
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     let volume = match play_sound {
@@ -222,23 +276,30 @@ Unchecked: the entire map is uncovered.",
                         false => 0.0,
                     };
                     action = Some(Action::SoundVolume(volume));
+                    state.selected_settings_position = None;
                 };
 
                 c[2].label("Display:");
                 let resp = c[2].radio(settings.fullscreen, "[F]ullscreen");
                 if state.selected_settings_position == Some((2, 0)) {
                     resp.request_focus();
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     action = Some(Action::Fullscreen);
+                    state.selected_settings_position = None;
                 }
 
                 let resp = c[2].radio(!settings.fullscreen, "[W]indowed");
                 if state.selected_settings_position == Some((2, 1)) {
                     resp.request_focus();
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
-                    action = Some(Action::Window)
+                    action = Some(Action::Window);
+                    state.selected_settings_position = None;
                 }
 
                 c[2].label("");
@@ -249,9 +310,12 @@ Unchecked: the entire map is uncovered.",
                 );
                 if state.selected_settings_position == Some((2, 2)) {
                     resp.request_focus();
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     action = Some(Action::VisualStyle(VisualStyle::Graphical));
+                    state.selected_settings_position = None;
                 };
 
                 let resp = c[2].radio(
@@ -260,9 +324,12 @@ Unchecked: the entire map is uncovered.",
                 );
                 if state.selected_settings_position == Some((2, 3)) {
                     resp.request_focus();
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
-                    action = Some(Action::VisualStyle(VisualStyle::Textual))
+                    action = Some(Action::VisualStyle(VisualStyle::Textual));
+                    state.selected_settings_position = None;
                 };
 
                 c[2].label("");
@@ -270,25 +337,34 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[2].radio(settings.palette == Palette::Classic, "Cla[s]sic");
                 if state.selected_settings_position == Some((2, 4)) {
                     resp.request_focus();
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     action = Some(Action::Palette(Palette::Classic));
+                    state.selected_settings_position = None;
                 };
 
                 let resp = c[2].radio(settings.palette == Palette::Accessible, "A[c]cessible");
                 if state.selected_settings_position == Some((2, 5)) {
                     resp.request_focus();
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     action = Some(Action::Palette(Palette::Accessible));
+                    state.selected_settings_position = None;
                 };
 
                 let resp = c[2].radio(settings.palette == Palette::Greyscale, "G[r]eyscale");
                 if state.selected_settings_position == Some((2, 6)) {
                     resp.request_focus();
+                } else {
+                    resp.surrender_focus();
                 }
                 if resp.clicked() {
                     action = Some(Action::Palette(Palette::Greyscale));
+                    state.selected_settings_position = None;
                 };
             });
 
@@ -299,10 +375,12 @@ Unchecked: the entire map is uncovered.",
                 let resp = ui::button(ui, "[A]ccept Changes", true, &state.palette);
                 if resp.clicked() {
                     action = Some(Action::Apply);
+                    state.selected_settings_position = None;
                 }
 
                 if ui::button(ui, "[D]iscard Changes", true, &state.palette).clicked() {
                     action = Some(Action::Back);
+                    state.selected_settings_position = None;
                 }
             });
         });

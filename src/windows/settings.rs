@@ -52,6 +52,8 @@ pub fn process(
 
     let max_rows: [i32; 3] = [3, 8, 7];
 
+    let previous_settings_position = state.selected_settings_position;
+
     if state.keys.matches_code(KeyCode::Up) {
         state.selected_settings_position = match state.selected_settings_position {
             Some((column, row)) => {
@@ -89,6 +91,10 @@ pub fn process(
             Some((column, _row)) => Some(((column + 1) % 3, 0)),
             None => Some((0, 0)),
         }
+    }
+
+    if previous_settings_position != state.selected_settings_position {
+        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
     }
 
     egui::Window::new("Settings")

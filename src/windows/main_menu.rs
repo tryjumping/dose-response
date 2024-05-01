@@ -104,7 +104,7 @@ pub fn process(
 
         // TODO: NOTE: so okay we can just handle the keys and remove gamepad entirely
         // The next step is to make sure gamepad.down actually translates to KeyCode::Down upstream
-        if state.keys.matches_code(KeyCode::Down) {
+        if active && state.keys.matches_code(KeyCode::Down) {
             use MenuItem::*;
             // TODO: this is ignoring any disabled items, we need to handle those!
             let new_selected_action = match state.selected_menu_action {
@@ -140,7 +140,7 @@ pub fn process(
             audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
         }
 
-        if state.keys.matches_code(KeyCode::Up) {
+        if active && state.keys.matches_code(KeyCode::Up) {
             use MenuItem::*;
             // TODO: this is ignoring any disabled items, we need to handle those!
             let new_selected_action = match state.selected_menu_action {
@@ -181,7 +181,9 @@ pub fn process(
         if game_in_progress {
             let resp = ui::button(ui, "[R]esume", active, &state.palette);
             if state.selected_menu_action == Some(MenuItem::Resume) {
-                resp.request_focus();
+                if active {
+                    resp.request_focus();
+                }
             }
             if resp.clicked() {
                 action = Some(MenuItem::Resume);
@@ -191,7 +193,9 @@ pub fn process(
         {
             let resp = ui::button(ui, "[N]ew Game", active, &state.palette);
             if state.selected_menu_action == Some(MenuItem::NewGame) {
-                resp.request_focus();
+                if active {
+                    resp.request_focus();
+                }
             }
             if resp.clicked() {
                 action = Some(MenuItem::NewGame);
@@ -201,7 +205,9 @@ pub fn process(
         {
             let resp = ui::button(ui, "[H]elp", active, &state.palette);
             if state.selected_menu_action == Some(MenuItem::Help) {
-                resp.request_focus();
+                if active {
+                    resp.request_focus();
+                }
             }
             if resp.clicked() {
                 action = Some(MenuItem::Help);
@@ -211,7 +217,11 @@ pub fn process(
         {
             let resp = ui::button(ui, "S[e]ttings", active, &state.palette);
             if state.selected_menu_action == Some(MenuItem::Settings) {
-                resp.request_focus();
+                // TODO: we need to do this `if active` check everywhere!
+                // Otherwise it'll silent the Settings (or any other dialog) options
+                if active {
+                    resp.request_focus();
+                }
             }
             if resp.clicked() {
                 action = Some(MenuItem::Settings);
@@ -221,7 +231,9 @@ pub fn process(
         if game_in_progress {
             let resp = ui::button(ui, "[S]ave and Quit", active, &state.palette);
             if state.selected_menu_action == Some(MenuItem::SaveAndQuit) {
-                resp.request_focus();
+                if active {
+                    resp.request_focus();
+                }
             }
             if resp.clicked() {
                 action = Some(MenuItem::SaveAndQuit);
@@ -231,7 +243,9 @@ pub fn process(
         {
             let resp = ui::button(ui, "[L]oad game", active, &state.palette);
             if state.selected_menu_action == Some(MenuItem::Load) {
-                resp.request_focus();
+                if active {
+                    resp.request_focus();
+                }
             }
             if resp.clicked() {
                 action = Some(MenuItem::Load);
@@ -247,7 +261,9 @@ pub fn process(
         {
             let resp = ui::button(ui, quit_label, active, &state.palette);
             if state.selected_menu_action == Some(MenuItem::Quit) {
-                resp.request_focus();
+                if active {
+                    resp.request_focus();
+                }
             }
             if resp.clicked() {
                 action = Some(MenuItem::Quit);

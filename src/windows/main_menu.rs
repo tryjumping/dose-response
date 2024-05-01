@@ -180,10 +180,8 @@ pub fn process(
 
         if game_in_progress {
             let resp = ui::button(ui, "[R]esume", active, &state.palette);
-            if state.selected_menu_action == Some(MenuItem::Resume) {
-                if active {
-                    resp.request_focus();
-                }
+            if active && state.selected_menu_action == Some(MenuItem::Resume) {
+                resp.request_focus();
             }
             if resp.clicked() {
                 action = Some(MenuItem::Resume);
@@ -192,10 +190,8 @@ pub fn process(
 
         {
             let resp = ui::button(ui, "[N]ew Game", active, &state.palette);
-            if state.selected_menu_action == Some(MenuItem::NewGame) {
-                if active {
-                    resp.request_focus();
-                }
+            if active && state.selected_menu_action == Some(MenuItem::NewGame) {
+                resp.request_focus();
             }
             if resp.clicked() {
                 action = Some(MenuItem::NewGame);
@@ -204,10 +200,8 @@ pub fn process(
 
         {
             let resp = ui::button(ui, "[H]elp", active, &state.palette);
-            if state.selected_menu_action == Some(MenuItem::Help) {
-                if active {
-                    resp.request_focus();
-                }
+            if active && state.selected_menu_action == Some(MenuItem::Help) {
+                resp.request_focus();
             }
             if resp.clicked() {
                 action = Some(MenuItem::Help);
@@ -230,10 +224,8 @@ pub fn process(
 
         if game_in_progress {
             let resp = ui::button(ui, "[S]ave and Quit", active, &state.palette);
-            if state.selected_menu_action == Some(MenuItem::SaveAndQuit) {
-                if active {
-                    resp.request_focus();
-                }
+            if active && state.selected_menu_action == Some(MenuItem::SaveAndQuit) {
+                resp.request_focus();
             }
             if resp.clicked() {
                 action = Some(MenuItem::SaveAndQuit);
@@ -242,10 +234,8 @@ pub fn process(
 
         {
             let resp = ui::button(ui, "[L]oad game", active, &state.palette);
-            if state.selected_menu_action == Some(MenuItem::Load) {
-                if active {
-                    resp.request_focus();
-                }
+            if active && state.selected_menu_action == Some(MenuItem::Load) {
+                resp.request_focus();
             }
             if resp.clicked() {
                 action = Some(MenuItem::Load);
@@ -260,10 +250,8 @@ pub fn process(
 
         {
             let resp = ui::button(ui, quit_label, active, &state.palette);
-            if state.selected_menu_action == Some(MenuItem::Quit) {
-                if active {
-                    resp.request_focus();
-                }
+            if active && state.selected_menu_action == Some(MenuItem::Quit) {
+                resp.request_focus();
             }
             if resp.clicked() {
                 action = Some(MenuItem::Quit);

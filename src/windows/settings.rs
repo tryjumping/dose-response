@@ -50,10 +50,16 @@ pub fn process(
         ((screen_size_px.y as f32 - window_size_px[1]) / 2.0).min(250.0),
     ];
 
+    let max_rows: [i32; 3] = [3, 8, 7];
+
     if state.keys.matches_code(KeyCode::Up) {
         state.selected_settings_position = match state.selected_settings_position {
             Some((column, row)) => {
-                let row = if row <= 0 { 2 } else { row - 1 };
+                let row = if row <= 0 {
+                    max_rows[column as usize] - 1
+                } else {
+                    row - 1
+                };
                 Some((column, row))
             }
 
@@ -63,17 +69,26 @@ pub fn process(
 
     if state.keys.matches_code(KeyCode::Down) {
         state.selected_settings_position = match state.selected_settings_position {
-            Some((column, row)) => Some((column, (row + 1) % 3)),
+            Some((column, row)) => Some((column, (row + 1) % max_rows[column as usize])),
             None => Some((0, 0)),
         };
     }
 
     if state.keys.matches_code(KeyCode::Left) {
-        // TODO: set the current column to the one more left
+        state.selected_settings_position = match state.selected_settings_position {
+            Some((column, _row)) => {
+                let column = if column <= 0 { 2 } else { column - 1 };
+                Some((column, 0))
+            }
+            None => Some((0, 0)),
+        }
     }
 
     if state.keys.matches_code(KeyCode::Right) {
-        // TODO: set the current column to the one more right
+        state.selected_settings_position = match state.selected_settings_position {
+            Some((column, _row)) => Some(((column + 1) % 3, 0)),
+            None => Some((0, 0)),
+        }
     }
 
     egui::Window::new("Settings")
@@ -134,22 +149,25 @@ Unchecked: the entire map is uncovered.",
                 }
 
                 let mut available_key_shortcut = 1;
+                let mut c1_row_index = 0;
 
                 let tile_size_labels = ["Small", "Medium", "Large"];
 
                 c[1].label("Tile Size:");
                 for (index, &tile_size) in engine::AVAILABLE_TILE_SIZES.iter().rev().enumerate() {
                     let selected = tile_size == settings.tile_size;
-                    if c[1]
-                        .radio(
-                            selected,
-                            format!("[{}] {}", available_key_shortcut, tile_size_labels[index]),
-                        )
-                        .clicked()
-                    {
+                    let resp = c[1].radio(
+                        selected,
+                        format!("[{}] {}", available_key_shortcut, tile_size_labels[index]),
+                    );
+                    if state.selected_settings_position == Some((1, c1_row_index)) {
+                        resp.request_focus();
+                    }
+                    if resp.clicked() {
                         action = Some(Action::TileSize(tile_size));
                     };
                     available_key_shortcut += 1;
+                    c1_row_index += 1;
                 }
 
                 let text_size_labels = ["Small", "Medium", "Large"];
@@ -158,22 +176,28 @@ Unchecked: the entire map is uncovered.",
                 c[1].label("Text Size:");
                 for (index, &text_size) in engine::AVAILABLE_TEXT_SIZES.iter().rev().enumerate() {
                     let selected = text_size == settings.text_size;
-                    if c[1]
-                        .radio(
-                            selected,
-                            format!("[{}] {}", available_key_shortcut, text_size_labels[index]),
-                        )
-                        .clicked()
-                    {
+                    let resp = c[1].radio(
+                        selected,
+                        format!("[{}] {}", available_key_shortcut, text_size_labels[index]),
+                    );
+                    if state.selected_settings_position == Some((1, c1_row_index)) {
+                        resp.request_focus();
+                    }
+                    if resp.clicked() {
                         action = Some(Action::TextSize(text_size));
                     };
                     available_key_shortcut += 1;
+                    c1_row_index += 1;
                 }
 
                 c[1].label("");
                 c[1].label("Audio:");
                 let mut play_music = settings.background_volume != 0.0;
-                if c[1].checkbox(&mut play_music, "Play [M]usic").clicked() {
+                let resp = c[1].checkbox(&mut play_music, "Play [M]usic");
+                if state.selected_settings_position == Some((1, 6)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     let volume = match play_music {
                         true => 1.0,
                         false => 0.0,
@@ -182,7 +206,11 @@ Unchecked: the entire map is uncovered.",
                 };
 
                 let mut play_sound = settings.sound_volume != 0.0;
-                if c[1].checkbox(&mut play_sound, "Play So[u]nd").clicked() {
+                let resp = c[1].checkbox(&mut play_sound, "Play So[u]nd");
+                if state.selected_settings_position == Some((1, 7)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     let volume = match play_sound {
                         true => 1.0,
                         false => 0.0,
@@ -191,52 +219,69 @@ Unchecked: the entire map is uncovered.",
                 };
 
                 c[2].label("Display:");
-                if c[2].radio(settings.fullscreen, "[F]ullscreen").clicked() {
+                let resp = c[2].radio(settings.fullscreen, "[F]ullscreen");
+                if state.selected_settings_position == Some((2, 0)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     action = Some(Action::Fullscreen);
                 }
-                if c[2].radio(!settings.fullscreen, "[W]indowed").clicked() {
+
+                let resp = c[2].radio(!settings.fullscreen, "[W]indowed");
+                if state.selected_settings_position == Some((2, 1)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     action = Some(Action::Window)
                 }
 
                 c[2].label("");
                 c[2].label("Tile:");
-                if c[2]
-                    .radio(
-                        settings.visual_style == VisualStyle::Graphical,
-                        "[G]raphical",
-                    )
-                    .clicked()
-                {
+                let resp = c[2].radio(
+                    settings.visual_style == VisualStyle::Graphical,
+                    "[G]raphical",
+                );
+                if state.selected_settings_position == Some((2, 2)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     action = Some(Action::VisualStyle(VisualStyle::Graphical));
                 };
-                if c[2]
-                    .radio(
-                        settings.visual_style == VisualStyle::Textual,
-                        "[T]extual (ASCII)",
-                    )
-                    .clicked()
-                {
+
+                let resp = c[2].radio(
+                    settings.visual_style == VisualStyle::Textual,
+                    "[T]extual (ASCII)",
+                );
+                if state.selected_settings_position == Some((2, 3)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     action = Some(Action::VisualStyle(VisualStyle::Textual))
                 };
 
                 c[2].label("");
                 c[2].label("Colour:");
-                if c[2]
-                    .radio(settings.palette == Palette::Classic, "Cla[s]sic")
-                    .clicked()
-                {
+                let resp = c[2].radio(settings.palette == Palette::Classic, "Cla[s]sic");
+                if state.selected_settings_position == Some((2, 4)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     action = Some(Action::Palette(Palette::Classic));
                 };
-                if c[2]
-                    .radio(settings.palette == Palette::Accessible, "A[c]cessible")
-                    .clicked()
-                {
+
+                let resp = c[2].radio(settings.palette == Palette::Accessible, "A[c]cessible");
+                if state.selected_settings_position == Some((2, 5)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     action = Some(Action::Palette(Palette::Accessible));
                 };
-                if c[2]
-                    .radio(settings.palette == Palette::Greyscale, "G[r]eyscale")
-                    .clicked()
-                {
+
+                let resp = c[2].radio(settings.palette == Palette::Greyscale, "G[r]eyscale");
+                if state.selected_settings_position == Some((2, 6)) {
+                    resp.request_focus();
+                }
+                if resp.clicked() {
                     action = Some(Action::Palette(Palette::Greyscale));
                 };
             });

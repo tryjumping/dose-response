@@ -111,8 +111,6 @@ pub fn egui_style(palette: &Palette) -> egui::Style {
     style.visuals.widgets.active.bg_stroke.width = 3.0;
 
     style.visuals.widgets.hovered.bg_fill = palette.gui_button_highlighted_background.into();
-    style.visuals.widgets.hovered.bg_stroke.width = 0.0;
-    style.visuals.widgets.hovered.fg_stroke.width = 0.0;
 
     style
 }

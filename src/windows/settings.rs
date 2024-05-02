@@ -50,6 +50,19 @@ pub fn process(
         ((screen_size_px.y as f32 - window_size_px[1]) / 2.0).min(250.0),
     ];
 
+    const FAST_DEPRESSION: Option<(i32, i32)> = Some((0, 0));
+    const PERMADEATH: Option<(i32, i32)> = Some((0, 1));
+    const HIDE_UNSEEN_TILES: Option<(i32, i32)> = Some((0, 2));
+    const BACKGROUND_VOLUME: Option<(i32, i32)> = Some((1, 6));
+    const SOUND_VOLUME: Option<(i32, i32)> = Some((1, 7));
+    const FULLSCREEN: Option<(i32, i32)> = Some((2, 0));
+    const WINDOWED: Option<(i32, i32)> = Some((2, 1));
+    const GRAPHICAL: Option<(i32, i32)> = Some((2, 2));
+    const TEXTUAL: Option<(i32, i32)> = Some((2, 3));
+    const CLASSIC: Option<(i32, i32)> = Some((2, 4));
+    const ACCESSIBLE: Option<(i32, i32)> = Some((2, 5));
+    const GREYSCALE: Option<(i32, i32)> = Some((2, 6));
+
     let max_rows: [i32; 3] = [3, 8, 7];
 
     let previous_settings_position = state.selected_settings_position;
@@ -65,14 +78,14 @@ pub fn process(
                 Some((column, row))
             }
 
-            None => Some((0, 0)),
+            None => FAST_DEPRESSION,
         };
     }
 
     if state.keys.matches_code(KeyCode::Down) {
         state.selected_settings_position = match state.selected_settings_position {
             Some((column, row)) => Some((column, (row + 1) % max_rows[column as usize])),
-            None => Some((0, 0)),
+            None => FAST_DEPRESSION,
         };
     }
 
@@ -82,14 +95,14 @@ pub fn process(
                 let column = if column <= 0 { 2 } else { column - 1 };
                 Some((column, 0))
             }
-            None => Some((0, 0)),
+            None => FAST_DEPRESSION,
         }
     }
 
     if state.keys.matches_code(KeyCode::Right) {
         state.selected_settings_position = match state.selected_settings_position {
             Some((column, _row)) => Some(((column + 1) % 3, 0)),
-            None => Some((0, 0)),
+            None => FAST_DEPRESSION,
         }
     }
 
@@ -118,7 +131,7 @@ pub fn process(
                         "Checked: Depression moves two tiles per turn.
 Unchecked: Depression moves one tile per turn.",
                     );
-                if state.selected_settings_position == Some((0, 0)) {
+                if state.selected_settings_position == FAST_DEPRESSION {
                     resp.request_focus();
                     if state.keys.matches_code(KeyCode::Enter) {
                         settings.fast_depression = !settings.fast_depression;
@@ -141,7 +154,7 @@ Unchecked: Depression moves one tile per turn.",
                     "Checked: the game ends when the player loses (via overdose, depression, etc.).
 Unchecked: all player effects are removed on losing. The game continues.",
                     );
-                if state.selected_settings_position == Some((0, 1)) {
+                if state.selected_settings_position == PERMADEATH {
                     resp.request_focus();
                     if state.keys.matches_code(KeyCode::Enter) {
                         settings.permadeath = !settings.permadeath;
@@ -161,7 +174,7 @@ Unchecked: all player effects are removed on losing. The game continues.",
                         "Checked: only previously seen tiles are visible.
 Unchecked: the entire map is uncovered.",
                     );
-                if state.selected_settings_position == Some((0, 2)) {
+                if state.selected_settings_position == HIDE_UNSEEN_TILES {
                     resp.request_focus();
                     if state.keys.matches_code(KeyCode::Enter) {
                         settings.hide_unseen_tiles = !settings.hide_unseen_tiles;
@@ -235,7 +248,7 @@ Unchecked: the entire map is uncovered.",
                 c[1].label("Audio:");
                 let mut play_music = settings.background_volume != 0.0;
                 let resp = c[1].checkbox(&mut play_music, "Play [M]usic");
-                if state.selected_settings_position == Some((1, 6)) {
+                if state.selected_settings_position == BACKGROUND_VOLUME {
                     resp.request_focus();
                     if state.keys.matches_code(KeyCode::Enter) {
                         let volume = match play_music {
@@ -258,7 +271,7 @@ Unchecked: the entire map is uncovered.",
 
                 let mut play_sound = settings.sound_volume != 0.0;
                 let resp = c[1].checkbox(&mut play_sound, "Play So[u]nd");
-                if state.selected_settings_position == Some((1, 7)) {
+                if state.selected_settings_position == SOUND_VOLUME {
                     resp.request_focus();
                     if state.keys.matches_code(KeyCode::Enter) {
                         let volume = match play_sound {
@@ -281,7 +294,7 @@ Unchecked: the entire map is uncovered.",
 
                 c[2].label("Display:");
                 let resp = c[2].radio(settings.fullscreen, "[F]ullscreen");
-                if state.selected_settings_position == Some((2, 0)) {
+                if state.selected_settings_position == FULLSCREEN {
                     resp.request_focus();
                 } else {
                     resp.surrender_focus();
@@ -292,7 +305,7 @@ Unchecked: the entire map is uncovered.",
                 }
 
                 let resp = c[2].radio(!settings.fullscreen, "[W]indowed");
-                if state.selected_settings_position == Some((2, 1)) {
+                if state.selected_settings_position == WINDOWED {
                     resp.request_focus();
                 } else {
                     resp.surrender_focus();
@@ -308,7 +321,7 @@ Unchecked: the entire map is uncovered.",
                     settings.visual_style == VisualStyle::Graphical,
                     "[G]raphical",
                 );
-                if state.selected_settings_position == Some((2, 2)) {
+                if state.selected_settings_position == GRAPHICAL {
                     resp.request_focus();
                 } else {
                     resp.surrender_focus();
@@ -322,7 +335,7 @@ Unchecked: the entire map is uncovered.",
                     settings.visual_style == VisualStyle::Textual,
                     "[T]extual (ASCII)",
                 );
-                if state.selected_settings_position == Some((2, 3)) {
+                if state.selected_settings_position == TEXTUAL {
                     resp.request_focus();
                 } else {
                     resp.surrender_focus();
@@ -335,7 +348,7 @@ Unchecked: the entire map is uncovered.",
                 c[2].label("");
                 c[2].label("Colour:");
                 let resp = c[2].radio(settings.palette == Palette::Classic, "Cla[s]sic");
-                if state.selected_settings_position == Some((2, 4)) {
+                if state.selected_settings_position == CLASSIC {
                     resp.request_focus();
                 } else {
                     resp.surrender_focus();
@@ -346,7 +359,7 @@ Unchecked: the entire map is uncovered.",
                 };
 
                 let resp = c[2].radio(settings.palette == Palette::Accessible, "A[c]cessible");
-                if state.selected_settings_position == Some((2, 5)) {
+                if state.selected_settings_position == ACCESSIBLE {
                     resp.request_focus();
                 } else {
                     resp.surrender_focus();
@@ -357,7 +370,7 @@ Unchecked: the entire map is uncovered.",
                 };
 
                 let resp = c[2].radio(settings.palette == Palette::Greyscale, "G[r]eyscale");
-                if state.selected_settings_position == Some((2, 6)) {
+                if state.selected_settings_position == GREYSCALE {
                     resp.request_focus();
                 } else {
                     resp.surrender_focus();

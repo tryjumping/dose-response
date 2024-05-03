@@ -29,11 +29,11 @@ def print_env(name):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        die("You must pass the AWS S3 bucket name as the first argument.")
-    bucket_name = sys.argv[1]
-
     env = os.environ
+
+    if 'BUCKET_NAME' not in env:
+        die("You must pass the AWS S3 bucket name via the BUCKET_NAME environment variable.")
+    bucket_name = env['BUCKET_NAME']
 
     target_triple = env['TARGET_TRIPLE']
     commit_hash = env['GITHUB_SHA']

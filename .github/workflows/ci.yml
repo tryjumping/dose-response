@@ -90,5 +90,7 @@ jobs:
       if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Package and upload the release
       run: |
-        python3 bin/release.py ${{ secrets.AWS_S3_BUCKET_NAME }}
+        python3 bin/release.py
+      env:
+        BUCKET_NAME: "${{ secrets.AWS_S3_BUCKET_NAME }}"
       if: ${{ env.HAS_SECRETS == 'true' }}

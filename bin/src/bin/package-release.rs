@@ -227,11 +227,8 @@ fn main() -> anyhow::Result<()> {
             let mut zip = ZipWriter::new(zip_file);
 
             zip.add_directory(archive_directory_name, SimpleFileOptions::default())?;
-            zip.add_directory(
-                Path::new(archive_directory_name)
-                    .join("icons")
-                    .to_str()
-                    .unwrap(),
+            zip.add_directory_from_path(
+                Path::new(archive_directory_name).join("icons"),
                 SimpleFileOptions::default(),
             )?;
 
@@ -263,7 +260,7 @@ fn main() -> anyhow::Result<()> {
                     };
                     let options = options.unix_permissions(permissions);
 
-                    zip.start_file(destination_path.to_str().unwrap(), options)?;
+                    zip.start_file_from_path(destination_path, options)?;
                     let mut contents = vec![];
                     let mut f = File::open(entry.path())?;
                     f.read_to_end(&mut contents)?;

@@ -12,7 +12,7 @@ default-run = "dose-response"
 exclude = ["bin/*", "scripts/*", "replays/*", "screenshots/*", "ci/*",
            "web-src/*", "*.js", "*.css", "*.html",
            "notes.org", "SAVEDGAME.sav", "out-dir-path", "dose-response.log",
-           "videos/*", "*.mp4 "]
+           "videos/*", "*.mp4", "third-party-licenses.html"]
 
 
 

@@ -24,7 +24,14 @@ jobs:
         - os: windows-latest
           extra_features: windows-extra-features
           build_time_dependencies: ""
+        # NOTE: `macos-latest` uses the Arm64 architecture:
+        # https://github.com/actions/runner-images
         - os: macos-latest
+          extra_features: macos-extra-features
+          build_time_dependencies: ""
+        # NOTE: `macos-13` uses the x86/64 architecture:
+        # https://github.com/actions/runner-images
+        - os: macos-13
           extra_features: macos-extra-features
           build_time_dependencies: ""
     runs-on: ${{ matrix.platform.os }}

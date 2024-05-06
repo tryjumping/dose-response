@@ -1,17 +1,22 @@
 # NOTE: we're using a quick check as the default target.
-# Previously, we were using `build-all` as the default.
-# But it's too easy to trigger and takes a very long time to finish.
+#
+# Unlike the `package-release`, it takes a short time to finish so you
+# don't waste a lot of time by running it accidentally.
 check:
 	cargo check
 .PHONY: check
 
-build-all:
-	cargo build --release --no-default-features --features prod
+package-release:
 	cargo check
-	cargo build
-	cargo build --release
+	cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
 	cargo clippy
-.PHONY: build-all
+	cargo build
+	cargo test --all-targets
+	cargo install cargo-about --version "0.6.1"
+	cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
+	cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
+	cargo run --manifest-path bin/Cargo.toml --bin package-release
+.PHONY: package-release
 
 replay:
 	cargo run -- `find replays -type f -name 'replay-*' | sort | tail -n 1`
@@ -29,9 +34,9 @@ replay-release-fast:
 	cargo run --release -- --replay-full-speed `find replays -type f -name 'replay-*' | sort | tail -n 1`
 .PHONY: replay-release-fast
 
-release:
+cargo-release:
 	bin/prep-release.sh
-.PHONY: release
+.PHONY: cargo-release
 
 # NOTE: the `convert` binary comes with ImageMagick, so install that!
 windows-icon: assets/icon_16x16.png assets/icon_32x32.png assets/icon_48x48.png assets/icon_64x64.png assets/icon_256x256.png

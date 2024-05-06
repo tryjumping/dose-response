@@ -10,9 +10,6 @@ on:
   schedule:
     - cron: '0 17 * * *'
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   build:
     strategy:
@@ -20,75 +17,42 @@ jobs:
       matrix:
         platform:
         - os: ubuntu-latest
-          target_triple: x86_64-unknown-linux-gnu
-          archive_ext: tar.gz
           extra_features: linux-extra-features
           build_time_dependencies: |
             sudo apt-get update
             sudo apt-get install libasound2-dev libudev-dev
         - os: windows-latest
-          target_triple: x86_64-pc-windows-msvc
-          archive_ext: zip
           extra_features: windows-extra-features
           build_time_dependencies: ""
+        # NOTE: `macos-latest` uses the Arm64 architecture:
+        # https://github.com/actions/runner-images
         - os: macos-latest
-          target_triple: x86_64-apple-darwin
-          archive_ext: zip
+          extra_features: macos-extra-features
+          build_time_dependencies: ""
+        # NOTE: `macos-13` uses the x86/64 architecture:
+        # https://github.com/actions/runner-images
+        - os: macos-13
           extra_features: macos-extra-features
           build_time_dependencies: ""
     runs-on: ${{ matrix.platform.os }}
 
     env:
-      TARGET_TRIPLE: ${{ matrix.platform.target_triple }}
-      ARCHIVE_EXT: ${{ matrix.platform.archive_ext }}
-      EXTRA_FEATURES: linux-extra-features
-      # Workaround for secrets not working in conditionals:
-      # https://github.com/actions/runner/issues/520
-      HAS_SECRETS: ${{ secrets.AWS_REGION_NAME != '' }}
+      BUCKET_NAME: "${{ secrets.AWS_S3_BUCKET_NAME }}"
+      CARGO_TERM_COLOR: always
+      EXTRA_FEATURES: "${{ matrix.platform.extra_features }}"
+      RUST_BACKTRACE: "1"
+      RUSTFLAGS: -D warnings
     steps:
-    - uses: actions/checkout@v2
+    - name: Check out the Dose Response repo
+      uses: actions/checkout@v2
     - name: Install build-time dependencies
       run: |
-        # NOTE: install a known-to-work version to prevent breakages when the tool gets updated:
-        cargo install cargo-about --version "0.4.3"
         ${{ matrix.platform.build_time_dependencies }}
-    # A regular cargo check: fail fast if something is wrong
-    - name: Check default code syntax
-      run: cargo check
-    # Cargo check for the prod features to catch compilation issues quickly
-    - name: Check production code syntax
-      run: >
-        cargo check --no-default-features
-        --features "prod ${{ matrix.platform.extra_features }}"
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
-    - name: Check for warnings
-      run: |
-        cargo check
-        cargo clippy
-      env:
-        RUSTFLAGS: -D warnings
-    - name: Generate the third-party-licenses.html file
-      run: >
-        cargo about generate
-        --features "prod ${{ matrix.platform.extra_features }}" --no-default-features
-        about.hbs
-        --output-file third-party-licenses.html
-    - name: Build the release
-      run: >
-        cargo build --verbose --release --no-default-features
-        --features "prod ${{ matrix.platform.extra_features }}"
-      if: ${{ env.HAS_SECRETS == 'true' }}
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION_NAME }}
-      if: ${{ env.HAS_SECRETS == 'true' }}
-    - name: Package and upload the release
-      run: |
-        python3 bin/release.py ${{ secrets.AWS_S3_BUCKET_NAME }}
-      if: ${{ env.HAS_SECRETS == 'true' }}
+    - name: Check, build and upload the release
+      run: "make package-release"

@@ -246,19 +246,16 @@ fn main() -> anyhow::Result<()> {
                         destination_path.display()
                     );
 
-                    // Get the file's permission since we need to set that explicitly for zip:
+                    // Get the file's permission since we need to set
+                    // that explicitly for zip.
+                    //
+                    // Without this, the executable bit won't be set properly.
                     #[cfg(unix)]
-                    let permissions = {
+                    let options = {
                         use std::os::unix::fs::PermissionsExt;
-                        entry.path().metadata()?.permissions().mode()
+                        let permissions = entry.path().metadata()?.permissions().mode();
+                        options.unix_permissions(permissions)
                     };
-                    #[cfg(not(unix))]
-                    let permissions = {
-                        // Windows only cares about readonly, not
-                        // executable so let's just default to this:
-                        0x644
-                    };
-                    let options = options.unix_permissions(permissions);
 
                     zip.start_file_from_path(destination_path, options)?;
                     let mut contents = vec![];

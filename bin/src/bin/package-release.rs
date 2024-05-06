@@ -288,9 +288,11 @@ fn main() -> anyhow::Result<()> {
             let bucket = Bucket::new(endpoint, path_style, bucket_name, region_name)?;
             let creds = Credentials::new(aws_access_key_id, aws_secret_access_key);
 
-            let object_name = "/{release_destination}/{release_version}/{archive_file_name}";
+            let object_name =
+                format!("/{release_destination}/{release_version}/{archive_file_name}");
+            println!("Uploading to: {object_name}");
 
-            let action = actions::PutObject::new(&bucket, Some(&creds), object_name);
+            let action = actions::PutObject::new(&bucket, Some(&creds), &object_name);
             let ten_minutes = std::time::Duration::from_secs(600);
             let signed_url = action.sign(ten_minutes);
 

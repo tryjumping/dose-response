@@ -5,6 +5,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use anyhow::{anyhow, bail, Context};
+
 use flate2::{write::GzEncoder, Compression};
 
 use walkdir::WalkDir;
@@ -238,13 +240,14 @@ fn main() -> anyhow::Result<()> {
                 let destination_path = Path::new(archive_directory_name).join(p);
                 let path_as_string = destination_path.to_str().map(str::to_owned).unwrap();
                 println!(
-                    "{} -> {}",
+                    "{} -> {} ({path_as_string})",
                     entry.path().display(),
                     destination_path.display(),
                 );
 
                 if entry.file_type().is_dir() {
-                    println!("Creating zip Directory: {}", destination_path.display());
+                    //println!("Creating zip Directory: {destination_path:?} ({path_as_string})", destination_path.display());
+                    println!("Creating zip Directory: {destination_path:?} ({path_as_string})");
                     zip.add_directory(path_as_string, SimpleFileOptions::default())?;
                 } else if entry.file_type().is_file() {
                     // Get the file's permission since we need to set

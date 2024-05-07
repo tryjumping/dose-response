@@ -5,8 +5,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{anyhow, bail, Context};
-
 use flate2::{write::GzEncoder, Compression};
 
 use walkdir::WalkDir;
@@ -186,7 +184,7 @@ fn main() -> anyhow::Result<()> {
 
     publish_text_file(Path::new("README.md"), Some(out_dir.join("README.txt")))?;
     publish_text_file(Path::new("COPYING.txt"), Some(out_dir.join("LICENSE.txt")))?;
-    // publish_text_file(Path::new("third-party-licenses.html"), None)?;
+    publish_text_file(Path::new("third-party-licenses.html"), None)?;
 
     publish_bin_file(Path::new(debug_script), None)?;
 
@@ -195,7 +193,7 @@ fn main() -> anyhow::Result<()> {
     );
     publish_text(&version_contents, Path::new("VERSION.txt"))?;
 
-    // publish_bin_file(&target_release_dir.join(&exe_name), None)?;
+    publish_bin_file(&target_release_dir.join(&exe_name), None)?;
 
     // NOTE: Add game icons
     for entry in WalkDir::new("assets") {
@@ -210,8 +208,6 @@ fn main() -> anyhow::Result<()> {
     let archive_path;
     let archive_directory_name = &format!("Dose Response {release_version}");
 
-    let os = OS::Windows;
-
     // NOTE: Build the archive
     match os {
         OS::Linux => {
@@ -225,8 +221,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         OS::Windows | OS::MacOs => {
-            // archive_file_name = format!("{full_version}.zip");
-            archive_file_name = format!("package.zip");
+            archive_file_name = format!("{full_version}.zip");
             archive_path = format!("target/{archive_file_name}");
             let zip_file = File::create(&archive_path)?;
             let mut zip = ZipWriter::new(zip_file);
@@ -254,15 +249,10 @@ fn main() -> anyhow::Result<()> {
                     .map(std::borrow::Cow::into_owned)
                     .collect::<Vec<String>>()
                     .join("/");
-                println!(
-                    "{} -> {} ({path_as_string})",
-                    entry.path().display(),
-                    destination_path.display(),
-                );
+                println!("{} -> {path_as_string}", entry.path().display(),);
 
                 if entry.file_type().is_dir() {
-                    //println!("Creating zip Directory: {destination_path:?} ({path_as_string})", destination_path.display());
-                    println!("Creating zip Directory: {destination_path:?} ({path_as_string})");
+                    println!("Creating zip Directory: ({path_as_string})");
                     zip.add_directory(path_as_string, SimpleFileOptions::default())?;
                 } else if entry.file_type().is_file() {
                     // Get the file's permission since we need to set

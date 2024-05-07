@@ -238,9 +238,22 @@ fn main() -> anyhow::Result<()> {
                 let entry = entry?;
                 let p = entry.path().strip_prefix(OUT_DIR)?;
                 let destination_path = Path::new(archive_directory_name).join(p);
-                let path_as_string = destination_path.to_str().map(str::to_owned).unwrap();
-                // TODO: maybe swap slashes and drop the training one?
-                let path_as_string = path_as_string.replace("\\", "/");
+
+                // NOTE: we need to do the conversion ourselves to
+                // make sure we always produce forward slashes as the
+                // separators.
+                //
+                // It seems the zip crate is not handling
+                // backslashes well. It's also not handling the
+                // `path`-specific functions well (it always appends a
+                // leading slash there which causes warnings in the
+                // zip archive).
+                let path_as_string = destination_path
+                    .iter()
+                    .map(std::ffi::OsStr::to_string_lossy)
+                    .map(std::borrow::Cow::into_owned)
+                    .collect::<Vec<String>>()
+                    .join("/");
                 println!(
                     "{} -> {} ({path_as_string})",
                     entry.path().display(),

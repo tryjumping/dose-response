@@ -229,31 +229,22 @@ fn main() -> anyhow::Result<()> {
             let zip_file = File::create(&archive_path)?;
             let mut zip = ZipWriter::new(zip_file);
 
-            zip.add_directory(archive_directory_name, SimpleFileOptions::default())?;
-            zip.add_directory(
-                format!("{archive_directory_name}/icons"),
-                SimpleFileOptions::default(),
-            )?;
-            // zip.add_directory_from_path(
-            //     Path::new(archive_directory_name).join("icons"),
-            //     SimpleFileOptions::default(),
-            // )?;
-
             let options =
                 SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
 
             for entry in WalkDir::new(OUT_DIR) {
                 let entry = entry?;
-                if entry.file_type().is_file() {
-                    let p = entry.path().strip_prefix(OUT_DIR)?;
-                    // let p = entry.path();
-                    println!("p: `{}`, is absolute: {}", p.display(), p.is_absolute());
-                    let destination_path = Path::new(archive_directory_name).join(p);
+                let p = entry.path().strip_prefix(OUT_DIR)?;
+                let destination_path = Path::new(archive_directory_name).join(p);
+                let path_as_string = destination_path.to_str().map(str::to_owned).unwrap();
+                if entry.file_type().is_directory() {
+                    println!("Creating zip Directory: {}", destination_path.display());
+                    zip.add_directory(archive_directory_name, SimpleFileOptions::default())?;
+                } else if entry.file_type().is_file() {
                     println!(
-                        "{} -> {}, absolute: {}",
+                        "{} -> {}",
                         entry.path().display(),
                         destination_path.display(),
-                        destination_path.is_absolute(),
                     );
 
                     // Get the file's permission since we need to set
@@ -270,10 +261,6 @@ fn main() -> anyhow::Result<()> {
 
                     let options = options.unix_permissions(permissions);
 
-                    //zip.start_file_from_path(destination_path.strip_prefix(OUT_DIR)?, options)?;
-                    // let filen = file_name_from_path(&destination_path)?;
-                    // zip.start_file(format!("{archive_directory_name}/{filen}"), options)?;
-                    let path_as_string = destination_path.to_str().map(str::to_owned).unwrap();
                     zip.start_file(path_as_string, options)?;
                     let mut contents = vec![];
                     let mut f = File::open(entry.path())?;

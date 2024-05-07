@@ -184,7 +184,7 @@ fn main() -> anyhow::Result<()> {
 
     publish_text_file(Path::new("README.md"), Some(out_dir.join("README.txt")))?;
     publish_text_file(Path::new("COPYING.txt"), Some(out_dir.join("LICENSE.txt")))?;
-    publish_text_file(Path::new("third-party-licenses.html"), None)?;
+    // publish_text_file(Path::new("third-party-licenses.html"), None)?;
 
     publish_bin_file(Path::new(debug_script), None)?;
 
@@ -193,7 +193,7 @@ fn main() -> anyhow::Result<()> {
     );
     publish_text(&version_contents, Path::new("VERSION.txt"))?;
 
-    publish_bin_file(&target_release_dir.join(&exe_name), None)?;
+    // publish_bin_file(&target_release_dir.join(&exe_name), None)?;
 
     // NOTE: Add game icons
     for entry in WalkDir::new("assets") {
@@ -208,6 +208,8 @@ fn main() -> anyhow::Result<()> {
     let archive_path;
     let archive_directory_name = &format!("Dose Response {release_version}");
 
+    let os = OS::Windows;
+
     // NOTE: Build the archive
     match os {
         OS::Linux => {
@@ -221,16 +223,21 @@ fn main() -> anyhow::Result<()> {
         }
 
         OS::Windows | OS::MacOs => {
-            archive_file_name = format!("{full_version}.zip");
+            // archive_file_name = format!("{full_version}.zip");
+            archive_file_name = format!("package.zip");
             archive_path = format!("target/{archive_file_name}");
             let zip_file = File::create(&archive_path)?;
             let mut zip = ZipWriter::new(zip_file);
 
             zip.add_directory(archive_directory_name, SimpleFileOptions::default())?;
-            zip.add_directory_from_path(
-                Path::new(archive_directory_name).join("icons"),
+            zip.add_directory(
+                format!("{archive_directory_name}/icons"),
                 SimpleFileOptions::default(),
             )?;
+            // zip.add_directory_from_path(
+            //     Path::new(archive_directory_name).join("icons"),
+            //     SimpleFileOptions::default(),
+            // )?;
 
             let options =
                 SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
@@ -239,11 +246,14 @@ fn main() -> anyhow::Result<()> {
                 let entry = entry?;
                 if entry.file_type().is_file() {
                     let p = entry.path().strip_prefix(OUT_DIR)?;
+                    // let p = entry.path();
+                    println!("p: `{}`, is absolute: {}", p.display(), p.is_absolute());
                     let destination_path = Path::new(archive_directory_name).join(p);
                     println!(
-                        "{} -> {}",
+                        "{} -> {}, absolute: {}",
                         entry.path().display(),
-                        destination_path.display()
+                        destination_path.display(),
+                        destination_path.is_absolute(),
                     );
 
                     // Get the file's permission since we need to set
@@ -251,13 +261,20 @@ fn main() -> anyhow::Result<()> {
                     //
                     // Without this, the executable bit won't be set properly.
                     #[cfg(unix)]
-                    let options = {
+                    let permissions = {
                         use std::os::unix::fs::PermissionsExt;
-                        let permissions = entry.path().metadata()?.permissions().mode();
-                        options.unix_permissions(permissions)
+                        entry.path().metadata()?.permissions().mode()
                     };
+                    #[cfg(not(unix))]
+                    let permissions = 0o644;
 
-                    zip.start_file_from_path(destination_path, options)?;
+                    let options = options.unix_permissions(permissions);
+
+                    //zip.start_file_from_path(destination_path.strip_prefix(OUT_DIR)?, options)?;
+                    // let filen = file_name_from_path(&destination_path)?;
+                    // zip.start_file(format!("{archive_directory_name}/{filen}"), options)?;
+                    let path_as_string = destination_path.to_str().map(str::to_owned).unwrap();
+                    zip.start_file(path_as_string, options)?;
                     let mut contents = vec![];
                     let mut f = File::open(entry.path())?;
                     f.read_to_end(&mut contents)?;

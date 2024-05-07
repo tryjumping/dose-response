@@ -22,6 +22,7 @@ package-release:
 	unzip -t target/package.zip
 	unzip target/package.zip
 	ls -alh
+	ls -alh "Dose Response unexpected"
 	ls -alh *
 .PHONY: package-release
 

@@ -239,7 +239,8 @@ fn main() -> anyhow::Result<()> {
                 let p = entry.path().strip_prefix(OUT_DIR)?;
                 let destination_path = Path::new(archive_directory_name).join(p);
                 let path_as_string = destination_path.to_str().map(str::to_owned).unwrap();
-                let path_as_string = path_as_string.replace('\\', '/');
+                // TODO: maybe swap slashes and drop the training one?
+                let path_as_string = path_as_string.replace("\\", "/");
                 println!(
                     "{} -> {} ({path_as_string})",
                     entry.path().display(),

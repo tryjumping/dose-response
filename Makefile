@@ -20,8 +20,9 @@ package-release:
 	unzip -l target/package.zip
 	unzip -v target/package.zip
 	unzip -t target/package.zip
-	unzip -d target/out target/package.zip
-	ls -alh target/out/*
+	unzip target/package.zip
+	ls -alh
+	ls -alh *
 .PHONY: package-release
 
 replay:

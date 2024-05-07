@@ -226,38 +226,50 @@ fn main() -> anyhow::Result<()> {
             let zip_file = File::create(&archive_path)?;
             let mut zip = ZipWriter::new(zip_file);
 
-            zip.add_directory(archive_directory_name, SimpleFileOptions::default())?;
-            zip.add_directory_from_path(
-                Path::new(archive_directory_name).join("icons"),
-                SimpleFileOptions::default(),
-            )?;
-
             let options =
                 SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
 
             for entry in WalkDir::new(OUT_DIR) {
                 let entry = entry?;
-                if entry.file_type().is_file() {
-                    let p = entry.path().strip_prefix(OUT_DIR)?;
-                    let destination_path = Path::new(archive_directory_name).join(p);
-                    println!(
-                        "{} -> {}",
-                        entry.path().display(),
-                        destination_path.display()
-                    );
+                let p = entry.path().strip_prefix(OUT_DIR)?;
+                let destination_path = Path::new(archive_directory_name).join(p);
 
+                // NOTE: we need to do the conversion ourselves to
+                // make sure we always produce forward slashes as the
+                // separators.
+                //
+                // It seems the zip crate is not handling
+                // backslashes well. It's also not handling the
+                // `path`-specific functions well (it always appends a
+                // leading slash there which causes warnings in the
+                // zip archive).
+                let path_as_string = destination_path
+                    .iter()
+                    .map(std::ffi::OsStr::to_string_lossy)
+                    .map(std::borrow::Cow::into_owned)
+                    .collect::<Vec<String>>()
+                    .join("/");
+                println!("{} -> {path_as_string}", entry.path().display(),);
+
+                if entry.file_type().is_dir() {
+                    println!("Creating zip Directory: ({path_as_string})");
+                    zip.add_directory(path_as_string, SimpleFileOptions::default())?;
+                } else if entry.file_type().is_file() {
                     // Get the file's permission since we need to set
                     // that explicitly for zip.
                     //
                     // Without this, the executable bit won't be set properly.
                     #[cfg(unix)]
-                    let options = {
+                    let permissions = {
                         use std::os::unix::fs::PermissionsExt;
-                        let permissions = entry.path().metadata()?.permissions().mode();
-                        options.unix_permissions(permissions)
+                        entry.path().metadata()?.permissions().mode()
                     };
+                    #[cfg(not(unix))]
+                    let permissions = 0o644;
 
-                    zip.start_file_from_path(destination_path, options)?;
+                    let options = options.unix_permissions(permissions);
+
+                    zip.start_file(path_as_string, options)?;
                     let mut contents = vec![];
                     let mut f = File::open(entry.path())?;
                     f.read_to_end(&mut contents)?;

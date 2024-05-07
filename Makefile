@@ -15,6 +15,7 @@ package-release:
 	cargo install cargo-about --version "0.6.1"
 	cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
 	cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
+	rm -rf target/out target/package.zip
 	cargo run --manifest-path bin/Cargo.toml --bin package-release
 .PHONY: package-release
 

@@ -7,23 +7,16 @@ check:
 .PHONY: check
 
 package-release:
-	# cargo check
-	# cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
-	# cargo clippy
-	# cargo build
-	# cargo test --all-targets
-	# cargo install cargo-about --version "0.6.1"
-	# cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
-	# cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
+	cargo check
+	cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
+	cargo clippy
+	cargo build
+	cargo test --all-targets
+	cargo install cargo-about --version "0.6.1"
+	cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
+	cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
 	rm -rf target/out target/package.zip
 	cargo run --manifest-path bin/Cargo.toml --bin package-release
-	unzip -l target/package.zip
-	unzip -v target/package.zip
-	unzip -t target/package.zip
-	unzip target/package.zip
-	ls -alh
-	ls -alh "Dose Response unexpected"
-	ls -alh *
 .PHONY: package-release
 
 replay:

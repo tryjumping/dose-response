@@ -111,6 +111,7 @@ future_incompatible = "deny"
 missing_copy_implementations = "warn"
 
 [lints.clippy]
+lint_groups_priority = "allow"
 explicit_iter_loop = "allow"
 identity_op = "allow"
 wildcard_imports = "allow"

@@ -3,6 +3,7 @@ use crate::{
     engine::{Display, TextMetrics},
     game,
     game::RunningState,
+    gamepad::Gamepad,
     keys::KeyCode,
     settings::Settings,
     state::{GameSession, State},
@@ -32,6 +33,7 @@ pub enum MenuItem {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    gamepad: &Gamepad,
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &mut Display,
@@ -102,9 +104,10 @@ pub fn process(
             };
         }
 
-        // TODO: NOTE: so okay we can just handle the keys and remove gamepad entirely
-        // The next step is to make sure gamepad.down actually translates to KeyCode::Down upstream
-        if active && state.keys.matches_code(KeyCode::Down) {
+        let stick_flicked_up = active && gamepad.left_stick_flicked && gamepad.left_stick_y > 0.0;
+        let stick_flicked_down = active && gamepad.left_stick_flicked && gamepad.left_stick_y < 0.0;
+
+        if active && (state.keys.matches_code(KeyCode::Down) || stick_flicked_down) {
             use MenuItem::*;
             // TODO: this is ignoring any disabled items, we need to handle those!
             let new_selected_action = match state.selected_menu_action {
@@ -140,7 +143,7 @@ pub fn process(
             audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
         }
 
-        if active && state.keys.matches_code(KeyCode::Up) {
+        if active && (state.keys.matches_code(KeyCode::Up) || stick_flicked_up) {
             use MenuItem::*;
             // TODO: this is ignoring any disabled items, we need to handle those!
             let new_selected_action = match state.selected_menu_action {

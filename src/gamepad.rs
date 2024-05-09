@@ -48,8 +48,7 @@ pub struct Gamepad {
     /// rather than something always producing values.
     pub left_stick_flicked: bool,
 
-    // TODO: make this private actaully
-    pub ready_for_a_flick: bool,
+    ready_for_a_flick: bool,
 }
 
 impl Gamepad {

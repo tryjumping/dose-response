@@ -37,6 +37,19 @@ pub struct Gamepad {
 
     /// Left stick Y axis value in range <-1.0, 1.0>
     pub left_stick_y: f32,
+
+    /// True if the left stick was "flicked" (or "ticked" or whatever)
+    /// i.e. moved in a direction in this frame.
+    ///
+    /// Once that happens, it won't be considered "flicked" again
+    /// until it's returned to the neutral position.
+    ///
+    /// This makes the stick's behaviour treatable like a button press
+    /// rather than something always producing values.
+    pub left_stick_flicked: bool,
+
+    // TODO: make this private actaully
+    pub ready_for_a_flick: bool,
 }
 
 impl Gamepad {
@@ -44,6 +57,8 @@ impl Gamepad {
         *self = Gamepad {
             left_stick_x: self.left_stick_x,
             left_stick_y: self.left_stick_y,
+            left_stick_flicked: self.left_stick_flicked,
+            ready_for_a_flick: self.ready_for_a_flick,
             ..Gamepad::default()
         }
     }
@@ -103,5 +118,16 @@ pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad) {
     }
     if gamepad.left_stick_y > -threshold && gamepad.left_stick_y < threshold {
         gamepad.left_stick_y = 0.0;
+    }
+
+    if !gamepad.ready_for_a_flick && gamepad.left_stick_x == 0.0 && gamepad.left_stick_y == 0.0 {
+        gamepad.ready_for_a_flick = true;
+    }
+
+    if gamepad.ready_for_a_flick && (gamepad.left_stick_x != 0.0 || gamepad.left_stick_y != 0.0) {
+        gamepad.ready_for_a_flick = false;
+        gamepad.left_stick_flicked = true;
+    } else {
+        gamepad.left_stick_flicked = false;
     }
 }

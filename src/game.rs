@@ -282,8 +282,9 @@ pub fn update(
             match window {
                 Window::MainMenu => {
                     let active = top_level;
-                    game_update_result =
-                        main_menu::process(state, ui, settings, metrics, display, audio, active);
+                    game_update_result = main_menu::process(
+                        state, ui, gamepad, settings, metrics, display, audio, active,
+                    );
 
                     // Clear any fade set by the gameplay rendering
                     display.fade = color::INVISIBLE;
@@ -293,6 +294,7 @@ pub fn update(
                     let result = process_game(
                         state,
                         ui,
+                        gamepad,
                         settings,
                         metrics,
                         display,
@@ -308,15 +310,22 @@ pub fn update(
                 }
                 Window::Settings => {
                     if top_level {
-                        game_update_result =
-                            settings::process(state, ui, settings, display, audio, settings_store);
+                        game_update_result = settings::process(
+                            state,
+                            ui,
+                            gamepad,
+                            settings,
+                            display,
+                            audio,
+                            settings_store,
+                        );
                     }
                     // Clear any fade set by the gameplay rendering
                     display.fade = color::INVISIBLE;
                 }
                 Window::Help => {
                     if top_level {
-                        game_update_result = help::process(state, ui, display, audio);
+                        game_update_result = help::process(state, ui, gamepad, display, audio);
                     }
                     // Clear any fade set by the gameplay rendering
                     display.fade = color::INVISIBLE;
@@ -328,7 +337,7 @@ pub fn update(
                             crate::windows::call_to_action::process(state, ui, display)
                         } else {
                             endgame::process(
-                                state, ui, settings, metrics, display, audio, top_level,
+                                state, ui, gamepad, settings, metrics, display, audio, top_level,
                             )
                         };
                     }
@@ -467,6 +476,7 @@ fn enqueue_background_music(audio: &mut Audio, audio_rng: &mut Random) {
 fn process_game(
     state: &mut State,
     ui: &mut Ui,
+    gamepad: &Gamepad,
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &Display,
@@ -480,7 +490,7 @@ fn process_game(
     use self::sidebar::Action;
 
     let (mut option, highlighted_tile) =
-        sidebar::process(state, ui, settings, dt, fps, display, active);
+        sidebar::process(state, ui, gamepad, settings, dt, fps, display, active);
     if let Some(pos) = highlighted_tile {
         highlighted_tiles.push(pos);
     }
@@ -677,7 +687,7 @@ fn process_game(
             formula::exploration_radius(state.player.mind),
         );
 
-        if state.game_session.started() && state.player.alive() {
+        if state.game_session.started() && state.player.alive() && !state.inventory_focused {
             let source = state.player.pos;
 
             if let Some(destination_offset) = gamepad_highlighted_tile {

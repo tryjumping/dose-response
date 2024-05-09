@@ -3,6 +3,7 @@ use crate::{
     engine::{Display, TextMetrics},
     formula,
     game::{self, RunningState},
+    gamepad::Gamepad,
     keys::KeyCode,
     player::CauseOfDeath,
     settings::Settings,
@@ -25,6 +26,7 @@ pub enum Action {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    gamepad: &Gamepad,
     settings: &Settings,
     _metrics: &dyn TextMetrics,
     display: &Display,
@@ -152,6 +154,9 @@ pub fn process(
     };
 
     if action.is_none() {
+        let stick_flicked_left = gamepad.left_stick_flicked && gamepad.left_stick_x < 0.0;
+        let stick_flicked_right = gamepad.left_stick_flicked && gamepad.left_stick_x > 0.0;
+
         if state.keys.matches_code(KeyCode::N) {
             action = Some(Action::NewGame);
         } else if state.keys.matches_code(KeyCode::Esc) {
@@ -162,7 +167,7 @@ pub fn process(
             action = Some(Action::Help);
         } else if state.keys.matches_code(KeyCode::Enter) {
             action = state.selected_endgame_window_action;
-        } else if state.keys.matches_code(KeyCode::Left) {
+        } else if state.keys.matches_code(KeyCode::Left) || stick_flicked_left {
             state.selected_endgame_window_action = match state.selected_endgame_window_action {
                 Some(Action::NewGame) => Some(Action::Menu),
                 Some(Action::Help) => Some(Action::NewGame),
@@ -170,7 +175,7 @@ pub fn process(
                 _ => Some(Action::NewGame),
             };
             audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
-        } else if state.keys.matches_code(KeyCode::Right) {
+        } else if state.keys.matches_code(KeyCode::Right) || stick_flicked_right {
             state.selected_endgame_window_action = match state.selected_endgame_window_action {
                 Some(Action::NewGame) => Some(Action::Help),
                 Some(Action::Help) => Some(Action::Menu),

@@ -1,6 +1,7 @@
 use crate::{
     engine::{Display, Texture, VisualStyle},
     formula, game,
+    gamepad::Gamepad,
     graphic::Graphic,
     item,
     keys::KeyCode,
@@ -39,6 +40,7 @@ pub enum Action {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    gamepad: &Gamepad,
     settings: &Settings,
     dt: Duration,
     fps: i32,
@@ -70,7 +72,10 @@ pub fn process(
                 state.selected_sidebar_action = Some(UseFood);
             }
 
-            if state.keys.matches_code(KeyCode::Down) {
+            let stick_flicked_up = gamepad.left_stick_flicked && gamepad.left_stick_y > 0.0;
+            let stick_flicked_down = gamepad.left_stick_flicked && gamepad.left_stick_y < 0.0;
+
+            if state.keys.matches_code(KeyCode::Down) || stick_flicked_down {
                 let new_selected_action = match state.selected_sidebar_action {
                     Some(UseFood) => UseDose,
                     Some(UseDose) => UseCardinalDose,
@@ -83,7 +88,8 @@ pub fn process(
                 };
                 state.selected_sidebar_action = Some(new_selected_action);
             }
-            if state.keys.matches_code(KeyCode::Up) {
+
+            if state.keys.matches_code(KeyCode::Up) || stick_flicked_up {
                 let new_selected_action = match state.selected_sidebar_action {
                     Some(UseFood) => MainMenu,
                     Some(UseDose) => UseFood,

@@ -2,6 +2,7 @@ use crate::{
     audio::{Audio, Effect},
     engine::Display,
     game::RunningState,
+    gamepad::Gamepad,
     keys::KeyCode,
     state::State,
     ui,
@@ -193,6 +194,7 @@ pub const THIRD_PARTY_CODE_LICENSE: &str = "To see the license for the third-par
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    gamepad: &Gamepad,
     display: &Display,
     audio: &mut Audio,
 ) -> RunningState {
@@ -356,13 +358,18 @@ pub fn process(
     }
 
     if action.is_none() {
-        if state.keys.matches_code(KeyCode::Right) {
+        let stick_flicked_up = gamepad.left_stick_flicked && gamepad.left_stick_y > 0.0;
+        let stick_flicked_down = gamepad.left_stick_flicked && gamepad.left_stick_y < 0.0;
+        let stick_flicked_left = gamepad.left_stick_flicked && gamepad.left_stick_x < 0.0;
+        let stick_flicked_right = gamepad.left_stick_flicked && gamepad.left_stick_x > 0.0;
+
+        if state.keys.matches_code(KeyCode::Right) || stick_flicked_right {
             action = Some(Action::NextPage);
-        } else if state.keys.matches_code(KeyCode::Left) {
+        } else if state.keys.matches_code(KeyCode::Left) || stick_flicked_left {
             action = Some(Action::PrevPage);
-        } else if state.keys.matches_code(KeyCode::Up) {
+        } else if state.keys.matches_code(KeyCode::Up) || stick_flicked_up {
             action = Some(Action::LineUp);
-        } else if state.keys.matches_code(KeyCode::Down) {
+        } else if state.keys.matches_code(KeyCode::Down) || stick_flicked_down {
             action = Some(Action::LineDown);
         }
     }

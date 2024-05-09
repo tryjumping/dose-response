@@ -2,6 +2,7 @@ use crate::{
     audio::{Audio, Effect},
     engine::{self, Display, VisualStyle},
     game::RunningState,
+    gamepad::Gamepad,
     keys::KeyCode,
     settings::{Palette, Settings, Store as SettingsStore},
     state::State,
@@ -32,6 +33,7 @@ pub enum Action {
 pub fn process(
     state: &mut State,
     ui: &mut Ui,
+    gamepad: &Gamepad,
     settings: &mut Settings,
     display: &mut Display,
     audio: &mut Audio,
@@ -72,7 +74,12 @@ pub fn process(
 
     let previous_settings_position = state.selected_settings_position;
 
-    if state.keys.matches_code(KeyCode::Up) {
+    let stick_flicked_up = gamepad.left_stick_flicked && gamepad.left_stick_y > 0.0;
+    let stick_flicked_down = gamepad.left_stick_flicked && gamepad.left_stick_y < 0.0;
+    let stick_flicked_left = gamepad.left_stick_flicked && gamepad.left_stick_x < 0.0;
+    let stick_flicked_right = gamepad.left_stick_flicked && gamepad.left_stick_x > 0.0;
+
+    if state.keys.matches_code(KeyCode::Up) || stick_flicked_up {
         state.selected_settings_position = match state.selected_settings_position {
             current @ Some((column, row)) => {
                 if row <= 0 {
@@ -88,7 +95,7 @@ pub fn process(
         };
     }
 
-    if state.keys.matches_code(KeyCode::Down) {
+    if state.keys.matches_code(KeyCode::Down) || stick_flicked_down {
         state.selected_settings_position = match state.selected_settings_position {
             current @ Some((column, row)) => {
                 if row + 1 == max_rows[column as usize] {
@@ -103,7 +110,7 @@ pub fn process(
         };
     }
 
-    if state.keys.matches_code(KeyCode::Left) {
+    if state.keys.matches_code(KeyCode::Left) || stick_flicked_left {
         state.selected_settings_position = match state.selected_settings_position {
             current @ Some((column, _row)) => {
                 if current == APPLY {
@@ -119,7 +126,7 @@ pub fn process(
         }
     }
 
-    if state.keys.matches_code(KeyCode::Right) {
+    if state.keys.matches_code(KeyCode::Right) || stick_flicked_right {
         state.selected_settings_position = match state.selected_settings_position {
             current @ Some((column, _row)) => {
                 if current == APPLY {

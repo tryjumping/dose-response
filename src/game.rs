@@ -1946,7 +1946,7 @@ fn verify_states(expected: &state::Verification, actual: &state::Verification) {
         }
 
         for (pos, actual) in &actual_monsters {
-            if expected_monsters.get(pos).is_none() {
+            if !expected_monsters.contains_key(pos) {
                 log::error!("There is an unexpected monster at: {}: {:?}.", pos, actual);
                 valid = false;
             }

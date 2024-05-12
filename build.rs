@@ -220,7 +220,7 @@ fn main() {
 
     // NOTE: generate the glyph map texture
     {
-        let default_tile_size = 30;
+        let default_tile_size = 40;
         let tile_sizes = [40, 30, 20];
         assert!(tile_sizes.contains(&default_tile_size));
 

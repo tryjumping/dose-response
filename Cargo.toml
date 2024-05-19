@@ -37,7 +37,7 @@ cstr = "0.2.9"
 egui = { version = "0.15", default-features = false, features = ["single_threaded"] }
 gilrs = "0.10.2"
 gl = { version = "0.14", optional = true }
-glutin = { version = "0.27", optional = true }
+glutin = { version = "0.28", optional = true }
 image = { version = "0.23.14", optional = true }
 line_drawing = "0.8"
 log = "0.4.14"
@@ -51,7 +51,7 @@ simplelog = { version = "0.12.0", default-features = false, features = [], optio
 time = { version = "0.3.14" }
 toml_edit = "0.2.1"
 # Update it only when glutin use a new version of winit
-winit = "0.25"
+winit = "0.26"
 webbrowser = "0.5.5"
 
 [build-dependencies]

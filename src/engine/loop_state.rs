@@ -269,7 +269,7 @@ impl LoopState {
             game_state,
             mouse: Mouse::new(),
             keys: vec![],
-            gamepad: Gamepad::default(),
+            gamepad: Gamepad::new(),
             fps_clock: Duration::new(0, 0),
             switched_from_fullscreen: false,
             frames_in_current_second: 0,

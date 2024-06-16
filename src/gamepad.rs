@@ -2,7 +2,7 @@ use crate::timer::Timer;
 
 use std::time::Duration;
 
-use gilrs::{Button, Event, Gilrs};
+use gilrs::{Button, Event, Filter, Gilrs};
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Gamepad {
@@ -75,15 +75,25 @@ impl Gamepad {
 }
 
 pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad, dt: Duration) {
-    // TODO: we're going to have to handle button presses and releases I think
-    while let Some(Event {
-        id: _,
-        event,
-        time: _,
-    }) = gilrs.next_event()
-    {
+    use gilrs::{
+        ev::filter,
+        EventType::{AxisChanged, ButtonPressed, ButtonRepeated},
+    };
+    let repeat = filter::Repeat {
+        after: Duration::from_millis(350),
+        every: Duration::from_millis(120),
+    };
+
+    while let Some(event) = gilrs.next_event().filter_ev(&repeat, gilrs) {
+        gilrs.update(&event);
+        let Event {
+            id: _,
+            event,
+            time: _,
+        } = event;
         match event {
-            gilrs::EventType::ButtonPressed(button, code) => match button {
+            // Treat the pressed or repeated button the same way:
+            ButtonPressed(button, code) | ButtonRepeated(button, code) => match button {
                 Button::DPadUp => gamepad.up = true,
                 Button::DPadDown => gamepad.down = true,
                 Button::DPadLeft => gamepad.left = true,
@@ -106,7 +116,7 @@ pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad, dt: Dura
                 }
             },
 
-            gilrs::EventType::AxisChanged(axis, value, _code) => {
+            AxisChanged(axis, value, _code) => {
                 use gilrs::ev::Axis::*;
                 match axis {
                     LeftStickX => {
@@ -118,7 +128,9 @@ pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad, dt: Dura
                     _ => {}
                 }
             }
-            _ => {}
+            _ => {
+                //log::debug!(&event);
+            }
         }
     }
 
@@ -137,7 +149,7 @@ pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad, dt: Dura
     if gamepad.ready_for_a_flick && (gamepad.left_stick_x != 0.0 || gamepad.left_stick_y != 0.0) {
         gamepad.ready_for_a_flick = false;
         gamepad.left_stick_flicked = true;
-        gamepad.stick_repeat_timer = Timer::new(Duration::from_millis(350));
+        gamepad.stick_repeat_timer = Timer::new(repeat.after);
     } else {
         gamepad.left_stick_flicked = false;
     }
@@ -150,7 +162,7 @@ pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad, dt: Dura
         if gamepad.stick_repeat_timer.finished() {
             gamepad.ready_for_a_flick = false;
             gamepad.left_stick_flicked = true;
-            gamepad.stick_repeat_timer = Timer::new(Duration::from_millis(120));
+            gamepad.stick_repeat_timer = Timer::new(repeat.every);
         }
     } else {
         gamepad.stick_repeat_timer.finish();

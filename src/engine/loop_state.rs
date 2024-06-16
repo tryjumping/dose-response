@@ -320,7 +320,7 @@ impl LoopState {
         self.egui_context.begin_frame(self.egui_raw_input());
 
         if let Some(gilrs) = self.gilrs.as_mut() {
-            gamepad::process_gamepad_events(gilrs, &mut self.gamepad)
+            gamepad::process_gamepad_events(gilrs, &mut self.gamepad, dt)
         }
 
         let previous_palette = self.settings.palette();

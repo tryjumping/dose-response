@@ -269,7 +269,7 @@ impl LoopState {
             game_state,
             mouse: Mouse::new(),
             keys: vec![],
-            gamepad: Gamepad::default(),
+            gamepad: Gamepad::new(),
             fps_clock: Duration::new(0, 0),
             switched_from_fullscreen: false,
             frames_in_current_second: 0,
@@ -320,7 +320,7 @@ impl LoopState {
         self.egui_context.begin_frame(self.egui_raw_input());
 
         if let Some(gilrs) = self.gilrs.as_mut() {
-            gamepad::process_gamepad_events(gilrs, &mut self.gamepad)
+            gamepad::process_gamepad_events(gilrs, &mut self.gamepad, dt)
         }
 
         let previous_palette = self.settings.palette();

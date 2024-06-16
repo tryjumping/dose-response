@@ -1,3 +1,7 @@
+use crate::timer::Timer;
+
+use std::time::Duration;
+
 use gilrs::{Button, Event, Gilrs};
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -49,21 +53,28 @@ pub struct Gamepad {
     pub left_stick_flicked: bool,
 
     ready_for_a_flick: bool,
+
+    stick_repeat_timer: Timer,
 }
 
 impl Gamepad {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn reset_buttons(&mut self) {
         *self = Gamepad {
             left_stick_x: self.left_stick_x,
             left_stick_y: self.left_stick_y,
             left_stick_flicked: self.left_stick_flicked,
             ready_for_a_flick: self.ready_for_a_flick,
+            stick_repeat_timer: self.stick_repeat_timer,
             ..Gamepad::default()
         }
     }
 }
 
-pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad) {
+pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad, dt: Duration) {
     // TODO: we're going to have to handle button presses and releases I think
     while let Some(Event {
         id: _,
@@ -126,7 +137,22 @@ pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad) {
     if gamepad.ready_for_a_flick && (gamepad.left_stick_x != 0.0 || gamepad.left_stick_y != 0.0) {
         gamepad.ready_for_a_flick = false;
         gamepad.left_stick_flicked = true;
+        gamepad.stick_repeat_timer = Timer::new(Duration::from_millis(350));
     } else {
         gamepad.left_stick_flicked = false;
+    }
+
+    // Implement key repeat for the gamepad stick:
+    if !gamepad.stick_repeat_timer.finished()
+        && (gamepad.left_stick_x != 0.0 || gamepad.left_stick_y != 0.0)
+    {
+        gamepad.stick_repeat_timer.update(dt);
+        if gamepad.stick_repeat_timer.finished() {
+            gamepad.ready_for_a_flick = false;
+            gamepad.left_stick_flicked = true;
+            gamepad.stick_repeat_timer = Timer::new(Duration::from_millis(120));
+        }
+    } else {
+        gamepad.stick_repeat_timer.finish();
     }
 }

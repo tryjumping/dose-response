@@ -3,7 +3,10 @@ use std::{
     fs::{self, File},
     io::{Read, Write},
     path::{Path, PathBuf},
+    time::Instant,
 };
+
+use anyhow::Context;
 
 use flate2::{write::GzEncoder, Compression};
 
@@ -296,7 +299,6 @@ fn main() -> anyhow::Result<()> {
 
             let object_name =
                 format!("/{release_destination}/{release_version}/{archive_file_name}");
-            println!("Uploading to: {object_name}");
 
             let action = actions::PutObject::new(&bucket, Some(&creds), &object_name);
             let ten_minutes = std::time::Duration::from_secs(600);
@@ -305,8 +307,17 @@ fn main() -> anyhow::Result<()> {
             let archive_file = File::open(archive_path)?;
             let client = reqwest::blocking::Client::new()
                 .put(signed_url)
-                .body(archive_file);
-            let res = client.send()?;
+                .body(archive_file)
+				// NOTE: the default value is 30 seconds, that's not enough for the upload:
+				.timeout(ten_minutes);
+            println!("Uploading to: {object_name}");
+            let upload_start = Instant::now();
+            let res = client.send().with_context(|| {
+                let upload_duration = upload_start.elapsed().as_secs_f32();
+                format!("Request took: {upload_duration} seconds, before erroring out.")
+            })?;
+            let upload_duration = upload_start.elapsed().as_secs_f32();
+            println!("Request took: {upload_duration} seconds.");
 
             if res.status() == 200 {
                 println!("Release archive uploaded successfully.");

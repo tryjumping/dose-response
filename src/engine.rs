@@ -21,9 +21,6 @@ pub mod glutin;
 #[cfg(feature = "glutin-backend")]
 pub mod opengl;
 
-#[cfg(feature = "remote")]
-pub mod remote;
-
 pub const DRAWCALL_CAPACITY: usize = 8000;
 pub const VERTEX_CAPACITY: usize = 50_000;
 pub const VERTEX_COMPONENT_COUNT: usize = 9;

@@ -59,10 +59,6 @@ use simplelog::Config;
 const DISPLAYED_MAP_SIZE: i32 = 30;
 
 const PANEL_WIDTH: i32 = 17;
-const DISPLAY_SIZE: point::Point = point::Point {
-    x: DISPLAYED_MAP_SIZE + PANEL_WIDTH,
-    y: DISPLAYED_MAP_SIZE,
-};
 
 #[allow(unused_variables, dead_code, clippy::needless_pass_by_value)]
 fn run_glutin(
@@ -95,33 +91,17 @@ fn run_glutin(
     log::error!("The \"glutin-backend\" feature was not compiled in.");
 }
 
-#[allow(unused_variables, dead_code, clippy::needless_pass_by_value)]
-fn run_remote(
-    display_size: point::Point,
-    default_background: color::Color,
-    window_title: &str,
-    settings_store: settings::FileSystemStore,
-    state: state::State,
-) {
-    #[cfg(feature = "remote")]
-    engine::remote::main_loop(
-        display_size,
-        default_background,
-        window_title,
-        settings_store,
-        Box::new(state),
-        update,
-    );
-
-    #[cfg(not(feature = "remote"))]
-    log::error!("The \"remote\" feature was not compiled in.");
-}
-
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     use crate::settings::Store;
     use clap::{App, Arg};
     use simplelog::{CombinedLogger, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
+
+    // Print out all environment variables:
+    log::info!("Environment variables:");
+    for (key, value) in std::env::vars() {
+        log::info!("{key}: {value}");
+    }
 
     let mut app = App::new(metadata::TITLE)
         .version(metadata::VERSION)
@@ -320,12 +300,10 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         state
     };
 
-    let display_size = DISPLAY_SIZE;
     let background = palette.unexplored_background;
     let game_title = metadata::TITLE;
 
     match backend.as_str() {
-        "remote" => run_remote(display_size, background, game_title, settings_store, state),
         "glutin" => run_glutin(background, game_title, settings_store, state),
         _ => {
             log::error!("Unknown backend: {}", backend);

@@ -29,9 +29,7 @@ pub enum Action {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Page {
     DoseResponse,
-    NumpadControls,
-    ArrowControls,
-    ViKeys,
+    Controls,
     HowToPlay,
     Legend,
     Credits,
@@ -43,10 +41,8 @@ impl Page {
         use self::Page::*;
         match self {
             DoseResponse => None,
-            NumpadControls => Some(DoseResponse),
-            ArrowControls => Some(NumpadControls),
-            ViKeys => Some(ArrowControls),
-            HowToPlay => Some(ViKeys),
+            Controls => Some(DoseResponse),
+            HowToPlay => Some(Controls),
             Legend => Some(HowToPlay),
             Credits => Some(Legend),
             About => Some(Credits),
@@ -56,10 +52,8 @@ impl Page {
     pub fn next(self) -> Option<Self> {
         use self::Page::*;
         match self {
-            DoseResponse => Some(NumpadControls),
-            NumpadControls => Some(ArrowControls),
-            ArrowControls => Some(ViKeys),
-            ViKeys => Some(HowToPlay),
+            DoseResponse => Some(Controls),
+            Controls => Some(HowToPlay),
             HowToPlay => Some(Legend),
             Legend => Some(Credits),
             Credits => Some(About),
@@ -73,9 +67,7 @@ impl FmtDisplay for Page {
         use self::Page::*;
         let s = match *self {
             DoseResponse => "Dose Response",
-            NumpadControls => "Controls: numpad",
-            ArrowControls => "Controls: arrow keys",
-            ViKeys => "Controls: Vi keys",
+            Controls => "Controls",
             HowToPlay => "How to play",
             Legend => "Legend",
             Credits => "Credits",
@@ -98,7 +90,9 @@ pub const CONTROLS_HEADER: &str = "You control the @ character. It moves just li
 
 pub const CONTROLS_FOOTER: &str = "Using items: you can use an item you're carrying (food and later on, doses) by clicking on it in the sidebar or pressing its number on the keyboard (not numpad -- that's for movement).";
 
-pub const NUMPAD_TEXT: &str = r"You can use the numpad. Imagine your @ is in the middle (where [5] is) and you just pick a direction.";
+pub const NUMPAD_TEXT: &str = r"Numpad:
+
+Imagine your @ is in the middle (where [5] is) and you just pick a direction.";
 
 pub const NUMPAD_CONTROLS: &str = r"7 8 9
  \|/
@@ -107,7 +101,9 @@ pub const NUMPAD_CONTROLS: &str = r"7 8 9
 1 2 3
 ";
 
-pub const ARROW_TEXT: &str = r"If you don't have a numpad, you can use the arrow keys. You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.";
+pub const ARROW_TEXT: &str = r"Arrow keys:
+
+You will need [Shift] and [Ctrl] for diagonal movement. [Shift] means up and [Ctrl] means down. You combine them with the [Left] and [Right] keys.";
 
 pub const ARROW_CONTROLS: &str = r"Shift+Left  Up  Shift+Right
          \  |  /
@@ -118,13 +114,24 @@ Ctrl+Left  Down Ctrl+Right
 
 pub const MODIFIER_KEYS: &str = r"Instead of [Ctrl], you can also use any of: [Alt], [command], [option] and [control]. Whether these keys exist and are available depends on your system.";
 
-pub const VI_KEYS_TEXT: &str = r#"You can also move using the "Vi keys". Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor."#;
+pub const VI_KEYS_TEXT: &str = r#"Vi keys:
+
+Those map to the letters on your keyboard. This makes more sense if you've ever used the Vi text editor."#;
 
 pub const VI_KEYS_CONTROLS: &str = r"y k u
  \|/
 h-@-l
  /|\
 b j n
+";
+
+pub const CONTROLLER: &str = r"Controller:
+
+Move in all eight directions using the left thumb stick. You point the stick in the direction you want to move to and then press the A (Xbox-like controllers) or X (on the PlayStation-like controllers) button to actually move.
+
+To use an item, press B (or Circle) to open the inventory menu, navigate to the item and press A (or X) again.
+
+Navigating menus: you can use the D-pad as well as the left thumb stick.
 ";
 
 pub const HOW_TO_PLAY: &str = r#"Your character is an addict. Stay long without using a Dose, and the game is over. Eat Food to remain sober for longer. Using a Dose or eating Food will also defeat nearby enemies.
@@ -226,7 +233,7 @@ pub fn process(
                             ui.label(OVERVIEW);
                         }
 
-                        Page::NumpadControls => {
+                        Page::Controls => {
                             ui.label(CONTROLS_HEADER);
                             ui.label(NUMPAD_TEXT);
                             ui.label("");
@@ -240,11 +247,6 @@ pub fn process(
                                     },
                                 );
                             });
-                            ui.label(CONTROLS_FOOTER);
-                        }
-
-                        Page::ArrowControls => {
-                            ui.label(CONTROLS_HEADER);
                             ui.label(ARROW_TEXT);
                             ui.label("");
                             ui.columns(1, |c| {
@@ -257,11 +259,6 @@ pub fn process(
                             });
                             ui.label(MODIFIER_KEYS);
                             ui.label("");
-                            ui.label(CONTROLS_FOOTER);
-                        }
-
-                        Page::ViKeys => {
-                            ui.label(CONTROLS_HEADER);
                             ui.label(VI_KEYS_TEXT);
                             ui.label("");
                             ui.columns(1, |c| {
@@ -273,6 +270,8 @@ pub fn process(
                                 );
                             });
                             ui.label(CONTROLS_FOOTER);
+                            ui.label("");
+                            ui.label(CONTROLLER);
                         }
 
                         Page::HowToPlay => {

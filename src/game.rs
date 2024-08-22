@@ -132,19 +132,41 @@ pub fn update(
     if gamepad.west {
         new_keys.push(KeyCode::I.into());
     }
-    if gamepad.up {
+
+    // NOTE: This does add diagonal movement when pressing both D-pad buttons at once.
+    //
+    // But they need to both be pressed during the same frame or the
+    // buttons are treated as separate presses. This can be
+    // problematic as sometimes every single button press counts.
+    //
+    // To deal with that, we'd have to either give the player a few frames buffer (before all the presses are counted). Or keep track of key-down states and only make them effective during key up.
+    //
+    // The latter slows down the button feel (the game feels slower
+    // and less reactive). The former will of course do the same, but
+    // may offer a shorter window where the slugginess won't be as
+    // stark (at the risk of still missing some double-presses).
+
+    if gamepad.up && gamepad.left {
+        log::warn!("Pressed Up and Left!");
+        new_keys.push(KeyCode::NumPad7.into());
+    } else if gamepad.up && gamepad.right {
+        log::warn!("Pressed Up and Right!");
+        new_keys.push(KeyCode::NumPad9.into());
+    } else if gamepad.down && gamepad.left {
+        log::warn!("Pressed Down and Left!");
+        new_keys.push(KeyCode::NumPad1.into());
+    } else if gamepad.down && gamepad.right {
+        log::warn!("Pressed Down and Right!");
+        new_keys.push(KeyCode::NumPad3.into());
+    } else if gamepad.up {
         new_keys.push(KeyCode::Up.into());
-    }
-    if gamepad.down {
+    } else if gamepad.down {
         new_keys.push(KeyCode::Down.into());
-    }
-    if gamepad.left {
+    } else if gamepad.left {
         new_keys.push(KeyCode::Left.into());
-    }
-    if gamepad.right {
+    } else if gamepad.right {
         new_keys.push(KeyCode::Right.into());
-    }
-    if gamepad.start {
+    } else if gamepad.start {
         new_keys.push(KeyCode::Menu.into());
     }
 

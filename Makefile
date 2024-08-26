@@ -19,6 +19,10 @@ package-release:
 	cargo run --manifest-path bin/Cargo.toml --bin package-release
 .PHONY: package-release
 
+steam-deck:
+	bin/container-build.sh
+.PHONY: steam-deck
+
 replay:
 	cargo run -- `find replays -type f -name 'replay-*' | sort | tail -n 1`
 .PHONY: replay

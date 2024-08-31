@@ -224,6 +224,11 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         log::info!("Target triple: {}", target_triple);
     }
 
+    log::info!("Build profile: {}", metadata::PROFILE);
+    log::info!("Optimisation level: {}", metadata::OPT_LEVEL);
+    log::info!("Build features: {}", metadata::FEATURES);
+    log::info!("Build configs: {}", metadata::CONFIGS);
+
     log::info!(
         "Available text sizes: {:?}",
         crate::engine::AVAILABLE_TEXT_SIZES

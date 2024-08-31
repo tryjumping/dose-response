@@ -229,7 +229,7 @@ pub fn process(
                 .show(ui, |ui| {
                     // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
                     ui.set_min_height(window_size_px[1] - 7.0);
-                    let copyright = format!("Copyright 2013-2021 {}", crate::metadata::AUTHORS);
+                    let copyright = format!("Copyright 2013-2024 {}", crate::metadata::AUTHORS);
                     match state.current_help_window {
                         Page::DoseResponse => {
                             ui.label(OVERVIEW);
@@ -310,10 +310,7 @@ pub fn process(
                                 format!("Homepage: {}", crate::metadata::HOMEPAGE),
                                 crate::metadata::HOMEPAGE,
                             );
-
-                            if !crate::metadata::GIT_HASH.trim().is_empty() {
-                                ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
-                            }
+                            ui.label(copyright);
 
                             ui.label("");
                             ui.label(CODE_LICENSE_BLOCK);
@@ -321,7 +318,16 @@ pub fn process(
                             ui.label("");
                             ui.label(THIRD_PARTY_CODE_LICENSE);
                             ui.label("");
-                            ui.label(copyright);
+
+                            if !crate::metadata::GIT_HASH.trim().is_empty() {
+                                ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
+                            }
+
+			    let features = crate::metadata::FEATURES.replace(":", "\n* ");
+
+			    let configs = crate::metadata::CONFIGS.replace(":", "\n* ");
+
+			    ui.label(format!("Build profile: {}\nOptimisation level: {}\n\nBuild features: \n* {features}\n\nBuild configs: \n* {configs}\n\n", crate::metadata::PROFILE, crate::metadata::OPT_LEVEL));
                         }
                     };
                 });

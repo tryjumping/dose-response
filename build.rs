@@ -140,6 +140,35 @@ fn main() {
         env::var("TARGET").unwrap_or_default()
     );
 
+    println!(
+        "cargo:rustc-env=DR_CARGO_PROFILE={}",
+        env::var("PROFILE").unwrap_or_default()
+    );
+
+    println!(
+        "cargo:rustc-env=DR_CARGO_OPT_LEVEL={}",
+        env::var("OPT_LEVEL").unwrap_or_default()
+    );
+
+    let features = std::env::vars()
+        .filter(|(k, _v)| k.starts_with("CARGO_FEATURE_"))
+        .map(|(k, _v)| k.trim_start_matches("CARGO_FEATURE_").to_string())
+        .collect::<Vec<_>>()
+        .join(":");
+
+    println!("cargo:rustc-env=DR_FEATURES={}", features);
+
+    let configs = std::env::vars()
+        .filter(|(k, _v)| k.starts_with("CARGO_CFG_"))
+        .map(|(k, v)| {
+            let k = k.trim_start_matches("CARGO_CFG_").to_string();
+            format!("{k}={v}")
+        })
+        .collect::<Vec<_>>()
+        .join(":");
+
+    println!("cargo:rustc-env=DR_CONFIGS={}", configs);
+
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir);
 

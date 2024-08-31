@@ -7,3 +7,7 @@ pub const TITLE: &str = "Dose Response";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const VERSION_MAJOR: &str = env!("CARGO_PKG_VERSION_MAJOR");
 pub const VERSION_MINOR: &str = env!("CARGO_PKG_VERSION_MINOR");
+pub const PROFILE: &str = env!("DR_CARGO_PROFILE");
+pub const OPT_LEVEL: &str = env!("DR_CARGO_OPT_LEVEL");
+pub const FEATURES: &str = env!("DR_FEATURES");
+pub const CONFIGS: &str = env!("DR_CONFIGS");

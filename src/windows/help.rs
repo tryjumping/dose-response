@@ -229,7 +229,7 @@ pub fn process(
                 .show(ui, |ui| {
                     // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
                     ui.set_min_height(window_size_px[1] - 7.0);
-                    let copyright = format!("Copyright 2013-2021 {}", crate::metadata::AUTHORS);
+                    let copyright = format!("Copyright 2013-2024 {}", crate::metadata::AUTHORS);
                     match state.current_help_window {
                         Page::DoseResponse => {
                             ui.label(OVERVIEW);

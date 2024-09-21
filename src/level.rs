@@ -17,7 +17,7 @@ impl From<LevelPosition> for Point {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Cell {
     pub tile: Tile,
     pub items: Vec<Item>,
@@ -31,7 +31,7 @@ pub enum TileKind {
     Tree,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Tile {
     pub kind: TileKind,
     pub graphic: Graphic,
@@ -87,7 +87,7 @@ impl Tile {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Serialize, Deserialize)]
 pub struct Level {
     dimensions: point::Point,
     pub monsters: HashMap<LevelPosition, usize>,

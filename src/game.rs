@@ -47,6 +47,9 @@ pub enum Action {
 pub enum RunningState {
     Running,
     Stopped,
+    /// Skip the rendering and FPS-related timing. Instead, proceed to
+    /// the next update immediately.
+    Skip,
     NewGame(Box<State>),
 }
 
@@ -64,6 +67,12 @@ pub fn update(
     display: &mut Display, // TODO: remove this from the entgine and keep a transient state instead
     audio: &mut Audio,
 ) -> RunningState {
+    let previous_state = if state.replay {
+        state.try_clone()
+    } else {
+        None
+    };
+
     let update_stopwatch = Stopwatch::start();
     state.clock += dt;
     state.replay_step += dt;
@@ -472,7 +481,29 @@ pub fn update(
         }
     }
 
-    game_update_result
+    let current_state = if state.replay {
+        state.try_clone()
+    } else {
+        None
+    };
+
+    let states_match = match (previous_state, current_state) {
+        (Some(pre), Some(curr)) => curr.equivalent_to(&pre),
+        _ => false,
+    };
+
+    if std::matches!(game_update_result, RunningState::Running)
+        && states_match
+        && state.replay
+        && state.replay_full_speed
+        && state.player.alive()
+        && state.game_session == GameSession::InProgress
+    {
+        log::debug!("Skipping frame {}", state.tick_id);
+        RunningState::Skip
+    } else {
+        game_update_result
+    }
 }
 
 fn enqueue_background_music(audio: &mut Audio, audio_rng: &mut Random) {

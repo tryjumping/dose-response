@@ -100,7 +100,7 @@ pub struct PlayerInfo {
     pub will: i32,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct Player {
     pub mind: Mind,
     pub will: Ranged,

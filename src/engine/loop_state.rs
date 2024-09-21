@@ -325,7 +325,7 @@ impl LoopState {
 
         let previous_palette = self.settings.palette();
 
-        let update_result = crate::game::update(
+        let mut update_result = crate::game::update(
             &mut self.game_state,
             &self.egui_context,
             dt,
@@ -343,6 +343,26 @@ impl LoopState {
             &mut self.audio,
         );
 
+        while std::matches!(update_result, RunningState::Skip) {
+            update_result = crate::game::update(
+                &mut self.game_state,
+                &self.egui_context,
+                dt,
+                self.fps,
+                &[],
+                Mouse::new(),
+                &mut self.gamepad,
+                &mut self.settings,
+                &Metrics {
+                    tile_width_px,
+                    text_width_px,
+                },
+                settings_store,
+                &mut self.display,
+                &mut self.audio,
+            );
+        }
+
         if previous_palette != self.settings.palette() {
             // The palette has changed, we need to update the egui style
             let style = egui_style(&self.settings.palette());
@@ -355,6 +375,7 @@ impl LoopState {
                 self.game_state = new_state;
             }
             RunningState::Stopped => return UpdateResult::QuitRequested,
+            RunningState::Skip => unreachable!(),
         }
 
         self.reset_inputs();

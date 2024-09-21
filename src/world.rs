@@ -32,7 +32,7 @@ pub enum TileContents {
     Empty,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(PartialEq, Serialize, Deserialize)]
 pub struct Chunk {
     position: Point,
     pub rng: Random,
@@ -164,7 +164,7 @@ struct ChunkPosition {
     position: Point,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(PartialEq, Serialize, Deserialize)]
 pub struct World {
     seed: u32,
     max_half_size: i32,

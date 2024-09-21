@@ -345,19 +345,40 @@ impl State {
     ) -> State {
         let inputs = VecDeque::new();
         let seed = util::random_seed();
+
+        let replay_path = replay_path.and_then(|p| {
+            if p.exists() {
+                log::error!("File already exists at path: {}", p.display());
+                let new_replay_path = generate_replay_path();
+                if let Some(ref np) = new_replay_path {
+                    log::error!("Generating a new replay path at: {}", np.display());
+                }
+                new_replay_path
+            } else {
+                Some(p)
+            }
+        });
+
         let mut writer: Box<dyn Write> = if let Some(replay_path) = replay_path {
-            match File::create(&replay_path) {
+            match File::create_new(&replay_path) {
                 Ok(f) => {
                     log::info!("Recording the gameplay to '{}'", replay_path.display());
                     Box::new(f)
                 }
-                Err(msg) => {
-                    log::error!(
-                        "Failed to create the replay file at '{:?}'.
+                Err(err) => {
+                    if err.kind() == io::ErrorKind::AlreadyExists {
+                        log::error!(
+                            "File already exists at path: {}. Will not overwrite.",
+                            replay_path.display()
+                        );
+                    } else {
+                        log::error!(
+                            "Failed to create the replay file at '{:?}'.
 Reason: '{}'.",
-                        replay_path.display(),
-                        msg
-                    );
+                            replay_path.display(),
+                            err
+                        );
+                    }
                     Box::new(io::sink())
                 }
             }

@@ -325,7 +325,7 @@ impl LoopState {
 
         let previous_palette = self.settings.palette();
 
-        let update_result = crate::game::update(
+        let mut update_result = crate::game::update(
             &mut self.game_state,
             &self.egui_context,
             dt,
@@ -343,6 +343,26 @@ impl LoopState {
             &mut self.audio,
         );
 
+        while std::matches!(update_result, RunningState::Skip) {
+            update_result = crate::game::update(
+                &mut self.game_state,
+                &self.egui_context,
+                dt,
+                self.fps,
+                &[],
+                Mouse::new(),
+                &mut self.gamepad,
+                &mut self.settings,
+                &Metrics {
+                    tile_width_px,
+                    text_width_px,
+                },
+                settings_store,
+                &mut self.display,
+                &mut self.audio,
+            );
+        }
+
         if previous_palette != self.settings.palette() {
             // The palette has changed, we need to update the egui style
             let style = egui_style(&self.settings.palette());
@@ -355,6 +375,7 @@ impl LoopState {
                 self.game_state = new_state;
             }
             RunningState::Stopped => return UpdateResult::QuitRequested,
+            RunningState::Skip => unreachable!(),
         }
 
         self.reset_inputs();
@@ -504,6 +525,7 @@ impl LoopState {
     }
 
     pub fn push_drawcalls_to_display(&mut self) {
+        let current_capacity = self.drawcalls.capacity();
         self.drawcalls.clear();
         self.display
             .push_drawcalls(self.settings.visual_style, &mut self.drawcalls);
@@ -512,10 +534,10 @@ impl LoopState {
             self.overall_max_drawcall_count = self.drawcalls.len();
         }
 
-        if self.drawcalls.len() > engine::DRAWCALL_CAPACITY {
+        if self.drawcalls.len() > current_capacity {
             log::warn!(
-                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
-                engine::DRAWCALL_CAPACITY,
+                "Warning: drawcall count exceeded current capacity {}. Current count: {}.",
+                current_capacity,
                 self.drawcalls.len(),
             );
         }
@@ -551,6 +573,7 @@ impl LoopState {
 
         self.push_drawcalls_to_display();
 
+        let current_vertex_buffer_capacity = self.vertex_buffer.capacity();
         self.vertex_buffer.clear();
         let display_info = self.display_info(dpi);
         let display_px = display_info.display_px;
@@ -576,19 +599,15 @@ impl LoopState {
             vertex_store.push(vertex);
         }
 
-        self.check_vertex_buffer_capacity();
-
-        self.render(opengl_app, dpi, &batches);
-    }
-
-    pub fn check_vertex_buffer_capacity(&self) {
-        if self.vertex_buffer.len() > engine::VERTEX_BUFFER_CAPACITY {
+        if self.vertex_buffer.len() > current_vertex_buffer_capacity {
             log::warn!(
-                "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
-                engine::VERTEX_BUFFER_CAPACITY,
+                "Warning: vertex count exceeded current capacity {}. Current count: {} ",
+                current_vertex_buffer_capacity,
                 self.vertex_buffer.len(),
             );
         }
+
+        self.render(opengl_app, dpi, &batches);
     }
 
     pub fn fullscreen_action(&mut self) -> Option<FullscreenAction> {

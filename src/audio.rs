@@ -144,7 +144,7 @@ impl Audio {
             }
         }
         if !enqueued {
-            log::warn!("Failed to enqueue a sound. All sinks are full.");
+            log::debug!("Failed to enqueue a sound. All sinks are full.");
         }
     }
 

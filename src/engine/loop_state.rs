@@ -525,6 +525,7 @@ impl LoopState {
     }
 
     pub fn push_drawcalls_to_display(&mut self) {
+        let current_capacity = self.drawcalls.capacity();
         self.drawcalls.clear();
         self.display
             .push_drawcalls(self.settings.visual_style, &mut self.drawcalls);
@@ -533,10 +534,10 @@ impl LoopState {
             self.overall_max_drawcall_count = self.drawcalls.len();
         }
 
-        if self.drawcalls.len() > engine::DRAWCALL_CAPACITY {
+        if self.drawcalls.len() > current_capacity {
             log::warn!(
-                "Warning: drawcall count exceeded initial capacity {}. Current count: {}.",
-                engine::DRAWCALL_CAPACITY,
+                "Warning: drawcall count exceeded current capacity {}. Current count: {}.",
+                current_capacity,
                 self.drawcalls.len(),
             );
         }
@@ -572,6 +573,7 @@ impl LoopState {
 
         self.push_drawcalls_to_display();
 
+        let current_vertex_buffer_capacity = self.vertex_buffer.capacity();
         self.vertex_buffer.clear();
         let display_info = self.display_info(dpi);
         let display_px = display_info.display_px;
@@ -597,19 +599,15 @@ impl LoopState {
             vertex_store.push(vertex);
         }
 
-        self.check_vertex_buffer_capacity();
-
-        self.render(opengl_app, dpi, &batches);
-    }
-
-    pub fn check_vertex_buffer_capacity(&self) {
-        if self.vertex_buffer.len() > engine::VERTEX_BUFFER_CAPACITY {
+        if self.vertex_buffer.len() > current_vertex_buffer_capacity {
             log::warn!(
-                "Warning: vertex count exceeded initial capacity {}. Current count: {} ",
-                engine::VERTEX_BUFFER_CAPACITY,
+                "Warning: vertex count exceeded current capacity {}. Current count: {} ",
+                current_vertex_buffer_capacity,
                 self.vertex_buffer.len(),
             );
         }
+
+        self.render(opengl_app, dpi, &batches);
     }
 
     pub fn fullscreen_action(&mut self) -> Option<FullscreenAction> {

@@ -22,7 +22,7 @@ pub mod glutin;
 pub mod opengl;
 
 pub const DRAWCALL_CAPACITY: usize = 8000;
-pub const VERTEX_CAPACITY: usize = 50_000;
+pub const VERTEX_CAPACITY: usize = 70_000;
 pub const VERTEX_COMPONENT_COUNT: usize = 9;
 const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * VERTEX_CAPACITY;
 

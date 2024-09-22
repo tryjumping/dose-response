@@ -619,12 +619,6 @@ Reason: '{}'.",
         self.screen_left_top_corner() + self.mouse.tile_pos
     }
 
-    pub fn equivalent_to(&self, other: &State) -> bool {
-        self.player == other.player
-            && self.world == other.world
-            && self.window_stack == other.window_stack
-    }
-
     pub fn try_clone(&self) -> Option<Self> {
         // TODO: this is a poor man's `Clone`. Just implement `Clone` on `State`?
         // And then do the same at the bottom of the function too.

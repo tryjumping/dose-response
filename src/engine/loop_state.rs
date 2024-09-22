@@ -343,6 +343,10 @@ impl LoopState {
             &mut self.audio,
         );
 
+        let skipping = std::matches!(update_result, RunningState::Skip);
+        if skipping {
+            log::debug!("Skipping no-op frames...");
+        }
         while std::matches!(update_result, RunningState::Skip) {
             update_result = crate::game::update(
                 &mut self.game_state,
@@ -361,6 +365,9 @@ impl LoopState {
                 &mut self.display,
                 &mut self.audio,
             );
+        }
+        if skipping {
+            log::debug!("Finished the frame skip");
         }
 
         if previous_palette != self.settings.palette() {

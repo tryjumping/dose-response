@@ -6,6 +6,7 @@ use crate::{
     point::Point,
     random::Random,
     ranged_int::{InclusiveRange, Ranged},
+    rect::Rectangle,
     state::Challenge,
 };
 
@@ -326,4 +327,8 @@ pub fn depression_max_ap(challenge: Challenge) -> i32 {
     } else {
         1
     }
+}
+
+pub fn simulation_area(player_pos: Point) -> Rectangle {
+    Rectangle::center(player_pos, Point::from_i32(SIMULATION_RADIUS))
 }

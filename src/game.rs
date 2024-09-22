@@ -67,12 +67,6 @@ pub fn update(
     display: &mut Display, // TODO: remove this from the entgine and keep a transient state instead
     audio: &mut Audio,
 ) -> RunningState {
-    let previous_state = if state.replay {
-        state.try_clone()
-    } else {
-        None
-    };
-
     let update_stopwatch = Stopwatch::start();
     state.clock += dt;
     state.replay_step += dt;
@@ -267,6 +261,27 @@ pub fn update(
     {
         show_exit_stats(&state.stats);
         return RunningState::Stopped;
+    }
+
+    let simulation_area = formula::simulation_area(state.player.pos);
+    let victory_npc_accompanies_player = state.world.monsters(simulation_area).find(|m| {
+        m.kind == monster::Kind::Npc
+            && m.accompanying_player
+            && m.companion_bonus == Some(CompanionBonus::Victory)
+    });
+
+    if state.replay
+        && state.replay_full_speed
+        && state.game_session == GameSession::InProgress
+        && state.player.alive()
+        && state.side == Side::Player
+        && state.window_stack.top() == Window::Game
+        && !state.paused
+        && state.player.ap() == 1
+        && state.keys.is_empty()
+        && victory_npc_accompanies_player.is_none()
+    {
+        return RunningState::Skip;
     }
 
     // Full screen on Alt-Enter
@@ -481,29 +496,7 @@ pub fn update(
         }
     }
 
-    let current_state = if state.replay {
-        state.try_clone()
-    } else {
-        None
-    };
-
-    let states_match = match (previous_state, current_state) {
-        (Some(pre), Some(curr)) => curr.equivalent_to(&pre),
-        _ => false,
-    };
-
-    if std::matches!(game_update_result, RunningState::Running)
-        && states_match
-        && state.replay
-        && state.replay_full_speed
-        && state.player.alive()
-        && state.game_session == GameSession::InProgress
-    {
-        log::debug!("Skipping frame {}", state.tick_id);
-        RunningState::Skip
-    } else {
-        game_update_result
-    }
+    game_update_result
 }
 
 fn enqueue_background_music(audio: &mut Audio, audio_rng: &mut Random) {
@@ -686,10 +679,7 @@ fn process_game(
 
     let mut entire_turn_ended = false;
 
-    let simulation_area = Rectangle::center(
-        state.player.pos,
-        point::Point::from_i32(formula::SIMULATION_RADIUS),
-    );
+    let simulation_area = formula::simulation_area(state.player.pos);
 
     if (!state.paused || paused_one_step) && state.side != Side::Victory {
         let monster_count = state.world.monsters(simulation_area).count();

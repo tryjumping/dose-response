@@ -23,6 +23,10 @@ steam-deck:
 	bin/container-build.sh
 .PHONY: steam-deck
 
+e2e-tests:
+	bin/e2e-tests.sh
+.PHONY: e2e-tests
+
 replay:
 	cargo run -- `find replays -type f -name 'replay-*' | sort | tail -n 1`
 .PHONY: replay

@@ -24,7 +24,7 @@ steam-deck:
 .PHONY: steam-deck
 
 e2e-tests:
-	bin/e2e-tests.sh
+	/usr/bin/time --format "All tests: %e seconds" bin/e2e-tests.sh
 .PHONY: e2e-tests
 
 replay:

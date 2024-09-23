@@ -161,6 +161,10 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                     )
                     .long("replay-full-speed"),
             )
+	    .arg(
+		Arg::with_name("headless")
+		    .help("Run the replay in a headless mode. No window will be open but the game will play through the full replay log. This can be useful for automated testing.")
+		    .long("headless"))
             .arg(
                 Arg::with_name("replay-file")
                     .help("Path where to store the replay log.")
@@ -307,6 +311,14 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let background = palette.unexplored_background;
     let game_title = metadata::TITLE;
+
+    if matches.is_present("headless") && matches.is_present("replay") {
+        log::info!("Run in the headless mode");
+
+        let result = engine::headless::main_loop(settings_store, Box::new(state));
+
+        return result;
+    }
 
     match backend.as_str() {
         "glutin" => run_glutin(background, game_title, settings_store, state),

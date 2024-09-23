@@ -34,8 +34,8 @@ pub enum UpdateResult {
 }
 
 pub struct Metrics {
-    tile_width_px: i32,
-    text_width_px: i32,
+    pub tile_width_px: i32,
+    pub text_width_px: i32,
 }
 
 impl TextMetrics for Metrics {

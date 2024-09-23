@@ -423,10 +423,34 @@ Reason: '{}'.",
     ) -> Result<State, Box<dyn Error>> {
         #[cfg(feature = "replay")]
         {
-            use std::io::{BufRead, BufReader};
+            use flate2::read::GzDecoder;
+            use std::io::{BufRead, BufReader, Read, Seek};
+
             let mut inputs = VecDeque::new();
-            let file = File::open(replay_path)?;
-            let mut lines = BufReader::new(file).lines();
+            let mut file = File::open(replay_path)?;
+            let mut s = String::new();
+
+            // This is a bit complex. We first try to open the file as
+            // a gzip. If that fails, we'll rewind the file position
+            // and try again as a text file containing the rewind info
+            // directly.
+            #[allow(clippy::type_complexity)]
+            let mut lines: Box<dyn Iterator<Item = Result<String, Box<dyn Error>>>> = {
+                let mut d = GzDecoder::new(&file);
+                if d.read_to_string(&mut s).is_ok() {
+                    log::info!("Trying to read the replay file as gzip-compressed");
+                    Box::new(s.lines().map(String::from).map(Ok))
+                } else {
+                    log::info!("Trying reading the file directly as a text file");
+                    file.rewind()?;
+                    Box::new(
+                        BufReader::new(&file)
+                            .lines()
+                            .map(|r| r.map_err(|e| Box::new(e) as Box<dyn Error>)),
+                    )
+                }
+            };
+
             let seed: u32 = match lines.next() {
                 Some(seed_str) => seed_str?.parse()?,
                 None => throw!("The replay file is empty."),

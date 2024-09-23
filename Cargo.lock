@@ -679,6 +679,7 @@ dependencies = [
  "clap",
  "cstr",
  "egui",
+ "flate2",
  "gilrs",
  "gl",
  "glutin",

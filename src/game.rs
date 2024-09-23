@@ -253,7 +253,7 @@ pub fn update(
     }
 
     // Quit the game when Q is pressed or on replay and requested
-    if (!state.player.alive() && state.exit_after)
+    if ((state.side == Side::Victory || !state.player.alive()) && state.exit_after)
         || (state.replay
             && state.exit_after
             && (state.inputs.is_empty()

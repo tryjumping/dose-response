@@ -642,15 +642,6 @@ Reason: '{}'.",
     pub fn mouse_world_position(&self) -> Point {
         self.screen_left_top_corner() + self.mouse.tile_pos
     }
-
-    pub fn try_clone(&self) -> Option<Self> {
-        // TODO: this is a poor man's `Clone`. Just implement `Clone` on `State`?
-        // And then do the same at the bottom of the function too.
-        bincode::serialize(self)
-            .map(|data| bincode::deserialize_from(&*data).ok())
-            .ok()
-            .flatten()
-    }
 }
 
 #[derive(Clone, Debug)]

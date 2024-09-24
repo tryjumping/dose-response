@@ -21,7 +21,10 @@ use crate::{
     rect::Rectangle,
     render,
     settings::{Settings, Store as SettingsStore},
-    state::{self, Challenge, Command, GameSession, Input, MotionAnimation, Side, State},
+    state::{
+        self, Challenge, Command, GameSession, Input, MotionAnimation, Side, State,
+        VerificationWrapper,
+    },
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
     ui, util,
@@ -200,12 +203,17 @@ pub fn update(
             keys: new_keys.to_vec(),
             mouse,
             tick_id: state.tick_id,
-            verification: None,
+            verification: VerificationWrapper::None,
         };
 
         if cfg!(feature = "verifications") {
             // NOTE: we're not logging a verification every frame!
-            i.verification = Some(state.verification());
+
+            // NOTE: this logs the fill verification
+            //i.verification = VerificationWrapper::Verification(verification);
+
+            let hash = state.verification().hash();
+            i.verification = VerificationWrapper::Hash(*hash.as_bytes());
         }
         i
     };
@@ -225,9 +233,20 @@ pub fn update(
         if let Some(input) = state.inputs.get(replay_input_index) {
             assert_eq!(state.tick_id, input.tick_id);
 
-            if let Some(expected) = &input.verification {
-                let actual = state.verification();
-                verify_states(expected, &actual);
+            match &input.verification {
+                VerificationWrapper::Verification(expected) => {
+                    let actual = state.verification();
+                    verify_states(expected, &actual);
+                }
+                VerificationWrapper::Hash(replay_hash_bytes) => {
+                    let replay_hash = blake3::Hash::from_bytes(*replay_hash_bytes);
+                    let actual_hash = state.verification().hash();
+                    assert_eq!(replay_hash, actual_hash);
+                }
+
+                // NOTE: by definition, the lack of a verification is
+                // treated as an automatic pass:
+                VerificationWrapper::None => (),
             }
 
             state.keys.extend(input.keys.iter().copied());

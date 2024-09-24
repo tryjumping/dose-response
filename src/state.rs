@@ -90,11 +90,18 @@ pub enum Command {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum VerificationWrapper {
+    Verification(Verification),
+    None,
+    Hash([u8; 32]),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Input {
     pub keys: Vec<Key>,
     pub mouse: Mouse,
     pub tick_id: i32,
-    pub verification: Option<Verification>,
+    pub verification: VerificationWrapper,
 }
 
 pub fn generate_replay_path() -> Option<PathBuf> {
@@ -128,6 +135,22 @@ pub struct Verification {
     pub chunk_count: usize,
     pub player_pos: Point,
     pub monsters: Vec<(Point, Point, monster::Kind)>,
+}
+
+impl Verification {
+    pub fn hash(&self) -> blake3::Hash {
+        let bytes = match serde_json::to_vec(self) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                log::error!(
+                    "Could not convert Verification to a JSON byte array: {:?}",
+                    e
+                );
+                vec![]
+            }
+        };
+        blake3::hash(&bytes)
+    }
 }
 
 #[derive(Serialize, Deserialize)]

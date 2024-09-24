@@ -130,6 +130,7 @@ pub fn generate_replay_path() -> Option<PathBuf> {
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Verification {
+    // NOTE: WARNING: Any time you change the fields here, update the `Verification::hash` method!
     pub turn: i32,
     pub tick_id: i32,
     pub chunk_count: usize,
@@ -139,17 +140,34 @@ pub struct Verification {
 
 impl Verification {
     pub fn hash(&self) -> blake3::Hash {
-        let bytes = match serde_json::to_vec(self) {
-            Ok(bytes) => bytes,
-            Err(e) => {
-                log::error!(
-                    "Could not convert Verification to a JSON byte array: {:?}",
-                    e
-                );
-                vec![]
-            }
-        };
-        blake3::hash(&bytes)
+        let mut hasher = blake3::Hasher::new();
+
+        hasher.update(&self.turn.to_le_bytes());
+        hasher.update(&self.tick_id.to_le_bytes());
+        hasher.update(&self.chunk_count.to_le_bytes());
+        hasher.update(&self.player_pos.x.to_le_bytes());
+        hasher.update(&self.player_pos.y.to_le_bytes());
+
+        for (monster_pos, chunk_pos, monster_kind) in &self.monsters {
+            hasher.update(&monster_pos.x.to_le_bytes());
+            hasher.update(&monster_pos.y.to_le_bytes());
+            hasher.update(&chunk_pos.x.to_le_bytes());
+            hasher.update(&chunk_pos.y.to_le_bytes());
+
+            let kind_byte: u8 = match monster_kind {
+                monster::Kind::Anxiety => 1,
+                monster::Kind::Depression => 2,
+                monster::Kind::Hunger => 3,
+                monster::Kind::Shadows => 4,
+                monster::Kind::Voices => 5,
+                monster::Kind::Npc => 6,
+                monster::Kind::Signpost => 7,
+            };
+
+            hasher.update(&[kind_byte]);
+        }
+
+        hasher.finalize()
     }
 }
 

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-for f in replays/e2e-tests/*; do
+for f in replays/e2e-tests/*.gz; do
     printf "\nRunning test: $f\n"
     /usr/bin/time --format "Elapsed: %e seconds" cargo run --release -- --quiet --headless --exit-after --replay-full-speed "$f"
 done

@@ -278,7 +278,13 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             );
         }
         let replay_file = match matches.value_of("replay-file") {
-            Some(file) => Some(file.into()),
+            Some(file) => {
+                let replay_path: std::path::PathBuf = file.into();
+                if replay_path.exists() {
+                    throw!("The replay file provided by the `--replay-file` option exists already. Not going to overwrite it, aborting.");
+                }
+                Some(replay_path)
+            }
             None => state::generate_replay_path(),
         };
         let mut state = state::State::new_game(

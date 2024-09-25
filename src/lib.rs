@@ -121,7 +121,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         .arg(
             Arg::with_name("debug")
                 .long("debug")
-                .help("Print debug-level info. This can be really verbose."),
+                .help("Debug mode. Output detailed messages and replay logs. This can be really verbose and take up massive amounts of space."),
         );
 
     if cfg!(feature = "cheating") {
@@ -266,6 +266,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             matches.is_present("invincible"),
             matches.is_present("replay-full-speed"),
             matches.is_present("exit-after"),
+            matches.is_present("debug"),
             challenge,
             palette,
         )?
@@ -285,6 +286,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             point::Point::from_i32(DISPLAYED_MAP_SIZE),
             PANEL_WIDTH,
             matches.is_present("exit-after"),
+            matches.is_present("debug"),
             replay_file,
             challenge,
             palette,

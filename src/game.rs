@@ -208,12 +208,12 @@ pub fn update(
 
         if cfg!(feature = "verifications") {
             // NOTE: we're not logging a verification every frame!
-
-            // NOTE: this logs the fill verification
-            //i.verification = VerificationWrapper::Verification(verification);
-
-            let hash = state.verification().hash();
-            i.verification = VerificationWrapper::Hash(*hash.as_bytes());
+            if state.debug {
+                i.verification = VerificationWrapper::Verification(state.verification());
+            } else {
+                let hash = state.verification().hash();
+                i.verification = VerificationWrapper::Hash(*hash.as_bytes());
+            }
         }
         i
     };
@@ -2039,6 +2039,7 @@ pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
         state.map_size,
         state.panel_width,
         state.exit_after,
+        state.debug,
         state::generate_replay_path(),
         new_challenge,
         state.palette,

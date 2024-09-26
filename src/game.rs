@@ -296,7 +296,9 @@ pub fn update(
         && state.side == Side::Player
         && state.window_stack.top() == Window::Game
         && !state.paused
-        && state.player.ap() == 1
+        && state.player.ap() > 0
+        && state.explosion_animation.is_none()
+        && state.extra_animations.is_empty()
         && state.keys.is_empty()
         && victory_npc_accompanies_player.is_none()
     {

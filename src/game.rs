@@ -299,6 +299,7 @@ pub fn update(
         && state.player.ap() > 0
         && state.explosion_animation.is_none()
         && state.extra_animations.is_empty()
+        && state.pos_timer.finished()
         && state.keys.is_empty()
         && victory_npc_accompanies_player.is_none()
     {

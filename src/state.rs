@@ -90,11 +90,18 @@ pub enum Command {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum VerificationWrapper {
+    Verification(Verification),
+    None,
+    Hash([u8; 32]),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Input {
     pub keys: Vec<Key>,
     pub mouse: Mouse,
     pub tick_id: i32,
-    pub verification: Option<Verification>,
+    pub verification: VerificationWrapper,
 }
 
 pub fn generate_replay_path() -> Option<PathBuf> {
@@ -123,11 +130,45 @@ pub fn generate_replay_path() -> Option<PathBuf> {
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Verification {
+    // NOTE: WARNING: Any time you change the fields here, update the `Verification::hash` method!
     pub turn: i32,
     pub tick_id: i32,
     pub chunk_count: usize,
     pub player_pos: Point,
     pub monsters: Vec<(Point, Point, monster::Kind)>,
+}
+
+impl Verification {
+    pub fn hash(&self) -> blake3::Hash {
+        let mut hasher = blake3::Hasher::new();
+
+        hasher.update(&self.turn.to_le_bytes());
+        hasher.update(&self.tick_id.to_le_bytes());
+        hasher.update(&self.chunk_count.to_le_bytes());
+        hasher.update(&self.player_pos.x.to_le_bytes());
+        hasher.update(&self.player_pos.y.to_le_bytes());
+
+        for (monster_pos, chunk_pos, monster_kind) in &self.monsters {
+            hasher.update(&monster_pos.x.to_le_bytes());
+            hasher.update(&monster_pos.y.to_le_bytes());
+            hasher.update(&chunk_pos.x.to_le_bytes());
+            hasher.update(&chunk_pos.y.to_le_bytes());
+
+            let kind_byte: u8 = match monster_kind {
+                monster::Kind::Anxiety => 1,
+                monster::Kind::Depression => 2,
+                monster::Kind::Hunger => 3,
+                monster::Kind::Shadows => 4,
+                monster::Kind::Voices => 5,
+                monster::Kind::Npc => 6,
+                monster::Kind::Signpost => 7,
+            };
+
+            hasher.update(&[kind_byte]);
+        }
+
+        hasher.finalize()
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -175,6 +216,7 @@ pub struct State {
     pub replay: bool,
     pub replay_full_speed: bool,
     pub exit_after: bool,
+    pub debug: bool,
     pub clock: Duration,
     pub replay_step: Duration,
     #[serde(skip_serializing, skip_deserializing)]
@@ -239,6 +281,7 @@ impl State {
         replay: bool,
         replay_full_speed: bool,
         exit_after: bool,
+        debug: bool,
         challenge: Challenge,
         palette: Palette,
     ) -> State {
@@ -298,6 +341,7 @@ impl State {
             replay,
             replay_full_speed,
             exit_after,
+            debug,
             clock: Duration::new(0, 0),
             replay_step: Duration::new(0, 0),
             stats: Default::default(),
@@ -339,6 +383,7 @@ impl State {
         map_size: Point,
         panel_width: i32,
         exit_after: bool,
+        debug: bool,
         replay_path: Option<PathBuf>,
         challenge: Challenge,
         palette: Palette,
@@ -403,6 +448,7 @@ Reason: '{}'.",
             replay,
             replay_full_speed,
             exit_after,
+            debug,
             challenge,
             palette,
         )
@@ -418,15 +464,40 @@ Reason: '{}'.",
         invincible: bool,
         replay_full_speed: bool,
         exit_after: bool,
+        debug: bool,
         challenge: Challenge,
         palette: Palette,
     ) -> Result<State, Box<dyn Error>> {
         #[cfg(feature = "replay")]
         {
-            use std::io::{BufRead, BufReader};
+            use flate2::read::GzDecoder;
+            use std::io::{BufRead, BufReader, Read, Seek};
+
             let mut inputs = VecDeque::new();
-            let file = File::open(replay_path)?;
-            let mut lines = BufReader::new(file).lines();
+            let mut file = File::open(replay_path)?;
+            let mut s = String::new();
+
+            // This is a bit complex. We first try to open the file as
+            // a gzip. If that fails, we'll rewind the file position
+            // and try again as a text file containing the rewind info
+            // directly.
+            #[allow(clippy::type_complexity)]
+            let mut lines: Box<dyn Iterator<Item = Result<String, Box<dyn Error>>>> = {
+                let mut d = GzDecoder::new(&file);
+                if d.read_to_string(&mut s).is_ok() {
+                    log::info!("Trying to read the replay file as gzip-compressed");
+                    Box::new(s.lines().map(String::from).map(Ok))
+                } else {
+                    log::info!("Trying reading the file directly as a text file");
+                    file.rewind()?;
+                    Box::new(
+                        BufReader::new(&file)
+                            .lines()
+                            .map(|r| r.map_err(|e| Box::new(e) as Box<dyn Error>)),
+                    )
+                }
+            };
+
             let seed: u32 = match lines.next() {
                 Some(seed_str) => seed_str?.parse()?,
                 None => throw!("The replay file is empty."),
@@ -499,6 +570,7 @@ Reason: '{}'.",
                 replay,
                 replay_full_speed,
                 exit_after,
+                debug,
                 challenge,
                 palette,
             );
@@ -514,6 +586,7 @@ Reason: '{}'.",
                 map_size,
                 panel_width,
                 exit_after,
+                debug,
                 None,
                 challenge,
                 palette,
@@ -617,15 +690,6 @@ Reason: '{}'.",
 
     pub fn mouse_world_position(&self) -> Point {
         self.screen_left_top_corner() + self.mouse.tile_pos
-    }
-
-    pub fn try_clone(&self) -> Option<Self> {
-        // TODO: this is a poor man's `Clone`. Just implement `Clone` on `State`?
-        // And then do the same at the bottom of the function too.
-        bincode::serialize(self)
-            .map(|data| bincode::deserialize_from(&*data).ok())
-            .ok()
-            .flatten()
     }
 }
 

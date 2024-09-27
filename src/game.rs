@@ -21,7 +21,10 @@ use crate::{
     rect::Rectangle,
     render,
     settings::{Settings, Store as SettingsStore},
-    state::{self, Challenge, Command, GameSession, Input, MotionAnimation, Side, State},
+    state::{
+        self, Challenge, Command, GameSession, Input, MotionAnimation, Side, State,
+        VerificationWrapper,
+    },
     stats::{FrameStats, Stats},
     timer::{Stopwatch, Timer},
     ui, util,
@@ -200,12 +203,17 @@ pub fn update(
             keys: new_keys.to_vec(),
             mouse,
             tick_id: state.tick_id,
-            verification: None,
+            verification: VerificationWrapper::None,
         };
 
         if cfg!(feature = "verifications") {
             // NOTE: we're not logging a verification every frame!
-            i.verification = Some(state.verification());
+            if state.debug {
+                i.verification = VerificationWrapper::Verification(state.verification());
+            } else {
+                let hash = state.verification().hash();
+                i.verification = VerificationWrapper::Hash(*hash.as_bytes());
+            }
         }
         i
     };
@@ -225,9 +233,20 @@ pub fn update(
         if let Some(input) = state.inputs.get(replay_input_index) {
             assert_eq!(state.tick_id, input.tick_id);
 
-            if let Some(expected) = &input.verification {
-                let actual = state.verification();
-                verify_states(expected, &actual);
+            match &input.verification {
+                VerificationWrapper::Verification(expected) => {
+                    let actual = state.verification();
+                    verify_states(expected, &actual);
+                }
+                VerificationWrapper::Hash(replay_hash_bytes) => {
+                    let replay_hash = blake3::Hash::from_bytes(*replay_hash_bytes);
+                    let actual_hash = state.verification().hash();
+                    assert_eq!(replay_hash, actual_hash);
+                }
+
+                // NOTE: by definition, the lack of a verification is
+                // treated as an automatic pass:
+                VerificationWrapper::None => (),
             }
 
             state.keys.extend(input.keys.iter().copied());
@@ -277,7 +296,9 @@ pub fn update(
         && state.side == Side::Player
         && state.window_stack.top() == Window::Game
         && !state.paused
-        && state.player.ap() == 1
+        && state.player.ap() > 0
+        && state.explosion_animation.is_none()
+        && state.extra_animations.is_empty()
         && state.keys.is_empty()
         && victory_npc_accompanies_player.is_none()
     {
@@ -2020,6 +2041,7 @@ pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
         state.map_size,
         state.panel_width,
         state.exit_after,
+        state.debug,
         state::generate_replay_path(),
         new_challenge,
         state.palette,

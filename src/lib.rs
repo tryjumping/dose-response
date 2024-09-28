@@ -256,6 +256,17 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                  game, not replay."
             );
         }
+
+        // Always exit after the replay finishes when in the headless
+        // mode. Otherwise the game will loop on the end-game screen
+        // and since there's no way to interact with the headless
+        // mode, it'll never exit.
+        let exit_after = if matches.is_present("headless") {
+            true
+        } else {
+            matches.is_present("exit-after")
+        };
+
         let replay_path = std::path::Path::new(replay);
         state::State::replay_game(
             WORLD_SIZE,
@@ -265,7 +276,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             matches.is_present("cheating"),
             matches.is_present("invincible"),
             matches.is_present("replay-full-speed"),
-            matches.is_present("exit-after"),
+            exit_after,
             matches.is_present("debug"),
             challenge,
             palette,

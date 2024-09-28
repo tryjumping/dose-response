@@ -672,14 +672,7 @@ fn process_game(
     }
 
     if cfg!(feature = "cheating") && state.keys.matches_code(KeyCode::V) && state.cheating {
-        let vnpc_pos = place_victory_npc(state);
-
-        // NOTE: Scroll to the Victory NPC position
-        {
-            state.pos_timer = Timer::new(Duration::from_millis(3000));
-            state.old_screen_pos = state.screen_position_in_world;
-            state.new_screen_pos = vnpc_pos;
-        }
+        place_victory_npc(state);
     }
 
     // TODO: NOTE: this now doesn't work on replays because state.keys only contains the replay keys
@@ -1683,11 +1676,7 @@ fn process_player(
     // Place the Victory NPC if the player behaved themself.
     if state.player.will.is_max() && !state.player.mind.is_high() && state.victory_npc_id.is_none()
     {
-        let vnpc_pos = place_victory_npc(state);
-        // NOTE: Scroll to the Victory NPC position
-        state.pos_timer = Timer::new(Duration::from_millis(2000));
-        state.old_screen_pos = state.screen_position_in_world;
-        state.new_screen_pos = vnpc_pos;
+        place_victory_npc(state);
     }
 
     // Set the longest high streak
@@ -2198,6 +2187,12 @@ fn place_victory_npc(state: &mut State) -> Point {
         let id = chunk.add_monster(monster);
         state.victory_npc_id = Some(id);
     }
+
+    // NOTE: Scroll to the Victory NPC position
+    let ms = if state.replay_full_speed { 1000 } else { 2000 };
+    state.pos_timer = Timer::new(Duration::from_millis(ms));
+    state.old_screen_pos = state.screen_position_in_world;
+    state.new_screen_pos = vnpc_pos;
 
     vnpc_pos
 }

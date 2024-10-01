@@ -9,7 +9,7 @@ edition = "2021"
 license = "AGPL-3.0-or-later"
 build = "build.rs"
 default-run = "dose-response"
-exclude = ["bin/*", "scripts/*", "replays/*", "screenshots/*", "ci/*", "Makefile",
+exclude = ["bin/*", "scripts/*", "replays/*", "screenshots/*", "ci/*", "Makefile", "e2e-tests",
            "web-src/*", "*.js", "*.css", "*.html",
            "notes.org", "SAVEDGAME.sav", "out-dir-path", "dose-response.log",
            "videos/*", "*.mp4", "third-party-licenses.html"]

@@ -6,12 +6,7 @@ check:
 	cargo check
 .PHONY: check
 
-package-release:
-	cargo check
-	cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
-	cargo clippy
-	cargo build
-	cargo test --all-targets
+package-release: cargo-all-tests e2e-tests
 	cargo install cargo-about --version "0.6.1"
 	cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
 	cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
@@ -22,6 +17,14 @@ package-release:
 steam-deck:
 	bin/container-build.sh
 .PHONY: steam-deck
+
+cargo-all-tests:
+	cargo check
+	cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
+	cargo clippy
+	cargo build
+	cargo test --all-targets
+.PHONY: cargo-all-tests
 
 e2e-tests:
 	/usr/bin/time --format "All tests: %e seconds" bin/e2e-tests.sh

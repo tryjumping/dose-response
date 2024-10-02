@@ -56,9 +56,9 @@ use simplelog::Config;
 // So instead, we've narrowed the sidebar to 17 tiles (just enough to
 // make every withdrawal step show up). That means we don't maintain
 // the perfect aspect ratio, but it seems to be good enough.
-const DISPLAYED_MAP_SIZE: i32 = 30;
+pub const DISPLAYED_MAP_SIZE: i32 = 30;
 
-const PANEL_WIDTH: i32 = 17;
+pub const PANEL_WIDTH: i32 = 17;
 
 #[allow(unused_variables, dead_code, clippy::needless_pass_by_value)]
 fn run_glutin(
@@ -256,6 +256,17 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                  game, not replay."
             );
         }
+
+        // Always exit after the replay finishes when in the headless
+        // mode. Otherwise the game will loop on the end-game screen
+        // and since there's no way to interact with the headless
+        // mode, it'll never exit.
+        let exit_after = if matches.is_present("headless") {
+            true
+        } else {
+            matches.is_present("exit-after")
+        };
+
         let replay_path = std::path::Path::new(replay);
         state::State::replay_game(
             WORLD_SIZE,
@@ -265,7 +276,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             matches.is_present("cheating"),
             matches.is_present("invincible"),
             matches.is_present("replay-full-speed"),
-            matches.is_present("exit-after"),
+            exit_after,
             matches.is_present("debug"),
             challenge,
             palette,

@@ -6,12 +6,7 @@ check:
 	cargo check
 .PHONY: check
 
-package-release:
-	cargo check
-	cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
-	cargo clippy
-	cargo build
-	cargo test --all-targets
+package-release: cargo-all-tests
 	cargo install cargo-about --version "0.6.1"
 	cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
 	cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
@@ -23,9 +18,13 @@ steam-deck:
 	bin/container-build.sh
 .PHONY: steam-deck
 
-e2e-tests:
-	/usr/bin/time --format "All tests: %e seconds" bin/e2e-tests.sh
-.PHONY: e2e-tests
+cargo-all-tests:
+	cargo check
+	cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
+	cargo clippy
+	cargo build
+	cargo test --release --all-targets  # NOTE: needs to be in release. Replays take too long otherwise
+.PHONY: cargo-all-tests
 
 replay:
 	cargo run -- `find replays -type f -name 'replay-*' | sort | tail -n 1`

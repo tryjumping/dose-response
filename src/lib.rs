@@ -56,9 +56,9 @@ use simplelog::Config;
 // So instead, we've narrowed the sidebar to 17 tiles (just enough to
 // make every withdrawal step show up). That means we don't maintain
 // the perfect aspect ratio, but it seems to be good enough.
-const DISPLAYED_MAP_SIZE: i32 = 30;
+pub const DISPLAYED_MAP_SIZE: i32 = 30;
 
-const PANEL_WIDTH: i32 = 17;
+pub const PANEL_WIDTH: i32 = 17;
 
 #[allow(unused_variables, dead_code, clippy::needless_pass_by_value)]
 fn run_glutin(

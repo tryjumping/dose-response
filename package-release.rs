@@ -1,3 +1,16 @@
+---cargo
+[dependencies]
+anyhow = "1.0"
+current_platform = "0.2"
+chrono = "0.4"
+flate2 = "1.0"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "default-tls"] }
+rusty-s3 = { version = "0.5", default-features = false }
+tar = "0.4"
+walkdir = "2.5"
+zip = { version = "1.1", default-features = false }
+---
+
 use std::{
     env,
     fs::{self, File},

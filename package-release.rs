@@ -108,6 +108,31 @@ fn publish_text(contents: &str, destination_path: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn upload_package(signed_url: reqwest::Url, archive_path: &str) -> anyhow::Result<()> {
+    let ten_minutes = std::time::Duration::from_secs(600);
+    let archive_file = File::open(archive_path)?;
+    let client = reqwest::blocking::Client::new()
+	.put(signed_url)
+	.body(archive_file)
+        // NOTE: the default value is 30 seconds, that's not enough for the upload:
+	.timeout(ten_minutes);
+
+    let upload_start = Instant::now();
+    let res = client.send().with_context(|| {
+	let upload_duration = upload_start.elapsed().as_secs_f32();
+	format!("Request took: {upload_duration} seconds, before erroring out.")
+    })?;
+    let upload_duration = upload_start.elapsed().as_secs_f32();
+    println!("Request took: {upload_duration} seconds.");
+
+    if res.status() == 200 {
+	Ok(())
+    } else {
+	dbg!(res);
+	Err(anyhow::anyhow!("Failed to upload release"))
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 enum OS {
     Linux,
@@ -313,31 +338,25 @@ fn main() -> anyhow::Result<()> {
             let object_name =
                 format!("/{release_destination}/{release_version}/{archive_file_name}");
 
-            let action = actions::PutObject::new(&bucket, Some(&creds), &object_name);
-            let ten_minutes = std::time::Duration::from_secs(600);
-            let signed_url = action.sign(ten_minutes);
-
-            let archive_file = File::open(archive_path)?;
-            let client = reqwest::blocking::Client::new()
-                .put(signed_url)
-                .body(archive_file)
-				// NOTE: the default value is 30 seconds, that's not enough for the upload:
-				.timeout(ten_minutes);
-            println!("Uploading to: {object_name}");
-            let upload_start = Instant::now();
-            let res = client.send().with_context(|| {
-                let upload_duration = upload_start.elapsed().as_secs_f32();
-                format!("Request took: {upload_duration} seconds, before erroring out.")
-            })?;
-            let upload_duration = upload_start.elapsed().as_secs_f32();
-            println!("Request took: {upload_duration} seconds.");
-
-            if res.status() == 200 {
-                println!("Release archive uploaded successfully.");
-            } else {
-                dbg!(res);
-                anyhow::bail!("Failed to upload the release.");
-            }
+	    println!("Uploading to: {object_name}");
+	    for n in 1..5 {
+		let action = actions::PutObject::new(&bucket, Some(&creds), &object_name);
+		let ten_minutes = std::time::Duration::from_secs(600);
+		let signed_url = action.sign(ten_minutes);
+		match upload_package(signed_url, &archive_path) {
+		    Ok(()) => {
+			println!("Release archive uploaded successfully.");
+			break;
+		    }
+		    Err(_) => {
+			let backoff = 2_u64.pow(n);
+			eprintln!("Attempt {n} failed. Backing off for {backoff} seconds...");
+			std::thread::sleep(std::time::Duration::from_secs(backoff));
+			eprintln!("Trying again...");
+		    }
+		}
+	    }
+	    anyhow::bail!("Failed to upload the release.");
         }
     } else {
         println!("Release upload not requested, we're done here.");

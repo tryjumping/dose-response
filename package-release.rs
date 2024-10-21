@@ -324,13 +324,16 @@ fn main() -> anyhow::Result<()> {
 
     println!("Archive path: {archive_path}");
 
+    // TODO: remove this:
+    let upload_release = true;
+
     if upload_release {
         if aws_access_key_id.is_empty() || aws_secret_access_key.is_empty() {
             println!("AWS credentials not provided, skipping release upload.");
         } else {
             use rusty_s3::{actions, Bucket, Credentials, S3Action, UrlStyle};
             println!("Uploading the release to S3...");
-            let endpoint = format!("https://s3.{region_name}.amazonaws.com/").parse()?;
+            let endpoint = format!("https://s3.{region_name}.amazonaws.como/").parse()?;
             let path_style = UrlStyle::VirtualHost;
             let bucket = Bucket::new(endpoint, path_style, bucket_name, region_name)?;
             let creds = Credentials::new(aws_access_key_id, aws_secret_access_key);

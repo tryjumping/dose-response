@@ -11,7 +11,7 @@ package-release: cargo-all-tests
 	cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
 	cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
 	rm -rf target/out target/package.zip
-	cargo run --manifest-path bin/Cargo.toml --bin package-release
+	cargo +nightly -Zscript package-release.rs
 .PHONY: package-release
 
 steam-deck:

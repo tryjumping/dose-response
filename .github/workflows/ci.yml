@@ -54,5 +54,7 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION_NAME }}
+    - name: Install Rust Nightly
+      run: "rustup install nightly"
     - name: Check, build and upload the release
       run: "make package-release"

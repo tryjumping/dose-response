@@ -346,7 +346,7 @@ fn main() -> anyhow::Result<()> {
 		match upload_package(signed_url, &archive_path) {
 		    Ok(()) => {
 			println!("Release archive uploaded successfully.");
-			break;
+			return Ok(())
 		    }
 		    Err(_) => {
 			let backoff = 2_u64.pow(n);

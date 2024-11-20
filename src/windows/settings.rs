@@ -3,7 +3,7 @@ use crate::{
     engine::{self, Display, VisualStyle},
     game::RunningState,
     gamepad::Gamepad,
-    keys::KeyCode,
+    keys::{KeyCode, Keys},
     settings::{Palette, Settings, Store as SettingsStore},
     state::State,
     ui,
@@ -28,6 +28,10 @@ pub enum Action {
     SoundVolume(f32),
     Back,
     Apply,
+}
+
+fn option_pressed(keys: &mut Keys) -> bool {
+    keys.matches(|k| matches!(k.code, KeyCode::Enter | KeyCode::Space))
 }
 
 pub fn process(
@@ -184,7 +188,7 @@ Unchecked: Depression moves one tile per turn.",
                     );
                 if state.selected_settings_position == FAST_DEPRESSION {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         settings.fast_depression = !settings.fast_depression;
                         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                     }
@@ -207,7 +211,7 @@ Unchecked: all player effects are removed on losing. The game continues.",
                     );
                 if state.selected_settings_position == PERMADEATH {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         settings.permadeath = !settings.permadeath;
                         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                     }
@@ -227,7 +231,7 @@ Unchecked: the entire map is uncovered.",
                     );
                 if state.selected_settings_position == HIDE_UNSEEN_TILES {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         settings.hide_unseen_tiles = !settings.hide_unseen_tiles;
                         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                     }
@@ -253,7 +257,7 @@ Unchecked: the entire map is uncovered.",
                     );
                     if state.selected_settings_position == Some((1, c1_row_index)) {
                         resp.request_focus();
-                        if state.keys.matches_code(KeyCode::Enter) {
+                        if option_pressed(&mut state.keys) {
                             action = Some(Action::TileSize(tile_size));
                             audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                         }
@@ -280,7 +284,7 @@ Unchecked: the entire map is uncovered.",
                     );
                     if state.selected_settings_position == Some((1, c1_row_index)) {
                         resp.request_focus();
-                        if state.keys.matches_code(KeyCode::Enter) {
+                        if option_pressed(&mut state.keys) {
                             action = Some(Action::TextSize(text_size));
                             audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                         }
@@ -301,7 +305,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[1].checkbox(&mut play_music, "Play [M]usic");
                 if state.selected_settings_position == BACKGROUND_VOLUME {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         let volume = match play_music {
                             true => 0.0,
                             false => 1.0,
@@ -324,7 +328,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[1].checkbox(&mut play_sound, "Play So[u]nd");
                 if state.selected_settings_position == SOUND_VOLUME {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         let volume = match play_sound {
                             true => 0.0,
                             false => 1.0,
@@ -347,7 +351,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[2].radio(settings.fullscreen, "[F]ullscreen");
                 if state.selected_settings_position == FULLSCREEN {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Fullscreen);
                     }
                 } else {
@@ -361,7 +365,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[2].radio(!settings.fullscreen, "[W]indowed");
                 if state.selected_settings_position == WINDOWED {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Window);
                     }
                 } else {
@@ -380,7 +384,7 @@ Unchecked: the entire map is uncovered.",
                 );
                 if state.selected_settings_position == GRAPHICAL {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::VisualStyle(VisualStyle::Graphical));
                     }
                 } else {
@@ -397,7 +401,7 @@ Unchecked: the entire map is uncovered.",
                 );
                 if state.selected_settings_position == TEXTUAL {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::VisualStyle(VisualStyle::Textual));
                     }
                 } else {
@@ -413,7 +417,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[2].radio(settings.palette == Palette::Classic, "Cla[s]sic");
                 if state.selected_settings_position == CLASSIC {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Palette(Palette::Classic));
                     }
                 } else {
@@ -427,7 +431,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[2].radio(settings.palette == Palette::Accessible, "A[c]cessible");
                 if state.selected_settings_position == ACCESSIBLE {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Palette(Palette::Accessible));
                     }
                 } else {
@@ -441,7 +445,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[2].radio(settings.palette == Palette::Greyscale, "G[r]eyscale");
                 if state.selected_settings_position == GREYSCALE {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Palette(Palette::Greyscale));
                     }
                 } else {
@@ -460,7 +464,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = ui::button(ui, "[A]ccept Changes", true, &state.palette);
                 if state.selected_settings_position == APPLY {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Apply);
                     }
                 } else {
@@ -474,7 +478,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = ui::button(ui, "[D]iscard Changes", true, &state.palette);
                 if state.selected_settings_position == BACK {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Back);
                     }
                 } else {

@@ -3,7 +3,7 @@ use crate::{
     engine::{self, Display, VisualStyle},
     game::RunningState,
     gamepad::Gamepad,
-    keys::KeyCode,
+    keys::{KeyCode, Keys},
     settings::{Palette, Settings, Store as SettingsStore},
     state::State,
     ui,
@@ -28,6 +28,10 @@ pub enum Action {
     SoundVolume(f32),
     Back,
     Apply,
+}
+
+fn option_pressed(keys: &mut Keys) -> bool {
+    keys.matches(|k| matches!(k.code, KeyCode::Enter | KeyCode::Space))
 }
 
 pub fn process(
@@ -145,6 +149,22 @@ pub fn process(
         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
     }
 
+    // When we're navigating the menus using keyboard arrows, we
+    // shouldn't clear the focus on the current option after we've
+    // toggled it. That's an unexpected interaction and makes it
+    // harder to flip options back and forth.
+    //
+    // But when we set the option either using a mouse or by pressing
+    // the keyboard shortcut directly, having the keyboard focus on
+    // another option is confusing so we want to clear it there.
+    //
+    // Here's where we track whether we should keep focus on the
+    // current UI element or clear it.
+    //
+    // A future improvement could be *moving* the focus to the clicked
+    // element rather than clearing it entirely.
+    let mut clear_keyboard_focus = false;
+
     egui::Window::new("Settings")
         .open(&mut visible)
         .collapsible(false)
@@ -168,7 +188,7 @@ Unchecked: Depression moves one tile per turn.",
                     );
                 if state.selected_settings_position == FAST_DEPRESSION {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         settings.fast_depression = !settings.fast_depression;
                         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                     }
@@ -177,7 +197,7 @@ Unchecked: Depression moves one tile per turn.",
                 }
                 if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
-                    state.selected_settings_position = None;
+                    clear_keyboard_focus = true;
                 }
 
                 // NOTE: this how do we handle persistentcases like
@@ -191,7 +211,7 @@ Unchecked: all player effects are removed on losing. The game continues.",
                     );
                 if state.selected_settings_position == PERMADEATH {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         settings.permadeath = !settings.permadeath;
                         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                     }
@@ -200,7 +220,7 @@ Unchecked: all player effects are removed on losing. The game continues.",
                 }
                 if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
-                    state.selected_settings_position = None;
+                    clear_keyboard_focus = true;
                 }
 
                 let resp = c[0]
@@ -211,7 +231,7 @@ Unchecked: the entire map is uncovered.",
                     );
                 if state.selected_settings_position == HIDE_UNSEEN_TILES {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         settings.hide_unseen_tiles = !settings.hide_unseen_tiles;
                         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                     }
@@ -220,7 +240,7 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
-                    state.selected_settings_position = None;
+                    clear_keyboard_focus = true;
                 }
 
                 let mut available_key_shortcut = 1;
@@ -237,7 +257,7 @@ Unchecked: the entire map is uncovered.",
                     );
                     if state.selected_settings_position == Some((1, c1_row_index)) {
                         resp.request_focus();
-                        if state.keys.matches_code(KeyCode::Enter) {
+                        if option_pressed(&mut state.keys) {
                             action = Some(Action::TileSize(tile_size));
                             audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                         }
@@ -246,6 +266,7 @@ Unchecked: the entire map is uncovered.",
                     }
                     if resp.clicked() {
                         action = Some(Action::TileSize(tile_size));
+                        clear_keyboard_focus = true;
                     };
                     available_key_shortcut += 1;
                     c1_row_index += 1;
@@ -263,7 +284,7 @@ Unchecked: the entire map is uncovered.",
                     );
                     if state.selected_settings_position == Some((1, c1_row_index)) {
                         resp.request_focus();
-                        if state.keys.matches_code(KeyCode::Enter) {
+                        if option_pressed(&mut state.keys) {
                             action = Some(Action::TextSize(text_size));
                             audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
                         }
@@ -272,6 +293,7 @@ Unchecked: the entire map is uncovered.",
                     }
                     if resp.clicked() {
                         action = Some(Action::TextSize(text_size));
+                        clear_keyboard_focus = true;
                     };
                     available_key_shortcut += 1;
                     c1_row_index += 1;
@@ -283,7 +305,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[1].checkbox(&mut play_music, "Play [M]usic");
                 if state.selected_settings_position == BACKGROUND_VOLUME {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         let volume = match play_music {
                             true => 0.0,
                             false => 1.0,
@@ -299,13 +321,14 @@ Unchecked: the entire map is uncovered.",
                         false => 0.0,
                     };
                     action = Some(Action::MusicVolume(volume));
+                    clear_keyboard_focus = true;
                 };
 
                 let mut play_sound = settings.sound_volume != 0.0;
                 let resp = c[1].checkbox(&mut play_sound, "Play So[u]nd");
                 if state.selected_settings_position == SOUND_VOLUME {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         let volume = match play_sound {
                             true => 0.0,
                             false => 1.0,
@@ -321,13 +344,14 @@ Unchecked: the entire map is uncovered.",
                         false => 0.0,
                     };
                     action = Some(Action::SoundVolume(volume));
+                    clear_keyboard_focus = true;
                 };
 
                 c[2].label("Display:");
                 let resp = c[2].radio(settings.fullscreen, "[F]ullscreen");
                 if state.selected_settings_position == FULLSCREEN {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Fullscreen);
                     }
                 } else {
@@ -335,12 +359,13 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::Fullscreen);
+                    clear_keyboard_focus = true;
                 }
 
                 let resp = c[2].radio(!settings.fullscreen, "[W]indowed");
                 if state.selected_settings_position == WINDOWED {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Window);
                     }
                 } else {
@@ -348,6 +373,7 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::Window);
+                    clear_keyboard_focus = true;
                 }
 
                 c[2].label("");
@@ -358,7 +384,7 @@ Unchecked: the entire map is uncovered.",
                 );
                 if state.selected_settings_position == GRAPHICAL {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::VisualStyle(VisualStyle::Graphical));
                     }
                 } else {
@@ -366,6 +392,7 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::VisualStyle(VisualStyle::Graphical));
+                    clear_keyboard_focus = true;
                 };
 
                 let resp = c[2].radio(
@@ -374,7 +401,7 @@ Unchecked: the entire map is uncovered.",
                 );
                 if state.selected_settings_position == TEXTUAL {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::VisualStyle(VisualStyle::Textual));
                     }
                 } else {
@@ -382,6 +409,7 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::VisualStyle(VisualStyle::Textual));
+                    clear_keyboard_focus = true;
                 };
 
                 c[2].label("");
@@ -389,7 +417,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = c[2].radio(settings.palette == Palette::Classic, "Cla[s]sic");
                 if state.selected_settings_position == CLASSIC {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Palette(Palette::Classic));
                     }
                 } else {
@@ -397,12 +425,13 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::Palette(Palette::Classic));
+                    clear_keyboard_focus = true;
                 };
 
                 let resp = c[2].radio(settings.palette == Palette::Accessible, "A[c]cessible");
                 if state.selected_settings_position == ACCESSIBLE {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Palette(Palette::Accessible));
                     }
                 } else {
@@ -410,12 +439,13 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::Palette(Palette::Accessible));
+                    clear_keyboard_focus = true;
                 };
 
                 let resp = c[2].radio(settings.palette == Palette::Greyscale, "G[r]eyscale");
                 if state.selected_settings_position == GREYSCALE {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Palette(Palette::Greyscale));
                     }
                 } else {
@@ -423,6 +453,7 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::Palette(Palette::Greyscale));
+                    clear_keyboard_focus = true;
                 };
             });
 
@@ -433,7 +464,7 @@ Unchecked: the entire map is uncovered.",
                 let resp = ui::button(ui, "[A]ccept Changes", true, &state.palette);
                 if state.selected_settings_position == APPLY {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Apply);
                     }
                 } else {
@@ -441,12 +472,13 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::Apply);
+                    clear_keyboard_focus = true;
                 }
 
                 let resp = ui::button(ui, "[D]iscard Changes", true, &state.palette);
                 if state.selected_settings_position == BACK {
                     resp.request_focus();
-                    if state.keys.matches_code(KeyCode::Enter) {
+                    if option_pressed(&mut state.keys) {
                         action = Some(Action::Back);
                     }
                 } else {
@@ -454,6 +486,7 @@ Unchecked: the entire map is uncovered.",
                 }
                 if resp.clicked() {
                     action = Some(Action::Back);
+                    clear_keyboard_focus = true;
                 }
             });
         });
@@ -505,6 +538,10 @@ Unchecked: the entire map is uncovered.",
         } else if state.keys.matches_code(KeyCode::T) {
             action = Some(Action::VisualStyle(VisualStyle::Textual));
         }
+
+        if action.is_some() {
+            clear_keyboard_focus = true;
+        }
     }
 
     if action.is_none() {
@@ -549,11 +586,18 @@ Unchecked: the entire map is uncovered.",
                 }
             }
         }
+
+        if action.is_some() {
+            clear_keyboard_focus = true;
+        }
+    }
+
+    if clear_keyboard_focus {
+        state.selected_settings_position = None;
     }
 
     if let Some(action) = action {
         audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
-        state.selected_settings_position = None;
         match action {
             Action::FastDepression => {
                 settings.fast_depression = !settings.fast_depression;
@@ -603,12 +647,14 @@ Unchecked: the entire map is uncovered.",
             Action::Back => {
                 *settings = settings_store.load();
                 state.window_stack.pop();
+                state.selected_settings_position = None;
             }
 
             Action::Apply => {
                 state.palette = settings.palette();
                 settings_store.save(settings);
                 state.window_stack.pop();
+                state.selected_settings_position = None;
             }
         }
     }

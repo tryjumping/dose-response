@@ -224,9 +224,7 @@ pub fn process(
         .show(ui.ctx(), |ui| {
             ScrollArea::vertical()
                 .max_height(window_size_px[1])
-				// NOTE: the factor of `50` just feels like a good scrolling distance
-                .scroll_offset((state.help_starting_line * 50) as f32)
-                .show(ui, |ui| {
+		.show(ui, |ui| {
                     // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
                     ui.set_min_height(window_size_px[1] - 7.0);
                     let copyright = format!("Copyright 2013-2024 {}", crate::metadata::AUTHORS);

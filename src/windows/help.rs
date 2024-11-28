@@ -341,6 +341,13 @@ pub fn process(
 			    ui.label(format!("Build profile: {}\nOptimisation level: {}\n\nBuild features: \n* {features}\n\nBuild configs: \n* {configs}\n\n", crate::metadata::PROFILE, crate::metadata::OPT_LEVEL));
                         }
                     };
+
+		    // This hack forces the contents to occupy the full width of the window
+		    // and put the scrollbars as far right as possible.
+		    ui.columns(1, |c| {
+			c[0].with_layout(egui::Layout::top_down(egui::Align::Center), |_| {},
+			);
+		    });
                 });
 
             // TODO: looks like the separator is no longer being rendered??

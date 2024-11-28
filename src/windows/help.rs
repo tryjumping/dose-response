@@ -216,119 +216,132 @@ pub fn process(
     ];
     let window_pos_px = [(screen_size_px.x as f32 - window_size_px[0]) / 2.0, 100.0];
 
+    let scroll_delta = ui.ctx().input().scroll_delta;
+
     egui::Window::new(format!("{}", state.current_help_window))
         .open(&mut visible)
         .collapsible(false)
         .fixed_pos(window_pos_px)
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
-            ScrollArea::vertical()
-                .max_height(window_size_px[1])
-		.show(ui, |ui| {
-                    // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
-                    ui.set_min_height(window_size_px[1] - 7.0);
-                    let copyright = format!("Copyright 2013-2024 {}", crate::metadata::AUTHORS);
-                    match state.current_help_window {
-                        Page::DoseResponse => {
-                            ui.label(OVERVIEW);
-                        }
+            let scroll_area = ScrollArea::vertical()
+                .max_height(window_size_px[1]);
+	    let scroll_area = if scroll_delta == egui::Vec2::ZERO {
+		match state.help_starting_line {
+		    Some(starting_line) => {
+			scroll_area.scroll_offset((starting_line * 50) as f32)
+		    }
+		    None => scroll_area
+		}
+	    } else {
+		state.help_starting_line = None;
+		scroll_area
+	    };
+	    scroll_area.show(ui, |ui| {
+                // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
+                ui.set_min_height(window_size_px[1] - 7.0);
+                let copyright = format!("Copyright 2013-2024 {}", crate::metadata::AUTHORS);
+                match state.current_help_window {
+                    Page::DoseResponse => {
+                        ui.label(OVERVIEW);
+                    }
 
-                        Page::Controls => {
-                            ui.label(CONTROLS_HEADER);
-                            ui.label(NUMPAD_TEXT);
-                            ui.label("");
-                            // NOTE: this is a hack for not having a
-                            // way to center a label but it works:
-                            ui.columns(1, |c| {
-                                c[0].with_layout(
-                                    egui::Layout::top_down(egui::Align::Center),
-                                    |ui| {
-                                        ui.label(NUMPAD_CONTROLS);
-                                    },
-                                );
-                            });
-                            ui.label(ARROW_TEXT);
-                            ui.label("");
-                            ui.columns(1, |c| {
-                                c[0].with_layout(
-                                    egui::Layout::top_down(egui::Align::Center),
-                                    |ui| {
-                                        ui.label(ARROW_CONTROLS);
-                                    },
-                                );
-                            });
-                            ui.label(MODIFIER_KEYS);
-                            ui.label("");
-                            ui.label(VI_KEYS_TEXT);
-                            ui.label("");
-                            ui.columns(1, |c| {
-                                c[0].with_layout(
-                                    egui::Layout::top_down(egui::Align::Center),
-                                    |ui| {
-                                        ui.label(VI_KEYS_CONTROLS);
-                                    },
-                                );
-                            });
-                            ui.label(CONTROLS_FOOTER);
-                            ui.label("");
-                            ui.label(CONTROLLER);
-                        }
-
-                        Page::HowToPlay => {
-                            ui.label(HOW_TO_PLAY);
-                        }
-
-                        Page::Legend => {
-                            ui.label(LEGEND);
-                        }
-
-                        Page::Credits => {
-                            ui.hyperlink_to(CREDITS_DEV, TOMAS_URL);
-                            ui.label(copyright);
-                            ui.label(CODE_LICENSE_ONELINE);
-                            ui.label("");
-                            ui.hyperlink_to(CREDITS_TILES, VEXED_URL);
-                            ui.label(TILES_LICENSE);
-                            ui.label("");
-                            ui.hyperlink_to(CREDITS_FONT, MONONOKI_URL);
-                            ui.label(FONT_LICENSE);
-                            ui.label("");
-                            ui.label(CREDITS_MUSIC);
-                        }
-
-                        Page::About => {
-                            let version = format!(
-                                "{} version: {}",
-                                crate::metadata::TITLE,
-                                crate::metadata::VERSION
+                    Page::Controls => {
+                        ui.label(CONTROLS_HEADER);
+                        ui.label(NUMPAD_TEXT);
+                        ui.label("");
+                        // NOTE: this is a hack for not having a
+                        // way to center a label but it works:
+                        ui.columns(1, |c| {
+                            c[0].with_layout(
+                                egui::Layout::top_down(egui::Align::Center),
+                                |ui| {
+                                    ui.label(NUMPAD_CONTROLS);
+                                },
                             );
-
-                            ui.label(version);
-                            ui.hyperlink_to(
-                                format!("Homepage: {}", crate::metadata::HOMEPAGE),
-                                crate::metadata::HOMEPAGE,
+                        });
+                        ui.label(ARROW_TEXT);
+                        ui.label("");
+                        ui.columns(1, |c| {
+                            c[0].with_layout(
+                                egui::Layout::top_down(egui::Align::Center),
+                                |ui| {
+                                    ui.label(ARROW_CONTROLS);
+                                },
                             );
-                            ui.label(copyright);
+                        });
+                        ui.label(MODIFIER_KEYS);
+                        ui.label("");
+                        ui.label(VI_KEYS_TEXT);
+                        ui.label("");
+                        ui.columns(1, |c| {
+                            c[0].with_layout(
+                                egui::Layout::top_down(egui::Align::Center),
+                                |ui| {
+                                    ui.label(VI_KEYS_CONTROLS);
+                                },
+                            );
+                        });
+                        ui.label(CONTROLS_FOOTER);
+                        ui.label("");
+                        ui.label(CONTROLLER);
+                    }
 
-                            ui.label("");
-                            ui.label(CODE_LICENSE_BLOCK);
-                            ui.hyperlink(AGPL_URL);
-                            ui.label("");
-                            ui.label(THIRD_PARTY_CODE_LICENSE);
-                            ui.label("");
+                    Page::HowToPlay => {
+                        ui.label(HOW_TO_PLAY);
+                    }
 
-                            if !crate::metadata::GIT_HASH.trim().is_empty() {
-                                ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
-                            }
+                    Page::Legend => {
+                        ui.label(LEGEND);
+                    }
 
-			    let features = crate::metadata::FEATURES.replace(":", "\n* ");
+                    Page::Credits => {
+                        ui.hyperlink_to(CREDITS_DEV, TOMAS_URL);
+                        ui.label(copyright);
+                        ui.label(CODE_LICENSE_ONELINE);
+                        ui.label("");
+                        ui.hyperlink_to(CREDITS_TILES, VEXED_URL);
+                        ui.label(TILES_LICENSE);
+                        ui.label("");
+                        ui.hyperlink_to(CREDITS_FONT, MONONOKI_URL);
+                        ui.label(FONT_LICENSE);
+                        ui.label("");
+                        ui.label(CREDITS_MUSIC);
+                    }
 
-			    let configs = crate::metadata::CONFIGS.replace(":", "\n* ");
+                    Page::About => {
+                        let version = format!(
+                            "{} version: {}",
+                            crate::metadata::TITLE,
+                            crate::metadata::VERSION
+                        );
 
-			    ui.label(format!("Build profile: {}\nOptimisation level: {}\n\nBuild features: \n* {features}\n\nBuild configs: \n* {configs}\n\n", crate::metadata::PROFILE, crate::metadata::OPT_LEVEL));
+                        ui.label(version);
+                        ui.hyperlink_to(
+                            format!("Homepage: {}", crate::metadata::HOMEPAGE),
+                            crate::metadata::HOMEPAGE,
+                        );
+                        ui.label(copyright);
+
+                        ui.label("");
+                        ui.label(CODE_LICENSE_BLOCK);
+                        ui.hyperlink(AGPL_URL);
+                        ui.label("");
+                        ui.label(THIRD_PARTY_CODE_LICENSE);
+                        ui.label("");
+
+                        if !crate::metadata::GIT_HASH.trim().is_empty() {
+                            ui.label(format!("Git commit: {}", crate::metadata::GIT_HASH));
                         }
-                    };
-                });
+
+			let features = crate::metadata::FEATURES.replace(":", "\n* ");
+
+			let configs = crate::metadata::CONFIGS.replace(":", "\n* ");
+
+			ui.label(format!("Build profile: {}\nOptimisation level: {}\n\nBuild features: \n* {features}\n\nBuild configs: \n* {configs}\n\n", crate::metadata::PROFILE, crate::metadata::OPT_LEVEL));
+                    }
+                };
+            });
 
             // TODO: looks like the separator is no longer being rendered??
             // NOTE: on linux, the separator is visible but super thin, almost invisible
@@ -388,7 +401,7 @@ pub fn process(
                     .next()
                     .unwrap_or(state.current_help_window);
                 state.current_help_window = new_help_window;
-                state.help_starting_line = 0;
+                state.help_starting_line = None;
             }
 
             Action::PrevPage => {
@@ -397,16 +410,21 @@ pub fn process(
                     .prev()
                     .unwrap_or(state.current_help_window);
                 state.current_help_window = new_help_window;
-                state.help_starting_line = 0;
+                state.help_starting_line = None;
             }
 
             Action::LineUp => {
-                if state.help_starting_line > 0 {
-                    state.help_starting_line -= 1;
-                }
+                if let Some(ref mut starting_line) = state.help_starting_line {
+                    if *starting_line > 0 {
+                        *starting_line -= 1;
+                    }
+                };
             }
 
-            Action::LineDown => state.help_starting_line += 1,
+            Action::LineDown => {
+                let prev_line = state.help_starting_line.unwrap_or(0);
+                state.help_starting_line = Some(prev_line + 1);
+            }
 
             Action::Close => {
                 state.window_stack.pop();

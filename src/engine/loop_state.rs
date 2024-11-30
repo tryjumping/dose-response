@@ -318,6 +318,7 @@ impl LoopState {
         let tile_width_px = self.settings.tile_size;
         let text_width_px = self.settings.text_size;
         self.egui_context.begin_frame(self.egui_raw_input());
+        self.game_state.keyboard_scroll_delta = [0.0, 0.0];
 
         if let Some(gilrs) = self.gilrs.as_mut() {
             gamepad::process_gamepad_events(gilrs, &mut self.gamepad, dt)
@@ -395,6 +396,17 @@ impl LoopState {
         let mouse = self.game_state.mouse;
         let mouse_pos = [mouse.screen_pos.x as f32, mouse.screen_pos.y as f32].into();
         let mut events = vec![Event::PointerMoved(mouse_pos)];
+
+        let scroll_delta = if mouse.scroll_delta == [0.0, 0.0] {
+            self.game_state.keyboard_scroll_delta
+        } else {
+            [
+                mouse.scroll_delta[0] * text_size,
+                mouse.scroll_delta[1] * text_size,
+            ]
+        };
+        let scroll_delta = scroll_delta.into();
+
         if mouse.left_clicked {
             events.push(Event::PointerButton {
                 pos: mouse_pos,
@@ -410,11 +422,7 @@ impl LoopState {
             });
         }
         RawInput {
-            scroll_delta: [
-                mouse.scroll_delta[0] * text_size,
-                mouse.scroll_delta[1] * text_size,
-            ]
-            .into(),
+            scroll_delta,
             screen_rect: Some(egui::Rect::from_min_size(
                 Default::default(),
                 [

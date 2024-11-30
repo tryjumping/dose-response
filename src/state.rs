@@ -251,8 +251,8 @@ pub struct State {
     pub selected_sidebar_action: Option<windows::sidebar::Action>,
     pub current_help_window: windows::help::Page,
     pub inventory_focused: bool,
-    /// Used for help contents pagination: which line should we start showing.
-    pub help_starting_line: Option<i32>,
+    /// Used for help contents pagination: how much are we scrolling by
+    pub keyboard_scroll_delta: [f32; 2],
 
     /// Whether we should push the Endscreen window and uncover the
     /// map during the transition from screen fade out to fade in
@@ -369,7 +369,7 @@ impl State {
             selected_sidebar_action: None,
             current_help_window: windows::help::Page::DoseResponse,
             inventory_focused: false,
-            help_starting_line: None,
+            keyboard_scroll_delta: [0.0, 0.0],
             show_endscreen_and_uncover_map_during_fadein: false,
             uncovered_map: false,
 

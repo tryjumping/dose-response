@@ -216,8 +216,6 @@ pub fn process(
     ];
     let window_pos_px = [(screen_size_px.x as f32 - window_size_px[0]) / 2.0, 100.0];
 
-    let scroll_delta = ui.ctx().input().scroll_delta;
-
     egui::Window::new(format!("{}", state.current_help_window))
         .open(&mut visible)
         .collapsible(false)
@@ -226,17 +224,6 @@ pub fn process(
         .show(ui.ctx(), |ui| {
             let scroll_area = ScrollArea::vertical()
                 .max_height(window_size_px[1]);
-	    let scroll_area = if scroll_delta == egui::Vec2::ZERO {
-		match state.help_starting_line {
-		    Some(starting_line) => {
-			scroll_area.scroll_offset((starting_line * 50) as f32)
-		    }
-		    None => scroll_area
-		}
-	    } else {
-		state.help_starting_line = None;
-		scroll_area
-	    };
 	    scroll_area.show(ui, |ui| {
                 // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
                 ui.set_min_height(window_size_px[1] - 7.0);
@@ -408,7 +395,6 @@ pub fn process(
                     .next()
                     .unwrap_or(state.current_help_window);
                 state.current_help_window = new_help_window;
-                state.help_starting_line = None;
             }
 
             Action::PrevPage => {
@@ -417,20 +403,14 @@ pub fn process(
                     .prev()
                     .unwrap_or(state.current_help_window);
                 state.current_help_window = new_help_window;
-                state.help_starting_line = None;
             }
 
             Action::LineUp => {
-                if let Some(ref mut starting_line) = state.help_starting_line {
-                    if *starting_line > 0 {
-                        *starting_line -= 1;
-                    }
-                };
+                state.keyboard_scroll_delta[1] = 50.0;
             }
 
             Action::LineDown => {
-                let prev_line = state.help_starting_line.unwrap_or(0);
-                state.help_starting_line = Some(prev_line + 1);
+                state.keyboard_scroll_delta[1] = -50.0;
             }
 
             Action::Close => {

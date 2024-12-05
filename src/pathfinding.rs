@@ -169,7 +169,6 @@ impl Iterator for Path {
 ///
 /// The destination is expected to be walkable (this function always
 /// returns a finite cost).
-
 pub fn direct_cost(_current: Point, _next: Point, tile_contents: TileContents) -> f32 {
     match tile_contents {
         TileContents::Monster => 1.0,

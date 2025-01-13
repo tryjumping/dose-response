@@ -20,7 +20,7 @@ jobs:
           extra_features: linux-extra-features
           build_time_dependencies: |
             sudo apt-get update
-            sudo apt-get install libasound2-dev libudev-dev
+            sudo apt-get install libasound2-dev libudev-dev libfontconfig-dev
         - os: windows-latest
           extra_features: windows-extra-features
           build_time_dependencies: ""

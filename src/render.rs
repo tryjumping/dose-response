@@ -197,7 +197,7 @@ pub fn render_game(
                     let cell_visible = state
                         .world
                         .cell(point)
-                        .map_or(false, |cell| cell.always_visible);
+                        .is_some_and(|cell| cell.always_visible);
                     if in_fov(point)
                         || cell_visible
                         || (state.game_session == GameSession::Ended && state.uncovered_map)
@@ -225,7 +225,7 @@ pub fn render_game(
         let cell_visible = state
             .world
             .cell(monster.position)
-            .map_or(false, |cell| cell.always_visible);
+            .is_some_and(|cell| cell.always_visible);
         if monster_visible
             || monster.accompanying_player
             || cell_visible

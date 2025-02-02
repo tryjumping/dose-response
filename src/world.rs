@@ -223,7 +223,7 @@ impl World {
 
             // Remove monsters from the starting area
             for pos in easy_area.points() {
-                let remove_monster = self.monster_on_pos(pos).map_or(false, |m| {
+                let remove_monster = self.monster_on_pos(pos).is_some_and(|m| {
                     use crate::monster::Kind::*;
                     let easy_monster = match m.kind {
                         Shadows | Voices => false,
@@ -308,7 +308,7 @@ impl World {
                     // Bail if another dose is in the resist area
                     let irresistible_dose = resist_area.points().any(|irresistible_point| {
                         self.cell(irresistible_point)
-                            .map_or(false, |cell| cell.items.iter().any(Item::is_dose))
+                            .is_some_and(|cell| cell.items.iter().any(Item::is_dose))
                     });
                     if irresistible_dose {
                         continue;
@@ -443,7 +443,7 @@ impl World {
     /// `blockers` option controls can influence the logic: are
     /// monster treated as blocking or not?
     pub fn walkable(&self, pos: Point, blockers: Blocker, player_pos: Point) -> bool {
-        let level_cell_walkable = self.chunk(pos).map_or(false, |chunk| {
+        let level_cell_walkable = self.chunk(pos).is_some_and(|chunk| {
             let blocks_player = blockers.contains(Blocker::PLAYER) && pos == player_pos;
             let level_position = chunk.level_position(pos);
             chunk
@@ -504,7 +504,7 @@ impl World {
                 // the "irresistible" marker on the cells and just update
                 // them every frame?
                 self.nearest_dose(world_pos, 5)
-                    .map_or(false, |(dose_pos, dose)| {
+                    .is_some_and(|(dose_pos, dose)| {
                         world_pos.tile_distance(dose_pos)
                             < formula::player_resist_radius(dose.irresistible, player_will)
                     })

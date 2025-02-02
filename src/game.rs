@@ -1840,7 +1840,7 @@ pub fn inventory_key(kind: item::Kind) -> u8 {
 fn kill_monster(monster_position: Point, world: &mut World, audio: &mut Audio) {
     let invincible = world
         .monster_on_pos(monster_position)
-        .map_or(false, |m| m.invincible);
+        .is_some_and(|m| m.invincible);
     if invincible {
         // It's invincible: no-op
     } else {

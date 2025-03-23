@@ -16,17 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - os: ubuntu-latest
+        - os: ubuntu-22.04
           extra_features: linux-extra-features
           build_time_dependencies: |
             sudo apt-get update
             sudo apt-get install libasound2-dev libudev-dev libfontconfig-dev
-        - os: windows-latest
+        - os: windows-2022
           extra_features: windows-extra-features
           build_time_dependencies: ""
         # NOTE: `macos-latest` uses the Arm64 architecture:
         # https://github.com/actions/runner-images
-        - os: macos-latest
+        - os: macos-14
           extra_features: macos-extra-features
           build_time_dependencies: ""
         # NOTE: `macos-13` uses the x86/64 architecture:

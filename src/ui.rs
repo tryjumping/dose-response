@@ -8,7 +8,7 @@ use crate::{
     point::Point,
 };
 
-use egui::{self, widgets, Color32, CtxRef, Rect, Response, Sense, Ui, Vec2, Widget};
+use egui::{self, widgets, Color32, CtxRef, Rect, Response, RichText, Sense, Ui, Vec2, Widget};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Text<'a> {
@@ -39,7 +39,7 @@ pub fn egui_root(ctx: &CtxRef, rect: Rect, add_contents: impl FnOnce(&mut Ui)) {
 /// Helper for creating an egui button with the default background and
 /// an enabled state.
 pub fn button(ui: &mut Ui, text: &str, enabled: bool, palette: &Palette) -> egui::Response {
-    let button = egui::Button::new(text).text_color(palette.gui_text.into());
+    let button = egui::Button::new(RichText::new(text).color(palette.gui_text));
     ui.add_enabled(enabled, button)
 }
 
@@ -262,7 +262,7 @@ pub fn progress_bar(
     bg_color: Color,
     fg_color: Color,
 ) {
-    use egui::paint::Shape;
+    use egui::epaint::Shape;
 
     let percent = percent.clamp(0.0, 1.0);
     let background_rect = Shape::rect_filled(

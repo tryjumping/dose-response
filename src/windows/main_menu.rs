@@ -13,7 +13,7 @@ use crate::{
 
 use egui::{
     self,
-    paint::{Shape, Stroke},
+    epaint::{Shape, Stroke},
     Rect, Ui,
 };
 

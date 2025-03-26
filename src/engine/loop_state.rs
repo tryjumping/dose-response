@@ -49,7 +49,7 @@ impl TextMetrics for Metrics {
 }
 
 pub fn build_texture_from_egui(ctx: &egui::Context) -> (u64, RgbaImage) {
-    let egui_texture = ctx.texture();
+    let egui_texture = ctx.font_image();
     let width = egui_texture.width.try_into().unwrap_or(0);
     let height = egui_texture.height.try_into().unwrap_or(0);
 
@@ -80,7 +80,7 @@ pub fn egui_set_font_size(ctx: &egui::Context, font_size_px: f32) {
         let mut def = egui::FontDefinitions::default();
         def.font_data.insert(
             font_name.clone(),
-            std::borrow::Cow::Borrowed(include_bytes!("../../fonts/mononoki-Regular.ttf")),
+            egui::FontData::from_static(include_bytes!("../../fonts/mononoki-Regular.ttf")),
         );
         def.fonts_for_family.insert(family, vec![font_name]);
         def.family_and_size
@@ -405,7 +405,8 @@ impl LoopState {
                 mouse.scroll_delta[1] * text_size,
             ]
         };
-        let scroll_delta = scroll_delta.into();
+
+        events.push(egui::Event::Scroll(scroll_delta.into()));
 
         if mouse.left_clicked {
             events.push(Event::PointerButton {
@@ -422,7 +423,6 @@ impl LoopState {
             });
         }
         RawInput {
-            scroll_delta,
             screen_rect: Some(egui::Rect::from_min_size(
                 Default::default(),
                 [
@@ -578,7 +578,7 @@ impl LoopState {
         // NOTE: the `ctx.texture()` call will panic if we hadn't
         // called `begin_frame`. But that absolutely should have
         // happened by now.
-        if self.egui_texture_version != Some(self.egui_context.texture().version) {
+        if self.egui_texture_version != Some(self.egui_context.font_image().version) {
             let (egui_texture_version, egui_texture) = build_texture_from_egui(&self.egui_context);
             let (width, height) = egui_texture.dimensions();
             opengl_app.eguimap_size_px = [width as f32, height as f32];

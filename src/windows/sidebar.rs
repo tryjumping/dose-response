@@ -12,7 +12,7 @@ use crate::{
     ui,
 };
 
-use egui::{self, paint::Shape, Pos2, Rect, Ui, Vec2};
+use egui::{self, epaint::Shape, Pos2, Rect, Ui, Vec2};
 
 use std::{collections::HashMap, time::Duration};
 

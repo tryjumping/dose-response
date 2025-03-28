@@ -61,7 +61,7 @@ pub fn build_texture_from_egui(font_image: FontImage) -> RgbaImage {
     // and easier to debug.
     let mut texture = RgbaImage::new(width, height);
 
-    for (index, pixel) in font_image.srgba_pixels(1.0).enumerate() {
+    for (index, pixel) in font_image.srgba_pixels(None).enumerate() {
         let pixel = Rgba([pixel.r(), pixel.g(), pixel.b(), pixel.a()]);
         texture.put_pixel(index as u32 % width, index as u32 / width, pixel);
     }

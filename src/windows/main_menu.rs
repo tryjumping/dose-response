@@ -58,7 +58,7 @@ pub fn process(
             min: [0.0, 0.0].into(),
             max: window_size_px.into(),
         },
-        corner_radius: 0.0,
+        rounding: 0.0.into(),
         fill: state.palette.gui_window_background.into(),
         stroke: Stroke {
             width: border_width_px,
@@ -74,7 +74,7 @@ pub fn process(
             crate::metadata::VERSION_MAJOR,
             crate::metadata::VERSION_MINOR
         ),
-        egui::TextStyle::Body,
+        egui::FontId::monospace(settings.text_size as f32),
         state.palette.gui_text.into(),
     );
 

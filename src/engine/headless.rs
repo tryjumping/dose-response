@@ -10,7 +10,7 @@ use crate::{
 
 use std::time::Duration;
 
-use egui::CtxRef;
+use egui::Context;
 
 pub fn main_loop<S>(
     mut settings_store: S,
@@ -21,7 +21,7 @@ where
 {
     let mut settings = settings_store.load();
 
-    let mut egui_context = CtxRef::default();
+    let egui_context = Context::default();
     egui_context.begin_frame(Default::default());
 
     let mouse = Mouse::new();

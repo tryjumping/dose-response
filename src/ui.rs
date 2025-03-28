@@ -8,7 +8,7 @@ use crate::{
     point::Point,
 };
 
-use egui::{self, widgets, Color32, CtxRef, Rect, Response, RichText, Sense, Ui, Vec2, Widget};
+use egui::{self, widgets, Color32, Context, Rect, Response, RichText, Sense, Ui, Vec2, Widget};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Text<'a> {
@@ -22,7 +22,7 @@ pub enum Text<'a> {
 /// Egui container area with no bells and whistles. No border, no
 /// elements, no padding, just a regular box you can draw your UI
 /// into.
-pub fn egui_root(ctx: &CtxRef, rect: Rect, add_contents: impl FnOnce(&mut Ui)) {
+pub fn egui_root(ctx: &Context, rect: Rect, add_contents: impl FnOnce(&mut Ui)) {
     let layer_id = egui::LayerId::background();
     let panel_rect = rect;
     let clip_rect = rect;
@@ -182,16 +182,16 @@ impl Widget for ImageTextButton {
             text_disabled_color,
         } = self;
 
-        let text_style = egui::TextStyle::Button;
-        //let font = &ui.fonts()[text_style];
+        let font_size = ui.ctx().style().text_styles[&egui::TextStyle::Button].size;
+        let font_id = egui::FontId::monospace(font_size);
         let prefix_galley = ui
             .fonts()
-            .layout_no_wrap(prefix_text, text_style, text_color);
-        let text_galley = ui.fonts().layout_no_wrap(text, text_style, text_color);
+            .layout_no_wrap(prefix_text, font_id.clone(), text_color);
+        let text_galley = ui.fonts().layout_no_wrap(text, font_id.clone(), text_color);
 
         let (uv, _tilesize) = image_uv_tilesize(texture, graphic, text_galley.rect.height());
 
-        let image = widgets::Image::new(texture.into(), Vec2::splat(text_galley.rect.height()))
+        let image = widgets::Image::new(texture, Vec2::splat(text_galley.rect.height()))
             .uv(uv)
             .tint(image_color);
 
@@ -217,18 +217,13 @@ impl Widget for ImageTextButton {
             let painter = ui.painter();
 
             if selected {
-                painter.rect(
-                    rect,
-                    visuals.corner_radius,
-                    visuals.bg_fill,
-                    visuals.bg_stroke,
-                );
+                painter.rect(rect, visuals.rounding, visuals.bg_fill, visuals.bg_stroke);
                 painter.galley(rect.min + button_padding, prefix_galley);
                 painter.galley(text_pos, text_galley);
             } else if frame {
                 painter.rect(
                     rect.expand(visuals.expansion),
-                    visuals.corner_radius,
+                    visuals.rounding,
                     visuals.bg_fill,
                     visuals.bg_stroke,
                 );

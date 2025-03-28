@@ -2,7 +2,7 @@ use crate::{
     color::Color,
     engine::{
         self,
-        loop_state::{LoopState, ResizeWindowAction, UpdateResult},
+        loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
     },
     keys::{Key, KeyCode},
     point::Point,
@@ -23,7 +23,8 @@ use winit::{
     window::{Fullscreen, Icon, WindowBuilder},
 };
 
-use egui::CtxRef;
+use egui::Context;
+
 use rodio::OutputStream;
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
@@ -157,7 +158,7 @@ where
         std::env::set_var("WINIT_UNIX_BACKEND", "x11");
     }
 
-    let egui_context = CtxRef::default();
+    let egui_context = Context::default();
 
     // NOTE: we need to store the stream to a variable here and then
     // match on a reference to it. Otherwise, it will be dropped and
@@ -178,6 +179,9 @@ where
         egui_context,
         stream_handle,
     );
+
+    // TODO move as much of this into loop state as we can
+    let mut font_texture = egui::epaint::image::AlphaImage::default();
 
     let event_loop = EventLoop::new();
     log::debug!("Created events loop: {:?}", event_loop);
@@ -492,14 +496,53 @@ monitor ID: {:?}. Ignoring this request.",
 
                 // NOTE: the egui output contains only the cursor, url to open and text
                 // to copy to the clipboard. So we can safely ignore that for now.
-                let (output, paint_batches) = loop_state.egui_context.end_frame();
-                if let Some(url) = output.open_url {
+                let output = loop_state.egui_context.end_frame();
+                if let Some(url) = output.platform_output.open_url {
                     if let Err(err) = webbrowser::open(&url.url) {
                         log::warn!("Error opening URL {} in the external browser!", url.url);
                         log::warn!("{}", err);
                     }
                 }
-                ui_paint_batches = loop_state.egui_context.tessellate(paint_batches);
+                ui_paint_batches = loop_state.egui_context.tessellate(output.shapes);
+
+                if output.textures_delta.set.is_empty() {
+                    // We don't need to set/update any textures
+                } else {
+                    for (_texture_id, image_delta) in output.textures_delta.set {
+                        match image_delta.image {
+                            egui::epaint::image::ImageData::Color(color_image) => {
+                                log::warn!("Received ImageDelta::Color(ColorImage) of size: {:?}. Ignoring as we're not set up to handle this.", color_image.size);
+                            }
+                            egui::epaint::image::ImageData::Alpha(alpha_image) => {
+                                log::warn!("We need to update the egui texture map AlphaImage of size: {:?}", alpha_image.size);
+				let alpha_image = loop_state::egui_alpha_image_apply_delta(
+				    font_texture.clone(), image_delta.pos, alpha_image);
+				font_texture = alpha_image.clone();
+
+				let egui_texture = loop_state::build_texture_from_egui(alpha_image);
+                                let (width, height) = egui_texture.dimensions();
+                                opengl_app.eguimap_size_px = [width as f32, height as f32];
+                                opengl_app.upload_texture(
+                                    opengl_app.eguimap,
+                                    "egui",
+                                    &egui_texture,
+                                );
+                            }
+                        }
+                    }
+                }
+
+                if output.textures_delta.free.is_empty() {
+                    // Don't print anything
+                } else {
+		    // NOTE: I don't think we need to free anything.
+		    // We're just uploading the single egui-based
+		    // texture.
+                    log::warn!("Texture IDs to free");
+                    for texture_id in output.textures_delta.free {
+                        dbg!(texture_id);
+                    }
+                }
 
                 if cfg!(feature = "fullscreen") {
                     use engine::loop_state::FullscreenAction::*;
@@ -561,7 +604,11 @@ monitor ID: {:?}. Ignoring this request.",
                 let mut index = 0;
                 for egui::ClippedMesh(rect, mesh) in &ui_paint_batches {
                     let texture_id = match mesh.texture_id {
-                        egui::TextureId::Egui => engine::Texture::Egui.into(),
+                        egui::TextureId::Managed(0) => engine::Texture::Egui.into(),
+                        egui::TextureId::Managed(id) => {
+                            log::error!("Unexpected Managed texture ID: {}", id);
+                            engine::Texture::Egui.into()
+                        }
                         egui::TextureId::User(id) => id as f32,
                     };
                     // NOTE: the shader expects the egui texture (uv)
@@ -576,7 +623,11 @@ monitor ID: {:?}. Ignoring this request.",
                     // For egui we just multiply by 1.0 which has no
                     // effect.
                     let texture_size = match mesh.texture_id {
-                        egui::TextureId::Egui => [1.0, 1.0],
+                        egui::TextureId::Managed(0) => [1.0, 1.0],
+                        egui::TextureId::Managed(id) => {
+                            log::error!("Unexpected TextureId::Managed({})! We should only ever see ID of 0", id);
+                            [1.0, 1.0]
+                        }
                         egui::TextureId::User(engine::TEXTURE_GLYPH) => opengl_app.glyphmap_size_px,
                         egui::TextureId::User(engine::TEXTURE_TILEMAP) => {
                             opengl_app.tilemap_size_px

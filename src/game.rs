@@ -38,7 +38,7 @@ use std::{
     time::Duration,
 };
 
-use egui::{CtxRef, Ui};
+use egui::{Context, Ui};
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Action {
@@ -58,7 +58,7 @@ pub enum RunningState {
 
 pub fn update(
     state: &mut State,
-    egui_ctx: &CtxRef,
+    egui_ctx: &Context,
     dt: Duration,
     fps: i32,
     new_keys: &[Key],
@@ -435,7 +435,7 @@ pub fn update(
                 .into(),
             );
 
-            let image = Image::new(crate::engine::Texture::Tilemap.into(), egui::Vec2::ZERO).uv(uv);
+            let image = Image::new(crate::engine::Texture::Tilemap, egui::Vec2::ZERO).uv(uv);
             let mouse_p = egui::Pos2::new(
                 state.mouse.screen_pos.x as f32,
                 state.mouse.screen_pos.y as f32,

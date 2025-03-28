@@ -429,10 +429,9 @@ pub fn process(
                         let (uv, tilesize) =
                             ui::image_uv_tilesize(texture, state.player.graphic, text_size);
                         let image_color = state.palette.player(state.player.color_index);
-                        let image =
-                            egui::widgets::Image::new(texture.into(), Vec2::splat(tilesize))
-                                .uv(uv)
-                                .tint(image_color);
+                        let image = egui::widgets::Image::new(texture, Vec2::splat(tilesize))
+                            .uv(uv)
+                            .tint(image_color);
 
                         // Allocate the same UI space as any other button to keep the layout correct
                         let sense = egui::Sense::click();

@@ -34,7 +34,7 @@ cstr = "0.2.9"
 #egui = { git = "https://github.com/tomassedovic/emigui.git" }
 #egui = { path = "../../3pc/src/github.com/emilk/emigui/egui" }
 # NOTE: by disabling default features, we're excluding the bundled font
-egui = { version = "0.16", default-features = false, features = ["single_threaded"] }
+egui = { version = "0.17", default-features = false, features = ["single_threaded"] }
 flate2 = "1.0"
 gilrs = "0.10.2"
 gl = { version = "0.14", optional = true }

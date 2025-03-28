@@ -191,20 +191,23 @@ impl Widget for ImageTextButton {
 
         let (uv, _tilesize) = image_uv_tilesize(texture, graphic, text_galley.rect.height());
 
-        let image = widgets::Image::new(texture, Vec2::splat(text_galley.rect.height()))
-            .uv(uv)
-            .tint(image_color);
+        let sized_texture =
+            egui::load::SizedTexture::new(texture, Vec2::splat(text_galley.rect.height()));
+        let image = widgets::Image::new(sized_texture).uv(uv).tint(image_color);
 
         let button_padding = ui.spacing().button_padding;
         let size = Vec2::new(
             prefix_galley.rect.width() + button_padding.x,
             button_padding.y,
-        ) + (image.size() + 3.0 * button_padding)
+        ) + (image.size().unwrap_or(Vec2::ZERO) + 3.0 * button_padding)
             + Vec2::new(text_galley.rect.width(), 0.0);
         let (rect, response) = ui.allocate_exact_size(size, sense);
         let text_pos = rect.min
             + Vec2::new(prefix_galley.rect.width(), 0.0)
-            + Vec2::new(image.size().x + button_padding.x * 2.0, button_padding.y);
+            + Vec2::new(
+                image.size().unwrap_or(Vec2::ZERO).x + button_padding.x * 2.0,
+                button_padding.y,
+            );
 
         let prefix_translate = Vec2::new(
             prefix_galley.rect.width() + tile_offset_px.x,
@@ -236,7 +239,7 @@ impl Widget for ImageTextButton {
             }
 
             let image_rect = ui.layout().align_size_within_rect(
-                image.size(),
+                image.size().unwrap_or(Vec2::ZERO),
                 rect.shrink2(button_padding).translate(prefix_translate),
             );
             image.bg_fill(visuals.bg_fill).paint_at(ui, image_rect);

@@ -435,7 +435,9 @@ pub fn update(
                 .into(),
             );
 
-            let image = Image::new(crate::engine::Texture::Tilemap, egui::Vec2::ZERO).uv(uv);
+            let sized_texture =
+                egui::load::SizedTexture::new(crate::engine::Texture::Tilemap, egui::Vec2::ZERO);
+            let image = Image::new(sized_texture).uv(uv);
             let mouse_p = egui::Pos2::new(
                 state.mouse.screen_pos.x as f32,
                 state.mouse.screen_pos.y as f32,

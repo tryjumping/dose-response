@@ -429,7 +429,9 @@ pub fn process(
                         let (uv, tilesize) =
                             ui::image_uv_tilesize(texture, state.player.graphic, text_size);
                         let image_color = state.palette.player(state.player.color_index);
-                        let image = egui::widgets::Image::new(texture, Vec2::splat(tilesize))
+                        let sized_texture =
+                            egui::load::SizedTexture::new(texture, Vec2::splat(tilesize));
+                        let image = egui::widgets::Image::new(sized_texture)
                             .uv(uv)
                             .tint(image_color);
 

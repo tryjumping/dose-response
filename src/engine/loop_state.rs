@@ -123,7 +123,7 @@ pub fn egui_load_font(ctx: &egui::Context) {
         let mut def = egui::FontDefinitions::default();
         def.font_data.insert(
             font_name.clone(),
-            egui::FontData::from_static(include_bytes!("../../fonts/mononoki-Regular.ttf")),
+            egui::FontData::from_static(include_bytes!("../../fonts/mononoki-Regular.ttf")).into(),
         );
 
         if let Some(fam) = def.families.get_mut(&family) {

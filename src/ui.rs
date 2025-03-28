@@ -23,15 +23,8 @@ pub enum Text<'a> {
 /// elements, no padding, just a regular box you can draw your UI
 /// into.
 pub fn egui_root(ctx: &Context, rect: Rect, add_contents: impl FnOnce(&mut Ui)) {
-    let layer_id = egui::LayerId::background();
-
     let ui_builder = egui::UiBuilder::new().max_rect(rect);
-    let ui = &mut Ui::new(
-        ctx.clone(),
-        layer_id,
-        egui::Id::new("Root UI Area"),
-        ui_builder,
-    );
+    let ui = &mut Ui::new(ctx.clone(), egui::Id::new("Root UI Area"), ui_builder);
 
     add_contents(ui);
 }

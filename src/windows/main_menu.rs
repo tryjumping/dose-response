@@ -47,23 +47,18 @@ pub fn process(
 
     let window_size_px = display.screen_size_px;
 
-    // NOTE: half of the border is inside the rect and half is
-    // outside. Since the edge of the rectangle is the edge of the
-    // window, we only see half of this. By making the outline twice
-    // as wide, we'll see the desired thickness.
-    let border_width_px = 30.0 * 2.0;
-
     ui.painter().add(Shape::Rect(egui::epaint::RectShape::new(
         Rect {
-            min: [30.0, 30.0].into(),
-            max: (window_size_px - (30, 30)).into(),
+            min: [0.0, 0.0].into(),
+            max: window_size_px.into(),
         },
         0.0,
         state.palette.gui_window_background,
         Stroke {
-            width: border_width_px,
+            width: 30.0,
             color: state.palette.gui_window_edge.into(),
         },
+        egui::StrokeKind::Inside,
     )));
 
     ui.painter().text(

@@ -213,7 +213,13 @@ impl Widget for ImageTextButton {
             let painter = ui.painter();
 
             if selected {
-                painter.rect(rect, visuals.rounding, visuals.bg_fill, visuals.bg_stroke);
+                painter.rect(
+                    rect,
+                    visuals.corner_radius,
+                    visuals.bg_fill,
+                    visuals.bg_stroke,
+                    egui::StrokeKind::Inside,
+                );
                 painter.galley(
                     rect.min + button_padding,
                     prefix_galley,
@@ -223,9 +229,10 @@ impl Widget for ImageTextButton {
             } else if frame {
                 painter.rect(
                     rect.expand(visuals.expansion),
-                    visuals.rounding,
+                    visuals.corner_radius,
                     visuals.bg_fill,
                     visuals.bg_stroke,
+                    egui::StrokeKind::Inside,
                 );
                 painter.galley_with_override_text_color(
                     rect.min + button_padding,

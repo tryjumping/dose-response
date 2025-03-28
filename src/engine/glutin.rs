@@ -494,15 +494,17 @@ monitor ID: {:?}. Ignoring this request.",
                     UpdateResult::KeepGoing => {}
                 }
 
-                // NOTE: the egui output contains only the cursor, url to open and text
-                // to copy to the clipboard. So we can safely ignore that for now.
                 let output = loop_state.egui_context.end_pass();
-                if let Some(url) = output.platform_output.open_url {
-                    if let Err(err) = webbrowser::open(&url.url) {
-                        log::warn!("Error opening URL {} in the external browser!", url.url);
-                        log::warn!("{}", err);
-                    }
-                }
+
+		for command in &output.platform_output.commands {
+		    if let egui::OutputCommand::OpenUrl(url) = command  {
+			if let Err(err) = webbrowser::open(&url.url) {
+			    log::warn!("Error opening URL {} in the external browser!", url.url);
+			    log::warn!("{}", err);
+			}
+		    }
+		}
+
                 ui_paint_batches = loop_state.egui_context.tessellate(output.shapes, loop_state.dpi.unwrap_or(1.0));
 
                 if output.textures_delta.set.is_empty() {

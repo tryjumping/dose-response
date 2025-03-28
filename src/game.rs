@@ -38,7 +38,7 @@ use std::{
     time::Duration,
 };
 
-use egui::{CtxRef, Ui};
+use egui::{Context, Ui};
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Action {
@@ -58,7 +58,7 @@ pub enum RunningState {
 
 pub fn update(
     state: &mut State,
-    egui_ctx: &CtxRef,
+    egui_ctx: &Context,
     dt: Duration,
     fps: i32,
     new_keys: &[Key],
@@ -435,7 +435,9 @@ pub fn update(
                 .into(),
             );
 
-            let image = Image::new(crate::engine::Texture::Tilemap.into(), egui::Vec2::ZERO).uv(uv);
+            let sized_texture =
+                egui::load::SizedTexture::new(crate::engine::Texture::Tilemap, egui::Vec2::ZERO);
+            let image = Image::new(sized_texture).uv(uv);
             let mouse_p = egui::Pos2::new(
                 state.mouse.screen_pos.x as f32,
                 state.mouse.screen_pos.y as f32,
@@ -996,7 +998,12 @@ fn process_game(
         // NOTE: only show tooltips when we're not scrolling the screen.
         // It looks bad otherwise.
         if state.pos_timer.finished() {
-            egui::show_tooltip_text(ui.ctx(), egui::Id::new("Tile Tooltip"), tooltip);
+            egui::show_tooltip_text(
+                ui.ctx(),
+                ui.layer_id(),
+                egui::Id::new("Tile Tooltip"),
+                tooltip,
+            );
         }
     }
 

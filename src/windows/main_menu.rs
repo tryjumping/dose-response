@@ -13,7 +13,7 @@ use crate::{
 
 use egui::{
     self,
-    paint::{Shape, Stroke},
+    epaint::{Shape, Stroke},
     Rect, Ui,
 };
 
@@ -47,24 +47,19 @@ pub fn process(
 
     let window_size_px = display.screen_size_px;
 
-    // NOTE: half of the border is inside the rect and half is
-    // outside. Since the edge of the rectangle is the edge of the
-    // window, we only see half of this. By making the outline twice
-    // as wide, we'll see the desired thickness.
-    let border_width_px = 30.0 * 2.0;
-
-    ui.painter().add(Shape::Rect(egui::epaint::RectShape {
-        rect: Rect {
+    ui.painter().add(Shape::Rect(egui::epaint::RectShape::new(
+        Rect {
             min: [0.0, 0.0].into(),
             max: window_size_px.into(),
         },
-        corner_radius: 0.0,
-        fill: state.palette.gui_window_background.into(),
-        stroke: Stroke {
-            width: border_width_px,
+        0.0,
+        state.palette.gui_window_background,
+        Stroke {
+            width: 30.0,
             color: state.palette.gui_window_edge.into(),
         },
-    }));
+        egui::StrokeKind::Inside,
+    )));
 
     ui.painter().text(
         Into::<egui::Pos2>::into(window_size_px) - egui::Vec2::splat(70.0),
@@ -74,7 +69,7 @@ pub fn process(
             crate::metadata::VERSION_MAJOR,
             crate::metadata::VERSION_MINOR
         ),
-        egui::TextStyle::Body,
+        egui::FontId::monospace(settings.text_size as f32),
         state.palette.gui_text.into(),
     );
 

@@ -50,7 +50,7 @@ impl From<Texture> for f32 {
 impl From<Texture> for TextureId {
     fn from(tex: Texture) -> TextureId {
         match tex {
-            Texture::Egui => TextureId::Egui,
+            Texture::Egui => TextureId::Managed(0), // NOTE: 0 is the default egui font texture
             Texture::Glyph => TextureId::User(tex as u64),
             Texture::Tilemap => TextureId::User(tex as u64),
         }

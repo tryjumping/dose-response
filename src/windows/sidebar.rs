@@ -12,7 +12,7 @@ use crate::{
     ui,
 };
 
-use egui::{self, paint::Shape, Pos2, Rect, Ui, Vec2};
+use egui::{self, epaint::Shape, Pos2, Rect, Ui, Vec2};
 
 use std::{collections::HashMap, time::Duration};
 
@@ -118,7 +118,7 @@ pub fn process(
     let padding = Vec2::splat(20.0);
     let ui_rect = Rect::from_min_max(top_left + padding, bottom_right - padding);
 
-    let mut ui = ui.child_ui(ui_rect, *ui.layout());
+    let mut ui = ui.new_child(egui::UiBuilder::new().max_rect(ui_rect));
     ui.set_clip_rect(full_rect);
 
     ui.style_mut().visuals.override_text_color = Some(state.palette.gui_text.into());
@@ -363,13 +363,10 @@ pub fn process(
 
     {
         let bottom_offset = formula::sidebar_numpad_offset_px(settings.text_size);
-        let mut ui = ui.child_ui(
-            Rect::from_min_max(
-                [ui_rect.left(), help_rect.min.y - bottom_offset].into(),
-                ui_rect.right_bottom(),
-            ),
-            *ui.layout(),
-        );
+        let mut ui = ui.new_child(egui::UiBuilder::new().max_rect(Rect::from_min_max(
+            [ui_rect.left(), help_rect.min.y - bottom_offset].into(),
+            ui_rect.right_bottom(),
+        )));
 
         let mut highlighted_tile_offset_from_player_pos = None;
 
@@ -429,10 +426,11 @@ pub fn process(
                         let (uv, tilesize) =
                             ui::image_uv_tilesize(texture, state.player.graphic, text_size);
                         let image_color = state.palette.player(state.player.color_index);
-                        let image =
-                            egui::widgets::Image::new(texture.into(), Vec2::splat(tilesize))
-                                .uv(uv)
-                                .tint(image_color);
+                        let sized_texture =
+                            egui::load::SizedTexture::new(texture, Vec2::splat(tilesize));
+                        let image = egui::widgets::Image::new(sized_texture)
+                            .uv(uv)
+                            .tint(image_color);
 
                         // Allocate the same UI space as any other button to keep the layout correct
                         let sense = egui::Sense::click();

@@ -352,8 +352,8 @@ impl LoopState {
         let tile_width_px = self.settings.tile_size;
         let text_width_px = self.settings.text_size;
 
-        // NOTE: `end_frame` is in glutin. That feels wrong, see if we can replace it with context::run in one place
-        self.egui_context.begin_frame(self.egui_raw_input());
+        // NOTE: `end_pass` is in glutin. That feels wrong, see if we can replace it with context::run in one place
+        self.egui_context.begin_pass(self.egui_raw_input());
         self.game_state.keyboard_scroll_delta = [0.0, 0.0];
 
         if let Some(gilrs) = self.gilrs.as_mut() {

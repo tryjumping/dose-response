@@ -55,8 +55,8 @@ pub fn process(
 
     ui.painter().add(Shape::Rect(egui::epaint::RectShape::new(
         Rect {
-            min: [0.0, 0.0].into(),
-            max: window_size_px.into(),
+            min: [30.0, 30.0].into(),
+            max: (window_size_px - (30, 30)).into(),
         },
         0.0,
         state.palette.gui_window_background,

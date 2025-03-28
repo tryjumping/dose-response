@@ -22,7 +22,7 @@ where
     let mut settings = settings_store.load();
 
     let egui_context = Context::default();
-    egui_context.begin_frame(Default::default());
+    egui_context.begin_pass(Default::default());
 
     let mouse = Mouse::new();
     let keys = vec![];

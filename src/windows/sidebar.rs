@@ -118,7 +118,7 @@ pub fn process(
     let padding = Vec2::splat(20.0);
     let ui_rect = Rect::from_min_max(top_left + padding, bottom_right - padding);
 
-    let mut ui = ui.child_ui(ui_rect, *ui.layout(), None);
+    let mut ui = ui.new_child(egui::UiBuilder::new().max_rect(ui_rect));
     ui.set_clip_rect(full_rect);
 
     ui.style_mut().visuals.override_text_color = Some(state.palette.gui_text.into());
@@ -363,14 +363,10 @@ pub fn process(
 
     {
         let bottom_offset = formula::sidebar_numpad_offset_px(settings.text_size);
-        let mut ui = ui.child_ui(
-            Rect::from_min_max(
-                [ui_rect.left(), help_rect.min.y - bottom_offset].into(),
-                ui_rect.right_bottom(),
-            ),
-            *ui.layout(),
-            None,
-        );
+        let mut ui = ui.new_child(egui::UiBuilder::new().max_rect(Rect::from_min_max(
+            [ui_rect.left(), help_rect.min.y - bottom_offset].into(),
+            ui_rect.right_bottom(),
+        )));
 
         let mut highlighted_tile_offset_from_player_pos = None;
 

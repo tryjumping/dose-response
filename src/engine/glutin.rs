@@ -496,7 +496,7 @@ monitor ID: {:?}. Ignoring this request.",
 
                 // NOTE: the egui output contains only the cursor, url to open and text
                 // to copy to the clipboard. So we can safely ignore that for now.
-                let output = loop_state.egui_context.end_frame();
+                let output = loop_state.egui_context.end_pass();
                 if let Some(url) = output.platform_output.open_url {
                     if let Err(err) = webbrowser::open(&url.url) {
                         log::warn!("Error opening URL {} in the external browser!", url.url);

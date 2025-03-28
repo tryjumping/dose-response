@@ -143,13 +143,16 @@ pub fn egui_style(palette: &Palette, font_size: f32) -> egui::Style {
     // TODO: and have it respond to the palette changes.
 
     style.visuals.widgets.inactive.bg_fill = palette.gui_button_background.into();
+    style.visuals.widgets.inactive.weak_bg_fill = palette.gui_button_background.into();
 
     style.visuals.widgets.active.bg_fill = palette.gui_button_highlighted_background.into();
+    style.visuals.widgets.active.weak_bg_fill = palette.gui_button_highlighted_background.into();
 
     style.visuals.widgets.active.bg_stroke.color = palette.gui_button_highlighted_stroke.into();
     style.visuals.widgets.active.bg_stroke.width = 3.0;
 
     style.visuals.widgets.hovered.bg_fill = palette.gui_button_highlighted_background.into();
+    style.visuals.widgets.hovered.weak_bg_fill = palette.gui_button_highlighted_background.into();
 
     for font_id in style.text_styles.values_mut() {
         *font_id = egui::FontId::monospace(font_size);

@@ -184,10 +184,10 @@ impl Widget for ImageTextButton {
 
         let font_size = ui.ctx().style().text_styles[&egui::TextStyle::Button].size;
         let font_id = egui::FontId::monospace(font_size);
-        let prefix_galley = ui
-            .fonts()
-            .layout_no_wrap(prefix_text, font_id.clone(), text_color);
-        let text_galley = ui.fonts().layout_no_wrap(text, font_id.clone(), text_color);
+        let prefix_galley =
+            ui.fonts(|reader| reader.layout_no_wrap(prefix_text, font_id.clone(), text_color));
+        let text_galley =
+            ui.fonts(|reader| reader.layout_no_wrap(text, font_id.clone(), text_color));
 
         let (uv, _tilesize) = image_uv_tilesize(texture, graphic, text_galley.rect.height());
 

@@ -181,7 +181,7 @@ where
     );
 
     // TODO move as much of this into loop state as we can
-    let mut font_texture = egui::epaint::image::AlphaImage::default();
+    let mut font_texture = egui::epaint::image::FontImage::default();
 
     let event_loop = EventLoop::new();
     log::debug!("Created events loop: {:?}", event_loop);
@@ -513,13 +513,13 @@ monitor ID: {:?}. Ignoring this request.",
                             egui::epaint::image::ImageData::Color(color_image) => {
                                 log::warn!("Received ImageDelta::Color(ColorImage) of size: {:?}. Ignoring as we're not set up to handle this.", color_image.size);
                             }
-                            egui::epaint::image::ImageData::Alpha(alpha_image) => {
-                                log::warn!("We need to update the egui texture map AlphaImage of size: {:?}", alpha_image.size);
-				let alpha_image = loop_state::egui_alpha_image_apply_delta(
-				    font_texture.clone(), image_delta.pos, alpha_image);
-				font_texture = alpha_image.clone();
+                            egui::epaint::image::ImageData::Font(font_image) => {
+                                log::warn!("We need to update the egui texture map FontImage of size: {:?}", font_image.size);
+				let font_image = loop_state::egui_font_image_apply_delta(
+				    font_texture.clone(), image_delta.pos, font_image);
+				font_texture = font_image.clone();
 
-				let egui_texture = loop_state::build_texture_from_egui(alpha_image);
+				let egui_texture = loop_state::build_texture_from_egui(font_image);
                                 let (width, height) = egui_texture.dimensions();
                                 opengl_app.eguimap_size_px = [width as f32, height as f32];
                                 opengl_app.upload_texture(
@@ -602,83 +602,88 @@ monitor ID: {:?}. Ignoring this request.",
                 let mut ui_vertices = vec![];
                 let mut batches = vec![];
                 let mut index = 0;
-                for egui::ClippedMesh(rect, mesh) in &ui_paint_batches {
-                    let texture_id = match mesh.texture_id {
-                        egui::TextureId::Managed(0) => engine::Texture::Egui.into(),
-                        egui::TextureId::Managed(id) => {
-                            log::error!("Unexpected Managed texture ID: {}", id);
-                            engine::Texture::Egui.into()
-                        }
-                        egui::TextureId::User(id) => id as f32,
-                    };
-                    // NOTE: the shader expects the egui texture (uv)
-                    // coordinates to be normalised, but everything
-                    // else expects pixel coordinates.
-                    //
-                    // However, everything that comes out of egui *is
-                    // going to be normalised* so we need to
-                    // "denormalise" it by multiplying the uv coords
-                    // with the size of the texture in pixels.
-                    //
-                    // For egui we just multiply by 1.0 which has no
-                    // effect.
-                    let texture_size = match mesh.texture_id {
-                        egui::TextureId::Managed(0) => [1.0, 1.0],
-                        egui::TextureId::Managed(id) => {
-                            log::error!("Unexpected TextureId::Managed({})! We should only ever see ID of 0", id);
-                            [1.0, 1.0]
-                        }
-                        egui::TextureId::User(engine::TEXTURE_GLYPH) => opengl_app.glyphmap_size_px,
-                        egui::TextureId::User(engine::TEXTURE_TILEMAP) => {
-                            opengl_app.tilemap_size_px
-                        }
-                        id => {
-                            log::error!(
-                                "ERROR[Winit RedrawRequested]: unknown texture ID: `{:?}`",
-                                id
-                            );
-                            [1.0, 1.0]
-                        }
-                    };
-                    for &index in &mesh.indices {
-                        let egui_vertex = match mesh.vertices.get(index as usize) {
-                            Some(vertex) => vertex,
-                            None => {
-                                log::error!("Can't index into the mesh.vertices");
-                                continue;
-                            }
-                        };
-                        let color = Color {
-                            r: egui_vertex.color.r(),
-                            g: egui_vertex.color.g(),
-                            b: egui_vertex.color.b(),
-                        }
-                        .alpha(egui_vertex.color.a());
-                        let (u, v) = (egui_vertex.uv.x, egui_vertex.uv.y);
+                for clipped_primitive in &ui_paint_batches {
+		    use egui::epaint::Primitive;
 
-                        let pos = egui_vertex.pos;
-                        let vertex = engine::Vertex {
-                            texture_id,
-                            pos_px: [pos.x, pos.y],
-                            tile_pos: [u * texture_size[0], v * texture_size[1]],
-                            color: color.into(),
-                        };
-                        ui_vertices.push(vertex);
-                    }
+		    let egui::ClippedPrimitive { clip_rect, primitive} = clipped_primitive;
+		    if let Primitive::Mesh(mesh) = primitive {
+			let texture_id = match mesh.texture_id {
+			    egui::TextureId::Managed(0) => engine::Texture::Egui.into(),
+			    egui::TextureId::Managed(id) => {
+				log::error!("Unexpected Managed texture ID: {}", id);
+				engine::Texture::Egui.into()
+			    }
+			    egui::TextureId::User(id) => id as f32,
+			};
+			// NOTE: the shader expects the egui texture (uv)
+			// coordinates to be normalised, but everything
+			// else expects pixel coordinates.
+			//
+			// However, everything that comes out of egui *is
+			// going to be normalised* so we need to
+			// "denormalise" it by multiplying the uv coords
+			// with the size of the texture in pixels.
+			//
+			// For egui we just multiply by 1.0 which has no
+			// effect.
+			let texture_size = match mesh.texture_id {
+			    egui::TextureId::Managed(0) => [1.0, 1.0],
+			    egui::TextureId::Managed(id) => {
+				log::error!("Unexpected TextureId::Managed({})! We should only ever see ID of 0", id);
+				[1.0, 1.0]
+			    }
+			    egui::TextureId::User(engine::TEXTURE_GLYPH) => opengl_app.glyphmap_size_px,
+			    egui::TextureId::User(engine::TEXTURE_TILEMAP) => {
+				opengl_app.tilemap_size_px
+			    }
+			    id => {
+				log::error!(
+				    "ERROR[Winit RedrawRequested]: unknown texture ID: `{:?}`",
+				    id
+				);
+				[1.0, 1.0]
+			    }
+			};
+			for &index in &mesh.indices {
+			    let egui_vertex = match mesh.vertices.get(index as usize) {
+				Some(vertex) => vertex,
+				None => {
+				    log::error!("Can't index into the mesh.vertices");
+				    continue;
+				}
+			    };
+			    let color = Color {
+				r: egui_vertex.color.r(),
+				g: egui_vertex.color.g(),
+				b: egui_vertex.color.b(),
+			    }
+			    .alpha(egui_vertex.color.a());
+			    let (u, v) = (egui_vertex.uv.x, egui_vertex.uv.y);
 
-                    let vertex_count = mesh.indices.len() as i32;
-                    batches.push((
-                        [
-                            rect.left_top().x,
-                            rect.left_top().y,
-                            rect.right_bottom().x,
-                            rect.right_bottom().y,
-                        ],
-                        index,
-                        vertex_count,
-                    ));
-                    index += vertex_count;
-                }
+			    let pos = egui_vertex.pos;
+			    let vertex = engine::Vertex {
+				texture_id,
+				pos_px: [pos.x, pos.y],
+				tile_pos: [u * texture_size[0], v * texture_size[1]],
+				color: color.into(),
+			    };
+			    ui_vertices.push(vertex);
+			}
+
+			let vertex_count = mesh.indices.len() as i32;
+			batches.push((
+			    [
+				clip_rect.left_top().x,
+				clip_rect.left_top().y,
+				clip_rect.right_bottom().x,
+				clip_rect.right_bottom().y,
+			    ],
+			    index,
+			    vertex_count,
+			));
+			index += vertex_count;
+		    }
+		}
                 loop_state.process_vertices_and_render(
                     &mut opengl_app,
                     &ui_vertices,

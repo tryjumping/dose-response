@@ -998,7 +998,12 @@ fn process_game(
         // NOTE: only show tooltips when we're not scrolling the screen.
         // It looks bad otherwise.
         if state.pos_timer.finished() {
-            egui::show_tooltip_text(ui.ctx(), egui::Id::new("Tile Tooltip"), tooltip);
+            egui::show_tooltip_text(
+                ui.ctx(),
+                ui.layer_id(),
+                egui::Id::new("Tile Tooltip"),
+                tooltip,
+            );
         }
     }
 

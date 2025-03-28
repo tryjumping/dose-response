@@ -26,13 +26,16 @@ pub fn egui_root(ctx: &Context, rect: Rect, add_contents: impl FnOnce(&mut Ui)) 
     let layer_id = egui::LayerId::background();
     let panel_rect = rect;
     let clip_rect = rect;
+
     let ui = &mut Ui::new(
         ctx.clone(),
         layer_id,
         egui::Id::new("Root UI Area"),
         panel_rect,
         clip_rect,
+        egui::UiStackInfo::new(egui::UiKind::Frame),
     );
+
     add_contents(ui);
 }
 

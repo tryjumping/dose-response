@@ -118,7 +118,7 @@ pub fn process(
     let padding = Vec2::splat(20.0);
     let ui_rect = Rect::from_min_max(top_left + padding, bottom_right - padding);
 
-    let mut ui = ui.child_ui(ui_rect, *ui.layout());
+    let mut ui = ui.child_ui(ui_rect, *ui.layout(), None);
     ui.set_clip_rect(full_rect);
 
     ui.style_mut().visuals.override_text_color = Some(state.palette.gui_text.into());
@@ -369,6 +369,7 @@ pub fn process(
                 ui_rect.right_bottom(),
             ),
             *ui.layout(),
+            None,
         );
 
         let mut highlighted_tile_offset_from_player_pos = None;

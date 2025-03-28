@@ -442,7 +442,11 @@ impl LoopState {
             ]
         };
 
-        events.push(egui::Event::Scroll(scroll_delta.into()));
+        events.push(egui::Event::MouseWheel {
+            unit: egui::MouseWheelUnit::Point,
+            delta: scroll_delta.into(),
+            modifiers: egui::Modifiers::NONE,
+        });
 
         if mouse.left_clicked {
             events.push(Event::PointerButton {

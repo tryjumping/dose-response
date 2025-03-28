@@ -221,8 +221,12 @@ impl Widget for ImageTextButton {
 
             if selected {
                 painter.rect(rect, visuals.rounding, visuals.bg_fill, visuals.bg_stroke);
-                painter.galley(rect.min + button_padding, prefix_galley);
-                painter.galley(text_pos, text_galley);
+                painter.galley(
+                    rect.min + button_padding,
+                    prefix_galley,
+                    Color32::PLACEHOLDER,
+                );
+                painter.galley(text_pos, text_galley, Color32::PLACEHOLDER);
             } else if frame {
                 painter.rect(
                     rect.expand(visuals.expansion),
@@ -230,12 +234,12 @@ impl Widget for ImageTextButton {
                     visuals.bg_fill,
                     visuals.bg_stroke,
                 );
-                painter.galley_with_color(
+                painter.galley_with_override_text_color(
                     rect.min + button_padding,
                     prefix_galley,
                     text_disabled_color,
                 );
-                painter.galley_with_color(text_pos, text_galley, text_disabled_color);
+                painter.galley_with_override_text_color(text_pos, text_galley, text_disabled_color);
             }
 
             let image_rect = ui.layout().align_size_within_rect(

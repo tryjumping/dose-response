@@ -154,6 +154,8 @@ pub fn egui_style(palette: &Palette, font_size: f32) -> egui::Style {
     style.visuals.widgets.hovered.bg_fill = palette.gui_button_highlighted_background.into();
     style.visuals.widgets.hovered.weak_bg_fill = palette.gui_button_highlighted_background.into();
 
+    style.spacing.scroll = egui::style::ScrollStyle::solid();
+
     for font_id in style.text_styles.values_mut() {
         *font_id = egui::FontId::monospace(font_size);
     }
@@ -467,7 +469,8 @@ impl LoopState {
             )),
             events,
 
-            pixels_per_point: self.dpi,
+            // TODO: I think we'll have to call `Context::set_zoom_factor` to handle DPI from now on
+            //pixels_per_point: self.dpi,
             ..Default::default()
         }
     }

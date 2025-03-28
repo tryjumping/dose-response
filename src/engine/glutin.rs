@@ -503,7 +503,7 @@ monitor ID: {:?}. Ignoring this request.",
                         log::warn!("{}", err);
                     }
                 }
-                ui_paint_batches = loop_state.egui_context.tessellate(output.shapes);
+                ui_paint_batches = loop_state.egui_context.tessellate(output.shapes, loop_state.dpi.unwrap_or(1.0));
 
                 if output.textures_delta.set.is_empty() {
                     // We don't need to set/update any textures

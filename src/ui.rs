@@ -32,7 +32,20 @@ pub fn egui_root(ctx: &Context, rect: Rect, add_contents: impl FnOnce(&mut Ui)) 
 /// Helper for creating an egui button with the default background and
 /// an enabled state.
 pub fn button(ui: &mut Ui, text: &str, enabled: bool, palette: &Palette) -> egui::Response {
-    let button = egui::Button::new(RichText::new(text).color(palette.gui_text));
+    sized_button(ui, text, enabled, None, palette)
+}
+
+pub fn sized_button(
+    ui: &mut Ui,
+    text: &str,
+    enabled: bool,
+    size: Option<Vec2>,
+    palette: &Palette,
+) -> egui::Response {
+    let mut button = egui::Button::new(RichText::new(text).color(palette.gui_text));
+    if let Some(size) = size {
+        button = button.min_size(size);
+    }
     ui.add_enabled(enabled, button)
 }
 

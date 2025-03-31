@@ -369,125 +369,142 @@ pub fn process(
         )));
 
         let mut highlighted_tile_offset_from_player_pos = None;
-
         ui.label("Numpad Controls:");
-        ui.columns(3, |c| {
-            for column in c.iter_mut() {
-                column.style_mut().spacing.button_padding = [0.0, 25.0].into();
-            }
 
-            c[0].with_layout(
-                egui::Layout::top_down_justified(egui::Align::Center),
-                |ui| {
-                    let btn = ui::button(ui, "7", active, &state.palette);
-                    if btn.clicked() {
-                        action = Some(Action::MoveNW);
+        // NOTE: Calculate the right size for the buttons by taking
+        // the total width of the sidebar, subtracting the spacing and
+        // dividing by the number of columns.
+        //
+        // HACK: that will give us an area that's too wide, too tall
+        // with buttons that are too big. However, by adding two "fake
+        // columns" on either side, we get a nice little centred grid
+        // with just the right size.
+        //
+        // There's probably a way to do this better by
+        // stretching/positioning the grid somehow, but it wasn't
+        // obvious to figure out.
+
+        let numpad_spacing = 10.0;
+        let numpad_button_width = ((ui_rect.width() - (2.0 * numpad_spacing)) / 5.0).floor();
+        let numpad_button_size = Some(Vec2::splat(numpad_button_width));
+        egui::Grid::new("Sidebar Numpad Controls")
+            .spacing(Vec2::splat(numpad_spacing))
+            .show(&mut ui, |ui| {
+                ui.label(""); // fake column
+
+                let btn = ui::sized_button(ui, "7", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveNW);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((-1, -1));
+                }
+
+                let btn = ui::sized_button(ui, "8", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveN);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((0, -1));
+                }
+
+                let btn = ui::sized_button(ui, "9", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveNE);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((1, -1));
+                }
+
+                ui.label(""); // fake column
+
+                ui.end_row();
+
+                ui.label(""); // fake column
+
+                let btn = ui::sized_button(ui, "4", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveW);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((-1, 0));
+                }
+
+                // Add the player image
+                {
+                    let texture = match settings.visual_style {
+                        VisualStyle::Graphical => Texture::Tilemap,
+                        VisualStyle::Textual => Texture::Glyph,
                     };
-                    if btn.hovered() {
-                        highlighted_tile_offset_from_player_pos = Some((-1, -1));
-                    }
+                    let text_size = settings.text_size as f32;
+                    let (uv, tilesize) =
+                        ui::image_uv_tilesize(texture, state.player.graphic, text_size);
+                    let image_color = state.palette.player(state.player.color_index);
+                    let sized_texture =
+                        egui::load::SizedTexture::new(texture, Vec2::splat(tilesize));
+                    let image = egui::widgets::Image::new(sized_texture)
+                        .uv(uv)
+                        .tint(image_color);
 
-                    let btn = ui::button(ui, "4", active, &state.palette);
-                    if btn.clicked() {
-                        action = Some(Action::MoveW);
+                    // Allocate the same UI space as any other button to keep the layout correct
+                    let sense = egui::Sense::click();
+                    let (rect, _response) = ui.allocate_exact_size(btn.rect.size(), sense);
+
+                    // Calculate the size of the actual rendered image and centre it
+                    let image_rect = {
+                        // NOTE: this will return a rect with floating point values:
+                        let r = Rect::from_center_size(rect.center(), Vec2::splat(text_size));
+                        // We need to convert it to integers:
+                        Rect {
+                            min: r.min.floor(),
+                            max: r.max.floor(),
+                        }
                     };
-                    if btn.hovered() {
-                        highlighted_tile_offset_from_player_pos = Some((-1, 0));
-                    }
+                    image.paint_at(ui, image_rect);
+                };
 
-                    let btn = ui::button(ui, "1", active, &state.palette);
-                    if btn.clicked() {
-                        action = Some(Action::MoveSW);
-                    };
-                    if btn.hovered() {
-                        highlighted_tile_offset_from_player_pos = Some((-1, 1));
-                    }
-                },
-            );
+                let btn = ui::sized_button(ui, "6", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveE);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((1, 0));
+                }
 
-            c[1].with_layout(
-                egui::Layout::top_down_justified(egui::Align::Center),
-                |ui| {
-                    let btn = ui::button(ui, "8", active, &state.palette);
-                    if btn.clicked() {
-                        action = Some(Action::MoveN);
-                    };
-                    if btn.hovered() {
-                        highlighted_tile_offset_from_player_pos = Some((0, -1));
-                    }
+                ui.label(""); // fake column
 
-                    // Add the player image
-                    {
-                        let texture = match settings.visual_style {
-                            VisualStyle::Graphical => Texture::Tilemap,
-                            VisualStyle::Textual => Texture::Glyph,
-                        };
-                        let text_size = settings.text_size as f32;
-                        let (uv, tilesize) =
-                            ui::image_uv_tilesize(texture, state.player.graphic, text_size);
-                        let image_color = state.palette.player(state.player.color_index);
-                        let sized_texture =
-                            egui::load::SizedTexture::new(texture, Vec2::splat(tilesize));
-                        let image = egui::widgets::Image::new(sized_texture)
-                            .uv(uv)
-                            .tint(image_color);
+                ui.end_row();
 
-                        // Allocate the same UI space as any other button to keep the layout correct
-                        let sense = egui::Sense::click();
-                        let (rect, _response) = ui.allocate_exact_size(btn.rect.size(), sense);
+                ui.label(""); // fake column
 
-                        // Calculate the size of the actual rendered image and centre it
-                        let image_rect = {
-                            // NOTE: this will return a rect with floating point values:
-                            let r = Rect::from_center_size(rect.center(), Vec2::splat(text_size));
-                            // We need to convert it to integers:
-                            Rect {
-                                min: r.min.floor(),
-                                max: r.max.floor(),
-                            }
-                        };
-                        image.paint_at(ui, image_rect);
-                    };
+                let btn = ui::sized_button(ui, "1", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveSW);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((-1, 1));
+                }
 
-                    let btn = ui::button(ui, "2", active, &state.palette);
-                    if btn.clicked() {
-                        action = Some(Action::MoveS);
-                    };
-                    if btn.hovered() {
-                        highlighted_tile_offset_from_player_pos = Some((0, 1));
-                    }
-                },
-            );
+                let btn = ui::sized_button(ui, "2", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveS);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((0, 1));
+                }
 
-            c[2].with_layout(
-                egui::Layout::top_down_justified(egui::Align::Center),
-                |ui| {
-                    let btn = ui::button(ui, "9", active, &state.palette);
-                    if btn.clicked() {
-                        action = Some(Action::MoveNE);
-                    };
-                    if btn.hovered() {
-                        highlighted_tile_offset_from_player_pos = Some((1, -1));
-                    }
+                let btn = ui::sized_button(ui, "3", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveSE);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((1, 1));
+                }
 
-                    let btn = ui::button(ui, "6", active, &state.palette);
-                    if btn.clicked() {
-                        action = Some(Action::MoveE);
-                    };
-                    if btn.hovered() {
-                        highlighted_tile_offset_from_player_pos = Some((1, 0));
-                    }
+                ui.label(""); // fake column
 
-                    let btn = ui::button(ui, "3", active, &state.palette);
-                    if btn.clicked() {
-                        action = Some(Action::MoveSE);
-                    };
-                    if btn.hovered() {
-                        highlighted_tile_offset_from_player_pos = Some((1, 1));
-                    }
-                },
-            );
-        });
+                ui.end_row();
+            });
 
         // Highlight the target tile the player would walk to if clicked in the sidebar numpad:
         if let Some(offset) = highlighted_tile_offset_from_player_pos {

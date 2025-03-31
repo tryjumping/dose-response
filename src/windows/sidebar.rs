@@ -369,12 +369,29 @@ pub fn process(
         )));
 
         let mut highlighted_tile_offset_from_player_pos = None;
-
-        let numpad_button_size = Some(Vec2::new(50.0, 50.0));
         ui.label("Numpad Controls:");
+
+        // NOTE: Calculate the right size for the buttons by taking
+        // the total width of the sidebar, subtracting the spacing and
+        // dividing by the number of columns.
+        //
+        // HACK: that will give us an area that's too wide, too tall
+        // with buttons that are too big. However, by adding two "fake
+        // columns" on either side, we get a nice little centred grid
+        // with just the right size.
+        //
+        // There's probably a way to do this better by
+        // stretching/positioning the grid somehow, but it wasn't
+        // obvious to figure out.
+
+        let numpad_spacing = 10.0;
+        let numpad_button_width = ((ui_rect.width() - (2.0 * numpad_spacing)) / 5.0).floor();
+        let numpad_button_size = Some(Vec2::splat(numpad_button_width));
         egui::Grid::new("Sidebar Numpad Controls")
-            .spacing((10.0, 10.0))
+            .spacing(Vec2::splat(numpad_spacing))
             .show(&mut ui, |ui| {
+                ui.label(""); // fake column
+
                 let btn = ui::sized_button(ui, "7", active, numpad_button_size, &state.palette);
                 if btn.clicked() {
                     action = Some(Action::MoveNW);
@@ -383,29 +400,34 @@ pub fn process(
                     highlighted_tile_offset_from_player_pos = Some((-1, -1));
                 }
 
-                let btn = ui::sized_button(ui, "4", active, numpad_button_size, &state.palette);
-                if btn.clicked() {
-                    action = Some(Action::MoveW);
-                };
-                if btn.hovered() {
-                    highlighted_tile_offset_from_player_pos = Some((-1, 0));
-                }
-
-                let btn = ui::sized_button(ui, "1", active, numpad_button_size, &state.palette);
-                if btn.clicked() {
-                    action = Some(Action::MoveSW);
-                };
-                if btn.hovered() {
-                    highlighted_tile_offset_from_player_pos = Some((-1, 1));
-                }
-                ui.end_row();
-
                 let btn = ui::sized_button(ui, "8", active, numpad_button_size, &state.palette);
                 if btn.clicked() {
                     action = Some(Action::MoveN);
                 };
                 if btn.hovered() {
                     highlighted_tile_offset_from_player_pos = Some((0, -1));
+                }
+
+                let btn = ui::sized_button(ui, "9", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveNE);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((1, -1));
+                }
+
+                ui.label(""); // fake column
+
+                ui.end_row();
+
+                ui.label(""); // fake column
+
+                let btn = ui::sized_button(ui, "4", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveW);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((-1, 0));
                 }
 
                 // Add the player image
@@ -441,29 +463,34 @@ pub fn process(
                     image.paint_at(ui, image_rect);
                 };
 
-                let btn = ui::sized_button(ui, "2", active, numpad_button_size, &state.palette);
-                if btn.clicked() {
-                    action = Some(Action::MoveS);
-                };
-                if btn.hovered() {
-                    highlighted_tile_offset_from_player_pos = Some((0, 1));
-                }
-                ui.end_row();
-
-                let btn = ui::sized_button(ui, "9", active, numpad_button_size, &state.palette);
-                if btn.clicked() {
-                    action = Some(Action::MoveNE);
-                };
-                if btn.hovered() {
-                    highlighted_tile_offset_from_player_pos = Some((1, -1));
-                }
-
                 let btn = ui::sized_button(ui, "6", active, numpad_button_size, &state.palette);
                 if btn.clicked() {
                     action = Some(Action::MoveE);
                 };
                 if btn.hovered() {
                     highlighted_tile_offset_from_player_pos = Some((1, 0));
+                }
+
+                ui.label(""); // fake column
+
+                ui.end_row();
+
+                ui.label(""); // fake column
+
+                let btn = ui::sized_button(ui, "1", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveSW);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((-1, 1));
+                }
+
+                let btn = ui::sized_button(ui, "2", active, numpad_button_size, &state.palette);
+                if btn.clicked() {
+                    action = Some(Action::MoveS);
+                };
+                if btn.hovered() {
+                    highlighted_tile_offset_from_player_pos = Some((0, 1));
                 }
 
                 let btn = ui::sized_button(ui, "3", active, numpad_button_size, &state.palette);
@@ -473,6 +500,9 @@ pub fn process(
                 if btn.hovered() {
                     highlighted_tile_offset_from_player_pos = Some((1, 1));
                 }
+
+                ui.label(""); // fake column
+
                 ui.end_row();
             });
 

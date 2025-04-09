@@ -76,8 +76,8 @@ impl Gamepad {
 
 pub fn process_gamepad_events(gilrs: &mut Gilrs, gamepad: &mut Gamepad, dt: Duration) {
     use gilrs::{
-        ev::filter,
         EventType::{AxisChanged, ButtonPressed, ButtonRepeated},
+        ev::filter,
     };
     let repeat = filter::Repeat {
         after: Duration::from_millis(350),

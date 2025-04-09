@@ -6,7 +6,7 @@ use crate::{
     },
     keys::{Key, KeyCode},
     point::Point,
-    settings::{Store as SettingsStore, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH},
+    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
     state::State,
 };
 

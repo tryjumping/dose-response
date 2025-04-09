@@ -1,7 +1,7 @@
 use crate::{
     audio::Audio,
     color::Color,
-    engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex},
+    engine::{self, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex, opengl::OpenGlApp},
     gamepad::{self, Gamepad},
     keys::Key,
     palette::Palette,
@@ -12,7 +12,7 @@ use crate::{
 
 use std::{convert::TryInto, sync::Arc, time::Duration};
 
-use egui::{self, epaint::image::FontImage, Event, RawInput};
+use egui::{self, Event, RawInput, epaint::image::FontImage};
 
 use gilrs::Gilrs;
 
@@ -510,9 +510,9 @@ impl LoopState {
             );
         } else {
             log::warn!(
-            "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
-            new_tilesize_px,
-            crate::engine::AVAILABLE_TILE_SIZES
+                "Trying to switch to a tilesize that's not available: {}. Only these ones exist: {:?}",
+                new_tilesize_px,
+                crate::engine::AVAILABLE_TILE_SIZES
             );
         }
     }
@@ -536,9 +536,9 @@ impl LoopState {
             self.egui_context.set_style(Arc::new(style));
         } else {
             log::warn!(
-            "Trying to switch to a text size that's not available: {}. Only these ones exist: {:?}",
-            new_text_size_px,
-            crate::engine::AVAILABLE_TEXT_SIZES
+                "Trying to switch to a text size that's not available: {}. Only these ones exist: {:?}",
+                new_text_size_px,
+                crate::engine::AVAILABLE_TEXT_SIZES
             );
         }
     }

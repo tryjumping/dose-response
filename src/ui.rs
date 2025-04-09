@@ -8,7 +8,7 @@ use crate::{
     point::Point,
 };
 
-use egui::{self, widgets, Color32, Context, Rect, Response, RichText, Sense, Ui, Vec2, Widget};
+use egui::{self, Color32, Context, Rect, Response, RichText, Sense, Ui, Vec2, Widget, widgets};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Text<'a> {

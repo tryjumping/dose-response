@@ -197,8 +197,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let file_log_config = simplelog::ConfigBuilder::new()
-    // // NOTE: This disables logging the datetime in messages. Useful for diffing playthroughts. Uncomment to disable datetime logging.
-    // 	.set_time_format_custom(time::macros::format_description!(""))
+        // // NOTE: This disables logging the datetime in messages. Useful for diffing playthroughts. Uncomment to disable datetime logging.
+        // 	.set_time_format_custom(time::macros::format_description!(""))
         .build();
 
     if let Ok(logfile) = File::create("dose-response.log") {
@@ -292,7 +292,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Some(file) => {
                 let replay_path: std::path::PathBuf = file.into();
                 if replay_path.exists() {
-                    throw!("The replay file provided by the `--replay-file` option exists already. Not going to overwrite it, aborting.");
+                    throw!(
+                        "The replay file provided by the `--replay-file` option exists already. Not going to overwrite it, aborting."
+                    );
                 }
                 Some(replay_path)
             }

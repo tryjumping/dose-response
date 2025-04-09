@@ -12,9 +12,8 @@ use crate::{
 };
 
 use egui::{
-    self,
+    self, Rect, Ui,
     epaint::{Shape, Stroke},
-    Rect, Ui,
 };
 
 use std::time::Duration;

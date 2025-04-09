@@ -1,7 +1,7 @@
 #![allow(missing_copy_implementations)]
 
 use std::{
-    cmp::{max, Ordering},
+    cmp::{Ordering, max},
     fmt::{self, Display, Error, Formatter},
     ops::{Add, AddAssign, Div, Mul, Sub},
 };

@@ -7,8 +7,6 @@ use crate::{
 
 use std::{ffi::CString, mem, os, ptr};
 
-use cstr::cstr;
-
 use image::RgbaImage;
 
 use gl::types::*;
@@ -75,8 +73,7 @@ impl OpenGlApp {
             // Use shader program
             gl::UseProgram(self.program);
             check_gl_error("UseProgram");
-            let out_color_cstr = cstr!("out_color");
-            gl::BindFragDataLocation(self.program, 0, out_color_cstr.as_ptr());
+            gl::BindFragDataLocation(self.program, 0, c"out_color".as_ptr());
             check_gl_error("BindFragDataLocation");
         }
 
@@ -121,15 +118,13 @@ impl OpenGlApp {
     pub fn compile_shader(src: &str, ty: GLenum) -> GLuint {
         unsafe {
             let shader = gl::CreateShader(ty);
-            // NOTE: This will be used if we can't compile the shader in `src`:
-            let empty_cstr_fallback = cstr!("").to_owned();
-            // Attempt to compile the shader
-            let c_str = CString::new(src.as_bytes()).unwrap_or_else(|e| {
+            let shader_source_cstr = CString::new(src.as_bytes()).unwrap_or_else(|e| {
                 log::error!("Could not turn shader source into a C string: {}", e);
                 log::warn!("Using an empty shader source instead.");
-                empty_cstr_fallback
+                // Return empty shader source if we can't convert the provided one to a `CString`:
+                c"".to_owned()
             });
-            gl::ShaderSource(shader, 1, &c_str.as_ptr(), ptr::null());
+            gl::ShaderSource(shader, 1, &shader_source_cstr.as_ptr(), ptr::null());
             gl::CompileShader(shader);
 
             // Get the compile status
@@ -242,8 +237,7 @@ impl OpenGlApp {
             let stride =
                 crate::engine::VERTEX_COMPONENT_COUNT as i32 * mem::size_of::<GLfloat>() as i32;
 
-            let texture_id_cstr = cstr!("texture_id");
-            let texture_id_attr = gl::GetAttribLocation(program, texture_id_cstr.as_ptr());
+            let texture_id_attr = gl::GetAttribLocation(program, c"texture_id".as_ptr());
             check_gl_error("GetAttribLocation texture_id");
             gl::EnableVertexAttribArray(texture_id_attr as GLuint);
             check_gl_error("EnableVertexAttribArray texture_id");
@@ -262,9 +256,8 @@ impl OpenGlApp {
             gl::BindTexture(gl::TEXTURE_2D, self.glyphmap);
             check_gl_error("BindTexture glyphmap");
             let texture_index = 1;
-            let glyphmap_cstr = cstr!("glyphmap");
             gl::Uniform1i(
-                gl::GetUniformLocation(program, glyphmap_cstr.as_ptr()),
+                gl::GetUniformLocation(program, c"glyphmap".as_ptr()),
                 texture_index,
             );
 
@@ -272,9 +265,8 @@ impl OpenGlApp {
             gl::BindTexture(gl::TEXTURE_2D, self.tilemap);
             check_gl_error("BindTexture tilemap");
             let texture_index = 2;
-            let tilemap_cstr = cstr!("tilemap");
             gl::Uniform1i(
-                gl::GetUniformLocation(program, tilemap_cstr.as_ptr()),
+                gl::GetUniformLocation(program, c"tilemap".as_ptr()),
                 texture_index,
             );
 
@@ -282,46 +274,40 @@ impl OpenGlApp {
             gl::BindTexture(gl::TEXTURE_2D, self.eguimap);
             check_gl_error("BindTexture eguimap");
             let texture_index = 3;
-            let eguimap_cstr = cstr!("eguimap");
             gl::Uniform1i(
-                gl::GetUniformLocation(program, eguimap_cstr.as_ptr()),
+                gl::GetUniformLocation(program, c"eguimap".as_ptr()),
                 texture_index,
             );
 
-            let display_px_cstr = cstr!("display_px");
             gl::Uniform2f(
-                gl::GetUniformLocation(program, display_px_cstr.as_ptr()),
+                gl::GetUniformLocation(program, c"display_px".as_ptr()),
                 display_info.window_size_px[0],
                 display_info.window_size_px[1],
             );
             check_gl_error("Uniform2f display_px");
 
-            let glyphmap_size_px_cstr = cstr!("glyphmap_size_px");
             gl::Uniform2f(
-                gl::GetUniformLocation(program, glyphmap_size_px_cstr.as_ptr()),
+                gl::GetUniformLocation(program, c"glyphmap_size_px".as_ptr()),
                 self.glyphmap_size_px[0],
                 self.glyphmap_size_px[1],
             );
             check_gl_error("Uniform2f glyphmap_size_px");
 
-            let tilemap_size_px_cstr = cstr!("tilemap_size_px");
             gl::Uniform2f(
-                gl::GetUniformLocation(program, tilemap_size_px_cstr.as_ptr()),
+                gl::GetUniformLocation(program, c"tilemap_size_px".as_ptr()),
                 self.tilemap_size_px[0],
                 self.tilemap_size_px[1],
             );
             check_gl_error("Uniform2f tilemap_size_px");
 
-            let eguimap_size_px_cstr = cstr!("eguimap_size_px");
             gl::Uniform2f(
-                gl::GetUniformLocation(program, eguimap_size_px_cstr.as_ptr()),
+                gl::GetUniformLocation(program, c"eguimap_size_px".as_ptr()),
                 self.eguimap_size_px[0],
                 self.eguimap_size_px[1],
             );
             check_gl_error("Uniform2f eguimap_size_px");
 
-            let pos_px_cstr = cstr!("pos_px");
-            let pos_attr = gl::GetAttribLocation(program, pos_px_cstr.as_ptr());
+            let pos_attr = gl::GetAttribLocation(program, c"pos_px".as_ptr());
             check_gl_error("GetAttribLocation pos_px");
             gl::EnableVertexAttribArray(pos_attr as GLuint);
             check_gl_error("EnableVertexAttribArray pos_px");
@@ -335,8 +321,7 @@ impl OpenGlApp {
             );
             check_gl_error("VertexAttribPointer pos_px");
 
-            let tile_pos_cstr = cstr!("tile_pos");
-            let tex_coord_attr = gl::GetAttribLocation(program, tile_pos_cstr.as_ptr());
+            let tex_coord_attr = gl::GetAttribLocation(program, c"tile_pos".as_ptr());
             check_gl_error("GetAttribLocation tile_pos");
             gl::EnableVertexAttribArray(tex_coord_attr as GLuint);
             check_gl_error("EnableVertexAttribArray tile_pos");
@@ -350,8 +335,7 @@ impl OpenGlApp {
             );
             check_gl_error("VertexAttribPointer tile_pos");
 
-            let color_cstr = cstr!("color");
-            let color_attr = gl::GetAttribLocation(program, color_cstr.as_ptr());
+            let color_attr = gl::GetAttribLocation(program, c"color".as_ptr());
             check_gl_error("GetAttribLocation color");
             gl::EnableVertexAttribArray(color_attr as GLuint);
             check_gl_error("EnableVertexAttribArray color");

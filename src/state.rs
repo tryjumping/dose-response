@@ -656,16 +656,20 @@ Reason: '{}'.",
             let version: String = bincode::deserialize_from(&file)?;
             log::info!("Savefile version {}", version);
             if version != crate::metadata::VERSION {
-                log::warn!("The game was saved in a different version: {}. This release has version: {}. The game might not load properly.",
-                           version,
-                           crate::metadata::VERSION);
+                log::warn!(
+                    "The game was saved in a different version: {}. This release has version: {}. The game might not load properly.",
+                    version,
+                    crate::metadata::VERSION
+                );
             }
             let commit: String = bincode::deserialize_from(&file)?;
             log::info!("Savefile commit {}", commit);
             if commit != crate::metadata::GIT_HASH {
-                log::warn!("The game was saved in a different commit: {}. This release has commit: {}. The game might not load properly.",
-                           commit,
-                crate::metadata::GIT_HASH);
+                log::warn!(
+                    "The game was saved in a different commit: {}. This release has commit: {}. The game might not load properly.",
+                    commit,
+                    crate::metadata::GIT_HASH
+                );
             }
             bincode::deserialize_from(&file)?
         };

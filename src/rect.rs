@@ -23,7 +23,10 @@ impl Rectangle {
         let size = if size >= (0, 0) {
             size
         } else {
-            log::error!("rect::from_point_and_size received a `size` smaller than zero: {}! Using a Point::zero value instead.", size);
+            log::error!(
+                "rect::from_point_and_size received a `size` smaller than zero: {}! Using a Point::zero value instead.",
+                size
+            );
             Point::zero()
         };
         Rectangle {
@@ -41,7 +44,10 @@ impl Rectangle {
         let half_size = if half_size >= (0, 0) {
             half_size
         } else {
-            log::error!("rect::counter received a `half_size` smaller than zero: {}! Using a Point::zero value instead.", half_size);
+            log::error!(
+                "rect::counter received a `half_size` smaller than zero: {}! Using a Point::zero value instead.",
+                half_size
+            );
             Point::zero()
         };
         Rectangle {

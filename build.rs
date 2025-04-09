@@ -11,7 +11,7 @@ use std::{
 };
 
 use image::{Rgba, RgbaImage};
-use rusttype::{point, FontCollection, Scale};
+use rusttype::{FontCollection, Scale, point};
 
 #[cfg(windows)]
 fn set_exe_icon() {

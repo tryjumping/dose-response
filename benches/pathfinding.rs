@@ -2,11 +2,11 @@
 extern crate bencher;
 
 use dose_response::{
+    WORLD_SIZE,
     player::{Mind, PlayerInfo},
     point::Point,
     state::Challenge,
     world::World,
-    WORLD_SIZE,
 };
 
 use bencher::Bencher;

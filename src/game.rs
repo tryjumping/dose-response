@@ -810,7 +810,9 @@ fn process_game(
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
-        log::debug!("Player AP: {player_ap}, Player took action: {player_took_action}, Monsters can move: {monsters_can_move}");
+        log::debug!(
+            "Player AP: {player_ap}, Player took action: {player_took_action}, Monsters can move: {monsters_can_move}"
+        );
 
         if state.explosion_animation.is_none() {
             if monsters_can_move {

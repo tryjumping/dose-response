@@ -181,7 +181,11 @@ impl World {
         player_info: PlayerInfo,
         challenge: Challenge,
     ) -> World {
-        log::info!("World::new(seed: {seed}, dimension: {dimension}, chunk_size: {chunk_size}, player_info: {:?}, challenge: {:?})", player_info, challenge);
+        log::info!(
+            "World::new(seed: {seed}, dimension: {dimension}, chunk_size: {chunk_size}, player_info: {:?}, challenge: {:?})",
+            player_info,
+            challenge
+        );
         assert!(dimension > 0);
         assert!(chunk_size > 0);
         assert_eq!(dimension % 2, 0);

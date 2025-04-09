@@ -3,8 +3,8 @@ use crate::random::Random;
 use std::time::Duration;
 
 use rodio::{
-    source::{Buffered, Empty},
     Decoder, OutputStreamHandle, Sink, Source,
+    source::{Buffered, Empty},
 };
 
 type SoundData = std::io::Cursor<&'static [u8]>;

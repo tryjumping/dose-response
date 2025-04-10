@@ -11,7 +11,7 @@ use std::{
 };
 
 use image::{Rgba, RgbaImage};
-use rusttype::{FontCollection, Scale, point};
+use rusttype::{point, FontCollection, Scale};
 
 #[cfg(windows)]
 fn set_exe_icon() {
@@ -129,6 +129,8 @@ fn current_git_commit() -> Option<String> {
 }
 
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+
     let git_hash = env::var_os("APPVEYOR_REPO_COMMIT")
         .or_else(|| env::var_os("TRAVIS_COMMIT"))
         .and_then(|s| s.into_string().ok())

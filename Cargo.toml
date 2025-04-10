@@ -25,6 +25,12 @@ name = "pathfinding"
 harness = false
 
 [dependencies]
+# Glutin-based graphics stack
+glutin-winit = { version = "0.5.0", default-features = false, features = ["x11", "egl"], optional = true }
+glutin = { version = "0.32", default-features = false, optional = true }
+winit = { version = "0.30", default-features = false }
+raw-window-handle = { version = "0.6", optional = true }
+
 bincode = "1.3"  # For serialising the game save state into a binary format
 bitflags = "1.2"
 clap = { version = "2.33.3", optional = true }
@@ -37,7 +43,6 @@ egui = { version = "0.31", default-features = false }
 flate2 = "1.0"
 gilrs = "0.10.2"
 gl = { version = "0.14", optional = true }
-glutin = { version = "0.29", optional = true }
 image = { version = "0.23.14", optional = true }
 line_drawing = "0.8"
 log = "0.4.14"
@@ -50,8 +55,6 @@ serde_json = "1.0"
 simplelog = { version = "0.12.0", default-features = false, features = [], optional = true }
 time = { version = "0.3.14" }
 toml_edit = "0.2.1"
-# Update it only when glutin use a new version of winit
-winit = "0.27"
 webbrowser = "0.5.5"
 blake3 = "=1.5.4"
 
@@ -85,7 +88,7 @@ mobile-ui = []
 cheating = []
 cli = ["clap", "simplelog", "log-panics"]
 fullscreen = []
-glutin-backend = ["glutin", "gl", "image"]
+glutin-backend = ["glutin", "gl", "image", "glutin-winit", "raw-window-handle"]
 missed-frames = []
 replay = ["chrono"]
 stats = []
@@ -127,6 +130,7 @@ float_cmp = "allow"
 from_iter_instead_of_collect = "allow"
 collapsible_else_if = "allow"
 bool_assert_comparison = "allow"
+type_complexity = "allow"
 
 cast_lossless = "deny"
 redundant_closure_for_method_calls = "deny"
@@ -146,3 +150,11 @@ panic = "deny"
 match_on_vec_items = "deny"
 manual_strip = "deny"
 await_holding_refcell_ref = "deny"
+unwrap_in_result = "deny"
+# NOTE: these two deny direct indexing into arrays and the
+# `unreachable!` macro. These are definitely things that could crash
+# the game at runtime. But also a massive pain to code around.
+#
+# Worth reconsidering at some point, but keeping commented out for now.
+#indexing_slicing = "deny"
+#unreachable = "deny"

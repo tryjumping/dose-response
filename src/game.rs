@@ -93,7 +93,7 @@ pub fn update(
     if state.window_stack.top() == Window::Game && !state.paused {
         state.previous_tick = state.tick_id;
         state.tick_id += 1;
-        log::debug!("Starting new tick with ID: {}", state.tick_id);
+        log::trace!("Starting new tick with ID: {}", state.tick_id);
     } else {
         //log::warn!("NOT A GAME FRAME!!");
     }
@@ -220,7 +220,7 @@ pub fn update(
 
     if state.window_stack.top() == Window::Game && state.player.alive() {
         state::log_input(&mut state.input_logger, input);
-        log::debug!(
+        log::trace!(
             "[TICK {}] state.player.pos: {}",
             state.tick_id,
             state.player.pos
@@ -706,7 +706,7 @@ fn process_game(
             .monsters(simulation_area)
             .map(|m| m.ap.to_int())
             .sum();
-        log::debug!(
+        log::trace!(
             "Player AP: {}, monsters: {}, active mon: {}, total mon AP: {}",
             state.player.ap(),
             monster_count,
@@ -804,13 +804,13 @@ fn process_game(
         // Depression 1 etc.
 
         let player_ap = state.player.ap();
-        log::debug!("Player AP before processing: {player_ap}");
+        log::trace!("Player AP before processing: {player_ap}");
         if state.player.ap() >= 1 {
             process_player(state, display, audio, simulation_area);
         }
         let player_took_action = player_ap > state.player.ap();
         let monsters_can_move = state.player.ap() == 0 || player_took_action;
-        log::debug!(
+        log::trace!(
             "Player AP: {player_ap}, Player took action: {player_took_action}, Monsters can move: {monsters_can_move}"
         );
 
@@ -828,10 +828,10 @@ fn process_game(
                     &mut state.extra_animations,
                 );
             } else {
-                log::debug!("Monsters waiting for player.");
+                log::trace!("Monsters waiting for player.");
             }
         } else {
-            log::debug!("Monster's waiting for the explosion to end.");
+            log::trace!("Monster's waiting for the explosion to end.");
         }
 
         // NOTE: the anxiety counter bar is hidden at the start, but
@@ -863,7 +863,7 @@ fn process_game(
             == 0;
 
         entire_turn_ended = player_turn_ended && monster_turn_ended;
-        log::debug!(
+        log::trace!(
             "Entire turn ended: {}, player turn ended: {}, monster turn ended: {}",
             entire_turn_ended,
             player_turn_ended,
@@ -875,7 +875,7 @@ fn process_game(
     // NOTE: doing this only after we've logged the validations. Actually maybe we want to do this
     // before we start turn processing??
     if entire_turn_ended {
-        log::debug!("Starting new turn for player and monsters.");
+        log::trace!("Starting new turn for player and monsters.");
         state.player.new_turn();
         for monster in state.world.monsters_mut(simulation_area) {
             monster.new_turn();
@@ -883,7 +883,7 @@ fn process_game(
     }
 
     if entire_turn_ended {
-        log::debug!("Turn {} has ended.", state.turn);
+        log::trace!("Turn {} has ended.", state.turn);
         state.turn += 1;
     }
 
@@ -954,7 +954,7 @@ fn process_game(
         if state.challenge.one_chance {
             state.game_session = GameSession::Ended;
             state.show_endscreen_and_uncover_map_during_fadein = true;
-            log::debug!("Game real time: {:?}", state.clock);
+            log::trace!("Game real time: {:?}", state.clock);
         } else {
             // NOTE: Don't die, reset the player to the initial state instead:
             state.player.reset();
@@ -1087,7 +1087,7 @@ fn process_monsters(
     if !player.alive() {
         return;
     }
-    log::debug!("Processing monsters");
+    log::trace!("Processing monsters");
 
     // NOTE: one quarter of the map area should be a decent overestimate
     let monster_count_estimate = area.size().x * area.size().y / 4;
@@ -1109,7 +1109,7 @@ fn process_monsters(
     monster_positions_vec
         .sort_by_key(|&(ap, pos)| (ap, player.pos.distance(pos) as i32, pos.x, pos.y));
     let mut monster_positions_to_process: VecDeque<_> = monster_positions_vec.into();
-    log::debug!(
+    log::trace!(
         "Monsters to process: {}",
         monster_positions_to_process.len()
     );
@@ -1260,13 +1260,13 @@ fn process_player_action(
     palette: &Palette,
     audio: &mut Audio,
 ) {
-    log::debug!("Processing player action");
+    log::trace!("Processing player action");
     if !player.alive() {
-        log::debug!("Processing player action, but the player is dead.");
+        log::trace!("Processing player action, but the player is dead.");
         return;
     }
     if !player.has_ap(1) {
-        log::debug!(
+        log::trace!(
             "Processing player action, but the player has no AP: {}",
             player.ap()
         );
@@ -1274,7 +1274,7 @@ fn process_player_action(
     }
 
     if let Some(command) = commands.pop_front() {
-        log::debug!("Player Command: {:?}", command);
+        log::trace!("Player Command: {:?}", command);
         let mut action = match command {
             Command::N => Action::Move(player.pos + (0, -1)),
             Command::S => Action::Move(player.pos + (0, 1)),
@@ -1304,7 +1304,7 @@ fn process_player_action(
                 return;
             }
         };
-        log::debug!("Action from Command: {:?}", action);
+        log::trace!("Action from Command: {:?}", action);
 
         if player.stun.to_int() > 0 {
             action = Action::Move(player.pos);
@@ -1358,7 +1358,7 @@ fn process_player_action(
             action = Action::Use(kind);
         }
 
-        log::debug!("Final Action: {:?}", action);
+        log::trace!("Final Action: {:?}", action);
         match action {
             Action::Move(dest) => {
                 let dest_walkable =
@@ -1548,7 +1548,7 @@ fn process_player_action(
             }
         }
     } else {
-        log::debug!("No Command found");
+        log::trace!("No Command found");
     }
 }
 
@@ -1559,7 +1559,7 @@ fn process_player(
     simulation_area: Rectangle,
 ) {
     {
-        log::debug!("Processing player");
+        log::trace!("Processing player");
 
         // appease borrowck
         let player = &mut state.player;
@@ -1605,13 +1605,13 @@ fn process_player(
         formula::exploration_radius(state.player.mind),
     );
 
-    log::debug!(
+    log::trace!(
         "left down: {}, visible: {}, walking timer done: {}",
         state.mouse.left_is_down,
         visible,
         state.path_walking_timer.finished()
     );
-    log::debug!("Player path: {:?}", state.player_path);
+    log::trace!("Player path: {:?}", state.player_path);
 
     let walk_the_path_command = state.commands.front() == Some(&Command::WalkPath);
     if walk_the_path_command {
@@ -1641,15 +1641,15 @@ fn process_player(
                 }
             };
             if let Some(command) = command {
-                log::debug!("Pushing mouse trail command: {:?}", command);
+                log::trace!("Pushing mouse trail command: {:?}", command);
                 state.commands.push_front(command);
             } else {
-                log::debug!("We're in the player path section, but no command is pushed.");
+                log::trace!("We're in the player path section, but no command is pushed.");
             }
         }
     }
 
-    log::debug!("Commands: {:?}", state.commands);
+    log::trace!("Commands: {:?}", state.commands);
     let previous_action_points = state.player.ap();
     process_player_action(
         &mut state.player,
@@ -1664,17 +1664,17 @@ fn process_player(
         &state.palette,
         audio,
     );
-    log::debug!("player action processed");
+    log::trace!("player action processed");
 
     // If the player ever picks up a dose, mark it in this variable:
     let player_picked_up_a_dose = state.player.inventory.iter().any(item::Item::is_dose);
     if player_picked_up_a_dose {
         state.player_picked_up_a_dose = true;
     }
-    log::debug!("Player picked up a dose: {}", player_picked_up_a_dose);
+    log::trace!("Player picked up a dose: {}", player_picked_up_a_dose);
 
     let spent_ap_this_turn = previous_action_points > state.player.ap();
-    log::debug!("Player spent AP this turn: {}", spent_ap_this_turn);
+    log::trace!("Player spent AP this turn: {}", spent_ap_this_turn);
 
     // Place the Victory NPC if the player behaved themself.
     if state.player.will.is_max() && !state.player.mind.is_high() && state.victory_npc_id.is_none()
@@ -1792,7 +1792,7 @@ fn process_keys(keys: &mut Keys, commands: &mut VecDeque<Command>) {
             _ => inventory_commands(key),
         };
         if let Some(command) = command {
-            log::debug!("Pushing Command: {:?} from Key: {:?}", command, key);
+            log::trace!("Pushing Command: {:?} from Key: {:?}", command, key);
             commands.push_back(command);
         }
     }

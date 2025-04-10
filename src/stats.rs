@@ -1,5 +1,7 @@
 use std::{collections::VecDeque, time::Duration};
 
+use crate::formula;
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct FrameStats {
     pub update: Duration,
@@ -24,8 +26,8 @@ impl Stats {
             frame_stats: VecDeque::with_capacity(frames),
             longest_updates: Vec::with_capacity(updates),
             longest_drawcalls: Vec::with_capacity(drawcalls),
-            lowest_fps: 60,
-            current_fps_average: 60.0,
+            lowest_fps: formula::FPS.floor() as i32,
+            current_fps_average: formula::FPS,
             total_fps_entries_processes: 1.0,
         }
     }

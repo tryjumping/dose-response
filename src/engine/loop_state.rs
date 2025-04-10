@@ -1,7 +1,7 @@
 use crate::{
     audio::Audio,
     color::Color,
-    engine::{self, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex, opengl::OpenGlApp},
+    engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex},
     gamepad::{self, Gamepad},
     keys::Key,
     palette::Palette,
@@ -12,7 +12,7 @@ use crate::{
 
 use std::{convert::TryInto, sync::Arc, time::Duration};
 
-use egui::{self, Event, RawInput, epaint::image::FontImage};
+use egui::{self, epaint::image::FontImage, Event, RawInput};
 
 use gilrs::Gilrs;
 
@@ -168,7 +168,7 @@ pub struct LoopState {
     pub previous_settings: Settings,
     pub display: Display,
     pub audio: Audio,
-    pub dpi: Option<f32>,
+    pub dpi: f64,
     pub glyphmap: RgbaImage,
     pub tilemap: RgbaImage,
     pub egui_context: egui::Context,
@@ -177,6 +177,7 @@ pub struct LoopState {
     pub drawcalls: Vec<Drawcall>,
     pub overall_max_drawcall_count: usize,
     pub vertex_buffer: Vec<f32>,
+    pub font_texture: FontImage,
     pub game_state: Box<State>,
     pub mouse: Mouse,
     pub keys: Vec<Key>,
@@ -291,7 +292,7 @@ impl LoopState {
             previous_settings,
             display,
             audio: Audio::new(stream_handle),
-            dpi: None,
+            dpi: 1.0,
             glyphmap,
             tilemap,
             egui_context,
@@ -300,6 +301,7 @@ impl LoopState {
             drawcalls: Vec::with_capacity(engine::DRAWCALL_CAPACITY),
             overall_max_drawcall_count: 0,
             vertex_buffer: Vec::with_capacity(engine::VERTEX_BUFFER_CAPACITY),
+            font_texture: Default::default(),
             game_state,
             mouse: Mouse::new(),
             keys: vec![],
@@ -352,8 +354,16 @@ impl LoopState {
         let tile_width_px = self.settings.tile_size;
         let text_width_px = self.settings.text_size;
 
-        // NOTE: `end_pass` is in glutin. That feels wrong, see if we can replace it with context::run in one place
-        self.egui_context.begin_pass(self.egui_raw_input());
+        let loop_state_dpi = self.dpi as f32;
+        if self.egui_context.pixels_per_point() != loop_state_dpi {
+            log::info!(
+                "Updating egui's dpi from: {} to {}",
+                self.egui_context.pixels_per_point(),
+                loop_state_dpi
+            );
+            self.egui_context.set_pixels_per_point(loop_state_dpi);
+        }
+
         self.game_state.keyboard_scroll_delta = [0.0, 0.0];
 
         if let Some(gilrs) = self.gilrs.as_mut() {
@@ -361,6 +371,8 @@ impl LoopState {
         }
 
         let previous_palette = self.settings.palette();
+
+        self.previous_settings = self.settings.clone();
 
         let mut update_result = crate::game::update(
             &mut self.game_state,
@@ -382,7 +394,7 @@ impl LoopState {
 
         let skipping = std::matches!(update_result, RunningState::Skip);
         if skipping {
-            log::debug!("Skipping no-op frames...");
+            log::trace!("Skipping no-op frames...");
         }
         while std::matches!(update_result, RunningState::Skip) {
             update_result = crate::game::update(
@@ -404,7 +416,7 @@ impl LoopState {
             );
         }
         if skipping {
-            log::debug!("Finished the frame skip");
+            log::trace!("Finished the frame skip");
         }
 
         if previous_palette != self.settings.palette() {
@@ -474,6 +486,7 @@ impl LoopState {
             events,
 
             // TODO: I think we'll have to call `Context::set_zoom_factor` to handle DPI from now on
+            // todo go here
             //pixels_per_point: self.dpi,
             ..Default::default()
         }

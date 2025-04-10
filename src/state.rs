@@ -534,9 +534,7 @@ Reason: '{}'.",
             for line in lines {
                 let line = line?;
                 // Try parsing it as an `Input` first, otherwise it's a `Verification`
-                #[allow(clippy::expect_used)]
-                let input =
-                    serde_json::from_str::<Input>(&line).expect("Could not parse replay Input.");
+                let input = serde_json::from_str::<Input>(&line)?;
                 assert!(input.tick_id > 0);
                 let index = input.tick_id as usize - 1;
                 assert_eq!(inputs.len(), index);

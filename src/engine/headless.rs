@@ -1,6 +1,6 @@
 use crate::{
     audio::Audio,
-    engine::{Display, Mouse, loop_state::Metrics},
+    engine::{loop_state::Metrics, Display, Mouse},
     game::RunningState,
     gamepad::Gamepad,
     point::Point,

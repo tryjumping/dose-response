@@ -603,6 +603,7 @@ dependencies = [
  "clap",
  "egui",
  "flate2",
+ "game-loop",
  "gilrs",
  "gl",
  "glutin",
@@ -740,6 +741,16 @@ name = "foreign-types-shared"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa9a19cbb55df58761df49b23516a86d432839add4af60fc256da840f66ed35b"
+
+[[package]]
+name = "game-loop"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c020a1b6923f4c24ecfc54968e13515522fe7b21b892f6a08daae53fb76d222a"
+dependencies = [
+ "wasm-bindgen",
+ "web-sys",
+]
 
 [[package]]
 name = "gethostname"

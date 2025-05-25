@@ -2,6 +2,8 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
+use crate::formula;
+
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Timer {
     max: Duration,
@@ -15,7 +17,7 @@ impl Timer {
         // NOTE: this will mess up animation timing on non-60 FPS
         // TODO: move this to formula/constants
         // TODO: actually enforce the 60 FPS
-        let fps = 60.0;
+        let fps = formula::FPS;
         let dt_ms = 1000.0 / fps;
         let duration_ms = duration.as_secs_f32() * 1000.0;
         let duration_frame_count = (duration_ms / dt_ms).floor() as i32;

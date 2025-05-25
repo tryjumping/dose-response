@@ -188,6 +188,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let log_level = if matches.is_present("debug") {
         LevelFilter::Trace
+    } else if cfg!(debug_assertions) {
+        LevelFilter::Debug
     } else {
         LevelFilter::Info
     };

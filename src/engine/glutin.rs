@@ -12,11 +12,7 @@ use crate::{
     state::State,
 };
 
-use std::{
-    error::Error,
-    num::NonZeroU32,
-    time::{Duration, Instant},
-};
+use std::{error::Error, num::NonZeroU32, time::Instant};
 
 use game_loop::game_loop;
 
@@ -152,13 +148,10 @@ struct App<S: SettingsStore + 'static> {
     monitors: Vec<MonitorHandle>,
     ui_paint_batches: Vec<ClippedPrimitive>,
     egui_shapes: Option<Vec<egui::epaint::ClippedShape>>,
-    previous_frame_start_time: Instant,
     modifiers: ModifiersState,
     window_pos: Point,
     pre_fullscreen_window_pos: Point,
     exit_state: Result<(), Box<dyn std::error::Error>>,
-    total_ticks: f32,
-    total_elapsed_time: Duration,
     last_tick_time: Instant,
 }
 
@@ -174,13 +167,10 @@ impl<S: SettingsStore + 'static> App<S> {
             opengl_app: None,
             ui_paint_batches: vec![],
             egui_shapes: None,
-            previous_frame_start_time: Instant::now(),
             modifiers: Default::default(),
             window_pos: Default::default(),
             pre_fullscreen_window_pos: Default::default(),
             exit_state: Ok(()),
-            total_ticks: 0.0,
-            total_elapsed_time: Duration::ZERO,
             last_tick_time: Instant::now(),
         }
     }
@@ -324,7 +314,6 @@ impl<S: SettingsStore + 'static> App<S> {
 
         self.opengl_app.replace(self.loop_state.opengl_app());
 
-        self.previous_frame_start_time = Instant::now();
         self.last_tick_time = Instant::now();
 
         Ok(())
@@ -630,25 +619,16 @@ impl<S: SettingsStore + 'static> ApplicationHandler<TriggerUpdateEvent> for App<
 
     fn user_event(&mut self, event_loop: &ActiveEventLoop, _event: TriggerUpdateEvent) {
         let frame_start_time = Instant::now();
-        let game_dt = frame_start_time.duration_since(self.previous_frame_start_time);
-        let display_dt = frame_start_time.duration_since(self.last_tick_time);
-        self.total_ticks += 1.0;
-        self.total_elapsed_time += display_dt;
+        let dt = frame_start_time.duration_since(self.last_tick_time);
         self.last_tick_time = frame_start_time;
 
         self.loop_state
             .egui_context
             .begin_pass(self.loop_state.egui_raw_input());
 
-        // Start the new update frame
-        self.previous_frame_start_time = frame_start_time;
+        self.loop_state.update_fps(dt);
 
-        self.loop_state.update_fps(game_dt);
-
-        match self
-            .loop_state
-            .update_game(game_dt, &mut self.settings_store)
-        {
+        match self.loop_state.update_game(dt, &mut self.settings_store) {
             UpdateResult::QuitRequested => event_loop.exit(),
             UpdateResult::KeepGoing => {}
         }
@@ -967,7 +947,7 @@ where
             |g| {
                 // update game
                 if let Err(e) = g.game.send_event(TriggerUpdateEvent {}) {
-                    log::warn!("The event loop has closed: {e}. Closing the update thread.");
+                    log::debug!("The event loop has closed: {e}. Closing the update thread.");
                     g.exit();
                 }
             },

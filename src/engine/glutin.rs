@@ -18,6 +18,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+use game_loop::game_loop;
+
 use glutin::{
     context::{NotCurrentContext, PossiblyCurrentContext},
     surface::{GlSurface, Surface, SwapInterval, WindowSurface},
@@ -528,18 +530,15 @@ impl<S: SettingsStore + 'static> ApplicationHandler<TriggerUpdateEvent> for App<
             WindowEvent::CloseRequested => event_loop.exit(),
 
             WindowEvent::RedrawRequested => {
-                log::warn!("RedrawRequested");
-
                 if let Some(AppState { gl_surface, window }) = self.app_state.as_ref() {
                     if let Some(gl_context) = self.gl_context.as_ref() {
                         if let Some(opengl_app) = self.opengl_app.as_mut() {
                             if let Some(egui_shapes) = self.egui_shapes.take() {
-                                log::warn!("tesellating");
                                 self.ui_paint_batches = self
                                     .loop_state
                                     .egui_context
                                     .tessellate(egui_shapes, self.loop_state.dpi as f32);
-                                log::warn!("tessellated");
+
                                 let (ui_vertices, batches) =
                                     drawcalls_from_egui(opengl_app, &self.ui_paint_batches);
 
@@ -629,9 +628,7 @@ impl<S: SettingsStore + 'static> ApplicationHandler<TriggerUpdateEvent> for App<
         }
     }
 
-    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: TriggerUpdateEvent) {
-        log::warn!("User event triggered: {event:?}");
-
+    fn user_event(&mut self, event_loop: &ActiveEventLoop, _event: TriggerUpdateEvent) {
         let frame_start_time = Instant::now();
         let game_dt = frame_start_time.duration_since(self.previous_frame_start_time);
         let display_dt = frame_start_time.duration_since(self.last_tick_time);
@@ -962,13 +959,32 @@ where
 
     let event_loop_proxy = event_loop.create_proxy();
 
-    let _join_handle = std::thread::spawn(move || loop {
-        // TODO: use the game-loop crate here to handle the timing right
-        std::thread::sleep(std::time::Duration::from_millis(1000 / formula::FPS as u64));
-        if let Err(e) = event_loop_proxy.send_event(TriggerUpdateEvent {}) {
-            log::warn!("The event loop has closed: {e}. Closing the update thread.");
-            break;
-        }
+    let _join_handle = std::thread::spawn(move || {
+        game_loop(
+            event_loop_proxy,
+            formula::FPS as u32,
+            0.1,
+            |g| {
+                // update game
+                if let Err(e) = g.game.send_event(TriggerUpdateEvent {}) {
+                    log::warn!("The event loop has closed: {e}. Closing the update thread.");
+                    g.exit();
+                }
+            },
+            |_g| {
+                // render game
+
+                // NOTE: leaving this empty. Without explicit
+                // throttling, this is emited as many times as it
+                // could and there's no need. We're triggering the
+                // `RedrawRequested` event during the game update and
+                // that's exactly when and how many times we want it.
+
+                // There's no independent rendering or animations here
+                // now so this works perfectly and there's nothing to
+                // do here.
+            },
+        );
     });
 
     // Set up a loop here that triggers these user events

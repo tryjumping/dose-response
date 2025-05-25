@@ -1000,8 +1000,8 @@ where
         .with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT))
         .with_inner_size(desired_size);
     #[cfg(target_os = "windows")]
-    let window = {
-        use winit::platform::windows::WindowBuilderExtWindows;
+    let window_attributes = {
+        use winit::platform::windows::WindowAttributesExtWindows;
         // NOTE: on Windows the game crashes with: OleInitialize failed! Result was: `RPC_E_CHANGED_MODE`
         // https://github.com/rust-windowing/winit/blob/078b9719cc3ba06630291d5bc05c90787bd84c4f/src/platform_impl/windows/window.rs#L86-L89
         // Disabling Drag & Drop fixes it so that's what we're doing here

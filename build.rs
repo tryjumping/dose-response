@@ -11,7 +11,7 @@ use std::{
 };
 
 use image::{Rgba, RgbaImage};
-use rusttype::{point, FontCollection, Scale};
+use rusttype::{FontCollection, Scale, point};
 
 #[cfg(windows)]
 fn set_exe_icon() {
@@ -51,10 +51,10 @@ fn copy_output_artifacts_internal(filename: &str) -> Result<(), Box<dyn Error>> 
 }
 
 fn copy_output_artifacts_to_target(filename: &str) {
-    println!("Attempting to copy {}", filename);
+    println!("Attempting to copy {filename}");
     if let Err(e) = copy_output_artifacts_internal(filename) {
         println!("Warning: could not copy output artifacts to the target directory.");
-        println!("{:?}", e);
+        println!("{e:?}");
     }
 }
 
@@ -136,7 +136,7 @@ fn main() {
         .and_then(|s| s.into_string().ok())
         .or_else(current_git_commit)
         .unwrap_or_default();
-    println!("cargo:rustc-env=DR_GIT_HASH={}", git_hash);
+    println!("cargo:rustc-env=DR_GIT_HASH={git_hash}");
     println!(
         "cargo:rustc-env=DR_TARGET_TRIPLE={}",
         env::var("TARGET").unwrap_or_default()
@@ -158,7 +158,7 @@ fn main() {
         .collect::<Vec<_>>()
         .join(":");
 
-    println!("cargo:rustc-env=DR_FEATURES={}", features);
+    println!("cargo:rustc-env=DR_FEATURES={features}");
 
     let configs = std::env::vars()
         .filter(|(k, _v)| k.starts_with("CARGO_CFG_"))
@@ -169,7 +169,7 @@ fn main() {
         .collect::<Vec<_>>()
         .join(":");
 
-    println!("cargo:rustc-env=DR_CONFIGS={}", configs);
+    println!("cargo:rustc-env=DR_CONFIGS={configs}");
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir);
@@ -211,8 +211,7 @@ fn main() {
 
     writeln!(
         lookup_table_contents,
-        "pub const DEFAULT_TEXT_SIZE: i32 = {};",
-        default_text_size
+        "pub const DEFAULT_TEXT_SIZE: i32 = {default_text_size};"
     );
 
     writeln!(
@@ -238,14 +237,12 @@ fn main() {
 
         writeln!(
             lookup_table_contents,
-            "pub const TILEMAP_TEXTURE_WIDTH: u32 = {};",
-            width
+            "pub const TILEMAP_TEXTURE_WIDTH: u32 = {width};"
         );
 
         writeln!(
             lookup_table_contents,
-            "pub const TILEMAP_TEXTURE_HEIGHT: u32 = {};",
-            height
+            "pub const TILEMAP_TEXTURE_HEIGHT: u32 = {height};"
         );
     }
 
@@ -275,8 +272,7 @@ fn main() {
 
         writeln!(
             lookup_table_contents,
-            "pub const DEFAULT_TILE_SIZE: i32 = {};",
-            default_tile_size
+            "pub const DEFAULT_TILE_SIZE: i32 = {default_tile_size};"
         );
 
         writeln!(
@@ -351,8 +347,7 @@ fn main() {
 
             if tilemap_offset_y >= texture_height {
                 panic!(
-                    "The tile texture size ({}x{}) is not sufficient. Current height: {}",
-                    texture_width, texture_height, tilemap_offset_y
+                    "The tile texture size ({texture_width}x{texture_height}) is not sufficient. Current height: {tilemap_offset_y}"
                 );
             }
         }
@@ -365,8 +360,7 @@ fn main() {
         for &(font_size, ref _glyph, chr, tilepos_x, tilepos_y) in &glyphs {
             writeln!(
                 lookup_table_contents,
-                "  ({:?}, {:?}) => Some(({}, {})),",
-                font_size, chr, tilepos_x, tilepos_y
+                "  ({font_size:?}, {chr:?}) => Some(({tilepos_x}, {tilepos_y})),"
             );
         }
 

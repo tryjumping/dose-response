@@ -151,8 +151,8 @@ impl Settings {
 
     pub fn as_toml(&self) -> String {
         let mut out = String::with_capacity(1000);
-        let _ = writeln!(out, "# Options: \"{}\" or \"{}\"", FULLSCREEN, WINDOW);
-        let _ = writeln!(out, "{} = \"{}\"\n", DISPLAY, WINDOW);
+        let _ = writeln!(out, "# Options: \"{FULLSCREEN}\" or \"{WINDOW}\"");
+        let _ = writeln!(out, "{DISPLAY} = \"{WINDOW}\"\n");
 
         let _ = writeln!(
             out,
@@ -176,15 +176,15 @@ impl Settings {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
-        let _ = writeln!(out, "# Options: {}", tile_sizes_str);
-        let _ = writeln!(out, "{} = {}\n", TILE_SIZE, self.tile_size);
+        let _ = writeln!(out, "# Options: {tile_sizes_str}",);
+        let _ = writeln!(out, "{TILE_SIZE} = {}\n", self.tile_size);
 
         let text_sizes_str = crate::engine::AVAILABLE_TEXT_SIZES
             .iter()
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
-        let _ = writeln!(out, "# Options: {}", text_sizes_str);
+        let _ = writeln!(out, "# Options: {text_sizes_str}");
         let _ = writeln!(out, "{} = {}\n", TEXT_SIZE, self.text_size);
 
         let _ = writeln!(out, "{} = {}", WINDOW_WIDTH, self.window_width);
@@ -192,12 +192,12 @@ impl Settings {
 
         let backends_str = crate::engine::AVAILABLE_BACKENDS
             .iter()
-            .map(|b| format!("\"{}\"", b))
+            .map(|b| format!("\"{b}\"",))
             .collect::<Vec<_>>()
             .join(", ");
-        let _ = writeln!(out, "# Options: {}", backends_str);
+        let _ = writeln!(out, "# Options: {backends_str}");
 
-        let _ = writeln!(out, "{} = \"{}\"", BACKEND, self.backend);
+        let _ = writeln!(out, "{BACKEND} = \"{}\"", self.backend);
 
         let _ = writeln!(
             out,

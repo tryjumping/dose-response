@@ -95,11 +95,11 @@ impl OpenGlApp {
         unsafe {
             // Bind the texture
             gl::BindTexture(gl::TEXTURE_2D, id);
-            check_gl_error(&format!("BindTexture {}", name));
+            check_gl_error(&format!("BindTexture {name}"));
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            check_gl_error(&format!("TexParameteri MIN FILTER {}", name));
+            check_gl_error(&format!("TexParameteri MIN FILTER {name}"));
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            check_gl_error(&format!("TexParameteri MAG FILTER {}", name));
+            check_gl_error(&format!("TexParameteri MAG FILTER {name}"));
             gl::TexImage2D(
                 gl::TEXTURE_2D,
                 0,
@@ -111,7 +111,7 @@ impl OpenGlApp {
                 gl::UNSIGNED_BYTE,
                 data_ptr.cast::<std::ffi::c_void>(),
             );
-            check_gl_error(&format!("TexImage2D {}", name));
+            check_gl_error(&format!("TexImage2D {name}"));
         }
     }
 

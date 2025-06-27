@@ -1,14 +1,13 @@
 use crate::{
     color::Color,
     engine::{
-        self,
+        self, Vertex,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
-        Vertex,
     },
     formula, keys,
     point::Point,
-    settings::{Store as SettingsStore, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH},
+    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
     state::State,
 };
 
@@ -307,10 +306,11 @@ impl<S: SettingsStore + 'static> App<S> {
             log::error!("Error setting vsync: {res:?}");
         }
 
-        assert!(self
-            .app_state
-            .replace(AppState { gl_surface, window })
-            .is_none());
+        assert!(
+            self.app_state
+                .replace(AppState { gl_surface, window })
+                .is_none()
+        );
 
         self.opengl_app.replace(self.loop_state.opengl_app());
 
@@ -440,9 +440,9 @@ impl<S: SettingsStore + 'static> ApplicationHandler<TriggerUpdateEvent> for App<
                 ..
             } => {
                 log::trace!(
-                            "Pressed logical key: {logical_key:?}, physical key: {physical_key:?}, modifiers: {:?}",
-                            self.modifiers
-                        );
+                    "Pressed logical key: {logical_key:?}, physical key: {physical_key:?}, modifiers: {:?}",
+                    self.modifiers
+                );
 
                 if let Some(code) = key_code_from_backend(physical_key, logical_key) {
                     let key = crate::keys::Key {
@@ -652,7 +652,10 @@ impl<S: SettingsStore + 'static> ApplicationHandler<TriggerUpdateEvent> for App<
             for (_texture_id, image_delta) in output.textures_delta.set {
                 match image_delta.image {
                     egui::epaint::image::ImageData::Color(color_image) => {
-                        log::warn!("Received ImageDelta::Color(ColorImage) of size: {:?}. Ignoring as we're not set up to handle this.", color_image.size);
+                        log::warn!(
+                            "Received ImageDelta::Color(ColorImage) of size: {:?}. Ignoring as we're not set up to handle this.",
+                            color_image.size
+                        );
                     }
                     egui::epaint::image::ImageData::Font(font_image) => {
                         log::warn!(

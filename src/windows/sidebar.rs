@@ -199,7 +199,7 @@ pub fn process(
     // correct as of right now, but if we ever support more than one
     // bonus, we'll need to update this code!
     if let Some(bonus) = player.bonuses.first() {
-        ui.label(format!("Bonus: {}", bonus));
+        ui.label(format!("Bonus: {bonus}"));
     } else {
         ui.label("");
     }
@@ -218,7 +218,7 @@ pub fn process(
                 let dy = (player.pos.y - vnpc_pos.y) as f32;
                 dx.abs().max(dy.abs()) as i32
             };
-            ui.label(format!("Victory Distance: {}", distance));
+            ui.label(format!("Victory Distance: {distance}"));
         } else {
             ui.label("");
         }
@@ -269,7 +269,7 @@ pub fn process(
 
         let panel_width_chars =
             (ui_rect.width() / settings.text_size as f32).abs().floor() as usize;
-        let button_label = format!("{:.pr$}: {}", kind, count, pr = panel_width_chars);
+        let button_label = format!("{kind:.panel_width_chars$}: {count}");
         let active = active && count > 0;
         let texture = match settings.visual_style {
             VisualStyle::Graphical => Texture::Tilemap,
@@ -336,7 +336,7 @@ pub fn process(
         }
 
         ui.label(format!("dt: {}ms", dt.as_millis()));
-        ui.label(format!("FPS: {}", fps));
+        ui.label(format!("FPS: {fps}"));
 
         // // NOTE: commenting this out for now, we're not using the stats now
         // ui.label("Time stats:");

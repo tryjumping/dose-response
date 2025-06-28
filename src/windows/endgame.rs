@@ -61,7 +61,7 @@ pub fn process(
         }
         "You won!".into()
     } else {
-        format!("You lost: {}", endgame_description)
+        format!("You lost: {endgame_description}")
     };
 
     let mut action = None;
@@ -104,7 +104,7 @@ pub fn process(
                         .iter()
                         .filter(|item| item.is_dose())
                         .count();
-                    format!("Carrying {} doses", doses_in_inventory)
+                    format!("Carrying {doses_in_inventory} doses")
                 } else {
                     "You've never managed to save a dose for a later fix.".to_string()
                 };

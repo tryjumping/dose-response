@@ -343,7 +343,7 @@ pub fn process(
             ui.separator();
             ui.columns(2, |c| {
                 if let Some(text) = state.current_help_window.prev() {
-                    if ui::button(&mut c[0], &format!("[<-] {}", text), true, &state.palette)
+                    if ui::button(&mut c[0], &format!("[<-] {text}"), true, &state.palette)
                         .clicked()
                     {
                         action = Some(Action::PrevPage);
@@ -352,7 +352,7 @@ pub fn process(
 
                 if let Some(text) = state.current_help_window.next() {
                     c[1].with_layout(egui::Layout::top_down_justified(egui::Align::Max), |ui| {
-                        if ui::button(ui, &format!("[->] {}", text), true, &state.palette).clicked()
+                        if ui::button(ui, &format!("[->] {text}"), true, &state.palette).clicked()
                         {
                             action = Some(Action::NextPage);
                         }

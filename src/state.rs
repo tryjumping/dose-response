@@ -118,7 +118,7 @@ pub fn generate_replay_path() -> Option<PathBuf> {
         if !replay_dir.exists() {
             let _ = fs::create_dir_all(replay_dir);
         }
-        let replay_path = &replay_dir.join(format!("replay-{}", timestamp));
+        let replay_path = &replay_dir.join(format!("replay-{timestamp}"));
         Some(replay_path.into())
     }
 
@@ -728,7 +728,7 @@ fn empty_command_logger() -> Box<dyn Write> {
 }
 
 pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
-    let _ = writeln!(writer, "{}", seed);
+    let _ = writeln!(writer, "{seed}");
     let _ = writeln!(writer, "{}", crate::metadata::VERSION);
     let _ = writeln!(writer, "{}", crate::metadata::GIT_HASH);
 }
@@ -736,7 +736,7 @@ pub fn log_header<W: Write>(writer: &mut W, seed: u32) {
 pub fn log_input<W: Write>(writer: &mut W, input: Input) {
     match serde_json::to_string(&input) {
         Ok(json_input) => {
-            let _ = writeln!(writer, "{}", json_input);
+            let _ = writeln!(writer, "{json_input}");
         }
         Err(err) => {
             log::error!("Could not serialise {:?} to JSON: {}", input, err);

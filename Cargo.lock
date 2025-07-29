@@ -627,6 +627,7 @@ dependencies = [
  "raw-window-handle",
  "rodio",
  "rusttype",
+ "sdl3",
  "serde",
  "serde_json",
  "simplelog",
@@ -1101,7 +1102,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.5",
 ]
 
 [[package]]
@@ -1995,6 +1996,24 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+
+[[package]]
+name = "sdl3"
+version = "0.14.36"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0508380771dfded0cb802963902d43606a1a65387b3378328a81415916ff7ec"
+dependencies = [
+ "bitflags 2.9.0",
+ "lazy_static",
+ "libc",
+ "sdl3-sys",
+]
+
+[[package]]
+name = "sdl3-sys"
+version = "0.5.3+SDL3-3.2.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "573534f614334b7bb6f7bceae86448764fcdcafe92d75482092810cc664ece8c"
 
 [[package]]
 name = "serde"

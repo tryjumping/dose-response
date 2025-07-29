@@ -77,18 +77,53 @@ fn run_glutin(
     // };
 
     #[cfg(feature = "glutin-backend")]
-    let result = engine::glutin::main_loop(
-        default_background,
-        window_title,
-        settings_store,
-        Box::new(state),
-    );
-    if let Err(err) = result {
-        log::error!("Error occured in the glutin main_loop: {}", err);
-    };
+    {
+        let result = engine::glutin::main_loop(
+            default_background,
+            window_title,
+            settings_store,
+            Box::new(state),
+        );
+        if let Err(err) = result {
+            log::error!("Error occured in the glutin main_loop: {}", err);
+        };
+    }
 
     #[cfg(not(feature = "glutin-backend"))]
     log::error!("The \"glutin-backend\" feature was not compiled in.");
+}
+
+#[allow(unused_variables, dead_code, clippy::needless_pass_by_value)]
+fn run_sdl3(
+    default_background: color::Color,
+    window_title: &str,
+    settings_store: settings::FileSystemStore,
+    state: state::State,
+) {
+    log::info!("Using the glutin backend");
+
+    // // TODO: figure out how to record screenshots with glutin!
+    // let (fixed_fps, replay_dir) = if record_replay {
+    //     (Some(60), Some("/home/thomas/tmp/dose-response-recording"))
+    // } else {
+    //     (None, None)
+    // };
+
+    #[cfg(feature = "sdl3-backend")]
+    {
+        let result = engine::sdl3::main_loop(
+            default_background,
+            window_title,
+            settings_store,
+            Box::new(state),
+        );
+        if let Err(err) = result {
+            log::error!("Error occured in the SDL3 main_loop: {}", err);
+        };
+    }
+
+    #[cfg(not(feature = "sdl3-backend"))]
+    log::error!("The \"sdl3-backend\" feature was not compiled in.");
 }
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -345,6 +380,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     match backend.as_str() {
         "glutin" => run_glutin(background, game_title, settings_store, state),
+        "sdl3" => run_sdl3(background, game_title, settings_store, state),
         _ => {
             log::error!("Unknown backend: {}", backend);
         }

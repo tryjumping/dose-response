@@ -12,14 +12,17 @@ use std::fmt;
 use egui::TextureId;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "glutin-backend")]
+#[cfg(any(feature = "glutin-backend", feature = "sdl3-backend"))]
 mod loop_state;
 
 #[cfg(feature = "glutin-backend")]
 pub mod glutin;
 
-#[cfg(feature = "glutin-backend")]
+#[cfg(any(feature = "glutin-backend", feature = "sdl3-backend"))]
 pub mod opengl;
+
+#[cfg(feature = "sdl3-backend")]
+pub mod sdl3;
 
 pub mod headless;
 

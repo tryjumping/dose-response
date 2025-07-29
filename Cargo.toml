@@ -79,8 +79,8 @@ winres = "0.1"
 # default = ["dev", "mobile-ui"]
 default = ["dev"]
 # NOTE: Add the `recording` feature to test/record the trailer mode
-prod = ["desktop", "glutin-backend"]
-dev = ["desktop", "glutin-backend", "cheating", "replay", "stats", "verifications"]
+prod = ["desktop", "sdl3-backend"]
+dev = ["desktop", "sdl3-backend", "cheating", "replay", "stats", "verifications"]
 test = ["dev", "prod", "all-backends"]
 all-backends = ["glutin-backend", "sdl3-backend"]
 desktop = ["cli", "fullscreen", "chrono"]

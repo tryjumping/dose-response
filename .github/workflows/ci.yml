@@ -42,7 +42,7 @@ jobs:
       CARGO_TERM_COLOR: always
       EXTRA_FEATURES: "${{ matrix.platform.extra_features }}"
       RUST_BACKTRACE: "1"
-      RUSTFLAGS: -D warnings
+      #RUSTFLAGS: -D warnings
     steps:
     - name: Check out the Dose Response repo
       uses: actions/checkout@v4

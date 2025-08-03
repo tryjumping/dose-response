@@ -76,6 +76,12 @@ winres = "0.1"
 [target.'cfg(target_os="macos")'.dependencies]
 sdl3 = { version = "0.14.36", features = ["build-from-source"] }
 
+[target.'cfg(target_os="windows")'.dependencies]
+sdl3 = { version = "0.14.36", features = ["build-from-source"] }
+
+[target.'cfg(target_os="linux")'.dependencies]
+sdl3 = { version = "0.14.36", features = ["build-from-source"] }
+
 
 [features]
 # NOTE: Add the `mobile-ui` feature to switch to the mobile UI size

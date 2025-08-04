@@ -22,7 +22,7 @@ jobs:
           build_time_dependencies: |
             sudo apt-get update
             sudo apt-get install libasound2-dev libudev-dev libfontconfig-dev
-        - os: windows-2022
+        - os: windows-2025
           extra_features: windows-extra-features
           build_time_dependencies: ""
         # NOTE: `macos-latest` uses the Arm64 architecture:

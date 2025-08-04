@@ -1,5 +1,3 @@
-#![allow(clippy::unwrap_used)]
-
 use crate::{
     color::Color,
     engine::{
@@ -13,7 +11,13 @@ use crate::{
     state::State,
 };
 
-use std::{error::Error, num::NonZeroU32, time::Instant};
+use std::{
+    error::Error,
+    num::NonZeroU32,
+    time::{Duration, Instant},
+};
+
+use sdl3::{event::Event, keyboard::Keycode};
 
 use game_loop::game_loop;
 
@@ -875,31 +879,24 @@ pub fn main_loop<S>(
 where
     S: SettingsStore + 'static,
 {
-    use sdl3::event::Event;
-    use sdl3::keyboard::Keycode;
-    use sdl3::pixels::Color;
-    use std::time::Duration;
-
-    println!("Hello world from SDL3 backend!");
-    let sdl_context = sdl3::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
+    let sdl_context = sdl3::init()?;
+    let video_subsystem = sdl_context.video()?;
 
     let window = video_subsystem
         .window("rust-sdl3 demo", 800, 600)
         .position_centered()
-        .build()
-        .unwrap();
+        .build()?;
 
     let mut canvas = window.into_canvas();
 
-    canvas.set_draw_color(Color::RGB(0, 255, 255));
+    canvas.set_draw_color(sdl3::pixels::Color::RGB(0, 255, 255));
     canvas.clear();
     canvas.present();
-    let mut event_pump = sdl_context.event_pump().unwrap();
+    let mut event_pump = sdl_context.event_pump()?;
     let mut i = 0;
     'running: loop {
         i = (i + 1) % 255;
-        canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
+        canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
         canvas.clear();
         for event in event_pump.poll_iter() {
             match event {

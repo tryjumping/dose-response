@@ -9,7 +9,7 @@ use crate::{
 
 use std::fmt;
 
-use egui::TextureId;
+use egui::{ClippedPrimitive, TextureId};
 use serde::{Deserialize, Serialize};
 
 #[cfg(any(feature = "glutin-backend", feature = "sdl3-backend"))]
@@ -318,6 +318,112 @@ fn build_vertices<T: VertexStore>(
             }
         }
     }
+}
+
+// NOTE: convert Egui indexed vertices into ones our
+// engine understands. I.e. naive 3 vertices per
+// triangle with duplication.
+fn drawcalls_from_egui(
+    opengl_app: &opengl::OpenGlApp,
+    ui_paint_batches: &Vec<ClippedPrimitive>,
+) -> (Vec<Vertex>, Vec<([f32; 4], i32, i32)>) {
+    use egui::epaint::Primitive;
+
+    // TODO: consider doing updating our engine to suport
+    // vertex indices.
+    let mut ui_vertices = vec![];
+    let mut batches = vec![];
+    let mut index = 0;
+
+    for clipped_primitive in ui_paint_batches {
+        let ClippedPrimitive {
+            clip_rect,
+            primitive,
+        } = clipped_primitive;
+
+        if let Primitive::Mesh(mesh) = primitive {
+            let texture_id = match mesh.texture_id {
+                egui::TextureId::Managed(0) => Texture::Egui.into(),
+                egui::TextureId::Managed(id) => {
+                    log::error!("Unexpected Managed texture ID: {}", id);
+                    Texture::Egui.into()
+                }
+                egui::TextureId::User(id) => id as f32,
+            };
+
+            // NOTE: the shader expects the egui texture (uv)
+            // coordinates to be normalised, but everything
+            // else expects pixel coordinates.
+            //
+            // However, everything that comes out of egui *is
+            // going to be normalised* so we need to
+            // "denormalise" it by multiplying the uv coords
+            // with the size of the texture in pixels.
+            //
+            // For egui we just multiply by 1.0 which has no
+            // effect.
+            let texture_size = match mesh.texture_id {
+                egui::TextureId::Managed(0) => [1.0, 1.0],
+                egui::TextureId::Managed(id) => {
+                    log::error!(
+                        "Unexpected TextureId::Managed({})! We should only ever see ID of 0",
+                        id
+                    );
+                    [1.0, 1.0]
+                }
+                egui::TextureId::User(TEXTURE_GLYPH) => opengl_app.glyphmap_size_px,
+                egui::TextureId::User(TEXTURE_TILEMAP) => opengl_app.tilemap_size_px,
+                id => {
+                    log::error!(
+                        "ERROR[Winit RedrawRequested]: unknown texture ID: `{:?}`",
+                        id
+                    );
+                    [1.0, 1.0]
+                }
+            };
+
+            for &index in &mesh.indices {
+                let egui_vertex = match mesh.vertices.get(index as usize) {
+                    Some(vertex) => vertex,
+                    None => {
+                        log::error!("Can't index into the mesh.vertices");
+                        continue;
+                    }
+                };
+                let color = Color {
+                    r: egui_vertex.color.r(),
+                    g: egui_vertex.color.g(),
+                    b: egui_vertex.color.b(),
+                }
+                .alpha(egui_vertex.color.a());
+                let (u, v) = (egui_vertex.uv.x, egui_vertex.uv.y);
+
+                let pos = egui_vertex.pos;
+                let vertex = Vertex {
+                    texture_id,
+                    pos_px: [pos.x, pos.y],
+                    tile_pos: [u * texture_size[0], v * texture_size[1]],
+                    color: color.into(),
+                };
+                ui_vertices.push(vertex);
+            }
+
+            let vertex_count = mesh.indices.len() as i32;
+            batches.push((
+                [
+                    clip_rect.left_top().x,
+                    clip_rect.left_top().y,
+                    clip_rect.right_bottom().x,
+                    clip_rect.right_bottom().y,
+                ],
+                index,
+                vertex_count,
+            ));
+            index += vertex_count;
+        }
+    }
+
+    (ui_vertices, batches)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

@@ -89,7 +89,7 @@ sdl3 = { version = "0.14.36", features = ["build-from-source"] }
 default = ["dev"]
 # NOTE: Add the `recording` feature to test/record the trailer mode
 prod = ["desktop", "sdl3-backend"]
-dev = ["desktop", "sdl3-backend", "cheating", "replay", "stats", "verifications"]
+dev = ["desktop", "all-backends", "cheating", "replay", "stats", "verifications"]
 test = ["dev", "prod", "all-backends"]
 all-backends = ["glutin-backend", "sdl3-backend"]
 desktop = ["cli", "fullscreen", "chrono"]

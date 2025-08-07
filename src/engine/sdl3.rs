@@ -3,14 +3,13 @@
 use crate::{
     color::Color,
     engine::{
-        self,
+        self, Vertex,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
-        Vertex,
     },
     formula, keys,
     point::Point,
-    settings::{Store as SettingsStore, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH},
+    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
     state::State,
 };
 
@@ -21,8 +20,6 @@ use std::{
 };
 
 use sdl3::{event::Event, keyboard::Keycode};
-
-use game_loop::game_loop;
 
 use egui::{ClippedPrimitive, Context};
 

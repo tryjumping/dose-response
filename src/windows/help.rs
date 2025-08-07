@@ -342,12 +342,9 @@ pub fn process(
             // on macOS, it's working just fine
             ui.separator();
             ui.columns(2, |c| {
-                if let Some(text) = state.current_help_window.prev() {
-                    if ui::button(&mut c[0], &format!("[<-] {text}"), true, &state.palette)
-                        .clicked()
-                    {
+                if let Some(text) = state.current_help_window.prev()
+		    && ui::button(&mut c[0], &format!("[<-] {text}"), true, &state.palette).clicked() {
                         action = Some(Action::PrevPage);
-                    }
                 };
 
                 if let Some(text) = state.current_help_window.next() {

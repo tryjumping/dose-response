@@ -510,10 +510,10 @@ pub fn update(
         }
     }
 
-    if let RunningState::Stopped = game_update_result {
-        if cfg!(feature = "stats") {
-            show_exit_stats(&state.stats);
-        }
+    if let RunningState::Stopped = game_update_result
+        && cfg!(feature = "stats")
+    {
+        show_exit_stats(&state.stats);
     }
 
     game_update_result
@@ -840,16 +840,17 @@ fn process_game(
             state.show_anxiety_counter = true;
         }
 
-        if player_took_action && state.player.mind.is_high() {
-            if let Some(victory_npc_id) = state.victory_npc_id.take() {
-                log::info!("Player got High, the Victory NPC disappears!");
-                if let Some(vnpc) = state.world.monster_mut(victory_npc_id) {
-                    // TODO: move this (and other init stuff from
-                    // Monster::new) to custom functions?
-                    vnpc.kind = monster::Kind::Signpost;
-                    vnpc.behavior = ai::Behavior::Immobile;
-                    vnpc.ai_state = ai::AIState::NoOp
-                }
+        if player_took_action
+            && state.player.mind.is_high()
+            && let Some(victory_npc_id) = state.victory_npc_id.take()
+        {
+            log::info!("Player got High, the Victory NPC disappears!");
+            if let Some(vnpc) = state.world.monster_mut(victory_npc_id) {
+                // TODO: move this (and other init stuff from
+                // Monster::new) to custom functions?
+                vnpc.kind = monster::Kind::Signpost;
+                vnpc.behavior = ai::Behavior::Immobile;
+                vnpc.ai_state = ai::AIState::NoOp
             }
         }
 
@@ -900,12 +901,12 @@ fn process_game(
             if effect.contains(animation::TileEffect::KILL) {
                 kill_monster(pos, &mut state.world, audio);
             }
-            if effect.contains(animation::TileEffect::SHATTER) {
-                if let Some(cell) = state.world.cell_mut(pos) {
-                    cell.tile.kind = TileKind::Empty;
-                    cell.tile.graphic = Graphic::Empty;
-                    cell.items.clear();
-                }
+            if effect.contains(animation::TileEffect::SHATTER)
+                && let Some(cell) = state.world.cell_mut(pos)
+            {
+                cell.tile.kind = TileKind::Empty;
+                cell.tile.graphic = Graphic::Empty;
+                cell.items.clear();
             }
         }
     }

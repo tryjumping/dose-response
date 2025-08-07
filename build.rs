@@ -189,12 +189,13 @@ fn main() {
 
     let mut backends = vec![];
     for (key, _value) in std::env::vars_os() {
-        if let Some(var) = key.to_str() {
-            if var.starts_with("CARGO_FEATURE_") && var.ends_with("_BACKEND") {
-                let mut words: Vec<&str> = var.split('_').collect();
-                words.pop();
-                backends.push(words[2..].join("_").to_lowercase().to_string());
-            }
+        if let Some(var) = key.to_str()
+            && var.starts_with("CARGO_FEATURE_")
+            && var.ends_with("_BACKEND")
+        {
+            let mut words: Vec<&str> = var.split('_').collect();
+            words.pop();
+            backends.push(words[2..].join("_").to_lowercase().to_string());
         }
     }
 

@@ -558,10 +558,10 @@ Unchecked: the entire map is uncovered.",
                 9 => Some(KeyCode::D9),
                 _ => None,
             };
-            if let Some(code) = code {
-                if state.keys.matches_code(code) {
-                    action = Some(Action::TileSize(size));
-                }
+            if let Some(code) = code
+                && state.keys.matches_code(code)
+            {
+                action = Some(Action::TileSize(size));
             }
         }
     }
@@ -580,10 +580,10 @@ Unchecked: the entire map is uncovered.",
                 9 => Some(KeyCode::D9),
                 _ => None,
             };
-            if let Some(code) = code {
-                if state.keys.matches_code(code) {
-                    action = Some(Action::TextSize(size));
-                }
+            if let Some(code) = code
+                && state.keys.matches_code(code)
+            {
+                action = Some(Action::TextSize(size));
             }
         }
 

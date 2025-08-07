@@ -635,10 +635,10 @@ impl World {
     /// Set cells within the given radius as explored.
     pub fn explore(&mut self, centre: Point, radius: i32) {
         for pos in CircularArea::new(centre, radius) {
-            if self.within_bounds(pos) {
-                if let Some(cell) = self.cell_mut(pos) {
-                    cell.explored = true;
-                }
+            if self.within_bounds(pos)
+                && let Some(cell) = self.cell_mut(pos)
+            {
+                cell.explored = true;
             }
         }
     }
@@ -646,11 +646,11 @@ impl World {
     /// Set cells within the given radius as `always_visible`.
     pub fn always_visible(&mut self, centre: Point, radius: i32) {
         for pos in CircularArea::new(centre, radius) {
-            if self.within_bounds(pos) {
-                if let Some(cell) = self.cell_mut(pos) {
-                    cell.explored = true;
-                    cell.always_visible = true;
-                }
+            if self.within_bounds(pos)
+                && let Some(cell) = self.cell_mut(pos)
+            {
+                cell.explored = true;
+                cell.always_visible = true;
             }
         }
     }

@@ -600,17 +600,17 @@ impl Display {
         graphic_color: Color,
         empty_color: Color,
     ) {
-        if let Some(ix) = self.index(pos) {
-            if let Some(entry) = self.map.get_mut(ix) {
-                *entry = Cell {
-                    background_graphic: graphic,
-                    foreground_graphic: graphic,
-                    empty_color,
-                    foreground: graphic_color,
-                    background_color: graphic_color,
-                    offset_px: Point::zero(),
-                };
-            }
+        if let Some(ix) = self.index(pos)
+            && let Some(entry) = self.map.get_mut(ix)
+        {
+            *entry = Cell {
+                background_graphic: graphic,
+                foreground_graphic: graphic,
+                empty_color,
+                foreground: graphic_color,
+                background_color: graphic_color,
+                offset_px: Point::zero(),
+            };
         }
     }
 
@@ -620,36 +620,36 @@ impl Display {
         foreground_graphic: Graphic,
         foreground: Color,
     ) {
-        if let Some(ix) = self.index(pos) {
-            if let Some(entry) = self.map.get_mut(ix) {
-                entry.foreground_graphic = foreground_graphic;
-                entry.foreground = foreground;
-            }
+        if let Some(ix) = self.index(pos)
+            && let Some(entry) = self.map.get_mut(ix)
+        {
+            entry.foreground_graphic = foreground_graphic;
+            entry.foreground = foreground;
         }
     }
 
     pub fn set_empty_color(&mut self, pos: Point, empty_color: Color) {
-        if let Some(ix) = self.index(pos) {
-            if let Some(entry) = self.map.get_mut(ix) {
-                entry.empty_color = empty_color;
-            }
+        if let Some(ix) = self.index(pos)
+            && let Some(entry) = self.map.get_mut(ix)
+        {
+            entry.empty_color = empty_color;
         }
     }
 
     pub fn set_offset(&mut self, pos: Point, offset_px: Point) {
-        if let Some(ix) = self.index(pos) {
-            if let Some(entry) = self.map.get_mut(ix) {
-                entry.offset_px = offset_px;
-            }
+        if let Some(ix) = self.index(pos)
+            && let Some(entry) = self.map.get_mut(ix)
+        {
+            entry.offset_px = offset_px;
         }
     }
 
     pub fn push_fg_to_bg(&mut self, pos: Point) {
-        if let Some(ix) = self.index(pos) {
-            if let Some(cell) = self.map.get_mut(ix) {
-                cell.background_graphic = cell.foreground_graphic;
-                cell.background_color = cell.foreground;
-            }
+        if let Some(ix) = self.index(pos)
+            && let Some(cell) = self.map.get_mut(ix)
+        {
+            cell.background_graphic = cell.foreground_graphic;
+            cell.background_color = cell.foreground;
         }
     }
 

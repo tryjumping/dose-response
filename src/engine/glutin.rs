@@ -519,94 +519,90 @@ impl<S: SettingsStore + 'static> ApplicationHandler<TriggerUpdateEvent> for App<
             WindowEvent::CloseRequested => event_loop.exit(),
 
             WindowEvent::RedrawRequested => {
-                if let Some(AppState { gl_surface, window }) = self.app_state.as_ref() {
-                    if let Some(gl_context) = self.gl_context.as_ref() {
-                        if let Some(opengl_app) = self.opengl_app.as_mut() {
-                            if let Some(egui_shapes) = self.egui_shapes.take() {
-                                self.ui_paint_batches = self
-                                    .loop_state
-                                    .egui_context
-                                    .tessellate(egui_shapes, self.loop_state.dpi as f32);
+                if let Some(AppState { gl_surface, window }) = self.app_state.as_ref()
+                    && let Some(gl_context) = self.gl_context.as_ref()
+                    && let Some(opengl_app) = self.opengl_app.as_mut()
+                {
+                    if let Some(egui_shapes) = self.egui_shapes.take() {
+                        self.ui_paint_batches = self
+                            .loop_state
+                            .egui_context
+                            .tessellate(egui_shapes, self.loop_state.dpi as f32);
 
-                                let (ui_vertices, batches) =
-                                    drawcalls_from_egui(opengl_app, &self.ui_paint_batches);
+                        let (ui_vertices, batches) =
+                            drawcalls_from_egui(opengl_app, &self.ui_paint_batches);
 
-                                self.loop_state.process_vertices_and_render(
-                                    opengl_app,
-                                    &ui_vertices,
-                                    self.loop_state.dpi,
-                                    &batches,
-                                );
+                        self.loop_state.process_vertices_and_render(
+                            opengl_app,
+                            &ui_vertices,
+                            self.loop_state.dpi,
+                            &batches,
+                        );
 
-                                // NOTE: according to winit docs, this could properly throttle RedrawRequested
-                                // https://docs.rs/winit/latest/winit/window/struct.Window.html#method.pre_present_notify
-                                window.pre_present_notify();
+                        // NOTE: according to winit docs, this could properly throttle RedrawRequested
+                        // https://docs.rs/winit/latest/winit/window/struct.Window.html#method.pre_present_notify
+                        window.pre_present_notify();
 
-                                if let Err(err) = gl_surface.swap_buffers(gl_context) {
-                                    log::error!("Swapping buffers failed: {err}");
+                        if let Err(err) = gl_surface.swap_buffers(gl_context) {
+                            log::error!("Swapping buffers failed: {err}");
+                        }
+                    }
+
+                    if cfg!(feature = "fullscreen") {
+                        use engine::loop_state::FullscreenAction::*;
+                        match self.loop_state.fullscreen_action() {
+                            Some(SwitchToFullscreen) => {
+                                let current_monitor =
+                                    get_current_monitor(&self.monitors, self.window_pos);
+                                if let Some(ref monitor) = current_monitor {
+                                    self.pre_fullscreen_window_pos = self.window_pos;
+                                    log::info!(
+                                        "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
+                                        monitor.name(),
+                                        monitor.position(),
+                                        monitor.size()
+                                    );
+                                    window.set_fullscreen(Some(Fullscreen::Borderless(Some(
+                                        monitor.clone(),
+                                    ))));
+                                } else {
+                                    log::warn!("`current_monitor` is not set!??");
                                 }
                             }
-                        }
-
-                        if cfg!(feature = "fullscreen") {
-                            use engine::loop_state::FullscreenAction::*;
-                            match self.loop_state.fullscreen_action() {
-                                Some(SwitchToFullscreen) => {
-                                    let current_monitor =
-                                        get_current_monitor(&self.monitors, self.window_pos);
-                                    if let Some(ref monitor) = current_monitor {
-                                        self.pre_fullscreen_window_pos = self.window_pos;
-                                        log::info!(
-                                            "Monitor: {:?}, pos: {:?}, dimensions: {:?}",
-                                            monitor.name(),
-                                            monitor.position(),
-                                            monitor.size()
-                                        );
-                                        window.set_fullscreen(Some(Fullscreen::Borderless(Some(
-                                            monitor.clone(),
-                                        ))));
-                                    } else {
-                                        log::warn!("`current_monitor` is not set!??");
-                                    }
-                                }
-                                Some(SwitchToWindowed) => {
-                                    window.set_fullscreen(None);
-                                    let pos = window.outer_position();
-                                    log::info!("New window position: {:?}", pos);
-                                    window.set_decorations(true);
-                                    self.loop_state.switched_from_fullscreen = true;
-                                }
-                                None => {}
-                            };
-
-                            // If we just switched from fullscreen back to a windowed
-                            // mode, restore the window position we had before. We do this
-                            // because the `Moved` event fires with an incorrect value
-                            // when coming back from full screen.
-                            //
-                            // This ensures that we can switch full screen back and fort
-                            // on a multi monitor setup.
-                            if self.loop_state.switched_from_fullscreen {
-                                self.window_pos = self.pre_fullscreen_window_pos;
+                            Some(SwitchToWindowed) => {
+                                window.set_fullscreen(None);
+                                let pos = window.outer_position();
+                                log::info!("New window position: {:?}", pos);
+                                window.set_decorations(true);
+                                self.loop_state.switched_from_fullscreen = true;
                             }
-                        }
+                            None => {}
+                        };
 
-                        match self.loop_state.check_window_size_needs_updating() {
-                            ResizeWindowAction::NewSize(desired_window_size_px) => {
-                                log::info!(
-                                    "Updating window to new size: {:?}",
-                                    desired_window_size_px
-                                );
-                                let size: LogicalSize<u32> = desired_window_size_px.into();
-                                let size = size.to_physical(window.scale_factor());
-                                gl_surface.resize(
-                                    gl_context,
-                                    NonZeroU32::new(size.width).unwrap_or(NonZeroU32::MIN),
-                                    NonZeroU32::new(size.height).unwrap_or(NonZeroU32::MIN),
-                                );
-                            }
-                            ResizeWindowAction::NoChange => {}
+                        // If we just switched from fullscreen back to a windowed
+                        // mode, restore the window position we had before. We do this
+                        // because the `Moved` event fires with an incorrect value
+                        // when coming back from full screen.
+                        //
+                        // This ensures that we can switch full screen back and fort
+                        // on a multi monitor setup.
+                        if self.loop_state.switched_from_fullscreen {
+                            self.window_pos = self.pre_fullscreen_window_pos;
                         }
+                    }
+
+                    match self.loop_state.check_window_size_needs_updating() {
+                        ResizeWindowAction::NewSize(desired_window_size_px) => {
+                            log::info!("Updating window to new size: {:?}", desired_window_size_px);
+                            let size: LogicalSize<u32> = desired_window_size_px.into();
+                            let size = size.to_physical(window.scale_factor());
+                            gl_surface.resize(
+                                gl_context,
+                                NonZeroU32::new(size.width).unwrap_or(NonZeroU32::MIN),
+                                NonZeroU32::new(size.height).unwrap_or(NonZeroU32::MIN),
+                            );
+                        }
+                        ResizeWindowAction::NoChange => {}
                     }
                 }
             }
@@ -636,11 +632,11 @@ impl<S: SettingsStore + 'static> ApplicationHandler<TriggerUpdateEvent> for App<
         let output = self.loop_state.egui_context.end_pass();
 
         for command in &output.platform_output.commands {
-            if let egui::OutputCommand::OpenUrl(url) = command {
-                if let Err(err) = webbrowser::open(&url.url) {
-                    log::warn!("Error opening URL {} in the external browser!", url.url);
-                    log::warn!("{}", err);
-                }
+            if let egui::OutputCommand::OpenUrl(url) = command
+                && let Err(err) = webbrowser::open(&url.url)
+            {
+                log::warn!("Error opening URL {} in the external browser!", url.url);
+                log::warn!("{}", err);
             }
         }
 

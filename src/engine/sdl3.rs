@@ -1,13 +1,14 @@
 use crate::{
     color::Color,
     engine::{
-        self, Vertex,
+        self,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
+        Vertex,
     },
     formula, keys,
     point::Point,
-    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
+    settings::{Store as SettingsStore, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH},
     state::State,
 };
 
@@ -953,6 +954,72 @@ where
     // (inlining the code possibly)
     // or just writing the "fix your timestep" thing yourself: https://gafferongames.com/post/fix_your_timestep/
     // NOTE: the blending factor might actually be a good idea to introduce though
+
+    // From: https://gafferongames.com/post/fix_your_timestep/
+    //
+    //  double t = 0.0;
+    //  const double dt = 0.01;
+
+    //  double currentTime = hires_time_in_seconds();
+    //  double accumulator = 0.0;
+
+    //  while ( !quit )
+    //  {
+    //      double newTime = hires_time_in_seconds();
+    //      double frameTime = newTime - currentTime;
+    //      currentTime = newTime;
+
+    //      accumulator += frameTime;
+
+    //      while ( accumulator >= dt )
+    //      {
+    //          integrate( state, t, dt );
+    //          accumulator -= dt;
+    //          t += dt;
+    //      }
+
+    //      render(state );
+    //  }
+
+    let mut t = Duration::ZERO;
+    let dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
+
+    let mut current_time = Instant::now();
+    let mut accumulator = Duration::ZERO;
+
+    'outer: loop {
+        let new_time = Instant::now();
+        let frame_time = new_time - current_time;
+        current_time = new_time;
+
+        accumulator += frame_time;
+
+        while accumulator >= dt {
+            {
+                // simulate game update taking 5 milliseconds
+                println!("Game update");
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            accumulator -= dt;
+            t += dt;
+
+            //dbg!(t, dt, accumulator, frame_time);
+            if t > Duration::from_millis(5_000) {
+                break 'outer;
+            }
+        }
+
+        {
+            // simulate render loop taking 10 milliseconds
+            println!("Render");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+
+        //dbg!(t, dt, accumulator, frame_time);
+        if t > Duration::from_millis(5_000) {
+            break 'outer;
+        }
+    }
 
     game_loop(
         game,

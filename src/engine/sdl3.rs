@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 use crate::{
     color::Color,
     engine::{
@@ -875,6 +877,7 @@ use rodio::OutputStream;
 
 struct Game {
     cycle: u8,
+    tick: u64,
     event_pump: sdl3::EventPump,
 }
 
@@ -944,92 +947,40 @@ where
     let event_pump = sdl_context.event_pump()?;
     let mut running = true;
 
-    let game = Game {
+    let mut game = Game {
         cycle: 0,
+        tick: 0,
         event_pump,
     };
 
-    // given the update/render decoupling here (which we're not ready for), consider switching to tiny-game-loop:
-    // https://github.com/Solar-Falcon/tiny-game-loop/blob/master/src/lib.rs
-    // (inlining the code possibly)
-    // or just writing the "fix your timestep" thing yourself: https://gafferongames.com/post/fix_your_timestep/
-    // NOTE: the blending factor might actually be a good idea to introduce though
-
     // From: https://gafferongames.com/post/fix_your_timestep/
-    //
-    //  double t = 0.0;
-    //  const double dt = 0.01;
-
-    //  double currentTime = hires_time_in_seconds();
-    //  double accumulator = 0.0;
-
-    //  while ( !quit )
-    //  {
-    //      double newTime = hires_time_in_seconds();
-    //      double frameTime = newTime - currentTime;
-    //      currentTime = newTime;
-
-    //      accumulator += frameTime;
-
-    //      while ( accumulator >= dt )
-    //      {
-    //          integrate( state, t, dt );
-    //          accumulator -= dt;
-    //          t += dt;
-    //      }
-
-    //      render(state );
-    //  }
-
     let mut t = Duration::ZERO;
     let dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
 
     let mut current_time = Instant::now();
     let mut accumulator = Duration::ZERO;
 
-    'outer: loop {
+    while running {
         let new_time = Instant::now();
         let frame_time = new_time - current_time;
         current_time = new_time;
 
         accumulator += frame_time;
 
-        while accumulator >= dt {
+        while running && accumulator >= dt {
+            dbg!(t, dt, accumulator, frame_time);
+
             {
+                game.tick += 1;
+                if t.as_secs() > 0 {
+                    println!("Real FPS: {}", game.tick / t.as_secs());
+                }
                 // simulate game update taking 5 milliseconds
                 println!("Game update");
-                std::thread::sleep(Duration::from_millis(5));
-            }
-            accumulator -= dt;
-            t += dt;
+                //std::thread::sleep(Duration::from_millis(5));
 
-            //dbg!(t, dt, accumulator, frame_time);
-            if t > Duration::from_millis(5_000) {
-                break 'outer;
-            }
-        }
-
-        {
-            // simulate render loop taking 10 milliseconds
-            println!("Render");
-            std::thread::sleep(Duration::from_millis(10));
-        }
-
-        //dbg!(t, dt, accumulator, frame_time);
-        if t > Duration::from_millis(5_000) {
-            break 'outer;
-        }
-    }
-
-    game_loop(
-        game,
-        formula::FPS as u32,
-        0.1, // max frame duration in seconds
-        |g| {
-            // update the game
-            if running {
-                g.game.cycle = g.game.cycle.wrapping_add(1);
-                for event in g.game.event_pump.poll_iter() {
+                game.cycle = game.cycle.wrapping_add(1);
+                for event in game.event_pump.poll_iter() {
                     match event {
                         Event::Quit { .. }
                         | Event::KeyDown {
@@ -1040,45 +991,30 @@ where
                     }
                 }
                 // The rest of the game loop goes here...
-            } else {
-                g.exit();
             }
-        },
-        |g| {
-            // render the game
-            let i = g.game.cycle;
-            canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
-            canvas.clear();
-            canvas.present();
 
-            // NOTE: the render is emitted lots of times and I don't think there's need?
+            {
+                // simulate render loop taking 10 milliseconds
+                println!("Render");
 
-            // like, let's keep it for now, but once we get back to dose response, these two will be coupled anyway
-            // and at that point we'll have to stop this too
-            //
-            // but like, I *think* it's nonsensical to be calling it that many times
-        },
-    );
+                let i = game.cycle;
+                canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
+                canvas.clear();
+                canvas.present();
 
-    // 'running: loop {
-    //     i = (i + 1) % 255;
-    //     canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
-    //     canvas.clear();
-    //     for event in event_pump.poll_iter() {
-    //         match event {
-    //             Event::Quit { .. }
-    //             | Event::KeyDown {
-    //                 keycode: Some(Keycode::Escape),
-    //                 ..
-    //             } => break 'running,
-    //             _ => {}
-    //         }
-    //     }
-    //     // The rest of the game loop goes here...
+                //std::thread::sleep(Duration::from_millis(10));
+            }
 
-    //     canvas.present();
-    //     ::std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 60));
-    // }
+            accumulator -= dt;
+            t += dt;
+
+            //dbg!(t, dt, accumulator, frame_time);
+        }
+
+        // TODO: render here (but actually, we'll likely just render in the game loop unless there's some frame throttling here)
+
+        //dbg!(t, dt, accumulator, frame_time);
+    }
 
     Ok(())
 }

@@ -23,6 +23,8 @@ use game_loop::game_loop;
 
 use egui::{ClippedPrimitive, Context};
 
+use rodio::OutputStream;
+
 // fn key_code_from_backend(
 //     physical_key: winit::keyboard::PhysicalKey,
 //     logical_key: winit::keyboard::Key,
@@ -884,6 +886,30 @@ pub fn main_loop<S>(
 where
     S: SettingsStore + 'static,
 {
+    let egui_context = Context::default();
+
+    // TODO: do we need this given SDL audio system?
+
+    // NOTE: we need to store the stream to a variable here and then
+    // match on a reference to it. Otherwise, it will be dropped and
+    // the stream will close.
+    let stream_result = OutputStream::try_default();
+    let stream_handle = match &stream_result {
+        Ok((_stream, stream_handle)) => Some(stream_handle),
+        Err(error) => {
+            log::error!("Cannot open the audio output stream: {:?}", error);
+            None
+        }
+    };
+
+    let loop_state = LoopState::initialise(
+        settings_store.load(),
+        initial_default_background,
+        initial_state,
+        egui_context,
+        stream_handle,
+    );
+
     let sdl_context = sdl3::init()?;
     let video_subsystem = sdl_context.video()?;
 
@@ -892,6 +918,23 @@ where
         .position_centered()
         .build()?;
 
+    // TODO: set window icon
+    // {
+    //     // requires "--features 'image'"
+    //     use sdl3::surface::Surface;
+
+    //     let window_icon = Surface::from_file("../../assets/icon_256x256.png")?;
+    //     window.set_icon(window_icon);
+    // }
+
+    // TODO: set window min size
+    // {
+    //     // TODO: these are winit calls, translate to SDL!
+    //     window.with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT));
+    //     window.with_inner_size(desired_size);
+    // }
+
+    // TODO: set up the OpenGL context
     let mut canvas = window.into_canvas();
 
     canvas.set_draw_color(sdl3::pixels::Color::RGB(0, 255, 255));

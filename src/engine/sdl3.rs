@@ -104,7 +104,7 @@ where
     };
 
     // From: https://gafferongames.com/post/fix_your_timestep/
-    let mut t = Duration::ZERO;
+    // TODO: rename to `target_dt`?
     let dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
 
     let mut current_time = Instant::now();
@@ -118,13 +118,12 @@ where
         accumulator += frame_time;
 
         while running && accumulator >= dt {
-            dbg!(t, dt, accumulator, frame_time);
-
+            // TODO: I want a "real elapsed" DT here too that we ourselves calculate. Not just the const DT we specified above
             {
                 game.tick += 1;
-                if t.as_secs() > 0 {
-                    println!("Real FPS: {}", game.tick / t.as_secs());
-                }
+                // if t.as_secs() > 0 {
+                //     println!("Real FPS: {}", game.tick / t.as_secs());
+                // }
                 // simulate game update taking 5 milliseconds
                 println!("Game update");
                 //std::thread::sleep(Duration::from_millis(5));
@@ -156,14 +155,9 @@ where
             }
 
             accumulator -= dt;
-            t += dt;
-
-            //dbg!(t, dt, accumulator, frame_time);
         }
 
         // TODO: render here (but actually, we'll likely just render in the game loop unless there's some frame throttling here)
-
-        //dbg!(t, dt, accumulator, frame_time);
     }
 
     Ok(())

@@ -3,13 +3,14 @@
 use crate::{
     color::Color,
     engine::{
-        self, Vertex,
+        self,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
+        Vertex,
     },
     formula, keys,
     point::Point,
-    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
+    settings::{Store as SettingsStore, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH},
     state::State,
 };
 
@@ -104,64 +105,122 @@ where
     };
 
     // From: https://gafferongames.com/post/fix_your_timestep/
-    // TODO: rename to `target_dt`?
-    let dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
-
+    //let fixed_dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
     let mut current_time = Instant::now();
-    let mut accumulator = Duration::ZERO;
+
+    // NOTE: this gives us the more-or-less alternating 16/8/16/8ms cycles on MacOS
+    // Just like we had with winit+glutin.
+    // So that is something we want to handle. I don't want to run the update more than every 16ms.
+    // And I think that's probably the case to handle: the render loop can run faster than the updates and we need to throttle them.
+    //
+    // NOTE: I was seeing the exact behavior with the "fixed timestep"  algo, so that's not the full story without some sort of modification either
+
+    // Wonder if we could split the looop into three parts:
+    // 1. poll events
+    // 2. is it time to update? then update
+    // 3. render (unconditionally)
+
+    // And actually, if polling the events faster doesn't matter (because we're not updating and it since update/render aren't decoupled now, things like animations or mouse can't be smoother), just incorporate events into game update:
+    // 1. is it time to update? then update
+    // 2. render (unconditionally)
+
+    // NOTE: this relies on vsync so we might have to put in some waiting to handle cases where vsync is off, but this should be a good start.
 
     while running {
-        let new_time = Instant::now();
-        let frame_time = new_time - current_time;
-        current_time = new_time;
+        let now = Instant::now();
+        let dt = now - current_time;
+        current_time = now;
 
-        accumulator += frame_time;
+        game.tick += 1;
+        println!("Game update, {dt:?}ms");
 
-        while running && accumulator >= dt {
-            // TODO: I want a "real elapsed" DT here too that we ourselves calculate. Not just the const DT we specified above
-            {
-                game.tick += 1;
-                println!("Game update");
-
-                game.cycle = game.cycle.wrapping_add(1);
-                for event in game.event_pump.poll_iter() {
-                    match event {
-                        Event::Quit { .. }
-                        | Event::KeyDown {
-                            keycode: Some(Keycode::Escape),
-                            ..
-                        } => running = false,
-                        _ => {}
-                    }
-                }
-                // The rest of the game loop goes here...
+        game.cycle = game.cycle.wrapping_add(1);
+        for event in game.event_pump.poll_iter() {
+            match event {
+                Event::Quit { .. }
+                | Event::KeyDown {
+                    keycode: Some(Keycode::Escape),
+                    ..
+                } => running = false,
+                _ => {}
             }
-
-            {
-                // simulate render loop taking 10 milliseconds
-                println!("Render");
-
-                let i = game.cycle;
-                canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
-                canvas.clear();
-                canvas.present();
-            }
-
-            // NOTE: this is problematic as it stands because it calculates the `dt` is fixed and irrespective of the actual time it took. I think at minimum we'd have to wait (if we're faster) to make sure we took at least dt times
-
-            // I think I need to actually calculate and test out the usecases: what if the elapsed time is shorter than dt? what if it's longer? what about rendering?
-            // NOTE: what motivated us to do this in the first place?
-            // first, super inconsistent dts on macos when waiting for render loops (16, 3, 16, 3, 16 ms IIRC)
-            // second, it'd be nicer for replays to have constant update framerate no matter what the display framerate did (e.g. always do 60fps update even on 120/144hZ displays)
-            // later on, would set us up for possibly smoothing animations out too but that's a distant thing concern
-
-            // SO first we really need to calculate proper elapsed dt and show it
-
-            accumulator -= dt;
         }
 
-        // TODO: render here (but actually, we'll likely just render in the game loop unless there's some frame throttling here)
+        println!("Render");
+
+        let i = game.cycle;
+        canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
+        canvas.clear();
+        canvas.present();
     }
+
+    // // From: https://gafferongames.com/post/fix_your_timestep/
+    // //let fixed_dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
+    // let fixed_dt = Duration::from_millis((1000.0 / 120.0) as u64);
+
+    // let mut current_time = Instant::now();
+    // let mut accumulator = Duration::ZERO;
+
+    // let mut game_current_time = current_time;
+
+    // // TODO actually maybe just start with a naive loop and then see?
+    // // enable sleep for if we don't get vsync
+    // // and maybe detect if we're running more than 60 FPS?
+
+    // while running {
+    //     let new_time = Instant::now();
+    //     let frame_time = new_time - current_time;
+    //     current_time = new_time;
+
+    //     accumulator += frame_time;
+
+    //     while running && accumulator >= fixed_dt {
+    //         // TODO: I want a "real elapsed" DT here too that we ourselves calculate. Not just the const DT we specified above
+    //         {
+    //             let now = Instant::now();
+    //             let dt = now - game_current_time;
+    //             game_current_time = now;
+
+    //             game.tick += 1;
+    //             println!("Game update, {dt:?}ms");
+
+    //             game.cycle = game.cycle.wrapping_add(1);
+    //             for event in game.event_pump.poll_iter() {
+    //                 match event {
+    //                     Event::Quit { .. }
+    //                     | Event::KeyDown {
+    //                         keycode: Some(Keycode::Escape),
+    //                         ..
+    //                     } => running = false,
+    //                     _ => {}
+    //                 }
+    //             }
+    //             // The rest of the game loop goes here...
+    //         }
+
+    //         {
+    //             // simulate render loop taking 10 milliseconds
+    //             println!("Render");
+
+    //             let i = game.cycle;
+    //             canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
+    //             canvas.clear();
+    //             canvas.present();
+    //         }
+
+    //         // NOTE: this is problematic as it stands because it calculates the `dt` is fixed and irrespective of the actual time it took. I think at minimum we'd have to wait (if we're faster) to make sure we took at least dt times
+
+    //         // I think I need to actually calculate and test out the usecases: what if the elapsed time is shorter than dt? what if it's longer? what about rendering?
+    //         // NOTE: what motivated us to do this in the first place?
+    //         // first, super inconsistent dts on macos when waiting for render loops (16, 3, 16, 3, 16 ms IIRC)
+    //         // second, it'd be nicer for replays to have constant update framerate no matter what the display framerate did (e.g. always do 60fps update even on 120/144hZ displays)
+    //         // later on, would set us up for possibly smoothing animations out too but that's a distant thing concern
+
+    //         // SO first we really need to calculate proper elapsed dt and show it
+
+    //         accumulator -= fixed_dt;
+    //     }
+    // }
 
     Ok(())
 }

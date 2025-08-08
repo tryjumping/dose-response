@@ -147,6 +147,16 @@ where
                 canvas.present();
             }
 
+            // NOTE: this is problematic as it stands because it calculates the `dt` is fixed and irrespective of the actual time it took. I think at minimum we'd have to wait (if we're faster) to make sure we took at least dt times
+
+            // I think I need to actually calculate and test out the usecases: what if the elapsed time is shorter than dt? what if it's longer? what about rendering?
+            // NOTE: what motivated us to do this in the first place?
+            // first, super inconsistent dts on macos when waiting for render loops (16, 3, 16, 3, 16 ms IIRC)
+            // second, it'd be nicer for replays to have constant update framerate no matter what the display framerate did (e.g. always do 60fps update even on 120/144hZ displays)
+            // later on, would set us up for possibly smoothing animations out too but that's a distant thing concern
+
+            // SO first we really need to calculate proper elapsed dt and show it
+
             accumulator -= dt;
         }
 

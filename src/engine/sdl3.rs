@@ -121,12 +121,7 @@ where
             // TODO: I want a "real elapsed" DT here too that we ourselves calculate. Not just the const DT we specified above
             {
                 game.tick += 1;
-                // if t.as_secs() > 0 {
-                //     println!("Real FPS: {}", game.tick / t.as_secs());
-                // }
-                // simulate game update taking 5 milliseconds
                 println!("Game update");
-                //std::thread::sleep(Duration::from_millis(5));
 
                 game.cycle = game.cycle.wrapping_add(1);
                 for event in game.event_pump.poll_iter() {
@@ -150,8 +145,6 @@ where
                 canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
                 canvas.clear();
                 canvas.present();
-
-                //std::thread::sleep(Duration::from_millis(10));
             }
 
             accumulator -= dt;

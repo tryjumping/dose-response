@@ -3,14 +3,13 @@
 use crate::{
     color::Color,
     engine::{
-        self,
+        self, Vertex,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
-        Vertex,
     },
     formula, keys,
     point::Point,
-    settings::{Store as SettingsStore, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH},
+    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
     state::State,
 };
 
@@ -112,6 +111,9 @@ where
     // Just like we had with winit+glutin.
     // So that is something we want to handle. I don't want to run the update more than every 16ms.
     // And I think that's probably the case to handle: the render loop can run faster than the updates and we need to throttle them.
+
+    // NOTE: on Geralt there seems to be no vsync so we're getting like 300 micro(!!) second updates. So we will have to enable the vsync thing there. Well, this makes for good test cases.
+
     //
     // NOTE: I was seeing the exact behavior with the "fixed timestep"  algo, so that's not the full story without some sort of modification either
 
@@ -124,7 +126,7 @@ where
     // 1. is it time to update? then update
     // 2. render (unconditionally)
 
-    // NOTE: this relies on vsync so we might have to put in some waiting to handle cases where vsync is off, but this should be a good start.
+    // NOTE: this relies on vsync so we will have to put in some waiting to handle cases where vsync is off. I have a repro on Geralt for that right now.
 
     while running {
         let now = Instant::now();

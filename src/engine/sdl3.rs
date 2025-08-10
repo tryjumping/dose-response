@@ -27,7 +27,7 @@ use rodio::OutputStream;
 
 struct Game {
     cycle: u8,
-    tick: u64,
+    tick: u32,
     event_pump: sdl3::EventPump,
 }
 
@@ -128,23 +128,22 @@ where
     let target_dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
     let inc = Duration::from_millis(1);
 
-    let mut total_elapsed_time = Duration::ZERO;
-    let mut current_time = Instant::now();
-    let mut accumulator = target_dt;
+    //let mut total_elapsed_time = Duration::ZERO;
+    let start_time = Instant::now();
+    let mut current_time = start_time;
 
     while running {
-        let update_ready = accumulator + inc >= target_dt;
+        let elapsed_time = Instant::now().duration_since(start_time);
+        let update_ready = (elapsed_time + inc) >= (game.tick * target_dt);
         if update_ready {
             let now = Instant::now();
-            let dt = now - current_time;
+            let dt = now.duration_since(current_time);
             current_time = now;
-            total_elapsed_time += dt;
+            //total_elapsed_time += dt;
 
-            game.tick += 1;
+            let game_update_start_time = Instant::now();
             println!("Game update, {dt:?}");
-
-            // TODO: print expected time (tick * target_dt) vs. actual elapsed time (sum(dt));
-            // to see if we're getting any frame discrepancy
+            game.tick += 1;
 
             game.cycle = game.cycle.wrapping_add(1);
             for event in game.event_pump.poll_iter() {
@@ -157,59 +156,53 @@ where
                     _ => {}
                 }
             }
+            log::info!(
+                "Game update duration: {:?}",
+                Instant::now().duration_since(game_update_start_time)
+            );
 
+            let render_start_time = Instant::now();
             println!("Render");
 
             let i = game.cycle;
             canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
             canvas.clear();
             canvas.present();
+            log::info!(
+                "Render duration: {:?}",
+                Instant::now().duration_since(render_start_time)
+            );
 
             let frame_dt = Instant::now().duration_since(current_time);
-            accumulator = frame_dt;
+            dbg!(frame_dt);
+
+            // Make sure we advance at least by `inc` time. Otherwise
+            // we risk triggering update multiple times in a row if it
+            // takes less than `inc` time
+            if frame_dt < inc {
+                std::thread::sleep(inc);
+            }
 
             dbg!(
-                target_dt.as_secs_f64(),
-                frame_dt.as_secs_f64(),
+                target_dt,
+                frame_dt,
                 (target_dt.as_secs_f64() - frame_dt.as_secs_f64()).abs()
             );
 
-            // // catch up with the target_dt if we ended early
-            // {
-            //     let ms = 1.0 / 1000.0;
-
-            //     if frame_dt < target_dt {
-            //         let missing_time = target_dt - frame_dt;
-            //         if missing_time.as_secs_f64() >= ms {
-            //             // wait
-            //             std::thread::sleep(missing_time);
-            //         }
-            //     }
-
-            //     let frame_dt = Instant::now().duration_since(current_time);
-
-            //     dbg!(
-            //         frame_dt.as_secs_f64(),
-            //         (target_dt.as_secs_f64() - frame_dt.as_secs_f64()).abs()
-            //     );
-
-            //     if (target_dt.as_secs_f64() - frame_dt.as_secs_f64().abs()) >= ms {
-            //         log::warn!(
-            //             "Unexpected difference from the fixed frame: {}",
-            //             target_dt.as_secs_f64() - frame_dt.as_secs_f64()
-            //         );
-            //     }
-            // }
-
             // Expectation: dt ~ target_dt
             log::info!(
-                "Expected time based on fixed_dt: {}s, actual elapsed time: {}s",
-                (game.tick as f64) * target_dt.as_secs_f64(),
-                total_elapsed_time.as_secs_f64()
+                "Expected time based on fixed_dt: {:?}, actual elapsed time: {:?}",
+                target_dt * game.tick,
+                Instant::now().duration_since(start_time)
+            );
+
+            log::info!(
+                "Total frame duration: {:?}",
+                Instant::now().duration_since(current_time)
             );
         } else {
             std::thread::sleep(inc);
-            accumulator += inc;
+            log::info!("Sleeping for: {inc:?}");
         };
         // TODO Let the game run and see if we're getting significant
         // discrepancies (i.e. if the actual time is getting bigger

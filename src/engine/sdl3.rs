@@ -126,82 +126,91 @@ where
 
     // From: https://gafferongames.com/post/fix_your_timestep/
     let target_dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
+    let inc = Duration::from_millis(1);
+
     let mut total_elapsed_time = Duration::ZERO;
     let mut current_time = Instant::now();
+    let mut accumulator = target_dt;
 
     while running {
-        let now = Instant::now();
-        let dt = now - current_time;
-        current_time = now;
-        total_elapsed_time += dt;
+        let update_ready = accumulator + inc >= target_dt;
+        if update_ready {
+            let now = Instant::now();
+            let dt = now - current_time;
+            current_time = now;
+            total_elapsed_time += dt;
 
-        game.tick += 1;
-        println!("Game update, {dt:?}");
+            game.tick += 1;
+            println!("Game update, {dt:?}");
 
-        // TODO: print expected time (tick * target_dt) vs. actual elapsed time (sum(dt));
-        // to see if we're getting any frame discrepancy
+            // TODO: print expected time (tick * target_dt) vs. actual elapsed time (sum(dt));
+            // to see if we're getting any frame discrepancy
 
-        game.cycle = game.cycle.wrapping_add(1);
-        for event in game.event_pump.poll_iter() {
-            match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => running = false,
-                _ => {}
-            }
-        }
-
-        println!("Render");
-
-        let i = game.cycle;
-        canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
-        canvas.clear();
-        canvas.present();
-
-        let frame_dt = Instant::now().duration_since(current_time);
-
-        dbg!(
-            target_dt.as_secs_f64(),
-            frame_dt.as_secs_f64(),
-            (target_dt.as_secs_f64() - frame_dt.as_secs_f64()).abs()
-        );
-
-        // catch up with the target_dt if we ended early
-        {
-            let ms = 1.0 / 1000.0;
-
-            if frame_dt < target_dt {
-                let missing_time = target_dt - frame_dt;
-                if missing_time.as_secs_f64() >= ms {
-                    // wait
-                    std::thread::sleep(missing_time);
+            game.cycle = game.cycle.wrapping_add(1);
+            for event in game.event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. }
+                    | Event::KeyDown {
+                        keycode: Some(Keycode::Escape),
+                        ..
+                    } => running = false,
+                    _ => {}
                 }
             }
 
+            println!("Render");
+
+            let i = game.cycle;
+            canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
+            canvas.clear();
+            canvas.present();
+
             let frame_dt = Instant::now().duration_since(current_time);
+            accumulator = frame_dt;
 
             dbg!(
+                target_dt.as_secs_f64(),
                 frame_dt.as_secs_f64(),
                 (target_dt.as_secs_f64() - frame_dt.as_secs_f64()).abs()
             );
 
-            if (target_dt.as_secs_f64() - frame_dt.as_secs_f64().abs()) >= ms {
-                log::warn!(
-                    "Unexpected difference from the fixed frame: {}",
-                    target_dt.as_secs_f64() - frame_dt.as_secs_f64()
-                );
-            }
-        }
+            // // catch up with the target_dt if we ended early
+            // {
+            //     let ms = 1.0 / 1000.0;
 
-        // Expectation: dt ~ target_dt
-        log::info!(
-            "Expected time based on fixed_dt: {}s, actual elapsed time: {}s",
-            (game.tick as f64) * target_dt.as_secs_f64(),
-            total_elapsed_time.as_secs_f64()
-        );
+            //     if frame_dt < target_dt {
+            //         let missing_time = target_dt - frame_dt;
+            //         if missing_time.as_secs_f64() >= ms {
+            //             // wait
+            //             std::thread::sleep(missing_time);
+            //         }
+            //     }
 
+            //     let frame_dt = Instant::now().duration_since(current_time);
+
+            //     dbg!(
+            //         frame_dt.as_secs_f64(),
+            //         (target_dt.as_secs_f64() - frame_dt.as_secs_f64()).abs()
+            //     );
+
+            //     if (target_dt.as_secs_f64() - frame_dt.as_secs_f64().abs()) >= ms {
+            //         log::warn!(
+            //             "Unexpected difference from the fixed frame: {}",
+            //             target_dt.as_secs_f64() - frame_dt.as_secs_f64()
+            //         );
+            //     }
+            // }
+
+            // Expectation: dt ~ target_dt
+            log::info!(
+                "Expected time based on fixed_dt: {}s, actual elapsed time: {}s",
+                (game.tick as f64) * target_dt.as_secs_f64(),
+                total_elapsed_time.as_secs_f64()
+            );
+        } else {
+            std::thread::sleep(inc);
+            accumulator += inc;
+        };
         // TODO Let the game run and see if we're getting significant
         // discrepancies (i.e. if the actual time is getting bigger
         // and bigger than the expectation based on fixed dt.)

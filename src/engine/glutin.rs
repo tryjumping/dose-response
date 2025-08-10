@@ -1,7 +1,7 @@
 use crate::{
     color::Color,
     engine::{
-        self, Vertex,
+        self,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
     },

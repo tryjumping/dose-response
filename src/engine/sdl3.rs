@@ -103,10 +103,6 @@ where
         event_pump,
     };
 
-    // From: https://gafferongames.com/post/fix_your_timestep/
-    //let fixed_dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
-    let mut current_time = Instant::now();
-
     // NOTE: this gives us the more-or-less alternating 16/8/16/8ms cycles on MacOS
     // Just like we had with winit+glutin.
     // So that is something we want to handle. I don't want to run the update more than every 16ms.
@@ -128,13 +124,22 @@ where
 
     // NOTE: this relies on vsync so we will have to put in some waiting to handle cases where vsync is off. I have a repro on Geralt for that right now.
 
+    // From: https://gafferongames.com/post/fix_your_timestep/
+    let target_dt = Duration::from_millis((1000.0 / formula::FPS) as u64);
+    let mut total_elapsed_time = Duration::ZERO;
+    let mut current_time = Instant::now();
+
     while running {
         let now = Instant::now();
         let dt = now - current_time;
         current_time = now;
+        total_elapsed_time += dt;
 
         game.tick += 1;
         println!("Game update, {dt:?}ms");
+
+        // TODO: print expected time (tick * target_dt) vs. actual elapsed time (sum(dt));
+        // to see if we're getting any frame discrepancy
 
         game.cycle = game.cycle.wrapping_add(1);
         for event in game.event_pump.poll_iter() {
@@ -154,6 +159,59 @@ where
         canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
         canvas.clear();
         canvas.present();
+
+        let frame_dt = Instant::now().duration_since(current_time);
+
+        dbg!(
+            target_dt.as_secs_f64(),
+            frame_dt.as_secs_f64(),
+            (target_dt.as_secs_f64() - frame_dt.as_secs_f64()).abs()
+        );
+
+        // catch up with the target_dt if we ended early
+        {
+            let ms = 1.0 / 1000.0;
+
+            if frame_dt < target_dt {
+                let missing_time = target_dt - frame_dt;
+                if missing_time.as_secs_f64() >= ms {
+                    // wait
+                    std::thread::sleep(missing_time);
+                }
+            }
+
+            let frame_dt = Instant::now().duration_since(current_time);
+
+            dbg!(
+                frame_dt.as_secs_f64(),
+                (target_dt.as_secs_f64() - frame_dt.as_secs_f64()).abs()
+            );
+
+            if (target_dt.as_secs_f64() - frame_dt.as_secs_f64().abs()) >= ms {
+                log::warn!(
+                    "Unexpected difference from the fixed frame: {}",
+                    target_dt.as_secs_f64() - frame_dt.as_secs_f64()
+                );
+            }
+        }
+
+        // Expectation: dt ~ target_dt
+        log::info!(
+            "Expected time based on fixed_dt: {}s, actual elapsed time: {}s",
+            (game.tick as f64) * target_dt.as_secs_f64(),
+            total_elapsed_time.as_secs_f64()
+        );
+
+        // TODO Let the game run and see if we're getting significant
+        // discrepancies (i.e. if the actual time is getting bigger
+        // and bigger than the expectation based on fixed dt.)
+        //
+        // I think a next step beyond a total sleep time would be to
+        // use an accumulator (with a sleep though! Maybe 1ms) to just
+        // catch up on any stragglers that way. Pretty much what fix
+        // your timestep does + the explicit wait.
+        //
+        // That way the discrepancy should never be more than 1ms
     }
 
     // // From: https://gafferongames.com/post/fix_your_timestep/

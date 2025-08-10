@@ -136,7 +136,7 @@ where
         total_elapsed_time += dt;
 
         game.tick += 1;
-        println!("Game update, {dt:?}ms");
+        println!("Game update, {dt:?}");
 
         // TODO: print expected time (tick * target_dt) vs. actual elapsed time (sum(dt));
         // to see if we're getting any frame discrepancy

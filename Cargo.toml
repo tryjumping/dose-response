@@ -34,6 +34,9 @@ raw-window-handle = { version = "0.6", optional = true }
 # SDL3-based graphics stack
 sdl3 = { version = "0.14.36", default-features = false, optional = true }
 
+#SDL2-based graphics stack
+sdl2 = { version = "0.38", optional = true }
+
 bincode = "1.3"  # For serialising the game save state into a binary format
 bitflags = "1.2"
 clap = { version = "2.33.3", optional = true }
@@ -91,7 +94,7 @@ default = ["dev"]
 prod = ["desktop", "sdl3-backend"]
 dev = ["desktop", "all-backends", "cheating", "replay", "stats", "verifications"]
 test = ["dev", "prod", "all-backends"]
-all-backends = ["glutin-backend", "sdl3-backend"]
+all-backends = ["glutin-backend", "sdl3-backend", "sdl2-backend"]
 desktop = ["cli", "fullscreen", "chrono"]
 recording = ["prod", "replay"]
 # TODO: add a "trailer" feature for the gameplay (not UI) changes under "recording"?
@@ -103,6 +106,7 @@ cli = ["clap", "simplelog", "log-panics"]
 fullscreen = []
 glutin-backend = ["glutin", "winit", "gl", "image", "glutin-winit", "raw-window-handle", "game-loop"]
 sdl3-backend = ["sdl3", "gl", "image"]
+sdl2-backend = ["sdl2", "gl", "image"]
 missed-frames = []
 replay = ["chrono"]
 stats = []

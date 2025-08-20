@@ -102,13 +102,6 @@ fn run_sdl3(
 ) {
     log::info!("Using the SDL3 backend");
 
-    // // TODO: figure out how to record screenshots with glutin!
-    // let (fixed_fps, replay_dir) = if record_replay {
-    //     (Some(60), Some("/home/thomas/tmp/dose-response-recording"))
-    // } else {
-    //     (None, None)
-    // };
-
     #[cfg(feature = "sdl3-backend")]
     {
         let result = engine::sdl3::main_loop(
@@ -135,16 +128,9 @@ fn run_sdl2(
 ) {
     log::info!("Using the SDL2 backend");
 
-    // // TODO: figure out how to record screenshots with glutin!
-    // let (fixed_fps, replay_dir) = if record_replay {
-    //     (Some(60), Some("/home/thomas/tmp/dose-response-recording"))
-    // } else {
-    //     (None, None)
-    // };
-
     #[cfg(feature = "sdl2-backend")]
     {
-        let result = engine::sdl3::main_loop(
+        let result = engine::sdl2::main_loop(
             default_background,
             window_title,
             settings_store,

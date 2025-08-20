@@ -99,14 +99,13 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
 }
 
 pub fn main_loop<S>(
-    initial_game_display_size: Point,
     initial_default_background: Color,
     window_title: &str,
     mut settings_store: S,
     initial_state: Box<State>,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
-    S: SettingsStore,
+    S: SettingsStore + 'static,
 {
     log::info!("SDL2 entrypoint");
     let egui_context = Context::default();

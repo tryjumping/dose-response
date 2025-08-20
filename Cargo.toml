@@ -84,6 +84,7 @@ sdl3 = { version = "0.14.36", features = ["build-from-source"] }
 
 [target.'cfg(target_os="linux")'.dependencies]
 sdl3 = { version = "0.14.36", features = ["build-from-source"] }
+sdl2 = { version = "0.38", features = ["bundled"] }
 
 
 [features]
@@ -91,7 +92,7 @@ sdl3 = { version = "0.14.36", features = ["build-from-source"] }
 # default = ["dev", "mobile-ui"]
 default = ["dev"]
 # NOTE: Add the `recording` feature to test/record the trailer mode
-prod = ["desktop", "sdl3-backend"]
+prod = ["desktop", "sdl2-backend"]
 dev = ["desktop", "all-backends", "cheating", "replay", "stats", "verifications"]
 test = ["dev", "prod", "all-backends"]
 all-backends = ["glutin-backend", "sdl3-backend", "sdl2-backend"]

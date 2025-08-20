@@ -108,11 +108,13 @@ pub fn main_loop<S>(
 where
     S: SettingsStore,
 {
+    log::info!("SDL2 entrypoint");
     let egui_context = Context::default();
 
     // NOTE: we need to store the stream to a variable here and then
     // match on a reference to it. Otherwise, it will be dropped and
     // the stream will close.
+    log::info!("stream handle");
     let stream_result = OutputStream::try_default();
     let stream_handle = match &stream_result {
         Ok((_stream, stream_handle)) => Some(stream_handle),
@@ -122,6 +124,7 @@ where
         }
     };
 
+    log::info!("loop state");
     let mut loop_state = LoopState::initialise(
         settings_store.load(),
         initial_default_background,
@@ -131,7 +134,9 @@ where
     );
 
     //let sdl_context = sdl2::init().expect("SDL context creation failed.");
+    log::info!("init sdl2");
     let sdl_context = sdl2::init()?;
+    log::info!("sdl2 video context");
     let video_subsystem = sdl_context.video()?;
     //.expect("SDL video subsystem creation failed.");
 
@@ -142,6 +147,7 @@ where
     gl_attr.set_depth_size(0);
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
+    log::info!("build window");
     let mut window = video_subsystem
         .window(
             window_title,
@@ -154,6 +160,7 @@ where
         .build()?;
     //.expect("SDL window creation failed.");
 
+    log::info!("create gl context");
     let _ctx = window.gl_create_context()?;
     //.expect("SDL GL context creation failed.");
     gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
@@ -165,6 +172,7 @@ where
     // There's probably a method to read/handle this proper.
     let dpi = 1.0;
 
+    log::info!("create event pump");
     let mut event_pump = sdl_context.event_pump()?;
     //.expect("SDL event pump creation failed.");
 

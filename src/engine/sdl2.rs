@@ -2,7 +2,7 @@ use crate::{
     color::Color,
     engine::{
         self,
-        loop_state::{LoopState, ResizeWindowAction, UpdateResult},
+        loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
     },
     keys::{Key, KeyCode},
     point::Point,
@@ -302,6 +302,64 @@ where
                     }
                 }
                 None => {}
+            }
+        }
+
+        let output = loop_state.egui_context.end_pass();
+
+        for command in &output.platform_output.commands {
+            if let egui::OutputCommand::OpenUrl(url) = command
+                && let Err(err) = webbrowser::open(&url.url)
+            {
+                log::warn!("Error opening URL {} in the external browser!", url.url);
+                log::warn!("{}", err);
+            }
+        }
+
+        egui_shapes = output.shapes;
+
+        if output.textures_delta.set.is_empty() {
+            // We don't need to set/update any textures
+        } else {
+            for (_texture_id, image_delta) in output.textures_delta.set {
+                match image_delta.image {
+                    egui::epaint::image::ImageData::Color(color_image) => {
+                        log::warn!(
+                            "Received ImageDelta::Color(ColorImage) of size: {:?}. Ignoring as we're not set up to handle this.",
+                            color_image.size
+                        );
+                    }
+                    egui::epaint::image::ImageData::Font(font_image) => {
+                        log::warn!(
+                            "We need to update the egui texture map FontImage of size: {:?}",
+                            font_image.size
+                        );
+                        let font_image = loop_state::egui_font_image_apply_delta(
+                            loop_state.font_texture.clone(),
+                            image_delta.pos,
+                            font_image,
+                        );
+                        loop_state.font_texture = font_image.clone();
+
+                        let egui_texture = loop_state::build_texture_from_egui(font_image);
+                        let (width, height) = egui_texture.dimensions();
+
+                        opengl_app.eguimap_size_px = [width as f32, height as f32];
+                        opengl_app.upload_texture(opengl_app.eguimap, "egui", &egui_texture);
+                    }
+                }
+            }
+        }
+
+        if output.textures_delta.free.is_empty() {
+            // Don't print anything
+        } else {
+            // NOTE: I don't think we need to free anything.
+            // We're just uploading the single egui-based
+            // texture.
+            log::warn!("Texture IDs to free");
+            for texture_id in output.textures_delta.free {
+                dbg!(texture_id);
             }
         }
 

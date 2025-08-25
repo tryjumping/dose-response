@@ -5,6 +5,7 @@ use crate::{
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
     },
+    formula,
     keys::{Key, KeyCode},
     settings::Store as SettingsStore,
     state::State,
@@ -427,17 +428,68 @@ where
         settings_store,
     };
 
-    let mut previous_frame_start_time = Instant::now();
+    let target_dt_nanoseconds = 1_000_000_000 / (formula::FPS as u32);
+    let target_dt = Duration::new(0, target_dt_nanoseconds);
 
+    // NOTE: this sets the boundary (variance) between actual `dt` and
+    // "fixed `dt`" based on the target FPS.
+    //
+    // 1ms variance is probably totally fine, actually, but if we need
+    // more precision, we can just supply a smaller number here.
+    let inc = Duration::new(0, 1_000_000); // 1ms
+    let start_time = Instant::now();
+
+    let mut tick = 0;
+    let mut current_time = start_time;
     let mut running = true;
 
     log::info!("Starting the game loop.");
     while running {
-        let frame_start_time = Instant::now();
-        let dt = frame_start_time.duration_since(previous_frame_start_time);
-        previous_frame_start_time = frame_start_time;
+        let elapsed_time = Instant::now().duration_since(start_time);
+        let update_ready = (elapsed_time + inc) >= (tick * target_dt);
 
-        running = game.update_and_render(dt);
+        if update_ready {
+            let now = Instant::now();
+            let dt = now.duration_since(current_time);
+            current_time = now;
+            tick += 1;
+
+            running = game.update_and_render(dt);
+
+            let frame_dt = Instant::now().duration_since(current_time);
+
+            // Make sure we advance at least by 1ms. Otherwise
+            // we risk triggering update multiple times in a row if it
+            // takes less than `inc` time.
+            let ms = Duration::from_millis(1);
+            debug_assert!(
+                inc <= ms,
+                "The frame catch-up increment must be smaller than 1ms"
+            );
+            if frame_dt < ms {
+                std::thread::sleep(ms);
+            }
+
+            log::info!(
+                "Total frame duration: {:?}",
+                Instant::now().duration_since(current_time)
+            );
+
+            // Expectation: dt ~ target_dt
+            log::info!(
+                "Expected time based on fixed_dt: {:?}, actual elapsed time: {:?}",
+                target_dt * tick,
+                Instant::now().duration_since(start_time)
+            );
+        } else {
+            // Catch up to the next scheduled game update (based on
+            // `target_dt`) one increment at a time:
+            std::thread::sleep(inc);
+
+            // NOTE: I found this to be much more precise, responsive
+            // (and more precisely controllable) than calculating for
+            // how long to sleep until the next frame starts.
+        }
     }
 
     log::debug!(

@@ -353,11 +353,13 @@ pub fn main_loop<S>(
 where
     S: SettingsStore + 'static,
 {
+    log::info!("Starting the SDL2 backend.");
     let egui_context = Context::default();
 
     // NOTE: we need to store the stream to a variable here and then
     // match on a reference to it. Otherwise, it will be dropped and
     // the stream will close.
+    log::info!("Setting up the audio stream.");
     let stream_result = OutputStream::try_default();
     let stream_handle = match &stream_result {
         Ok((_stream, stream_handle)) => Some(stream_handle),
@@ -367,6 +369,7 @@ where
         }
     };
 
+    log::info!("Initialising the game state.");
     let loop_state = LoopState::initialise(
         settings_store.load(),
         initial_default_background,
@@ -375,8 +378,9 @@ where
         stream_handle,
     );
 
+    log::info!("Initialising SDL2.");
     let sdl_context = sdl2::init()?;
-    log::info!("sdl2 video context");
+    log::info!("Initialising the SDL2 video subsystem.");
     let video_subsystem = sdl_context.video()?;
 
     let gl_attr = video_subsystem.gl_attr();
@@ -386,6 +390,7 @@ where
     gl_attr.set_depth_size(0);
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
+    log::info!("Building the game window.");
     let window = video_subsystem
         .window(
             window_title,
@@ -397,9 +402,10 @@ where
         .position_centered()
         .build()?;
 
+    log::info!("Creating OpenGL context.");
     let _ctx = window.gl_create_context()?;
+    log::debug!("Loading OpenGL symbols.");
     gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
-    log::debug!("Loaded OpenGL symbols.");
 
     let opengl_app = loop_state.opengl_app();
 
@@ -407,6 +413,7 @@ where
     // There's probably a method to read/handle this proper.
     let dpi = 1.0;
 
+    log::info!("Creating the SDL event pump.");
     let event_pump = sdl_context.event_pump()?;
 
     let mut game = Game {
@@ -424,6 +431,7 @@ where
 
     let mut running = true;
 
+    log::info!("Starting the game loop.");
     while running {
         let frame_start_time = Instant::now();
         let dt = frame_start_time.duration_since(previous_frame_start_time);

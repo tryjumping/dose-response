@@ -24,6 +24,7 @@ pub mod opengl;
 #[cfg(feature = "sdl3-backend")]
 pub mod sdl3;
 
+#[cfg(feature = "sdl2-backend")]
 pub mod sdl2;
 
 pub mod headless;

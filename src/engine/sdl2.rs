@@ -3,21 +3,27 @@ use crate::{
     engine::{
         self,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
+        opengl::OpenGlApp,
     },
     keys::{Key, KeyCode},
     settings::Store as SettingsStore,
     state::State,
 };
 
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
-use egui::Context;
+use egui::{
+    Context,
+    epaint::{ClippedPrimitive, ClippedShape},
+};
 
 use rodio::OutputStream;
 
 use sdl2::{
+    EventPump,
     event::{Event, WindowEvent},
     keyboard::{self, Keycode as BackendKey},
+    video::Window,
 };
 
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
@@ -97,101 +103,26 @@ fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     }
 }
 
-pub fn main_loop<S>(
-    initial_default_background: Color,
-    window_title: &str,
-    mut settings_store: S,
-    initial_state: Box<State>,
-) -> Result<(), Box<dyn std::error::Error>>
-where
-    S: SettingsStore + 'static,
-{
-    log::info!("SDL2 entrypoint");
-    let egui_context = Context::default();
+struct Game<S> {
+    loop_state: LoopState,
+    event_pump: EventPump,
+    dpi: f64,
+    window: Window,
+    opengl_app: OpenGlApp,
+    egui_shapes: Vec<ClippedShape>,
+    ui_paint_batches: Vec<ClippedPrimitive>,
+    settings_store: S,
+}
 
-    // NOTE: we need to store the stream to a variable here and then
-    // match on a reference to it. Otherwise, it will be dropped and
-    // the stream will close.
-    log::info!("stream handle");
-    let stream_result = OutputStream::try_default();
-    let stream_handle = match &stream_result {
-        Ok((_stream, stream_handle)) => Some(stream_handle),
-        Err(error) => {
-            log::error!("Cannot open the audio output stream: {:?}", error);
-            None
-        }
-    };
+impl<S: SettingsStore> Game<S> {
+    fn update_and_render(&mut self, dt: Duration) -> bool {
+        self.loop_state.update_fps(dt);
 
-    log::info!("loop state");
-    let mut loop_state = LoopState::initialise(
-        settings_store.load(),
-        initial_default_background,
-        initial_state,
-        egui_context,
-        stream_handle,
-    );
-
-    //let sdl_context = sdl2::init().expect("SDL context creation failed.");
-    log::info!("init sdl2");
-    let sdl_context = sdl2::init()?;
-    log::info!("sdl2 video context");
-    let video_subsystem = sdl_context.video()?;
-    //.expect("SDL video subsystem creation failed.");
-
-    let gl_attr = video_subsystem.gl_attr();
-    gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-    gl_attr.set_context_version(3, 3);
-    gl_attr.set_double_buffer(true);
-    gl_attr.set_depth_size(0);
-
-    // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
-    log::info!("build window");
-    let mut window = video_subsystem
-        .window(
-            window_title,
-            loop_state.desired_window_size_px().0,
-            loop_state.desired_window_size_px().1,
-        )
-        .resizable()
-        .opengl()
-        .position_centered()
-        .build()?;
-    //.expect("SDL window creation failed.");
-
-    log::info!("create gl context");
-    let _ctx = window.gl_create_context()?;
-    //.expect("SDL GL context creation failed.");
-    gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
-    log::debug!("Loaded OpenGL symbols.");
-
-    let mut opengl_app = loop_state.opengl_app();
-
-    // TODO: we're hardcoding it now because that's what we always did for SDL.
-    // There's probably a method to read/handle this proper.
-    let dpi = 1.0;
-
-    log::info!("create event pump");
-    let mut event_pump = sdl_context.event_pump()?;
-    //.expect("SDL event pump creation failed.");
-
-    let mut ui_paint_batches;
-    let mut egui_shapes;
-
-    let mut previous_frame_start_time = Instant::now();
-
-    let mut running = true;
-    while running {
-        let frame_start_time = Instant::now();
-        let dt = frame_start_time.duration_since(previous_frame_start_time);
-        previous_frame_start_time = frame_start_time;
-
-        loop_state.update_fps(dt);
-
-        for event in event_pump.poll_iter() {
+        for event in self.event_pump.poll_iter() {
             log::debug!("{:?}", event);
             match event {
                 Event::Quit { .. } => {
-                    running = false;
+                    return false;
                 }
 
                 Event::Window {
@@ -199,7 +130,7 @@ where
                     ..
                 } => {
                     log::info!("Window resized to: {}x{}", width, height);
-                    loop_state.handle_window_size_changed(width, height);
+                    self.loop_state.handle_window_size_changed(width, height);
                 }
 
                 Event::KeyDown {
@@ -226,7 +157,7 @@ where
                                 .intersects(keyboard::Mod::LGUIMOD | keyboard::Mod::RGUIMOD),
                         };
                         log::debug!("Detected key {:?}", key);
-                        loop_state.keys.push(key);
+                        self.loop_state.keys.push(key);
                     }
                 }
 
@@ -240,22 +171,22 @@ where
                             logo: false,
                         };
                         log::debug!("Detected key {:?}", key);
-                        loop_state.keys.push(key);
+                        self.loop_state.keys.push(key);
                     }
                 }
 
                 Event::MouseMotion { x, y, .. } => {
-                    loop_state.update_mouse_position(dpi, x, y);
+                    self.loop_state.update_mouse_position(self.dpi, x, y);
                 }
 
                 Event::MouseButtonDown { mouse_btn, .. } => {
                     use sdl2::mouse::MouseButton::*;
                     match mouse_btn {
                         Left => {
-                            loop_state.mouse.left_is_down = true;
+                            self.loop_state.mouse.left_is_down = true;
                         }
                         Right => {
-                            loop_state.mouse.right_is_down = true;
+                            self.loop_state.mouse.right_is_down = true;
                         }
                         _ => {}
                     }
@@ -265,12 +196,12 @@ where
                     use sdl2::mouse::MouseButton::*;
                     match mouse_btn {
                         Left => {
-                            loop_state.mouse.left_clicked = true;
-                            loop_state.mouse.left_is_down = false;
+                            self.loop_state.mouse.left_clicked = true;
+                            self.loop_state.mouse.left_is_down = false;
                         }
                         Right => {
-                            loop_state.mouse.right_clicked = true;
-                            loop_state.mouse.right_is_down = false;
+                            self.loop_state.mouse.right_clicked = true;
+                            self.loop_state.mouse.right_is_down = false;
                         }
                         _ => {}
                     }
@@ -280,33 +211,33 @@ where
             }
         }
 
-        loop_state
+        self.loop_state
             .egui_context
-            .begin_pass(loop_state.egui_raw_input());
+            .begin_pass(self.loop_state.egui_raw_input());
 
-        match loop_state.update_game(dt, &mut settings_store) {
-            UpdateResult::QuitRequested => break,
+        match self.loop_state.update_game(dt, &mut self.settings_store) {
+            UpdateResult::QuitRequested => return false,
             UpdateResult::KeepGoing => {}
         }
 
         if cfg!(feature = "fullscreen") {
             use engine::loop_state::FullscreenAction::*;
             use sdl2::video::FullscreenType::*;
-            match loop_state.fullscreen_action() {
+            match self.loop_state.fullscreen_action() {
                 Some(SwitchToFullscreen) => {
-                    if let Err(err) = window.set_fullscreen(Desktop) {
+                    if let Err(err) = self.window.set_fullscreen(Desktop) {
                         log::warn!(
                             "[{}]: Could not switch to fullscreen:",
-                            loop_state.current_frame_id
+                            self.loop_state.current_frame_id
                         );
                         log::warn!("{:?}", err);
                     }
                 }
                 Some(SwitchToWindowed) => {
-                    if let Err(err) = window.set_fullscreen(Off) {
+                    if let Err(err) = self.window.set_fullscreen(Off) {
                         log::warn!(
                             "[{}]: Could not leave fullscreen:",
-                            loop_state.current_frame_id
+                            self.loop_state.current_frame_id
                         );
                         log::warn!("{:?}", err);
                     }
@@ -315,7 +246,7 @@ where
             }
         }
 
-        let output = loop_state.egui_context.end_pass();
+        let output = self.loop_state.egui_context.end_pass();
 
         for command in &output.platform_output.commands {
             if let egui::OutputCommand::OpenUrl(url) = command
@@ -326,7 +257,7 @@ where
             }
         }
 
-        egui_shapes = output.shapes;
+        self.egui_shapes = output.shapes;
 
         if output.textures_delta.set.is_empty() {
             // We don't need to set/update any textures
@@ -345,17 +276,21 @@ where
                             font_image.size
                         );
                         let font_image = loop_state::egui_font_image_apply_delta(
-                            loop_state.font_texture.clone(),
+                            self.loop_state.font_texture.clone(),
                             image_delta.pos,
                             font_image,
                         );
-                        loop_state.font_texture = font_image.clone();
+                        self.loop_state.font_texture = font_image.clone();
 
                         let egui_texture = loop_state::build_texture_from_egui(font_image);
                         let (width, height) = egui_texture.dimensions();
 
-                        opengl_app.eguimap_size_px = [width as f32, height as f32];
-                        opengl_app.upload_texture(opengl_app.eguimap, "egui", &egui_texture);
+                        self.opengl_app.eguimap_size_px = [width as f32, height as f32];
+                        self.opengl_app.upload_texture(
+                            self.opengl_app.eguimap,
+                            "egui",
+                            &egui_texture,
+                        );
                     }
                 }
             }
@@ -373,36 +308,133 @@ where
             }
         }
 
-        match loop_state.check_window_size_needs_updating() {
+        match self.loop_state.check_window_size_needs_updating() {
             ResizeWindowAction::NewSize((width, height)) => {
-                if let Err(err) = window.set_size(width, height) {
-                    log::warn!("[{}] Could not resize window:", loop_state.current_frame_id);
+                if let Err(err) = self.window.set_size(width, height) {
+                    log::warn!(
+                        "[{}] Could not resize window:",
+                        self.loop_state.current_frame_id
+                    );
                     log::warn!("{:?}", err);
                 }
-                loop_state.handle_window_size_changed(width as i32, height as i32);
+                self.loop_state
+                    .handle_window_size_changed(width as i32, height as i32);
             }
             ResizeWindowAction::NoChange => {}
         }
 
-        ui_paint_batches = loop_state
+        self.ui_paint_batches = self
+            .loop_state
             .egui_context
-            .tessellate(egui_shapes.clone(), loop_state.dpi as f32);
+            .tessellate(self.egui_shapes.clone(), self.loop_state.dpi as f32);
 
-        let (ui_vertices, batches) = engine::drawcalls_from_egui(&opengl_app, &ui_paint_batches);
+        let (ui_vertices, batches) =
+            engine::drawcalls_from_egui(&self.opengl_app, &self.ui_paint_batches);
 
-        loop_state.process_vertices_and_render(
-            &mut opengl_app,
+        self.loop_state.process_vertices_and_render(
+            &mut self.opengl_app,
             &ui_vertices,
-            loop_state.dpi,
+            self.loop_state.dpi,
             &batches,
         );
 
-        window.gl_swap_window();
+        self.window.gl_swap_window();
+
+        true
+    }
+}
+
+pub fn main_loop<S>(
+    initial_default_background: Color,
+    window_title: &str,
+    settings_store: S,
+    initial_state: Box<State>,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    S: SettingsStore + 'static,
+{
+    let egui_context = Context::default();
+
+    // NOTE: we need to store the stream to a variable here and then
+    // match on a reference to it. Otherwise, it will be dropped and
+    // the stream will close.
+    let stream_result = OutputStream::try_default();
+    let stream_handle = match &stream_result {
+        Ok((_stream, stream_handle)) => Some(stream_handle),
+        Err(error) => {
+            log::error!("Cannot open the audio output stream: {:?}", error);
+            None
+        }
+    };
+
+    let loop_state = LoopState::initialise(
+        settings_store.load(),
+        initial_default_background,
+        initial_state,
+        egui_context,
+        stream_handle,
+    );
+
+    let sdl_context = sdl2::init()?;
+    log::info!("sdl2 video context");
+    let video_subsystem = sdl_context.video()?;
+
+    let gl_attr = video_subsystem.gl_attr();
+    gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
+    gl_attr.set_context_version(3, 3);
+    gl_attr.set_double_buffer(true);
+    gl_attr.set_depth_size(0);
+
+    // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
+    let window = video_subsystem
+        .window(
+            window_title,
+            loop_state.desired_window_size_px().0,
+            loop_state.desired_window_size_px().1,
+        )
+        .resizable()
+        .opengl()
+        .position_centered()
+        .build()?;
+
+    let _ctx = window.gl_create_context()?;
+    gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
+    log::debug!("Loaded OpenGL symbols.");
+
+    let opengl_app = loop_state.opengl_app();
+
+    // TODO: we're hardcoding it now because that's what we always did for SDL.
+    // There's probably a method to read/handle this proper.
+    let dpi = 1.0;
+
+    let event_pump = sdl_context.event_pump()?;
+
+    let mut game = Game {
+        loop_state,
+        event_pump,
+        dpi,
+        window,
+        opengl_app,
+        egui_shapes: vec![],
+        ui_paint_batches: vec![],
+        settings_store,
+    };
+
+    let mut previous_frame_start_time = Instant::now();
+
+    let mut running = true;
+
+    while running {
+        let frame_start_time = Instant::now();
+        let dt = frame_start_time.duration_since(previous_frame_start_time);
+        previous_frame_start_time = frame_start_time;
+
+        running = game.update_and_render(dt);
     }
 
     log::debug!(
         "Drawcall count: {}. Capacity: {}.",
-        loop_state.overall_max_drawcall_count,
+        game.loop_state.overall_max_drawcall_count,
         engine::DRAWCALL_CAPACITY
     );
 

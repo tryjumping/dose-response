@@ -5,14 +5,13 @@ use crate::{
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
     },
     keys::{Key, KeyCode},
-    point::Point,
     settings::Store as SettingsStore,
     state::State,
 };
 
 use std::time::Instant;
 
-use egui::{ClippedPrimitive, Context};
+use egui::Context;
 
 use rodio::OutputStream;
 
@@ -175,8 +174,8 @@ where
     let mut event_pump = sdl_context.event_pump()?;
     //.expect("SDL event pump creation failed.");
 
-    let mut ui_paint_batches: Vec<ClippedPrimitive> = vec![];
-    let mut egui_shapes: Vec<egui::epaint::ClippedShape> = vec![];
+    let mut ui_paint_batches;
+    let mut egui_shapes;
 
     let mut previous_frame_start_time = Instant::now();
 

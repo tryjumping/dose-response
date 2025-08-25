@@ -281,6 +281,10 @@ where
             }
         }
 
+        loop_state
+            .egui_context
+            .begin_pass(loop_state.egui_raw_input());
+
         match loop_state.update_game(dt, &mut settings_store) {
             UpdateResult::QuitRequested => break,
             UpdateResult::KeepGoing => {}

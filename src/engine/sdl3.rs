@@ -34,7 +34,6 @@ struct Game {
 impl Game {
     fn update_and_render(&mut self, dt: Duration, canvas: &mut Canvas<Window>) -> bool {
         println!("Game update, {dt:?}");
-        self.tick += 1;
 
         self.cycle = self.cycle.wrapping_add(1);
         for event in self.event_pump.poll_iter() {
@@ -133,7 +132,6 @@ where
 
     let mut game = Game {
         cycle: 0,
-        tick: 0,
         event_pump,
     };
 
@@ -148,14 +146,15 @@ where
     // more precision, we can just supply a smaller number here.
     let inc = Duration::new(0, 1_000_000); // 1ms
     dbg!(inc);
-
     let start_time = Instant::now();
-    let mut current_time = start_time;
 
+    let mut tick = 0;
+    let mut current_time = start_time;
     let mut running = true;
+
     while running {
         let elapsed_time = Instant::now().duration_since(start_time);
-        let update_ready = (elapsed_time + inc) >= (game.tick * target_dt);
+        let update_ready = (elapsed_time + inc) >= (tick * target_dt);
 
         if update_ready {
             let now = Instant::now();
@@ -186,7 +185,7 @@ where
             // Expectation: dt ~ target_dt
             log::info!(
                 "Expected time based on fixed_dt: {:?}, actual elapsed time: {:?}",
-                target_dt * game.tick,
+                target_dt * tick,
                 Instant::now().duration_since(start_time)
             );
         } else {

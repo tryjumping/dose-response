@@ -3,14 +3,13 @@
 use crate::{
     color::Color,
     engine::{
-        self,
+        self, Vertex,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
-        Vertex,
     },
     formula, keys,
     point::Point,
-    settings::{Store as SettingsStore, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH},
+    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
     state::State,
 };
 
@@ -94,6 +93,15 @@ where
     let sdl_context = sdl3::init()?;
     let video_subsystem = sdl_context.video()?;
 
+    // NOTE: you should be able to use opengl here just like with SDL2 I think! This function still exists:
+    // https://docs.rs/sdl3/latest/sdl3/video/struct.Window.html#method.gl_create_context
+
+    // So look at the sdl2.rs code and see what that does. And then try to replicate that here.
+
+    // https://docs.rs/sdl3/latest/sdl3/video/gl_attr/index.html
+
+    // NOTe: but I think we should start with integrating the game update loop first. So we have something to point at the rendering pipeline
+
     let window = video_subsystem
         .window(window_title, 800, 600)
         .position_centered()
@@ -128,16 +136,6 @@ where
         tick: 0,
         event_pump,
     };
-
-
-// NOTE: you should be able to use opengl here just like with SDL2 I think! This function still exists:
-// https://docs.rs/sdl3/latest/sdl3/video/struct.Window.html#method.gl_create_context
-
-// So look at the sdl2.rs code and see what that does. And then try to replicate that here.
-
-// https://docs.rs/sdl3/latest/sdl3/video/gl_attr/index.html
-
-
 
     let target_dt_nanoseconds = 1_000_000_000 / (formula::FPS as u32);
     let target_dt = Duration::new(0, target_dt_nanoseconds);

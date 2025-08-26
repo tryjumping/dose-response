@@ -410,6 +410,22 @@ where
 
     let opengl_app = loop_state.opengl_app();
 
+    // TODO: set window icon
+    // {
+    //     // requires "--features 'image'"
+    //     use sdl2::surface::Surface;
+
+    //     let window_icon = Surface::from_file("../../assets/icon_256x256.png")?;
+    //     window.set_icon(window_icon);
+    // }
+
+    // TODO: set window min size
+    // {
+    //     // TODO: these are winit calls, translate to SDL!
+    //     window.with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT));
+    //     window.with_inner_size(desired_size);
+    // }
+
     // TODO: we're hardcoding it now because that's what we always did for SDL.
     // There's probably a method to read/handle this proper.
     let dpi = 1.0;

@@ -24,7 +24,7 @@ cargo-all-tests:
 	cargo clippy --features "all-backends"
 	cargo build
 	touch build.rs
-	cargo build --vv
+	cargo build -vv
 	cargo test --release --all-targets  # NOTE: needs to be in release. Replays take too long otherwise
 .PHONY: cargo-all-tests
 

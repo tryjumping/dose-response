@@ -419,7 +419,9 @@ where
     //     window.set_icon(window_icon);
     // }
 
-    window.set_minimum_size(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+    if let Err(e) = window.set_minimum_size(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT) {
+        log::warn!("Could not set minimum window size: {e}");
+    }
 
     // TODO: we're hardcoding it now because that's what we always did for SDL.
     // There's probably a method to read/handle this proper.

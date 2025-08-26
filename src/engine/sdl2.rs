@@ -120,7 +120,7 @@ impl<S: SettingsStore> Game<S> {
         self.loop_state.update_fps(dt);
 
         for event in self.event_pump.poll_iter() {
-            log::debug!("{:?}", event);
+            log::trace!("{:?}", event);
             match event {
                 Event::Quit { .. } => {
                     return false;
@@ -140,7 +140,7 @@ impl<S: SettingsStore> Game<S> {
                     keymod,
                     ..
                 } => {
-                    log::debug!(
+                    log::trace!(
                         "KeyDown backend_code: {:?}, scancode: {:?}, keymod bits: {:?}",
                         backend_code,
                         scancode,
@@ -157,7 +157,7 @@ impl<S: SettingsStore> Game<S> {
                             logo: keymod
                                 .intersects(keyboard::Mod::LGUIMOD | keyboard::Mod::RGUIMOD),
                         };
-                        log::debug!("Detected key {:?}", key);
+                        log::trace!("Detected key {:?}", key);
                         self.loop_state.keys.push(key);
                     }
                 }
@@ -171,7 +171,7 @@ impl<S: SettingsStore> Game<S> {
                             shift: false,
                             logo: false,
                         };
-                        log::debug!("Detected key {:?}", key);
+                        log::trace!("Detected key {:?}", key);
                         self.loop_state.keys.push(key);
                     }
                 }
@@ -405,7 +405,7 @@ where
 
     log::info!("Creating OpenGL context.");
     let _ctx = window.gl_create_context()?;
-    log::debug!("Loading OpenGL symbols.");
+    log::info!("Loading OpenGL symbols.");
     gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
 
     let opengl_app = loop_state.opengl_app();

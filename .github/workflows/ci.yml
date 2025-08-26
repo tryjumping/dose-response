@@ -31,14 +31,12 @@ jobs:
           extra_features: macos-extra-features
           build_time_dependencies: |
             brew install sdl2
-            brew --prefix
-            ls -alh "$(brew --prefix)"
-            ls -alh "$(brew --prefix)/lib"
         # NOTE: `macos-13` uses the x86/64 architecture:
         # https://github.com/actions/runner-images
         - os: macos-13
           extra_features: macos-extra-features
-          build_time_dependencies: ""
+          build_time_dependencies: |
+            brew install sdl2
     runs-on: ${{ matrix.platform.os }}
 
     env:

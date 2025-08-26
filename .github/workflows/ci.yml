@@ -29,7 +29,8 @@ jobs:
         # https://github.com/actions/runner-images
         - os: macos-14
           extra_features: macos-extra-features
-          build_time_dependencies: ""
+          build_time_dependencies: |
+            brew install sdl2
         # NOTE: `macos-13` uses the x86/64 architecture:
         # https://github.com/actions/runner-images
         - os: macos-13

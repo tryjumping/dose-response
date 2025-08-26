@@ -9,7 +9,7 @@ check:
 package-release: cargo-all-tests
 	cargo install cargo-about --version "0.6.1"
 	cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
-	cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
+	cargo build -vv --release --no-default-features --features "prod ${EXTRA_FEATURES}"
 	rm -rf target/out target/package.zip
 	cargo +nightly -Zscript package-release.rs
 .PHONY: package-release
@@ -19,11 +19,11 @@ steam-deck:
 .PHONY: steam-deck
 
 cargo-all-tests:
-	cargo check
-	cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
-	cargo clippy --features "all-backends"
-	cargo build
-	cargo test --release --all-targets  # NOTE: needs to be in release. Replays take too long otherwise
+	cargo check -vv
+	cargo check -vv --no-default-features --features "prod ${EXTRA_FEATURES}"
+	cargo clippy -vv --features "all-backends"
+	cargo build -vv
+	cargo test -vv --release --all-targets  # NOTE: needs to be in release. Replays take too long otherwise
 .PHONY: cargo-all-tests
 
 replay:

@@ -12,13 +12,21 @@ use std::fmt;
 use egui::{ClippedPrimitive, TextureId};
 use serde::{Deserialize, Serialize};
 
-#[cfg(any(feature = "glutin-backend", feature = "sdl3-backend"))]
+#[cfg(any(
+    feature = "glutin-backend",
+    feature = "sdl2-backend",
+    feature = "sdl3-backend"
+))]
 mod loop_state;
 
 #[cfg(feature = "glutin-backend")]
 pub mod glutin;
 
-#[cfg(any(feature = "glutin-backend", feature = "sdl3-backend"))]
+#[cfg(any(
+    feature = "glutin-backend",
+    feature = "sdl2-backend",
+    feature = "sdl3-backend"
+))]
 pub mod opengl;
 
 #[cfg(feature = "sdl3-backend")]

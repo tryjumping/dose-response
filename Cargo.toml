@@ -34,7 +34,7 @@ raw-window-handle = { version = "0.6", optional = true }
 # SDL3-based graphics stack
 sdl3 = { version = "0.14.36", default-features = false, optional = true }
 
-#SDL2-based graphics stack
+# SDL2-based graphics stack
 sdl2 = { version = "0.38", optional = true }
 
 bincode = "1.3"  # For serialising the game save state into a binary format
@@ -83,7 +83,8 @@ sdl3 = { version = "0.14.36", features = ["build-from-source"] }
 sdl3 = { version = "0.14.36", features = ["build-from-source"] }
 
 [target.'cfg(target_os="linux")'.dependencies]
-sdl3 = { version = "0.14.36", features = ["build-from-source"] }
+# NOTE: only a single version of SDL can be compiled in at a time, it seems
+#sdl3 = { version = "0.14.36", features = ["build-from-source"] }
 sdl2 = { version = "0.38", features = ["bundled"] }
 
 
@@ -93,8 +94,13 @@ sdl2 = { version = "0.38", features = ["bundled"] }
 default = ["dev"]
 # NOTE: Add the `recording` feature to test/record the trailer mode
 prod = ["desktop", "sdl2-backend"]
-dev = ["desktop", "all-backends", "cheating", "replay", "stats", "verifications"]
+dev = ["desktop", "sdl2-backend", "cheating", "replay", "stats", "verifications"]
 test = ["dev", "prod", "all-backends"]
+# NOTE: there's a runtime crash when both SDL2 and SDL3 backends are enabled.
+#
+# We keep the `all-backends` feature to be able to run cargo clippy
+# etc., but we'll only keep the SDL2 backend available in the devprod
+# builds.
 all-backends = ["glutin-backend", "sdl3-backend", "sdl2-backend"]
 desktop = ["cli", "fullscreen", "chrono"]
 recording = ["prod", "replay"]

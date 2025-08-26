@@ -7,7 +7,7 @@ use crate::{
     },
     formula,
     keys::{Key, KeyCode},
-    settings::Store as SettingsStore,
+    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
     state::State,
 };
 
@@ -392,7 +392,7 @@ where
 
     // NOTE: add `.fullscreen_desktop()` to start in fullscreen.
     log::info!("Building the game window.");
-    let window = video_subsystem
+    let mut window = video_subsystem
         .window(
             window_title,
             loop_state.desired_window_size_px().0,
@@ -419,12 +419,7 @@ where
     //     window.set_icon(window_icon);
     // }
 
-    // TODO: set window min size
-    // {
-    //     // TODO: these are winit calls, translate to SDL!
-    //     window.with_min_inner_size(LogicalSize::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT));
-    //     window.with_inner_size(desired_size);
-    // }
+    window.set_minimum_size(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
 
     // TODO: we're hardcoding it now because that's what we always did for SDL.
     // There's probably a method to read/handle this proper.

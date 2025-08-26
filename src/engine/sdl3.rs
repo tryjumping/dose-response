@@ -1,24 +1,17 @@
-#![allow(unused_imports)]
-
 use crate::{
     color::Color,
     engine::{
-        self, Vertex,
+        self,
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
     },
     formula,
     keys::{Key, KeyCode},
-    point::Point,
-    settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
+    settings::Store as SettingsStore,
     state::State,
 };
 
-use std::{
-    error::Error,
-    num::NonZeroU32,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 use sdl3::{
     EventPump,

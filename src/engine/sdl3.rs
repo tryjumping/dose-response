@@ -7,7 +7,8 @@ use crate::{
         loop_state::{self, LoopState, ResizeWindowAction, UpdateResult},
         opengl::OpenGlApp,
     },
-    formula, keys,
+    formula,
+    keys::{Key, KeyCode},
     point::Point,
     settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
     state::State,
@@ -19,38 +20,336 @@ use std::{
     time::{Duration, Instant},
 };
 
-use sdl3::{event::Event, keyboard::Keycode, render::Canvas, video::Window};
+use sdl3::{
+    EventPump,
+    event::{Event, WindowEvent},
+    keyboard::{self, Keycode as BackendKey},
+    video::Window,
+};
 
-use egui::{ClippedPrimitive, Context};
+use egui::{
+    Context,
+    epaint::{ClippedPrimitive, ClippedShape},
+};
 
 use rodio::OutputStream;
 
-struct Game {
-    cycle: u8,
-    tick: u32,
-    event_pump: sdl3::EventPump,
+fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
+    match backend_code {
+        BackendKey::Return => Some(KeyCode::Enter),
+        BackendKey::Escape => Some(KeyCode::Esc),
+        BackendKey::Space => Some(KeyCode::Space),
+
+        // Decimal keys (above the letter row)
+        BackendKey::_0 => Some(KeyCode::D0),
+        BackendKey::_1 => Some(KeyCode::D1),
+        BackendKey::_2 => Some(KeyCode::D2),
+        BackendKey::_3 => Some(KeyCode::D3),
+        BackendKey::_4 => Some(KeyCode::D4),
+        BackendKey::_5 => Some(KeyCode::D5),
+        BackendKey::_6 => Some(KeyCode::D6),
+        BackendKey::_7 => Some(KeyCode::D7),
+        BackendKey::_8 => Some(KeyCode::D8),
+        BackendKey::_9 => Some(KeyCode::D9),
+
+        BackendKey::A => Some(KeyCode::A),
+        BackendKey::B => Some(KeyCode::B),
+        BackendKey::C => Some(KeyCode::C),
+        BackendKey::D => Some(KeyCode::D),
+        BackendKey::E => Some(KeyCode::E),
+        BackendKey::F => Some(KeyCode::F),
+        BackendKey::G => Some(KeyCode::G),
+        BackendKey::H => Some(KeyCode::H),
+        BackendKey::I => Some(KeyCode::I),
+        BackendKey::J => Some(KeyCode::J),
+        BackendKey::K => Some(KeyCode::K),
+        BackendKey::L => Some(KeyCode::L),
+        BackendKey::M => Some(KeyCode::M),
+        BackendKey::N => Some(KeyCode::N),
+        BackendKey::O => Some(KeyCode::O),
+        BackendKey::P => Some(KeyCode::P),
+        BackendKey::Q => Some(KeyCode::Q),
+        BackendKey::R => Some(KeyCode::R),
+        BackendKey::S => Some(KeyCode::S),
+        BackendKey::T => Some(KeyCode::T),
+        BackendKey::U => Some(KeyCode::U),
+        BackendKey::V => Some(KeyCode::V),
+        BackendKey::W => Some(KeyCode::W),
+        BackendKey::X => Some(KeyCode::X),
+        BackendKey::Y => Some(KeyCode::Y),
+        BackendKey::Z => Some(KeyCode::Z),
+
+        BackendKey::F1 => Some(KeyCode::F1),
+        BackendKey::F2 => Some(KeyCode::F2),
+        BackendKey::F3 => Some(KeyCode::F3),
+        BackendKey::F4 => Some(KeyCode::F4),
+        BackendKey::F5 => Some(KeyCode::F5),
+        BackendKey::F6 => Some(KeyCode::F6),
+        BackendKey::F7 => Some(KeyCode::F7),
+        BackendKey::F8 => Some(KeyCode::F8),
+        BackendKey::F9 => Some(KeyCode::F9),
+        BackendKey::F10 => Some(KeyCode::F10),
+        BackendKey::F11 => Some(KeyCode::F11),
+        BackendKey::F12 => Some(KeyCode::F12),
+
+        BackendKey::Right => Some(KeyCode::Right),
+        BackendKey::Left => Some(KeyCode::Left),
+        BackendKey::Down => Some(KeyCode::Down),
+        BackendKey::Up => Some(KeyCode::Up),
+
+        // Numpad keys
+        BackendKey::Kp1 => Some(KeyCode::NumPad1),
+        BackendKey::Kp2 => Some(KeyCode::NumPad2),
+        BackendKey::Kp3 => Some(KeyCode::NumPad3),
+        BackendKey::Kp4 => Some(KeyCode::NumPad4),
+        BackendKey::Kp5 => Some(KeyCode::NumPad5),
+        BackendKey::Kp6 => Some(KeyCode::NumPad6),
+        BackendKey::Kp7 => Some(KeyCode::NumPad7),
+        BackendKey::Kp8 => Some(KeyCode::NumPad8),
+        BackendKey::Kp9 => Some(KeyCode::NumPad9),
+        BackendKey::Kp0 => Some(KeyCode::NumPad0),
+
+        _ => None,
+    }
 }
 
-impl Game {
-    fn update_and_render(&mut self, dt: Duration, canvas: &mut Canvas<Window>) -> bool {
-        println!("Game update, {dt:?}");
+struct Game<S> {
+    loop_state: LoopState,
+    event_pump: EventPump,
+    dpi: f64,
+    window: Window,
+    opengl_app: OpenGlApp,
+    egui_shapes: Vec<ClippedShape>,
+    ui_paint_batches: Vec<ClippedPrimitive>,
+    settings_store: S,
+}
 
-        self.cycle = self.cycle.wrapping_add(1);
+impl<S: SettingsStore> Game<S> {
+    fn update_and_render(&mut self, dt: Duration) -> bool {
+        self.loop_state.update_fps(dt);
+
         for event in self.event_pump.poll_iter() {
+            log::debug!("{:?}", event);
             match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
+                Event::Quit { .. } => {
+                    return false;
+                }
+
+                Event::Window {
+                    win_event: WindowEvent::Resized(width, height),
                     ..
-                } => return false,
+                } => {
+                    log::info!("Window resized to: {}x{}", width, height);
+                    self.loop_state.handle_window_size_changed(width, height);
+                }
+
+                Event::KeyDown {
+                    keycode: Some(backend_code),
+                    scancode,
+                    keymod,
+                    ..
+                } => {
+                    log::debug!(
+                        "KeyDown backend_code: {:?}, scancode: {:?}, keymod bits: {:?}",
+                        backend_code,
+                        scancode,
+                        keymod.bits(),
+                    );
+                    if let Some(code) = key_code_from_backend(backend_code) {
+                        let key = Key {
+                            code,
+                            alt: keymod.intersects(keyboard::Mod::LALTMOD | keyboard::Mod::RALTMOD),
+                            ctrl: keymod
+                                .intersects(keyboard::Mod::LCTRLMOD | keyboard::Mod::RCTRLMOD),
+                            shift: keymod
+                                .intersects(keyboard::Mod::LSHIFTMOD | keyboard::Mod::RSHIFTMOD),
+                            logo: keymod
+                                .intersects(keyboard::Mod::LGUIMOD | keyboard::Mod::RGUIMOD),
+                        };
+                        log::debug!("Detected key {:?}", key);
+                        self.loop_state.keys.push(key);
+                    }
+                }
+
+                Event::TextInput { text, .. } => {
+                    if text.contains('?') {
+                        let key = Key {
+                            code: KeyCode::QuestionMark,
+                            alt: false,
+                            ctrl: false,
+                            shift: false,
+                            logo: false,
+                        };
+                        log::debug!("Detected key {:?}", key);
+                        self.loop_state.keys.push(key);
+                    }
+                }
+
+                Event::MouseMotion { x, y, .. } => {
+                    self.loop_state
+                        .update_mouse_position(self.dpi, x as i32, y as i32);
+                }
+
+                Event::MouseButtonDown { mouse_btn, .. } => {
+                    use sdl3::mouse::MouseButton::*;
+                    match mouse_btn {
+                        Left => {
+                            self.loop_state.mouse.left_is_down = true;
+                        }
+                        Right => {
+                            self.loop_state.mouse.right_is_down = true;
+                        }
+                        _ => {}
+                    }
+                }
+
+                Event::MouseButtonUp { mouse_btn, .. } => {
+                    use sdl3::mouse::MouseButton::*;
+                    match mouse_btn {
+                        Left => {
+                            self.loop_state.mouse.left_clicked = true;
+                            self.loop_state.mouse.left_is_down = false;
+                        }
+                        Right => {
+                            self.loop_state.mouse.right_clicked = true;
+                            self.loop_state.mouse.right_is_down = false;
+                        }
+                        _ => {}
+                    }
+                }
+
                 _ => {}
             }
         }
 
-        let i = self.cycle;
-        canvas.set_draw_color(sdl3::pixels::Color::RGB(i, 64, 255 - i));
-        canvas.clear();
-        canvas.present();
+        self.loop_state
+            .egui_context
+            .begin_pass(self.loop_state.egui_raw_input());
+
+        match self.loop_state.update_game(dt, &mut self.settings_store) {
+            UpdateResult::QuitRequested => return false,
+            UpdateResult::KeepGoing => {}
+        }
+
+        if cfg!(feature = "fullscreen") {
+            use engine::loop_state::FullscreenAction::*;
+            //use sdl3::video::FullscreenType::*;
+            match self.loop_state.fullscreen_action() {
+                Some(SwitchToFullscreen) => {
+                    if let Err(err) = self.window.set_fullscreen(true) {
+                        log::warn!(
+                            "[{}]: Could not switch to fullscreen:",
+                            self.loop_state.current_frame_id
+                        );
+                        log::warn!("{:?}", err);
+                    }
+                }
+                Some(SwitchToWindowed) => {
+                    if let Err(err) = self.window.set_fullscreen(false) {
+                        log::warn!(
+                            "[{}]: Could not leave fullscreen:",
+                            self.loop_state.current_frame_id
+                        );
+                        log::warn!("{:?}", err);
+                    }
+                }
+                None => {}
+            }
+        }
+
+        let output = self.loop_state.egui_context.end_pass();
+
+        for command in &output.platform_output.commands {
+            if let egui::OutputCommand::OpenUrl(url) = command
+                && let Err(err) = webbrowser::open(&url.url)
+            {
+                log::warn!("Error opening URL {} in the external browser!", url.url);
+                log::warn!("{}", err);
+            }
+        }
+
+        self.egui_shapes = output.shapes;
+
+        if output.textures_delta.set.is_empty() {
+            // We don't need to set/update any textures
+        } else {
+            for (_texture_id, image_delta) in output.textures_delta.set {
+                match image_delta.image {
+                    egui::epaint::image::ImageData::Color(color_image) => {
+                        log::warn!(
+                            "Received ImageDelta::Color(ColorImage) of size: {:?}. Ignoring as we're not set up to handle this.",
+                            color_image.size
+                        );
+                    }
+                    egui::epaint::image::ImageData::Font(font_image) => {
+                        log::warn!(
+                            "We need to update the egui texture map FontImage of size: {:?}",
+                            font_image.size
+                        );
+                        let font_image = loop_state::egui_font_image_apply_delta(
+                            self.loop_state.font_texture.clone(),
+                            image_delta.pos,
+                            font_image,
+                        );
+                        self.loop_state.font_texture = font_image.clone();
+
+                        let egui_texture = loop_state::build_texture_from_egui(font_image);
+                        let (width, height) = egui_texture.dimensions();
+
+                        self.opengl_app.eguimap_size_px = [width as f32, height as f32];
+                        self.opengl_app.upload_texture(
+                            self.opengl_app.eguimap,
+                            "egui",
+                            &egui_texture,
+                        );
+                    }
+                }
+            }
+        }
+
+        if output.textures_delta.free.is_empty() {
+            // Don't print anything
+        } else {
+            // NOTE: I don't think we need to free anything.
+            // We're just uploading the single egui-based
+            // texture.
+            log::warn!("Texture IDs to free");
+            for texture_id in output.textures_delta.free {
+                dbg!(texture_id);
+            }
+        }
+
+        match self.loop_state.check_window_size_needs_updating() {
+            ResizeWindowAction::NewSize((width, height)) => {
+                if let Err(err) = self.window.set_size(width, height) {
+                    log::warn!(
+                        "[{}] Could not resize window:",
+                        self.loop_state.current_frame_id
+                    );
+                    log::warn!("{:?}", err);
+                }
+                self.loop_state
+                    .handle_window_size_changed(width as i32, height as i32);
+            }
+            ResizeWindowAction::NoChange => {}
+        }
+
+        self.ui_paint_batches = self
+            .loop_state
+            .egui_context
+            .tessellate(self.egui_shapes.clone(), self.loop_state.dpi as f32);
+
+        let (ui_vertices, batches) =
+            engine::drawcalls_from_egui(&self.opengl_app, &self.ui_paint_batches);
+
+        self.loop_state.process_vertices_and_render(
+            &mut self.opengl_app,
+            &ui_vertices,
+            self.loop_state.dpi,
+            &batches,
+        );
+
+        self.window.gl_swap_window();
 
         true
     }
@@ -65,9 +364,8 @@ pub fn main_loop<S>(
 where
     S: SettingsStore + 'static,
 {
+    log::info!("Starting the SDL3 backend.");
     let egui_context = Context::default();
-
-    // TODO: do we need this given SDL audio system?
 
     // NOTE: we need to store the stream to a variable here and then
     // match on a reference to it. Otherwise, it will be dropped and
@@ -81,6 +379,7 @@ where
         }
     };
 
+    log::info!("Initialising the game state.");
     let loop_state = LoopState::initialise(
         settings_store.load(),
         initial_default_background,
@@ -89,22 +388,42 @@ where
         stream_handle,
     );
 
+    log::info!("Initialising SDL3.");
     let sdl_context = sdl3::init()?;
+    log::info!("Initialising the SDL3 video subsystem.");
     let video_subsystem = sdl_context.video()?;
 
-    // NOTE: you should be able to use opengl here just like with SDL2 I think! This function still exists:
-    // https://docs.rs/sdl3/latest/sdl3/video/struct.Window.html#method.gl_create_context
+    let gl_attr = video_subsystem.gl_attr();
+    gl_attr.set_context_profile(sdl3::video::GLProfile::Core);
+    gl_attr.set_context_version(3, 3);
+    gl_attr.set_double_buffer(true);
+    gl_attr.set_depth_size(0);
 
-    // So look at the sdl2.rs code and see what that does. And then try to replicate that here.
-
-    // https://docs.rs/sdl3/latest/sdl3/video/gl_attr/index.html
-
-    // NOTe: but I think we should start with integrating the game update loop first. So we have something to point at the rendering pipeline
-
+    log::info!("Building the game window.");
     let window = video_subsystem
-        .window(window_title, 800, 600)
+        .window(
+            window_title,
+            loop_state.desired_window_size_px().0,
+            loop_state.desired_window_size_px().1,
+        )
         .position_centered()
+        .resizable()
+        .opengl()
         .build()?;
+
+    log::info!("Creating OpenGL context.");
+    let _ctx = window.gl_create_context()?;
+    log::debug!("Loading OpenGL symbols.");
+
+    #[allow(unsafe_code)]
+    unsafe extern "C" fn noop() {}
+
+    gl::load_with(|name| {
+        let fun = video_subsystem.gl_get_proc_address(name).unwrap_or(noop);
+        fun as *const _
+    });
+
+    let opengl_app = loop_state.opengl_app();
 
     // TODO: set window icon
     // {
@@ -122,22 +441,26 @@ where
     //     window.with_inner_size(desired_size);
     // }
 
-    // TODO: set up the OpenGL context
-    let mut canvas = window.into_canvas();
+    // TODO: we're hardcoding it now because that's what we always did for SDL.
+    // There's probably a method to read/handle this proper.
+    let dpi = 1.0;
 
-    canvas.set_draw_color(sdl3::pixels::Color::RGB(0, 255, 255));
-    canvas.clear();
-    canvas.present();
+    log::info!("Creating the SDL event pump.");
     let event_pump = sdl_context.event_pump()?;
 
     let mut game = Game {
-        cycle: 0,
+        loop_state,
         event_pump,
+        dpi,
+        window,
+        opengl_app,
+        egui_shapes: vec![],
+        ui_paint_batches: vec![],
+        settings_store,
     };
 
     let target_dt_nanoseconds = 1_000_000_000 / (formula::FPS as u32);
     let target_dt = Duration::new(0, target_dt_nanoseconds);
-    dbg!(target_dt);
 
     // NOTE: this sets the boundary (variance) between actual `dt` and
     // "fixed `dt`" based on the target FPS.
@@ -145,7 +468,6 @@ where
     // 1ms variance is probably totally fine, actually, but if we need
     // more precision, we can just supply a smaller number here.
     let inc = Duration::new(0, 1_000_000); // 1ms
-    dbg!(inc);
     let start_time = Instant::now();
 
     let mut tick = 0;
@@ -160,8 +482,9 @@ where
             let now = Instant::now();
             let dt = now.duration_since(current_time);
             current_time = now;
+            tick += 1;
 
-            running = game.update_and_render(dt, &mut canvas);
+            running = game.update_and_render(dt);
 
             let frame_dt = Instant::now().duration_since(current_time);
 

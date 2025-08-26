@@ -470,13 +470,12 @@ where
                 std::thread::sleep(ms);
             }
 
-            log::info!(
+            log::trace!(
                 "Total frame duration: {:?}",
                 Instant::now().duration_since(current_time)
             );
-
             // Expectation: dt ~ target_dt
-            log::info!(
+            log::trace!(
                 "Expected time based on fixed_dt: {:?}, actual elapsed time: {:?}",
                 target_dt * tick,
                 Instant::now().duration_since(start_time)
@@ -491,6 +490,12 @@ where
             // how long to sleep until the next frame starts.
         }
     }
+    // Expectation: dt ~ target_dt
+    log::info!(
+        "Expected time based on fixed_dt: {:?}, actual elapsed time: {:?}",
+        target_dt * tick,
+        Instant::now().duration_since(start_time)
+    );
 
     log::debug!(
         "Drawcall count: {}. Capacity: {}.",

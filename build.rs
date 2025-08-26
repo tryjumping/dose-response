@@ -11,7 +11,7 @@ use std::{
 };
 
 use image::{Rgba, RgbaImage};
-use rusttype::{FontCollection, Scale, point};
+use rusttype::{point, FontCollection, Scale};
 
 #[cfg(windows)]
 fn set_exe_icon() {
@@ -403,4 +403,45 @@ fn main() {
     copy_output_artifacts_to_target("webgl_fragment_shader.glsl");
 
     set_exe_icon();
+
+    #[cfg(target_os = "macos")]
+    {
+        // NOTE: at this point, we only support installing SDL2 from homebrew like so:
+        // $ brew install sdl2
+        //
+        // Downloading and using a framework is tricky, because macOS
+        // doesn't trust downloaded executables and libraries by
+        // default and getting it allowed is a massive pain.
+        //
+        // And building it from source is currently (2025-08-25) broken because the libSDL version bundled with the SDL2-sys crate does not work with the cmake version available on macOS (the macOS version is too new):
+        // https://github.com/Rust-SDL2/rust-sdl2/issues/1481
+
+        // Get the homebrew lib location:
+        // $(brew --prefix)/lib
+        let cmd = std::process::Command::new("brew").arg("--prefix").output();
+
+        match cmd {
+            Ok(cmd) => {
+                if cmd.status.success() {
+                    let brew_prefix = String::from_utf8_lossy(&cmd.stdout);
+                    let brew_prefix = brew_prefix.trim();
+                    println!("cargo:rustc-link-search={brew_prefix}/lib/");
+                } else {
+                    // todo print status, stdout, stderr
+                    eprintln!("`brew --prefix` status: {:?}", cmd.status);
+                    eprintln!(
+                        "STDOUT:\n{}\n\n---\n\n",
+                        String::from_utf8_lossy(&cmd.stdout)
+                    );
+                    eprintln!(
+                        "STDERR:\n{}\n\n---\n\n",
+                        String::from_utf8_lossy(&cmd.stderr)
+                    );
+                }
+            }
+            Err(err) => {
+                panic!("Failed to execute command `brew --prefix`. Reason: {err:?}");
+            }
+        }
+    }
 }

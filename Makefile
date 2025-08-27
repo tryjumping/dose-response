@@ -21,7 +21,7 @@ steam-deck:
 cargo-all-tests:
 	cargo check
 	cargo check --no-default-features --features "prod ${EXTRA_FEATURES}"
-	cargo clippy --features "all-backends"
+	cargo clippy --all-targets --all-features
 	cargo build --lib  # NOTE: this should build dependencies but not link SDL and the like
 	touch build.rs
 	cargo build -vv

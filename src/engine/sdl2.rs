@@ -410,14 +410,27 @@ where
 
     let opengl_app = loop_state.opengl_app();
 
-    // TODO: set window icon
-    // {
-    //     // requires "--features 'image'"
-    //     use sdl2::surface::Surface;
+    // Set the window icon
+    {
+        let data = &include_bytes!("../../assets/icon_256x256.png")[..];
+        let result = image::load_from_memory_with_format(data, image::ImageFormat::Png)
+            .map(image::DynamicImage::into_rgba8)
+            .map(|i| (i.dimensions(), i.into_raw()));
+        match result {
+            Ok(((width, height), mut rgba)) => {
+                use sdl2::{pixels::PixelFormatEnum, surface::Surface};
 
-    //     let window_icon = Surface::from_file("../../assets/icon_256x256.png")?;
-    //     window.set_icon(window_icon);
-    // }
+                // NOTE: `pitch` is the length of a row of pixels in bytes. Our format has 4 bytes per pixel.
+                let pitch = width * 4;
+                let icon =
+                    Surface::from_data(&mut rgba, width, height, pitch, PixelFormatEnum::RGBA8888);
+                window.set_icon(icon?);
+            }
+            Err(e) => {
+                log::warn!("Could not load window icon data: {:?}", e);
+            }
+        };
+    };
 
     if let Err(e) = window.set_minimum_size(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT) {
         log::warn!("Could not set minimum window size: {e}");

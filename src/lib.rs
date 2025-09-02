@@ -85,7 +85,7 @@ fn run_glutin(
             Box::new(state),
         );
         if let Err(err) = result {
-            log::error!("Error occured in the glutin main_loop: {}", err);
+            log::error!("Error occured in the glutin main_loop: {err:?}");
         };
     }
 
@@ -111,7 +111,7 @@ fn run_sdl3(
             Box::new(state),
         );
         if let Err(err) = result {
-            log::error!("Error occured in the SDL3 main_loop: {}", err);
+            log::error!("Error occured in the SDL3 main_loop: {err:?}");
         };
     }
 
@@ -138,7 +138,7 @@ fn run_sdl2(
         );
         dbg!(&result);
         if let Err(err) = result {
-            log::error!("Error occured in the SDL2 main_loop: {}", err);
+            log::error!("Error occured in the SDL2 main_loop: {err:?}");
         };
     }
 

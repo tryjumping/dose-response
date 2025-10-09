@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used)]
 use dose_response::settings::Store;
 
 use std::path::Path;

@@ -90,8 +90,8 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         // TODO: make backend an enum generated in the build script?
-        let backend = if crate::engine::AVAILABLE_BACKENDS.contains(&"glutin") {
-            "glutin"
+        let backend = if crate::engine::AVAILABLE_BACKENDS.contains(&"sdl2") {
+            "sdl2"
         } else {
             crate::engine::AVAILABLE_BACKENDS.first().unwrap_or(&"none")
         };

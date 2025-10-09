@@ -436,9 +436,17 @@ where
         log::warn!("Could not set minimum window size: {e}");
     }
 
-    // TODO: we're hardcoding it now because that's what we always did for SDL.
-    // There's probably a method to read/handle this proper.
+    // NOTE: SDL2 doesn't seem to handle display DPI. I believe it
+    // scales things under-the-hood (at least that's what happens on
+    // my macos machine).
     let dpi = 1.0;
+
+    // NOTE: We don't need to force vsync. I think SDL2 (at least with its
+    // OpenGL backend) doesn't let you -- it's there only for its canvas.
+    //
+    // But also I think we don't need to rely on it thanks to our
+    // fixed-time loop which will enforce that we do largely sleep
+    // between refresh and game update intervals.
 
     log::info!("Creating the SDL event pump.");
     let event_pump = sdl_context.event_pump()?;

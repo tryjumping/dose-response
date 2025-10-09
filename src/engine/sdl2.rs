@@ -436,6 +436,41 @@ where
         log::warn!("Could not set minimum window size: {e}");
     }
 
+    // NOTE: Display mode and size of the current window
+    log::debug!("Window display mode: {:#?}", window.display_mode());
+    log::debug!("Window drawable size: {:?}", window.drawable_size());
+
+    // Show the display containing the game window:
+    match window.display_index() {
+        Ok(index) => {
+            log::debug!(
+                "Current display: index #{index}, name: {:?}",
+                video_subsystem.display_name(index)
+            );
+        }
+        Err(e) => {
+            log::warn!("Could not get the display index of the window: {e:?}");
+        }
+    };
+
+    // List all available displays:
+    match video_subsystem.num_video_displays() {
+        Ok(display_count) => {
+            log::debug!("Listing all available displays:");
+            for display_index in 0..display_count {
+                let display_name = video_subsystem.display_name(display_index);
+                let current_display_mode = video_subsystem.current_display_mode(display_index);
+                let orientation = video_subsystem.display_orientation(display_index);
+                log::debug!("Display #{display_index}: {display_name:?}");
+                log::debug!("Current display mode: {current_display_mode:#?}");
+                log::debug!("Display orientation: {orientation:?}");
+            }
+        }
+        Err(e) => {
+            log::warn!("Could not load the number of active displays (screens): {e:?}");
+        }
+    }
+
     // NOTE: SDL2 doesn't seem to handle display DPI. I believe it
     // scales things under-the-hood (at least that's what happens on
     // my macos machine).

@@ -208,6 +208,14 @@ impl<S: SettingsStore> Game<S> {
                     }
                 }
 
+                Event::MouseWheel {
+                    precise_x,
+                    precise_y,
+                    ..
+                } => {
+                    self.loop_state.mouse.scroll_delta = [precise_x, precise_y];
+                }
+
                 _ => {}
             }
         }

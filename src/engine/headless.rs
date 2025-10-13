@@ -1,6 +1,6 @@
 use crate::{
     audio::Audio,
-    engine::{loop_state::Metrics, Display, Mouse},
+    engine::{Display, Mouse, loop_state::Metrics},
     game::RunningState,
     gamepad::Gamepad,
     point::Point,
@@ -30,7 +30,7 @@ where
 
     let window_size_px = Point::new(settings.window_width as i32, settings.window_height as i32);
     let mut display = Display::new(window_size_px, settings.tile_size, settings.text_size);
-    let mut audio = Audio::new(None);
+    let mut audio = Audio::without_backend();
     let mut game_state = initial_state;
 
     let tile_width_px = settings.tile_size;

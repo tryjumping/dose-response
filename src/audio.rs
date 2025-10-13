@@ -1,88 +1,76 @@
-use crate::random::Random;
+use crate::{random::Random, util};
 
 use std::time::Duration;
 
-use rodio::{
-    Decoder, OutputStreamHandle, Sink, Source,
-    source::{Buffered, Empty},
-};
+use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink, Source};
 
-type SoundData = std::io::Cursor<&'static [u8]>;
-type Sound = Option<Buffered<Decoder<SoundData>>>;
+type Sound = std::io::Cursor<&'static [u8]>;
+
+fn empty_sink() -> Sink {
+    Sink::new().0
+}
 
 pub struct Audio {
     pub backgrounds: BackgroundSounds,
     pub background_sound_queue: Sink,
-    pub effects: EffectSounds,
-    pub sound_effect_queue: [Sink; 5],
-    sound_effects: Vec<(Effect, Duration)>,
+    effects: EffectSounds,
+    sound_effect_muted: bool,
+    output_stream: Option<OutputStream>,
+    /// Internal random source
+    rng: Random,
 }
 
 impl Audio {
-    pub fn new(stream_handle: Option<&OutputStreamHandle>) -> Self {
-        fn empty_sink() -> Sink {
-            Sink::new_idle().0
-        }
+    pub fn without_backend() -> Self {
+        Self::from_output_stream(None)
+    }
 
-        fn new_sink(handle: &OutputStreamHandle) -> Sink {
-            match Sink::try_new(handle) {
-                Ok(sink) => sink,
-                Err(e) => {
-                    log::error!("Couldn't create sink: {:?}. Falling back to empty one", e);
-                    empty_sink()
-                }
-            }
-        }
+    pub fn new() -> Self {
+        let output_stream = OutputStreamBuilder::open_default_stream().ok();
+        Self::from_output_stream(output_stream)
+    }
 
-        let background_sound_queue = stream_handle.map_or_else(empty_sink, new_sink);
+    fn from_output_stream(output_stream: Option<OutputStream>) -> Self {
+        log::info!("Setting up the audio stream.");
+
+        let rng = Random::from_seed(util::random_seed());
+
+        let mixer = output_stream.as_ref().map(OutputStream::mixer);
+
+        let background_sound_queue = mixer.map_or_else(empty_sink, Sink::connect_new);
+
+        // Start paused, let the game code control when audio starts playing.
         background_sound_queue.pause();
 
-        let sound_effect_queue = [
-            stream_handle.map_or_else(empty_sink, new_sink),
-            stream_handle.map_or_else(empty_sink, new_sink),
-            stream_handle.map_or_else(empty_sink, new_sink),
-            stream_handle.map_or_else(empty_sink, new_sink),
-            stream_handle.map_or_else(empty_sink, new_sink),
-        ];
-
-        let walk_1 = load_sound(&include_bytes!("../assets/sound/walk-1.ogg")[..]);
-
-        let walk_2 = load_sound(&include_bytes!("../assets/sound/walk-2.ogg")[..]);
-
-        let walk_3 = load_sound(&include_bytes!("../assets/sound/walk-3.ogg")[..]);
-
-        let walk_4 = load_sound(&include_bytes!("../assets/sound/walk-4.ogg")[..]);
-
-        let monster_hit = load_sound(&include_bytes!("../assets/sound/monster-hit.ogg")[..]);
-
-        let monster_moved = load_sound(&include_bytes!("../assets/sound/blip.ogg")[..]);
-
-        let explosion = load_sound(&include_bytes!("../assets/sound/explosion.ogg")[..]);
-
-        let player_hit = load_sound(&include_bytes!("../assets/sound/player-hit.ogg")[..]);
-
-        let game_over = load_sound(&include_bytes!("../assets/sound/game-over.ogg")[..]);
-
-        let click = load_sound(&include_bytes!("../assets/sound/click.ogg")[..]);
+        let walk_1 = Sound::new(&include_bytes!("../assets/sound/walk-1.ogg")[..]);
+        let walk_2 = Sound::new(&include_bytes!("../assets/sound/walk-2.ogg")[..]);
+        let walk_3 = Sound::new(&include_bytes!("../assets/sound/walk-3.ogg")[..]);
+        let walk_4 = Sound::new(&include_bytes!("../assets/sound/walk-4.ogg")[..]);
+        let monster_hit = Sound::new(&include_bytes!("../assets/sound/monster-hit.ogg")[..]);
+        let monster_moved = Sound::new(&include_bytes!("../assets/sound/blip.ogg")[..]);
+        let explosion = Sound::new(&include_bytes!("../assets/sound/explosion.ogg")[..]);
+        let player_hit = Sound::new(&include_bytes!("../assets/sound/player-hit.ogg")[..]);
+        let game_over = Sound::new(&include_bytes!("../assets/sound/game-over.ogg")[..]);
+        let click = Sound::new(&include_bytes!("../assets/sound/click.ogg")[..]);
 
         Self {
             backgrounds: BackgroundSounds {
                 // Credits: Exit Exit by P C III (CC-BY)
                 // https://freemusicarchive.org/music/P_C_III
                 // https://soundcloud.com/pipe-choir-2/exit-exit
-                exit_exit: load_sound(
+                exit_exit: Sound::new(
                     &include_bytes!("../assets/music/P C III - Exit Exit.ogg")[..],
                 ),
                 //https://freemusicarchive.org/music/P_C_III/earth2earth/earth2earth_1392
                 // Credits: earth2earth by P C III (CC-BY)
                 // https://freemusicarchive.org/music/P_C_III
-                family_breaks: load_sound(
+                family_breaks: Sound::new(
                     &include_bytes!("../assets/music/P C III - The Family Breaks.ogg")[..],
                 ),
                 // https://freemusicarchive.org/music/P_C_III/The_Family_Breaks/The_Family_Breaks_1795
                 // Credit: The Family Breaks by P C III (CC-BY)
                 // https://freemusicarchive.org/music/P_C_III
-                earth2earth: load_sound(
+                earth2earth: Sound::new(
                     &include_bytes!("../assets/music/P C III - earth2earth.ogg")[..],
                 ),
             },
@@ -95,21 +83,39 @@ impl Audio {
                 game_over,
                 click,
             },
+            sound_effect_muted: false,
             background_sound_queue,
-            sound_effect_queue,
-            sound_effects: vec![],
+            output_stream,
+            rng,
         }
     }
 
+    pub fn enqueue_background_music(&mut self, sound_data: Sound, delay: Duration) {
+        if let Ok(source) = Decoder::new(sound_data) {
+            self.background_sound_queue.append(source.delay(delay))
+        }
+    }
+
+    // TODO: rename to `play_sound`
     pub fn mix_sound_effect(&mut self, effect: Effect, delay: Duration) {
-        self.sound_effects.push((effect, delay));
+        if self.sound_effect_muted {
+            return;
+        }
+        let rng = &mut self.rng.clone();
+        let mixer = self.output_stream.as_ref().map(OutputStream::mixer);
+        let decoder = Decoder::new(self.data_from_effect(effect, rng));
+        if let (Ok(sound), Some(mixer)) = (decoder, mixer) {
+            let sink = Sink::connect_new(mixer);
+            sink.append(sound.delay(delay));
+            sink.detach();
+        }
     }
 
-    pub fn random_delay(&mut self, rng: &mut Random) -> Duration {
-        Duration::from_millis(rng.range_inclusive(1, 50).try_into().unwrap_or(0))
+    pub fn random_delay(&mut self) -> Duration {
+        Duration::from_millis(self.rng.range_inclusive(1, 50).try_into().unwrap_or(0))
     }
 
-    fn data_from_effect(&mut self, effect: Effect, rng: &mut Random) -> Sound {
+    fn data_from_effect(&self, effect: Effect, rng: &mut Random) -> Sound {
         use Effect::*;
         match effect {
             Walk => rng
@@ -124,47 +130,31 @@ impl Audio {
         }
     }
 
-    pub fn play_mixed_sound_effects(&mut self, rng: &mut Random) {
-        let mut mixed_sound: Box<dyn Source<Item = i16> + Send> = Box::new(Empty::new());
-        while let Some((effect, delay)) = self.sound_effects.pop() {
-            if let Some(sound) = self.data_from_effect(effect, rng) {
-                mixed_sound = Box::new(mixed_sound.mix(sound.delay(delay)));
-            }
-        }
-        self.play_sound(mixed_sound);
-    }
-
-    fn play_sound<S: 'static + Source<Item = i16> + Send>(&mut self, sound: S) {
-        let mut enqueued = false;
-        for sink in &self.sound_effect_queue {
-            if sink.empty() {
-                sink.append(sound);
-                enqueued = true;
-                break;
-            }
-        }
-        if !enqueued {
-            log::debug!("Failed to enqueue a sound. All sinks are full.");
-        }
-    }
-
     pub fn set_background_volume(&mut self, volume: f32) {
         let volume = volume.clamp(0.0, 1.0);
+
+        // NOTE: we can't just pause the playback here based on the
+        // volume, because `pause`/`play` is directly controlled by
+        // the end-user code.
+        //
+        // If we do want to do that here (and it would be cleaner I
+        // think, rather than just setting volume to 0), we have to
+        // make `self.background_sound_queue` private and provide an
+        // API for the things the game code does now directly.
+        //
+        // That's possibly worthwhile, but a future enhancement.
         self.background_sound_queue.set_volume(volume);
     }
 
     pub fn set_effects_volume(&mut self, volume: f32) {
-        let volume = volume.clamp(0.0, 1.0);
-        for queue in &mut self.sound_effect_queue {
-            queue.set_volume(volume);
-        }
+        self.sound_effect_muted = volume == 0.0;
     }
 }
 
-fn load_sound(input: &'static [u8]) -> Sound {
-    Decoder::new(SoundData::new(input))
-        .map(Decoder::buffered)
-        .ok()
+impl Default for Audio {
+    fn default() -> Self {
+        Audio::new()
+    }
 }
 
 pub struct BackgroundSounds {

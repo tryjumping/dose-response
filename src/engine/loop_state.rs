@@ -1,7 +1,7 @@
 use crate::{
     audio::Audio,
     color::Color,
-    engine::{self, opengl::OpenGlApp, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex},
+    engine::{self, Display, DisplayInfo, Drawcall, Mouse, TextMetrics, Vertex, opengl::OpenGlApp},
     gamepad::{self, Gamepad},
     keys::Key,
     palette::Palette,
@@ -12,7 +12,7 @@ use crate::{
 
 use std::{convert::TryInto, sync::Arc, time::Duration};
 
-use egui::{self, epaint::image::FontImage, Event, RawInput};
+use egui::{self, Event, RawInput, epaint::image::FontImage};
 
 use gilrs::Gilrs;
 
@@ -198,7 +198,6 @@ impl LoopState {
         default_background: Color,
         game_state: Box<State>,
         egui_context: egui::Context,
-        stream_handle: Option<&rodio::OutputStreamHandle>,
     ) -> Self {
         // TODO: do this for every Display creatio / window resize
         let window_size_px =
@@ -291,7 +290,7 @@ impl LoopState {
             settings,
             previous_settings,
             display,
-            audio: Audio::new(stream_handle),
+            audio: Audio::new(),
             dpi: 1.0,
             glyphmap,
             tilemap,

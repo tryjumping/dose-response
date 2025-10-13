@@ -25,8 +25,6 @@ use egui::{
     epaint::{ClippedPrimitive, ClippedShape},
 };
 
-use rodio::OutputStream;
-
 fn key_code_from_backend(backend_code: BackendKey) -> Option<KeyCode> {
     match backend_code {
         BackendKey::Return => Some(KeyCode::Enter),
@@ -360,25 +358,12 @@ where
     log::info!("Starting the SDL3 backend.");
     let egui_context = Context::default();
 
-    // NOTE: we need to store the stream to a variable here and then
-    // match on a reference to it. Otherwise, it will be dropped and
-    // the stream will close.
-    let stream_result = OutputStream::try_default();
-    let stream_handle = match &stream_result {
-        Ok((_stream, stream_handle)) => Some(stream_handle),
-        Err(error) => {
-            log::error!("Cannot open the audio output stream: {:?}", error);
-            None
-        }
-    };
-
     log::info!("Initialising the game state.");
     let loop_state = LoopState::initialise(
         settings_store.load(),
         initial_default_background,
         initial_state,
         egui_context,
-        stream_handle,
     );
 
     log::info!("Initialising SDL3.");

@@ -174,7 +174,7 @@ pub fn process(
                 Some(Action::Menu) => Some(Action::Help),
                 _ => Some(Action::NewGame),
             };
-            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+            audio.play_sound(Effect::Click, Duration::from_millis(0));
         } else if state.keys.matches_code(KeyCode::Right) || stick_flicked_right {
             state.selected_endgame_window_action = match state.selected_endgame_window_action {
                 Some(Action::NewGame) => Some(Action::Help),
@@ -182,7 +182,7 @@ pub fn process(
                 Some(Action::Menu) => Some(Action::NewGame),
                 _ => Some(Action::NewGame),
             };
-            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+            audio.play_sound(Effect::Click, Duration::from_millis(0));
         }
     }
 
@@ -191,7 +191,7 @@ pub fn process(
     }
 
     if action.is_some() {
-        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        audio.play_sound(Effect::Click, Duration::from_millis(0));
     }
 
     match action {

@@ -581,7 +581,7 @@ fn process_game(
         | Action::UseStrongDose,
     ) = option
     {
-        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        audio.play_sound(Effect::Click, Duration::from_millis(0));
     }
 
     match option {
@@ -910,7 +910,7 @@ fn process_game(
         use crate::player::CauseOfDeath::*;
         log::info!("Player died.");
 
-        audio.mix_sound_effect(Effect::GameOver, Duration::from_millis(0));
+        audio.play_sound(Effect::GameOver, Duration::from_millis(0));
         let cause_of_death = formula::cause_of_death(&state.player);
         let fade_color = if cfg!(feature = "recording") {
             state.palette.fade_to_black_animation
@@ -1182,7 +1182,7 @@ fn process_monsters(
                         .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
                     if monster_visible {
                         let delay = audio.random_delay();
-                        audio.mix_sound_effect(Effect::MonsterMoved, delay);
+                        audio.play_sound(Effect::MonsterMoved, delay);
                     }
                     if let Some(monster) = world.monster_on_pos(newpos) {
                         monster.path = newpath;
@@ -1203,7 +1203,7 @@ fn process_monsters(
                 Action::Attack(target_pos, damage) => {
                     assert_eq!(target_pos, player.pos);
                     player.take_effect(damage);
-                    audio.mix_sound_effect(Effect::PlayerHit, Duration::from_millis(0));
+                    audio.play_sound(Effect::PlayerHit, Duration::from_millis(0));
 
                     let anim = animation::Move::bounce(
                         monster_readonly.position * (tile_size / 3),
@@ -1445,7 +1445,7 @@ fn process_player_action(
                         formula::ANIMATION_MOVE_DURATION,
                     );
                     player.move_to(dest);
-                    audio.mix_sound_effect(Effect::Walk, Duration::from_millis(0));
+                    audio.play_sound(Effect::Walk, Duration::from_millis(0));
                     while let Some(item) = world.pickup_item(dest) {
                         use crate::item::Kind::*;
                         match item.kind {
@@ -1475,7 +1475,7 @@ fn process_player_action(
                     .position(|&i| i.kind == item::Kind::Food)
                 {
                     player.spend_ap(1);
-                    audio.mix_sound_effect(Effect::Explosion, Duration::from_millis(0));
+                    audio.play_sound(Effect::Explosion, Duration::from_millis(0));
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
@@ -1844,7 +1844,7 @@ fn kill_monster(monster_position: Point, world: &mut World, audio: &mut Audio) {
         if let Some(monster) = world.monster_on_pos(monster_position) {
             log::debug!("Killing monster: {:?}", monster);
             monster.dead = true;
-            audio.mix_sound_effect(Effect::MonsterHit, Duration::from_millis(0));
+            audio.play_sound(Effect::MonsterHit, Duration::from_millis(0));
         }
         world.remove_monster(monster_position);
     }
@@ -1859,7 +1859,7 @@ fn use_dose(
 ) {
     use crate::{item::Kind::*, player::Modifier::*};
     log::debug!("Using dose");
-    audio.mix_sound_effect(Effect::Explosion, Duration::from_millis(0));
+    audio.play_sound(Effect::Explosion, Duration::from_millis(0));
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = if state_of_mind <= 100 { 4 } else { 6 };

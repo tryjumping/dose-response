@@ -134,7 +134,7 @@ pub fn process(
             };
             log::info!("Selecting action: {:?}", new_selected_action);
             state.selected_menu_action = Some(new_selected_action);
-            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+            audio.play_sound(Effect::Click, Duration::from_millis(0));
         }
 
         if active && (state.keys.matches_code(KeyCode::Up) || stick_flicked_up) {
@@ -170,7 +170,7 @@ pub fn process(
             };
             log::info!("Selecting action: {:?}", new_selected_action);
             state.selected_menu_action = Some(new_selected_action);
-            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+            audio.play_sound(Effect::Click, Duration::from_millis(0));
         }
 
         // TODO: handle the "gamepad up" button too!
@@ -285,7 +285,7 @@ pub fn process(
     }
 
     if let Some(action) = action {
-        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        audio.play_sound(Effect::Click, Duration::from_millis(0));
         match action {
             MenuItem::Resume => {
                 if state.game_session.started() {

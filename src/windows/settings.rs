@@ -146,7 +146,7 @@ pub fn process(
     }
 
     if previous_settings_position != state.selected_settings_position {
-        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        audio.play_sound(Effect::Click, Duration::from_millis(0));
     }
 
     // When we're navigating the menus using keyboard arrows, we
@@ -190,13 +190,13 @@ Unchecked: Depression moves one tile per turn.",
                     resp.request_focus();
                     if option_pressed(&mut state.keys) {
                         settings.fast_depression = !settings.fast_depression;
-                        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                        audio.play_sound(Effect::Click, Duration::from_millis(0));
                     }
                 } else {
                     resp.surrender_focus();
                 }
                 if resp.clicked() {
-                    audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    audio.play_sound(Effect::Click, Duration::from_millis(0));
                     clear_keyboard_focus = true;
                 }
 
@@ -213,13 +213,13 @@ Unchecked: all player effects are removed on losing. The game continues.",
                     resp.request_focus();
                     if option_pressed(&mut state.keys) {
                         settings.permadeath = !settings.permadeath;
-                        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                        audio.play_sound(Effect::Click, Duration::from_millis(0));
                     }
                 } else {
                     resp.surrender_focus();
                 }
                 if resp.clicked() {
-                    audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    audio.play_sound(Effect::Click, Duration::from_millis(0));
                     clear_keyboard_focus = true;
                 }
 
@@ -233,13 +233,13 @@ Unchecked: the entire map is uncovered.",
                     resp.request_focus();
                     if option_pressed(&mut state.keys) {
                         settings.hide_unseen_tiles = !settings.hide_unseen_tiles;
-                        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                        audio.play_sound(Effect::Click, Duration::from_millis(0));
                     }
                 } else {
                     resp.surrender_focus();
                 }
                 if resp.clicked() {
-                    audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                    audio.play_sound(Effect::Click, Duration::from_millis(0));
                     clear_keyboard_focus = true;
                 }
 
@@ -259,7 +259,7 @@ Unchecked: the entire map is uncovered.",
                         resp.request_focus();
                         if option_pressed(&mut state.keys) {
                             action = Some(Action::TileSize(tile_size));
-                            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                            audio.play_sound(Effect::Click, Duration::from_millis(0));
                         }
                     } else {
                         resp.surrender_focus();
@@ -286,7 +286,7 @@ Unchecked: the entire map is uncovered.",
                         resp.request_focus();
                         if option_pressed(&mut state.keys) {
                             action = Some(Action::TextSize(text_size));
-                            audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+                            audio.play_sound(Effect::Click, Duration::from_millis(0));
                         }
                     } else {
                         resp.surrender_focus();
@@ -597,7 +597,7 @@ Unchecked: the entire map is uncovered.",
     }
 
     if let Some(action) = action {
-        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        audio.play_sound(Effect::Click, Duration::from_millis(0));
         match action {
             Action::FastDepression => {
                 settings.fast_depression = !settings.fast_depression;

@@ -96,8 +96,7 @@ impl Audio {
         }
     }
 
-    // TODO: rename to `play_sound`
-    pub fn mix_sound_effect(&mut self, effect: Effect, delay: Duration) {
+    pub fn play_sound(&mut self, effect: Effect, delay: Duration) {
         if self.sound_effect_muted {
             return;
         }

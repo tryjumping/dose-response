@@ -384,7 +384,7 @@ pub fn process(
     }
 
     if let Some(action) = action {
-        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        audio.play_sound(Effect::Click, Duration::from_millis(0));
         match action {
             Action::NextPage => {
                 let new_help_window = state

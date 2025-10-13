@@ -107,7 +107,7 @@ pub fn update(
 
     // TODO: only check this every say 10 or 100 frames?
     // We just wanna make sure there are items in the queue.
-    enqueue_background_music(audio, &mut state.audio_rng);
+    enqueue_background_music(audio, &mut state.rng.clone());
 
     audio.set_background_volume(settings.background_volume);
     audio.set_effects_volume(settings.sound_volume);
@@ -476,8 +476,6 @@ pub fn update(
         }
     }
 
-    audio.play_mixed_sound_effects(&mut state.audio_rng);
-
     // NOTE: Clear any unprocessed keys
     while let Some(_key) = state.keys.get() {}
 
@@ -519,23 +517,20 @@ pub fn update(
     game_update_result
 }
 
-fn enqueue_background_music(audio: &mut Audio, audio_rng: &mut Random) {
+fn enqueue_background_music(audio: &mut Audio, rng: &mut Random) {
     if audio.background_sound_queue.len() <= 1 {
         let sound = if cfg!(feature = "recording") {
             audio.backgrounds.family_breaks.clone()
         } else {
-            audio.backgrounds.random(audio_rng)
+            audio.backgrounds.random(rng)
         };
-        if let Some(sound) = sound {
-            use rodio::Source;
-            let delay = if audio.background_sound_queue.empty() {
-                Duration::from_secs(0)
-            } else {
-                let secs: u64 = audio_rng.range_inclusive(1, 5).try_into().unwrap_or(1);
-                Duration::from_secs(secs)
-            };
-            audio.background_sound_queue.append(sound.delay(delay));
-        }
+        let delay = if audio.background_sound_queue.empty() {
+            Duration::from_secs(0)
+        } else {
+            let secs: u64 = rng.range_inclusive(1, 5).try_into().unwrap_or(1);
+            Duration::from_secs(secs)
+        };
+        audio.enqueue_background_music(sound, delay);
     }
 }
 
@@ -586,7 +581,7 @@ fn process_game(
         | Action::UseStrongDose,
     ) = option
     {
-        audio.mix_sound_effect(Effect::Click, Duration::from_millis(0));
+        audio.play_sound(Effect::Click, Duration::from_millis(0));
     }
 
     match option {
@@ -822,7 +817,6 @@ fn process_game(
                     simulation_area,
                     display.tile_size,
                     &mut state.rng,
-                    &mut state.audio_rng,
                     audio,
                     &state.palette,
                     &mut state.extra_animations,
@@ -916,7 +910,7 @@ fn process_game(
         use crate::player::CauseOfDeath::*;
         log::info!("Player died.");
 
-        audio.mix_sound_effect(Effect::GameOver, Duration::from_millis(0));
+        audio.play_sound(Effect::GameOver, Duration::from_millis(0));
         let cause_of_death = formula::cause_of_death(&state.player);
         let fade_color = if cfg!(feature = "recording") {
             state.palette.fade_to_black_animation
@@ -1080,7 +1074,6 @@ fn process_monsters(
     area: Rectangle,
     tile_size: i32,
     rng: &mut Random,
-    audio_rng: &mut Random,
     audio: &mut Audio,
     palette: &Palette,
     extra_animations: &mut Vec<MotionAnimation>,
@@ -1188,8 +1181,8 @@ fn process_monsters(
                     let monster_visible = newpos
                         .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
                     if monster_visible {
-                        let delay = audio.random_delay(audio_rng);
-                        audio.mix_sound_effect(Effect::MonsterMoved, delay);
+                        let delay = audio.random_delay();
+                        audio.play_sound(Effect::MonsterMoved, delay);
                     }
                     if let Some(monster) = world.monster_on_pos(newpos) {
                         monster.path = newpath;
@@ -1210,7 +1203,7 @@ fn process_monsters(
                 Action::Attack(target_pos, damage) => {
                     assert_eq!(target_pos, player.pos);
                     player.take_effect(damage);
-                    audio.mix_sound_effect(Effect::PlayerHit, Duration::from_millis(0));
+                    audio.play_sound(Effect::PlayerHit, Duration::from_millis(0));
 
                     let anim = animation::Move::bounce(
                         monster_readonly.position * (tile_size / 3),
@@ -1452,7 +1445,7 @@ fn process_player_action(
                         formula::ANIMATION_MOVE_DURATION,
                     );
                     player.move_to(dest);
-                    audio.mix_sound_effect(Effect::Walk, Duration::from_millis(0));
+                    audio.play_sound(Effect::Walk, Duration::from_millis(0));
                     while let Some(item) = world.pickup_item(dest) {
                         use crate::item::Kind::*;
                         match item.kind {
@@ -1482,7 +1475,7 @@ fn process_player_action(
                     .position(|&i| i.kind == item::Kind::Food)
                 {
                     player.spend_ap(1);
-                    audio.mix_sound_effect(Effect::Explosion, Duration::from_millis(0));
+                    audio.play_sound(Effect::Explosion, Duration::from_millis(0));
                     let food = player.inventory.remove(food_idx);
                     player.take_effect(food.modifier);
                     let food_explosion_radius = 2;
@@ -1851,7 +1844,7 @@ fn kill_monster(monster_position: Point, world: &mut World, audio: &mut Audio) {
         if let Some(monster) = world.monster_on_pos(monster_position) {
             log::debug!("Killing monster: {:?}", monster);
             monster.dead = true;
-            audio.mix_sound_effect(Effect::MonsterHit, Duration::from_millis(0));
+            audio.play_sound(Effect::MonsterHit, Duration::from_millis(0));
         }
         world.remove_monster(monster_position);
     }
@@ -1866,7 +1859,7 @@ fn use_dose(
 ) {
     use crate::{item::Kind::*, player::Modifier::*};
     log::debug!("Using dose");
-    audio.mix_sound_effect(Effect::Explosion, Duration::from_millis(0));
+    audio.play_sound(Effect::Explosion, Duration::from_millis(0));
     // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = if state_of_mind <= 100 { 4 } else { 6 };

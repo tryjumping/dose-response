@@ -195,7 +195,6 @@ pub struct State {
     pub screen_position_in_world: Point,
     pub seed: u32,
     pub rng: Random,
-    pub audio_rng: Random,
     // Keys pressed this turn (or loaded from the replay file)
     pub keys: Keys,
     // Mouse config read from the player this turn (or loaded from the replay file)
@@ -294,7 +293,6 @@ impl State {
         };
         log::info!("Using seed: {:?}", seed);
         let mut rng = Random::from_seed(seed);
-        let audio_rng = rng.clone();
         let player_position = world_centre;
         let player = {
             let mut player = Player::new(player_position, invincible);
@@ -326,7 +324,6 @@ impl State {
             screen_position_in_world: world_centre,
             seed,
             rng,
-            audio_rng,
             keys: Keys::new(),
             mouse: Default::default(),
             inputs,

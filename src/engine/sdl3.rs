@@ -393,8 +393,7 @@ where
     let _ctx = window.gl_create_context()?;
     log::info!("Loading OpenGL symbols.");
 
-    #[allow(unsafe_code)]
-    unsafe extern "C" fn noop() {}
+    extern "C" fn noop() {}
 
     gl::load_with(|name| {
         let fun = video_subsystem.gl_get_proc_address(name).unwrap_or(noop);

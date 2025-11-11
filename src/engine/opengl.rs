@@ -37,6 +37,8 @@ impl OpenGlApp {
         app.fragment_shader = Self::compile_shader(fragment_source, gl::FRAGMENT_SHADER);
         app.program = Self::link_program(app.vertex_shader, app.fragment_shader);
 
+        // SAFETY:
+        // TODO
         unsafe {
             gl::GenVertexArrays(1, &mut app.vao);
             check_gl_error("GenVertexArrays");
@@ -58,6 +60,8 @@ impl OpenGlApp {
     }
 
     pub fn initialise(&mut self, glyphmap: &RgbaImage, tilemap: &RgbaImage) {
+        // SAFETY:
+        // TODO
         unsafe {
             gl::Enable(gl::SCISSOR_TEST);
             check_gl_error("Enable SCISSOR_TEST");
@@ -92,6 +96,8 @@ impl OpenGlApp {
         // reference here. The pointer will not be referenced
         // afterwards.
         let data_ptr: *const u8 = texture.as_ptr();
+        // SAFETY:
+        // TODO
         unsafe {
             // Bind the texture
             gl::BindTexture(gl::TEXTURE_2D, id);
@@ -116,6 +122,8 @@ impl OpenGlApp {
     }
 
     pub fn compile_shader(src: &str, ty: GLenum) -> GLuint {
+        // SAFETY:
+        // TODO
         unsafe {
             let shader = gl::CreateShader(ty);
             let shader_source_cstr = CString::new(src.as_bytes()).unwrap_or_else(|e| {
@@ -161,6 +169,8 @@ impl OpenGlApp {
     }
 
     pub fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
+        // SAFETY:
+        // TODO
         unsafe {
             let program = gl::CreateProgram();
             gl::AttachShader(program, vs);
@@ -195,6 +205,8 @@ impl OpenGlApp {
     pub fn render(&self, clear_color: Color, display_info: DisplayInfo, vertex_buffer: &[f32]) {
         let program = self.program;
         let vbo = self.vbo;
+        // SAFETY:
+        // TODO
         unsafe {
             // NOTE: this ignores the `extra_px` value. Which means
             // the viewport size will always have the same aspect
@@ -370,6 +382,8 @@ impl OpenGlApp {
         clip_rect: [f32; 4],
         vertex_range: (i32, i32),
     ) {
+        // SAFETY:
+        // TODO
         unsafe {
             // NOTE: use gl::Scissor to only render the pixels within
             // clip_rect. This makes the shader simpler compared to
@@ -407,6 +421,8 @@ impl OpenGlApp {
 
 impl Drop for OpenGlApp {
     fn drop(&mut self) {
+        // SAFETY:
+        // TODO
         unsafe {
             gl::DeleteProgram(self.program);
             gl::DeleteShader(self.fragment_shader);
@@ -420,6 +436,8 @@ impl Drop for OpenGlApp {
 }
 
 fn check_gl_error(source: &str) {
+    // SAFETY:
+    // TODO
     let err = unsafe { gl::GetError() };
     if err != gl::NO_ERROR {
         log::error!("GL error [{}]: {:?}", source, err);

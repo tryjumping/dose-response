@@ -69,17 +69,12 @@ impl Default for Mind {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Default, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Bonus {
+    #[default]
     None,
     SeeMonstersAndItems,
     UncoverMap,
-}
-
-impl Default for Bonus {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]

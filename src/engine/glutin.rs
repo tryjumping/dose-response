@@ -1,3 +1,5 @@
+#![allow(unsafe_code)]
+
 use crate::{
     color::Color,
     engine::{
@@ -223,7 +225,8 @@ impl<S: SettingsStore + 'static> App<S> {
 
         let attrs = window.build_surface_attributes(Default::default())?;
 
-        #[allow(unsafe_code)]
+        // SAFETY:
+        // TODO
         let gl_surface = unsafe {
             gl_config
                 .display()
@@ -345,7 +348,8 @@ impl<S: SettingsStore + 'static> App<S> {
         if let Some(context) = self.gl_context.take() {
             use glutin::display::GetGlDisplay;
             let glutin::display::Display::Egl(display) = context.display();
-            #[allow(unsafe_code)]
+            // SAFETY:
+            // TODO
             unsafe {
                 display.terminate();
             }
@@ -719,7 +723,8 @@ fn create_gl_context(
         display::{GetGlDisplay, GlDisplay},
     };
 
-    let raw_window_handle = window.window_handle().ok().map(|wh| wh.as_raw());
+    // TODO: handle the error case. We can't pass this into the ContextAttributesBuilder:build method if it's `None` when we're attaching it to a window. That would blow up the unsafe code.
+    let raw_window_handle = window.window_handle().map(|wh| wh.as_raw()).ok();
 
     // The context creation part.
     let context_attributes = ContextAttributesBuilder::new().build(raw_window_handle);
@@ -741,7 +746,7 @@ fn create_gl_context(
     // has to be created.
     let gl_display = gl_config.display();
 
-    #[allow(unsafe_code)]
+    // SAFETY: `raw_window_handle` was created and is valid.
     unsafe {
         gl_display
             .create_context(gl_config, &context_attributes)
@@ -794,8 +799,10 @@ where
     //    - NOTE: we can use `window.set_decorations(false)` to fix it
     //    - still, feels like we shouldn't have to
     //
-    // Both are fixed with the line below:
-    #[allow(unsafe_code)]
+    // Both are fixed with the line below.
+    //
+    // SAFETY:
+    // TODO
     unsafe {
         std::env::set_var("WINIT_UNIX_BACKEND", "x11");
     }

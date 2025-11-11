@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 
 pub const TILE_SIZE: i32 = 10;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Graphic {
+    #[default]
     Empty,
     Tree1,
     Tree2,
@@ -94,12 +95,6 @@ pub enum Graphic {
     FoodStriped,
 
     Signpost,
-}
-
-impl Default for Graphic {
-    fn default() -> Self {
-        Self::Empty
-    }
 }
 
 pub fn tilemap_coords_px(_tilesize: u32, graphic: Graphic) -> Option<(i32, i32)> {

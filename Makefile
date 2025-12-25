@@ -7,7 +7,7 @@ check:
 .PHONY: check
 
 package-release: cargo-all-tests
-	cargo install cargo-about --version "0.6.1"
+	cargo install cargo-about --version "0.6.6"
 	cargo about generate --no-default-features --features "prod ${EXTRA_FEATURES}" about.hbs --output-file third-party-licenses.html
 	cargo build --release --no-default-features --features "prod ${EXTRA_FEATURES}"
 	rm -rf target/out target/package.zip

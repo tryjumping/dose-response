@@ -472,6 +472,13 @@ impl LoopState {
                 pressed: false,
                 modifiers: Default::default(),
             });
+        } else if mouse.left_is_down {
+            events.push(Event::PointerButton {
+                pos: mouse_pos,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: Default::default(),
+            });
         }
         RawInput {
             screen_rect: Some(egui::Rect::from_min_size(

@@ -144,15 +144,17 @@ pub fn egui_style(palette: &Palette, font_size: f32) -> egui::Style {
 
     style.visuals.widgets.inactive.bg_fill = palette.gui_button_background.into();
     style.visuals.widgets.inactive.weak_bg_fill = palette.gui_button_background.into();
+    style.visuals.widgets.inactive.fg_stroke.width = 3.0;
 
     style.visuals.widgets.active.bg_fill = palette.gui_button_highlighted_background.into();
     style.visuals.widgets.active.weak_bg_fill = palette.gui_button_highlighted_background.into();
-
     style.visuals.widgets.active.bg_stroke.color = palette.gui_button_highlighted_stroke.into();
     style.visuals.widgets.active.bg_stroke.width = 3.0;
+    style.visuals.widgets.active.fg_stroke.width = 3.0;
 
     style.visuals.widgets.hovered.bg_fill = palette.gui_button_highlighted_background.into();
     style.visuals.widgets.hovered.weak_bg_fill = palette.gui_button_highlighted_background.into();
+    style.visuals.widgets.hovered.fg_stroke.width = 3.0;
 
     style.spacing.scroll = egui::style::ScrollStyle::solid();
 

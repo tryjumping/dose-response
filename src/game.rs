@@ -318,7 +318,7 @@ pub fn update(
         if let Some(ttl) = ttl {
             *ttl = util::duration_sub_or_zero(*ttl, dt);
         }
-        window_timed_out = ttl.map(|ttl| ttl.as_millis() == 0).unwrap_or(false);
+        window_timed_out = ttl.is_some_and(|ttl| ttl.as_millis() == 0);
     }
     if window_timed_out {
         state.window_stack.pop();

@@ -160,18 +160,16 @@ impl<S: SettingsStore> Game<S> {
                     }
                 }
 
-                Event::TextInput { text, .. } => {
-                    if text.contains('?') {
-                        let key = Key {
-                            code: KeyCode::QuestionMark,
-                            alt: false,
-                            ctrl: false,
-                            shift: false,
-                            logo: false,
-                        };
-                        log::trace!("Detected key {:?}", key);
-                        self.loop_state.keys.push(key);
-                    }
+                Event::TextInput { text, .. } if text.contains('?') => {
+                    let key = Key {
+                        code: KeyCode::QuestionMark,
+                        alt: false,
+                        ctrl: false,
+                        shift: false,
+                        logo: false,
+                    };
+                    log::trace!("Detected key {:?}", key);
+                    self.loop_state.keys.push(key);
                 }
 
                 Event::MouseMotion { x, y, .. } => {

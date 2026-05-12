@@ -316,11 +316,7 @@ pub fn sidebar_width_px(text_size_px: i32) -> i32 {
 }
 
 pub fn depression_max_ap(challenge: Challenge) -> i32 {
-    if challenge.fast_depression {
-        2
-    } else {
-        1
-    }
+    if challenge.fast_depression { 2 } else { 1 }
 }
 
 pub fn simulation_area(player_pos: Point) -> Rectangle {

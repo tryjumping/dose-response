@@ -10,6 +10,7 @@ dose-response
 /test_component_codegen.rs
 test-dose-response
 /target/
+/build/
 /SAVEDGAME.sav
 /out-dir-path
 /font.png

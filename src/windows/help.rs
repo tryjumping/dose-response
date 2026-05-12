@@ -216,7 +216,18 @@ pub fn process(
     ];
     let window_pos_px = [(screen_size_px.x as f32 - window_size_px[0]) / 2.0, 100.0];
 
+    // Set the Window ID explicitly. This is how egui detects that
+    // it's the same `Window` from all the other ones. Without
+    // this, each "tab" is treated as a new window and we get the
+    // close/open animation.
+    //
+    // By making sure all the different pages have the same `Id`,
+    // they're all treated as the same `Window` despite having
+    // different titles.
+    let help_window_id = egui::Id::new("Game Help Window");
+
     egui::Window::new(format!("{}", state.current_help_window))
+	.id(help_window_id)
         .open(&mut visible)
         .collapsible(false)
         .fixed_pos(window_pos_px)
@@ -224,9 +235,8 @@ pub fn process(
         .show(ui.ctx(), |ui| {
             let scroll_area = ScrollArea::vertical()
                 .max_height(window_size_px[1]);
+	    // NOTE: looks like we're not triggering drag and drop correctly somehow
 	    scroll_area.show(ui, |ui| {
-                // NOTE: HACK: the 7px value hides the scrollbar on contents that doesn't overflow.
-                ui.set_min_height(window_size_px[1] - 7.0);
                 let copyright = format!("Copyright 2013-2024 {}", crate::metadata::AUTHORS);
                 match state.current_help_window {
                     Page::DoseResponse => {

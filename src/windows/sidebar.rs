@@ -232,7 +232,6 @@ pub fn process(
         *count += 1;
     }
 
-    ui.label("\nInventory:");
     for kind in item::Kind::iter() {
         let count = *inventory.get(&kind).unwrap_or(&0);
         let button_action = match kind {
@@ -301,9 +300,13 @@ pub fn process(
         };
     }
 
+    let mut highlighted_tile = None;
+
     let mut help_rect = Rect::NAN; // Will be filled in later
 
-    // NOTE: `Layout::reverse()` builds it up from the bottom:
+    let mut numpad_grid_available_size = Vec2::NAN; // Will be filled in later
+
+    // NOTE: `Layout::bottom_up()` builds it up from the bottom:
     ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
         let menu_resp = ui::button(ui, "[Esc] Main Menu", active, &state.palette);
         if state.inventory_focused && Some(Action::MainMenu) == state.selected_sidebar_action {
@@ -325,73 +328,70 @@ pub fn process(
             action = Some(Action::Help);
         }
         help_rect = help_response.rect;
+
+        numpad_grid_available_size = ui.available_size();
+
+        // // NOTE: debug info: print out rect sizes and highlight them directly in the UI:
+        // dbg!(ui_rect);
+        // dbg!(inventory_rect);
+        // dbg!(ui.available_size());
+        // dbg!(help_rect);
+        // dbg!(menu_resp.rect);
+        // dbg!(inventory_rect.max.y - help_rect.min.y);
+
+        // ui.painter()
+        //     .debug_rect(ui_rect, egui::Color32::RED, "sidebar");
+
+        // ui.painter()
+        //     .debug_rect(help_rect, egui::Color32::GREEN, "help");
+
+        // ui.painter()
+        //     .debug_rect(menu_resp.rect, egui::Color32::GREEN, "menu");
+
+        // ui.painter().debug_rect(
+        //     Rect::from_min_max(
+        //         [inventory_rect.min.x, inventory_rect.max.y].into(),
+        //         [ui_rect.max.x, help_rect.min.y].into(),
+        //     ),
+        //     egui::Color32::YELLOW,
+        //     "numpad",
+        // );
     });
 
-    if state.cheating {
-        ui.label("CHEATING");
-
-        if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < display.size_without_padding() {
-            ui.label(format!("Mouse px: {}", state.mouse.screen_pos));
-            ui.label(format!("Mouse: {}", state.mouse.tile_pos));
-        }
-
-        ui.label(format!("dt: {}ms", dt.as_millis()));
-        ui.label(format!("FPS: {fps}"));
-
-        // // NOTE: commenting this out for now, we're not using the stats now
-        // ui.label("Time stats:");
-        // for frame_stat in state.stats.last_frames(25) {
-        //     ui.label(format!(
-        //         "upd: {}, dc: {}",
-        //         frame_stat.update.as_millis(),
-        //         frame_stat.drawcalls.as_millis()
-        //     ));
-        // }
-
-        ui.label(format!(
-            "longest upd: {}",
-            state.stats.longest_update().as_millis()
-        ));
-
-        ui.label(format!(
-            "longest dc: {}",
-            state.stats.longest_drawcalls().as_millis()
-        ));
-    }
-
-    let mut highlighted_tile = None;
-
+    // NOTE: Numpad controls
     {
-        let bottom_offset = formula::sidebar_numpad_offset_px(settings.text_size);
-        let mut ui = ui.new_child(egui::UiBuilder::new().max_rect(Rect::from_min_max(
-            [ui_rect.left(), help_rect.min.y - bottom_offset].into(),
-            ui_rect.right_bottom(),
-        )));
+        let bottom_offset = numpad_grid_available_size.y;
+        // TODO: center the numpad buttons (or vertically align at the bottom? With menu/help?).
+        let numpad_rect_top_y = help_rect.min.y - bottom_offset;
+
+        // The total area we can fit the numpad in
+        let numpad_available_rect = Rect::from_min_max(
+            [ui_rect.left(), numpad_rect_top_y].into(),
+            [ui_rect.right(), help_rect.min.y].into(),
+        );
+        let mut ui = ui.new_child(egui::UiBuilder::new().max_rect(numpad_available_rect));
+        // ui.painter()
+        //     .debug_rect(numpad_available_rect, egui::Color32::PURPLE, "numpad");
+
+        let numpad_area_height = numpad_grid_available_size.y;
 
         let mut highlighted_tile_offset_from_player_pos = None;
-        ui.label("Numpad Controls:");
 
-        // NOTE: Calculate the right size for the buttons by taking
-        // the total width of the sidebar, subtracting the spacing and
-        // dividing by the number of columns.
-        //
-        // HACK: that will give us an area that's too wide, too tall
-        // with buttons that are too big. However, by adding two "fake
-        // columns" on either side, we get a nice little centred grid
-        // with just the right size.
-        //
-        // There's probably a way to do this better by
-        // stretching/positioning the grid somehow, but it wasn't
-        // obvious to figure out.
+        let spacing = 10.0;
 
-        let numpad_spacing = 10.0;
-        let numpad_button_width = ((ui_rect.width() - (2.0 * numpad_spacing)) / 5.0).floor();
+        // The actual size we can fit the buttons into so they all fit into a
+        // square.
+        //
+        // It's a sidebar width or the remaining height, whichever is smaller:
+        let area_size = ui_rect.width().min(numpad_area_height) - spacing;
+        let buttons_per_row = 3.0;
+        let inter_button_spacing = 2.0 * spacing;
+        let numpad_button_width = ((area_size - inter_button_spacing) / buttons_per_row).floor();
         let numpad_button_size = Some(Vec2::splat(numpad_button_width));
-        egui::Grid::new("Sidebar Numpad Controls")
-            .spacing(Vec2::splat(numpad_spacing))
-            .show(&mut ui, |ui| {
-                ui.label(""); // fake column
 
+        egui::Grid::new("Sidebar Numpad Controls")
+            .spacing(Vec2::splat(spacing))
+            .show(&mut ui, |ui| {
                 let btn = ui::sized_button(ui, "7", active, numpad_button_size, &state.palette);
                 if btn.clicked() {
                     action = Some(Action::MoveNW);
@@ -416,11 +416,7 @@ pub fn process(
                     highlighted_tile_offset_from_player_pos = Some((1, -1));
                 }
 
-                ui.label(""); // fake column
-
                 ui.end_row();
-
-                ui.label(""); // fake column
 
                 let btn = ui::sized_button(ui, "4", active, numpad_button_size, &state.palette);
                 if btn.clicked() {
@@ -471,11 +467,7 @@ pub fn process(
                     highlighted_tile_offset_from_player_pos = Some((1, 0));
                 }
 
-                ui.label(""); // fake column
-
                 ui.end_row();
-
-                ui.label(""); // fake column
 
                 let btn = ui::sized_button(ui, "1", active, numpad_button_size, &state.palette);
                 if btn.clicked() {
@@ -501,8 +493,6 @@ pub fn process(
                     highlighted_tile_offset_from_player_pos = Some((1, 1));
                 }
 
-                ui.label(""); // fake column
-
                 ui.end_row();
             });
 
@@ -512,6 +502,38 @@ pub fn process(
             let player_screen_pos = state.player.pos - screen_left_top_corner;
             highlighted_tile = Some(player_screen_pos + offset);
         }
+    }
+
+    if state.cheating {
+        ui.label("CHEATING");
+
+        if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < display.size_without_padding() {
+            ui.label(format!("Mouse px: {}", state.mouse.screen_pos));
+            ui.label(format!("Mouse: {}", state.mouse.tile_pos));
+        }
+
+        ui.label(format!("dt: {}ms", dt.as_millis()));
+        ui.label(format!("FPS: {fps}"));
+
+        // // NOTE: commenting this out for now, we're not using the stats now
+        // ui.label("Time stats:");
+        // for frame_stat in state.stats.last_frames(25) {
+        //     ui.label(format!(
+        //         "upd: {}, dc: {}",
+        //         frame_stat.update.as_millis(),
+        //         frame_stat.drawcalls.as_millis()
+        //     ));
+        // }
+
+        ui.label(format!(
+            "longest upd: {}",
+            state.stats.longest_update().as_millis()
+        ));
+
+        ui.label(format!(
+            "longest dc: {}",
+            state.stats.longest_drawcalls().as_millis()
+        ));
     }
 
     if active {

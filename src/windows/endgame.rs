@@ -67,8 +67,8 @@ pub fn process(
     let mut action = None;
     let mut window_is_open = true;
 
-    let expected_window_width: f32 = 600.0;
-    let expected_window_height: f32 = 400.0;
+    let expected_window_width: f32 = 800.0;
+    let expected_window_height: f32 = 500.0;
     let padding = 50.0;
     let max_size = [
         display.screen_size_px.x as f32 - padding,

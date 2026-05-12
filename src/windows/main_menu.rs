@@ -346,11 +346,40 @@ pub fn process(
                     return RunningState::Running;
                 }
                 Err(error) => {
+                    use std::io::ErrorKind::*;
+
                     log::error!("Error loading the game: {:?}", error);
-                    state.window_stack.push(window::message_box(
-                        "Load Game",
-                        "Error: could not load the game.",
-                    ));
+                    let error_message =
+                        if let Some(io_error) = error.downcast_ref::<std::io::Error>() {
+                            match io_error.kind() {
+                                NotFound => "Save file not found".to_string(),
+                                PermissionDenied => {
+                                    "Missing permissions to read the save file".to_string()
+                                }
+                                IsADirectory => "Save file is a directory".to_string(),
+                                _ => format!("Could not read the save file: {io_error}"),
+                            }
+                        } else if let Some(bincode_error) =
+                            error.downcast_ref::<Box<bincode::ErrorKind>>()
+                        {
+                            match &**bincode_error {
+                                bincode::ErrorKind::Io(io_error) => match io_error.kind() {
+                                    NotFound => "Save file not found".to_string(),
+                                    PermissionDenied => {
+                                        "Missing permissions to read the save file".to_string()
+                                    }
+                                    IsADirectory => "Save file is a directory".to_string(),
+                                    _ => format!("Could not read the save file: {io_error}"),
+                                },
+                                _ => format!("Could not parse the save file: {bincode_error}"),
+                            }
+                        } else {
+                            format!("Unknown error: {error}")
+                        };
+                    let window_text = format!("{error_message}.");
+                    state
+                        .window_stack
+                        .push(window::message_box("Error Loading Game", &window_text));
                     return RunningState::Running;
                 }
             },

@@ -183,8 +183,9 @@ pub fn process(
                 let resp = c[0]
                     .checkbox(&mut settings.fast_depression, "Fast D[e]pression")
                     .on_hover_text(
-                        "Checked: Depression moves two tiles per turn.
-Unchecked: Depression moves one tile per turn.",
+                        "On: Depression moves two tiles per turn.
+
+Off: Depression moves one tile per turn.",
                     );
                 if state.selected_settings_position == FAST_DEPRESSION {
                     resp.request_focus();
@@ -204,10 +205,11 @@ Unchecked: Depression moves one tile per turn.",
                 // exhaustion, overdose, loss of will, etc.? I think
                 // we'll probably want to drop this one.
                 let resp = c[0]
-		    .checkbox(&mut settings.permadeath, "[O]nly one chance")
+                    .checkbox(&mut settings.permadeath, "R[o]guelike")
                     .on_hover_text(
-                    "Checked: the game ends when the player loses (via overdose, depression, etc.).
-Unchecked: all player effects are removed on losing. The game continues.",
+                        "On: the game ends when the player loses (via overdose, depression, etc.).
+
+Off: all player effects are removed on losing. The game continues.",
                     );
                 if state.selected_settings_position == PERMADEATH {
                     resp.request_focus();
@@ -226,8 +228,9 @@ Unchecked: all player effects are removed on losing. The game continues.",
                 let resp = c[0]
                     .checkbox(&mut settings.hide_unseen_tiles, "[H]ide unseen tiles")
                     .on_hover_text(
-                        "Checked: only previously seen tiles are visible.
-Unchecked: the entire map is uncovered.",
+                        "On: only previously seen tiles are visible.
+
+Off: the entire map is uncovered.",
                     );
                 if state.selected_settings_position == HIDE_UNSEEN_TILES {
                     resp.request_focus();

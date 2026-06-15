@@ -90,7 +90,7 @@ sdl2 = { version = "0.38", features = ["bundled"] }
 [target.'cfg(target_os="linux")'.dependencies]
 # NOTE: only a single version of SDL can be compiled in at a time, it seems
 #sdl3 = { version = "0.14.36", features = ["build-from-source"] }
-sdl2 = { version = "0.38", features = ["bundled"] }
+sdl2 = { version = "0.38" }
 
 
 [features]

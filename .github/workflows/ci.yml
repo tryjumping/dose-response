@@ -24,7 +24,8 @@ jobs:
             sudo apt-get install libasound2-dev libudev-dev libfontconfig-dev
         - os: windows-2025
           extra_features: windows-extra-features
-          build_time_dependencies: ""
+          build_time_dependencies: |
+            echo "CMAKE_GENERATOR=Visual Studio 17 2022" >> $env:GITHUB_ENV
         # NOTE: `macos-latest` uses the Arm64 architecture:
         # https://github.com/actions/runner-images
         - os: macos-14

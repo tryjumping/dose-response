@@ -22,15 +22,21 @@ jobs:
           build_time_dependencies: |
             sudo apt-get update
             sudo apt-get install libasound2-dev libudev-dev libfontconfig-dev libsdl2-dev
+          sys_dependencies: ""
         - os: windows-2025
           extra_features: windows-extra-features
           build_time_dependencies: ""
+          sys_dependencies: |
+            "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            $Env:CMAKE_GENERATOR = "Visual Studio 18 2026"
+            $Env:CMAKE_POLICY_VERSION_MINIMUM = "3.5"
         # NOTE: `macos-latest` uses the Arm64 architecture:
         # https://github.com/actions/runner-images
         - os: macos-14
           extra_features: macos-extra-features
           build_time_dependencies: |
             brew install sdl2
+          sys_dependencies: ""
     runs-on: ${{ matrix.platform.os }}
 
     env:
@@ -54,4 +60,7 @@ jobs:
     - name: Install Rust Nightly
       run: "rustup install nightly"
     - name: Check, build and upload the release
-      run: "make package-release"
+      run: |
+        ${{ matrix.platform.sys_dependencies }}
+
+        make package-release

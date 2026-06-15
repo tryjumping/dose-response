@@ -25,7 +25,16 @@ jobs:
         - os: windows-2025
           extra_features: windows-extra-features
           build_time_dependencies: |
-            echo "CMAKE_GENERATOR=Visual Studio 17 2022" >> $env:GITHUB_ENV
+            # Download prebuilt SDL2 MSVC dev binaries so sdl2-sys finds them via
+            # SDL2_LIB_DIR without needing to build from source (which requires cmake
+            # and breaks on cmake 4.x with SDL2's old cmake_minimum_required).
+            $sdl2Version = "2.28.5"
+            $sdl2Url = "https://github.com/libsdl-org/SDL/releases/download/release-${sdl2Version}/SDL2-devel-${sdl2Version}-VC.zip"
+            Invoke-WebRequest -Uri $sdl2Url -OutFile "C:\SDL2-devel.zip"
+            Expand-Archive -Path "C:\SDL2-devel.zip" -DestinationPath "C:\"
+            $sdl2LibDir = "C:\SDL2-${sdl2Version}\lib\x64"
+            echo "SDL2_LIB_DIR=$sdl2LibDir" >> $env:GITHUB_ENV
+            echo "$sdl2LibDir" >> $env:GITHUB_PATH
         # NOTE: `macos-latest` uses the Arm64 architecture:
         # https://github.com/actions/runner-images
         - os: macos-14

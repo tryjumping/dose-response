@@ -96,10 +96,10 @@ sdl2 = { version = "0.38" }
 [features]
 # NOTE: Add the `mobile-ui` feature to switch to the mobile UI size
 # default = ["dev", "mobile-ui"]
-default = ["dev"]
+default = ["dev", "sdl2-backend"]
 # NOTE: Add the `recording` feature to test/record the trailer mode
 prod = ["desktop", "sdl2-backend"]
-dev = ["desktop", "sdl2-backend", "cheating", "replay", "stats", "verifications"]
+dev = ["desktop", "cheating", "replay", "stats", "verifications"]
 test = ["dev", "prod", "all-backends"]
 # NOTE: there's a runtime crash when both SDL2 and SDL3 backends are enabled.
 #

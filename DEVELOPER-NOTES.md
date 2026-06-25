@@ -4,24 +4,87 @@ Dose Response Developer Notes
 Building
 --------
 
-Requires Rust 1.31 (the code uses the [Rust 2018 edition][edition]).
+This codebase tracks the latest stable compiler and edition and typically gets updated within a few days of the new Rust release.
 
-The published release (versions 1.0 and 1.1) uses SDL2, but the master
-(and future releases) uses pure Rust windowing libraries instead.
+To get it built, you need to install the development and runtime dependencies (see the next section). That is, libraries that handle input and output (controllers, display, sound).
 
+After that, just use regular cargo commands, no additional steps needed:
+
+    $ cargo run --release
+
+The default backend (and dependency) is SDL2. If you'd like to use something closer to a pure-Rust version, try the glutin backend:
+
+    $ cargo run --release --no-default-features --features "dev, glutin-backend"
+
+For now, this will still require the udev and alsa dependencies. Not relying on compiling any C code (or at least not installing any system-wide deps) would be nice, but it's not a priority. Patches welcome!
+
+The game also works with SDL3:
+
+    $ cargo run --release --no-default-features --features "dev, sdl3-backend"
+
+You can compile multiple backends and switch between them in the game's settings, but note that you can't link SDL2 and SDL3 at the same time! You'll have to choose one or the other.
 
 Dependencies
 ------------
 
-The "alsa" development sources.
-
 Fedora:
 
-    # dnf install alsa-lib-devel
+    $ sudo dnf install systemd-devel alsa-lib-devel sdl2-compat-devel
 
 Debian/Ubuntu:
 
-    # apt-get install libasound2-dev
+	$ sudo apt-get install libudev-dev libasound2-dev libsdl2-dev
+
+If the building fails, try installing the other dependencies from the "Building in a container" section.
+
+# Building in a container
+
+Here are instructions to build the game on a few popular distros. This requires more setup and dependencies, but gives you a more isolated experience.
+
+Fedora:
+
+```bash
+podman run --rm -i -t fedora:latest bash
+
+dnf install -y git cargo systemd-devel alsa-lib-devel sdl2-compat-devel 
+
+git clone https://github.com/tryjumping/dose-response
+cd dose-response/
+
+cargo build
+```
+
+Debian:
+
+```bash
+podman run --rm -i -t debian:latest bash
+
+apt-get update
+apt-get install -y build-essential git libasound2-dev libudev-dev libsdl2-dev
+
+git clone https://github.com/tryjumping/dose-response
+cd dose-response/
+
+cargo build
+```
+
+Ubuntu
+
+```bash
+podman run --rm -i -t ubuntu:latest bash
+
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y cargo git libasound2-dev libudev-dev libsdl2-dev
+
+git clone https://github.com/tryjumping/dose-response
+cd dose-response/
+
+cargo build
+```
+
+NOTE: you can `cargo run` the game on all these distributions (demonstrating that linking the SDL and any other dynamic libraries is successful).
+
+On Fedora, opening the window will fail with "No available video device". On Debian/Ubuntu the game will keep running, but since no window opens you have to kill it with ctrl+c.
 
 
 Publishing
@@ -31,56 +94,6 @@ Publishing
 2. Update copyright notice (year) in src/windows/help.rs
 3. Update the version in Cargo.toml
 4. Build the game
-
-
-Recording a video
------------------
-
-The game is able to save all the frames as images on disk. This can be
-used to "record" a gameplay video.
-
-Currently, only the glium backend is able to do this. In addition,
-it's veeeery slow and you really want to do this in the release mode
-(debug records about 1 frame per second). To produce the final video,
-you'll want to have `ffmpeg` installed.
-
-Steps:
-
-1. Install ffmpeg
-2. `mkdir /home/thomas/tmp/dose-response-recording`
-   * yep, it's hardcoded
-3. `cargo build --release`
-4. `cargo run -- --glium --record-frames`
-   * replays work as well
-5. `cd /home/thomas/tmp/dose-response-recording; ls`
-6. `ffmpeg -framerate 60 -i "img%06d.png" output.mp4`
-
-You can also use a containerised `ffmpeg` if you want:
-
-    podman run -v $PWD:/out:z --rm -i jrottenberg/ffmpeg -framerate 60 -i "/out/img%06d.png" /out/output.mp4
-
-If you want to letterbox the video to a specific format, you can add this to ffmpeg:
-
-    -vf "scale=(iw*sar)*min(1280/(iw*sar)\,720/ih):ih*min(1280/(iw*sar)\,720/ih), pad=1280:720:(1280-iw*min(1280/iw\,720/ih))/2:(720-ih*min(1280/iw\,720/ih))/2"
-
-    -vf "scale=(iw*sar)*min(1280/(iw*sar)\,720/ih):ih*min(1280/(iw*sar)\,720/ih), pad=1280:720:(1280-iw*min(1280/iw\,720/ih)):(720-ih*min(1280/iw\,720/ih))/2"
-
-The first option will centre the contents, the second one will move it
-all the way to the right (under the assumption that the black bar is
-looking better on the left-hand side where it can blend into the
-unexplored area).
-
-### Common Video dimensions
-
-- 1920x1080 (1080p)
-- 1280x720 (720p)
-- 854x480 (480p)
-- 640x360 (360p)
-
-Settings for 720p:
-
-* `height: f32 = 24.0` in `build.rs`
-* `PANEL_WIDTH: i32 = 19` in `main.rs`
 
 
 ### Sound Effects
@@ -97,24 +110,3 @@ If you want to pause a replay and show a message, you can put it in
 the log manually. Timed message boxes have the following format:
 
     {"ShowMessageBox":{"ttl":{"secs":5,"nanos":6},"message":"Hello, world!"}}
-
-
-Headless / Remote-controlled Mode
----------------------------------
-
-Dose Response can be controlled remotely via ZeroMQ. This is mostly
-for testing and it's disabled by default.
-
-To compile it in you need to have zeromq-devel (or equivalent) installed.
-
-Build it with:
-
-    cargo build --features=remote
-
-And then pass `--remote` to the `dose-response` executable.
-
-[edition]: https://rust-lang-nursery.github.io/edition-guide/rust-2018/index.html
-[sdl]: https://www.libsdl.org/
-[winit]: https://crates.io/crates/winit
-[glium]: https://crates.io/crates/glium
-[glutin]: https://crates.io/crates/glutin

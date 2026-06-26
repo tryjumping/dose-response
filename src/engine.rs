@@ -901,13 +901,53 @@ impl Display {
             // NOTE: Only render areas within the display size
             if rect_intersects_area(background_dst, display_size_px) {
                 drawcalls.push(Drawcall::Rectangle(background_dst, cell.empty_color.into()));
+
+                // The background behind the player/monster/item.
+                //
+                // Things are rendered based on a two-item "stack" from the
+                // bottom-up (see `render::render_game`). All tiles start with
+                // their main graphic (empty tile, wall etc.) on the front. Then
+                // we render items, after them monsters/npcs and finally the
+                // player.
+                //
+                // If we're to render something on top of something else (e.g.
+                // food on top of empty tile or monster on top of food), we push
+                // the top-most thing to the background and then render the new
+                // thing on top.
+                //
+                // If we have one thing (empty tile / wall) we have that graphic
+                // in the foreground
+                //
+                // If we have two things (empty tile and monster) we have the
+                // monster on the foreground and the empty tile in the
+                // background
+                //
+                // If we have three things (empty and item and monster), the
+                // empty tile has been overwritten completely, the item is in
+                // the background and the monster is in the foreground.
+                //
+                // In practice, that means `bg_image` is *always* something that's *behind* something else.
                 let bg_image = Drawcall::Image(
                     bg_texture,
                     bg_texture_src,
                     background_dst,
                     cell.background_color,
                 );
-                drawcalls.push(bg_image);
+
+                match visual_style {
+                    VisualStyle::Graphical => {
+                        // Render whatever "empty" background space image is behind the player/monster:
+                        drawcalls.push(bg_image);
+                    }
+                    VisualStyle::Textual => {
+                        // Do nothing.
+                        //
+                        // We don't want to render the "empty background image"
+                        // behind a monster or player because the dot is
+                        // visually distracting.
+                    }
+                }
+
                 let image = Drawcall::Image(
                     fg_texture,
                     fg_texture_src,

@@ -37,12 +37,18 @@ pub mod sdl2;
 
 pub mod headless;
 
-pub const DRAWCALL_CAPACITY: usize = 8000;
-pub const VERTEX_CAPACITY: usize = 70_000;
+// Should handle the smallest tile size in 1080p screens and related (e.g.
+// macbooks) without having to resize either buffer.
+//
+// Values obtained by setting the window size to 1080p and the tilesize to
+// small.
+pub const DRAWCALL_CAPACITY: usize = 16_000;
+pub const VERTEX_CAPACITY: usize = 100_000;
 
 /// The amount of `f32` components in the `Vertex`.
 ///
-/// NOTE: this is different from the actual `Vertex` struct size because of padding. It's what the size would be if it were `repr(packed)` or something.
+/// This is different from the actual `Vertex` struct size because of padding.
+/// It's what the size would be if it were `repr(packed)` or something.
 pub const VERTEX_COMPONENT_COUNT: usize = 9;
 const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * VERTEX_CAPACITY;
 

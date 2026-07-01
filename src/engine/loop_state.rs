@@ -673,7 +673,7 @@ impl LoopState {
 
         if self.vertex_buffer.len() > current_vertex_buffer_capacity {
             log::warn!(
-                "Warning: vertex count exceeded current capacity {}. Current count: {} ",
+                "Warning: vertex component count exceeded current vertex buffer capacity {}. Current count: {} ",
                 current_vertex_buffer_capacity,
                 self.vertex_buffer.len(),
             );

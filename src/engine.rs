@@ -39,6 +39,10 @@ pub mod headless;
 
 pub const DRAWCALL_CAPACITY: usize = 8000;
 pub const VERTEX_CAPACITY: usize = 70_000;
+
+/// The amount of `f32` components in the `Vertex`.
+///
+/// NOTE: this is different from the actual `Vertex` struct size because of padding. It's what the size would be if it were `repr(packed)` or something.
 pub const VERTEX_COMPONENT_COUNT: usize = 9;
 const VERTEX_BUFFER_CAPACITY: usize = VERTEX_COMPONENT_COUNT * VERTEX_CAPACITY;
 
@@ -137,7 +141,7 @@ pub struct Vertex {
 
 impl Vertex {
     #[allow(dead_code)]
-    fn to_f32_array(self) -> [f32; 9] {
+    fn to_f32_array(self) -> [f32; VERTEX_COMPONENT_COUNT] {
         [
             self.texture_id,
             self.pos_px[0],
@@ -184,8 +188,8 @@ impl VertexStore for Vec<f32> {
     }
 
     fn count(&self) -> usize {
-        assert_eq!(self.len() % 9, 0);
-        self.len() / 9
+        assert_eq!(self.len() % VERTEX_COMPONENT_COUNT, 0);
+        self.len() / VERTEX_COMPONENT_COUNT
     }
 }
 

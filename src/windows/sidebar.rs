@@ -7,6 +7,7 @@ use crate::{
     keys::KeyCode,
     player::Mind,
     point::Point,
+    rect::Rectangle,
     settings::Settings,
     state::State,
     ui,
@@ -507,7 +508,9 @@ pub fn process(
     if state.cheating {
         ui.label("CHEATING");
 
-        if state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < display.size_without_padding() {
+        if Rectangle::from_size(display.size_without_padding())
+            .contains_excluding_bottom_right(state.mouse.tile_pos)
+        {
             ui.label(format!("Mouse px: {}", state.mouse.screen_pos));
             ui.label(format!("Mouse: {}", state.mouse.tile_pos));
         }

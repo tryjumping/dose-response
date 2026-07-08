@@ -96,8 +96,8 @@ pub struct Level {
 
 impl Level {
     pub fn new(width: i32, height: i32) -> Level {
-        let dimensions = (width, height).into();
-        assert!(dimensions > (0, 0));
+        let dimensions = Point::new(width, height);
+        assert!(dimensions.is_positive());
         let map_size = (width * height) as usize;
         Level {
             dimensions,

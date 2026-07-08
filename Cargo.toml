@@ -190,3 +190,4 @@ undocumented_unsafe_blocks = "deny"
 # Worth reconsidering at some point, but keeping commented out for now.
 #indexing_slicing = "deny"
 #unreachable = "deny"
+unimplemented = "deny"

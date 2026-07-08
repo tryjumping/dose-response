@@ -9,6 +9,7 @@ use crate::{
     },
     formula, keys,
     point::Point,
+    rect::Rectangle,
     settings::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, Store as SettingsStore},
     state::State,
 };
@@ -275,6 +276,8 @@ impl<S: SettingsStore + 'static> App<S> {
             log::debug!("Got all available monitors: {:?}", self.monitors);
 
             self.window_pos = window
+                // NOTE: this is the top-left corner of the window relative to teh top-left corner of the desktop
+                // the desktop's top-left corner is the `position` of the monitor at the top-left of the desktop
                 .outer_position()
                 .map(|p| Point::new(p.x, p.y))
                 .unwrap_or_default();
@@ -758,7 +761,22 @@ fn create_gl_context(
     }
 }
 
-fn get_current_monitor(monitors: &[MonitorHandle], window_pos: Point) -> Option<MonitorHandle> {
+/// Find out which monitor a given point (window position) resides in.
+///
+/// Each monitor has a `position()` method that returns the monitor's top-left
+/// corner in the "desktop space". That's the rectangle fitting all their
+/// monitors in their arrangement with zero being the top-most point of the
+/// top-most monitor and the left-most point of the left-most monitor.
+///
+/// `window_pos_in_desktop_space` is a point within that "desktop space",
+/// denoting the top-left point of the window being tested.
+///
+/// The coordinates grow rightwards and downwards just like the coordinates
+/// within a single window do.
+fn get_current_monitor(
+    monitors: &[MonitorHandle],
+    window_pos_in_desktop_space: Point,
+) -> Option<MonitorHandle> {
     for monitor in monitors {
         let monitor_pos = {
             let pos = monitor.position();
@@ -769,13 +787,14 @@ fn get_current_monitor(monitors: &[MonitorHandle], window_pos: Point) -> Option<
             Point::new(dim.width as i32, dim.height as i32)
         };
 
-        let monitor_bottom_left = monitor_pos + monitor_dimensions;
-        if window_pos >= monitor_pos && window_pos < monitor_bottom_left {
+        if Rectangle::from_point_and_size(monitor_pos, monitor_dimensions)
+            .contains_excluding_bottom_right(window_pos_in_desktop_space)
+        {
             return Some(monitor.clone());
         }
     }
 
-    monitors.iter().next().cloned()
+    monitors.first().cloned()
 }
 
 pub fn main_loop<S>(

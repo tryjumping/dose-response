@@ -20,7 +20,7 @@ impl Rectangle {
     }
 
     pub fn from_point_and_size(top_left: Point, size: Point) -> Self {
-        let size = if size >= (0, 0) {
+        let size = if size.x >= 0 && size.y >= 0 {
             size
         } else {
             log::error!(
@@ -35,13 +35,17 @@ impl Rectangle {
         }
     }
 
+    pub fn from_size(size: Point) -> Self {
+        Self::from_point_and_size(Point::zero(), size)
+    }
+
     /// Create a new rectangle defined by its middle point and
     /// (half-width, half-height).
     ///
     /// The result will have dimensions `half_size.x` * 2, `half_size.y`
     /// * 2.
     pub fn center(center: Point, half_size: Point) -> Self {
-        let half_size = if half_size >= (0, 0) {
+        let half_size = if half_size.x >= 0 && half_size.y >= 0 {
             half_size
         } else {
             log::error!(
@@ -94,8 +98,26 @@ impl Rectangle {
     /// Returns `true` if the point is within the areas specified by
     /// the rectangle. The mach is inclusive, so a `Rectangle`
     /// contains its `top_left` and `bottom_right` corners.
-    pub fn contains(self, point: Point) -> bool {
-        point >= self.top_left && point <= self.bottom_right
+    pub fn contains_inclusive(self, point: Point) -> bool {
+        point.x >= self.top_left.x
+            && point.x <= self.bottom_right.x
+            && point.y >= self.top_left.y
+            && point.y <= self.bottom_right.y
+    }
+
+    /// Returns `true` if the point is within the rectangle's area, except for
+    /// the right-most and bottom-most edges.
+    ///
+    /// I.e. includes the top-left corner but excludes the bottom-right one.
+    ///
+    /// This is useful for things like 0-based display coordinates. Where e.g. a
+    /// 1080p display would include points (0, 0), but exclude any (1920, ?) and
+    /// (?, 1080) points.
+    pub fn contains_excluding_bottom_right(self, point: Point) -> bool {
+        point.x >= self.top_left.x
+            && point.x < self.bottom_right.x
+            && point.y >= self.top_left.y
+            && point.y < self.bottom_right.y
     }
 
     /// Returns `true` if the two rectangles have at least one `Point`
@@ -186,5 +208,45 @@ mod tests {
         let rect = Rectangle::from_point_and_size((5, 7).into(), (2, 2).into());
         assert_eq!(rect.size(), Point::new(2, 2));
         assert_eq!(rect.points().count(), 4);
+    }
+
+    #[test]
+    fn smallest_rect_contains_inclusive() {
+        let rect = Rectangle::from_size(Point::new(1, 1));
+        assert!(rect.contains_inclusive(Point::zero()));
+        assert!(!rect.contains_inclusive(Point::new(1, 1)));
+        assert!(!rect.contains_inclusive(Point::new(0, 1)));
+        assert!(!rect.contains_inclusive(Point::new(1, 0)));
+    }
+
+    #[test]
+    fn rect_size_1_contains_inclusive() {
+        let rect = Rectangle::from_size(Point::new(2, 2));
+        assert!(rect.contains_inclusive(Point::zero()));
+        assert!(rect.contains_inclusive(Point::new(1, 1)));
+        assert!(rect.contains_inclusive(Point::new(0, 1)));
+        assert!(rect.contains_inclusive(Point::new(1, 0)));
+        assert!(!rect.contains_inclusive(Point::new(-1, 0)));
+        assert!(!rect.contains_inclusive(Point::new(0, -1)));
+        assert!(!rect.contains_inclusive(Point::new(1, 2)));
+        assert!(!rect.contains_inclusive(Point::new(2, 3)));
+    }
+
+    #[test]
+    fn smallest_rect_contains_exclusive() {
+        let rect = Rectangle::from_size(Point::new(1, 1));
+        // The rect contains exactly one point (0, 0) and that point is also the
+        // bottom-right point so it makes sense to return `false` here.
+        assert_eq!(rect.contains_excluding_bottom_right(Point::zero()), false)
+    }
+
+    #[test]
+    fn rect_size_1_contains_exclusive() {
+        let rect = Rectangle::from_size(Point::new(2, 2));
+        assert!(rect.contains_excluding_bottom_right(Point::zero()));
+        assert!(!rect.contains_excluding_bottom_right(Point::new(0, 1)));
+        assert!(!rect.contains_excluding_bottom_right(Point::new(1, 0)));
+        assert!(!rect.contains_excluding_bottom_right(Point::new(1, 1)));
+        assert!(!rect.contains_excluding_bottom_right(Point::new(2, 2)));
     }
 }

@@ -112,7 +112,7 @@ pub fn render_game(
         .world
         .chunks(display_area)
         .flat_map(Chunk::cells)
-        .filter(|&(pos, _)| display_area.contains(pos))
+        .filter(|&(pos, _)| display_area.contains_inclusive(pos))
     {
         let display_pos = screen_coords_from_world(world_pos);
 
@@ -187,7 +187,7 @@ pub fn render_game(
         .world
         .chunks(display_area)
         .flat_map(Chunk::cells)
-        .filter(|&(pos, _)| display_area.contains(pos))
+        .filter(|&(pos, _)| display_area.contains_inclusive(pos))
     {
         // Render the irresistible background of a dose
         for item in &cell.items {

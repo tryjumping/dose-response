@@ -652,7 +652,7 @@ impl Display {
     /// `screen_size_px`: dimension of the game window in logical pixels.
     /// `tilesize`: size (in pixels) of a single tile. Tiles are square.
     pub fn new(screen_size_px: Point, tile_size: i32, text_size: i32) -> Self {
-        assert!(screen_size_px > Point::zero());
+        assert!(screen_size_px.is_positive());
         assert!(tile_size > 0);
         assert!(text_size > 0);
         // NOTE: this padding is only here to make the screen scroll smoothly.
@@ -826,7 +826,7 @@ impl Display {
         let display_size_px = self.display_size * self.tile_size;
 
         if let Some(bg) = self.clear_background_color {
-            let full_screen_rect = Rectangle::from_point_and_size(Point::zero(), display_size_px);
+            let full_screen_rect = Rectangle::from_size(display_size_px);
             drawcalls.push(Drawcall::Rectangle(full_screen_rect, bg.into()));
         }
 
@@ -1040,7 +1040,7 @@ impl Display {
         drawcalls.extend(self.drawcalls.iter());
 
         if self.fade.alpha > 0 {
-            let full_screen_rect = Rectangle::from_point_and_size(Point::zero(), display_size_px);
+            let full_screen_rect = Rectangle::from_size(display_size_px);
             drawcalls.push(Drawcall::Rectangle(full_screen_rect, self.fade));
         }
     }

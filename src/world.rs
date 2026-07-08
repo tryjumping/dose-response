@@ -233,7 +233,7 @@ impl World {
                         Shadows | Voices => false,
                         Hunger | Anxiety | Depression | Npc | Signpost => true, // NOTE: Signpost should never be generated on its own
                     };
-                    safe_area.contains(pos) || easy_monster
+                    safe_area.contains_inclusive(pos) || easy_monster
                 });
                 if remove_monster {
                     self.remove_monster(pos)
@@ -305,7 +305,7 @@ impl World {
                     let resist_area = Rectangle::center(pos, Point::from_i32(resist_radius));
 
                     // Bail if the player would be in the resist radius
-                    if resist_area.contains(player_info.pos) {
+                    if resist_area.contains_inclusive(player_info.pos) {
                         continue;
                     }
 
@@ -767,7 +767,7 @@ impl World {
     pub fn monsters(&self, area: Rectangle) -> impl Iterator<Item = &Monster> {
         self.chunks(area)
             .flat_map(Chunk::monsters)
-            .filter(move |m| m.alive() && area.contains(m.position))
+            .filter(move |m| m.alive() && area.contains_inclusive(m.position))
     }
 
     /// Return a mutable iterator over all monsters in the given area.
@@ -776,7 +776,7 @@ impl World {
     pub fn monsters_mut(&mut self, area: Rectangle) -> impl Iterator<Item = &mut Monster> {
         self.chunks_mut(area)
             .flat_map(Chunk::monsters_mut)
-            .filter(move |m| m.alive() && area.contains(m.position))
+            .filter(move |m| m.alive() && area.contains_inclusive(m.position))
     }
 
     pub fn positions_of_all_chunks(&self) -> Vec<Point> {

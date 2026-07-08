@@ -730,8 +730,8 @@ fn process_game(
         }
 
         // NOTE: Show the path from the player to the mouse pointer
-        let mouse_inside_map =
-            state.mouse.tile_pos >= (0, 0) && state.mouse.tile_pos < state.map_size;
+        let mouse_inside_map = Rectangle::from_size(state.map_size)
+            .contains_excluding_bottom_right(state.mouse.tile_pos);
 
         let visible = state.mouse_world_position().inside_circular_area(
             state.player.pos,

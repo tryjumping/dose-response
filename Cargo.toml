@@ -100,7 +100,6 @@ default = ["dev", "sdl2-backend"]
 # NOTE: Add the `recording` feature to test/record the trailer mode
 prod = ["desktop", "sdl2-backend"]
 dev = ["desktop", "cheating", "replay", "stats", "verifications"]
-test = ["dev", "prod", "all-backends"]
 # NOTE: there's a runtime crash when both SDL2 and SDL3 backends are enabled.
 #
 # We keep the `all-backends` feature to be able to run cargo clippy

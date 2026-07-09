@@ -152,12 +152,6 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     use simplelog::{CombinedLogger, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
 
-    // Print out all environment variables:
-    log::info!("Environment variables:");
-    for (key, value) in std::env::vars() {
-        log::info!("{key}: {value}");
-    }
-
     let mut app = App::new(metadata::TITLE)
         .version(metadata::VERSION)
         .author(metadata::AUTHORS)
@@ -269,6 +263,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     // NOTE: ignore the loggers if we can't initialise them. The game
     // should still be able to function.
     let _ = CombinedLogger::init(loggers);
+
+    // Print out all environment variables:
+    log::trace!("Environment variables:");
+    for (key, value) in std::env::vars() {
+        log::trace!("{key}: {value}");
+    }
 
     log_panics::init();
 

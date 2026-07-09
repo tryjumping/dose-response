@@ -275,8 +275,12 @@ pub fn process(
             VisualStyle::Graphical => Texture::Tilemap,
             VisualStyle::Textual => Texture::Glyph,
         };
+        let inventory_key = game::inventory_key(kind).unwrap_or_else(|| {
+	    log::error!("`inventory_key` for item `{kind}` returned `None`. This shouldn't happen as all inventory items should have a unique key from `1..=9` assigned. Falling back to `1`.");
+	    1
+	});
         let button = ui::ImageTextButton::new(texture, button_label)
-            .prefix_text(format!("[{}]", game::inventory_key(kind)))
+            .prefix_text(format!("[{}]", inventory_key))
             .tile(graphic)
             .tile_offset_px(tile_offset)
             .image_color(item_color)

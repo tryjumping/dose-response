@@ -4,6 +4,28 @@ macro_rules! throw {
     };
 }
 
+/// Panic with message in non-prod mode (regardless if debug or release). Print
+/// an error and keep going in *prod*, i.e. `cfg!(feature = "prod")`.
+///
+/// Takes optional formatting arguments similar to `panic!`, `println!` etc.
+macro_rules! wtf {
+    ($message:expr) => {
+	if std::cfg!(feature = "prod") {
+            log::error!($message);
+	} else {
+	    panic!($message);
+	}
+    };
+    ($message:expr, $($arg:tt)+) => {
+	if std::cfg!(feature = "prod") {
+            log::error!($message, $($arg)+);
+	} else {
+	    panic!($message, $($arg)+);
+	}
+    };
+
+}
+
 pub mod ai;
 pub mod animation;
 pub mod audio;
@@ -152,12 +174,6 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     use simplelog::{CombinedLogger, LevelFilter, SharedLogger, SimpleLogger, WriteLogger};
     use std::fs::File;
 
-    // Print out all environment variables:
-    log::info!("Environment variables:");
-    for (key, value) in std::env::vars() {
-        log::info!("{key}: {value}");
-    }
-
     let mut app = App::new(metadata::TITLE)
         .version(metadata::VERSION)
         .author(metadata::AUTHORS)
@@ -269,6 +285,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     // NOTE: ignore the loggers if we can't initialise them. The game
     // should still be able to function.
     let _ = CombinedLogger::init(loggers);
+
+    // Print out all environment variables:
+    log::trace!("Environment variables:");
+    for (key, value) in std::env::vars() {
+        log::trace!("{key}: {value}");
+    }
 
     log_panics::init();
 

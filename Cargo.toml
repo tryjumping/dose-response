@@ -100,7 +100,6 @@ default = ["dev", "sdl2-backend"]
 # NOTE: Add the `recording` feature to test/record the trailer mode
 prod = ["desktop", "sdl2-backend"]
 dev = ["desktop", "cheating", "replay", "stats", "verifications"]
-test = ["dev", "prod", "all-backends"]
 # NOTE: there's a runtime crash when both SDL2 and SDL3 backends are enabled.
 #
 # We keep the `all-backends` feature to be able to run cargo clippy
@@ -180,14 +179,14 @@ panic = "deny"
 manual_strip = "deny"
 await_holding_refcell_ref = "deny"
 unwrap_in_result = "deny"
+unreachable = "deny"
+unimplemented = "deny"
 
-# Require the `SAFETY` comments:
-undocumented_unsafe_blocks = "deny"
-# NOTE: these two deny direct indexing into arrays and the
-# `unreachable!` macro. These are definitely things that could crash
-# the game at runtime. But also a massive pain to code around.
+# NOTE: this denies direct indexing into arrays. That is definitely a thing that
+# could crash the game at runtime. But also a massive pain to code around.
 #
 # Worth reconsidering at some point, but keeping commented out for now.
 #indexing_slicing = "deny"
-#unreachable = "deny"
-unimplemented = "deny"
+
+# Require the `SAFETY` comments:
+undocumented_unsafe_blocks = "deny"

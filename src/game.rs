@@ -1532,8 +1532,13 @@ fn process_player_action(
                 }
             }
 
-            Action::Attack(_, _) => {
-                unreachable!();
+            Action::Attack(destination, player_modifier) => {
+                log::error!(
+                    "Player tried to use the `Attack` action. This should not be possible (attack is done via moving). Destination: {:?}, player modifier: {:?}",
+                    destination,
+                    player_modifier
+                );
+                player.spend_ap(1);
             }
         }
     } else {
@@ -1792,19 +1797,24 @@ fn inventory_commands(key: Key) -> Option<Command> {
 
     for kind in Kind::iter() {
         let num_key = match inventory_key(kind) {
-            1 => D1,
-            2 => D2,
-            3 => D3,
-            4 => D4,
-            5 => D5,
-            6 => D6,
-            7 => D7,
-            8 => D8,
-            9 => D9,
-            _ => unreachable!("There should only ever be 9 item kinds at most."),
+            Some(1) => Some(D1),
+            Some(2) => Some(D2),
+            Some(3) => Some(D3),
+            Some(4) => Some(D4),
+            Some(5) => Some(D5),
+            Some(6) => Some(D6),
+            Some(7) => Some(D7),
+            Some(8) => Some(D8),
+            Some(9) => Some(D9),
+            _ => {
+                log::error!(
+                    "Unexpected inventory key for {kind}. There should only ever be 9 item kinds at most."
+                );
+                None
+            }
         };
 
-        if key.code == num_key {
+        if Some(key.code) == num_key {
             let command = match kind {
                 Kind::Food => Command::UseFood,
                 Kind::Dose => Command::UseDose,
@@ -1818,15 +1828,15 @@ fn inventory_commands(key: Key) -> Option<Command> {
     None
 }
 
-pub fn inventory_key(kind: item::Kind) -> u8 {
+pub fn inventory_key(kind: item::Kind) -> Option<u8> {
     // NOTE: use the order defined in `Kind::iter` so the keys always
     // correspond to the order we display the items in.
     for (index, current_kind) in item::Kind::iter().enumerate() {
         if current_kind == kind {
-            return (index + 1) as u8;
+            return Some((index + 1) as u8);
         }
     }
-    unreachable!()
+    None
 }
 
 fn kill_monster(monster_position: Point, world: &mut World, audio: &mut Audio) {
@@ -1855,7 +1865,6 @@ fn use_dose(
     use crate::{item::Kind::*, player::Modifier::*};
     log::debug!("Using dose");
     audio.play_sound(Effect::Explosion, Duration::from_millis(0));
-    // TODO: do a different explosion animation for the cardinal dose
     if let Intoxication { state_of_mind, .. } = item.modifier {
         let radius = if state_of_mind <= 100 { 4 } else { 6 };
         player.take_effect(item.modifier);
@@ -1880,11 +1889,22 @@ fn use_dose(
                 palette.explosion,
                 palette.shattering_explosion,
             )),
-            Food => unreachable!(),
+            Food => {
+                wtf!("Tried to use `Food` in `use_dose`. This shouldn't happen.");
+                Box::new(animation::SquareExplosion::new(
+                    player.pos,
+                    0,
+                    0,
+                    palette.explosion,
+                ))
+            }
         };
         *explosion_animation = Some(animation);
     } else {
-        unreachable!();
+        wtf!(
+            "Tried to use a dose but `item.modifier` was not of the `Intoxication` variant: {:?}",
+            item.modifier
+        );
     }
 }
 

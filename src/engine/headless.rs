@@ -85,9 +85,13 @@ where
 
         match update_result {
             RunningState::Running => {}
-            RunningState::NewGame(_new_state) => unreachable!(),
+            RunningState::NewGame(_new_state) => throw!(
+                "Unexpected `NewGame` update result. The headless mode doesn't accept user input and there should be no way to start a new game."
+            ),
             RunningState::Stopped => break,
-            RunningState::Skip => unreachable!(),
+            RunningState::Skip => throw!(
+                "Unexpected `Skip` update result. Frame skipping should already have been handled by now."
+            ),
         }
     }
 

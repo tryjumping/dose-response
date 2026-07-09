@@ -4,6 +4,28 @@ macro_rules! throw {
     };
 }
 
+/// Panic with message in non-prod mode (regardless if debug or release). Print
+/// an error and keep going in *prod*, i.e. `cfg!(feature = "prod")`.
+///
+/// Takes optional formatting arguments similar to `panic!`, `println!` etc.
+macro_rules! wtf {
+    ($message:expr) => {
+	if std::cfg!(feature = "prod") {
+            log::error!($message);
+	} else {
+	    panic!($message);
+	}
+    };
+    ($message:expr, $($arg:tt)+) => {
+	if std::cfg!(feature = "prod") {
+            log::error!($message, $($arg)+);
+	} else {
+	    panic!($message, $($arg)+);
+	}
+    };
+
+}
+
 pub mod ai;
 pub mod animation;
 pub mod audio;

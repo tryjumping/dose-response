@@ -230,6 +230,9 @@ impl PartialOrd for State {
 
 #[cfg(test)]
 mod test {
+    // Panics in test code are fine. They're just a different kind of assert.
+    #![allow(clippy::panic)]
+
     use super::Path;
     use crate::{
         blocker::Blocker,
@@ -302,7 +305,11 @@ mod test {
                     's' => Empty,
                     'd' => Empty,
                     'x' => Tree,
-                    _ => unreachable!(),
+                    unexpected => {
+                        panic!(
+                            "Unexpected tile character value: `{unexpected}`. This probably means the test board has a character that's not supposed to be there."
+                        );
+                    }
                 };
                 let pos = Point { x, y };
                 if let Some(cell) = world.cell_mut(pos) {

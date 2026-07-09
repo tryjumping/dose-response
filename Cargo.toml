@@ -179,14 +179,14 @@ panic = "deny"
 manual_strip = "deny"
 await_holding_refcell_ref = "deny"
 unwrap_in_result = "deny"
+unreachable = "deny"
+unimplemented = "deny"
 
-# Require the `SAFETY` comments:
-undocumented_unsafe_blocks = "deny"
-# NOTE: these two deny direct indexing into arrays and the
-# `unreachable!` macro. These are definitely things that could crash
-# the game at runtime. But also a massive pain to code around.
+# NOTE: this denies direct indexing into arrays. That is definitely a thing that
+# could crash the game at runtime. But also a massive pain to code around.
 #
 # Worth reconsidering at some point, but keeping commented out for now.
 #indexing_slicing = "deny"
-#unreachable = "deny"
-unimplemented = "deny"
+
+# Require the `SAFETY` comments:
+undocumented_unsafe_blocks = "deny"

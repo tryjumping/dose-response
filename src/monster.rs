@@ -85,7 +85,13 @@ impl CompanionBonus {
             0 => DoubleWillGrowth,
             1 => HalveExhaustion,
             2 => ExtraActionPoint,
-            _ => unreachable!(),
+            unexpected => {
+                wtf!(
+                    "`range_inclusive` should only have returned a number from 0..=2. Got: `{unexpected}` instead."
+                );
+                // NOTE: this is a fallback value:
+                DoubleWillGrowth
+            }
         }
     }
 }

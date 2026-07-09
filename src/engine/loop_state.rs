@@ -432,7 +432,11 @@ impl LoopState {
                 self.game_state = new_state;
             }
             RunningState::Stopped => return UpdateResult::QuitRequested,
-            RunningState::Skip => unreachable!(),
+            RunningState::Skip => {
+                wtf!(
+                    "Got `RunningState::Skip` even after they've all been exhausted. This shouldn't happen."
+                );
+            }
         }
 
         self.reset_inputs();

@@ -36,30 +36,27 @@ pub fn lone_attacker_act(
     rng: &mut Random,
 ) -> (Update, Action) {
     if actor.ai_state == AIState::NoOp {
-        return noop_action(actor);
-    }
-    let distance = actor.position.tile_distance(player_info.pos);
-    let ai_state = if distance <= formula::CHASING_DISTANCE {
-        AIState::Chasing
+        noop_action(actor)
     } else {
-        AIState::Idle
-    };
-
-    let update = Update {
-        ai_state,
-        max_ap: actor.ap.max(),
-    };
-
-    let action = match ai_state {
-        AIState::Chasing => chasing_action(actor, player_info.pos),
-        AIState::Idle => {
+        let distance = actor.position.tile_distance(player_info.pos);
+        let (ai_state, action) = if distance <= formula::CHASING_DISTANCE {
+            let ai_state = AIState::Chasing;
+            let action = chasing_action(actor, player_info.pos);
+            (ai_state, action)
+        } else {
+            let ai_state = AIState::Idle;
             let destination = idle_destination(actor, world, rng, player_info.pos);
-            Action::Move(destination)
-        }
-        AIState::CheckingOut(destination) => Action::Move(destination),
-        AIState::NoOp => unreachable!(),
-    };
-    (update, action)
+            let action = Action::Move(destination);
+            (ai_state, action)
+        };
+
+        let update = Update {
+            ai_state,
+            max_ap: actor.ap.max(),
+        };
+
+        (update, action)
+    }
 }
 
 pub fn pack_attacker_act(
@@ -68,9 +65,6 @@ pub fn pack_attacker_act(
     world: &mut World,
     rng: &mut Random,
 ) -> (Update, Action) {
-    if actor.ai_state == AIState::NoOp {
-        return noop_action(actor);
-    }
     let player_distance = actor.position.tile_distance(player_info.pos);
     let ai_state = if player_distance <= formula::CHASING_DISTANCE {
         AIState::Chasing
@@ -109,7 +103,7 @@ pub fn pack_attacker_act(
             Action::Move(destination)
         }
         AIState::CheckingOut(destination) => Action::Move(destination),
-        AIState::NoOp => unreachable!(),
+        AIState::NoOp => Action::Move(actor.position),
     };
     (update, action)
 }

@@ -217,15 +217,15 @@ impl Palette {
 
             explored_background: BLACK,
             unexplored_background: BLACK,
-            dim_background: DARKEST_GREY,
+            dim_background: DARKER_GREY,
 
             exhaustion_animation: BLACK,
             fade_to_black_animation: BLACK,
             death_animation: BLACK,
             overdose_animation: WHITE,
 
-            high: WHITE,
-            high_to: WHITE,
+            high: DARKISH_GREY,
+            high_to: LIGHT_GREY,
 
             player: [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE],
 
@@ -245,7 +245,7 @@ impl Palette {
             dose: WHITE,
             strong_dose: WHITE,
             shattering_dose: WHITE,
-            dose_irresistible_background: DARK_GREY,
+            dose_irresistible_background: DARKEST_GREY,
             explosion: DARK_GREY,
             shattering_explosion: WHITE,
 
@@ -255,9 +255,9 @@ impl Palette {
 
             tree: [GREY, GREY, GREY],
 
-            empty_tile_ground: GREY,
-            empty_tile_leaves: GREY,
-            empty_tile_twigs: GREY,
+            empty_tile_ground: DARK_GREY,
+            empty_tile_leaves: DARK_GREY,
+            empty_tile_twigs: DARK_GREY,
         }
     }
 

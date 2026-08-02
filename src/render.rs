@@ -302,7 +302,18 @@ pub fn render_game(
         // Only highlight when we're not re-centering the
         // screen (because that looks weird)
         if state.pos_timer.finished() {
-            display.set_empty_color(pos, state.player.color(&state.palette));
+            let player_color = state.player.color(&state.palette);
+            // Make the pathfinding highlight similar to the player's colour,
+            // but make it a bit darker so it's more distinct. Especially in the
+            // greyscale mode.
+            let darken = 45;
+            let highlight_color = color::Color {
+                r: player_color.r - darken,
+                g: player_color.g - darken,
+                b: player_color.b - darken,
+            };
+
+            display.set_empty_color(pos, highlight_color);
         }
     }
 }

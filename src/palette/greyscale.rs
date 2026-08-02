@@ -2,7 +2,9 @@
 
 use crate::color::Color;
 
+pub const LIGHT_GREY: Color = Color {r: 210, g: 210, b: 210};
 pub const GREY: Color = Color {r: 187, g: 187, b: 187};
+pub const DARKISH_GREY: Color = Color {r: 160, g: 160, b: 160};
 pub const DARK_GREY: Color = Color {r: 85, g: 85, b: 85};
 pub const DARKER_GREY: Color = Color {r: 65, g: 65, b: 65};
 pub const DARKEST_GREY: Color = Color {r: 45, g: 45, b: 45};

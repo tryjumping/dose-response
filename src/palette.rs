@@ -224,8 +224,8 @@ impl Palette {
             death_animation: BLACK,
             overdose_animation: WHITE,
 
-            high: WHITE,
-            high_to: WHITE,
+            high: DARKISH_GREY,
+            high_to: LIGHT_GREY,
 
             player: [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE],
 

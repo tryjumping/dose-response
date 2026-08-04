@@ -784,9 +784,25 @@ fn process_game(
             }
         }
 
-        state.player.motion_animation.update(dt);
+        // Don't play the motion animations on fast replay. If we did, the game
+        // state would get grossly out of sync with what's displayed (because
+        // the animations would be playing something that's long past).
+        //
+        // TODO: can we do this when there's too many animations in the queue?
+        // Because moving really quickly can happen during normal play (e.g. by
+        // having a fast key repeat rate and holding it down) and we'll see the
+        // same desync there.
+        if state.replay_full_speed {
+            state.player.motion_animation.discard_top();
+        } else {
+            state.player.motion_animation.update(dt);
+        }
         for monster in state.world.monsters_mut(simulation_area) {
-            monster.motion_animation.update(dt);
+            if state.replay_full_speed {
+                monster.motion_animation.discard_top();
+            } else {
+                monster.motion_animation.update(dt);
+            }
         }
         for motion_animation in &mut state.extra_animations {
             motion_animation.animation.update(dt);

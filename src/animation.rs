@@ -466,6 +466,16 @@ impl Move {
         }
     }
 
+    /// Move down the animation queue. If there's nothing else, exhaust the
+    /// current one's timer.
+    pub fn discard_top(&mut self) {
+        if let Some(next) = self.next.take() {
+            *self = *next;
+        } else {
+            self.update(Duration::from_millis(1000));
+        }
+    }
+
     /// Add the `new_animation` to the end of the list.
     pub fn append(&mut self, new_animation: Self) {
         if self.finished() && self.next.is_none() {

@@ -43,6 +43,7 @@ use egui::{Context, Ui};
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Action {
     Move(Point),
+    Bounce(Point),
     Attack(Point, player::Modifier),
     Use(item::Kind),
 }
@@ -784,9 +785,25 @@ fn process_game(
             }
         }
 
-        state.player.motion_animation.update(dt);
+        // Don't play the motion animations on fast replay. If we did, the game
+        // state would get grossly out of sync with what's displayed (because
+        // the animations would be playing something that's long past).
+        //
+        // TODO: can we do this when there's too many animations in the queue?
+        // Because moving really quickly can happen during normal play (e.g. by
+        // having a fast key repeat rate and holding it down) and we'll see the
+        // same desync there.
+        if state.replay_full_speed {
+            state.player.motion_animation.discard_top();
+        } else {
+            state.player.motion_animation.update(dt);
+        }
         for monster in state.world.monsters_mut(simulation_area) {
-            monster.motion_animation.update(dt);
+            if state.replay_full_speed {
+                monster.motion_animation.discard_top();
+            } else {
+                monster.motion_animation.update(dt);
+            }
         }
         for motion_animation in &mut state.extra_animations {
             motion_animation.animation.update(dt);
@@ -1195,14 +1212,25 @@ fn process_monsters(
                     (newpos, anim)
                 }
 
+                Action::Bounce(destination) => {
+                    let monster_pos = monster_readonly.position;
+                    let anim = animation::Move::bounce(
+                        monster_pos * tile_size,
+                        destination * tile_size,
+                        formula::ANIMATION_ATTACK_DURATION,
+                    );
+
+                    (monster_pos, anim)
+                }
+
                 Action::Attack(target_pos, damage) => {
                     assert_eq!(target_pos, player.pos);
                     player.take_effect(damage);
                     audio.play_sound(Effect::PlayerHit, Duration::from_millis(0));
 
                     let anim = animation::Move::bounce(
-                        monster_readonly.position * (tile_size / 3),
-                        target_pos * (tile_size / 3),
+                        monster_readonly.position * tile_size,
+                        target_pos * tile_size,
                         formula::ANIMATION_ATTACK_DURATION,
                     );
 
@@ -1230,7 +1258,7 @@ fn process_monsters(
             };
 
             if let Some(monster) = world.monster_on_pos(animated_monster_position) {
-                monster.motion_animation = animation;
+                monster.motion_animation.append(animation);
             }
         }
     }
@@ -1296,7 +1324,13 @@ fn process_player_action(
         log::trace!("Action from Command: {:?}", action);
 
         if player.stun.to_int() > 0 {
-            action = Action::Move(player.pos);
+            action = if let Action::Move(destination) = action {
+                // Bounce while attempting to move, end up in the same place
+                Action::Bounce(destination)
+            } else {
+                // Stay still, don't even bounce
+                Action::Move(player.pos)
+            };
         } else if player.panic.to_int() > 0 {
             let new_pos =
                 world.random_neighbour_position(rng, player.pos, Blocker::WALL, player.pos);
@@ -1356,11 +1390,12 @@ fn process_player_action(
                 if bumping_into_monster {
                     player.spend_ap(1);
                     // info!("Player attacks {:?}", monster);
-                    player.motion_animation = animation::Move::bounce(
-                        player.pos * (tile_size / 3),
-                        dest * (tile_size / 3),
+                    let attack_animation = animation::Move::bounce(
+                        player.pos * tile_size,
+                        dest * tile_size,
                         formula::ANIMATION_ATTACK_DURATION,
                     );
+                    player.motion_animation.append(attack_animation);
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
                             monster::Kind::Anxiety => {
@@ -1434,11 +1469,12 @@ fn process_player_action(
                     }
                 } else if dest_walkable {
                     player.spend_ap(1);
-                    player.motion_animation = animation::Move::ease(
+                    let new_animation = animation::Move::ease(
                         player.pos * tile_size,
                         dest * tile_size,
                         formula::ANIMATION_MOVE_DURATION,
                     );
+                    player.motion_animation.append(new_animation);
                     player.move_to(dest);
                     audio.play_sound(Effect::Walk, Duration::from_millis(0));
                     while let Some(item) = world.pickup_item(dest) {
@@ -1459,8 +1495,25 @@ fn process_player_action(
                         }
                     }
                 } else {
-                    // NOTE: we bumped into a wall, don't do anything
+                    // Destination is not walkable, we're running into a wall. Bounce back.
+                    let new_animation = animation::Move::bounce(
+                        player.pos * tile_size,
+                        dest * tile_size,
+                        formula::ANIMATION_ATTACK_DURATION,
+                    );
+                    player.motion_animation.append(new_animation);
                 }
+            }
+
+            Action::Bounce(destination) => {
+                // Player is supposed to bounce in place. Likely stunned.
+                player.spend_ap(1);
+                let animation = animation::Move::bounce(
+                    player.pos * tile_size,
+                    destination * tile_size,
+                    formula::ANIMATION_ATTACK_DURATION,
+                );
+                player.motion_animation.append(animation);
             }
 
             Action::Use(item::Kind::Food) => {

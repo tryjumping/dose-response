@@ -1216,10 +1216,9 @@ fn process_monsters(
                     player.take_effect(damage);
                     audio.play_sound(Effect::PlayerHit, Duration::from_millis(0));
 
-                    let monster_world_pos_px = monster_readonly.position * tile_size;
                     let anim = animation::Move::bounce(
-                        monster_world_pos_px,
-                        monster_world_pos_px + (target_pos * tile_size - monster_world_pos_px) / 3,
+                        monster_readonly.position * tile_size,
+                        target_pos * tile_size,
                         formula::ANIMATION_ATTACK_DURATION,
                     );
 
@@ -1373,11 +1372,9 @@ fn process_player_action(
                 if bumping_into_monster {
                     player.spend_ap(1);
                     // info!("Player attacks {:?}", monster);
-                    let player_pos_px = player.pos * tile_size;
-                    let destination_px = dest * tile_size;
                     let attack_animation = animation::Move::bounce(
-                        player_pos_px,
-                        player_pos_px + ((destination_px - player_pos_px) / 3),
+                        player.pos * tile_size,
+                        dest * tile_size,
                         formula::ANIMATION_ATTACK_DURATION,
                     );
                     player.motion_animation.append(attack_animation);
@@ -1480,7 +1477,12 @@ fn process_player_action(
                         }
                     }
                 } else {
-                    // NOTE: we bumped into a wall, don't do anything
+                    let new_animation = animation::Move::bounce(
+                        player.pos * tile_size,
+                        dest * tile_size,
+                        formula::ANIMATION_ATTACK_DURATION,
+                    );
+                    player.motion_animation.append(new_animation);
                 }
             }
 

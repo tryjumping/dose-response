@@ -421,6 +421,7 @@ impl Move {
     }
 
     pub fn bounce(source: Point, destination: Point, duration: Duration) -> Self {
+        let destination = source + ((destination - source) / 3);
         Move {
             source,
             destination,

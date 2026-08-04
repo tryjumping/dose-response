@@ -1200,11 +1200,15 @@ fn process_monsters(
                         monster.path = newpath;
                     }
 
-                    let anim = animation::Move::ease(
-                        pos * tile_size,
-                        newpos * tile_size,
-                        formula::ANIMATION_MOVE_DURATION,
-                    );
+                    let move_duration = if monster_readonly.kind == monster::Kind::Depression {
+                        // Make Depression move faster since it's essentially
+                        // doing 2 moves for every 1 move of any other monster.
+                        formula::ANIMATION_MOVE_DURATION / 2
+                    } else {
+                        formula::ANIMATION_MOVE_DURATION
+                    };
+                    let anim =
+                        animation::Move::ease(pos * tile_size, newpos * tile_size, move_duration);
                     assert_eq!(anim.finished(), false);
                     (newpos, anim)
                 }

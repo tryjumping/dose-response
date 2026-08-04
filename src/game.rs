@@ -43,6 +43,7 @@ use egui::{Context, Ui};
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Action {
     Move(Point),
+    Bounce(Point),
     Attack(Point, player::Modifier),
     Use(item::Kind),
 }
@@ -1211,6 +1212,17 @@ fn process_monsters(
                     (newpos, anim)
                 }
 
+                Action::Bounce(destination) => {
+                    let monster_pos = monster_readonly.position;
+                    let anim = animation::Move::bounce(
+                        monster_pos * tile_size,
+                        destination * tile_size,
+                        formula::ANIMATION_ATTACK_DURATION,
+                    );
+
+                    (monster_pos, anim)
+                }
+
                 Action::Attack(target_pos, damage) => {
                     assert_eq!(target_pos, player.pos);
                     player.take_effect(damage);
@@ -1312,7 +1324,13 @@ fn process_player_action(
         log::trace!("Action from Command: {:?}", action);
 
         if player.stun.to_int() > 0 {
-            action = Action::Move(player.pos);
+            action = if let Action::Move(destination) = action {
+                // Bounce while attempting to move, end up in the same place
+                Action::Bounce(destination)
+            } else {
+                // Stay still, don't even bounce
+                Action::Move(player.pos)
+            };
         } else if player.panic.to_int() > 0 {
             let new_pos =
                 world.random_neighbour_position(rng, player.pos, Blocker::WALL, player.pos);
@@ -1477,6 +1495,7 @@ fn process_player_action(
                         }
                     }
                 } else {
+                    // Destination is not walkable, we're running into a wall. Bounce back.
                     let new_animation = animation::Move::bounce(
                         player.pos * tile_size,
                         dest * tile_size,
@@ -1484,6 +1503,17 @@ fn process_player_action(
                     );
                     player.motion_animation.append(new_animation);
                 }
+            }
+
+            Action::Bounce(destination) => {
+                // Player is supposed to bounce in place. Likely stunned.
+                player.spend_ap(1);
+                let animation = animation::Move::bounce(
+                    player.pos * tile_size,
+                    destination * tile_size,
+                    formula::ANIMATION_ATTACK_DURATION,
+                );
+                player.motion_animation.append(animation);
             }
 
             Action::Use(item::Kind::Food) => {

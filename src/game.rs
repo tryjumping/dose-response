@@ -1198,9 +1198,6 @@ fn process_monsters(
                     }
                     if let Some(monster) = world.monster_on_pos(newpos) {
                         monster.path = newpath;
-                        if monster.has_ap(1) {
-                            monster.trail = Some(newpos);
-                        }
                     }
 
                     let anim = animation::Move::ease(

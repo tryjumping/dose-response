@@ -402,6 +402,9 @@ pub struct Move {
     pub destination: Point,
     pub bounce: bool,
     pub state: MoveState,
+    // Animation to play after the this one is finished. This is an intrusive
+    // linked list.
+    pub next: Option<Box<Move>>,
     timer: Timer,
 }
 
@@ -412,6 +415,7 @@ impl Move {
             destination: Point::zero(),
             bounce: false,
             state: MoveState::Finished,
+            next: None,
             timer: Timer::new(Duration::new(0, 0)),
         }
     }
@@ -422,6 +426,7 @@ impl Move {
             destination,
             bounce: true,
             state: MoveState::There,
+            next: None,
             timer: Timer::new(duration),
         }
     }
@@ -432,6 +437,7 @@ impl Move {
             destination,
             bounce: false,
             state: MoveState::There,
+            next: None,
             timer: Timer::new(duration),
         }
     }
@@ -441,15 +447,37 @@ impl Move {
         if self.timer.finished() {
             let new_state = match (self.state, self.bounce) {
                 (MoveState::There, true) => {
+                    // Bounce back
                     self.timer.reset();
                     std::mem::swap(&mut self.source, &mut self.destination);
                     MoveState::Back
                 }
-                (MoveState::There, false) => MoveState::Finished,
-                (MoveState::Back, _) => MoveState::Finished,
-                (MoveState::Finished, _) => MoveState::Finished,
+                _ => {
+                    // Play the next animation in the list if there is any. Otherwise we're finished.
+                    if let Some(next_animation) = self.next.take() {
+                        *self = *next_animation;
+                        return;
+                    } else {
+                        MoveState::Finished
+                    }
+                }
             };
             self.state = new_state;
+        }
+    }
+
+    /// Add the `new_animation` to the end of the list.
+    pub fn append(&mut self, new_animation: Self) {
+        if self.finished() && self.next.is_none() {
+            *self = new_animation;
+        } else {
+            let new_animation = Some(Box::new(new_animation));
+            // Walk the linked list, find the tail and append the new animation there.
+            let mut next = &mut self.next;
+            while let Some(anim) = next {
+                next = &mut anim.next
+            }
+            *next = new_animation;
         }
     }
 
@@ -459,6 +487,10 @@ impl Move {
             x: ((self.destination.x as f32 - self.source.x as f32) * percentage).round() as i32,
             y: ((self.destination.y as f32 - self.source.y as f32) * percentage).round() as i32,
         }
+    }
+
+    pub fn current_position(&self) -> Point {
+        self.source + self.current_offset_px()
     }
 
     pub fn finished(&self) -> bool {

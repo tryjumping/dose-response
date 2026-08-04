@@ -1200,9 +1200,10 @@ fn process_monsters(
                     player.take_effect(damage);
                     audio.play_sound(Effect::PlayerHit, Duration::from_millis(0));
 
+                    let monster_world_pos_px = monster_readonly.position * tile_size;
                     let anim = animation::Move::bounce(
-                        monster_readonly.position * (tile_size / 3),
-                        target_pos * (tile_size / 3),
+                        monster_world_pos_px,
+                        monster_world_pos_px + (target_pos * tile_size - monster_world_pos_px) / 3,
                         formula::ANIMATION_ATTACK_DURATION,
                     );
 
@@ -1230,7 +1231,7 @@ fn process_monsters(
             };
 
             if let Some(monster) = world.monster_on_pos(animated_monster_position) {
-                monster.motion_animation = animation;
+                monster.motion_animation.append(animation);
             }
         }
     }
@@ -1356,11 +1357,14 @@ fn process_player_action(
                 if bumping_into_monster {
                     player.spend_ap(1);
                     // info!("Player attacks {:?}", monster);
-                    player.motion_animation = animation::Move::bounce(
-                        player.pos * (tile_size / 3),
-                        dest * (tile_size / 3),
+                    let player_pos_px = player.pos * tile_size;
+                    let destination_px = dest * tile_size;
+                    let attack_animation = animation::Move::bounce(
+                        player_pos_px,
+                        player_pos_px + ((destination_px - player_pos_px) / 3),
                         formula::ANIMATION_ATTACK_DURATION,
                     );
+                    player.motion_animation.append(attack_animation);
                     if let Some(kind) = world.monster_on_pos(dest).map(|m| m.kind) {
                         match kind {
                             monster::Kind::Anxiety => {
@@ -1434,11 +1438,12 @@ fn process_player_action(
                     }
                 } else if dest_walkable {
                     player.spend_ap(1);
-                    player.motion_animation = animation::Move::ease(
+                    let new_animation = animation::Move::ease(
                         player.pos * tile_size,
                         dest * tile_size,
                         formula::ANIMATION_MOVE_DURATION,
                     );
+                    player.motion_animation.append(new_animation);
                     player.move_to(dest);
                     audio.play_sound(Effect::Walk, Duration::from_millis(0));
                     while let Some(item) = world.pickup_item(dest) {

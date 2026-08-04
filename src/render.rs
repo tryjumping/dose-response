@@ -1,6 +1,5 @@
 use crate::{
-    animation::{self, MoveState},
-    color,
+    animation, color,
     engine::{Display, OffsetTile, TextMetrics},
     formula, graphics, monster,
     player::Bonus,
@@ -14,34 +13,14 @@ use crate::{
 pub fn render_move_animation(
     animation: &animation::Move,
     display_pos: Point,
+    world_pos: Point,
     display: &mut Display,
 ) {
-    let cell_offset = animation.current_offset_px();
-
-    // NOTE: yep, this is pretty fucking ugly.
-    //
-    // Since the actual player movement is immediate but the
-    // animation takes time, there are times when the offset e.g.
-    // refers to the player's original position but the
-    // `player.pos` value is now the animation's destination.
-    //
-    // Since the offset is relative, this can cause weird jumps
-    // and rendering the player in a wrong location.
-    //
-    // This `fixup` fudges the offset to do the right thing
-    // visually.
-    //
-    // TODO: can we get rid of this hack and do it more cleanly?
-    // If the animation had an absolute value instead of a
-    // relative, this wouldn't be necessary.
-    let fixup = match (animation.state, animation.bounce) {
-        (MoveState::There, true) => Point::zero(),
-        (MoveState::Back, true) => animation.source - animation.destination,
-        (MoveState::Finished, true) => animation.source - animation.destination,
-        (_, false) => animation.source - animation.destination,
-    };
     if !animation.finished() {
-        display.set_offset(display_pos, cell_offset + fixup);
+        let animation_position_px = animation.current_position();
+        let world_pos_px = world_pos * display.tile_size;
+        let offset_px = animation_position_px - world_pos_px;
+        display.set_offset(display_pos, offset_px);
     }
 }
 
@@ -266,7 +245,12 @@ pub fn render_game(
             display.push_fg_to_bg(display_pos);
             display.set_foreground_graphic(display_pos, monster.graphic(), color);
 
-            render_move_animation(&monster.motion_animation, display_pos, display);
+            render_move_animation(
+                &monster.motion_animation,
+                display_pos,
+                monster.position,
+                display,
+            );
         }
     }
 
@@ -293,7 +277,12 @@ pub fn render_game(
             state.player.color(&state.palette),
         );
 
-        render_move_animation(&state.player.motion_animation, display_pos, display);
+        render_move_animation(
+            &state.player.motion_animation,
+            display_pos,
+            state.player.pos,
+            display,
+        );
     }
 
     // Highlight the tiles the player would walk to if clicked in the

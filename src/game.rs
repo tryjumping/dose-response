@@ -1198,16 +1198,17 @@ fn process_monsters(
                     }
                     if let Some(monster) = world.monster_on_pos(newpos) {
                         monster.path = newpath;
-                        if monster.has_ap(1) {
-                            monster.trail = Some(newpos);
-                        }
                     }
 
-                    let anim = animation::Move::ease(
-                        pos * tile_size,
-                        newpos * tile_size,
-                        formula::ANIMATION_MOVE_DURATION,
-                    );
+                    let move_duration = if monster_readonly.kind == monster::Kind::Depression {
+                        // Make Depression move faster since it's essentially
+                        // doing 2 moves for every 1 move of any other monster.
+                        formula::ANIMATION_MOVE_DURATION / 2
+                    } else {
+                        formula::ANIMATION_MOVE_DURATION
+                    };
+                    let anim =
+                        animation::Move::ease(pos * tile_size, newpos * tile_size, move_duration);
                     assert_eq!(anim.finished(), false);
                     (newpos, anim)
                 }
@@ -1668,6 +1669,7 @@ fn process_player(
     // NOTE: If the player is following a path move them one step along the path
     if (walk_the_path_command || (state.mouse.left_is_down && visible))
         && state.path_walking_timer.finished()
+        && state.pos_timer.finished()
     {
         state.path_walking_timer.reset();
         if let Some(destination) = state.player_path.next() {

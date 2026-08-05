@@ -35,7 +35,6 @@ pub struct Monster {
     pub ai_state: AIState,
     pub blockers: Blocker,
     pub path: Vec<Point>,
-    pub trail: Option<Point>,
     pub companion_bonus: Option<CompanionBonus>,
     pub accompanying_player: bool,
 
@@ -155,7 +154,6 @@ impl Monster {
             ap: Ranged::new_min(InclusiveRange(0, max_ap)),
             blockers,
             path: vec![],
-            trail: None,
             companion_bonus: None,
             accompanying_player: false,
         }
@@ -214,7 +212,6 @@ impl Monster {
     pub fn new_turn(&mut self) {
         if !self.dead {
             self.ap.set_to_max();
-            self.trail = None;
         }
     }
 

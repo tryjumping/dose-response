@@ -212,22 +212,6 @@ pub fn render_game(
             || state.player.bonus == Bonus::SeeMonstersAndItems
         {
             let display_pos = screen_coords_from_world(monster.position);
-            // NOTE: this is the monster trail. It's looking bad and
-            // really confusing, so we turned it off.
-            // if let Some(trail_pos) = monster.trail {
-            //     if cfg!(feature = "cheating") && state.cheating {
-            //         let trail_pos = screen_coords_from_world(trail_pos);
-            //         let glyph = monster.glyph();
-            //         let color = monster.color;
-            //         // TODO: show a fading animation of the trail colour
-            //         let color = color::Color {
-            //             r: color.r.saturating_sub(55),
-            //             g: color.g.saturating_sub(55),
-            //             b: color.b.saturating_sub(55),
-            //         };
-            //         drawcalls.push(Draw::Char(trail_pos, glyph, color, offset_px));
-            //     }
-            // }
 
             // if cfg!(feature = "cheating") && state.cheating {
             //     for &point in &monster.path {
@@ -288,21 +272,17 @@ pub fn render_game(
     // Highlight the tiles the player would walk to if clicked in the
     // sidebar numpad or followed the pathfinding suggestion:
     for pos in highlighted_tiles {
-        // Only highlight when we're not re-centering the
-        // screen (because that looks weird)
-        if state.pos_timer.finished() {
-            let player_color = state.player.color(&state.palette);
-            // Make the pathfinding highlight similar to the player's colour,
-            // but make it a bit darker so it's more distinct. Especially in the
-            // greyscale mode.
-            let darken = 45;
-            let highlight_color = color::Color {
-                r: player_color.r - darken,
-                g: player_color.g - darken,
-                b: player_color.b - darken,
-            };
+        let player_color = state.player.color(&state.palette);
+        // Make the pathfinding highlight similar to the player's colour,
+        // but make it a bit darker so it's more distinct. Especially in the
+        // greyscale mode.
+        let darken = 45;
+        let highlight_color = color::Color {
+            r: player_color.r - darken,
+            g: player_color.g - darken,
+            b: player_color.b - darken,
+        };
 
-            display.set_empty_color(pos, highlight_color);
-        }
+        display.set_empty_color(pos, highlight_color);
     }
 }

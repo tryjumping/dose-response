@@ -1669,6 +1669,7 @@ fn process_player(
     // NOTE: If the player is following a path move them one step along the path
     if (walk_the_path_command || (state.mouse.left_is_down && visible))
         && state.path_walking_timer.finished()
+        && state.pos_timer.finished()
     {
         state.path_walking_timer.reset();
         if let Some(destination) = state.player_path.next() {

@@ -997,12 +997,13 @@ fn process_game(
         && mouse_window_pos_px.y <= game_area_px.y;
 
     // NOTE: show tooltip of a hovered-over object
+    let show_bonus = !state.player.mind.is_high();
     let tooltip = if !explored && settings.hide_unseen_tiles || !pointer_inside_game_area {
         None
     } else if state.mouse_world_position() == state.player.pos {
         Some("Player Character".to_string())
     } else if let Some(monster) = state.world.monster_on_pos(state.mouse_world_position()) {
-        Some(monster.tooltip())
+        Some(monster.tooltip(show_bonus))
     } else if let Some(cell) = state.world.cell(state.mouse_world_position()) {
         cell.items.first().map(|item| item.kind.name().to_string())
     } else {

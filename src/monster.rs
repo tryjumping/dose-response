@@ -298,15 +298,19 @@ impl Monster {
         }
     }
 
-    pub fn tooltip(&self) -> String {
+    pub fn tooltip(&self, show_bonus: bool) -> String {
         let name = self.name();
-        let bonus = match self.companion_bonus {
-            Some(CompanionBonus::DoubleWillGrowth) => " (will bonus)",
-            Some(CompanionBonus::HalveExhaustion) => " (resilience bonus)",
-            Some(CompanionBonus::ExtraActionPoint) => " (speed bonus)",
-            _ => "",
-        };
-        format!("{name}{bonus}")
+        if show_bonus {
+            let bonus = match self.companion_bonus {
+                Some(CompanionBonus::DoubleWillGrowth) => " (will bonus)",
+                Some(CompanionBonus::HalveExhaustion) => " (resilience bonus)",
+                Some(CompanionBonus::ExtraActionPoint) => " (speed bonus)",
+                _ => "",
+            };
+            format!("{name}{bonus}")
+        } else {
+            name.to_string()
+        }
     }
 }
 

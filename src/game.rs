@@ -1190,6 +1190,25 @@ fn process_monsters(
                     };
 
                     world.move_monster(pos, newpos, player.pos);
+
+                    // TODO: there are cases, when the monster was supposed to
+                    // move to `newpos`, but silently didn't. I observed this
+                    // when the AI returned CheckingOut(newpos) that was right
+                    // next to the current position, but happened to be occupied
+                    // by another monster.
+                    //
+                    // We should investigate how this is happening, why the
+                    // pathfinding code above didn't find this and if we can fix
+                    // things around without breaking replays.
+                    let monster_actually_moved =
+                        pos != newpos && world.monster_on_pos(pos).is_none();
+
+                    if !monster_actually_moved {
+                        log::warn!(
+                            "The monster didn't actually move to {newpos}! Its remains at: {pos}"
+                        );
+                    }
+
                     let monster_visible = newpos
                         .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
                     if monster_visible {
@@ -1207,13 +1226,18 @@ fn process_monsters(
                     } else {
                         formula::ANIMATION_MOVE_DURATION
                     };
-                    let anim =
-                        animation::Move::ease(pos * tile_size, newpos * tile_size, move_duration);
-                    assert_eq!(anim.finished(), false);
+
+                    let anim = if monster_actually_moved {
+                        animation::Move::ease(pos * tile_size, newpos * tile_size, move_duration)
+                    } else {
+                        animation::Move::none()
+                    };
+
                     (newpos, anim)
                 }
 
                 Action::Bounce(destination) => {
+                    // NOTE: as of 2026-08-06, we don't call bounce on monsters anywhere
                     let monster_pos = monster_readonly.position;
                     let anim = animation::Move::bounce(
                         monster_pos * tile_size,

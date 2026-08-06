@@ -288,8 +288,8 @@ impl Monster {
             Npc => match (self.npc_flavor, self.companion_bonus) {
                 (Some(NpcFlavor::Buddy), Some(CompanionBonus::Victory)) => "Close friend",
                 (Some(NpcFlavor::Buddy), _) => "Buddy",
-                (Some(NpcFlavor::Fam), Some(CompanionBonus::Victory)) => "Close fam",
-                (Some(NpcFlavor::Fam), _) => "Fam",
+                (Some(NpcFlavor::Fam), Some(CompanionBonus::Victory)) => "Close family",
+                (Some(NpcFlavor::Fam), _) => "Family",
                 (Some(NpcFlavor::Ally), Some(CompanionBonus::Victory)) => "Close ally",
                 (Some(NpcFlavor::Ally), _) => "Ally",
                 (None, _) => "Bud", // fallback

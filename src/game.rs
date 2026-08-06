@@ -1000,11 +1000,11 @@ fn process_game(
     let tooltip = if !explored && settings.hide_unseen_tiles || !pointer_inside_game_area {
         None
     } else if state.mouse_world_position() == state.player.pos {
-        Some("Player Character")
+        Some("Player Character".to_string())
     } else if let Some(monster) = state.world.monster_on_pos(state.mouse_world_position()) {
-        Some(monster.name())
+        Some(monster.tooltip())
     } else if let Some(cell) = state.world.cell(state.mouse_world_position()) {
-        cell.items.first().map(|item| item.kind.name())
+        cell.items.first().map(|item| item.kind.name().to_string())
     } else {
         None
     };
@@ -1012,7 +1012,7 @@ fn process_game(
         // NOTE: only show tooltips when we're not scrolling the screen.
         // It looks bad otherwise.
         if state.pos_timer.finished() {
-            egui::show_tooltip_text(ui.ctx(), ui.layer_id(), egui::Id::new(tooltip), tooltip);
+            egui::show_tooltip_text(ui.ctx(), ui.layer_id(), egui::Id::new(&tooltip), tooltip);
         }
     }
 

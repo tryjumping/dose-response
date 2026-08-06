@@ -114,6 +114,7 @@ fn generate_map(
 
 fn generate_monsters(
     rng: &mut Random,
+    throwaway_rng: &mut Random,
     map: &[(Point, Tile)],
     challenge: Challenge,
 ) -> Vec<Monster> {
@@ -136,7 +137,7 @@ fn generate_monsters(
         }
         let kind = *rng.choose_weighted(&options).unwrap_or(&None);
         if let Some(kind) = kind {
-            let mut monster = Monster::new(kind, pos, challenge);
+            let mut monster = Monster::new(kind, pos, challenge, throwaway_rng);
             if kind == Kind::Npc {
                 let bonus = crate::monster::CompanionBonus::random(rng);
                 monster.companion_bonus = Some(bonus);
@@ -269,7 +270,7 @@ pub fn generate(
     challenge: Challenge,
 ) -> GeneratedWorld {
     let map = generate_map(rng, throwaway_rng, size, player);
-    let monsters = generate_monsters(rng, &map, challenge);
+    let monsters = generate_monsters(rng, throwaway_rng, &map, challenge);
     let items = generate_items(rng, &map);
     (map, monsters, items)
 }

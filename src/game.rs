@@ -2109,6 +2109,7 @@ pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
 
 fn place_victory_npc(state: &mut State) -> Point {
     log::info!("Generating the Victory NPC!");
+    let mut throwaway_rng = state.rng.clone();
     let mut distance_range = formula::VICTORY_NPC_DISTANCE;
     // NOTE: Compute path to Victory NPC that is reachable by the
     // player. This may take several attempts. Leave the position
@@ -2230,7 +2231,12 @@ fn place_victory_npc(state: &mut State) -> Point {
     state.world.always_visible(vnpc_pos, 2);
 
     if let Some(chunk) = state.world.chunk_mut(vnpc_pos) {
-        let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos, state.challenge);
+        let mut monster = monster::Monster::new(
+            monster::Kind::Npc,
+            vnpc_pos,
+            state.challenge,
+            &mut throwaway_rng,
+        );
         monster.companion_bonus = Some(CompanionBonus::Victory);
         // NOTE: The NPCs have the same colour range as the player,
         // but let's always pick a colour that's different from the

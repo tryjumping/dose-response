@@ -139,6 +139,47 @@ pub fn process(
         (false, _) => ("Lost", 0.0),
     };
 
+    // Only flash the mind status bar if the player will end up Exhausted on the next turn.
+    let flash_mind_bar = {
+        // Simulate the player taking a turn to see if they'd die.
+        let mut player = player.clone();
+        let was_alive = player.alive();
+        player.new_turn();
+        let died = was_alive && !player.alive();
+        if let Mind::Withdrawal(range) = player.mind {
+            died && range.is_min()
+        } else {
+            false
+        }
+    };
+
+    let mut fg = state.palette.gui_mind_progress_bar_fg;
+    let bg = state.palette.gui_mind_progress_bar_bg;
+
+    if flash_mind_bar {
+        let delta_r = f32::from(bg.r) - f32::from(fg.r);
+        let delta_g = f32::from(bg.g) - f32::from(fg.g);
+        let delta_b = f32::from(bg.b) - f32::from(fg.b);
+
+        let coef = {
+            use std::f32::consts;
+            // NOTE: This value must divide 1000 (as in milliseconds in a second) without a remainder!
+            let frequency_ms = 200.0;
+            // NOTE: Use the global clock's subsecond ms precision. That way we
+            // don't need to set up a specific timer for the mind bar flashing.
+            let val = (state.clock.subsec_millis() as f32 % frequency_ms) / frequency_ms;
+            // Sine-based easing from 0.0 to 1.0 and back to 0.0
+            (val * consts::PI).sin()
+        };
+
+        // Smoothly move the sidebar colour from background and back.
+        fg = crate::color::Color {
+            r: (f32::from(fg.r) + delta_r * coef) as u8,
+            g: (f32::from(fg.g) + delta_g * coef) as u8,
+            b: (f32::from(fg.b) + delta_b * coef) as u8,
+        };
+    }
+
     let bg_progress_bar_pos = ui.painter().add(Shape::Noop);
     let fg_progress_bar_pos = ui.painter().add(Shape::Noop);
     let progress_padding = 2.0;
@@ -155,8 +196,8 @@ pub fn process(
         ui_rect.width(),
         mindstate_rect.height(),
         mind_val_percent,
-        state.palette.gui_mind_progress_bar_bg,
-        state.palette.gui_mind_progress_bar_fg,
+        bg,
+        fg,
     );
 
     let bg_anxiety_paint_pos = ui.painter().add(Shape::Noop);

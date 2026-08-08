@@ -234,7 +234,9 @@ pub fn process(
         .fixed_size(window_size_px)
         .show(ui.ctx(), |ui| {
             let scroll_area = ScrollArea::vertical()
-                .max_height(window_size_px[1]);
+                .max_height(window_size_px[1])
+		// Without this, the scroll area and the whole window would shrink, moving the bottom buttons around
+		.auto_shrink([false, false]);
 	    // NOTE: looks like we're not triggering drag and drop correctly somehow
 	    scroll_area.show(ui, |ui| {
                 let copyright = format!("Copyright 2013-2024 {}", crate::metadata::AUTHORS);

@@ -36,6 +36,7 @@ pub struct Monster {
     pub blockers: Blocker,
     pub path: Vec<Point>,
     pub companion_bonus: Option<CompanionBonus>,
+    pub npc_flavor: Option<NpcFlavor>,
     pub accompanying_player: bool,
 
     pub ap: Ranged,
@@ -101,15 +102,27 @@ impl Display for CompanionBonus {
         let s = match *self {
             DoubleWillGrowth => "Faster Will Gain",
             HalveExhaustion => "Slow Exhaustion",
-            ExtraActionPoint => "Extra AP",
+            ExtraActionPoint => "Double Speed",
             Victory => "Victory",
         };
         f.write_str(s)
     }
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum NpcFlavor {
+    Buddy,
+    Fam,
+    Ally,
+}
+
 impl Monster {
-    pub fn new(kind: Kind, position: Point, challenge: Challenge) -> Monster {
+    pub fn new(
+        kind: Kind,
+        position: Point,
+        challenge: Challenge,
+        throwaway_rng: &mut Random,
+    ) -> Monster {
         let die_after_attack = match kind {
             Shadows | Voices => true,
             Anxiety | Depression | Hunger | Npc | Signpost => false,
@@ -141,6 +154,13 @@ impl Monster {
             _ => Blocker::WALL,
         };
 
+        let npc_flavor = if kind == Npc {
+            let flavors = [NpcFlavor::Buddy, NpcFlavor::Fam, NpcFlavor::Ally];
+            Some(*throwaway_rng.choose_with_fallback(&flavors, &NpcFlavor::Buddy))
+        } else {
+            None
+        };
+
         Monster {
             kind,
             position,
@@ -155,6 +175,7 @@ impl Monster {
             blockers,
             path: vec![],
             companion_bonus: None,
+            npc_flavor,
             accompanying_player: false,
         }
     }
@@ -264,8 +285,31 @@ impl Monster {
             Hunger => "Hunger",
             Shadows => "Shadows",
             Voices => "Voices",
-            Npc => "NPC",
+            Npc => match (self.npc_flavor, self.companion_bonus) {
+                (Some(NpcFlavor::Buddy), Some(CompanionBonus::Victory)) => "Close friend",
+                (Some(NpcFlavor::Buddy), _) => "Buddy",
+                (Some(NpcFlavor::Fam), Some(CompanionBonus::Victory)) => "Close family",
+                (Some(NpcFlavor::Fam), _) => "Family",
+                (Some(NpcFlavor::Ally), Some(CompanionBonus::Victory)) => "Close ally",
+                (Some(NpcFlavor::Ally), _) => "Ally",
+                (None, _) => "Bud", // fallback
+            },
             Signpost => "signpost",
+        }
+    }
+
+    pub fn tooltip(&self, show_bonus: bool) -> String {
+        let name = self.name();
+        if show_bonus {
+            let bonus = match self.companion_bonus {
+                Some(CompanionBonus::DoubleWillGrowth) => " (will bonus)",
+                Some(CompanionBonus::HalveExhaustion) => " (resilience bonus)",
+                Some(CompanionBonus::ExtraActionPoint) => " (speed bonus)",
+                _ => "",
+            };
+            format!("{name}{bonus}")
+        } else {
+            name.to_string()
         }
     }
 }

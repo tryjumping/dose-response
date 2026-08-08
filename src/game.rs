@@ -997,14 +997,15 @@ fn process_game(
         && mouse_window_pos_px.y <= game_area_px.y;
 
     // NOTE: show tooltip of a hovered-over object
+    let show_bonus = !state.player.mind.is_high();
     let tooltip = if !explored && settings.hide_unseen_tiles || !pointer_inside_game_area {
         None
     } else if state.mouse_world_position() == state.player.pos {
-        Some("Player Character")
+        Some("Player Character".to_string())
     } else if let Some(monster) = state.world.monster_on_pos(state.mouse_world_position()) {
-        Some(monster.name())
+        Some(monster.tooltip(show_bonus))
     } else if let Some(cell) = state.world.cell(state.mouse_world_position()) {
-        cell.items.first().map(|item| item.kind.name())
+        cell.items.first().map(|item| item.kind.name().to_string())
     } else {
         None
     };
@@ -1012,7 +1013,7 @@ fn process_game(
         // NOTE: only show tooltips when we're not scrolling the screen.
         // It looks bad otherwise.
         if state.pos_timer.finished() {
-            egui::show_tooltip_text(ui.ctx(), ui.layer_id(), egui::Id::new(tooltip), tooltip);
+            egui::show_tooltip_text(ui.ctx(), ui.layer_id(), egui::Id::new(&tooltip), tooltip);
         }
     }
 
@@ -1190,6 +1191,25 @@ fn process_monsters(
                     };
 
                     world.move_monster(pos, newpos, player.pos);
+
+                    // TODO: there are cases, when the monster was supposed to
+                    // move to `newpos`, but silently didn't. I observed this
+                    // when the AI returned CheckingOut(newpos) that was right
+                    // next to the current position, but happened to be occupied
+                    // by another monster.
+                    //
+                    // We should investigate how this is happening, why the
+                    // pathfinding code above didn't find this and if we can fix
+                    // things around without breaking replays.
+                    let monster_actually_moved =
+                        pos != newpos && world.monster_on_pos(pos).is_none();
+
+                    if !monster_actually_moved {
+                        log::warn!(
+                            "The monster didn't actually move to {newpos}! Its remains at: {pos}"
+                        );
+                    }
+
                     let monster_visible = newpos
                         .inside_circular_area(player.pos, formula::exploration_radius(player.mind));
                     if monster_visible {
@@ -1207,13 +1227,18 @@ fn process_monsters(
                     } else {
                         formula::ANIMATION_MOVE_DURATION
                     };
-                    let anim =
-                        animation::Move::ease(pos * tile_size, newpos * tile_size, move_duration);
-                    assert_eq!(anim.finished(), false);
+
+                    let anim = if monster_actually_moved {
+                        animation::Move::ease(pos * tile_size, newpos * tile_size, move_duration)
+                    } else {
+                        animation::Move::none()
+                    };
+
                     (newpos, anim)
                 }
 
                 Action::Bounce(destination) => {
+                    // NOTE: as of 2026-08-06, we don't call bounce on monsters anywhere
                     let monster_pos = monster_readonly.position;
                     let anim = animation::Move::bounce(
                         monster_pos * tile_size,
@@ -2109,6 +2134,7 @@ pub fn create_new_game_state(state: &State, new_challenge: Challenge) -> State {
 
 fn place_victory_npc(state: &mut State) -> Point {
     log::info!("Generating the Victory NPC!");
+    let mut throwaway_rng = state.rng.clone();
     let mut distance_range = formula::VICTORY_NPC_DISTANCE;
     // NOTE: Compute path to Victory NPC that is reachable by the
     // player. This may take several attempts. Leave the position
@@ -2230,7 +2256,12 @@ fn place_victory_npc(state: &mut State) -> Point {
     state.world.always_visible(vnpc_pos, 2);
 
     if let Some(chunk) = state.world.chunk_mut(vnpc_pos) {
-        let mut monster = monster::Monster::new(monster::Kind::Npc, vnpc_pos, state.challenge);
+        let mut monster = monster::Monster::new(
+            monster::Kind::Npc,
+            vnpc_pos,
+            state.challenge,
+            &mut throwaway_rng,
+        );
         monster.companion_bonus = Some(CompanionBonus::Victory);
         // NOTE: The NPCs have the same colour range as the player,
         // but let's always pick a colour that's different from the

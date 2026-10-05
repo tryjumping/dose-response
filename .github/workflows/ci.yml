@@ -32,7 +32,7 @@ jobs:
             $Env:CMAKE_POLICY_VERSION_MINIMUM = "3.5"
         # NOTE: `macos-latest` uses the Arm64 architecture:
         # https://github.com/actions/runner-images
-        - os: macos-14
+        - os: macos-26
           extra_features: macos-extra-features
           build_time_dependencies: |
             brew install sdl2

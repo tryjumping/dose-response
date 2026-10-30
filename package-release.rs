@@ -8,7 +8,7 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 rusty-s3 = { version = "0.5", default-features = false }
 tar = "0.4"
 walkdir = "2.5"
-zip = { version = "1.1", default-features = false }
+zip = { version = "9.1.3", default-features = false }
 ---
 
 use std::{
@@ -21,7 +21,7 @@ use std::{
 
 use anyhow::Context;
 
-use flate2::{write::GzEncoder, Compression};
+use flate2::{Compression, write::GzEncoder};
 
 use walkdir::WalkDir;
 
@@ -112,24 +112,24 @@ fn upload_package(signed_url: reqwest::Url, archive_path: &str) -> anyhow::Resul
     let ten_minutes = std::time::Duration::from_secs(600);
     let archive_file = File::open(archive_path)?;
     let client = reqwest::blocking::Client::new()
-	.put(signed_url)
-	.body(archive_file)
+        .put(signed_url)
+        .body(archive_file)
         // NOTE: the default value is 30 seconds, that's not enough for the upload:
-	.timeout(ten_minutes);
+        .timeout(ten_minutes);
 
     let upload_start = Instant::now();
     let res = client.send().with_context(|| {
-	let upload_duration = upload_start.elapsed().as_secs_f32();
-	format!("Request took: {upload_duration} seconds, before erroring out.")
+        let upload_duration = upload_start.elapsed().as_secs_f32();
+        format!("Request took: {upload_duration} seconds, before erroring out.")
     })?;
     let upload_duration = upload_start.elapsed().as_secs_f32();
     println!("Request took: {upload_duration} seconds.");
 
     if res.status() == 200 {
-	Ok(())
+        Ok(())
     } else {
-	dbg!(res);
-	Err(anyhow::anyhow!("Failed to upload release"))
+        dbg!(res);
+        Err(anyhow::anyhow!("Failed to upload release"))
     }
 }
 
@@ -328,7 +328,7 @@ fn main() -> anyhow::Result<()> {
         if aws_access_key_id.is_empty() || aws_secret_access_key.is_empty() {
             println!("AWS credentials not provided, skipping release upload.");
         } else {
-            use rusty_s3::{actions, Bucket, Credentials, S3Action, UrlStyle};
+            use rusty_s3::{Bucket, Credentials, S3Action, UrlStyle, actions};
             println!("Uploading the release to S3...");
             let endpoint = format!("https://s3.{region_name}.amazonaws.com/").parse()?;
             let path_style = UrlStyle::VirtualHost;
@@ -338,25 +338,25 @@ fn main() -> anyhow::Result<()> {
             let object_name =
                 format!("/{release_destination}/{release_version}/{archive_file_name}");
 
-	    println!("Uploading to: {object_name}");
-	    for n in 1..5 {
-		let action = actions::PutObject::new(&bucket, Some(&creds), &object_name);
-		let ten_minutes = std::time::Duration::from_secs(600);
-		let signed_url = action.sign(ten_minutes);
-		match upload_package(signed_url, &archive_path) {
-		    Ok(()) => {
-			println!("Release archive uploaded successfully.");
-			return Ok(())
-		    }
-		    Err(_) => {
-			let backoff = 2_u64.pow(n);
-			eprintln!("Attempt {n} failed. Backing off for {backoff} seconds...");
-			std::thread::sleep(std::time::Duration::from_secs(backoff));
-			eprintln!("Trying again...");
-		    }
-		}
-	    }
-	    anyhow::bail!("Failed to upload the release.");
+            println!("Uploading to: {object_name}");
+            for n in 1..5 {
+                let action = actions::PutObject::new(&bucket, Some(&creds), &object_name);
+                let ten_minutes = std::time::Duration::from_secs(600);
+                let signed_url = action.sign(ten_minutes);
+                match upload_package(signed_url, &archive_path) {
+                    Ok(()) => {
+                        println!("Release archive uploaded successfully.");
+                        return Ok(());
+                    }
+                    Err(_) => {
+                        let backoff = 2_u64.pow(n);
+                        eprintln!("Attempt {n} failed. Backing off for {backoff} seconds...");
+                        std::thread::sleep(std::time::Duration::from_secs(backoff));
+                        eprintln!("Trying again...");
+                    }
+                }
+            }
+            anyhow::bail!("Failed to upload the release.");
         }
     } else {
         println!("Release upload not requested, we're done here.");

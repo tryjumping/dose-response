@@ -8,7 +8,7 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 rusty-s3 = { version = "0.5", default-features = false }
 tar = "0.4"
 walkdir = "2.5"
-zip = { version = "1.1", default-features = false }
+zip = { version = "9.1.3", default-features = false }
 ---
 
 use std::{

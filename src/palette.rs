@@ -183,7 +183,7 @@ impl Palette {
             dose: CYAN,
             strong_dose: CYAN,
             shattering_dose: CYAN,
-            dose_irresistible_background: BLUE,
+            dose_irresistible_background: DARK_GREY,
             explosion: CYAN,
             shattering_explosion: RED,
 

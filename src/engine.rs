@@ -802,10 +802,7 @@ impl Display {
 
     pub fn get(&self, pos: Point) -> Color {
         if let Some(ix) = self.index(pos) {
-            self.map
-                .get(ix)
-                .map(|cell| cell.empty_color)
-                .unwrap_or_default()
+            self.map.get(ix).map_or_default(|cell| cell.empty_color)
         } else {
             Default::default()
         }

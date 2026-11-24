@@ -279,8 +279,7 @@ impl<S: SettingsStore + 'static> App<S> {
                 // NOTE: this is the top-left corner of the window relative to teh top-left corner of the desktop
                 // the desktop's top-left corner is the `position` of the monitor at the top-left of the desktop
                 .outer_position()
-                .map(|p| Point::new(p.x, p.y))
-                .unwrap_or_default();
+                .map_or_default(|p| Point::new(p.x, p.y));
             log::info!("Window pos: {:?}", self.window_pos);
             self.pre_fullscreen_window_pos = self.window_pos;
 
